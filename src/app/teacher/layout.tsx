@@ -6,6 +6,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 const NAV_ITEMS = [
   { href: "/teacher", label: "강사 홈" },
   { href: "/teacher/courses", label: "강좌 관리" },
+  { href: "/teacher/vocab", label: "단어학습" },
   { href: "/teacher/classes", label: "반 관리" },
   { href: "/teacher/students", label: "학생 관리" },
   { href: "/teacher/progress", label: "수강 현황" },

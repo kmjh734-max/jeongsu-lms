@@ -104,3 +104,57 @@ export interface CourseProgress {
   completedLessons: number;
   progressPercent: number;
 }
+
+export type VocabProgressStatus = "unknown" | "known" | "review";
+
+export interface VocabSet {
+  id: string;
+  title: string;
+  description: string | null;
+  teacher_id: string | null;
+  created_by: string | null;
+  is_published: boolean;
+  created_at: string;
+  teacher?: Profile | null;
+}
+
+export interface VocabItem {
+  id: string;
+  set_id: string;
+  word: string;
+  meaning: string;
+  part_of_speech: string | null;
+  example_sentence: string | null;
+  example_meaning: string | null;
+  order_index: number;
+  created_at: string;
+}
+
+export interface VocabAssignment {
+  id: string;
+  set_id: string;
+  student_id: string | null;
+  class_id: string | null;
+  assigned_by: string | null;
+  created_at: string;
+  student?: Profile | null;
+  class?: Class | null;
+}
+
+export interface VocabProgress {
+  id: string;
+  student_id: string;
+  item_id: string;
+  status: VocabProgressStatus;
+  studied_count: number;
+  last_studied_at: string | null;
+  created_at: string;
+}
+
+export interface StudentVocabSetSummary {
+  set: VocabSet;
+  itemCount: number;
+  knownCount: number;
+  reviewCount: number;
+  completionPercent: number;
+}
