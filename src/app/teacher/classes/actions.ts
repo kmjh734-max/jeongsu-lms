@@ -12,8 +12,8 @@ import {
   type ClassActionResult,
 } from "@/lib/classes/class-assignments";
 import {
-  assignVocabSetToClass,
-  removeVocabSetFromClass,
+  assignVocabSetToStudent,
+  removeVocabAssignment,
 } from "@/lib/vocab/class-assignments";
 import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 
@@ -153,8 +153,9 @@ export async function teacherRemoveCourseFromClass(
   return result;
 }
 
-export async function teacherAssignVocabSetToClass(
+export async function teacherAssignVocabSetToStudent(
   classId: string,
+  studentId: string,
   setId: string
 ): Promise<ClassActionResult> {
   const auth = await requireTeacher();
@@ -164,9 +165,10 @@ export async function teacherAssignVocabSetToClass(
   if (denied) return denied;
 
   const supabase = await createClient();
-  const result = await assignVocabSetToClass(
+  const result = await assignVocabSetToStudent(
     supabase,
     setId,
+    studentId,
     classId,
     auth.profileId
   );
@@ -176,11 +178,11 @@ export async function teacherAssignVocabSetToClass(
     revalidateVocabPaths("teacher", { classId });
   }
   return result.ok
-    ? { ok: true, message: "단어장이 반에 배정되었습니다." }
+    ? { ok: true, message: "학생에게 단어장이 배정되었습니다." }
     : { ok: false, message: result.message };
 }
 
-export async function teacherRemoveVocabSetFromClass(
+export async function teacherRemoveVocabSetFromStudent(
   classId: string,
   assignmentId: string
 ): Promise<ClassActionResult> {
@@ -191,7 +193,7 @@ export async function teacherRemoveVocabSetFromClass(
   if (denied) return denied;
 
   const supabase = await createClient();
-  const result = await removeVocabSetFromClass(supabase, assignmentId);
+  const result = await removeVocabAssignment(supabase, assignmentId);
 
   if (result.ok) {
     revalidateTeacherClassPaths(classId);

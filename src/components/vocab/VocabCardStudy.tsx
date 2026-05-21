@@ -1,11 +1,16 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { recordVocabProgress } from "@/app/student/vocab/actions";
+import {
+  isSpeechSupported,
+  speakEnglish,
+  stopSpeaking,
+} from "@/lib/vocab/speak-client";
 import type { VocabItem, VocabProgressStatus } from "@/types/database";
 
 export interface VocabStudyItem extends VocabItem {
@@ -18,16 +23,40 @@ interface VocabCardStudyProps {
   items: VocabStudyItem[];
 }
 
+function SpeakButton({
+  label,
+  onClick,
+  disabled,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
+      aria-label={label}
+    >
+      <span aria-hidden>🔊</span>
+      {label}
+    </button>
+  );
+}
+
 export function VocabCardStudy({
-  setId,
   setTitle,
   items,
 }: VocabCardStudyProps) {
   const router = useRouter();
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [autoSpeak, setAutoSpeak] = useState(true);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
+  const speechOk = isSpeechSupported();
 
   const total = items.length;
   const current = items[index];
@@ -36,10 +65,19 @@ export function VocabCardStudy({
     total > 0 ? Math.round((knownCount / total) * 100) : 0;
 
   const goTo = useCallback((next: number) => {
+    stopSpeaking();
     setIndex(next);
     setFlipped(false);
     setMessage(null);
   }, []);
+
+  useEffect(() => {
+    if (!autoSpeak || !speechOk || !current || flipped) return;
+    const t = window.setTimeout(() => speakEnglish(current.word), 300);
+    return () => window.clearTimeout(t);
+  }, [index, autoSpeak, speechOk, current, flipped]);
+
+  useEffect(() => () => stopSpeaking(), []);
 
   function handlePrev() {
     if (index > 0) goTo(index - 1);
@@ -92,6 +130,22 @@ export function VocabCardStudy({
             label={`${index + 1} / ${total} · 알아요 ${knownCount}개`}
           />
         </div>
+        {speechOk && (
+          <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={autoSpeak}
+              onChange={(e) => setAutoSpeak(e.target.checked)}
+              className="rounded border-slate-300"
+            />
+            단어 자동 읽기 (TTS)
+          </label>
+        )}
+        {!speechOk && (
+          <p className="mt-2 text-xs text-slate-500">
+            이 브라우저에서는 음성(TTS)을 지원하지 않습니다.
+          </p>
+        )}
       </div>
 
       <div
@@ -110,25 +164,43 @@ export function VocabCardStudy({
             <p className="mt-4 text-center text-3xl font-bold text-slate-900 sm:text-4xl">
               {current.word}
             </p>
-            <Button
-              type="button"
-              className="mt-8"
-              onClick={() => setFlipped(true)}
-            >
-              뜻 보기
-            </Button>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              {speechOk && (
+                <SpeakButton
+                  label="발음 듣기"
+                  onClick={() => speakEnglish(current.word)}
+                />
+              )}
+              <Button type="button" onClick={() => setFlipped(true)}>
+                뜻 보기
+              </Button>
+            </div>
           </div>
 
           <div className="absolute inset-0 flex flex-col rounded-3xl border-2 border-slate-200 bg-white p-6 shadow-[0_12px_40px_rgb(15_23_42/0.12)] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               뜻 · 예문
             </p>
-            <p className="mt-3 text-2xl font-bold text-brand-800">{current.meaning}</p>
+            <p className="mt-3 text-2xl font-bold text-brand-800">
+              {current.meaning}
+            </p>
             {current.example_sentence && (
               <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm">
                 <p className="text-slate-800">{current.example_sentence}</p>
                 {current.example_meaning && (
-                  <p className="mt-2 text-slate-600">{current.example_meaning}</p>
+                  <p className="mt-2 text-slate-600">
+                    {current.example_meaning}
+                  </p>
+                )}
+                {speechOk && (
+                  <div className="mt-3">
+                    <SpeakButton
+                      label="예문 듣기"
+                      onClick={() =>
+                        speakEnglish(current.example_sentence ?? "")
+                      }
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -136,7 +208,7 @@ export function VocabCardStudy({
               <Button
                 type="button"
                 variant="secondary"
-                className="flex-1 min-w-[120px]"
+                className="min-w-[120px] flex-1"
                 disabled={pending}
                 onClick={() => handleResponse(true)}
               >
@@ -144,7 +216,7 @@ export function VocabCardStudy({
               </Button>
               <Button
                 type="button"
-                className="flex-1 min-w-[120px]"
+                className="min-w-[120px] flex-1"
                 disabled={pending}
                 onClick={() => handleResponse(false)}
               >

@@ -144,7 +144,7 @@ export function VocabSetCreateModal({
               </select>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              단어장은 폴더에 저장됩니다. 학생 배정은 반 관리에서 하세요.
+              단어장은 폴더에 저장됩니다. 학생별 배정은 반 관리에서 하세요.
             </p>
           </div>
 

@@ -91,7 +91,7 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
   const teacherList = (teachers ?? []) as Profile[];
 
-  const { assignments, setOptions } = await loadClassVocabPanelData(
+  const { students: vocabStudents, setOptions } = await loadClassVocabPanelData(
     supabase,
     "teacher",
     profile!.id,
@@ -153,14 +153,14 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 font-semibold">단어장 배정</h3>
+        <h3 className="mb-4 font-semibold">학생별 단어장 배정</h3>
         <ClassVocabPanel
           classId={classId}
-          assignments={assignments}
+          students={vocabStudents}
           setOptions={setOptions}
-          onAssign={classActions.teacherAssignVocabSetToClass}
+          onAssign={classActions.teacherAssignVocabSetToStudent}
           onRemove={(assignmentId, cid) =>
-            classActions.teacherRemoveVocabSetFromClass(cid, assignmentId)
+            classActions.teacherRemoveVocabSetFromStudent(cid, assignmentId)
           }
         />
       </section>

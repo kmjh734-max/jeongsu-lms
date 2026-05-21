@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
-  ClassVocabAssignmentRow,
+  ClassStudentVocabRow,
   VocabSetOption,
 } from "@/components/vocab/ClassVocabPanel";
 
@@ -10,15 +10,22 @@ export async function loadClassVocabPanelData(
   userId: string,
   classId: string
 ): Promise<{
-  assignments: ClassVocabAssignmentRow[];
+  students: ClassStudentVocabRow[];
   setOptions: VocabSetOption[];
 }> {
-  const [assignmentsRes, setsRes] = await Promise.all([
+  const [membersRes, assignmentsRes, setsRes] = await Promise.all([
+    supabase
+      .from("class_students")
+      .select(
+        "student_id, student:profiles!class_students_student_id_fkey(id, name)"
+      )
+      .eq("class_id", classId)
+      .order("created_at"),
     supabase
       .from("vocab_assignments")
-      .select("id, set_id, set:vocab_sets(id, title)")
+      .select("id, set_id, student_id, set:vocab_sets(id, title)")
       .eq("class_id", classId)
-      .is("student_id", null)
+      .not("student_id", "is", null)
       .order("created_at", { ascending: false }),
     role === "admin"
       ? supabase
@@ -32,13 +39,31 @@ export async function loadClassVocabPanelData(
           .order("title"),
   ]);
 
-  const assignments: ClassVocabAssignmentRow[] = (assignmentsRes.data ?? []).map(
+  const assignmentsByStudent = new Map<
+    string,
+    { id: string; set_id: string; title: string }[]
+  >();
+
+  for (const row of assignmentsRes.data ?? []) {
+    const studentId = row.student_id as string;
+    const set = Array.isArray(row.set) ? row.set[0] : row.set;
+    const list = assignmentsByStudent.get(studentId) ?? [];
+    list.push({
+      id: row.id as string,
+      set_id: row.set_id as string,
+      title: (set as { title?: string } | null)?.title ?? "—",
+    });
+    assignmentsByStudent.set(studentId, list);
+  }
+
+  const students: ClassStudentVocabRow[] = (membersRes.data ?? []).map(
     (row) => {
-      const set = Array.isArray(row.set) ? row.set[0] : row.set;
+      const student = Array.isArray(row.student) ? row.student[0] : row.student;
+      const studentId = row.student_id as string;
       return {
-        id: row.id as string,
-        set_id: row.set_id as string,
-        title: (set as { title?: string } | null)?.title ?? "—",
+        student_id: studentId,
+        name: (student as { name?: string } | null)?.name ?? "—",
+        assignments: assignmentsByStudent.get(studentId) ?? [],
       };
     }
   );
@@ -52,5 +77,5 @@ export async function loadClassVocabPanelData(
     };
   });
 
-  return { assignments, setOptions };
+  return { students, setOptions };
 }

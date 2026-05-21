@@ -19,7 +19,7 @@ export default async function AdminVocabPage() {
       <div>
         <h1 className="text-xl font-semibold text-slate-900">단어 관리</h1>
         <p className="mt-1 text-sm text-slate-600">
-          폴더에 단어장을 만들고, 반 관리에서 클래스에 배정하세요.
+          폴더에 단어장을 만들고, 반 관리에서 학생별로 배정하세요.
         </p>
       </div>
 

@@ -60,7 +60,7 @@ export default async function AdminVocabSetPage({
         </Link>
         <h1 className="mt-2 text-xl font-semibold">{typedSet.title}</h1>
         <p className="text-sm text-slate-500">
-          학생 배정은 반 관리 → 해당 반 → 단어장 배정에서 합니다.
+          학생 배정은 반 관리 → 해당 반 → 학생별 단어장 배정에서 합니다.
         </p>
       </div>
 
