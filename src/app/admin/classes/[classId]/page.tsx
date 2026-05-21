@@ -6,7 +6,11 @@ import {
   ClassInfoPanel,
   ClassStudentsPanel,
 } from "@/components/classes/ClassDetailPanels";
+import { ClassVocabPanel } from "@/components/vocab/ClassVocabPanel";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { loadClassVocabPanelData } from "@/lib/vocab/load-class-vocab";
 import { unwrapRelation } from "@/lib/progress/enrollment-progress";
+import * as classActions from "@/app/admin/classes/actions";
 import type { Class, Course, Profile } from "@/types/database";
 
 interface PageProps {
@@ -15,6 +19,7 @@ interface PageProps {
 
 export default async function AdminClassDetailPage({ params }: PageProps) {
   const { classId } = await params;
+  const profile = await getCurrentProfile();
   const supabase = await createClient();
 
   const { data: classRow } = await supabase
@@ -78,6 +83,13 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
     };
   });
 
+  const { assignments, setOptions } = await loadClassVocabPanelData(
+    supabase,
+    "admin",
+    profile!.id,
+    classId
+  );
+
   return (
     <div className="space-y-10">
       <div>
@@ -121,6 +133,19 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
           classId={classId}
           classCourses={courseList}
           courseOptions={(courses ?? []) as Course[]}
+        />
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 font-semibold">단어장 배정</h3>
+        <ClassVocabPanel
+          classId={classId}
+          assignments={assignments}
+          setOptions={setOptions}
+          onAssign={classActions.adminAssignVocabSetToClass}
+          onRemove={(assignmentId, cid) =>
+            classActions.adminRemoveVocabSetFromClass(cid, assignmentId)
+          }
         />
       </section>
     </div>

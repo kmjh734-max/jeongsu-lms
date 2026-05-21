@@ -7,7 +7,10 @@ import {
   ClassInfoPanel,
   ClassStudentsPanel,
 } from "@/components/classes/ClassDetailPanels";
+import { ClassVocabPanel } from "@/components/vocab/ClassVocabPanel";
+import { loadClassVocabPanelData } from "@/lib/vocab/load-class-vocab";
 import { unwrapRelation } from "@/lib/progress/enrollment-progress";
+import * as classActions from "@/app/teacher/classes/actions";
 import type { Class, Course, Profile } from "@/types/database";
 
 interface PageProps {
@@ -88,6 +91,13 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
   const teacherList = (teachers ?? []) as Profile[];
 
+  const { assignments, setOptions } = await loadClassVocabPanelData(
+    supabase,
+    "teacher",
+    profile!.id,
+    classId
+  );
+
   return (
     <div className="space-y-10">
       <div>
@@ -139,6 +149,19 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
           classId={classId}
           classCourses={courseList}
           courseOptions={(myCourses ?? []) as Course[]}
+        />
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 font-semibold">단어장 배정</h3>
+        <ClassVocabPanel
+          classId={classId}
+          assignments={assignments}
+          setOptions={setOptions}
+          onAssign={classActions.teacherAssignVocabSetToClass}
+          onRemove={(assignmentId, cid) =>
+            classActions.teacherRemoveVocabSetFromClass(cid, assignmentId)
+          }
         />
       </section>
     </div>

@@ -107,15 +107,25 @@ export interface CourseProgress {
 
 export type VocabProgressStatus = "unknown" | "known" | "review";
 
+export interface VocabFolder {
+  id: string;
+  name: string;
+  teacher_id: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
 export interface VocabSet {
   id: string;
   title: string;
   description: string | null;
+  folder_id: string | null;
   teacher_id: string | null;
   created_by: string | null;
   is_published: boolean;
   created_at: string;
   teacher?: Profile | null;
+  folder?: VocabFolder | null;
 }
 
 export interface VocabItem {

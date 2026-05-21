@@ -17,7 +17,10 @@ interface VocabSetManagePanelProps {
       teacherId?: string | null;
     }
   ) => Promise<{ ok: boolean; message: string }>;
-  onDelete: (setId: string) => Promise<{ ok: boolean; message: string }>;
+  onDelete: (
+    setId: string,
+    folderId?: string | null
+  ) => Promise<{ ok: boolean; message: string }>;
   listHref: string;
 }
 
@@ -57,7 +60,7 @@ export function VocabSetManagePanel({
       return;
     }
     setLoading(true);
-    const result = await onDelete(set.id);
+    const result = await onDelete(set.id, set.folder_id);
     setMessage(result.message);
     setLoading(false);
     if (result.ok) router.push(listHref);

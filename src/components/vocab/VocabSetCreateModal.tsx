@@ -10,10 +10,12 @@ interface VocabSetCreateModalProps {
   role: "admin" | "teacher";
   teachers?: Profile[];
   basePath: "/admin/vocab" | "/teacher/vocab";
+  folderId: string;
   onCreate: (input: {
     title: string;
     description?: string;
     teacherId?: string;
+    folderId: string;
   }) => Promise<{ ok: boolean; message: string; setId?: string }>;
 }
 
@@ -23,6 +25,7 @@ export function VocabSetCreateModal({
   role,
   teachers = [],
   basePath,
+  folderId,
   onCreate,
 }: VocabSetCreateModalProps) {
   const router = useRouter();
@@ -47,6 +50,7 @@ export function VocabSetCreateModal({
       title: title.trim(),
       description: description.trim() || undefined,
       teacherId: role === "admin" ? teacherId || undefined : undefined,
+      folderId,
     });
 
     setLoading(false);
@@ -57,7 +61,7 @@ export function VocabSetCreateModal({
     }
 
     const suffix = mode === "import" ? "?import=1" : "";
-    router.push(`${basePath}/${result.setId}${suffix}`);
+    router.push(`${basePath}/set/${result.setId}${suffix}`);
     onClose();
   }
 
@@ -140,7 +144,7 @@ export function VocabSetCreateModal({
               </select>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              학생·반에 배정하면 학습 화면에 표시됩니다.
+              단어장은 폴더에 저장됩니다. 학생 배정은 반 관리에서 하세요.
             </p>
           </div>
 
