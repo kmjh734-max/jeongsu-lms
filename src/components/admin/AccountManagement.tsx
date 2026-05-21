@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseAdminApiResponse } from "@/lib/admin/parse-api-response-client";
 import { formatInternalEmailHint } from "@/lib/auth/username";
+import { SearchableTreePicker } from "@/components/ui/SearchableTreePicker";
 import { matchesSearch } from "@/lib/ui/filter-by-search";
+import type { TreeNode } from "@/lib/ui/tree-types";
 import type { Profile } from "@/types/database";
 
 export interface TeacherCourseInfo {
@@ -23,6 +25,9 @@ interface AccountManagementProps {
   /** 명단 테이블 위 검색 (이름·아이디·이메일) */
   showListSearch?: boolean;
   listSearchPlaceholder?: string;
+  /** 반·학생 트리로 명단 필터 */
+  listFilterTree?: TreeNode[];
+  listFilterLabel?: string;
 }
 
 type Message = { type: "success" | "error"; text: string } | null;
@@ -36,11 +41,14 @@ export function AccountManagement({
   courseInfoByUserId,
   showListSearch = false,
   listSearchPlaceholder = "이름·아이디로 검색",
+  listFilterTree,
+  listFilterLabel = "반·학생으로 찾기",
 }: AccountManagementProps) {
   const router = useRouter();
   const [message, setMessage] = useState<Message>(null);
   const [loading, setLoading] = useState(false);
   const [listQuery, setListQuery] = useState("");
+  const [treeFilterIds, setTreeFilterIds] = useState<string[] | null>(null);
 
   const [createName, setCreateName] = useState("");
   const [createUsername, setCreateUsername] = useState("");
@@ -302,17 +310,24 @@ export function AccountManagement({
   const colSpan = showCourses ? 5 : 4;
 
   const filteredUsers = useMemo(() => {
-    if (!showListSearch || !listQuery.trim()) return initialUsers;
-    return initialUsers.filter((user) =>
-      matchesSearch(
-        listQuery,
-        user.name,
-        user.username,
-        user.email,
-        formatInternalEmailHint(user.username)
-      )
-    );
-  }, [initialUsers, listQuery, showListSearch]);
+    let list = initialUsers;
+    if (treeFilterIds && treeFilterIds.length > 0) {
+      const idSet = new Set(treeFilterIds);
+      list = list.filter((user) => idSet.has(user.id));
+    }
+    if (showListSearch && listQuery.trim()) {
+      list = list.filter((user) =>
+        matchesSearch(
+          listQuery,
+          user.name,
+          user.username,
+          user.email,
+          formatInternalEmailHint(user.username)
+        )
+      );
+    }
+    return list;
+  }, [initialUsers, listQuery, showListSearch, treeFilterIds]);
 
   return (
     <div className="space-y-8">
@@ -388,15 +403,38 @@ export function AccountManagement({
         </p>
       )}
 
-      {showListSearch && initialUsers.length > 0 && (
-        <input
-          type="search"
-          value={listQuery}
-          onChange={(e) => setListQuery(e.target.value)}
-          placeholder={listSearchPlaceholder}
-          className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm"
-          autoComplete="off"
-        />
+      {(showListSearch || listFilterTree) && initialUsers.length > 0 && (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          {listFilterTree && listFilterTree.length > 0 && (
+            <div className="w-full max-w-md">
+              <SearchableTreePicker
+                label={listFilterLabel}
+                tree={listFilterTree}
+                value=""
+                onChange={() => {}}
+                filterMode
+                onFilterChange={setTreeFilterIds}
+                searchPlaceholder="반·학생 이름 검색"
+                emptyLabel="전체 학생"
+              />
+            </div>
+          )}
+          {showListSearch && (
+            <div className="w-full max-w-md">
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                텍스트 검색
+              </label>
+              <input
+                type="search"
+                value={listQuery}
+                onChange={(e) => setListQuery(e.target.value)}
+                placeholder={listSearchPlaceholder}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                autoComplete="off"
+              />
+            </div>
+          )}
+        </div>
       )}
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
