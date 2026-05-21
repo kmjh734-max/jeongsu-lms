@@ -40,11 +40,11 @@ export default async function AdminVocabPage() {
 
       <ul className="list-inside list-disc space-y-2 text-sm text-slate-600">
         <li>
-          왼쪽 <strong>나의 폴더</strong>에서 폴더를 선택한 뒤 단어세트를
-          만듭니다.
+          왼쪽 <strong>나의 폴더</strong> → 폴더 선택 → <strong>배정</strong> 또는{" "}
+          <strong>학생·반 배정</strong>에서 학생에게 단어장을 넣습니다.
         </li>
         <li>
-          <strong>나의 클래스</strong>는 학생 등록·단어장 배정용입니다.{" "}
+          <strong>나의 클래스</strong>는 학생 등록용입니다.{" "}
           <Link href="/admin/classes" className="text-brand-600 hover:underline">
             반 관리로 이동
           </Link>

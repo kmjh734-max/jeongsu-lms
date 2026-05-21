@@ -161,11 +161,12 @@ export function VocabSidebar({
                 const folderSets = setsByFolder.get(folder.id) ?? [];
                 const active =
                   pathname === href || pathname.startsWith(`${href}/`);
+                const assignHref = `${href}#assign`;
                 return (
-                  <div key={folder.id}>
+                  <div key={folder.id} className="flex items-center gap-0.5">
                     <Link
                       href={href}
-                      className={`flex items-center gap-2 rounded px-2 py-1.5 text-sm ${
+                      className={`flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-sm ${
                         active
                           ? "bg-violet-100 font-semibold text-violet-900"
                           : "text-slate-700 hover:bg-slate-100"
@@ -173,9 +174,16 @@ export function VocabSidebar({
                     >
                       <span aria-hidden>📁</span>
                       <span className="truncate">{folder.name}</span>
-                      <span className="ml-auto text-xs text-slate-400">
+                      <span className="ml-auto shrink-0 text-xs text-slate-400">
                         {folderSets.length}
                       </span>
+                    </Link>
+                    <Link
+                      href={assignHref}
+                      title="학생·반 배정"
+                      className="shrink-0 rounded px-1.5 py-1 text-[10px] font-bold leading-none text-violet-600 hover:bg-violet-100"
+                    >
+                      배정
                     </Link>
                   </div>
                 );

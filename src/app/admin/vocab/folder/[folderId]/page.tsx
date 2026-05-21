@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { FolderAssignPanel } from "@/components/vocab/FolderAssignPanel";
 import { VocabSetCreateLauncher } from "@/components/vocab/VocabSetCreateLauncher";
+import { loadFolderAssignPanelData } from "@/lib/vocab/load-folder-assign";
 import * as actions from "@/app/admin/vocab/actions";
 import type { Profile, VocabFolder, VocabSet } from "@/types/database";
 
@@ -11,6 +14,7 @@ interface PageProps {
 
 export default async function AdminVocabFolderPage({ params }: PageProps) {
   const { folderId } = await params;
+  const profile = await getCurrentProfile();
   const supabase = await createClient();
 
   const [{ data: folder }, { data: sets }, { data: teachers }, { data: itemRows }] =
@@ -44,6 +48,13 @@ export default async function AdminVocabFolderPage({ params }: PageProps) {
     teacher: { id: string; name: string } | null;
   })[];
 
+  const { classes, assignments, setCount } = await loadFolderAssignPanelData(
+    supabase,
+    "admin",
+    profile!.id,
+    folderId
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -61,13 +72,21 @@ export default async function AdminVocabFolderPage({ params }: PageProps) {
             이 폴더의 단어장 {setList.length}개
           </p>
         </div>
-        <VocabSetCreateLauncher
-          role="admin"
-          folderId={folderId}
-          teachers={(teachers ?? []) as Profile[]}
-          basePath="/admin/vocab"
-          onCreate={actions.createVocabSet}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="#assign"
+            className="inline-flex h-10 items-center rounded-lg border-2 border-violet-500 px-4 text-sm font-bold text-violet-700 hover:bg-violet-50"
+          >
+            학생·반 배정
+          </a>
+          <VocabSetCreateLauncher
+            role="admin"
+            folderId={folderId}
+            teachers={(teachers ?? []) as Profile[]}
+            basePath="/admin/vocab"
+            onCreate={actions.createVocabSet}
+          />
+        </div>
       </div>
 
       <div className="ui-table-wrap">
@@ -107,6 +126,24 @@ export default async function AdminVocabFolderPage({ params }: PageProps) {
           </tbody>
         </table>
       </div>
+
+      <section
+        id="assign"
+        className="scroll-mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+      >
+        <h2 className="text-lg font-semibold text-slate-900">학생·반 배정</h2>
+        <div className="mt-4">
+          <FolderAssignPanel
+            folderId={folderId}
+            setCount={setCount}
+            classes={classes}
+            assignments={assignments}
+            onAssignToClass={actions.assignFolderToClass}
+            onAssignToStudents={actions.assignFolderToStudents}
+            onRemoveAssignment={actions.removeFolderVocabAssignment}
+          />
+        </div>
+      </section>
     </div>
   );
 }

@@ -49,10 +49,11 @@ export default async function TeacherVocabPage() {
 
       <ul className="list-inside list-disc space-y-2 text-sm text-slate-600">
         <li>
-          왼쪽 <strong>나의 폴더</strong>에서 단어세트를 만듭니다.
+          왼쪽 <strong>나의 폴더</strong> → <strong>배정</strong> 버튼으로
+          학생·반에 단어장을 배정합니다.
         </li>
         <li>
-          학생 등록·단어장 배정은{" "}
+          학생 등록은{" "}
           <Link
             href="/teacher/classes"
             className="text-brand-600 hover:underline"

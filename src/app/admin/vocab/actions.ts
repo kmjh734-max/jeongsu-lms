@@ -12,6 +12,8 @@ import {
   deleteVocabFolder as deleteFolderLib,
   updateVocabFolder as updateFolderLib,
 } from "@/lib/vocab/folder-actions";
+import { bulkAssignFolderSets } from "@/lib/vocab/folder-assignments";
+import { removeVocabAssignment } from "@/lib/vocab/class-assignments";
 import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 import {
   persistVocabItems,
@@ -141,4 +143,77 @@ export async function saveVocabItems(
   revalidateVocabPaths(ROLE, { setId });
   const count = items.filter((i) => i.word.trim() && i.meaning.trim()).length;
   return actionSuccess(`${count}개 단어가 저장되었습니다.`);
+}
+
+function formatBulkAssignMessage(result: {
+  assigned: number;
+  skipped: number;
+  setCount: number;
+  studentCount: number;
+}) {
+  return `단어장 ${result.setCount}개 × 학생 ${result.studentCount}명 기준, 신규 ${result.assigned}건 배정${result.skipped > 0 ? ` (${result.skipped}건 이미 배정됨)` : ""}.`;
+}
+
+export async function assignFolderToClass(
+  folderId: string,
+  classId: string
+): Promise<ActionResult> {
+  const { profile, error } = await requireAdmin();
+  if (error) return error;
+
+  const supabase = await createClient();
+  const result = await bulkAssignFolderSets(
+    supabase,
+    folderId,
+    classId,
+    profile!.id
+  );
+
+  if (!result.ok) return actionError(result.message);
+
+  revalidateVocabPaths(ROLE, { folderId, classId });
+  return actionSuccess(formatBulkAssignMessage(result));
+}
+
+export async function assignFolderToStudents(
+  folderId: string,
+  classId: string,
+  studentIds: string[]
+): Promise<ActionResult> {
+  const { profile, error } = await requireAdmin();
+  if (error) return error;
+
+  if (!studentIds.length) {
+    return actionError("배정할 학생을 선택해 주세요.");
+  }
+
+  const supabase = await createClient();
+  const result = await bulkAssignFolderSets(
+    supabase,
+    folderId,
+    classId,
+    profile!.id,
+    studentIds
+  );
+
+  if (!result.ok) return actionError(result.message);
+
+  revalidateVocabPaths(ROLE, { folderId, classId });
+  return actionSuccess(formatBulkAssignMessage(result));
+}
+
+export async function removeFolderVocabAssignment(
+  assignmentId: string,
+  folderId: string
+): Promise<ActionResult> {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
+  const supabase = await createClient();
+  const result = await removeVocabAssignment(supabase, assignmentId);
+
+  if (!result.ok) return actionError(result.message);
+
+  revalidateVocabPaths(ROLE, { folderId });
+  return actionSuccess("배정이 해제되었습니다.");
 }
