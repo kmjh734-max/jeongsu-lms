@@ -21,13 +21,23 @@ export async function fetchGeneratedExamples(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ items }),
+      credentials: "same-origin",
     });
 
-    const data = (await res.json()) as {
+    let data: {
       ok: boolean;
       message?: string;
       items?: GenerateExampleResult[];
     };
+
+    try {
+      data = (await res.json()) as typeof data;
+    } catch {
+      return {
+        ok: false,
+        message: `서버 응답 오류 (HTTP ${res.status}). 로그인 상태를 확인해 주세요.`,
+      };
+    }
 
     if (!data.ok || !data.items) {
       return {
