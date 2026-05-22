@@ -37,7 +37,7 @@ function SpeakButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
+      className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
       aria-label={label}
     >
       <span aria-hidden>🔊</span>
@@ -115,7 +115,7 @@ export function VocabCardStudy({
   }
 
   return (
-    <div className="mx-auto w-full max-w-lg space-y-6">
+    <div className="mx-auto w-full max-w-3xl space-y-8 px-2 sm:px-0">
       <div>
         <Link
           href="/student/vocab"
@@ -123,7 +123,9 @@ export function VocabCardStudy({
         >
           ← 단어장 목록
         </Link>
-        <h1 className="mt-2 text-lg font-semibold text-slate-900">{setTitle}</h1>
+        <h1 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
+          {setTitle}
+        </h1>
         <div className="mt-3">
           <ProgressBar
             percent={progressPercent}
@@ -149,51 +151,57 @@ export function VocabCardStudy({
       </div>
 
       <div
-        className="relative min-h-[280px] sm:min-h-[320px]"
-        style={{ perspective: "1000px" }}
+        className="relative w-full"
+        style={{ perspective: "1200px" }}
       >
         <div
-          className={`relative h-full w-full transition-transform duration-500 [transform-style:preserve-3d] ${
+          className={`relative h-[min(72vh,560px)] min-h-[420px] w-full transition-transform duration-500 [transform-style:preserve-3d] sm:min-h-[480px] ${
             flipped ? "[transform:rotateY(180deg)]" : ""
           }`}
         >
-          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl border-2 border-brand-200 bg-gradient-to-br from-white to-brand-50 p-8 shadow-[0_12px_40px_rgb(15_23_42/0.12)] [backface-visibility:hidden]">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-600">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 rounded-3xl border-2 border-brand-200 bg-gradient-to-br from-white to-brand-50 px-8 py-12 shadow-[0_16px_48px_rgb(15_23_42/0.14)] [backface-visibility:hidden] sm:px-12 sm:py-14">
+            <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
               영어 단어
             </p>
-            <p className="mt-4 text-center text-3xl font-bold text-slate-900 sm:text-4xl">
+            <p className="text-center text-4xl font-bold leading-tight text-slate-900 sm:text-5xl md:text-6xl">
               {current.word}
             </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
               {speechOk && (
                 <SpeakButton
                   label="발음 듣기"
                   onClick={() => speakEnglish(current.word)}
                 />
               )}
-              <Button type="button" onClick={() => setFlipped(true)}>
+              <Button
+                type="button"
+                className="min-h-11 px-8 text-base"
+                onClick={() => setFlipped(true)}
+              >
                 뜻 보기
               </Button>
             </div>
           </div>
 
-          <div className="absolute inset-0 flex flex-col rounded-3xl border-2 border-slate-200 bg-white p-6 shadow-[0_12px_40px_rgb(15_23_42/0.12)] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <div className="absolute inset-0 flex flex-col rounded-3xl border-2 border-slate-200 bg-white px-8 py-10 shadow-[0_16px_48px_rgb(15_23_42/0.14)] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:px-12 sm:py-12">
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
               뜻 · 예문
             </p>
-            <p className="mt-3 text-2xl font-bold text-brand-800">
+            <p className="mt-4 text-3xl font-bold leading-snug text-brand-800 sm:text-4xl">
               {current.meaning}
             </p>
             {current.example_sentence && (
-              <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm">
-                <p className="text-slate-800">{current.example_sentence}</p>
+              <div className="mt-6 flex-1 overflow-y-auto rounded-2xl bg-slate-50 p-5 text-base sm:p-6 sm:text-lg">
+                <p className="leading-relaxed text-slate-800">
+                  {current.example_sentence}
+                </p>
                 {current.example_meaning && (
-                  <p className="mt-2 text-slate-600">
+                  <p className="mt-3 leading-relaxed text-slate-600">
                     {current.example_meaning}
                   </p>
                 )}
                 {speechOk && (
-                  <div className="mt-3">
+                  <div className="mt-4">
                     <SpeakButton
                       label="예문 듣기"
                       onClick={() =>
@@ -204,11 +212,11 @@ export function VocabCardStudy({
                 )}
               </div>
             )}
-            <div className="mt-auto flex flex-wrap gap-2 pt-6">
+            <div className="mt-auto flex flex-wrap gap-3 pt-8">
               <Button
                 type="button"
                 variant="secondary"
-                className="min-w-[120px] flex-1"
+                className="min-h-12 min-w-[140px] flex-1 text-base"
                 disabled={pending}
                 onClick={() => handleResponse(true)}
               >
@@ -216,7 +224,7 @@ export function VocabCardStudy({
               </Button>
               <Button
                 type="button"
-                className="min-w-[120px] flex-1"
+                className="min-h-12 min-w-[140px] flex-1 text-base"
                 disabled={pending}
                 onClick={() => handleResponse(false)}
               >

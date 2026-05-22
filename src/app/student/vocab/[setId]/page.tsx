@@ -61,7 +61,7 @@ export default async function StudentVocabStudyPage({ params }: PageProps) {
   }));
 
   return (
-    <div className="py-6 px-4 sm:py-10">
+    <div className="mx-auto w-full max-w-4xl py-6 px-4 sm:py-10">
       <VocabCardStudy
         setId={setId}
         setTitle={summary.set.title}
