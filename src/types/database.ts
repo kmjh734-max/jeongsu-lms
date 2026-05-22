@@ -107,6 +107,8 @@ export interface CourseProgress {
 
 export type VocabProgressStatus = "unknown" | "known" | "review";
 
+export type VocabTestType = "meaning_choice" | "word_choice" | "spelling";
+
 export interface VocabFolder {
   id: string;
   name: string;
@@ -161,10 +163,39 @@ export interface VocabProgress {
   created_at: string;
 }
 
+export interface VocabTestAttempt {
+  id: string;
+  set_id: string;
+  student_id: string;
+  test_type: VocabTestType;
+  score: number;
+  total_questions: number;
+  correct_count: number;
+  started_at: string;
+  submitted_at: string | null;
+  created_at: string;
+}
+
+export interface VocabTestAnswer {
+  id: string;
+  attempt_id: string;
+  item_id: string;
+  question_type: VocabTestType;
+  question_text: string | null;
+  correct_answer: string | null;
+  student_answer: string | null;
+  is_correct: boolean;
+  choices: string[] | null;
+  created_at: string;
+}
+
 export interface StudentVocabSetSummary {
   set: VocabSet;
   itemCount: number;
   knownCount: number;
   reviewCount: number;
   completionPercent: number;
+  latestTestScore: number | null;
+  latestTestAt: string | null;
+  latestTestType: VocabTestType | null;
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { fetchStudentVocabSummaries } from "@/lib/vocab/student-sets";
+import { vocabTestTypeLabel } from "@/lib/vocab/test-types";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { ButtonLink } from "@/components/ui/Button";
@@ -16,7 +17,7 @@ export default async function StudentVocabPage() {
     <div className="space-y-8">
       <PageHeader
         title="단어학습"
-        description="배정된 단어장을 카드로 학습할 수 있습니다."
+        description="배정된 단어장을 카드로 학습하거나 테스트할 수 있습니다."
       />
 
       {summaries.length === 0 ? (
@@ -35,6 +36,9 @@ export default async function StudentVocabPage() {
               knownCount,
               reviewCount,
               completionPercent,
+              latestTestScore,
+              latestTestAt,
+              latestTestType,
             }) => (
               <div
                 key={set.id}
@@ -64,11 +68,41 @@ export default async function StudentVocabPage() {
                     label={`알아요 ${knownCount} / ${itemCount}`}
                   />
                 </div>
+                <div className="mt-3 text-sm">
+                  {latestTestAt && latestTestScore !== null ? (
+                    <p className="text-slate-600">
+                      최근 테스트:{" "}
+                      <span className="font-semibold text-brand-700">
+                        {latestTestScore}점
+                      </span>
+                      {latestTestType && (
+                        <span className="text-slate-500">
+                          {" "}
+                          ({vocabTestTypeLabel(latestTestType)})
+                        </span>
+                      )}
+                      <span className="block text-xs text-slate-400">
+                        {new Date(latestTestAt).toLocaleDateString("ko-KR")}
+                      </span>
+                    </p>
+                  ) : itemCount >= 2 ? (
+                    <p className="text-amber-700">테스트 미응시</p>
+                  ) : null}
+                </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {itemCount > 0 ? (
-                    <ButtonLink href={`/student/vocab/${set.id}`} size="sm">
-                      학습 시작
-                    </ButtonLink>
+                    <>
+                      <ButtonLink href={`/student/vocab/${set.id}`} size="sm">
+                        열기
+                      </ButtonLink>
+                      <ButtonLink
+                        href={`/student/vocab/${set.id}/study`}
+                        variant="secondary"
+                        size="sm"
+                      >
+                        카드 학습
+                      </ButtonLink>
+                    </>
                   ) : (
                     <span className="inline-flex h-8 items-center rounded-lg bg-slate-100 px-3 text-xs font-medium text-slate-500">
                       단어가 없습니다

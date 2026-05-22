@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { VocabSetManagePanel } from "@/components/vocab/VocabSetManagePanel";
 import { VocabTableEditor } from "@/components/vocab/VocabTableEditor";
+import { VocabTestResultsTable } from "@/components/vocab/VocabTestResultsTable";
+import { loadSetTestResults } from "@/lib/vocab/load-set-test-results";
 import * as actions from "@/app/teacher/vocab/actions";
 import type { VocabItem, VocabSet } from "@/types/database";
 
@@ -45,6 +47,8 @@ export default async function TeacherVocabSetPage({
 
   const itemList = (items ?? []) as VocabItem[];
 
+  const testResults = await loadSetTestResults(supabase, setId);
+
   return (
     <div className="space-y-8">
       <div>
@@ -81,6 +85,14 @@ export default async function TeacherVocabSetPage({
           initialImportOpen={importParam === "1"}
           onSave={actions.saveVocabItems}
         />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold text-slate-900">테스트 결과</h2>
+        <p className="text-sm text-slate-500">
+          담당 학생이 제출한 최근 테스트 결과입니다.
+        </p>
+        <VocabTestResultsTable rows={testResults} />
       </section>
     </div>
   );

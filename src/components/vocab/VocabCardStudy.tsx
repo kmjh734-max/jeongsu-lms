@@ -47,6 +47,7 @@ function SpeakButton({
 }
 
 export function VocabCardStudy({
+  setId,
   setTitle,
   items,
 }: VocabCardStudyProps) {
@@ -118,10 +119,10 @@ export function VocabCardStudy({
     <div className="mx-auto w-full max-w-3xl space-y-8 px-2 sm:px-0">
       <div>
         <Link
-          href="/student/vocab"
+          href={`/student/vocab/${setId}`}
           className="text-sm text-brand-600 hover:underline"
         >
-          ← 단어장 목록
+          ← 단어장으로
         </Link>
         <h1 className="mt-2 text-xl font-semibold text-slate-900 sm:text-2xl">
           {setTitle}

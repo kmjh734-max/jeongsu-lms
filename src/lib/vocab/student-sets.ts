@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { fetchLatestTestBySet } from "@/lib/vocab/load-student-test-summaries";
 import { computeVocabSetStats } from "@/lib/vocab/stats";
 import type { StudentVocabSetSummary, VocabSet } from "@/types/database";
 
@@ -67,11 +68,24 @@ export async function fetchStudentVocabSummaries(
 
   const progressList = (progress ?? []).filter((p) => allItemIds.has(p.item_id));
 
+  const latestTests = await fetchLatestTestBySet(
+    supabase,
+    studentId,
+    publishedIds
+  );
+
   return publishedSets.map((set) => {
     const setItems = itemsBySet.get(set.id) ?? [];
     const itemIds = new Set(setItems.map((i) => i.id));
     const setProgress = progressList.filter((p) => itemIds.has(p.item_id));
     const stats = computeVocabSetStats(setItems, setProgress);
-    return { set, ...stats };
+    const latest = latestTests.get(set.id);
+    return {
+      set,
+      ...stats,
+      latestTestScore: latest?.score ?? null,
+      latestTestAt: latest?.submittedAt ?? null,
+      latestTestType: latest?.testType ?? null,
+    };
   });
 }
