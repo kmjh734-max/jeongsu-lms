@@ -29,6 +29,26 @@ export async function assignVocabSetToStudent(
   const memberCheck = await assertStudentInClass(supabase, classId, studentId);
   if (!memberCheck.ok) return memberCheck;
 
+  return assignVocabSetDirect(supabase, setId, studentId, assignedBy, classId);
+}
+
+/** 반 없이 학생에게 직접 배정 (class_id null) 또는 반 소속 기록 */
+export async function assignVocabSetDirect(
+  supabase: SupabaseClient,
+  setId: string,
+  studentId: string,
+  assignedBy: string,
+  classId?: string | null
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (classId) {
+    const memberCheck = await assertStudentInClass(
+      supabase,
+      classId,
+      studentId
+    );
+    if (!memberCheck.ok) return memberCheck;
+  }
+
   const { data: existing } = await supabase
     .from("vocab_assignments")
     .select("id")
@@ -43,7 +63,7 @@ export async function assignVocabSetToStudent(
   const { error } = await supabase.from("vocab_assignments").insert({
     set_id: setId,
     student_id: studentId,
-    class_id: classId,
+    class_id: classId ?? null,
     assigned_by: assignedBy,
   });
 

@@ -182,6 +182,40 @@ export async function teacherAssignVocabSetToStudent(
     : { ok: false, message: result.message };
 }
 
+export async function teacherDeactivateClass(
+  classId: string
+): Promise<ClassActionResult> {
+  const auth = await requireTeacher();
+  if (!auth.ok) return { ok: false, message: auth.message };
+
+  const denied = await assertTeacherOwnsClass(auth.profileId, classId);
+  if (denied) return denied;
+
+  const supabase = await createClient();
+  const { data: existing } = await supabase
+    .from("classes")
+    .select("id, name")
+    .eq("id", classId)
+    .maybeSingle();
+
+  if (!existing) {
+    return { ok: false, message: "반을 찾을 수 없습니다." };
+  }
+
+  const { error } = await supabase
+    .from("classes")
+    .update({ is_active: false })
+    .eq("id", classId);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidateTeacherClassPaths(classId);
+  return {
+    ok: true,
+    message: `「${existing.name}」 반이 비활성화되었습니다.`,
+  };
+}
+
 export async function teacherRemoveVocabSetFromStudent(
   classId: string,
   assignmentId: string

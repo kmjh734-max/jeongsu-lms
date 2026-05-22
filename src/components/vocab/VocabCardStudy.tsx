@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { recordVocabProgress } from "@/app/student/vocab/actions";
+import { recordStage1Item } from "@/app/student/vocab/actions";
 import {
   isSpeechSupported,
   speakEnglish,
@@ -92,7 +92,7 @@ export function VocabCardStudy({
     if (!current || pending) return;
 
     startTransition(async () => {
-      const result = await recordVocabProgress(current.id, known);
+      const result = await recordStage1Item(setId, current.id, known);
       setMessage(result.message);
       if (result.ok) {
         if (index < total - 1) {

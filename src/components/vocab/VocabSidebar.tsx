@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { DeleteFolderButton } from "@/components/vocab/DeleteFolderButton";
+import { VocabClassSidebarDelete } from "@/components/vocab/VocabClassSidebarDelete";
 import type { Class, VocabFolder } from "@/types/database";
 
 export interface VocabSidebarSet {
@@ -19,12 +21,15 @@ interface VocabSidebarProps {
   sets: VocabSidebarSet[];
   classesHref: string;
   onCreateFolder: (name: string) => Promise<{ ok: boolean; message: string }>;
+  onDeleteFolder: (folderId: string) => Promise<{ ok: boolean; message: string }>;
 }
 
-function linkClass(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`)
-    ? "bg-violet-100 font-semibold text-violet-900"
-    : "text-slate-700 hover:bg-slate-100";
+function navLink(pathname: string, href: string, activeClass: string) {
+  const active =
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+  return active
+    ? activeClass
+    : "text-slate-700 hover:bg-slate-50 hover:text-slate-900";
 }
 
 export function VocabSidebar({
@@ -34,6 +39,7 @@ export function VocabSidebar({
   sets,
   classesHref,
   onCreateFolder,
+  onDeleteFolder,
 }: VocabSidebarProps) {
   const pathname = usePathname();
   const base = role === "admin" ? "/admin/vocab" : "/teacher/vocab";
@@ -44,14 +50,14 @@ export function VocabSidebar({
   const [msg, setMsg] = useState<string | null>(null);
 
   const setsByFolder = new Map<string, VocabSidebarSet[]>();
-  const unfiled: VocabSidebarSet[] = [];
+  let unfiledCount = 0;
   for (const s of sets) {
     if (s.folder_id) {
       const list = setsByFolder.get(s.folder_id) ?? [];
       list.push(s);
       setsByFolder.set(s.folder_id, list);
     } else {
-      unfiled.push(s);
+      unfiledCount++;
     }
   }
 
@@ -65,33 +71,36 @@ export function VocabSidebar({
     setCreatingFolder(false);
   }
 
+  const activeNav =
+    "bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200/80";
+
   return (
-    <aside className="flex w-full shrink-0 flex-col border-r border-slate-200 bg-white lg:w-64">
-      <div className="border-b border-slate-100 px-3 py-3">
-        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+    <aside className="flex w-full shrink-0 flex-col border-r border-slate-200 bg-white lg:w-72">
+      <div className="border-b border-slate-100 px-4 py-4">
+        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
           단어 관리
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 py-3">
+      <div className="flex-1 overflow-y-auto px-3 py-4">
         <button
           type="button"
           onClick={() => setClassesOpen((o) => !o)}
-          className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm font-bold text-slate-800"
+          className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm font-bold text-slate-800"
         >
           <span>나의 클래스 ({classes.length})</span>
           <span className="text-slate-400">{classesOpen ? "▾" : "▸"}</span>
         </button>
         {classesOpen && (
-          <div className="mt-1 space-y-0.5 pl-1">
+          <div className="mt-1 space-y-0.5">
             <Link
               href={classesHref}
-              className={`block rounded px-2 py-1.5 text-sm ${linkClass(pathname, classesHref)}`}
+              className={`block rounded-lg px-3 py-2 text-sm ${navLink(pathname, classesHref, activeNav)}`}
             >
               + 클래스 관리
             </Link>
             {classes.length === 0 ? (
-              <p className="px-2 py-2 text-xs text-slate-500">
+              <p className="px-3 py-2 text-xs text-slate-500">
                 등록된 반이 없습니다.
               </p>
             ) : (
@@ -101,36 +110,45 @@ export function VocabSidebar({
                     ? `/admin/classes/${cls.id}`
                     : `/teacher/classes/${cls.id}`;
                 return (
-                  <Link
+                  <div
                     key={cls.id}
-                    href={href}
-                    className={`flex items-center gap-2 rounded px-2 py-1.5 text-sm ${linkClass(pathname, href)}`}
+                    className={`flex items-center gap-0.5 rounded-lg pr-1 ${navLink(pathname, href, activeNav)}`}
                   >
-                    <span className="text-violet-500" aria-hidden>
-                      👥
-                    </span>
-                    <span className="truncate">{cls.name}</span>
-                  </Link>
+                    <Link
+                      href={href}
+                      className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-sm"
+                    >
+                      <span className="text-emerald-600" aria-hidden>
+                        👥
+                      </span>
+                      <span className="truncate">{cls.name}</span>
+                    </Link>
+                    <VocabClassSidebarDelete
+                      role={role}
+                      classId={cls.id}
+                      className={cls.name}
+                    />
+                  </div>
                 );
               })
             )}
           </div>
         )}
 
-        <div className="mt-5">
+        <div className="mt-6">
           <button
             type="button"
             onClick={() => setFoldersOpen((o) => !o)}
-            className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm font-bold text-slate-800"
+            className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm font-bold text-slate-800"
           >
             <span>나의 폴더 ({folders.length})</span>
             <span className="text-slate-400">{foldersOpen ? "▾" : "▸"}</span>
           </button>
           {foldersOpen && (
-            <div className="mt-1 space-y-2 pl-1">
-              <div className="flex gap-1 px-1">
+            <div className="mt-2 space-y-2">
+              <div className="flex gap-1.5 px-1">
                 <input
-                  className="ui-input min-h-0 flex-1 py-1 text-xs"
+                  className="ui-input min-h-0 flex-1 py-2 text-sm"
                   placeholder="새 폴더 이름"
                   value={folderName}
                   onChange={(e) => setFolderName(e.target.value)}
@@ -140,7 +158,7 @@ export function VocabSidebar({
                   type="button"
                   disabled={creatingFolder}
                   onClick={handleCreateFolder}
-                  className="shrink-0 rounded border-2 border-violet-500 px-2 py-1 text-xs font-bold text-violet-700 hover:bg-violet-50"
+                  className="shrink-0 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   + 폴더
                 </button>
@@ -152,7 +170,7 @@ export function VocabSidebar({
               )}
               <Link
                 href={base}
-                className={`block rounded px-2 py-1.5 text-sm ${pathname === base ? "bg-violet-100 font-semibold text-violet-900" : "text-slate-600 hover:bg-slate-100"}`}
+                className={`block rounded-lg px-3 py-2 text-sm ${pathname === base ? activeNav : "text-slate-600 hover:bg-slate-50"}`}
               >
                 전체 보기
               </Link>
@@ -161,36 +179,45 @@ export function VocabSidebar({
                 const folderSets = setsByFolder.get(folder.id) ?? [];
                 const active =
                   pathname === href || pathname.startsWith(`${href}/`);
-                const assignHref = `${href}#assign`;
                 return (
-                  <div key={folder.id} className="flex items-center gap-0.5">
+                  <div
+                    key={folder.id}
+                    className={`flex items-center gap-0.5 rounded-lg pr-1 ${
+                      active ? activeNav : ""
+                    }`}
+                  >
                     <Link
                       href={href}
-                      className={`flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-sm ${
-                        active
-                          ? "bg-violet-100 font-semibold text-violet-900"
-                          : "text-slate-700 hover:bg-slate-100"
+                      className={`flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-sm ${
+                        active ? "" : "text-slate-700 hover:bg-slate-50"
                       }`}
                     >
                       <span aria-hidden>📁</span>
-                      <span className="truncate">{folder.name}</span>
+                      <span className="truncate font-medium">{folder.name}</span>
                       <span className="ml-auto shrink-0 text-xs text-slate-400">
                         {folderSets.length}
                       </span>
                     </Link>
                     <Link
-                      href={assignHref}
+                      href={`${href}?openAssign=1`}
                       title="학생·반 배정"
-                      className="shrink-0 rounded px-1.5 py-1 text-[10px] font-bold leading-none text-violet-600 hover:bg-violet-100"
+                      className="shrink-0 rounded px-1.5 py-1 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       배정
                     </Link>
+                    <DeleteFolderButton
+                      folderId={folder.id}
+                      folderName={folder.name}
+                      basePath={base}
+                      onDelete={onDeleteFolder}
+                    />
                   </div>
                 );
               })}
-              {unfiled.length > 0 && (
+              {unfiledCount > 0 && (
                 <p className="px-2 text-xs text-slate-400">
-                  폴더 없음 {unfiled.length}개 세트
+                  미분류 세트 {unfiledCount}개
                 </p>
               )}
             </div>

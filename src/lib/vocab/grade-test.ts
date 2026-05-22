@@ -5,13 +5,12 @@ import {
   getCorrectAnswer,
 } from "@/lib/vocab/generate-test-questions";
 
-export function normalizeSpellingAnswer(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .replace(/[-–—]/g, "-");
-}
+import {
+  gradeSpellingAnswer,
+  normalizeSpellingAnswer,
+} from "@/lib/vocab/grade-spelling";
+
+export { normalizeSpellingAnswer };
 
 export function gradeStudentAnswer(
   testType: VocabTestType,
@@ -22,10 +21,7 @@ export function gradeStudentAnswer(
   if (!student) return false;
 
   if (testType === "spelling") {
-    return (
-      normalizeSpellingAnswer(student) ===
-      normalizeSpellingAnswer(correctAnswer)
-    );
+    return gradeSpellingAnswer(correctAnswer, student);
   }
 
   return student === correctAnswer.trim();

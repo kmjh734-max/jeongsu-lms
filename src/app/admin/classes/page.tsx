@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CreateClassForm } from "@/components/classes/CreateClassForm";
 import { DeleteClassButton } from "@/components/classes/DeleteClassButton";
+import { deleteClass } from "@/app/admin/classes/actions";
 import { ActiveBadge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
 import type { Class, Profile } from "@/types/database";
@@ -14,6 +15,7 @@ export default async function AdminClassesPage() {
       supabase
         .from("classes")
         .select("*, teacher:profiles!classes_teacher_id_fkey(id, name)")
+        .eq("is_active", true)
         .order("created_at", { ascending: false }),
       supabase
         .from("profiles")
@@ -108,6 +110,7 @@ export default async function AdminClassesPage() {
                       <DeleteClassButton
                         classId={cls.id}
                         className={cls.name}
+                        onDelete={deleteClass}
                         compact
                       />
                     </div>

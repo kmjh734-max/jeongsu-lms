@@ -124,7 +124,10 @@ export async function deleteClass(classId: string): Promise<ClassActionResult> {
     return { ok: false, message: "반을 찾을 수 없습니다." };
   }
 
-  const { error } = await supabase.from("classes").delete().eq("id", classId);
+  const { error } = await supabase
+    .from("classes")
+    .update({ is_active: false })
+    .eq("id", classId);
 
   if (error) {
     return { ok: false, message: error.message };
@@ -133,7 +136,7 @@ export async function deleteClass(classId: string): Promise<ClassActionResult> {
   revalidateClassPaths();
   return {
     ok: true,
-    message: `「${existing.name}」 반이 삭제되었습니다.`,
+    message: `「${existing.name}」 반이 비활성화되었습니다.`,
   };
 }
 

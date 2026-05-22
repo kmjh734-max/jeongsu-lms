@@ -12,8 +12,17 @@ import {
   deleteVocabFolder as deleteFolderLib,
   updateVocabFolder as updateFolderLib,
 } from "@/lib/vocab/folder-actions";
-import { bulkAssignFolderSets } from "@/lib/vocab/folder-assignments";
+import {
+  bulkAssignFolderSets,
+  formatBulkAssignSuccess,
+} from "@/lib/vocab/folder-assignments";
+import { bulkAssignSets } from "@/lib/vocab/bulk-assign-sets";
 import { removeVocabAssignment } from "@/lib/vocab/class-assignments";
+import {
+  copyVocabSetToFolder,
+  moveVocabSetToFolder,
+} from "@/lib/vocab/set-ops";
+import { nextVocabSetOrderIndex } from "@/lib/vocab/reorder-sets";
 import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 import {
   persistVocabItems,
@@ -56,12 +65,14 @@ export async function createVocabSet(input: {
   if (!input.folderId) return actionError("폴더를 선택해 주세요.");
 
   const supabase = await createClient();
+  const orderIndex = await nextVocabSetOrderIndex(supabase, input.folderId);
   const { data, error: insertError } = await supabase
     .from("vocab_sets")
     .insert({
       title,
       description: input.description?.trim() || null,
       folder_id: input.folderId,
+      order_index: orderIndex,
       teacher_id: input.teacherId || null,
       created_by: profile!.id,
       is_published: true,
@@ -145,15 +156,6 @@ export async function saveVocabItems(
   return actionSuccess(`${count}개 단어가 저장되었습니다.`);
 }
 
-function formatBulkAssignMessage(result: {
-  assigned: number;
-  skipped: number;
-  setCount: number;
-  studentCount: number;
-}) {
-  return `단어장 ${result.setCount}개 × 학생 ${result.studentCount}명 기준, 신규 ${result.assigned}건 배정${result.skipped > 0 ? ` (${result.skipped}건 이미 배정됨)` : ""}.`;
-}
-
 export async function assignFolderToClass(
   folderId: string,
   classId: string
@@ -162,23 +164,20 @@ export async function assignFolderToClass(
   if (error) return error;
 
   const supabase = await createClient();
-  const result = await bulkAssignFolderSets(
-    supabase,
-    folderId,
+  const result = await bulkAssignFolderSets(supabase, folderId, profile!.id, {
     classId,
-    profile!.id
-  );
+  });
 
   if (!result.ok) return actionError(result.message);
 
   revalidateVocabPaths(ROLE, { folderId, classId });
-  return actionSuccess(formatBulkAssignMessage(result));
+  return actionSuccess(formatBulkAssignSuccess(result));
 }
 
 export async function assignFolderToStudents(
   folderId: string,
-  classId: string,
-  studentIds: string[]
+  studentIds: string[],
+  classId?: string
 ): Promise<ActionResult> {
   const { profile, error } = await requireAdmin();
   if (error) return error;
@@ -188,18 +187,110 @@ export async function assignFolderToStudents(
   }
 
   const supabase = await createClient();
-  const result = await bulkAssignFolderSets(
-    supabase,
-    folderId,
+  const result = await bulkAssignFolderSets(supabase, folderId, profile!.id, {
     classId,
-    profile!.id,
-    studentIds
-  );
+    studentIds,
+  });
 
   if (!result.ok) return actionError(result.message);
 
   revalidateVocabPaths(ROLE, { folderId, classId });
-  return actionSuccess(formatBulkAssignMessage(result));
+  return actionSuccess(formatBulkAssignSuccess(result));
+}
+
+export async function assignSetToClass(
+  setId: string,
+  classId: string
+): Promise<ActionResult> {
+  const { profile, error } = await requireAdmin();
+  if (error) return error;
+
+  const supabase = await createClient();
+  const result = await bulkAssignSets(supabase, [setId], profile!.id, {
+    classId,
+  });
+
+  if (!result.ok) return actionError(result.message);
+  revalidateVocabPaths(ROLE, { setId, classId });
+  return actionSuccess(formatBulkAssignSuccess(result));
+}
+
+export async function assignSetToStudents(
+  setId: string,
+  studentIds: string[],
+  classId?: string
+): Promise<ActionResult> {
+  const { profile, error } = await requireAdmin();
+  if (error) return error;
+
+  if (!studentIds.length) {
+    return actionError("배정할 학생을 선택해 주세요.");
+  }
+
+  const supabase = await createClient();
+  const result = await bulkAssignSets(supabase, [setId], profile!.id, {
+    classId,
+    studentIds,
+  });
+
+  if (!result.ok) return actionError(result.message);
+  revalidateVocabPaths(ROLE, { setId, classId });
+  return actionSuccess(formatBulkAssignSuccess(result));
+}
+
+export async function moveVocabSet(
+  setId: string,
+  folderId: string | null
+): Promise<ActionResult> {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
+  const supabase = await createClient();
+  const result = await moveVocabSetToFolder(supabase, setId, folderId);
+  if (!result.ok) return actionError(result.message);
+
+  revalidateVocabPaths(ROLE, { setId, folderId: folderId ?? undefined });
+  return actionSuccess("폴더로 이동했습니다.");
+}
+
+export async function copyVocabSet(
+  setId: string,
+  targetFolderId: string
+): Promise<ActionResult & { setId?: string }> {
+  const { profile, error } = await requireAdmin();
+  if (error) return error;
+
+  const supabase = await createClient();
+  const result = await copyVocabSetToFolder(
+    supabase,
+    setId,
+    targetFolderId,
+    profile!.id
+  );
+
+  if (!result.ok) return actionError(result.message);
+
+  revalidateVocabPaths(ROLE, { folderId: targetFolderId, setId: result.newSetId });
+  return {
+    ...actionSuccess("단어장이 복사되었습니다."),
+    setId: result.newSetId,
+  };
+}
+
+export async function removeSetAssignment(
+  assignmentId: string,
+  setId: string
+): Promise<ActionResult> {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
+  const supabase = await createClient();
+  const result = await removeVocabAssignment(supabase, assignmentId);
+
+  if (!result.ok) return actionError(result.message);
+
+  revalidateVocabPaths(ROLE, { setId });
+  return actionSuccess("배정이 해제되었습니다.");
 }
 
 export async function removeFolderVocabAssignment(
@@ -216,4 +307,81 @@ export async function removeFolderVocabAssignment(
 
   revalidateVocabPaths(ROLE, { folderId });
   return actionSuccess("배정이 해제되었습니다.");
+}
+
+export async function bulkMoveVocabSets(
+  setIds: string[],
+  folderId: string
+): Promise<ActionResult> {
+  const { error } = await requireAdmin();
+  if (error) return error;
+  if (!setIds.length) return actionError("이동할 단어장을 선택해 주세요.");
+
+  const supabase = await createClient();
+  for (const setId of setIds) {
+    const result = await moveVocabSetToFolder(supabase, setId, folderId);
+    if (!result.ok) return actionError(result.message);
+  }
+
+  revalidateVocabPaths(ROLE, { folderId });
+  return actionSuccess(`${setIds.length}개 단어장을 이동했습니다.`);
+}
+
+export async function bulkDeleteVocabSets(
+  setIds: string[],
+  folderId?: string
+): Promise<ActionResult> {
+  const { error } = await requireAdmin();
+  if (error) return error;
+  if (!setIds.length) return actionError("삭제할 단어장을 선택해 주세요.");
+
+  const supabase = await createClient();
+  const { error: deleteError } = await supabase
+    .from("vocab_sets")
+    .delete()
+    .in("id", setIds);
+
+  if (deleteError) return actionError(deleteError.message);
+
+  revalidateVocabPaths(ROLE, { folderId });
+  return actionSuccess(`${setIds.length}개 단어장이 삭제되었습니다.`);
+}
+
+export async function bulkAssignVocabSetsToClass(
+  setIds: string[],
+  classId: string
+): Promise<ActionResult> {
+  const { profile, error } = await requireAdmin();
+  if (error) return error;
+  if (!setIds.length) return actionError("배정할 단어장을 선택해 주세요.");
+
+  const supabase = await createClient();
+  const result = await bulkAssignSets(supabase, setIds, profile!.id, {
+    classId,
+  });
+
+  if (!result.ok) return actionError(result.message);
+  revalidateVocabPaths(ROLE, { classId });
+  return actionSuccess(formatBulkAssignSuccess(result));
+}
+
+export async function bulkAssignVocabSetsToStudents(
+  setIds: string[],
+  studentIds: string[],
+  classId?: string
+): Promise<ActionResult> {
+  const { profile, error } = await requireAdmin();
+  if (error) return error;
+  if (!setIds.length) return actionError("배정할 단어장을 선택해 주세요.");
+  if (!studentIds.length) return actionError("배정할 학생을 선택해 주세요.");
+
+  const supabase = await createClient();
+  const result = await bulkAssignSets(supabase, setIds, profile!.id, {
+    classId,
+    studentIds,
+  });
+
+  if (!result.ok) return actionError(result.message);
+  revalidateVocabPaths(ROLE, { classId });
+  return actionSuccess(formatBulkAssignSuccess(result));
 }

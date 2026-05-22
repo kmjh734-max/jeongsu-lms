@@ -78,10 +78,24 @@ export async function deleteVocabFolder(
   role: Role,
   folderId: string
 ): Promise<ActionResult> {
-  const { error } = await requireRole(role);
+  const { profile, error } = await requireRole(role);
   if (error) return error;
 
   const supabase = await createClient();
+
+  if (role === "teacher") {
+    const { data: folder } = await supabase
+      .from("vocab_folders")
+      .select("id")
+      .eq("id", folderId)
+      .or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`)
+      .maybeSingle();
+
+    if (!folder) {
+      return actionError("이 폴더를 삭제할 권한이 없습니다.");
+    }
+  }
+
   const { error: deleteError } = await supabase
     .from("vocab_folders")
     .delete()
@@ -90,5 +104,7 @@ export async function deleteVocabFolder(
   if (deleteError) return actionError(deleteError.message);
 
   revalidateVocabPaths(role);
-  return actionSuccess("폴더가 삭제되었습니다. 포함된 단어장은 폴더 없음으로 이동됩니다.");
+  return actionSuccess(
+    "폴더가 삭제되었습니다. 폴더 안 단어장은 유지되며 폴더 없음으로 이동됩니다."
+  );
 }

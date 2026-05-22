@@ -22,6 +22,7 @@ export async function loadVocabSidebarData(
           .from("classes")
           .select("*")
           .eq("teacher_id", userId)
+          .eq("is_active", true)
           .order("name"),
     role === "admin"
       ? supabase.from("vocab_folders").select("*").order("name")

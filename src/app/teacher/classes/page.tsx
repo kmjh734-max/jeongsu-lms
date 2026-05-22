@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { DeleteClassButton } from "@/components/classes/DeleteClassButton";
+import { teacherDeactivateClass } from "@/app/teacher/classes/actions";
 import { ActiveBadge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
 import type { Class } from "@/types/database";
@@ -13,6 +15,7 @@ export default async function TeacherClassesPage() {
     .from("classes")
     .select("*")
     .eq("teacher_id", profile!.id)
+    .eq("is_active", true)
     .order("created_at", { ascending: false });
 
   const classList = (classes ?? []) as Class[];
@@ -93,12 +96,21 @@ export default async function TeacherClassesPage() {
                     <ActiveBadge active={cls.is_active} />
                   </td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/teacher/classes/${cls.id}`}
-                      className="font-medium text-brand-600 hover:underline"
-                    >
-                      반 관리
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        href={`/teacher/classes/${cls.id}`}
+                        className="font-medium text-brand-600 hover:underline"
+                      >
+                        반 관리
+                      </Link>
+                      <DeleteClassButton
+                        classId={cls.id}
+                        className={cls.name}
+                        onDelete={teacherDeactivateClass}
+                        redirectTo="/teacher/classes"
+                        compact
+                      />
+                    </div>
                   </td>
                 </tr>
               ))

@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { VocabStudentSetHub } from "@/components/vocab/VocabStudentSetHub";
-import { fetchStudentVocabSummaries } from "@/lib/vocab/student-sets";
+import { VocabSetStageHub } from "@/components/vocab/VocabSetStageHub";
+import { loadStudentVocabSetContext } from "@/lib/vocab/load-student-vocab-set";
 
 interface PageProps {
   params: Promise<{ setId: string }>;
@@ -13,17 +13,16 @@ export default async function StudentVocabSetPage({ params }: PageProps) {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
 
-  const summaries = await fetchStudentVocabSummaries(supabase, profile!.id);
-  const summary = summaries.find((s) => s.set.id === setId);
-
-  if (!summary) notFound();
+  const ctx = await loadStudentVocabSetContext(supabase, profile!.id, setId);
+  if (!ctx) notFound();
 
   return (
-    <div className="mx-auto w-full max-w-4xl py-6 px-4 sm:py-10">
-      <VocabStudentSetHub
+    <div className="py-4">
+      <VocabSetStageHub
         setId={setId}
-        setTitle={summary.set.title}
-        itemCount={summary.itemCount}
+        setTitle={ctx.set.title}
+        itemCount={ctx.itemCount}
+        progress={ctx.progress}
       />
     </div>
   );

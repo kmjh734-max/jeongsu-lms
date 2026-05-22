@@ -29,6 +29,7 @@ export default async function TeacherVocabLayout({
       sets={sets}
       classesHref="/teacher/classes"
       onCreateFolder={actions.createVocabFolder}
+      onDeleteFolder={actions.deleteVocabFolder}
     >
       {children}
     </VocabManageShell>

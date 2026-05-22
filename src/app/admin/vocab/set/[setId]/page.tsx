@@ -1,10 +1,13 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { VocabSetAssignLauncher } from "@/components/vocab/VocabSetAssignLauncher";
+import { VocabSetPageHeader } from "@/components/vocab/VocabSetPageHeader";
 import { VocabSetManagePanel } from "@/components/vocab/VocabSetManagePanel";
 import { VocabTableEditor } from "@/components/vocab/VocabTableEditor";
-import { VocabTestResultsTable } from "@/components/vocab/VocabTestResultsTable";
-import { loadSetTestResults } from "@/lib/vocab/load-set-test-results";
+import { VocabStageProgressTable } from "@/components/vocab/VocabStageProgressTable";
+import { loadSetAssignPanelData } from "@/lib/vocab/load-assign-panel";
+import { loadSetStageProgressRows } from "@/lib/vocab/load-set-stage-progress";
 import * as actions from "@/app/admin/vocab/actions";
 import type { Profile, VocabItem, VocabSet } from "@/types/database";
 
@@ -19,6 +22,7 @@ export default async function AdminVocabSetPage({
 }: PageProps) {
   const { setId } = await params;
   const { import: importParam } = await searchParams;
+  const profile = await getCurrentProfile();
   const supabase = await createClient();
 
   const { data: set } = await supabase
@@ -51,22 +55,36 @@ export default async function AdminVocabSetPage({
 
   const itemList = (items ?? []) as VocabItem[];
 
-  const testResults = await loadSetTestResults(supabase, setId);
+  const [stageRows, assignPanel] = await Promise.all([
+    loadSetStageProgressRows(supabase, setId),
+    loadSetAssignPanelData(supabase, "admin", profile!.id, setId),
+  ]);
+
+  const assignment = {
+    variant: "set" as const,
+    role: "admin" as const,
+    setId,
+    scopeLabel: typedSet.title,
+    setCount: assignPanel.setCount,
+    setTitles: assignPanel.setTitles,
+    classes: assignPanel.classes,
+    allStudents: assignPanel.allStudents,
+    assignments: assignPanel.assignments,
+  };
 
   return (
     <div className="space-y-8">
-      <div>
-        <Link
-          href={listHref}
-          className="text-sm text-brand-600 hover:underline"
-        >
-          ← 폴더로 돌아가기
-        </Link>
-        <h1 className="mt-2 text-xl font-semibold">{typedSet.title}</h1>
-        <p className="text-sm text-slate-500">
-          학생 배정은 반 관리 → 해당 반 → 학생별 단어장 배정에서 합니다.
-        </p>
-      </div>
+      <VocabSetPageHeader
+        title={typedSet.title}
+        itemCount={itemList.length}
+        backHref={listHref}
+        assignLauncher={
+          <VocabSetAssignLauncher
+            title={`단어장 배정 — ${typedSet.title}`}
+            assignment={assignment}
+          />
+        }
+      />
 
       <VocabSetManagePanel
         set={typedSet}
@@ -77,7 +95,7 @@ export default async function AdminVocabSetPage({
         listHref={listHref}
       />
 
-      <section className="space-y-3">
+      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="font-semibold text-slate-900">
           단어 입력 ({itemList.length}개 저장됨)
         </h2>
@@ -93,11 +111,11 @@ export default async function AdminVocabSetPage({
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-semibold text-slate-900">테스트 결과</h2>
+        <h2 className="font-semibold text-slate-900">학생별 학습 진행</h2>
         <p className="text-sm text-slate-500">
-          학생이 제출한 최근 테스트 결과입니다.
+          1·2·3단계 완료 여부와 종합테스트 점수입니다.
         </p>
-        <VocabTestResultsTable rows={testResults} />
+        <VocabStageProgressTable rows={stageRows} />
       </section>
     </div>
   );

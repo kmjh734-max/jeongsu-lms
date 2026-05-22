@@ -52,10 +52,8 @@ export function VocabTestResultView({
         </dl>
 
         <div className="mt-8 flex flex-wrap gap-2">
-          <ButtonLink
-            href={`/student/vocab/${setId}/test?type=${attempt.test_type}`}
-          >
-            다시 테스트
+          <ButtonLink href={`/student/vocab/${setId}`}>
+            {attempt.test_type === "final_exam" ? "다시 학습" : "다시 테스트"}
           </ButtonLink>
           <ButtonLink href={`/student/vocab/${setId}`} variant="secondary">
             단어장으로 돌아가기

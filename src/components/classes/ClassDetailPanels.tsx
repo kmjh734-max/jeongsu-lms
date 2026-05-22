@@ -7,12 +7,14 @@ import {
   adminAssignCourseToClass,
   adminRemoveCourseFromClass,
   adminRemoveStudentFromClass,
+  deleteClass,
   updateClass,
 } from "@/app/admin/classes/actions";
 import { DeleteClassButton } from "@/components/classes/DeleteClassButton";
 import {
   teacherAddStudentToClass,
   teacherAssignCourseToClass,
+  teacherDeactivateClass,
   teacherRemoveCourseFromClass,
   teacherRemoveStudentFromClass,
 } from "@/app/teacher/classes/actions";
@@ -152,7 +154,16 @@ export function ClassInfoPanel({
         >
           {loading ? "저장 중..." : "반 정보 저장"}
         </button>
-        <DeleteClassButton classId={classId} className={initialName} />
+        <DeleteClassButton
+          classId={classId}
+          className={initialName}
+          onDelete={
+            variant === "admin" ? deleteClass : teacherDeactivateClass
+          }
+          redirectTo={
+            variant === "admin" ? "/admin/classes" : "/teacher/classes"
+          }
+        />
       </div>
     </form>
   );
