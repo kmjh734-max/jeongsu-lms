@@ -4,6 +4,10 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
+const fieldClass =
+  "w-full min-h-[3rem] rounded-lg border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100";
+const labelClass = "mb-2 block text-base font-semibold text-slate-800";
+
 export interface ClassWithStudents {
   id: string;
   name: string;
@@ -51,6 +55,7 @@ export function FolderAssignPanel({
 }: FolderAssignPanelProps) {
   const router = useRouter();
   const [classId, setClassId] = useState("");
+  const [pickStudentId, setPickStudentId] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
     new Set()
   );
@@ -60,10 +65,23 @@ export function FolderAssignPanel({
   const selectedClass = classes.find((c) => c.id === classId);
   const students = selectedClass?.students ?? [];
 
+  const allStudents = useMemo(
+    () =>
+      classes.flatMap((c) =>
+        c.students.map((s) => ({
+          ...s,
+          classId: c.id,
+          className: c.name,
+        }))
+      ),
+    [classes]
+  );
+
   const groupedAssignments = useMemo(() => {
     const map = new Map<
       string,
       {
+        student_id: string;
         student_name: string;
         class_name: string;
         items: FolderAssignmentRow[];
@@ -72,6 +90,7 @@ export function FolderAssignPanel({
     for (const a of assignments) {
       const key = `${a.student_id}:${a.class_id}`;
       const entry = map.get(key) ?? {
+        student_id: a.student_id,
         student_name: a.student_name,
         class_name: a.class_name,
         items: [],
@@ -84,7 +103,18 @@ export function FolderAssignPanel({
 
   function handleClassChange(nextClassId: string) {
     setClassId(nextClassId);
+    setPickStudentId("");
     setSelectedStudents(new Set());
+  }
+
+  function handlePickStudentByName(studentId: string) {
+    setPickStudentId(studentId);
+    if (!studentId) return;
+    const found = allStudents.find((s) => s.id === studentId);
+    if (found) {
+      setClassId(found.classId);
+      setSelectedStudents(new Set([found.id]));
+    }
   }
 
   function toggleStudent(id: string) {
@@ -98,6 +128,11 @@ export function FolderAssignPanel({
 
   function selectAllStudents() {
     setSelectedStudents(new Set(students.map((s) => s.id)));
+  }
+
+  function clearStudentSelection() {
+    setSelectedStudents(new Set());
+    setPickStudentId("");
   }
 
   async function handleAssignClass() {
@@ -114,14 +149,13 @@ export function FolderAssignPanel({
     if (!classId || selectedStudents.size === 0) return;
     setLoading(true);
     setMessage(null);
-    const result = await onAssignToStudents(
-      folderId,
-      classId,
-      [...selectedStudents]
-    );
+    const result = await onAssignToStudents(folderId, classId, [
+      ...selectedStudents,
+    ]);
     setMessage(result.message);
     if (result.ok) {
       setSelectedStudents(new Set());
+      setPickStudentId("");
       router.refresh();
     }
     setLoading(false);
@@ -138,7 +172,7 @@ export function FolderAssignPanel({
 
   if (setCount === 0) {
     return (
-      <p className="text-sm text-slate-500">
+      <p className="text-base text-slate-500">
         이 폴더에 단어장이 없어 배정할 수 없습니다. 위에서 단어세트를 먼저
         만드세요.
       </p>
@@ -147,80 +181,75 @@ export function FolderAssignPanel({
 
   return (
     <div className="space-y-8">
-      <p className="text-sm text-slate-600">
+      <p className="text-base text-slate-600">
         이 폴더의 단어장 <strong>{setCount}개</strong>를 반 또는 학생에게
         배정합니다. 배정된 학생만 단어 학습 메뉴에서 볼 수 있습니다.
       </p>
 
       {classes.length === 0 ? (
-        <p className="text-sm text-amber-700">
+        <p className="text-base text-amber-700">
           등록된 반이 없습니다. 반 관리에서 반을 먼저 만드세요.
         </p>
       ) : (
-        <>
-          <div className="rounded-xl border border-violet-200 bg-violet-50/50 p-5">
-            <h3 className="font-semibold text-slate-900">반 전체에 배정</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              선택한 반의 모든 학생에게 이 폴더의 단어장을 한 번에 배정합니다.
-            </p>
-            <div className="mt-4 flex flex-wrap items-end gap-3">
-              <div className="min-w-[200px] flex-1">
-                <label className="ui-label">반 선택</label>
-                <select
-                  className="ui-select"
-                  value={classId}
-                  onChange={(e) => handleClassChange(e.target.value)}
-                >
-                  <option value="">반 선택</option>
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.students.length}명)
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <Button
-                type="button"
-                disabled={
-                  loading ||
-                  !classId ||
-                  (selectedClass?.students.length ?? 0) === 0
-                }
-                onClick={handleAssignClass}
-              >
-                {loading ? "배정 중..." : "반 전체 배정"}
-              </Button>
-            </div>
-            {classId && students.length === 0 && (
-              <p className="mt-2 text-sm text-slate-500">
-                이 반에 등록된 학생이 없습니다.
-              </p>
-            )}
-          </div>
+        <div className="rounded-xl border-2 border-violet-200 bg-violet-50/40 p-6 sm:p-8">
+          <h3 className="text-lg font-bold text-slate-900">단어장 배정</h3>
+          <p className="mt-2 text-base text-slate-600">
+            <strong>반 선택</strong>과 <strong>학생 선택</strong>을 함께
+            사용할 수 있습니다.
+          </p>
 
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <h3 className="font-semibold text-slate-900">학생 선택 배정</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              반을 고른 뒤 배정할 학생만 골라서 단어장을 넣습니다.
-            </p>
-            <div className="mt-4">
-              <label className="ui-label">반 선택</label>
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div>
+              <label className={labelClass}>1. 반 선택</label>
               <select
-                className="ui-select max-w-md"
+                className={fieldClass}
                 value={classId}
                 onChange={(e) => handleClassChange(e.target.value)}
               >
-                <option value="">반 선택</option>
+                <option value="">반을 선택하세요</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.name} (학생 {c.students.length}명)
                   </option>
                 ))}
               </select>
+              {classId && (
+                <Button
+                  type="button"
+                  className="mt-4 w-full sm:w-auto"
+                  disabled={loading || students.length === 0}
+                  onClick={handleAssignClass}
+                >
+                  {loading ? "배정 중..." : "선택한 반 전체에 배정"}
+                </Button>
+              )}
             </div>
-            {classId && students.length > 0 && (
-              <div className="mt-4 space-y-3">
-                <div className="flex items-center gap-3">
+
+            <div>
+              <label className={labelClass}>2. 학생 이름으로 선택</label>
+              <select
+                className={fieldClass}
+                value={pickStudentId}
+                onChange={(e) => handlePickStudentByName(e.target.value)}
+              >
+                <option value="">학생 이름을 선택하세요</option>
+                {allStudents.map((s) => (
+                  <option key={`${s.classId}-${s.id}`} value={s.id}>
+                    {s.name} · {s.className}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-sm text-slate-500">
+                학생을 고르면 해당 반이 자동으로 선택됩니다.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <label className={labelClass}>3. 학생 여러 명 선택 (체크)</label>
+              {classId && students.length > 0 && (
+                <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
                     variant="secondary"
@@ -229,70 +258,104 @@ export function FolderAssignPanel({
                   >
                     전체 선택
                   </Button>
-                  <span className="text-sm text-slate-500">
-                    {selectedStudents.size}명 선택
-                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearStudentSelection}
+                  >
+                    선택 해제
+                  </Button>
                 </div>
-                <ul className="grid gap-2 sm:grid-cols-2">
-                  {students.map((s) => (
+              )}
+            </div>
+
+            {!classId ? (
+              <p className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-8 text-center text-base text-slate-500">
+                반을 선택하거나, 위에서 학생 이름을 선택하면 학생 목록이
+                표시됩니다.
+              </p>
+            ) : students.length === 0 ? (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-6 text-center text-base text-amber-800">
+                이 반에 등록된 학생이 없습니다. 반 관리에서 학생을 추가하세요.
+              </p>
+            ) : (
+              <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {students.map((s) => {
+                  const checked = selectedStudents.has(s.id);
+                  return (
                     <li key={s.id}>
-                      <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-100 px-3 py-2 hover:bg-slate-50">
+                      <label
+                        className={`flex min-h-[3.25rem] cursor-pointer items-center gap-3 rounded-xl border-2 px-4 py-3 transition ${
+                          checked
+                            ? "border-violet-500 bg-violet-50"
+                            : "border-slate-200 bg-white hover:border-violet-300"
+                        }`}
+                      >
                         <input
                           type="checkbox"
-                          checked={selectedStudents.has(s.id)}
+                          checked={checked}
                           onChange={() => toggleStudent(s.id)}
-                          className="rounded border-slate-300"
+                          className="h-5 w-5 shrink-0 rounded border-slate-300"
                         />
-                        <span className="text-sm text-slate-800">{s.name}</span>
+                        <span className="text-base font-medium text-slate-900">
+                          {s.name}
+                        </span>
                       </label>
                     </li>
-                  ))}
-                </ul>
-                <Button
-                  type="button"
-                  disabled={loading || selectedStudents.size === 0}
-                  onClick={handleAssignStudents}
-                >
-                  {loading ? "배정 중..." : "선택 학생에게 배정"}
-                </Button>
-              </div>
+                  );
+                })}
+              </ul>
+            )}
+
+            {classId && selectedStudents.size > 0 && (
+              <Button
+                type="button"
+                className="mt-5 w-full sm:w-auto"
+                disabled={loading}
+                onClick={handleAssignStudents}
+              >
+                {loading
+                  ? "배정 중..."
+                  : `선택한 학생 ${selectedStudents.size}명에게 배정`}
+              </Button>
             )}
           </div>
-        </>
+        </div>
       )}
 
       {message && (
-        <p className="text-sm text-slate-700" role="status">
+        <p className="text-base text-slate-700" role="status">
           {message}
         </p>
       )}
 
       <div>
-        <h3 className="font-semibold text-slate-900">배정 현황</h3>
+        <h3 className="text-lg font-semibold text-slate-900">배정 현황</h3>
         {groupedAssignments.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-base text-slate-500">
             아직 배정된 학생이 없습니다.
           </p>
         ) : (
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-4 space-y-4">
             {groupedAssignments.map((group) => (
               <li
-                key={`${group.student_name}-${group.class_name}`}
-                className="rounded-lg border border-slate-200 bg-slate-50/80 p-4"
+                key={`${group.student_id}-${group.class_name}`}
+                className="rounded-xl border border-slate-200 bg-white p-5"
               >
-                <p className="font-medium text-slate-900">
+                <p className="text-base font-semibold text-slate-900">
                   {group.student_name}
                   <span className="ml-2 text-sm font-normal text-slate-500">
                     {group.class_name}
                   </span>
                 </p>
-                <ul className="mt-2 space-y-1">
+                <ul className="mt-3 space-y-2">
                   {group.items.map((a) => (
                     <li
                       key={a.id}
-                      className="flex items-center justify-between gap-2 text-sm"
+                      className="flex items-center justify-between gap-4 rounded-lg bg-slate-50 px-4 py-3 text-base"
                     >
-                      <span className="text-slate-700">{a.set_title}</span>
+                      <span className="text-slate-800">{a.set_title}</span>
                       <Button
                         type="button"
                         variant="danger"
