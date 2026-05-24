@@ -45,3 +45,4 @@ export function buildStage3Questions(items: VocabItem[]): Stage3Question[] {
 }
 
 export const STAGE3_PASS_SCORE = 90;
+export const STAGE4_PASS_SCORE = STAGE3_PASS_SCORE;

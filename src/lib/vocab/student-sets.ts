@@ -1,6 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeVocabSetStats } from "@/lib/vocab/stats";
-import type { StudentVocabSetSummary, VocabSet } from "@/types/database";
+import {
+  stage3Completed,
+  stage4BestScore,
+  stage4LastScore,
+  stage4Passed,
+} from "@/lib/vocab/stage-progress-fields";
+import type { StudentVocabSetSummary, VocabSet, VocabStageProgress } from "@/types/database";
 
 export async function fetchStudentVocabSummaries(
   supabase: SupabaseClient,
@@ -48,37 +54,39 @@ export async function fetchStudentVocabSummaries(
 
   const publishedIds = publishedSets.map((s) => s.id);
 
-  const [{ data: items }, { data: progress }, { data: stageRows }] =
-    await Promise.all([
-      supabase
-        .from("vocab_items")
-        .select("id, set_id")
-        .in("set_id", publishedIds),
-      supabase
-        .from("vocab_progress")
-        .select("item_id, status")
-        .eq("student_id", studentId),
-      supabase
-        .from("vocab_stage_progress")
-        .select(
-          "set_id, stage1_completed, stage2_completed, stage3_passed, stage3_last_score, stage3_best_score"
-        )
-        .eq("student_id", studentId)
-        .in("set_id", publishedIds),
-    ]);
+  const [{ data: items }, { data: stageRows }] = await Promise.all([
+    supabase
+      .from("vocab_items")
+      .select("id, set_id")
+      .in("set_id", publishedIds),
+    supabase
+      .from("vocab_stage_progress")
+      .select(
+        "set_id, stage1_completed, stage2_completed, stage3_completed, stage4_passed, stage4_last_score, stage4_best_score, stage4_attempt_count, stage3_passed, stage3_last_score, stage3_best_score, stage3_attempt_count"
+      )
+      .eq("student_id", studentId)
+      .in("set_id", publishedIds),
+  ]);
 
   const itemsBySet = new Map<string, { id: string }[]>();
-  const allItemIds = new Set<string>();
+  const allItemIds: string[] = [];
   for (const item of items ?? []) {
-    allItemIds.add(item.id);
+    allItemIds.push(item.id);
     const list = itemsBySet.get(item.set_id) ?? [];
     list.push({ id: item.id });
     itemsBySet.set(item.set_id, list);
   }
 
-  const progressList = (progress ?? []).filter((p) =>
-    allItemIds.has(p.item_id)
-  );
+  const { data: progress } =
+    allItemIds.length > 0
+      ? await supabase
+          .from("vocab_progress")
+          .select("item_id, status")
+          .eq("student_id", studentId)
+          .in("item_id", allItemIds)
+      : { data: [] as { item_id: string; status: string }[] };
+
+  const progressList = progress ?? [];
 
   const stageBySet = new Map(
     (stageRows ?? []).map((r) => [r.set_id as string, r])
@@ -89,16 +97,30 @@ export async function fetchStudentVocabSummaries(
     const itemIds = new Set(setItems.map((i) => i.id));
     const setProgress = progressList.filter((p) => itemIds.has(p.item_id));
     const stats = computeVocabSetStats(setItems, setProgress);
-    const stage = stageBySet.get(set.id);
+    const stage = stageBySet.get(set.id) as VocabStageProgress | undefined;
+    const progress: VocabStageProgress =
+      stage ??
+      ({
+        stage1_completed: false,
+        stage2_completed: false,
+        stage3_completed: false,
+        stage4_passed: false,
+        stage4_last_score: 0,
+        stage4_best_score: 0,
+        stage3_passed: false,
+        stage3_last_score: 0,
+        stage3_best_score: 0,
+      } as VocabStageProgress);
 
     return {
       set,
       itemCount: stats.itemCount,
-      stage1Completed: Boolean(stage?.stage1_completed),
-      stage2Completed: Boolean(stage?.stage2_completed),
-      stage3Passed: Boolean(stage?.stage3_passed),
-      stage3LastScore: (stage?.stage3_last_score as number) ?? 0,
-      stage3BestScore: (stage?.stage3_best_score as number) ?? 0,
+      stage1Completed: Boolean(progress.stage1_completed),
+      stage2Completed: Boolean(progress.stage2_completed),
+      stage3Completed: stage3Completed(progress),
+      stage4Passed: stage4Passed(progress),
+      stage4LastScore: stage4LastScore(progress),
+      stage4BestScore: stage4BestScore(progress),
     };
   });
 }

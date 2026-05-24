@@ -1,5 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { VocabStageProgressRow } from "@/components/vocab/VocabStageProgressTable";
+import {
+  stage3Completed as readStage3Completed,
+  stage4AttemptCount,
+  stage4BestScore,
+  stage4LastScore,
+  stage4Passed,
+} from "@/lib/vocab/stage-progress-fields";
+import type { VocabStageProgress } from "@/types/database";
 
 export async function loadSetStageProgressRows(
   supabase: SupabaseClient,
@@ -52,16 +60,33 @@ export async function loadSetStageProgressRows(
   );
 
   return (students ?? []).map((s) => {
-    const p = progressByStudent.get(s.id);
+    const p = progressByStudent.get(s.id) as VocabStageProgress | undefined;
+    const progress: VocabStageProgress =
+      p ??
+      ({
+        stage1_completed: false,
+        stage2_completed: false,
+        stage3_completed: false,
+        stage4_passed: false,
+        stage4_last_score: 0,
+        stage4_best_score: 0,
+        stage4_attempt_count: 0,
+        stage3_passed: false,
+        stage3_last_score: 0,
+        stage3_best_score: 0,
+        stage3_attempt_count: 0,
+      } as VocabStageProgress);
+
     return {
       studentId: s.id,
       studentName: (s.name as string) || (s.login_id as string) || "—",
-      stage1Completed: Boolean(p?.stage1_completed),
-      stage2Completed: Boolean(p?.stage2_completed),
-      stage3Passed: Boolean(p?.stage3_passed),
-      stage3LastScore: (p?.stage3_last_score as number) ?? 0,
-      stage3BestScore: (p?.stage3_best_score as number) ?? 0,
-      stage3AttemptCount: (p?.stage3_attempt_count as number) ?? 0,
+      stage1Completed: Boolean(progress.stage1_completed),
+      stage2Completed: Boolean(progress.stage2_completed),
+      stage3Completed: readStage3Completed(progress),
+      stage4Passed: stage4Passed(progress),
+      stage4LastScore: stage4LastScore(progress),
+      stage4BestScore: stage4BestScore(progress),
+      stage4AttemptCount: stage4AttemptCount(progress),
     };
   });
 }

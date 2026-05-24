@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fetchStudentVocabSummaries } from "@/lib/vocab/student-sets";
 import { loadStageProgress } from "@/lib/vocab/load-stage-progress";
+import { isStudentAssignedToVocabSet } from "@/lib/vocab/student-assignment";
 import type { VocabItem, VocabSet } from "@/types/database";
 
 export async function loadStudentVocabSetContext(
@@ -8,24 +8,27 @@ export async function loadStudentVocabSetContext(
   studentId: string,
   setId: string
 ) {
-  const summaries = await fetchStudentVocabSummaries(supabase, studentId);
-  const summary = summaries.find((s) => s.set.id === setId);
-  if (!summary) return null;
+  const [{ data: set, error: setError }, assigned, { data: items }, progress] =
+    await Promise.all([
+      supabase.from("vocab_sets").select("*").eq("id", setId).maybeSingle(),
+      isStudentAssignedToVocabSet(supabase, studentId, setId),
+      supabase
+        .from("vocab_items")
+        .select("*")
+        .eq("set_id", setId)
+        .order("order_index")
+        .order("created_at"),
+      loadStageProgress(supabase, studentId, setId),
+    ]);
 
-  const [{ data: items }, progress] = await Promise.all([
-    supabase
-      .from("vocab_items")
-      .select("*")
-      .eq("set_id", setId)
-      .order("order_index")
-      .order("created_at"),
-    loadStageProgress(supabase, studentId, setId),
-  ]);
+  if (setError || !set || !assigned) return null;
+
+  const itemList = (items ?? []) as VocabItem[];
 
   return {
-    set: summary.set as VocabSet,
-    items: (items ?? []) as VocabItem[],
-    itemCount: summary.itemCount,
+    set: set as VocabSet,
+    items: itemList,
+    itemCount: itemList.length,
     progress,
   };
 }

@@ -4,10 +4,10 @@ interface PageProps {
   params: Promise<{ setId: string }>;
 }
 
-/** 3단계 종합테스트로 통합됨 */
+/** @deprecated 4단계 종합테스트로 이동 */
 export default async function StudentVocabTestRedirect({
   params,
 }: PageProps) {
   const { setId } = await params;
-  redirect(`/student/vocab/${setId}`);
+  redirect(`/student/vocab/${setId}/stage4`);
 }

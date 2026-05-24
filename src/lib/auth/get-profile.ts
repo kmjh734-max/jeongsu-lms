@@ -1,7 +1,8 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/types/database";
 
-export async function getCurrentProfile(): Promise<Profile | null> {
+export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
 
   const {
@@ -17,4 +18,4 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     .single();
 
   return profile as Profile | null;
-}
+});

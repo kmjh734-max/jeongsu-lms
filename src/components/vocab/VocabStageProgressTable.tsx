@@ -3,10 +3,11 @@ export interface VocabStageProgressRow {
   studentName: string;
   stage1Completed: boolean;
   stage2Completed: boolean;
-  stage3Passed: boolean;
-  stage3LastScore: number;
-  stage3BestScore: number;
-  stage3AttemptCount: number;
+  stage3Completed: boolean;
+  stage4Passed: boolean;
+  stage4LastScore: number;
+  stage4BestScore: number;
+  stage4AttemptCount: number;
 }
 
 interface VocabStageProgressTableProps {
@@ -34,10 +35,11 @@ export function VocabStageProgressTable({ rows }: VocabStageProgressTableProps) 
             <th>학생</th>
             <th>1단계</th>
             <th>2단계</th>
-            <th>3단계 합격</th>
-            <th>최근 점수</th>
-            <th>최고 점수</th>
-            <th>응시 횟수</th>
+            <th>3단계 예문</th>
+            <th>4단계 합격</th>
+            <th>4단계 최근</th>
+            <th>4단계 최고</th>
+            <th>4단계 응시</th>
           </tr>
         </thead>
         <tbody>
@@ -46,10 +48,13 @@ export function VocabStageProgressTable({ rows }: VocabStageProgressTableProps) 
               <td className="font-medium text-slate-900">{row.studentName}</td>
               <td>{boolLabel(row.stage1Completed)}</td>
               <td>{boolLabel(row.stage2Completed)}</td>
-              <td>{row.stage3Passed ? "합격" : "—"}</td>
-              <td>{row.stage3AttemptCount > 0 ? `${row.stage3LastScore}점` : "—"}</td>
-              <td>{row.stage3BestScore > 0 ? `${row.stage3BestScore}점` : "—"}</td>
-              <td>{row.stage3AttemptCount}</td>
+              <td>{boolLabel(row.stage3Completed)}</td>
+              <td>{row.stage4Passed ? "합격" : "—"}</td>
+              <td>
+                {row.stage4AttemptCount > 0 ? `${row.stage4LastScore}점` : "—"}
+              </td>
+              <td>{row.stage4BestScore > 0 ? `${row.stage4BestScore}점` : "—"}</td>
+              <td>{row.stage4AttemptCount}</td>
             </tr>
           ))}
         </tbody>

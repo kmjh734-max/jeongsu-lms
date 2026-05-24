@@ -8,19 +8,21 @@ interface StudentVocabSetListProps {
 function stageLine(
   stage1: boolean,
   stage2: boolean,
-  stage3Passed: boolean,
-  stage3Last: number
+  stage3: boolean,
+  stage4Passed: boolean,
+  stage4Last: number
 ): string {
   const s1 = stage1 ? "1✓" : "1·";
   const s2 = !stage1 ? "2잠김" : stage2 ? "2✓" : "2·";
-  const s3 = !stage2
-    ? "3잠김"
-    : stage3Passed
-      ? "3합격"
-      : stage3Last > 0
-        ? `3${stage3Last}점`
-        : "3·";
-  return `${s1} ${s2} ${s3}`;
+  const s3 = !stage2 ? "3잠김" : stage3 ? "3✓" : "3·";
+  const s4 = !stage3
+    ? "4잠김"
+    : stage4Passed
+      ? "4합격"
+      : stage4Last > 0
+        ? `4${stage4Last}점`
+        : "4·";
+  return `${s1} ${s2} ${s3} ${s4}`;
 }
 
 export function StudentVocabSetList({ summaries }: StudentVocabSetListProps) {
@@ -31,7 +33,7 @@ export function StudentVocabSetList({ summaries }: StudentVocabSetListProps) {
           전체 단어장 <span className="text-slate-400">·</span>{" "}
           <span className="text-slate-500">{summaries.length}개</span>
         </p>
-        <p className="text-xs text-slate-500">1단계 → 2단계 → 3단계</p>
+        <p className="text-xs text-slate-500">1단계 → 2단계 → 3단계 → 4단계</p>
       </div>
 
       {summaries.length === 0 ? (
@@ -46,9 +48,10 @@ export function StudentVocabSetList({ summaries }: StudentVocabSetListProps) {
               itemCount,
               stage1Completed,
               stage2Completed,
-              stage3Passed,
-              stage3LastScore,
-              stage3BestScore,
+              stage3Completed,
+              stage4Passed,
+              stage4LastScore,
+              stage4BestScore,
             }) => (
               <li
                 key={set.id}
@@ -75,10 +78,11 @@ export function StudentVocabSetList({ summaries }: StudentVocabSetListProps) {
                     {stageLine(
                       stage1Completed,
                       stage2Completed,
-                      stage3Passed,
-                      stage3LastScore
+                      stage3Completed,
+                      stage4Passed,
+                      stage4LastScore
                     )}
-                    {stage3BestScore > 0 && ` · 최고 ${stage3BestScore}점`}
+                    {stage4BestScore > 0 && ` · 최고 ${stage4BestScore}점`}
                   </p>
                 </div>
                 <div className="shrink-0">

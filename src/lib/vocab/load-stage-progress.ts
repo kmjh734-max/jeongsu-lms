@@ -35,3 +35,7 @@ export function stage2Unlocked(progress: VocabStageProgress): boolean {
 export function stage3Unlocked(progress: VocabStageProgress): boolean {
   return progress.stage2_completed;
 }
+
+export function stage4Unlocked(progress: VocabStageProgress): boolean {
+  return progress.stage3_completed;
+}

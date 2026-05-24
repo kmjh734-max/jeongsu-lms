@@ -1,5 +1,5 @@
 import { ButtonLink } from "@/components/ui/Button";
-import { STAGE3_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
 import type { VocabFinalTestAnswer, VocabFinalTestAttempt } from "@/types/database";
 
 interface VocabStage3ResultViewProps {
@@ -7,6 +7,7 @@ interface VocabStage3ResultViewProps {
   setTitle: string;
   attempt: VocabFinalTestAttempt;
   answers: VocabFinalTestAnswer[];
+  stageNumber?: number;
 }
 
 function AnswerResultCard({ a }: { a: VocabFinalTestAnswer }) {
@@ -45,6 +46,7 @@ export function VocabStage3ResultView({
   setTitle,
   attempt,
   answers,
+  stageNumber = 4,
 }: VocabStage3ResultViewProps) {
   const wrong = answers.filter((a) => !a.is_correct);
   const meaningAnswers = answers.filter((a) => a.question_type === "meaning");
@@ -53,7 +55,9 @@ export function VocabStage3ResultView({
     <div className="mx-auto max-w-2xl space-y-8 px-2">
       <div>
         <h1 className="text-xl font-semibold">{setTitle}</h1>
-        <p className="text-sm text-slate-600">3단계 종합테스트 결과</p>
+        <p className="text-sm text-slate-600">
+          {stageNumber}단계 종합테스트 결과
+        </p>
       </div>
 
       <div
@@ -75,7 +79,7 @@ export function VocabStage3ResultView({
             <span className="font-medium text-emerald-800">합격입니다.</span>
           ) : (
             <span className="font-medium text-rose-800">
-              {STAGE3_PASS_SCORE}점 이상 통과해야 합니다. 다시 도전해보세요.
+              {STAGE4_PASS_SCORE}점 이상 통과해야 합니다. 다시 도전해보세요.
             </span>
           )}
         </p>
@@ -111,8 +115,8 @@ export function VocabStage3ResultView({
       )}
 
       <div className="flex flex-wrap gap-3">
-        <ButtonLink href={`/student/vocab/${setId}/stage3`}>
-          다시 3단계 도전하기
+        <ButtonLink href={`/student/vocab/${setId}/stage4`}>
+          다시 {stageNumber}단계 도전하기
         </ButtonLink>
         <ButtonLink href={`/student/vocab/${setId}`} variant="secondary">
           단어장으로 돌아가기

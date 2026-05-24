@@ -32,7 +32,7 @@ export function VocabStage1Study({
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [seenIds, setSeenIds] = useState<Set<string>>(
-    () => new Set(initialSeenIds)
+    () => new Set(stage1Completed ? [] : initialSeenIds)
   );
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function VocabStage1Study({
 
   const total = items.length;
   const current = items[index];
-  const seenCount = seenIds.size;
+  const seenCount = stage1Completed ? index + 1 : seenIds.size;
   const roundPercent =
     total > 0 ? Math.round((seenCount / total) * 100) : 0;
 
@@ -66,14 +66,15 @@ export function VocabStage1Study({
       const result = await recordStage1Item(setId, current.id, known);
       setMessage(result.message);
       if (result.ok) {
-        setSeenIds((prev) => new Set([...prev, current.id]));
+        if (!stage1Completed) {
+          setSeenIds((prev) => new Set([...prev, current.id]));
+        }
         if (result.message.includes("1단계를 완료")) {
           router.push(`/student/vocab/${setId}`);
           router.refresh();
           return;
         }
         if (index < total - 1) goTo(index + 1);
-        else router.refresh();
       }
     });
   }
@@ -81,17 +82,6 @@ export function VocabStage1Study({
   if (total === 0) {
     return (
       <div className="text-center text-slate-600">단어가 없습니다.</div>
-    );
-  }
-
-  if (stage1Completed && seenCount >= total) {
-    return (
-      <div className="mx-auto max-w-lg space-y-4 text-center">
-        <p className="text-lg font-semibold text-emerald-700">1단계 완료</p>
-        <Button type="button" onClick={() => router.push(`/student/vocab/${setId}`)}>
-          단어장으로 돌아가기
-        </Button>
-      </div>
     );
   }
 
@@ -104,7 +94,9 @@ export function VocabStage1Study({
         >
           ← 단어장으로
         </Link>
-        <h1 className="mt-2 text-xl font-semibold">{setTitle} · 1단계</h1>
+        <h1 className="mt-2 text-xl font-semibold">
+          {setTitle} · 1단계{stage1Completed ? " (다시 보기)" : ""}
+        </h1>
         <ProgressBar
           percent={roundPercent}
           label={`학습 ${seenCount} / ${total}`}

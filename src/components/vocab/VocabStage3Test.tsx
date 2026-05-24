@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { submitStage3 } from "@/app/student/vocab/actions";
+import { submitStage4 } from "@/app/student/vocab/actions";
 import type { Stage3Question } from "@/lib/vocab/build-stage3-questions";
-import { STAGE3_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
 
 function answerKey(q: Stage3Question): string {
   return `${q.itemId}:${q.questionType}`;
@@ -16,12 +16,14 @@ interface VocabStage3TestProps {
   setId: string;
   setTitle: string;
   questions: Stage3Question[];
+  stageNumber?: number;
 }
 
 export function VocabStage3Test({
   setId,
   setTitle,
   questions,
+  stageNumber = 4,
 }: VocabStage3TestProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,11 +64,11 @@ export function VocabStage3Test({
         studentAnswer: answers[answerKey(q)] ?? "",
         questionType: q.questionType,
       }));
-      const result = await submitStage3(setId, payload);
+      const result = await submitStage4(setId, payload);
       setMessage(result.message);
       if (result.ok && result.attemptId) {
         router.push(
-          `/student/vocab/${setId}/stage3/result?attemptId=${result.attemptId}`
+          `/student/vocab/${setId}/stage4/result?attemptId=${result.attemptId}`
         );
       }
     });
@@ -103,9 +105,11 @@ export function VocabStage3Test({
         >
           ← 단어장으로
         </Link>
-        <h1 className="mt-2 text-xl font-semibold">{setTitle} · 3단계 종합테스트</h1>
+        <h1 className="mt-2 text-xl font-semibold">
+          {setTitle} · {stageNumber}단계 종합테스트
+        </h1>
         <p className="text-sm text-slate-600">
-          한글뜻 50% + 영어 스펠링 50% · {STAGE3_PASS_SCORE}점 이상 합격 · Enter로
+          한글뜻 50% + 영어 스펠링 50% · {STAGE4_PASS_SCORE}점 이상 합격 · Enter로
           다음/제출
         </p>
       </div>

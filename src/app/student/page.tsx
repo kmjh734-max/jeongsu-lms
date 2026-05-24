@@ -59,41 +59,62 @@ export default async function StudentDashboardPage() {
     (fallbackCourses ?? []).map((c) => [c.id, c as Course])
   );
 
-  const coursesWithProgress = await Promise.all(
-    validEnrollments.map(async ({ course, courseId }) => {
-      const fullCourse = course.title
-        ? course
-        : (courseById.get(courseId) ?? course);
+  const courseIds = validEnrollments.map((e) => e.courseId);
 
-      const { data: lessons } = await supabase
-        .from("lessons")
-        .select("id, is_published")
-        .eq("course_id", courseId)
-        .eq("is_published", true);
+  const { data: allLessons } =
+    courseIds.length > 0
+      ? await supabase
+          .from("lessons")
+          .select("id, course_id, is_published")
+          .in("course_id", courseIds)
+          .eq("is_published", true)
+      : { data: [] as Pick<Lesson, "id" | "course_id" | "is_published">[] };
 
-      const lessonIds = (lessons ?? []).map((l) => l.id);
+  const lessonsByCourse = new Map<string, Pick<Lesson, "id" | "is_published">[]>();
+  for (const lesson of allLessons ?? []) {
+    const list = lessonsByCourse.get(lesson.course_id) ?? [];
+    list.push({ id: lesson.id, is_published: lesson.is_published });
+    lessonsByCourse.set(lesson.course_id, list);
+  }
 
-      const { data: progress } =
-        lessonIds.length > 0
-          ? await supabase
-              .from("lesson_progress")
-              .select("lesson_id, is_completed, progress_percent, watched_seconds")
-              .eq("student_id", profile!.id)
-              .in("lesson_id", lessonIds)
-          : { data: [] };
+  const allLessonIds = (allLessons ?? []).map((l) => l.id);
+  const { data: allProgress } =
+    allLessonIds.length > 0
+      ? await supabase
+          .from("lesson_progress")
+          .select("lesson_id, is_completed, progress_percent, watched_seconds")
+          .eq("student_id", profile!.id)
+          .in("lesson_id", allLessonIds)
+      : {
+          data: [] as {
+            lesson_id: string;
+            is_completed: boolean;
+            progress_percent: number | null;
+            watched_seconds: number | null;
+          }[],
+        };
 
-      const stats = calculateCourseProgress(
-        (lessons ?? []) as Pick<Lesson, "id" | "is_published">[],
-        progress ?? []
-      );
-
-      const inProgress = (progress ?? []).some(
-        (p) => !p.is_completed && (p.progress_percent ?? 0) > 0
-      );
-
-      return { course: fullCourse, inProgress, ...stats };
-    })
+  const progressByLesson = new Map(
+    (allProgress ?? []).map((p) => [p.lesson_id, p])
   );
+
+  const coursesWithProgress = validEnrollments.map(({ course, courseId }) => {
+    const fullCourse = course.title
+      ? course
+      : (courseById.get(courseId) ?? course);
+
+    const lessons = lessonsByCourse.get(courseId) ?? [];
+    const progress = lessons.map(
+      (l) => progressByLesson.get(l.id) ?? { lesson_id: l.id, is_completed: false, progress_percent: 0, watched_seconds: 0 }
+    );
+
+    const stats = calculateCourseProgress(lessons, progress);
+    const inProgress = progress.some(
+      (p) => !p.is_completed && (p.progress_percent ?? 0) > 0
+    );
+
+    return { course: fullCourse, inProgress, ...stats };
+  });
 
   const displayCourses = coursesWithProgress.filter((item) => item.course?.id);
 

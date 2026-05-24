@@ -205,11 +205,18 @@ export interface VocabStageProgress {
   stage1_seen_item_ids: string[];
   stage2_completed: boolean;
   stage2_completed_at: string | null;
+  stage3_completed: boolean;
+  stage3_completed_at: string | null;
   stage3_passed: boolean;
   stage3_best_score: number;
   stage3_last_score: number;
   stage3_attempt_count: number;
   stage3_passed_at: string | null;
+  stage4_passed: boolean;
+  stage4_best_score: number;
+  stage4_last_score: number;
+  stage4_attempt_count: number;
+  stage4_passed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -244,7 +251,8 @@ export interface StudentVocabSetSummary {
   itemCount: number;
   stage1Completed: boolean;
   stage2Completed: boolean;
-  stage3Passed: boolean;
-  stage3LastScore: number;
-  stage3BestScore: number;
+  stage3Completed: boolean;
+  stage4Passed: boolean;
+  stage4LastScore: number;
+  stage4BestScore: number;
 }

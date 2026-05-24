@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { STAGE3_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import {
+  stage3Completed,
+  stage4AttemptCount,
+  stage4BestScore,
+  stage4LastScore,
+  stage4Passed,
+} from "@/lib/vocab/stage-progress-fields";
 import type { VocabStageProgress } from "@/types/database";
 
 interface VocabSetStageHubProps {
@@ -36,8 +43,10 @@ interface StageRowProps {
   status: string;
   variant: "locked" | "todo" | "done" | "pass" | "fail";
   href?: string;
+  secondaryHref?: string;
   locked?: boolean;
   buttonLabel: string;
+  secondaryButtonLabel?: string;
 }
 
 function StageRow({
@@ -47,8 +56,10 @@ function StageRow({
   status,
   variant,
   href,
+  secondaryHref,
   locked,
   buttonLabel,
+  secondaryButtonLabel,
 }: StageRowProps) {
   return (
     <li
@@ -64,7 +75,7 @@ function StageRow({
         <p className="mt-0.5 text-sm text-slate-500">{desc}</p>
       </div>
       {statusPill(status, variant)}
-      <div className="shrink-0">
+      <div className="flex shrink-0 gap-2">
         {locked || !href ? (
           <span className="inline-flex h-9 items-center rounded-lg bg-slate-100 px-3 text-xs text-slate-400">
             {buttonLabel}
@@ -75,6 +86,14 @@ function StageRow({
             className="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-brand-700 hover:bg-brand-50"
           >
             {buttonLabel}
+          </Link>
+        )}
+        {secondaryHref && secondaryButtonLabel && (
+          <Link
+            href={secondaryHref}
+            className="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            {secondaryButtonLabel}
           </Link>
         )}
       </div>
@@ -90,9 +109,13 @@ export function VocabSetStageHub({
 }: VocabSetStageHubProps) {
   const stage1Done = progress.stage1_completed;
   const stage2Done = progress.stage2_completed;
-  const stage3Passed = progress.stage3_passed;
-  const hasAttempt = progress.stage3_attempt_count > 0;
-  const stage3Fail = hasAttempt && !stage3Passed;
+  const stage3Done = stage3Completed(progress);
+  const stage4Pass = stage4Passed(progress);
+  const attemptCount = stage4AttemptCount(progress);
+  const lastScore = stage4LastScore(progress);
+  const bestScore = stage4BestScore(progress);
+  const hasAttempt = attemptCount > 0;
+  const stage4Fail = hasAttempt && !stage4Pass;
 
   const stage1Status = stage1Done ? "완료" : "미완료";
   const stage2Status = !stage1Done
@@ -102,7 +125,12 @@ export function VocabSetStageHub({
       : "미완료";
   const stage3Status = !stage2Done
     ? "잠김"
-    : stage3Passed
+    : stage3Done
+      ? "완료"
+      : "미완료";
+  const stage4Status = !stage3Done
+    ? "잠김"
+    : stage4Pass
       ? "합격"
       : hasAttempt
         ? "불합격"
@@ -140,12 +168,12 @@ export function VocabSetStageHub({
               status={stage1Status}
               variant={stage1Done ? "done" : "todo"}
               href={`/student/vocab/${setId}/stage1`}
-              buttonLabel={stage1Done ? "다시 보기" : "시작"}
+              buttonLabel={stage1Done ? "다시 보기" : "시작하기"}
             />
             <StageRow
               step="2"
-              title="스펠링"
-              desc="한글뜻만 보고 영어 입력 (예문 없음)"
+              title="스펠링 학습"
+              desc="한글뜻만 보고 영어 스펠링 입력"
               status={stage2Status}
               variant={
                 !stage1Done ? "locked" : stage2Done ? "done" : "todo"
@@ -154,40 +182,56 @@ export function VocabSetStageHub({
                 stage1Done ? `/student/vocab/${setId}/stage2` : undefined
               }
               locked={!stage1Done}
-              buttonLabel={stage2Done ? "다시 연습" : "시작"}
+              buttonLabel={stage2Done ? "다시 하기" : "시작하기"}
             />
             <StageRow
               step="3"
-              title="종합테스트"
-              desc={`뜻·스펠링 혼합 · ${STAGE3_PASS_SCORE}점 이상 합격`}
+              title="예문 빈칸 학습"
+              desc="예문 빈칸에 들어갈 영어 단어 입력"
               status={stage3Status}
               variant={
-                !stage2Done
-                  ? "locked"
-                  : stage3Passed
-                    ? "pass"
-                    : stage3Fail
-                      ? "fail"
-                      : "todo"
+                !stage2Done ? "locked" : stage3Done ? "done" : "todo"
               }
               href={
                 stage2Done ? `/student/vocab/${setId}/stage3` : undefined
               }
               locked={!stage2Done}
+              buttonLabel={stage3Done ? "다시 하기" : "시작하기"}
+            />
+            <StageRow
+              step="4"
+              title="종합테스트"
+              desc={`뜻·스펠링 혼합 · ${STAGE4_PASS_SCORE}점 이상 합격`}
+              status={stage4Status}
+              variant={
+                !stage3Done
+                  ? "locked"
+                  : stage4Pass
+                    ? "pass"
+                    : stage4Fail
+                      ? "fail"
+                      : "todo"
+              }
+              href={
+                stage3Done ? `/student/vocab/${setId}/stage4` : undefined
+              }
+              secondaryHref={
+                stage3Done && hasAttempt
+                  ? `/student/vocab/${setId}/stage4/result`
+                  : undefined
+              }
+              locked={!stage3Done}
               buttonLabel={
-                stage3Passed
-                  ? "다시 도전"
-                  : hasAttempt
-                    ? "다시 도전"
-                    : "시작"
+                hasAttempt ? "다시 도전하기" : "시작하기"
+              }
+              secondaryButtonLabel={
+                hasAttempt ? "결과 보기" : undefined
               }
             />
           </ul>
           {hasAttempt && (
             <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-              최근 {progress.stage3_last_score}점 · 최고{" "}
-              {progress.stage3_best_score}점 · 응시{" "}
-              {progress.stage3_attempt_count}회
+              최근 {lastScore}점 · 최고 {bestScore}점 · 응시 {attemptCount}회
             </p>
           )}
         </div>

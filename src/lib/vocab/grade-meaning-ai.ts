@@ -20,6 +20,10 @@ const SYSTEM_PROMPT = `너는 영어 단어 뜻 시험의 채점자다.
 - 너무 넓거나 모호해서 정답으로 보기 어려우면 오답
 - 결과는 반드시 JSON으로만 반환`;
 
+const MEANING_CHUNK_SIZE = 12;
+const MEANING_AI_TIMEOUT_MS = 18_000;
+const MEANING_CHUNK_CONCURRENCY = 2;
+
 function openAiErrorMessage(status: number, bodyText: string): string {
   try {
     const body = JSON.parse(bodyText) as {
@@ -88,8 +92,20 @@ function parseBatchResults(
   }
 }
 
-/** Batch meaning grade via OpenAI (one API call) */
-export async function gradeMeaningWithAi(
+function fallbackResults(items: MeaningGradeInput[]): MeaningGradeResult[] {
+  return items.map((input) => {
+    const isCorrect = gradeMeaningFallback(
+      input.correctMeaning,
+      input.studentAnswer
+    );
+    return {
+      isCorrect,
+      feedback: fallbackMeaningFeedback(isCorrect),
+    };
+  });
+}
+
+async function gradeMeaningChunkWithAi(
   items: MeaningGradeInput[]
 ): Promise<
   { ok: true; results: MeaningGradeResult[] } | { ok: false; message: string }
@@ -99,33 +115,33 @@ export async function gradeMeaningWithAi(
     return { ok: false, message: "OPENAI_API_KEY가 설정되어 있지 않습니다." };
   }
 
-  if (items.length === 0) {
-    return { ok: true, results: [] };
-  }
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      temperature: 0.1,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: buildBatchPrompt(items) },
-      ],
-    }),
-  });
-
-  const bodyText = await res.text();
-  if (!res.ok) {
-    return { ok: false, message: openAiErrorMessage(res.status, bodyText) };
-  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), MEANING_AI_TIMEOUT_MS);
 
   try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        temperature: 0.1,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: buildBatchPrompt(items) },
+        ],
+      }),
+    });
+
+    const bodyText = await res.text();
+    if (!res.ok) {
+      return { ok: false, message: openAiErrorMessage(res.status, bodyText) };
+    }
+
     const parsed = JSON.parse(bodyText) as {
       choices?: { message?: { content?: string } }[];
     };
@@ -135,9 +151,51 @@ export async function gradeMeaningWithAi(
       return { ok: false, message: "AI 채점 결과를 해석하지 못했습니다." };
     }
     return { ok: true, results };
-  } catch {
-    return { ok: false, message: "AI 채점 결과를 해석하지 못했습니다." };
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      return { ok: false, message: "AI 채점 시간이 초과되었습니다." };
+    }
+    return { ok: false, message: "AI 채점 요청에 실패했습니다." };
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+/** Batch meaning grade via OpenAI (chunked + limited concurrency) */
+export async function gradeMeaningWithAi(
+  items: MeaningGradeInput[]
+): Promise<
+  { ok: true; results: MeaningGradeResult[] } | { ok: false; message: string }
+> {
+  if (items.length === 0) {
+    return { ok: true, results: [] };
+  }
+
+  const chunks: MeaningGradeInput[][] = [];
+  for (let i = 0; i < items.length; i += MEANING_CHUNK_SIZE) {
+    chunks.push(items.slice(i, i + MEANING_CHUNK_SIZE));
+  }
+
+  const allResults: MeaningGradeResult[] = [];
+
+  for (let i = 0; i < chunks.length; i += MEANING_CHUNK_CONCURRENCY) {
+    const batch = chunks.slice(i, i + MEANING_CHUNK_CONCURRENCY);
+    const batchOutcomes = await Promise.all(
+      batch.map(async (chunk) => {
+        const result = await gradeMeaningChunkWithAi(chunk);
+        if (result.ok) return result.results;
+        return fallbackResults(chunk).map((r) => ({
+          ...r,
+          feedback: `${r.feedback ?? fallbackMeaningFeedback(r.isCorrect)} (${result.message})`,
+        }));
+      })
+    );
+    for (const chunkResults of batchOutcomes) {
+      allResults.push(...chunkResults);
+    }
+  }
+
+  return { ok: true, results: allResults };
 }
 
 /** Single item — wraps batch helper */
