@@ -17,6 +17,8 @@ export interface ListeningQuestionData {
   choices: string[];
   correct_answer: number;
   explanation: string;
+  answer_clue?: string;
+  needs_review?: boolean;
   script_translation: string;
   audio_url: string | null;
   segments: Array<{
@@ -159,12 +161,46 @@ export function ListeningQuestionEditor({
     onUpdated();
   }
 
+  async function regenerateQuestion() {
+    if (
+      !window.confirm(
+        `${question.order_index}번 문항을 AI로 다시 만듭니다. 기존 대본·음원이 삭제됩니다. 계속할까요?`
+      )
+    ) {
+      return;
+    }
+    setBusy("regen");
+    setMessage(null);
+    const res = await fetch("/api/listening/regenerate-question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        setId,
+        questionId: question.id,
+        typeId: question.order_index,
+      }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    setBusy(null);
+    if (!data.ok) {
+      setMessage(data.message ?? "재생성 실패");
+      return;
+    }
+    setMessage("문항을 다시 생성했습니다.");
+    onUpdated();
+  }
+
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="font-semibold text-slate-900">
             {question.order_index}번 · {question.question_type}
+            {question.needs_review && (
+              <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                검토 필요
+              </span>
+            )}
             <span
               className={`ml-2 text-xs font-normal ${hasFinalAudio ? "text-emerald-600" : "text-amber-600"}`}
             >
@@ -174,8 +210,21 @@ export function ListeningQuestionEditor({
           {instruction && (
             <p className="mt-1 text-sm text-slate-700">{instruction}</p>
           )}
+          {question.answer_clue && (
+            <p className="mt-1 text-xs text-emerald-700">
+              정답 근거: {question.answer_clue}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={regenerateQuestion}
+            className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-800 disabled:opacity-50"
+          >
+            {busy === "regen" ? "재생성 중…" : "이 문항 다시 생성"}
+          </button>
           <button
             type="button"
             disabled={!!busy}

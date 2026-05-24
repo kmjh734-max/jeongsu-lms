@@ -1,4 +1,5 @@
 import { mkdtemp, readFile, rm, writeFile } from "fs/promises";
+import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
 import { join } from "path";
 import { tmpdir } from "os";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -150,8 +151,21 @@ export async function generateQuestionAudio(opts: {
       throw new Error("합칠 segment 음성이 없습니다.");
     }
 
+    const mergePaths: string[] = [];
+    for (let i = 0; i < segmentOnlyPaths.length; i++) {
+      mergePaths.push(segmentOnlyPaths[i]!);
+      if (i < segmentOnlyPaths.length - 1) {
+        const speaker = rows[i]!.speaker_type as ListeningSpeakerType;
+        const pauseMs: 500 | 700 = speaker === "ANN" ? 700 : 500;
+        const pauseBuf = await getPauseBufferMs(pauseMs);
+        const pausePath = join(workDir, `pause-${i}.mp3`);
+        await writeFile(pausePath, pauseBuf);
+        mergePaths.push(pausePath);
+      }
+    }
+
     const finalLocal = join(workDir, "final.mp3");
-    await concatMp3Files(segmentOnlyPaths, finalLocal);
+    await concatMp3Files(mergePaths, finalLocal);
     const stat = await import("fs/promises").then((fs) => fs.stat(finalLocal));
     if (stat.size < 500) {
       throw new Error("합성된 mp3가 비어 있습니다. segment 음원을 다시 생성해 주세요.");

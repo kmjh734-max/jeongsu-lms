@@ -99,7 +99,12 @@ export function ListeningSetManageClient({
       return;
     }
     setPreviewQuestions(data.questions);
-    setMessage("미리보기가 생성되었습니다. 확인 후 저장하세요.");
+    const review = data.questions.filter((q) => q.needs_review).length;
+    setMessage(
+      review > 0
+        ? `미리보기 생성됨. 검토 필요 ${review}문항 — 확인 후 저장하세요.`
+        : "미리보기가 생성되었습니다. 확인 후 저장하세요."
+    );
   }
 
   async function savePreview() {
@@ -137,14 +142,23 @@ export function ListeningSetManageClient({
         persist: true,
       }),
     });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      reviewCount?: number;
+    };
     setBusy(null);
     if (!data.ok) {
       setMessage(data.message ?? "문항 생성 실패");
       return;
     }
     setPreviewQuestions(null);
-    setMessage("AI 문항이 생성·저장되었습니다.");
+    const review = data.reviewCount ?? 0;
+    setMessage(
+      review > 0
+        ? `저장 완료. 검토 필요 ${review}문항 — 대본·음원을 확인하세요.`
+        : "AI 문항이 생성·저장되었습니다."
+    );
     router.refresh();
   }
 
@@ -304,13 +318,16 @@ export function ListeningSetManageClient({
 
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>
-        <p className="mt-1 text-xs text-slate-500">기본: 보통(0.9) — 중1 학생 기준 약간 느리게</p>
+        <p className="mt-1 text-xs text-slate-500">
+          중1 영어듣기평가형 권장: 느리게(0.85)
+        </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {(
             [
-              ["slow", "느림 (0.8)"],
+              ["very_slow", "아주 천천히 (0.75)"],
+              ["slow", "느리게 (0.85)"],
               ["normal", "보통 (0.9)"],
-              ["fast", "빠름 (1.0)"],
+              ["fast", "실전 (1.0)"],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -384,17 +401,36 @@ export function ListeningSetManageClient({
         )}
 
         <div className="mt-3 flex flex-wrap items-end gap-3">
-          <label className="text-sm">
-            문항 수
+          <div className="text-sm">
+            <span className="font-medium text-slate-700">문항 수</span>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {([5, 10, 20] as const).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => {
+                    setQuestionCount(n);
+                    setSelectedTypeIds([]);
+                  }}
+                  className={`rounded-md px-2 py-1 text-xs font-medium ${
+                    questionCount === n
+                      ? "bg-indigo-600 text-white"
+                      : "border border-slate-200 text-slate-700"
+                  }`}
+                >
+                  {n}문항 (1~{n}번)
+                </button>
+              ))}
+            </div>
             <input
               type="number"
               min={1}
               max={20}
               value={questionCount}
               onChange={(e) => setQuestionCount(Number(e.target.value))}
-              className="ml-2 w-16 rounded-md border border-slate-200 px-2 py-1"
+              className="mt-2 w-16 rounded-md border border-slate-200 px-2 py-1"
             />
-          </label>
+          </div>
           <button
             type="button"
             disabled={!!busy}
@@ -452,7 +488,7 @@ export function ListeningSetManageClient({
             </button>
           </div>
           {previewQuestions.map((q) => (
-            <ListeningQuestionPreview key={q.order_index} question={q} />
+            <ListeningQuestionPreview key={q.order_index} question={q} showActions={false} />
           ))}
         </section>
       )}

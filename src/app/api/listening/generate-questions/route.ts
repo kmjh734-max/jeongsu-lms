@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       body.mode === "exam" ? "exam" : "free";
     const count = Math.min(Math.max(body.count ?? 5, 1), 20);
 
-    const generated = await generateListeningQuestionsWithAi(apiKey, {
+    const { questions: generated } = await generateListeningQuestionsWithAi(apiKey, {
       mode,
       count,
       selectedTypeIds: body.selectedTypeIds,
@@ -77,10 +77,20 @@ export async function POST(request: Request) {
     const persist = body.persist !== false;
     if (persist) {
       const saved = await persistGeneratedQuestions(setId, generated);
-      return NextResponse.json({ ok: true, questions: saved, mode });
+      return NextResponse.json({
+        ok: true,
+        questions: saved,
+        mode,
+        reviewCount: generated.filter((q) => q.needs_review).length,
+      });
     }
 
-    return NextResponse.json({ ok: true, questions: generated, mode });
+    return NextResponse.json({
+      ok: true,
+      questions: generated,
+      mode,
+      reviewCount: generated.filter((q) => q.needs_review).length,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : "문항 생성 중 오류가 발생했습니다.";
     return jsonError(message);

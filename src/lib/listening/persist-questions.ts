@@ -32,6 +32,8 @@ export async function persistGeneratedQuestions(
         choices: q.choices.filter(Boolean),
         correct_answer: q.correct_answer,
         explanation: q.explanation,
+        answer_clue: q.answer_clue ?? "",
+        needs_review: q.needs_review ?? false,
       })
       .select("id")
       .single();

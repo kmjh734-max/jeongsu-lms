@@ -35,6 +35,26 @@ export default async function AdminListeningSetPage({
     })
     .filter((n): n is string => !!n);
 
+  const { data: studentAssignments } = await supabase
+    .from("listening_assignments")
+    .select("student_id, student:profiles!listening_assignments_student_id_fkey(name)")
+    .eq("set_id", setId)
+    .not("student_id", "is", null);
+
+  const assignedStudentNames = (studentAssignments ?? [])
+    .map((a) => {
+      const s = a.student as { name?: string } | { name?: string }[] | null;
+      if (Array.isArray(s)) return s[0]?.name;
+      return s?.name;
+    })
+    .filter((n): n is string => !!n);
+
+  const { data: students } = await supabase
+    .from("profiles")
+    .select("id, name")
+    .eq("role", "student")
+    .order("name");
+
   return (
     <div className="space-y-6">
       <Link
@@ -54,7 +74,9 @@ export default async function AdminListeningSetPage({
       <ListeningAssignPanel
         setId={setId}
         classes={classes ?? []}
+        students={(students ?? []).map((s) => ({ id: s.id, name: s.name }))}
         assignedClassNames={assignedClassNames}
+        assignedStudentNames={assignedStudentNames}
         isPublished={loaded.set.is_published}
       />
     </div>

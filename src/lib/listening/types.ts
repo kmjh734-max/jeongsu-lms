@@ -7,6 +7,11 @@ export interface ListeningScriptSegment {
   text: string;
 }
 
+export interface QualityIssuePayload {
+  code: string;
+  message: string;
+}
+
 export interface GeneratedListeningQuestion {
   order_index: number;
   question_type: string;
@@ -17,7 +22,10 @@ export interface GeneratedListeningQuestion {
   question_text: string;
   choices: string[];
   correct_answer: number;
+  answer_clue: string;
   explanation: string;
+  needs_review?: boolean;
+  quality_issues?: QualityIssuePayload[];
 }
 
 export interface ListeningQuestionRow {
@@ -32,6 +40,8 @@ export interface ListeningQuestionRow {
   choices: string[];
   correct_answer: number;
   explanation: string;
+  answer_clue: string;
+  needs_review: boolean;
   audio_url: string | null;
 }
 

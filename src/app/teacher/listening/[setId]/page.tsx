@@ -45,6 +45,38 @@ export default async function TeacherListeningSetPage({
     })
     .filter((n): n is string => !!n);
 
+  const { data: studentAssignments } = await supabase
+    .from("listening_assignments")
+    .select("student_id, student:profiles!listening_assignments_student_id_fkey(name)")
+    .eq("set_id", setId)
+    .not("student_id", "is", null);
+
+  const assignedStudentNames = (studentAssignments ?? [])
+    .map((a) => {
+      const s = a.student as { name?: string } | { name?: string }[] | null;
+      if (Array.isArray(s)) return s[0]?.name;
+      return s?.name;
+    })
+    .filter((n): n is string => !!n);
+
+  const classIds = (classes ?? []).map((c) => c.id);
+  const { data: classStudents } =
+    classIds.length > 0
+      ? await supabase
+          .from("class_students")
+          .select("student_id, student:profiles(name)")
+          .in("class_id", classIds)
+      : { data: [] as { student_id: string; student: { name: string } | null }[] };
+
+  const studentMap = new Map<string, string>();
+  for (const row of classStudents ?? []) {
+    const name = (row.student as { name?: string } | null)?.name;
+    if (name) studentMap.set(row.student_id, name);
+  }
+  const students = [...studentMap.entries()]
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+
   return (
     <div className="space-y-6">
       <Link
@@ -64,7 +96,9 @@ export default async function TeacherListeningSetPage({
       <ListeningAssignPanel
         setId={setId}
         classes={classes ?? []}
+        students={students}
         assignedClassNames={assignedClassNames}
+        assignedStudentNames={assignedStudentNames}
         isPublished={loaded.set.is_published}
       />
     </div>

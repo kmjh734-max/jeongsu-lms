@@ -16,7 +16,7 @@ export async function loadListeningSetForEditor(
   const { data: questions } = await supabase
     .from("listening_questions")
     .select(
-      "id, order_index, question_type, instruction, question_text, choices, correct_answer, explanation, script_translation, audio_url"
+      "id, order_index, question_type, instruction, question_text, choices, correct_answer, explanation, answer_clue, needs_review, script_translation, audio_url"
     )
     .eq("set_id", setId)
     .order("order_index", { ascending: true });
