@@ -9,12 +9,6 @@ import {
   segmentStoragePath,
   storagePathFromPublicUrl,
 } from "@/lib/listening/storage-paths";
-import {
-  AFTER_ANN_PAUSE_SEC,
-  BEFORE_FIRST_LINE_PAUSE_SEC,
-  generateSilenceMp3,
-  SEGMENT_PAUSE_SEC,
-} from "@/lib/listening/silence-mp3";
 import { synthesizeSegmentMp3 } from "@/lib/listening/tts-openai";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 import { DEFAULT_SPEECH_SPEED_PRESET, speedFromPreset } from "@/lib/listening/speech-speed";
@@ -45,61 +39,18 @@ async function downloadSegmentToFile(
   await writeFile(destPath, buf);
 }
 
-function appendSegmentPath(
-  concatPaths: string[],
-  localPath: string
-): void {
-  concatPaths.push(localPath);
-}
-
-async function appendPausesAroundSegment(
-  workDir: string,
-  concatPaths: string[],
-  localPath: string,
-  speaker: ListeningSpeakerType,
-  index: number,
-  isLast: boolean,
-  usePauses: boolean
+async function updateQuestionAudioUrl(
+  admin: ReturnType<typeof createAdminClient>,
+  questionId: string,
+  audioUrl: string
 ): Promise<void> {
-  if (!usePauses) {
-    appendSegmentPath(concatPaths, localPath);
-    return;
+  const { error } = await admin
+    .from("listening_questions")
+    .update({ audio_url: audioUrl })
+    .eq("id", questionId);
+  if (error) {
+    throw new Error(`문항 audio_url 저장 실패: ${error.message}`);
   }
-
-  try {
-    if (index === 0) {
-      const pre = join(workDir, `pause-pre-${index}.mp3`);
-      await generateSilenceMp3(BEFORE_FIRST_LINE_PAUSE_SEC, pre);
-      concatPaths.push(pre);
-    }
-    concatPaths.push(localPath);
-    if (!isLast) {
-      const gap = speaker === "ANN" ? AFTER_ANN_PAUSE_SEC : SEGMENT_PAUSE_SEC;
-      const pausePath = join(workDir, `pause-after-${index}.mp3`);
-      await generateSilenceMp3(gap, pausePath);
-      concatPaths.push(pausePath);
-    }
-  } catch {
-    appendSegmentPath(concatPaths, localPath);
-  }
-}
-
-async function buildFinalMp3(
-  workDir: string,
-  concatPaths: string[],
-  segmentOnlyPaths: string[]
-): Promise<string> {
-  const finalLocal = join(workDir, "final.mp3");
-  try {
-    await concatMp3Files(concatPaths, finalLocal);
-  } catch {
-    await concatMp3Files(segmentOnlyPaths, finalLocal);
-  }
-  const stat = await import("fs/promises").then((fs) => fs.stat(finalLocal));
-  if (stat.size < 500) {
-    throw new Error("합성된 mp3 파일이 비어 있습니다. ffmpeg 설치를 확인해 주세요.");
-  }
-  return finalLocal;
 }
 
 export async function generateQuestionAudio(opts: {
@@ -126,10 +77,8 @@ export async function generateQuestionAudio(opts: {
   if (!segments?.length) throw new Error("대본 segment가 없습니다.");
 
   const workDir = await mkdtemp(join(tmpdir(), "listening-audio-"));
-  const concatPaths: string[] = [];
   const segmentOnlyPaths: string[] = [];
   const resultSegments: Array<{ id: string; speaker: string; audioUrl: string }> = [];
-  const usePauses = true;
 
   try {
     const rows = segments as ListeningSegmentRow[];
@@ -162,13 +111,14 @@ export async function generateQuestionAudio(opts: {
         if (upErr) throw new Error(upErr.message);
 
         const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
-        await admin
+        const { error: segUpErr } = await admin
           .from("listening_question_segments")
           .update({
             audio_url: audioUrl,
             voice_name: voiceForSpeaker(speaker),
           })
           .eq("id", seg.id);
+        if (segUpErr) throw new Error(segUpErr.message);
 
         resultSegments.push({ id: seg.id, speaker, audioUrl });
       } else if (seg.audio_url) {
@@ -195,28 +145,29 @@ export async function generateQuestionAudio(opts: {
           });
         if (upErr) throw new Error(upErr.message);
         const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
-        await admin
+        const { error: segUpErr2 } = await admin
           .from("listening_question_segments")
           .update({ audio_url: audioUrl, voice_name: voiceForSpeaker(speaker) })
           .eq("id", seg.id);
+        if (segUpErr2) throw new Error(segUpErr2.message);
         resultSegments.push({ id: seg.id, speaker, audioUrl });
       }
 
       segmentOnlyPaths.push(localPath);
-      await appendPausesAroundSegment(
-        workDir,
-        concatPaths,
-        localPath,
-        speaker,
-        i,
-        i === rows.length - 1,
-        usePauses
-      );
     }
 
-    const finalLocal = await buildFinalMp3(workDir, concatPaths, segmentOnlyPaths);
-    const finalBuffer = await readFile(finalLocal);
+    if (segmentOnlyPaths.length === 0) {
+      throw new Error("합칠 segment 음성이 없습니다.");
+    }
 
+    const finalLocal = join(workDir, "final.mp3");
+    await concatMp3Files(segmentOnlyPaths, finalLocal);
+    const stat = await import("fs/promises").then((fs) => fs.stat(finalLocal));
+    if (stat.size < 500) {
+      throw new Error("합성된 mp3가 비어 있습니다. ffmpeg-static 설치를 확인해 주세요.");
+    }
+
+    const finalBuffer = await readFile(finalLocal);
     const finalPath = finalStoragePath(setId, questionId);
     const { error: finalUpErr } = await admin.storage
       .from(BUCKET)
@@ -224,13 +175,10 @@ export async function generateQuestionAudio(opts: {
         contentType: "audio/mpeg",
         upsert: true,
       });
-    if (finalUpErr) throw new Error(finalUpErr.message);
+    if (finalUpErr) throw new Error(`최종 mp3 업로드 실패: ${finalUpErr.message}`);
 
     const audioUrl = publicAudioUrl(supabaseUrl, finalPath);
-    await admin
-      .from("listening_questions")
-      .update({ audio_url: audioUrl })
-      .eq("id", questionId);
+    await updateQuestionAudioUrl(admin, questionId, audioUrl);
 
     return { audioUrl, segments: resultSegments };
   } finally {

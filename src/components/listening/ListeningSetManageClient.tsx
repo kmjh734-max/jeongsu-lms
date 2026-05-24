@@ -135,6 +135,34 @@ export function ListeningSetManageClient({
     router.refresh();
   }
 
+  async function mergeAllFinalAudio() {
+    if (initialQuestions.length === 0) return;
+    setBusy("merge-all");
+    setMessage(null);
+    const res = await fetch("/api/listening/merge-audio-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      results?: Array<{ orderIndex: number; ok: boolean; message?: string }>;
+    };
+    setBusy(null);
+    if (!data.ok) {
+      setMessage(data.message ?? "일괄 병합 실패");
+      return;
+    }
+    const failed = (data.results ?? []).filter((r) => !r.ok);
+    setMessage(
+      failed.length
+        ? `${data.message} — 실패: ${failed.map((f) => `${f.orderIndex}번`).join(", ")}`
+        : data.message ?? "전체 최종 mp3 병합 완료"
+    );
+    router.refresh();
+  }
+
   async function generateAllAudio() {
     if (initialQuestions.length === 0) {
       setMessage("먼저 문항을 생성·저장하세요.");
@@ -349,19 +377,31 @@ export function ListeningSetManageClient({
         <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
           <h2 className="text-sm font-semibold text-slate-800">음원 일괄 생성</h2>
           <p className="mt-1 text-xs text-slate-600">
-            저장된 {initialQuestions.length}개 문항의 segment TTS → pause → 최종 mp3를 순서대로
-            만듭니다. (문항당 15~40초 소요)
+            segment TTS 후 최종 mp3까지 한 번에 만듭니다. 이미 줄별 음원만 있으면 아래 「병합만」을
+            사용하세요.
           </p>
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={generateAllAudio}
-            className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {busy === "audio-all"
-              ? `전체 음원 생성 중… (0/${initialQuestions.length})`
-              : `전체 음원 생성 (${initialQuestions.length}문항)`}
-          </button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!!busy}
+              onClick={generateAllAudio}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {busy === "audio-all"
+                ? "전체 음원 생성 중…"
+                : `전체 음원 생성 (${initialQuestions.length}문항)`}
+            </button>
+            <button
+              type="button"
+              disabled={!!busy}
+              onClick={mergeAllFinalAudio}
+              className="rounded-lg border border-emerald-400 bg-white px-4 py-2 text-sm font-medium text-emerald-800 disabled:opacity-50"
+            >
+              {busy === "merge-all"
+                ? "병합 중…"
+                : `최종 mp3만 일괄 병합 (${initialQuestions.length}문항)`}
+            </button>
+          </div>
         </section>
       )}
 

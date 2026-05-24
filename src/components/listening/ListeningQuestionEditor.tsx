@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   SegmentScriptEditor,
   type SegmentDraft,
@@ -63,8 +63,14 @@ export function ListeningQuestionEditor({
   const [audioUrl, setAudioUrl] = useState(question.audio_url);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAudioUrl(question.audio_url);
+  }, [question.audio_url]);
 
   const filledChoiceCount = choices.filter((c) => c.trim()).length;
+  const hasFinalAudio = !!audioUrl;
 
   async function saveQuestion() {
     setBusy("save");
@@ -92,9 +98,34 @@ export function ListeningQuestionEditor({
     onUpdated();
   }
 
+  async function mergeAudioOnly() {
+    setBusy("merge");
+    setMessage(null);
+    setError(null);
+    const res = await fetch("/api/listening/merge-audio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId, questionId: question.id }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      audioUrl?: string;
+    };
+    setBusy(null);
+    if (!data.ok || !data.audioUrl) {
+      setError(data.message ?? "최종 mp3 병합 실패");
+      return;
+    }
+    setAudioUrl(`${data.audioUrl}?t=${Date.now()}`);
+    setMessage("segment를 합쳐 최종 mp3를 만들었습니다.");
+    onUpdated();
+  }
+
   async function generateAudio(segmentId?: string) {
     setBusy(segmentId ? `seg-${segmentId}` : "audio");
     setMessage(null);
+    setError(null);
     const res = await fetch("/api/listening/generate-audio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -112,11 +143,11 @@ export function ListeningQuestionEditor({
     };
     setBusy(null);
     if (!data.ok) {
-      setMessage(data.message ?? "음원 생성 실패");
+      setError(data.message ?? "음원 생성 실패");
       return;
     }
     if (!data.audioUrl) {
-      setMessage("음원 URL을 받지 못했습니다. 서버 로그를 확인해 주세요.");
+      setError("음원 URL을 받지 못했습니다. 「최종 mp3만 병합」을 시도해 보세요.");
       return;
     }
     setAudioUrl(`${data.audioUrl}?t=${Date.now()}`);
@@ -130,6 +161,11 @@ export function ListeningQuestionEditor({
         <div>
           <h3 className="font-semibold text-slate-900">
             {question.order_index}번 · {question.question_type}
+            <span
+              className={`ml-2 text-xs font-normal ${hasFinalAudio ? "text-emerald-600" : "text-amber-600"}`}
+            >
+              {hasFinalAudio ? "● 최종 음원 있음" : "○ 최종 음원 없음"}
+            </span>
           </h3>
           {instruction && (
             <p className="mt-1 text-sm text-slate-700">{instruction}</p>
@@ -151,6 +187,14 @@ export function ListeningQuestionEditor({
             className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
           >
             {busy === "audio" ? "음원 생성 중…" : "음원 생성"}
+          </button>
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={mergeAudioOnly}
+            className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 disabled:opacity-50"
+          >
+            {busy === "merge" ? "병합 중…" : "최종 mp3만 병합"}
           </button>
         </div>
       </header>
@@ -246,6 +290,11 @@ export function ListeningQuestionEditor({
         </div>
       )}
 
+      {error && (
+        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      )}
       {message && (
         <p className="mt-2 text-sm text-slate-600" role="status">
           {message}
