@@ -66,8 +66,14 @@
     visibility: hidden;
   }
 
+  #shared-report-print-root {
+    visibility: visible;
+  }
+
   #a4-print-root,
-  #a4-print-root * {
+  #a4-print-root *,
+  #shared-report-print-root,
+  #shared-report-print-root * {
     visibility: visible;
   }
 
@@ -79,7 +85,8 @@
     visibility: visible !important;
   }
 
-  #a4-print-root {
+  #a4-print-root,
+  #shared-report-print-root {
     position: absolute;
     left: 0;
     top: 0;

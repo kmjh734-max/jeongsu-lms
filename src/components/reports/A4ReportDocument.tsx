@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { ACADEMY_NAME, LOGO_SRC, SITE_NAME } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
-import { formatReviewWordParentLine } from "@/lib/reports/format-lines";
-import { extractLearningReportSection } from "@/lib/reports/parent-message-utils";
+import { parseReviewWordDisplay } from "@/lib/reports/review-word-display";
+import { resolveLearningReportText } from "@/lib/reports/resolve-learning-report-text";
 import { computeReportMetrics } from "@/lib/reports/report-metrics";
 import type { StudentReport } from "@/lib/reports/types";
 
@@ -64,17 +64,18 @@ export function A4ReportDocument({
     day: "numeric",
   });
   const metrics = computeReportMetrics(report);
-  const learningReport =
-    learningReportText?.trim() ||
-    extractLearningReportSection(parentMessage) ||
-    `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine}`;
+  const learningReport = resolveLearningReportText(
+    report,
+    parentMessage,
+    learningReportText
+  );
 
   const reviewRows = report.reviewWords.slice(0, 10);
   const reviewExtra = report.reviewWords.length - reviewRows.length;
 
   return (
-    <article className="a4-report mx-auto box-border w-[210mm] min-h-[297mm] bg-white px-[18mm] py-[16mm] text-[10.5pt] leading-relaxed text-slate-800 print:shadow-none">
-      <header className="border-b-2 border-[#1e3a5f]/20 pb-4">
+    <article className="a4-report mx-auto box-border w-[210mm] min-h-[297mm] bg-white px-[18mm] py-[16mm] text-[10.5pt] leading-relaxed text-slate-800 shadow-sm print:shadow-none">
+      <header className="border-b border-[#1e3a5f]/30 pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             {showLogo && (
@@ -91,8 +92,11 @@ export function A4ReportDocument({
                 </span>
               </div>
             )}
-            <h1 className="text-[18pt] font-bold tracking-tight text-[#1e3a5f]">
-              학습 리포트
+            <p className="text-[9pt] font-semibold uppercase tracking-widest text-slate-500">
+              Learning Report
+            </p>
+            <h1 className="mt-0.5 text-[17pt] font-bold tracking-tight text-[#1e3a5f]">
+              {ACADEMY_NAME} 학습 리포트
             </h1>
             <p className="mt-1 text-[11pt] font-semibold text-slate-900">
               {report.student.name}
@@ -270,13 +274,8 @@ export function A4ReportDocument({
               </thead>
               <tbody>
                 {reviewRows.map((word) => {
-                  const line = formatReviewWordParentLine(word).replace(/^- /, "");
-                  const [wordPart, reason] = line.includes(": ")
-                    ? line.split(": ")
-                    : [line, ""];
-                  const [w, meaning] = wordPart.includes(" / ")
-                    ? wordPart.split(" / ")
-                    : [wordPart, ""];
+                  const { word: w, meaning, reason } =
+                    parseReviewWordDisplay(word);
                   return (
                     <tr key={word.itemId} className="border-b border-slate-100">
                       <td className="py-1.5 font-medium">{w}</td>

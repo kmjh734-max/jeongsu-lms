@@ -47,27 +47,28 @@ function buildReportContext(report: StudentReport): string {
   ].join("\n");
 }
 
-const DRAFT_SYSTEM = `너는 영어 학원에서 학부모에게 카카오톡·문자로 보내는 안내를 쓰는 현직 강사다.
-학습 리포트 본문을 한 덩어리의 자연스러운 한국어로 작성한다.
+const DRAFT_SYSTEM = `너는 영어 학원 담임 강사다. 학부모에게 보내는 학습 리포트 본문을 한 단락으로 쓴다.
 
 문체 (매우 중요):
-- 보고서·논문체 금지. "~한 것으로 확인됩니다", "~하였으며", "~수행하였습니다" 같은 표현을 반복하지 말 것
-- 학부모에게 바로내도 어색하지 않은 따뜻한 안내문 톤
-- 실제 강사가 직접 쓴 것처럼 자연스럽게
-- 4~6문장, 한 단락
+- 담백하고 신뢰감 있게. 과한 칭찬·감탄·"훌륭합니다" "매우 우수" 같은 과장 금지
+- 보고서체·논문체 금지 ("~한 것으로 확인됩니다", "~하였으며", "~수행하였습니다" 등)
+- 실제 강사가 카톡·문자로 보내는 안내문처럼 자연스럽게
+- 4~5문장, 한 단락만
 
-내용:
-- 학생의 잘한 점·꾸준함을 먼저 긍정적으로 언급
-- 부족한 점은 부드럽게, 다음에 어떻게 도울지 짧게 안내
-- 영상 학습이 있으면 자연스럽게 언급, 없으면 단어학습 중심으로 안내
-- 단어장별 진행·4단계 점수·합격 여부는 구체적 이름·점수로 짧게
-- 복습 필요 단어는 딱딱한 목록 대신 문장 안에 자연스럽게 녹여 설명 (예: careful, choose처럼)
-- "꾸준히", "차근차근", "다시 점검", "보완해가겠습니다", "지도하겠습니다" 등 학원 안내 표현 사용 가능
-- 과장·단정·기계적 나열 금지
+내용 순서:
+1. 잘하고 있는 점·꾸준한 부분을 먼저 (구체적 단어장명·점수·영상 진도율 숫자 포함)
+2. 부족한 부분은 부드럽게 (재도전, 복습 필요 등)
+3. 오답·복습 단어가 있으면 영어 단어를 문장 안에 자연스럽게 나열 (예: careful, choose, collect)
+4. 마지막에 앞으로 지도·복습 방향을 한 문장으로
 
-출력:
-- 번호, 제목, 인사말 없이 본문만
-- JSON·따옴표 없이 순수 텍스트만`;
+금지:
+- 번호·제목·인사말("안녕하세요")
+- JSON·따옴표
+- 데이터 나열식 문장 연속
+- 없는 사실 지어내기
+
+좋은 예시 톤:
+"○○ 학생은 최근 단어학습을 꾸준히 진행하고 있으며, Day1 단어장은 100점으로 안정적으로 마무리했습니다. 영상 강의도 현재 50%까지 수강하며 흐름을 잘 따라오고 있습니다. 다만 Day3 단어장은 종합테스트에서 80점으로 나타나, 일부 단어는 한 번 더 복습이 필요합니다. 다음 학습에서는 careful, choose, collect와 같은 오답 단어를 중심으로 다시 점검하며 완성도를 높여가겠습니다."`;
 
 export async function generateReportDraft(
   report: StudentReport
@@ -78,7 +79,7 @@ export async function generateReportDraft(
   }
 
   const context = buildReportContext(report);
-  const userPrompt = `아래 학습 데이터를 바탕으로, 학부모 카톡에 붙여넣을 학습 리포트 본문을 작성해 주세요. 보고서 말투가 아니라 담임 강사가 직접 쓴 안내문처럼 자연스럽게 써 주세요.\n\n${context}`;
+  const userPrompt = `아래 학습 데이터만 근거로, 학부모에게 보낼 학습 리포트 본문을 4~5문장으로 작성해 주세요. 담백한 담임 강사 톤으로, 과장 없이 구체적인 숫자·단어장 이름을 넣어 주세요.\n\n${context}`;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 25_000);
@@ -93,7 +94,7 @@ export async function generateReportDraft(
       signal: controller.signal,
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        temperature: 0.55,
+        temperature: 0.45,
         messages: [
           { role: "system", content: DRAFT_SYSTEM },
           { role: "user", content: userPrompt },

@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { ACADEMY_NAME, LOGO_SRC, SITE_URL } from "@/lib/branding";
 import { lookupSharedReport } from "@/lib/reports/get-shared-report";
 import { buildShareUrl } from "@/lib/reports/share-token";
+import { SharedReportPrintView } from "@/components/reports/SharedReportPrintView";
 import { SharedReportPublicView } from "@/components/reports/SharedReportPublicView";
 
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ view?: string }>;
 }
 
 export async function generateMetadata({
@@ -44,8 +46,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function SharedReportPage({ params }: PageProps) {
+export default async function SharedReportPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { token } = await params;
+  const { view } = await searchParams;
   const lookup = await lookupSharedReport(token);
 
   if (lookup.status !== "ok") {
@@ -70,6 +76,18 @@ export default async function SharedReportPage({ params }: PageProps) {
   }
 
   const { payload } = lookup;
+
+  if (view === "print") {
+    return (
+      <SharedReportPrintView
+        report={payload.report}
+        parentMessage={payload.parentMessage}
+        aiReportText={payload.aiReportText}
+        shareToken={token}
+      />
+    );
+  }
+
   return (
     <SharedReportPublicView
       report={payload.report}
@@ -77,6 +95,7 @@ export default async function SharedReportPage({ params }: PageProps) {
       aiReportText={payload.aiReportText}
       expiresAt={payload.expiresAt}
       studentName={payload.studentName}
+      shareToken={token}
     />
   );
 }
