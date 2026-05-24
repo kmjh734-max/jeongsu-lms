@@ -1,0 +1,26 @@
+import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ListeningSetsListClient } from "@/components/listening/ListeningSetsListClient";
+
+export default async function AdminListeningPage() {
+  const supabase = await createClient();
+  const { data: sets } = await supabase
+    .from("listening_sets")
+    .select("id, title, is_published, created_at")
+    .order("created_at", { ascending: false });
+
+  return (
+    <div>
+      <PageHeader
+        title="듣기학습"
+        description="다중 화자(ANN/M/W) 대본 · AI 문항 · TTS 음원 관리"
+      />
+      <div className="mt-6">
+        <ListeningSetsListClient
+          sets={sets ?? []}
+          basePath="/admin/listening"
+        />
+      </div>
+    </div>
+  );
+}

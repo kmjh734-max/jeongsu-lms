@@ -1,0 +1,70 @@
+import { NextResponse } from "next/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-questions";
+import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
+
+function jsonError(message: string, status = 200) {
+  return NextResponse.json({ ok: false, message }, { status });
+}
+
+export async function POST(request: Request) {
+  try {
+    const profile = await getCurrentProfile();
+    if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
+      return jsonError("권한이 없습니다.", 403);
+    }
+
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    if (!apiKey) {
+      return jsonError(
+        "OPENAI_API_KEY가 설정되어 있지 않습니다. .env.local에 키를 추가한 뒤 서버를 재시작해 주세요."
+      );
+    }
+
+    const body = (await request.json()) as {
+      setId?: string;
+      count?: number;
+      persist?: boolean;
+    };
+
+    const setId = body.setId?.trim();
+    if (!setId) {
+      return jsonError("setId가 필요합니다.");
+    }
+
+    const count = Math.min(Math.max(body.count ?? 5, 1), 10);
+
+    const admin = createAdminClient();
+    const { data: setRow, error: setErr } = await admin
+      .from("listening_sets")
+      .select("id, teacher_id, created_by")
+      .eq("id", setId)
+      .maybeSingle();
+
+    if (setErr || !setRow) {
+      return jsonError("듣기 세트를 찾을 수 없습니다.");
+    }
+
+    if (
+      profile.role === "teacher" &&
+      setRow.teacher_id !== profile.id &&
+      setRow.created_by !== profile.id
+    ) {
+      return jsonError("이 세트에 대한 권한이 없습니다.", 403);
+    }
+
+    const generated = await generateListeningQuestionsWithAi(apiKey, count);
+
+    const persist = body.persist !== false;
+    if (persist) {
+      const saved = await persistGeneratedQuestions(setId, generated);
+      return NextResponse.json({ ok: true, questions: saved });
+    }
+
+    return NextResponse.json({ ok: true, questions: generated });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "문항 생성 중 오류가 발생했습니다.";
+    return jsonError(message);
+  }
+}

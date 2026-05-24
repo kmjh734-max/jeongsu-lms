@@ -256,3 +256,51 @@ export interface StudentVocabSetSummary {
   stage4LastScore: number;
   stage4BestScore: number;
 }
+
+export type ListeningSpeakerType = "ANN" | "M" | "W";
+
+export interface ListeningSet {
+  id: string;
+  title: string;
+  description: string | null;
+  teacher_id: string | null;
+  created_by: string | null;
+  is_published: boolean;
+  created_at: string;
+}
+
+export interface ListeningQuestion {
+  id: string;
+  set_id: string;
+  order_index: number;
+  question_type: string;
+  script_text: string;
+  script_translation: string;
+  question_text: string;
+  choices: string[];
+  correct_answer: number;
+  explanation: string;
+  audio_url: string | null;
+  created_at: string;
+}
+
+export interface ListeningQuestionSegment {
+  id: string;
+  question_id: string;
+  order_index: number;
+  speaker_type: ListeningSpeakerType;
+  text: string;
+  voice_name: string | null;
+  audio_url: string | null;
+  duration_ms: number | null;
+  created_at: string;
+}
+
+export interface ListeningAssignment {
+  id: string;
+  set_id: string;
+  student_id: string | null;
+  class_id: string | null;
+  assigned_by: string | null;
+  created_at: string;
+}
