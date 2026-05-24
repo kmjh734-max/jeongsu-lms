@@ -96,12 +96,7 @@ export async function generateQuestionAudio(opts: {
         const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text, speed);
         await writeFile(localPath, buffer);
 
-        const storagePath = segmentStoragePath(
-          setId,
-          questionId,
-          seg.order_index,
-          speaker
-        );
+        const storagePath = segmentStoragePath(setId, questionId, seg.id);
         const { error: upErr } = await admin.storage
           .from(BUCKET)
           .upload(storagePath, buffer, {
@@ -131,12 +126,7 @@ export async function generateQuestionAudio(opts: {
       } else {
         const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text, speed);
         await writeFile(localPath, buffer);
-        const storagePath = segmentStoragePath(
-          setId,
-          questionId,
-          seg.order_index,
-          speaker
-        );
+        const storagePath = segmentStoragePath(setId, questionId, seg.id);
         const { error: upErr } = await admin.storage
           .from(BUCKET)
           .upload(storagePath, buffer, {

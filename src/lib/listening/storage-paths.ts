@@ -2,7 +2,17 @@ import type { ListeningSpeakerType } from "@/lib/listening/types";
 
 const BUCKET = "listening-audio";
 
+/** segment id 기준 경로 — 대본 수정·순서 변경 시 예전 mp3와 섞이지 않음 */
 export function segmentStoragePath(
+  setId: string,
+  questionId: string,
+  segmentId: string
+): string {
+  return `listening/${setId}/${questionId}/segments/${segmentId}.mp3`;
+}
+
+/** 표시용 레거시 경로 (마이그레이션 없이 읽기 시도) */
+export function legacySegmentStoragePath(
   setId: string,
   questionId: string,
   orderIndex: number,

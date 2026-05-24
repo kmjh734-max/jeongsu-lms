@@ -1,4 +1,5 @@
 import { buildScriptText } from "@/lib/listening/script-text";
+import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import {
   resolveExamTypesForGeneration,
   type ExamTypeTemplate,
@@ -18,7 +19,7 @@ export interface GenerateQuestionsOptions {
 
 function normalizeSegment(raw: { speaker?: string; text?: string }): ListeningScriptSegment | null {
   const speaker = (raw.speaker ?? "").trim().toUpperCase();
-  const text = (raw.text ?? "").trim();
+  const text = sanitizeSegmentTextForTts(raw.text ?? "");
   if (!isListeningSpeaker(speaker) || !text) return null;
   return { speaker, text };
 }
@@ -122,6 +123,7 @@ COMMON RULES (every item):
 - script_translation: Korean translation of full script
 - explanation: brief Korean explanation
 - Do NOT use difficult words or fast-paced speech style in writing
+- segment.text = spoken dialogue only (what the listener hears), never the Korean instruction or multiple-choice options
 
 Return ONLY valid JSON:
 {

@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildScriptText } from "@/lib/listening/script-text";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
+import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 
 export async function persistGeneratedQuestions(
@@ -43,7 +44,7 @@ export async function persistGeneratedQuestions(
       question_id: questionRow.id,
       order_index: idx,
       speaker_type: seg.speaker,
-      text: seg.text,
+      text: sanitizeSegmentTextForTts(seg.text),
       voice_name: voiceForSpeaker(seg.speaker),
     }));
 
@@ -85,7 +86,7 @@ export async function replaceQuestionSegments(
     question_id: questionId,
     order_index: idx,
     speaker_type: seg.speaker,
-    text: seg.text,
+    text: sanitizeSegmentTextForTts(seg.text),
     voice_name:
       seg.speaker === "ANN" || seg.speaker === "M" || seg.speaker === "W"
         ? voiceForSpeaker(seg.speaker)
@@ -104,6 +105,6 @@ export async function replaceQuestionSegments(
 
   await admin
     .from("listening_questions")
-    .update({ script_text })
+    .update({ script_text, audio_url: null })
     .eq("id", questionId);
 }

@@ -151,7 +151,11 @@ export function ListeningQuestionEditor({
       return;
     }
     setAudioUrl(`${data.audioUrl}?t=${Date.now()}`);
-    setMessage(segmentId ? "해당 줄 음원을 다시 생성했습니다." : "문항 음원을 생성했습니다.");
+    setMessage(
+      segmentId
+        ? "해당 줄만 화면에 보이는 대본 그대로 다시 읽었습니다."
+        : "화면에 보이는 대본 그대로 음원을 생성했습니다. (지시문·선택지는 읽지 않습니다.)"
+    );
     onUpdated();
   }
 

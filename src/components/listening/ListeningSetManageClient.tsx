@@ -377,8 +377,8 @@ export function ListeningSetManageClient({
         <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
           <h2 className="text-sm font-semibold text-slate-800">음원 일괄 생성</h2>
           <p className="mt-1 text-xs text-slate-600">
-            segment TTS 후 최종 mp3까지 한 번에 만듭니다. 이미 줄별 음원만 있으면 아래 「병합만」을
-            사용하세요.
+            화면의 segment 대본만 그대로 TTS합니다. 생성 후 반드시 미리듣기로 확인하세요.
+            (예전에 만든 음원은 대본과 다를 수 있으니 「전체 음원 생성」으로 다시 만드세요.)
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
