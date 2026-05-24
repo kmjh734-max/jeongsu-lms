@@ -59,9 +59,35 @@ export function lessonVideoFieldsFromUrl(
 export function resolveLessonVideo(
   lesson: LessonVideoDbRow
 ): LessonVideoSource | null {
+  if (lesson.video_provider === "vimeo") {
+    const videoId =
+      lesson.vimeo_video_id ??
+      (lesson.vimeo_url ? extractVimeoVideoId(lesson.vimeo_url) : null);
+    if (videoId) {
+      return {
+        provider: "vimeo",
+        videoId,
+        url: lesson.vimeo_url ?? `https://vimeo.com/${videoId}`,
+      };
+    }
+  }
+
+  if (lesson.video_provider === "youtube") {
+    const videoId =
+      lesson.youtube_video_id ??
+      (lesson.youtube_url ? extractYouTubeVideoId(lesson.youtube_url) : null);
+    if (videoId) {
+      return {
+        provider: "youtube",
+        videoId,
+        url: lesson.youtube_url ?? `https://www.youtube.com/watch?v=${videoId}`,
+      };
+    }
+  }
+
   const candidateUrls = [
-    lesson.youtube_url,
     lesson.vimeo_url,
+    lesson.youtube_url,
   ].filter((u): u is string => Boolean(u?.trim()));
 
   for (const url of candidateUrls) {

@@ -154,12 +154,9 @@ export function buildVimeoEmbedUrl(
   startSeconds?: number
 ): string {
   const params = new URLSearchParams({
-    api: "1",
     title: "0",
     byline: "0",
     portrait: "0",
-    pip: "0",
-    keyboard: "0",
   });
   const base = `https://player.vimeo.com/video/${videoId}?${params.toString()}`;
   const start = Math.max(0, Math.floor(startSeconds ?? 0));
