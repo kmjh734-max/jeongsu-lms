@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { generateQuestionAudio } from "@/lib/listening/generate-audio";
+import { generateSetQuestionAudio } from "@/lib/listening/generate-audio";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -25,66 +25,60 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as {
       setId?: string;
-      questionId?: string;
-      segmentId?: string;
+      questionIds?: string[];
       speechSpeed?: number;
     };
 
     const setId = body.setId?.trim();
-    const questionId = body.questionId?.trim();
-    if (!setId || !questionId) {
-      return jsonError("setId와 questionId가 필요합니다.");
+    if (!setId) {
+      return jsonError("setId가 필요합니다.");
     }
 
     const admin = createAdminClient();
-    const { data: question, error: qErr } = await admin
-      .from("listening_questions")
-      .select("id, set_id")
-      .eq("id", questionId)
-      .eq("set_id", setId)
-      .maybeSingle();
-
-    if (qErr || !question) {
-      return jsonError("문항을 찾을 수 없습니다.");
-    }
-
     const { data: setRow } = await admin
       .from("listening_sets")
       .select("teacher_id, created_by, speech_speed")
       .eq("id", setId)
       .maybeSingle();
 
+    if (!setRow) {
+      return jsonError("세트를 찾을 수 없습니다.");
+    }
+
     if (
       profile.role === "teacher" &&
-      setRow &&
       setRow.teacher_id !== profile.id &&
       setRow.created_by !== profile.id
     ) {
-      return jsonError("이 세트에 대한 권한이 없습니다.", 403);
+      return jsonError("권한이 없습니다.", 403);
     }
 
     const speechSpeed =
       typeof body.speechSpeed === "number"
         ? body.speechSpeed
-        : typeof setRow?.speech_speed === "number"
+        : typeof setRow.speech_speed === "number"
           ? setRow.speech_speed
           : 0.9;
 
-    const result = await generateQuestionAudio({
+    const results = await generateSetQuestionAudio({
       setId,
-      questionId,
-      segmentId: body.segmentId?.trim() || undefined,
       apiKey,
       speechSpeed,
+      questionIds: body.questionIds,
     });
 
+    const okCount = results.filter((r) => r.ok).length;
+
     return NextResponse.json({
-      ok: true,
-      audioUrl: result.audioUrl,
-      segments: result.segments,
+      ok: okCount > 0,
+      message:
+        okCount === results.length
+          ? `${results.length}개 문항 음원 생성 완료`
+          : `${okCount}/${results.length}개 성공 (실패 문항 메시지 확인)`,
+      results,
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "음원 생성 중 오류가 발생했습니다.";
+    const message = e instanceof Error ? e.message : "일괄 음원 생성 실패";
     return jsonError(message);
   }
 }

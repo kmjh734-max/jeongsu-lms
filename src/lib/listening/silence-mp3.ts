@@ -2,6 +2,7 @@ import { mkdir } from "fs/promises";
 import { dirname } from "path";
 import { execFile } from "child_process";
 import { promisify } from "util";
+import { TTS_SAMPLE_RATE } from "@/lib/listening/concat-mp3";
 
 const execFileAsync = promisify(execFile);
 
@@ -16,7 +17,7 @@ async function resolveFfmpegPath(): Promise<string> {
   return "ffmpeg";
 }
 
-/** 짧은 무음 mp3 생성 (segment 사이 pause) */
+/** 짧은 무음 mp3 (TTS와 동일 24kHz) */
 export async function generateSilenceMp3(
   durationSec: number,
   outputPath: string
@@ -28,7 +29,7 @@ export async function generateSilenceMp3(
     "-f",
     "lavfi",
     "-i",
-    "anullsrc=r=44100:cl=mono",
+    `anullsrc=r=${TTS_SAMPLE_RATE}:cl=mono`,
     "-t",
     String(duration),
     "-c:a",

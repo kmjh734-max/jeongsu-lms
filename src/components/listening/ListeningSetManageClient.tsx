@@ -135,6 +135,41 @@ export function ListeningSetManageClient({
     router.refresh();
   }
 
+  async function generateAllAudio() {
+    if (initialQuestions.length === 0) {
+      setMessage("먼저 문항을 생성·저장하세요.");
+      return;
+    }
+    setBusy("audio-all");
+    setMessage(null);
+    const res = await fetch("/api/listening/generate-audio-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        setId,
+        speechSpeed: speechSpeedValue,
+        questionIds: initialQuestions.map((q) => q.id),
+      }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      results?: Array<{ orderIndex: number; ok: boolean; message?: string }>;
+    };
+    setBusy(null);
+    if (!data.ok && !data.results?.some((r) => r.ok)) {
+      setMessage(data.message ?? "일괄 음원 생성 실패");
+      return;
+    }
+    const failed = (data.results ?? []).filter((r) => !r.ok);
+    setMessage(
+      failed.length > 0
+        ? `${data.message ?? "완료"} (실패: ${failed.map((f) => `${f.orderIndex}번`).join(", ")})`
+        : data.message ?? "전체 음원 생성이 완료되었습니다."
+    );
+    router.refresh();
+  }
+
   async function togglePublish() {
     setBusy("publish");
     const res = await fetch(`/api/listening/sets/${setId}`, {
@@ -307,6 +342,26 @@ export function ListeningSetManageClient({
           {previewQuestions.map((q) => (
             <ListeningQuestionPreview key={q.order_index} question={q} />
           ))}
+        </section>
+      )}
+
+      {initialQuestions.length > 0 && (
+        <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+          <h2 className="text-sm font-semibold text-slate-800">음원 일괄 생성</h2>
+          <p className="mt-1 text-xs text-slate-600">
+            저장된 {initialQuestions.length}개 문항의 segment TTS → pause → 최종 mp3를 순서대로
+            만듭니다. (문항당 15~40초 소요)
+          </p>
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={generateAllAudio}
+            className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {busy === "audio-all"
+              ? `전체 음원 생성 중… (0/${initialQuestions.length})`
+              : `전체 음원 생성 (${initialQuestions.length}문항)`}
+          </button>
         </section>
       )}
 

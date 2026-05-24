@@ -5,19 +5,22 @@ import { promisify } from "util";
 
 const execFileAsync = promisify(execFile);
 
+/** OpenAI TTS mp3와 동일하게 맞춤 */
+export const TTS_SAMPLE_RATE = 24000;
+
 async function resolveFfmpegPath(): Promise<string> {
   try {
     const mod = await import("ffmpeg-static");
     const path = mod.default;
     if (typeof path === "string" && path.length > 0) return path;
   } catch {
-    /* optional dependency */
+    /* optional */
   }
   return "ffmpeg";
 }
 
 /**
- * Concatenate MP3 files in order (ffmpeg concat demuxer, stream copy).
+ * MP3 파일 순서대로 합치기 (재인코딩 — TTS·무음 포맷이 달라도 안전).
  */
 export async function concatMp3Files(
   inputPaths: string[],
@@ -48,8 +51,14 @@ export async function concatMp3Files(
     "0",
     "-i",
     listPath,
-    "-c",
-    "copy",
+    "-ar",
+    String(TTS_SAMPLE_RATE),
+    "-ac",
+    "1",
+    "-c:a",
+    "libmp3lame",
+    "-q:a",
+    "4",
     "-y",
     outputPath,
   ]);

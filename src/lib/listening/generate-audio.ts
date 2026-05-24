@@ -45,28 +45,61 @@ async function downloadSegmentToFile(
   await writeFile(destPath, buf);
 }
 
-async function appendSegmentWithPauses(
+function appendSegmentPath(
+  concatPaths: string[],
+  localPath: string
+): void {
+  concatPaths.push(localPath);
+}
+
+async function appendPausesAroundSegment(
   workDir: string,
   concatPaths: string[],
   localPath: string,
   speaker: ListeningSpeakerType,
   index: number,
-  isLast: boolean
+  isLast: boolean,
+  usePauses: boolean
 ): Promise<void> {
-  if (index === 0) {
-    const pre = join(workDir, `pause-pre-${index}.mp3`);
-    await generateSilenceMp3(BEFORE_FIRST_LINE_PAUSE_SEC, pre);
-    concatPaths.push(pre);
+  if (!usePauses) {
+    appendSegmentPath(concatPaths, localPath);
+    return;
   }
 
-  concatPaths.push(localPath);
-
-  if (!isLast) {
-    const gap = speaker === "ANN" ? AFTER_ANN_PAUSE_SEC : SEGMENT_PAUSE_SEC;
-    const pausePath = join(workDir, `pause-after-${index}.mp3`);
-    await generateSilenceMp3(gap, pausePath);
-    concatPaths.push(pausePath);
+  try {
+    if (index === 0) {
+      const pre = join(workDir, `pause-pre-${index}.mp3`);
+      await generateSilenceMp3(BEFORE_FIRST_LINE_PAUSE_SEC, pre);
+      concatPaths.push(pre);
+    }
+    concatPaths.push(localPath);
+    if (!isLast) {
+      const gap = speaker === "ANN" ? AFTER_ANN_PAUSE_SEC : SEGMENT_PAUSE_SEC;
+      const pausePath = join(workDir, `pause-after-${index}.mp3`);
+      await generateSilenceMp3(gap, pausePath);
+      concatPaths.push(pausePath);
+    }
+  } catch {
+    appendSegmentPath(concatPaths, localPath);
   }
+}
+
+async function buildFinalMp3(
+  workDir: string,
+  concatPaths: string[],
+  segmentOnlyPaths: string[]
+): Promise<string> {
+  const finalLocal = join(workDir, "final.mp3");
+  try {
+    await concatMp3Files(concatPaths, finalLocal);
+  } catch {
+    await concatMp3Files(segmentOnlyPaths, finalLocal);
+  }
+  const stat = await import("fs/promises").then((fs) => fs.stat(finalLocal));
+  if (stat.size < 500) {
+    throw new Error("합성된 mp3 파일이 비어 있습니다. ffmpeg 설치를 확인해 주세요.");
+  }
+  return finalLocal;
 }
 
 export async function generateQuestionAudio(opts: {
@@ -94,7 +127,9 @@ export async function generateQuestionAudio(opts: {
 
   const workDir = await mkdtemp(join(tmpdir(), "listening-audio-"));
   const concatPaths: string[] = [];
+  const segmentOnlyPaths: string[] = [];
   const resultSegments: Array<{ id: string; speaker: string; audioUrl: string }> = [];
+  const usePauses = true;
 
   try {
     const rows = segments as ListeningSegmentRow[];
@@ -167,18 +202,19 @@ export async function generateQuestionAudio(opts: {
         resultSegments.push({ id: seg.id, speaker, audioUrl });
       }
 
-      await appendSegmentWithPauses(
+      segmentOnlyPaths.push(localPath);
+      await appendPausesAroundSegment(
         workDir,
         concatPaths,
         localPath,
         speaker,
         i,
-        i === rows.length - 1
+        i === rows.length - 1,
+        usePauses
       );
     }
 
-    const finalLocal = join(workDir, "final.mp3");
-    await concatMp3Files(concatPaths, finalLocal);
+    const finalLocal = await buildFinalMp3(workDir, concatPaths, segmentOnlyPaths);
     const finalBuffer = await readFile(finalLocal);
 
     const finalPath = finalStoragePath(setId, questionId);
@@ -200,4 +236,80 @@ export async function generateQuestionAudio(opts: {
   } finally {
     await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
   }
+}
+
+export interface BatchAudioItemResult {
+  questionId: string;
+  orderIndex: number;
+  ok: boolean;
+  audioUrl?: string;
+  message?: string;
+}
+
+/** 세트 내 문항 음원 일괄 생성 */
+export async function generateSetQuestionAudio(opts: {
+  setId: string;
+  apiKey: string;
+  speechSpeed?: number;
+  questionIds?: string[];
+}): Promise<BatchAudioItemResult[]> {
+  const admin = createAdminClient();
+  let query = admin
+    .from("listening_questions")
+    .select("id, order_index")
+    .eq("set_id", opts.setId)
+    .order("order_index", { ascending: true });
+
+  if (opts.questionIds?.length) {
+    query = query.in("id", opts.questionIds);
+  }
+
+  const { data: questions, error } = await query;
+  if (error) throw new Error(error.message);
+  if (!questions?.length) {
+    throw new Error("음원을 만들 문항이 없습니다.");
+  }
+
+  const results: BatchAudioItemResult[] = [];
+
+  for (const q of questions) {
+    try {
+      const { data: segCheck } = await admin
+        .from("listening_question_segments")
+        .select("id")
+        .eq("question_id", q.id)
+        .limit(1);
+      if (!segCheck?.length) {
+        results.push({
+          questionId: q.id,
+          orderIndex: q.order_index,
+          ok: false,
+          message: "대본 segment가 없습니다. 문항을 다시 저장하세요.",
+        });
+        continue;
+      }
+
+      const out = await generateQuestionAudio({
+        setId: opts.setId,
+        questionId: q.id,
+        apiKey: opts.apiKey,
+        speechSpeed: opts.speechSpeed,
+      });
+      results.push({
+        questionId: q.id,
+        orderIndex: q.order_index,
+        ok: true,
+        audioUrl: out.audioUrl,
+      });
+    } catch (e) {
+      results.push({
+        questionId: q.id,
+        orderIndex: q.order_index,
+        ok: false,
+        message: e instanceof Error ? e.message : "음원 생성 실패",
+      });
+    }
+  }
+
+  return results;
 }

@@ -91,9 +91,10 @@ function buildExamTypeBlock(types: ExamTypeTemplate[]): string {
     .map(
       (t, i) => `
 Item ${i + 1} — Type #${t.id}: ${t.question_type}
-- instruction (Korean, use exactly): ${t.instruction}
+- instruction (Korean, use exactly or natural variant with ○○ filled in): ${t.instruction}
 - format: ${t.format_guide}
 - segments: ${t.segment_guide}
+- choices: ${t.choice_guide}
 - order_index: ${i + 1}
 - question_type: ${t.question_type}`
     )
@@ -101,11 +102,11 @@ Item ${i + 1} — Type #${t.id}: ${t.question_type}
 }
 
 function buildExamPrompt(types: ExamTypeTemplate[]): string {
-  return `You are writing ORIGINAL items for the Korean national middle school Grade 1 English LISTENING exam (중1 영어듣기능력평가).
+  return `You are writing ORIGINAL items for the Korean national middle school Grade 1 English LISTENING exam (중1 영어듣기능력평가), same STYLE as the 2026 nationwide test (20 items: description, order, weather, intent, etc.).
 
 IMPORTANT COPYRIGHT:
-- Do NOT copy sentences from real past exams or attached materials.
-- Attached/real exams are only for TYPE reference. Write entirely new scripts and questions.
+- Do NOT copy sentences from real past exams, the 2026 test, or attached images.
+- Match QUESTION TYPE and Korean instruction FORMAT only. All scripts and dialogs must be newly written.
 
 Create exactly ${types.length} items, one per type below, in order.
 ${buildExamTypeBlock(types)}

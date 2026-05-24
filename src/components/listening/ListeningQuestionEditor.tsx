@@ -115,7 +115,11 @@ export function ListeningQuestionEditor({
       setMessage(data.message ?? "음원 생성 실패");
       return;
     }
-    if (data.audioUrl) setAudioUrl(data.audioUrl);
+    if (!data.audioUrl) {
+      setMessage("음원 URL을 받지 못했습니다. 서버 로그를 확인해 주세요.");
+      return;
+    }
+    setAudioUrl(`${data.audioUrl}?t=${Date.now()}`);
     setMessage(segmentId ? "해당 줄 음원을 다시 생성했습니다." : "문항 음원을 생성했습니다.");
     onUpdated();
   }
