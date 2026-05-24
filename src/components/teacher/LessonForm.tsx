@@ -176,7 +176,7 @@ export function LessonForm({
 
       <div>
         <label className="mb-1 block text-sm font-medium text-slate-700">
-          동영상 링크 (YouTube / Vimeo)
+          동영상 링크 (Vimeo)
         </label>
         <input
           type="url"

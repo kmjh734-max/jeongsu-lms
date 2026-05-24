@@ -32,7 +32,7 @@ export function validateVideoDraftRows(
     if (!parseVideoLink(row.videoUrl)) {
       return {
         ok: false,
-        message: `${n}번 동영상 링크가 올바르지 않습니다. YouTube 또는 Vimeo 링크를 확인해 주세요.`,
+        message: `${n}번 동영상 링크가 올바르지 않습니다. Vimeo 공유 링크를 확인해 주세요.`,
       };
     }
   }

@@ -75,7 +75,7 @@ export async function withLessonVideoPayload<T>(
     return {
       ok: false,
       message:
-        "동영상 링크가 올바르지 않습니다. YouTube 또는 Vimeo 링크를 확인해 주세요.",
+        "동영상 링크가 올바르지 않습니다. Vimeo 공유 링크를 확인해 주세요.",
     };
   }
 

@@ -40,6 +40,12 @@ export function buildParentReportMessage({
       lines.push(
         `- ${course.courseTitle} 강좌는 총 ${course.totalLessons}강 중 ${course.completedLessons}강을 완료하여 진도율은 ${course.progressPercent}%입니다.`
       );
+      if (course.completedLessonsList.length > 0) {
+        lines.push("  완료한 영상:");
+        for (const title of course.completedLessonsList) {
+          lines.push(`  · ${title}`);
+        }
+      }
     }
   }
 

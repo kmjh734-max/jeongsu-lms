@@ -165,35 +165,21 @@ export function StudentReportView({
                     최근 학습일 ({report.rangeLabel}):{" "}
                     {formatLastStudiedDate(course.lastStudiedAt)}
                   </p>
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="text-xs font-semibold text-emerald-700">
-                        완료한 영상 ({course.completedLessonsList.length})
+                  <div className="mt-4">
+                    <p className="text-xs font-semibold text-emerald-700">
+                      완료한 영상 ({course.completedLessonsList.length})
+                    </p>
+                    {course.completedLessonsList.length === 0 ? (
+                      <p className="mt-1 text-sm text-slate-500">
+                        {report.rangeLabel} 기준 완료한 영상이 없습니다.
                       </p>
-                      {course.completedLessonsList.length === 0 ? (
-                        <p className="mt-1 text-sm text-slate-500">없음</p>
-                      ) : (
-                        <ul className="mt-1 max-h-40 overflow-y-auto text-sm text-slate-700">
-                          {course.completedLessonsList.map((title) => (
-                            <li key={title}>· {title}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-amber-700">
-                        미완료 영상 ({course.incompleteLessonsList.length})
-                      </p>
-                      {course.incompleteLessonsList.length === 0 ? (
-                        <p className="mt-1 text-sm text-slate-500">없음</p>
-                      ) : (
-                        <ul className="mt-1 max-h-40 overflow-y-auto text-sm text-slate-700">
-                          {course.incompleteLessonsList.map((title) => (
-                            <li key={title}>· {title}</li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
+                    ) : (
+                      <ul className="mt-1 max-h-48 overflow-y-auto text-sm text-slate-700">
+                        {course.completedLessonsList.map((title) => (
+                          <li key={title}>· {title}</li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </article>
               ))}

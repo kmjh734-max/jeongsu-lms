@@ -8,10 +8,14 @@ function buildReportContext(report: StudentReport): string {
   const courseLines =
     courses.length === 0
       ? ["- 배정된 영상 강좌 없음"]
-      : courses.map(
-          (c) =>
-            `- ${c.courseTitle}: 총 ${c.totalLessons}강 중 ${c.completedLessons}강 완료, 진도율 ${c.progressPercent}%`
-        );
+      : courses.flatMap((c) => {
+          const head = `- ${c.courseTitle}: 총 ${c.totalLessons}강 중 ${c.completedLessons}강 완료, 진도율 ${c.progressPercent}%`;
+          if (c.completedLessonsList.length === 0) return [head];
+          return [
+            head,
+            ...c.completedLessonsList.map((t) => `  · 완료: ${t}`),
+          ];
+        });
 
   const vocabLines =
     vocabSets.length === 0

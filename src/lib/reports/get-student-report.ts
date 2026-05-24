@@ -240,9 +240,6 @@ export async function getStudentReport(
       completedLessonsList: row.lessons
         .filter((l) => l.isCompleted)
         .map((l) => l.lessonTitle),
-      incompleteLessonsList: row.lessons
-        .filter((l) => !l.isCompleted)
-        .map((l) => l.lessonTitle),
     };
   });
 

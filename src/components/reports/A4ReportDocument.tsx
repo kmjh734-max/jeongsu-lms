@@ -174,7 +174,14 @@ export function A4ReportDocument({
               {report.courses.map((course) => (
                 <tr key={course.courseId} className="border-b border-slate-100">
                   <td className="py-1.5 pr-2 font-medium text-slate-800">
-                    {course.courseTitle}
+                    <div>{course.courseTitle}</div>
+                    {course.completedLessonsList.length > 0 && (
+                      <ul className="mt-1 list-inside list-disc text-[8.5pt] font-normal text-slate-600">
+                        {course.completedLessonsList.map((title) => (
+                          <li key={title}>{title}</li>
+                        ))}
+                      </ul>
+                    )}
                   </td>
                   <td className="py-1.5 text-center">{course.completedLessons}</td>
                   <td className="py-1.5 text-center">{course.totalLessons}</td>

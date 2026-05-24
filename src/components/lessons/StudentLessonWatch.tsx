@@ -451,11 +451,18 @@ export function StudentLessonWatch({
 
   if (resolved.provider === "youtube") {
     return (
-      <YouTubeLessonWatch
-        videoId={resolved.videoId}
-        title={title}
-        materialUrl={materialUrl}
-      />
+      <div className="space-y-4">
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          이 영상은 YouTube로 등록되어 있습니다.{" "}
+          <strong>수강 진도·완료·이어보기 제한</strong>은 Vimeo 링크 영상에서만
+          적용됩니다. 강사에게 Vimeo 링크로 변경을 요청해 주세요.
+        </p>
+        <YouTubeLessonWatch
+          videoId={resolved.videoId}
+          title={title}
+          materialUrl={materialUrl}
+        />
+      </div>
     );
   }
 

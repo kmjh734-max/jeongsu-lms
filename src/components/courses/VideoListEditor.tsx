@@ -76,7 +76,7 @@ export function VideoListEditor({
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600">
-                    동영상 링크 (YouTube / Vimeo)
+                    동영상 링크 (Vimeo)
                   </label>
                   <input
                     required

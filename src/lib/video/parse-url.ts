@@ -158,6 +158,8 @@ export function buildVimeoEmbedUrl(
     title: "0",
     byline: "0",
     portrait: "0",
+    pip: "0",
+    keyboard: "0",
   });
   const base = `https://player.vimeo.com/video/${videoId}?${params.toString()}`;
   const start = Math.max(0, Math.floor(startSeconds ?? 0));
@@ -167,8 +169,7 @@ export function buildVimeoEmbedUrl(
   return base;
 }
 
-export const VIDEO_LINK_PLACEHOLDER =
-  "https://www.youtube.com/watch?v=... 또는 https://vimeo.com/123456789";
+export const VIDEO_LINK_PLACEHOLDER = "https://vimeo.com/123456789";
 
 export const VIDEO_LINK_HELP =
-  "YouTube 또는 Vimeo에 업로드한 영상의 공유 링크를 붙여 넣어 주세요.";
+  "Vimeo에 업로드한 영상의 공유 링크를 붙여 넣어 주세요. (학생 수강 진도·순차 수강·건너뛰기 제한은 Vimeo 영상에 적용됩니다.)";

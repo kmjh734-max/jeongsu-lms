@@ -19,8 +19,8 @@ export interface CourseReportSection {
   completedLessons: number;
   progressPercent: number;
   lastStudiedAt: string | null;
+  /** 완료한 영상 제목만 (미완료는 리포트에 표시하지 않음) */
   completedLessonsList: string[];
-  incompleteLessonsList: string[];
 }
 
 export interface VocabReportSection {
