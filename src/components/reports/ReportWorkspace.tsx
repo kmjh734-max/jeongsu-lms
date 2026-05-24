@@ -32,7 +32,7 @@ export function ReportWorkspace({ role }: ReportWorkspaceProps) {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [range, setRange] = useState<ReportRange>(DEFAULT_REPORT_RANGE);
   const [report, setReport] = useState<StudentReport | null>(null);
-  const [teacherComment, setTeacherComment] = useState("");
+  const [aiReportDraft, setAiReportDraft] = useState("");
   const [listLoading, setListLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,8 +83,10 @@ export function ReportWorkspace({ role }: ReportWorkspaceProps) {
         throw new Error(data.message ?? "리포트를 생성하지 못했습니다.");
       }
       setReport(data.report as StudentReport);
+      setAiReportDraft("");
     } catch (e) {
       setReport(null);
+      setAiReportDraft("");
       setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
     } finally {
       setReportLoading(false);
@@ -95,14 +97,16 @@ export function ReportWorkspace({ role }: ReportWorkspaceProps) {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="학습 리포트"
-        description={
-          role === "admin"
-            ? "학생별 영상·단어학습 현황을 확인하고 학부모 안내 문구를 복사할 수 있습니다."
-            : "담당 학생의 학습 현황을 확인하고 학부모 안내 문구를 복사할 수 있습니다."
-        }
-      />
+      <div className="no-print">
+        <PageHeader
+          title="학습 리포트"
+          description={
+            role === "admin"
+              ? "학생별 영상·단어학습 현황을 확인하고 AI 리포트 초안·학부모 안내 문구를 작성할 수 있습니다."
+              : "담당 학생의 학습 현황을 확인하고 AI 리포트 초안·학부모 안내 문구를 작성할 수 있습니다."
+          }
+        />
+      </div>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm print:hidden">
         <h2 className="text-sm font-semibold text-slate-900">학생 선택</h2>
@@ -227,8 +231,8 @@ export function ReportWorkspace({ role }: ReportWorkspaceProps) {
       {report && (
         <StudentReportView
           report={report}
-          teacherComment={teacherComment}
-          onTeacherCommentChange={setTeacherComment}
+          aiReportDraft={aiReportDraft}
+          onAiReportDraftChange={setAiReportDraft}
         />
       )}
     </div>

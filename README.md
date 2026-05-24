@@ -112,6 +112,44 @@ npm install
 npm run dev
 ```
 
+## 카카오톡보내기 (학습 리포트)
+
+관리자·강사 **학습 리포트** 화면에서 학부모용 공개 링크를 만들고, 카카오 JavaScript SDK로 **공유창**을 열어 채팅방을 선택해 보냅니다. (특정 학부모에게 API로 자동 발송하는 기능은 아닙니다.)
+
+### Kakao Developers 설정
+
+1. [Kakao Developers](https://developers.kakao.com/) 접속 후 애플리케이션 생성
+2. **앱 키** → **JavaScript 키** 복사
+3. **플랫폼** → **Web** 플랫폼 등록
+4. **사이트 도메인** 등록
+   - `https://배포도메인.vercel.app` (예: `https://jeongsu-lms.vercel.app`)
+   - 커스텀 도메인이 있으면 해당 도메인도 추가
+5. 로컬 테스트 시: `http://localhost:3000`, `http://localhost:3001` 도 Web 도메인에 추가  
+   **JavaScript SDK는 등록된 도메인에서만** 카카오톡 공유창이 정상 동작합니다.
+6. Vercel·로컬 `.env.local`에 환경변수 추가:
+
+```env
+NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY=카카오_JavaScript_키
+NEXT_PUBLIC_SITE_URL=https://jeongsu-lms.vercel.app
+```
+
+### Supabase migration
+
+학부모 공개 링크용 테이블: `supabase/migrations/021_shared_reports.sql`  
+SQL Editor에서 `020` 이후 순서대로 적용해 주세요.
+
+### 동작 요약
+
+| 버튼 | 설명 |
+|------|------|
+| 학부모용 링크 생성 | `shared_reports`에 저장, `/report/share/{token}` URL 생성 (30일) |
+| 카카오톡보내기 | 링크 없으면 자동 생성 후 Kakao `feed` 공유창 |
+| 링크 열기 | 새 탭에서 공개 리포트 (로그인 불필요) |
+| 링크 복사 | 공개 URL 클립보드 복사 |
+| PDF 저장 / 인쇄 | A4 리포트 미리보기 후 인쇄 |
+
+공유 실패 시 링크가 클립보드에 복사되며 안내 메시지가 표시됩니다.
+
 ## Vercel 배포 (자동)
 
 `main` 브랜치에 푸시하면 프로덕션에 자동 배포되도록 설정합니다.
@@ -119,7 +157,7 @@ npm run dev
 **한 번만 설정:** [docs/VERCEL_AUTO_DEPLOY.md](docs/VERCEL_AUTO_DEPLOY.md) 참고
 
 1. Vercel에서 GitHub 저장소 `kmjh734-max/jeongsu-lms` 연결 (Production Branch: `main`)
-2. Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+2. Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` (카카오톡보내기 사용 시)
 3. Supabase Auth URL에 `https://jeongsu-lms.vercel.app` 추가
 4. 이후 `git push origin main` → Vercel Deployments에 새 빌드 표시
 

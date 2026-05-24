@@ -1,4 +1,6 @@
 export const SITE_NAME = "정수학원 LMS";
+/** 학부모 안내 문구·리포트에 표시하는 학원명 */
+export const ACADEMY_NAME = "정수학원";
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://jeongsu-lms.vercel.app";
 export const LOGIN_TAGLINE = "정수학원 온라인 학습관에 오신 것을 환영합니다.";
