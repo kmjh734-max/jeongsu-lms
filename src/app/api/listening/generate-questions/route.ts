@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-questions";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
+import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
 
 function jsonError(message: string, status = 200) {
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
       persist?: boolean;
       mode?: ListeningGenerationMode;
       selectedTypeIds?: number[];
+      difficultyMode?: ListeningDifficultyMode;
       questions?: GeneratedListeningQuestion[];
     };
 
@@ -69,6 +71,7 @@ export async function POST(request: Request) {
       mode,
       count,
       selectedTypeIds: body.selectedTypeIds,
+      difficultyMode: body.difficultyMode ?? "auto",
     });
 
     const persist = body.persist !== false;

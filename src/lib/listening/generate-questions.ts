@@ -1,6 +1,10 @@
 import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import {
+  buildDifficultyPromptBlock,
+  type ListeningDifficultyMode,
+} from "@/lib/listening/exam-difficulty";
+import {
   resolveExamTypesForGeneration,
   type ExamTypeTemplate,
 } from "@/lib/listening/exam-types";
@@ -15,6 +19,7 @@ export interface GenerateQuestionsOptions {
   mode: ListeningGenerationMode;
   count: number;
   selectedTypeIds?: number[];
+  difficultyMode?: ListeningDifficultyMode;
 }
 
 function normalizeSegment(raw: { speaker?: string; text?: string }): ListeningScriptSegment | null {
@@ -102,28 +107,34 @@ Item ${i + 1} — Type #${t.id}: ${t.question_type}
     .join("\n");
 }
 
-function buildExamPrompt(types: ExamTypeTemplate[]): string {
-  return `You are writing ORIGINAL items for the Korean national middle school Grade 1 English LISTENING exam (중1 영어듣기능력평가), same STYLE as the 2026 nationwide test (20 items: description, order, weather, intent, etc.).
+function buildExamPrompt(
+  types: ExamTypeTemplate[],
+  difficultyMode: ListeningDifficultyMode
+): string {
+  const difficultyBlock = buildDifficultyPromptBlock(types, difficultyMode);
+
+  return `You are writing ORIGINAL items for the Korean national middle school Grade 1 English LISTENING exam (중1 영어듣기능력평가), same STYLE as 2024·2025 nationwide tests (20 types).
 
 IMPORTANT COPYRIGHT:
-- Do NOT copy sentences from real past exams, the 2026 test, or attached images.
-- Match QUESTION TYPE and Korean instruction FORMAT only. All scripts and dialogs must be newly written.
+- Do NOT copy sentences from real past exams or attached PDFs.
+- Match QUESTION TYPE, Korean instruction FORMAT, and DIFFICULTY (sentence length, turns) only.
 
 Create exactly ${types.length} items, one per type below, in order.
 ${buildExamTypeBlock(types)}
 
+DIFFICULTY (sentence length & density — follow per item):
+${difficultyBlock}
+
 COMMON RULES (every item):
-- English level: middle school grade 1 (easy vocabulary, short clear sentences)
-- Multi-speaker script with segments: ANN (calm announcer), M (male), W (female)
-- ANN: brief English cue only when needed (e.g. "Listen carefully.")
-- Dialogues: 4~8 turns between M and W; monologues: 3~5 sentences
-- Exactly 5 choices (meaningful distractors); correct_answer is 1~5 (one clear answer)
-- instruction: Korean exam-style stem (copy from type spec above; adjust ○○ if needed)
-- question_text: English question stem OR Korean sub-prompt OR simple text table (for type 14)
+- English level: middle school grade 1
+- Multi-speaker segments: ANN (only if needed), M (male), W (female)
+- Types 19~20: audio stops before the answer line; do NOT put the answer line in segments
+- Exactly 5 choices; correct_answer is 1~5
+- instruction: Korean exam-style stem (fill ○○ with 남자/여자/place as in type spec)
+- question_text: Korean/English stem OR simple table for type 14
 - script_translation: Korean translation of full script
-- explanation: brief Korean explanation
-- Do NOT use difficult words or fast-paced speech style in writing
-- segment.text = spoken dialogue only (what the listener hears), never the Korean instruction or multiple-choice options
+- explanation: brief Korean
+- segment.text = spoken words only (no Korean instructions, no choices)
 
 Return ONLY valid JSON:
 {
@@ -179,14 +190,16 @@ export async function generateListeningQuestionsWithAi(
   apiKey: string,
   options: GenerateQuestionsOptions
 ): Promise<GeneratedListeningQuestion[]> {
-  const { mode, count, selectedTypeIds } = options;
+  const { mode, count, selectedTypeIds, difficultyMode = "auto" } = options;
   const examMode = mode === "exam";
   const examTypes = examMode
     ? resolveExamTypesForGeneration(count, selectedTypeIds)
     : undefined;
   const itemCount = examMode ? examTypes!.length : count;
 
-  const prompt = examMode ? buildExamPrompt(examTypes!) : buildFreePrompt(itemCount);
+  const prompt = examMode
+    ? buildExamPrompt(examTypes!, difficultyMode)
+    : buildFreePrompt(itemCount);
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",

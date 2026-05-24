@@ -1,5 +1,7 @@
+import type { ListeningDifficultyTier } from "@/lib/listening/exam-difficulty";
+
 /**
- * 2026 중1 전국 영어듣기능력평가 유형 참고 (문장·대본 복사 금지, 유형·지시문 형식만 반영)
+ * 2024·2025 전국 중1 영어듣기능력평가 유형 참고 (문장·대본 복사 금지, 지시문·형식·난이도만 반영)
  */
 export interface ExamTypeTemplate {
   id: number;
@@ -8,6 +10,7 @@ export interface ExamTypeTemplate {
   format_guide: string;
   segment_guide: string;
   choice_guide: string;
+  difficulty_tier: ListeningDifficultyTier;
 }
 
 export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
@@ -16,173 +19,199 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "묘사 듣고 대상 고르기",
     instruction: "다음을 듣고, ‘I’가 무엇인지 가장 적절한 것을 고르시오.",
     format_guide:
-      "First-person monologue (4~6 sentences): animal, object, or thing described with I. No dialogue.",
-    segment_guide: "ANN: one short English cue, then M OR W monologue only.",
+      "First-person monologue (3~4 sentences): animal, insect, or object with I. No dialogue. Simple clues (body, habitat, behavior).",
+    segment_guide:
+      "M OR W monologue only (no ANN required). 3~4 short sentences, 6~10 words each.",
     choice_guide:
-      "5 English options naming animals/objects (e.g. crocodile, tiger, eagle — use NEW names, not exam examples).",
+      "5 English options naming animals/objects/places (NEW names; not seahorse/ant from real exams).",
+    difficulty_tier: "foundation",
   },
   {
     id: 2,
-    question_type: "주문/선택 정보 파악",
-    instruction: "대화를 듣고, 남자가 주문한 것으로 가장 적절한 것을 고르시오.",
+    question_type: "구매·선택 대화",
+    instruction: "대화를 듣고, ○○가 구입할 ○○으로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Cafe/ice-cream shop dialogue. Man orders one item; mention size, topping, cup type, or flavor.",
-    segment_guide: "M/W dialogue 4~8 turns.",
+      "Shop dialogue (clothes, doll, coat, etc.). Buyer chooses ONE item after comparing 2 options. Fill ○○ in instruction with 남자/여자 and item (인형, 코트, etc.).",
+    segment_guide: "M/W dialogue 4~6 turns; clear final purchase.",
     choice_guide:
-      "5 English options describing different menu items (e.g. ice cream types with toppings).",
+      "5 English options describing different products (with one distinguishing detail each).",
+    difficulty_tier: "foundation",
   },
   {
     id: 3,
     question_type: "날씨 파악",
-    instruction: "다음을 듣고, ○○ 지역 오늘 오후 날씨로 가장 적절한 것을 고르시오.",
+    instruction: "다음을 듣고, ○○의 (오늘 오후|현재) 날씨로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Weather report for a Korean city name in instruction (e.g. Hongcheon). 3~5 sentences.",
-    segment_guide: "ANN weather announcement.",
+      "Weather report for a Korean place name (Gangneung, Dokdo, etc.). 3~4 sentences about rain, wind, sun.",
+    segment_guide: "W or ANN weather announcement; 3~4 sentences.",
     choice_guide:
       "5 English weather words: sunny, cloudy, rainy, snowy, windy (or similar).",
+    difficulty_tier: "foundation",
   },
   {
     id: 4,
     question_type: "마지막 말의 의도",
-    instruction: "대화를 듣고, 여자가 한 마지막 말의 의도로 가장 적절한 것을 고르시오.",
-    format_guide: "Dialogue; woman's LAST line shows clear intent.",
-    segment_guide: "M/W dialogue; end with W line.",
-    choice_guide: "5 Korean options: 거절, 칭찬, 사과, 비난, 응원 (or similar).",
+    instruction: "대화를 듣고, ○○가 한 마지막 말의 의도로 가장 적절한 것을 고르시오.",
+    format_guide:
+      "Dialogue; one speaker's LAST line shows clear intent (praise, apology, promise to fix, etc.).",
+    segment_guide: "M/W dialogue 4~6 turns; end with M or W (match instruction).",
+    choice_guide: "5 Korean options: 칭찬, 사과, 거절, 부탁, 격려, 항의 등.",
+    difficulty_tier: "foundation",
   },
   {
     id: 5,
     question_type: "언급하지 않은 것",
-    instruction: "다음을 듣고, 남자가 뮤지컬에 대해 언급하지 않은 것을 고르시오.",
+    instruction: "다음을 듣고, ○○가 ○○에 대해 언급하지 않은 것을 고르시오.",
     format_guide:
-      "Announcement about a musical/event. Mention 4 of: title, place, date, price, where to buy — one choice is NOT said.",
-    segment_guide: "ANN or M announcement.",
-    choice_guide: "5 Korean options: 제목, 장소, 날짜, 가격, 구입처 등.",
+      "Monologue or announcement about a person/event. Mention 4 of 5 facts — one choice was NOT said.",
+    segment_guide: "M or W monologue 4~5 sentences (introduction or event info).",
+    choice_guide:
+      "5 Korean short phrases: 이름, 나이, 직업, 취미, 날짜, 장소, 거리, 신청 방법 등.",
+    difficulty_tier: "foundation",
   },
   {
     id: 6,
-    question_type: "시각 파악",
-    instruction: "대화를 듣고, 베이킹 수업이 시작하는 시각을 고르시오.",
-    format_guide: "Dialogue about class/event time change; final start time is clear.",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 time options like 3:30 p.m., 4:00 p.m., etc.",
+    question_type: "시각·만남 시각",
+    instruction: "대화를 듣고, 두 사람이 만날 시각을 고르시오.",
+    format_guide:
+      "Dialogue negotiating meeting time; final agreed time is clear (may start with wrong times).",
+    segment_guide: "M/W dialogue 5~7 turns; may include phone ring cue in script_text only.",
+    choice_guide: "5 time options like 4:00 p.m., 5:30 p.m., 6:00 p.m.",
+    difficulty_tier: "foundation",
   },
   {
     id: 7,
     question_type: "장래 희망",
-    instruction: "대화를 듣고, 여자의 장래 희망으로 가장 적절한 것을 고르시오.",
-    format_guide: "Conversation about future dream/job related to hobbies.",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 Korean job/dream options (e.g. 패션 모델, 이벤트 플래너).",
+    instruction: "대화를 듣고, ○○의 장래 희망으로 가장 적절한 것을 고르시오.",
+    format_guide: "Conversation about future dream/job linked to hobbies or skills.",
+    segment_guide: "M/W dialogue 5~7 turns.",
+    choice_guide: "5 Korean jobs/dreams (작가, 바이올린 연주자, 요리사, etc.).",
+    difficulty_tier: "standard",
   },
   {
     id: 8,
     question_type: "심정 파악",
-    instruction: "대화를 듣고, 남자의 심정으로 가장 적절한 것을 고르시오.",
-    format_guide: "Good or bad news situation; man's feeling is clear.",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 Korean: 실망, 안도, 걱정, 만족, 불안 등.",
+    instruction: "대화를 듣고, ○○의 심정으로 가장 적절한 것을 고르시오.",
+    format_guide: "Surprise, worry, relief, or disappointment situation; feeling is clear.",
+    segment_guide: "M/W dialogue 5~7 turns.",
+    choice_guide: "5 Korean: 설렘, 걱정, 안도, 실망, 당황스러움 등.",
+    difficulty_tier: "standard",
   },
   {
     id: 9,
     question_type: "대화 직후 할 일",
-    instruction: "대화를 듣고, 여자가 대화 직후에 할 일로 가장 적절한 것을 고르시오.",
-    format_guide: "Small problem then immediate action by woman.",
-    segment_guide: "M/W dialogue.",
+    instruction: "대화를 듣고, ○○가 대화 직후에 할 일로 가장 적절한 것을 고르시오.",
+    format_guide: "Problem discussed; speaker will do something immediately after.",
+    segment_guide: "M/W dialogue 5~7 turns; last line leads to action.",
     choice_guide: "5 Korean action phrases.",
+    difficulty_tier: "standard",
   },
   {
     id: 10,
     question_type: "대화 주제",
     instruction: "대화를 듣고, 무엇에 관한 내용인지 가장 적절한 것을 고르시오.",
-    format_guide: "Everyday problem-solving talk (home, school life).",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 Korean topic phrases.",
+    format_guide: "Everyday school/home activity planning.",
+    segment_guide: "M/W dialogue 5~7 turns.",
+    choice_guide: "5 Korean topic phrases (동영상 촬영, 장난감 나눔, etc.).",
+    difficulty_tier: "standard",
   },
   {
     id: 11,
     question_type: "이동 방법",
     instruction: "대화를 듣고, 두 사람이 함께 이동할 방법으로 가장 적절한 것을 고르시오.",
-    format_guide: "Plan changes; they agree on transport.",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 Korean: 도보, 버스, 지하철, 자전거, 비행기 등.",
+    format_guide: "They discuss transport and agree on one method.",
+    segment_guide: "M/W dialogue 5~7 turns (family or friends).",
+    choice_guide: "5 Korean: 도보, 버스, 택시, 비행기, 지하철 등.",
+    difficulty_tier: "standard",
   },
   {
     id: 12,
     question_type: "이유 파악",
-    instruction: "대화를 듣고, 남자가 우체국에 가는 이유로 가장 적절한 것을 고르시오.",
-    format_guide: "Man must go to post office; reason stated clearly.",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 Korean reason phrases.",
+    instruction: "대화를 듣고, ○○가 ○○에 가는 이유로 가장 적절한 것을 고르시오.",
+    format_guide: "Someone going to a place; reason stated clearly.",
+    segment_guide: "M/W dialogue 5~7 turns.",
+    choice_guide: "5 Korean reason phrases (~하려고).",
+    difficulty_tier: "standard",
   },
   {
     id: 13,
     question_type: "장소 파악",
-    instruction: "대화를 듣고, 두 사람이 대화하고 있는 장소로 가장 적절한 곳을 고르시오.",
-    format_guide: "School or building; location implied by context (supplies, activities).",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 Korean: 보건실, 교무실, 음악실, 미술실, 과학실 등.",
+    instruction: "대화를 듣고, 두 사람이 대화하는 장소로 가장 적절한 곳을 고르시오.",
+    format_guide: "Location implied by context (sports, shopping, school facilities).",
+    segment_guide: "M/W dialogue 5~7 turns.",
+    choice_guide: "5 Korean places: 야구장, 신발 가게, 시청, 학교 정원 등.",
+    difficulty_tier: "standard",
   },
   {
     id: 14,
-    question_type: "표 정보 불일치",
+    question_type: "표·안내 불일치",
     instruction:
-      "튤립 축제에 관한 다음 내용을 듣고, 표에서 일치하지 않는 것을 고르시오.",
+      "○○에 관한 다음 내용을 듣고, 표에서 일치하지 않는 것을 고르시오.",
     format_guide:
-      "Festival announcement. question_text MUST include a simple text table (항목/내용) with place, period, hours, fee, free drink — ONE row wrong in choices.",
-    segment_guide: "ANN announcement with specific details.",
-    choice_guide: "5 Korean items matching table rows; one mismatch.",
+      "Event/class announcement (baking class, festival, etc.). question_text MUST include a simple Korean table (항목/내용) with 5 rows — audio matches 4 rows, one choice is wrong.",
+    segment_guide: "W or ANN announcement 5~6 sentences with specific times, fees, place.",
+    choice_guide: "5 Korean items matching table row labels.",
+    difficulty_tier: "applied",
   },
   {
     id: 15,
     question_type: "부탁한 일",
-    instruction: "대화를 듣고, 여자가 남자에게 부탁한 일로 가장 적절한 것을 고르시오.",
-    format_guide: "Family/friend favor request.",
-    segment_guide: "M/W dialogue.",
+    instruction: "대화를 듣고, ○○가 ○○에게 부탁한 일로 가장 적절한 것을 고르시오.",
+    format_guide: "Family/friend asks for a favor; favor is clear.",
+    segment_guide: "M/W dialogue 5~7 turns.",
     choice_guide: "5 Korean action phrases.",
+    difficulty_tier: "applied",
   },
   {
     id: 16,
     question_type: "제안한 것",
-    instruction: "대화를 듣고, 남자가 여자에게 제안한 것으로 가장 적절한 것을 고르시오.",
-    format_guide: "Problem and man's suggestion to solve it.",
-    segment_guide: "M/W dialogue.",
+    instruction: "대화를 듣고, ○○가 ○○에게 제안한 것으로 가장 적절한 것을 고르시오.",
+    format_guide: "After exam or problem, one person suggests an activity.",
+    segment_guide: "M/W dialogue 5~7 turns.",
     choice_guide: "5 Korean suggestion phrases.",
+    difficulty_tier: "applied",
   },
   {
     id: 17,
-    question_type: "함께 할 일",
-    instruction: "대화를 듣고, 두 사람이 이번 주말에 할 일로 가장 적절한 것을 고르시오.",
-    format_guide: "Weekend plan coordination.",
-    segment_guide: "M/W dialogue.",
+    question_type: "할 일·계획",
+    instruction: "대화를 듣고, ○○가 (주말에|오늘 오후에) 할 일로 가장 적절한 것을 고르시오.",
+    format_guide: "Plans for weekend or afternoon activity.",
+    segment_guide: "M/W dialogue 5~7 turns.",
     choice_guide: "5 Korean activity phrases.",
+    difficulty_tier: "applied",
   },
   {
     id: 18,
     question_type: "직업 파악",
-    instruction: "대화를 듣고, 남자의 직업으로 가장 적절한 것을 고르시오.",
-    format_guide: "Interview or talk revealing man's job.",
-    segment_guide: "M/W dialogue.",
-    choice_guide: "5 Korean jobs (배우, 소설가, 일러스트레이터, 아나운서, 영화감독 등).",
+    instruction: "대화를 듣고, ○○의 직업으로 가장 적절한 것을 고르시오.",
+    format_guide: "Job revealed through work context (vet, cleaner, etc.).",
+    segment_guide: "M/W dialogue 5~7 turns.",
+    choice_guide: "5 Korean jobs.",
+    difficulty_tier: "applied",
   },
   {
     id: 19,
-    question_type: "마지막 말에 이어질 응답",
+    question_type: "이어 말하기 (여→남)",
     instruction:
       "대화를 듣고, 여자의 마지막 말에 이어질 남자의 말로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Dialogue ends with woman's line; choices are 5 short ENGLISH replies the man could say next. Do NOT speak man's answer in audio.",
-    segment_guide: "M/W dialogue ending with W.",
-    choice_guide: "5 short English sentences (e.g. Sounds great. Let's go.).",
+      "Dialogue ends with woman's line after [Pause] cue in script only. Man's reply is NOT in audio. 5 short English replies.",
+    segment_guide:
+      "M/W dialogue 7~9 turns; last segment is W; do NOT include man's answer in segments.",
+    choice_guide:
+      "5 short English sentences (e.g. I'm glad it's finally here. / That sounds great.).",
+    difficulty_tier: "advanced",
   },
   {
     id: 20,
-    question_type: "마지막 말에 이어질 응답",
+    question_type: "이어 말하기 (남→여)",
     instruction:
       "대화를 듣고, 남자의 마지막 말에 이어질 여자의 말로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Different situation from #19. Ends with man's line; 5 English replies for woman.",
-    segment_guide: "M/W dialogue ending with M.",
+      "Different topic from #19. Ends with man's line; woman's reply not in audio.",
+    segment_guide: "M/W dialogue 7~9 turns; last segment is M.",
     choice_guide: "5 short English sentences.",
+    difficulty_tier: "advanced",
   },
 ];
 
@@ -212,4 +241,14 @@ export function resolveExamTypesForGeneration(
     return result.slice(0, count);
   }
   return MIDDLE1_LISTENING_EXAM_TYPES.slice(0, Math.min(count, 20));
+}
+
+export function tierLabel(tier: ListeningDifficultyTier): string {
+  const map: Record<ListeningDifficultyTier, string> = {
+    foundation: "기초",
+    standard: "보통",
+    applied: "심화",
+    advanced: "고난도",
+  };
+  return map[tier];
 }

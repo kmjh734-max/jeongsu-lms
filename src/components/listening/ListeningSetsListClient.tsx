@@ -23,6 +23,7 @@ export function ListeningSetsListClient({
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function createSet(e: React.FormEvent) {
@@ -46,6 +47,26 @@ export function ListeningSetsListClient({
       return;
     }
     router.push(`${basePath}/${data.set.id}`);
+  }
+
+  async function deleteSet(setId: string, setTitle: string) {
+    if (
+      !window.confirm(
+        `「${setTitle}」 세트와 문항·음원·배정 정보를 모두 삭제합니다. 계속할까요?`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(setId);
+    setError(null);
+    const res = await fetch(`/api/listening/sets/${setId}`, { method: "DELETE" });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    setDeletingId(null);
+    if (!data.ok) {
+      setError(data.message ?? "삭제 실패");
+      return;
+    }
+    router.refresh();
   }
 
   return (
@@ -78,16 +99,30 @@ export function ListeningSetsListClient({
       ) : (
         <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
           {sets.map((set) => (
-            <li key={set.id}>
+            <li key={set.id} className="flex items-center gap-2 px-4 py-3">
               <Link
                 href={`${basePath}/${set.id}`}
-                className="flex items-center justify-between px-4 py-3 hover:bg-slate-50"
+                className="min-w-0 flex-1 hover:text-indigo-700"
               >
                 <span className="font-medium text-slate-900">{set.title}</span>
-                <span className="text-xs text-slate-500">
+                <span className="ml-2 text-xs text-slate-500">
                   {set.is_published ? "공개" : "비공개"}
                 </span>
               </Link>
+              <Link
+                href={`${basePath}/${set.id}/print`}
+                className="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
+              >
+                출력
+              </Link>
+              <button
+                type="button"
+                disabled={deletingId === set.id}
+                onClick={() => deleteSet(set.id, set.title)}
+                className="shrink-0 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
+              >
+                {deletingId === set.id ? "삭제 중…" : "삭제"}
+              </button>
             </li>
           ))}
         </ul>

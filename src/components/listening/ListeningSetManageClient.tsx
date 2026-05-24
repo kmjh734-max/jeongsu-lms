@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
@@ -7,7 +8,14 @@ import {
   type ListeningQuestionData,
 } from "@/components/listening/ListeningQuestionEditor";
 import { ListeningQuestionPreview } from "@/components/listening/ListeningQuestionPreview";
-import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types";
+import {
+  DIFFICULTY_MODE_OPTIONS,
+  type ListeningDifficultyMode,
+} from "@/lib/listening/exam-difficulty";
+import {
+  MIDDLE1_LISTENING_EXAM_TYPES,
+  tierLabel,
+} from "@/lib/listening/exam-types";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
 import {
   SPEECH_SPEED_MAP,
@@ -30,6 +38,7 @@ export function ListeningSetManageClient({
   isPublished: initialPublished,
   speechSpeed: initialSpeechSpeed,
   questions: initialQuestions,
+  role,
 }: ListeningSetManageClientProps) {
   const router = useRouter();
   const [isPublished, setIsPublished] = useState(initialPublished);
@@ -37,6 +46,8 @@ export function ListeningSetManageClient({
     useState<ListeningGenerationMode>("exam");
   const [questionCount, setQuestionCount] = useState(5);
   const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
+  const [difficultyMode, setDifficultyMode] =
+    useState<ListeningDifficultyMode>("auto");
   const [speechPreset, setSpeechPreset] = useState<SpeechSpeedPreset>(
     presetFromSpeed(initialSpeechSpeed)
   );
@@ -73,6 +84,7 @@ export function ListeningSetManageClient({
         count: questionCount,
         mode: generationMode,
         selectedTypeIds: effectiveTypeIds,
+        difficultyMode,
         persist: false,
       }),
     });
@@ -121,6 +133,7 @@ export function ListeningSetManageClient({
         count: questionCount,
         mode: generationMode,
         selectedTypeIds: effectiveTypeIds,
+        difficultyMode,
         persist: true,
       }),
     });
@@ -198,6 +211,26 @@ export function ListeningSetManageClient({
     router.refresh();
   }
 
+  async function deleteSet() {
+    if (
+      !window.confirm(
+        `「${title}」 세트와 문항·음원·배정을 모두 삭제합니다. 계속할까요?`
+      )
+    ) {
+      return;
+    }
+    setBusy("delete");
+    const res = await fetch(`/api/listening/sets/${setId}`, { method: "DELETE" });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    setBusy(null);
+    if (!data.ok) {
+      setMessage(data.message ?? "삭제 실패");
+      return;
+    }
+    router.push(role === "admin" ? "/admin/listening" : "/teacher/listening");
+    router.refresh();
+  }
+
   async function togglePublish() {
     setBusy("publish");
     const res = await fetch(`/api/listening/sets/${setId}`, {
@@ -233,18 +266,40 @@ export function ListeningSetManageClient({
             중1 영어듣기평가 유형 · ANN/M/W · segment TTS (속도 {speechSpeedValue})
           </p>
         </div>
-        <button
-          type="button"
-          disabled={!!busy}
-          onClick={togglePublish}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 disabled:opacity-50"
-        >
-          {busy === "publish"
-            ? "처리 중…"
-            : isPublished
-              ? "비공개로"
-              : "학생에게 공개"}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`${role === "admin" ? "/admin" : "/teacher"}/listening/${setId}/print`}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            시험지 출력
+          </Link>
+          <Link
+            href={`${role === "admin" ? "/admin" : "/teacher"}/listening/${setId}/print?script=1`}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            대본 포함 출력
+          </Link>
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={togglePublish}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 disabled:opacity-50"
+          >
+            {busy === "publish"
+              ? "처리 중…"
+              : isPublished
+                ? "비공개로"
+                : "학생에게 공개"}
+          </button>
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={deleteSet}
+            className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 disabled:opacity-50"
+          >
+            {busy === "delete" ? "삭제 중…" : "세트 삭제"}
+          </button>
+        </div>
       </div>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4">
@@ -300,6 +355,34 @@ export function ListeningSetManageClient({
           </label>
         </div>
 
+        {generationMode === "exam" && (
+          <div className="mt-3">
+            <p className="text-xs font-medium text-slate-600">난이도 (문장 길이·대화 길이)</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {DIFFICULTY_MODE_OPTIONS.map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`cursor-pointer rounded-lg border px-3 py-2 text-xs ${
+                    difficultyMode === opt.value
+                      ? "border-indigo-400 bg-indigo-50 text-indigo-900"
+                      : "border-slate-200 bg-white text-slate-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="difficultyMode"
+                    className="sr-only"
+                    checked={difficultyMode === opt.value}
+                    onChange={() => setDifficultyMode(opt.value)}
+                  />
+                  <span className="font-medium">{opt.label}</span>
+                  <span className="mt-0.5 block text-slate-500">{opt.description}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-3 flex flex-wrap items-end gap-3">
           <label className="text-sm">
             문항 수
@@ -345,7 +428,8 @@ export function ListeningSetManageClient({
                     className="mt-0.5"
                   />
                   <span>
-                    {t.id}. {t.question_type}
+                    {t.id}. {t.question_type}{" "}
+                    <span className="text-slate-400">({tierLabel(t.difficulty_tier)})</span>
                   </span>
                 </label>
               ))}
