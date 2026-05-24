@@ -24,10 +24,11 @@ export async function persistGeneratedQuestions(
         set_id: setId,
         order_index: q.order_index,
         question_type: q.question_type,
+        instruction: q.instruction ?? "",
         script_text,
         script_translation: q.script_translation,
         question_text: q.question_text,
-        choices: q.choices,
+        choices: q.choices.filter(Boolean),
         correct_answer: q.correct_answer,
         explanation: q.explanation,
       })

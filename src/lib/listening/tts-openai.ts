@@ -1,10 +1,22 @@
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 import type { ListeningSpeakerType } from "@/lib/listening/types";
 
+const MIDDLE1_TTS_HINT =
+  "Speak clearly and slightly slowly for Korean middle school first-year students. Use natural pauses between phrases.";
+
+function buildTtsInput(speaker: ListeningSpeakerType, text: string): string {
+  const trimmed = text.trim();
+  if (speaker === "ANN") {
+    return `${MIDDLE1_TTS_HINT} Calm, clear announcer tone. ${trimmed}`;
+  }
+  return `${MIDDLE1_TTS_HINT} ${trimmed}`;
+}
+
 export async function synthesizeSegmentMp3(
   apiKey: string,
   speaker: ListeningSpeakerType,
-  text: string
+  text: string,
+  speed = 0.9
 ): Promise<Buffer> {
   const trimmed = text.trim();
   if (!trimmed) {
@@ -12,6 +24,8 @@ export async function synthesizeSegmentMp3(
   }
 
   const voice = voiceForSpeaker(speaker);
+  const clampedSpeed = Math.min(Math.max(speed, 0.25), 4);
+
   const response = await fetch("https://api.openai.com/v1/audio/speech", {
     method: "POST",
     headers: {
@@ -20,8 +34,9 @@ export async function synthesizeSegmentMp3(
     },
     body: JSON.stringify({
       model: "tts-1",
-      input: trimmed,
+      input: buildTtsInput(speaker, trimmed),
       voice,
+      speed: clampedSpeed,
       response_format: "mp3",
     }),
   });

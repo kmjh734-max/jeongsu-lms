@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-questions";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
+import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -26,14 +27,15 @@ export async function POST(request: Request) {
       setId?: string;
       count?: number;
       persist?: boolean;
+      mode?: ListeningGenerationMode;
+      selectedTypeIds?: number[];
+      questions?: GeneratedListeningQuestion[];
     };
 
     const setId = body.setId?.trim();
     if (!setId) {
       return jsonError("setId가 필요합니다.");
     }
-
-    const count = Math.min(Math.max(body.count ?? 5, 1), 10);
 
     const admin = createAdminClient();
     const { data: setRow, error: setErr } = await admin
@@ -54,15 +56,28 @@ export async function POST(request: Request) {
       return jsonError("이 세트에 대한 권한이 없습니다.", 403);
     }
 
-    const generated = await generateListeningQuestionsWithAi(apiKey, count);
+    if (Array.isArray(body.questions) && body.questions.length > 0) {
+      const saved = await persistGeneratedQuestions(setId, body.questions);
+      return NextResponse.json({ ok: true, questions: saved });
+    }
+
+    const mode: ListeningGenerationMode =
+      body.mode === "exam" ? "exam" : "free";
+    const count = Math.min(Math.max(body.count ?? 5, 1), 20);
+
+    const generated = await generateListeningQuestionsWithAi(apiKey, {
+      mode,
+      count,
+      selectedTypeIds: body.selectedTypeIds,
+    });
 
     const persist = body.persist !== false;
     if (persist) {
       const saved = await persistGeneratedQuestions(setId, generated);
-      return NextResponse.json({ ok: true, questions: saved });
+      return NextResponse.json({ ok: true, questions: saved, mode });
     }
 
-    return NextResponse.json({ ok: true, questions: generated });
+    return NextResponse.json({ ok: true, questions: generated, mode });
   } catch (e) {
     const message = e instanceof Error ? e.message : "문항 생성 중 오류가 발생했습니다.";
     return jsonError(message);

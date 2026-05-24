@@ -25,6 +25,7 @@ export async function POST(request: Request) {
       setId?: string;
       questionId?: string;
       segmentId?: string;
+      speechSpeed?: number;
     };
 
     const setId = body.setId?.trim();
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
 
     const { data: setRow } = await admin
       .from("listening_sets")
-      .select("teacher_id, created_by")
+      .select("teacher_id, created_by, speech_speed")
       .eq("id", setId)
       .maybeSingle();
 
@@ -60,11 +61,19 @@ export async function POST(request: Request) {
       return jsonError("이 세트에 대한 권한이 없습니다.", 403);
     }
 
+    const speechSpeed =
+      typeof body.speechSpeed === "number"
+        ? body.speechSpeed
+        : typeof setRow?.speech_speed === "number"
+          ? setRow.speech_speed
+          : 0.9;
+
     const result = await generateQuestionAudio({
       setId,
       questionId,
       segmentId: body.segmentId?.trim() || undefined,
       apiKey,
+      speechSpeed,
     });
 
     return NextResponse.json({

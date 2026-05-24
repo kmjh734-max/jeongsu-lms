@@ -1,6 +1,20 @@
 import { buildScriptText } from "@/lib/listening/script-text";
-import type { GeneratedListeningQuestion, ListeningScriptSegment } from "@/lib/listening/types";
+import {
+  resolveExamTypesForGeneration,
+  type ExamTypeTemplate,
+} from "@/lib/listening/exam-types";
+import type {
+  GeneratedListeningQuestion,
+  ListeningGenerationMode,
+  ListeningScriptSegment,
+} from "@/lib/listening/types";
 import { isListeningSpeaker } from "@/lib/listening/speaker-voices";
+
+export interface GenerateQuestionsOptions {
+  mode: ListeningGenerationMode;
+  count: number;
+  selectedTypeIds?: number[];
+}
 
 function normalizeSegment(raw: { speaker?: string; text?: string }): ListeningScriptSegment | null {
   const speaker = (raw.speaker ?? "").trim().toUpperCase();
@@ -9,7 +23,23 @@ function normalizeSegment(raw: { speaker?: string; text?: string }): ListeningSc
   return { speaker, text };
 }
 
-function normalizeQuestion(raw: Record<string, unknown>, index: number): GeneratedListeningQuestion | null {
+function normalizeChoices(raw: unknown, examMode: boolean): string[] | null {
+  const choicesRaw = Array.isArray(raw) ? raw : [];
+  const choices = choicesRaw.map((c) => String(c).trim()).filter(Boolean);
+  if (examMode) {
+    if (choices.length !== 5) return null;
+    return choices;
+  }
+  if (choices.length < 4 || choices.length > 5) return null;
+  return choices;
+}
+
+function normalizeQuestion(
+  raw: Record<string, unknown>,
+  index: number,
+  examMode: boolean,
+  typeHint?: ExamTypeTemplate
+): GeneratedListeningQuestion | null {
   const segmentsRaw = Array.isArray(raw.segments) ? raw.segments : [];
   const segments = segmentsRaw
     .map((s) => normalizeSegment(s as { speaker?: string; text?: string }))
@@ -17,76 +47,143 @@ function normalizeQuestion(raw: Record<string, unknown>, index: number): Generat
 
   if (segments.length === 0) return null;
 
-  const choicesRaw = Array.isArray(raw.choices) ? raw.choices : [];
-  const choices = choicesRaw.map((c) => String(c).trim()).filter(Boolean);
-  if (choices.length !== 4) return null;
+  const choices = normalizeChoices(raw.choices, examMode);
+  if (!choices) return null;
 
   const correct = Number(raw.correct_answer);
-  if (!Number.isInteger(correct) || correct < 1 || correct > 4) return null;
+  const maxChoice = choices.filter(Boolean).length;
+  if (!Number.isInteger(correct) || correct < 1 || correct > maxChoice) return null;
 
   const script_text =
     typeof raw.script_text === "string" && raw.script_text.trim()
       ? raw.script_text.trim()
       : buildScriptText(segments);
 
+  const instruction =
+    typeof raw.instruction === "string" && raw.instruction.trim()
+      ? raw.instruction.trim()
+      : typeHint?.instruction ?? "";
+
+  const question_type =
+    typeof raw.question_type === "string" && raw.question_type.trim()
+      ? raw.question_type.trim()
+      : typeHint?.question_type ?? "듣기";
+
   return {
     order_index:
       typeof raw.order_index === "number" && raw.order_index > 0
         ? raw.order_index
         : index + 1,
-    question_type: String(raw.question_type ?? "내용일치").trim() || "내용일치",
+    question_type,
+    instruction,
     segments,
     script_text,
     script_translation: String(raw.script_translation ?? "").trim(),
     question_text: String(raw.question_text ?? "").trim(),
-    choices: choices as [string, string, string, string],
+    choices,
     correct_answer: correct,
     explanation: String(raw.explanation ?? "").trim(),
   };
 }
 
-export async function generateListeningQuestionsWithAi(
-  apiKey: string,
-  count: number
-): Promise<GeneratedListeningQuestion[]> {
-  const prompt = `You are an English listening test item writer for Korean middle school (중1) students.
+function buildExamTypeBlock(types: ExamTypeTemplate[]): string {
+  return types
+    .map(
+      (t, i) => `
+Item ${i + 1} — Type #${t.id}: ${t.question_type}
+- instruction (Korean, use exactly): ${t.instruction}
+- format: ${t.format_guide}
+- segments: ${t.segment_guide}
+- order_index: ${i + 1}
+- question_type: ${t.question_type}`
+    )
+    .join("\n");
+}
 
-Create ${count} ORIGINAL listening comprehension items. Do NOT copy real exam questions.
+function buildExamPrompt(types: ExamTypeTemplate[]): string {
+  return `You are writing ORIGINAL items for the Korean national middle school Grade 1 English LISTENING exam (중1 영어듣기능력평가).
 
-Each item MUST use a multi-speaker script as segments (not one narrator reading everything):
-- ANN: short announcer/instruction lines in English (e.g. "Listen and choose the best answer.")
-- M: male speaker dialogue
-- W: female speaker dialogue
+IMPORTANT COPYRIGHT:
+- Do NOT copy sentences from real past exams or attached materials.
+- Attached/real exams are only for TYPE reference. Write entirely new scripts and questions.
 
-Use ANN + M/W for dialogues; for short monologue items you may use ANN + one speaker (M or W).
+Create exactly ${types.length} items, one per type below, in order.
+${buildExamTypeBlock(types)}
 
-Question types (vary): 내용일치, 주제찾기, 세부내용, 추론, 담화의목적, 그림/상황 (describe in question_text if no image).
+COMMON RULES (every item):
+- English level: middle school grade 1 (easy vocabulary, short clear sentences)
+- Multi-speaker script with segments: ANN (calm announcer), M (male), W (female)
+- ANN: brief English cue only when needed (e.g. "Listen carefully.")
+- Dialogues: 4~8 turns between M and W; monologues: 3~5 sentences
+- Exactly 5 choices (meaningful distractors); correct_answer is 1~5 (one clear answer)
+- instruction: Korean exam-style stem (copy from type spec above; adjust ○○ if needed)
+- question_text: English question stem OR Korean sub-prompt OR simple text table (for type 14)
+- script_translation: Korean translation of full script
+- explanation: brief Korean explanation
+- Do NOT use difficult words or fast-paced speech style in writing
 
-Return ONLY valid JSON (no markdown):
+Return ONLY valid JSON:
 {
   "questions": [
     {
       "order_index": 1,
-      "question_type": "내용일치",
+      "question_type": "묘사 듣고 대상 고르기",
+      "instruction": "다음을 듣고, 'I'가 무엇인지 가장 적절한 것을 고르시오.",
       "segments": [
-        { "speaker": "ANN", "text": "..." },
-        { "speaker": "M", "text": "..." }
+        { "speaker": "ANN", "text": "Listen carefully." },
+        { "speaker": "M", "text": "I am small and soft..." }
       ],
       "script_text": "ANN: ...\\nM: ...",
-      "script_translation": "Korean translation of full script",
-      "question_text": "Korean question stem",
-      "choices": ["choice1", "choice2", "choice3", "choice4"],
-      "correct_answer": 1,
-      "explanation": "Korean brief explanation"
+      "script_translation": "...",
+      "question_text": "...",
+      "choices": ["...", "...", "...", "...", "..."],
+      "correct_answer": 3,
+      "explanation": "..."
     }
   ]
+}`;
 }
 
-Rules:
-- Middle school vocabulary and grammar
-- 4 choices, correct_answer 1-4
-- segments array is required; at least 2 segments per question
-- script_text must match segments (ANN:/M:/W: lines)`;
+function buildFreePrompt(count: number): string {
+  return `You are an English listening test item writer for Korean middle school (중1) students.
+
+Create ${count} ORIGINAL listening items. Do NOT copy real exam questions.
+
+Each item: multi-speaker segments (ANN / M / W), 4~5 choices, clear single answer.
+- instruction: Korean exam-style direction
+- Middle school vocabulary, short sentences
+
+Return ONLY valid JSON:
+{
+  "questions": [
+    {
+      "order_index": 1,
+      "question_type": "string",
+      "instruction": "Korean instruction",
+      "segments": [{ "speaker": "ANN|M|W", "text": "..." }],
+      "script_text": "ANN: ...",
+      "script_translation": "...",
+      "question_text": "...",
+      "choices": ["c1","c2","c3","c4","c5"],
+      "correct_answer": 1,
+      "explanation": "..."
+    }
+  ]
+}`;
+}
+
+export async function generateListeningQuestionsWithAi(
+  apiKey: string,
+  options: GenerateQuestionsOptions
+): Promise<GeneratedListeningQuestion[]> {
+  const { mode, count, selectedTypeIds } = options;
+  const examMode = mode === "exam";
+  const examTypes = examMode
+    ? resolveExamTypesForGeneration(count, selectedTypeIds)
+    : undefined;
+  const itemCount = examMode ? examTypes!.length : count;
+
+  const prompt = examMode ? buildExamPrompt(examTypes!) : buildFreePrompt(itemCount);
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -96,12 +193,13 @@ Rules:
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      temperature: 0.8,
+      temperature: 0.75,
       response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: "You output only valid JSON for English listening test items.",
+          content:
+            "You output only valid JSON for Korean middle school English listening test items. Never copy copyrighted exam content.",
         },
         { role: "user", content: prompt },
       ],
@@ -124,8 +222,14 @@ Rules:
 
   const questions: GeneratedListeningQuestion[] = [];
   list.forEach((item, i) => {
-    const q = normalizeQuestion(item as Record<string, unknown>, i);
-    if (q?.question_text) questions.push(q);
+    const hint = examTypes?.[i];
+    const q = normalizeQuestion(
+      item as Record<string, unknown>,
+      i,
+      examMode,
+      hint
+    );
+    if (q && (q.instruction || q.question_text)) questions.push(q);
   });
 
   if (questions.length === 0) {

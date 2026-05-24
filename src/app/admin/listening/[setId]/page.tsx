@@ -33,6 +33,7 @@ export default async function AdminListeningSetPage({
         setId={loaded.set.id}
         title={loaded.set.title}
         isPublished={loaded.set.is_published}
+        speechSpeed={loaded.set.speech_speed ?? 0.9}
         questions={loaded.questions}
         role="admin"
       />

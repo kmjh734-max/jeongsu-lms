@@ -7,7 +7,7 @@ export async function loadListeningSetForEditor(
 ) {
   const { data: set, error: setErr } = await supabase
     .from("listening_sets")
-    .select("id, title, is_published, teacher_id, created_by")
+    .select("id, title, is_published, teacher_id, created_by, speech_speed")
     .eq("id", setId)
     .maybeSingle();
 
@@ -16,7 +16,7 @@ export async function loadListeningSetForEditor(
   const { data: questions } = await supabase
     .from("listening_questions")
     .select(
-      "id, order_index, question_type, question_text, choices, correct_answer, explanation, script_translation, audio_url"
+      "id, order_index, question_type, instruction, question_text, choices, correct_answer, explanation, script_translation, audio_url"
     )
     .eq("set_id", setId)
     .order("order_index", { ascending: true });

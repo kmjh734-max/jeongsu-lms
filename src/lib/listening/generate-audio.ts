@@ -9,8 +9,15 @@ import {
   segmentStoragePath,
   storagePathFromPublicUrl,
 } from "@/lib/listening/storage-paths";
+import {
+  AFTER_ANN_PAUSE_SEC,
+  BEFORE_FIRST_LINE_PAUSE_SEC,
+  generateSilenceMp3,
+  SEGMENT_PAUSE_SEC,
+} from "@/lib/listening/silence-mp3";
 import { synthesizeSegmentMp3 } from "@/lib/listening/tts-openai";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
+import { DEFAULT_SPEECH_SPEED_PRESET, speedFromPreset } from "@/lib/listening/speech-speed";
 import type { ListeningSegmentRow, ListeningSpeakerType } from "@/lib/listening/types";
 
 const BUCKET = "listening-audio";
@@ -38,13 +45,40 @@ async function downloadSegmentToFile(
   await writeFile(destPath, buf);
 }
 
+async function appendSegmentWithPauses(
+  workDir: string,
+  concatPaths: string[],
+  localPath: string,
+  speaker: ListeningSpeakerType,
+  index: number,
+  isLast: boolean
+): Promise<void> {
+  if (index === 0) {
+    const pre = join(workDir, `pause-pre-${index}.mp3`);
+    await generateSilenceMp3(BEFORE_FIRST_LINE_PAUSE_SEC, pre);
+    concatPaths.push(pre);
+  }
+
+  concatPaths.push(localPath);
+
+  if (!isLast) {
+    const gap = speaker === "ANN" ? AFTER_ANN_PAUSE_SEC : SEGMENT_PAUSE_SEC;
+    const pausePath = join(workDir, `pause-after-${index}.mp3`);
+    await generateSilenceMp3(gap, pausePath);
+    concatPaths.push(pausePath);
+  }
+}
+
 export async function generateQuestionAudio(opts: {
   setId: string;
   questionId: string;
   segmentId?: string;
   apiKey: string;
+  speechSpeed?: number;
 }): Promise<GenerateAudioResult> {
   const { setId, questionId, segmentId, apiKey } = opts;
+  const speed = opts.speechSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET);
+
   const admin = createAdminClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.");
@@ -59,11 +93,13 @@ export async function generateQuestionAudio(opts: {
   if (!segments?.length) throw new Error("대본 segment가 없습니다.");
 
   const workDir = await mkdtemp(join(tmpdir(), "listening-audio-"));
-  const localPaths: string[] = [];
+  const concatPaths: string[] = [];
   const resultSegments: Array<{ id: string; speaker: string; audioUrl: string }> = [];
 
   try {
-    for (const seg of segments as ListeningSegmentRow[]) {
+    const rows = segments as ListeningSegmentRow[];
+    for (let i = 0; i < rows.length; i++) {
+      const seg = rows[i]!;
       const speaker = seg.speaker_type as ListeningSpeakerType;
       const localPath = join(
         workDir,
@@ -73,7 +109,7 @@ export async function generateQuestionAudio(opts: {
       const shouldRegenerate = !segmentId || seg.id === segmentId;
 
       if (shouldRegenerate) {
-        const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text);
+        const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text, speed);
         await writeFile(localPath, buffer);
 
         const storagePath = segmentStoragePath(
@@ -91,13 +127,11 @@ export async function generateQuestionAudio(opts: {
         if (upErr) throw new Error(upErr.message);
 
         const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
-        const voice = voiceForSpeaker(speaker);
-
         await admin
           .from("listening_question_segments")
           .update({
             audio_url: audioUrl,
-            voice_name: voice,
+            voice_name: voiceForSpeaker(speaker),
           })
           .eq("id", seg.id);
 
@@ -110,7 +144,7 @@ export async function generateQuestionAudio(opts: {
           audioUrl: seg.audio_url,
         });
       } else {
-        const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text);
+        const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text, speed);
         await writeFile(localPath, buffer);
         const storagePath = segmentStoragePath(
           setId,
@@ -133,11 +167,18 @@ export async function generateQuestionAudio(opts: {
         resultSegments.push({ id: seg.id, speaker, audioUrl });
       }
 
-      localPaths.push(localPath);
+      await appendSegmentWithPauses(
+        workDir,
+        concatPaths,
+        localPath,
+        speaker,
+        i,
+        i === rows.length - 1
+      );
     }
 
     const finalLocal = join(workDir, "final.mp3");
-    await concatMp3Files(localPaths, finalLocal);
+    await concatMp3Files(concatPaths, finalLocal);
     const finalBuffer = await readFile(finalLocal);
 
     const finalPath = finalStoragePath(setId, questionId);

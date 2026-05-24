@@ -266,6 +266,7 @@ export interface ListeningSet {
   teacher_id: string | null;
   created_by: string | null;
   is_published: boolean;
+  speech_speed: number;
   created_at: string;
 }
 
@@ -274,6 +275,7 @@ export interface ListeningQuestion {
   set_id: string;
   order_index: number;
   question_type: string;
+  instruction: string;
   script_text: string;
   script_translation: string;
   question_text: string;

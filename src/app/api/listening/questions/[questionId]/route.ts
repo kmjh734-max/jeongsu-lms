@@ -21,6 +21,7 @@ export async function PATCH(
     const { questionId } = await context.params;
     const body = (await request.json()) as {
       segments?: Array<{ speaker?: string; text?: string }>;
+      instruction?: string;
       question_text?: string;
       choices?: string[];
       correct_answer?: number;
@@ -72,9 +73,14 @@ export async function PATCH(
     }
 
     const patch: Record<string, unknown> = {};
+    if (typeof body.instruction === "string") patch.instruction = body.instruction;
     if (typeof body.question_text === "string") patch.question_text = body.question_text;
-    if (Array.isArray(body.choices) && body.choices.length === 4) {
-      patch.choices = body.choices;
+    if (
+      Array.isArray(body.choices) &&
+      body.choices.length >= 4 &&
+      body.choices.length <= 5
+    ) {
+      patch.choices = body.choices.filter((c) => String(c).trim());
     }
     if (typeof body.correct_answer === "number") {
       patch.correct_answer = body.correct_answer;
