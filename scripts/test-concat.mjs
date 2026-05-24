@@ -1,11 +1,34 @@
 import { writeFile, mkdtemp, readFile, rm } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
-import { execFile } from "child_process";
-import { promisify } from "util";
 import { readFile as rf } from "fs/promises";
 
-const exec = promisify(execFile);
+function id3v2Size(buf) {
+  if (buf.length < 10 || buf.toString("ascii", 0, 3) !== "ID3") return 0;
+  const size =
+    ((buf[6] & 0x7f) << 21) |
+    ((buf[7] & 0x7f) << 14) |
+    ((buf[8] & 0x7f) << 7) |
+    (buf[9] & 0x7f);
+  return 10 + size;
+}
+
+function firstMpegFrameOffset(buf) {
+  const afterId3 = id3v2Size(buf);
+  for (let i = afterId3; i < buf.length - 1; i++) {
+    if (buf[i] === 0xff && (buf[i + 1] & 0xe0) === 0xe0) return i;
+  }
+  return afterId3;
+}
+
+function concatMp3Buffers(buffers) {
+  const parts = [];
+  for (let i = 0; i < buffers.length; i++) {
+    const raw = buffers[i];
+    parts.push(i === 0 ? raw : raw.subarray(firstMpegFrameOffset(raw)));
+  }
+  return Buffer.concat(parts);
+}
 
 async function loadEnv() {
   const text = await rf(".env.local", "utf8");
@@ -32,45 +55,16 @@ async function tts(text) {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function silence(path, sec) {
-  const ff = (await import("ffmpeg-static")).default;
-  await exec(ff, [
-    "-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono", "-t", String(sec),
-    "-c:a", "libmp3lame", "-q:a", "9", "-y", path,
-  ]);
-}
-
-async function concat(paths, out) {
-  const ff = (await import("ffmpeg-static")).default;
-  const list = paths.map((p) => `file '${p.replace(/\\/g, "/")}'`).join("\n");
-  const listPath = join(out, "..", "list.txt");
-  await writeFile(listPath, list);
-  await exec(ff, [
-    "-f", "concat", "-safe", "0", "-i", listPath,
-    "-ar", "24000", "-ac", "1", "-c:a", "libmp3lame", "-q:a", "4", "-y", out,
-  ]);
-}
-
 async function main() {
   await loadEnv();
   const dir = await mkdtemp(join(tmpdir(), "listen-test-"));
-  const a = join(dir, "a.mp3");
-  const b = join(dir, "b.mp3");
-  const s = join(dir, "s.mp3");
+  const a = await tts("Hello one");
+  const b = await tts("Hello two");
   const out = join(dir, "final.mp3");
 
-  await writeFile(a, await tts("Hello one"));
-  await writeFile(b, await tts("Hello two"));
-  await silence(s, 0.5);
-
-  try {
-    await concat([a, s, b], out);
-    const stat = await import("fs/promises").then((fs) => fs.stat(out));
-    console.log("concat OK, size:", stat.size);
-  } catch (e) {
-    console.error("concat FAIL:", e.stderr?.toString() || e.message);
-  }
-
+  const merged = concatMp3Buffers([a, b]);
+  await writeFile(out, merged);
+  console.log("concat OK, size:", merged.length);
   await rm(dir, { recursive: true, force: true });
 }
 

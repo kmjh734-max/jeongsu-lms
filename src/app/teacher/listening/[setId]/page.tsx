@@ -31,6 +31,20 @@ export default async function TeacherListeningSetPage({
     .eq("is_active", true)
     .order("name");
 
+  const { data: assignments } = await supabase
+    .from("listening_assignments")
+    .select("class_id, class:classes(name)")
+    .eq("set_id", setId)
+    .not("class_id", "is", null);
+
+  const assignedClassNames = (assignments ?? [])
+    .map((a) => {
+      const c = a.class as { name?: string } | { name?: string }[] | null;
+      if (Array.isArray(c)) return c[0]?.name;
+      return c?.name;
+    })
+    .filter((n): n is string => !!n);
+
   return (
     <div className="space-y-6">
       <Link
@@ -47,7 +61,12 @@ export default async function TeacherListeningSetPage({
         questions={loaded.questions}
         role="teacher"
       />
-      <ListeningAssignPanel setId={setId} classes={classes ?? []} />
+      <ListeningAssignPanel
+        setId={setId}
+        classes={classes ?? []}
+        assignedClassNames={assignedClassNames}
+        isPublished={loaded.set.is_published}
+      />
     </div>
   );
 }

@@ -154,7 +154,7 @@ export async function generateQuestionAudio(opts: {
     await concatMp3Files(segmentOnlyPaths, finalLocal);
     const stat = await import("fs/promises").then((fs) => fs.stat(finalLocal));
     if (stat.size < 500) {
-      throw new Error("합성된 mp3가 비어 있습니다. ffmpeg-static 설치를 확인해 주세요.");
+      throw new Error("합성된 mp3가 비어 있습니다. segment 음원을 다시 생성해 주세요.");
     }
 
     const finalBuffer = await readFile(finalLocal);

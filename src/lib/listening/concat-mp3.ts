@@ -1,26 +1,12 @@
-import { copyFile, mkdir, writeFile } from "fs/promises";
-import { dirname, join } from "path";
-import { execFile } from "child_process";
-import { promisify } from "util";
+import { copyFile, mkdir, readFile, writeFile } from "fs/promises";
+import { dirname } from "path";
+import { concatMp3Buffers } from "@/lib/listening/concat-mp3-buffers";
 
-const execFileAsync = promisify(execFile);
-
-/** OpenAI TTS mp3와 동일하게 맞춤 */
+/** OpenAI TTS mp3와 동일하게 맞춤 (레거시 ffmpeg 무음 생성용) */
 export const TTS_SAMPLE_RATE = 24000;
 
-async function resolveFfmpegPath(): Promise<string> {
-  try {
-    const mod = await import("ffmpeg-static");
-    const path = mod.default;
-    if (typeof path === "string" && path.length > 0) return path;
-  } catch {
-    /* optional */
-  }
-  return "ffmpeg";
-}
-
 /**
- * MP3 파일 순서대로 합치기 (재인코딩 — TTS·무음 포맷이 달라도 안전).
+ * MP3 파일 순서대로 합치기 (동일 TTS 포맷 — ffmpeg 없이 버퍼 병합).
  */
 export async function concatMp3Files(
   inputPaths: string[],
@@ -33,33 +19,14 @@ export async function concatMp3Files(
   await mkdir(dirname(outputPath), { recursive: true });
 
   if (inputPaths.length === 1) {
-    await copyFile(inputPaths[0], outputPath);
+    await copyFile(inputPaths[0]!, outputPath);
     return;
   }
 
-  const listPath = join(dirname(outputPath), "concat-list.txt");
-  const listContent = inputPaths
-    .map((p) => `file '${p.replace(/\\/g, "/").replace(/'/g, "'\\''")}'`)
-    .join("\n");
-  await writeFile(listPath, listContent, "utf8");
-
-  const ffmpeg = await resolveFfmpegPath();
-  await execFileAsync(ffmpeg, [
-    "-f",
-    "concat",
-    "-safe",
-    "0",
-    "-i",
-    listPath,
-    "-ar",
-    String(TTS_SAMPLE_RATE),
-    "-ac",
-    "1",
-    "-c:a",
-    "libmp3lame",
-    "-q:a",
-    "4",
-    "-y",
-    outputPath,
-  ]);
+  const buffers = await Promise.all(inputPaths.map((p) => readFile(p)));
+  const merged = concatMp3Buffers(buffers);
+  if (merged.length < 500) {
+    throw new Error("합성된 mp3가 비어 있습니다.");
+  }
+  await writeFile(outputPath, merged);
 }

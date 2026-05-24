@@ -2,47 +2,13 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { fetchStudentListeningSets } from "@/lib/listening/student-sets";
 
 export default async function StudentListeningPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
 
-  const { data: classRows } = await supabase
-    .from("class_students")
-    .select("class_id")
-    .eq("student_id", profile!.id);
-
-  const classIds = (classRows ?? []).map((r) => r.class_id);
-
-  const { data: directAssign } = await supabase
-    .from("listening_assignments")
-    .select("set_id")
-    .eq("student_id", profile!.id);
-
-  const { data: classAssign } =
-    classIds.length > 0
-      ? await supabase
-          .from("listening_assignments")
-          .select("set_id")
-          .in("class_id", classIds)
-      : { data: [] };
-
-  const setIds = [
-    ...new Set([
-      ...(directAssign ?? []).map((a) => a.set_id),
-      ...(classAssign ?? []).map((a) => a.set_id),
-    ]),
-  ];
-
-  const { data: sets } =
-    setIds.length > 0
-      ? await supabase
-          .from("listening_sets")
-          .select("id, title, description")
-          .in("id", setIds)
-          .eq("is_published", true)
-          .order("created_at", { ascending: false })
-      : { data: [] };
+  const sets = await fetchStudentListeningSets(supabase, profile!.id);
 
   return (
     <div>
@@ -51,11 +17,18 @@ export default async function StudentListeningPage() {
         description="배정된 듣기 연습을 진행합니다."
       />
       <div className="mt-6">
-        {(sets ?? []).length === 0 ? (
-          <p className="text-sm text-slate-600">배정된 듣기 세트가 없습니다.</p>
+        {sets.length === 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+            <p>배정된 듣기 세트가 없습니다.</p>
+            <ul className="mt-2 list-inside list-disc text-xs text-slate-500">
+              <li>선생님이 반에 배정했는지 확인해 주세요.</li>
+              <li>배정 후 「학생에게 공개」가 되어 있어야 목록에 보입니다.</li>
+              <li>내가 반에 등록되어 있는지도 확인이 필요합니다.</li>
+            </ul>
+          </div>
         ) : (
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-            {sets!.map((set) => (
+            {sets.map((set) => (
               <li key={set.id}>
                 <Link
                   href={`/student/listening/${set.id}`}
