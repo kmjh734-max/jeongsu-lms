@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { calculateCourseProgress } from "@/lib/progress/calculate";
 import { flattenCourseLessons } from "@/lib/courses/course-lessons";
-import { computeLessonUnlockFromCourse } from "@/lib/lesson-progress/lesson-unlock";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import type { Course, Lesson, Section } from "@/types/database";
@@ -61,15 +60,6 @@ export default async function StudentCoursePage({ params }: PageProps) {
     (progress ?? []).map((p) => [p.lesson_id, p.is_completed])
   );
 
-  const unlockMap = computeLessonUnlockFromCourse(
-    sectionList,
-    lessonList,
-    (progress ?? []).map((p) => ({
-      lesson_id: p.lesson_id as string,
-      is_completed: p.is_completed,
-    }))
-  );
-
   const stats = calculateCourseProgress(lessonList, progress ?? []);
 
   return (
@@ -88,10 +78,6 @@ export default async function StudentCoursePage({ params }: PageProps) {
             label={`${stats.completedLessons} / ${stats.totalLessons} 영상 완료`}
           />
         </div>
-        <p className="mt-3 text-sm text-slate-600">
-          영상은 순서대로만 시청할 수 있습니다. 이전 영상을 완료하면 다음 강의가
-          열립니다. (Vimeo 영상: 90% 이상 시청 시 완료 처리, 앞으로 건너뛰기 불가)
-        </p>
       </div>
 
       <ul className="space-y-2">
@@ -105,49 +91,24 @@ export default async function StudentCoursePage({ params }: PageProps) {
         ) : (
           flatLessons.map((lesson, index) => {
             const done = progressMap.get(lesson.id);
-            const unlocked = unlockMap.get(lesson.id) ?? false;
-            const rowClass =
-              "flex items-center justify-between rounded-xl border px-4 py-3 text-sm shadow-card " +
-              (unlocked
-                ? "border-slate-200 bg-white transition hover:border-brand-200"
-                : "border-slate-100 bg-slate-50 text-slate-500");
-
-            const label = (
-              <>
-                <span>
-                  <span
-                    className={
-                      unlocked ? "font-medium text-brand-800" : "font-medium"
-                    }
-                  >
-                    {index + 1}강
-                  </span>{" "}
-                  {lesson.title}
-                </span>
-                {done ? (
-                  <Badge variant="success">완료</Badge>
-                ) : unlocked ? (
-                  <Badge variant="neutral">미완료</Badge>
-                ) : (
-                  <Badge variant="neutral">잠김</Badge>
-                )}
-              </>
-            );
-
             return (
               <li key={lesson.id}>
-                {unlocked ? (
-                  <Link
-                    href={`/student/courses/${courseId}/lessons/${lesson.id}`}
-                    className={rowClass}
-                  >
-                    {label}
-                  </Link>
-                ) : (
-                  <div className={rowClass} title="이전 영상을 완료하면 열립니다">
-                    {label}
-                  </div>
-                )}
+                <Link
+                  href={`/student/courses/${courseId}/lessons/${lesson.id}`}
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-card transition hover:border-brand-200"
+                >
+                  <span>
+                    <span className="font-medium text-brand-800">
+                      {index + 1}강
+                    </span>{" "}
+                    {lesson.title}
+                  </span>
+                  {done ? (
+                    <Badge variant="success">완료</Badge>
+                  ) : (
+                    <Badge variant="neutral">미완료</Badge>
+                  )}
+                </Link>
               </li>
             );
           })

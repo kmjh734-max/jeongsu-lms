@@ -6,7 +6,6 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 
 import { getAdminClientSafe } from "@/lib/admin/api-json";
 
-import { assertLessonUnlockedForStudent } from "@/lib/lesson-progress/assert-lesson-unlocked";
 import { upsertLessonProgress } from "@/lib/lesson-progress/persist-progress";
 
 
@@ -173,19 +172,6 @@ export async function POST(request: Request) {
 
       );
 
-    }
-
-    const unlock = await assertLessonUnlockedForStudent(
-      supabase,
-      profile.id,
-      lesson.course_id as string,
-      lessonId
-    );
-    if (!unlock.ok) {
-      return NextResponse.json(
-        { ok: false, message: unlock.message },
-        { status: 403 }
-      );
     }
 
     const adminResult = getAdminClientSafe();

@@ -172,4 +172,4 @@ export function buildVimeoEmbedUrl(
 export const VIDEO_LINK_PLACEHOLDER = "https://vimeo.com/123456789";
 
 export const VIDEO_LINK_HELP =
-  "Vimeo에 업로드한 영상의 공유 링크를 붙여 넣어 주세요. (학생 수강 진도·순차 수강·건너뛰기 제한은 Vimeo 영상에 적용됩니다.)";
+  "Vimeo에 업로드한 영상의 공유 링크를 붙여 넣어 주세요. (학생 화면: 시청 진도 저장, 이어보기, 영상 내 앞으로 건너뛰기 제한)";

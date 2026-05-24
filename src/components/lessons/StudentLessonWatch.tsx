@@ -525,7 +525,7 @@ export function StudentLessonWatch({
             </span>
           ) : (
             <span className="text-sm text-slate-500">
-              완료 기준: 90% 이상 순서대로 시청
+              완료 기준: 90% 이상 시청
             </span>
           )}
         </div>
@@ -538,8 +538,9 @@ export function StudentLessonWatch({
         </div>
 
         <p className="mt-3 text-sm text-slate-600">
-          시청한 만큼 자동 저장되며, 다시 들어오면 이어서 재생됩니다. 90% 이상
-          순서대로 시청하면 수강 완료 처리됩니다.
+          시청한 만큼 자동 저장되며, 다시 들어오면 이어서 재생됩니다. 영상
+          안에서 앞으로 건너뛰기는 할 수 없습니다. 90% 이상 시청하면 수강 완료
+          처리됩니다.
         </p>
 
         {isCompleted || statusMessage ? (
