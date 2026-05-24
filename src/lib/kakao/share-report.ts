@@ -1,4 +1,10 @@
 import { LOGO_SRC } from "@/lib/branding";
+import { buildKakaoPasteMessage } from "@/lib/kakao/paste-message";
+import {
+  KAKAO_PRODUCT_LINK_HINT,
+  normalizeShareUrl,
+  validateShareUrlForKakao,
+} from "@/lib/kakao/share-url";
 
 export const KAKAO_SDK_URL =
   "https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js";
@@ -8,6 +14,7 @@ type KakaoShareApi = {
   init: (key: string) => void;
   Share: {
     sendDefault: (settings: Record<string, unknown>) => void;
+    sendScrap: (settings: { requestUrl: string }) => void;
   };
 };
 
@@ -99,15 +106,49 @@ export interface KakaoShareParams {
 }
 
 export type KakaoShareResult =
-  | { ok: true }
+  | { ok: true; method: "text" | "scrap" | "feed" }
   | { ok: false; fallback: true; message: string }
   | { ok: false; fallback: false; message: string };
+
+export { buildKakaoPasteMessage, KAKAO_PRODUCT_LINK_HINT, validateShareUrlForKakao };
+
+/** 카카오톡 채팅에 붙여넣기용 (링크가 일반 URL로 인식되어 항상 탭 가능) */
+export async function copyKakaoPasteMessage(
+  params: KakaoShareParams
+): Promise<{ ok: boolean; message: string }> {
+  const shareUrl = normalizeShareUrl(params.shareUrl);
+  const text = buildKakaoPasteMessage({ ...params, shareUrl });
+  try {
+    await navigator.clipboard.writeText(text);
+    return {
+      ok: true,
+      message:
+        "카카오톡에 붙여넣을 메시지를 복사했습니다. 채팅창에 붙여넣으면 링크를 눌러 열 수 있습니다.",
+    };
+  } catch {
+    return { ok: false, message: "메시지 복사에 실패했습니다." };
+  }
+}
+
+function buildTextPayload(params: KakaoShareParams): Record<string, unknown> {
+  const shareUrl = normalizeShareUrl(params.shareUrl);
+  const text = buildKakaoPasteMessage({ ...params, shareUrl });
+  return {
+    objectType: "text",
+    text,
+    link: {
+      mobileWebUrl: shareUrl,
+      webUrl: shareUrl,
+    },
+  };
+}
 
 function buildFeedPayload(
   params: KakaoShareParams,
   includeImage: boolean
 ): Record<string, unknown> {
-  const { studentName, periodLabel, shareUrl } = params;
+  const { studentName, periodLabel } = params;
+  const shareUrl = normalizeShareUrl(params.shareUrl);
   const title = `${studentName} 학생 학습 리포트`;
   const description = `${periodLabel} 온라인 학습 현황 리포트입니다.`;
 
@@ -142,20 +183,31 @@ function buildFeedPayload(
   };
 }
 
-function sendFeed(payload: Record<string, unknown>): void {
-  window.Kakao!.Share.sendDefault(payload);
+function trySend(
+  fn: () => void
+): boolean {
+  try {
+    fn();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-const KAKAO_DOMAIN_HINT =
-  "카카오톡보내기에 실패했습니다. Kakao Developers의 Web 플랫폼 도메인에 현재 사이트 주소가 등록되어 있는지 확인해 주세요.";
-
-/** 카카오톡 피드 공유 — 사용자가 채팅방을 선택해 링크 전송 */
+/**
+ * 카카오톡 공유 — text(본문 URL) → scrap → feed 순으로 시도.
+ * feed 카드만 도착하고 링크가 안 눌리면 제품 링크 관리(Web) 도메인 등록 필요.
+ */
 export async function shareReportViaKakao(
   params: KakaoShareParams
 ): Promise<KakaoShareResult> {
-  const { shareUrl } = params;
-  const key = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY?.trim();
+  const shareUrl = normalizeShareUrl(params.shareUrl);
+  const validation = validateShareUrlForKakao(shareUrl);
+  if (!validation.ok && validation.warning) {
+    return { ok: false, fallback: false, message: validation.warning };
+  }
 
+  const key = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY?.trim();
   if (!key) {
     return {
       ok: false,
@@ -173,24 +225,38 @@ export async function shareReportViaKakao(
       );
     }
 
-    try {
-      sendFeed(buildFeedPayload(params, true));
-      return { ok: true };
-    } catch {
-      try {
-        sendFeed(buildFeedPayload(params, false));
-        return { ok: true };
-      } catch {
-        return copyFallback(
-          shareUrl,
-          `카카오톡보내기를 사용할 수 없어 리포트 링크를 복사했습니다. ${KAKAO_DOMAIN_HINT}`
-        );
-      }
+    const kakao = window.Kakao!;
+
+    // 1) 텍스트 메시지 — 본문에 URL 포함 (제품 링크 미등록 시에도 URL 탭 가능한 경우 많음)
+    if (trySend(() => kakao.Share.sendDefault(buildTextPayload(params)))) {
+      return { ok: true, method: "text" };
     }
+
+    // 2) 스크랩 — OG 메타 기반 (공개 페이지에 og 태그 필요)
+    if (
+      trySend(() =>
+        kakao.Share.sendScrap({ requestUrl: shareUrl })
+      )
+    ) {
+      return { ok: true, method: "scrap" };
+    }
+
+    // 3) 피드 카드 (제품 링크 등록 시 카드·버튼 링크 활성화)
+    if (trySend(() => kakao.Share.sendDefault(buildFeedPayload(params, true)))) {
+      return { ok: true, method: "feed" };
+    }
+    if (trySend(() => kakao.Share.sendDefault(buildFeedPayload(params, false)))) {
+      return { ok: true, method: "feed" };
+    }
+
+    return copyFallback(
+      shareUrl,
+      `카카오톡보내기를 사용할 수 없어 리포트 링크를 복사했습니다. ${KAKAO_PRODUCT_LINK_HINT}`
+    );
   } catch {
     return copyFallback(
       shareUrl,
-      `카카오톡보내기를 사용할 수 없어 리포트 링크를 복사했습니다. ${KAKAO_DOMAIN_HINT}`
+      `카카오톡보내기를 사용할 수 없어 리포트 링크를 복사했습니다. ${KAKAO_PRODUCT_LINK_HINT}`
     );
   }
 }

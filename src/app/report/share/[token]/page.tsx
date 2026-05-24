@@ -1,11 +1,47 @@
-import { ACADEMY_NAME } from "@/lib/branding";
+import type { Metadata } from "next";
+import { ACADEMY_NAME, LOGO_SRC, SITE_URL } from "@/lib/branding";
 import { lookupSharedReport } from "@/lib/reports/get-shared-report";
+import { buildShareUrl } from "@/lib/reports/share-token";
 import { SharedReportPublicView } from "@/components/reports/SharedReportPublicView";
 
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ token: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { token } = await params;
+  const lookup = await lookupSharedReport(token);
+  const pageUrl = buildShareUrl(token);
+
+  if (lookup.status !== "ok") {
+    return {
+      title: `학습 리포트 | ${ACADEMY_NAME}`,
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const { studentName, report } = lookup.payload;
+  const title = `${studentName} 학생 학습 리포트`;
+  const description = `${report.rangeLabel} 온라인 학습 현황 리포트입니다.`;
+
+  return {
+    title: `${title} | ${ACADEMY_NAME}`,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      type: "website",
+      locale: "ko_KR",
+      url: pageUrl,
+      siteName: ACADEMY_NAME,
+      title,
+      description,
+      images: [{ url: `${SITE_URL}${LOGO_SRC}`, width: 800, height: 800 }],
+    },
+  };
 }
 
 export default async function SharedReportPage({ params }: PageProps) {

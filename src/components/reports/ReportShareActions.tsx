@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import {
+  copyKakaoPasteMessage,
   isKakaoShareConfigured,
+  KAKAO_PRODUCT_LINK_HINT,
   loadKakaoSdkForReports,
   shareReportViaKakao,
+  validateShareUrlForKakao,
 } from "@/lib/kakao/share-report";
 import { extractLearningReportSection } from "@/lib/reports/parent-message-utils";
 import type { StudentReport } from "@/lib/reports/types";
@@ -41,8 +44,13 @@ export function ReportShareActions({
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [linkLoading, setLinkLoading] = useState(false);
   const [kakaoLoading, setKakaoLoading] = useState(false);
+  const [pasteLoading, setPasteLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const shareUrlWarning = shareUrl
+    ? validateShareUrlForKakao(shareUrl).warning
+    : null;
 
   useEffect(() => {
     if (kakaoConfigured) {
@@ -147,8 +155,12 @@ export function ReportShareActions({
       });
 
       if (result.ok) {
+        const hint =
+          result.method === "feed"
+            ? "카드 링크가 안 열리면 「카카오 붙여넣기용 복사」를 사용하거나 Kakao 제품 링크 관리에 도메인을 등록해 주세요."
+            : "메시지 본문의 URL을 눌러 리포트를 열 수 있습니다.";
         showStatus(
-          "카카오톡 공유 창이 열렸습니다. 보낼 채팅방을 선택해 주세요."
+          `카카오톡 공유 창이 열렸습니다. 보낼 채팅방을 선택해 주세요. ${hint}`
         );
       } else if (result.fallback) {
         setShareUrl(url);
@@ -158,6 +170,27 @@ export function ReportShareActions({
       }
     } finally {
       setKakaoLoading(false);
+    }
+  }
+
+  async function handleKakaoPasteCopy() {
+    setPasteLoading(true);
+    try {
+      const url = shareUrl ?? (await createShareLink());
+      if (!url) return;
+
+      const result = await copyKakaoPasteMessage({
+        studentName: report.student.name,
+        periodLabel: report.rangeLabel,
+        shareUrl: url,
+      });
+      if (result.ok) {
+        showStatus(result.message);
+      } else {
+        showError(result.message);
+      }
+    } finally {
+      setPasteLoading(false);
     }
   }
 
@@ -193,6 +226,14 @@ export function ReportShareActions({
         <Button
           type="button"
           variant="secondary"
+          disabled={linkLoading || pasteLoading}
+          onClick={() => void handleKakaoPasteCopy()}
+        >
+          {pasteLoading ? "복사 중..." : "카카오 붙여넣기용 복사"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
           disabled={linkLoading}
           onClick={() => void handleCopyLink()}
         >
@@ -215,6 +256,18 @@ export function ReportShareActions({
         <p className="mt-2 text-xs text-amber-800">
           카카오톡보내기를 사용하려면 NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY를
           설정해 주세요.
+        </p>
+      )}
+
+      {kakaoConfigured && (
+        <p className="mt-2 text-xs text-slate-600">
+          카드만 보이고 링크가 안 열리면: {KAKAO_PRODUCT_LINK_HINT}
+        </p>
+      )}
+
+      {shareUrlWarning && (
+        <p className="mt-2 text-xs font-medium text-amber-800" role="alert">
+          {shareUrlWarning}
         </p>
       )}
 

@@ -120,13 +120,14 @@ npm run dev
 
 1. [Kakao Developers](https://developers.kakao.com/) 접속 후 애플리케이션 생성
 2. **앱 키** → **JavaScript 키** 복사
-3. **플랫폼** → **Web** 플랫폼 등록
-4. **사이트 도메인** 등록
-   - `https://배포도메인.vercel.app` (예: `https://jeongsu-lms.vercel.app`)
-   - 커스텀 도메인이 있으면 해당 도메인도 추가
-5. 로컬 테스트 시: `http://localhost:3000`, `http://localhost:3001` 도 Web 도메인에 추가  
-   **JavaScript SDK는 등록된 도메인에서만** 카카오톡 공유창이 정상 동작합니다.
-6. Vercel·로컬 `.env.local`에 환경변수 추가:
+3. **플랫폼** → **Web** 플랫폼 등록 → **사이트 도메인** (SDK 공유창용)
+   - `https://jeongsu-lms.vercel.app` (배포 URL)
+   - 로컬: `http://localhost:3000`, `http://localhost:3001`
+4. **제품 링크 관리** → **웹** 도메인 등록 (**필수**, 플랫폼과 별도)
+   - 카드·버튼 링크가 채팅에서 눌리려면 여기에 배포 도메인이 있어야 합니다.
+   - 예: `https://jeongsu-lms.vercel.app` (경로 없이 도메인만)
+   - 미등록 시: 카드는 도착하지만 **클릭해도 반응 없음** (일반 외부 링크와 다름)
+5. Vercel·로컬 `.env.local`에 환경변수 추가:
 
 ```env
 NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY=카카오_JavaScript_키
@@ -143,7 +144,8 @@ SQL Editor에서 `020` 이후 순서대로 적용해 주세요.
 | 버튼 | 설명 |
 |------|------|
 | 학부모용 링크 생성 | `shared_reports`에 저장, `/report/share/{token}` URL 생성 (30일) |
-| 카카오톡보내기 | 링크 없으면 자동 생성 후 Kakao `feed` 공유창 |
+| 카카오톡보내기 | 텍스트(URL 포함) → 스크랩 → 피드 순으로 공유창 |
+| 카카오 붙여넣기용 복사 | 채팅에 붙여넣으면 URL이 항상 탭 가능 (권장) |
 | 링크 열기 | 새 탭에서 공개 리포트 (로그인 불필요) |
 | 링크 복사 | 공개 URL 클립보드 복사 |
 | PDF 저장 / 인쇄 | A4 리포트 미리보기 후 인쇄 |
