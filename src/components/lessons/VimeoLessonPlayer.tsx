@@ -65,7 +65,8 @@ export function VimeoLessonPlayer({
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<import("@vimeo/player").default | null>(null);
 
-  const completionSentRef = useRef(initialIsCompleted);
+  /** 90% 이상 도달 시 수강 완료 처리됨 (시청률 추적은 100%까지 계속) */
+  const markedCompleteRef = useRef(initialIsCompleted);
   const maxWatchedSecondsRef = useRef(Math.max(0, initialWatchedSeconds));
   const lastTickSecondsRef = useRef(0);
   const lastSaveTimeRef = useRef(0);
@@ -110,11 +111,11 @@ export function VimeoLessonPlayer({
           const savedSec = data.watchedSeconds ?? watchedSeconds;
           lastSavedPercentRef.current = savedPct;
           lastSavedSecondsRef.current = savedSec;
-          setDisplayPercent(savedPct);
+          setDisplayPercent(Math.max(savedPct, progressPercent));
           if (data.isCompleted || complete) {
             setIsCompleted(true);
-            completionSentRef.current = true;
-            router.refresh();
+            markedCompleteRef.current = true;
+            if (complete) router.refresh();
           }
         } else {
           setSaveError(data.message ?? "진행률 저장에 실패했습니다.");
@@ -137,18 +138,15 @@ export function VimeoLessonPlayer({
     watchedSeconds: number,
     duration: number
   ) => {
-    if (completionSentRef.current) return;
-    completionSentRef.current = true;
-    const finalPercent = Math.max(
-      watchedPercentFromSeconds(watchedSeconds, duration),
-      90
-    );
-    setDisplayPercent(finalPercent);
+    if (markedCompleteRef.current) return;
+    markedCompleteRef.current = true;
+    const pct = watchedPercentFromSeconds(watchedSeconds, duration);
+    setDisplayPercent(pct);
     setIsCompleted(true);
     setStatusMessage("수강 완료되었습니다.");
     await persistProgressRef.current(
       Math.floor(watchedSeconds),
-      finalPercent,
+      pct,
       true
     );
   };
@@ -165,10 +163,10 @@ export function VimeoLessonPlayer({
 
   const syncFromPlayhead = useCallback(
     async (seconds: number, duration: number, forceSave = false) => {
-      if (completionSentRef.current || duration <= 0) return;
+      if (duration <= 0) return;
 
       const inResumeGrace = Date.now() < resumeGraceUntilRef.current;
-      const enforceAntiSkip = !completionSentRef.current && !inResumeGrace;
+      const enforceAntiSkip = !inResumeGrace;
 
       if (
         enforceAntiSkip &&
@@ -193,12 +191,14 @@ export function VimeoLessonPlayer({
       setDisplayPercent(pct);
       setSeekNotice(null);
 
-      if (isCompletionReached(maxWatchedSecondsRef.current, duration)) {
-        await handleCompleteRef.current(
+      if (
+        isCompletionReached(maxWatchedSecondsRef.current, duration) &&
+        !markedCompleteRef.current
+      ) {
+        void handleCompleteRef.current(
           maxWatchedSecondsRef.current,
           duration
         );
-        return;
       }
 
       const now = Date.now();
@@ -236,7 +236,7 @@ export function VimeoLessonPlayer({
     };
 
     const onSeeked = async (data: { seconds: number }) => {
-      if (completionSentRef.current || !player) return;
+      if (!player) return;
       if (isForwardSeekBeyondMax(data.seconds, maxWatchedSecondsRef.current)) {
         const max = maxWatchedSecondsRef.current;
         try {
@@ -250,23 +250,22 @@ export function VimeoLessonPlayer({
     };
 
     const onEnded = async (data: { duration: number }) => {
-      if (completionSentRef.current) return;
+      if (data.duration <= 0) return;
       maxWatchedSecondsRef.current = Math.max(
         maxWatchedSecondsRef.current,
         data.duration
       );
-      if (isCompletionReached(maxWatchedSecondsRef.current, data.duration)) {
-        await handleCompleteRef.current(
-          maxWatchedSecondsRef.current,
-          data.duration
-        );
-      } else {
-        await syncFromPlayheadRef.current(
-          maxWatchedSecondsRef.current,
-          data.duration,
-          true
-        );
+      setDisplayPercent(100);
+      if (!markedCompleteRef.current) {
+        markedCompleteRef.current = true;
+        setIsCompleted(true);
+        setStatusMessage("수강 완료되었습니다.");
       }
+      await persistProgressRef.current(
+        Math.floor(data.duration),
+        100,
+        true
+      );
     };
 
     void (async () => {
@@ -300,7 +299,7 @@ export function VimeoLessonPlayer({
         setPlayerReady(true);
         setPlayerError(null);
 
-        if (resumeSeconds > 0 && !completionSentRef.current) {
+        if (resumeSeconds > 0 && !markedCompleteRef.current) {
           const seekTo = Math.max(0, resumeSeconds - 1);
           try {
             await player.setCurrentTime(seekTo);
@@ -312,7 +311,7 @@ export function VimeoLessonPlayer({
         }
 
         pollId = window.setInterval(() => {
-          if (disposed || !player || completionSentRef.current) return;
+          if (disposed || !player) return;
           void (async () => {
             try {
               const [seconds, duration] = await Promise.all([
@@ -354,7 +353,6 @@ export function VimeoLessonPlayer({
 
   useEffect(() => {
     const flushProgress = () => {
-      if (completionSentRef.current) return;
       const sec = Math.floor(maxWatchedSecondsRef.current);
       const pct = displayPercentRef.current;
       if (sec <= 0 && pct <= 0) return;
@@ -460,8 +458,8 @@ export function VimeoLessonPlayer({
 
         <p className="mt-3 text-sm text-slate-600">
           시청한 만큼 자동 저장되며, 다시 들어오면 이어서 재생됩니다. 영상
-          안에서 앞으로 건너뛰기는 할 수 없습니다. 90% 이상 시청하면 수강 완료
-          처리됩니다.
+          안에서 앞으로 건너뛰기는 할 수 없습니다. 90% 이상이면 수강 완료로
+          처리되며, 끝까지 보면 시청률이 100%까지 표시됩니다.
         </p>
 
         {playerReady && !isCompleted && (

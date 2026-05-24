@@ -35,9 +35,16 @@ export async function upsertLessonProgress(
   const alreadyCompleted = existing?.is_completed === true;
   const willComplete = input.markCompleted || alreadyCompleted;
 
-  const finalProgressPercent = willComplete
-    ? Math.max(input.progressPercent, existing?.progress_percent ?? 0, 90)
-    : Math.max(input.progressPercent, existing?.progress_percent ?? 0);
+  const mergedPercent = Math.max(
+    input.progressPercent,
+    existing?.progress_percent ?? 0
+  );
+
+  /** 최초 완료(90%+) 시에만 최소 90% 보장, 이후에는 100%까지 올라갈 수 있음 */
+  const progress_percent =
+    willComplete && !alreadyCompleted
+      ? Math.max(mergedPercent, 90)
+      : Math.min(100, mergedPercent);
 
   const finalWatchedSeconds = Math.max(
     input.watchedSeconds,
@@ -48,9 +55,7 @@ export async function upsertLessonProgress(
     student_id: input.studentId,
     lesson_id: input.lessonId,
     watched_seconds: finalWatchedSeconds,
-    progress_percent: willComplete
-      ? Math.max(finalProgressPercent, 90)
-      : finalProgressPercent,
+    progress_percent,
     last_watched_at: now,
     is_completed: willComplete,
     completed_at: willComplete
