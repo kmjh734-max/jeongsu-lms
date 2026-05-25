@@ -7,7 +7,9 @@ export async function loadListeningSetForEditor(
 ) {
   const { data: set, error: setErr } = await supabase
     .from("listening_sets")
-    .select("id, title, is_published, teacher_id, created_by, speech_speed")
+    .select(
+      "id, title, is_published, teacher_id, created_by, speech_speed, voice_ann_id, voice_m_id, voice_w_id"
+    )
     .eq("id", setId)
     .maybeSingle();
 

@@ -3,8 +3,13 @@
  * (src/lib/listening/audioProviders/elevenlabsTts.ts)
  */
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
-import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 import type { ListeningSpeakerType } from "@/lib/listening/types";
+
+const OPENAI_VOICE_MAP: Record<ListeningSpeakerType, string> = {
+  ANN: "alloy",
+  M: "echo",
+  W: "nova",
+};
 
 /**
  * OpenAI TTS `input`은 그대로 읽힙니다.
@@ -21,7 +26,7 @@ export async function synthesizeSegmentMp3(
     throw new Error("빈 대사는 음성으로 만들 수 없습니다.");
   }
 
-  const voice = voiceForSpeaker(speaker);
+  const voice = OPENAI_VOICE_MAP[speaker];
   const clampedSpeed = Math.min(Math.max(speed, 0.25), 4);
 
   const response = await fetch("https://api.openai.com/v1/audio/speech", {

@@ -122,30 +122,35 @@ AI **문항 생성**·리포트 등은 기존처럼 `OPENAI_API_KEY`를 사용�
 | 변수 | 설명 |
 |------|------|
 | `ELEVENLABS_API_KEY` | [ElevenLabs](https://elevenlabs.io) API 키 |
-| `ELEVENLABS_VOICE_ANN` | 안내(ANN) 화자 voice_id |
-| `ELEVENLABS_VOICE_M` | 남성(M) 화자 voice_id |
-| `ELEVENLABS_VOICE_W` | 여성(W) 화자 voice_id |
 
 `.env.local` 예시:
 
 ```env
 ELEVENLABS_API_KEY=your-api-key
-ELEVENLABS_VOICE_ANN=voice_id_for_announcer
-ELEVENLABS_VOICE_M=voice_id_for_male
-ELEVENLABS_VOICE_W=voice_id_for_female
 ```
 
-voice_id는 ElevenLabs 대시보드 → **Voices**에서 복사합니다.
+ANN/M/W **voice_id를 직접 설정하지 않아도 됩니다.**  
+시스템이 ElevenLabs voice 목록(`GET /v1/voices`)을 불러와 안내/남성/여성 음성을 자동 배정합니다.  
+필요하면 관리자 화면 **고급 음성 설정**에서 세트별로 직접 선택할 수 있습니다.
 
 ### 선택 환경변수
 
 | 변수 | 설명 |
 |------|------|
 | `SAVE_TTS_SEGMENTS=true` | segment별 mp3도 Storage에 저장 (기본: final.mp3만 저장) |
+| `ELEVENLABS_VOICE_ANN` | env로 ANN voice_id 고정 (세트·UI 설정보다 우선순위 낮음) |
+| `ELEVENLABS_VOICE_M` | env로 M voice_id 고정 |
+| `ELEVENLABS_VOICE_W` | env로 W voice_id 고정 |
+
+### voice_id 결정 우선순위 (화자별)
+
+1. `listening_sets.voice_ann_id` / `voice_m_id` / `voice_w_id` (고급 설정에서 저장)
+2. `ELEVENLABS_VOICE_ANN` / `M` / `W` 환경변수 (설정된 경우)
+3. ElevenLabs API 목록에서 **자동 선택** (`selectVoices.ts`)
 
 ### Vercel
 
-위 4개 ElevenLabs 변수를 **Production** 환경에 추가한 뒤 **Redeploy**해야 음원 생성이 동작합니다.
+`ELEVENLABS_API_KEY`를 **Production**에 추가한 뒤 **Redeploy**하면 음원 생성이 동작합니다.
 
 ### 동작 요약
 
@@ -154,7 +159,7 @@ voice_id는 ElevenLabs 대시보드 → **Voices**에서 복사합니다.
 3. 합쳐 `listening/{setId}/{questionId}/final.mp3` 업로드
 4. 학생은 `listening_questions.audio_url` 최종 mp3만 재생
 
-구현: `src/lib/listening/audioProviders/elevenlabsTts.ts`
+구현: `src/lib/listening/elevenlabs/` · `audioProviders/elevenlabsTts.ts`
 
 ## 카카오톡보내기 (학습 리포트)
 
@@ -203,7 +208,7 @@ SQL Editor에서 `020` 이후 순서대로 적용해 주세요.
 **한 번만 설정:** [docs/VERCEL_AUTO_DEPLOY.md](docs/VERCEL_AUTO_DEPLOY.md) 참고
 
 1. Vercel에서 GitHub 저장소 `kmjh734-max/jeongsu-lms` 연결 (Production Branch: `main`)
-2. Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ANN`, `ELEVENLABS_VOICE_M`, `ELEVENLABS_VOICE_W`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` (카카오톡보내기 사용 시)
+2. Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` (카카오톡보내기 사용 시)
 3. Supabase Auth URL에 `https://jeongsu-lms.vercel.app` 추가
 4. 이후 `git push origin main` → Vercel Deployments에 새 빌드 표시
 

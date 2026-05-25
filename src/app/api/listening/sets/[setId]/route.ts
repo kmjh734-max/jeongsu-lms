@@ -22,6 +22,9 @@ export async function PATCH(
       is_published?: boolean;
       title?: string;
       speech_speed?: number;
+      voice_ann_id?: string | null;
+      voice_m_id?: string | null;
+      voice_w_id?: string | null;
     };
 
     const supabase = await createClient();
@@ -32,6 +35,15 @@ export async function PATCH(
     }
     if (typeof body.speech_speed === "number") {
       patch.speech_speed = Math.min(Math.max(body.speech_speed, 0.25), 4);
+    }
+    if (body.voice_ann_id !== undefined) {
+      patch.voice_ann_id = body.voice_ann_id?.trim() || null;
+    }
+    if (body.voice_m_id !== undefined) {
+      patch.voice_m_id = body.voice_m_id?.trim() || null;
+    }
+    if (body.voice_w_id !== undefined) {
+      patch.voice_w_id = body.voice_w_id?.trim() || null;
     }
 
     if (Object.keys(patch).length === 0) {

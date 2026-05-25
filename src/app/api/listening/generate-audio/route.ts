@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { getElevenLabsListeningConfig } from "@/lib/listening/audioProviders/elevenlabs-config";
+import { getElevenLabsApiKey } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateQuestionAudio } from "@/lib/listening/generate-audio";
 import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     }
 
     try {
-      getElevenLabsListeningConfig();
+      getElevenLabsApiKey();
     } catch (e) {
       return jsonError(e instanceof Error ? e.message : "ElevenLabs 설정 오류");
     }

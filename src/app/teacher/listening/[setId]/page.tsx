@@ -90,6 +90,9 @@ export default async function TeacherListeningSetPage({
         title={loaded.set.title}
         isPublished={loaded.set.is_published}
         speechSpeed={loaded.set.speech_speed ?? 0.9}
+        voiceAnnId={loaded.set.voice_ann_id ?? null}
+        voiceMId={loaded.set.voice_m_id ?? null}
+        voiceWId={loaded.set.voice_w_id ?? null}
         questions={loaded.questions}
         role="teacher"
       />

@@ -2,11 +2,12 @@ import { mkdtemp, readFile, rm, writeFile } from "fs/promises";
 import { join } from "path";
 import { tmpdir } from "os";
 import { generateElevenLabsSpeechSegment } from "@/lib/listening/audioProviders/elevenlabsTts";
+import { shouldSaveTtsSegments } from "@/lib/listening/audioProviders/elevenlabs-config";
 import {
-  getElevenLabsListeningConfig,
-  shouldSaveTtsSegments,
-  type ElevenLabsListeningConfig,
-} from "@/lib/listening/audioProviders/elevenlabs-config";
+  resolveListeningVoiceIds,
+  type ListeningSetVoiceOverrides,
+  type ResolvedListeningVoices,
+} from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
 import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
@@ -63,7 +64,7 @@ async function updateQuestionAudioUrl(
 }
 
 async function synthesizeSegmentToFile(
-  config: ElevenLabsListeningConfig,
+  resolved: ResolvedListeningVoices,
   speaker: ListeningSpeakerType,
   text: string,
   speed: number,
@@ -72,11 +73,28 @@ async function synthesizeSegmentToFile(
   const buffer = await generateElevenLabsSpeechSegment({
     text,
     speaker,
-    config,
+    apiKey: resolved.apiKey,
+    voiceId: resolved.voiceIds[speaker],
     speed,
   });
   await writeFile(destPath, buffer);
   return buffer;
+}
+
+async function loadSetVoiceOverrides(
+  admin: ReturnType<typeof createAdminClient>,
+  setId: string
+): Promise<ListeningSetVoiceOverrides> {
+  const { data } = await admin
+    .from("listening_sets")
+    .select("voice_ann_id, voice_m_id, voice_w_id")
+    .eq("id", setId)
+    .maybeSingle();
+  return {
+    voice_ann_id: data?.voice_ann_id ?? null,
+    voice_m_id: data?.voice_m_id ?? null,
+    voice_w_id: data?.voice_w_id ?? null,
+  };
 }
 
 export async function generateQuestionAudio(opts: {
@@ -85,12 +103,13 @@ export async function generateQuestionAudio(opts: {
   segmentId?: string;
   speechSpeed?: number;
 }): Promise<GenerateAudioResult> {
-  const config = getElevenLabsListeningConfig();
   const { setId, questionId, segmentId } = opts;
   const speed = opts.speechSpeed ?? EXAM_DEFAULT_SPEECH_SPEED;
   const saveSegments = shouldSaveTtsSegments();
 
   const admin = createAdminClient();
+  const setOverrides = await loadSetVoiceOverrides(admin, setId);
+  const resolved = await resolveListeningVoiceIds(setOverrides);
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.");
 
@@ -120,12 +139,13 @@ export async function generateQuestionAudio(opts: {
 
       if (mustSynthesize) {
         const buffer = await synthesizeSegmentToFile(
-          config,
+          resolved,
           speaker,
           seg.text,
           speed,
           localPath
         );
+        const voiceId = resolved.voiceIds[speaker];
 
         if (saveSegments) {
           const storagePath = segmentStoragePath(setId, questionId, seg.id);
@@ -142,19 +162,19 @@ export async function generateQuestionAudio(opts: {
             .from("listening_question_segments")
             .update({
               audio_url: audioUrl,
-              voice_name: voiceForSpeaker(speaker),
+              voice_name: voiceForSpeaker(speaker, voiceId),
             })
             .eq("id", seg.id);
         } else {
           await admin
             .from("listening_question_segments")
-            .update({ voice_name: voiceForSpeaker(speaker) })
+            .update({ voice_name: voiceForSpeaker(speaker, voiceId) })
             .eq("id", seg.id);
         }
       } else if (saveSegments && seg.audio_url) {
         await downloadSegmentToFile(admin, supabaseUrl, seg.audio_url, localPath);
       } else {
-        await synthesizeSegmentToFile(config, speaker, seg.text, speed, localPath);
+        await synthesizeSegmentToFile(resolved, speaker, seg.text, speed, localPath);
       }
 
       segmentOnlyPaths.push(localPath);

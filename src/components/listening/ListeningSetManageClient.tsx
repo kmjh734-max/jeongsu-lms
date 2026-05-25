@@ -17,6 +17,7 @@ import {
   tierLabel,
 } from "@/lib/listening/exam-types";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
+import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
 import {
   SPEECH_SPEED_MAP,
   presetFromSpeed,
@@ -28,6 +29,9 @@ interface ListeningSetManageClientProps {
   title: string;
   isPublished: boolean;
   speechSpeed: number | null;
+  voiceAnnId: string | null;
+  voiceMId: string | null;
+  voiceWId: string | null;
   questions: ListeningQuestionData[];
   role: "admin" | "teacher";
 }
@@ -37,6 +41,9 @@ export function ListeningSetManageClient({
   title,
   isPublished: initialPublished,
   speechSpeed: initialSpeechSpeed,
+  voiceAnnId,
+  voiceMId,
+  voiceWId,
   questions: initialQuestions,
   role,
 }: ListeningSetManageClientProps) {
@@ -315,6 +322,13 @@ export function ListeningSetManageClient({
           </button>
         </div>
       </div>
+
+      <ListeningVoiceSettings
+        setId={setId}
+        initialVoiceAnnId={voiceAnnId}
+        initialVoiceMId={voiceMId}
+        initialVoiceWId={voiceWId}
+      />
 
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>

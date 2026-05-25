@@ -1,16 +1,14 @@
 import {
   ELEVENLABS_TTS_MODEL,
   ELEVENLABS_VOICE_SETTINGS,
-  type ElevenLabsListeningConfig,
-  voiceIdForSpeaker,
 } from "@/lib/listening/audioProviders/elevenlabs-config";
 import type { ListeningSpeakerType } from "@/lib/listening/types";
 
 export interface GenerateElevenLabsSegmentOpts {
   text: string;
   speaker: ListeningSpeakerType;
-  config: ElevenLabsListeningConfig;
-  /** 0.25~4.0 — API 미지원 시 무시될 수 있음 */
+  apiKey: string;
+  voiceId: string;
   speed?: number;
 }
 
@@ -23,7 +21,7 @@ function parseElevenLabsError(status: number, bodyText: string): string {
     return "ElevenLabs API 키가 올바르지 않습니다. ELEVENLABS_API_KEY를 확인해 주세요.";
   }
   if (status === 404) {
-    return "ElevenLabs voice_id를 찾을 수 없습니다. ELEVENLABS_VOICE_ANN/M/W 값을 확인해 주세요.";
+    return "ElevenLabs voice_id를 찾을 수 없습니다. 고급 음성 설정을 확인해 주세요.";
   }
   if (status === 429) {
     return "ElevenLabs 사용량 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.";
@@ -31,9 +29,7 @@ function parseElevenLabsError(status: number, bodyText: string): string {
   try {
     const j = JSON.parse(bodyText) as { detail?: { message?: string } | string };
     const detail =
-      typeof j.detail === "string"
-        ? j.detail
-        : j.detail?.message;
+      typeof j.detail === "string" ? j.detail : j.detail?.message;
     if (detail) return `ElevenLabs: ${detail}`;
   } catch {
     /* ignore */
@@ -41,9 +37,6 @@ function parseElevenLabsError(status: number, bodyText: string): string {
   return `ElevenLabs 음원 생성 실패 (HTTP ${status})`;
 }
 
-/**
- * 단일 segment mp3 생성 (ElevenLabs)
- */
 export async function generateElevenLabsSpeechSegment(
   opts: GenerateElevenLabsSegmentOpts
 ): Promise<Buffer> {
@@ -52,7 +45,11 @@ export async function generateElevenLabsSpeechSegment(
     throw new Error("빈 대사는 음성으로 만들 수 없습니다.");
   }
 
-  const voiceId = voiceIdForSpeaker(opts.config, opts.speaker);
+  const voiceId = opts.voiceId.trim();
+  if (!voiceId) {
+    throw new Error(`ElevenLabs ${opts.speaker} voice_id가 비어 있습니다.`);
+  }
+
   const speed =
     typeof opts.speed === "number" && opts.speed > 0
       ? clampSpeed(opts.speed)
@@ -72,7 +69,7 @@ export async function generateElevenLabsSpeechSegment(
     {
       method: "POST",
       headers: {
-        "xi-api-key": opts.config.apiKey,
+        "xi-api-key": opts.apiKey,
         "Content-Type": "application/json",
         Accept: "audio/mpeg",
       },

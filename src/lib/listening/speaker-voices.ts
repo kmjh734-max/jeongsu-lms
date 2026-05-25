@@ -1,14 +1,16 @@
-import { getElevenLabsListeningConfig } from "@/lib/listening/audioProviders/elevenlabs-config";
 import type { ListeningSpeakerType } from "@/lib/listening/types";
 
-/** DB voice_name / 표시용 — ElevenLabs voice_id (서버 env) */
-export function voiceForSpeaker(speaker: ListeningSpeakerType): string {
-  try {
-    const { voiceIds } = getElevenLabsListeningConfig();
-    return voiceIds[speaker];
-  } catch {
-    return `elevenlabs-${speaker}`;
-  }
+/** DB voice_name 저장용 (표시) */
+export function voiceLabelForId(voiceId: string): string {
+  return voiceId.length > 12 ? `${voiceId.slice(0, 8)}…` : voiceId;
+}
+
+export function voiceForSpeaker(
+  speaker: ListeningSpeakerType,
+  voiceId?: string | null
+): string {
+  const id = voiceId?.trim();
+  return id || `auto-${speaker}`;
 }
 
 export function isListeningSpeaker(value: string): value is ListeningSpeakerType {
