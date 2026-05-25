@@ -277,7 +277,7 @@ export function ListeningSetManageClient({
         <div>
           <h1 className="text-xl font-bold text-slate-900">{title}</h1>
           <p className="mt-1 text-sm text-slate-600">
-            중1 영어듣기평가 유형 · ANN/M/W · segment TTS (속도 {speechSpeedValue})
+            중1 영어듣기평가 유형 · ANN/M/W · ElevenLabs 음원 (속도 {speechSpeedValue})
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -495,10 +495,10 @@ export function ListeningSetManageClient({
 
       {initialQuestions.length > 0 && (
         <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-          <h2 className="text-sm font-semibold text-slate-800">음원 일괄 생성</h2>
+          <h2 className="text-sm font-semibold text-slate-800">음원 생성 (ElevenLabs)</h2>
           <p className="mt-1 text-xs text-slate-600">
-            화면의 segment 대본만 그대로 TTS합니다. 생성 후 반드시 미리듣기로 확인하세요.
-            (예전에 만든 음원은 대본과 다를 수 있으니 「전체 음원 생성」으로 다시 만드세요.)
+            ANN/M/W 화자별 ElevenLabs 음성으로 segment를 만든 뒤 합쳐 final.mp3를 저장합니다.
+            생성 후 미리듣기로 확인하세요.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button

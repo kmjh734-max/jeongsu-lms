@@ -112,6 +112,50 @@ npm install
 npm run dev
 ```
 
+## 듣기학습 음원 (ElevenLabs TTS)
+
+듣기 문항 **음원 생성**은 **ElevenLabs만** 사용합니다. (OpenAI TTS는 사용하지 않음)  
+AI **문항 생성**·리포트 등은 기존처럼 `OPENAI_API_KEY`를 사용할 수 있습니다.
+
+### 필수 환경변수 (서버 전용 — `NEXT_PUBLIC_` 금지)
+
+| 변수 | 설명 |
+|------|------|
+| `ELEVENLABS_API_KEY` | [ElevenLabs](https://elevenlabs.io) API 키 |
+| `ELEVENLABS_VOICE_ANN` | 안내(ANN) 화자 voice_id |
+| `ELEVENLABS_VOICE_M` | 남성(M) 화자 voice_id |
+| `ELEVENLABS_VOICE_W` | 여성(W) 화자 voice_id |
+
+`.env.local` 예시:
+
+```env
+ELEVENLABS_API_KEY=your-api-key
+ELEVENLABS_VOICE_ANN=voice_id_for_announcer
+ELEVENLABS_VOICE_M=voice_id_for_male
+ELEVENLABS_VOICE_W=voice_id_for_female
+```
+
+voice_id는 ElevenLabs 대시보드 → **Voices**에서 복사합니다.
+
+### 선택 환경변수
+
+| 변수 | 설명 |
+|------|------|
+| `SAVE_TTS_SEGMENTS=true` | segment별 mp3도 Storage에 저장 (기본: final.mp3만 저장) |
+
+### Vercel
+
+위 4개 ElevenLabs 변수를 **Production** 환경에 추가한 뒤 **Redeploy**해야 음원 생성이 동작합니다.
+
+### 동작 요약
+
+1. 문항 `segments` (ANN/M/W) 순서대로 ElevenLabs TTS
+2. segment 사이 pause (일반 0.5초, ANN 다음 0.7초)
+3. 합쳐 `listening/{setId}/{questionId}/final.mp3` 업로드
+4. 학생은 `listening_questions.audio_url` 최종 mp3만 재생
+
+구현: `src/lib/listening/audioProviders/elevenlabsTts.ts`
+
 ## 카카오톡보내기 (학습 리포트)
 
 관리자·강사 **학습 리포트** 화면에서 학부모용 공개 링크를 만들고, 카카오 JavaScript SDK로 **공유창**을 열어 채팅방을 선택해 보냅니다. (특정 학부모에게 API로 자동 발송하는 기능은 아닙니다.)
@@ -159,7 +203,7 @@ SQL Editor에서 `020` 이후 순서대로 적용해 주세요.
 **한 번만 설정:** [docs/VERCEL_AUTO_DEPLOY.md](docs/VERCEL_AUTO_DEPLOY.md) 참고
 
 1. Vercel에서 GitHub 저장소 `kmjh734-max/jeongsu-lms` 연결 (Production Branch: `main`)
-2. Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` (카카오톡보내기 사용 시)
+2. Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ANN`, `ELEVENLABS_VOICE_M`, `ELEVENLABS_VOICE_W`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` (카카오톡보내기 사용 시)
 3. Supabase Auth URL에 `https://jeongsu-lms.vercel.app` 추가
 4. 이후 `git push origin main` → Vercel Deployments에 새 빌드 표시
 

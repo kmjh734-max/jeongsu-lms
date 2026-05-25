@@ -156,7 +156,7 @@ export function ListeningQuestionEditor({
     setMessage(
       segmentId
         ? "해당 줄만 화면에 보이는 대본 그대로 다시 읽었습니다."
-        : "화면에 보이는 대본 그대로 음원을 생성했습니다. (지시문·선택지는 읽지 않습니다.)"
+        : "ElevenLabs로 대본 음원을 생성했습니다. (지시문·선택지는 읽지 않습니다.)"
     );
     onUpdated();
   }
@@ -239,7 +239,7 @@ export function ListeningQuestionEditor({
             onClick={() => generateAudio()}
             className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
           >
-            {busy === "audio" ? "음원 생성 중…" : "음원 생성"}
+            {busy === "audio" ? "ElevenLabs 생성 중…" : "음원 생성 (ElevenLabs)"}
           </button>
           <button
             type="button"

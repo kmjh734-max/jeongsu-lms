@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getElevenLabsListeningConfig } from "@/lib/listening/audioProviders/elevenlabs-config";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateQuestionAudio } from "@/lib/listening/generate-audio";
+import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
 
 export const maxDuration = 120;
 
@@ -16,17 +18,17 @@ export async function POST(request: Request) {
       return jsonError("권한이 없습니다.", 403);
     }
 
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
-    if (!apiKey) {
-      return jsonError(
-        "OPENAI_API_KEY가 설정되어 있지 않습니다. .env.local에 키를 추가한 뒤 서버를 재시작해 주세요."
-      );
+    try {
+      getElevenLabsListeningConfig();
+    } catch (e) {
+      return jsonError(e instanceof Error ? e.message : "ElevenLabs 설정 오류");
     }
 
     const body = (await request.json()) as {
       setId?: string;
       questionId?: string;
       segmentId?: string;
+      speed?: number;
       speechSpeed?: number;
     };
 
@@ -64,27 +66,29 @@ export async function POST(request: Request) {
     }
 
     const speechSpeed =
-      typeof body.speechSpeed === "number"
-        ? body.speechSpeed
-        : typeof setRow?.speech_speed === "number"
-          ? setRow.speech_speed
-          : 0.9;
+      typeof body.speed === "number"
+        ? body.speed
+        : typeof body.speechSpeed === "number"
+          ? body.speechSpeed
+          : typeof setRow?.speech_speed === "number"
+            ? setRow.speech_speed
+            : EXAM_DEFAULT_SPEECH_SPEED;
 
     const result = await generateQuestionAudio({
       setId,
       questionId,
       segmentId: body.segmentId?.trim() || undefined,
-      apiKey,
       speechSpeed,
     });
 
     return NextResponse.json({
       ok: true,
       audioUrl: result.audioUrl,
-      segments: result.segments,
+      provider: result.provider,
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "음원 생성 중 오류가 발생했습니다.";
+    const message =
+      e instanceof Error ? e.message : "ElevenLabs 음원 생성에 실패했습니다.";
     return jsonError(message);
   }
 }

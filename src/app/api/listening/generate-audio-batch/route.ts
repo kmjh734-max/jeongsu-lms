@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getElevenLabsListeningConfig } from "@/lib/listening/audioProviders/elevenlabs-config";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateSetQuestionAudio } from "@/lib/listening/generate-audio";
+import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
 
 export const maxDuration = 300;
 
@@ -16,16 +18,16 @@ export async function POST(request: Request) {
       return jsonError("권한이 없습니다.", 403);
     }
 
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
-    if (!apiKey) {
-      return jsonError(
-        "OPENAI_API_KEY가 설정되어 있지 않습니다. .env.local에 키를 추가한 뒤 서버를 재시작해 주세요."
-      );
+    try {
+      getElevenLabsListeningConfig();
+    } catch (e) {
+      return jsonError(e instanceof Error ? e.message : "ElevenLabs 설정 오류");
     }
 
     const body = (await request.json()) as {
       setId?: string;
       questionIds?: string[];
+      speed?: number;
       speechSpeed?: number;
     };
 
@@ -54,15 +56,16 @@ export async function POST(request: Request) {
     }
 
     const speechSpeed =
-      typeof body.speechSpeed === "number"
-        ? body.speechSpeed
-        : typeof setRow.speech_speed === "number"
-          ? setRow.speech_speed
-          : 0.9;
+      typeof body.speed === "number"
+        ? body.speed
+        : typeof body.speechSpeed === "number"
+          ? body.speechSpeed
+          : typeof setRow.speech_speed === "number"
+            ? setRow.speech_speed
+            : EXAM_DEFAULT_SPEECH_SPEED;
 
     const results = await generateSetQuestionAudio({
       setId,
-      apiKey,
       speechSpeed,
       questionIds: body.questionIds,
     });
@@ -73,12 +76,14 @@ export async function POST(request: Request) {
       ok: okCount > 0,
       message:
         okCount === results.length
-          ? `${results.length}개 문항 음원 생성 완료`
+          ? `${results.length}개 문항 ElevenLabs 음원 생성 완료`
           : `${okCount}/${results.length}개 성공 (실패 문항 메시지 확인)`,
       results,
+      provider: "elevenlabs",
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "일괄 음원 생성 실패";
+    const message =
+      e instanceof Error ? e.message : "ElevenLabs 일괄 음원 생성에 실패했습니다.";
     return jsonError(message);
   }
 }

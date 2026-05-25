@@ -1,3 +1,7 @@
+/**
+ * @deprecated 듣기 음원 생성에는 사용하지 않습니다. ElevenLabs만 사용합니다.
+ * (src/lib/listening/audioProviders/elevenlabsTts.ts)
+ */
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 import type { ListeningSpeakerType } from "@/lib/listening/types";

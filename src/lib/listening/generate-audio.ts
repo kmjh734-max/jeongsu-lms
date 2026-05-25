@@ -1,25 +1,34 @@
 import { mkdtemp, readFile, rm, writeFile } from "fs/promises";
-import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
 import { join } from "path";
 import { tmpdir } from "os";
+import { generateElevenLabsSpeechSegment } from "@/lib/listening/audioProviders/elevenlabsTts";
+import {
+  getElevenLabsListeningConfig,
+  shouldSaveTtsSegments,
+  type ElevenLabsListeningConfig,
+} from "@/lib/listening/audioProviders/elevenlabs-config";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
+import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
 import {
   finalStoragePath,
   publicAudioUrl,
   segmentStoragePath,
   storagePathFromPublicUrl,
 } from "@/lib/listening/storage-paths";
-import { synthesizeSegmentMp3 } from "@/lib/listening/tts-openai";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
-import { DEFAULT_SPEECH_SPEED_PRESET, speedFromPreset } from "@/lib/listening/speech-speed";
+import {
+  DEFAULT_SPEECH_SPEED_PRESET,
+  EXAM_DEFAULT_SPEECH_SPEED,
+  speedFromPreset,
+} from "@/lib/listening/speech-speed";
 import type { ListeningSegmentRow, ListeningSpeakerType } from "@/lib/listening/types";
 
 const BUCKET = "listening-audio";
 
 export interface GenerateAudioResult {
   audioUrl: string;
-  segments: Array<{ id: string; speaker: string; audioUrl: string }>;
+  provider: "elevenlabs";
 }
 
 async function downloadSegmentToFile(
@@ -36,8 +45,7 @@ async function downloadSegmentToFile(
   if (error || !data) {
     throw new Error(error?.message ?? "segment 음원 다운로드 실패");
   }
-  const buf = Buffer.from(await data.arrayBuffer());
-  await writeFile(destPath, buf);
+  await writeFile(destPath, Buffer.from(await data.arrayBuffer()));
 }
 
 async function updateQuestionAudioUrl(
@@ -54,15 +62,33 @@ async function updateQuestionAudioUrl(
   }
 }
 
+async function synthesizeSegmentToFile(
+  config: ElevenLabsListeningConfig,
+  speaker: ListeningSpeakerType,
+  text: string,
+  speed: number,
+  destPath: string
+): Promise<Buffer> {
+  const buffer = await generateElevenLabsSpeechSegment({
+    text,
+    speaker,
+    config,
+    speed,
+  });
+  await writeFile(destPath, buffer);
+  return buffer;
+}
+
 export async function generateQuestionAudio(opts: {
   setId: string;
   questionId: string;
   segmentId?: string;
-  apiKey: string;
   speechSpeed?: number;
 }): Promise<GenerateAudioResult> {
-  const { setId, questionId, segmentId, apiKey } = opts;
-  const speed = opts.speechSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET);
+  const config = getElevenLabsListeningConfig();
+  const { setId, questionId, segmentId } = opts;
+  const speed = opts.speechSpeed ?? EXAM_DEFAULT_SPEECH_SPEED;
+  const saveSegments = shouldSaveTtsSegments();
 
   const admin = createAdminClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -79,7 +105,6 @@ export async function generateQuestionAudio(opts: {
 
   const workDir = await mkdtemp(join(tmpdir(), "listening-audio-"));
   const segmentOnlyPaths: string[] = [];
-  const resultSegments: Array<{ id: string; speaker: string; audioUrl: string }> = [];
 
   try {
     const rows = segments as ListeningSegmentRow[];
@@ -91,57 +116,45 @@ export async function generateQuestionAudio(opts: {
         `${String(seg.order_index + 1).padStart(2, "0")}-${speaker.toLowerCase()}.mp3`
       );
 
-      const shouldRegenerate = !segmentId || seg.id === segmentId;
+      const mustSynthesize = !segmentId || seg.id === segmentId;
 
-      if (shouldRegenerate) {
-        const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text, speed);
-        await writeFile(localPath, buffer);
-
-        const storagePath = segmentStoragePath(setId, questionId, seg.id);
-        const { error: upErr } = await admin.storage
-          .from(BUCKET)
-          .upload(storagePath, buffer, {
-            contentType: "audio/mpeg",
-            upsert: true,
-          });
-        if (upErr) throw new Error(upErr.message);
-
-        const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
-        const { error: segUpErr } = await admin
-          .from("listening_question_segments")
-          .update({
-            audio_url: audioUrl,
-            voice_name: voiceForSpeaker(speaker),
-          })
-          .eq("id", seg.id);
-        if (segUpErr) throw new Error(segUpErr.message);
-
-        resultSegments.push({ id: seg.id, speaker, audioUrl });
-      } else if (seg.audio_url) {
-        await downloadSegmentToFile(admin, supabaseUrl, seg.audio_url, localPath);
-        resultSegments.push({
-          id: seg.id,
+      if (mustSynthesize) {
+        const buffer = await synthesizeSegmentToFile(
+          config,
           speaker,
-          audioUrl: seg.audio_url,
-        });
+          seg.text,
+          speed,
+          localPath
+        );
+
+        if (saveSegments) {
+          const storagePath = segmentStoragePath(setId, questionId, seg.id);
+          const { error: upErr } = await admin.storage
+            .from(BUCKET)
+            .upload(storagePath, buffer, {
+              contentType: "audio/mpeg",
+              upsert: true,
+            });
+          if (upErr) throw new Error(upErr.message);
+
+          const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
+          await admin
+            .from("listening_question_segments")
+            .update({
+              audio_url: audioUrl,
+              voice_name: voiceForSpeaker(speaker),
+            })
+            .eq("id", seg.id);
+        } else {
+          await admin
+            .from("listening_question_segments")
+            .update({ voice_name: voiceForSpeaker(speaker) })
+            .eq("id", seg.id);
+        }
+      } else if (saveSegments && seg.audio_url) {
+        await downloadSegmentToFile(admin, supabaseUrl, seg.audio_url, localPath);
       } else {
-        const buffer = await synthesizeSegmentMp3(apiKey, speaker, seg.text, speed);
-        await writeFile(localPath, buffer);
-        const storagePath = segmentStoragePath(setId, questionId, seg.id);
-        const { error: upErr } = await admin.storage
-          .from(BUCKET)
-          .upload(storagePath, buffer, {
-            contentType: "audio/mpeg",
-            upsert: true,
-          });
-        if (upErr) throw new Error(upErr.message);
-        const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
-        const { error: segUpErr2 } = await admin
-          .from("listening_question_segments")
-          .update({ audio_url: audioUrl, voice_name: voiceForSpeaker(speaker) })
-          .eq("id", seg.id);
-        if (segUpErr2) throw new Error(segUpErr2.message);
-        resultSegments.push({ id: seg.id, speaker, audioUrl });
+        await synthesizeSegmentToFile(config, speaker, seg.text, speed, localPath);
       }
 
       segmentOnlyPaths.push(localPath);
@@ -168,7 +181,7 @@ export async function generateQuestionAudio(opts: {
     await concatMp3Files(mergePaths, finalLocal);
     const stat = await import("fs/promises").then((fs) => fs.stat(finalLocal));
     if (stat.size < 500) {
-      throw new Error("합성된 mp3가 비어 있습니다. segment 음원을 다시 생성해 주세요.");
+      throw new Error("합성된 mp3가 비어 있습니다. 음원을 다시 생성해 주세요.");
     }
 
     const finalBuffer = await readFile(finalLocal);
@@ -184,7 +197,7 @@ export async function generateQuestionAudio(opts: {
     const audioUrl = publicAudioUrl(supabaseUrl, finalPath);
     await updateQuestionAudioUrl(admin, questionId, audioUrl);
 
-    return { audioUrl, segments: resultSegments };
+    return { audioUrl, provider: "elevenlabs" };
   } finally {
     await rm(workDir, { recursive: true, force: true }).catch(() => undefined);
   }
@@ -198,10 +211,8 @@ export interface BatchAudioItemResult {
   message?: string;
 }
 
-/** 세트 내 문항 음원 일괄 생성 */
 export async function generateSetQuestionAudio(opts: {
   setId: string;
-  apiKey: string;
   speechSpeed?: number;
   questionIds?: string[];
 }): Promise<BatchAudioItemResult[]> {
@@ -244,8 +255,7 @@ export async function generateSetQuestionAudio(opts: {
       const out = await generateQuestionAudio({
         setId: opts.setId,
         questionId: q.id,
-        apiKey: opts.apiKey,
-        speechSpeed: opts.speechSpeed,
+        speechSpeed: opts.speechSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET),
       });
       results.push({
         questionId: q.id,
