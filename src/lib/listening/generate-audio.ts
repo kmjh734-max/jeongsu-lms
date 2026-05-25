@@ -10,6 +10,7 @@ import {
 } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
+import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
 import {
   finalStoragePath,
@@ -70,13 +71,14 @@ async function synthesizeSegmentToFile(
   speed: number,
   destPath: string
 ): Promise<Buffer> {
-  const buffer = await generateElevenLabsSpeechSegment({
+  const raw = await generateElevenLabsSpeechSegment({
     text,
     speaker,
     apiKey: resolved.apiKey,
     voiceId: resolved.voiceIds[speaker],
     speed,
   });
+  const buffer = trimElevenLabsSegmentPadding(raw);
   await writeFile(destPath, buffer);
   return buffer;
 }

@@ -1,12 +1,15 @@
-import { copyFile, mkdir, readFile, writeFile } from "fs/promises";
+import { copyFile, mkdir, readFile, stat, writeFile } from "fs/promises";
 import { dirname } from "path";
 import { concatMp3Buffers } from "@/lib/listening/concat-mp3-buffers";
+import { concatMp3FilesWithFfmpeg } from "@/lib/listening/concat-mp3-ffmpeg";
 
-/** OpenAI TTS mp3와 동일하게 맞춤 (레거시 ffmpeg 무음 생성용) */
+/** OpenAI TTS mp3와 동일하게 맞춤 (레거시) */
 export const TTS_SAMPLE_RATE = 24000;
 
 /**
- * MP3 파일 순서대로 합치기 (동일 TTS 포맷 — ffmpeg 없이 버퍼 병합).
+ * MP3 파일 순서대로 합치기.
+ * 1) ffmpeg 재인코딩 (권장 — 대사+무음 pause 모두 정상 재생)
+ * 2) 실패 시 동일 포맷 버퍼 병합 (fallback)
  */
 export async function concatMp3Files(
   inputPaths: string[],
@@ -21,6 +24,14 @@ export async function concatMp3Files(
   if (inputPaths.length === 1) {
     await copyFile(inputPaths[0]!, outputPath);
     return;
+  }
+
+  try {
+    await concatMp3FilesWithFfmpeg(inputPaths, outputPath);
+    const st = await stat(outputPath);
+    if (st.size >= 500) return;
+  } catch {
+    /* fallback */
   }
 
   const buffers = await Promise.all(inputPaths.map((p) => readFile(p)));

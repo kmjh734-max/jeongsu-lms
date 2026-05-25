@@ -3,6 +3,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
+import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import {
   finalStoragePath,
   legacySegmentStoragePath,
@@ -68,22 +69,36 @@ export async function mergeQuestionAudioFromSegments(opts: {
         seg.speaker_type as ListeningSpeakerType
       );
 
+      let raw: Buffer;
       if (seg.audio_url) {
-        await downloadToFile(admin, supabaseUrl, seg.audio_url, localPath);
+        const storagePath = storagePathFromPublicUrl(supabaseUrl, seg.audio_url);
+        if (storagePath) {
+          const { data, error } = await admin.storage.from(BUCKET).download(storagePath);
+          if (!error && data) raw = Buffer.from(await data.arrayBuffer());
+          else {
+            const res = await fetch(seg.audio_url);
+            if (!res.ok) throw new Error(`음원 다운로드 실패 (${res.status})`);
+            raw = Buffer.from(await res.arrayBuffer());
+          }
+        } else {
+          const res = await fetch(seg.audio_url);
+          if (!res.ok) throw new Error(`음원 다운로드 실패 (${res.status})`);
+          raw = Buffer.from(await res.arrayBuffer());
+        }
       } else {
         const { data, error } = await admin.storage.from(BUCKET).download(primaryPath);
-        if (!error && data) {
-          await writeFile(localPath, Buffer.from(await data.arrayBuffer()));
-        } else {
+        if (!error && data) raw = Buffer.from(await data.arrayBuffer());
+        else {
           const legacy = await admin.storage.from(BUCKET).download(legacyPath);
           if (legacy.error || !legacy.data) {
             throw new Error(
               `${seg.order_index + 1}번째 줄(${seg.speaker_type}) 음원이 없습니다. 「음원 생성」을 실행하세요.`
             );
           }
-          await writeFile(localPath, Buffer.from(await legacy.data.arrayBuffer()));
+          raw = Buffer.from(await legacy.data.arrayBuffer());
         }
       }
+      await writeFile(localPath, trimElevenLabsSegmentPadding(raw));
       localPaths.push(localPath);
     }
 

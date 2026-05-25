@@ -14,8 +14,24 @@ export interface ResolvedListeningVoices {
   autoSelected: Record<ListeningSpeakerType, string>;
 }
 
+/** .env 값에 따옴표·BOM이 붙는 경우(401 오류)를 방지 */
+function normalizeElevenLabsApiKey(raw: string): string {
+  let key = raw.trim();
+  if (key.charCodeAt(0) === 0xfeff) {
+    key = key.slice(1).trim();
+  }
+  if (
+    (key.startsWith('"') && key.endsWith('"')) ||
+    (key.startsWith("'") && key.endsWith("'"))
+  ) {
+    key = key.slice(1, -1).trim();
+  }
+  return key;
+}
+
 export function getElevenLabsApiKey(): string {
-  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  const raw = process.env.ELEVENLABS_API_KEY;
+  const apiKey = raw ? normalizeElevenLabsApiKey(raw) : "";
   if (!apiKey) {
     throw new Error(
       "ELEVENLABS_API_KEY가 설정되어 있지 않습니다. .env.local 또는 Vercel 환경변수에 추가한 뒤 서버를 재시작해 주세요."

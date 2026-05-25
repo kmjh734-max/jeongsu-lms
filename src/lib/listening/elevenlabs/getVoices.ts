@@ -1,3 +1,15 @@
+function parseElevenLabsDetail(bodyText: string): string | null {
+  try {
+    const j = JSON.parse(bodyText) as {
+      detail?: { message?: string } | string;
+    };
+    if (typeof j.detail === "string") return j.detail;
+    return j.detail?.message ?? null;
+  } catch {
+    return bodyText.trim().slice(0, 200) || null;
+  }
+}
+
 export interface ElevenLabsVoiceSummary {
   voice_id: string;
   name: string;
@@ -37,11 +49,16 @@ export async function fetchElevenLabsVoices(apiKey: string): Promise<ElevenLabsV
 
   if (!response.ok) {
     const bodyText = await response.text();
+    const detail = parseElevenLabsDetail(bodyText);
     if (response.status === 401) {
-      throw new Error("ElevenLabs API 키가 올바르지 않습니다. ELEVENLABS_API_KEY를 확인해 주세요.");
+      throw new Error(
+        detail
+          ? `ElevenLabs 인증 실패: ${detail} (.env.local 키·따옴표·서버 재시작 확인)`
+          : "ElevenLabs API 키가 올바르지 않습니다. ELEVENLABS_API_KEY를 확인한 뒤 npm run dev를 다시 실행해 주세요."
+      );
     }
     throw new Error(
-      `ElevenLabs voice 목록을 가져오지 못했습니다 (HTTP ${response.status}): ${bodyText.slice(0, 200)}`
+      `ElevenLabs voice 목록을 가져오지 못했습니다 (HTTP ${response.status}): ${detail || bodyText.slice(0, 200)}`
     );
   }
 

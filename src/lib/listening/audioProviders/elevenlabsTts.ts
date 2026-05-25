@@ -18,7 +18,17 @@ function clampSpeed(speed: number): number {
 
 function parseElevenLabsError(status: number, bodyText: string): string {
   if (status === 401) {
-    return "ElevenLabs API 키가 올바르지 않습니다. ELEVENLABS_API_KEY를 확인해 주세요.";
+    try {
+      const j = JSON.parse(bodyText) as { detail?: { message?: string } | string };
+      const detail =
+        typeof j.detail === "string" ? j.detail : j.detail?.message;
+      if (detail) {
+        return `ElevenLabs 인증 실패: ${detail}`;
+      }
+    } catch {
+      /* ignore */
+    }
+    return "ElevenLabs API 키가 올바르지 않습니다. ELEVENLABS_API_KEY를 확인한 뒤 npm run dev를 다시 실행해 주세요.";
   }
   if (status === 404) {
     return "ElevenLabs voice_id를 찾을 수 없습니다. 고급 음성 설정을 확인해 주세요.";
