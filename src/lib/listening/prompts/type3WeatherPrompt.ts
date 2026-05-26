@@ -65,7 +65,13 @@ const TYPE3_GENERATION_RULES = `
 - needs_image_choices: true, visual_choice_type: "weather_icon"
 - choice_image_prompts 5개 — 단순 날씨 아이콘 설명.
 
-대본:
+대본 (언어 — 매우 중요):
+- segments[].text: 반드시 영어 (듣기·TTS용). 한국어 금지.
+- script_translation: 반드시 한국어 해석 (남:/여:/안내: 화자 표기).
+- script_text: segments와 동일한 영어 대본 (M:/W:/ANN: 형식).
+- segments와 script_translation을 바꿔 넣지 말 것.
+
+내용:
 - 날씨 뉴스 형식, 5~7문장, 중1 수준.
 - 흐름: 안내 시작 → 다른 시점 언급 → 질문 시점 날씨 명확 제시 → 생활 안내 → 또 다른 시점 → 마무리.
 - humidity, precipitation 등 어려운 기상 용어 금지.
@@ -93,6 +99,7 @@ const TYPE3_VALIDATION_CRITERIA = `
 4. 선택지 5개 날씨 범주, 중복 의미 없음
 5. choice_image_prompts 5개, 아이콘 구분 가능
 6. weather_answer와 correct_answer 일치
+7. segments는 영어, script_translation은 한국어인지 확인
 `.trim();
 
 export function buildType3OnlyGenerationPrompt(previousProblems?: string[]): string {

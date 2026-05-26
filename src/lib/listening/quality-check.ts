@@ -40,6 +40,10 @@ import {
   validateType7CareerFields,
 } from "@/lib/listening/type7-career-choices";
 import {
+  isMostlyEnglish,
+  isMostlyKorean,
+} from "@/lib/listening/fix-script-language";
+import {
   checkKoreanEmotionChoices,
   emotionMatchesChoice,
   instructionMatchesTargetPerson as instructionMatchesEmotionTarget,
@@ -231,6 +235,16 @@ export function checkListeningQuestionQuality(
   }
 
   if (typeId === 3) {
+    const segText = q.segments.map((s) => s.text).join(" ");
+    if (isMostlyKorean(segText) && isMostlyEnglish(q.script_translation ?? "")) {
+      issues.push({
+        code: "type3_script_language_swap",
+        message:
+          "대본(segments)은 영어, 해석(script_translation)은 한국어여야 합니다. (뒤바뀜)",
+        weight: 24,
+      });
+    }
+
     const speakers = new Set(q.segments.map((s) => s.speaker));
     if (speakers.has("ANN") || (speakers.has("M") && speakers.has("W"))) {
       issues.push({

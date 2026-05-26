@@ -1,3 +1,4 @@
+import { fixSwappedScriptLanguage } from "@/lib/listening/fix-script-language";
 import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
 import { fixTableQuestion } from "@/lib/listening/fix-table-question";
 import { fixType1Question } from "@/lib/listening/fix-type1-question";
@@ -16,7 +17,8 @@ export function applyQuestionFixes(
   typeId?: number
 ): GeneratedListeningQuestion {
   const id = typeId ?? q.order_index;
-  let out = fixContinuationQuestion(q, id);
+  let out = fixSwappedScriptLanguage(q);
+  out = fixContinuationQuestion(out, id);
   out = fixTableQuestion(out, id);
   out = fixType1Question(out, id);
   out = fixType2Question(out, id);

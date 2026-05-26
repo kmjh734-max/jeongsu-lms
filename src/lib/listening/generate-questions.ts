@@ -1,17 +1,8 @@
-import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
-import { fixType1Question } from "@/lib/listening/fix-type1-question";
-import { fixType2Question } from "@/lib/listening/fix-type2-question";
-import { fixType3Question } from "@/lib/listening/fix-type3-question";
-import { fixType4Question } from "@/lib/listening/fix-type4-question";
-import { fixType5Question } from "@/lib/listening/fix-type5-question";
-import { fixType6Question } from "@/lib/listening/fix-type6-question";
-import { fixType7Question } from "@/lib/listening/fix-type7-question";
-import { fixType8Question } from "@/lib/listening/fix-type8-question";
+import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
 import { normalizeMentionPlan } from "@/lib/listening/type5-mention-plan";
 import { normalizeMentionedTimes } from "@/lib/listening/type6-time-choices";
 import { normalizeInterestClues } from "@/lib/listening/type7-career-choices";
 import { normalizeEmotionClues } from "@/lib/listening/type8-emotion-choices";
-import { fixTableQuestion } from "@/lib/listening/fix-table-question";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
@@ -178,16 +169,7 @@ function normalizeQuestion(
   };
 
   const typeId = typeHint?.id ?? order_index;
-  let q = fixContinuationQuestion(base, typeId);
-  q = fixTableQuestion(q, typeId);
-  q = fixType1Question(q, typeId);
-  q = fixType2Question(q, typeId);
-  q = fixType3Question(q, typeId);
-  q = fixType4Question(q, typeId);
-  q = fixType5Question(q, typeId);
-  q = fixType6Question(q, typeId);
-  q = fixType7Question(q, typeId);
-  q = fixType8Question(q, typeId);
+  let q = applyQuestionFixes(base, typeId);
   return q;
 }
 
