@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
 import { buildScriptText } from "@/lib/listening/script-text";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
@@ -16,7 +17,8 @@ export async function persistGeneratedQuestions(
     }
   > = [];
 
-  for (const q of questions) {
+  for (const raw of questions) {
+    const q = fixContinuationQuestion(raw, raw.order_index);
     const script_text = q.script_text || buildScriptText(q.segments);
 
     const { data: questionRow, error: qErr } = await admin

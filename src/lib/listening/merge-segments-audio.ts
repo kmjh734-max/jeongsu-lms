@@ -3,6 +3,7 @@ import { join } from "path";
 import { tmpdir } from "os";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
+import { isNonSpokenSegmentText } from "@/lib/listening/fix-continuation-question";
 import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import {
   finalStoragePath,
@@ -46,6 +47,14 @@ export async function mergeQuestionAudioFromSegments(opts: {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.");
 
+  const { data: questionMeta } = await admin
+    .from("listening_questions")
+    .select("order_index")
+    .eq("id", questionId)
+    .maybeSingle();
+
+  const orderIndex = questionMeta?.order_index ?? 0;
+
   const { data: segments, error: segErr } = await admin
     .from("listening_question_segments")
     .select("id, order_index, speaker_type, text, audio_url")
@@ -55,11 +64,27 @@ export async function mergeQuestionAudioFromSegments(opts: {
   if (segErr) throw new Error(segErr.message);
   if (!segments?.length) throw new Error("대본 segment가 없습니다.");
 
+  let lastAllowedIndex = segments.length - 1;
+  if (orderIndex === 19) {
+    lastAllowedIndex = segments.reduce(
+      (acc, s, i) => (s.speaker_type === "W" ? i : acc),
+      -1
+    );
+  } else if (orderIndex === 20) {
+    lastAllowedIndex = segments.reduce(
+      (acc, s, i) => (s.speaker_type === "M" ? i : acc),
+      -1
+    );
+  }
+
   const workDir = await mkdtemp(join(tmpdir(), "listening-merge-"));
   const localPaths: string[] = [];
 
   try {
     for (const seg of segments) {
+      if (isNonSpokenSegmentText(seg.text)) continue;
+      if (seg.order_index > lastAllowedIndex) continue;
+
       const localPath = join(workDir, `${seg.id}.mp3`);
       const primaryPath = segmentStoragePath(setId, questionId, seg.id);
       const legacyPath = legacySegmentStoragePath(

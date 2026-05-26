@@ -13,7 +13,12 @@ export const EXAM_SCRIPT_RULES = `
 - 상황: school, family, shop, weather, hobby, appointment, transport, event only
 - 정답 단서: must appear clearly once in the script (not hidden)
 - segment.text: ONLY spoken English (never Korean instruction, never choices)
-- Types 19~20: dialogue ends before the blank response; do NOT include the answer line in segments
+- Types 19~20 (이어 말하기):
+  - Type 19: dialogue ends with W's last line; Man's reply is NOT in audio
+  - Type 20: dialogue ends with M's last line; Woman's reply is NOT in audio
+  - question_text MUST be exactly "Man: ________" (type 19) or "Woman: ________" (type 20) in English
+  - NEVER put ________, blank lines, or the answer sentence in segments
+  - choices: 5 short natural ENGLISH reply sentences only
 `.trim();
 
 export const CHOICE_RULES = `

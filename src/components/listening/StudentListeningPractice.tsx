@@ -4,6 +4,17 @@ import { useMemo, useState } from "react";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
+function displayQuestionText(
+  orderIndex: number,
+  questionText: string
+): string | null {
+  const t = questionText.trim();
+  if (t) return t;
+  if (orderIndex === 19) return "Man: ________";
+  if (orderIndex === 20) return "Woman: ________";
+  return null;
+}
+
 export interface StudentListeningQuestion {
   id: string;
   order_index: number;
@@ -123,11 +134,16 @@ export function StudentListeningPractice({
           )}
         </div>
 
-        {q.question_text && (
-          <p className="mt-4 whitespace-pre-wrap text-sm text-slate-800">
-            {q.question_text}
-          </p>
-        )}
+        {(() => {
+          const passage = displayQuestionText(q.order_index, q.question_text);
+          if (!passage) return null;
+          return (
+            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-xs font-medium text-slate-500">지문</p>
+              <p className="mt-1 font-mono text-base text-slate-900">{passage}</p>
+            </div>
+          );
+        })()}
 
         <ul className="mt-4 space-y-2">
           {displayChoices.map(({ text, num }) => {

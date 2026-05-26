@@ -114,6 +114,22 @@ export function checkListeningQuestionQuality(
         message: "19~20번은 question_text에 Man:/Woman: ________ 형식이 필요합니다.",
       });
     }
+    const koreanChoices = q.choices.filter((c) => /[가-힣]/.test(c)).length;
+    if (koreanChoices > 0) {
+      issues.push({
+        code: "continuation_english",
+        message: "19~20번 선택지는 영어 문장이어야 합니다.",
+      });
+    }
+    for (const seg of q.segments) {
+      if (/_{2,}|^\s*$/.test(seg.text.trim())) {
+        issues.push({
+          code: "blank_in_segments",
+          message: "빈칸(____)은 segment에 넣지 말고 question_text에만 표시하세요.",
+        });
+        break;
+      }
+    }
   }
 
   if (typeId === 14 && !q.question_text?.trim()) {

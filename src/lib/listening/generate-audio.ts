@@ -10,6 +10,10 @@ import {
 } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
+import {
+  defaultContinuationQuestionText,
+  isNonSpokenSegmentText,
+} from "@/lib/listening/fix-continuation-question";
 import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
 import {
@@ -27,6 +31,29 @@ import {
 import type { ListeningSegmentRow, ListeningSpeakerType } from "@/lib/listening/types";
 
 const BUCKET = "listening-audio";
+
+/** 19~20번: 빈칸·응답 대사는 음원에서 제외 */
+function segmentsForAudio(
+  rows: ListeningSegmentRow[],
+  orderIndex: number
+): ListeningSegmentRow[] {
+  const filtered = rows.filter((r) => !isNonSpokenSegmentText(r.text));
+  if (orderIndex === 19) {
+    let lastW = -1;
+    for (let i = 0; i < filtered.length; i++) {
+      if (filtered[i]!.speaker_type === "W") lastW = i;
+    }
+    if (lastW >= 0) return filtered.slice(0, lastW + 1);
+  }
+  if (orderIndex === 20) {
+    let lastM = -1;
+    for (let i = 0; i < filtered.length; i++) {
+      if (filtered[i]!.speaker_type === "M") lastM = i;
+    }
+    if (lastM >= 0) return filtered.slice(0, lastM + 1);
+  }
+  return filtered;
+}
 
 export interface GenerateAudioResult {
   audioUrl: string;
@@ -115,6 +142,26 @@ export async function generateQuestionAudio(opts: {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.");
 
+  const { data: questionMeta } = await admin
+    .from("listening_questions")
+    .select("order_index, question_text")
+    .eq("id", questionId)
+    .maybeSingle();
+
+  const orderIndex = questionMeta?.order_index ?? 0;
+
+  if (
+    (orderIndex === 19 || orderIndex === 20) &&
+    !questionMeta?.question_text?.trim()
+  ) {
+    await admin
+      .from("listening_questions")
+      .update({
+        question_text: defaultContinuationQuestionText(orderIndex as 19 | 20),
+      })
+      .eq("id", questionId);
+  }
+
   const { data: segments, error: segErr } = await admin
     .from("listening_question_segments")
     .select("*")
@@ -128,7 +175,10 @@ export async function generateQuestionAudio(opts: {
   const segmentOnlyPaths: string[] = [];
 
   try {
-    const rows = segments as ListeningSegmentRow[];
+    const rows = segmentsForAudio(segments as ListeningSegmentRow[], orderIndex);
+    if (!rows.length) {
+      throw new Error("음원으로 만들 spoken segment가 없습니다. 대본을 확인하세요.");
+    }
     for (let i = 0; i < rows.length; i++) {
       const seg = rows[i]!;
       const speaker = seg.speaker_type as ListeningSpeakerType;

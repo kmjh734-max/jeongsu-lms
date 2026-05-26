@@ -1,3 +1,4 @@
+import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import {
@@ -103,7 +104,7 @@ function normalizeQuestion(
       ? raw.order_index
       : typeHint?.id ?? index + 1;
 
-  return {
+  const base: GeneratedListeningQuestion = {
     order_index,
     question_type,
     instruction,
@@ -118,6 +119,9 @@ function normalizeQuestion(
     needs_review: false,
     quality_issues: [],
   };
+
+  const typeId = typeHint?.id ?? order_index;
+  return fixContinuationQuestion(base, typeId);
 }
 
 function buildExamTypeBlock(types: ExamTypeTemplate[]): string {
