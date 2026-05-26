@@ -38,11 +38,19 @@ export function ListeningQuestionPreview({
             <p className="mt-2 text-sm font-medium text-slate-900">{question.instruction}</p>
           )}
         </div>
-        {question.needs_review && (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-            검토 필요
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {question.needs_review && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+              검토 필요
+            </span>
+          )}
+          {"quality_score" in question &&
+            typeof (question as { quality_score?: number }).quality_score === "number" && (
+              <span className="text-xs text-slate-500">
+                품질 점수 {(question as { quality_score: number }).quality_score}
+              </span>
+            )}
+        </div>
       </header>
 
       {question.quality_issues && question.quality_issues.length > 0 && (

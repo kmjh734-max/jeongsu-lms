@@ -1,19 +1,16 @@
 import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
-import {
-  buildDifficultyPromptBlock,
-  type ListeningDifficultyMode,
-} from "@/lib/listening/exam-difficulty";
-import {
-  CHOICE_RULES,
-  EXAM_SCRIPT_RULES,
-  JSON_OUTPUT_SCHEMA,
-} from "@/lib/listening/exam-script-rules";
+import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import {
   resolveExamTypesForGeneration,
   type ExamTypeTemplate,
 } from "@/lib/listening/exam-types";
+import {
+  buildListeningExamPrompt,
+  buildListeningFreePrompt,
+} from "@/lib/listening/prompts/buildListeningPrompt";
+import { LISTENING_SYSTEM_PROMPT } from "@/lib/listening/prompts/commonPrompt";
 import {
   attachQualityToQuestions,
   checkListeningQuestionQuality,
@@ -37,6 +34,7 @@ export interface GenerateQuestionsResult {
     GeneratedListeningQuestion & {
       needs_review: boolean;
       quality_issues: Array<{ code: string; message: string }>;
+      quality_score?: number;
     }
   >;
 }
@@ -50,13 +48,15 @@ function normalizeSegment(raw: { speaker?: string; text?: string }): ListeningSc
 
 function normalizeChoices(raw: unknown, examMode: boolean): string[] | null {
   const choicesRaw = Array.isArray(raw) ? raw : [];
-  const choices = choicesRaw.map((c) => {
-    if (typeof c === "object" && c !== null && "label" in c) {
-      const o = c as { label?: string; value?: string };
-      return String(o.label ?? o.value ?? "").trim();
-    }
-    return String(c).trim();
-  }).filter(Boolean);
+  const choices = choicesRaw
+    .map((c) => {
+      if (typeof c === "object" && c !== null && "label" in c) {
+        const o = c as { label?: string; value?: string };
+        return String(o.label ?? o.value ?? "").trim();
+      }
+      return String(c).trim();
+    })
+    .filter(Boolean);
   if (examMode) {
     if (choices.length !== 5) return null;
     return choices;
@@ -124,55 +124,6 @@ function normalizeQuestion(
   return fixContinuationQuestion(base, typeId);
 }
 
-function buildExamTypeBlock(types: ExamTypeTemplate[]): string {
-  return types
-    .map(
-      (t) => `
-=== Item ${t.id} (order_index MUST be ${t.id}) ===
-Type: ${t.question_type}
-instruction (Korean, fill ○○ only): ${t.instruction}
-Script format: ${t.format_guide}
-Segments: ${t.segment_guide}
-Choices: ${t.choice_guide}`
-    )
-    .join("\n");
-}
-
-function buildExamPrompt(
-  types: ExamTypeTemplate[],
-  difficultyMode: ListeningDifficultyMode
-): string {
-  const difficultyBlock = buildDifficultyPromptBlock(types, difficultyMode);
-
-  return `You write ORIGINAL items for the Korean national middle school Grade 1 English LISTENING exam (전국 중1 영어듣기능력평가).
-
-COPYRIGHT (critical):
-- Do NOT copy any sentence, script, question, or choice from 2024, 2025, 2026 real exams or attached PDFs.
-- Match ONLY: item type, difficulty, script length, sentence structure, choice pattern.
-- Every situation and sentence must be newly written.
-
-Create exactly ${types.length} items in the order below. order_index MUST match type number (1, 2, 3...).
-${buildExamTypeBlock(types)}
-
-${EXAM_SCRIPT_RULES}
-
-${CHOICE_RULES}
-
-Per-item difficulty:
-${difficultyBlock}
-
-${JSON_OUTPUT_SCHEMA}`;
-}
-
-function buildFreePrompt(count: number): string {
-  return `Write ${count} ORIGINAL Korean middle school grade 1 listening items.
-
-${EXAM_SCRIPT_RULES}
-${CHOICE_RULES}
-
-${JSON_OUTPUT_SCHEMA}`;
-}
-
 export async function generateListeningQuestionsWithAi(
   apiKey: string,
   options: GenerateQuestionsOptions
@@ -185,8 +136,8 @@ export async function generateListeningQuestionsWithAi(
   const itemCount = examMode ? examTypes!.length : count;
 
   const prompt = examMode
-    ? buildExamPrompt(examTypes!, difficultyMode)
-    : buildFreePrompt(itemCount);
+    ? buildListeningExamPrompt(examTypes!, difficultyMode)
+    : buildListeningFreePrompt(itemCount);
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -196,14 +147,10 @@ export async function generateListeningQuestionsWithAi(
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      temperature: 0.55,
+      temperature: 0.6,
       response_format: { type: "json_object" },
       messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert writer for Korean national middle school English listening tests. Output only valid JSON. Never reuse copyrighted exam content. Follow word-count limits strictly.",
-        },
+        { role: "system", content: LISTENING_SYSTEM_PROMPT },
         { role: "user", content: prompt },
       ],
     }),
@@ -243,7 +190,13 @@ export async function generateSingleExamQuestion(
   apiKey: string,
   typeId: number,
   difficultyMode: ListeningDifficultyMode = "auto"
-): Promise<GeneratedListeningQuestion & { needs_review: boolean; quality_issues: Array<{ code: string; message: string }> }> {
+): Promise<
+  GeneratedListeningQuestion & {
+    needs_review: boolean;
+    quality_issues: Array<{ code: string; message: string }>;
+    quality_score?: number;
+  }
+> {
   const type = resolveExamTypesForGeneration(1, [typeId])[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
 
@@ -263,5 +216,6 @@ export async function generateSingleExamQuestion(
     order_index: typeId,
     needs_review: !check.ok,
     quality_issues: check.issues,
+    quality_score: check.quality_score,
   };
 }

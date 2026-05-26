@@ -19,8 +19,8 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "묘사 듣고 대상 고르기",
     instruction: "다음을 듣고, ‘I’가 무엇인지 가장 적절한 것을 고르시오.",
     format_guide:
-      "One speaker (M or W) describes an animal/object/place in first person. 5~6 sentences, 5~12 words each. Last sentence MUST be exactly: What am I?",
-    segment_guide: "Monologue only (M or W). No dialogue. Total 40~55 words.",
+      "One speaker (M or W) describes in first person. 5~7 sentences, 6~13 words each. Last sentence MUST be exactly: What am I?",
+    segment_guide: "Monologue only (M or W). No dialogue. Total 55~75 words.",
     choice_guide:
       "5 English nouns in same category (animals OR objects). One correct match to description.",
     difficulty_tier: "foundation",
@@ -31,7 +31,7 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     instruction: "대화를 듣고, ○○가 구입한/주문한 것으로 가장 적절한 것을 고르시오.",
     format_guide:
       "Shop/cafe/restaurant/stationery. Fill ○○ with 남자 or 여자. Include 2~3 details (color, size, topping, accessory). Buyer decides one item.",
-    segment_guide: "M/W dialogue 5~7 turns. 40~70 words total.",
+    segment_guide: "M/W dialogue 6~8 turns. 55~85 words total.",
     choice_guide: "5 English product descriptions; one matches purchase.",
     difficulty_tier: "foundation",
   },
@@ -40,7 +40,7 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "날씨 파악",
     instruction: "다음을 듣고, ○○의 오늘 오후/현재/내일 날씨로 가장 적절한 것을 고르시오.",
     format_guide: "Short weather report. Korean place name in instruction (○○). 4~5 sentences.",
-    segment_guide: "W or ANN announcement. 35~55 words.",
+    segment_guide: "W or ANN announcement. 5~6 sentences. 55~75 words.",
     choice_guide: "5 English weather words (sunny, cloudy, rainy, windy, snowy).",
     difficulty_tier: "foundation",
   },
@@ -50,7 +50,7 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     instruction: "대화를 듣고, ○○가 한 마지막 말의 의도로 가장 적절한 것을 고르시오.",
     format_guide:
       "Dialogue; final line by M or W (match ○○) clearly shows intent: thanks, refusal, praise, apology, request, complaint, encouragement.",
-    segment_guide: "M/W 5~7 turns. Last line = intent clue.",
+    segment_guide: "M/W 6~8 turns. Last line = intent clue.",
     choice_guide: "5 Korean: 감사, 거절, 격려, 사과, 항의, 칭찬, 부탁 등 (one correct).",
     difficulty_tier: "foundation",
   },
@@ -60,7 +60,7 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     instruction: "다음을 듣고, ○○가 ○○에 대해 언급하지 않은 것을 고르시오.",
     format_guide:
       "Intro about person/event/program. Mention exactly 4 of 5 facts. One choice was NOT said.",
-    segment_guide: "M or W monologue 4~5 sentences OR short announcement.",
+    segment_guide: "M or W monologue 5~7 sentences.",
     choice_guide: "5 Korean: 이름, 날짜, 장소, 시간, 가격, 신청 방법, 취미, 거리 등.",
     difficulty_tier: "foundation",
   },
@@ -185,22 +185,22 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
   },
   {
     id: 19,
-    question_type: "이어 말하기",
+    question_type: "응답 고르기",
     instruction: "대화를 듣고, 여자의 마지막 말에 이어질 남자의 말로 가장 적절한 것을 고르시오.",
     format_guide:
-      "7~8 turns; ends with W line. question_text: Man: ________ (blank). Man's reply NOT in audio.",
+      "6~8 turns; ends with W. question_text: Man: ________. Man's reply NOT in segments/audio.",
     segment_guide: "M/W dialogue; last segment speaker W only.",
-    choice_guide: "5 short natural English replies.",
+    choice_guide: "5 natural English reply sentences (6~12 words each).",
     difficulty_tier: "advanced",
   },
   {
     id: 20,
-    question_type: "이어 말하기",
+    question_type: "응답 고르기",
     instruction: "대화를 듣고, 남자의 마지막 말에 이어질 여자의 말로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Different topic from #19. Ends with M. question_text: Woman: ________. Woman's reply NOT in audio.",
+      "Different topic from #19. 6~8 turns; ends with M. question_text: Woman: ________. Woman's reply NOT in segments/audio.",
     segment_guide: "M/W dialogue; last segment speaker M only.",
-    choice_guide: "5 short natural English replies.",
+    choice_guide: "5 natural English reply sentences (6~12 words each).",
     difficulty_tier: "advanced",
   },
 ];
