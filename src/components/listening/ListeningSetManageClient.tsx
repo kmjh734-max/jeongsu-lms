@@ -181,7 +181,12 @@ export function ListeningSetManageClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ setId, questions: [previewQuestions[i]] }),
       });
-      const data = (await res.json()) as { ok?: boolean; message?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        message?: string;
+        schemaWarning?: string;
+        schemaMigrationNeeded?: boolean;
+      };
       if (!data.ok) {
         items[i]!.status = "error";
         setBusy(null);
@@ -190,12 +195,19 @@ export function ListeningSetManageClient({
         return;
       }
       items[i]!.status = "saved";
+      if (data.schemaWarning) {
+        setMessage(data.schemaWarning);
+      }
     }
 
     setBusy(null);
     resetProgress();
     setPreviewQuestions(null);
-    setMessage("문항이 저장되었습니다.");
+    setMessage((prev) =>
+      prev && prev.includes("마이그레이션")
+        ? prev
+        : "문항이 저장되었습니다."
+    );
     router.refresh();
   }
 
@@ -229,11 +241,11 @@ export function ListeningSetManageClient({
       router.refresh();
       return;
     }
-    setMessage(
+    const base =
       result.reviewCount > 0
         ? `저장 완료. 검토 필요 ${result.reviewCount}문항 — 대본·음원을 확인하세요.`
-        : "AI 문항이 생성·저장되었습니다."
-    );
+        : "AI 문항이 생성·저장되었습니다.";
+    setMessage(result.schemaWarning ? `${base} ${result.schemaWarning}` : base);
     router.refresh();
   }
 

@@ -1,14 +1,29 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
+import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
 import { buildScriptText } from "@/lib/listening/script-text";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 
-function qualityFields(q: GeneratedListeningQuestion) {
+const MIGRATION_HINT =
+  "Supabase SQL Editor에서 supabase/migrations/RUN_LISTENING_027_THROUGH_036.sql 을 실행해 주세요.";
+
+function isMissingColumnError(message: string): boolean {
+  return /column|schema cache|PGRST204|does not exist/i.test(message);
+}
+
+/** 마이그레이션 027 이전 DB에도 저장 가능한 최소 필드 */
+function baseQualityFields(q: GeneratedListeningQuestion) {
   return {
     answer_clue: q.answer_clue ?? "",
     needs_review: q.needs_review ?? false,
+  };
+}
+
+/** 마이그레이션 027~036 적용 후 사용하는 확장 필드 */
+function extendedQualityFields(q: GeneratedListeningQuestion) {
+  return {
+    ...baseQualityFields(q),
     quality_score:
       typeof q.quality_score === "number" ? Math.round(q.quality_score) : null,
     answer_clarity_score:
@@ -45,6 +60,27 @@ function qualityFields(q: GeneratedListeningQuestion) {
   };
 }
 
+function buildQuestionRow(
+  setId: string,
+  q: GeneratedListeningQuestion,
+  script_text: string,
+  extended: boolean
+) {
+  return {
+    set_id: setId,
+    order_index: q.order_index,
+    question_type: q.question_type,
+    instruction: q.instruction ?? "",
+    script_text,
+    script_translation: q.script_translation,
+    question_text: q.question_text,
+    choices: q.choices.filter(Boolean),
+    correct_answer: q.correct_answer,
+    explanation: q.explanation,
+    ...(extended ? extendedQualityFields(q) : baseQualityFields(q)),
+  };
+}
+
 export async function persistGeneratedQuestions(
   setId: string,
   questions: GeneratedListeningQuestion[]
@@ -53,6 +89,7 @@ export async function persistGeneratedQuestions(
     GeneratedListeningQuestion & {
       id: string;
       segments: Array<{ id: string; speaker: string; text: string }>;
+      schema_extended_saved?: boolean;
     }
   >
 > {
@@ -61,6 +98,7 @@ export async function persistGeneratedQuestions(
     GeneratedListeningQuestion & {
       id: string;
       segments: Array<{ id: string; speaker: string; text: string }>;
+      schema_extended_saved?: boolean;
     }
   > = [];
 
@@ -76,44 +114,50 @@ async function insertOneQuestion(
   setId: string,
   raw: GeneratedListeningQuestion
 ) {
-  const q = fixContinuationQuestion(raw, raw.order_index);
+  const q = applyQuestionFixes(raw, raw.order_index);
   const script_text = q.script_text || buildScriptText(q.segments);
 
-  const { data: questionRow, error: qErr } = await admin
-    .from("listening_questions")
-    .insert({
-      set_id: setId,
-      order_index: q.order_index,
-      question_type: q.question_type,
-      instruction: q.instruction ?? "",
-      script_text,
-      script_translation: q.script_translation,
-      question_text: q.question_text,
-      choices: q.choices.filter(Boolean),
-      correct_answer: q.correct_answer,
-      explanation: q.explanation,
-      ...qualityFields(q),
-    })
-    .select("id")
-    .single();
+  let schema_extended_saved = true;
+  let questionRow: { id: string } | null = null;
+  let lastError: string | undefined;
 
-  if (qErr || !questionRow) {
-    throw new Error(qErr?.message ?? "문항 저장 실패");
+  for (const extended of [true, false]) {
+    const { data, error: qErr } = await admin
+      .from("listening_questions")
+      .insert(buildQuestionRow(setId, q, script_text, extended))
+      .select("id")
+      .single();
+
+    if (!qErr && data) {
+      questionRow = data;
+      schema_extended_saved = extended;
+      break;
+    }
+
+    lastError = qErr?.message;
+    if (!extended || !lastError || !isMissingColumnError(lastError)) {
+      break;
+    }
   }
 
-  const segments = await insertSegments(admin, setId, questionRow.id, q.segments);
+  if (!questionRow) {
+    const hint = lastError && isMissingColumnError(lastError) ? ` ${MIGRATION_HINT}` : "";
+    throw new Error((lastError ?? "문항 저장 실패") + hint);
+  }
+
+  const segments = await insertSegments(admin, questionRow.id, q.segments);
 
   return {
     ...q,
     script_text,
     id: questionRow.id,
     segments,
+    schema_extended_saved,
   };
 }
 
 async function insertSegments(
   admin: ReturnType<typeof createAdminClient>,
-  setId: string,
   questionId: string,
   segments: GeneratedListeningQuestion["segments"]
 ) {
@@ -151,41 +195,53 @@ export async function replaceGeneratedQuestion(
   GeneratedListeningQuestion & {
     id: string;
     segments: Array<{ id: string; speaker: string; text: string }>;
+    schema_extended_saved?: boolean;
   }
 > {
   const admin = createAdminClient();
-  const q = fixContinuationQuestion(raw, raw.order_index);
+  const q = applyQuestionFixes(raw, raw.order_index);
   const script_text = q.script_text || buildScriptText(q.segments);
 
   await admin.from("listening_question_segments").delete().eq("question_id", questionId);
 
-  const { error: upErr } = await admin
-    .from("listening_questions")
-    .update({
-      order_index: q.order_index,
-      question_type: q.question_type,
-      instruction: q.instruction ?? "",
-      script_text,
-      script_translation: q.script_translation,
-      question_text: q.question_text,
-      choices: q.choices.filter(Boolean),
-      correct_answer: q.correct_answer,
-      explanation: q.explanation,
-      audio_url: null,
-      ...qualityFields(q),
-    })
-    .eq("id", questionId)
-    .eq("set_id", setId);
+  let schema_extended_saved = true;
+  let lastError: string | undefined;
 
-  if (upErr) throw new Error(upErr.message);
+  for (const extended of [true, false]) {
+    const { error: upErr } = await admin
+      .from("listening_questions")
+      .update({
+        ...buildQuestionRow(setId, q, script_text, extended),
+        audio_url: null,
+      })
+      .eq("id", questionId)
+      .eq("set_id", setId);
 
-  const segments = await insertSegments(admin, setId, questionId, q.segments);
+    if (!upErr) {
+      schema_extended_saved = extended;
+      lastError = undefined;
+      break;
+    }
+
+    lastError = upErr.message;
+    if (!extended || !isMissingColumnError(lastError)) {
+      break;
+    }
+  }
+
+  if (lastError) {
+    const hint = isMissingColumnError(lastError) ? ` ${MIGRATION_HINT}` : "";
+    throw new Error(lastError + hint);
+  }
+
+  const segments = await insertSegments(admin, questionId, q.segments);
 
   return {
     ...q,
     script_text,
     id: questionId,
     segments,
+    schema_extended_saved,
   };
 }
 

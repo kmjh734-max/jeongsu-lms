@@ -60,7 +60,15 @@ export async function POST(request: Request) {
 
     if (Array.isArray(body.questions) && body.questions.length > 0) {
       const saved = await persistGeneratedQuestions(setId, body.questions);
-      return NextResponse.json({ ok: true, questions: saved });
+      const schemaMigrationNeeded = saved.some((q) => q.schema_extended_saved === false);
+      return NextResponse.json({
+        ok: true,
+        questions: saved,
+        schemaMigrationNeeded,
+        schemaWarning: schemaMigrationNeeded
+          ? "문항은 저장되었으나 DB 마이그레이션(027~036) 미적용으로 유형별 메타데이터는 저장되지 않았습니다. Supabase에서 RUN_LISTENING_027_THROUGH_036.sql을 실행하세요."
+          : undefined,
+      });
     }
 
     const mode: ListeningGenerationMode =
@@ -77,11 +85,16 @@ export async function POST(request: Request) {
     const persist = body.persist !== false;
     if (persist) {
       const saved = await persistGeneratedQuestions(setId, generated);
+      const schemaMigrationNeeded = saved.some((q) => q.schema_extended_saved === false);
       return NextResponse.json({
         ok: true,
         questions: saved,
         mode,
         reviewCount: generated.filter((q) => q.needs_review).length,
+        schemaMigrationNeeded,
+        schemaWarning: schemaMigrationNeeded
+          ? "문항은 저장되었으나 DB 마이그레이션(027~036) 미적용으로 유형별 메타데이터는 저장되지 않았습니다. Supabase에서 RUN_LISTENING_027_THROUGH_036.sql을 실행하세요."
+          : undefined,
       });
     }
 

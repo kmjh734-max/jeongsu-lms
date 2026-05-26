@@ -22,7 +22,12 @@ export async function generateQuestionsSequential(opts: {
   difficultyMode: ListeningDifficultyMode;
   persist: boolean;
   onProgress: (percent: number, phase: GenerationPhase, items: ItemProgressRow[]) => void;
-}): Promise<{ questions: GeneratedListeningQuestion[]; reviewCount: number; error?: string }> {
+}): Promise<{
+  questions: GeneratedListeningQuestion[];
+  reviewCount: number;
+  error?: string;
+  schemaWarning?: string;
+}> {
   const { setId, orderIndexes, mode, difficultyMode, persist, onProgress } = opts;
   const total = orderIndexes.length;
   const items: ItemProgressRow[] = orderIndexes.map((orderIndex) => ({
@@ -86,6 +91,8 @@ export async function generateQuestionsSequential(opts: {
     update("validating", i, "validate");
   }
 
+  let schemaWarning: string | undefined;
+
   if (persist && questions.length > 0) {
     onProgress(generationProgressPercent("saving", 0, total), "saving", items);
     for (let i = 0; i < questions.length; i++) {
@@ -97,7 +104,12 @@ export async function generateQuestionsSequential(opts: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ setId, questions: [questions[i]] }),
       });
-      const data = (await res.json()) as { ok?: boolean; message?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        message?: string;
+        schemaWarning?: string;
+        schemaMigrationNeeded?: boolean;
+      };
       if (!data.ok) {
         items[i]!.status = "error";
         items[i]!.message = data.message ?? "저장 실패";
@@ -107,6 +119,9 @@ export async function generateQuestionsSequential(opts: {
           error: data.message ?? `${questions[i]!.order_index}번 저장 실패`,
         };
       }
+      if (data.schemaMigrationNeeded && data.schemaWarning) {
+        schemaWarning = data.schemaWarning;
+      }
       items[i]!.status = "saved";
     }
   }
@@ -115,6 +130,7 @@ export async function generateQuestionsSequential(opts: {
   return {
     questions,
     reviewCount: questions.filter((q) => q.needs_review).length,
+    schemaWarning,
   };
 }
 

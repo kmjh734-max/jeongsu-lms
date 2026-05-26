@@ -59,6 +59,11 @@ export async function POST(request: Request) {
       return NextResponse.json({
         ok: true,
         question: saved,
+        schemaMigrationNeeded: saved.schema_extended_saved === false,
+        schemaWarning:
+          saved.schema_extended_saved === false
+            ? "문항은 저장되었으나 DB 마이그레이션(027~036) 미적용으로 유형별 메타데이터는 저장되지 않았습니다. Supabase에서 RUN_LISTENING_027_THROUGH_036.sql을 실행하세요."
+            : undefined,
         needs_review: generated.needs_review,
         quality_score: generated.quality_score,
         answer_clarity_score: generated.answer_clarity_score,
