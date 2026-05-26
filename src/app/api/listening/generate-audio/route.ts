@@ -83,8 +83,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
+      questionId,
       audioUrl: result.audioUrl,
       provider: result.provider,
+      stage: "uploaded",
     });
   } catch (e) {
     const message =

@@ -12,6 +12,17 @@ export interface QualityIssuePayload {
   message: string;
 }
 
+export interface AnswerValidationPayload {
+  is_answer_clear: boolean;
+  correct_answer_verified: boolean;
+  has_multiple_possible_answers: boolean;
+  ambiguous_choices: string[];
+  answer_clue: string;
+  problems: string[];
+  suggestions: string[];
+  answer_clarity_score: number;
+}
+
 export interface GeneratedListeningQuestion {
   order_index: number;
   question_type: string;
@@ -26,6 +37,14 @@ export interface GeneratedListeningQuestion {
   explanation: string;
   needs_review?: boolean;
   quality_issues?: QualityIssuePayload[];
+  quality_score?: number;
+  answer_clarity_score?: number;
+  is_answer_clear?: boolean;
+  has_multiple_possible_answers?: boolean;
+  has_answer_clue?: boolean;
+  problems?: string[];
+  suggestions?: string[];
+  answer_validation?: AnswerValidationPayload;
 }
 
 export interface ListeningQuestionRow {
@@ -42,6 +61,10 @@ export interface ListeningQuestionRow {
   explanation: string;
   answer_clue: string;
   needs_review: boolean;
+  quality_score: number | null;
+  answer_clarity_score: number | null;
+  quality_issues: QualityIssuePayload[];
+  answer_validation: AnswerValidationPayload | Record<string, unknown>;
   audio_url: string | null;
 }
 

@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
+import {
+  GenerationProgress,
+  type ItemProgressRow,
+} from "@/components/listening/GenerationProgress";
+import {
+  generateAudioSequential,
+  generateQuestionsSequential,
+} from "@/lib/listening/client-generation";
+import type { GenerationPhase } from "@/lib/listening/progress-weights";
 import {
   ListeningQuestionEditor,
   type ListeningQuestionData,
@@ -63,6 +72,15 @@ export function ListeningSetManageClient({
   >(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [, setProgressPhase] = useState<GenerationPhase>("idle");
+  const [progressDetail, setProgressDetail] = useState<string | null>(null);
+  const [progressItems, setProgressItems] = useState<ItemProgressRow[]>([]);
+  const [regeneratingIndex, setRegeneratingIndex] = useState<number | null>(null);
+
+  const isGenerating =
+    busy === "preview" || busy === "ai" || busy === "save" || busy === "gen-flow";
+  const isAudioBusy = busy === "audio-all" || busy === "audio-seq";
 
   const effectiveTypeIds = useMemo(() => {
     if (generationMode !== "exam") return undefined;
@@ -79,94 +97,176 @@ export function ListeningSetManageClient({
     });
   }
 
+  const orderIndexesForGeneration = useMemo(() => {
+    if (generationMode === "exam") {
+      return effectiveTypeIds ?? MIDDLE1_LISTENING_EXAM_TYPES.slice(0, questionCount).map((t) => t.id);
+    }
+    return Array.from({ length: questionCount }, (_, i) => i + 1);
+  }, [generationMode, effectiveTypeIds, questionCount]);
+
+  const resetProgress = useCallback(() => {
+    setProgressPercent(0);
+    setProgressPhase("idle");
+    setProgressDetail(null);
+    setProgressItems([]);
+  }, []);
+
   async function generatePreview() {
     setBusy("preview");
     setMessage(null);
     setPreviewQuestions(null);
-    const res = await fetch("/api/listening/generate-questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        count: questionCount,
-        mode: generationMode,
-        selectedTypeIds: effectiveTypeIds,
-        difficultyMode,
-        persist: false,
-      }),
+    resetProgress();
+    setProgressDetail("AI 문제 생성 중…");
+
+    const result = await generateQuestionsSequential({
+      setId,
+      orderIndexes: orderIndexesForGeneration,
+      mode: generationMode,
+      difficultyMode,
+      persist: false,
+      onProgress: (percent, phase, items) => {
+        setProgressPercent(percent);
+        setProgressPhase(phase);
+        setProgressItems(items);
+        if (phase === "generating") {
+          setProgressDetail("AI 문제 생성 중…");
+        } else if (phase === "validating") {
+          setProgressDetail("정답 명확성 검수 중…");
+        }
+      },
     });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      questions?: GeneratedListeningQuestion[];
-    };
+
     setBusy(null);
-    if (!data.ok || !data.questions?.length) {
-      setMessage(data.message ?? "문항 생성 실패");
+    resetProgress();
+    if (result.error) {
+      setMessage(result.error);
+      if (result.questions.length) setPreviewQuestions(result.questions);
       return;
     }
-    setPreviewQuestions(data.questions);
-    const review = data.questions.filter((q) => q.needs_review).length;
+    setPreviewQuestions(result.questions);
     setMessage(
-      review > 0
-        ? `미리보기 생성됨. 검토 필요 ${review}문항 — 확인 후 저장하세요.`
+      result.reviewCount > 0
+        ? `미리보기 생성됨. 검토 필요 ${result.reviewCount}문항 — 확인 후 저장하세요.`
         : "미리보기가 생성되었습니다. 확인 후 저장하세요."
     );
   }
 
   async function savePreview() {
     if (!previewQuestions?.length) return;
-    setBusy("save");
-    setMessage(null);
-    const res = await fetch("/api/listening/generate-questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId, questions: previewQuestions }),
-    });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
-    setBusy(null);
-    if (!data.ok) {
-      setMessage(data.message ?? "저장 실패");
+    const reviewPending = previewQuestions.filter((q) => q.needs_review).length;
+    if (
+      reviewPending > 0 &&
+      !window.confirm(
+        `검토 필요 문항이 ${reviewPending}개 있습니다. 그래도 저장할까요?`
+      )
+    ) {
       return;
     }
+    setBusy("save");
+    setMessage(null);
+    resetProgress();
+    setProgressDetail("DB 저장 중…");
+    const items: ItemProgressRow[] = previewQuestions.map((q) => ({
+      orderIndex: q.order_index,
+      status: "pending",
+    }));
+
+    for (let i = 0; i < previewQuestions.length; i++) {
+      items[i]!.status = "saving";
+      setProgressItems([...items]);
+      setProgressPercent(Math.round(((i + 0.5) / previewQuestions.length) * 100));
+
+      const res = await fetch("/api/listening/generate-questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ setId, questions: [previewQuestions[i]] }),
+      });
+      const data = (await res.json()) as { ok?: boolean; message?: string };
+      if (!data.ok) {
+        items[i]!.status = "error";
+        setBusy(null);
+        resetProgress();
+        setMessage(data.message ?? `${previewQuestions[i]!.order_index}번 저장 실패`);
+        return;
+      }
+      items[i]!.status = "saved";
+    }
+
+    setBusy(null);
+    resetProgress();
     setPreviewQuestions(null);
     setMessage("문항이 저장되었습니다.");
     router.refresh();
   }
 
   async function generateAndSave() {
-    setBusy("ai");
+    setBusy("gen-flow");
     setMessage(null);
-    const res = await fetch("/api/listening/generate-questions", {
+    setPreviewQuestions(null);
+    resetProgress();
+    setProgressDetail("AI 문제 생성·검수·저장 중…");
+
+    const result = await generateQuestionsSequential({
+      setId,
+      orderIndexes: orderIndexesForGeneration,
+      mode: generationMode,
+      difficultyMode,
+      persist: true,
+      onProgress: (percent, phase, items) => {
+        setProgressPercent(percent);
+        setProgressPhase(phase);
+        setProgressItems(items);
+        if (phase === "generating") setProgressDetail("AI 문제 생성 중…");
+        else if (phase === "validating") setProgressDetail("정답 명확성 검수 중…");
+        else if (phase === "saving") setProgressDetail("DB 저장 중…");
+      },
+    });
+
+    setBusy(null);
+    resetProgress();
+    if (result.error) {
+      setMessage(result.error);
+      router.refresh();
+      return;
+    }
+    setMessage(
+      result.reviewCount > 0
+        ? `저장 완료. 검토 필요 ${result.reviewCount}문항 — 대본·음원을 확인하세요.`
+        : "AI 문항이 생성·저장되었습니다."
+    );
+    router.refresh();
+  }
+
+  async function regeneratePreviewItem(orderIndex: number) {
+    setRegeneratingIndex(orderIndex);
+    const prev = previewQuestions?.find((q) => q.order_index === orderIndex);
+    const res = await fetch("/api/listening/generate-question-item", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         setId,
-        count: questionCount,
+        typeId: generationMode === "exam" ? orderIndex : undefined,
+        orderIndex,
         mode: generationMode,
-        selectedTypeIds: effectiveTypeIds,
         difficultyMode,
-        persist: true,
+        persist: false,
+        previousProblems: prev?.problems,
       }),
     });
     const data = (await res.json()) as {
       ok?: boolean;
       message?: string;
-      reviewCount?: number;
+      question?: GeneratedListeningQuestion;
     };
-    setBusy(null);
-    if (!data.ok) {
-      setMessage(data.message ?? "문항 생성 실패");
+    setRegeneratingIndex(null);
+    if (!data.ok || !data.question) {
+      setMessage(data.message ?? "재생성 실패");
       return;
     }
-    setPreviewQuestions(null);
-    const review = data.reviewCount ?? 0;
-    setMessage(
-      review > 0
-        ? `저장 완료. 검토 필요 ${review}문항 — 대본·음원을 확인하세요.`
-        : "AI 문항이 생성·저장되었습니다."
+    setPreviewQuestions((list) =>
+      (list ?? []).map((q) => (q.order_index === orderIndex ? data.question! : q))
     );
-    router.refresh();
+    setMessage(`${orderIndex}번 문항을 다시 생성했습니다.`);
   }
 
   async function mergeAllFinalAudio() {
@@ -202,33 +302,28 @@ export function ListeningSetManageClient({
       setMessage("먼저 문항을 생성·저장하세요.");
       return;
     }
-    setBusy("audio-all");
+    setBusy("audio-seq");
     setMessage(null);
-    const res = await fetch("/api/listening/generate-audio-batch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        speechSpeed: speechSpeedValue,
-        questionIds: initialQuestions.map((q) => q.id),
-      }),
+    resetProgress();
+    setProgressDetail("ElevenLabs 음원 생성 중…");
+
+    const result = await generateAudioSequential({
+      setId,
+      questions: initialQuestions.map((q) => ({
+        id: q.id,
+        order_index: q.order_index,
+      })),
+      speechSpeed: speechSpeedValue,
+      onProgress: (percent, detail, items) => {
+        setProgressPercent(percent);
+        setProgressDetail(detail);
+        setProgressItems(items);
+      },
     });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      results?: Array<{ orderIndex: number; ok: boolean; message?: string }>;
-    };
+
     setBusy(null);
-    if (!data.ok && !data.results?.some((r) => r.ok)) {
-      setMessage(data.message ?? "일괄 음원 생성 실패");
-      return;
-    }
-    const failed = (data.results ?? []).filter((r) => !r.ok);
-    setMessage(
-      failed.length > 0
-        ? `${data.message ?? "완료"} (실패: ${failed.map((f) => `${f.orderIndex}번`).join(", ")})`
-        : data.message ?? "전체 음원 생성이 완료되었습니다."
-    );
+    resetProgress();
+    setMessage(result.message ?? "음원 생성 완료");
     router.refresh();
   }
 
@@ -447,7 +542,7 @@ export function ListeningSetManageClient({
           </div>
           <button
             type="button"
-            disabled={!!busy}
+            disabled={!!busy || isGenerating}
             onClick={generatePreview}
             className="rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-medium text-indigo-700 disabled:opacity-50"
           >
@@ -455,7 +550,7 @@ export function ListeningSetManageClient({
           </button>
           <button
             type="button"
-            disabled={!!busy}
+            disabled={!!busy || isGenerating}
             onClick={generateAndSave}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
@@ -486,6 +581,24 @@ export function ListeningSetManageClient({
             </div>
           </div>
         )}
+
+        {(busy === "preview" || busy === "gen-flow" || busy === "save" || isAudioBusy) &&
+          (progressItems.length > 0 || progressPercent > 0) && (
+          <div className="mt-4">
+            <GenerationProgress
+              title={
+                isAudioBusy
+                  ? "음원 생성 진행"
+                  : busy === "save"
+                    ? "저장 진행"
+                    : "문항 생성·검수 진행"
+              }
+              percent={progressPercent}
+              detailMessage={progressDetail ?? undefined}
+              items={progressItems}
+            />
+          </div>
+        )}
       </section>
 
       {previewQuestions && previewQuestions.length > 0 && (
@@ -494,7 +607,7 @@ export function ListeningSetManageClient({
             <h2 className="font-semibold text-slate-900">문항 미리보기</h2>
             <button
               type="button"
-              disabled={!!busy}
+              disabled={!!busy || isGenerating}
               onClick={savePreview}
               className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
@@ -502,7 +615,13 @@ export function ListeningSetManageClient({
             </button>
           </div>
           {previewQuestions.map((q) => (
-            <ListeningQuestionPreview key={q.order_index} question={q} showActions={false} />
+            <ListeningQuestionPreview
+              key={q.order_index}
+              question={q}
+              showActions
+              regenerateBusy={regeneratingIndex === q.order_index}
+              onRegenerate={() => regeneratePreviewItem(q.order_index)}
+            />
           ))}
         </section>
       )}
@@ -517,11 +636,11 @@ export function ListeningSetManageClient({
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={!!busy}
+              disabled={!!busy || isAudioBusy}
               onClick={generateAllAudio}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              {busy === "audio-all"
+              {isAudioBusy
                 ? "전체 음원 생성 중…"
                 : `전체 음원 생성 (${initialQuestions.length}문항)`}
             </button>
@@ -535,6 +654,16 @@ export function ListeningSetManageClient({
                 ? "병합 중…"
                 : `최종 mp3만 일괄 병합 (${initialQuestions.length}문항)`}
             </button>
+          {isAudioBusy && progressItems.length > 0 && (
+            <div className="mt-4">
+              <GenerationProgress
+                title="음원 생성 진행"
+                percent={progressPercent}
+                detailMessage={progressDetail ?? undefined}
+                items={progressItems}
+              />
+            </div>
+          )}
           </div>
         </section>
       )}

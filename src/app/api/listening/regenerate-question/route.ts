@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { createAdminClient } from "@/lib/supabase/admin";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import { generateSingleExamQuestion } from "@/lib/listening/generate-questions";
-import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
+import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
+import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
 import { getExamTypeById } from "@/lib/listening/exam-types";
 
 function jsonError(message: string, status = 200) {
@@ -12,11 +11,6 @@ function jsonError(message: string, status = 200) {
 
 export async function POST(request: Request) {
   try {
-    const profile = await getCurrentProfile();
-    if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
-      return jsonError("권한이 없습니다.", 403);
-    }
-
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) return jsonError("OPENAI_API_KEY가 설정되어 있지 않습니다.");
 
@@ -24,7 +18,10 @@ export async function POST(request: Request) {
       setId?: string;
       questionId?: string;
       typeId?: number;
+      orderIndex?: number;
+      questionType?: string;
       difficultyMode?: ListeningDifficultyMode;
+      previousProblems?: string[];
     };
 
     const setId = body.setId?.trim();
@@ -33,51 +30,57 @@ export async function POST(request: Request) {
       return jsonError("setId와 questionId가 필요합니다.");
     }
 
-    const admin = createAdminClient();
-    const { data: setRow } = await admin
-      .from("listening_sets")
-      .select("id, teacher_id, created_by")
-      .eq("id", setId)
-      .maybeSingle();
+    const access = await assertListeningSetAccess(setId);
+    if (!access.ok) return jsonError(access.message, access.status);
 
-    if (!setRow) return jsonError("세트를 찾을 수 없습니다.");
-
-    if (
-      profile.role === "teacher" &&
-      setRow.teacher_id !== profile.id &&
-      setRow.created_by !== profile.id
-    ) {
-      return jsonError("권한이 없습니다.", 403);
-    }
-
-    const { data: existing } = await admin
+    const { data: existing } = await access.admin
       .from("listening_questions")
-      .select("id, order_index")
+      .select("id, order_index, quality_issues, answer_validation")
       .eq("id", questionId)
       .eq("set_id", setId)
       .maybeSingle();
 
     if (!existing) return jsonError("문항을 찾을 수 없습니다.");
 
-    const typeId = body.typeId ?? existing.order_index;
+    const typeId = body.typeId ?? body.orderIndex ?? existing.order_index;
     const type = getExamTypeById(typeId);
     if (!type) return jsonError("유형을 찾을 수 없습니다.");
 
-    await admin.from("listening_questions").delete().eq("id", questionId);
+    const prevFromBody = body.previousProblems ?? [];
+    const storedIssues = Array.isArray(existing.quality_issues)
+      ? (existing.quality_issues as Array<{ message?: string }>).map(
+          (i) => i.message ?? ""
+        )
+      : [];
+    const storedValidation = existing.answer_validation as {
+      problems?: string[];
+    } | null;
+    const prevFromValidation = storedValidation?.problems ?? [];
+    const previousProblems = [
+      ...prevFromBody,
+      ...storedIssues.filter(Boolean),
+      ...prevFromValidation,
+    ].slice(0, 12);
 
     const generated = await generateSingleExamQuestion(
       apiKey,
       typeId,
-      body.difficultyMode ?? "auto"
+      body.difficultyMode ?? "auto",
+      previousProblems.length ? previousProblems : undefined
     );
 
-    const [saved] = await persistGeneratedQuestions(setId, [generated]);
+    const saved = await replaceGeneratedQuestion(setId, questionId, generated);
 
     return NextResponse.json({
       ok: true,
       question: saved,
       needs_review: generated.needs_review,
+      quality_score: generated.quality_score,
+      answer_clarity_score: generated.answer_clarity_score,
       quality_issues: generated.quality_issues,
+      answer_validation: generated.answer_validation,
+      problems: generated.problems,
+      audioNeedsRegeneration: true,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "재생성 실패";

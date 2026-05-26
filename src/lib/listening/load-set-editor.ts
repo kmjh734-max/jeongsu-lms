@@ -18,7 +18,7 @@ export async function loadListeningSetForEditor(
   const { data: questions } = await supabase
     .from("listening_questions")
     .select(
-      "id, order_index, question_type, instruction, question_text, choices, correct_answer, explanation, answer_clue, needs_review, script_translation, audio_url"
+      "id, order_index, question_type, instruction, question_text, choices, correct_answer, explanation, answer_clue, needs_review, quality_score, answer_clarity_score, quality_issues, answer_validation, script_translation, audio_url"
     )
     .eq("set_id", setId)
     .order("order_index", { ascending: true });
@@ -42,9 +42,14 @@ export async function loadListeningSetForEditor(
 
   const questionRows: ListeningQuestionData[] = (questions ?? []).map((q) => ({
     ...q,
-    choices: Array.isArray(q.choices)
-      ? (q.choices as string[])
+    choices: Array.isArray(q.choices) ? (q.choices as string[]) : [],
+    quality_issues: Array.isArray(q.quality_issues)
+      ? (q.quality_issues as ListeningQuestionData["quality_issues"])
       : [],
+    answer_validation:
+      q.answer_validation && typeof q.answer_validation === "object"
+        ? q.answer_validation
+        : {},
     segments: segmentsByQuestion.get(q.id) ?? [],
   }));
 

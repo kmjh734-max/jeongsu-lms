@@ -9,12 +9,13 @@ import {
 import {
   buildListeningExamPrompt,
   buildListeningFreePrompt,
+  buildListeningSingleTypePrompt,
 } from "@/lib/listening/prompts/buildListeningPrompt";
 import { LISTENING_SYSTEM_PROMPT } from "@/lib/listening/prompts/commonPrompt";
 import {
-  attachQualityToQuestions,
-  checkListeningQuestionQuality,
-} from "@/lib/listening/quality-check";
+  attachValidationToQuestion,
+  attachValidationToQuestions,
+} from "@/lib/listening/run-question-validation";
 import type {
   GeneratedListeningQuestion,
   ListeningGenerationMode,
@@ -124,21 +125,12 @@ function normalizeQuestion(
   return fixContinuationQuestion(base, typeId);
 }
 
-export async function generateListeningQuestionsWithAi(
+async function fetchParsedQuestions(
   apiKey: string,
-  options: GenerateQuestionsOptions
-): Promise<GenerateQuestionsResult> {
-  const { mode, count, selectedTypeIds, difficultyMode = "auto" } = options;
-  const examMode = mode === "exam";
-  const examTypes = examMode
-    ? resolveExamTypesForGeneration(count, selectedTypeIds)
-    : undefined;
-  const itemCount = examMode ? examTypes!.length : count;
-
-  const prompt = examMode
-    ? buildListeningExamPrompt(examTypes!, difficultyMode)
-    : buildListeningFreePrompt(itemCount);
-
+  prompt: string,
+  examMode: boolean,
+  examTypes?: ExamTypeTemplate[]
+): Promise<GeneratedListeningQuestion[]> {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -181,41 +173,60 @@ export async function generateListeningQuestionsWithAi(
     throw new Error("생성된 문항을 파싱하지 못했습니다.");
   }
 
-  const withQuality = attachQualityToQuestions(questions, examTypes);
+  return questions;
+}
+
+export async function generateListeningQuestionsWithAi(
+  apiKey: string,
+  options: GenerateQuestionsOptions
+): Promise<GenerateQuestionsResult> {
+  const { mode, count, selectedTypeIds, difficultyMode = "auto" } = options;
+  const examMode = mode === "exam";
+  const examTypes = examMode
+    ? resolveExamTypesForGeneration(count, selectedTypeIds)
+    : undefined;
+  const itemCount = examMode ? examTypes!.length : count;
+
+  const prompt = examMode
+    ? buildListeningExamPrompt(examTypes!, difficultyMode)
+    : buildListeningFreePrompt(itemCount);
+
+  const questions = await fetchParsedQuestions(apiKey, prompt, examMode, examTypes);
+  const withQuality = await attachValidationToQuestions(apiKey, questions, examTypes);
   return { questions: withQuality };
 }
 
-/** 단일 유형 1문항 재생성 */
+/** 단일 유형 1문항 생성 (검수 포함) */
 export async function generateSingleExamQuestion(
   apiKey: string,
   typeId: number,
-  difficultyMode: ListeningDifficultyMode = "auto"
-): Promise<
-  GeneratedListeningQuestion & {
-    needs_review: boolean;
-    quality_issues: Array<{ code: string; message: string }>;
-    quality_score?: number;
-  }
-> {
+  difficultyMode: ListeningDifficultyMode = "auto",
+  previousProblems?: string[]
+) {
   const type = resolveExamTypesForGeneration(1, [typeId])[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
 
-  const { questions } = await generateListeningQuestionsWithAi(apiKey, {
-    mode: "exam",
-    count: 1,
-    selectedTypeIds: [typeId],
-    difficultyMode,
-  });
-
+  const prompt = buildListeningSingleTypePrompt(type, difficultyMode, previousProblems);
+  const questions = await fetchParsedQuestions(apiKey, prompt, true, [type]);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
 
-  const check = checkListeningQuestionQuality(q, type);
-  return {
-    ...q,
-    order_index: typeId,
-    needs_review: !check.ok,
-    quality_issues: check.issues,
-    quality_score: check.quality_score,
-  };
+  return attachValidationToQuestion(apiKey, { ...q, order_index: typeId }, type);
+}
+
+/** 자유 모드 1문항 */
+export async function generateSingleFreeQuestion(
+  apiKey: string,
+  orderIndex: number,
+  previousProblems?: string[]
+) {
+  const avoid =
+    previousProblems && previousProblems.length > 0
+      ? `\n피할 문제:\n${previousProblems.map((p) => `- ${p}`).join("\n")}\n`
+      : "";
+  const prompt = `${buildListeningFreePrompt(1)}${avoid}\norder_index는 ${orderIndex}로 설정.`;
+  const questions = await fetchParsedQuestions(apiKey, prompt, false);
+  const q = questions[0];
+  if (!q) throw new Error("문항 생성 실패");
+  return attachValidationToQuestion(apiKey, { ...q, order_index: orderIndex });
 }

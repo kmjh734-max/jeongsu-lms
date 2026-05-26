@@ -6,6 +6,8 @@ import {
   type SegmentDraft,
 } from "@/components/listening/SegmentScriptEditor";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
+import { QuestionQualityBadges } from "@/components/listening/QuestionQualityBadges";
+import type { AnswerValidationPayload, QualityIssuePayload } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -20,6 +22,10 @@ export interface ListeningQuestionData {
   explanation: string;
   answer_clue?: string;
   needs_review?: boolean;
+  quality_score?: number | null;
+  answer_clarity_score?: number | null;
+  quality_issues?: QualityIssuePayload[];
+  answer_validation?: AnswerValidationPayload | Record<string, unknown>;
   script_translation: string;
   audio_url: string | null;
   segments: Array<{
@@ -168,16 +174,52 @@ export function ListeningQuestionEditor({
     onUpdated();
   }
 
+  async function revalidateQuestion() {
+    setBusy("validate");
+    setMessage(null);
+    setError(null);
+    const res = await fetch("/api/listening/validate-question", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        setId,
+        questionId: question.id,
+        persist: true,
+      }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      validation?: { needs_review?: boolean };
+    };
+    setBusy(null);
+    if (!data.ok) {
+      setError(data.message ?? "검수 실패");
+      return;
+    }
+    setMessage(
+      data.validation?.needs_review
+        ? "검수 완료 — 검토가 필요합니다."
+        : "검수 완료 — 정답 명확성 통과."
+    );
+    onUpdated();
+  }
+
   async function regenerateQuestion() {
     if (
       !window.confirm(
-        `${question.order_index}번 문항을 AI로 다시 만듭니다. 기존 대본·음원이 삭제됩니다. 계속할까요?`
+        `${question.order_index}번 문항을 AI로 다시 만듭니다. 기존 대본은 교체되고 음원은 초기화됩니다. 계속할까요?`
       )
     ) {
       return;
     }
     setBusy("regen");
     setMessage(null);
+    const prevProblems = [
+      ...(question.quality_issues?.map((i) => i.message) ?? []),
+      ...((question.answer_validation as AnswerValidationPayload | undefined)
+        ?.problems ?? []),
+    ].filter(Boolean);
     const res = await fetch("/api/listening/regenerate-question", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -185,15 +227,24 @@ export function ListeningQuestionEditor({
         setId,
         questionId: question.id,
         typeId: question.order_index,
+        previousProblems: prevProblems,
       }),
     });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      audioNeedsRegeneration?: boolean;
+    };
     setBusy(null);
     if (!data.ok) {
       setMessage(data.message ?? "재생성 실패");
       return;
     }
-    setMessage("문항을 다시 생성했습니다.");
+    setMessage(
+      data.audioNeedsRegeneration
+        ? "문항을 다시 생성했습니다. 음원을 다시 생성해 주세요."
+        : "문항을 다시 생성했습니다."
+    );
     onUpdated();
   }
 
@@ -203,11 +254,6 @@ export function ListeningQuestionEditor({
         <div>
           <h3 className="font-semibold text-slate-900">
             {question.order_index}번 · {question.question_type}
-            {question.needs_review && (
-              <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                검토 필요
-              </span>
-            )}
             <span
               className={`ml-2 text-xs font-normal ${hasFinalAudio ? "text-emerald-600" : "text-amber-600"}`}
             >
@@ -217,6 +263,22 @@ export function ListeningQuestionEditor({
           {instruction && (
             <p className="mt-1 text-sm text-slate-700">{instruction}</p>
           )}
+          <div className="mt-2">
+            <QuestionQualityBadges
+              question={{
+                needs_review: question.needs_review,
+                quality_score: question.quality_score ?? undefined,
+                answer_clarity_score: question.answer_clarity_score ?? undefined,
+                is_answer_clear: (
+                  question.answer_validation as AnswerValidationPayload | undefined
+                )?.is_answer_clear,
+                has_multiple_possible_answers: (
+                  question.answer_validation as AnswerValidationPayload | undefined
+                )?.has_multiple_possible_answers,
+                has_answer_clue: Boolean(question.answer_clue?.trim()),
+              }}
+            />
+          </div>
           {question.answer_clue && (
             <p className="mt-1 text-xs text-emerald-700">
               정답 근거: {question.answer_clue}
@@ -224,6 +286,14 @@ export function ListeningQuestionEditor({
           )}
         </div>
         <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={revalidateQuestion}
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-50"
+          >
+            {busy === "validate" ? "검수 중…" : "정답/선택지 다시 검수"}
+          </button>
           <button
             type="button"
             disabled={!!busy}

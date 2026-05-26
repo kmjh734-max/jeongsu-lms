@@ -44,9 +44,14 @@ ${JSON_OUTPUT_SCHEMA}
 /** 단일 유형 1문항 재생성 */
 export function buildListeningSingleTypePrompt(
   type: ExamTypeTemplate,
-  difficultyMode: ListeningDifficultyMode
+  difficultyMode: ListeningDifficultyMode,
+  previousProblems?: string[]
 ): string {
-  return buildListeningExamPrompt([type], difficultyMode);
+  const avoid =
+    previousProblems && previousProblems.length > 0
+      ? `\n이전 생성에서 발견된 문제(반드시 피할 것):\n${previousProblems.map((p) => `- ${p}`).join("\n")}\n같은 상황·문장·선택지 패턴을 반복하지 말 것.\n`
+      : "";
+  return `${buildListeningExamPrompt([type], difficultyMode)}${avoid}`;
 }
 
 /** 자유 생성 모드 (유형 미지정) */
