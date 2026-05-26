@@ -32,8 +32,6 @@ const EMOTION_ALIASES: Record<string, string> = {
   화남: "실망",
 };
 
-const MOSTLY_ENGLISH = /^[A-Za-z0-9\s.,'"-]+$/;
-
 const VAGUE_CLUE =
   /^(okay|ok|really|i see|thank you|thanks|yes|no|right|sure|good)\.?$/i;
 

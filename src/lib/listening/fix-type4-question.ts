@@ -1,7 +1,6 @@
 import { buildScriptText } from "@/lib/listening/script-text";
 import { TYPE4_QUESTION_TYPE } from "@/lib/listening/prompts/type4IntentionPrompt";
 import {
-  intentionMatchesChoice,
   instructionMatchesLastSpeaker,
   normalizeIntentionLabel,
   speakerLabelFromCode,

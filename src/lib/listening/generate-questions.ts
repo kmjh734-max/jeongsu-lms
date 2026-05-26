@@ -169,8 +169,7 @@ function normalizeQuestion(
   };
 
   const typeId = typeHint?.id ?? order_index;
-  let q = applyQuestionFixes(base, typeId);
-  return q;
+  return applyQuestionFixes(base, typeId);
 }
 
 async function fetchParsedQuestions(
