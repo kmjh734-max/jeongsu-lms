@@ -1,4 +1,18 @@
 import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
+import { fixType1Question } from "@/lib/listening/fix-type1-question";
+import { fixType2Question } from "@/lib/listening/fix-type2-question";
+import { fixType3Question } from "@/lib/listening/fix-type3-question";
+import { fixType4Question } from "@/lib/listening/fix-type4-question";
+import { fixType5Question } from "@/lib/listening/fix-type5-question";
+import { fixType6Question } from "@/lib/listening/fix-type6-question";
+import { fixType7Question } from "@/lib/listening/fix-type7-question";
+import { fixType8Question } from "@/lib/listening/fix-type8-question";
+import { normalizeMentionPlan } from "@/lib/listening/type5-mention-plan";
+import { normalizeMentionedTimes } from "@/lib/listening/type6-time-choices";
+import { normalizeInterestClues } from "@/lib/listening/type7-career-choices";
+import { normalizeEmotionClues } from "@/lib/listening/type8-emotion-choices";
+import { fixTableQuestion } from "@/lib/listening/fix-table-question";
+import { normalizeTableData } from "@/lib/listening/table-data";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
@@ -119,10 +133,62 @@ function normalizeQuestion(
     explanation: String(raw.explanation ?? "").trim(),
     needs_review: false,
     quality_issues: [],
+    table_data: normalizeTableData(raw.table_data),
+    previous_turn: String(raw.previous_turn ?? "").trim(),
+    correct_response_function: String(raw.correct_response_function ?? "").trim(),
+    distractor_reason: Array.isArray(raw.distractor_reason)
+      ? (raw.distractor_reason as unknown[]).map((x) => String(x))
+      : [],
+    needs_image_choices: Boolean(raw.needs_image_choices),
+    visual_choice_type: String(raw.visual_choice_type ?? "").trim(),
+    choice_image_prompts: Array.isArray(raw.choice_image_prompts)
+      ? (raw.choice_image_prompts as unknown[]).map((x) => String(x))
+      : [],
+    selected_conditions:
+      raw.selected_conditions && typeof raw.selected_conditions === "object"
+        ? (raw.selected_conditions as GeneratedListeningQuestion["selected_conditions"])
+        : undefined,
+    weather_target_location: String(raw.weather_target_location ?? "").trim(),
+    weather_target_time: String(raw.weather_target_time ?? "").trim(),
+    weather_answer: String(raw.weather_answer ?? "").trim(),
+    mentioned_weather_by_time: Array.isArray(raw.mentioned_weather_by_time)
+      ? (raw.mentioned_weather_by_time as GeneratedListeningQuestion["mentioned_weather_by_time"])
+      : [],
+    quality_check_focus: Array.isArray(raw.quality_check_focus)
+      ? (raw.quality_check_focus as unknown[]).map((x) => String(x))
+      : [],
+    last_speaker:
+      raw.last_speaker === "M" || raw.last_speaker === "W"
+        ? raw.last_speaker
+        : undefined,
+    final_utterance: String(raw.final_utterance ?? "").trim(),
+    target_intention: String(raw.target_intention ?? "").trim(),
+    intention_candidates: Array.isArray(raw.intention_candidates)
+      ? (raw.intention_candidates as unknown[]).map((x) => String(x))
+      : [],
+    mention_plan: normalizeMentionPlan(raw.mention_plan),
+    time_question_target: String(raw.time_question_target ?? "").trim(),
+    final_time: String(raw.final_time ?? "").trim(),
+    mentioned_times: normalizeMentionedTimes(raw.mentioned_times),
+    target_person: String(raw.target_person ?? "").trim(),
+    dream_job: String(raw.dream_job ?? "").trim(),
+    interest_clues: normalizeInterestClues(raw.interest_clues),
+    target_emotion: String(raw.target_emotion ?? "").trim(),
+    emotion_clues: normalizeEmotionClues(raw.emotion_clues),
   };
 
   const typeId = typeHint?.id ?? order_index;
-  return fixContinuationQuestion(base, typeId);
+  let q = fixContinuationQuestion(base, typeId);
+  q = fixTableQuestion(q, typeId);
+  q = fixType1Question(q, typeId);
+  q = fixType2Question(q, typeId);
+  q = fixType3Question(q, typeId);
+  q = fixType4Question(q, typeId);
+  q = fixType5Question(q, typeId);
+  q = fixType6Question(q, typeId);
+  q = fixType7Question(q, typeId);
+  q = fixType8Question(q, typeId);
+  return q;
 }
 
 async function fetchParsedQuestions(

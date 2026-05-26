@@ -30,28 +30,32 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "구입/주문 정보 파악",
     instruction: "대화를 듣고, ○○가 구입한/주문한 것으로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Shop/cafe/restaurant/stationery. Fill ○○ with 남자 or 여자. Include 2~3 details (color, size, topping, accessory). Buyer decides one item.",
-    segment_guide: "M/W dialogue 6~8 turns. 55~85 words total.",
-    choice_guide: "5 English product descriptions; one matches purchase.",
+      "Shop/cafe purchase dialogue. Image choices required (needs_image_choices, choice_image_prompts). Visual conditions: color, pattern, topping, etc. Final I'll take/have/buy sentence.",
+    segment_guide: "M/W dialogue 6~8 turns. Clerk and customer.",
+    choice_guide:
+      "5 English choices same product category; picture-distinguishable; visual_choice_type image.",
     difficulty_tier: "foundation",
   },
   {
     id: 3,
     question_type: "날씨 파악",
     instruction: "다음을 듣고, ○○의 오늘 오후/현재/내일 날씨로 가장 적절한 것을 고르시오.",
-    format_guide: "Short weather report. Korean place name in instruction (○○). 4~5 sentences.",
-    segment_guide: "W or ANN announcement. 5~6 sentences. 55~75 words.",
-    choice_guide: "5 English weather words (sunny, cloudy, rainy, windy, snowy).",
+    format_guide:
+      "Weather report monologue. Specific time in question. weather_icon image choices. weather_target_* fields.",
+    segment_guide: "W or M monologue 5~7 sentences. Multiple time periods mentioned.",
+    choice_guide:
+      "5 Korean weather choices; choice_image_prompts; correct answer matches asked time.",
     difficulty_tier: "foundation",
   },
   {
     id: 4,
-    question_type: "마지막 말의 의도",
+    question_type: "마지막 말의 의도 파악",
     instruction: "대화를 듣고, ○○가 한 마지막 말의 의도로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Dialogue; final line by M or W (match ○○) clearly shows intent: thanks, refusal, praise, apology, request, complaint, encouragement.",
-    segment_guide: "M/W 6~8 turns. Last line = intent clue.",
-    choice_guide: "5 Korean: 감사, 거절, 격려, 사과, 항의, 칭찬, 부탁 등 (one correct).",
+      "Dialogue; last_speaker/target_intention/final_utterance. needs_image_choices false. Final line intent clear.",
+    segment_guide: "M/W 6~8 turns. Last line = intent clue; instruction ○○ matches last speaker.",
+    choice_guide:
+      "5 Korean intention nouns (감사, 거절, 칭찬, 사과, 항의, 격려, 부탁 등). visual_choice_type none.",
     difficulty_tier: "foundation",
   },
   {
@@ -59,9 +63,10 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "언급하지 않은 것",
     instruction: "다음을 듣고, ○○가 ○○에 대해 언급하지 않은 것을 고르시오.",
     format_guide:
-      "Intro about person/event/program. Mention exactly 4 of 5 facts. One choice was NOT said.",
-    segment_guide: "M or W monologue 5~7 sentences.",
-    choice_guide: "5 Korean: 이름, 날짜, 장소, 시간, 가격, 신청 방법, 취미, 거리 등.",
+      "Monologue; mention_plan with 4 mentioned + 1 unmentioned. Korean label choices. needs_image_choices false.",
+    segment_guide: "M or W monologue 5~7 sentences. English script only.",
+    choice_guide:
+      "5 Korean information labels (이름, 날짜, 장소…). correct_answer = unmentioned item.",
     difficulty_tier: "foundation",
   },
   {
@@ -69,27 +74,30 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "시각 파악",
     instruction: "대화를 듣고, 두 사람이 만날 시각/수업이 시작하는 시각을 고르시오.",
     format_guide:
-      "State current time, discuss options, agree on final time clearly.",
-    segment_guide: "M/W 5~7 turns. Times spoken in English (e.g. 6 p.m.).",
-    choice_guide: "5 time options in English (e.g. 4:00 p.m., 5:30 p.m.).",
+      "M/W dialogue; 2+ times; final_time matches instruction target. time_question_target, mentioned_times.",
+    segment_guide: "M/W 6~8 turns. Final time confirmed in last 1~2 turns.",
+    choice_guide:
+      "5 English times (e.g. 4:30 p.m.). needs_image_choices false.",
     difficulty_tier: "foundation",
   },
   {
     id: 7,
     question_type: "장래 희망 파악",
     instruction: "대화를 듣고, ○○의 장래 희망으로 가장 적절한 것을 고르시오.",
-    format_guide: "Interest/hobby → want to become → job name stated clearly.",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean job names (작가, 요리사, 바이올린 연주자, etc.).",
+    format_guide:
+      "Interest → I want to be a/an ...; target_person, dream_job, interest_clues. needs_image_choices false.",
+    segment_guide: "M/W 6~8 turns. Dream job in later turns.",
+    choice_guide: "5 Korean job names. target_person matches instruction.",
     difficulty_tier: "standard",
   },
   {
     id: 8,
     question_type: "심정 파악",
     instruction: "대화를 듣고, ○○의 심정으로 가장 적절한 것을 고르시오.",
-    format_guide: "Situation shows emotion: excited, worried, relieved, disappointed, embarrassed.",
-    segment_guide: "M/W 5~7 turns; emotion words or tone cues in script.",
-    choice_guide: "5 Korean emotions: 설렘, 걱정, 안도, 실망, 당황스러움 등.",
+    format_guide:
+      "Target person emotion; target_person, target_emotion, emotion_clues. needs_image_choices false.",
+    segment_guide: "M/W 6~8 turns. Clues in target speaker lines.",
+    choice_guide: "5 Korean emotion nouns (실망, 설렘, 걱정, 안도, 당황 등).",
     difficulty_tier: "standard",
   },
   {
@@ -142,7 +150,7 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "표/정보 불일치",
     instruction: "○○에 관한 다음 내용을 듣고, 표에서 일치하지 않는 것을 고르시오.",
     format_guide:
-      "Event/class announcement. question_text: Korean table with 5 rows (①~⑤ labels). Audio matches 4 rows; ONE choice contradicts audio.",
+      "Event/class announcement. table_data required (5 rows, 1 mismatch). question_text empty. Audio matches 4 rows; ONE table row contradicts audio.",
     segment_guide: "W or ANN 5~6 sentences with date, time, fee, place, topic.",
     choice_guide: "5 Korean items matching table row labels.",
     difficulty_tier: "applied",

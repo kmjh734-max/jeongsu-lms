@@ -50,10 +50,17 @@ export const JSON_OUTPUT_SCHEMA = `
       "choices": ["", "", "", "", ""],
       "correct_answer": 1,
       "explanation": "한국어 짧은 해설",
-      "answer_clue": "대본 속 정답 근거 영어 구절 또는 한국어 설명"
+      "answer_clue": "대본 속 정답 근거 영어 구절 또는 한국어 설명",
+      "table_data": null,
+      "previous_turn": "",
+      "correct_response_function": "",
+      "distractor_reason": []
     }
   ]
 }
+
+14번: table_data 필수 { title, rows[5], mismatch_no, mismatch_reason }. question_text는 "".
+19~20번: previous_turn, correct_response_function, distractor_reason[5] 필수.
 `.trim();
 
 export const LISTENING_SYSTEM_PROMPT =

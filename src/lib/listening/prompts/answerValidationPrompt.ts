@@ -20,7 +20,8 @@ export function buildAnswerValidationUserPrompt(
 
 유형: ${typeLabel ?? q.question_type} (${q.order_index}번)
 지시문: ${q.instruction}
-${q.question_text ? `지문/표: ${q.question_text}` : ""}
+${q.table_data ? `표: ${q.table_data.title} (불일치 ${q.table_data.mismatch_no}번)` : ""}
+${q.question_text && !q.table_data ? `추가 텍스트: ${q.question_text}` : ""}
 
 대본:
 ${script}

@@ -2,6 +2,7 @@ import {
   ANSWER_VALIDATION_SYSTEM_PROMPT,
   buildAnswerValidationUserPrompt,
 } from "@/lib/listening/prompts/answerValidationPrompt";
+import { buildContinuationValidationUserPrompt } from "@/lib/listening/prompts/continuationValidationPrompt";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 export interface AnswerValidationResult {
@@ -13,6 +14,11 @@ export interface AnswerValidationResult {
   problems: string[];
   suggestions: string[];
   answer_clarity_score: number;
+  response_context_score?: number;
+  previous_turn?: string;
+  best_response?: string;
+  second_possible_answer?: string | null;
+  has_context_mismatch?: boolean;
 }
 
 const EMPTY: AnswerValidationResult = {
@@ -48,6 +54,14 @@ function parseValidationJson(raw: unknown): AnswerValidationResult {
       ? o.suggestions.map((x) => String(x))
       : [],
     answer_clarity_score: clampScore(o.answer_clarity_score),
+    response_context_score: clampScore(o.response_context_score),
+    previous_turn: String(o.previous_turn ?? "").trim(),
+    best_response: String(o.best_response ?? "").trim(),
+    second_possible_answer:
+      o.second_possible_answer == null || o.second_possible_answer === ""
+        ? null
+        : String(o.second_possible_answer),
+    has_context_mismatch: Boolean(o.has_context_mismatch),
   };
 }
 
@@ -68,7 +82,13 @@ export async function validateAnswerWithAi(
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: ANSWER_VALIDATION_SYSTEM_PROMPT },
-        { role: "user", content: buildAnswerValidationUserPrompt(q, typeLabel) },
+        {
+          role: "user",
+          content:
+            q.order_index === 19 || q.order_index === 20
+              ? buildContinuationValidationUserPrompt(q)
+              : buildAnswerValidationUserPrompt(q, typeLabel),
+        },
       ],
     }),
   });

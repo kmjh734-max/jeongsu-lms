@@ -6,7 +6,9 @@ import {
   type SegmentDraft,
 } from "@/components/listening/SegmentScriptEditor";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
+import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
 import { QuestionQualityBadges } from "@/components/listening/QuestionQualityBadges";
+import { normalizeTableData } from "@/lib/listening/table-data";
 import type { AnswerValidationPayload, QualityIssuePayload } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -26,6 +28,31 @@ export interface ListeningQuestionData {
   answer_clarity_score?: number | null;
   quality_issues?: QualityIssuePayload[];
   answer_validation?: AnswerValidationPayload | Record<string, unknown>;
+  table_data?: import("@/lib/listening/types").ListeningTableData | null;
+  previous_turn?: string;
+  correct_response_function?: string;
+  distractor_reason?: string[];
+  needs_image_choices?: boolean;
+  choice_image_prompts?: string[];
+  visual_choice_type?: string;
+  selected_conditions?: import("@/lib/listening/types").PurchaseSelectedConditions | null;
+  weather_target_location?: string;
+  weather_target_time?: string;
+  weather_answer?: string;
+  mentioned_weather_by_time?: import("@/lib/listening/types").MentionedWeatherByTime[];
+  last_speaker?: string;
+  final_utterance?: string;
+  target_intention?: string;
+  intention_candidates?: string[];
+  mention_plan?: import("@/lib/listening/type5-mention-plan").MentionPlan | null;
+  time_question_target?: string;
+  final_time?: string;
+  mentioned_times?: import("@/lib/listening/type6-time-choices").MentionedTimeEntry[];
+  target_person?: string;
+  dream_job?: string;
+  interest_clues?: string[];
+  target_emotion?: string;
+  emotion_clues?: string[];
   script_translation: string;
   audio_url: string | null;
   segments: Array<{
@@ -86,6 +113,11 @@ export function ListeningQuestionEditor({
 
   const filledChoiceCount = choices.filter((c) => c.trim()).length;
   const hasFinalAudio = !!audioUrl;
+  const table = normalizeTableData(question.table_data);
+  const blankLine =
+    question.order_index === 19 || question.order_index === 20
+      ? displayQuestionTextForOrder(question.order_index, questionText)
+      : null;
 
   async function saveQuestion() {
     setBusy("save");
@@ -341,6 +373,20 @@ export function ListeningQuestionEditor({
 
       <SegmentScriptEditor segments={segments} onChange={setSegments} />
 
+      {table && (
+        <div className="mt-4">
+          <p className="mb-1 text-xs font-medium text-slate-500">표 (14번)</p>
+          <ListeningTableDisplay
+            table={table}
+            highlightMismatchNo={table.mismatch_no}
+          />
+        </div>
+      )}
+
+      {blankLine && (
+        <p className="mt-3 font-mono text-sm text-slate-800">{blankLine}</p>
+      )}
+
       <div className="mt-3 space-y-1">
         {question.segments.map((seg, i) => (
           <div
@@ -389,6 +435,14 @@ export function ListeningQuestionEditor({
                 }}
                 className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
               />
+              {(question.order_index === 1 ||
+                question.order_index === 2 ||
+                question.order_index === 3) &&
+                question.choice_image_prompts?.[i]?.trim() && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    그림: {question.choice_image_prompts[i]}
+                  </p>
+                )}
             </label>
           ))}
         </div>

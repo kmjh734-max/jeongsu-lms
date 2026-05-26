@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getExamTypeById } from "@/lib/listening/exam-types";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { runQuestionValidation } from "@/lib/listening/run-question-validation";
+import { normalizeTableData } from "@/lib/listening/table-data";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 function jsonError(message: string, status = 200) {
@@ -27,6 +28,54 @@ function rowToGenerated(
     correct_answer: Number(row.correct_answer),
     answer_clue: String(row.answer_clue ?? ""),
     explanation: String(row.explanation ?? ""),
+    table_data: normalizeTableData(row.table_data),
+    previous_turn: String(row.previous_turn ?? ""),
+    correct_response_function: String(row.correct_response_function ?? ""),
+    distractor_reason: Array.isArray(row.distractor_reason)
+      ? (row.distractor_reason as string[])
+      : [],
+    needs_image_choices: Boolean(row.needs_image_choices),
+    choice_image_prompts: Array.isArray(row.choice_image_prompts)
+      ? (row.choice_image_prompts as string[])
+      : [],
+    visual_choice_type: String(row.visual_choice_type ?? ""),
+    selected_conditions:
+      row.selected_conditions && typeof row.selected_conditions === "object"
+        ? (row.selected_conditions as GeneratedListeningQuestion["selected_conditions"])
+        : undefined,
+    weather_target_location: String(row.weather_target_location ?? ""),
+    weather_target_time: String(row.weather_target_time ?? ""),
+    weather_answer: String(row.weather_answer ?? ""),
+    mentioned_weather_by_time: Array.isArray(row.mentioned_weather_by_time)
+      ? (row.mentioned_weather_by_time as GeneratedListeningQuestion["mentioned_weather_by_time"])
+      : [],
+    last_speaker:
+      row.last_speaker === "M" || row.last_speaker === "W"
+        ? row.last_speaker
+        : undefined,
+    final_utterance: String(row.final_utterance ?? ""),
+    target_intention: String(row.target_intention ?? ""),
+    intention_candidates: Array.isArray(row.intention_candidates)
+      ? (row.intention_candidates as string[])
+      : [],
+    mention_plan:
+      row.mention_plan && typeof row.mention_plan === "object"
+        ? (row.mention_plan as GeneratedListeningQuestion["mention_plan"])
+        : null,
+    time_question_target: String(row.time_question_target ?? ""),
+    final_time: String(row.final_time ?? ""),
+    mentioned_times: Array.isArray(row.mentioned_times)
+      ? (row.mentioned_times as GeneratedListeningQuestion["mentioned_times"])
+      : [],
+    target_person: String(row.target_person ?? ""),
+    dream_job: String(row.dream_job ?? ""),
+    interest_clues: Array.isArray(row.interest_clues)
+      ? (row.interest_clues as string[])
+      : [],
+    target_emotion: String(row.target_emotion ?? ""),
+    emotion_clues: Array.isArray(row.emotion_clues)
+      ? (row.emotion_clues as string[])
+      : [],
   };
 }
 

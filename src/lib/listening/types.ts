@@ -12,6 +12,37 @@ export interface QualityIssuePayload {
   message: string;
 }
 
+export interface ListeningTableRow {
+  no: number;
+  label: string;
+  value: string;
+}
+
+export interface MentionedWeatherByTime {
+  time: string;
+  weather: string;
+}
+
+export type { MentionPlan, MentionPlanItem } from "@/lib/listening/type5-mention-plan";
+export type { MentionedTimeEntry } from "@/lib/listening/type6-time-choices";
+import type { MentionPlan } from "@/lib/listening/type5-mention-plan";
+import type { MentionedTimeEntry } from "@/lib/listening/type6-time-choices";
+
+export interface PurchaseSelectedConditions {
+  item_type: string;
+  color: string;
+  pattern_or_shape: string;
+  extra_feature: string;
+  final_choice_sentence: string;
+}
+
+export interface ListeningTableData {
+  title: string;
+  rows: ListeningTableRow[];
+  mismatch_no: number;
+  mismatch_reason: string;
+}
+
 export interface AnswerValidationPayload {
   is_answer_clear: boolean;
   correct_answer_verified: boolean;
@@ -21,6 +52,12 @@ export interface AnswerValidationPayload {
   problems: string[];
   suggestions: string[];
   answer_clarity_score: number;
+  /** 19~20번 맥락 검수 */
+  response_context_score?: number;
+  previous_turn?: string;
+  best_response?: string;
+  second_possible_answer?: string | null;
+  has_context_mismatch?: boolean;
 }
 
 export interface GeneratedListeningQuestion {
@@ -45,6 +82,32 @@ export interface GeneratedListeningQuestion {
   problems?: string[];
   suggestions?: string[];
   answer_validation?: AnswerValidationPayload;
+  table_data?: ListeningTableData | null;
+  previous_turn?: string;
+  correct_response_function?: string;
+  distractor_reason?: string[];
+  needs_image_choices?: boolean;
+  choice_image_prompts?: string[];
+  visual_choice_type?: string;
+  selected_conditions?: PurchaseSelectedConditions;
+  weather_target_location?: string;
+  weather_target_time?: string;
+  weather_answer?: string;
+  mentioned_weather_by_time?: MentionedWeatherByTime[];
+  last_speaker?: "M" | "W";
+  final_utterance?: string;
+  target_intention?: string;
+  intention_candidates?: string[];
+  mention_plan?: MentionPlan | null;
+  time_question_target?: string;
+  final_time?: string;
+  mentioned_times?: MentionedTimeEntry[];
+  target_person?: string;
+  dream_job?: string;
+  interest_clues?: string[];
+  target_emotion?: string;
+  emotion_clues?: string[];
+  quality_check_focus?: string[];
 }
 
 export interface ListeningQuestionRow {
@@ -65,6 +128,31 @@ export interface ListeningQuestionRow {
   answer_clarity_score: number | null;
   quality_issues: QualityIssuePayload[];
   answer_validation: AnswerValidationPayload | Record<string, unknown>;
+  table_data: ListeningTableData | null;
+  previous_turn: string;
+  correct_response_function: string;
+  distractor_reason: string[];
+  needs_image_choices: boolean;
+  choice_image_prompts: string[];
+  visual_choice_type: string;
+  selected_conditions: PurchaseSelectedConditions | null;
+  weather_target_location: string;
+  weather_target_time: string;
+  weather_answer: string;
+  mentioned_weather_by_time: MentionedWeatherByTime[];
+  last_speaker: string;
+  final_utterance: string;
+  target_intention: string;
+  intention_candidates: string[];
+  mention_plan: MentionPlan | Record<string, unknown>;
+  time_question_target: string;
+  final_time: string;
+  mentioned_times: MentionedTimeEntry[];
+  target_person: string;
+  dream_job: string;
+  interest_clues: string[];
+  target_emotion: string;
+  emotion_clues: string[];
   audio_url: string | null;
 }
 

@@ -53,14 +53,28 @@ export function continuationQuestionDisplayText(orderIndex: number): string | nu
   return null;
 }
 
+/** 학생 풀이 중 빈칸 표시(19~20). 표(14)는 table_data 컴포넌트 사용 */
 export function displayQuestionTextForOrder(
   orderIndex: number,
-  questionText: string
+  questionText: string,
+  options?: { hasTableData?: boolean; forStudent?: boolean }
 ): string | null {
+  if (options?.hasTableData || orderIndex === 14) return null;
+  if (options?.forStudent) {
+    return continuationQuestionDisplayText(orderIndex);
+  }
   const fixed = continuationQuestionDisplayText(orderIndex);
   if (fixed) return fixed;
   const t = questionText.trim();
   return t || null;
+}
+
+function inferPreviousTurn(segments: ListeningScriptSegment[]): string {
+  const spoken = filterSpokenSegments(segments);
+  const last = spoken[spoken.length - 1];
+  if (!last) return "";
+  const label = last.speaker === "W" ? "W" : last.speaker === "M" ? "M" : "ANN";
+  return `${label}: ${last.text}`;
 }
 
 /**
@@ -83,11 +97,18 @@ export function fixContinuationQuestion(
     q.question_text,
     typeId as 19 | 20
   );
+  const previous_turn =
+    q.previous_turn?.trim() || inferPreviousTurn(segments);
+  const distractor_reason = Array.isArray(q.distractor_reason)
+    ? q.distractor_reason.map(String)
+  : [];
 
   return {
     ...q,
     segments,
     question_text,
+    previous_turn,
+    distractor_reason,
     script_text: buildScriptText(segments),
   };
 }

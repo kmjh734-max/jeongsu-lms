@@ -1,5 +1,6 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
 import { ANSWER_CLARITY_PASS_THRESHOLD } from "@/lib/listening/prompts/answerValidationPrompt";
+import { RESPONSE_CONTEXT_PASS_THRESHOLD } from "@/lib/listening/prompts/continuationValidationPrompt";
 import { QUALITY_PASS_THRESHOLD } from "@/lib/listening/prompts/qualityCheckPrompt";
 import {
   checkListeningQuestionQuality,
@@ -36,7 +37,8 @@ export function deriveNeedsReview(
   qualityScore: number,
   answerValidation: AnswerValidationResult,
   ruleIssueCount: number,
-  hasAnswerClueInQuestion: boolean
+  hasAnswerClueInQuestion: boolean,
+  orderIndex?: number
 ): boolean {
   if (qualityScore < QUALITY_PASS_THRESHOLD) return true;
   if (answerValidation.answer_clarity_score < ANSWER_CLARITY_PASS_THRESHOLD) return true;
@@ -45,6 +47,12 @@ export function deriveNeedsReview(
   if (!answerValidation.correct_answer_verified) return true;
   if (!hasAnswerClueInQuestion && !answerValidation.answer_clue.trim()) return true;
   if (ruleIssueCount > 0) return true;
+  if (orderIndex === 19 || orderIndex === 20) {
+    const ctx = answerValidation.response_context_score ?? 100;
+    if (ctx < RESPONSE_CONTEXT_PASS_THRESHOLD) return true;
+    if (answerValidation.has_context_mismatch) return true;
+    if (answerValidation.second_possible_answer) return true;
+  }
   return false;
 }
 
@@ -80,7 +88,8 @@ export async function runQuestionValidation(
     rule.quality_score,
     answer_validation,
     rule.issues.length,
-    has_answer_clue
+    has_answer_clue,
+    q.order_index
   );
 
   const problems = mergeProblems(rule.issues, answer_validation);

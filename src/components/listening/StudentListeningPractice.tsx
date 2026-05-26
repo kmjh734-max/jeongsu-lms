@@ -1,6 +1,9 @@
 "use client";
 
-import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
+import { continuationQuestionDisplayText } from "@/lib/listening/fix-continuation-question";
+import { normalizeTableData } from "@/lib/listening/table-data";
+import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
+import type { ListeningTableData } from "@/lib/listening/types";
 import { useMemo, useState } from "react";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -14,6 +17,11 @@ export interface StudentListeningQuestion {
   choices: string[];
   correct_answer: number;
   audio_url: string | null;
+  script_text?: string;
+  script_translation?: string;
+  answer_clue?: string;
+  explanation?: string;
+  table_data?: ListeningTableData | null;
 }
 
 interface StudentListeningPracticeProps {
@@ -28,10 +36,12 @@ export function StudentListeningPractice({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
-  const [showResult, setShowResult] = useState(false);
+  const [showScript, setShowScript] = useState(false);
 
   const q = questions[index];
   const selected = q ? answers[q.id] : undefined;
+  const table = q ? normalizeTableData(q.table_data) : null;
+  const blankLine = q ? continuationQuestionDisplayText(q.order_index) : null;
 
   const score = useMemo(() => {
     let correct = 0;
@@ -57,23 +67,25 @@ export function StudentListeningPractice({
   function goPrev() {
     if (index > 0) {
       setIndex(index - 1);
-      setShowResult(false);
+      setShowScript(false);
     }
   }
 
   function goNext() {
     if (index < questions.length - 1) {
       setIndex(index + 1);
-      setShowResult(false);
+      setShowScript(false);
     }
   }
 
   function handleFinalSubmit() {
     setSubmitted(true);
-    setShowResult(true);
+    setShowScript(false);
   }
 
   const allAnswered = questions.every((item) => answers[item.id] != null);
+  const isCorrect = submitted && selected === q.correct_answer;
+  const isWrong = submitted && selected != null && selected !== q.correct_answer;
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
@@ -85,7 +97,7 @@ export function StudentListeningPractice({
         </p>
       </header>
 
-      {submitted && showResult && (
+      {submitted && (
         <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-center">
           <p className="text-lg font-semibold text-indigo-900">
             채점 결과: {score.correct} / {score.total}
@@ -99,9 +111,7 @@ export function StudentListeningPractice({
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-semibold text-slate-900">
-          {q.order_index}번
-        </p>
+        <p className="text-sm font-semibold text-slate-900">{q.order_index}번</p>
         {q.instruction && (
           <p className="mt-2 text-base leading-relaxed text-slate-900">
             {q.instruction}
@@ -124,23 +134,21 @@ export function StudentListeningPractice({
           )}
         </div>
 
-        {(() => {
-          const passage = displayQuestionTextForOrder(q.order_index, q.question_text);
-          if (!passage) return null;
-          return (
-            <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
-              <p className="text-xs font-medium text-slate-500">지문</p>
-              <p className="mt-1 font-mono text-base text-slate-900">{passage}</p>
-            </div>
-          );
-        })()}
+        {table && (
+          <div className="mt-4">
+            <ListeningTableDisplay table={table} />
+          </div>
+        )}
+
+        {blankLine && !table && (
+          <p className="mt-4 font-mono text-base text-slate-900">{blankLine}</p>
+        )}
 
         <ul className="mt-4 space-y-2">
           {displayChoices.map(({ text, num }) => {
             const isSelected = selected === num;
-            const isCorrect = submitted && num === q.correct_answer;
-            const isWrong =
-              submitted && isSelected && num !== q.correct_answer;
+            const choiceCorrect = submitted && num === q.correct_answer;
+            const choiceWrong = submitted && isSelected && num !== q.correct_answer;
             return (
               <li key={num}>
                 <button
@@ -148,9 +156,9 @@ export function StudentListeningPractice({
                   onClick={() => selectAnswer(num)}
                   disabled={submitted}
                   className={`w-full rounded-lg border px-4 py-3 text-left text-sm transition ${
-                    isWrong
+                    choiceWrong
                       ? "border-red-300 bg-red-50"
-                      : isCorrect
+                      : choiceCorrect
                         ? "border-green-400 bg-green-50"
                         : isSelected
                           ? "border-indigo-500 bg-indigo-50"
@@ -166,6 +174,55 @@ export function StudentListeningPractice({
             );
           })}
         </ul>
+
+        {submitted && (
+          <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+            <p>
+              <span className="font-medium text-slate-700">내 답:</span>{" "}
+              {selected != null ? CIRCLED[selected - 1] ?? selected : "—"}
+              {isCorrect && (
+                <span className="ml-2 text-emerald-700">정답</span>
+              )}
+              {isWrong && <span className="ml-2 text-red-600">오답</span>}
+            </p>
+            <p>
+              <span className="font-medium text-slate-700">정답:</span>{" "}
+              {CIRCLED[q.correct_answer - 1] ?? q.correct_answer}
+            </p>
+            {table?.mismatch_reason && (
+              <p className="text-slate-700">
+                <span className="font-medium">불일치 이유:</span>{" "}
+                {table.mismatch_reason}
+              </p>
+            )}
+            {q.answer_clue && !table && (
+              <p className="text-emerald-800">
+                <span className="font-medium">정답 근거:</span> {q.answer_clue}
+              </p>
+            )}
+            {q.explanation && (
+              <p className="text-slate-600">
+                <span className="font-medium">해설:</span> {q.explanation}
+              </p>
+            )}
+            {q.script_text && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowScript((v) => !v)}
+                  className="text-xs font-medium text-indigo-600 hover:underline"
+                >
+                  {showScript ? "대본 숨기기" : "대본 보기"}
+                </button>
+                {showScript && (
+                  <pre className="mt-2 whitespace-pre-wrap rounded border border-slate-200 bg-white p-2 text-xs text-slate-700">
+                    {q.script_text}
+                  </pre>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -194,15 +251,7 @@ export function StudentListeningPractice({
           >
             제출하기
           </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowResult(true)}
-            className="ml-auto rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white"
-          >
-            결과 보기
-          </button>
-        )}
+        ) : null}
       </div>
 
       {!submitted && !allAnswered && (

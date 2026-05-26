@@ -23,7 +23,7 @@ export default async function StudentListeningSetPage({
   const { data: questions } = await supabase
     .from("listening_questions")
     .select(
-      "id, order_index, question_type, instruction, question_text, choices, correct_answer, audio_url"
+      "id, order_index, question_type, instruction, question_text, choices, correct_answer, audio_url, script_text, script_translation, answer_clue, explanation, table_data"
     )
     .eq("set_id", setId)
     .order("order_index", { ascending: true });
@@ -48,6 +48,14 @@ export default async function StudentListeningSetPage({
             choices: Array.isArray(q.choices) ? (q.choices as string[]) : [],
             correct_answer: q.correct_answer ?? 1,
             audio_url: q.audio_url,
+            script_text: q.script_text ?? "",
+            script_translation: q.script_translation ?? "",
+            answer_clue: q.answer_clue ?? "",
+            explanation: q.explanation ?? "",
+            table_data:
+              q.table_data && typeof q.table_data === "object"
+                ? q.table_data
+                : null,
           }))}
         />
       </div>
