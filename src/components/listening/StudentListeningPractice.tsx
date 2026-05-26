@@ -1,19 +1,9 @@
 "use client";
 
+import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { useMemo, useState } from "react";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
-
-function displayQuestionText(
-  orderIndex: number,
-  questionText: string
-): string | null {
-  const t = questionText.trim();
-  if (t) return t;
-  if (orderIndex === 19) return "Man: ________";
-  if (orderIndex === 20) return "Woman: ________";
-  return null;
-}
 
 export interface StudentListeningQuestion {
   id: string;
@@ -135,7 +125,7 @@ export function StudentListeningPractice({
         </div>
 
         {(() => {
-          const passage = displayQuestionText(q.order_index, q.question_text);
+          const passage = displayQuestionTextForOrder(q.order_index, q.question_text);
           if (!passage) return null;
           return (
             <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">

@@ -64,7 +64,7 @@ export const DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> 
     wordsPerSentence: "7~13 words per line; reply choices 6~12 words in English",
     vocabulary: "grade 1; focus on natural replies, not rare words",
     extra:
-      "Dialogue ends with W (type 19) or M (type 20). The OTHER speaker's reply is NOT in segments. question_text: Man:/Woman: ________ only.",
+      "Dialogue ends with W (type 19) or M (type 20). The OTHER speaker's reply is NOT in segments. question_text must be exactly \"Man: ________\" (type 19) or \"Woman: ________\" (type 20) with no other words.",
   },
 };
 

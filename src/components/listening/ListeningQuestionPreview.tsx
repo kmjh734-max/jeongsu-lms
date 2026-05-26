@@ -1,5 +1,6 @@
 "use client";
 
+import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -22,6 +23,10 @@ export function ListeningQuestionPreview({
   showActions,
 }: ListeningQuestionPreviewProps) {
   const filledChoices = question.choices.filter((c) => c.trim());
+  const passageText = displayQuestionTextForOrder(
+    question.order_index,
+    question.question_text
+  );
 
   return (
     <article
@@ -77,8 +82,8 @@ export function ListeningQuestionPreview({
         )}
       </div>
 
-      {question.question_text && (
-        <p className="mb-2 whitespace-pre-wrap text-sm text-slate-800">{question.question_text}</p>
+      {passageText && (
+        <p className="mb-2 whitespace-pre-wrap text-sm text-slate-800">{passageText}</p>
       )}
 
       <ul className="mb-3 space-y-1 text-sm">

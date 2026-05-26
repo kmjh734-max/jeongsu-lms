@@ -40,23 +40,27 @@ export function defaultContinuationQuestionText(typeId: 19 | 20): string {
 }
 
 function normalizeQuestionTextForType(
-  raw: string,
+  _raw: string,
   typeId: 19 | 20
 ): string {
-  const t = raw.trim();
-  const expected = defaultContinuationQuestionText(typeId);
-  if (!t) return expected;
-  if (/남자|여자|남:|여:/.test(t) && !/man:|woman:/i.test(t)) {
-    return expected;
-  }
-  if (/man\s*:/i.test(t) && typeId === 19) {
-    return t.includes("______") ? t : "Man: ________";
-  }
-  if (/woman\s*:/i.test(t) && typeId === 20) {
-    return t.includes("______") ? t : "Woman: ________";
-  }
-  if (!/______/.test(t)) return expected;
-  return t;
+  return defaultContinuationQuestionText(typeId);
+}
+
+/** 19~20번 지문 표시용 (DB에 'Man: ____ only' 등이 있어도 기출 형식으로 통일) */
+export function continuationQuestionDisplayText(orderIndex: number): string | null {
+  if (orderIndex === 19) return defaultContinuationQuestionText(19);
+  if (orderIndex === 20) return defaultContinuationQuestionText(20);
+  return null;
+}
+
+export function displayQuestionTextForOrder(
+  orderIndex: number,
+  questionText: string
+): string | null {
+  const fixed = continuationQuestionDisplayText(orderIndex);
+  if (fixed) return fixed;
+  const t = questionText.trim();
+  return t || null;
 }
 
 /**

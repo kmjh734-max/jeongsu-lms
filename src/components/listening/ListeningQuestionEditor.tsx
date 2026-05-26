@@ -5,6 +5,7 @@ import {
   SegmentScriptEditor,
   type SegmentDraft,
 } from "@/components/listening/SegmentScriptEditor";
+import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -58,7 +59,13 @@ export function ListeningQuestionEditor({
     }))
   );
   const [instruction, setInstruction] = useState(question.instruction ?? "");
-  const [questionText, setQuestionText] = useState(question.question_text);
+  const [questionText, setQuestionText] = useState(
+    () =>
+      displayQuestionTextForOrder(question.order_index, question.question_text) ??
+      question.question_text
+  );
+  const isFixedContinuationPassage =
+    question.order_index === 19 || question.order_index === 20;
   const [choices, setChoices] = useState(padChoices(question.choices));
   const [correctAnswer, setCorrectAnswer] = useState(question.correct_answer);
   const [explanation, setExplanation] = useState(question.explanation);
@@ -292,7 +299,8 @@ export function ListeningQuestionEditor({
           <textarea
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
-            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
+            readOnly={isFixedContinuationPassage}
+            className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm read-only:bg-slate-50"
             rows={3}
           />
         </label>

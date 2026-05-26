@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
+import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 
@@ -54,15 +55,20 @@ export function ListeningExamPrintView({
           </header>
 
           <ol className="mt-6 space-y-6">
-            {questions.map((q) => (
+            {questions.map((q) => {
+              const passageText = displayQuestionTextForOrder(
+                q.order_index,
+                q.question_text
+              );
+              return (
               <li key={q.id} className="break-inside-avoid text-[10.5pt] leading-relaxed text-slate-900">
                 <p className="font-semibold">
                   {q.order_index}번{" "}
-                  {q.instruction?.trim() || q.question_text || "듣기 문항"}
+                  {q.instruction?.trim() || passageText || "듣기 문항"}
                 </p>
-                {q.question_text && q.instruction && (
+                {passageText && q.instruction?.trim() && (
                   <p className="mt-1 whitespace-pre-wrap text-slate-800">
-                    {q.question_text}
+                    {passageText}
                   </p>
                 )}
                 <ul className="mt-2 space-y-1 pl-1">
@@ -89,7 +95,8 @@ export function ListeningExamPrintView({
                   </div>
                 )}
               </li>
-            ))}
+            );
+            })}
           </ol>
 
           {questions.length === 0 && (
