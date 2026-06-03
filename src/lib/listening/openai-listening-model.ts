@@ -18,6 +18,24 @@ export function getListeningGeneratorModel(): string {
   return getListeningGeneratorModelCandidates()[0]!;
 }
 
+/** GPT-5·o 시리즈 등은 temperature 커스텀 불가(기본값 1만 허용) */
+export function listeningModelSupportsCustomTemperature(model: string): boolean {
+  const m = model.trim().toLowerCase();
+  if (m.startsWith("gpt-5")) return false;
+  if (/^o\d/.test(m)) return false;
+  return true;
+}
+
+export function isUnsupportedTemperatureError(bodyText: string): boolean {
+  const lower = bodyText.toLowerCase();
+  return (
+    lower.includes("temperature") &&
+    (lower.includes("unsupported") ||
+      lower.includes("does not support") ||
+      lower.includes("only the default"))
+  );
+}
+
 export function isListeningModelUnavailableError(
   status: number,
   bodyText: string

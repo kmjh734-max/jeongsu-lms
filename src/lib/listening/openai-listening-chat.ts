@@ -1,6 +1,8 @@
 import {
   getListeningGeneratorModelCandidates,
   isListeningModelUnavailableError,
+  isUnsupportedTemperatureError,
+  listeningModelSupportsCustomTemperature,
 } from "@/lib/listening/openai-listening-model";
 
 export interface ListeningChatOptions {
@@ -9,10 +11,30 @@ export interface ListeningChatOptions {
   temperature?: number;
 }
 
+function buildChatCompletionBody(
+  model: string,
+  opts: ListeningChatOptions,
+  includeTemperature: boolean
+): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    model,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: opts.system },
+      { role: "user", content: opts.user },
+    ],
+  };
+  if (includeTemperature) {
+    body.temperature = opts.temperature ?? 0.4;
+  }
+  return body;
+}
+
 async function requestChatCompletion(
   apiKey: string,
   model: string,
-  opts: ListeningChatOptions
+  opts: ListeningChatOptions,
+  includeTemperature = listeningModelSupportsCustomTemperature(model)
 ): Promise<Response> {
   return fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -20,15 +42,7 @@ async function requestChatCompletion(
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      model,
-      temperature: opts.temperature ?? 0.4,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: opts.system },
-        { role: "user", content: opts.user },
-      ],
-    }),
+    body: JSON.stringify(buildChatCompletionBody(model, opts, includeTemperature)),
   });
 }
 
@@ -56,6 +70,25 @@ export async function listeningChatCompletion(
 
     const bodyText = await response.text();
     lastError = `OpenAI API 실패 (HTTP ${response.status}, model=${model}): ${bodyText.slice(0, 300)}`;
+
+    if (
+      response.status === 400 &&
+      isUnsupportedTemperatureError(bodyText)
+    ) {
+      const retry = await requestChatCompletion(apiKey, model, opts, false);
+      if (retry.ok) {
+        const data = (await retry.json()) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        const content = data.choices?.[0]?.message?.content;
+        if (!content?.trim()) {
+          throw new Error("OpenAI 응답이 비어 있습니다.");
+        }
+        return content;
+      }
+      const retryBody = await retry.text();
+      lastError = `OpenAI API 실패 (HTTP ${retry.status}, model=${model}): ${retryBody.slice(0, 300)}`;
+    }
 
     const hasFallback = i < models.length - 1;
     if (hasFallback && isListeningModelUnavailableError(response.status, bodyText)) {
