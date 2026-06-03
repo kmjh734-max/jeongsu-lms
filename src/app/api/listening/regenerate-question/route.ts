@@ -5,7 +5,7 @@ import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-opena
 import { generateSingleExamQuestion } from "@/lib/listening/generate-questions";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
-import { getExamTypeById } from "@/lib/listening/exam-types";
+import { getExamTypeById, getExamTypesForGrade } from "@/lib/listening/exam-types";
 
 export const maxDuration = 300;
 
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     const { data: existing } = await access.admin
       .from("listening_questions")
-      .select("id, order_index, quality_issues, answer_validation")
+      .select("id, order_index, question_type, quality_issues, answer_validation")
       .eq("id", questionId)
       .eq("set_id", setId)
       .maybeSingle();
@@ -51,7 +51,16 @@ export async function POST(request: Request) {
     if (!existing) return jsonError("문항을 찾을 수 없습니다.");
 
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
-    const typeId = body.typeId ?? body.orderIndex ?? existing.order_index;
+    const types = getExamTypesForGrade(gradeLevel);
+    const typeFromQuestion = types.find(
+      (t) => t.question_type === String(existing.question_type ?? "").trim()
+    );
+    const typeId =
+      body.typeId ??
+      typeFromQuestion?.id ??
+      body.orderIndex ??
+      existing.order_index;
+    const slotIndex = existing.order_index;
     const type = getExamTypeById(typeId, gradeLevel);
     if (!type) return jsonError("유형을 찾을 수 없습니다.");
 
@@ -76,7 +85,8 @@ export async function POST(request: Request) {
       typeId,
       body.difficultyMode ?? "auto",
       previousProblems.length ? previousProblems : undefined,
-      gradeLevel
+      gradeLevel,
+      slotIndex
     );
 
     const saved = await replaceGeneratedQuestion(setId, questionId, generated);

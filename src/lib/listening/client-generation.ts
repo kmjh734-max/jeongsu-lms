@@ -8,6 +8,7 @@ import type {
   ListeningGenerationMode,
 } from "@/lib/listening/types";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
+import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
 
 export interface GenerateItemResult {
   ok: boolean;
@@ -17,8 +18,8 @@ export interface GenerateItemResult {
 
 export async function generateQuestionsSequential(opts: {
   setId: string;
-  orderIndexes: number[];
-  mode: ListeningGenerationMode;
+  slots: ListeningGenerationSlot[];
+  mode?: ListeningGenerationMode;
   difficultyMode: ListeningDifficultyMode;
   persist: boolean;
   onProgress: (percent: number, phase: GenerationPhase, items: ItemProgressRow[]) => void;
@@ -28,10 +29,17 @@ export async function generateQuestionsSequential(opts: {
   error?: string;
   schemaWarning?: string;
 }> {
-  const { setId, orderIndexes, mode, difficultyMode, persist, onProgress } = opts;
-  const total = orderIndexes.length;
-  const items: ItemProgressRow[] = orderIndexes.map((orderIndex) => ({
-    orderIndex,
+  const {
+    setId,
+    slots,
+    mode = "exam",
+    difficultyMode,
+    persist,
+    onProgress,
+  } = opts;
+  const total = slots.length;
+  const items: ItemProgressRow[] = slots.map((s) => ({
+    orderIndex: s.slotIndex,
     status: "pending",
   }));
   const questions: GeneratedListeningQuestion[] = [];
@@ -43,7 +51,7 @@ export async function generateQuestionsSequential(opts: {
   onProgress(0, "generating", items);
 
   for (let i = 0; i < total; i++) {
-    const orderIndex = orderIndexes[i]!;
+    const slot = slots[i]!;
     items[i]!.status = "generating";
     update("generating", i, "generate");
 
@@ -52,8 +60,8 @@ export async function generateQuestionsSequential(opts: {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         setId,
-        typeId: mode === "exam" ? orderIndex : undefined,
-        orderIndex,
+        typeId: mode === "exam" ? slot.typeId : undefined,
+        orderIndex: slot.slotIndex,
         mode,
         difficultyMode,
         persist: false,
@@ -74,7 +82,7 @@ export async function generateQuestionsSequential(opts: {
       return {
         questions,
         reviewCount: questions.filter((q) => q.needs_review).length,
-        error: data.message ?? `${orderIndex}번 생성 실패`,
+        error: data.message ?? `${slot.slotIndex}번 생성 실패`,
       };
     }
 

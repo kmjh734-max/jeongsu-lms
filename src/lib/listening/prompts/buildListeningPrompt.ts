@@ -1,5 +1,6 @@
 import {
   buildDifficultyPromptBlock,
+  buildDifficultyRequirementBlock,
   type ListeningDifficultyMode,
 } from "@/lib/listening/exam-difficulty";
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
@@ -161,74 +162,64 @@ export function buildListeningSingleTypePrompt(
   previousProblems?: string[],
   grade: ListeningGradeLevel = "middle1"
 ): string {
+  const difficultyBlock = buildDifficultyRequirementBlock(
+    type,
+    difficultyMode,
+    grade
+  );
+
+  let core: string;
   if (grade === "middle2") {
-    return buildMiddle2TypeOnlyGenerationPrompt(type.id, previousProblems);
+    core = buildMiddle2TypeOnlyGenerationPrompt(type.id, previousProblems);
+  } else if (type.id === 1) {
+    core = buildType1OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 2) {
+    core = buildType2OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 3) {
+    core = buildType3OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 4) {
+    core = buildType4OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 5) {
+    core = buildType5OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 6) {
+    core = buildType6OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 7) {
+    core = buildType7OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 8) {
+    core = buildType8OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 9) {
+    core = buildType9OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 10) {
+    core = buildType10OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 11) {
+    core = buildType11OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 12) {
+    core = buildType12OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 13) {
+    core = buildType13OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 14) {
+    core = buildType14OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 15) {
+    core = buildType15OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 16) {
+    core = buildType16OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 17) {
+    core = buildType17OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 18) {
+    core = buildType18OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 19) {
+    core = buildType19OnlyGenerationPrompt(previousProblems);
+  } else if (type.id === 20) {
+    core = buildType20OnlyGenerationPrompt(previousProblems);
+  } else {
+    const avoid =
+      previousProblems && previousProblems.length > 0
+        ? `\n이전 생성에서 발견된 문제(반드시 피할 것):\n${previousProblems.map((p) => `- ${p}`).join("\n")}\n같은 상황·문장·선택지 패턴을 반복하지 말 것.\n`
+        : "";
+    core = `${buildListeningExamPrompt([type], difficultyMode, grade)}${avoid}`;
   }
-  if (type.id === 1) {
-    return buildType1OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 2) {
-    return buildType2OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 3) {
-    return buildType3OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 4) {
-    return buildType4OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 5) {
-    return buildType5OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 6) {
-    return buildType6OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 7) {
-    return buildType7OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 8) {
-    return buildType8OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 9) {
-    return buildType9OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 10) {
-    return buildType10OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 11) {
-    return buildType11OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 12) {
-    return buildType12OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 13) {
-    return buildType13OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 14) {
-    return buildType14OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 15) {
-    return buildType15OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 16) {
-    return buildType16OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 17) {
-    return buildType17OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 18) {
-    return buildType18OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 19) {
-    return buildType19OnlyGenerationPrompt(previousProblems);
-  }
-  if (type.id === 20) {
-    return buildType20OnlyGenerationPrompt(previousProblems);
-  }
-  const avoid =
-    previousProblems && previousProblems.length > 0
-      ? `\n이전 생성에서 발견된 문제(반드시 피할 것):\n${previousProblems.map((p) => `- ${p}`).join("\n")}\n같은 상황·문장·선택지 패턴을 반복하지 말 것.\n`
-      : "";
-  return `${buildListeningExamPrompt([type], difficultyMode, grade)}${avoid}`;
+
+  return `${core}\n\n${difficultyBlock}`;
 }
 
 /** 자유 생성 모드 (유형 미지정) */

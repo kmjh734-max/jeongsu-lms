@@ -30,7 +30,8 @@ import {
   LISTENING_GRADE_OPTIONS,
   type ListeningGradeLevel,
 } from "@/lib/listening/grade-level";
-import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
+import { planGenerationSlots } from "@/lib/listening/generation-slots";
+import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
 import {
   SPEECH_SPEED_MAP,
@@ -66,9 +67,7 @@ export function ListeningSetManageClient({
   const router = useRouter();
   const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
   const [isPublished, setIsPublished] = useState(initialPublished);
-  const [generationMode, setGenerationMode] =
-    useState<ListeningGenerationMode>("exam");
-  const [questionCount, setQuestionCount] = useState(5);
+  const [questionCount, setQuestionCount] = useState<5 | 10 | 15 | 20>(5);
   const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
   const [difficultyMode, setDifficultyMode] =
     useState<ListeningDifficultyMode>("auto");
@@ -95,19 +94,31 @@ export function ListeningSetManageClient({
     [gradeLevel]
   );
 
-  const effectiveTypeIds = useMemo(() => {
-    if (generationMode !== "exam") return undefined;
-    if (selectedTypeIds.length > 0) return selectedTypeIds;
-    return examTypes.slice(0, questionCount).map((t) => t.id);
-  }, [generationMode, selectedTypeIds, questionCount, examTypes]);
+  const generationSlots = useMemo(
+    () =>
+      planGenerationSlots({
+        questionCount,
+        selectedTypeIds,
+        examTypes,
+      }),
+    [questionCount, selectedTypeIds, examTypes]
+  );
 
   async function saveSpeechSpeed(preset: SpeechSpeedPreset) {
     setSpeechPreset(preset);
-    await fetch(`/api/listening/sets/${setId}`, {
+    const res = await fetch(`/api/listening/sets/${setId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ speech_speed: SPEECH_SPEED_MAP[preset] }),
     });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (data.ok) {
+      setMessage(
+        `음성 속도 ${SPEECH_SPEED_MAP[preset]}로 저장되었습니다. 이미 만든 음원은 「음원 생성」을 다시 실행해야 반영됩니다.`
+      );
+    } else {
+      setMessage(data.message ?? "음성 속도 저장 실패");
+    }
   }
 
   async function changeGradeLevel(level: ListeningGradeLevel) {
@@ -127,12 +138,19 @@ export function ListeningSetManageClient({
     }
   }
 
-  const orderIndexesForGeneration = useMemo(() => {
-    if (generationMode === "exam") {
-      return effectiveTypeIds ?? examTypes.slice(0, questionCount).map((t) => t.id);
+  function selectQuestionCount(n: 5 | 10 | 15 | 20) {
+    setQuestionCount(n);
+    if (selectedTypeIds.length === 1) return;
+    if (selectedTypeIds.length === 0) {
+      setSelectedTypeIds(examTypes.slice(0, n).map((t) => t.id));
+      return;
     }
-    return Array.from({ length: questionCount }, (_, i) => i + 1);
-  }, [generationMode, effectiveTypeIds, questionCount, examTypes]);
+    setSelectedTypeIds((prev) => {
+      if (prev.length > n) return prev.slice(0, n);
+      const pool = examTypes.map((t) => t.id).filter((id) => !prev.includes(id));
+      return [...prev, ...pool.slice(0, n - prev.length)];
+    });
+  }
 
   const resetProgress = useCallback(() => {
     setProgressPercent(0);
@@ -150,8 +168,7 @@ export function ListeningSetManageClient({
 
     const result = await generateQuestionsSequential({
       setId,
-      orderIndexes: orderIndexesForGeneration,
-      mode: generationMode,
+      slots: generationSlots,
       difficultyMode,
       persist: false,
       onProgress: (percent, phase, items) => {
@@ -250,8 +267,7 @@ export function ListeningSetManageClient({
 
     const result = await generateQuestionsSequential({
       setId,
-      orderIndexes: orderIndexesForGeneration,
-      mode: generationMode,
+      slots: generationSlots,
       difficultyMode,
       persist: true,
       onProgress: (percent, phase, items) => {
@@ -282,14 +298,17 @@ export function ListeningSetManageClient({
   async function regeneratePreviewItem(orderIndex: number) {
     setRegeneratingIndex(orderIndex);
     const prev = previewQuestions?.find((q) => q.order_index === orderIndex);
+    const slot =
+      generationSlots.find((s) => s.slotIndex === orderIndex) ??
+      generationSlots[0];
     const res = await fetch("/api/listening/generate-question-item", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         setId,
-        typeId: generationMode === "exam" ? orderIndex : undefined,
+        typeId: slot?.typeId,
         orderIndex,
-        mode: generationMode,
+        mode: "exam",
         difficultyMode,
         persist: false,
         previousProblems: prev?.problems,
@@ -408,9 +427,11 @@ export function ListeningSetManageClient({
   }
 
   function toggleTypeId(id: number) {
-    setSelectedTypeIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedTypeIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= questionCount) return prev;
+      return [...prev, id].sort((a, b) => a - b);
+    });
   }
 
   const speechSpeedValue = SPEECH_SPEED_MAP[speechPreset];
@@ -470,7 +491,8 @@ export function ListeningSetManageClient({
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>
         <p className="mt-1 text-xs text-slate-500">
-          {gradeLevelShort(gradeLevel)} 영어듣기평가형 권장: 느리게(0.85)
+          {gradeLevelShort(gradeLevel)} 영어듣기평가형 권장: 느리게(0.85). ElevenLabs
+          음원 생성 시 적용되며, 문항 텍스트 생성과는 별개입니다.
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {(
@@ -532,27 +554,7 @@ export function ListeningSetManageClient({
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-4">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              checked={generationMode === "free"}
-              onChange={() => setGenerationMode("free")}
-            />
-            자유 생성
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="radio"
-              checked={generationMode === "exam"}
-              onChange={() => setGenerationMode("exam")}
-            />
-            {gradeLevelShort(gradeLevel)} 영어듣기평가 유형
-          </label>
-        </div>
-
-        {generationMode === "exam" && (
-          <div className="mt-3">
+        <div className="mt-3">
             <p className="text-xs font-medium text-slate-600">난이도 (문장 길이·대화 길이)</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {DIFFICULTY_MODE_OPTIONS.map((opt) => (
@@ -576,39 +578,27 @@ export function ListeningSetManageClient({
                 </label>
               ))}
             </div>
-          </div>
-        )}
+        </div>
 
         <div className="mt-3 flex flex-wrap items-end gap-3">
           <div className="text-sm">
             <span className="font-medium text-slate-700">문항 수</span>
             <div className="mt-1 flex flex-wrap gap-1">
-              {([5, 10, 20] as const).map((n) => (
+              {([5, 10, 15, 20] as const).map((n) => (
                 <button
                   key={n}
                   type="button"
-                  onClick={() => {
-                    setQuestionCount(n);
-                    setSelectedTypeIds([]);
-                  }}
+                  onClick={() => selectQuestionCount(n)}
                   className={`rounded-md px-2 py-1 text-xs font-medium ${
                     questionCount === n
                       ? "bg-indigo-600 text-white"
                       : "border border-slate-200 text-slate-700"
                   }`}
                 >
-                  {n}문항 (1~{n}번)
+                  {n}문항
                 </button>
               ))}
             </div>
-            <input
-              type="number"
-              min={1}
-              max={20}
-              value={questionCount}
-              onChange={(e) => setQuestionCount(Number(e.target.value))}
-              className="mt-2 w-16 rounded-md border border-slate-200 px-2 py-1"
-            />
           </div>
           <button
             type="button"
@@ -628,10 +618,10 @@ export function ListeningSetManageClient({
           </button>
         </div>
 
-        {generationMode === "exam" && (
-          <div className="mt-4 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
+        <div className="mt-4 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
             <p className="mb-2 text-xs font-medium text-slate-600">
-              유형 선택 (비우면 1~{questionCount}번 유형 순서 적용)
+              유형 선택 — 비우면 1~{questionCount}번 유형 순서 · 유형 1개만 고르면 같은
+              유형 {questionCount}문항
             </p>
             <div className="grid gap-1 sm:grid-cols-2">
               {examTypes.map((t) => (
@@ -649,8 +639,7 @@ export function ListeningSetManageClient({
                 </label>
               ))}
             </div>
-          </div>
-        )}
+        </div>
 
         {(busy === "preview" || busy === "gen-flow" || busy === "save" || isAudioBusy) &&
           (progressItems.length > 0 || progressPercent > 0) && (

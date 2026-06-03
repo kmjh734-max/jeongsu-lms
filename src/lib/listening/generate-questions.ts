@@ -380,7 +380,8 @@ export async function generateSingleExamQuestion(
   typeId: number,
   difficultyMode: ListeningDifficultyMode = "auto",
   previousProblems?: string[],
-  gradeLevel: ListeningGradeLevel = "middle1"
+  gradeLevel: ListeningGradeLevel = "middle1",
+  slotIndex?: number
 ) {
   const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
@@ -409,7 +410,7 @@ export async function generateSingleExamQuestion(
 
   return validateAndRepairListeningQuestion(
     apiKey,
-    { ...q, order_index: typeId },
+    { ...q, order_index: slotIndex ?? typeId },
     type,
     gradeLevel
   );

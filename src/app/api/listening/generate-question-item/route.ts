@@ -42,7 +42,8 @@ export async function POST(request: Request) {
     if (!access.ok) return jsonError(access.message, access.status);
 
     const mode: ListeningGenerationMode = body.mode === "free" ? "free" : "exam";
-    const orderIndex = body.orderIndex ?? body.typeId ?? 1;
+    const typeId = body.typeId ?? body.orderIndex ?? 1;
+    const slotIndex = body.orderIndex ?? typeId;
 
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
 
@@ -50,14 +51,15 @@ export async function POST(request: Request) {
       mode === "exam"
         ? await generateSingleExamQuestion(
             apiKey,
-            body.typeId ?? orderIndex,
+            typeId,
             body.difficultyMode ?? "auto",
             body.previousProblems,
-            gradeLevel
+            gradeLevel,
+            slotIndex
           )
         : await generateSingleFreeQuestion(
             apiKey,
-            orderIndex,
+            slotIndex,
             body.previousProblems,
             gradeLevel
           );

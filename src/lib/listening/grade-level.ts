@@ -14,7 +14,7 @@ export const LISTENING_GRADE_OPTIONS: Array<{
   {
     value: "middle2",
     label: "중학교 2학년",
-    description: "전국 중2 영어듣기능력평가 20유형 (기출보다 약간 어려운 문장)",
+    description: "전국 중2 영어듣기능력평가 20유형",
   },
 ];
 

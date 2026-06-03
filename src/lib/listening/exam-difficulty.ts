@@ -167,6 +167,28 @@ export function resolveDifficultyForType(
   return rulesByTier[type.difficulty_tier];
 }
 
+/** 단일 유형 생성 프롬프트 끝에 붙이는 난이도 강제 블록 */
+export function buildDifficultyRequirementBlock(
+  type: ExamTypeTemplate,
+  mode: ListeningDifficultyMode,
+  grade: ListeningGradeLevel = "middle1"
+): string {
+  const rules = resolveDifficultyForType(type, mode, grade);
+  const harderNote =
+    grade === "middle2"
+      ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
+      : "";
+  return `
+## 난이도 — 반드시 준수${harderNote}
+- 적용: ${rules.label} (${rules.questionRange})
+- 문장 길이: ${rules.wordsPerSentence}
+- 대화: ${rules.dialogueTurns} / 독백: ${rules.monologueSentences}
+- 어휘: ${rules.vocabulary}
+- 총 분량·형식: ${rules.extra}
+- 위 수치보다 짧거나 단순하면 안 됨. 선택한 난이도를 벗어난 초단문·초단대화 금지.
+`.trim();
+}
+
 export function buildDifficultyPromptBlock(
   types: ExamTypeTemplate[],
   mode: ListeningDifficultyMode,
