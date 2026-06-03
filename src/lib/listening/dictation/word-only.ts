@@ -16,7 +16,7 @@ function blankWordInSentence(sentence: string, word: string): string {
   return sentence.replace(re, "________");
 }
 
-function speakerPrefix(speaker: string): string {
+export function speakerPrefix(speaker: string): string {
   return String(speaker).toUpperCase() === "W" ? "W" : "M";
 }
 
@@ -35,18 +35,21 @@ export function filterWordOnlyBlankItems(
     used.add(key);
 
     const sp = speakerPrefix(item.speaker);
-    const sentence = item.original_sentence.trim() || item.display_sentence;
+    const sentence = (item.original_sentence || item.display_sentence || "").trim();
     const displayCore = sentence.replace(/^(M|W)\s*:\s*/i, "").trim();
-    const blanked = blankWordInSentence(displayCore, item.answer);
-    if (!blanked.includes("________")) continue;
+    const blanked = displayCore
+      ? blankWordInSentence(displayCore, item.answer)
+      : "";
 
     out.push({
       ...item,
       speaker: sp,
       answer: item.answer.trim(),
       answer_type: "word",
-      original_sentence: displayCore,
-      display_sentence: `${sp}: ${blanked}`,
+      original_sentence: displayCore || item.original_sentence,
+      display_sentence: blanked.includes("________")
+        ? `${sp}: ${blanked}`
+        : item.display_sentence,
     });
   }
 

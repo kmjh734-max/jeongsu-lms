@@ -256,6 +256,13 @@ export function DictationSection({
               </div>
             </div>
 
+            {blankInputs.length === 0 && (
+              <p className="text-sm text-amber-800">
+                빈칸을 불러오지 못했습니다. 잠시 후 「다시 하기」를 누르거나 선생님에게
+                문의하세요.
+              </p>
+            )}
+
             {blankInputs.length > 0 && (
               <div className="space-y-3">
                 <p className="text-xs font-medium text-slate-600">빈칸 입력</p>

@@ -1,5 +1,6 @@
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
-import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
+import { collectSpokenLines, type SpokenLine } from "@/lib/listening/dictation/spoken-lines";
+import { speakerPrefix } from "@/lib/listening/dictation/word-only";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
 
@@ -19,27 +20,43 @@ export interface DictationClientPayload {
   blanks: DictationBlankInputClient[];
 }
 
-function normalizeLineKey(text: string): string {
-  return text
-    .replace(/^(M|W)\s*:\s*/i, "")
-    .replace(/_{2,}/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function lineKeyFromBlankItem(item: DictationBlankItem): string {
-  const raw = item.original_sentence?.trim() || item.display_sentence;
-  return normalizeLineKey(raw);
+function wordInLine(lineText: string, word: string): boolean {
+  return new RegExp(`\\b${escapeRegExp(word)}\\b`, "i").test(lineText);
 }
 
 function applyBlankToLine(lineText: string, answer: string): string {
-  const re = new RegExp(
-    `\\b${answer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-    "i"
-  );
+  const re = new RegExp(`\\b${escapeRegExp(answer)}\\b`, "i");
   if (!re.test(lineText)) return lineText;
   return lineText.replace(re, "________");
+}
+
+function findLineForBlank(
+  spoken: SpokenLine[],
+  item: DictationBlankItem,
+  usedLineBlank: Set<string>
+): number {
+  const sp = speakerPrefix(item.speaker);
+  const answer = item.answer.trim();
+
+  for (let i = 0; i < spoken.length; i++) {
+    const key = `${i}:${answer.toLowerCase()}`;
+    if (usedLineBlank.has(key)) continue;
+    const line = spoken[i]!;
+    if (line.speaker !== sp) continue;
+    if (wordInLine(line.text, answer)) return i;
+  }
+
+  for (let i = 0; i < spoken.length; i++) {
+    const key = `${i}:${answer.toLowerCase()}`;
+    if (usedLineBlank.has(key)) continue;
+    if (wordInLine(spoken[i]!.text, answer)) return i;
+  }
+
+  return -1;
 }
 
 export function buildDictationClientPayload(
@@ -50,79 +67,52 @@ export function buildDictationClientPayload(
   }
 ): DictationClientPayload {
   const spoken = collectSpokenLines(opts);
-  const blanksByLine = new Map<string, DictationBlankItem[]>();
 
-  for (const item of blankItems) {
-    const key = lineKeyFromBlankItem(item);
-    const list = blanksByLine.get(key) ?? [];
-    list.push(item);
-    blanksByLine.set(key, list);
-  }
+  const passageLines: DictationPassageLine[] = spoken.map((line) => ({
+    speaker: line.speaker,
+    text: line.text,
+    blankIds: [],
+  }));
 
-  const passageLines: DictationPassageLine[] = [];
   const blankInputs: DictationBlankInputClient[] = [];
+  const usedLineBlank = new Set<string>();
   let labelIndex = 0;
 
-  for (const line of spoken) {
-    const key = normalizeLineKey(line.text);
-    const items = blanksByLine.get(key) ?? [];
-    let displayText = line.text;
-    const blankIds: string[] = [];
-
-    for (const item of items) {
-      displayText = applyBlankToLine(displayText, item.answer);
-      blankIds.push(item.id);
-      blankInputs.push({
-        id: item.id,
-        label: CIRCLED[labelIndex] ?? `${labelIndex + 1}`,
-      });
-      labelIndex++;
-    }
-
-    passageLines.push({
-      speaker: line.speaker,
-      text: items.length > 0 ? displayText : line.text,
-      blankIds,
-    });
-  }
-
-  const usedBlankIds = new Set(blankInputs.map((b) => b.id));
-
   for (const item of blankItems) {
-    if (usedBlankIds.has(item.id)) continue;
     const answer = item.answer.trim();
-    let attached = false;
-    for (let i = 0; i < passageLines.length; i++) {
-      const pl = passageLines[i]!;
-      const lineText = spoken[i]?.text ?? pl.text;
-      if (!answer || !new RegExp(`\\b${answer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(lineText)) {
+    if (!answer) continue;
+
+    let lineIdx = findLineForBlank(spoken, item, usedLineBlank);
+
+    if (lineIdx < 0) {
+      const core = (item.original_sentence || item.display_sentence)
+        .replace(/^(M|W)\s*:\s*/i, "")
+        .trim();
+      if (core && wordInLine(core, answer)) {
+        passageLines.push({
+          speaker: speakerPrefix(item.speaker),
+          text: applyBlankToLine(core, answer),
+          blankIds: [],
+        });
+        lineIdx = passageLines.length - 1;
+        spoken.push({
+          speaker: speakerPrefix(item.speaker) as "M" | "W",
+          text: core,
+        });
+      } else {
         continue;
       }
-      pl.text = applyBlankToLine(lineText, answer);
-      pl.blankIds.push(item.id);
-      blankInputs.push({
-        id: item.id,
-        label: CIRCLED[labelIndex] ?? `${labelIndex + 1}`,
-      });
-      labelIndex++;
-      usedBlankIds.add(item.id);
-      attached = true;
-      break;
     }
-    if (!attached) {
-      let text = item.display_sentence.replace(/^(M|W)\s*:\s*/i, "").trim();
-      if (answer) text = applyBlankToLine(text, answer);
-      blankInputs.push({
-        id: item.id,
-        label: CIRCLED[labelIndex] ?? `${labelIndex + 1}`,
-      });
-      labelIndex++;
-      passageLines.push({
-        speaker: String(item.speaker).toUpperCase() === "W" ? "W" : "M",
-        text,
-        blankIds: [item.id],
-      });
-    }
+
+    usedLineBlank.add(`${lineIdx}:${answer.toLowerCase()}`);
+    const pl = passageLines[lineIdx]!;
+    pl.text = applyBlankToLine(pl.text, answer);
+    pl.blankIds.push(item.id);
+    blankInputs.push({
+      id: item.id,
+      label: CIRCLED[labelIndex] ?? `${labelIndex + 1}`,
+    });
+    labelIndex++;
   }
 
   return { passageLines, blanks: blankInputs };
