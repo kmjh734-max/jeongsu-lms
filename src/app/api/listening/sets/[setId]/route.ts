@@ -22,6 +22,7 @@ export async function PATCH(
       is_published?: boolean;
       title?: string;
       speech_speed?: number;
+      grade_level?: string;
       voice_ann_id?: string | null;
       voice_m_id?: string | null;
       voice_w_id?: string | null;
@@ -35,6 +36,9 @@ export async function PATCH(
     }
     if (typeof body.speech_speed === "number") {
       patch.speech_speed = Math.min(Math.max(body.speech_speed, 0.25), 4);
+    }
+    if (body.grade_level === "middle1" || body.grade_level === "middle2") {
+      patch.grade_level = body.grade_level;
     }
     if (body.voice_ann_id !== undefined) {
       patch.voice_ann_id = body.voice_ann_id?.trim() || null;

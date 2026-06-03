@@ -3,11 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  LISTENING_GRADE_OPTIONS,
-  type ListeningGradeLevel,
-} from "@/lib/listening/grade-level";
-
 export interface ListeningSetListItem {
   id: string;
   title: string;
@@ -26,7 +21,6 @@ export function ListeningSetsListClient({
 }: ListeningSetsListClientProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
-  const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>("middle1");
   const [busy, setBusy] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +33,7 @@ export function ListeningSetsListClient({
     const res = await fetch("/api/listening/sets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim(), grade_level: gradeLevel }),
+      body: JSON.stringify({ title: title.trim() }),
     });
     const data = (await res.json()) as {
       ok?: boolean;
@@ -86,24 +80,8 @@ export function ListeningSetsListClient({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2"
-            placeholder="예: 중2 듣기 연습 1회"
+            placeholder="예: 13회 듣기 연습"
           />
-        </label>
-        <label className="text-sm font-medium text-slate-700">
-          대상 학년
-          <select
-            value={gradeLevel}
-            onChange={(e) =>
-              setGradeLevel(e.target.value === "middle2" ? "middle2" : "middle1")
-            }
-            className="mt-1 block rounded-lg border border-slate-200 px-3 py-2"
-          >
-            {LISTENING_GRADE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
         </label>
         <button
           type="submit"

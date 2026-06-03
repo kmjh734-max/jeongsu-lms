@@ -25,7 +25,11 @@ import {
   getExamTypesForGrade,
   tierLabel,
 } from "@/lib/listening/exam-types";
-import { gradeLevelLabel, type ListeningGradeLevel } from "@/lib/listening/grade-level";
+import {
+  gradeLevelShort,
+  LISTENING_GRADE_OPTIONS,
+  type ListeningGradeLevel,
+} from "@/lib/listening/grade-level";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
 import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
 import {
@@ -50,7 +54,7 @@ interface ListeningSetManageClientProps {
 export function ListeningSetManageClient({
   setId,
   title,
-  gradeLevel,
+  gradeLevel: initialGradeLevel,
   isPublished: initialPublished,
   speechSpeed: initialSpeechSpeed,
   voiceAnnId,
@@ -60,6 +64,7 @@ export function ListeningSetManageClient({
   role,
 }: ListeningSetManageClientProps) {
   const router = useRouter();
+  const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
   const [isPublished, setIsPublished] = useState(initialPublished);
   const [generationMode, setGenerationMode] =
     useState<ListeningGenerationMode>("exam");
@@ -103,6 +108,23 @@ export function ListeningSetManageClient({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ speech_speed: SPEECH_SPEED_MAP[preset] }),
     });
+  }
+
+  async function changeGradeLevel(level: ListeningGradeLevel) {
+    if (level === gradeLevel) return;
+    const previous = gradeLevel;
+    setGradeLevel(level);
+    setSelectedTypeIds([]);
+    const res = await fetch(`/api/listening/sets/${setId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grade_level: level }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (!data.ok) {
+      setGradeLevel(previous);
+      setMessage(data.message ?? "학년 저장 실패");
+    }
   }
 
   const orderIndexesForGeneration = useMemo(() => {
@@ -397,14 +419,9 @@ export function ListeningSetManageClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
-            {title}{" "}
-            <span className="ml-2 rounded-md bg-slate-100 px-2 py-0.5 text-sm font-medium text-slate-600">
-              {gradeLevelLabel(gradeLevel)}
-            </span>
-          </h1>
+          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
           <p className="mt-1 text-sm text-slate-600">
-            중1 영어듣기평가 유형 · ANN/M/W · ElevenLabs 음원 (속도 {speechSpeedValue})
+            ANN/M/W · ElevenLabs 음원 (속도 {speechSpeedValue})
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -453,7 +470,7 @@ export function ListeningSetManageClient({
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>
         <p className="mt-1 text-xs text-slate-500">
-          중1 영어듣기평가형 권장: 느리게(0.85)
+          {gradeLevelShort(gradeLevel)} 영어듣기평가형 권장: 느리게(0.85)
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {(
@@ -487,6 +504,34 @@ export function ListeningSetManageClient({
           기출 복사 없음 · 참고 유형만 반영 · 새 대본/문항 자체 제작
         </p>
 
+        <div className="mt-3">
+          <p className="text-xs font-medium text-slate-600">대상 학년 (문항 유형)</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {LISTENING_GRADE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                disabled={!!busy}
+                onClick={() => void changeGradeLevel(opt.value)}
+                className={`rounded-lg px-3 py-2 text-left text-sm ${
+                  gradeLevel === opt.value
+                    ? "bg-indigo-600 text-white"
+                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <span className="font-medium">{opt.label}</span>
+                <span
+                  className={`mt-0.5 block text-xs ${
+                    gradeLevel === opt.value ? "text-indigo-100" : "text-slate-500"
+                  }`}
+                >
+                  {opt.description}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-3 flex flex-wrap gap-4">
           <label className="flex items-center gap-2 text-sm">
             <input
@@ -502,7 +547,7 @@ export function ListeningSetManageClient({
               checked={generationMode === "exam"}
               onChange={() => setGenerationMode("exam")}
             />
-            중1 영어듣기평가 유형
+            {gradeLevelShort(gradeLevel)} 영어듣기평가 유형
           </label>
         </div>
 
