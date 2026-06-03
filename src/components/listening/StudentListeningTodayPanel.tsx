@@ -29,6 +29,18 @@ function formatStudyDate(iso: string): string {
   return `${iso} (${w})`;
 }
 
+function formatTaskDateLabel(taskDate: string, todayIso: string): string {
+  if (taskDate === todayIso) return "오늘";
+  const today = new Date(todayIso + "T12:00:00");
+  const task = new Date(taskDate + "T12:00:00");
+  const diffDays = Math.round(
+    (today.getTime() - task.getTime()) / 86400000
+  );
+  if (diffDays === 1) return "어제";
+  if (diffDays > 1) return `${diffDays}일 전`;
+  return taskDate;
+}
+
 export function StudentListeningTodayPanel() {
   const [summary, setSummary] = useState<TodaySummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,6 +82,9 @@ export function StudentListeningTodayPanel() {
 
   const missed = summary.missedTasks ?? [];
   const today = summary.todayTask;
+  const todayIso = summary.todayIso;
+  const showTodayInProgress =
+    today != null && today.status !== "completed";
   const hasSchedule =
     missed.length > 0 || today != null || !summary.isStudyDayToday;
 
@@ -81,13 +96,20 @@ export function StudentListeningTodayPanel() {
     <section className="mb-6 space-y-3 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-4">
       <h2 className="text-base font-semibold text-slate-900">오늘의 듣기학습</h2>
 
+      {missed.length > 0 && showTodayInProgress && (
+        <p className="text-xs text-amber-800">
+          미완료 학습을 먼저 마친 뒤 오늘 학습을 진행해 주세요.
+        </p>
+      )}
+
       {missed.map((task) => (
         <div
           key={task.id}
           className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm"
         >
           <p className="font-medium text-amber-900">
-            {task.taskDate} 미완료 학습이 있습니다
+            {formatTaskDateLabel(task.taskDate, todayIso)}({task.taskDate}) 미완료
+            학습이 있습니다
           </p>
           <p className="mt-1 text-amber-800">
             {task.assignmentTitle} · 남은 문항 {task.remainingCount}개
@@ -116,7 +138,7 @@ export function StudentListeningTodayPanel() {
         </div>
       )}
 
-      {today && today.status !== "completed" && (
+      {showTodayInProgress && today && (
         <div className="rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm">
           <p className="font-medium text-slate-900">
             오늘 학습: {today.totalCount}문항 ({today.setTitle})

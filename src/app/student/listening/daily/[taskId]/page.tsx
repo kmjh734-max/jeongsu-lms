@@ -4,7 +4,6 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { loadDailyTaskProgressMap } from "@/lib/listening/schedule/update-progress";
 import { StudentListeningPractice } from "@/components/listening/StudentListeningPractice";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export default async function StudentListeningDailyTaskPage({
   params,
@@ -17,8 +16,8 @@ export default async function StudentListeningDailyTaskPage({
     redirect("/login");
   }
 
-  const supabase = await createClient();
-  const { data: task } = await supabase
+  const admin = createAdminClient();
+  const { data: task } = await admin
     .from("listening_daily_tasks")
     .select(
       "id, student_id, assignment_id, set_id, question_ids, status, task_date"
@@ -29,7 +28,6 @@ export default async function StudentListeningDailyTaskPage({
 
   if (!task) notFound();
 
-  const admin = createAdminClient();
   const { data: assignment } = await admin
     .from("listening_schedule_assignments")
     .select(
@@ -38,19 +36,18 @@ export default async function StudentListeningDailyTaskPage({
     .eq("id", task.assignment_id)
     .maybeSingle();
 
-  const { data: set } = await supabase
+  const { data: set } = await admin
     .from("listening_sets")
     .select(
       "id, title, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass"
     )
     .eq("id", task.set_id)
-    .eq("is_published", true)
     .maybeSingle();
 
   if (!set) notFound();
 
   const questionIds = (task.question_ids as string[]) ?? [];
-  const { data: allQuestions } = await supabase
+  const { data: allQuestions } = await admin
     .from("listening_questions")
     .select(
       "id, order_index, question_type, instruction, question_text, choices, correct_answer, audio_url, script_text, script_translation, answer_clue, explanation, table_data"

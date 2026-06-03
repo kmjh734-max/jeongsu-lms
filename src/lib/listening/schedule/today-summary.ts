@@ -70,11 +70,13 @@ export async function getStudentScheduleTodaySummary(
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
 
   for (const assignment of assignments) {
+    const rangeFrom =
+      assignment.start_date <= todayIso ? assignment.start_date : todayIso;
     await ensureDailyTasksForStudentRange(
       admin,
       assignment,
       studentId,
-      todayIso,
+      rangeFrom,
       todayIso
     );
   }
