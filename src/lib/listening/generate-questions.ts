@@ -50,8 +50,12 @@ import type {
   ListeningGenerationMode,
   ListeningScriptSegment,
 } from "@/lib/listening/types";
-import { isListeningSpeaker } from "@/lib/listening/speaker-voices";
-
+import {
+  diagnoseQuestionParseFailure,
+  extractQuestionsFromAiPayload,
+  normalizeCorrectAnswerIndex,
+  normalizeListeningSpeaker,
+} from "@/lib/listening/parse-listening-response";
 export interface GenerateQuestionsOptions {
   mode: ListeningGenerationMode;
   count: number;
@@ -71,9 +75,9 @@ export interface GenerateQuestionsResult {
 }
 
 function normalizeSegment(raw: { speaker?: string; text?: string }): ListeningScriptSegment | null {
-  const speaker = (raw.speaker ?? "").trim().toUpperCase();
+  const speaker = normalizeListeningSpeaker(raw.speaker);
   const text = sanitizeSegmentTextForTts(raw.text ?? "");
-  if (!isListeningSpeaker(speaker) || !text) return null;
+  if (!speaker || !text) return null;
   return { speaker, text };
 }
 
@@ -112,8 +116,8 @@ function normalizeQuestion(
   const choices = normalizeChoices(raw.choices, examMode);
   if (!choices) return null;
 
-  const correct = Number(raw.correct_answer);
-  if (!Number.isInteger(correct) || correct < 1 || correct > 5) return null;
+  const correct = normalizeCorrectAnswerIndex(raw.correct_answer);
+  if (correct == null) return null;
 
   const script_text =
     typeof raw.script_text === "string" && raw.script_text.trim()
@@ -246,6 +250,56 @@ function normalizeQuestion(
   return applyQuestionFixes(base, typeId);
 }
 
+const PARSE_RETRY_SUFFIX = `
+
+[필수 출력 형식]
+- 최상위 키는 반드시 "questions" 배열 하나만 사용한다.
+- segments[].speaker 는 "M", "W", "ANN" 중 하나만 (Man/Woman 금지).
+- choices 는 영어 문자열 정확히 5개.
+- correct_answer 는 1~5 정수.
+- instruction 은 한국어 지시문을 반드시 포함한다.`;
+
+function parseQuestionsFromPayload(
+  parsed: unknown,
+  examMode: boolean,
+  examTypes?: ExamTypeTemplate[]
+): { questions: GeneratedListeningQuestion[]; failures: string[] } {
+  const list = extractQuestionsFromAiPayload(parsed);
+  const questions: GeneratedListeningQuestion[] = [];
+  const failures: string[] = [];
+
+  list.forEach((item, i) => {
+    if (!item || typeof item !== "object") {
+      failures.push(`${i + 1}번째 항목: 객체가 아님`);
+      return;
+    }
+    const raw = item as Record<string, unknown>;
+    const hint = examTypes?.[i];
+    const q = normalizeQuestion(raw, i, examMode, hint);
+    if (q) {
+      const instruction =
+        q.instruction.trim() || hint?.instruction?.trim() || "";
+      if (!instruction) {
+        failures.push(
+          `${i + 1}번째: instruction 없음 (${diagnoseQuestionParseFailure(raw, examMode).join(", ")})`
+        );
+        return;
+      }
+      questions.push({ ...q, instruction });
+      return;
+    }
+    failures.push(
+      `${i + 1}번째: ${diagnoseQuestionParseFailure(raw, examMode).join(", ")}`
+    );
+  });
+
+  if (list.length === 0) {
+    failures.push('AI 응답에 "questions" 배열이 없습니다.');
+  }
+
+  return { questions, failures };
+}
+
 async function fetchParsedQuestions(
   apiKey: string,
   prompt: string,
@@ -253,25 +307,29 @@ async function fetchParsedQuestions(
   examTypes?: ExamTypeTemplate[],
   gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<GeneratedListeningQuestion[]> {
-  const parsed = await listeningChatJson<{ questions?: unknown[] }>(apiKey, {
-    temperature: 0.6,
-    system: getListeningSystemPrompt(gradeLevel),
-    user: prompt,
-  });
-  const list = Array.isArray(parsed.questions) ? parsed.questions : [];
+  const system = `${getListeningSystemPrompt(gradeLevel)}\nOutput JSON only. Use exact keys: questions, segments, choices, correct_answer. speakers: M, W, ANN only.`;
 
-  const questions: GeneratedListeningQuestion[] = [];
-  list.forEach((item, i) => {
-    const hint = examTypes?.[i];
-    const q = normalizeQuestion(item as Record<string, unknown>, i, examMode, hint);
-    if (q && q.instruction) questions.push(q);
-  });
+  let lastFailures: string[] = [];
 
-  if (questions.length === 0) {
-    throw new Error("생성된 문항을 파싱하지 못했습니다.");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const parsed = await listeningChatJson<unknown>(apiKey, {
+      temperature: 0.6,
+      system,
+      user: attempt === 0 ? prompt : `${prompt}${PARSE_RETRY_SUFFIX}`,
+    });
+
+    const { questions, failures } = parseQuestionsFromPayload(
+      parsed,
+      examMode,
+      examTypes
+    );
+    if (questions.length > 0) return questions;
+    lastFailures = failures;
   }
 
-  return questions;
+  const detail =
+    lastFailures.length > 0 ? ` (${lastFailures.slice(0, 3).join("; ")})` : "";
+  throw new Error(`생성된 문항을 파싱하지 못했습니다.${detail}`);
 }
 
 export async function generateListeningQuestionsWithAi(
