@@ -16,7 +16,6 @@ function scoreSingleBlank(
   }
 
   const sim = textSimilarityPercent(correct, student);
-  const isPhrase = correct.includes(" ");
 
   if (sim >= 98) {
     return { blankScore: 100, isCorrect: true, feedback: "정답" };
@@ -26,9 +25,6 @@ function scoreSingleBlank(
   }
   if (sim >= 85) {
     return { blankScore: 85, isCorrect: true, feedback: "정답 (철자 약간 다름)" };
-  }
-  if (isPhrase && sim >= 75) {
-    return { blankScore: 80, isCorrect: true, feedback: "정답 (핵심 표현 일치)" };
   }
   if (sim >= 70) {
     return { blankScore: 70, isCorrect: false, feedback: "부분 정답" };

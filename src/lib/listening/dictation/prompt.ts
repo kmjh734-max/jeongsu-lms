@@ -1,8 +1,10 @@
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
+import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 
 export function buildDictationSystemPrompt(): string {
   return `너는 중학교 1학년 영어 듣기 Dictation 문항 제작자다.
-대본에서 중요한 단어 또는 짧은 구만 빈칸(________)으로 만든다.
+대본에서 중요한 영어 단어 하나만 빈칸(________)으로 만든다. 두 단어 이상(구, phrase)은 절대 금지한다.
+answer에는 공백 없는 단어 하나만 넣는다 (예: subway, library). "take the subway" 같은 구는 금지.
 무의미한 관사(a, an, the), 대명사만, be동사만 빈칸으로 만들지 마라.
 ANN 안내문은 제외한다. M/W 대화·담화만 사용한다.
 정답 단서·핵심 정보·문항 유형과 관련 표현을 우선한다.
@@ -35,6 +37,7 @@ segments (ANN 제외):
 ${opts.segmentsJson}
 
 빈칸 개수: ${opts.blankMin}~${opts.blankMax}개
+각 빈칸 정답은 반드시 단어 1개(word)만. 구(phrase)·여러 단어 금지.
 ${avoid}
 
 출력 JSON:
@@ -76,10 +79,10 @@ export function parseDictationAiResponse(raw: unknown): DictationBlankItem[] {
         ? display
         : `${speaker === "W" ? "W" : "M"}: ${display}`,
       answer,
-      answer_type: String(r.answer_type ?? (answer.includes(" ") ? "phrase" : "word")),
+      answer_type: "word",
       importance: String(r.importance ?? "key_information"),
     });
   }
 
-  return items;
+  return filterWordOnlyBlankItems(items);
 }

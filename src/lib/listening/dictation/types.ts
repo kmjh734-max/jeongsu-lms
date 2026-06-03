@@ -12,7 +12,8 @@ export interface DictationBlankItem {
   original_sentence: string;
   display_sentence: string;
   answer: string;
-  answer_type: "word" | "phrase" | string;
+  /** 항상 단어 1개 */
+  answer_type: "word" | string;
   importance: DictationImportance;
 }
 

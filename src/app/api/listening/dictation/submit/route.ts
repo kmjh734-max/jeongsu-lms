@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { scoreDictationAttempt } from "@/lib/listening/dictation/score-blanks";
+import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 
@@ -52,7 +53,12 @@ export async function POST(request: Request) {
     const passScore =
       setRow?.dictation_pass_score ?? DEFAULT_DICTATION_SETTINGS.dictation_pass_score;
 
-    const blankItems = (attempt.blank_items ?? []) as DictationBlankItem[];
+    const blankItems = filterWordOnlyBlankItems(
+      (attempt.blank_items ?? []) as DictationBlankItem[]
+    );
+    if (blankItems.length === 0) {
+      return jsonError("채점할 Dictation 빈칸이 없습니다.");
+    }
     const studentAnswers = body.studentAnswers ?? {};
 
     const scored = scoreDictationAttempt(blankItems, studentAnswers, passScore);

@@ -171,8 +171,9 @@ export function DictationSection({
     <section className="mt-6 rounded-xl border border-violet-200 bg-violet-50/50 p-4">
       <h3 className="text-sm font-semibold text-violet-900">Dictation</h3>
       <p className="mt-1 text-xs text-violet-800">
-        이제 들은 내용을 바탕으로 Dictation을 진행합니다. 빈칸에 들은 단어를
-        입력하세요. {passScore}점 이상이면 다음 문제로 넘어갈 수 있습니다.
+        이제 들은 내용을 바탕으로 Dictation을 진행합니다. 빈칸마다 들은 단어
+        하나만 입력하세요. {passScore}점 이상이면 다음 문제로 넘어갈 수
+        있습니다.
       </p>
 
       {audioUrl && (
@@ -275,7 +276,7 @@ export function DictationSection({
                         uiState === "submitted_fail"
                       }
                       className="min-w-0 flex-1 rounded-md border border-slate-200 px-3 py-2 text-sm"
-                      placeholder="영어로 입력"
+                      placeholder="단어 하나 (영어)"
                       autoComplete="off"
                       spellCheck={false}
                     />

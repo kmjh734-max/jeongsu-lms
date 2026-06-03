@@ -49,7 +49,7 @@ export async function generateDictationBlanks(
       }
     );
     const items = parseDictationAiResponse(parsed);
-    if (items.length >= Math.min(2, min)) {
+    if (items.length >= Math.min(1, min)) {
       return items.slice(0, max);
     }
   } catch {

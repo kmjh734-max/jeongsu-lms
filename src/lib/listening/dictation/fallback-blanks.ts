@@ -135,7 +135,7 @@ export function buildFallbackDictationBlanks(opts: {
       original_sentence: p.sentence,
       display_sentence: makeBlankInSentence(p.sentence, p.word),
       answer: p.word,
-      answer_type: p.word.includes(" ") ? "phrase" : "word",
+      answer_type: "word",
       importance:
         p.importance >= 8 ? "key_information" : "key_expression",
     });

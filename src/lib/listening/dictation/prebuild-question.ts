@@ -5,6 +5,7 @@ import { buildFallbackDictationBlanks } from "@/lib/listening/dictation/fallback
 import type { DictationBlankItem, DictationSetSettings } from "@/lib/listening/dictation/types";
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
+import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 
 const VARIANT_COUNT = 2;
 
@@ -35,18 +36,21 @@ async function generateBlankSet(opts: {
         blankLevel: opts.blankLevel,
         previousBlankWords: opts.previousBlankWords,
       });
-      if (items.length > 0) return items;
+      const wordsOnly = filterWordOnlyBlankItems(items);
+      if (wordsOnly.length > 0) return wordsOnly;
     } catch {
       /* fallback */
     }
   }
-  return buildFallbackDictationBlanks({
-    scriptText: opts.scriptText,
-    segments: opts.segments,
-    blankLevel: opts.blankLevel,
-    previousBlankWords: opts.previousBlankWords,
-    answerClue: opts.answerClue,
-  });
+  return filterWordOnlyBlankItems(
+    buildFallbackDictationBlanks({
+      scriptText: opts.scriptText,
+      segments: opts.segments,
+      blankLevel: opts.blankLevel,
+      previousBlankWords: opts.previousBlankWords,
+      answerClue: opts.answerClue,
+    })
+  );
 }
 
 function wordsFromItems(items: DictationBlankItem[]): string[] {
@@ -74,7 +78,10 @@ export async function prebuildDictationForQuestion(
 
   const existing = question.dictation_blank_items;
   if (!force && Array.isArray(existing) && existing.length > 0) {
-    return { ok: true, itemCount: existing.length, cached: true };
+    const wordOnly = filterWordOnlyBlankItems(existing as DictationBlankItem[]);
+    if (wordOnly.length > 0) {
+      return { ok: true, itemCount: wordOnly.length, cached: true };
+    }
   }
 
   const { data: setRow } = await admin
@@ -206,13 +213,12 @@ export async function ensureDictationPreparedForSet(
 
   for (const q of questions ?? []) {
     const existing = q.dictation_blank_items;
-    if (
-      !opts?.force &&
-      Array.isArray(existing) &&
-      existing.length > 0
-    ) {
-      skipped++;
-      continue;
+    if (!opts?.force && Array.isArray(existing) && existing.length > 0) {
+      const wordOnly = filterWordOnlyBlankItems(existing as DictationBlankItem[]);
+      if (wordOnly.length > 0) {
+        skipped++;
+        continue;
+      }
     }
 
     const result = await prebuildDictationForQuestion(q.id as string, opts);
@@ -247,16 +253,18 @@ export function pickPreparedBlankItems(
   const primary = question.dictation_blank_items;
   if (!Array.isArray(primary) || primary.length === 0) return null;
 
-  if (attemptNo <= 1) return primary as DictationBlankItem[];
+  if (attemptNo <= 1) {
+    return filterWordOnlyBlankItems(primary as DictationBlankItem[]);
+  }
 
   const variants = question.dictation_blank_variants;
   if (Array.isArray(variants) && variants.length > 0) {
     const idx = Math.min(attemptNo - 2, variants.length - 1);
     const picked = variants[idx];
     if (Array.isArray(picked) && picked.length > 0) {
-      return picked as DictationBlankItem[];
+      return filterWordOnlyBlankItems(picked as DictationBlankItem[]);
     }
   }
 
-  return primary as DictationBlankItem[];
+  return filterWordOnlyBlankItems(primary as DictationBlankItem[]);
 }

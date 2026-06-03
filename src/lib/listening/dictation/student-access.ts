@@ -1,6 +1,7 @@
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildDictationClientPayload } from "@/lib/listening/dictation/build-passage-display";
+import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 import { isStudentAssignedListeningSet } from "@/lib/listening/student-set-access";
 import type {
   DictationBlankItem,
@@ -99,14 +100,15 @@ export function formatDictationStartResponse(
     segments: Array<{ speaker: string; text: string }>;
   }
 ) {
-  const display = buildDictationStartPayload(items, {
+  const wordItems = filterWordOnlyBlankItems(items);
+  const display = buildDictationStartPayload(wordItems, {
     scriptText: access.question.script_text ?? "",
     segments: access.segments,
   });
   return {
     attemptId,
     ...display,
-    blankItems: stripBlankAnswersForClient(items),
+    blankItems: stripBlankAnswersForClient(wordItems),
   };
 }
 
