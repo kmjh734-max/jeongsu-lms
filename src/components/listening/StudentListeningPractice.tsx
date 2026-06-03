@@ -7,7 +7,7 @@ import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
 import type { ListeningTableData } from "@/lib/listening/types";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -61,6 +61,18 @@ export function StudentListeningPractice({
   >({});
   const [showScript, setShowScript] = useState(false);
   const [dictationKey, setDictationKey] = useState(0);
+  const objectiveAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  function pauseObjectiveAudio() {
+    const el = objectiveAudioRef.current;
+    if (!el) return;
+    el.pause();
+    try {
+      el.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+  }
 
   const q = questions[index];
   const selected = q ? answers[q.id] : undefined;
@@ -143,6 +155,7 @@ export function StudentListeningPractice({
 
   function submitObjective() {
     if (selected == null) return;
+    pauseObjectiveAudio();
     setObjectiveSubmitted((prev) => ({ ...prev, [q.id]: true }));
     setShowScript(false);
     if (dictationRequired) {
@@ -164,6 +177,7 @@ export function StudentListeningPractice({
 
   function goPrev() {
     if (index > 0) {
+      pauseObjectiveAudio();
       setIndex(index - 1);
       setShowScript(false);
     }
@@ -173,6 +187,7 @@ export function StudentListeningPractice({
     if (!canGoNext) return;
     const next = index + 1;
     if (priorQuestionsBlocked(next)) return;
+    pauseObjectiveAudio();
     setIndex(next);
     setShowScript(false);
   }
@@ -180,6 +195,7 @@ export function StudentListeningPractice({
   function tryGoToIndex(nextIndex: number) {
     if (nextIndex < 0 || nextIndex >= questions.length) return;
     if (priorQuestionsBlocked(nextIndex)) return;
+    pauseObjectiveAudio();
     setIndex(nextIndex);
     setShowScript(false);
   }
@@ -218,6 +234,7 @@ export function StudentListeningPractice({
         <div className="mt-4">
           {q.audio_url ? (
             <audio
+              ref={objectiveAudioRef}
               key={q.audio_url}
               controls
               src={q.audio_url}

@@ -1,5 +1,6 @@
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isStudentAssignedListeningSet } from "@/lib/listening/student-set-access";
 import type {
   DictationBlankItem,
   DictationSetSettings,
@@ -39,10 +40,7 @@ export async function assertStudentListeningQuestionAccess(
     return { ok: false as const, message: "공개된 세트가 아닙니다.", status: 403 };
   }
 
-  const { data: assigned } = await admin.rpc("student_assigned_listening_set", {
-    set_uuid: setId,
-  });
-
+  const assigned = await isStudentAssignedListeningSet(admin, profile.id, setId);
   if (!assigned) {
     return { ok: false as const, message: "배정된 듣기 세트가 아닙니다.", status: 403 };
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isStudentAssignedListeningSet } from "@/lib/listening/student-set-access";
 
 export async function GET(request: Request) {
   try {
@@ -18,9 +19,7 @@ export async function GET(request: Request) {
     }
 
     const admin = createAdminClient();
-    const { data: assigned } = await admin.rpc("student_assigned_listening_set", {
-      set_uuid: setId,
-    });
+    const assigned = await isStudentAssignedListeningSet(admin, profile.id, setId);
     if (!assigned) {
       return NextResponse.json({ ok: false, message: "배정된 세트가 아닙니다." }, { status: 403 });
     }
