@@ -65,7 +65,7 @@ function relaxProfile(
   profile: RequestProfile,
   bodyText: string
 ): RequestProfile | null {
-  let next = { ...profile };
+  const next = { ...profile };
   let changed = false;
 
   if (next.includeTemperature && isUnsupportedTemperatureError(bodyText)) {
