@@ -29,8 +29,13 @@ function mergeProblems(
   ruleIssues: QualityIssue[],
   answerValidation: AnswerValidationResult
 ): string[] {
-  const fromRules = ruleIssues.map((i) => i.message);
-  return [...fromRules, ...answerValidation.problems];
+  const ruleMessages = new Set(
+    ruleIssues.map((i) => i.message.trim()).filter(Boolean)
+  );
+  return answerValidation.problems.filter((p) => {
+    const t = p.trim();
+    return t && !ruleMessages.has(t);
+  });
 }
 
 export function deriveNeedsReview(

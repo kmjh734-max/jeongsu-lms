@@ -8,7 +8,22 @@ import type {
   ListeningGenerationMode,
 } from "@/lib/listening/types";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
+import { buildContinuationAvoidList } from "@/lib/listening/continuation-scenario-pool";
 import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
+
+function buildPreviousProblemsForSlot(
+  prior: GeneratedListeningQuestion[],
+  index: number,
+  slot: ListeningGenerationSlot
+): string[] | undefined {
+  const lines: string[] = [];
+  if (slot.typeId === 19 || slot.typeId === 20) {
+    lines.push(...buildContinuationAvoidList(prior, slot.typeId));
+  }
+  const last = prior[index - 1]?.problems;
+  if (last?.length) lines.push(...last);
+  return lines.length > 0 ? lines : undefined;
+}
 
 export interface GenerateItemResult {
   ok: boolean;
@@ -65,7 +80,11 @@ export async function generateQuestionsSequential(opts: {
         mode,
         difficultyMode,
         persist: false,
-        previousProblems: i > 0 ? questions[i - 1]?.problems : undefined,
+        previousProblems: buildPreviousProblemsForSlot(
+          questions,
+          i,
+          slot
+        ),
       }),
     });
 

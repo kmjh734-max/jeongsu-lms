@@ -90,8 +90,9 @@ const TYPE19_GENERATION_RULES = `
 필수: previous_turn, blank_speaker(M), correct_response_function, distractor_reasons.
 blank_speaker=M ↔ instruction 남자의 말 ↔ question_text Man:
 
-소재: 잃어버린 물건, 약속, 과제, 친구 도움, 건강, 행사 준비.
-기존 기출 복사 금지.
+소재: **위 「이번 문항 필수 상황」의 scenario_id·상황만 사용**. 잃어버린 공책·숙제·도서관·우산·생일파티만 쓰는 패턴 금지.
+대화 구성: 상황 제시 → 2~3턴 정보 교환 → 마지막 W 발화가 정답 유도 → 남자 응답은 빈칸.
+기존 기출 복사 금지. 완전히 새 영어 대사.
 `.trim();
 
 const TYPE19_VALIDATION_CRITERIA = `

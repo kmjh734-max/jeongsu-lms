@@ -4,6 +4,7 @@ import { continuationQuestionDisplayText } from "@/lib/listening/fix-continuatio
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
 import { QuestionQualityBadges } from "@/components/listening/QuestionQualityBadges";
 import { normalizeTableData } from "@/lib/listening/table-data";
+import { collectUniqueQuestionMessages } from "@/lib/listening/collect-question-messages";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -35,6 +36,8 @@ export function ListeningQuestionPreview({
   const table = normalizeTableData(question.table_data);
   const blankLine = continuationQuestionDisplayText(question.order_index);
   const av = question.answer_validation;
+  const { issues: displayIssues, suggestions: displaySuggestions } =
+    collectUniqueQuestionMessages(question);
 
   return (
     <article
@@ -60,26 +63,18 @@ export function ListeningQuestionPreview({
         </p>
       )}
 
-      {(question.quality_issues?.length ?? 0) > 0 && (
+      {displayIssues.length > 0 && (
         <ul className="mb-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">
-          {question.quality_issues!.map((issue) => (
-            <li key={issue.code}>· {issue.message}</li>
+          {displayIssues.map((msg) => (
+            <li key={msg}>· {msg}</li>
           ))}
         </ul>
       )}
 
-      {question.problems && question.problems.length > 0 && (
-        <ul className="mb-3 rounded-lg bg-red-50 p-2 text-xs text-red-900">
-          {question.problems.map((p, i) => (
-            <li key={i}>· {p}</li>
-          ))}
-        </ul>
-      )}
-
-      {question.suggestions && question.suggestions.length > 0 && (
+      {displaySuggestions.length > 0 && (
         <ul className="mb-3 rounded-lg bg-slate-50 p-2 text-xs text-slate-700">
-          {question.suggestions.map((s, i) => (
-            <li key={i}>· {s}</li>
+          {displaySuggestions.map((msg) => (
+            <li key={msg}>· {msg}</li>
           ))}
         </ul>
       )}

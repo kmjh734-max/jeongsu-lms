@@ -43,6 +43,10 @@ import {
   formatContinuationIntentBlock,
   planContinuationIntent,
 } from "@/lib/listening/continuation-intent-plan";
+import {
+  formatAssignedScenarioBlock,
+  pickContinuationScenario,
+} from "@/lib/listening/continuation-scenario-pool";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { validateAndRepairListeningQuestion } from "@/lib/listening/validate-and-repair";
 import type {
@@ -393,15 +397,19 @@ export async function generateSingleExamQuestion(
     gradeLevel
   );
   if (typeId === 19 || typeId === 20) {
+    const assignment = pickContinuationScenario(typeId, previousProblems);
+    const scenarioBlock = formatAssignedScenarioBlock(assignment);
+    prompt = `${scenarioBlock}\n\n${prompt}`;
     try {
       const plan = await planContinuationIntent(
         apiKey,
         typeId,
-        previousProblems
+        previousProblems,
+        assignment
       );
-      prompt = `${formatContinuationIntentBlock(plan)}\n\n${prompt}`;
+      prompt = `${scenarioBlock}\n\n${formatContinuationIntentBlock(plan)}\n\n${prompt}`;
     } catch {
-      // 사전 설계 실패 시에도 본 생성은 계속
+      // 사전 설계 실패 시에도 scenarioBlock은 유지
     }
   }
   const questions = await fetchParsedQuestions(apiKey, prompt, true, [type], gradeLevel);

@@ -1,4 +1,5 @@
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
+import type { ContinuationScenarioAssignment } from "@/lib/listening/continuation-scenario-pool";
 
 export interface ContinuationIntentPlan {
   scenario_summary: string;
@@ -25,14 +26,18 @@ Rules:
 export async function planContinuationIntent(
   apiKey: string,
   typeId: 19 | 20,
-  previousProblems?: string[]
+  previousProblems?: string[],
+  assignment?: ContinuationScenarioAssignment
 ): Promise<ContinuationIntentPlan> {
   const lastSpeaker = typeId === 19 ? "W" : "M";
   const blankWho = typeId === 19 ? "남자(M)" : "여자(W)";
   const avoid =
     previousProblems && previousProblems.length > 0
-      ? `\nAvoid repeating these past issues:\n${previousProblems.map((p) => `- ${p}`).join("\n")}`
+      ? `\nAvoid repeating these past dialogues/scenarios:\n${previousProblems.map((p) => `- ${p}`).join("\n")}\n`
       : "";
+  const assignmentNote = assignment
+    ? `\nRequired scenario_id: ${assignment.id}\nTheme: ${assignment.theme}\nSetting: ${assignment.setting}\nDo NOT use lost notebook / homework-only / library clichés.\n`
+    : "";
 
   return listeningChatJson<ContinuationIntentPlan>(apiKey, {
     temperature: 0.35,
@@ -40,7 +45,7 @@ export async function planContinuationIntent(
     user: `Plan type ${typeId} item.
 Last segment speaker: ${lastSpeaker}
 Student chooses ${blankWho}'s next line only.
-${avoid}
+${assignmentNote}${avoid}
 
 JSON shape:
 {
