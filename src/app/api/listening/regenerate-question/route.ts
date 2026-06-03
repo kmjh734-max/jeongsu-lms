@@ -7,6 +7,8 @@ import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
 import { getExamTypeById } from "@/lib/listening/exam-types";
 
+export const maxDuration = 300;
+
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
 }

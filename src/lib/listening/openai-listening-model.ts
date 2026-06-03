@@ -2,6 +2,13 @@
 export const LISTENING_MODEL_PRIMARY = "gpt-5.5";
 export const LISTENING_MODEL_FALLBACK = "gpt-5";
 
+/** GPT-5 추론+출력 토큰 상한 (응답이 비는 것 방지) */
+export const LISTENING_GPT5_MAX_COMPLETION_TOKENS = 16_384;
+
+export function isGpt5FamilyModel(model: string): boolean {
+  return model.trim().toLowerCase().startsWith("gpt-5");
+}
+
 /** 시도 순서: 환경변수 → 기본 gpt-5.5 → 실패 시 gpt-5 */
 export function getListeningGeneratorModelCandidates(): string[] {
   const configured = process.env.OPENAI_MODEL_LISTENING_GENERATOR?.trim();
@@ -33,6 +40,18 @@ export function isUnsupportedTemperatureError(bodyText: string): boolean {
     (lower.includes("unsupported") ||
       lower.includes("does not support") ||
       lower.includes("only the default"))
+  );
+}
+
+export function isUnsupportedParameterError(bodyText: string, param: string): boolean {
+  const lower = bodyText.toLowerCase();
+  const p = param.toLowerCase();
+  return (
+    lower.includes(p) &&
+    (lower.includes("unsupported") ||
+      lower.includes("does not support") ||
+      lower.includes("not supported") ||
+      lower.includes("unknown parameter"))
   );
 }
 

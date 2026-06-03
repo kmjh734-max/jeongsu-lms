@@ -334,12 +334,16 @@ export async function generateSingleExamQuestion(
     gradeLevel
   );
   if (typeId === 19 || typeId === 20) {
-    const plan = await planContinuationIntent(
-      apiKey,
-      typeId,
-      previousProblems
-    );
-    prompt = `${formatContinuationIntentBlock(plan)}\n\n${prompt}`;
+    try {
+      const plan = await planContinuationIntent(
+        apiKey,
+        typeId,
+        previousProblems
+      );
+      prompt = `${formatContinuationIntentBlock(plan)}\n\n${prompt}`;
+    } catch {
+      // 사전 설계 실패 시에도 본 생성은 계속
+    }
   }
   const questions = await fetchParsedQuestions(apiKey, prompt, true, [type], gradeLevel);
   const q = questions[0];

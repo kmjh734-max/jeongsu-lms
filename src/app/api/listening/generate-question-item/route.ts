@@ -10,6 +10,8 @@ import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningGenerationMode } from "@/lib/listening/types";
 
+export const maxDuration = 300;
+
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
 }

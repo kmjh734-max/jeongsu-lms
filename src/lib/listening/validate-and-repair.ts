@@ -8,13 +8,17 @@ import {
 } from "@/lib/listening/run-question-validation";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
-const MAX_REPAIR_ATTEMPTS = 2;
+const MAX_REPAIR_ATTEMPTS = 1;
 
+/** 심각한 오류만 AI 수정 (호출 수·시간 절약) */
 function shouldAttemptRepair(v: ValidatedListeningQuestion): boolean {
-  if (v.needs_review) return true;
-  if (v.problems.length > 0) return true;
-  if (!v.is_answer_clear || !v.answer_validation.correct_answer_verified) return true;
+  const score = v.quality_score ?? 100;
+  const clarity = v.answer_clarity_score ?? 100;
+  if (score < 55) return true;
+  if (clarity < 55) return true;
+  if (!v.answer_validation.correct_answer_verified) return true;
   if (v.answer_validation.has_multiple_possible_answers) return true;
+  if (!v.is_answer_clear && clarity < 70) return true;
   return false;
 }
 
