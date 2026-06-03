@@ -146,9 +146,8 @@ export function DictationSection({
 
   async function handleSubmit() {
     if (!attemptId) return;
-    const missing = allBlankIds.some((id) => !answers[id]?.trim());
-    if (missing) {
-      setError("지문의 모든 빈칸에 답을 입력하세요.");
+    if (allBlankIds.length === 0) {
+      setError("채점할 빈칸이 없습니다. 다시 하기를 눌러 주세요.");
       return;
     }
 
@@ -200,8 +199,8 @@ export function DictationSection({
     <section className="mt-6 rounded-xl border border-violet-200 bg-violet-50/50 p-4">
       <h3 className="text-sm font-semibold text-violet-900">Dictation</h3>
       <p className="mt-1 text-xs text-violet-800">
-        지문의 빈칸에 들은 단어를 바로 입력하세요. {passScore}점 이상이면 다음
-        문제로 넘어갈 수 있습니다.
+        지문의 빈칸에 들은 단어를 입력하세요. 모르는 빈칸은 비워 두어도 제출할 수
+        있습니다. {passScore}점 이상이면 다음 문제로 넘어갈 수 있습니다.
       </p>
 
       {audioUrl && (
