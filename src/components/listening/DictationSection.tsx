@@ -23,7 +23,7 @@ interface DictationSectionProps {
   audioUrl: string | null;
   passScore: number;
   enabled: boolean;
-  onPassed: () => void;
+  onPassed: (score?: number) => void;
   prefetched?: DictationStartPayloadClient | null;
 }
 
@@ -176,7 +176,7 @@ export function DictationSection({
     setResults(data.results ?? []);
     if (data.passed) {
       setUiState("submitted_pass");
-      onPassed();
+      onPassed(data.score ?? 0);
     } else {
       setUiState("submitted_fail");
     }

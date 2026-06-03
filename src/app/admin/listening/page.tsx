@@ -4,11 +4,18 @@ import { ListeningSetsListClient } from "@/components/listening/ListeningSetsLis
 
 export default async function AdminListeningPage() {
   const supabase = await createClient();
-  const { data: sets } = await supabase
-    .from("listening_sets")
-    .select("id, title, is_published, created_at")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const [{ data: sets }, { data: classes }] = await Promise.all([
+    supabase
+      .from("listening_sets")
+      .select("id, title, is_published, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase
+      .from("classes")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("name"),
+  ]);
 
   return (
     <div>
@@ -20,6 +27,8 @@ export default async function AdminListeningPage() {
         <ListeningSetsListClient
           sets={sets ?? []}
           basePath="/admin/listening"
+          classes={classes ?? []}
+          schedulesPath="/admin/listening/schedules"
         />
       </div>
     </div>

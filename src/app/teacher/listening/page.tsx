@@ -6,12 +6,20 @@ import { ListeningSetsListClient } from "@/components/listening/ListeningSetsLis
 export default async function TeacherListeningPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const { data: sets } = await supabase
-    .from("listening_sets")
-    .select("id, title, is_published, created_at")
-    .eq("teacher_id", profile!.id)
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const [{ data: sets }, { data: classes }] = await Promise.all([
+    supabase
+      .from("listening_sets")
+      .select("id, title, is_published, created_at")
+      .eq("teacher_id", profile!.id)
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase
+      .from("classes")
+      .select("id, name")
+      .eq("teacher_id", profile!.id)
+      .eq("is_active", true)
+      .order("name"),
+  ]);
 
   return (
     <div>
@@ -23,6 +31,8 @@ export default async function TeacherListeningPage() {
         <ListeningSetsListClient
           sets={sets ?? []}
           basePath="/teacher/listening"
+          classes={classes ?? []}
+          schedulesPath="/teacher/listening/schedules"
         />
       </div>
     </div>

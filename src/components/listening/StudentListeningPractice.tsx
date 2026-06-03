@@ -36,11 +36,22 @@ interface QuestionDictationStatus {
   attemptCount: number;
 }
 
+interface SchedulePracticeMode {
+  dailyTaskId: string;
+  requireDictationPass: boolean;
+  dictationPassScore: number;
+  initialProgress?: Record<
+    string,
+    { objectiveCompleted: boolean; dictationCompleted: boolean; completed: boolean }
+  >;
+}
+
 interface StudentListeningPracticeProps {
   setId: string;
   setTitle: string;
   questions: StudentListeningQuestion[];
   dictationSettings?: Partial<DictationSetSettings>;
+  scheduleMode?: SchedulePracticeMode;
 }
 
 export function StudentListeningPractice({
@@ -48,20 +59,42 @@ export function StudentListeningPractice({
   setTitle,
   questions,
   dictationSettings: dictationSettingsProp,
+  scheduleMode,
 }: StudentListeningPracticeProps) {
   const dictationSettings: DictationSetSettings = {
     ...DEFAULT_DICTATION_SETTINGS,
     ...dictationSettingsProp,
   };
 
+  const initialObjective = useMemo(() => {
+    const m: Record<string, boolean> = {};
+    if (scheduleMode?.initialProgress) {
+      for (const [qid, p] of Object.entries(scheduleMode.initialProgress)) {
+        if (p.objectiveCompleted) m[qid] = true;
+      }
+    }
+    return m;
+  }, [scheduleMode]);
+
+  const initialDictation = useMemo(() => {
+    const m: Record<string, QuestionDictationStatus> = {};
+    if (scheduleMode?.initialProgress) {
+      for (const [qid, p] of Object.entries(scheduleMode.initialProgress)) {
+        if (p.completed || p.dictationCompleted) {
+          m[qid] = { passed: true, bestScore: null, attemptCount: 1 };
+        }
+      }
+    }
+    return m;
+  }, [scheduleMode]);
+
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [objectiveSubmitted, setObjectiveSubmitted] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [objectiveSubmitted, setObjectiveSubmitted] =
+    useState<Record<string, boolean>>(initialObjective);
   const [dictationByQuestion, setDictationByQuestion] = useState<
     Record<string, QuestionDictationStatus>
-  >({});
+  >(initialDictation);
   const [showScript, setShowScript] = useState(false);
   const [dictationKey, setDictationKey] = useState(0);
   const [dictationPrefetch, setDictationPrefetch] = useState<
@@ -87,7 +120,33 @@ export function StudentListeningPractice({
   const table = q ? normalizeTableData(q.table_data) : null;
   const blankLine = q ? continuationQuestionDisplayText(q.order_index) : null;
 
+  const reportScheduleProgress = useCallback(
+    async (
+      questionId: string,
+      patch: {
+        objectiveCompleted: boolean;
+        dictationCompleted?: boolean;
+        dictationScore?: number;
+      }
+    ) => {
+      if (!scheduleMode) return;
+      await fetch("/api/listening/daily-task/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dailyTaskId: scheduleMode.dailyTaskId,
+          questionId,
+          objectiveCompleted: patch.objectiveCompleted,
+          dictationCompleted: patch.dictationCompleted,
+          dictationScore: patch.dictationScore,
+        }),
+      });
+    },
+    [scheduleMode]
+  );
+
   const loadDictationStatus = useCallback(async () => {
+    if (scheduleMode) return;
     const res = await fetch(`/api/listening/dictation/status?setId=${setId}`);
     const data = (await res.json()) as {
       ok?: boolean;
@@ -101,6 +160,22 @@ export function StudentListeningPractice({
   useEffect(() => {
     void loadDictationStatus();
   }, [loadDictationStatus]);
+
+  useEffect(() => {
+    if (!scheduleMode || questions.length === 0) return;
+    const firstOpen = questions.findIndex((item) => {
+      const p = scheduleMode.initialProgress?.[item.id];
+      if (p?.completed) return false;
+      if (
+        p?.objectiveCompleted &&
+        (!scheduleMode.requireDictationPass || p.dictationCompleted)
+      ) {
+        return false;
+      }
+      return true;
+    });
+    if (firstOpen > 0) setIndex(firstOpen);
+  }, [scheduleMode, questions]);
 
   const warmupDictation = useCallback(
     async (questionId: string) => {
@@ -215,13 +290,24 @@ export function StudentListeningPractice({
     currentDictationPassed,
   ]);
 
+  function isQuestionFullyDone(questionId: string): boolean {
+    if (!objectiveSubmitted[questionId]) return false;
+    if (!dictationRequired) return true;
+    return !!dictationByQuestion[questionId]?.passed;
+  }
+
   function priorQuestionsBlocked(targetIndex: number): boolean {
+    if (scheduleMode) {
+      for (let i = 0; i < targetIndex; i++) {
+        if (!isQuestionFullyDone(questions[i]!.id)) return true;
+      }
+      return false;
+    }
     if (!dictationRequired || !dictationSettings.dictation_lock_next_until_pass) {
       return false;
     }
     for (let i = 0; i < targetIndex; i++) {
-      const item = questions[i]!;
-      if (!dictationByQuestion[item.id]?.passed) return true;
+      if (!isQuestionFullyDone(questions[i]!.id)) return true;
     }
     return false;
   }
@@ -244,22 +330,39 @@ export function StudentListeningPractice({
     pauseObjectiveAudio();
     setObjectiveSubmitted((prev) => ({ ...prev, [q.id]: true }));
     setShowScript(false);
+    if (scheduleMode) {
+      void reportScheduleProgress(q.id, { objectiveCompleted: true });
+      if (!dictationRequired) {
+        setDictationByQuestion((prev) => ({
+          ...prev,
+          [q.id]: { passed: true, bestScore: null, attemptCount: 1 },
+        }));
+      }
+    }
     if (dictationRequired) {
       setDictationKey((k) => k + 1);
       void prefetchDictationStart(q.id);
     }
   }
 
-  function handleDictationPassed() {
+  function handleDictationPassed(dictationScore?: number) {
     setDictationByQuestion((prev) => ({
       ...prev,
       [q.id]: {
         passed: true,
-        bestScore: prev[q.id]?.bestScore ?? null,
+        bestScore: dictationScore ?? prev[q.id]?.bestScore ?? null,
         attemptCount: (prev[q.id]?.attemptCount ?? 0) + 1,
       },
     }));
-    void loadDictationStatus();
+    if (scheduleMode) {
+      void reportScheduleProgress(q.id, {
+        objectiveCompleted: true,
+        dictationCompleted: true,
+        dictationScore: dictationScore ?? scheduleMode.dictationPassScore,
+      });
+    } else {
+      void loadDictationStatus();
+    }
   }
 
   function goPrev() {

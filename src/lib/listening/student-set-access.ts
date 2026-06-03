@@ -25,15 +25,62 @@ export async function isStudentAssignedListeningSet(
     .eq("student_id", studentId);
 
   const classIds = (classLinks ?? []).map((r) => r.class_id as string);
-  if (classIds.length === 0) return false;
 
-  const { data: classAssign } = await supabase
-    .from("listening_assignments")
+  if (classIds.length > 0) {
+    const { data: classAssign } = await supabase
+      .from("listening_assignments")
+      .select("id")
+      .eq("set_id", setId)
+      .in("class_id", classIds)
+      .limit(1)
+      .maybeSingle();
+
+    if (classAssign) return true;
+  }
+
+  const { data: scheduleTask } = await supabase
+    .from("listening_daily_tasks")
     .select("id")
+    .eq("student_id", studentId)
     .eq("set_id", setId)
-    .in("class_id", classIds)
     .limit(1)
     .maybeSingle();
 
-  return !!classAssign;
+  if (scheduleTask) return true;
+
+  const { data: scheduleSets } = await supabase
+    .from("listening_schedule_assignment_sets")
+    .select("assignment_id")
+    .eq("set_id", setId);
+
+  const assignmentIds = (scheduleSets ?? []).map(
+    (r) => r.assignment_id as string
+  );
+  if (assignmentIds.length === 0) return false;
+
+  const { data: directSchedule } = await supabase
+    .from("listening_schedule_assignments")
+    .select("id")
+    .eq("is_active", true)
+    .eq("target_type", "student")
+    .eq("target_student_id", studentId)
+    .in("id", assignmentIds)
+    .limit(1)
+    .maybeSingle();
+
+  if (directSchedule) return true;
+
+  if (classIds.length === 0) return false;
+
+  const { data: classSchedule } = await supabase
+    .from("listening_schedule_assignments")
+    .select("id")
+    .eq("is_active", true)
+    .eq("target_type", "class")
+    .in("target_class_id", classIds)
+    .in("id", assignmentIds)
+    .limit(1)
+    .maybeSingle();
+
+  return !!classSchedule;
 }
