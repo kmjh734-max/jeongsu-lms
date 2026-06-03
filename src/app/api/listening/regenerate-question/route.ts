@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
+import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { generateSingleExamQuestion } from "@/lib/listening/generate-questions";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
@@ -12,8 +13,12 @@ function jsonError(message: string, status = 200) {
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
-    if (!apiKey) return jsonError("OPENAI_API_KEY가 설정되어 있지 않습니다.");
+    let apiKey: string;
+    try {
+      ({ apiKey } = assertListeningOpenAiEnv());
+    } catch (e) {
+      return jsonError(e instanceof Error ? e.message : "OpenAI 설정 오류");
+    }
 
     const body = (await request.json()) as {
       setId?: string;

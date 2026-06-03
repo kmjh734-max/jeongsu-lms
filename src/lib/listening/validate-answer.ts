@@ -1,3 +1,4 @@
+import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import {
   ANSWER_VALIDATION_SYSTEM_PROMPT,
   buildAnswerValidationUserPrompt,
@@ -70,48 +71,21 @@ export async function validateAnswerWithAi(
   q: GeneratedListeningQuestion,
   typeLabel?: string
 ): Promise<AnswerValidationResult> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
+  try {
+    const raw = await listeningChatJson<unknown>(apiKey, {
       temperature: 0.2,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: ANSWER_VALIDATION_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content:
-            q.order_index === 19 || q.order_index === 20
-              ? buildContinuationValidationUserPrompt(q)
-              : buildAnswerValidationUserPrompt(q, typeLabel),
-        },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const bodyText = await response.text();
+      system: ANSWER_VALIDATION_SYSTEM_PROMPT,
+      user:
+        q.order_index === 19 || q.order_index === 20
+          ? buildContinuationValidationUserPrompt(q)
+          : buildAnswerValidationUserPrompt(q, typeLabel),
+    });
+    return parseValidationJson(raw);
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "정답 검수 실패";
     return {
       ...EMPTY,
-      problems: [
-        `정답 검수 API 실패 (HTTP ${response.status}): ${bodyText.slice(0, 120)}`,
-      ],
+      problems: [message.slice(0, 200)],
     };
-  }
-
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) return EMPTY;
-
-  try {
-    return parseValidationJson(JSON.parse(content));
-  } catch {
-    return { ...EMPTY, problems: ["정답 검수 JSON 파싱 실패"] };
   }
 }

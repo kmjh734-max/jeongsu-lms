@@ -67,7 +67,8 @@ const TYPE19_GENERATION_RULES = `
 유형명: 응답 고르기
 지시문: 대화를 듣고, 여자의 마지막 말에 이어질 남자의 말로 가장 적절한 것을 고르시오.
 
-문항 목적: 직전 발화·대화 맥락에 가장 자연스럽게 이어지는 영어 응답 선택.
+문항 목적: **대화 전체 주제/요지가 아니라**, 여자 **마지막 한 줄 발화 직후** 남자가 말할 가장 적절한 **한 줄 응답**만 고르게 한다.
+금지: "대화의 주요 내용", "두 사람이 무엇을 했는지" 같은 전체 요지형 정답·지시.
 
 그림: needs_image_choices=false, visual_choice_type="none"
 
@@ -94,6 +95,7 @@ blank_speaker=M ↔ instruction 남자의 말 ↔ question_text Man:
 `.trim();
 
 const TYPE19_VALIDATION_CRITERIA = `
+생성 전: 마지막 W 발화의 의도(감사/동의/거절/도움 등)를 정하고, 그에 맞는 남자 응답 한 줄만 정답으로 설계한다.
 생성 후 스스로 검수 (19번 전용):
 1. 마지막 segment 화자=W
 2. question_text Man: ______ / blank_speaker M

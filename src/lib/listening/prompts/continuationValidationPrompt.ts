@@ -12,6 +12,7 @@ export function buildContinuationValidationUserPrompt(
   const dr = (q.distractor_reason ?? []).map((d, i) => `${i + 1}. ${d}`).join("\n");
 
   return `19~20번 "응답 고르기" 문항 맥락 검수.
+이 유형은 **마지막 발화 직후 한 줄 응답** 문제이며, **대화 전체 요지/주제** 문제가 아니다.
 
 유형: ${q.order_index}번
 지시문: ${q.instruction}

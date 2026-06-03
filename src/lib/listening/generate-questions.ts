@@ -40,9 +40,11 @@ import {
 import { getListeningSystemPrompt } from "@/lib/listening/prompts/commonPrompt";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import {
-  attachValidationToQuestion,
-  attachValidationToQuestions,
-} from "@/lib/listening/run-question-validation";
+  formatContinuationIntentBlock,
+  planContinuationIntent,
+} from "@/lib/listening/continuation-intent-plan";
+import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
+import { validateAndRepairListeningQuestion } from "@/lib/listening/validate-and-repair";
 import type {
   GeneratedListeningQuestion,
   ListeningGenerationMode,
@@ -251,35 +253,11 @@ async function fetchParsedQuestions(
   examTypes?: ExamTypeTemplate[],
   gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<GeneratedListeningQuestion[]> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      temperature: 0.6,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: getListeningSystemPrompt(gradeLevel) },
-        { role: "user", content: prompt },
-      ],
-    }),
+  const parsed = await listeningChatJson<{ questions?: unknown[] }>(apiKey, {
+    temperature: 0.6,
+    system: getListeningSystemPrompt(gradeLevel),
+    user: prompt,
   });
-
-  if (!response.ok) {
-    const bodyText = await response.text();
-    throw new Error(`OpenAI 문항 생성 실패 (HTTP ${response.status}): ${bodyText.slice(0, 300)}`);
-  }
-
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error("AI 응답이 비어 있습니다.");
-
-  const parsed = JSON.parse(content) as { questions?: unknown[] };
   const list = Array.isArray(parsed.questions) ? parsed.questions : [];
 
   const questions: GeneratedListeningQuestion[] = [];
@@ -324,7 +302,17 @@ export async function generateListeningQuestionsWithAi(
     examTypes,
     gradeLevel
   );
-  const withQuality = await attachValidationToQuestions(apiKey, questions, examTypes);
+  const withQuality = [];
+  for (let i = 0; i < questions.length; i++) {
+    withQuality.push(
+      await validateAndRepairListeningQuestion(
+        apiKey,
+        questions[i]!,
+        examTypes?.[i],
+        gradeLevel
+      )
+    );
+  }
   return { questions: withQuality };
 }
 
@@ -339,17 +327,30 @@ export async function generateSingleExamQuestion(
   const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
 
-  const prompt = buildListeningSingleTypePrompt(
+  let prompt = buildListeningSingleTypePrompt(
     type,
     difficultyMode,
     previousProblems,
     gradeLevel
   );
+  if (typeId === 19 || typeId === 20) {
+    const plan = await planContinuationIntent(
+      apiKey,
+      typeId,
+      previousProblems
+    );
+    prompt = `${formatContinuationIntentBlock(plan)}\n\n${prompt}`;
+  }
   const questions = await fetchParsedQuestions(apiKey, prompt, true, [type], gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
 
-  return attachValidationToQuestion(apiKey, { ...q, order_index: typeId }, type);
+  return validateAndRepairListeningQuestion(
+    apiKey,
+    { ...q, order_index: typeId },
+    type,
+    gradeLevel
+  );
 }
 
 /** 자유 모드 1문항 */
@@ -367,5 +368,10 @@ export async function generateSingleFreeQuestion(
   const questions = await fetchParsedQuestions(apiKey, prompt, false, undefined, gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
-  return attachValidationToQuestion(apiKey, { ...q, order_index: orderIndex });
+  return validateAndRepairListeningQuestion(
+    apiKey,
+    { ...q, order_index: orderIndex },
+    undefined,
+    gradeLevel
+  );
 }

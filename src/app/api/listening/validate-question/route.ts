@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { getExamTypeById } from "@/lib/listening/exam-types";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
-import { runQuestionValidation } from "@/lib/listening/run-question-validation";
+import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
+import { validateAndRepairListeningQuestion } from "@/lib/listening/validate-and-repair";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
@@ -134,8 +135,12 @@ function rowToGenerated(
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
-    if (!apiKey) return jsonError("OPENAI_API_KEY가 설정되어 있지 않습니다.");
+    let apiKey: string;
+    try {
+      ({ apiKey } = assertListeningOpenAiEnv());
+    } catch (e) {
+      return jsonError(e instanceof Error ? e.message : "OpenAI 설정 오류");
+    }
 
     const body = (await request.json()) as {
       setId?: string;
@@ -174,7 +179,12 @@ export async function POST(request: Request) {
 
     const gradeLevel = setId ? await fetchListeningSetGradeLevel(setId) : "middle1";
     const typeHint = getExamTypeById(q.order_index, gradeLevel) ?? undefined;
-    const validation = await runQuestionValidation(apiKey, q, typeHint);
+    const validated = await validateAndRepairListeningQuestion(
+      apiKey,
+      q,
+      typeHint,
+      gradeLevel
+    );
 
     if (body.persist && questionId && setId) {
       const access = await assertListeningSetAccess(setId);
@@ -183,14 +193,14 @@ export async function POST(request: Request) {
       await access.admin
         .from("listening_questions")
         .update({
-          needs_review: validation.needs_review,
-          quality_score: validation.quality_score,
-          answer_clarity_score: validation.answer_clarity_score,
-          quality_issues: validation.quality_issues,
-          answer_validation: validation.answer_validation,
+          needs_review: validated.needs_review,
+          quality_score: validated.quality_score,
+          answer_clarity_score: validated.answer_clarity_score,
+          quality_issues: validated.quality_issues,
+          answer_validation: validated.answer_validation,
           answer_clue:
-            q.answer_clue?.trim() ||
-            validation.answer_validation.answer_clue ||
+            validated.answer_clue?.trim() ||
+            validated.answer_validation.answer_clue ||
             q.answer_clue,
         })
         .eq("id", questionId);
@@ -198,17 +208,18 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
+      question: validated,
       validation: {
-        quality_score: validation.quality_score,
-        answer_clarity_score: validation.answer_clarity_score,
-        is_answer_clear: validation.is_answer_clear,
-        has_multiple_possible_answers: validation.has_multiple_possible_answers,
-        has_answer_clue: validation.has_answer_clue,
-        needs_review: validation.needs_review,
-        problems: validation.problems,
-        suggestions: validation.suggestions,
-        quality_issues: validation.quality_issues,
-        answer_validation: validation.answer_validation,
+        quality_score: validated.quality_score,
+        answer_clarity_score: validated.answer_clarity_score,
+        is_answer_clear: validated.is_answer_clear,
+        has_multiple_possible_answers: validated.has_multiple_possible_answers,
+        has_answer_clue: validated.has_answer_clue,
+        needs_review: validated.needs_review,
+        problems: validated.problems,
+        suggestions: validated.suggestions,
+        quality_issues: validated.quality_issues,
+        answer_validation: validated.answer_validation,
       },
     });
   } catch (e) {

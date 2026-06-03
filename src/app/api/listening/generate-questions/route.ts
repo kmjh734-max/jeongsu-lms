@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
+import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-questions";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
@@ -18,11 +19,11 @@ export async function POST(request: Request) {
       return jsonError("권한이 없습니다.", 403);
     }
 
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
-    if (!apiKey) {
-      return jsonError(
-        "OPENAI_API_KEY가 설정되어 있지 않습니다. .env.local에 키를 추가한 뒤 서버를 재시작해 주세요."
-      );
+    let apiKey: string;
+    try {
+      ({ apiKey } = assertListeningOpenAiEnv());
+    } catch (e) {
+      return jsonError(e instanceof Error ? e.message : "OpenAI 설정 오류");
     }
 
     const body = (await request.json()) as {
