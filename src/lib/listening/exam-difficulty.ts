@@ -178,6 +178,18 @@ export function buildDifficultyRequirementBlock(
     grade === "middle2"
       ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
       : "";
+  if (grade === "middle1") {
+    return `
+## 난이도 (참고 — 중1은 문장·대화 **단어 수**로 저장을 막지 않음)
+- 적용: ${rules.label} (${rules.questionRange})
+- 권장 문장 길이: ${rules.wordsPerSentence}
+- 권장 대화: ${rules.dialogueTurns} / 독백: ${rules.monologueSentences}
+- 어휘: ${rules.vocabulary}
+- 형식 참고: ${rules.extra}
+- 단어 수가 권장보다 길거나 짧아도 문항은 유효. 자연스러운 중1 영어가 우선.
+`.trim();
+  }
+
   return `
 ## 난이도 — 반드시 준수${harderNote}
 - 적용: ${rules.label} (${rules.questionRange})

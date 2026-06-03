@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import {
   GenerationProgress,
   type ItemProgressRow,
@@ -30,7 +30,11 @@ import {
   LISTENING_GRADE_OPTIONS,
   type ListeningGradeLevel,
 } from "@/lib/listening/grade-level";
-import { planGenerationSlots } from "@/lib/listening/generation-slots";
+import {
+  planCustomGenerationSlots,
+  planRandomGenerationSlots,
+  type ListeningGenerationPlanMode,
+} from "@/lib/listening/generation-slots";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
 import {
@@ -67,6 +71,8 @@ export function ListeningSetManageClient({
   const router = useRouter();
   const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
   const [isPublished, setIsPublished] = useState(initialPublished);
+  const [generationPlanMode, setGenerationPlanMode] =
+    useState<ListeningGenerationPlanMode>("custom");
   const [questionCount, setQuestionCount] = useState<5 | 10 | 15 | 20>(5);
   const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
   const [difficultyMode, setDifficultyMode] =
@@ -74,6 +80,10 @@ export function ListeningSetManageClient({
   const [speechPreset, setSpeechPreset] = useState<SpeechSpeedPreset>(
     presetFromSpeed(initialSpeechSpeed)
   );
+
+  useEffect(() => {
+    setSpeechPreset(presetFromSpeed(initialSpeechSpeed));
+  }, [initialSpeechSpeed]);
   const [previewQuestions, setPreviewQuestions] = useState<
     GeneratedListeningQuestion[] | null
   >(null);
@@ -94,15 +104,25 @@ export function ListeningSetManageClient({
     [gradeLevel]
   );
 
-  const generationSlots = useMemo(
-    () =>
-      planGenerationSlots({
-        questionCount,
-        selectedTypeIds,
-        examTypes,
-      }),
-    [questionCount, selectedTypeIds, examTypes]
-  );
+  const generationSlots = useMemo(() => {
+    if (generationPlanMode === "random") {
+      return planRandomGenerationSlots({ questionCount, examTypes });
+    }
+    return planCustomGenerationSlots({
+      questionCount,
+      selectedTypeIds,
+      examTypes,
+    });
+  }, [generationPlanMode, questionCount, selectedTypeIds, examTypes]);
+
+  const plannedQuestionCount = generationSlots.length;
+
+  function confirmReplaceExistingQuestions(actionLabel: string): boolean {
+    if (initialQuestions.length === 0) return true;
+    return window.confirm(
+      `이 세트에 저장된 문항 ${initialQuestions.length}개가 있습니다. ${actionLabel}하면 기존 문항·음원이 삭제되고 새 문항으로 바뀝니다. 계속할까요?`
+    );
+  }
 
   async function saveSpeechSpeed(preset: SpeechSpeedPreset) {
     setSpeechPreset(preset);
@@ -114,8 +134,9 @@ export function ListeningSetManageClient({
     const data = (await res.json()) as { ok?: boolean; message?: string };
     if (data.ok) {
       setMessage(
-        `음성 속도 ${SPEECH_SPEED_MAP[preset]}로 저장되었습니다. 이미 만든 음원은 「음원 생성」을 다시 실행해야 반영됩니다.`
+        `음성 속도 ${SPEECH_SPEED_MAP[preset]}로 저장되었습니다. 반영하려면 「전체 음원 생성」 또는 문항별 「음원 생성」을 다시 실행하세요.`
       );
+      router.refresh();
     } else {
       setMessage(data.message ?? "음성 속도 저장 실패");
     }
@@ -140,16 +161,9 @@ export function ListeningSetManageClient({
 
   function selectQuestionCount(n: 5 | 10 | 15 | 20) {
     setQuestionCount(n);
-    if (selectedTypeIds.length === 1) return;
-    if (selectedTypeIds.length === 0) {
-      setSelectedTypeIds(examTypes.slice(0, n).map((t) => t.id));
-      return;
+    if (selectedTypeIds.length > n) {
+      setSelectedTypeIds((prev) => prev.slice(0, n));
     }
-    setSelectedTypeIds((prev) => {
-      if (prev.length > n) return prev.slice(0, n);
-      const pool = examTypes.map((t) => t.id).filter((id) => !prev.includes(id));
-      return [...prev, ...pool.slice(0, n - prev.length)];
-    });
   }
 
   const resetProgress = useCallback(() => {
@@ -200,6 +214,7 @@ export function ListeningSetManageClient({
 
   async function savePreview() {
     if (!previewQuestions?.length) return;
+    if (!confirmReplaceExistingQuestions("미리보기 문항을 DB에 저장")) return;
     const reviewPending = previewQuestions.filter((q) => q.needs_review).length;
     if (
       reviewPending > 0 &&
@@ -218,33 +233,41 @@ export function ListeningSetManageClient({
       status: "pending",
     }));
 
-    for (let i = 0; i < previewQuestions.length; i++) {
-      items[i]!.status = "saving";
-      setProgressItems([...items]);
-      setProgressPercent(Math.round(((i + 0.5) / previewQuestions.length) * 100));
+    items.forEach((item) => {
+      item.status = "saving";
+    });
+    setProgressItems([...items]);
+    setProgressPercent(50);
 
-      const res = await fetch("/api/listening/generate-questions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ setId, questions: [previewQuestions[i]] }),
+    const res = await fetch("/api/listening/generate-questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        setId,
+        questions: previewQuestions,
+        replaceAll: true,
+      }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      schemaWarning?: string;
+      schemaMigrationNeeded?: boolean;
+    };
+    if (!data.ok) {
+      items.forEach((item) => {
+        item.status = "error";
       });
-      const data = (await res.json()) as {
-        ok?: boolean;
-        message?: string;
-        schemaWarning?: string;
-        schemaMigrationNeeded?: boolean;
-      };
-      if (!data.ok) {
-        items[i]!.status = "error";
-        setBusy(null);
-        resetProgress();
-        setMessage(data.message ?? `${previewQuestions[i]!.order_index}번 저장 실패`);
-        return;
-      }
-      items[i]!.status = "saved";
-      if (data.schemaWarning) {
-        setMessage(data.schemaWarning);
-      }
+      setBusy(null);
+      resetProgress();
+      setMessage(data.message ?? "저장 실패");
+      return;
+    }
+    items.forEach((item) => {
+      item.status = "saved";
+    });
+    if (data.schemaWarning) {
+      setMessage(data.schemaWarning);
     }
 
     setBusy(null);
@@ -259,6 +282,7 @@ export function ListeningSetManageClient({
   }
 
   async function generateAndSave() {
+    if (!confirmReplaceExistingQuestions("문항을 생성·저장")) return;
     setBusy("gen-flow");
     setMessage(null);
     setPreviewQuestions(null);
@@ -491,8 +515,9 @@ export function ListeningSetManageClient({
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>
         <p className="mt-1 text-xs text-slate-500">
-          {gradeLevelShort(gradeLevel)} 영어듣기평가형 권장: 느리게(0.85). ElevenLabs
-          음원 생성 시 적용되며, 문항 텍스트 생성과는 별개입니다.
+          {gradeLevelShort(gradeLevel)} 영어듣기평가형 권장: 느리게(0.85). 저장 후
+          「전체 음원 생성」으로 다시 만들어야 들리는 속도가 바뀝니다. 「최종 mp3만
+          병합」은 기존 줄 음원을 이어붙이므로 속도가 변하지 않습니다.
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {(
@@ -580,6 +605,44 @@ export function ListeningSetManageClient({
             </div>
         </div>
 
+        <div className="mt-3">
+          <p className="text-xs font-medium text-slate-600">생성 방식</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(
+              [
+                {
+                  value: "random" as const,
+                  label: "랜덤 생성",
+                  description: "유형을 고르지 않고 문항 수만큼 무작위 유형 배정",
+                },
+                {
+                  value: "custom" as const,
+                  label: "유형 선택",
+                  description: "5·10·15·20문항 또는 아래에서 유형 직접 선택",
+                },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                disabled={!!busy}
+                onClick={() => {
+                  setGenerationPlanMode(opt.value);
+                  if (opt.value === "random") setSelectedTypeIds([]);
+                }}
+                className={`rounded-lg px-3 py-2 text-left text-xs ${
+                  generationPlanMode === opt.value
+                    ? "border-indigo-400 bg-indigo-50 text-indigo-900"
+                    : "border border-slate-200 bg-white text-slate-700"
+                }`}
+              >
+                <span className="font-medium">{opt.label}</span>
+                <span className="mt-0.5 block text-slate-500">{opt.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-3 flex flex-wrap items-end gap-3">
           <div className="text-sm">
             <span className="font-medium text-slate-700">문항 수</span>
@@ -599,6 +662,15 @@ export function ListeningSetManageClient({
                 </button>
               ))}
             </div>
+            <p className="mt-1 text-xs text-slate-500">
+              {generationPlanMode === "random"
+                ? `실제 생성: ${plannedQuestionCount}문항 (유형 무작위)`
+                : selectedTypeIds.length === 1
+                  ? `실제 생성: ${plannedQuestionCount}문항 (유형 ${selectedTypeIds[0]}번 × ${plannedQuestionCount})`
+                  : selectedTypeIds.length > 0
+                    ? `실제 생성: ${plannedQuestionCount}문항 (선택 유형 ${selectedTypeIds.length}개)`
+                    : `실제 생성: ${plannedQuestionCount}문항 (1~${plannedQuestionCount}번 유형 순서)`}
+            </p>
           </div>
           <button
             type="button"
@@ -618,10 +690,11 @@ export function ListeningSetManageClient({
           </button>
         </div>
 
-        <div className="mt-4 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
+        {generationPlanMode === "custom" && (
+          <div className="mt-4 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
             <p className="mb-2 text-xs font-medium text-slate-600">
               유형 선택 — 비우면 1~{questionCount}번 유형 순서 · 유형 1개만 고르면 같은
-              유형 {questionCount}문항
+              유형 {questionCount}문항 · 여러 개 고르면 선택한 개수만큼만 생성
             </p>
             <div className="grid gap-1 sm:grid-cols-2">
               {examTypes.map((t) => (
@@ -639,7 +712,8 @@ export function ListeningSetManageClient({
                 </label>
               ))}
             </div>
-        </div>
+          </div>
+        )}
 
         {(busy === "preview" || busy === "gen-flow" || busy === "save" || isAudioBusy) &&
           (progressItems.length > 0 || progressPercent > 0) && (

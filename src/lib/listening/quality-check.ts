@@ -1,4 +1,5 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { QUALITY_PASS_THRESHOLD } from "@/lib/listening/prompts/qualityCheckPrompt";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { normalizeTableData } from "@/lib/listening/table-data";
@@ -200,7 +201,8 @@ function defaultIssueWeight(code: string): number {
 
 export function checkListeningQuestionQuality(
   q: GeneratedListeningQuestion,
-  typeHint?: ExamTypeTemplate
+  typeHint?: ExamTypeTemplate,
+  gradeLevel: ListeningGradeLevel = "middle1"
 ): QualityCheckResult {
   const issues: QualityIssue[] = [];
 
@@ -227,14 +229,17 @@ export function checkListeningQuestionQuality(
   }
 
   const typeId = typeHint?.id ?? q.order_index;
-  const totalWords = totalScriptWords(q);
   const isMonologue = MONOLOGUE_TYPE_IDS.has(typeId);
+  const skipWordCountRules = gradeLevel === "middle1";
 
-  if (totalWords < 50 || totalWords > 95) {
-    issues.push({
-      code: "word_count",
-      message: `대본 단어 수가 기준(55~90)을 벗어납니다 (${totalWords}단어).`,
-    });
+  if (!skipWordCountRules) {
+    const totalWords = totalScriptWords(q);
+    if (totalWords < 50 || totalWords > 95) {
+      issues.push({
+        code: "word_count",
+        message: `대본 단어 수가 기준(55~90)을 벗어납니다 (${totalWords}단어).`,
+      });
+    }
   }
 
   const turnCount = q.segments.length;
@@ -259,20 +264,22 @@ export function checkListeningQuestionQuality(
     });
   }
 
-  const longCount = longSentenceCount(q, 13);
-  if (longCount > 0) {
-    issues.push({
-      code: "long_sentences",
-      message: `13단어를 넘는 문장이 ${longCount}개 있습니다 (문장당 6~13단어 권장).`,
-    });
-  }
+  if (!skipWordCountRules) {
+    const longCount = longSentenceCount(q, 13);
+    if (longCount > 0) {
+      issues.push({
+        code: "long_sentences",
+        message: `13단어를 넘는 문장이 ${longCount}개 있습니다 (문장당 6~13단어 권장).`,
+      });
+    }
 
-  const shortCount = q.segments.filter((s) => wordCount(s.text) < 5).length;
-  if (shortCount > Math.floor(q.segments.length / 2)) {
-    issues.push({
-      code: "short_sentences",
-      message: "문장이 너무 짧습니다 (6~13단어 권장).",
-    });
+    const shortCount = q.segments.filter((s) => wordCount(s.text) < 5).length;
+    if (shortCount > Math.floor(q.segments.length / 2)) {
+      issues.push({
+        code: "short_sentences",
+        message: "문장이 너무 짧습니다 (6~13단어 권장).",
+      });
+    }
   }
 
   for (const seg of q.segments) {

@@ -60,19 +60,20 @@ export async function generateElevenLabsSpeechSegment(
     throw new Error(`ElevenLabs ${opts.speaker} voice_id가 비어 있습니다.`);
   }
 
+  // ElevenLabs는 speed를 voice_settings 안에 넣어야 적용됨 (최상위 body.speed는 무시됨)
   const speed =
     typeof opts.speed === "number" && opts.speed > 0
       ? clampSpeed(opts.speed)
-      : undefined;
+      : 1.0;
 
   const body: Record<string, unknown> = {
     text: spoken,
     model_id: ELEVENLABS_TTS_MODEL,
-    voice_settings: { ...ELEVENLABS_VOICE_SETTINGS },
+    voice_settings: {
+      ...ELEVENLABS_VOICE_SETTINGS,
+      speed,
+    },
   };
-  if (speed != null) {
-    body.speed = speed;
-  }
 
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}`,

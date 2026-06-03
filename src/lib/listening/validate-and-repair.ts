@@ -32,7 +32,12 @@ export async function validateAndRepairListeningQuestion(
   let current = applyQuestionFixes(q, typeHint?.id ?? q.order_index);
 
   for (let attempt = 0; attempt <= MAX_REPAIR_ATTEMPTS; attempt++) {
-    const validated = await attachValidationToQuestion(apiKey, current, typeHint);
+    const validated = await attachValidationToQuestion(
+      apiKey,
+      current,
+      typeHint,
+      gradeLevel
+    );
     if (!shouldAttemptRepair(validated) || attempt === MAX_REPAIR_ATTEMPTS) {
       return validated;
     }
@@ -60,5 +65,5 @@ export async function validateAndRepairListeningQuestion(
     current = repaired;
   }
 
-  return attachValidationToQuestion(apiKey, current, typeHint);
+  return attachValidationToQuestion(apiKey, current, typeHint, gradeLevel);
 }

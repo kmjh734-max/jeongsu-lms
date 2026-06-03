@@ -124,33 +124,37 @@ export async function generateQuestionsSequential(opts: {
     onProgress(generationProgressPercent("saving", 0, total), "saving", items);
     for (let i = 0; i < questions.length; i++) {
       items[i]!.status = "saving";
-      onProgress(generationProgressPercent("saving", i, total), "saving", [...items]);
-
-      const res = await fetch("/api/listening/generate-questions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ setId, questions: [questions[i]] }),
-      });
-      const data = (await res.json()) as {
-        ok?: boolean;
-        message?: string;
-        schemaWarning?: string;
-        schemaMigrationNeeded?: boolean;
-      };
-      if (!data.ok) {
-        items[i]!.status = "error";
-        items[i]!.message = data.message ?? "저장 실패";
-        return {
-          questions,
-          reviewCount: questions.filter((q) => q.needs_review).length,
-          error: data.message ?? `${questions[i]!.order_index}번 저장 실패`,
-        };
-      }
-      if (data.schemaMigrationNeeded && data.schemaWarning) {
-        schemaWarning = data.schemaWarning;
-      }
-      items[i]!.status = "saved";
     }
+    onProgress(generationProgressPercent("saving", 0, total), "saving", [...items]);
+
+    const res = await fetch("/api/listening/generate-questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId, questions, replaceAll: true }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      schemaWarning?: string;
+      schemaMigrationNeeded?: boolean;
+    };
+    if (!data.ok) {
+      items.forEach((item) => {
+        item.status = "error";
+        item.message = data.message ?? "저장 실패";
+      });
+      return {
+        questions,
+        reviewCount: questions.filter((q) => q.needs_review).length,
+        error: data.message ?? "문항 저장 실패",
+      };
+    }
+    if (data.schemaMigrationNeeded && data.schemaWarning) {
+      schemaWarning = data.schemaWarning;
+    }
+    items.forEach((item) => {
+      item.status = "saved";
+    });
   }
 
   onProgress(100, "done", items);

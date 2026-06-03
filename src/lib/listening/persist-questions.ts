@@ -111,9 +111,39 @@ function buildQuestionRow(
   };
 }
 
+/** 세트의 기존 문항·segment·음원 메타 일괄 삭제 (cascade) */
+export async function clearListeningQuestionsForSet(
+  setId: string
+): Promise<void> {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("listening_questions")
+    .delete()
+    .eq("set_id", setId);
+  if (error) throw new Error(error.message);
+}
+
+async function findQuestionIdByOrderIndex(
+  admin: ReturnType<typeof createAdminClient>,
+  setId: string,
+  orderIndex: number
+): Promise<string | null> {
+  const { data, error } = await admin
+    .from("listening_questions")
+    .select("id")
+    .eq("set_id", setId)
+    .eq("order_index", orderIndex)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.id ?? null;
+}
+
 export async function persistGeneratedQuestions(
   setId: string,
-  questions: GeneratedListeningQuestion[]
+  questions: GeneratedListeningQuestion[],
+  opts?: { replaceAll?: boolean }
 ): Promise<
   Array<
     GeneratedListeningQuestion & {
@@ -124,6 +154,11 @@ export async function persistGeneratedQuestions(
   >
 > {
   const admin = createAdminClient();
+
+  if (opts?.replaceAll) {
+    await clearListeningQuestionsForSet(setId);
+  }
+
   const saved: Array<
     GeneratedListeningQuestion & {
       id: string;
@@ -133,6 +168,17 @@ export async function persistGeneratedQuestions(
   > = [];
 
   for (const raw of questions) {
+    if (!opts?.replaceAll) {
+      const existingId = await findQuestionIdByOrderIndex(
+        admin,
+        setId,
+        raw.order_index
+      );
+      if (existingId) {
+        saved.push(await replaceGeneratedQuestion(setId, existingId, raw));
+        continue;
+      }
+    }
     saved.push(await insertOneQuestion(admin, setId, raw));
   }
 

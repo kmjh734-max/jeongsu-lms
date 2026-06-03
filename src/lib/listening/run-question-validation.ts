@@ -1,4 +1,5 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { ANSWER_CLARITY_PASS_THRESHOLD } from "@/lib/listening/prompts/answerValidationPrompt";
 import { RESPONSE_CONTEXT_PASS_THRESHOLD } from "@/lib/listening/prompts/continuationValidationPrompt";
 import { QUALITY_PASS_THRESHOLD } from "@/lib/listening/prompts/qualityCheckPrompt";
@@ -65,9 +66,13 @@ export async function runQuestionValidation(
   apiKey: string,
   q: GeneratedListeningQuestion,
   typeHint?: ExamTypeTemplate,
-  options?: { skipAi?: boolean }
+  options?: { skipAi?: boolean; gradeLevel?: ListeningGradeLevel }
 ): Promise<QuestionValidationPayload> {
-  const rule = checkListeningQuestionQuality(q, typeHint);
+  const rule = checkListeningQuestionQuality(
+    q,
+    typeHint,
+    options?.gradeLevel ?? "middle1"
+  );
   const answer_validation = options?.skipAi
     ? ({
         is_answer_clear: !!q.answer_clue?.trim(),
@@ -120,9 +125,10 @@ export type ValidatedListeningQuestion = GeneratedListeningQuestion &
 export async function attachValidationToQuestion(
   apiKey: string,
   q: GeneratedListeningQuestion,
-  typeHint?: ExamTypeTemplate
+  typeHint?: ExamTypeTemplate,
+  gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<ValidatedListeningQuestion> {
-  const v = await runQuestionValidation(apiKey, q, typeHint);
+  const v = await runQuestionValidation(apiKey, q, typeHint, { gradeLevel });
   const answer_clue =
     q.answer_clue?.trim() || v.answer_validation.answer_clue.trim() || q.answer_clue;
 
@@ -145,12 +151,18 @@ export async function attachValidationToQuestion(
 export async function attachValidationToQuestions(
   apiKey: string,
   questions: GeneratedListeningQuestion[],
-  types?: ExamTypeTemplate[]
+  types?: ExamTypeTemplate[],
+  gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<ValidatedListeningQuestion[]> {
   const out: ValidatedListeningQuestion[] = [];
   for (let i = 0; i < questions.length; i++) {
     out.push(
-      await attachValidationToQuestion(apiKey, questions[i]!, types?.[i])
+      await attachValidationToQuestion(
+        apiKey,
+        questions[i]!,
+        types?.[i],
+        gradeLevel
+      )
     );
   }
   return out;

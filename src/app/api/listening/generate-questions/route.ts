@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       selectedTypeIds?: number[];
       difficultyMode?: ListeningDifficultyMode;
       questions?: GeneratedListeningQuestion[];
+      replaceAll?: boolean;
     };
 
     const setId = body.setId?.trim();
@@ -63,7 +64,9 @@ export async function POST(request: Request) {
     }
 
     if (Array.isArray(body.questions) && body.questions.length > 0) {
-      const saved = await persistGeneratedQuestions(setId, body.questions);
+      const saved = await persistGeneratedQuestions(setId, body.questions, {
+        replaceAll: body.replaceAll === true,
+      });
       const schemaMigrationNeeded = saved.some((q) => q.schema_extended_saved === false);
       return NextResponse.json({
         ok: true,
@@ -91,7 +94,9 @@ export async function POST(request: Request) {
 
     const persist = body.persist !== false;
     if (persist) {
-      const saved = await persistGeneratedQuestions(setId, generated);
+      const saved = await persistGeneratedQuestions(setId, generated, {
+        replaceAll: true,
+      });
       const schemaMigrationNeeded = saved.some((q) => q.schema_extended_saved === false);
       return NextResponse.json({
         ok: true,
