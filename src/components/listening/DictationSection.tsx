@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { DictationBlankItemClient } from "@/lib/listening/dictation/types";
 import type { DictationBlankScoreResult } from "@/lib/listening/dictation/types";
 
 type DictationUiState =
-  | "idle"
   | "loading"
   | "ready"
+  | "error"
   | "submitting"
   | "submitted_pass"
   | "submitted_fail";
@@ -29,7 +29,7 @@ export function DictationSection({
   enabled,
   onPassed,
 }: DictationSectionProps) {
-  const [uiState, setUiState] = useState<DictationUiState>("idle");
+  const [uiState, setUiState] = useState<DictationUiState>("loading");
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [blankItems, setBlankItems] = useState<DictationBlankItemClient[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -37,43 +37,55 @@ export function DictationSection({
   const [results, setResults] = useState<DictationBlankScoreResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const loadGeneration = useRef(0);
 
-  const loadBlanks = useCallback(async () => {
-    if (!enabled) return;
-    setUiState("loading");
-    setError(null);
-    setResults([]);
-    setScore(null);
+  const loadBlanks = useCallback(
+    async (opts?: { retry?: boolean }) => {
+      if (!enabled) return;
+      const gen = ++loadGeneration.current;
+      setUiState("loading");
+      setError(null);
+      setResults([]);
+      setScore(null);
 
-    const res = await fetch("/api/listening/dictation/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId, questionId }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      attemptId?: string;
-      blankItems?: DictationBlankItemClient[];
-    };
+      const url = opts?.retry
+        ? "/api/listening/dictation/generate"
+        : "/api/listening/dictation/start";
 
-    if (!data.ok || !data.attemptId || !data.blankItems?.length) {
-      setError(data.message ?? "Dictation을 불러오지 못했습니다.");
-      setUiState("idle");
-      return;
-    }
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ setId, questionId }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        message?: string;
+        attemptId?: string;
+        blankItems?: DictationBlankItemClient[];
+      };
 
-    setAttemptId(data.attemptId);
-    setBlankItems(data.blankItems);
-    setAnswers({});
-    setUiState("ready");
-  }, [enabled, setId, questionId]);
+      if (gen !== loadGeneration.current) return;
+
+      if (!data.ok || !data.attemptId || !data.blankItems?.length) {
+        setError(
+          data.message ??
+            "Dictation을 불러오지 못했습니다. 선생님에게 Dictation 미리 생성을 요청하세요."
+        );
+        setUiState("error");
+        return;
+      }
+
+      setAttemptId(data.attemptId);
+      setBlankItems(data.blankItems);
+      setAnswers({});
+      setUiState("ready");
+    },
+    [enabled, setId, questionId]
+  );
 
   useEffect(() => {
-    if (enabled && uiState === "idle") {
-      void loadBlanks();
-    }
-  }, [enabled, uiState, loadBlanks]);
+    if (enabled) void loadBlanks();
+  }, [enabled, questionId, loadBlanks]);
 
   async function handleSubmit() {
     if (!attemptId) return;
@@ -115,8 +127,7 @@ export function DictationSection({
   }
 
   async function handleRetry() {
-    setUiState("idle");
-    await loadBlanks();
+    await loadBlanks({ retry: true });
   }
 
   if (!enabled) return null;
@@ -169,13 +180,24 @@ export function DictationSection({
       )}
 
       {uiState === "loading" && (
-        <p className="mt-4 text-sm text-violet-700">Dictation 문항 준비 중…</p>
+        <p className="mt-4 text-sm text-violet-700">Dictation 불러오는 중…</p>
       )}
 
       {error && (
-        <p className="mt-3 text-sm text-red-600" role="alert">
-          {error}
-        </p>
+        <div className="mt-3 space-y-2">
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+          {uiState === "error" && (
+            <button
+              type="button"
+              onClick={() => void loadBlanks()}
+              className="rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-xs font-medium text-violet-800"
+            >
+              다시 불러오기
+            </button>
+          )}
+        </div>
       )}
 
       {(uiState === "ready" ||
@@ -240,7 +262,9 @@ export function DictationSection({
                     <li
                       key={r.id}
                       className={`rounded border px-2 py-1.5 text-xs ${
-                        r.isCorrect ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"
+                        r.isCorrect
+                          ? "border-emerald-200 bg-emerald-50"
+                          : "border-red-200 bg-red-50"
                       }`}
                     >
                       <span className="font-medium">{r.id}</span>
@@ -256,7 +280,7 @@ export function DictationSection({
             {uiState === "submitted_fail" && (
               <button
                 type="button"
-                onClick={handleRetry}
+                onClick={() => void handleRetry()}
                 className="rounded-lg border border-violet-400 bg-white px-4 py-2 text-sm font-medium text-violet-800"
               >
                 다시 하기 (빈칸 새로 생성)

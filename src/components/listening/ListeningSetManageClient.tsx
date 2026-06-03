@@ -132,6 +132,29 @@ export function ListeningSetManageClient({
     );
   }
 
+  async function prebuildDictation() {
+    setBusy("dictation-prebuild");
+    setMessage(null);
+    const res = await fetch("/api/listening/dictation/prebuild-set", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      prepared?: number;
+      failed?: number;
+    };
+    setBusy(null);
+    if (!data.ok) {
+      setMessage(data.message ?? "Dictation 미리 생성 실패");
+      return;
+    }
+    setMessage(data.message ?? "Dictation 미리 생성 완료");
+    router.refresh();
+  }
+
   async function saveDictationSettings(patch: Partial<DictationSetSettings>) {
     const next = { ...dictation, ...patch };
     setDictation(next);
@@ -614,6 +637,22 @@ export function ListeningSetManageClient({
           />
           통과 전 다음 문제 잠금
         </label>
+        {dictation.dictation_enabled && initialQuestions.length > 0 && (
+          <button
+            type="button"
+            disabled={!!busy}
+            onClick={() => void prebuildDictation()}
+            className="mt-3 rounded-lg border border-violet-300 bg-violet-50 px-4 py-2 text-sm font-medium text-violet-900 disabled:opacity-50"
+          >
+            {busy === "dictation-prebuild"
+              ? "Dictation 미리 생성 중…"
+              : `Dictation 미리 생성 (${initialQuestions.length}문항)`}
+          </button>
+        )}
+        <p className="mt-1 text-xs text-slate-500">
+          문항 저장 시에도 백그라운드로 생성됩니다. 학생 화면은 객관식 제출 후에만
+          표시됩니다.
+        </p>
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4">

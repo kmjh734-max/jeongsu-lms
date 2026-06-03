@@ -4,6 +4,11 @@ import { buildScriptText } from "@/lib/listening/script-text";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
+import { prebuildDictationForQuestion } from "@/lib/listening/dictation/prebuild-question";
+
+function scheduleDictationPrebuild(questionId: string) {
+  void prebuildDictationForQuestion(questionId).catch(() => undefined);
+}
 
 const MIGRATION_HINT =
   "Supabase SQL Editor에서 supabase/migrations/RUN_LISTENING_027_THROUGH_036.sql (및 037~048)을 실행해 주세요.";
@@ -222,6 +227,7 @@ async function insertOneQuestion(
   }
 
   const segments = await insertSegments(admin, questionRow.id, q.segments);
+  scheduleDictationPrebuild(questionRow.id);
 
   return {
     ...q,
@@ -311,6 +317,7 @@ export async function replaceGeneratedQuestion(
   }
 
   const segments = await insertSegments(admin, questionId, q.segments);
+  scheduleDictationPrebuild(questionId);
 
   return {
     ...q,

@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-questions";
+import { prebuildDictationForSet } from "@/lib/listening/dictation/prebuild-question";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
       const saved = await persistGeneratedQuestions(setId, body.questions, {
         replaceAll: body.replaceAll === true,
       });
+      void prebuildDictationForSet(setId).catch(() => undefined);
       const schemaMigrationNeeded = saved.some((q) => q.schema_extended_saved === false);
       return NextResponse.json({
         ok: true,
