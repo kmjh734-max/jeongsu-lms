@@ -8,7 +8,7 @@ import {
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import {
   assertStudentListeningQuestionAccess,
-  stripBlankAnswersForClient,
+  formatDictationStartResponse,
 } from "@/lib/listening/dictation/student-access";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
 
@@ -74,9 +74,11 @@ export async function POST(request: Request) {
       const items = openAttempt.blank_items as DictationBlankItem[];
       return NextResponse.json({
         ok: true,
-        attemptId: openAttempt.id,
+        ...formatDictationStartResponse(openAttempt.id, items, {
+          question,
+          segments,
+        }),
         attemptNo: openAttempt.attempt_no,
-        blankItems: stripBlankAnswersForClient(items),
         resumed: true,
       });
     }
@@ -166,9 +168,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      attemptId: inserted.id,
+      ...formatDictationStartResponse(inserted.id, items, {
+        question,
+        segments,
+      }),
       attemptNo: inserted.attempt_no,
-      blankItems: stripBlankAnswersForClient(items),
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Dictation 생성 오류";

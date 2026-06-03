@@ -1,4 +1,5 @@
 import { blankCountRange } from "@/lib/listening/dictation/blank-level";
+import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
 import type {
   DictationBlankItem,
   DictationBlankLevel,
@@ -53,23 +54,6 @@ const SKIP_WORDS = new Set([
   "let's",
 ]);
 
-export interface SpokenLine {
-  speaker: "M" | "W";
-  text: string;
-}
-
-function parseScriptLines(scriptText: string): SpokenLine[] {
-  const lines: SpokenLine[] = [];
-  for (const raw of scriptText.split(/\n+/)) {
-    const m = raw.match(/^(M|W)\s*:\s*(.+)$/i);
-    if (!m) continue;
-    const text = m[2]!.trim();
-    if (text.length < 12) continue;
-    lines.push({ speaker: m[1]!.toUpperCase() as "M" | "W", text });
-  }
-  return lines;
-}
-
 function wordCandidates(line: string): Array<{ word: string; importance: number }> {
   const tokens = line.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) ?? [];
   const out: Array<{ word: string; importance: number }> = [];
@@ -98,19 +82,10 @@ export function buildFallbackDictationBlanks(opts: {
   previousBlankWords?: string[];
   answerClue?: string;
 }): DictationBlankItem[] {
-  const spoken: SpokenLine[] = [];
-  if (opts.segments?.length) {
-    for (const seg of opts.segments) {
-      const sp = seg.speaker.toUpperCase();
-      if (sp !== "M" && sp !== "W") continue;
-      const text = seg.text.trim();
-      if (text.length < 12) continue;
-      spoken.push({ speaker: sp, text });
-    }
-  }
-  if (!spoken.length && opts.scriptText) {
-    spoken.push(...parseScriptLines(opts.scriptText));
-  }
+  const spoken = collectSpokenLines({
+    scriptText: opts.scriptText,
+    segments: opts.segments,
+  });
 
   const avoid = new Set(
     (opts.previousBlankWords ?? []).map((w) => normalizeDictationText(w))
@@ -140,17 +115,19 @@ export function buildFallbackDictationBlanks(opts: {
   const { min, max } = blankCountRange(opts.blankLevel, spoken.length);
   const target = Math.min(max, Math.max(min, pool.length));
   const usedWords = new Set<string>();
-  const usedSentences = new Set<string>();
+  const blanksPerSentence = new Map<string, number>();
   const items: DictationBlankItem[] = [];
 
   for (const p of pool) {
     if (items.length >= target) break;
     const wKey = normalizeDictationText(p.word);
     if (usedWords.has(wKey)) continue;
-    if (usedSentences.has(p.sentence) && items.length >= min) continue;
+    const sentenceKey = normalizeDictationText(p.sentence);
+    const countInSentence = blanksPerSentence.get(sentenceKey) ?? 0;
+    if (countInSentence >= 2 && items.length >= min) continue;
 
     usedWords.add(wKey);
-    usedSentences.add(p.sentence);
+    blanksPerSentence.set(sentenceKey, countInSentence + 1);
     const id = `blank_${items.length + 1}`;
     items.push({
       id,

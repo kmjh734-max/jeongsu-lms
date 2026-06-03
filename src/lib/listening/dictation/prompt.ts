@@ -6,7 +6,8 @@ export function buildDictationSystemPrompt(): string {
 무의미한 관사(a, an, the), 대명사만, be동사만 빈칸으로 만들지 마라.
 ANN 안내문은 제외한다. M/W 대화·담화만 사용한다.
 정답 단서·핵심 정보·문항 유형과 관련 표현을 우선한다.
-전체 문맥은 유지하고 display_sentence에 speaker 접두(M: / W:)를 붙인다.
+M/W 대본의 모든 문장이 화면에 보이도록, 빈칸 없는 문장도 그대로 포함한다.
+display_sentence는 한 문장 단위이며 speaker 접두(M: / W:)를 붙인다.
 반드시 JSON만 출력한다.`;
 }
 

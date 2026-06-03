@@ -8,6 +8,13 @@ import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text
 
 const VARIANT_COUNT = 2;
 
+export type PrebuildDictationOptions = {
+  /** false면 1차 빈칸만 저장 (학생 대기 시간 단축) */
+  includeVariants?: boolean;
+  /** true면 기존 빈칸이 있어도 다시 생성 */
+  force?: boolean;
+};
+
 async function generateBlankSet(opts: {
   apiKey?: string;
   questionType: string;
@@ -48,8 +55,11 @@ function wordsFromItems(items: DictationBlankItem[]): string[] {
 
 /** 문항 Dictation 빈칸 미리 생성 → listening_questions에 저장 */
 export async function prebuildDictationForQuestion(
-  questionId: string
-): Promise<{ ok: boolean; message?: string; itemCount?: number }> {
+  questionId: string,
+  opts?: PrebuildDictationOptions
+): Promise<{ ok: boolean; message?: string; itemCount?: number; cached?: boolean }> {
+  const includeVariants = opts?.includeVariants ?? false;
+  const force = opts?.force ?? false;
   const admin = createAdminClient();
 
   const { data: question, error: qErr } = await admin
@@ -60,6 +70,11 @@ export async function prebuildDictationForQuestion(
 
   if (qErr || !question) {
     return { ok: false, message: qErr?.message ?? "문항 없음" };
+  }
+
+  const existing = question.dictation_blank_items;
+  if (!force && Array.isArray(existing) && existing.length > 0) {
+    return { ok: true, itemCount: existing.length, cached: true };
   }
 
   const { data: setRow } = await admin
@@ -121,20 +136,22 @@ export async function prebuildDictationForQuestion(
   }
 
   const variants: DictationBlankItem[][] = [];
-  let avoid = wordsFromItems(primary);
-  for (let i = 0; i < VARIANT_COUNT; i++) {
-    const variant = await generateBlankSet({
-      apiKey,
-      questionType: (question.question_type as string) ?? "",
-      scriptText,
-      segments: segList,
-      answerClue: (question.answer_clue as string) ?? "",
-      blankLevel: settings.dictation_blank_level,
-      previousBlankWords: avoid,
-    });
-    if (variant.length > 0) {
-      variants.push(variant);
-      avoid = [...avoid, ...wordsFromItems(variant)];
+  if (includeVariants) {
+    let avoid = wordsFromItems(primary);
+    for (let i = 0; i < VARIANT_COUNT; i++) {
+      const variant = await generateBlankSet({
+        apiKey,
+        questionType: (question.question_type as string) ?? "",
+        scriptText,
+        segments: segList,
+        answerClue: (question.answer_clue as string) ?? "",
+        blankLevel: settings.dictation_blank_level,
+        previousBlankWords: avoid,
+      });
+      if (variant.length > 0) {
+        variants.push(variant);
+        avoid = [...avoid, ...wordsFromItems(variant)];
+      }
     }
   }
 
@@ -160,30 +177,64 @@ export async function prebuildDictationForQuestion(
   return { ok: true, itemCount: primary.length };
 }
 
-export async function prebuildDictationForSet(
-  setId: string
-): Promise<{ ok: number; failed: number; messages: string[] }> {
+/** 아직 빈칸이 없는 문항만 자동 생성 (버튼 없이 백그라운드용) */
+export async function ensureDictationPreparedForSet(
+  setId: string,
+  opts?: PrebuildDictationOptions
+): Promise<{ ok: number; skipped: number; failed: number; messages: string[] }> {
   const admin = createAdminClient();
+  const { data: setRow } = await admin
+    .from("listening_sets")
+    .select("dictation_enabled")
+    .eq("id", setId)
+    .maybeSingle();
+
+  if (!setRow?.dictation_enabled) {
+    return { ok: 0, skipped: 0, failed: 0, messages: [] };
+  }
+
   const { data: questions } = await admin
     .from("listening_questions")
-    .select("id")
+    .select("id, dictation_blank_items")
     .eq("set_id", setId)
     .order("order_index", { ascending: true });
 
   let ok = 0;
+  let skipped = 0;
   let failed = 0;
   const messages: string[] = [];
 
   for (const q of questions ?? []) {
-    const result = await prebuildDictationForQuestion(q.id as string);
-    if (result.ok && (result.itemCount ?? 0) > 0) ok++;
+    const existing = q.dictation_blank_items;
+    if (
+      !opts?.force &&
+      Array.isArray(existing) &&
+      existing.length > 0
+    ) {
+      skipped++;
+      continue;
+    }
+
+    const result = await prebuildDictationForQuestion(q.id as string, opts);
+    if (result.ok && ((result.itemCount ?? 0) > 0 || result.cached)) ok++;
     else {
       failed++;
       if (result.message) messages.push(result.message);
     }
   }
 
-  return { ok, failed, messages };
+  return { ok, skipped, failed, messages };
+}
+
+/** 세트 전체 Dictation 미리 생성 (재시도용 variant 포함) */
+export async function prebuildDictationForSet(
+  setId: string
+): Promise<{ ok: number; failed: number; messages: string[] }> {
+  const result = await ensureDictationPreparedForSet(setId, {
+    includeVariants: true,
+    force: true,
+  });
+  return { ok: result.ok, failed: result.failed, messages: result.messages };
 }
 
 export function pickPreparedBlankItems(

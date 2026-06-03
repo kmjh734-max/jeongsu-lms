@@ -1,13 +1,33 @@
+import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
 import { buildScriptText } from "@/lib/listening/script-text";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
-import { prebuildDictationForQuestion } from "@/lib/listening/dictation/prebuild-question";
+import {
+  ensureDictationPreparedForSet,
+  prebuildDictationForQuestion,
+} from "@/lib/listening/dictation/prebuild-question";
 
-function scheduleDictationPrebuild(questionId: string) {
-  void prebuildDictationForQuestion(questionId).catch(() => undefined);
+export function scheduleDictationPrebuild(
+  questionId: string,
+  opts?: { force?: boolean }
+) {
+  after(() => {
+    void prebuildDictationForQuestion(questionId, {
+      includeVariants: false,
+      force: opts?.force,
+    }).catch(() => undefined);
+  });
+}
+
+export function scheduleDictationEnsureForSet(setId: string) {
+  after(() => {
+    void ensureDictationPreparedForSet(setId, { includeVariants: false }).catch(
+      () => undefined
+    );
+  });
 }
 
 const MIGRATION_HINT =
@@ -187,6 +207,10 @@ export async function persistGeneratedQuestions(
     saved.push(await insertOneQuestion(admin, setId, raw));
   }
 
+  if (saved.length > 0) {
+    scheduleDictationEnsureForSet(setId);
+  }
+
   return saved;
 }
 
@@ -227,7 +251,7 @@ async function insertOneQuestion(
   }
 
   const segments = await insertSegments(admin, questionRow.id, q.segments);
-  scheduleDictationPrebuild(questionRow.id);
+  scheduleDictationPrebuild(questionRow.id, { force: true });
 
   return {
     ...q,
@@ -317,7 +341,7 @@ export async function replaceGeneratedQuestion(
   }
 
   const segments = await insertSegments(admin, questionId, q.segments);
-  scheduleDictationPrebuild(questionId);
+  scheduleDictationPrebuild(questionId, { force: true });
 
   return {
     ...q,
@@ -361,4 +385,6 @@ export async function replaceQuestionSegments(
     .from("listening_questions")
     .update({ script_text, audio_url: null })
     .eq("id", questionId);
+
+  scheduleDictationPrebuild(questionId, { force: true });
 }

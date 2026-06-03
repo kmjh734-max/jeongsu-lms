@@ -22,6 +22,23 @@ export interface DictationBlankItemClient {
   display_sentence: string;
 }
 
+export interface DictationPassageLineClient {
+  speaker: string;
+  text: string;
+  blankIds: string[];
+}
+
+export interface DictationBlankInputClient {
+  id: string;
+  label: string;
+}
+
+export interface DictationStartPayloadClient {
+  attemptId: string;
+  passageLines: DictationPassageLineClient[];
+  blanks: DictationBlankInputClient[];
+}
+
 export interface DictationSetSettings {
   dictation_enabled: boolean;
   dictation_pass_score: number;

@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { deleteListeningSet } from "@/lib/listening/delete-set";
+import { ensureDictationPreparedForSet } from "@/lib/listening/dictation/prebuild-question";
 import { createClient } from "@/lib/supabase/server";
 
 function jsonError(message: string, status = 200) {
@@ -88,6 +89,19 @@ export async function PATCH(
       .eq("id", setId);
 
     if (error) return jsonError(error.message);
+
+    const shouldEnsureDictation =
+      body.dictation_enabled === true ||
+      body.dictation_blank_level !== undefined ||
+      body.dictation_pass_score !== undefined;
+
+    if (shouldEnsureDictation) {
+      after(() => {
+        void ensureDictationPreparedForSet(setId, { includeVariants: false }).catch(
+          () => undefined
+        );
+      });
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e) {

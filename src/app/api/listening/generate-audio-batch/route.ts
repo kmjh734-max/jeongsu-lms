@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getElevenLabsApiKey } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ensureDictationPreparedForSet } from "@/lib/listening/dictation/prebuild-question";
 import { generateSetQuestionAudio } from "@/lib/listening/generate-audio";
 import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
 
@@ -71,6 +72,14 @@ export async function POST(request: Request) {
     });
 
     const okCount = results.filter((r) => r.ok).length;
+
+    if (okCount > 0) {
+      after(() => {
+        void ensureDictationPreparedForSet(setId, { includeVariants: false }).catch(
+          () => undefined
+        );
+      });
+    }
 
     return NextResponse.json({
       ok: okCount > 0,

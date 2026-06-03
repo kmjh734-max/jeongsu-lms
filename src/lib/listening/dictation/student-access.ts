@@ -1,9 +1,11 @@
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { buildDictationClientPayload } from "@/lib/listening/dictation/build-passage-display";
 import { isStudentAssignedListeningSet } from "@/lib/listening/student-set-access";
 import type {
   DictationBlankItem,
   DictationSetSettings,
+  DictationStartPayloadClient,
 } from "@/lib/listening/dictation/types";
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 
@@ -79,6 +81,36 @@ export async function assertStudentListeningQuestionAccess(
   };
 }
 
+export function buildDictationStartPayload(
+  items: DictationBlankItem[],
+  opts: {
+    scriptText: string;
+    segments?: Array<{ speaker: string; text: string }>;
+  }
+): Omit<DictationStartPayloadClient, "attemptId"> {
+  return buildDictationClientPayload(items, opts);
+}
+
+export function formatDictationStartResponse(
+  attemptId: string,
+  items: DictationBlankItem[],
+  access: {
+    question: { script_text?: string | null };
+    segments: Array<{ speaker: string; text: string }>;
+  }
+) {
+  const display = buildDictationStartPayload(items, {
+    scriptText: access.question.script_text ?? "",
+    segments: access.segments,
+  });
+  return {
+    attemptId,
+    ...display,
+    blankItems: stripBlankAnswersForClient(items),
+  };
+}
+
+/** @deprecated buildDictationStartPayload 사용 */
 export function stripBlankAnswersForClient(
   items: DictationBlankItem[]
 ): Array<{ id: string; speaker: string; display_sentence: string }> {

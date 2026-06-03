@@ -2,7 +2,10 @@
 
 import { DictationSection } from "@/components/listening/DictationSection";
 import { continuationQuestionDisplayText } from "@/lib/listening/fix-continuation-question";
-import type { DictationSetSettings } from "@/lib/listening/dictation/types";
+import type {
+  DictationSetSettings,
+  DictationStartPayloadClient,
+} from "@/lib/listening/dictation/types";
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
@@ -61,6 +64,11 @@ export function StudentListeningPractice({
   >({});
   const [showScript, setShowScript] = useState(false);
   const [dictationKey, setDictationKey] = useState(0);
+  const [dictationPrefetch, setDictationPrefetch] = useState<
+    Record<string, DictationStartPayloadClient | null>
+  >({});
+  const dictationPrefetching = useRef<Set<string>>(new Set());
+  const dictationPrefetchedIds = useRef<Set<string>>(new Set());
   const objectiveAudioRef = useRef<HTMLAudioElement | null>(null);
 
   function pauseObjectiveAudio() {
@@ -93,6 +101,84 @@ export function StudentListeningPractice({
   useEffect(() => {
     void loadDictationStatus();
   }, [loadDictationStatus]);
+
+  const warmupDictation = useCallback(
+    async (questionId: string) => {
+      if (!dictationSettings.dictation_enabled) return;
+      await fetch("/api/listening/dictation/warmup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ setId, questionId }),
+      });
+    },
+    [setId, dictationSettings.dictation_enabled]
+  );
+
+  const prefetchDictationStart = useCallback(
+    async (questionId: string) => {
+      if (!dictationSettings.dictation_enabled) return;
+      if (dictationPrefetchedIds.current.has(questionId)) return;
+      if (dictationPrefetching.current.has(questionId)) return;
+      dictationPrefetching.current.add(questionId);
+
+      try {
+        const res = await fetch("/api/listening/dictation/start", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ setId, questionId }),
+        });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          attemptId?: string;
+          passageLines?: DictationStartPayloadClient["passageLines"];
+          blanks?: DictationStartPayloadClient["blanks"];
+        };
+        if (data.ok && data.attemptId && data.passageLines?.length) {
+          dictationPrefetchedIds.current.add(questionId);
+          setDictationPrefetch((prev) => ({
+            ...prev,
+            [questionId]: {
+              attemptId: data.attemptId!,
+              passageLines: data.passageLines!,
+              blanks: data.blanks ?? [],
+            },
+          }));
+        }
+      } finally {
+        dictationPrefetching.current.delete(questionId);
+      }
+    },
+    [setId, dictationSettings.dictation_enabled]
+  );
+
+  useEffect(() => {
+    if (!dictationSettings.dictation_enabled) return;
+    for (const item of questions) {
+      void warmupDictation(item.id);
+    }
+  }, [questions, dictationSettings.dictation_enabled, warmupDictation]);
+
+  useEffect(() => {
+    if (!dictationSettings.dictation_enabled) return;
+    if (!q) return;
+    if (!objectiveSubmitted[q.id]) {
+      void warmupDictation(q.id);
+      void prefetchDictationStart(q.id);
+    }
+    const next = questions[index + 1];
+    if (next && !objectiveSubmitted[next.id]) {
+      void warmupDictation(next.id);
+      void prefetchDictationStart(next.id);
+    }
+  }, [
+    q?.id,
+    index,
+    questions,
+    dictationSettings.dictation_enabled,
+    objectiveSubmitted,
+    warmupDictation,
+    prefetchDictationStart,
+  ]);
 
   const dictationRequired =
     dictationSettings.dictation_enabled && questions.length > 0;
@@ -160,6 +246,7 @@ export function StudentListeningPractice({
     setShowScript(false);
     if (dictationRequired) {
       setDictationKey((k) => k + 1);
+      void prefetchDictationStart(q.id);
     }
   }
 
@@ -335,6 +422,7 @@ export function StudentListeningPractice({
           passScore={dictationSettings.dictation_pass_score}
           enabled
           onPassed={handleDictationPassed}
+          prefetched={dictationPrefetch[q.id] ?? null}
         />
       )}
 

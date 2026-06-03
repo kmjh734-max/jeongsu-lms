@@ -6,7 +6,7 @@ import {
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import {
   assertStudentListeningQuestionAccess,
-  stripBlankAnswersForClient,
+  formatDictationStartResponse,
 } from "@/lib/listening/dictation/student-access";
 
 export const maxDuration = 30;
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       return jsonError("이 세트는 Dictation을 사용하지 않습니다.");
     }
 
-    const { admin, profile, question } = access;
+    const { admin, profile, question, segments } = access;
 
     const { data: priorAttempts } = await admin
       .from("listening_dictation_attempts")
@@ -54,9 +54,11 @@ export async function POST(request: Request) {
       const items = openAttempt.blank_items as DictationBlankItem[];
       return NextResponse.json({
         ok: true,
-        attemptId: openAttempt.id,
+        ...formatDictationStartResponse(openAttempt.id, items, {
+          question,
+          segments,
+        }),
         attemptNo: openAttempt.attempt_no,
-        blankItems: stripBlankAnswersForClient(items),
         resumed: true,
         prepared: true,
       });
@@ -77,11 +79,13 @@ export async function POST(request: Request) {
     let blankItems = qRow ? pickPreparedBlankItems(qRow, attemptNo) : null;
 
     if (!blankItems?.length) {
-      const built = await prebuildDictationForQuestion(questionId);
+      const built = await prebuildDictationForQuestion(questionId, {
+        includeVariants: false,
+      });
       if (!built.ok) {
         return jsonError(
           built.message ??
-            "Dictation이 아직 준비되지 않았습니다. 잠시 후 다시 시도하거나 선생님에게 문의하세요."
+            "Dictation이 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요."
         );
       }
       const { data: refreshed } = await admin
@@ -116,9 +120,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      attemptId: inserted.id,
+      ...formatDictationStartResponse(inserted.id, blankItems, {
+        question,
+        segments,
+      }),
       attemptNo: inserted.attempt_no,
-      blankItems: stripBlankAnswersForClient(blankItems),
       prepared: true,
     });
   } catch (e) {

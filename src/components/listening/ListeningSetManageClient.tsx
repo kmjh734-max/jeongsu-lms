@@ -92,6 +92,15 @@ export function ListeningSetManageClient({
   useEffect(() => {
     setSpeechPreset(presetFromSpeed(initialSpeechSpeed));
   }, [initialSpeechSpeed]);
+
+  useEffect(() => {
+    if (!dictation.dictation_enabled || initialQuestions.length === 0) return;
+    void fetch("/api/listening/dictation/ensure-set", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId }),
+    });
+  }, [setId, dictation.dictation_enabled, initialQuestions.length]);
   const [previewQuestions, setPreviewQuestions] = useState<
     GeneratedListeningQuestion[] | null
   >(null);
@@ -650,8 +659,8 @@ export function ListeningSetManageClient({
           </button>
         )}
         <p className="mt-1 text-xs text-slate-500">
-          문항 저장 시에도 백그라운드로 생성됩니다. 학생 화면은 객관식 제출 후에만
-          표시됩니다.
+          세트를 열거나 문항·음원을 저장하면 빈칸이 자동으로 준비됩니다. 아래 버튼은
+          전체를 다시 만들 때만 사용하세요.
         </p>
       </section>
 
