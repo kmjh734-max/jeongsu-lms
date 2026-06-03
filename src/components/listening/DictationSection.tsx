@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { DictationPassageLineView } from "@/components/listening/DictationPassageLine";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   DictationBlankInputClient,
   DictationPassageLineClient,
@@ -23,7 +24,6 @@ interface DictationSectionProps {
   passScore: number;
   enabled: boolean;
   onPassed: () => void;
-  /** 객관식 풀이 중 백그라운드로 받아 둔 데이터 */
   prefetched?: DictationStartPayloadClient | null;
 }
 
@@ -55,11 +55,20 @@ export function DictationSection({
   const [playbackRate, setPlaybackRate] = useState(1);
   const loadGeneration = useRef(0);
 
-  const labelById = useCallback(() => {
-    const map = new Map<string, string>();
-    for (const b of blankInputs) map.set(b.id, b.label);
+  const resultsById = useMemo(() => {
+    const map = new Map<string, DictationBlankScoreResult>();
+    for (const r of results) map.set(r.id, r);
     return map;
-  }, [blankInputs]);
+  }, [results]);
+
+  const allBlankIds = useMemo(() => {
+    const ids: string[] = [];
+    for (const line of passageLines) {
+      for (const id of line.blankIds) ids.push(id);
+    }
+    if (ids.length === 0) return blankInputs.map((b) => b.id);
+    return ids;
+  }, [passageLines, blankInputs]);
 
   function applyPayload(payload: DictationStartPayloadClient) {
     setAttemptId(payload.attemptId);
@@ -137,9 +146,9 @@ export function DictationSection({
 
   async function handleSubmit() {
     if (!attemptId) return;
-    const missing = blankInputs.some((b) => !answers[b.id]?.trim());
+    const missing = allBlankIds.some((id) => !answers[id]?.trim());
     if (missing) {
-      setError("모든 빈칸에 답을 입력하세요.");
+      setError("지문의 모든 빈칸에 답을 입력하세요.");
       return;
     }
 
@@ -178,7 +187,12 @@ export function DictationSection({
     await loadBlanks({ retry: true });
   }
 
-  const labels = labelById();
+  const inputDisabled =
+    uiState === "submitting" ||
+    uiState === "submitted_pass" ||
+    uiState === "submitted_fail";
+  const showResults =
+    uiState === "submitted_pass" || uiState === "submitted_fail";
 
   if (!enabled) return null;
 
@@ -186,9 +200,8 @@ export function DictationSection({
     <section className="mt-6 rounded-xl border border-violet-200 bg-violet-50/50 p-4">
       <h3 className="text-sm font-semibold text-violet-900">Dictation</h3>
       <p className="mt-1 text-xs text-violet-800">
-        이제 들은 내용을 바탕으로 Dictation을 진행합니다. 빈칸마다 들은 단어
-        하나만 입력하세요. {passScore}점 이상이면 다음 문제로 넘어갈 수
-        있습니다.
+        지문의 빈칸에 들은 단어를 바로 입력하세요. {passScore}점 이상이면 다음
+        문제로 넘어갈 수 있습니다.
       </p>
 
       {audioUrl && (
@@ -261,50 +274,26 @@ export function DictationSection({
               <p className="mb-2 text-xs font-medium text-slate-500">대본</p>
               <div className="space-y-2">
                 {passageLines.map((line, i) => (
-                  <p key={i} className="font-mono text-sm leading-relaxed text-slate-900">
-                    <span className="mr-2 font-semibold text-violet-700">
-                      {line.speaker}:
-                    </span>
-                    {line.text}
-                  </p>
+                  <DictationPassageLineView
+                    key={i}
+                    line={line}
+                    answers={answers}
+                    onAnswerChange={(id, value) =>
+                      setAnswers((prev) => ({ ...prev, [id]: value }))
+                    }
+                    disabled={inputDisabled}
+                    resultsById={resultsById}
+                    showResults={showResults}
+                  />
                 ))}
               </div>
             </div>
 
-            {blankInputs.length === 0 && (
+            {allBlankIds.length === 0 && (
               <p className="text-sm text-amber-800">
-                빈칸을 불러오지 못했습니다. 잠시 후 「다시 하기」를 누르거나 선생님에게
+                빈칸을 불러오지 못했습니다. 「다시 하기」를 누르거나 선생님에게
                 문의하세요.
               </p>
-            )}
-
-            {blankInputs.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs font-medium text-slate-600">빈칸 입력</p>
-                {blankInputs.map((blank) => (
-                  <div key={blank.id} className="flex items-center gap-2">
-                    <span className="w-6 shrink-0 text-center text-sm font-semibold text-violet-700">
-                      {blank.label}
-                    </span>
-                    <input
-                      type="text"
-                      value={answers[blank.id] ?? ""}
-                      onChange={(e) =>
-                        setAnswers((prev) => ({ ...prev, [blank.id]: e.target.value }))
-                      }
-                      disabled={
-                        uiState === "submitting" ||
-                        uiState === "submitted_pass" ||
-                        uiState === "submitted_fail"
-                      }
-                      className="min-w-0 flex-1 rounded-md border border-slate-200 px-3 py-2 text-sm"
-                      placeholder="단어 하나 (영어)"
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                  </div>
-                ))}
-              </div>
             )}
 
             {uiState === "ready" || uiState === "submitting" ? (
@@ -333,23 +322,18 @@ export function DictationSection({
                     통과했습니다. 다음 문제로 이동할 수 있습니다.
                   </p>
                 )}
-                <ul className="mt-3 space-y-2">
-                  {results.map((r) => (
-                    <li
-                      key={r.id}
-                      className={`rounded border px-2 py-1.5 text-xs ${
-                        r.isCorrect
-                          ? "border-emerald-200 bg-emerald-50"
-                          : "border-red-200 bg-red-50"
-                      }`}
-                    >
-                      <span className="font-medium">{labels.get(r.id) ?? ""}</span>
-                      <br />
-                      내 답: {r.studentAnswer || "—"} · 정답: {r.correctAnswer} ·{" "}
-                      {r.feedback} ({r.blankScore}점)
-                    </li>
-                  ))}
-                </ul>
+                {showResults && results.some((r) => !r.isCorrect) && (
+                  <ul className="mt-3 space-y-1 text-xs text-slate-600">
+                    {results
+                      .filter((r) => !r.isCorrect)
+                      .map((r) => (
+                        <li key={r.id}>
+                          정답: <span className="font-medium">{r.correctAnswer}</span>
+                          {r.studentAnswer ? ` (입력: ${r.studentAnswer})` : ""}
+                        </li>
+                      ))}
+                  </ul>
+                )}
               </div>
             )}
 
