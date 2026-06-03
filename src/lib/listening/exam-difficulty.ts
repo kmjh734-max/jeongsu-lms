@@ -1,4 +1,5 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 
 /** 전국 중1 영어듣기평가 기출(2024·2025) 문항 번호대별 난이도 */
 export type ListeningDifficultyTier =
@@ -68,6 +69,60 @@ export const DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> 
   },
 };
 
+/** 중2 — 첨부 기출(2025·2026)보다 약간 긴 문장·어휘 */
+export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> = {
+  foundation: {
+    tier: "foundation",
+    label: "기초",
+    questionRange: "1~6번",
+    monologueSentences: "6~8 sentences",
+    dialogueTurns: "7~9 turns",
+    wordsPerSentence: "9~14 English words per sentence",
+    vocabulary: "grade 2 textbook vocabulary; natural collocations",
+    extra:
+      "Total script 70~95 words. Slightly richer than typical 중2 기출. One clear fact per sentence.",
+  },
+  standard: {
+    tier: "standard",
+    label: "보통",
+    questionRange: "7~12번",
+    monologueSentences: "6~8 sentences",
+    dialogueTurns: "7~10 turns",
+    wordsPerSentence: "10~15 English words per sentence",
+    vocabulary: "grade 2; simple relative clauses (who/which/that) sparingly allowed",
+    extra: "Total script 75~105 words. Track one main idea with supporting details.",
+  },
+  applied: {
+    tier: "applied",
+    label: "심화",
+    questionRange: "13~18번",
+    monologueSentences: "6~8 sentences",
+    dialogueTurns: "7~10 turns",
+    wordsPerSentence: "10~16 English words per sentence",
+    vocabulary:
+      "grade 2+; numbers, prices, times; present perfect for experience OK; no subjunctive",
+    extra:
+      "Total script 80~115 words. May include payment math, relationship inference, picture-dialogue choices.",
+  },
+  advanced: {
+    tier: "advanced",
+    label: "고난도",
+    questionRange: "19~20번",
+    monologueSentences: "N/A (dialogue only)",
+    dialogueTurns: "7~10 turns",
+    wordsPerSentence: "9~15 words per line; reply choices 8~14 words in English",
+    vocabulary: "grade 2; contextual replies with specific detail",
+    extra:
+      "Dialogue ends with W (19) or M (20). Reply NOT in segments. Man:/Woman: ______ format.",
+  },
+};
+
+export function getDifficultyRulesForGrade(
+  grade: ListeningGradeLevel
+): Record<ListeningDifficultyTier, DifficultyRules> {
+  return grade === "middle2" ? MIDDLE2_DIFFICULTY_RULES : DIFFICULTY_RULES;
+}
+
 export const DIFFICULTY_MODE_OPTIONS: Array<{
   value: ListeningDifficultyMode;
   label: string;
@@ -102,22 +157,29 @@ export const DIFFICULTY_MODE_OPTIONS: Array<{
 
 export function resolveDifficultyForType(
   type: ExamTypeTemplate,
-  mode: ListeningDifficultyMode
+  mode: ListeningDifficultyMode,
+  grade: ListeningGradeLevel = "middle1"
 ): DifficultyRules {
+  const rulesByTier = getDifficultyRulesForGrade(grade);
   if (mode !== "auto") {
-    return DIFFICULTY_RULES[mode];
+    return rulesByTier[mode];
   }
-  return DIFFICULTY_RULES[type.difficulty_tier];
+  return rulesByTier[type.difficulty_tier];
 }
 
 export function buildDifficultyPromptBlock(
   types: ExamTypeTemplate[],
-  mode: ListeningDifficultyMode
+  mode: ListeningDifficultyMode,
+  grade: ListeningGradeLevel = "middle1"
 ): string {
+  const harderNote =
+    grade === "middle2"
+      ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
+      : "";
   return types
     .map((t, i) => {
-      const rules = resolveDifficultyForType(t, mode);
-      return `Item ${i + 1} (Type #${t.id}, ${rules.label}): ${rules.wordsPerSentence}; ${rules.dialogueTurns}; ${rules.monologueSentences}; vocab: ${rules.vocabulary}. ${rules.extra}`;
+      const rules = resolveDifficultyForType(t, mode, grade);
+      return `Item ${i + 1} (Type #${t.id}, ${rules.label})${harderNote}: ${rules.wordsPerSentence}; ${rules.dialogueTurns}; ${rules.monologueSentences}; vocab: ${rules.vocabulary}. ${rules.extra}`;
     })
     .join("\n");
 }

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { VocabSidebar, type VocabSidebarSet } from "@/components/vocab/VocabSidebar";
+import { VocabSidebarProvider } from "@/components/vocab/VocabSidebarContext";
 import type { Class, VocabFolder } from "@/types/database";
 
 interface VocabManageShellProps {
@@ -24,21 +25,23 @@ export function VocabManageShell({
   children,
 }: VocabManageShellProps) {
   return (
-    <div className="-mx-4 flex min-h-[calc(100vh-7rem)] flex-col bg-slate-100/80 sm:mx-0 sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm">
-      <div className="flex flex-1 flex-col lg:flex-row">
-        <VocabSidebar
-          role={role}
-          classes={classes}
-          folders={folders}
-          sets={sets}
-          classesHref={classesHref}
-          onCreateFolder={onCreateFolder}
-          onDeleteFolder={onDeleteFolder}
-        />
-        <main className="min-w-0 flex-1 bg-slate-50/50 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+    <VocabSidebarProvider value={{ classes, folders, sets }}>
+      <div className="-mx-4 flex min-h-[calc(100vh-7rem)] flex-col bg-slate-100/80 sm:mx-0 sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm">
+        <div className="flex flex-1 flex-col lg:flex-row">
+          <VocabSidebar
+            role={role}
+            classes={classes}
+            folders={folders}
+            sets={sets}
+            classesHref={classesHref}
+            onCreateFolder={onCreateFolder}
+            onDeleteFolder={onDeleteFolder}
+          />
+          <main className="min-w-0 flex-1 bg-slate-50/50 p-4 sm:p-6 lg:p-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </VocabSidebarProvider>
   );
 }

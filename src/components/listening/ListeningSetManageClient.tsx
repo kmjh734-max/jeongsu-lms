@@ -22,9 +22,10 @@ import {
   type ListeningDifficultyMode,
 } from "@/lib/listening/exam-difficulty";
 import {
-  MIDDLE1_LISTENING_EXAM_TYPES,
+  getExamTypesForGrade,
   tierLabel,
 } from "@/lib/listening/exam-types";
+import { gradeLevelLabel, type ListeningGradeLevel } from "@/lib/listening/grade-level";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
 import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
 import {
@@ -36,6 +37,7 @@ import {
 interface ListeningSetManageClientProps {
   setId: string;
   title: string;
+  gradeLevel: ListeningGradeLevel;
   isPublished: boolean;
   speechSpeed: number | null;
   voiceAnnId: string | null;
@@ -48,6 +50,7 @@ interface ListeningSetManageClientProps {
 export function ListeningSetManageClient({
   setId,
   title,
+  gradeLevel,
   isPublished: initialPublished,
   speechSpeed: initialSpeechSpeed,
   voiceAnnId,
@@ -82,11 +85,16 @@ export function ListeningSetManageClient({
     busy === "preview" || busy === "ai" || busy === "save" || busy === "gen-flow";
   const isAudioBusy = busy === "audio-all" || busy === "audio-seq";
 
+  const examTypes = useMemo(
+    () => getExamTypesForGrade(gradeLevel),
+    [gradeLevel]
+  );
+
   const effectiveTypeIds = useMemo(() => {
     if (generationMode !== "exam") return undefined;
     if (selectedTypeIds.length > 0) return selectedTypeIds;
-    return MIDDLE1_LISTENING_EXAM_TYPES.slice(0, questionCount).map((t) => t.id);
-  }, [generationMode, selectedTypeIds, questionCount]);
+    return examTypes.slice(0, questionCount).map((t) => t.id);
+  }, [generationMode, selectedTypeIds, questionCount, examTypes]);
 
   async function saveSpeechSpeed(preset: SpeechSpeedPreset) {
     setSpeechPreset(preset);
@@ -99,10 +107,10 @@ export function ListeningSetManageClient({
 
   const orderIndexesForGeneration = useMemo(() => {
     if (generationMode === "exam") {
-      return effectiveTypeIds ?? MIDDLE1_LISTENING_EXAM_TYPES.slice(0, questionCount).map((t) => t.id);
+      return effectiveTypeIds ?? examTypes.slice(0, questionCount).map((t) => t.id);
     }
     return Array.from({ length: questionCount }, (_, i) => i + 1);
-  }, [generationMode, effectiveTypeIds, questionCount]);
+  }, [generationMode, effectiveTypeIds, questionCount, examTypes]);
 
   const resetProgress = useCallback(() => {
     setProgressPercent(0);
@@ -389,7 +397,12 @@ export function ListeningSetManageClient({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+          <h1 className="text-xl font-bold text-slate-900">
+            {title}{" "}
+            <span className="ml-2 rounded-md bg-slate-100 px-2 py-0.5 text-sm font-medium text-slate-600">
+              {gradeLevelLabel(gradeLevel)}
+            </span>
+          </h1>
           <p className="mt-1 text-sm text-slate-600">
             중1 영어듣기평가 유형 · ANN/M/W · ElevenLabs 음원 (속도 {speechSpeedValue})
           </p>
@@ -576,7 +589,7 @@ export function ListeningSetManageClient({
               유형 선택 (비우면 1~{questionCount}번 유형 순서 적용)
             </p>
             <div className="grid gap-1 sm:grid-cols-2">
-              {MIDDLE1_LISTENING_EXAM_TYPES.map((t) => (
+              {examTypes.map((t) => (
                 <label key={t.id} className="flex items-start gap-2 text-xs text-slate-700">
                   <input
                     type="checkbox"

@@ -8,6 +8,7 @@ const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 
 interface ListeningExamPrintViewProps {
   title: string;
+  gradeLabel?: string;
   questions: ListeningQuestionData[];
   backHref: string;
   showScript?: boolean;
@@ -15,6 +16,7 @@ interface ListeningExamPrintViewProps {
 
 export function ListeningExamPrintView({
   title,
+  gradeLabel = "중학교 1학년",
   questions,
   backHref,
   showScript = false,
@@ -46,7 +48,7 @@ export function ListeningExamPrintView({
         <div id="listening-print-root" className="listening-exam-sheet bg-white px-[16mm] py-[14mm] shadow-sm print:shadow-none">
           <header className="border-b-2 border-slate-900 pb-3 text-center">
             <p className="text-[10pt] text-slate-600">
-              영어듣기능력평가 연습 · 중학교 1학년
+              영어듣기능력평가 연습 · {gradeLabel}
             </p>
             <h1 className="mt-1 text-[14pt] font-bold text-slate-900">{title}</h1>
             <p className="mt-2 text-[9pt] text-slate-500">

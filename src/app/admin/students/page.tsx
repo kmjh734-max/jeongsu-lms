@@ -1,45 +1,37 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { EnrollmentForm } from "@/components/admin/EnrollmentForm";
 import { EnrollmentList } from "@/components/admin/EnrollmentList";
 import { StudentManagement } from "@/components/admin/StudentManagement";
+import { StudentsPagePagination } from "@/components/admin/StudentsPagePagination";
+import { loadStudentsPageData } from "@/lib/admin/list-students-page";
 import {
   buildCoursePickerTree,
   buildStudentPickerTree,
 } from "@/lib/ui/build-enrollment-trees";
-import {
-  parseClassStudentLinks,
-} from "@/lib/ui/parse-class-links";
+import { parseClassStudentLinks } from "@/lib/ui/parse-class-links";
 import type { Course, Profile } from "@/types/database";
 
-export default async function AdminStudentsPage() {
+interface PageProps {
+  searchParams: Promise<{ page?: string; q?: string }>;
+}
+
+export default async function AdminStudentsPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const search = sp.q?.trim() ?? "";
+
   const supabase = await createClient();
+  const data = await loadStudentsPageData(supabase, { page, search });
 
-  const [
-    { data: students },
-    { data: courses },
-    { data: enrollments },
-    { data: classStudents },
-  ] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "student")
-      .order("name"),
-    supabase.from("courses").select("*").order("title"),
-    supabase
-      .from("enrollments")
-      .select("*, student:profiles!enrollments_student_id_fkey(name), course:courses(title)")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("class_students")
-      .select("student_id, class_id, class:classes(id, name)"),
-  ]);
-
-  const studentList = (students ?? []) as Profile[];
-  const activeStudents = studentList.filter((s) => s.is_active !== false);
-  const courseList = (courses ?? []) as Course[];
-  const studentClassLinks = parseClassStudentLinks(classStudents);
-  const studentTree = buildStudentPickerTree(studentList, studentClassLinks);
+  const studentList = data.students;
+  const pickerList = data.pickerStudents;
+  const activeStudents = pickerList.filter((s) => s.is_active !== false);
+  const courseList = data.courses;
+  const studentClassLinks = parseClassStudentLinks(
+    data.classStudents as Parameters<typeof parseClassStudentLinks>[0]
+  );
+  const studentTree = buildStudentPickerTree(pickerList, studentClassLinks);
   const courseTree = buildCoursePickerTree(courseList);
 
   return (
@@ -51,6 +43,36 @@ export default async function AdminStudentsPage() {
         </p>
       </div>
 
+      <form method="get" className="flex flex-wrap items-end gap-2">
+        <label className="text-sm font-medium text-slate-700">
+          이름 검색
+          <input
+            name="q"
+            defaultValue={search}
+            placeholder="학생 이름"
+            className="mt-1 block rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          />
+        </label>
+        <button
+          type="submit"
+          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white"
+        >
+          검색
+        </button>
+        {search && (
+          <Link href="/admin/students" className="text-sm text-indigo-600 hover:underline">
+            검색 초기화
+          </Link>
+        )}
+      </form>
+
+      <StudentsPagePagination
+        page={data.page}
+        total={data.totalStudents}
+        pageSize={data.pageSize}
+        search={search}
+      />
+
       <section id="students" className="scroll-mt-8">
         <StudentManagement students={studentList} studentTree={studentTree} />
       </section>
@@ -59,21 +81,21 @@ export default async function AdminStudentsPage() {
         <h3 className="mb-3 font-semibold">수강 배정</h3>
         <EnrollmentForm
           studentTree={buildStudentPickerTree(activeStudents, studentClassLinks)}
-          courseTree={buildCoursePickerTree(courseList)}
+          courseTree={courseTree}
         />
       </section>
 
       <section id="enrollment-status" className="scroll-mt-8">
-        <h3 className="mb-3 font-semibold">배정 내역</h3>
+        <h3 className="mb-3 font-semibold">배정 내역 (최근 500건)</h3>
         <EnrollmentList
           variant="admin"
-          rows={(enrollments ?? []).map((e) => ({
-            id: e.id,
+          rows={data.enrollments.map((e) => ({
+            id: e.id as string,
             studentName:
               (e.student as { name: string } | null)?.name ?? "—",
             courseTitle:
               (e.course as { title: string } | null)?.title ?? "—",
-            createdAt: e.created_at,
+            createdAt: e.created_at as string,
           }))}
         />
       </section>

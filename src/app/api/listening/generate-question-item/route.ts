@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import {
   generateSingleExamQuestion,
   generateSingleFreeQuestion,
@@ -40,18 +41,22 @@ export async function POST(request: Request) {
     const mode: ListeningGenerationMode = body.mode === "free" ? "free" : "exam";
     const orderIndex = body.orderIndex ?? body.typeId ?? 1;
 
+    const gradeLevel = await fetchListeningSetGradeLevel(setId);
+
     const generated =
       mode === "exam"
         ? await generateSingleExamQuestion(
             apiKey,
             body.typeId ?? orderIndex,
             body.difficultyMode ?? "auto",
-            body.previousProblems
+            body.previousProblems,
+            gradeLevel
           )
         : await generateSingleFreeQuestion(
             apiKey,
             orderIndex,
-            body.previousProblems
+            body.previousProblems,
+            gradeLevel
           );
 
     if (body.persist) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { generateSingleExamQuestion } from "@/lib/listening/generate-questions";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
@@ -42,8 +43,9 @@ export async function POST(request: Request) {
 
     if (!existing) return jsonError("문항을 찾을 수 없습니다.");
 
+    const gradeLevel = await fetchListeningSetGradeLevel(setId);
     const typeId = body.typeId ?? body.orderIndex ?? existing.order_index;
-    const type = getExamTypeById(typeId);
+    const type = getExamTypeById(typeId, gradeLevel);
     if (!type) return jsonError("유형을 찾을 수 없습니다.");
 
     const prevFromBody = body.previousProblems ?? [];
@@ -66,7 +68,8 @@ export async function POST(request: Request) {
       apiKey,
       typeId,
       body.difficultyMode ?? "auto",
-      previousProblems.length ? previousProblems : undefined
+      previousProblems.length ? previousProblems : undefined,
+      gradeLevel
     );
 
     const saved = await replaceGeneratedQuestion(setId, questionId, generated);

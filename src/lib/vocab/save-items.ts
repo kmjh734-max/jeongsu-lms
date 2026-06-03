@@ -37,9 +37,12 @@ export async function persistVocabItems(
   const existingIds = new Set((existing ?? []).map((r) => r.id));
   const keptIds = new Set<string>();
 
-  for (const item of valid) {
-    if (item.id && existingIds.has(item.id)) {
-      const { error } = await supabase
+  const toUpdate = valid.filter((item) => item.id && existingIds.has(item.id));
+  const toCreate = valid.filter((item) => !item.id || !existingIds.has(item.id));
+
+  const updateResults = await Promise.all(
+    toUpdate.map((item) =>
+      supabase
         .from("vocab_items")
         .update({
           word: item.word,
@@ -49,15 +52,21 @@ export async function persistVocabItems(
           example_meaning: item.example_meaning,
           order_index: item.order_index,
         })
-        .eq("id", item.id)
-        .eq("set_id", setId);
+        .eq("id", item.id!)
+        .eq("set_id", setId)
+    )
+  );
+  const updateErr = updateResults.find((r) => r.error);
+  if (updateErr?.error) return { ok: false, message: updateErr.error.message };
+  for (const item of toUpdate) {
+    if (item.id) keptIds.add(item.id);
+  }
 
-      if (error) return { ok: false, message: error.message };
-      keptIds.add(item.id);
-    } else {
-      const { data: inserted, error } = await supabase
-        .from("vocab_items")
-        .insert({
+  if (toCreate.length > 0) {
+    const { data: inserted, error } = await supabase
+      .from("vocab_items")
+      .insert(
+        toCreate.map((item) => ({
           set_id: setId,
           word: item.word,
           meaning: item.meaning,
@@ -65,12 +74,13 @@ export async function persistVocabItems(
           example_sentence: item.example_sentence,
           example_meaning: item.example_meaning,
           order_index: item.order_index,
-        })
-        .select("id")
-        .single();
+        }))
+      )
+      .select("id");
 
-      if (error) return { ok: false, message: error.message };
-      if (inserted?.id) keptIds.add(inserted.id);
+    if (error) return { ok: false, message: error.message };
+    for (const row of inserted ?? []) {
+      if (row.id) keptIds.add(row.id);
     }
   }
 

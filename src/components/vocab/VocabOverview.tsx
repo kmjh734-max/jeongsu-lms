@@ -2,24 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { Class, VocabFolder } from "@/types/database";
 import type { VocabSidebarSet } from "@/components/vocab/VocabSidebar";
+import { useVocabSidebar } from "@/components/vocab/VocabSidebarContext";
 
 interface VocabOverviewProps {
   role: "admin" | "teacher";
-  classes: Class[];
-  folders: VocabFolder[];
-  sets: VocabSidebarSet[];
   classesHref: string;
 }
 
-export function VocabOverview({
-  role,
-  classes,
-  folders,
-  sets,
-  classesHref,
-}: VocabOverviewProps) {
+export function VocabOverview({ role, classesHref }: VocabOverviewProps) {
+  const { classes, folders, sets } = useVocabSidebar();
   const pathname = usePathname();
   const base = role === "admin" ? "/admin/vocab" : "/teacher/vocab";
   const isRoot = pathname === base;

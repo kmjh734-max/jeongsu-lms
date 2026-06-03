@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SITE_NAME } from "@/lib/branding";
 import { loadFolderAssignPanelData } from "@/lib/vocab/load-assign-panel";
+import { fetchVocabItemCountsBySetIds } from "@/lib/vocab/vocab-item-counts";
 import type { Profile, VocabFolder, VocabSet } from "@/types/database";
 
 export interface VocabFolderSetRow {
@@ -59,20 +60,13 @@ export async function loadVocabFolderPageData(
           .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
           .order("name");
 
-  const [
-    setsRes,
-    itemRowsRes,
-    foldersRes,
-    ownerRes,
-    teachersRes,
-    assignPanel,
-  ] = await Promise.all([
+  const [setsRes, foldersRes, ownerRes, teachersRes, assignPanel] =
+    await Promise.all([
     role === "admin"
       ? setsQuery
       : setsQuery.or(
           `teacher_id.eq.${userId},created_by.eq.${userId}`
         ),
-    supabase.from("vocab_items").select("set_id"),
     foldersQuery,
     supabase
       .from("profiles")
@@ -90,17 +84,14 @@ export async function loadVocabFolderPageData(
     loadFolderAssignPanelData(supabase, role, userId, folderId),
   ]);
 
-  const itemCountBySet = new Map<string, number>();
-  for (const row of itemRowsRes.data ?? []) {
-    itemCountBySet.set(
-      row.set_id,
-      (itemCountBySet.get(row.set_id) ?? 0) + 1
-    );
-  }
-
   const setList = (setsRes.data ?? []) as (VocabSet & {
     teacher: { id: string; name: string } | null;
   })[];
+
+  const itemCountBySet = await fetchVocabItemCountsBySetIds(
+    supabase,
+    setList.map((s) => s.id)
+  );
 
   const sets: VocabFolderSetRow[] = setList.map((s) => ({
     id: s.id,

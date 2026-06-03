@@ -111,6 +111,20 @@ export function ListeningQuestionPreview({
               <span className="font-medium">불일치:</span> {table.mismatch_reason}
             </p>
           )}
+          {question.order_index === 14 &&
+            question.source_facts_from_script &&
+            question.source_facts_from_script.length > 0 && (
+              <div className="mt-2 rounded-lg bg-slate-50 p-2 text-xs text-slate-800">
+                <p className="font-medium">대본 기준 정보</p>
+                <ul className="mt-1 space-y-0.5">
+                  {question.source_facts_from_script.map((f, i) => (
+                    <li key={i}>
+                      {f.label}: {f.value}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
         </div>
       )}
 
@@ -120,6 +134,23 @@ export function ListeningQuestionPreview({
 
       {(question.order_index === 19 || question.order_index === 20) && (
         <div className="mb-3 rounded-lg bg-slate-50 p-2 text-xs text-slate-700">
+          {question.order_index === 19 && question.blank_speaker && (
+            <p>
+              <span className="font-medium">빈칸 화자:</span>{" "}
+              {question.blank_speaker === "M" ? "남자 (Man)" : "여자 (Woman)"}
+            </p>
+          )}
+          {question.order_index === 20 && question.blank_speaker && (
+            <p>
+              <span className="font-medium">빈칸 화자:</span>{" "}
+              {question.blank_speaker === "W" ? "여자 (Woman)" : "남자 (Man)"}
+            </p>
+          )}
+          {question.order_index === 20 && question.situation_type && (
+            <p className="mt-1">
+              <span className="font-medium">상황:</span> {question.situation_type}
+            </p>
+          )}
           {question.previous_turn && (
             <p>
               <span className="font-medium">직전 발화:</span> {question.previous_turn}
@@ -130,6 +161,16 @@ export function ListeningQuestionPreview({
               <span className="font-medium">정답 기능:</span>{" "}
               {question.correct_response_function}
             </p>
+          )}
+          {question.distractor_reason &&
+            question.distractor_reason.filter(Boolean).length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {question.distractor_reason.map((d, i) =>
+                d.trim() ? (
+                  <li key={i}>{d}</li>
+                ) : null
+              )}
+            </ul>
           )}
           {typeof av?.response_context_score === "number" && (
             <p className="mt-1">
@@ -197,6 +238,238 @@ export function ListeningQuestionPreview({
                 의도 후보: {question.intention_candidates.join(", ")}
               </p>
             )}
+        </div>
+      )}
+
+      {question.order_index === 15 &&
+        (question.requested_action ||
+          question.requester ||
+          question.request_expression) && (
+        <div className="mb-3 rounded-lg bg-rose-50 p-2 text-xs text-rose-950">
+          <p className="font-medium">부탁한 일 문항 정보</p>
+          <p className="mt-1">
+            부탁: {question.requester || "—"} → {question.requested_person || "—"}{" "}
+            · 행동: {question.requested_action || "—"}
+          </p>
+          {question.request_expression && (
+            <p className="mt-1 italic">{question.request_expression}</p>
+          )}
+          {question.mentioned_actions && question.mentioned_actions.length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {question.mentioned_actions.map((m, i) => (
+                <li key={i}>
+                  {m.action}{" "}
+                  <span className="text-slate-600">({m.role})</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {question.order_index === 16 &&
+        (question.suggested_action ||
+          question.suggester ||
+          question.suggestion_expression) && (
+        <div className="mb-3 rounded-lg bg-sky-50 p-2 text-xs text-sky-950">
+          <p className="font-medium">제안한 것 문항 정보</p>
+          <p className="mt-1">
+            제안: {question.suggester || "—"} → {question.suggested_to || "—"}{" "}
+            · 행동: {question.suggested_action || "—"}
+          </p>
+          {question.suggestion_expression && (
+            <p className="mt-1 italic">{question.suggestion_expression}</p>
+          )}
+          {question.mentioned_actions && question.mentioned_actions.length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {question.mentioned_actions.map((m, i) => (
+                <li key={i}>
+                  {m.action}{" "}
+                  <span className="text-slate-600">({m.role})</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {question.order_index === 17 &&
+        (question.planned_action ||
+          question.target_time ||
+          question.target_person) && (
+        <div className="mb-3 rounded-lg bg-teal-50 p-2 text-xs text-teal-950">
+          <p className="font-medium">특정 시점에 할 일 문항 정보</p>
+          <p className="mt-1">
+            대상: {question.target_person || "—"} · 시점:{" "}
+            {question.target_time || "—"} · 활동:{" "}
+            {question.planned_action || "—"}
+          </p>
+          {question.mentioned_other_actions &&
+            question.mentioned_other_actions.length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {question.mentioned_other_actions.map((m, i) => (
+                <li key={i}>
+                  {m.action}{" "}
+                  <span className="text-slate-600">({m.role})</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {question.order_index === 18 &&
+        (question.target_job ||
+          question.target_person ||
+          (question.job_clues?.length ?? 0) > 0) && (
+        <div className="mb-3 rounded-lg bg-violet-50 p-2 text-xs text-violet-950">
+          <p className="font-medium">직업 파악 문항 정보</p>
+          <p className="mt-1">
+            대상: {question.target_person || "—"} · 직업:{" "}
+            {question.target_job || "—"}
+          </p>
+          {question.job_clues && question.job_clues.length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {question.job_clues.map((clue, i) => (
+                <li key={i} className="italic">
+                  {clue}
+                </li>
+              ))}
+            </ul>
+          )}
+          {question.distractor_jobs && question.distractor_jobs.length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {question.distractor_jobs.map((d, i) => (
+                <li key={i}>
+                  {d.job}{" "}
+                  <span className="text-slate-600">— {d.reason}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {question.order_index === 13 &&
+        (question.target_place || (question.place_clues?.length ?? 0) > 0) && (
+        <div className="mb-3 rounded-lg bg-emerald-50 p-2 text-xs text-emerald-950">
+          <p className="font-medium">대화 장소 파악 문항 정보</p>
+          <p className="mt-1">
+            대화 장소: {question.target_place || "—"}
+          </p>
+          {question.place_clues && question.place_clues.length > 0 && (
+            <p className="mt-1">
+              장소 단서: {question.place_clues.join(" · ")}
+            </p>
+          )}
+          {question.distractor_places &&
+            question.distractor_places.length > 0 && (
+              <ul className="mt-2 space-y-0.5">
+                {question.distractor_places.map((d, i) => (
+                  <li key={i}>
+                    {d.place}: {d.reason}
+                  </li>
+                ))}
+              </ul>
+            )}
+        </div>
+      )}
+
+      {question.order_index === 12 &&
+        (question.reason_for_going ||
+          question.target_place ||
+          question.target_person) && (
+        <div className="mb-3 rounded-lg bg-indigo-50 p-2 text-xs text-indigo-950">
+          <p className="font-medium">이유 파악 문항 정보</p>
+          <p className="mt-1">
+            대상: {question.target_person || "—"} · 장소:{" "}
+            {question.target_place || "—"} · 이유:{" "}
+            {question.reason_for_going || "—"}
+          </p>
+          {question.mentioned_possible_reasons &&
+            question.mentioned_possible_reasons.length > 0 && (
+              <ul className="mt-2 space-y-0.5">
+                {question.mentioned_possible_reasons.map((m, i) => (
+                  <li key={i}>
+                    {m.reason}{" "}
+                    <span className="text-slate-600">({m.role})</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+        </div>
+      )}
+
+      {question.order_index === 11 &&
+        (question.final_transport ||
+          question.destination ||
+          (question.mentioned_transport_options?.length ?? 0) > 0) && (
+        <div className="mb-3 rounded-lg bg-sky-50 p-2 text-xs text-sky-950">
+          <p className="font-medium">이동 방법 파악 문항 정보</p>
+          <p className="mt-1">
+            목적지: {question.destination || "—"} · 최종 수단:{" "}
+            {question.final_transport || "—"}
+          </p>
+          {question.mentioned_transport_options &&
+            question.mentioned_transport_options.length > 0 && (
+              <ul className="mt-2 space-y-0.5">
+                {question.mentioned_transport_options.map((m, i) => (
+                  <li key={i}>
+                    {m.transport}{" "}
+                    <span className="text-slate-600">
+                      ({m.role}
+                      {m.reason ? `: ${m.reason}` : ""})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+        </div>
+      )}
+
+      {question.order_index === 10 &&
+        (question.main_content || (question.content_clues?.length ?? 0) > 0) && (
+        <div className="mb-3 rounded-lg bg-teal-50 p-2 text-xs text-teal-950">
+          <p className="font-medium">핵심 내용 파악 문항 정보</p>
+          <p className="mt-1">
+            핵심 내용: {question.main_content || "—"}
+          </p>
+          {question.content_clues && question.content_clues.length > 0 && (
+            <p className="mt-1">
+              내용 단서: {question.content_clues.join(" · ")}
+            </p>
+          )}
+          {question.topic_distractor_reasons &&
+            question.topic_distractor_reasons.length > 0 && (
+              <ul className="mt-2 space-y-0.5">
+                {question.topic_distractor_reasons.map((d, i) => (
+                  <li key={i}>
+                    {d.choice}: {d.reason}
+                  </li>
+                ))}
+              </ul>
+            )}
+        </div>
+      )}
+
+      {question.order_index === 9 &&
+        (question.immediate_action || question.target_person) && (
+        <div className="mb-3 rounded-lg bg-orange-50 p-2 text-xs text-orange-950">
+          <p className="font-medium">대화 직후 할 일 문항 정보</p>
+          <p className="mt-1">
+            대상: {question.target_person || "—"} · 직후 행동:{" "}
+            {question.immediate_action || "—"}
+          </p>
+          {question.mentioned_actions && question.mentioned_actions.length > 0 && (
+            <ul className="mt-2 space-y-0.5">
+              {question.mentioned_actions.map((m, i) => (
+                <li key={i}>
+                  {m.action}{" "}
+                  <span className="text-slate-600">({m.role})</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 

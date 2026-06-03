@@ -86,6 +86,8 @@ export interface GeneratedListeningQuestion {
   previous_turn?: string;
   correct_response_function?: string;
   distractor_reason?: string[];
+  blank_speaker?: string;
+  situation_type?: string;
   needs_image_choices?: boolean;
   choice_image_prompts?: string[];
   visual_choice_type?: string;
@@ -107,6 +109,34 @@ export interface GeneratedListeningQuestion {
   interest_clues?: string[];
   target_emotion?: string;
   emotion_clues?: string[];
+  immediate_action?: string;
+  mentioned_actions?: import("@/lib/listening/type9-action-choices").MentionedActionEntry[];
+  main_content?: string;
+  content_clues?: string[];
+  topic_distractor_reasons?: import("@/lib/listening/type10-content-choices").TopicDistractorReason[];
+  destination?: string;
+  final_transport?: string;
+  mentioned_transport_options?: import("@/lib/listening/type11-transport-choices").MentionedTransportEntry[];
+  target_place?: string;
+  reason_for_going?: string;
+  mentioned_possible_reasons?: import("@/lib/listening/type12-reason-choices").MentionedPossibleReason[];
+  place_clues?: string[];
+  distractor_places?: import("@/lib/listening/type13-place-choices").DistractorPlace[];
+  source_facts_from_script?: import("@/lib/listening/type14-table-validation").SourceFactFromScript[];
+  requester?: string;
+  requested_person?: string;
+  requested_action?: string;
+  request_expression?: string;
+  suggester?: string;
+  suggested_to?: string;
+  suggested_action?: string;
+  suggestion_expression?: string;
+  target_time?: string;
+  planned_action?: string;
+  mentioned_other_actions?: import("@/lib/listening/type17-schedule-choices").MentionedOtherActionEntry[];
+  target_job?: string;
+  job_clues?: string[];
+  distractor_jobs?: import("@/lib/listening/type18-job-choices").DistractorJobEntry[];
   quality_check_focus?: string[];
 }
 
@@ -132,6 +162,8 @@ export interface ListeningQuestionRow {
   previous_turn: string;
   correct_response_function: string;
   distractor_reason: string[];
+  blank_speaker: string;
+  situation_type: string;
   needs_image_choices: boolean;
   choice_image_prompts: string[];
   visual_choice_type: string;
@@ -153,6 +185,34 @@ export interface ListeningQuestionRow {
   interest_clues: string[];
   target_emotion: string;
   emotion_clues: string[];
+  immediate_action: string;
+  mentioned_actions: import("@/lib/listening/type9-action-choices").MentionedActionEntry[];
+  main_content: string;
+  content_clues: string[];
+  topic_distractor_reasons: import("@/lib/listening/type10-content-choices").TopicDistractorReason[];
+  destination: string;
+  final_transport: string;
+  mentioned_transport_options: import("@/lib/listening/type11-transport-choices").MentionedTransportEntry[];
+  target_place: string;
+  reason_for_going: string;
+  mentioned_possible_reasons: import("@/lib/listening/type12-reason-choices").MentionedPossibleReason[];
+  place_clues: string[];
+  distractor_places: import("@/lib/listening/type13-place-choices").DistractorPlace[];
+  source_facts_from_script: import("@/lib/listening/type14-table-validation").SourceFactFromScript[];
+  requester: string;
+  requested_person: string;
+  requested_action: string;
+  request_expression: string;
+  suggester: string;
+  suggested_to: string;
+  suggested_action: string;
+  suggestion_expression: string;
+  target_time: string;
+  planned_action: string;
+  mentioned_other_actions: import("@/lib/listening/type17-schedule-choices").MentionedOtherActionEntry[];
+  target_job: string;
+  job_clues: string[];
+  distractor_jobs: import("@/lib/listening/type18-job-choices").DistractorJobEntry[];
   audio_url: string | null;
 }
 

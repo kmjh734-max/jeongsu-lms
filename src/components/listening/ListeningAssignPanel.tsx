@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ClassOption {
   id: string;
@@ -16,7 +16,6 @@ interface StudentOption {
 interface ListeningAssignPanelProps {
   setId: string;
   classes: ClassOption[];
-  students: StudentOption[];
   assignedClassNames: string[];
   assignedStudentNames: string[];
   isPublished: boolean;
@@ -25,16 +24,46 @@ interface ListeningAssignPanelProps {
 export function ListeningAssignPanel({
   setId,
   classes,
-  students,
   assignedClassNames,
   assignedStudentNames,
   isPublished,
 }: ListeningAssignPanelProps) {
   const router = useRouter();
   const [classId, setClassId] = useState(classes[0]?.id ?? "");
-  const [studentId, setStudentId] = useState(students[0]?.id ?? "");
+  const [studentSearch, setStudentSearch] = useState("");
+  const [students, setStudents] = useState<StudentOption[]>([]);
+  const [studentId, setStudentId] = useState("");
+  const [studentsLoading, setStudentsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const loadStudents = useCallback(async (query: string) => {
+    setStudentsLoading(true);
+    try {
+      const params = new URLSearchParams({ limit: "50" });
+      if (query.trim()) params.set("q", query.trim());
+      const res = await fetch(`/api/listening/student-options?${params}`);
+      const data = (await res.json()) as {
+        ok?: boolean;
+        students?: StudentOption[];
+      };
+      if (data.ok && data.students) {
+        setStudents(data.students);
+        if (data.students.length > 0 && !data.students.some((s) => s.id === studentId)) {
+          setStudentId(data.students[0]!.id);
+        }
+      }
+    } finally {
+      setStudentsLoading(false);
+    }
+  }, [studentId]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void loadStudents(studentSearch);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [studentSearch, loadStudents]);
 
   async function assignClass() {
     if (!classId) return;
@@ -121,38 +150,49 @@ export function ListeningAssignPanel({
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="font-semibold text-slate-900">학생 개별 배정</h2>
         <p className="mt-1 text-xs text-slate-600">
-          특정 학생에게만 배정합니다. 반 배정과 별도로 적용됩니다.
+          이름으로 검색 후 배정합니다. (전체 학생 목록을 미리 불러오지 않습니다)
         </p>
         {assignedStudentNames.length > 0 && (
           <p className="mt-2 text-xs text-slate-600">
             배정된 학생: {assignedStudentNames.join(", ")}
           </p>
         )}
-        {students.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">배정할 학생이 없습니다.</p>
-        ) : (
-          <div className="mt-3 flex flex-wrap items-end gap-2">
-            <select
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              className="min-w-[12rem] rounded-lg border border-slate-200 px-3 py-2 text-sm"
-            >
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={assignStudent}
-              className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-            >
-              학생에게 배정
-            </button>
-          </div>
-        )}
+        <div className="mt-3 space-y-2">
+          <input
+            type="search"
+            value={studentSearch}
+            onChange={(e) => setStudentSearch(e.target.value)}
+            placeholder="학생 이름 검색"
+            className="w-full max-w-xs rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          />
+          {studentsLoading ? (
+            <p className="text-xs text-slate-500">검색 중…</p>
+          ) : students.length === 0 ? (
+            <p className="text-sm text-slate-500">검색 결과가 없습니다.</p>
+          ) : (
+            <div className="flex flex-wrap items-end gap-2">
+              <select
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
+                className="min-w-[12rem] rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              >
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                disabled={busy || !studentId}
+                onClick={assignStudent}
+                className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              >
+                학생에게 배정
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {message && <p className="text-sm text-slate-600">{message}</p>}

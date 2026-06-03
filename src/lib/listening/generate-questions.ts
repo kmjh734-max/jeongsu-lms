@@ -3,6 +3,27 @@ import { normalizeMentionPlan } from "@/lib/listening/type5-mention-plan";
 import { normalizeMentionedTimes } from "@/lib/listening/type6-time-choices";
 import { normalizeInterestClues } from "@/lib/listening/type7-career-choices";
 import { normalizeEmotionClues } from "@/lib/listening/type8-emotion-choices";
+import { normalizeMentionedActions } from "@/lib/listening/type9-action-choices";
+import {
+  normalizeContentClues,
+  normalizeTopicDistractorReasons,
+} from "@/lib/listening/type10-content-choices";
+import { normalizeMentionedTransportOptions } from "@/lib/listening/type11-transport-choices";
+import { normalizeMentionedPossibleReasons } from "@/lib/listening/type12-reason-choices";
+import {
+  normalizeDistractorPlaces,
+  normalizePlaceClues,
+} from "@/lib/listening/type13-place-choices";
+import { normalizeSourceFactsFromScript } from "@/lib/listening/type14-table-validation";
+import { normalizeMentionedOtherActions } from "@/lib/listening/type17-schedule-choices";
+import {
+  normalizeDistractorJobs,
+  normalizeJobClues,
+} from "@/lib/listening/type18-job-choices";
+import {
+  distractorReasonsToStrings,
+  normalizeDistractorReasons,
+} from "@/lib/listening/type19-response-choices";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
@@ -16,7 +37,8 @@ import {
   buildListeningFreePrompt,
   buildListeningSingleTypePrompt,
 } from "@/lib/listening/prompts/buildListeningPrompt";
-import { LISTENING_SYSTEM_PROMPT } from "@/lib/listening/prompts/commonPrompt";
+import { getListeningSystemPrompt } from "@/lib/listening/prompts/commonPrompt";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import {
   attachValidationToQuestion,
   attachValidationToQuestions,
@@ -33,6 +55,7 @@ export interface GenerateQuestionsOptions {
   count: number;
   selectedTypeIds?: number[];
   difficultyMode?: ListeningDifficultyMode;
+  gradeLevel?: ListeningGradeLevel;
 }
 
 export interface GenerateQuestionsResult {
@@ -110,6 +133,17 @@ function normalizeQuestion(
       ? raw.order_index
       : typeHint?.id ?? index + 1;
 
+  const distractorEntries = normalizeDistractorReasons(
+    raw.distractor_reasons ?? raw.distractor_reason,
+    choices
+  );
+  const distractor_reason =
+    distractorEntries.length > 0
+      ? distractorReasonsToStrings(distractorEntries, choices)
+      : Array.isArray(raw.distractor_reason)
+        ? (raw.distractor_reason as unknown[]).map((x) => String(x))
+        : [];
+
   const base: GeneratedListeningQuestion = {
     order_index,
     question_type,
@@ -127,9 +161,9 @@ function normalizeQuestion(
     table_data: normalizeTableData(raw.table_data),
     previous_turn: String(raw.previous_turn ?? "").trim(),
     correct_response_function: String(raw.correct_response_function ?? "").trim(),
-    distractor_reason: Array.isArray(raw.distractor_reason)
-      ? (raw.distractor_reason as unknown[]).map((x) => String(x))
-      : [],
+    distractor_reason,
+    blank_speaker: String(raw.blank_speaker ?? "").trim(),
+    situation_type: String(raw.situation_type ?? "").trim(),
     needs_image_choices: Boolean(raw.needs_image_choices),
     visual_choice_type: String(raw.visual_choice_type ?? "").trim(),
     choice_image_prompts: Array.isArray(raw.choice_image_prompts)
@@ -166,6 +200,44 @@ function normalizeQuestion(
     interest_clues: normalizeInterestClues(raw.interest_clues),
     target_emotion: String(raw.target_emotion ?? "").trim(),
     emotion_clues: normalizeEmotionClues(raw.emotion_clues),
+    immediate_action: String(raw.immediate_action ?? "").trim(),
+    mentioned_actions: normalizeMentionedActions(raw.mentioned_actions),
+    main_content: String(raw.main_content ?? "").trim(),
+    content_clues: normalizeContentClues(raw.content_clues),
+    topic_distractor_reasons: normalizeTopicDistractorReasons(
+      raw.topic_distractor_reasons ?? raw.distractor_reasons
+    ),
+    destination: String(raw.destination ?? "").trim(),
+    final_transport: String(raw.final_transport ?? "").trim(),
+    mentioned_transport_options: normalizeMentionedTransportOptions(
+      raw.mentioned_transport_options
+    ),
+    target_place: String(raw.target_place ?? "").trim(),
+    reason_for_going: String(raw.reason_for_going ?? "").trim(),
+    mentioned_possible_reasons: normalizeMentionedPossibleReasons(
+      raw.mentioned_possible_reasons
+    ),
+    place_clues: normalizePlaceClues(raw.place_clues),
+    distractor_places: normalizeDistractorPlaces(raw.distractor_places),
+    source_facts_from_script: normalizeSourceFactsFromScript(
+      raw.source_facts_from_script
+    ),
+    requester: String(raw.requester ?? "").trim(),
+    requested_person: String(raw.requested_person ?? "").trim(),
+    requested_action: String(raw.requested_action ?? "").trim(),
+    request_expression: String(raw.request_expression ?? "").trim(),
+    suggester: String(raw.suggester ?? "").trim(),
+    suggested_to: String(raw.suggested_to ?? "").trim(),
+    suggested_action: String(raw.suggested_action ?? "").trim(),
+    suggestion_expression: String(raw.suggestion_expression ?? "").trim(),
+    target_time: String(raw.target_time ?? "").trim(),
+    planned_action: String(raw.planned_action ?? "").trim(),
+    mentioned_other_actions: normalizeMentionedOtherActions(
+      raw.mentioned_other_actions
+    ),
+    target_job: String(raw.target_job ?? "").trim(),
+    job_clues: normalizeJobClues(raw.job_clues),
+    distractor_jobs: normalizeDistractorJobs(raw.distractor_jobs),
   };
 
   const typeId = typeHint?.id ?? order_index;
@@ -176,7 +248,8 @@ async function fetchParsedQuestions(
   apiKey: string,
   prompt: string,
   examMode: boolean,
-  examTypes?: ExamTypeTemplate[]
+  examTypes?: ExamTypeTemplate[],
+  gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<GeneratedListeningQuestion[]> {
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -189,7 +262,7 @@ async function fetchParsedQuestions(
       temperature: 0.6,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: LISTENING_SYSTEM_PROMPT },
+        { role: "system", content: getListeningSystemPrompt(gradeLevel) },
         { role: "user", content: prompt },
       ],
     }),
@@ -227,18 +300,30 @@ export async function generateListeningQuestionsWithAi(
   apiKey: string,
   options: GenerateQuestionsOptions
 ): Promise<GenerateQuestionsResult> {
-  const { mode, count, selectedTypeIds, difficultyMode = "auto" } = options;
+  const {
+    mode,
+    count,
+    selectedTypeIds,
+    difficultyMode = "auto",
+    gradeLevel = "middle1",
+  } = options;
   const examMode = mode === "exam";
   const examTypes = examMode
-    ? resolveExamTypesForGeneration(count, selectedTypeIds)
+    ? resolveExamTypesForGeneration(count, selectedTypeIds, gradeLevel)
     : undefined;
   const itemCount = examMode ? examTypes!.length : count;
 
   const prompt = examMode
-    ? buildListeningExamPrompt(examTypes!, difficultyMode)
-    : buildListeningFreePrompt(itemCount);
+    ? buildListeningExamPrompt(examTypes!, difficultyMode, gradeLevel)
+    : buildListeningFreePrompt(itemCount, gradeLevel);
 
-  const questions = await fetchParsedQuestions(apiKey, prompt, examMode, examTypes);
+  const questions = await fetchParsedQuestions(
+    apiKey,
+    prompt,
+    examMode,
+    examTypes,
+    gradeLevel
+  );
   const withQuality = await attachValidationToQuestions(apiKey, questions, examTypes);
   return { questions: withQuality };
 }
@@ -248,13 +333,19 @@ export async function generateSingleExamQuestion(
   apiKey: string,
   typeId: number,
   difficultyMode: ListeningDifficultyMode = "auto",
-  previousProblems?: string[]
+  previousProblems?: string[],
+  gradeLevel: ListeningGradeLevel = "middle1"
 ) {
-  const type = resolveExamTypesForGeneration(1, [typeId])[0];
+  const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
 
-  const prompt = buildListeningSingleTypePrompt(type, difficultyMode, previousProblems);
-  const questions = await fetchParsedQuestions(apiKey, prompt, true, [type]);
+  const prompt = buildListeningSingleTypePrompt(
+    type,
+    difficultyMode,
+    previousProblems,
+    gradeLevel
+  );
+  const questions = await fetchParsedQuestions(apiKey, prompt, true, [type], gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
 
@@ -265,14 +356,15 @@ export async function generateSingleExamQuestion(
 export async function generateSingleFreeQuestion(
   apiKey: string,
   orderIndex: number,
-  previousProblems?: string[]
+  previousProblems?: string[],
+  gradeLevel: ListeningGradeLevel = "middle1"
 ) {
   const avoid =
     previousProblems && previousProblems.length > 0
       ? `\n피할 문제:\n${previousProblems.map((p) => `- ${p}`).join("\n")}\n`
       : "";
-  const prompt = `${buildListeningFreePrompt(1)}${avoid}\norder_index는 ${orderIndex}로 설정.`;
-  const questions = await fetchParsedQuestions(apiKey, prompt, false);
+  const prompt = `${buildListeningFreePrompt(1, gradeLevel)}${avoid}\norder_index는 ${orderIndex}로 설정.`;
+  const questions = await fetchParsedQuestions(apiKey, prompt, false, undefined, gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
   return attachValidationToQuestion(apiKey, { ...q, order_index: orderIndex });

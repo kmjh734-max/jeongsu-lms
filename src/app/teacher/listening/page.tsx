@@ -10,7 +10,8 @@ export default async function TeacherListeningPage() {
     .from("listening_sets")
     .select("id, title, is_published, created_at")
     .eq("teacher_id", profile!.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(100);
 
   return (
     <div>

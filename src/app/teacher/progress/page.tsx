@@ -2,11 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { EnrollmentProgressDetailTable } from "@/components/progress/EnrollmentProgressDetailTable";
 import { PageHeader } from "@/components/ui/PageHeader";
-import {
-  buildEnrollmentProgressRows,
-  normalizeEnrollmentInputs,
-} from "@/lib/progress/enrollment-progress";
-import type { Lesson, LessonProgress, Section } from "@/types/database";
+import { loadProgressPageRows } from "@/lib/progress/load-progress-page";
 
 export default async function TeacherProgressPage() {
   const profile = await getCurrentProfile();
@@ -33,53 +29,8 @@ export default async function TeacherProgressPage() {
     );
   }
 
-  const [{ data: enrollments }, { data: sections }, { data: lessons }, { data: progress }] =
-    await Promise.all([
-      supabase
-        .from("enrollments")
-        .select(
-          "student_id, course_id, student:profiles!enrollments_student_id_fkey(name, email), course:courses(title)"
-        )
-        .in("course_id", courseIds)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("sections")
-        .select("id, course_id, order_index")
-        .in("course_id", courseIds),
-      supabase
-        .from("lessons")
-        .select("id, course_id, title, order_index, section_id, is_published")
-        .in("course_id", courseIds),
-      supabase
-        .from("lesson_progress")
-        .select(
-          "student_id, lesson_id, is_completed, last_watched_at, completed_at, progress_percent, watched_seconds"
-        ),
-    ]);
-
-  const rows = buildEnrollmentProgressRows(
-    normalizeEnrollmentInputs(enrollments ?? []),
-    (sections ?? []) as Pick<Section, "id" | "course_id" | "order_index">[],
-    (lessons ?? []) as Pick<
-      Lesson,
-      "id" | "course_id" | "title" | "order_index" | "section_id" | "is_published"
-    >[],
-    (progress ?? []) as Pick<
-      LessonProgress,
-      | "student_id"
-      | "lesson_id"
-      | "is_completed"
-      | "last_watched_at"
-      | "completed_at"
-      | "progress_percent"
-      | "watched_seconds"
-    >[]
-  );
-
-  rows.sort((a, b) => {
-    const course = a.courseTitle.localeCompare(b.courseTitle, "ko");
-    if (course !== 0) return course;
-    return a.studentName.localeCompare(b.studentName, "ko");
+  const rows = await loadProgressPageRows(supabase, {
+    teacherId: profile!.id,
   });
 
   return (

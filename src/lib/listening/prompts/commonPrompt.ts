@@ -1,7 +1,14 @@
 /** 중1 전국 영어듣기평가 — 모든 문항 공통 생성 규칙 */
 
-export const COPYRIGHT_BLOCK = `
-저작권 (필수):
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import {
+  COMMON_PROMPT_MIDDLE2,
+  LISTENING_SYSTEM_PROMPT_MIDDLE2,
+  MIDDLE2_COPYRIGHT_BLOCK,
+  MIDDLE2_JSON_OUTPUT_SCHEMA,
+} from "@/lib/listening/prompts/commonPromptMiddle2";
+
+export const COPYRIGHT_BLOCK = `저작권 (필수):
 - 2024·2025·2026 기출 문장, 대본, 선택지를 그대로 복사하지 않는다.
 - 유형·난이도·구조만 참고하고, 상황과 문장은 완전히 새로 작성한다.
 `.trim();
@@ -65,3 +72,19 @@ export const JSON_OUTPUT_SCHEMA = `
 
 export const LISTENING_SYSTEM_PROMPT =
   "You are an expert writer for the Korean national middle school Grade 1 English listening exam (전국 중1 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Follow per-type rules and word-count targets strictly. Write natural, slightly longer sentences (6~13 words) at grade-1 level.";
+
+export function getListeningSystemPrompt(grade: ListeningGradeLevel): string {
+  return grade === "middle2" ? LISTENING_SYSTEM_PROMPT_MIDDLE2 : LISTENING_SYSTEM_PROMPT;
+}
+
+export function getCommonPrompt(grade: ListeningGradeLevel): string {
+  return grade === "middle2" ? COMMON_PROMPT_MIDDLE2 : COMMON_PROMPT;
+}
+
+export function getCopyrightBlock(grade: ListeningGradeLevel): string {
+  return grade === "middle2" ? MIDDLE2_COPYRIGHT_BLOCK : COPYRIGHT_BLOCK;
+}
+
+export function getJsonOutputSchema(grade: ListeningGradeLevel): string {
+  return grade === "middle2" ? MIDDLE2_JSON_OUTPUT_SCHEMA : JSON_OUTPUT_SCHEMA;
+}

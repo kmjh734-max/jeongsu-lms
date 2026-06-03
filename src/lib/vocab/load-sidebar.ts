@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Class, VocabFolder, VocabSet } from "@/types/database";
 import type { VocabSidebarSet } from "@/components/vocab/VocabSidebar";
+import { fetchVocabItemCountsBySetIds } from "@/lib/vocab/vocab-item-counts";
 
 export async function loadVocabSidebarData(
   supabase: SupabaseClient,
@@ -11,7 +12,7 @@ export async function loadVocabSidebarData(
   folders: VocabFolder[];
   sets: VocabSidebarSet[];
 }> {
-  const [classesRes, foldersRes, setsRes, itemRows] = await Promise.all([
+  const [classesRes, foldersRes, setsRes] = await Promise.all([
     role === "admin"
       ? supabase
           .from("classes")
@@ -38,18 +39,15 @@ export async function loadVocabSidebarData(
           .select("*")
           .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
           .order("created_at", { ascending: false }),
-    supabase.from("vocab_items").select("set_id"),
   ]);
 
-  const itemCountBySet = new Map<string, number>();
-  for (const row of itemRows.data ?? []) {
-    itemCountBySet.set(
-      row.set_id,
-      (itemCountBySet.get(row.set_id) ?? 0) + 1
-    );
-  }
+  const setList = (setsRes.data ?? []) as VocabSet[];
+  const itemCountBySet = await fetchVocabItemCountsBySetIds(
+    supabase,
+    setList.map((s) => s.id)
+  );
 
-  const sets = ((setsRes.data ?? []) as VocabSet[]).map((s) => ({
+  const sets = setList.map((s) => ({
     id: s.id,
     title: s.title,
     folder_id: s.folder_id,

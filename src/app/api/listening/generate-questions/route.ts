@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-questions";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
@@ -75,11 +76,14 @@ export async function POST(request: Request) {
       body.mode === "exam" ? "exam" : "free";
     const count = Math.min(Math.max(body.count ?? 5, 1), 20);
 
+    const gradeLevel = await fetchListeningSetGradeLevel(setId);
+
     const { questions: generated } = await generateListeningQuestionsWithAi(apiKey, {
       mode,
       count,
       selectedTypeIds: body.selectedTypeIds,
       difficultyMode: body.difficultyMode ?? "auto",
+      gradeLevel,
     });
 
     const persist = body.persist !== false;

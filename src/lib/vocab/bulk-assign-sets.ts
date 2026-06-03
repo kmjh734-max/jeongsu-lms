@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { assignVocabSetDirect } from "@/lib/vocab/class-assignments";
 
 export interface BulkAssignResult {
   ok: true;
@@ -42,30 +41,82 @@ export async function bulkAssignSets(
     return { ok: false, message: "배정할 학생이 없습니다." };
   }
 
-  let assigned = 0;
-  let skipped = 0;
   const classId = options.classId ?? null;
+
+  if (classId) {
+    const memberCheck = await Promise.all(
+      targetIds.map((sid) =>
+        supabase
+          .from("class_students")
+          .select("id")
+          .eq("class_id", classId)
+          .eq("student_id", sid)
+          .maybeSingle()
+      )
+    );
+    const invalid = memberCheck.findIndex((r) => !r.data);
+    if (invalid >= 0) {
+      return { ok: false, message: "이 반에 등록된 학생이 아닙니다." };
+    }
+  }
+
+  const { data: existingRows } = await supabase
+    .from("vocab_assignments")
+    .select("set_id, student_id")
+    .in("set_id", setIds)
+    .in("student_id", targetIds);
+
+  const existingKeys = new Set(
+    (existingRows ?? []).map((r) => `${r.set_id}:${r.student_id}`)
+  );
+
+  const toInsert: Array<{
+    set_id: string;
+    student_id: string;
+    class_id: string | null;
+    assigned_by: string;
+  }> = [];
 
   for (const setId of setIds) {
     for (const studentId of targetIds) {
-      const result = await assignVocabSetDirect(
-        supabase,
-        setId,
-        studentId,
-        assignedBy,
-        classId
-      );
-      if (result.ok) {
-        assigned++;
-      } else if (
-        result.message.includes("이미") ||
-        result.message.includes("등록된 학생이 아닙니다")
-      ) {
-        skipped++;
-      } else {
-        return result;
+      const key = `${setId}:${studentId}`;
+      if (!existingKeys.has(key)) {
+        toInsert.push({
+          set_id: setId,
+          student_id: studentId,
+          class_id: classId,
+          assigned_by: assignedBy,
+        });
       }
     }
+  }
+
+  const totalPairs = setIds.length * targetIds.length;
+  const skipped = totalPairs - toInsert.length;
+
+  if (toInsert.length === 0) {
+    return {
+      ok: true,
+      assigned: 0,
+      skipped,
+      setCount: setIds.length,
+      studentCount: targetIds.length,
+    };
+  }
+
+  const chunkSize = 100;
+  let assigned = 0;
+  for (let i = 0; i < toInsert.length; i += chunkSize) {
+    const chunk = toInsert.slice(i, i + chunkSize);
+    const { error } = await supabase.from("vocab_assignments").insert(chunk);
+    if (error) {
+      if (error.code === "23505") {
+        assigned += chunk.length;
+        continue;
+      }
+      return { ok: false, message: error.message };
+    }
+    assigned += chunk.length;
   }
 
   return {
@@ -76,6 +127,7 @@ export async function bulkAssignSets(
     studentCount: targetIds.length,
   };
 }
+
 
 export function formatBulkAssignSuccess(result: BulkAssignResult): string {
   const base = `단어장 ${result.setCount}개가 배정되었습니다. (신규 ${result.assigned}건`;

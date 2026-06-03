@@ -1,4 +1,6 @@
 import type { ListeningDifficultyTier } from "@/lib/listening/exam-difficulty";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
 
 /**
  * 전국 중1 영어듣기평가 고정 20유형 (2024·2025·2026 기출 형식 참고, 내용 복사 금지)
@@ -102,93 +104,102 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
   },
   {
     id: 9,
-    question_type: "대화 직후 할 일",
+    question_type: "대화 직후 할 일 파악",
     instruction: "대화를 듣고, ○○가 대화 직후에 할 일로 가장 적절한 것을 고르시오.",
-    format_guide: "Last line states immediate next action clearly.",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean action phrases.",
+    format_guide:
+      "Immediate next action; target_person, immediate_action, mentioned_actions. I'll ... now.",
+    segment_guide: "M/W 6~8 turns. Last 1~2 turns state immediate action.",
+    choice_guide: "5 Korean action phrases (~하기, ~가기). needs_image_choices false.",
     difficulty_tier: "standard",
   },
   {
     id: 10,
-    question_type: "대화 주제 파악",
+    question_type: "대화의 핵심 내용 파악",
     instruction: "대화를 듣고, 무엇에 관한 내용인지 가장 적절한 것을 고르시오.",
-    format_guide: "Everyday problem or activity planning.",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean topic phrases.",
+    format_guide:
+      "Core content noun phrase; main_content, content_clues, topic_distractor_reasons.",
+    segment_guide: "M/W 6~8 turns. One consistent core topic throughout.",
+    choice_guide: "5 Korean content noun phrases (동영상 촬영 장소, 물건 나눔). needs_image_choices false.",
     difficulty_tier: "standard",
   },
   {
     id: 11,
-    question_type: "이동 방법",
+    question_type: "이동 방법 파악",
     instruction: "대화를 듣고, 두 사람이 함께 이동할 방법으로 가장 적절한 것을 고르시오.",
-    format_guide: "Mention candidates, then agree on one transport.",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean: 도보, 버스, 지하철, 택시, 비행기, 자동차 등.",
+    format_guide:
+      "Multiple transport candidates; final_transport, destination, mentioned_transport_options.",
+    segment_guide: "M/W 6~8 turns. Destination clear; final decision at end (Let's take ...).",
+    choice_guide: "5 Korean transports (도보, 버스, 지하철, 택시, 비행기 등). needs_image_choices false.",
     difficulty_tier: "standard",
   },
   {
     id: 12,
     question_type: "이유 파악",
     instruction: "대화를 듣고, ○○가 ○○에 가는 이유로 가장 적절한 것을 고르시오.",
-    format_guide: "Place and reason stated clearly.",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean reason phrases (~하려고).",
+    format_guide:
+      "Reason for going; target_person, target_place, reason_for_going, mentioned_possible_reasons.",
+    segment_guide: "M/W 6~8 turns. Place stated; reason clarified mid-late dialogue.",
+    choice_guide: "5 Korean reason phrases (~하기 위해서). needs_image_choices false.",
     difficulty_tier: "standard",
   },
   {
     id: 13,
-    question_type: "장소 파악",
+    question_type: "대화 장소 파악",
     instruction: "대화를 듣고, 두 사람이 대화하는 장소로 가장 적절한 곳을 고르시오.",
-    format_guide: "Do NOT name the place directly; use context clues (fans, field, shoes, etc.).",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean places: 야구장, 신발 가게, 약국, 서점, 보건실 등.",
+    format_guide:
+      "Infer place from clues; target_place, place_clues, distractor_places. Do NOT name place in script.",
+    segment_guide: "M/W 6~8 turns. At least 2 place clues (objects, actions, services).",
+    choice_guide: "5 Korean place names (보건실, 도서관, 우체국). needs_image_choices false.",
     difficulty_tier: "standard",
   },
   {
     id: 14,
-    question_type: "표/정보 불일치",
-    instruction: "○○에 관한 다음 내용을 듣고, 표에서 일치하지 않는 것을 고르시오.",
+    question_type: "표 정보 불일치",
+    instruction: "○○에 관한 다음 내용을 듣고, 표의 내용과 일치하지 않는 것을 고르시오.",
     format_guide:
-      "Event/class announcement. table_data required (5 rows, 1 mismatch). question_text empty. Audio matches 4 rows; ONE table row contradicts audio.",
-    segment_guide: "W or ANN 5~6 sentences with date, time, fee, place, topic.",
-    choice_guide: "5 Korean items matching table row labels.",
+      "table_data required (5 rows, 1 mismatch). source_facts_from_script. visual_choice_type table.",
+    segment_guide: "Single speaker M or W, 5~7 announcement sentences.",
+    choice_guide: "5 Korean labels matching table_data.rows order. correct_answer = mismatch_no.",
     difficulty_tier: "applied",
   },
   {
     id: 15,
-    question_type: "부탁한 일",
+    question_type: "부탁한 일 파악",
     instruction: "대화를 듣고, ○○가 ○○에게 부탁한 일로 가장 적절한 것을 고르시오.",
-    format_guide: "Use Can you~? / Would you~? / Could you~? for the request.",
-    segment_guide: "M/W 5~7 turns; request at end.",
-    choice_guide: "5 Korean action phrases.",
+    format_guide:
+      "Request (Can/Could/Would you). requester, requested_person, requested_action, request_expression.",
+    segment_guide: "M/W 6~8 turns. Request in latter half. NOT suggestion (16).",
+    choice_guide: "5 Korean action phrases (~하기). needs_image_choices false.",
     difficulty_tier: "applied",
   },
   {
     id: 16,
-    question_type: "제안한 것",
+    question_type: "제안한 것 파악",
     instruction: "대화를 듣고, ○○가 ○○에게 제안한 것으로 가장 적절한 것을 고르시오.",
-    format_guide: "Problem + Why don't we~? / How about~? / Let's~ suggestion.",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean suggestion phrases.",
+    format_guide:
+      "Suggestion (Why don't / How about / Let's). suggester, suggested_to, suggested_action, suggestion_expression. NOT request (15).",
+    segment_guide: "M/W 6~8 turns. Problem first, suggestion in latter half.",
+    choice_guide: "5 Korean action phrases (~하기). needs_image_choices false.",
     difficulty_tier: "applied",
   },
   {
     id: 17,
-    question_type: "특정 시점에 할 일",
+    question_type: "특정 시점에 할 일 파악",
     instruction: "대화를 듣고, ○○가 오늘 오후/이번 주말에 할 일로 가장 적절한 것을 고르시오.",
-    format_guide: "Schedule or weekend plan.",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean activity phrases.",
+    format_guide:
+      "Schedule at specific time. target_person, target_time, planned_action, mentioned_other_actions. NOT immediate (9), request (15), suggestion (16).",
+    segment_guide: "M/W 6~8 turns. Multiple activities mentioned; final plan for target_time clear.",
+    choice_guide: "5 Korean activity phrases (~하기). needs_image_choices false.",
     difficulty_tier: "applied",
   },
   {
     id: 18,
     question_type: "직업 파악",
     instruction: "대화를 듣고, ○○의 직업으로 가장 적절한 것을 고르시오.",
-    format_guide: "Job NOT named; infer from work described (vet, cleaner, teacher, etc.).",
-    segment_guide: "M/W 5~7 turns.",
-    choice_guide: "5 Korean jobs.",
+    format_guide:
+      "Job NOT named in script. target_person, target_job, job_clues(2+), distractor_jobs. NOT dream job (7).",
+    segment_guide: "M/W 6~8 turns. Work role clues from actions/tools/settings.",
+    choice_guide: "5 Korean job names. needs_image_choices false.",
     difficulty_tier: "applied",
   },
   {
@@ -196,9 +207,9 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "응답 고르기",
     instruction: "대화를 듣고, 여자의 마지막 말에 이어질 남자의 말로 가장 적절한 것을 고르시오.",
     format_guide:
-      "6~8 turns; ends with W. question_text: Man: ________. Man's reply NOT in segments/audio.",
-    segment_guide: "M/W dialogue; last segment speaker W only.",
-    choice_guide: "5 natural English reply sentences (6~12 words each).",
+      "5~7 turns; ends with W. question_text Man: ______. blank_speaker M. Reply NOT in segments.",
+    segment_guide: "M/W dialogue; last segment W only; previous_turn = last W utterance.",
+    choice_guide: "5 English response sentences. NOT Okay/Yes/Sure alone. correct_response_function required.",
     difficulty_tier: "advanced",
   },
   {
@@ -206,41 +217,50 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     question_type: "응답 고르기",
     instruction: "대화를 듣고, 남자의 마지막 말에 이어질 여자의 말로 가장 적절한 것을 고르시오.",
     format_guide:
-      "Different topic from #19. 6~8 turns; ends with M. question_text: Woman: ________. Woman's reply NOT in segments/audio.",
-    segment_guide: "M/W dialogue; last segment speaker M only.",
-    choice_guide: "5 natural English reply sentences (6~12 words each).",
+      "5~7 turns; ends with M. question_text Woman: ______. blank_speaker W. NOT same as Q19.",
+    segment_guide: "M/W dialogue; last segment M only; situation_type required.",
+    choice_guide: "5 English response sentences. situation_type + correct_response_function.",
     difficulty_tier: "advanced",
   },
 ];
 
-export function getExamTypeById(id: number): ExamTypeTemplate | undefined {
-  return MIDDLE1_LISTENING_EXAM_TYPES.find((t) => t.id === id);
+export function getExamTypesForGrade(grade: ListeningGradeLevel): ExamTypeTemplate[] {
+  return grade === "middle2" ? MIDDLE2_LISTENING_EXAM_TYPES : MIDDLE1_LISTENING_EXAM_TYPES;
+}
+
+export function getExamTypeById(
+  id: number,
+  grade: ListeningGradeLevel = "middle1"
+): ExamTypeTemplate | undefined {
+  return getExamTypesForGrade(grade).find((t) => t.id === id);
 }
 
 /** 5→1~5, 10→1~10, 20→1~20 고정 순서 */
 export function resolveExamTypesForGeneration(
   count: number,
-  selectedTypeIds?: number[]
+  selectedTypeIds?: number[],
+  grade: ListeningGradeLevel = "middle1"
 ): ExamTypeTemplate[] {
+  const allTypes = getExamTypesForGrade(grade);
   if (selectedTypeIds && selectedTypeIds.length > 0) {
     const picked = selectedTypeIds
-      .map((id) => getExamTypeById(id))
+      .map((id) => getExamTypeById(id, grade))
       .filter((t): t is ExamTypeTemplate => t !== undefined)
       .sort((a, b) => a.id - b.id);
     if (picked.length === 0) {
-      return MIDDLE1_LISTENING_EXAM_TYPES.slice(0, Math.min(count, 20));
+      return allTypes.slice(0, Math.min(count, 20));
     }
     if (picked.length >= count) {
       return picked.slice(0, count);
     }
     const result = [...picked];
-    for (const t of MIDDLE1_LISTENING_EXAM_TYPES) {
+    for (const t of allTypes) {
       if (result.length >= count) break;
       if (!result.some((r) => r.id === t.id)) result.push(t);
     }
     return result.slice(0, count);
   }
-  return MIDDLE1_LISTENING_EXAM_TYPES.slice(0, Math.min(count, 20));
+  return allTypes.slice(0, Math.min(count, 20));
 }
 
 export function tierLabel(tier: ListeningDifficultyTier): string {

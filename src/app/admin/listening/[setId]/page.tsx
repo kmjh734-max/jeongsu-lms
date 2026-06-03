@@ -49,12 +49,6 @@ export default async function AdminListeningSetPage({
     })
     .filter((n): n is string => !!n);
 
-  const { data: students } = await supabase
-    .from("profiles")
-    .select("id, name")
-    .eq("role", "student")
-    .order("name");
-
   return (
     <div className="space-y-6">
       <Link
@@ -66,6 +60,9 @@ export default async function AdminListeningSetPage({
       <ListeningSetManageClient
         setId={loaded.set.id}
         title={loaded.set.title}
+        gradeLevel={
+          loaded.set.grade_level === "middle2" ? "middle2" : "middle1"
+        }
         isPublished={loaded.set.is_published}
         speechSpeed={loaded.set.speech_speed ?? 0.9}
         voiceAnnId={loaded.set.voice_ann_id ?? null}
@@ -77,7 +74,6 @@ export default async function AdminListeningSetPage({
       <ListeningAssignPanel
         setId={setId}
         classes={classes ?? []}
-        students={(students ?? []).map((s) => ({ id: s.id, name: s.name }))}
         assignedClassNames={assignedClassNames}
         assignedStudentNames={assignedStudentNames}
         isPublished={loaded.set.is_published}

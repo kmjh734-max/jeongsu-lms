@@ -3,6 +3,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { ListeningExamPrintView } from "@/components/listening/ListeningExamPrintView";
 import { createClient } from "@/lib/supabase/server";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
+import { gradeLevelLabel, parseListeningGradeLevel } from "@/lib/listening/grade-level";
 
 export default async function TeacherListeningPrintPage({
   params,
@@ -28,6 +29,9 @@ export default async function TeacherListeningPrintPage({
   return (
     <ListeningExamPrintView
       title={loaded.set.title}
+      gradeLabel={gradeLevelLabel(
+        parseListeningGradeLevel(loaded.set.grade_level)
+      )}
       questions={loaded.questions}
       backHref={`/teacher/listening/${setId}`}
       showScript={script === "1"}

@@ -6,6 +6,18 @@ import { getType5PromptBlockForExam } from "@/lib/listening/prompts/type5Unmenti
 import { getType6PromptBlockForExam } from "@/lib/listening/prompts/type6TimePrompt";
 import { getType7PromptBlockForExam } from "@/lib/listening/prompts/type7CareerPrompt";
 import { getType8PromptBlockForExam } from "@/lib/listening/prompts/type8EmotionPrompt";
+import { getType9PromptBlockForExam } from "@/lib/listening/prompts/type9ImmediateActionPrompt";
+import { getType10PromptBlockForExam } from "@/lib/listening/prompts/type10MainContentPrompt";
+import { getType11PromptBlockForExam } from "@/lib/listening/prompts/type11TransportPrompt";
+import { getType12PromptBlockForExam } from "@/lib/listening/prompts/type12ReasonPrompt";
+import { getType13PromptBlockForExam } from "@/lib/listening/prompts/type13PlacePrompt";
+import { getType14PromptBlockForExam } from "@/lib/listening/prompts/type14TablePrompt";
+import { getType15PromptBlockForExam } from "@/lib/listening/prompts/type15RequestPrompt";
+import { getType16PromptBlockForExam } from "@/lib/listening/prompts/type16SuggestionPrompt";
+import { getType17PromptBlockForExam } from "@/lib/listening/prompts/type17SchedulePrompt";
+import { getType18PromptBlockForExam } from "@/lib/listening/prompts/type18JobPrompt";
+import { getType19PromptBlockForExam } from "@/lib/listening/prompts/type19ResponsePrompt";
+import { getType20PromptBlockForExam } from "@/lib/listening/prompts/type20ResponsePrompt";
 
 /**
  * 중1 영어듣기평가 20유형별 생성 프롬프트
@@ -74,134 +86,75 @@ const TYPE_PROMPTS: TypePromptSpec[] = [
   },
   {
     id: 9,
-    question_type: "대화 직후 할 일",
+    question_type: "대화 직후 할 일 파악",
     instruction: "대화를 듣고, ○○가 대화 직후에 할 일로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- 마지막 부분에 바로 할 행동이 명확 (I'll ~ now 등).
-- instruction의 ○○는 남자 또는 여자.
-- 선택지: 행동 5개 (한국어).`,
+    body: "(9번 전용 상세 규칙은 type9ImmediateActionPrompt.ts — 일괄 생성 시 getType9PromptBlockForExam 사용)",
   },
   {
     id: 10,
-    question_type: "대화 주제 파악",
+    question_type: "대화의 핵심 내용 파악",
     instruction: "대화를 듣고, 무엇에 관한 내용인지 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- 일상 문제·계획·물건 처리 등; 전체 주제가 정답.
-- 선택지: 주제 5개 (한국어). 너무 세부적이면 안 됨.`,
+    body: "(10번 전용 상세 규칙은 type10MainContentPrompt.ts — 일괄 생성 시 getType10PromptBlockForExam 사용)",
   },
   {
     id: 11,
-    question_type: "이동 방법",
+    question_type: "이동 방법 파악",
     instruction: "대화를 듣고, 두 사람이 함께 이동할 방법으로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- 이동 수단 후보 제시 후 함께 결정한 하나가 정답.
-- 선택지: 교통수단 5개 (한국어).`,
+    body: "(11번 전용 상세 규칙은 type11TransportPrompt.ts — 일괄 생성 시 getType11PromptBlockForExam 사용)",
   },
   {
     id: 12,
     question_type: "이유 파악",
     instruction: "대화를 듣고, ○○가 ○○에 가는 이유로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- 특정 장소 방문 이유가 대본에 명확.
-- instruction의 ○○는 인물·장소(한국어).
-- 선택지: 이유 5개 (한국어, ~하려고 형식).`,
+    body: "(12번 전용 상세 규칙은 type12ReasonPrompt.ts — 일괄 생성 시 getType12PromptBlockForExam 사용)",
   },
   {
     id: 13,
-    question_type: "장소 파악",
+    question_type: "대화 장소 파악",
     instruction: "대화를 듣고, 두 사람이 대화하는 장소로 가장 적절한 곳을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- 장소명을 직접 말하지 말고 단서(물건·행동·서비스)로 추론.
-- 선택지: 장소 5개 (한국어).`,
+    body: "(13번 전용 상세 규칙은 type13PlacePrompt.ts — 일괄 생성 시 getType13PromptBlockForExam 사용)",
   },
   {
     id: 14,
     question_type: "표 정보 불일치",
-    instruction: "○○에 관한 다음 내용을 듣고, 표에서 일치하지 않는 것을 고르시오.",
-    body: `
-- 행사·수업·프로그램 안내 담화(ANN 또는 M/W) 5~7문장.
-- 대본에 5개 정보를 모두 언급한다.
-- table_data 필수 (question_text는 비워 둔다).
-- table_data.title: 행사/프로그램 영어 제목.
-- table_data.rows: 정확히 5개 { no, label(한국어 항목명), value(영어 내용) }.
-- 4개 row는 대본과 일치, 정확히 1개 row만 대본과 다르게 작성.
-- table_data.mismatch_no: 불일치 row 번호(1~5).
-- table_data.mismatch_reason: 불일치 이유(한국어).
-- correct_answer는 mismatch_no와 같아야 한다.
-- choices: 5개 한국어 항목명(표 label과 동일 순서) 또는 ①~⑤에 대응하는 짧은 표현.
-- answer_clue에 불일치 근거를 명확히 적는다.`,
+    instruction: "○○에 관한 다음 내용을 듣고, 표의 내용과 일치하지 않는 것을 고르시오.",
+    body: "(14번 전용 상세 규칙은 type14TablePrompt.ts — 일괄 생성 시 getType14PromptBlockForExam 사용)",
   },
   {
     id: 15,
-    question_type: "부탁한 일",
+    question_type: "부탁한 일 파악",
     instruction: "대화를 듣고, ○○가 ○○에게 부탁한 일로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- Can you~? / Could you~? / Would you~? 부탁 표현.
-- 실제 부탁한 일은 하나만 명확 (제안과 구분).
-- 선택지: 행동 5개 (한국어).`,
+    body: "(15번 전용 상세 규칙은 type15RequestPrompt.ts — 일괄 생성 시 getType15PromptBlockForExam 사용)",
   },
   {
     id: 16,
-    question_type: "제안한 것",
+    question_type: "제안한 것 파악",
     instruction: "대화를 듣고, ○○가 ○○에게 제안한 것으로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- Why don't we~? / How about~? / Let's~ 제안.
-- 선택지: 제안·활동 5개 (한국어).`,
+    body: "(16번 전용 상세 규칙은 type16SuggestionPrompt.ts — 일괄 생성 시 getType16PromptBlockForExam 사용)",
   },
   {
     id: 17,
-    question_type: "특정 시점 할 일",
+    question_type: "특정 시점에 할 일 파악",
     instruction: "대화를 듣고, ○○가 오늘 오후/이번 주말에 할 일로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- 오늘 오후·이번 주말 등 시점 명확; 그 시점의 계획이 정답.
-- instruction의 ○○는 남자 또는 여자.
-- 선택지: 활동 5개 (한국어).`,
+    body: "(17번 전용 상세 규칙은 type17SchedulePrompt.ts — 일괄 생성 시 getType17PromptBlockForExam 사용)",
   },
   {
     id: 18,
     question_type: "직업 파악",
     instruction: "대화를 듣고, ○○의 직업으로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴.
-- 직업명 직접 언급 없이 하는 일·상황 단서 2개 이상.
-- instruction의 ○○는 남자 또는 여자.
-- 선택지: 직업 5개 (한국어).`,
+    body: "(18번 전용 상세 규칙은 type18JobPrompt.ts — 일괄 생성 시 getType18PromptBlockForExam 사용)",
   },
   {
     id: 19,
     question_type: "응답 고르기",
     instruction: "대화를 듣고, 여자의 마지막 말에 이어질 남자의 말로 가장 적절한 것을 고르시오.",
-    body: `
-- 대화 6~8턴. 마지막 segment 화자는 반드시 W(여자).
-- 마지막에서 두 번째 발화는 상대(남자)의 반응을 유도하는 문장이어야 한다.
-- 남자의 응답 대사는 segment에 넣지 않음 (음원·대본에 읽히지 않음).
-- question_text: 정확히 "Man: ________" (다른 단어 없음).
-- previous_turn: 정답 직전 여자 발화 (예: "W: You can put the books in the return box.").
-- 선택지: 영어 문장 5개. 정답만 직전 발화에 직접·자연스럽게 이어짐.
-- 오답: 문법상 가능하나 현재 맥락에는 맞지 않음. 너무 엉뚱하거나 너무 짧은 "Yes." "Okay." 단독 금지.
-- correct_response_function: 정답 기능(감사/동의/안도/수락/거절/정보 확인 등).
-- distractor_reason: 5개 (각 선택지가 왜 정답/오답인지 한국어 한 줄).`,
+    body: "(19번 전용 상세 규칙은 type19ResponsePrompt.ts — 일괄 생성 시 getType19PromptBlockForExam 사용)",
   },
   {
     id: 20,
     question_type: "응답 고르기",
     instruction: "대화를 듣고, 남자의 마지막 말에 이어질 여자의 말로 가장 적절한 것을 고르시오.",
-    body: `
-- 19번과 다른 상황·주제.
-- 대화 6~8턴. 마지막 segment 화자는 반드시 M(남자).
-- 마지막에서 두 번째 발화는 여자의 반응을 유도.
-- 여자 응답 대사는 segment에 넣지 않음.
-- question_text: 정확히 "Woman: ________".
-- previous_turn: 정답 직전 남자 발화.
-- 선택지·오답·correct_response_function·distractor_reason 규칙은 19번과 동일.`,
+    body: "(20번 전용 상세 규칙은 type20ResponsePrompt.ts — 일괄 생성 시 getType20PromptBlockForExam 사용)",
   },
 ];
 
@@ -218,6 +171,18 @@ export function getTypePromptBlock(typeId: number): string {
   if (typeId === 6) return getType6PromptBlockForExam();
   if (typeId === 7) return getType7PromptBlockForExam();
   if (typeId === 8) return getType8PromptBlockForExam();
+  if (typeId === 9) return getType9PromptBlockForExam();
+  if (typeId === 10) return getType10PromptBlockForExam();
+  if (typeId === 11) return getType11PromptBlockForExam();
+  if (typeId === 12) return getType12PromptBlockForExam();
+  if (typeId === 13) return getType13PromptBlockForExam();
+  if (typeId === 14) return getType14PromptBlockForExam();
+  if (typeId === 15) return getType15PromptBlockForExam();
+  if (typeId === 16) return getType16PromptBlockForExam();
+  if (typeId === 17) return getType17PromptBlockForExam();
+  if (typeId === 18) return getType18PromptBlockForExam();
+  if (typeId === 19) return getType19PromptBlockForExam();
+  if (typeId === 20) return getType20PromptBlockForExam();
   const spec = getTypePromptSpec(typeId);
   if (!spec) return "";
   return `

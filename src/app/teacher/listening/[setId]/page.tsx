@@ -68,15 +68,6 @@ export default async function TeacherListeningSetPage({
           .in("class_id", classIds)
       : { data: [] as { student_id: string; student: { name: string } | null }[] };
 
-  const studentMap = new Map<string, string>();
-  for (const row of classStudents ?? []) {
-    const name = (row.student as { name?: string } | null)?.name;
-    if (name) studentMap.set(row.student_id, name);
-  }
-  const students = [...studentMap.entries()]
-    .map(([id, name]) => ({ id, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, "ko"));
-
   return (
     <div className="space-y-6">
       <Link
@@ -88,6 +79,9 @@ export default async function TeacherListeningSetPage({
       <ListeningSetManageClient
         setId={loaded.set.id}
         title={loaded.set.title}
+        gradeLevel={
+          loaded.set.grade_level === "middle2" ? "middle2" : "middle1"
+        }
         isPublished={loaded.set.is_published}
         speechSpeed={loaded.set.speech_speed ?? 0.9}
         voiceAnnId={loaded.set.voice_ann_id ?? null}
@@ -99,7 +93,6 @@ export default async function TeacherListeningSetPage({
       <ListeningAssignPanel
         setId={setId}
         classes={classes ?? []}
-        students={students}
         assignedClassNames={assignedClassNames}
         assignedStudentNames={assignedStudentNames}
         isPublished={loaded.set.is_published}

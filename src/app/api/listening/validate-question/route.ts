@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { getExamTypeById } from "@/lib/listening/exam-types";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { runQuestionValidation } from "@/lib/listening/run-question-validation";
@@ -34,6 +35,8 @@ function rowToGenerated(
     distractor_reason: Array.isArray(row.distractor_reason)
       ? (row.distractor_reason as string[])
       : [],
+    blank_speaker: String(row.blank_speaker ?? ""),
+    situation_type: String(row.situation_type ?? ""),
     needs_image_choices: Boolean(row.needs_image_choices),
     choice_image_prompts: Array.isArray(row.choice_image_prompts)
       ? (row.choice_image_prompts as string[])
@@ -75,6 +78,56 @@ function rowToGenerated(
     target_emotion: String(row.target_emotion ?? ""),
     emotion_clues: Array.isArray(row.emotion_clues)
       ? (row.emotion_clues as string[])
+      : [],
+    immediate_action: String(row.immediate_action ?? ""),
+    mentioned_actions: Array.isArray(row.mentioned_actions)
+      ? (row.mentioned_actions as GeneratedListeningQuestion["mentioned_actions"])
+      : [],
+    main_content: String(row.main_content ?? ""),
+    content_clues: Array.isArray(row.content_clues)
+      ? (row.content_clues as string[]).map(String)
+      : [],
+    topic_distractor_reasons: Array.isArray(row.topic_distractor_reasons)
+      ? (row.topic_distractor_reasons as GeneratedListeningQuestion["topic_distractor_reasons"])
+      : [],
+    destination: String(row.destination ?? ""),
+    final_transport: String(row.final_transport ?? ""),
+    mentioned_transport_options: Array.isArray(row.mentioned_transport_options)
+      ? (row.mentioned_transport_options as GeneratedListeningQuestion["mentioned_transport_options"])
+      : [],
+    target_place: String(row.target_place ?? ""),
+    reason_for_going: String(row.reason_for_going ?? ""),
+    mentioned_possible_reasons: Array.isArray(row.mentioned_possible_reasons)
+      ? (row.mentioned_possible_reasons as GeneratedListeningQuestion["mentioned_possible_reasons"])
+      : [],
+    place_clues: Array.isArray(row.place_clues)
+      ? (row.place_clues as string[]).map(String)
+      : [],
+    distractor_places: Array.isArray(row.distractor_places)
+      ? (row.distractor_places as GeneratedListeningQuestion["distractor_places"])
+      : [],
+    source_facts_from_script: Array.isArray(row.source_facts_from_script)
+      ? (row.source_facts_from_script as GeneratedListeningQuestion["source_facts_from_script"])
+      : [],
+    requester: String(row.requester ?? ""),
+    requested_person: String(row.requested_person ?? ""),
+    requested_action: String(row.requested_action ?? ""),
+    request_expression: String(row.request_expression ?? ""),
+    suggester: String(row.suggester ?? ""),
+    suggested_to: String(row.suggested_to ?? ""),
+    suggested_action: String(row.suggested_action ?? ""),
+    suggestion_expression: String(row.suggestion_expression ?? ""),
+    target_time: String(row.target_time ?? ""),
+    planned_action: String(row.planned_action ?? ""),
+    mentioned_other_actions: Array.isArray(row.mentioned_other_actions)
+      ? (row.mentioned_other_actions as GeneratedListeningQuestion["mentioned_other_actions"])
+      : [],
+    target_job: String(row.target_job ?? ""),
+    job_clues: Array.isArray(row.job_clues)
+      ? (row.job_clues as string[]).map(String)
+      : [],
+    distractor_jobs: Array.isArray(row.distractor_jobs)
+      ? (row.distractor_jobs as GeneratedListeningQuestion["distractor_jobs"])
       : [],
   };
 }
@@ -119,7 +172,8 @@ export async function POST(request: Request) {
 
     if (!q) return jsonError("question 또는 questionId가 필요합니다.");
 
-    const typeHint = getExamTypeById(q.order_index) ?? undefined;
+    const gradeLevel = setId ? await fetchListeningSetGradeLevel(setId) : "middle1";
+    const typeHint = getExamTypeById(q.order_index, gradeLevel) ?? undefined;
     const validation = await runQuestionValidation(apiKey, q, typeHint);
 
     if (body.persist && questionId && setId) {

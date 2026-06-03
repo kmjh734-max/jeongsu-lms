@@ -13,11 +13,18 @@ export async function POST(request: Request) {
       return jsonError("권한이 없습니다.", 403);
     }
 
-    const body = (await request.json()) as { title?: string; description?: string };
+    const body = (await request.json()) as {
+      title?: string;
+      description?: string;
+      grade_level?: string;
+    };
     const title = body.title?.trim();
     if (!title) {
       return jsonError("제목을 입력해 주세요.");
     }
+
+    const gradeLevel =
+      body.grade_level === "middle2" ? "middle2" : "middle1";
 
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -25,6 +32,7 @@ export async function POST(request: Request) {
       .insert({
         title,
         description: body.description?.trim() || null,
+        grade_level: gradeLevel,
         teacher_id: profile.role === "teacher" ? profile.id : profile.id,
         created_by: profile.id,
         is_published: false,

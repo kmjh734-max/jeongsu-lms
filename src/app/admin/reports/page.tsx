@@ -1,5 +1,21 @@
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { ReportWorkspace } from "@/components/reports/ReportWorkspace";
+import { listReportClasses, listReportStudents } from "@/lib/reports/list-students";
 
-export default function AdminReportsPage() {
-  return <ReportWorkspace role="admin" />;
+export default async function AdminReportsPage() {
+  const profile = await getCurrentProfile();
+  const supabase = await createClient();
+  const [classes, students] = await Promise.all([
+    listReportClasses(supabase, "admin", profile!.id),
+    listReportStudents(supabase, "admin", profile!.id, {}),
+  ]);
+
+  return (
+    <ReportWorkspace
+      role="admin"
+      initialClasses={classes}
+      initialStudents={students}
+    />
+  );
 }

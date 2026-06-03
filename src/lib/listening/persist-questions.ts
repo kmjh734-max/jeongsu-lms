@@ -6,7 +6,7 @@ import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 
 const MIGRATION_HINT =
-  "Supabase SQL Editor에서 supabase/migrations/RUN_LISTENING_027_THROUGH_036.sql 을 실행해 주세요.";
+  "Supabase SQL Editor에서 supabase/migrations/RUN_LISTENING_027_THROUGH_036.sql (및 037~048)을 실행해 주세요.";
 
 function isMissingColumnError(message: string): boolean {
   return /column|schema cache|PGRST204|does not exist/i.test(message);
@@ -36,6 +36,8 @@ function extendedQualityFields(q: GeneratedListeningQuestion) {
     previous_turn: q.previous_turn ?? "",
     correct_response_function: q.correct_response_function ?? "",
     distractor_reason: q.distractor_reason ?? [],
+    blank_speaker: q.blank_speaker ?? "",
+    situation_type: q.situation_type ?? "",
     needs_image_choices: q.needs_image_choices ?? false,
     choice_image_prompts: q.choice_image_prompts ?? [],
     visual_choice_type: q.visual_choice_type ?? "",
@@ -57,6 +59,34 @@ function extendedQualityFields(q: GeneratedListeningQuestion) {
     interest_clues: q.interest_clues ?? [],
     target_emotion: q.target_emotion ?? "",
     emotion_clues: q.emotion_clues ?? [],
+    immediate_action: q.immediate_action ?? "",
+    mentioned_actions: q.mentioned_actions ?? [],
+    main_content: q.main_content ?? "",
+    content_clues: q.content_clues ?? [],
+    topic_distractor_reasons: q.topic_distractor_reasons ?? [],
+    destination: q.destination ?? "",
+    final_transport: q.final_transport ?? "",
+    mentioned_transport_options: q.mentioned_transport_options ?? [],
+    target_place: q.target_place ?? "",
+    reason_for_going: q.reason_for_going ?? "",
+    mentioned_possible_reasons: q.mentioned_possible_reasons ?? [],
+    place_clues: q.place_clues ?? [],
+    distractor_places: q.distractor_places ?? [],
+    source_facts_from_script: q.source_facts_from_script ?? [],
+    requester: q.requester ?? "",
+    requested_person: q.requested_person ?? "",
+    requested_action: q.requested_action ?? "",
+    request_expression: q.request_expression ?? "",
+    suggester: q.suggester ?? "",
+    suggested_to: q.suggested_to ?? "",
+    suggested_action: q.suggested_action ?? "",
+    suggestion_expression: q.suggestion_expression ?? "",
+    target_time: q.target_time ?? "",
+    planned_action: q.planned_action ?? "",
+    mentioned_other_actions: q.mentioned_other_actions ?? [],
+    target_job: q.target_job ?? "",
+    job_clues: q.job_clues ?? [],
+    distractor_jobs: q.distractor_jobs ?? [],
   };
 }
 

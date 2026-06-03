@@ -21,11 +21,17 @@ const RANGE_OPTIONS: { value: ReportRange; label: string }[] = [
 
 interface ReportWorkspaceProps {
   role: "admin" | "teacher";
+  initialClasses?: ReportClassOption[];
+  initialStudents?: ReportStudentOption[];
 }
 
-export function ReportWorkspace({ role }: ReportWorkspaceProps) {
-  const [classes, setClasses] = useState<ReportClassOption[]>([]);
-  const [students, setStudents] = useState<ReportStudentOption[]>([]);
+export function ReportWorkspace({
+  role,
+  initialClasses = [],
+  initialStudents = [],
+}: ReportWorkspaceProps) {
+  const [classes, setClasses] = useState<ReportClassOption[]>(initialClasses);
+  const [students, setStudents] = useState<ReportStudentOption[]>(initialStudents);
   const [classId, setClassId] = useState("");
   const [nameQuery, setNameQuery] = useState("");
   const [loginQuery, setLoginQuery] = useState("");
@@ -60,9 +66,15 @@ export function ReportWorkspace({ role }: ReportWorkspaceProps) {
     }
   }, [classId, nameQuery, loginQuery]);
 
+  const hasInitialLists =
+    initialClasses.length > 0 || initialStudents.length > 0;
+
   useEffect(() => {
+    if (hasInitialLists && !classId && !nameQuery.trim() && !loginQuery.trim()) {
+      return;
+    }
     void loadStudents();
-  }, [loadStudents]);
+  }, [loadStudents, hasInitialLists, classId, nameQuery, loginQuery]);
 
   async function generateReport() {
     if (!selectedStudentId) {

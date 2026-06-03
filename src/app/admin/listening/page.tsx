@@ -7,7 +7,8 @@ export default async function AdminListeningPage() {
   const { data: sets } = await supabase
     .from("listening_sets")
     .select("id, title, is_published, created_at")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(100);
 
   return (
     <div>

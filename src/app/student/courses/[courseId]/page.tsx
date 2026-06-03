@@ -34,28 +34,33 @@ export default async function StudentCoursePage({ params }: PageProps) {
 
   if (!course) notFound();
 
-  const [{ data: sections }, { data: lessons }, { data: progress }] =
-    await Promise.all([
-      supabase
-        .from("sections")
-        .select("*")
-        .eq("course_id", courseId)
-        .order("order_index"),
-      supabase
-        .from("lessons")
-        .select("*")
-        .eq("course_id", courseId)
-        .eq("is_published", true)
-        .order("order_index"),
-      supabase
-        .from("lesson_progress")
-        .select("lesson_id, is_completed")
-        .eq("student_id", profile!.id),
-    ]);
+  const [{ data: sections }, { data: lessons }] = await Promise.all([
+    supabase
+      .from("sections")
+      .select("*")
+      .eq("course_id", courseId)
+      .order("order_index"),
+    supabase
+      .from("lessons")
+      .select("*")
+      .eq("course_id", courseId)
+      .eq("is_published", true)
+      .order("order_index"),
+  ]);
 
   const sectionList = (sections ?? []) as Section[];
   const lessonList = (lessons ?? []) as Lesson[];
   const flatLessons = flattenCourseLessons(sectionList, lessonList);
+  const lessonIds = flatLessons.map((l) => l.id);
+
+  const { data: progress } =
+    lessonIds.length > 0
+      ? await supabase
+          .from("lesson_progress")
+          .select("lesson_id, is_completed")
+          .eq("student_id", profile!.id)
+          .in("lesson_id", lessonIds)
+      : { data: [] as { lesson_id: string; is_completed: boolean }[] };
   const progressMap = new Map(
     (progress ?? []).map((p) => [p.lesson_id, p.is_completed])
   );
