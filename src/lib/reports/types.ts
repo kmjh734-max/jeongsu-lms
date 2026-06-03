@@ -47,6 +47,17 @@ export interface ReviewWordRow {
   recentWrong: boolean;
 }
 
+export interface ListeningDictationReportRow {
+  setId: string;
+  setTitle: string;
+  questionCount: number;
+  passedQuestionCount: number;
+  averageBestScore: number | null;
+  totalAttempts: number;
+  frequentWrongWords: string[];
+  summaryLine: string;
+}
+
 export interface StudentReport {
   generatedAt: string;
   range: ReportRange;
@@ -61,8 +72,10 @@ export interface StudentReport {
     videoLine: string;
     vocabLine: string;
     reviewLine: string;
+    listeningDictationLine: string;
   };
   courses: CourseReportSection[];
   vocabSets: VocabReportSection[];
+  listeningDictation: ListeningDictationReportRow[];
   reviewWords: ReviewWordRow[];
 }

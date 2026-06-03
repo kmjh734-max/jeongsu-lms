@@ -26,6 +26,11 @@ export async function PATCH(
       voice_ann_id?: string | null;
       voice_m_id?: string | null;
       voice_w_id?: string | null;
+      dictation_enabled?: boolean;
+      dictation_pass_score?: number;
+      dictation_blank_level?: string;
+      dictation_randomize_on_retry?: boolean;
+      dictation_lock_next_until_pass?: boolean;
     };
 
     const supabase = await createClient();
@@ -48,6 +53,29 @@ export async function PATCH(
     }
     if (body.voice_w_id !== undefined) {
       patch.voice_w_id = body.voice_w_id?.trim() || null;
+    }
+    if (typeof body.dictation_enabled === "boolean") {
+      patch.dictation_enabled = body.dictation_enabled;
+    }
+    if (typeof body.dictation_pass_score === "number") {
+      patch.dictation_pass_score = Math.min(
+        100,
+        Math.max(0, Math.round(body.dictation_pass_score))
+      );
+    }
+    if (
+      body.dictation_blank_level === "auto" ||
+      body.dictation_blank_level === "few" ||
+      body.dictation_blank_level === "normal" ||
+      body.dictation_blank_level === "many"
+    ) {
+      patch.dictation_blank_level = body.dictation_blank_level;
+    }
+    if (typeof body.dictation_randomize_on_retry === "boolean") {
+      patch.dictation_randomize_on_retry = body.dictation_randomize_on_retry;
+    }
+    if (typeof body.dictation_lock_next_until_pass === "boolean") {
+      patch.dictation_lock_next_until_pass = body.dictation_lock_next_until_pass;
     }
 
     if (Object.keys(patch).length === 0) {

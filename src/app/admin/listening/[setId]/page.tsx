@@ -68,6 +68,16 @@ export default async function AdminListeningSetPage({
         voiceAnnId={loaded.set.voice_ann_id ?? null}
         voiceMId={loaded.set.voice_m_id ?? null}
         voiceWId={loaded.set.voice_w_id ?? null}
+        dictationSettings={{
+          dictation_enabled: loaded.set.dictation_enabled ?? true,
+          dictation_pass_score: loaded.set.dictation_pass_score ?? 80,
+          dictation_blank_level:
+            (loaded.set.dictation_blank_level as "auto" | "few" | "normal" | "many") ??
+            "auto",
+          dictation_randomize_on_retry: loaded.set.dictation_randomize_on_retry ?? true,
+          dictation_lock_next_until_pass:
+            loaded.set.dictation_lock_next_until_pass ?? true,
+        }}
         questions={loaded.questions}
         role="admin"
       />

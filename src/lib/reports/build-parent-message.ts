@@ -27,7 +27,7 @@ export function buildParentReportMessage({
     lines.push(reflected);
   } else {
     lines.push(
-      `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine}`
+      `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine} ${report.summary.listeningDictationLine}`
     );
   }
 

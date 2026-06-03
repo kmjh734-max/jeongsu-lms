@@ -12,8 +12,10 @@ import {
   maxIsoInRange,
   parseReportRange,
 } from "@/lib/reports/date-range";
+import { buildListeningDictationReport } from "@/lib/listening/dictation/report-summary";
 import type {
   CourseReportSection,
+  ListeningDictationReportRow,
   ReviewWordRow,
   StudentReport,
   VocabReportSection,
@@ -430,6 +432,26 @@ export async function getStudentReport(
       ? "복습이 필요한 단어가 없습니다."
       : `복습이 필요한 단어는 ${reviewWords.length}개입니다.`;
 
+  const dictationSections = await buildListeningDictationReport(supabase, studentId);
+  const listeningDictation: ListeningDictationReportRow[] = dictationSections.map(
+    (s) => ({
+      setId: s.setId,
+      setTitle: s.setTitle,
+      questionCount: s.questionCount,
+      passedQuestionCount: s.passedQuestionCount,
+      averageBestScore: s.averageBestScore,
+      totalAttempts: s.totalAttempts,
+      frequentWrongWords: s.frequentWrongWords,
+      summaryLine: s.summaryLine,
+    })
+  );
+  const listeningDictationLine =
+    listeningDictation.length === 0
+      ? "배정된 듣기 Dictation 기록이 없습니다."
+      : listeningDictation
+          .map((d) => `${d.setTitle}: ${d.summaryLine}`)
+          .join(" ");
+
   return {
     generatedAt,
     range,
@@ -444,9 +466,11 @@ export async function getStudentReport(
       videoLine,
       vocabLine,
       reviewLine,
+      listeningDictationLine,
     },
     courses,
     vocabSets: vocabSetsReport,
+    listeningDictation,
     reviewWords,
   };
 }

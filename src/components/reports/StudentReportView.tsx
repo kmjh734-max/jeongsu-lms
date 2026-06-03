@@ -188,6 +188,38 @@ export function StudentReportView({
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900">듣기 Dictation</h2>
+          <p className="mt-2 text-sm text-slate-600">{report.summary.listeningDictationLine}</p>
+          {report.listeningDictation.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-500">배정된 듣기 Dictation 기록이 없습니다.</p>
+          ) : (
+            <div className="mt-4 space-y-4">
+              {report.listeningDictation.map((d) => (
+                <article
+                  key={d.setId}
+                  className="rounded-xl border border-violet-100 bg-violet-50/40 p-4 text-sm"
+                >
+                  <h3 className="font-semibold text-slate-900">{d.setTitle}</h3>
+                  <p className="mt-1 text-slate-700">{d.summaryLine}</p>
+                  <p className="mt-2 text-slate-600">
+                    통과 {d.passedQuestionCount}/{d.questionCount}문항 · 시도{" "}
+                    {d.totalAttempts}회
+                    {d.averageBestScore != null
+                      ? ` · 평균 최고 ${d.averageBestScore}점`
+                      : ""}
+                  </p>
+                  {d.frequentWrongWords.length > 0 && (
+                    <p className="mt-1 text-amber-800">
+                      자주 틀린 단어: {d.frequentWrongWords.join(", ")}
+                    </p>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900">단어학습 현황</h2>
           {report.vocabSets.length === 0 ? (
             <p className="mt-4 text-sm text-slate-500">배정된 단어장이 없습니다.</p>

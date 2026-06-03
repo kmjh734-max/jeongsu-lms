@@ -42,6 +42,8 @@ import {
   presetFromSpeed,
   type SpeechSpeedPreset,
 } from "@/lib/listening/speech-speed";
+import type { DictationBlankLevel, DictationSetSettings } from "@/lib/listening/dictation/types";
+import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 
 interface ListeningSetManageClientProps {
   setId: string;
@@ -52,6 +54,7 @@ interface ListeningSetManageClientProps {
   voiceAnnId: string | null;
   voiceMId: string | null;
   voiceWId: string | null;
+  dictationSettings?: Partial<DictationSetSettings>;
   questions: ListeningQuestionData[];
   role: "admin" | "teacher";
 }
@@ -65,6 +68,7 @@ export function ListeningSetManageClient({
   voiceAnnId,
   voiceMId,
   voiceWId,
+  dictationSettings: initialDictation,
   questions: initialQuestions,
   role,
 }: ListeningSetManageClientProps) {
@@ -80,6 +84,10 @@ export function ListeningSetManageClient({
   const [speechPreset, setSpeechPreset] = useState<SpeechSpeedPreset>(
     presetFromSpeed(initialSpeechSpeed)
   );
+  const [dictation, setDictation] = useState<DictationSetSettings>({
+    ...DEFAULT_DICTATION_SETTINGS,
+    ...initialDictation,
+  });
 
   useEffect(() => {
     setSpeechPreset(presetFromSpeed(initialSpeechSpeed));
@@ -122,6 +130,23 @@ export function ListeningSetManageClient({
     return window.confirm(
       `이 세트에 저장된 문항 ${initialQuestions.length}개가 있습니다. ${actionLabel}하면 기존 문항·음원이 삭제되고 새 문항으로 바뀝니다. 계속할까요?`
     );
+  }
+
+  async function saveDictationSettings(patch: Partial<DictationSetSettings>) {
+    const next = { ...dictation, ...patch };
+    setDictation(next);
+    const res = await fetch(`/api/listening/sets/${setId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(next),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (data.ok) {
+      setMessage("Dictation 설정이 저장되었습니다.");
+      router.refresh();
+    } else {
+      setMessage(data.message ?? "Dictation 설정 저장 실패");
+    }
   }
 
   async function saveSpeechSpeed(preset: SpeechSpeedPreset) {
@@ -511,6 +536,85 @@ export function ListeningSetManageClient({
         initialVoiceMId={voiceMId}
         initialVoiceWId={voiceWId}
       />
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4">
+        <h2 className="text-sm font-semibold text-slate-800">Dictation 설정</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          객관식 제출 후 문항별 받아쓰기. 통과 점수 미만이면 다음 문항 잠금(설정 시).
+        </p>
+        <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={dictation.dictation_enabled}
+            onChange={(e) => void saveDictationSettings({ dictation_enabled: e.target.checked })}
+          />
+          Dictation 사용
+        </label>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="text-xs text-slate-600">
+            통과 기준 점수
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={dictation.dictation_pass_score}
+              onChange={(e) =>
+                setDictation((d) => ({
+                  ...d,
+                  dictation_pass_score: Number(e.target.value) || 80,
+                }))
+              }
+              onBlur={() =>
+                void saveDictationSettings({
+                  dictation_pass_score: dictation.dictation_pass_score,
+                })
+              }
+              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm"
+            />
+          </label>
+          <label className="text-xs text-slate-600">
+            빈칸 개수
+            <select
+              value={dictation.dictation_blank_level}
+              onChange={(e) =>
+                void saveDictationSettings({
+                  dictation_blank_level: e.target.value as DictationBlankLevel,
+                })
+              }
+              className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 text-sm"
+            >
+              <option value="auto">자동</option>
+              <option value="few">적게</option>
+              <option value="normal">보통</option>
+              <option value="many">많게</option>
+            </select>
+          </label>
+        </div>
+        <label className="mt-2 flex items-center gap-2 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={dictation.dictation_randomize_on_retry}
+            onChange={(e) =>
+              void saveDictationSettings({
+                dictation_randomize_on_retry: e.target.checked,
+              })
+            }
+          />
+          재시도 시 빈칸 랜덤 변경
+        </label>
+        <label className="mt-1 flex items-center gap-2 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={dictation.dictation_lock_next_until_pass}
+            onChange={(e) =>
+              void saveDictationSettings({
+                dictation_lock_next_until_pass: e.target.checked,
+              })
+            }
+          />
+          통과 전 다음 문제 잠금
+        </label>
+      </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>

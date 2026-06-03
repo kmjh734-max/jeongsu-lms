@@ -1,0 +1,84 @@
+import type { DictationBlankItem } from "@/lib/listening/dictation/types";
+
+export function buildDictationSystemPrompt(): string {
+  return `너는 중학교 1학년 영어 듣기 Dictation 문항 제작자다.
+대본에서 중요한 단어 또는 짧은 구만 빈칸(________)으로 만든다.
+무의미한 관사(a, an, the), 대명사만, be동사만 빈칸으로 만들지 마라.
+ANN 안내문은 제외한다. M/W 대화·담화만 사용한다.
+정답 단서·핵심 정보·문항 유형과 관련 표현을 우선한다.
+전체 문맥은 유지하고 display_sentence에 speaker 접두(M: / W:)를 붙인다.
+반드시 JSON만 출력한다.`;
+}
+
+export function buildDictationUserPrompt(opts: {
+  questionType: string;
+  scriptText: string;
+  segmentsJson: string;
+  answerClue: string;
+  blankMin: number;
+  blankMax: number;
+  previousBlankWords: string[];
+}): string {
+  const avoid =
+    opts.previousBlankWords.length > 0
+      ? `\n재시도: 다음 단어는 가능하면 빈칸으로 쓰지 마라: ${opts.previousBlankWords.join(", ")}`
+      : "";
+
+  return `문항 유형: ${opts.questionType}
+정답 근거: ${opts.answerClue || "(없음)"}
+
+대본(script_text):
+${opts.scriptText}
+
+segments (ANN 제외):
+${opts.segmentsJson}
+
+빈칸 개수: ${opts.blankMin}~${opts.blankMax}개
+${avoid}
+
+출력 JSON:
+{
+  "blank_items": [
+    {
+      "id": "blank_1",
+      "speaker": "M",
+      "original_sentence": "",
+      "display_sentence": "M: Let's take the ________.",
+      "answer": "subway",
+      "answer_type": "word",
+      "importance": "key_information"
+    }
+  ]
+}`;
+}
+
+export function parseDictationAiResponse(raw: unknown): DictationBlankItem[] {
+  if (!raw || typeof raw !== "object") return [];
+  const o = raw as Record<string, unknown>;
+  const list = Array.isArray(o.blank_items) ? o.blank_items : [];
+  const items: DictationBlankItem[] = [];
+
+  for (let i = 0; i < list.length; i++) {
+    const row = list[i];
+    if (!row || typeof row !== "object") continue;
+    const r = row as Record<string, unknown>;
+    const answer = String(r.answer ?? "").trim();
+    const display = String(r.display_sentence ?? "").trim();
+    const original = String(r.original_sentence ?? display).trim();
+    if (!answer || !display.includes("________")) continue;
+    const speaker = String(r.speaker ?? "M").toUpperCase();
+    items.push({
+      id: String(r.id ?? `blank_${i + 1}`),
+      speaker: speaker === "W" ? "W" : "M",
+      original_sentence: original,
+      display_sentence: display.startsWith("M:") || display.startsWith("W:")
+        ? display
+        : `${speaker === "W" ? "W" : "M"}: ${display}`,
+      answer,
+      answer_type: String(r.answer_type ?? (answer.includes(" ") ? "phrase" : "word")),
+      importance: String(r.importance ?? "key_information"),
+    });
+  }
+
+  return items;
+}

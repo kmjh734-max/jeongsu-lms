@@ -13,7 +13,9 @@ export default async function StudentListeningSetPage({
 
   const { data: set } = await supabase
     .from("listening_sets")
-    .select("id, title")
+    .select(
+      "id, title, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass"
+    )
     .eq("id", setId)
     .eq("is_published", true)
     .maybeSingle();
@@ -38,7 +40,18 @@ export default async function StudentListeningSetPage({
       </Link>
       <div className="mt-4">
         <StudentListeningPractice
+          setId={setId}
           setTitle={set.title}
+          dictationSettings={{
+            dictation_enabled: set.dictation_enabled ?? true,
+            dictation_pass_score: set.dictation_pass_score ?? 80,
+            dictation_blank_level:
+              (set.dictation_blank_level as "auto" | "few" | "normal" | "many") ??
+              "auto",
+            dictation_randomize_on_retry: set.dictation_randomize_on_retry ?? true,
+            dictation_lock_next_until_pass:
+              set.dictation_lock_next_until_pass ?? true,
+          }}
           questions={(questions ?? []).map((q) => ({
             id: q.id,
             order_index: q.order_index,
