@@ -1,5 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildFallbackDictationBlanks } from "@/lib/listening/dictation/fallback-blanks";
+import {
+  buildFallbackDictationBlanks,
+  ensureOneBlankPerSpokenLine,
+} from "@/lib/listening/dictation/fallback-blanks";
+import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
 import {
   pickPreparedBlankItems,
   prebuildDictationForQuestion,
@@ -89,6 +93,14 @@ export async function resolveDictationBlankItems(
       );
       if (alt.length) items = alt;
     }
+  }
+
+  const spoken = collectSpokenLines({
+    scriptText: input.scriptText,
+    segments: input.segments,
+  });
+  if (spoken.length > 0) {
+    items = ensureOneBlankPerSpokenLine(items, spoken, input.avoidWords ?? []);
   }
 
   return items;

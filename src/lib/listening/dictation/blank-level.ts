@@ -1,19 +1,28 @@
 import type { DictationBlankLevel } from "@/lib/listening/dictation/types";
 
+/** M/W 문장 수 — 문장마다 최소 1빈칸 기준으로 min/max 산정 */
 export function blankCountRange(
   level: DictationBlankLevel,
   sentenceCount: number
 ): { min: number; max: number } {
+  const lines = Math.max(1, sentenceCount);
+  const min = lines;
+  let extra: number;
   switch (level) {
     case "few":
-      return { min: 2, max: Math.min(4, Math.max(2, sentenceCount)) };
-    case "normal":
-      return { min: 4, max: Math.min(5, Math.max(3, sentenceCount)) };
+      extra = 1;
+      break;
     case "many":
-      return { min: 5, max: Math.min(6, Math.max(4, sentenceCount)) };
+      extra = 3;
+      break;
+    case "normal":
+      extra = 2;
+      break;
     default:
-      if (sentenceCount <= 2) return { min: 2, max: 4 };
-      if (sentenceCount <= 4) return { min: 3, max: 5 };
-      return { min: 3, max: 6 };
+      extra = 2;
   }
+  return {
+    min,
+    max: Math.min(lines + extra, Math.max(min, lines * 2)),
+  };
 }

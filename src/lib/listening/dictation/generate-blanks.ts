@@ -1,5 +1,9 @@
 import { blankCountRange } from "@/lib/listening/dictation/blank-level";
-import { buildFallbackDictationBlanks } from "@/lib/listening/dictation/fallback-blanks";
+import {
+  buildFallbackDictationBlanks,
+  ensureOneBlankPerSpokenLine,
+} from "@/lib/listening/dictation/fallback-blanks";
+import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
 import {
   buildDictationSystemPrompt,
   buildDictationUserPrompt,
@@ -24,9 +28,9 @@ export interface GenerateDictationBlanksInput {
 export async function generateDictationBlanks(
   input: GenerateDictationBlanksInput
 ): Promise<DictationBlankItem[]> {
-  const spoken = input.segments.filter((s) => {
-    const sp = s.speaker.toUpperCase();
-    return (sp === "M" || sp === "W") && s.text.trim().length >= 12;
+  const spoken = collectSpokenLines({
+    scriptText: input.scriptText,
+    segments: input.segments,
   });
   const sentenceCount = spoken.length || 3;
   const { min, max } = blankCountRange(input.blankLevel, sentenceCount);
@@ -48,7 +52,12 @@ export async function generateDictationBlanks(
         temperature: 0.5,
       }
     );
-    const items = parseDictationAiResponse(parsed);
+    let items = parseDictationAiResponse(parsed);
+    items = ensureOneBlankPerSpokenLine(
+      items,
+      spoken,
+      input.previousBlankWords
+    );
     if (items.length >= Math.min(1, min)) {
       return items.slice(0, max);
     }

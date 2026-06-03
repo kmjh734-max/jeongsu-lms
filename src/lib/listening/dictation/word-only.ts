@@ -91,9 +91,14 @@ export function filterWordOnlyBlankItems(
       item = coerced;
     }
 
-    const key = item.answer.trim().toLowerCase();
-    if (used.has(key)) continue;
-    used.add(key);
+    const answerKey = item.answer.trim().toLowerCase();
+    const lineKey = (item.original_sentence || item.display_sentence || "")
+      .replace(/^(M|W)\s*:\s*/i, "")
+      .trim()
+      .toLowerCase();
+    const dedupeKey = `${lineKey}::${answerKey}`;
+    if (used.has(dedupeKey)) continue;
+    used.add(dedupeKey);
 
     const sp = speakerPrefix(item.speaker);
     const sentence = (item.original_sentence || item.display_sentence || "").trim();

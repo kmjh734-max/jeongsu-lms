@@ -1,10 +1,11 @@
 import { blankCountRange } from "@/lib/listening/dictation/blank-level";
-import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
+import { collectSpokenLines, type SpokenLine } from "@/lib/listening/dictation/spoken-lines";
 import type {
   DictationBlankItem,
   DictationBlankLevel,
 } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
+import { wordInLine } from "@/lib/listening/dictation/word-only";
 
 const SKIP_WORDS = new Set([
   "a",
@@ -54,6 +55,13 @@ const SKIP_WORDS = new Set([
   "let's",
 ]);
 
+/** 문장당 추가 빈칸 상한 (단어 1개씩) */
+const MAX_BLANKS_PER_SENTENCE = 3;
+
+function sentenceKey(sentence: string): string {
+  return normalizeDictationText(sentence);
+}
+
 function wordCandidates(line: string): Array<{ word: string; importance: number }> {
   const tokens = line.match(/[A-Za-z]+(?:'[A-Za-z]+)?/g) ?? [];
   const out: Array<{ word: string; importance: number }> = [];
@@ -62,17 +70,96 @@ function wordCandidates(line: string): Array<{ word: string; importance: number 
     const key = word.toLowerCase();
     if (key.length < 3 || SKIP_WORDS.has(key)) continue;
     let importance = Math.min(10, 3 + Math.floor(word.length / 2));
-    if (/(subway|bus|library|museum|station|faster|slower|because|before|after|tomorrow|yesterday|monday|tuesday|happy|sad|angry|teacher|doctor|police)/i.test(word)) {
+    if (
+      /(subway|bus|library|museum|station|poster|science|lunch|worried|drawing|pictures|because|before|after|tomorrow|yesterday|monday|tuesday|happy|sad|angry|teacher|doctor|police)/i.test(
+        word
+      )
+    ) {
       importance += 4;
     }
     out.push({ word, importance });
   }
-  return out;
+  return out.sort((a, b) => b.importance - a.importance);
 }
 
 function makeBlankInSentence(sentence: string, word: string): string {
   const re = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
   return sentence.replace(re, "________");
+}
+
+function pushBlankItem(
+  items: DictationBlankItem[],
+  p: {
+    speaker: "M" | "W";
+    sentence: string;
+    word: string;
+    importance: number;
+  },
+  usedWords: Set<string>
+): void {
+  const wKey = normalizeDictationText(p.word);
+  if (usedWords.has(wKey)) return;
+  usedWords.add(wKey);
+  items.push({
+    id: `blank_${items.length + 1}`,
+    speaker: p.speaker,
+    original_sentence: p.sentence,
+    display_sentence: makeBlankInSentence(p.sentence, p.word),
+    answer: p.word,
+    answer_type: "word",
+    importance: p.importance >= 8 ? "key_information" : "key_expression",
+  });
+}
+
+function sentenceHasBlank(
+  items: DictationBlankItem[],
+  line: SpokenLine
+): boolean {
+  const key = sentenceKey(line.text);
+  for (const it of items) {
+    const orig = (it.original_sentence || "")
+      .replace(/^(M|W)\s*:\s*/i, "")
+      .trim();
+    if (sentenceKey(orig) === key) return true;
+    if (wordInLine(line.text, it.answer)) return true;
+  }
+  return false;
+}
+
+/** AI·수동 생성 결과에 문장당 최소 1빈칸 보장 */
+export function ensureOneBlankPerSpokenLine(
+  items: DictationBlankItem[],
+  spoken: SpokenLine[],
+  avoidWords: string[] = []
+): DictationBlankItem[] {
+  const avoid = new Set(avoidWords.map((w) => normalizeDictationText(w)));
+  const out = [...items];
+  const usedWords = new Set(
+    out.map((i) => normalizeDictationText(i.answer)).filter(Boolean)
+  );
+
+  for (const line of spoken) {
+    if (sentenceHasBlank(out, line)) continue;
+
+    const candidates = wordCandidates(line.text);
+    for (const c of candidates) {
+      const wKey = normalizeDictationText(c.word);
+      if (avoid.has(wKey) || usedWords.has(wKey)) continue;
+      pushBlankItem(
+        out,
+        {
+          speaker: line.speaker,
+          sentence: line.text,
+          word: c.word,
+          importance: c.importance,
+        },
+        usedWords
+      );
+      break;
+    }
+  }
+
+  return out;
 }
 
 export function buildFallbackDictationBlanks(opts: {
@@ -118,28 +205,30 @@ export function buildFallbackDictationBlanks(opts: {
   const blanksPerSentence = new Map<string, number>();
   const items: DictationBlankItem[] = [];
 
+  for (const line of spoken) {
+    const sk = sentenceKey(line.text);
+    if ((blanksPerSentence.get(sk) ?? 0) > 0) continue;
+
+    const linePool = pool.filter((p) => sentenceKey(p.sentence) === sk);
+    for (const p of linePool) {
+      pushBlankItem(items, p, usedWords);
+      blanksPerSentence.set(sk, 1);
+      break;
+    }
+  }
+
   for (const p of pool) {
     if (items.length >= target) break;
     const wKey = normalizeDictationText(p.word);
     if (usedWords.has(wKey)) continue;
-    const sentenceKey = normalizeDictationText(p.sentence);
-    const countInSentence = blanksPerSentence.get(sentenceKey) ?? 0;
-    if (countInSentence >= 2 && items.length >= min) continue;
+    const sk = sentenceKey(p.sentence);
+    const countInSentence = blanksPerSentence.get(sk) ?? 0;
+    if (countInSentence >= MAX_BLANKS_PER_SENTENCE) continue;
 
     usedWords.add(wKey);
-    blanksPerSentence.set(sentenceKey, countInSentence + 1);
-    const id = `blank_${items.length + 1}`;
-    items.push({
-      id,
-      speaker: p.speaker,
-      original_sentence: p.sentence,
-      display_sentence: makeBlankInSentence(p.sentence, p.word),
-      answer: p.word,
-      answer_type: "word",
-      importance:
-        p.importance >= 8 ? "key_information" : "key_expression",
-    });
+    blanksPerSentence.set(sk, countInSentence + 1);
+    pushBlankItem(items, p, usedWords);
   }
 
-  return items;
+  return ensureOneBlankPerSpokenLine(items, spoken, opts.previousBlankWords ?? []);
 }
