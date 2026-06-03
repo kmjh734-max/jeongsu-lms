@@ -74,6 +74,10 @@ export function DictationSection({
       if (!enabled) return;
 
       if (opts?.prefetchedPayload?.attemptId && !opts.retry) {
+        if (!opts.prefetchedPayload.blanks?.length) {
+          void loadBlanks({ retry: true });
+          return;
+        }
         applyPayload(opts.prefetchedPayload);
         return;
       }
@@ -106,10 +110,21 @@ export function DictationSection({
         return;
       }
 
+      const blanks = data.blanks ?? [];
+      if (blanks.length === 0) {
+        if (!opts?.retry) {
+          await loadBlanks({ retry: true });
+          return;
+        }
+        setError(data.message ?? "Dictation 빈칸을 불러오지 못했습니다.");
+        setUiState("error");
+        return;
+      }
+
       applyPayload({
         attemptId: data.attemptId,
         passageLines: data.passageLines,
-        blanks: data.blanks ?? [],
+        blanks,
       });
     },
     [enabled, setId, questionId]

@@ -1,6 +1,10 @@
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import { collectSpokenLines, type SpokenLine } from "@/lib/listening/dictation/spoken-lines";
-import { speakerPrefix } from "@/lib/listening/dictation/word-only";
+import {
+  normalizeLineForMatch,
+  speakerPrefix,
+  wordInLine,
+} from "@/lib/listening/dictation/word-only";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
 
@@ -24,14 +28,12 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function wordInLine(lineText: string, word: string): boolean {
-  return new RegExp(`\\b${escapeRegExp(word)}\\b`, "i").test(lineText);
-}
-
 function applyBlankToLine(lineText: string, answer: string): string {
-  const re = new RegExp(`\\b${escapeRegExp(answer)}\\b`, "i");
-  if (!re.test(lineText)) return lineText;
-  return lineText.replace(re, "________");
+  const line = normalizeLineForMatch(lineText);
+  const w = normalizeLineForMatch(answer);
+  const re = new RegExp(`\\b${escapeRegExp(w)}\\b`, "i");
+  if (!re.test(line)) return lineText;
+  return line.replace(re, "________");
 }
 
 function findLineForBlank(
@@ -57,6 +59,26 @@ function findLineForBlank(
   }
 
   return -1;
+}
+
+function attachBlank(
+  passageLines: DictationPassageLine[],
+  item: DictationBlankItem,
+  lineIdx: number,
+  blankInputs: DictationBlankInputClient[],
+  usedLineBlank: Set<string>,
+  labelIndex: number
+): number {
+  const answer = item.answer.trim();
+  usedLineBlank.add(`${lineIdx}:${answer.toLowerCase()}`);
+  const pl = passageLines[lineIdx]!;
+  pl.text = applyBlankToLine(pl.text, answer);
+  pl.blankIds.push(item.id);
+  blankInputs.push({
+    id: item.id,
+    label: CIRCLED[labelIndex] ?? `${labelIndex + 1}`,
+  });
+  return labelIndex + 1;
 }
 
 export function buildDictationClientPayload(
@@ -85,34 +107,74 @@ export function buildDictationClientPayload(
     let lineIdx = findLineForBlank(spoken, item, usedLineBlank);
 
     if (lineIdx < 0) {
-      const core = (item.original_sentence || item.display_sentence)
+      let core = (item.original_sentence || item.display_sentence)
         .replace(/^(M|W)\s*:\s*/i, "")
         .trim();
+      if (item.display_sentence.includes("________")) {
+        core = item.display_sentence.replace(/^(M|W)\s*:\s*/i, "").trim();
+      }
       if (core && wordInLine(core, answer)) {
-        passageLines.push({
-          speaker: speakerPrefix(item.speaker),
-          text: applyBlankToLine(core, answer),
-          blankIds: [],
-        });
-        lineIdx = passageLines.length - 1;
-        spoken.push({
-          speaker: speakerPrefix(item.speaker) as "M" | "W",
-          text: core,
-        });
+        const sp = speakerPrefix(item.speaker);
+        const existing = passageLines.findIndex(
+          (pl) => pl.speaker === sp && wordInLine(pl.text, answer)
+        );
+        if (existing >= 0) {
+          lineIdx = existing;
+        } else {
+          passageLines.push({
+            speaker: sp,
+            text: applyBlankToLine(core, answer),
+            blankIds: [],
+          });
+          lineIdx = passageLines.length - 1;
+        }
       } else {
         continue;
       }
     }
 
-    usedLineBlank.add(`${lineIdx}:${answer.toLowerCase()}`);
-    const pl = passageLines[lineIdx]!;
-    pl.text = applyBlankToLine(pl.text, answer);
-    pl.blankIds.push(item.id);
-    blankInputs.push({
-      id: item.id,
-      label: CIRCLED[labelIndex] ?? `${labelIndex + 1}`,
-    });
-    labelIndex++;
+    labelIndex = attachBlank(
+      passageLines,
+      item,
+      lineIdx,
+      blankInputs,
+      usedLineBlank,
+      labelIndex
+    );
+  }
+
+  if (blankInputs.length === 0 && blankItems.length > 0) {
+    for (const item of blankItems) {
+      const answer = item.answer.trim();
+      if (!answer) continue;
+      const sp = speakerPrefix(item.speaker);
+      let text = (item.display_sentence || "")
+        .replace(/^(M|W)\s*:\s*/i, "")
+        .trim();
+      if (!text.includes("________")) {
+        const core = (item.original_sentence || "").trim();
+        text = core ? applyBlankToLine(core, answer) : text;
+      }
+      if (!text.includes("________")) continue;
+
+      let lineIdx = passageLines.findIndex(
+        (pl) => pl.speaker === sp && pl.text === text
+      );
+      if (lineIdx < 0) {
+        passageLines.push({ speaker: sp, text, blankIds: [] });
+        lineIdx = passageLines.length - 1;
+      }
+
+      if (blankInputs.some((b) => b.id === item.id)) continue;
+      labelIndex = attachBlank(
+        passageLines,
+        item,
+        lineIdx,
+        blankInputs,
+        usedLineBlank,
+        labelIndex
+      );
+    }
   }
 
   return { passageLines, blanks: blankInputs };

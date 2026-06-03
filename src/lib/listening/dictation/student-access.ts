@@ -1,6 +1,7 @@
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildDictationClientPayload } from "@/lib/listening/dictation/build-passage-display";
+import { buildFallbackDictationBlanks } from "@/lib/listening/dictation/fallback-blanks";
 import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 import { isStudentAssignedListeningSet } from "@/lib/listening/student-set-access";
 import type {
@@ -96,15 +97,33 @@ export function formatDictationStartResponse(
   attemptId: string,
   items: DictationBlankItem[],
   access: {
-    question: { script_text?: string | null };
+    question: {
+      script_text?: string | null;
+      answer_clue?: string | null;
+    };
     segments: Array<{ speaker: string; text: string }>;
+    settings?: DictationSetSettings;
   }
 ) {
-  const wordItems = filterWordOnlyBlankItems(items);
+  const scriptText = access.question.script_text ?? "";
+  let wordItems = filterWordOnlyBlankItems(items);
+
+  if (!wordItems.length && scriptText.trim() && access.settings) {
+    wordItems = filterWordOnlyBlankItems(
+      buildFallbackDictationBlanks({
+        scriptText,
+        segments: access.segments,
+        blankLevel: access.settings.dictation_blank_level,
+        answerClue: access.question.answer_clue ?? "",
+      })
+    );
+  }
+
   const display = buildDictationStartPayload(wordItems, {
-    scriptText: access.question.script_text ?? "",
+    scriptText,
     segments: access.segments,
   });
+
   return {
     attemptId,
     ...display,

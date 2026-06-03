@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
-import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
-import { generateDictationBlanks } from "@/lib/listening/dictation/generate-blanks";
-import {
-  pickPreparedBlankItems,
-  prebuildDictationForQuestion,
-} from "@/lib/listening/dictation/prebuild-question";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
+import { resolveDictationBlankItems } from "@/lib/listening/dictation/resolve-blanks";
 import {
   assertStudentListeningQuestionAccess,
   formatDictationStartResponse,
@@ -64,23 +59,16 @@ export async function POST(request: Request) {
       .eq("question_id", questionId)
       .order("attempt_no", { ascending: true });
 
-    const submitted = (priorAttempts ?? []).filter((a) => a.submitted_at);
     if ((priorAttempts ?? []).some((a) => a.passed)) {
       return jsonError("이미 Dictation을 통과한 문항입니다.");
     }
 
     const openAttempt = (priorAttempts ?? []).find((a) => !a.submitted_at);
     if (openAttempt) {
-      const items = openAttempt.blank_items as DictationBlankItem[];
-      return NextResponse.json({
-        ok: true,
-        ...formatDictationStartResponse(openAttempt.id, items, {
-          question,
-          segments,
-        }),
-        attemptNo: openAttempt.attempt_no,
-        resumed: true,
-      });
+      await admin
+        .from("listening_dictation_attempts")
+        .delete()
+        .eq("id", openAttempt.id);
     }
 
     const maxNo = (priorAttempts ?? []).reduce(
@@ -89,64 +77,29 @@ export async function POST(request: Request) {
     );
     const attemptNo = body.attemptNo ?? maxNo + 1;
 
-    const { data: qRow } = await admin
-      .from("listening_questions")
-      .select("dictation_blank_items, dictation_blank_variants")
-      .eq("id", questionId)
-      .maybeSingle();
+    const previousBlankWords =
+      body.previousBlankWords ??
+      (settings.dictation_randomize_on_retry
+        ? collectPreviousBlankWords(
+            (priorAttempts ?? []).filter((a) => a.submitted_at)
+          )
+        : []);
 
-    let blankItems = qRow ? pickPreparedBlankItems(qRow, attemptNo) : null;
+    const blankItems = await resolveDictationBlankItems({
+      admin,
+      questionId,
+      scriptText: question.script_text ?? "",
+      questionType: question.question_type ?? "",
+      answerClue: question.answer_clue ?? "",
+      segments,
+      settings,
+      attemptNo,
+      avoidWords: previousBlankWords,
+    });
 
-    if (!blankItems?.length) {
-      const previousBlankWords =
-        body.previousBlankWords ??
-        (settings.dictation_randomize_on_retry
-          ? collectPreviousBlankWords(submitted)
-          : []);
-
-      let apiKey: string | undefined;
-      try {
-        ({ apiKey } = assertListeningOpenAiEnv());
-      } catch {
-        apiKey = undefined;
-      }
-
-      blankItems = apiKey
-        ? await generateDictationBlanks({
-            apiKey,
-            questionType: question.question_type ?? "",
-            scriptText: question.script_text ?? "",
-            segments,
-            answerClue: question.answer_clue ?? "",
-            blankLevel: settings.dictation_blank_level,
-            previousBlankWords,
-          })
-        : await import("@/lib/listening/dictation/fallback-blanks").then((m) =>
-            m.buildFallbackDictationBlanks({
-              scriptText: question.script_text ?? "",
-              segments,
-              blankLevel: settings.dictation_blank_level,
-              previousBlankWords,
-              answerClue: question.answer_clue ?? "",
-            })
-          );
-    }
-
-    if (!blankItems?.length) {
-      await prebuildDictationForQuestion(questionId);
-      const { data: refreshed } = await admin
-        .from("listening_questions")
-        .select("dictation_blank_items, dictation_blank_variants")
-        .eq("id", questionId)
-        .maybeSingle();
-      blankItems = refreshed ? pickPreparedBlankItems(refreshed, attemptNo) : null;
-    }
-
-    if (!blankItems?.length) {
+    if (!blankItems.length) {
       return jsonError("Dictation 빈칸을 만들 수 없습니다. 대본을 확인하세요.");
     }
-
-    const items = blankItems;
 
     const { data: inserted, error: insErr } = await admin
       .from("listening_dictation_attempts")
@@ -155,7 +108,7 @@ export async function POST(request: Request) {
         set_id: setId,
         question_id: questionId,
         attempt_no: attemptNo,
-        blank_items: items,
+        blank_items: blankItems,
         student_answers: {},
         passed: false,
       })
@@ -168,9 +121,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      ...formatDictationStartResponse(inserted.id, items, {
+      ...formatDictationStartResponse(inserted.id, blankItems, {
         question,
         segments,
+        settings,
       }),
       attemptNo: inserted.attempt_no,
     });
