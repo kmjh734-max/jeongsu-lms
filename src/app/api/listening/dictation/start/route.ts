@@ -5,7 +5,6 @@ import {
   assertStudentListeningQuestionAccess,
   formatDictationStartResponse,
 } from "@/lib/listening/dictation/student-access";
-import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 
 export const maxDuration = 30;
 

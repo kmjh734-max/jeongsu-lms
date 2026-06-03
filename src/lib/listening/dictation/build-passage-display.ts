@@ -112,7 +112,7 @@ export function buildDictationClientPayload(
     let lineIdx = findLineIndex(spoken, item);
     if (lineIdx < 0) {
       const sp = speakerPrefix(item.speaker);
-      let core = (item.original_sentence || item.display_sentence)
+      const core = (item.original_sentence || item.display_sentence)
         .replace(/^(M|W)\s*:\s*/i, "")
         .trim();
       if (!core || !wordInLine(core, answer)) continue;
