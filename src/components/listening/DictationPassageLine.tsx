@@ -74,10 +74,14 @@ function DictationInlineBlank({
       value={value}
       onChange={(e) => onChange(blankId, e.target.value)}
       disabled={disabled}
-      className={`mx-0.5 inline-block align-baseline rounded border px-1.5 py-0.5 text-sm font-medium text-slate-900 ${borderClass}`}
+      className={`mx-0.5 inline-block align-baseline rounded border px-1.5 py-0.5 text-sm font-normal normal-case text-slate-900 ${borderClass}`}
       style={{ width: `${widthCh}ch`, minWidth: "4rem" }}
       autoComplete="off"
+      autoCapitalize="none"
+      autoCorrect="off"
       spellCheck={false}
+      inputMode="text"
+      lang="en"
       aria-label="Dictation 빈칸"
     />
   );

@@ -32,6 +32,7 @@ function scoreSingleBlank(
     return { blankScore: 0, isCorrect: false, feedback: "빈칸" };
   }
 
+  // 대소문자·구두점 무시 (Library === library)
   const normC = normalizeDictationText(correct);
   const normS = normalizeDictationText(student);
 
