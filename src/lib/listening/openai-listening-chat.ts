@@ -5,6 +5,7 @@ import {
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
   LISTENING_GPT5_MAX_COMPLETION_TOKENS,
+  listeningMaxCompletionTokensForCount,
   listeningModelSupportsCustomTemperature,
 } from "@/lib/listening/openai-listening-model";
 
@@ -12,6 +13,8 @@ export interface ListeningChatOptions {
   system: string;
   user: string;
   temperature?: number;
+  /** 미지정 시 문항 1개 기준 상한 */
+  maxCompletionTokens?: number;
 }
 
 type RequestProfile = {
@@ -48,13 +51,15 @@ function buildChatCompletionBody(
   if (profile.includeTemperature) {
     body.temperature = opts.temperature ?? 0.4;
   }
+  const maxOut =
+    opts.maxCompletionTokens ?? listeningMaxCompletionTokensForCount(1);
   if (isGpt5FamilyModel(model)) {
-    body.max_completion_tokens = LISTENING_GPT5_MAX_COMPLETION_TOKENS;
+    body.max_completion_tokens = Math.min(LISTENING_GPT5_MAX_COMPLETION_TOKENS, maxOut);
     if (profile.includeReasoningEffort) {
       body.reasoning_effort = "low";
     }
   } else {
-    body.max_tokens = 8192;
+    body.max_tokens = Math.min(8192, maxOut);
   }
 
   return body;

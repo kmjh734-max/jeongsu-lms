@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import {
-  generateSingleExamQuestion,
-  generateSingleFreeQuestion,
-} from "@/lib/listening/generate-questions";
+  generateExamQuestionsFromSlots,
+  generateFreeQuestionsFromSlots,
+} from "@/lib/listening/generate-exam-from-slots";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
-import { buildContinuationAvoidList } from "@/lib/listening/continuation-scenario-pool";
 import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
 import type {
   GeneratedListeningQuestion,
@@ -19,20 +18,6 @@ export const maxDuration = 300;
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
-}
-
-function buildPreviousProblemsForSlot(
-  prior: GeneratedListeningQuestion[],
-  index: number,
-  slot: ListeningGenerationSlot
-): string[] | undefined {
-  const lines: string[] = [];
-  if (slot.typeId === 19 || slot.typeId === 20) {
-    lines.push(...buildContinuationAvoidList(prior, slot.typeId));
-  }
-  const last = prior[index - 1]?.problems;
-  if (last?.length) lines.push(...last);
-  return lines.length > 0 ? lines : undefined;
 }
 
 export async function POST(request: Request) {
@@ -63,50 +48,28 @@ export async function POST(request: Request) {
 
     const mode: ListeningGenerationMode = body.mode === "free" ? "free" : "exam";
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
-    const questions: GeneratedListeningQuestion[] = [];
+    const difficultyMode = body.difficultyMode ?? "auto";
 
-    for (let i = 0; i < slots.length; i++) {
-      const slot = slots[i]!;
-      let lastError: string | undefined;
+    let questions: GeneratedListeningQuestion[];
+    try {
+      questions =
+        mode === "exam"
+          ? await generateExamQuestionsFromSlots(
+              apiKey,
+              slots,
+              difficultyMode,
+              gradeLevel
+            )
+          : await generateFreeQuestionsFromSlots(apiKey, slots, gradeLevel);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "문항 생성 실패";
+      return jsonError(message);
+    }
 
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const generated =
-            mode === "exam"
-              ? await generateSingleExamQuestion(
-                  apiKey,
-                  slot.typeId,
-                  body.difficultyMode ?? "auto",
-                  buildPreviousProblemsForSlot(questions, i, slot),
-                  gradeLevel,
-                  slot.slotIndex
-                )
-              : await generateSingleFreeQuestion(
-                  apiKey,
-                  slot.slotIndex,
-                  buildPreviousProblemsForSlot(questions, i, slot),
-                  gradeLevel
-                );
-
-          questions.push({
-            ...generated,
-            order_index: slot.slotIndex,
-            needs_review: false,
-          });
-          lastError = undefined;
-          break;
-        } catch (e) {
-          lastError = e instanceof Error ? e.message : "생성 실패";
-        }
-      }
-
-      if (lastError) {
-        return jsonError(
-          questions.length > 0
-            ? `${slot.slotIndex}번 생성 실패 (${lastError}). ${questions.length}문항까지 생성됨.`
-            : `${slot.slotIndex}번 생성 실패: ${lastError}`
-        );
-      }
+    if (questions.length !== slots.length) {
+      return jsonError(
+        `${slots.length}문항 중 ${questions.length}문항만 생성되었습니다. 다시 시도해 주세요.`
+      );
     }
 
     if (body.persist) {

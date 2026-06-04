@@ -51,7 +51,12 @@ export async function generateQuestionsSequential(opts: {
   items.forEach((item) => {
     item.status = "generating";
   });
-  onProgress(generationProgressPercent("generating", 0, total), "generating", [...items]);
+  onProgress(
+    generationProgressPercent("generating", 0, total),
+    "generating",
+    [...items]
+  );
+  onProgress(15, "generating", items);
 
   const res = await fetch("/api/listening/generate-questions-batch", {
     method: "POST",

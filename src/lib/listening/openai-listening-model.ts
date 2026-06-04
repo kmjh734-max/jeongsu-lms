@@ -5,6 +5,12 @@ export const LISTENING_MODEL_FALLBACK = "gpt-5";
 /** GPT-5 추론+출력 토큰 상한 (응답이 비는 것 방지) */
 export const LISTENING_GPT5_MAX_COMPLETION_TOKENS = 16_384;
 
+/** 문항 수에 따른 completion 상한 (과도한 추롰 지연 방지) */
+export function listeningMaxCompletionTokensForCount(questionCount: number): number {
+  const n = Math.max(1, Math.min(questionCount, 20));
+  return Math.min(LISTENING_GPT5_MAX_COMPLETION_TOKENS, 1200 + n * 2400);
+}
+
 export function isGpt5FamilyModel(model: string): boolean {
   return model.trim().toLowerCase().startsWith("gpt-5");
 }

@@ -45,6 +45,7 @@ import {
   pickContinuationScenario,
 } from "@/lib/listening/continuation-scenario-pool";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
+import { listeningMaxCompletionTokensForCount } from "@/lib/listening/openai-listening-model";
 import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
 import type {
   GeneratedListeningQuestion,
@@ -263,7 +264,7 @@ const PARSE_RETRY_SUFFIX = `
 - correct_answer 는 1~5 정수.
 - instruction 은 한국어 지시문을 반드시 포함한다.`;
 
-function parseQuestionsFromPayload(
+export function parseQuestionsFromPayload(
   parsed: unknown,
   examMode: boolean,
   examTypes?: ExamTypeTemplate[],
@@ -310,7 +311,8 @@ async function fetchParsedQuestions(
   prompt: string,
   examMode: boolean,
   examTypes?: ExamTypeTemplate[],
-  gradeLevel: ListeningGradeLevel = "middle1"
+  gradeLevel: ListeningGradeLevel = "middle1",
+  questionCount = 1
 ): Promise<GeneratedListeningQuestion[]> {
   const system = `${getListeningSystemPrompt(gradeLevel)}\nOutput JSON only. Use exact keys: questions, segments, choices, correct_answer. speakers: M, W, ANN only.`;
 
@@ -318,9 +320,10 @@ async function fetchParsedQuestions(
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const parsed = await listeningChatJson<unknown>(apiKey, {
-      temperature: 0.6,
+      temperature: 0.5,
       system,
       user: attempt === 0 ? prompt : `${prompt}${PARSE_RETRY_SUFFIX}`,
+      maxCompletionTokens: listeningMaxCompletionTokensForCount(questionCount),
     });
 
     const { questions, failures } = parseQuestionsFromPayload(
@@ -364,7 +367,8 @@ export async function generateListeningQuestionsWithAi(
     prompt,
     examMode,
     examTypes,
-    gradeLevel
+    gradeLevel,
+    itemCount
   );
   return {
     questions: questions.map((q, i) =>
@@ -400,7 +404,14 @@ export async function generateSingleExamQuestion(
     const scenarioBlock = formatAssignedScenarioBlock(assignment);
     prompt = `${scenarioBlock}\n\n${prompt}`;
   }
-  const questions = await fetchParsedQuestions(apiKey, prompt, true, [type], gradeLevel);
+  const questions = await fetchParsedQuestions(
+    apiKey,
+    prompt,
+    true,
+    [type],
+    gradeLevel,
+    1
+  );
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
 

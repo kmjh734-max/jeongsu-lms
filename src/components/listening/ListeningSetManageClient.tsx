@@ -247,7 +247,15 @@ export function ListeningSetManageClient({
         setProgressPhase(phase);
         setProgressItems(items);
         if (phase === "generating" || phase === "validating") {
-          setProgressDetail(`${plannedQuestionCount}문항 생성 중…`);
+          const apiCalls =
+            plannedQuestionCount <= 5
+              ? 1
+              : Math.ceil(plannedQuestionCount / 5);
+          setProgressDetail(
+            apiCalls === 1
+              ? `${plannedQuestionCount}문항 일괄 생성 중…`
+              : `${plannedQuestionCount}문항 생성 중 (${apiCalls}회 일괄 호출)…`
+          );
         }
       },
     });
@@ -344,7 +352,15 @@ export function ListeningSetManageClient({
         setProgressPhase(phase);
         setProgressItems(items);
         if (phase === "generating" || phase === "validating") {
-          setProgressDetail(`${plannedQuestionCount}문항 생성 중…`);
+          const apiCalls =
+            plannedQuestionCount <= 5
+              ? 1
+              : Math.ceil(plannedQuestionCount / 5);
+          setProgressDetail(
+            apiCalls === 1
+              ? `${plannedQuestionCount}문항 일괄 생성 중…`
+              : `${plannedQuestionCount}문항 생성 중 (${apiCalls}회 일괄 호출)…`
+          );
         } else if (phase === "saving") setProgressDetail("DB 저장 중…");
       },
     });
