@@ -1,6 +1,7 @@
 import { findSpokenLineIndexForBlank } from "@/lib/listening/dictation/anchor-blank-items";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
+import { wordInLine } from "@/lib/listening/dictation/word-only";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
 
@@ -30,10 +31,38 @@ function wordPosition(sentence: string, answer: string): number {
   return m?.index ?? 99999;
 }
 
-function applyBlankToLine(lineText: string, answer: string): string {
+function applyBlankToLine(
+  lineText: string,
+  answer: string
+): { text: string; applied: boolean } {
+  if (!wordInLine(lineText, answer)) {
+    return { text: lineText, applied: false };
+  }
   const re = new RegExp(`\\b${escapeRegExp(answer)}\\b`, "i");
-  if (!re.test(lineText)) return lineText;
-  return lineText.replace(re, "________");
+  if (!re.test(lineText)) return { text: lineText, applied: false };
+  return { text: lineText.replace(re, "________"), applied: true };
+}
+
+function blankMarkerCount(text: string): number {
+  return (text.match(/_{3,}/g) ?? []).length;
+}
+
+/** blankIds와 지문 내 ________ 개수를 맞춤 (지문 밖 입력칸 방지) */
+function syncPassageBlankMarkers(
+  passageLines: DictationPassageLine[],
+  blankInputs: DictationBlankInputClient[]
+): DictationBlankInputClient[] {
+  const keptIds = new Set<string>();
+
+  for (const pl of passageLines) {
+    const markers = blankMarkerCount(pl.text);
+    if (pl.blankIds.length > markers) {
+      pl.blankIds = pl.blankIds.slice(0, markers);
+    }
+    for (const id of pl.blankIds) keptIds.add(id);
+  }
+
+  return blankInputs.filter((b) => keptIds.has(b.id));
 }
 
 function applyBlanksToLine(
@@ -52,7 +81,9 @@ function applyBlanksToLine(
 
   for (const item of sorted) {
     const answer = item.answer.trim();
-    pl.text = applyBlankToLine(pl.text, answer);
+    const { text, applied } = applyBlankToLine(pl.text, answer);
+    if (!applied) continue;
+    pl.text = text;
     pl.blankIds.push(item.id);
     blankInputs.push({
       id: item.id,
@@ -113,5 +144,6 @@ export function buildDictationClientPayload(
     );
   }
 
-  return { passageLines, blanks: blankInputs };
+  const blanks = syncPassageBlankMarkers(passageLines, blankInputs);
+  return { passageLines, blanks };
 }

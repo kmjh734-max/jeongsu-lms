@@ -37,16 +37,31 @@ export function findSpokenLineIndexForBlank(
     if (wordInLine(line.text, answer)) sameSpeaker.push(i);
   }
 
-  if (sameSpeaker.length === 1) return sameSpeaker[0]!;
-  if (sameSpeaker.length > 1 && coreFromItem) {
+  if (sameSpeaker.length === 0) return -1;
+
+  if (coreFromItem) {
     const itemKey = sentenceKey(coreFromItem);
     for (const i of sameSpeaker) {
       const lineKey = sentenceKey(spoken[i]!.text);
-      if (lineKey === itemKey || lineKey.includes(itemKey) || itemKey.includes(lineKey)) {
-        return i;
-      }
+      if (lineKey === itemKey) return i;
     }
+    for (const i of sameSpeaker) {
+      const lineKey = sentenceKey(spoken[i]!.text);
+      if (lineKey.includes(itemKey) || itemKey.includes(lineKey)) return i;
+    }
+    return -1;
   }
+
+  if (sameSpeaker.length === 1) return sameSpeaker[0]!;
+
+  let globalMatches = 0;
+  let globalIdx = -1;
+  for (let i = 0; i < spoken.length; i++) {
+    if (!wordInLine(spoken[i]!.text, answer)) continue;
+    globalMatches++;
+    globalIdx = i;
+  }
+  if (globalMatches === 1 && globalIdx >= 0) return globalIdx;
 
   return -1;
 }

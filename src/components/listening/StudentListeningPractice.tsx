@@ -10,6 +10,7 @@ import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
 import type { ListeningTableData } from "@/lib/listening/types";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -61,6 +62,7 @@ export function StudentListeningPractice({
   dictationSettings: dictationSettingsProp,
   scheduleMode,
 }: StudentListeningPracticeProps) {
+  const router = useRouter();
   const dictationSettings: DictationSetSettings = {
     ...DEFAULT_DICTATION_SETTINGS,
     ...dictationSettingsProp,
@@ -312,6 +314,26 @@ export function StudentListeningPractice({
     return false;
   }
 
+  const allComplete =
+    questions.length > 0 &&
+    questions.every((item) => {
+      if (!objectiveSubmitted[item.id]) return false;
+      if (!dictationRequired) return true;
+      if (!dictationSettings.dictation_lock_next_until_pass) return true;
+      return dictationByQuestion[item.id]?.passed;
+    });
+
+  const scheduleRedirectStarted = useRef(false);
+
+  useEffect(() => {
+    if (!scheduleMode || !allComplete || scheduleRedirectStarted.current) return;
+    scheduleRedirectStarted.current = true;
+    const timer = setTimeout(() => {
+      router.push("/student/listening");
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [allComplete, scheduleMode, router]);
+
   if (!q) {
     return <p className="text-slate-600">문항이 없습니다.</p>;
   }
@@ -390,15 +412,6 @@ export function StudentListeningPractice({
     setShowScript(false);
   }
 
-  const allComplete =
-    questions.length > 0 &&
-    questions.every((item) => {
-      if (!objectiveSubmitted[item.id]) return false;
-      if (!dictationRequired) return true;
-      if (!dictationSettings.dictation_lock_next_until_pass) return true;
-      return dictationByQuestion[item.id]?.passed;
-    });
-
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <header>
@@ -411,7 +424,9 @@ export function StudentListeningPractice({
 
       {allComplete && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-800">
-          모든 문항의 객관식·Dictation을 완료했습니다.
+          {scheduleMode
+            ? "오늘 듣기학습을 모두 완료했습니다. 잠시 후 목록으로 이동합니다."
+            : "모든 문항의 객관식·Dictation을 완료했습니다."}
         </div>
       )}
 

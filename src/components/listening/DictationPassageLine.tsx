@@ -22,7 +22,9 @@ export function DictationPassageLineView({
   showResults,
 }: DictationPassageLineProps) {
   const parts = splitPassageLineByBlanks(line.text);
-  const blankIds = line.blankIds;
+  const markerCount = (line.text.match(/_{3,}/g) ?? []).length;
+  const blankIds =
+    markerCount > 0 ? line.blankIds.slice(0, markerCount) : [];
 
   return (
     <p className="font-mono text-sm leading-relaxed text-slate-900">
