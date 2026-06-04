@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ListeningScheduleAssignModal } from "@/components/listening/ListeningScheduleAssignModal";
+import { ListeningSetAssignModal } from "@/components/listening/ListeningSetAssignModal";
+import type { ListeningAssignmentSummary } from "@/lib/listening/load-assignment-summaries";
 
 export interface ListeningSetListItem {
   id: string;
@@ -22,6 +24,7 @@ interface ListeningSetsListClientProps {
   basePath: "/admin/listening" | "/teacher/listening";
   classes?: ClassOption[];
   schedulesPath?: string;
+  assignmentBySetId?: Record<string, ListeningAssignmentSummary>;
 }
 
 export function ListeningSetsListClient({
@@ -29,6 +32,7 @@ export function ListeningSetsListClient({
   basePath,
   classes = [],
   schedulesPath,
+  assignmentBySetId = {},
 }: ListeningSetsListClientProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -37,6 +41,7 @@ export function ListeningSetsListClient({
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignSetId, setAssignSetId] = useState<string | null>(null);
 
   const setTitles = useMemo(() => {
     const m: Record<string, string> = {};
@@ -112,6 +117,9 @@ export function ListeningSetsListClient({
   }
 
   const canBatchAssign = classes.length > 0;
+  const assignTarget = assignSetId
+    ? sets.find((s) => s.id === assignSetId)
+    : null;
 
   return (
     <div className="space-y-6">
@@ -201,6 +209,13 @@ export function ListeningSetsListClient({
                     {set.is_published ? "공개" : "비공개"}
                   </span>
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => setAssignSetId(set.id)}
+                  className="shrink-0 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-800 hover:bg-indigo-100"
+                >
+                  배정
+                </button>
                 <Link
                   href={`${basePath}/${set.id}/print`}
                   className="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
@@ -219,6 +234,20 @@ export function ListeningSetsListClient({
             ))}
           </ul>
         </>
+      )}
+
+      {assignTarget && (
+        <ListeningSetAssignModal
+          setId={assignTarget.id}
+          setTitle={assignTarget.title}
+          classes={classes}
+          assignedClassNames={assignmentBySetId[assignTarget.id]?.classNames ?? []}
+          assignedStudentNames={
+            assignmentBySetId[assignTarget.id]?.studentNames ?? []
+          }
+          isPublished={assignTarget.is_published}
+          onClose={() => setAssignSetId(null)}
+        />
       )}
 
       {showAssignModal && selectedIds.size > 0 && (

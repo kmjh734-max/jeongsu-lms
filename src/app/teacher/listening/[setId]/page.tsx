@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { ListeningSetManageClient } from "@/components/listening/ListeningSetManageClient";
-import { ListeningAssignPanel } from "@/components/listening/ListeningAssignPanel";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
 
 export default async function TeacherListeningSetPage({
@@ -24,50 +23,6 @@ export default async function TeacherListeningSetPage({
     notFound();
   }
 
-  const { data: classes } = await supabase
-    .from("classes")
-    .select("id, name")
-    .eq("teacher_id", profile!.id)
-    .eq("is_active", true)
-    .order("name");
-
-  const { data: assignments } = await supabase
-    .from("listening_assignments")
-    .select("class_id, class:classes(name)")
-    .eq("set_id", setId)
-    .not("class_id", "is", null);
-
-  const assignedClassNames = (assignments ?? [])
-    .map((a) => {
-      const c = a.class as { name?: string } | { name?: string }[] | null;
-      if (Array.isArray(c)) return c[0]?.name;
-      return c?.name;
-    })
-    .filter((n): n is string => !!n);
-
-  const { data: studentAssignments } = await supabase
-    .from("listening_assignments")
-    .select("student_id, student:profiles!listening_assignments_student_id_fkey(name)")
-    .eq("set_id", setId)
-    .not("student_id", "is", null);
-
-  const assignedStudentNames = (studentAssignments ?? [])
-    .map((a) => {
-      const s = a.student as { name?: string } | { name?: string }[] | null;
-      if (Array.isArray(s)) return s[0]?.name;
-      return s?.name;
-    })
-    .filter((n): n is string => !!n);
-
-  const classIds = (classes ?? []).map((c) => c.id);
-  const { data: classStudents } =
-    classIds.length > 0
-      ? await supabase
-          .from("class_students")
-          .select("student_id, student:profiles(name)")
-          .in("class_id", classIds)
-      : { data: [] as { student_id: string; student: { name: string } | null }[] };
-
   return (
     <div className="space-y-6">
       <Link
@@ -76,6 +31,13 @@ export default async function TeacherListeningSetPage({
       >
         ← 듣기 세트 목록
       </Link>
+      <p className="text-xs text-slate-500">
+        학생·반 배정은{" "}
+        <Link href="/teacher/listening" className="text-indigo-600 hover:underline">
+          듣기학습 목록
+        </Link>
+        에서 「배정」 버튼으로 진행하세요.
+      </p>
       <ListeningSetManageClient
         setId={loaded.set.id}
         title={loaded.set.title}
@@ -99,13 +61,6 @@ export default async function TeacherListeningSetPage({
         }}
         questions={loaded.questions}
         role="teacher"
-      />
-      <ListeningAssignPanel
-        setId={setId}
-        classes={classes ?? []}
-        assignedClassNames={assignedClassNames}
-        assignedStudentNames={assignedStudentNames}
-        isPublished={loaded.set.is_published}
       />
     </div>
   );

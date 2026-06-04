@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ListeningSetManageClient } from "@/components/listening/ListeningSetManageClient";
-import { ListeningAssignPanel } from "@/components/listening/ListeningAssignPanel";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
 
 export default async function AdminListeningSetPage({
@@ -15,40 +14,6 @@ export default async function AdminListeningSetPage({
   const loaded = await loadListeningSetForEditor(supabase, setId);
   if (!loaded) notFound();
 
-  const { data: classes } = await supabase
-    .from("classes")
-    .select("id, name")
-    .eq("is_active", true)
-    .order("name");
-
-  const { data: assignments } = await supabase
-    .from("listening_assignments")
-    .select("class_id, class:classes(name)")
-    .eq("set_id", setId)
-    .not("class_id", "is", null);
-
-  const assignedClassNames = (assignments ?? [])
-    .map((a) => {
-      const c = a.class as { name?: string } | { name?: string }[] | null;
-      if (Array.isArray(c)) return c[0]?.name;
-      return c?.name;
-    })
-    .filter((n): n is string => !!n);
-
-  const { data: studentAssignments } = await supabase
-    .from("listening_assignments")
-    .select("student_id, student:profiles!listening_assignments_student_id_fkey(name)")
-    .eq("set_id", setId)
-    .not("student_id", "is", null);
-
-  const assignedStudentNames = (studentAssignments ?? [])
-    .map((a) => {
-      const s = a.student as { name?: string } | { name?: string }[] | null;
-      if (Array.isArray(s)) return s[0]?.name;
-      return s?.name;
-    })
-    .filter((n): n is string => !!n);
-
   return (
     <div className="space-y-6">
       <Link
@@ -57,6 +22,13 @@ export default async function AdminListeningSetPage({
       >
         ← 듣기 세트 목록
       </Link>
+      <p className="text-xs text-slate-500">
+        학생·반 배정은{" "}
+        <Link href="/admin/listening" className="text-indigo-600 hover:underline">
+          듣기학습 목록
+        </Link>
+        에서 「배정」 버튼으로 진행하세요.
+      </p>
       <ListeningSetManageClient
         setId={loaded.set.id}
         title={loaded.set.title}
@@ -80,13 +52,6 @@ export default async function AdminListeningSetPage({
         }}
         questions={loaded.questions}
         role="admin"
-      />
-      <ListeningAssignPanel
-        setId={setId}
-        classes={classes ?? []}
-        assignedClassNames={assignedClassNames}
-        assignedStudentNames={assignedStudentNames}
-        isPublished={loaded.set.is_published}
       />
     </div>
   );

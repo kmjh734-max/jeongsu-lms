@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ListeningSetsListClient } from "@/components/listening/ListeningSetsListClient";
+import { loadListeningAssignmentSummaries } from "@/lib/listening/load-assignment-summaries";
 
 export default async function TeacherListeningPage() {
   const profile = await getCurrentProfile();
@@ -21,6 +22,12 @@ export default async function TeacherListeningPage() {
       .order("name"),
   ]);
 
+  const setList = sets ?? [];
+  const assignmentBySetId = await loadListeningAssignmentSummaries(
+    supabase,
+    setList.map((s) => s.id)
+  );
+
   return (
     <div>
       <PageHeader
@@ -29,10 +36,11 @@ export default async function TeacherListeningPage() {
       />
       <div className="mt-6">
         <ListeningSetsListClient
-          sets={sets ?? []}
+          sets={setList}
           basePath="/teacher/listening"
           classes={classes ?? []}
           schedulesPath="/teacher/listening/schedules"
+          assignmentBySetId={assignmentBySetId}
         />
       </div>
     </div>
