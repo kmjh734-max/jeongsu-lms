@@ -8,22 +8,7 @@ import type {
   ListeningGenerationMode,
 } from "@/lib/listening/types";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
-import { buildContinuationAvoidList } from "@/lib/listening/continuation-scenario-pool";
 import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
-
-function buildPreviousProblemsForSlot(
-  prior: GeneratedListeningQuestion[],
-  index: number,
-  slot: ListeningGenerationSlot
-): string[] | undefined {
-  const lines: string[] = [];
-  if (slot.typeId === 19 || slot.typeId === 20) {
-    lines.push(...buildContinuationAvoidList(prior, slot.typeId));
-  }
-  const last = prior[index - 1]?.problems;
-  if (last?.length) lines.push(...last);
-  return lines.length > 0 ? lines : undefined;
-}
 
 export interface GenerateItemResult {
   ok: boolean;
@@ -57,112 +42,86 @@ export async function generateQuestionsSequential(opts: {
     orderIndex: s.slotIndex,
     status: "pending",
   }));
-  const questions: GeneratedListeningQuestion[] = [];
 
   const update = (phase: GenerationPhase, index: number) => {
     onProgress(generationProgressPercent(phase, index, total), phase, [...items]);
   };
 
   onProgress(0, "generating", items);
+  items.forEach((item) => {
+    item.status = "generating";
+  });
+  onProgress(generationProgressPercent("generating", 0, total), "generating", [...items]);
 
-  for (let i = 0; i < total; i++) {
-    const slot = slots[i]!;
-    items[i]!.status = "generating";
-    update("generating", i);
+  const res = await fetch("/api/listening/generate-questions-batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      setId,
+      slots,
+      mode,
+      difficultyMode,
+      persist,
+    }),
+  });
 
-    const res = await fetch("/api/listening/generate-question-item", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        typeId: mode === "exam" ? slot.typeId : undefined,
-        orderIndex: slot.slotIndex,
-        mode,
-        difficultyMode,
-        persist: false,
-        previousProblems: buildPreviousProblemsForSlot(
-          questions,
-          i,
-          slot
-        ),
-      }),
+  const data = (await res.json()) as {
+    ok?: boolean;
+    message?: string;
+    questions?: GeneratedListeningQuestion[];
+    schemaWarning?: string;
+    schemaMigrationNeeded?: boolean;
+  };
+
+  if (!data.ok || !data.questions?.length) {
+    items.forEach((item) => {
+      item.status = "error";
+      item.message = data.message ?? "생성 실패";
     });
-
-    const data = (await res.json()) as GenerateItemResult & {
-      question?: GeneratedListeningQuestion;
-      needs_review?: boolean;
-      problems?: string[];
+    onProgress(generationProgressPercent("error", 0, total), "error", items);
+    return {
+      questions: data.questions ?? [],
+      reviewCount: 0,
+      error: data.message ?? "문항 생성 실패",
     };
-
-    if (!data.ok || !data.question) {
-      items[i]!.status = "error";
-      items[i]!.message = data.message ?? "생성 실패";
-      update("error", i);
-      return {
-        questions,
-        reviewCount: questions.filter((q) => q.needs_review).length,
-        error: data.message ?? `${slot.slotIndex}번 생성 실패`,
-      };
-    }
-
-    const q = {
-      ...data.question,
-      order_index: slot.slotIndex,
-      needs_review: false,
-      problems: data.problems ?? [],
-    };
-    questions.push(q);
-    items[i]!.status = "done";
-    update("generating", i);
   }
 
-  let schemaWarning: string | undefined;
+  const questions = data.questions.map((q, i) => ({
+    ...q,
+    order_index: slots[i]?.slotIndex ?? q.order_index,
+    needs_review: false,
+  }));
 
-  if (persist && questions.length > 0) {
-    onProgress(generationProgressPercent("saving", 0, total), "saving", items);
-    for (let i = 0; i < questions.length; i++) {
-      items[i]!.status = "saving";
-    }
-    onProgress(generationProgressPercent("saving", 0, total), "saving", [...items]);
-
-    const res = await fetch("/api/listening/generate-questions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        questions: questions.map((q, i) => ({
-          ...q,
-          order_index: slots[i]?.slotIndex ?? i + 1,
-        })),
-        replaceAll: true,
-      }),
+  if (questions.length < total) {
+    items.forEach((item, i) => {
+      item.status = i < questions.length ? "done" : "error";
+      if (i >= questions.length) item.message = "미생성";
     });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      schemaWarning?: string;
-      schemaMigrationNeeded?: boolean;
+    onProgress(generationProgressPercent("error", questions.length, total), "error", items);
+    return {
+      questions,
+      reviewCount: 0,
+      error: `${questions.length}/${total}문항만 생성되었습니다. 다시 시도해 주세요.`,
     };
-    if (!data.ok) {
-      items.forEach((item) => {
-        item.status = "error";
-        item.message = data.message ?? "저장 실패";
-      });
-      return {
-        questions,
-        reviewCount: questions.filter((q) => q.needs_review).length,
-        error: data.message ?? "문항 저장 실패",
-      };
-    }
-    if (data.schemaMigrationNeeded && data.schemaWarning) {
-      schemaWarning = data.schemaWarning;
-    }
+  }
+
+  if (persist) {
     items.forEach((item) => {
       item.status = "saved";
     });
+    onProgress(100, "done", items);
+  } else {
+    items.forEach((item) => {
+      item.status = "done";
+    });
+    onProgress(100, "done", items);
   }
 
-  onProgress(100, "done", items);
+  let schemaWarning: string | undefined;
+  if (data.schemaMigrationNeeded && data.schemaWarning) {
+    schemaWarning = data.schemaWarning;
+  }
+
   return {
     questions,
     reviewCount: questions.filter((q) => q.needs_review).length,

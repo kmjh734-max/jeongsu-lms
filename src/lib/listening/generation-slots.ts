@@ -52,10 +52,19 @@ export function planCustomGenerationSlots(opts: {
     }));
   }
 
-  const typeIds =
-    selectedTypeIds.length > 0
-      ? selectedTypeIds.slice(0, count)
-      : examTypes.slice(0, count).map((t) => t.id);
+  let typeIds: number[];
+  if (selectedTypeIds.length > 0) {
+    if (selectedTypeIds.length >= count) {
+      typeIds = selectedTypeIds.slice(0, count);
+    } else {
+      typeIds = Array.from(
+        { length: count },
+        (_, i) => selectedTypeIds[i % selectedTypeIds.length]!
+      );
+    }
+  } else {
+    typeIds = examTypes.slice(0, count).map((t) => t.id);
+  }
 
   return typeIds.map((typeId, i) => ({
     typeId,

@@ -75,7 +75,7 @@ export function ListeningSetManageClient({
   const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
   const [isPublished, setIsPublished] = useState(initialPublished);
   const [generationPlanMode, setGenerationPlanMode] =
-    useState<ListeningGenerationPlanMode>("custom");
+    useState<ListeningGenerationPlanMode>("random");
   const [questionCount, setQuestionCount] = useState<5 | 10 | 15 | 20>(5);
   const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
   const [difficultyMode, setDifficultyMode] =
@@ -806,7 +806,9 @@ export function ListeningSetManageClient({
                 : selectedTypeIds.length === 1
                   ? `실제 생성: ${plannedQuestionCount}문항 (유형 ${selectedTypeIds[0]}번 × ${plannedQuestionCount})`
                   : selectedTypeIds.length > 0
-                    ? `실제 생성: ${plannedQuestionCount}문항 (선택 유형 ${selectedTypeIds.length}개)`
+                    ? selectedTypeIds.length >= questionCount
+                      ? `실제 생성: ${plannedQuestionCount}문항 (선택 유형 ${selectedTypeIds.length}개)`
+                      : `실제 생성: ${plannedQuestionCount}문항 (선택 유형 ${selectedTypeIds.length}개 반복)`
                     : `실제 생성: ${plannedQuestionCount}문항 (1~${plannedQuestionCount}번 유형 순서)`}
             </p>
           </div>
@@ -832,7 +834,7 @@ export function ListeningSetManageClient({
           <div className="mt-4 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-3">
             <p className="mb-2 text-xs font-medium text-slate-600">
               유형 선택 — 비우면 1~{questionCount}번 유형 순서 · 유형 1개만 고르면 같은
-              유형 {questionCount}문항 · 여러 개 고르면 선택한 개수만큼만 생성
+              유형 {questionCount}문항 · 여러 개 고르면 {questionCount}문항까지 선택 유형 반복
             </p>
             <div className="grid gap-1 sm:grid-cols-2">
               {examTypes.map((t) => (
