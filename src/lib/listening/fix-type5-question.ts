@@ -1,3 +1,5 @@
+import { isMiddle1OnlyTypeFix } from "@/lib/listening/dialogue-type-ids";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { TYPE5_QUESTION_TYPE } from "@/lib/listening/prompts/type5UnmentionedPrompt";
 import {
@@ -45,9 +47,11 @@ function choicesFromPlan(plan: MentionPlan): string[] {
 
 export function fixType5Question(
   q: GeneratedListeningQuestion,
-  typeId: number
+  typeId: number,
+  gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   if (typeId !== 5) return q;
+  if (isMiddle1OnlyTypeFix(5, gradeLevel)) return q;
 
   const segments = normalizeType5Segments(q.segments);
   const speaker = primarySpeaker(segments);

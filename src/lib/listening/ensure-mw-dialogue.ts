@@ -1,15 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isDialogueExamType } from "@/lib/listening/dialogue-type-ids";
 import { buildScriptText } from "@/lib/listening/script-text";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
+import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import type {
   GeneratedListeningQuestion,
   ListeningScriptSegment,
 } from "@/lib/listening/types";
-
-/** M/W 남녀 대화가 필요한 기출 유형 (담화·표 유형 제외) */
-export const MW_DIALOGUE_TYPE_IDS = new Set([
-  2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20,
-]);
 
 function spokenIndices(segments: ListeningScriptSegment[]): number[] {
   const out: number[] = [];
@@ -25,7 +24,6 @@ function hasBothSpeakers(segments: ListeningScriptSegment[]): boolean {
   return hasM && hasW;
 }
 
-/** M/W 발화가 남녀 교대(연속 동일 화자 없음)인지 */
 function isStrictMwAlternating(segments: ListeningScriptSegment[]): boolean {
   const indices = spokenIndices(segments);
   if (indices.length < 2) return true;
@@ -46,7 +44,6 @@ function segmentsSpeakersEqual(
   return a.every((s, i) => s.speaker === b[i]!.speaker);
 }
 
-/** 마지막 M/W 발화 화자 */
 function startSpeakerForEnd(end: "M" | "W", turnCount: number): "M" | "W" {
   if (turnCount <= 0) return "M";
   const lastIfStartM = turnCount % 2 === 1 ? "M" : "W";
@@ -73,15 +70,6 @@ function relabelStrictAlternatingMw(
   return out;
 }
 
-export function requiresMwDialogue(
-  typeId: number,
-  q: GeneratedListeningQuestion
-): boolean {
-  if (MW_DIALOGUE_TYPE_IDS.has(typeId)) return true;
-  if (typeId === 1 || typeId === 3 || typeId === 5 || typeId === 14) return false;
-  return /대화/.test(q.instruction ?? "");
-}
-
 function needsMwRelabel(segments: ListeningScriptSegment[]): boolean {
   const indices = spokenIndices(segments);
   if (indices.length < 2) return false;
@@ -89,13 +77,14 @@ function needsMwRelabel(segments: ListeningScriptSegment[]): boolean {
 }
 
 /**
- * 대화 유형: M만/W만 이거나, M·W가 연속으로 붙어 있으면 M↔W 교대 라벨로 맞춘다.
+ * 대화 유형: M만/W만 이거나 연속 동일 화자면 M↔W 교대 라벨로 맞춘다.
  */
 export function ensureMwDialogueSegments(
   q: GeneratedListeningQuestion,
-  typeId: number
+  typeId: number,
+  gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
-  if (!requiresMwDialogue(typeId, q)) return q;
+  if (!isDialogueExamType(typeId, gradeLevel, q.instruction)) return q;
   if (!needsMwRelabel(q.segments)) return q;
 
   const endSpeaker: "M" | "W" | undefined =
@@ -111,7 +100,6 @@ export function ensureMwDialogueSegments(
   };
 }
 
-/** DB segment 화자·지문 보정 (음원은 호출 측에서 재생성) */
 export async function repairMwDialogueSegmentsInDb(
   admin: SupabaseClient,
   questionId: string,
@@ -120,7 +108,7 @@ export async function repairMwDialogueSegmentsInDb(
   const [{ data: meta }, { data: rows }] = await Promise.all([
     admin
       .from("listening_questions")
-      .select("instruction")
+      .select("instruction, question_type, set_id")
       .eq("id", questionId)
       .maybeSingle(),
     admin
@@ -130,7 +118,17 @@ export async function repairMwDialogueSegmentsInDb(
       .order("order_index", { ascending: true }),
   ]);
 
-  if (!rows?.length) return false;
+  if (!rows?.length || !meta?.set_id) return false;
+
+  const gradeLevel = await fetchListeningSetGradeLevel(meta.set_id as string);
+  const typeId = inferExamTypeIdForFixes(
+    {
+      order_index: orderIndex,
+      instruction: (meta.instruction as string) ?? "",
+      question_type: (meta.question_type as string) ?? "",
+    },
+    gradeLevel
+  );
 
   const segments: ListeningScriptSegment[] = rows.map((r) => ({
     speaker: r.speaker_type as ListeningScriptSegment["speaker"],
@@ -139,8 +137,8 @@ export async function repairMwDialogueSegmentsInDb(
 
   const stub = {
     order_index: orderIndex,
-    question_type: "",
-    instruction: meta?.instruction ?? "",
+    question_type: (meta.question_type as string) ?? "",
+    instruction: (meta.instruction as string) ?? "",
     segments,
     script_text: "",
     script_translation: "",
@@ -151,7 +149,7 @@ export async function repairMwDialogueSegmentsInDb(
     answer_clue: "",
   } satisfies GeneratedListeningQuestion;
 
-  const fixed = ensureMwDialogueSegments(stub, orderIndex);
+  const fixed = ensureMwDialogueSegments(stub, typeId, gradeLevel);
   if (segmentsSpeakersEqual(fixed.segments, segments)) return false;
 
   const script_text = fixed.script_text || buildScriptText(fixed.segments);
@@ -183,7 +181,6 @@ export async function repairMwDialogueSegmentsInDb(
   return true;
 }
 
-/** 세트 전체 대화 문항 segment 화자 일괄 보정 */
 export async function repairSetMwDialogueInDb(
   admin: SupabaseClient,
   setId: string

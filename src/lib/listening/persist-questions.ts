@@ -403,7 +403,8 @@ export async function replaceQuestionSegments(
       explanation: "",
       answer_clue: "",
     },
-    typeId
+    typeId,
+    gradeLevel
   ).segments.map((s) => ({ speaker: s.speaker, text: s.text }));
 
   await admin.from("listening_question_segments").delete().eq("question_id", questionId);

@@ -1,3 +1,5 @@
+import { isMiddle1OnlyTypeFix } from "@/lib/listening/dialogue-type-ids";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { TYPE14_QUESTION_TYPE } from "@/lib/listening/prompts/type14TablePrompt";
 import {
@@ -10,9 +12,11 @@ import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 export function fixType14Question(
   q: GeneratedListeningQuestion,
-  typeId: number
+  typeId: number,
+  gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   if (typeId !== 14) return q;
+  if (isMiddle1OnlyTypeFix(14, gradeLevel)) return q;
 
   const table_data = normalizeType14TableData(q.table_data);
   const source_facts_from_script = normalizeSourceFactsFromScript(

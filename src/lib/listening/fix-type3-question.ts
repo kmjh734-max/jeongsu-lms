@@ -1,3 +1,5 @@
+import { isMiddle1OnlyTypeFix } from "@/lib/listening/dialogue-type-ids";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { buildScriptText } from "@/lib/listening/script-text";
 import { TYPE3_QUESTION_TYPE } from "@/lib/listening/prompts/type3WeatherPrompt";
 import type {
@@ -71,9 +73,11 @@ function buildInstruction(
 
 export function fixType3Question(
   q: GeneratedListeningQuestion,
-  typeId: number
+  typeId: number,
+  gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   if (typeId !== 3) return q;
+  if (isMiddle1OnlyTypeFix(3, gradeLevel)) return q;
 
   const segments = normalizeSegments(q.segments);
   const choice_image_prompts = Array.isArray(q.choice_image_prompts)

@@ -1,3 +1,4 @@
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { buildScriptText } from "@/lib/listening/script-text";
 import {
   TYPE1_INSTRUCTION,
@@ -17,9 +18,11 @@ function normalizeType1Segments(
 
 export function fixType1Question(
   q: GeneratedListeningQuestion,
-  typeId: number
+  typeId: number,
+  gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   if (typeId !== 1) return q;
+  if (gradeLevel === "middle2") return q;
 
   const segments = normalizeType1Segments(q.segments);
   const choice_image_prompts = Array.isArray(q.choice_image_prompts)

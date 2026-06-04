@@ -34,12 +34,12 @@ export function applyQuestionFixes(
   const id = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
   let out = fixSwappedScriptLanguage(q);
   out = fixContinuationQuestion(out, id);
-  out = fixType14Question(out, id);
-  out = fixType1Question(out, id);
+  out = fixType14Question(out, id, gradeLevel);
+  out = fixType1Question(out, id, gradeLevel);
   out = fixType2Question(out, id);
-  out = fixType3Question(out, id);
+  out = fixType3Question(out, id, gradeLevel);
   out = fixType4Question(out, id);
-  out = fixType5Question(out, id);
+  out = fixType5Question(out, id, gradeLevel);
   out = fixType6Question(out, id);
   out = fixType7Question(out, id);
   out = fixType8Question(out, id);
@@ -54,6 +54,6 @@ export function applyQuestionFixes(
   out = fixType18Question(out, id);
   out = fixType19Question(out, id);
   out = fixType20Question(out, id);
-  out = ensureMwDialogueSegments(out, id);
+  out = ensureMwDialogueSegments(out, id, gradeLevel);
   return out;
 }
