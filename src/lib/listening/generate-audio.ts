@@ -8,6 +8,7 @@ import {
   type ListeningSetVoiceOverrides,
   type ResolvedListeningVoices,
 } from "@/lib/listening/elevenlabs/resolve-voices";
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
 import {
@@ -135,26 +136,42 @@ export async function generateQuestionAudio(opts: {
   questionId: string;
   segmentId?: string;
   speechSpeed?: number;
+  resolvedVoices?: ResolvedListeningVoices;
+  skipRepair?: boolean;
+  skipIfFinalExists?: boolean;
 }): Promise<GenerateAudioResult> {
   const { setId, questionId, segmentId } = opts;
   const speed = opts.speechSpeed ?? EXAM_DEFAULT_SPEECH_SPEED;
   const saveSegments = shouldSaveTtsSegments();
 
   const admin = createAdminClient();
-  const setOverrides = await loadSetVoiceOverrides(admin, setId);
-  const resolved = await resolveListeningVoiceIds(setOverrides);
+  const resolved =
+    opts.resolvedVoices ??
+    (await resolveListeningVoiceIds(
+      await loadSetVoiceOverrides(admin, setId)
+    ));
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL이 설정되지 않았습니다.");
 
   const { data: questionMeta } = await admin
     .from("listening_questions")
-    .select("order_index, question_text")
+    .select("order_index, question_text, audio_url")
     .eq("id", questionId)
     .maybeSingle();
 
   const orderIndex = questionMeta?.order_index ?? 0;
 
-  await repairMwDialogueSegmentsInDb(admin, questionId, orderIndex);
+  if (
+    opts.skipIfFinalExists &&
+    !segmentId &&
+    questionMeta?.audio_url?.trim()
+  ) {
+    return { audioUrl: questionMeta.audio_url.trim(), provider: "elevenlabs" };
+  }
+
+  if (!opts.skipRepair) {
+    await repairMwDialogueSegmentsInDb(admin, questionId, orderIndex);
+  }
 
   if (
     (orderIndex === 19 || orderIndex === 20) &&
@@ -185,58 +202,71 @@ export async function generateQuestionAudio(opts: {
     if (!rows.length) {
       throw new Error("음원으로 만들 spoken segment가 없습니다. 대본을 확인하세요.");
     }
-    for (let i = 0; i < rows.length; i++) {
-      const seg = rows[i]!;
-      const speaker = seg.speaker_type as ListeningSpeakerType;
-      const localPath = join(
-        workDir,
-        `${String(seg.order_index + 1).padStart(2, "0")}-${speaker.toLowerCase()}.mp3`
-      );
-
-      const mustSynthesize = !segmentId || seg.id === segmentId;
-
-      if (mustSynthesize) {
-        const buffer = await synthesizeSegmentToFile(
-          resolved,
-          speaker,
-          seg.text,
-          speed,
-          localPath
+    const segmentPaths = await runWithConcurrency(
+      rows,
+      3,
+      async (seg, i) => {
+        const speaker = seg.speaker_type as ListeningSpeakerType;
+        const localPath = join(
+          workDir,
+          `${String(seg.order_index + 1).padStart(2, "0")}-${speaker.toLowerCase()}.mp3`
         );
-        const voiceId = resolved.voiceIds[speaker];
 
-        if (saveSegments) {
-          const storagePath = segmentStoragePath(setId, questionId, seg.id);
-          const { error: upErr } = await admin.storage
-            .from(BUCKET)
-            .upload(storagePath, buffer, {
-              contentType: "audio/mpeg",
-              upsert: true,
-            });
-          if (upErr) throw new Error(upErr.message);
+        const mustSynthesize = !segmentId || seg.id === segmentId;
 
-          const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
-          await admin
-            .from("listening_question_segments")
-            .update({
-              audio_url: audioUrl,
-              voice_name: voiceForSpeaker(speaker, voiceId),
-            })
-            .eq("id", seg.id);
+        if (mustSynthesize) {
+          const buffer = await synthesizeSegmentToFile(
+            resolved,
+            speaker,
+            seg.text,
+            speed,
+            localPath
+          );
+          const voiceId = resolved.voiceIds[speaker];
+
+          if (saveSegments) {
+            const storagePath = segmentStoragePath(setId, questionId, seg.id);
+            const { error: upErr } = await admin.storage
+              .from(BUCKET)
+              .upload(storagePath, buffer, {
+                contentType: "audio/mpeg",
+                upsert: true,
+              });
+            if (upErr) throw new Error(upErr.message);
+
+            const audioUrl = publicAudioUrl(supabaseUrl, storagePath);
+            await admin
+              .from("listening_question_segments")
+              .update({
+                audio_url: audioUrl,
+                voice_name: voiceForSpeaker(speaker, voiceId),
+              })
+              .eq("id", seg.id);
+          } else {
+            await admin
+              .from("listening_question_segments")
+              .update({ voice_name: voiceForSpeaker(speaker, voiceId) })
+              .eq("id", seg.id);
+          }
+        } else if (saveSegments && seg.audio_url) {
+          await downloadSegmentToFile(admin, supabaseUrl, seg.audio_url, localPath);
         } else {
-          await admin
-            .from("listening_question_segments")
-            .update({ voice_name: voiceForSpeaker(speaker, voiceId) })
-            .eq("id", seg.id);
+          await synthesizeSegmentToFile(
+            resolved,
+            speaker,
+            seg.text,
+            speed,
+            localPath
+          );
         }
-      } else if (saveSegments && seg.audio_url) {
-        await downloadSegmentToFile(admin, supabaseUrl, seg.audio_url, localPath);
-      } else {
-        await synthesizeSegmentToFile(resolved, speaker, seg.text, speed, localPath);
-      }
 
-      segmentOnlyPaths.push(localPath);
-    }
+        return { localPath, index: i };
+      }
+    );
+
+    segmentPaths
+      .sort((a, b) => a.index - b.index)
+      .forEach((p) => segmentOnlyPaths.push(p.localPath));
 
     if (segmentOnlyPaths.length === 0) {
       throw new Error("합칠 segment 음성이 없습니다.");
@@ -293,11 +323,12 @@ export async function generateSetQuestionAudio(opts: {
   setId: string;
   speechSpeed?: number;
   questionIds?: string[];
+  skipExisting?: boolean;
 }): Promise<BatchAudioItemResult[]> {
   const admin = createAdminClient();
   let query = admin
     .from("listening_questions")
-    .select("id, order_index")
+    .select("id, order_index, audio_url")
     .eq("set_id", opts.setId)
     .order("order_index", { ascending: true });
 
@@ -313,45 +344,59 @@ export async function generateSetQuestionAudio(opts: {
 
   await repairSetMwDialogueInDb(admin, opts.setId);
 
-  const results: BatchAudioItemResult[] = [];
+  const setOverrides = await loadSetVoiceOverrides(admin, opts.setId);
+  const resolved = await resolveListeningVoiceIds(setOverrides);
+  const speechSpeed =
+    opts.speechSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET);
 
-  for (const q of questions) {
+  const results = await runWithConcurrency(questions, 2, async (q) => {
     try {
+      if (opts.skipExisting && q.audio_url?.trim()) {
+        return {
+          questionId: q.id,
+          orderIndex: q.order_index,
+          ok: true,
+          audioUrl: q.audio_url.trim(),
+        };
+      }
+
       const { data: segCheck } = await admin
         .from("listening_question_segments")
         .select("id")
         .eq("question_id", q.id)
         .limit(1);
       if (!segCheck?.length) {
-        results.push({
+        return {
           questionId: q.id,
           orderIndex: q.order_index,
           ok: false,
           message: "대본 segment가 없습니다. 문항을 다시 저장하세요.",
-        });
-        continue;
+        };
       }
 
       const out = await generateQuestionAudio({
         setId: opts.setId,
         questionId: q.id,
-        speechSpeed: opts.speechSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET),
+        speechSpeed,
+        resolvedVoices: resolved,
+        skipRepair: true,
+        skipIfFinalExists: opts.skipExisting,
       });
-      results.push({
+      return {
         questionId: q.id,
         orderIndex: q.order_index,
         ok: true,
         audioUrl: out.audioUrl,
-      });
+      };
     } catch (e) {
-      results.push({
+      return {
         questionId: q.id,
         orderIndex: q.order_index,
         ok: false,
         message: e instanceof Error ? e.message : "음원 생성 실패",
-      });
+      };
     }
-  }
+  });
 
   return results;
 }

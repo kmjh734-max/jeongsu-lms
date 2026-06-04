@@ -51,6 +51,28 @@ const OVERRIDE_KEYS: Record<ListeningSpeakerType, keyof ListeningSetVoiceOverrid
   W: "voice_w_id",
 };
 
+let cachedVoiceCatalog: {
+  fetchedAt: number;
+  voices: Awaited<ReturnType<typeof fetchElevenLabsVoices>>;
+  autoSelected: Record<ListeningSpeakerType, string>;
+} | null = null;
+
+const VOICE_CATALOG_TTL_MS = 15 * 60 * 1000;
+
+async function getVoiceCatalog(apiKey: string) {
+  const now = Date.now();
+  if (
+    cachedVoiceCatalog &&
+    now - cachedVoiceCatalog.fetchedAt < VOICE_CATALOG_TTL_MS
+  ) {
+    return cachedVoiceCatalog;
+  }
+  const voices = await fetchElevenLabsVoices(apiKey);
+  const autoSelected = autoSelectElevenLabsVoices(voices);
+  cachedVoiceCatalog = { fetchedAt: now, voices, autoSelected };
+  return cachedVoiceCatalog;
+}
+
 /**
  * 우선순위: 세트 저장값 → env → 자동 선택
  */
@@ -58,8 +80,7 @@ export async function resolveListeningVoiceIds(
   setOverrides?: ListeningSetVoiceOverrides | null
 ): Promise<ResolvedListeningVoices> {
   const apiKey = getElevenLabsApiKey();
-  const voices = await fetchElevenLabsVoices(apiKey);
-  const autoSelected = autoSelectElevenLabsVoices(voices);
+  const { autoSelected } = await getVoiceCatalog(apiKey);
 
   const voiceIds = {} as Record<ListeningSpeakerType, string>;
   const speakers: ListeningSpeakerType[] = ["ANN", "M", "W"];

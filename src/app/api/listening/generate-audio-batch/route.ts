@@ -69,6 +69,7 @@ export async function POST(request: Request) {
       setId,
       speechSpeed,
       questionIds: body.questionIds,
+      skipExisting: true,
     });
 
     const okCount = results.filter((r) => r.ok).length;

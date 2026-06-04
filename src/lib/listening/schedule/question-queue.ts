@@ -11,23 +11,39 @@ export async function buildQuestionQueueForAssignment(
     .eq("assignment_id", assignmentId)
     .order("order_index", { ascending: true });
 
-  const queue: QuestionQueueItem[] = [];
+  if (!setRows?.length) return [];
 
-  for (const row of setRows ?? []) {
+  const setOrder = new Map<string, number>();
+  const setIds: string[] = [];
+  for (const row of setRows) {
     const setId = row.set_id as string;
-    const { data: questions } = await admin
-      .from("listening_questions")
-      .select("id, order_index")
-      .eq("set_id", setId)
-      .order("order_index", { ascending: true });
+    setIds.push(setId);
+    setOrder.set(setId, row.order_index as number);
+  }
 
-    for (const q of questions ?? []) {
-      queue.push({
-        setId,
-        questionId: q.id as string,
-        orderIndex: q.order_index as number,
-      });
-    }
+  const { data: questions } = await admin
+    .from("listening_questions")
+    .select("id, order_index, set_id")
+    .in("set_id", setIds)
+    .order("order_index", { ascending: true });
+
+  const bySet = new Map<string, QuestionQueueItem[]>();
+  for (const q of questions ?? []) {
+    const setId = q.set_id as string;
+    const list = bySet.get(setId) ?? [];
+    list.push({
+      setId,
+      questionId: q.id as string,
+      orderIndex: q.order_index as number,
+    });
+    bySet.set(setId, list);
+  }
+
+  const queue: QuestionQueueItem[] = [];
+  for (const setId of setIds) {
+    const items = bySet.get(setId) ?? [];
+    items.sort((a, b) => a.orderIndex - b.orderIndex);
+    queue.push(...items);
   }
 
   return queue;

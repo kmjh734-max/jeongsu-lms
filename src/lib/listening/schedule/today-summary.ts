@@ -8,6 +8,7 @@ import {
   ensureDailyTaskForStudentDate,
   ensureDailyTasksForStudentRange,
 } from "@/lib/listening/schedule/generate-daily-tasks";
+import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import type { DailyTaskStatus, ScheduleAssignmentRow } from "@/lib/listening/schedule/types";
 
 export interface StudentDailyTaskView {
@@ -125,18 +126,21 @@ export async function getStudentScheduleTodaySummary(
       const rangeFrom =
         assignment.start_date > lookbackFrom ? assignment.start_date : lookbackFrom;
       if (rangeFrom > todayIso) return;
+      const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
       await ensureDailyTasksForStudentRange(
         admin,
         assignment,
         studentId,
         rangeFrom,
-        todayIso
+        todayIso,
+        queue
       );
       await ensureDailyTaskForStudentDate(
         admin,
         assignment,
         studentId,
-        todayIso
+        todayIso,
+        queue
       );
     })
   );

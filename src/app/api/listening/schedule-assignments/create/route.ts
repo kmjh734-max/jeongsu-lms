@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { bootstrapDailyTasksForAssignment } from "@/lib/listening/schedule/generate-daily-tasks";
 import {
   assertScheduleManager,
@@ -123,12 +123,10 @@ export async function POST(request: Request) {
       return jsonError(setErr.message);
     }
 
-    for (const setId of setIds) {
-      await admin
-        .from("listening_sets")
-        .update({ is_published: true })
-        .eq("id", setId);
-    }
+    await admin
+      .from("listening_sets")
+      .update({ is_published: true })
+      .in("id", setIds);
 
     const { data: assignment } = await admin
       .from("listening_schedule_assignments")
@@ -137,7 +135,11 @@ export async function POST(request: Request) {
       .single();
 
     if (assignment) {
-      await bootstrapDailyTasksForAssignment(admin, assignment);
+      after(() => {
+        void bootstrapDailyTasksForAssignment(admin, assignment).catch(
+          () => undefined
+        );
+      });
     }
 
     return NextResponse.json({

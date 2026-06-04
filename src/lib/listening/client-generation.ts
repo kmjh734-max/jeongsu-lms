@@ -183,38 +183,48 @@ export async function generateAudioSequential(opts: {
     status: "pending",
   }));
 
+  items.forEach((item) => {
+    item.status = "audio";
+  });
+  onProgress(5, "음원 일괄 생성 중 (기존 음원은 건너뜀)", [...items]);
+
+  const res = await fetch("/api/listening/generate-audio-batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      setId,
+      speechSpeed,
+      questionIds: questions.map((q) => q.id),
+    }),
+  });
+
+  const data = (await res.json()) as {
+    ok?: boolean;
+    message?: string;
+    results?: Array<{
+      orderIndex: number;
+      ok: boolean;
+      message?: string;
+    }>;
+  };
+
+  const resultByOrder = new Map(
+    (data.results ?? []).map((r) => [r.orderIndex, r])
+  );
+
   let okCount = 0;
   const failed: number[] = [];
 
   for (let i = 0; i < total; i++) {
     const q = questions[i]!;
-    items[i]!.status = "audio";
-    const percent = Math.round((i / total) * 100);
-    onProgress(percent, `${q.order_index}번 문항 음원 생성 중`, [...items]);
-
-    const res = await fetch("/api/listening/generate-audio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        questionId: q.id,
-        speechSpeed,
-      }),
-    });
-
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      stage?: string;
-    };
-
-    if (!data.ok) {
-      items[i]!.status = "error";
-      items[i]!.message = data.message ?? "실패";
-      failed.push(q.order_index);
-    } else {
+    const row = resultByOrder.get(q.order_index);
+    if (row?.ok) {
       items[i]!.status = "done";
       okCount++;
+    } else {
+      items[i]!.status = "error";
+      items[i]!.message = row?.message ?? data.message ?? "실패";
+      failed.push(q.order_index);
     }
   }
 
@@ -223,8 +233,9 @@ export async function generateAudioSequential(opts: {
     okCount,
     failed,
     message:
-      failed.length > 0
+      data.message ??
+      (failed.length > 0
         ? `${okCount}/${total}문항 음원 생성 완료 (실패: ${failed.join(", ")}번)`
-        : `전체 ${total}문항 음원 생성 완료`,
+        : `전체 ${total}문항 음원 생성 완료`),
   };
 }
