@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateQuestionAudio } from "@/lib/listening/generate-audio";
 import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
 
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });

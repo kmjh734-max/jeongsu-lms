@@ -204,7 +204,7 @@ export async function generateQuestionAudio(opts: {
     }
     const segmentPaths = await runWithConcurrency(
       rows,
-      3,
+      1,
       async (seg, i) => {
         const speaker = seg.speaker_type as ListeningSpeakerType;
         const localPath = join(
@@ -286,7 +286,19 @@ export async function generateQuestionAudio(opts: {
     }
 
     const finalLocal = join(workDir, "final.mp3");
-    await concatMp3Files(mergePaths, finalLocal);
+    try {
+      await concatMp3Files(mergePaths, finalLocal);
+    } catch (mergeErr) {
+      try {
+        await concatMp3Files(segmentOnlyPaths, finalLocal);
+      } catch {
+        const hint =
+          mergeErr instanceof Error ? mergeErr.message : "mp3 병합 실패";
+        throw new Error(
+          `${hint} (대사만 이어 붙이기도 실패했습니다. Vercel에 ffmpeg가 포함되어 있는지 확인해 주세요.)`
+        );
+      }
+    }
     const stat = await import("fs/promises").then((fs) => fs.stat(finalLocal));
     if (stat.size < 500) {
       throw new Error("합성된 mp3가 비어 있습니다. 음원을 다시 생성해 주세요.");
@@ -349,7 +361,7 @@ export async function generateSetQuestionAudio(opts: {
   const speechSpeed =
     opts.speechSpeed ?? speedFromPreset(DEFAULT_SPEECH_SPEED_PRESET);
 
-  const results = await runWithConcurrency(questions, 2, async (q) => {
+  const results = await runWithConcurrency(questions, 1, async (q) => {
     try {
       if (opts.skipExisting && q.audio_url?.trim()) {
         return {

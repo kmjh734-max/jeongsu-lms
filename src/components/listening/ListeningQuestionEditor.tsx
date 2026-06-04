@@ -174,30 +174,6 @@ export function ListeningQuestionEditor({
     onUpdated();
   }
 
-  async function mergeAudioOnly() {
-    setBusy("merge");
-    setMessage(null);
-    setError(null);
-    const res = await fetch("/api/listening/merge-audio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId, questionId: question.id }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      audioUrl?: string;
-    };
-    setBusy(null);
-    if (!data.ok || !data.audioUrl) {
-      setError(data.message ?? "최종 mp3 병합 실패");
-      return;
-    }
-    setAudioUrl(`${data.audioUrl}?t=${Date.now()}`);
-    setMessage("segment를 합쳐 최종 mp3를 만들었습니다.");
-    onUpdated();
-  }
-
   async function generateAudio(segmentId?: string) {
     setBusy(segmentId ? `seg-${segmentId}` : "audio");
     setMessage(null);
@@ -223,7 +199,7 @@ export function ListeningQuestionEditor({
       return;
     }
     if (!data.audioUrl) {
-      setError("음원 URL을 받지 못했습니다. 「최종 mp3만 병합」을 시도해 보세요.");
+      setError("음원 URL을 받지 못했습니다. 음원 생성을 다시 시도해 주세요.");
       return;
     }
     setAudioUrl(`${data.audioUrl}?t=${Date.now()}`);
@@ -323,14 +299,6 @@ export function ListeningQuestionEditor({
             className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
           >
             {busy === "audio" ? "ElevenLabs 생성 중…" : "음원 생성 (ElevenLabs)"}
-          </button>
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={mergeAudioOnly}
-            className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 disabled:opacity-50"
-          >
-            {busy === "merge" ? "병합 중…" : "최종 mp3만 병합"}
           </button>
         </div>
       </header>

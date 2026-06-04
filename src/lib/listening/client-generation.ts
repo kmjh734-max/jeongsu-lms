@@ -42,6 +42,7 @@ export async function generateQuestionsSequential(opts: {
     orderIndex: s.slotIndex,
     status: "pending",
   }));
+  const questions: GeneratedListeningQuestion[] = [];
 
   const update = (phase: GenerationPhase, index: number) => {
     onProgress(generationProgressPercent(phase, index, total), phase, [...items]);
@@ -91,24 +92,26 @@ export async function generateQuestionsSequential(opts: {
     };
   }
 
-  const questions = data.questions.map((q, i) => ({
+  const generated = data.questions.map((q, i) => ({
     ...q,
     order_index: slots[i]?.slotIndex ?? q.order_index,
     needs_review: false,
   }));
 
-  if (questions.length < total) {
+  if (generated.length < total) {
     items.forEach((item, i) => {
-      item.status = i < questions.length ? "done" : "error";
-      if (i >= questions.length) item.message = "미생성";
+      item.status = i < generated.length ? "done" : "error";
+      if (i >= generated.length) item.message = "미생성";
     });
-    onProgress(generationProgressPercent("error", questions.length, total), "error", items);
+    onProgress(generationProgressPercent("error", generated.length, total), "error", items);
     return {
-      questions,
+      questions: generated,
       reviewCount: 0,
-      error: `${questions.length}/${total}문항만 생성되었습니다. 다시 시도해 주세요.`,
+      error: `${generated.length}/${total}문항만 생성되었습니다. 다시 시도해 주세요.`,
     };
   }
+
+  questions.push(...generated);
 
   if (persist) {
     items.forEach((item) => {
@@ -147,48 +150,47 @@ export async function generateAudioSequential(opts: {
     status: "pending",
   }));
 
-  items.forEach((item) => {
-    item.status = "audio";
-  });
-  onProgress(5, "음원 일괄 생성 중 (기존 음원은 건너뜀)", [...items]);
-
-  const res = await fetch("/api/listening/generate-audio-batch", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      setId,
-      speechSpeed,
-      questionIds: questions.map((q) => q.id),
-    }),
-  });
-
-  const data = (await res.json()) as {
-    ok?: boolean;
-    message?: string;
-    results?: Array<{
-      orderIndex: number;
-      ok: boolean;
-      message?: string;
-    }>;
-  };
-
-  const resultByOrder = new Map(
-    (data.results ?? []).map((r) => [r.orderIndex, r])
-  );
-
   let okCount = 0;
   const failed: number[] = [];
 
   for (let i = 0; i < total; i++) {
     const q = questions[i]!;
-    const row = resultByOrder.get(q.order_index);
-    if (row?.ok) {
+    items[i]!.status = "audio";
+    const percent = Math.round((i / total) * 100);
+    onProgress(
+      percent,
+      `${q.order_index}번 문항 음원 생성 중 (재생용 mp3 포함)`,
+      [...items]
+    );
+
+    const res = await fetch("/api/listening/generate-audio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        setId,
+        questionId: q.id,
+        speechSpeed,
+      }),
+    });
+
+    let data: {
+      ok?: boolean;
+      message?: string;
+      audioUrl?: string;
+    };
+    try {
+      data = (await res.json()) as typeof data;
+    } catch {
+      data = { ok: false, message: "서버 응답을 읽지 못했습니다." };
+    }
+
+    if (!res.ok || !data.ok || !data.audioUrl) {
+      items[i]!.status = "error";
+      items[i]!.message = data.message ?? `HTTP ${res.status}`;
+      failed.push(q.order_index);
+    } else {
       items[i]!.status = "done";
       okCount++;
-    } else {
-      items[i]!.status = "error";
-      items[i]!.message = row?.message ?? data.message ?? "실패";
-      failed.push(q.order_index);
     }
   }
 
@@ -197,9 +199,8 @@ export async function generateAudioSequential(opts: {
     okCount,
     failed,
     message:
-      data.message ??
-      (failed.length > 0
+      failed.length > 0
         ? `${okCount}/${total}문항 음원 생성 완료 (실패: ${failed.join(", ")}번)`
-        : `전체 ${total}문항 음원 생성 완료`),
+        : `전체 ${total}문항 음원 생성 완료 (학생 재생용 mp3 저장됨)`,
   };
 }

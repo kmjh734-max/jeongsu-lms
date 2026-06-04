@@ -372,7 +372,7 @@ export function ListeningSetManageClient({
       router.refresh();
       return;
     }
-    const base = `${plannedQuestionCount}문항이 생성·저장되었습니다. 「전체 음원 생성」으로 음성을 만드세요.`;
+    const base = `${plannedQuestionCount}문항이 생성·저장되었습니다. 「전체 음원 생성」만 누르면 학생 재생용 mp3까지 저장됩니다.`;
     setMessage(result.schemaWarning ? `${base} ${result.schemaWarning}` : base);
     router.refresh();
   }
@@ -416,34 +416,6 @@ export function ListeningSetManageClient({
     setMessage(`${orderIndex}번 문항을 다시 생성했습니다.`);
   }
 
-  async function mergeAllFinalAudio() {
-    if (initialQuestions.length === 0) return;
-    setBusy("merge-all");
-    setMessage(null);
-    const res = await fetch("/api/listening/merge-audio-batch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      results?: Array<{ orderIndex: number; ok: boolean; message?: string }>;
-    };
-    setBusy(null);
-    if (!data.ok) {
-      setMessage(data.message ?? "일괄 병합 실패");
-      return;
-    }
-    const failed = (data.results ?? []).filter((r) => !r.ok);
-    setMessage(
-      failed.length
-        ? `${data.message} — 실패: ${failed.map((f) => `${f.orderIndex}번`).join(", ")}`
-        : data.message ?? "전체 최종 mp3 병합 완료"
-    );
-    router.refresh();
-  }
-
   async function generateAllAudio() {
     if (initialQuestions.length === 0) {
       setMessage("먼저 문항을 생성·저장하세요.");
@@ -452,7 +424,7 @@ export function ListeningSetManageClient({
     setBusy("audio-seq");
     setMessage(null);
     resetProgress();
-    setProgressDetail("ElevenLabs 음원 생성 중…");
+    setProgressDetail("문항별 음원·재생 mp3 생성 중…");
 
     const result = await generateAudioSequential({
       setId,
@@ -917,10 +889,10 @@ export function ListeningSetManageClient({
 
       {initialQuestions.length > 0 && (
         <section className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-          <h2 className="text-sm font-semibold text-slate-800">음원 생성 (ElevenLabs)</h2>
+          <h2 className="text-sm font-semibold text-slate-800">음원 생성</h2>
           <p className="mt-1 text-xs text-slate-600">
-            ANN/M/W 화자별 ElevenLabs 음성으로 segment를 만든 뒤 합쳐 final.mp3를 저장합니다.
-            생성 후 미리듣기로 확인하세요.
+            「전체 음원 생성」 한 번이면 문항별 재생 mp3가 저장됩니다. 별도 병합 단계는
+            필요 없습니다.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -932,16 +904,6 @@ export function ListeningSetManageClient({
               {isAudioBusy
                 ? "전체 음원 생성 중…"
                 : `전체 음원 생성 (${initialQuestions.length}문항)`}
-            </button>
-            <button
-              type="button"
-              disabled={!!busy}
-              onClick={mergeAllFinalAudio}
-              className="rounded-lg border border-emerald-400 bg-white px-4 py-2 text-sm font-medium text-emerald-800 disabled:opacity-50"
-            >
-              {busy === "merge-all"
-                ? "병합 중…"
-                : `최종 mp3만 일괄 병합 (${initialQuestions.length}문항)`}
             </button>
           {isAudioBusy && progressItems.length > 0 && (
             <div className="mt-4">
