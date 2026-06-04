@@ -1,5 +1,8 @@
 import { blankCountRange } from "@/lib/listening/dictation/blank-level";
-import { collectSpokenLines, type SpokenLine } from "@/lib/listening/dictation/spoken-lines";
+import {
+  collectDictationLines,
+  type SpokenLine,
+} from "@/lib/listening/dictation/spoken-lines";
 import type {
   DictationBlankItem,
   DictationBlankLevel,
@@ -71,7 +74,7 @@ function wordCandidates(line: string): Array<{ word: string; importance: number 
     if (key.length < 3 || SKIP_WORDS.has(key)) continue;
     let importance = Math.min(10, 3 + Math.floor(word.length / 2));
     if (
-      /(subway|bus|library|museum|station|poster|science|lunch|worried|drawing|pictures|because|before|after|tomorrow|yesterday|monday|tuesday|happy|sad|angry|teacher|doctor|police)/i.test(
+      /(subway|bus|library|museum|station|poster|science|lunch|worried|drawing|pictures|because|before|after|tomorrow|yesterday|monday|tuesday|happy|sad|angry|teacher|doctor|police|weather|cloudy|rain|fog|clear|bright|tonight|morning|afternoon|evening|daegu|daejeon|seoul)/i.test(
         word
       )
     ) {
@@ -170,7 +173,7 @@ export function buildFallbackDictationBlanks(opts: {
   previousBlankWords?: string[];
   answerClue?: string;
 }): DictationBlankItem[] {
-  const spoken = collectSpokenLines({
+  const spoken = collectDictationLines({
     scriptText: opts.scriptText,
     segments: opts.segments,
   });

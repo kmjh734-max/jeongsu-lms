@@ -10,6 +10,7 @@ ANN 안내문은 제외한다. M/W 대화·담화만 사용한다.
 정답 단서·핵심 정보·문항 유형과 관련 표현을 우선한다.
 M/W 대본의 모든 문장이 화면에 보이도록, 빈칸 없는 문장도 그대로 포함한다.
 각 M/W 문장마다 최소 1개의 빈칸(단어)을 넣는다. 한 문장에 빈칸 2개 이상도 가능하다(서로 다른 단어).
+담화(한 화자가 여러 문장을 이어 말함)도 문장마다 빈칸을 넣는다. 긴 담화일수록 빈칸을 더 많이 만든다.
 display_sentence는 한 문장 단위이며 speaker 접두(M: / W:)를 붙인다.
 반드시 JSON만 출력한다.`;
 }
@@ -37,7 +38,7 @@ ${opts.scriptText}
 segments (ANN 제외):
 ${opts.segmentsJson}
 
-빈칸 개수: ${opts.blankMin}~${opts.blankMax}개 (문장 수 이상 — 문장마다 최소 1빈칸)
+빈칸 개수: ${opts.blankMin}~${opts.blankMax}개 (아래 segments 문장 수 기준 — 문장마다 최소 1빈칸, 담화도 동일)
 각 빈칸 정답은 반드시 단어 1개(word)만. 구(phrase)·여러 단어 금지.
 같은 문장에 여러 빈칸이면 blank_items에 그 문장을 여러 번 넣되 answer는 서로 다른 단어로.
 ${avoid}

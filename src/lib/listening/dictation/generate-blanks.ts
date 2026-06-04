@@ -4,7 +4,7 @@ import {
   ensureOneBlankPerSpokenLine,
 } from "@/lib/listening/dictation/fallback-blanks";
 import { anchorDictationBlankItems } from "@/lib/listening/dictation/anchor-blank-items";
-import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
+import { collectDictationLines } from "@/lib/listening/dictation/spoken-lines";
 import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 import {
   buildDictationSystemPrompt,
@@ -30,7 +30,7 @@ export interface GenerateDictationBlanksInput {
 export async function generateDictationBlanks(
   input: GenerateDictationBlanksInput
 ): Promise<DictationBlankItem[]> {
-  const spoken = collectSpokenLines({
+  const spoken = collectDictationLines({
     scriptText: input.scriptText,
     segments: input.segments,
   });

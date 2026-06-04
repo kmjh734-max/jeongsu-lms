@@ -1,6 +1,6 @@
 import { findSpokenLineIndexForBlank } from "@/lib/listening/dictation/anchor-blank-items";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
-import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
+import { collectDictationLines } from "@/lib/listening/dictation/spoken-lines";
 import { wordInLine } from "@/lib/listening/dictation/word-only";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
@@ -102,7 +102,7 @@ export function buildDictationClientPayload(
     segments?: Array<{ speaker: string; text: string }>;
   }
 ): DictationClientPayload {
-  const spoken = collectSpokenLines(opts);
+  const spoken = collectDictationLines(opts);
 
   const passageLines: DictationPassageLine[] = spoken.map((line) => ({
     speaker: line.speaker,

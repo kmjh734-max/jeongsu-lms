@@ -1,5 +1,8 @@
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
-import { collectSpokenLines, type SpokenLine } from "@/lib/listening/dictation/spoken-lines";
+import {
+  collectDictationLines,
+  type SpokenLine,
+} from "@/lib/listening/dictation/spoken-lines";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import { speakerPrefix, wordInLine } from "@/lib/listening/dictation/word-only";
 
@@ -74,7 +77,7 @@ export function anchorDictationBlankItems(
     segments?: Array<{ speaker: string; text: string }>;
   }
 ): DictationBlankItem[] {
-  const spoken = collectSpokenLines(opts);
+  const spoken = collectDictationLines(opts);
   if (!spoken.length) return [];
 
   const out: DictationBlankItem[] = [];

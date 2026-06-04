@@ -3,7 +3,7 @@ import {
   buildFallbackDictationBlanks,
   ensureOneBlankPerSpokenLine,
 } from "@/lib/listening/dictation/fallback-blanks";
-import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
+import { collectDictationLines } from "@/lib/listening/dictation/spoken-lines";
 import {
   pickPreparedBlankItems,
   prebuildDictationForQuestion,
@@ -96,7 +96,7 @@ export async function resolveDictationBlankItems(
     }
   }
 
-  const spoken = collectSpokenLines({
+  const spoken = collectDictationLines({
     scriptText: input.scriptText,
     segments: input.segments,
   });
