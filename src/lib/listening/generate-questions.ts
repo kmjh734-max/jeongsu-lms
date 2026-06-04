@@ -368,7 +368,11 @@ export async function generateListeningQuestionsWithAi(
   );
   return {
     questions: questions.map((q, i) =>
-      finalizeListeningQuestionFast(q, examTypes?.[i], gradeLevel)
+      finalizeListeningQuestionFast(
+        { ...q, order_index: i + 1 },
+        examTypes?.[i],
+        gradeLevel
+      )
     ),
   };
 }

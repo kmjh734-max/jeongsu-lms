@@ -189,6 +189,10 @@ export async function persistGeneratedQuestions(
     await clearListeningQuestionsForSet(setId);
   }
 
+  const normalized = opts?.replaceAll
+    ? questions.map((q, i) => ({ ...q, order_index: i + 1 }))
+    : questions;
+
   const saved: Array<
     GeneratedListeningQuestion & {
       id: string;
@@ -197,7 +201,7 @@ export async function persistGeneratedQuestions(
     }
   > = [];
 
-  for (const raw of questions) {
+  for (const raw of normalized) {
     if (!opts?.replaceAll) {
       const existingId = await findQuestionIdByOrderIndex(
         admin,

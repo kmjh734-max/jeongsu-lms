@@ -286,7 +286,10 @@ export function ListeningSetManageClient({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         setId,
-        questions: previewQuestions,
+        questions: previewQuestions.map((q, i) => ({
+          ...q,
+          order_index: generationSlots[i]?.slotIndex ?? i + 1,
+        })),
         replaceAll: true,
       }),
     });
@@ -388,7 +391,11 @@ export function ListeningSetManageClient({
       return;
     }
     setPreviewQuestions((list) =>
-      (list ?? []).map((q) => (q.order_index === orderIndex ? data.question! : q))
+      (list ?? []).map((q) =>
+        q.order_index === orderIndex
+          ? { ...data.question!, order_index: orderIndex }
+          : q
+      )
     );
     setMessage(`${orderIndex}번 문항을 다시 생성했습니다.`);
   }
@@ -504,9 +511,6 @@ export function ListeningSetManageClient({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            ANN/M/W · ElevenLabs 음원 (속도 {speechSpeedValue})
-          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link

@@ -107,6 +107,7 @@ export async function generateQuestionsSequential(opts: {
 
     const q = {
       ...data.question,
+      order_index: slot.slotIndex,
       needs_review: false,
       problems: data.problems ?? [],
     };
@@ -127,7 +128,14 @@ export async function generateQuestionsSequential(opts: {
     const res = await fetch("/api/listening/generate-questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ setId, questions, replaceAll: true }),
+      body: JSON.stringify({
+        setId,
+        questions: questions.map((q, i) => ({
+          ...q,
+          order_index: slots[i]?.slotIndex ?? i + 1,
+        })),
+        replaceAll: true,
+      }),
     });
     const data = (await res.json()) as {
       ok?: boolean;

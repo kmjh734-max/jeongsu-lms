@@ -31,6 +31,7 @@ export function applyQuestionFixes(
   typeId?: number,
   gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
+  const slotOrder = q.order_index;
   const id = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
   let out = fixSwappedScriptLanguage(q);
   out = fixContinuationQuestion(out, id);
@@ -55,5 +56,5 @@ export function applyQuestionFixes(
   out = fixType19Question(out, id);
   out = fixType20Question(out, id);
   out = ensureMwDialogueSegments(out, id, gradeLevel);
-  return out;
+  return { ...out, order_index: slotOrder };
 }
