@@ -1,4 +1,5 @@
 import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
+import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
 import { normalizeMentionPlan } from "@/lib/listening/type5-mention-plan";
 import { normalizeMentionedTimes } from "@/lib/listening/type6-time-choices";
 import { normalizeInterestClues } from "@/lib/listening/type7-career-choices";
@@ -108,7 +109,8 @@ function normalizeQuestion(
   raw: Record<string, unknown>,
   index: number,
   examMode: boolean,
-  typeHint?: ExamTypeTemplate
+  typeHint?: ExamTypeTemplate,
+  gradeLevel: ListeningGradeLevel = "middle1"
 ): GeneratedListeningQuestion | null {
   const segmentsRaw = Array.isArray(raw.segments) ? raw.segments : [];
   const segments = segmentsRaw
@@ -250,8 +252,9 @@ function normalizeQuestion(
     distractor_jobs: normalizeDistractorJobs(raw.distractor_jobs),
   };
 
-  const typeId = typeHint?.id ?? order_index;
-  return applyQuestionFixes(base, typeId);
+  const typeId =
+    typeHint?.id ?? inferExamTypeIdForFixes(base, gradeLevel);
+  return applyQuestionFixes(base, typeId, gradeLevel);
 }
 
 const PARSE_RETRY_SUFFIX = `
@@ -267,7 +270,8 @@ const PARSE_RETRY_SUFFIX = `
 function parseQuestionsFromPayload(
   parsed: unknown,
   examMode: boolean,
-  examTypes?: ExamTypeTemplate[]
+  examTypes?: ExamTypeTemplate[],
+  gradeLevel: ListeningGradeLevel = "middle1"
 ): { questions: GeneratedListeningQuestion[]; failures: string[] } {
   const list = extractQuestionsFromAiPayload(parsed);
   const questions: GeneratedListeningQuestion[] = [];
@@ -280,7 +284,7 @@ function parseQuestionsFromPayload(
     }
     const raw = item as Record<string, unknown>;
     const hint = examTypes?.[i];
-    const q = normalizeQuestion(raw, i, examMode, hint);
+    const q = normalizeQuestion(raw, i, examMode, hint, gradeLevel);
     if (q) {
       const instruction =
         q.instruction.trim() || hint?.instruction?.trim() || "";
@@ -326,7 +330,8 @@ async function fetchParsedQuestions(
     const { questions, failures } = parseQuestionsFromPayload(
       parsed,
       examMode,
-      examTypes
+      examTypes,
+      gradeLevel
     );
     if (questions.length > 0) return questions;
     lastFailures = failures;

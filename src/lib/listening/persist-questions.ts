@@ -1,6 +1,10 @@
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
+import { ensureMwDialogueSegments } from "@/lib/listening/ensure-mw-dialogue";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
 import { buildScriptText } from "@/lib/listening/script-text";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
@@ -179,6 +183,7 @@ export async function persistGeneratedQuestions(
   >
 > {
   const admin = createAdminClient();
+  const gradeLevel = await fetchListeningSetGradeLevel(setId);
 
   if (opts?.replaceAll) {
     await clearListeningQuestionsForSet(setId);
@@ -200,11 +205,13 @@ export async function persistGeneratedQuestions(
         raw.order_index
       );
       if (existingId) {
-        saved.push(await replaceGeneratedQuestion(setId, existingId, raw));
+        saved.push(
+          await replaceGeneratedQuestion(setId, existingId, raw, gradeLevel)
+        );
         continue;
       }
     }
-    saved.push(await insertOneQuestion(admin, setId, raw));
+    saved.push(await insertOneQuestion(admin, setId, raw, gradeLevel));
   }
 
   if (saved.length > 0) {
@@ -217,9 +224,10 @@ export async function persistGeneratedQuestions(
 async function insertOneQuestion(
   admin: ReturnType<typeof createAdminClient>,
   setId: string,
-  raw: GeneratedListeningQuestion
+  raw: GeneratedListeningQuestion,
+  gradeLevel?: ListeningGradeLevel
 ) {
-  const q = applyQuestionFixes(raw, raw.order_index);
+  const q = applyQuestionFixes(raw, inferExamTypeIdForFixes(raw, gradeLevel), gradeLevel);
   const script_text = q.script_text || buildScriptText(q.segments);
 
   let schema_extended_saved = true;
@@ -296,7 +304,8 @@ async function insertSegments(
 export async function replaceGeneratedQuestion(
   setId: string,
   questionId: string,
-  raw: GeneratedListeningQuestion
+  raw: GeneratedListeningQuestion,
+  gradeLevel?: ListeningGradeLevel
 ): Promise<
   GeneratedListeningQuestion & {
     id: string;
@@ -305,7 +314,7 @@ export async function replaceGeneratedQuestion(
   }
 > {
   const admin = createAdminClient();
-  const q = applyQuestionFixes(raw, raw.order_index);
+  const q = applyQuestionFixes(raw, inferExamTypeIdForFixes(raw, gradeLevel), gradeLevel);
   const script_text = q.script_text || buildScriptText(q.segments);
 
   await admin.from("listening_question_segments").delete().eq("question_id", questionId);
@@ -358,9 +367,48 @@ export async function replaceQuestionSegments(
 ): Promise<void> {
   const admin = createAdminClient();
 
+  const { data: meta } = await admin
+    .from("listening_questions")
+    .select("order_index, instruction, question_type, set_id")
+    .eq("id", questionId)
+    .maybeSingle();
+
+  const gradeLevel = meta?.set_id
+    ? await fetchListeningSetGradeLevel(meta.set_id as string)
+    : undefined;
+
+  const typeId = inferExamTypeIdForFixes(
+    {
+      order_index: (meta?.order_index as number) ?? 1,
+      instruction: (meta?.instruction as string) ?? "",
+      question_type: (meta?.question_type as string) ?? "",
+    },
+    gradeLevel
+  );
+
+  const normalized = ensureMwDialogueSegments(
+    {
+      order_index: typeId,
+      question_type: (meta?.question_type as string) ?? "",
+      instruction: (meta?.instruction as string) ?? "",
+      segments: segments.map((s) => ({
+        speaker: s.speaker as "ANN" | "M" | "W",
+        text: s.text,
+      })),
+      script_text: "",
+      script_translation: "",
+      question_text: "",
+      choices: [],
+      correct_answer: 1,
+      explanation: "",
+      answer_clue: "",
+    },
+    typeId
+  ).segments.map((s) => ({ speaker: s.speaker, text: s.text }));
+
   await admin.from("listening_question_segments").delete().eq("question_id", questionId);
 
-  const rows = segments.map((seg, idx) => ({
+  const rows = normalized.map((seg, idx) => ({
     question_id: questionId,
     order_index: idx,
     speaker_type: seg.speaker,
@@ -375,7 +423,7 @@ export async function replaceQuestionSegments(
   if (error) throw new Error(error.message);
 
   const script_text = buildScriptText(
-    segments.map((s) => ({
+    normalized.map((s) => ({
       speaker: s.speaker as "ANN" | "M" | "W",
       text: s.text,
     }))

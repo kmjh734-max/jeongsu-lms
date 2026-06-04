@@ -39,7 +39,11 @@ export async function validateAndRepairListeningQuestion(
   typeHint?: ExamTypeTemplate,
   gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<ValidatedListeningQuestion> {
-  let current = applyQuestionFixes(q, typeHint?.id ?? q.order_index);
+  let current = applyQuestionFixes(
+    q,
+    typeHint?.id ?? undefined,
+    gradeLevel
+  );
 
   for (let attempt = 0; attempt <= MAX_REPAIR_ATTEMPTS; attempt++) {
     const validated = await attachValidationToQuestion(

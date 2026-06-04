@@ -1,4 +1,6 @@
 import { ensureMwDialogueSegments } from "@/lib/listening/ensure-mw-dialogue";
+import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { fixSwappedScriptLanguage } from "@/lib/listening/fix-script-language";
 import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
 import { fixType14Question } from "@/lib/listening/fix-type14-question";
@@ -26,9 +28,10 @@ import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 /** 생성·저장 직전 유형별 정규화 */
 export function applyQuestionFixes(
   q: GeneratedListeningQuestion,
-  typeId?: number
+  typeId?: number,
+  gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
-  const id = typeId ?? q.order_index;
+  const id = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
   let out = fixSwappedScriptLanguage(q);
   out = fixContinuationQuestion(out, id);
   out = fixType14Question(out, id);

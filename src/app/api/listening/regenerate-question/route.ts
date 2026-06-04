@@ -89,7 +89,12 @@ export async function POST(request: Request) {
       slotIndex
     );
 
-    const saved = await replaceGeneratedQuestion(setId, questionId, generated);
+    const saved = await replaceGeneratedQuestion(
+      setId,
+      questionId,
+      generated,
+      gradeLevel
+    );
 
     return NextResponse.json({
       ok: true,

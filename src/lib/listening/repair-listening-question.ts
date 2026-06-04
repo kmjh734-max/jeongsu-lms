@@ -53,7 +53,8 @@ export async function repairListeningQuestionWithAi(
     if (!raw || typeof raw !== "object") return null;
     const fixed = applyQuestionFixes(
       { ...q, ...(raw as GeneratedListeningQuestion) },
-      typeHint?.id ?? q.order_index
+      typeHint?.id,
+      gradeLevel
     );
     if (!fixed.instruction?.trim() || fixed.segments.length === 0) return null;
     return fixed;
