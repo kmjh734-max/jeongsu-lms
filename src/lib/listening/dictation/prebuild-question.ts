@@ -5,6 +5,7 @@ import { buildFallbackDictationBlanks } from "@/lib/listening/dictation/fallback
 import type { DictationBlankItem, DictationSetSettings } from "@/lib/listening/dictation/types";
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
+import { anchorDictationBlankItems } from "@/lib/listening/dictation/anchor-blank-items";
 import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 
 const VARIANT_COUNT = 2;
@@ -36,7 +37,10 @@ async function generateBlankSet(opts: {
         blankLevel: opts.blankLevel,
         previousBlankWords: opts.previousBlankWords,
       });
-      const wordsOnly = filterWordOnlyBlankItems(items);
+      const wordsOnly = anchorDictationBlankItems(
+        filterWordOnlyBlankItems(items),
+        { scriptText: opts.scriptText, segments: opts.segments }
+      );
       if (wordsOnly.length > 0) return wordsOnly;
     } catch {
       /* fallback */

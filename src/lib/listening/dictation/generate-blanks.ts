@@ -3,7 +3,9 @@ import {
   buildFallbackDictationBlanks,
   ensureOneBlankPerSpokenLine,
 } from "@/lib/listening/dictation/fallback-blanks";
+import { anchorDictationBlankItems } from "@/lib/listening/dictation/anchor-blank-items";
 import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
+import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 import {
   buildDictationSystemPrompt,
   buildDictationUserPrompt,
@@ -52,12 +54,20 @@ export async function generateDictationBlanks(
         temperature: 0.5,
       }
     );
-    let items = parseDictationAiResponse(parsed);
+    let items = anchorDictationBlankItems(parseDictationAiResponse(parsed), {
+      scriptText: input.scriptText,
+      segments: input.segments,
+    });
     items = ensureOneBlankPerSpokenLine(
       items,
       spoken,
       input.previousBlankWords
     );
+    items = anchorDictationBlankItems(items, {
+      scriptText: input.scriptText,
+      segments: input.segments,
+    });
+    items = filterWordOnlyBlankItems(items);
     if (items.length >= Math.min(1, min)) {
       return items.slice(0, max);
     }

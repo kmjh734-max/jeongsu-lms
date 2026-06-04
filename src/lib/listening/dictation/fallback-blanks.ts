@@ -117,10 +117,11 @@ function sentenceHasBlank(
 ): boolean {
   const key = sentenceKey(line.text);
   for (const it of items) {
+    if (it.speaker !== line.speaker) continue;
     const orig = (it.original_sentence || "")
       .replace(/^(M|W)\s*:\s*/i, "")
       .trim();
-    if (sentenceKey(orig) === key) return true;
+    if (!orig || sentenceKey(orig) !== key) continue;
     if (wordInLine(line.text, it.answer)) return true;
   }
   return false;

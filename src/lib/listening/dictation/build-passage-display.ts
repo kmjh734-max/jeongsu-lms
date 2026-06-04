@@ -1,6 +1,6 @@
+import { findSpokenLineIndexForBlank } from "@/lib/listening/dictation/anchor-blank-items";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
-import { collectSpokenLines, type SpokenLine } from "@/lib/listening/dictation/spoken-lines";
-import { speakerPrefix, wordInLine } from "@/lib/listening/dictation/word-only";
+import { collectSpokenLines } from "@/lib/listening/dictation/spoken-lines";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
 
@@ -34,20 +34,6 @@ function applyBlankToLine(lineText: string, answer: string): string {
   const re = new RegExp(`\\b${escapeRegExp(answer)}\\b`, "i");
   if (!re.test(lineText)) return lineText;
   return lineText.replace(re, "________");
-}
-
-function findLineIndex(spoken: SpokenLine[], item: DictationBlankItem): number {
-  const sp = speakerPrefix(item.speaker);
-  const answer = item.answer.trim();
-
-  for (let i = 0; i < spoken.length; i++) {
-    const line = spoken[i]!;
-    if (line.speaker === sp && wordInLine(line.text, answer)) return i;
-  }
-  for (let i = 0; i < spoken.length; i++) {
-    if (wordInLine(spoken[i]!.text, answer)) return i;
-  }
-  return -1;
 }
 
 function applyBlanksToLine(
@@ -109,21 +95,8 @@ export function buildDictationClientPayload(
     const answer = item.answer.trim();
     if (!answer) continue;
 
-    let lineIdx = findLineIndex(spoken, item);
-    if (lineIdx < 0) {
-      const sp = speakerPrefix(item.speaker);
-      const core = (item.original_sentence || item.display_sentence)
-        .replace(/^(M|W)\s*:\s*/i, "")
-        .trim();
-      if (!core || !wordInLine(core, answer)) continue;
-
-      lineIdx = spoken.findIndex((l) => l.speaker === sp && wordInLine(l.text, answer));
-      if (lineIdx < 0) {
-        spoken.push({ speaker: sp as "M" | "W", text: core });
-        passageLines.push({ speaker: sp, text: core, blankIds: [] });
-        lineIdx = spoken.length - 1;
-      }
-    }
+    const lineIdx = findSpokenLineIndexForBlank(spoken, item);
+    if (lineIdx < 0) continue;
     addToLine(lineIdx, item);
   }
 

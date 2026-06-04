@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   nextStudyDateAfter,
+  parseDateOnly,
   toDateOnlyString,
 } from "@/lib/listening/schedule/days-of-week";
 import {
@@ -62,6 +63,55 @@ async function loadActiveAssignmentsForStudent(
   return [...byId.values()];
 }
 
+const MISSED_TASK_LOOKBACK_DAYS = 14;
+
+function lookbackIsoFrom(todayIso: string, days: number): string {
+  const d = parseDateOnly(todayIso);
+  d.setDate(d.getDate() - days);
+  return toDateOnlyString(d);
+}
+
+async function loadSetTitles(
+  admin: SupabaseClient,
+  setIds: string[]
+): Promise<Map<string, string>> {
+  const unique = [...new Set(setIds.filter(Boolean))];
+  const map = new Map<string, string>();
+  if (!unique.length) return map;
+
+  const { data } = await admin
+    .from("listening_sets")
+    .select("id, title")
+    .in("id", unique);
+
+  for (const row of data ?? []) {
+    map.set(row.id as string, (row.title as string) ?? "");
+  }
+  return map;
+}
+
+function mapTaskRow(
+  row: Record<string, unknown>,
+  assignmentTitle: string,
+  setTitle: string
+): StudentDailyTaskView {
+  const total = row.total_count as number;
+  const completed = row.completed_count as number;
+  return {
+    id: row.id as string,
+    assignmentId: row.assignment_id as string,
+    assignmentTitle,
+    taskDate: row.task_date as string,
+    setId: row.set_id as string,
+    setTitle,
+    questionIds: (row.question_ids as string[]) ?? [],
+    status: row.status as DailyTaskStatus,
+    completedCount: completed,
+    totalCount: total,
+    remainingCount: Math.max(0, total - completed),
+  };
+}
+
 export async function getStudentScheduleTodaySummary(
   admin: SupabaseClient,
   studentId: string,
@@ -69,17 +119,27 @@ export async function getStudentScheduleTodaySummary(
 ) {
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
 
-  for (const assignment of assignments) {
-    const rangeFrom =
-      assignment.start_date <= todayIso ? assignment.start_date : todayIso;
-    await ensureDailyTasksForStudentRange(
-      admin,
-      assignment,
-      studentId,
-      rangeFrom,
-      todayIso
-    );
-  }
+  const lookbackFrom = lookbackIsoFrom(todayIso, MISSED_TASK_LOOKBACK_DAYS);
+  await Promise.all(
+    assignments.map(async (assignment) => {
+      const rangeFrom =
+        assignment.start_date > lookbackFrom ? assignment.start_date : lookbackFrom;
+      if (rangeFrom > todayIso) return;
+      await ensureDailyTasksForStudentRange(
+        admin,
+        assignment,
+        studentId,
+        rangeFrom,
+        todayIso
+      );
+      await ensureDailyTaskForStudentDate(
+        admin,
+        assignment,
+        studentId,
+        todayIso
+      );
+    })
+  );
 
   const { data: missedRows } = await admin
     .from("listening_daily_tasks")
@@ -91,42 +151,25 @@ export async function getStudentScheduleTodaySummary(
     .in("status", ["pending", "in_progress"])
     .order("task_date", { ascending: true });
 
+  const missedSetIds = (missedRows ?? []).map((r) => r.set_id as string);
+  const missedSetTitles = await loadSetTitles(admin, missedSetIds);
+
   const missedTasks: StudentDailyTaskView[] = [];
   for (const row of missedRows ?? []) {
     const assignment = row.assignment as { title?: string } | null;
-    const { data: setRow } = await admin
-      .from("listening_sets")
-      .select("title")
-      .eq("id", row.set_id)
-      .maybeSingle();
-    const total = row.total_count as number;
-    const completed = row.completed_count as number;
-    missedTasks.push({
-      id: row.id as string,
-      assignmentId: row.assignment_id as string,
-      assignmentTitle: assignment?.title ?? "듣기 과제",
-      taskDate: row.task_date as string,
-      setId: row.set_id as string,
-      setTitle: (setRow?.title as string) ?? "",
-      questionIds: (row.question_ids as string[]) ?? [],
-      status: row.status as DailyTaskStatus,
-      completedCount: completed,
-      totalCount: total,
-      remainingCount: Math.max(0, total - completed),
-    });
+    missedTasks.push(
+      mapTaskRow(
+        row as Record<string, unknown>,
+        assignment?.title ?? "듣기 과제",
+        missedSetTitles.get(row.set_id as string) ?? ""
+      )
+    );
   }
 
   let todayTask: StudentDailyTaskView | null = null;
   let nextStudyDate: string | null = null;
 
   for (const assignment of assignments) {
-    await ensureDailyTaskForStudentDate(
-      admin,
-      assignment,
-      studentId,
-      todayIso
-    );
-
     const { data: todayRow } = await admin
       .from("listening_daily_tasks")
       .select(
@@ -138,26 +181,11 @@ export async function getStudentScheduleTodaySummary(
       .maybeSingle();
 
     if (todayRow && !todayTask) {
-      const { data: setRow } = await admin
-        .from("listening_sets")
-        .select("title")
-        .eq("id", todayRow.set_id)
-        .maybeSingle();
-      const total = todayRow.total_count as number;
-      const completed = todayRow.completed_count as number;
-      todayTask = {
-        id: todayRow.id as string,
-        assignmentId: todayRow.assignment_id as string,
-        assignmentTitle: assignment.title,
-        taskDate: todayRow.task_date as string,
-        setId: todayRow.set_id as string,
-        setTitle: (setRow?.title as string) ?? "",
-        questionIds: (todayRow.question_ids as string[]) ?? [],
-        status: todayRow.status as DailyTaskStatus,
-        completedCount: completed,
-        totalCount: total,
-        remainingCount: Math.max(0, total - completed),
-      };
+      todayTask = mapTaskRow(
+        todayRow as Record<string, unknown>,
+        assignment.title,
+        ""
+      );
     }
 
     const next = nextStudyDateAfter(
@@ -168,6 +196,14 @@ export async function getStudentScheduleTodaySummary(
     if (next && (!nextStudyDate || next < nextStudyDate)) {
       nextStudyDate = next;
     }
+  }
+
+  if (todayTask) {
+    const titles = await loadSetTitles(admin, [todayTask.setId]);
+    todayTask = {
+      ...todayTask,
+      setTitle: titles.get(todayTask.setId) ?? todayTask.setTitle,
+    };
   }
 
   const isStudyDayToday = assignments.some((a) => {

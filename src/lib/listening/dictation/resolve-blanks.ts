@@ -13,6 +13,7 @@ import type {
   DictationSetSettings,
 } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
+import { anchorDictationBlankItems } from "@/lib/listening/dictation/anchor-blank-items";
 import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 
 export type ResolveDictationBlanksInput = {
@@ -100,7 +101,15 @@ export async function resolveDictationBlankItems(
     segments: input.segments,
   });
   if (spoken.length > 0) {
+    items = anchorDictationBlankItems(items, {
+      scriptText: input.scriptText,
+      segments: input.segments,
+    });
     items = ensureOneBlankPerSpokenLine(items, spoken, input.avoidWords ?? []);
+    items = anchorDictationBlankItems(items, {
+      scriptText: input.scriptText,
+      segments: input.segments,
+    });
   }
 
   return items;

@@ -15,12 +15,16 @@ interface DailyTaskView {
   remainingCount: number;
 }
 
-interface TodaySummary {
+export interface TodaySummary {
   todayIso: string;
   isStudyDayToday: boolean;
   todayTask: DailyTaskView | null;
   missedTasks: DailyTaskView[];
   nextStudyDate: string | null;
+}
+
+interface StudentListeningTodayPanelProps {
+  initialSummary?: TodaySummary | null;
 }
 
 function formatStudyDate(iso: string): string {
@@ -41,45 +45,7 @@ function formatTaskDateLabel(taskDate: string, todayIso: string): string {
   return taskDate;
 }
 
-export function StudentListeningTodayPanel() {
-  const [summary, setSummary] = useState<TodaySummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    const res = await fetch("/api/listening/schedule-assignments/today");
-    const data = (await res.json()) as TodaySummary & {
-      ok?: boolean;
-      message?: string;
-    };
-    setLoading(false);
-    if (!data.ok) {
-      setError(data.message ?? "오늘 과제를 불러오지 못했습니다.");
-      return;
-    }
-    setSummary(data);
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  if (loading) {
-    return (
-      <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 text-sm text-slate-600">
-        오늘의 듣기학습을 불러오는 중…
-      </div>
-    );
-  }
-
-  if (error) {
-    return null;
-  }
-
-  if (!summary) return null;
-
+function TodaySummaryView({ summary }: { summary: TodaySummary }) {
   const missed = summary.missedTasks ?? [];
   const today = summary.todayTask;
   const todayIso = summary.todayIso;
@@ -170,4 +136,51 @@ export function StudentListeningTodayPanel() {
       )}
     </section>
   );
+}
+
+export function StudentListeningTodayPanel({
+  initialSummary = null,
+}: StudentListeningTodayPanelProps) {
+  const [summary, setSummary] = useState<TodaySummary | null>(initialSummary);
+  const [loading, setLoading] = useState(!initialSummary);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setError(null);
+    const res = await fetch("/api/listening/schedule-assignments/today");
+    const data = (await res.json()) as TodaySummary & {
+      ok?: boolean;
+      message?: string;
+    };
+    if (!data.ok) {
+      setError(data.message ?? "오늘 과제를 불러오지 못했습니다.");
+      return;
+    }
+    setSummary(data);
+  }, []);
+
+  useEffect(() => {
+    if (initialSummary) {
+      void load();
+      return;
+    }
+    setLoading(true);
+    void load().finally(() => setLoading(false));
+  }, [initialSummary, load]);
+
+  if (loading && !summary) {
+    return (
+      <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 text-sm text-slate-600">
+        오늘의 듣기학습을 불러오는 중…
+      </div>
+    );
+  }
+
+  if (error && !summary) {
+    return null;
+  }
+
+  if (!summary) return null;
+
+  return <TodaySummaryView summary={summary} />;
 }

@@ -2,6 +2,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildDictationClientPayload } from "@/lib/listening/dictation/build-passage-display";
 import { buildFallbackDictationBlanks } from "@/lib/listening/dictation/fallback-blanks";
+import { anchorDictationBlankItems } from "@/lib/listening/dictation/anchor-blank-items";
 import { filterWordOnlyBlankItems } from "@/lib/listening/dictation/word-only";
 import { isStudentAssignedListeningSet } from "@/lib/listening/student-set-access";
 import type {
@@ -106,7 +107,10 @@ export function formatDictationStartResponse(
   }
 ) {
   const scriptText = access.question.script_text ?? "";
-  let wordItems = filterWordOnlyBlankItems(items);
+  let wordItems = anchorDictationBlankItems(filterWordOnlyBlankItems(items), {
+    scriptText,
+    segments: access.segments,
+  });
 
   if (!wordItems.length && scriptText.trim() && access.settings) {
     wordItems = filterWordOnlyBlankItems(
@@ -117,6 +121,10 @@ export function formatDictationStartResponse(
         answerClue: access.question.answer_clue ?? "",
       })
     );
+    wordItems = anchorDictationBlankItems(wordItems, {
+      scriptText,
+      segments: access.segments,
+    });
   }
 
   const display = buildDictationStartPayload(wordItems, {
