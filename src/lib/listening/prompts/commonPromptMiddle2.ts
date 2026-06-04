@@ -24,6 +24,7 @@ export const COMMON_PROMPT_MIDDLE2 = `
 - 선택지 정확히 5개, 정답 하나만 명확
 - segment.text에는 영어 대사만
 - segments 화자: ANN, M, W
+- 대화 유형: M(남)과 W(여)가 반드시 모두 등장하고 발화를 번갈아 쓴다 (한 화자만 연속 사용 금지)
 - script_text: "M: ..." / "W: ..." 형식
 - script_translation: 한국어 해석
 - instruction: 한국어 (○○만 채움)

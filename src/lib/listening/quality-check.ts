@@ -192,6 +192,7 @@ function computeQualityScore(issues: QualityIssue[]): number {
 }
 
 function defaultIssueWeight(code: string): number {
+  if (code.endsWith("_dialogue")) return 28;
   if (code.startsWith("type") && code.includes("speaker")) return 20;
   if (code === "grammar" || code === "blank_in_segments") return 18;
   if (code === "word_count" || code === "turn_count" || code === "sentence_count") return 12;

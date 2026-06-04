@@ -1,3 +1,4 @@
+import { ensureMwDialogueSegments } from "@/lib/listening/ensure-mw-dialogue";
 import { fixSwappedScriptLanguage } from "@/lib/listening/fix-script-language";
 import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
 import { fixType14Question } from "@/lib/listening/fix-type14-question";
@@ -50,5 +51,6 @@ export function applyQuestionFixes(
   out = fixType18Question(out, id);
   out = fixType19Question(out, id);
   out = fixType20Question(out, id);
+  out = ensureMwDialogueSegments(out, id);
   return out;
 }

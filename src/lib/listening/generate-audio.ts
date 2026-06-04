@@ -22,6 +22,7 @@ import {
   segmentStoragePath,
   storagePathFromPublicUrl,
 } from "@/lib/listening/storage-paths";
+import { repairMwDialogueSegmentsInDb } from "@/lib/listening/ensure-mw-dialogue";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 import {
   DEFAULT_SPEECH_SPEED_PRESET,
@@ -149,6 +150,8 @@ export async function generateQuestionAudio(opts: {
     .maybeSingle();
 
   const orderIndex = questionMeta?.order_index ?? 0;
+
+  await repairMwDialogueSegmentsInDb(admin, questionId, orderIndex);
 
   if (
     (orderIndex === 19 || orderIndex === 20) &&

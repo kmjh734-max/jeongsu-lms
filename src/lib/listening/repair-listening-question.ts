@@ -11,7 +11,8 @@ Output JSON only: { "questions": [ ONE fixed question object ] }
 Keep the same JSON field names and structure as the input.
 Do not change order_index or question_type unless required to fix errors.
 For types 19–20: item must be "best response to LAST utterance only", not whole-dialogue topic.
-segments must end at last speaker before blank; blank response must NOT appear in segments.`;
+segments must end at last speaker before blank; blank response must NOT appear in segments.
+Dialogue types: segments MUST include both M and W speakers, alternating naturally (not one person only).`;
 
 function questionToRepairUserPayload(
   q: GeneratedListeningQuestion,

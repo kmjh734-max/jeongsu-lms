@@ -12,6 +12,16 @@ const MAX_REPAIR_ATTEMPTS = 1;
 
 /** 심각한 오류만 AI 수정 (호출 수·시간 절약) */
 function shouldAttemptRepair(v: ValidatedListeningQuestion): boolean {
+  if (
+    v.quality_issues?.some(
+      (i) =>
+        i.code.endsWith("_dialogue") ||
+        i.message.includes("M과 W") ||
+        i.message.includes("M/W")
+    )
+  ) {
+    return true;
+  }
   const score = v.quality_score ?? 100;
   const clarity = v.answer_clarity_score ?? 100;
   if (score < 55) return true;
