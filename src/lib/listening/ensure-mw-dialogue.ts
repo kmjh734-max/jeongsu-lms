@@ -25,6 +25,27 @@ function hasBothSpeakers(segments: ListeningScriptSegment[]): boolean {
   return hasM && hasW;
 }
 
+/** M/W 발화가 남녀 교대(연속 동일 화자 없음)인지 */
+function isStrictMwAlternating(segments: ListeningScriptSegment[]): boolean {
+  const indices = spokenIndices(segments);
+  if (indices.length < 2) return true;
+  if (!hasBothSpeakers(segments)) return false;
+  for (let t = 1; t < indices.length; t++) {
+    const prev = segments[indices[t - 1]!]!.speaker;
+    const cur = segments[indices[t]!]!.speaker;
+    if (prev === cur) return false;
+  }
+  return true;
+}
+
+function segmentsSpeakersEqual(
+  a: ListeningScriptSegment[],
+  b: ListeningScriptSegment[]
+): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((s, i) => s.speaker === b[i]!.speaker);
+}
+
 /** 마지막 M/W 발화 화자 */
 function startSpeakerForEnd(end: "M" | "W", turnCount: number): "M" | "W" {
   if (turnCount <= 0) return "M";
@@ -32,7 +53,7 @@ function startSpeakerForEnd(end: "M" | "W", turnCount: number): "M" | "W" {
   return end === lastIfStartM ? "M" : "W";
 }
 
-function relabelAlternatingMw(
+function relabelStrictAlternatingMw(
   segments: ListeningScriptSegment[],
   opts: { endSpeaker?: "M" | "W" }
 ): ListeningScriptSegment[] {
@@ -46,11 +67,7 @@ function relabelAlternatingMw(
   const out = segments.map((s) => ({ ...s }));
   indices.forEach((idx, turn) => {
     const speaker: "M" | "W" =
-      turn % 2 === 0
-        ? start
-        : start === "M"
-          ? "W"
-          : "M";
+      turn % 2 === 0 ? start : start === "M" ? "W" : "M";
     out[idx] = { ...out[idx]!, speaker };
   });
   return out;
@@ -65,22 +82,27 @@ export function requiresMwDialogue(
   return /대화/.test(q.instruction ?? "");
 }
 
+function needsMwRelabel(segments: ListeningScriptSegment[]): boolean {
+  const indices = spokenIndices(segments);
+  if (indices.length < 2) return false;
+  return !isStrictMwAlternating(segments);
+}
+
 /**
- * 대화 유형인데 M만(또는 W만) 있으면 M↔W 번갈아 화자 라벨을 붙인다.
- * (대사 내용은 그대로, 음원·화면에서 남녀가 구분되도록)
+ * 대화 유형: M만/W만 이거나, M·W가 연속으로 붙어 있으면 M↔W 교대 라벨로 맞춘다.
  */
 export function ensureMwDialogueSegments(
   q: GeneratedListeningQuestion,
   typeId: number
 ): GeneratedListeningQuestion {
   if (!requiresMwDialogue(typeId, q)) return q;
-  if (hasBothSpeakers(q.segments)) return q;
+  if (!needsMwRelabel(q.segments)) return q;
 
   const endSpeaker: "M" | "W" | undefined =
     typeId === 19 ? "W" : typeId === 20 ? "M" : undefined;
 
-  const segments = relabelAlternatingMw(q.segments, { endSpeaker });
-  if (segments === q.segments) return q;
+  const segments = relabelStrictAlternatingMw(q.segments, { endSpeaker });
+  if (segmentsSpeakersEqual(segments, q.segments)) return q;
 
   return {
     ...q,
@@ -89,7 +111,7 @@ export function ensureMwDialogueSegments(
   };
 }
 
-/** DB에 M만 저장된 대화 문항을 음원 생성 전에 보정 */
+/** DB segment 화자·지문 보정 (음원은 호출 측에서 재생성) */
 export async function repairMwDialogueSegmentsInDb(
   admin: SupabaseClient,
   questionId: string,
@@ -103,7 +125,7 @@ export async function repairMwDialogueSegmentsInDb(
       .maybeSingle(),
     admin
       .from("listening_question_segments")
-      .select("id, order_index, speaker_type, text")
+      .select("id, order_index, speaker_type, text, audio_url")
       .eq("question_id", questionId)
       .order("order_index", { ascending: true }),
   ]);
@@ -130,26 +152,56 @@ export async function repairMwDialogueSegmentsInDb(
   } satisfies GeneratedListeningQuestion;
 
   const fixed = ensureMwDialogueSegments(stub, orderIndex);
-  if (fixed.segments === segments) return false;
+  if (segmentsSpeakersEqual(fixed.segments, segments)) return false;
 
   const script_text = fixed.script_text || buildScriptText(fixed.segments);
-  await admin
-    .from("listening_questions")
-    .update({ script_text })
-    .eq("id", questionId);
+  let anySpeakerChanged = false;
 
   for (let i = 0; i < rows.length; i++) {
     const next = fixed.segments[i];
     const prev = rows[i]!;
     if (!next || next.speaker === prev.speaker_type) continue;
+    anySpeakerChanged = true;
     await admin
       .from("listening_question_segments")
       .update({
         speaker_type: next.speaker,
         voice_name: voiceForSpeaker(next.speaker),
+        audio_url: null,
       })
       .eq("id", prev.id);
   }
 
+  await admin
+    .from("listening_questions")
+    .update({
+      script_text,
+      ...(anySpeakerChanged ? { audio_url: null } : {}),
+    })
+    .eq("id", questionId);
+
   return true;
+}
+
+/** 세트 전체 대화 문항 segment 화자 일괄 보정 */
+export async function repairSetMwDialogueInDb(
+  admin: SupabaseClient,
+  setId: string
+): Promise<number> {
+  const { data: questions } = await admin
+    .from("listening_questions")
+    .select("id, order_index")
+    .eq("set_id", setId)
+    .order("order_index", { ascending: true });
+
+  let repaired = 0;
+  for (const q of questions ?? []) {
+    const changed = await repairMwDialogueSegmentsInDb(
+      admin,
+      q.id as string,
+      q.order_index as number
+    );
+    if (changed) repaired += 1;
+  }
+  return repaired;
 }

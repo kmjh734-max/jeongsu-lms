@@ -22,7 +22,10 @@ import {
   segmentStoragePath,
   storagePathFromPublicUrl,
 } from "@/lib/listening/storage-paths";
-import { repairMwDialogueSegmentsInDb } from "@/lib/listening/ensure-mw-dialogue";
+import {
+  repairMwDialogueSegmentsInDb,
+  repairSetMwDialogueInDb,
+} from "@/lib/listening/ensure-mw-dialogue";
 import { voiceForSpeaker } from "@/lib/listening/speaker-voices";
 import {
   DEFAULT_SPEECH_SPEED_PRESET,
@@ -307,6 +310,8 @@ export async function generateSetQuestionAudio(opts: {
   if (!questions?.length) {
     throw new Error("음원을 만들 문항이 없습니다.");
   }
+
+  await repairSetMwDialogueInDb(admin, opts.setId);
 
   const results: BatchAudioItemResult[] = [];
 

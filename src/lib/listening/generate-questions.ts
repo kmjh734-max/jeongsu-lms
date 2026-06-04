@@ -259,7 +259,7 @@ const PARSE_RETRY_SUFFIX = `
 [필수 출력 형식]
 - 최상위 키는 반드시 "questions" 배열 하나만 사용한다.
 - segments[].speaker 는 "M", "W", "ANN" 중 하나만 (Man/Woman 금지).
-- 대화 유형: M(남)과 W(여)가 반드시 모두 나오고, 발화를 번갈아 말하게 한다. 한 화자만 쓰지 말 것.
+- 대화 유형: M(남)과 W(여)가 반드시 모두 나오고, 매 발화마다 M↔W가 교대한다 (M,M 또는 W,W 연속 금지).
 - choices 는 영어 문자열 정확히 5개.
 - correct_answer 는 1~5 정수.
 - instruction 은 한국어 지시문을 반드시 포함한다.`;
