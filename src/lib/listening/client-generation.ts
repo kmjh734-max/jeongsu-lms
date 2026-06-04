@@ -59,8 +59,8 @@ export async function generateQuestionsSequential(opts: {
   }));
   const questions: GeneratedListeningQuestion[] = [];
 
-  const update = (phase: GenerationPhase, index: number, sub: "generate" | "validate" = "generate") => {
-    onProgress(generationProgressPercent(phase, index, total, sub), phase, [...items]);
+  const update = (phase: GenerationPhase, index: number) => {
+    onProgress(generationProgressPercent(phase, index, total), phase, [...items]);
   };
 
   onProgress(0, "generating", items);
@@ -68,7 +68,7 @@ export async function generateQuestionsSequential(opts: {
   for (let i = 0; i < total; i++) {
     const slot = slots[i]!;
     items[i]!.status = "generating";
-    update("generating", i, "generate");
+    update("generating", i);
 
     const res = await fetch("/api/listening/generate-question-item", {
       method: "POST",
@@ -105,17 +105,14 @@ export async function generateQuestionsSequential(opts: {
       };
     }
 
-    items[i]!.status = "validating";
-    update("validating", i, "validate");
-
     const q = {
       ...data.question,
-      needs_review: data.question.needs_review ?? data.needs_review,
-      problems: data.problems,
+      needs_review: false,
+      problems: data.problems ?? [],
     };
     questions.push(q);
-    items[i]!.status = q.needs_review ? "review" : "passed";
-    update("validating", i, "validate");
+    items[i]!.status = "done";
+    update("generating", i);
   }
 
   let schemaWarning: string | undefined;

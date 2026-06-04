@@ -36,263 +36,267 @@ function Badge({
   );
 }
 
+function issueCode(i: { code?: string }): string {
+  return typeof i.code === "string" ? i.code : "";
+}
+
 export function QuestionQualityBadges({ question }: QuestionQualityBadgesProps) {
   const passed = !question.needs_review;
   const unclear = question.is_answer_clear === false;
   const noClue = question.has_answer_clue === false;
   const multi = question.has_multiple_possible_answers === true;
   const tableReview = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type14")
+    issueCode(i).startsWith("type14")
   );
   const type14NoTable = (question.quality_issues ?? []).some((i) =>
-    i.code === "type14_no_table"
+    issueCode(i) === "type14_no_table"
   );
   const type14AnswerMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type14_answer_mismatch"
+    issueCode(i) === "type14_answer_mismatch"
   );
   const type14VisualType = (question.quality_issues ?? []).some((i) =>
-    ["type14_visual_type", "type14_choices_order"].includes(i.code)
+    ["type14_visual_type", "type14_choices_order"].includes(issueCode(i))
   );
   const type1Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type1")
+    issueCode(i).startsWith("type1")
   );
   const type2ImageMissing = (question.quality_issues ?? []).some((i) =>
-    ["type2_needs_image", "type2_image_prompts"].includes(i.code)
+    ["type2_needs_image", "type2_image_prompts"].includes(issueCode(i))
   );
   const type2Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type2")
+    issueCode(i).startsWith("type2")
   );
   const type3TimeMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type3_time_mismatch" || i.code === "type3_target_time"
+    issueCode(i) === "type3_time_mismatch" || issueCode(i) === "type3_target_time"
   );
   const type3WeatherIcon = (question.quality_issues ?? []).some((i) =>
-    ["type3_needs_image", "type3_image_prompts"].includes(i.code)
+    ["type3_needs_image", "type3_image_prompts"].includes(issueCode(i))
   );
   const type3Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type3")
+    issueCode(i).startsWith("type3")
   );
   const type4SpeakerMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type4_speaker_mismatch"
+    issueCode(i) === "type4_speaker_mismatch"
   );
   const type4VagueIntention = (question.quality_issues ?? []).some((i) =>
-    i.code === "type4_vague_intention"
+    issueCode(i) === "type4_vague_intention"
   );
   const type4Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type4")
+    issueCode(i).startsWith("type4")
   );
   const type5ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type5_choice_format"
+    issueCode(i) === "type5_choice_format"
   );
   const type5AnswerMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type5_answer_mismatch"
+    issueCode(i) === "type5_answer_mismatch"
   );
   const type5MultipleUnmentioned = (question.quality_issues ?? []).some((i) =>
-    i.code === "type5_multiple_unmentioned"
+    issueCode(i) === "type5_multiple_unmentioned"
   );
   const type5Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type5")
+    issueCode(i).startsWith("type5")
   );
   const type6TimeTargetMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type6_time_target_mismatch"
+    issueCode(i) === "type6_time_target_mismatch"
   );
   const type6FinalTimeUnclear = (question.quality_issues ?? []).some((i) =>
-    ["type6_final_time_unclear", "type6_final_time_mismatch"].includes(i.code)
+    ["type6_final_time_unclear", "type6_final_time_mismatch"].includes(issueCode(i))
   );
   const type6ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type6_choice_format"
+    issueCode(i) === "type6_choice_format"
   );
   const type6Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type6")
+    issueCode(i).startsWith("type6")
   );
   const type7TargetMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type7_target_person_mismatch"
+    issueCode(i) === "type7_target_person_mismatch"
   );
   const type7DreamUnclear = (question.quality_issues ?? []).some((i) =>
-    ["type7_dream_job_unclear", "type7_dream_job_mismatch"].includes(i.code)
+    ["type7_dream_job_unclear", "type7_dream_job_mismatch"].includes(issueCode(i))
   );
   const type7ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type7_choice_format"
+    issueCode(i) === "type7_choice_format"
   );
   const type7Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type7")
+    issueCode(i).startsWith("type7")
   );
   const type8TargetMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type8_target_person_mismatch"
+    issueCode(i) === "type8_target_person_mismatch"
   );
   const type8WeakClue = (question.quality_issues ?? []).some((i) =>
-    ["type8_weak_clue", "type8_emotion_unclear"].includes(i.code)
+    ["type8_weak_clue", "type8_emotion_unclear"].includes(issueCode(i))
   );
   const type8ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type8_choice_format"
+    issueCode(i) === "type8_choice_format"
   );
   const type8Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type8")
+    issueCode(i).startsWith("type8")
   );
   const type9TargetMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type9_target_person_mismatch"
+    issueCode(i) === "type9_target_person_mismatch"
   );
   const type9ImmediateUnclear = (question.quality_issues ?? []).some((i) =>
-    ["type9_immediate_action_unclear", "type9_action_mismatch"].includes(i.code)
+    ["type9_immediate_action_unclear", "type9_action_mismatch"].includes(issueCode(i))
   );
   const type9ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type9_choice_format"
+    issueCode(i) === "type9_choice_format"
   );
   const type9Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type9")
+    issueCode(i).startsWith("type9")
   );
   const type10ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type10_choice_format"
+    issueCode(i) === "type10_choice_format"
   );
   const type10MainContent = (question.quality_issues ?? []).some((i) =>
-    i.code === "type10_main_content_inaccurate"
+    issueCode(i) === "type10_main_content_inaccurate"
   );
   const type10TopicConsistent = (question.quality_issues ?? []).some((i) =>
-    i.code === "type10_topic_consistent"
+    issueCode(i) === "type10_topic_consistent"
   );
   const type10Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type10")
+    issueCode(i).startsWith("type10")
   );
   const type11ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type11_choice_format"
+    issueCode(i) === "type11_choice_format"
   );
   const type11FinalUnclear = (question.quality_issues ?? []).some((i) =>
-    i.code === "type11_final_transport_unclear"
+    issueCode(i) === "type11_final_transport_unclear"
   );
   const type11TransportConfusion = (question.quality_issues ?? []).some((i) =>
-    i.code === "type11_transport_confusion"
+    issueCode(i) === "type11_transport_confusion"
   );
   const type11Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type11")
+    issueCode(i).startsWith("type11")
   );
   const type12TargetMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type12_target_person_mismatch"
+    issueCode(i) === "type12_target_person_mismatch"
   );
   const type12ReasonUnclear = (question.quality_issues ?? []).some((i) =>
-    i.code === "type12_reason_unclear"
+    issueCode(i) === "type12_reason_unclear"
   );
   const type12ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type12_choice_format"
+    issueCode(i) === "type12_choice_format"
   );
   const type12Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type12")
+    issueCode(i).startsWith("type12")
   );
   const type13PlaceDirect = (question.quality_issues ?? []).some((i) =>
-    i.code === "type13_place_directly_named"
+    issueCode(i) === "type13_place_directly_named"
   );
   const type13CluesInsufficient = (question.quality_issues ?? []).some((i) =>
-    i.code === "type13_place_clues_insufficient"
+    issueCode(i) === "type13_place_clues_insufficient"
   );
   const type13ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type13_choice_format"
+    issueCode(i) === "type13_choice_format"
   );
   const type13PlaceUnclear = (question.quality_issues ?? []).some((i) =>
-    i.code === "type13_place_unclear"
+    issueCode(i) === "type13_place_unclear"
   );
   const type13Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type13")
+    issueCode(i).startsWith("type13")
   );
   const type15NoRequest = (question.quality_issues ?? []).some((i) =>
-    i.code === "type15_no_request"
+    issueCode(i) === "type15_no_request"
   );
   const type15SpeakerMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type15_speaker_mismatch"
+    issueCode(i) === "type15_speaker_mismatch"
   );
   const type15SuggestionConfusion = (question.quality_issues ?? []).some((i) =>
-    i.code === "type15_suggestion_confusion"
+    issueCode(i) === "type15_suggestion_confusion"
   );
   const type15ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type15_choice_format"
+    issueCode(i) === "type15_choice_format"
   );
   const type15Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type15")
+    issueCode(i).startsWith("type15")
   );
   const type16NoSuggestion = (question.quality_issues ?? []).some((i) =>
-    i.code === "type16_no_suggestion"
+    issueCode(i) === "type16_no_suggestion"
   );
   const type16SpeakerMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type16_speaker_mismatch"
+    issueCode(i) === "type16_speaker_mismatch"
   );
   const type16RequestConfusion = (question.quality_issues ?? []).some((i) =>
-    i.code === "type16_request_confusion"
+    issueCode(i) === "type16_request_confusion"
   );
   const type16ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type16_choice_format"
+    issueCode(i) === "type16_choice_format"
   );
   const type16Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type16")
+    issueCode(i).startsWith("type16")
   );
   const type17TargetTimeUnclear = (question.quality_issues ?? []).some((i) =>
-    i.code === "type17_target_time_unclear"
+    issueCode(i) === "type17_target_time_unclear"
   );
   const type17TargetPersonMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type17_target_person_mismatch"
+    issueCode(i) === "type17_target_person_mismatch"
   );
   const type17CanceledPlan = (question.quality_issues ?? []).some((i) =>
-    i.code === "type17_canceled_plan"
+    issueCode(i) === "type17_canceled_plan"
   );
   const type17ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type17_choice_format"
+    issueCode(i) === "type17_choice_format"
   );
   const type17Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type17")
+    issueCode(i).startsWith("type17")
   );
   const type18JobDirectlyNamed = (question.quality_issues ?? []).some((i) =>
-    i.code === "type18_job_directly_named"
+    issueCode(i) === "type18_job_directly_named"
   );
   const type18JobCluesInsufficient = (question.quality_issues ?? []).some((i) =>
-    i.code === "type18_job_clues_insufficient"
+    issueCode(i) === "type18_job_clues_insufficient"
   );
   const type18TargetPersonMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type18_target_person_mismatch"
+    issueCode(i) === "type18_target_person_mismatch"
   );
   const type18ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type18_choice_format"
+    issueCode(i) === "type18_choice_format"
   );
   const type18Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type18")
+    issueCode(i).startsWith("type18")
   );
   const type19BlankSpeakerMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type19_blank_speaker_mismatch"
+    issueCode(i) === "type19_blank_speaker_mismatch"
   );
   const type19ResponseContextWeak = (question.quality_issues ?? []).some((i) =>
-    i.code === "type19_response_context_weak" ||
-    i.code === "type19_previous_turn_mismatch"
+    issueCode(i) === "type19_response_context_weak" ||
+    issueCode(i) === "type19_previous_turn_mismatch"
   );
   const type19ResponseTooGeneric = (question.quality_issues ?? []).some((i) =>
-    i.code === "type19_response_too_generic"
+    issueCode(i) === "type19_response_too_generic"
   );
   const type19MultipleAnswers = (question.quality_issues ?? []).some((i) =>
-    i.code === "type19_multiple_answers" ||
-    i.code === "has_multiple_possible_answers"
+    issueCode(i) === "type19_multiple_answers" ||
+    issueCode(i) === "has_multiple_possible_answers"
   );
   const type19ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type19_choice_format" || i.code === "continuation_english"
+    issueCode(i) === "type19_choice_format" || issueCode(i) === "continuation_english"
   );
   const type19Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type19")
+    issueCode(i).startsWith("type19")
   );
   const type20BlankSpeakerMismatch = (question.quality_issues ?? []).some((i) =>
-    i.code === "type20_blank_speaker_mismatch"
+    issueCode(i) === "type20_blank_speaker_mismatch"
   );
   const type20ResponseContextWeak = (question.quality_issues ?? []).some((i) =>
-    i.code === "type20_response_context_weak" ||
-    i.code === "type20_previous_turn_mismatch"
+    issueCode(i) === "type20_response_context_weak" ||
+    issueCode(i) === "type20_previous_turn_mismatch"
   );
   const type20ResponseTooGeneric = (question.quality_issues ?? []).some((i) =>
-    i.code === "type20_response_too_generic"
+    issueCode(i) === "type20_response_too_generic"
   );
   const type20DuplicateWith19 = (question.quality_issues ?? []).some((i) =>
-    i.code === "type20_duplicate_with_19"
+    issueCode(i) === "type20_duplicate_with_19"
   );
   const type20MultipleAnswers = (question.quality_issues ?? []).some((i) =>
-    i.code === "type20_multiple_answers" ||
-    i.code === "has_multiple_possible_answers"
+    issueCode(i) === "type20_multiple_answers" ||
+    issueCode(i) === "has_multiple_possible_answers"
   );
   const type20ChoiceFormat = (question.quality_issues ?? []).some((i) =>
-    i.code === "type20_choice_format" || i.code === "continuation_english"
+    issueCode(i) === "type20_choice_format" || issueCode(i) === "continuation_english"
   );
   const type20Review = (question.quality_issues ?? []).some((i) =>
-    i.code.startsWith("type20")
+    issueCode(i).startsWith("type20")
   );
 
   return (

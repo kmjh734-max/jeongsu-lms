@@ -28,9 +28,9 @@ interface GenerationProgressProps {
 const STATUS_LABEL: Record<ItemProgressStatus, string> = {
   pending: "대기",
   generating: "생성 중",
-  validating: "검수 중",
-  passed: "검수 통과",
-  review: "검토 필요",
+  validating: "생성 중",
+  passed: "완료",
+  review: "완료",
   saving: "저장 중",
   saved: "저장 완료",
   audio: "음원 생성 중",

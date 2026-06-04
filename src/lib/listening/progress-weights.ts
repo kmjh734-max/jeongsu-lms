@@ -8,15 +8,13 @@ export type GenerationPhase =
   | "done"
   | "error";
 
-const GEN_END = 50;
-const VALIDATE_END = 85;
-const SAVE_END = 95;
+const GEN_END = 90;
+const SAVE_END = 98;
 
 export function generationProgressPercent(
   phase: GenerationPhase,
   itemIndex: number,
-  itemCount: number,
-  subPhase: "generate" | "validate" = "generate"
+  itemCount: number
 ): number {
   if (phase === "idle" || itemCount <= 0) return 0;
   if (phase === "done") return 100;
@@ -25,19 +23,12 @@ export function generationProgressPercent(
   const slice = 1 / itemCount;
   const base = itemIndex * slice;
 
-  if (phase === "generating") {
-    const inner = subPhase === "generate" ? 0.7 : 1;
-    return Math.round((base + slice * inner * 0.5) * GEN_END);
-  }
-  if (phase === "validating") {
-    const start = GEN_END;
-    const span = VALIDATE_END - GEN_END;
-    const inner = subPhase === "validate" ? 1 : 0.3;
-    return Math.round(start + (base + slice * inner) * span);
+  if (phase === "generating" || phase === "validating") {
+    return Math.round((base + slice) * GEN_END);
   }
   if (phase === "saving") {
-    const start = VALIDATE_END;
-    const span = SAVE_END - VALIDATE_END;
+    const start = GEN_END;
+    const span = SAVE_END - start;
     return Math.round(start + (base + slice) * span);
   }
   return 0;

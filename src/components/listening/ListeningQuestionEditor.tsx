@@ -7,7 +7,6 @@ import {
 } from "@/components/listening/SegmentScriptEditor";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
-import { QuestionQualityBadges } from "@/components/listening/QuestionQualityBadges";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import type { AnswerValidationPayload, QualityIssuePayload } from "@/lib/listening/types";
 
@@ -113,7 +112,7 @@ export function ListeningQuestionEditor({
   onUpdated,
 }: ListeningQuestionEditorProps) {
   const [segments, setSegments] = useState<SegmentDraft[]>(
-    question.segments.map((s) => ({
+    (question.segments ?? []).map((s) => ({
       id: s.id,
       speaker: (s.speaker_type === "M" || s.speaker_type === "W"
         ? s.speaker_type
@@ -236,37 +235,6 @@ export function ListeningQuestionEditor({
     onUpdated();
   }
 
-  async function revalidateQuestion() {
-    setBusy("validate");
-    setMessage(null);
-    setError(null);
-    const res = await fetch("/api/listening/validate-question", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        setId,
-        questionId: question.id,
-        persist: true,
-      }),
-    });
-    const data = (await res.json()) as {
-      ok?: boolean;
-      message?: string;
-      validation?: { needs_review?: boolean };
-    };
-    setBusy(null);
-    if (!data.ok) {
-      setError(data.message ?? "검수 실패");
-      return;
-    }
-    setMessage(
-      data.validation?.needs_review
-        ? "검수 완료 — 검토가 필요합니다."
-        : "검수 완료 — 정답 명확성 통과."
-    );
-    onUpdated();
-  }
-
   async function regenerateQuestion() {
     if (
       !window.confirm(
@@ -325,22 +293,6 @@ export function ListeningQuestionEditor({
           {instruction && (
             <p className="mt-1 text-sm text-slate-700">{instruction}</p>
           )}
-          <div className="mt-2">
-            <QuestionQualityBadges
-              question={{
-                needs_review: question.needs_review,
-                quality_score: question.quality_score ?? undefined,
-                answer_clarity_score: question.answer_clarity_score ?? undefined,
-                is_answer_clear: (
-                  question.answer_validation as AnswerValidationPayload | undefined
-                )?.is_answer_clear,
-                has_multiple_possible_answers: (
-                  question.answer_validation as AnswerValidationPayload | undefined
-                )?.has_multiple_possible_answers,
-                has_answer_clue: Boolean(question.answer_clue?.trim()),
-              }}
-            />
-          </div>
           {question.answer_clue && (
             <p className="mt-1 text-xs text-emerald-700">
               정답 근거: {question.answer_clue}
@@ -348,14 +300,6 @@ export function ListeningQuestionEditor({
           )}
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={revalidateQuestion}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-50"
-          >
-            {busy === "validate" ? "검수 중…" : "정답/선택지 다시 검수"}
-          </button>
           <button
             type="button"
             disabled={!!busy}

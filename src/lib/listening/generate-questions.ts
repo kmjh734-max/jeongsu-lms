@@ -41,15 +41,11 @@ import {
 import { getListeningSystemPrompt } from "@/lib/listening/prompts/commonPrompt";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import {
-  formatContinuationIntentBlock,
-  planContinuationIntent,
-} from "@/lib/listening/continuation-intent-plan";
-import {
   formatAssignedScenarioBlock,
   pickContinuationScenario,
 } from "@/lib/listening/continuation-scenario-pool";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
-import { validateAndRepairListeningQuestion } from "@/lib/listening/validate-and-repair";
+import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
 import type {
   GeneratedListeningQuestion,
   ListeningGenerationMode,
@@ -370,18 +366,11 @@ export async function generateListeningQuestionsWithAi(
     examTypes,
     gradeLevel
   );
-  const withQuality = [];
-  for (let i = 0; i < questions.length; i++) {
-    withQuality.push(
-      await validateAndRepairListeningQuestion(
-        apiKey,
-        questions[i]!,
-        examTypes?.[i],
-        gradeLevel
-      )
-    );
-  }
-  return { questions: withQuality };
+  return {
+    questions: questions.map((q, i) =>
+      finalizeListeningQuestionFast(q, examTypes?.[i], gradeLevel)
+    ),
+  };
 }
 
 /** 단일 유형 1문항 생성 (검수 포함) */
@@ -406,24 +395,12 @@ export async function generateSingleExamQuestion(
     const assignment = pickContinuationScenario(typeId, previousProblems);
     const scenarioBlock = formatAssignedScenarioBlock(assignment);
     prompt = `${scenarioBlock}\n\n${prompt}`;
-    try {
-      const plan = await planContinuationIntent(
-        apiKey,
-        typeId,
-        previousProblems,
-        assignment
-      );
-      prompt = `${scenarioBlock}\n\n${formatContinuationIntentBlock(plan)}\n\n${prompt}`;
-    } catch {
-      // 사전 설계 실패 시에도 scenarioBlock은 유지
-    }
   }
   const questions = await fetchParsedQuestions(apiKey, prompt, true, [type], gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
 
-  return validateAndRepairListeningQuestion(
-    apiKey,
+  return finalizeListeningQuestionFast(
     { ...q, order_index: slotIndex ?? typeId },
     type,
     gradeLevel
@@ -445,8 +422,7 @@ export async function generateSingleFreeQuestion(
   const questions = await fetchParsedQuestions(apiKey, prompt, false, undefined, gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
-  return validateAndRepairListeningQuestion(
-    apiKey,
+  return finalizeListeningQuestionFast(
     { ...q, order_index: orderIndex },
     undefined,
     gradeLevel

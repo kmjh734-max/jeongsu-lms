@@ -2,9 +2,7 @@
 
 import { continuationQuestionDisplayText } from "@/lib/listening/fix-continuation-question";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
-import { QuestionQualityBadges } from "@/components/listening/QuestionQualityBadges";
 import { normalizeTableData } from "@/lib/listening/table-data";
-import { collectUniqueQuestionMessages } from "@/lib/listening/collect-question-messages";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -32,19 +30,13 @@ export function ListeningQuestionPreview({
   showActions,
   audioNeedsRegeneration,
 }: ListeningQuestionPreviewProps) {
-  const filledChoices = question.choices.filter((c) => c.trim());
+  const filledChoices = (question.choices ?? []).filter((c) => c?.trim());
   const table = normalizeTableData(question.table_data);
   const blankLine = continuationQuestionDisplayText(question.order_index);
   const av = question.answer_validation;
-  const { issues: displayIssues, suggestions: displaySuggestions } =
-    collectUniqueQuestionMessages(question);
 
   return (
-    <article
-      className={`rounded-xl border bg-white p-4 shadow-sm ${
-        question.needs_review ? "border-amber-300" : "border-indigo-100"
-      }`}
-    >
+    <article className="rounded-xl border border-indigo-100 bg-white p-4 shadow-sm">
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 pb-2">
         <div>
           <p className="text-xs font-medium text-indigo-600">
@@ -54,7 +46,6 @@ export function ListeningQuestionPreview({
             <p className="mt-2 text-sm font-medium text-slate-900">{question.instruction}</p>
           )}
         </div>
-        <QuestionQualityBadges question={question} />
       </header>
 
       {audioNeedsRegeneration && (
@@ -63,26 +54,10 @@ export function ListeningQuestionPreview({
         </p>
       )}
 
-      {displayIssues.length > 0 && (
-        <ul className="mb-3 rounded-lg bg-amber-50 p-2 text-xs text-amber-900">
-          {displayIssues.map((msg) => (
-            <li key={msg}>· {msg}</li>
-          ))}
-        </ul>
-      )}
-
-      {displaySuggestions.length > 0 && (
-        <ul className="mb-3 rounded-lg bg-slate-50 p-2 text-xs text-slate-700">
-          {displaySuggestions.map((msg) => (
-            <li key={msg}>· {msg}</li>
-          ))}
-        </ul>
-      )}
-
       <div className="mb-3">
         <p className="text-xs font-medium text-slate-500">대본</p>
         <ul className="mt-1 space-y-1 text-sm text-slate-700">
-          {question.segments.map((seg, i) => (
+          {(question.segments ?? []).map((seg, i) => (
             <li key={i}>
               <span className="font-semibold text-slate-500">{seg.speaker}:</span> {seg.text}
             </li>

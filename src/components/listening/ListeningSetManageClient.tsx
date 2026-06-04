@@ -12,10 +12,9 @@ import {
   generateQuestionsSequential,
 } from "@/lib/listening/client-generation";
 import type { GenerationPhase } from "@/lib/listening/progress-weights";
-import {
-  ListeningQuestionEditor,
-  type ListeningQuestionData,
-} from "@/components/listening/ListeningQuestionEditor";
+import { ListeningQuestionCompact } from "@/components/listening/ListeningQuestionCompact";
+import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
+import { ListeningQuestionEditor } from "@/components/listening/ListeningQuestionEditor";
 import { ListeningQuestionPreview } from "@/components/listening/ListeningQuestionPreview";
 import {
   DIFFICULTY_MODE_OPTIONS,
@@ -133,6 +132,7 @@ export function ListeningSetManageClient({
   }, [generationPlanMode, questionCount, selectedTypeIds, examTypes]);
 
   const plannedQuestionCount = generationSlots.length;
+  const useCompactQuestionList = initialQuestions.length >= 6;
 
   function confirmReplaceExistingQuestions(actionLabel: string): boolean {
     if (initialQuestions.length === 0) return true;
@@ -246,10 +246,8 @@ export function ListeningSetManageClient({
         setProgressPercent(percent);
         setProgressPhase(phase);
         setProgressItems(items);
-        if (phase === "generating") {
-          setProgressDetail("AI 문제 생성 중…");
-        } else if (phase === "validating") {
-          setProgressDetail("정답 명확성 검수 중…");
+        if (phase === "generating" || phase === "validating") {
+          setProgressDetail(`${plannedQuestionCount}문항 생성 중…`);
         }
       },
     });
@@ -262,25 +260,12 @@ export function ListeningSetManageClient({
       return;
     }
     setPreviewQuestions(result.questions);
-    setMessage(
-      result.reviewCount > 0
-        ? `미리보기 생성됨. 검토 필요 ${result.reviewCount}문항 — 확인 후 저장하세요.`
-        : "미리보기가 생성되었습니다. 확인 후 저장하세요."
-    );
+    setMessage("미리보기가 생성되었습니다. 확인 후 저장하세요.");
   }
 
   async function savePreview() {
     if (!previewQuestions?.length) return;
     if (!confirmReplaceExistingQuestions("미리보기 문항을 DB에 저장")) return;
-    const reviewPending = previewQuestions.filter((q) => q.needs_review).length;
-    if (
-      reviewPending > 0 &&
-      !window.confirm(
-        `검토 필요 문항이 ${reviewPending}개 있습니다. 그래도 저장할까요?`
-      )
-    ) {
-      return;
-    }
     setBusy("save");
     setMessage(null);
     resetProgress();
@@ -344,7 +329,7 @@ export function ListeningSetManageClient({
     setMessage(null);
     setPreviewQuestions(null);
     resetProgress();
-    setProgressDetail("AI 문제 생성·검수·저장 중…");
+    setProgressDetail(`${plannedQuestionCount}문항 생성·저장 중…`);
 
     const result = await generateQuestionsSequential({
       setId,
@@ -355,9 +340,9 @@ export function ListeningSetManageClient({
         setProgressPercent(percent);
         setProgressPhase(phase);
         setProgressItems(items);
-        if (phase === "generating") setProgressDetail("AI 문제 생성 중…");
-        else if (phase === "validating") setProgressDetail("정답 명확성 검수 중…");
-        else if (phase === "saving") setProgressDetail("DB 저장 중…");
+        if (phase === "generating" || phase === "validating") {
+          setProgressDetail(`${plannedQuestionCount}문항 생성 중…`);
+        } else if (phase === "saving") setProgressDetail("DB 저장 중…");
       },
     });
 
@@ -368,10 +353,7 @@ export function ListeningSetManageClient({
       router.refresh();
       return;
     }
-    const base =
-      result.reviewCount > 0
-        ? `저장 완료. 검토 필요 ${result.reviewCount}문항 — 대본·음원을 확인하세요.`
-        : "AI 문항이 생성·저장되었습니다.";
+    const base = `${plannedQuestionCount}문항이 생성·저장되었습니다. 「전체 음원 생성」으로 음성을 만드세요.`;
     setMessage(result.schemaWarning ? `${base} ${result.schemaWarning}` : base);
     router.refresh();
   }
@@ -838,7 +820,7 @@ export function ListeningSetManageClient({
             onClick={generateAndSave}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
-            {busy === "ai" ? "생성 중…" : "바로 생성·저장"}
+            {busy === "gen-flow" ? "생성 중…" : "바로 생성·저장"}
           </button>
         </div>
 
@@ -876,7 +858,7 @@ export function ListeningSetManageClient({
                   ? "음원 생성 진행"
                   : busy === "save"
                     ? "저장 진행"
-                    : "문항 생성·검수 진행"
+                    : "문항 생성 진행"
               }
               percent={progressPercent}
               detailMessage={progressDetail ?? undefined}
@@ -956,16 +938,33 @@ export function ListeningSetManageClient({
       {initialQuestions.length === 0 && !previewQuestions?.length ? (
         <p className="text-sm text-slate-600">아직 문항이 없습니다.</p>
       ) : (
-        <div className="space-y-4">
-          {initialQuestions.map((q) => (
-            <ListeningQuestionEditor
-              key={q.id}
-              setId={setId}
-              question={q}
-              speechSpeed={speechSpeedValue}
-              onUpdated={() => router.refresh()}
-            />
-          ))}
+        <div className="space-y-3">
+          {useCompactQuestionList ? (
+            <>
+              <p className="text-xs text-slate-500">
+                문항이 많아 요약 목록으로 표시합니다. 수정할 문항만 펼치세요.
+              </p>
+              {initialQuestions.map((q) => (
+                <ListeningQuestionCompact
+                  key={q.id}
+                  setId={setId}
+                  question={q}
+                  speechSpeed={speechSpeedValue}
+                  onUpdated={() => router.refresh()}
+                />
+              ))}
+            </>
+          ) : (
+            initialQuestions.map((q) => (
+              <ListeningQuestionEditor
+                key={q.id}
+                setId={setId}
+                question={q}
+                speechSpeed={speechSpeedValue}
+                onUpdated={() => router.refresh()}
+              />
+            ))
+          )}
         </div>
       )}
 
