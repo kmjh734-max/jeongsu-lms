@@ -7,7 +7,7 @@ import {
 } from "@/lib/student-records/model";
 import type { StudentRecordPdfDocument } from "@/lib/student-records/types";
 
-const PDF_OCR_MODELS = ["gpt-5.5", "gpt-5", "gpt-4o"];
+const PDF_OCR_MODELS = ["gpt-4o", "gpt-5.5", "gpt-5"];
 
 const PDF_OCR_SYSTEM = `당신은 학교생활기록부 OCR·전사 전문가입니다.
 첨부 PDF의 모든 페이지를 빠짐없이 읽고 한국어로 전사합니다.

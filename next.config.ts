@@ -7,13 +7,6 @@ const nextConfig: NextConfig = {
     "pdf-parse",
     "pdfjs-dist",
   ],
-  outputFileTracingIncludes: {
-    "/api/student-records/analyze": [
-      "./node_modules/pdf-parse/**/*",
-      "./node_modules/pdfjs-dist/**/*",
-      "./node_modules/@napi-rs/canvas/**/*",
-    ],
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },

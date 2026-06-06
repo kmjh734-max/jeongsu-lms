@@ -39,6 +39,7 @@ export function StudentRecordWorkspace({
   const [result, setResult] = useState<StudentRecordAnalysisResult | null>(null);
   const [listLoading, setListLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [progressLabel, setProgressLabel] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadStudents = useCallback(async () => {
@@ -89,6 +90,7 @@ export function StudentRecordWorkspace({
     setAnalyzing(true);
     setError(null);
     setResult(null);
+    setProgressLabel("1/2 학생부 자료 읽는 중… (PDF OCR)");
 
     try {
       const preparedFiles = await prepareStudentRecordFiles(files);
@@ -109,36 +111,63 @@ export function StudentRecordWorkspace({
         formData.append("files", file);
       }
 
-      const res = await fetch("/api/student-records/analyze", {
+      const extractRes = await fetch("/api/student-records/extract", {
         method: "POST",
         body: formData,
       });
-      const { data, error: parseError } = await readStudentRecordApiResponse<{
-        ok: boolean;
-        message?: string;
-        studentId?: string | null;
-        studentName?: string;
-        html?: string;
-        generatedAt?: string;
-      }>(res);
+      const { data: extracted, error: extractError } =
+        await readStudentRecordApiResponse<{
+          ok: boolean;
+          message?: string;
+          text?: string;
+          studentId?: string | null;
+          studentName?: string;
+        }>(extractRes);
 
-      if (parseError) {
-        throw new Error(parseError);
+      if (extractError) {
+        throw new Error(extractError);
       }
-      if (!data?.ok || !data.html || !data.studentName || !data.generatedAt) {
-        throw new Error(data?.message ?? "분석에 실패했습니다.");
+      if (!extracted?.ok || !extracted.text || !extracted.studentName) {
+        throw new Error(extracted?.message ?? "자료 읽기에 실패했습니다.");
+      }
+
+      setProgressLabel("2/2 입학사정관 보고서 생성 중…");
+
+      const generateRes = await fetch("/api/student-records/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: extracted.studentName,
+          text: extracted.text,
+        }),
+      });
+      const { data: generated, error: generateError } =
+        await readStudentRecordApiResponse<{
+          ok: boolean;
+          message?: string;
+          html?: string;
+          studentName?: string;
+          generatedAt?: string;
+        }>(generateRes);
+
+      if (generateError) {
+        throw new Error(generateError);
+      }
+      if (!generated?.ok || !generated.html || !generated.generatedAt) {
+        throw new Error(generated?.message ?? "보고서 생성에 실패했습니다.");
       }
 
       setResult({
-        studentId: data.studentId ?? null,
-        studentName: data.studentName,
-        html: data.html,
-        generatedAt: data.generatedAt,
+        studentId: extracted.studentId ?? null,
+        studentName: extracted.studentName,
+        html: generated.html,
+        generatedAt: generated.generatedAt,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
     } finally {
       setAnalyzing(false);
+      setProgressLabel(null);
     }
   }
 
@@ -281,7 +310,9 @@ export function StudentRecordWorkspace({
           disabled={analyzing}
           onClick={() => void runAnalysis()}
         >
-          {analyzing ? "분석 생성 중… (페이지 많으면 5분+)" : "학생부 분석 보고서 생성"}
+          {analyzing
+            ? (progressLabel ?? "분석 생성 중…")
+            : "학생부 분석 보고서 생성"}
         </Button>
       </div>
     </div>

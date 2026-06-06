@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { extractStudentRecordContent } from "@/lib/student-records/extract-content";
-import { generateStudentRecordReport } from "@/lib/student-records/generate-report";
 import { parseStudentRecordUpload } from "@/lib/student-records/parse-upload";
 import { resolveStudentRecordTarget } from "@/lib/student-records/resolve-student";
 
@@ -54,7 +53,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const extracted = await extractStudentRecordContent({
+    const result = await extractStudentRecordContent({
       studentId: target.studentId,
       studentName: target.studentName,
       text: combinedText,
@@ -62,34 +61,18 @@ export async function POST(request: Request) {
       pdfDocuments: parsed.pdfDocuments,
     });
 
-    if (!extracted.ok) {
-      return jsonError(extracted.message);
-    }
-
-    const generated = await generateStudentRecordReport(
-      target.studentName,
-      extracted.text
-    );
-
-    if (!generated.ok) {
-      return jsonError(generated.message);
+    if (!result.ok) {
+      return jsonError(result.message);
     }
 
     return NextResponse.json({
       ok: true,
-      html: generated.html,
+      text: result.text,
       studentId: target.studentId,
       studentName: target.studentName,
-      generatedAt: new Date().toISOString(),
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "분석 오류";
-    if (message.toLowerCase().includes("entity too large")) {
-      return jsonError(
-        "업로드 용량이 서버 한도를 초과했습니다. PDF·이미지 용량을 줄여 주세요.",
-        413
-      );
-    }
+    const message = e instanceof Error ? e.message : "자료 읽기 오류";
     return jsonError(message, 500);
   }
 }
