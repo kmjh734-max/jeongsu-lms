@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -43,7 +43,6 @@ export function VocabStage2Spelling({
   } | null>(null);
   const [round, setRound] = useState(1);
   const [mastered, setMastered] = useState(0);
-  const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
 
   const total = items.length;
@@ -53,13 +52,13 @@ export function VocabStage2Spelling({
     total > 0 ? Math.round((mastered / total) * 100) : 0;
 
   useEffect(() => {
-    if (!current || feedback?.showAnswer || pending) return;
-    const t = window.setTimeout(() => inputRef.current?.focus(), 50);
+    if (!current || feedback?.showAnswer) return;
+    const t = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(t);
-  }, [currentId, current, feedback, pending]);
+  }, [currentId, current, feedback]);
 
   function checkAnswer() {
-    if (!current || pending || feedback?.showAnswer) return;
+    if (!current || feedback?.showAnswer) return;
     const trimmed = answer.trim();
     if (!trimmed) {
       setMessage("답을 입력해주세요.");
@@ -69,35 +68,28 @@ export function VocabStage2Spelling({
     setMessage(null);
 
     const isCorrect = gradeSpellingAnswer(current.word, trimmed);
+    const itemId = current.id;
+    const attemptRound = round;
 
-    startTransition(async () => {
-      await recordStage2Attempt(
-        setId,
-        current.id,
-        trimmed,
-        isCorrect,
-        round
-      );
+    void recordStage2Attempt(setId, itemId, trimmed, isCorrect, attemptRound);
 
-      if (isCorrect) {
-        setMastered((m) => m + 1);
-        const next = queue.slice(1);
-        if (next.length === 0) {
-          const result = await completeStage2(setId);
-          if (result.ok) {
-            router.push(`/student/vocab/${setId}`);
-            router.refresh();
-          }
-          return;
-        }
-        setQueue(next);
-        setAnswer("");
-        setFeedback(null);
-      } else {
-        setFeedback({ correct: false, showAnswer: true });
-        setRound((r) => r + 1);
+    if (isCorrect) {
+      setMastered((m) => m + 1);
+      const next = queue.slice(1);
+      if (next.length === 0) {
+        router.push(`/student/vocab/${setId}`);
+        void completeStage2(setId).then((result) => {
+          if (result.ok) router.refresh();
+        });
+        return;
       }
-    });
+      setQueue(next);
+      setAnswer("");
+      setFeedback(null);
+    } else {
+      setFeedback({ correct: false, showAnswer: true });
+      setRound((r) => r + 1);
+    }
   }
 
   function continueAfterWrong() {
@@ -179,7 +171,7 @@ export function VocabStage2Spelling({
               className="ui-input mt-8 min-h-[3.5rem] text-center text-xl"
               value={answer}
               onChange={(e) => {
-                setAnswer(e.target.value);
+                setAnswer(e.target.value.toLowerCase());
                 if (message === "답을 입력해주세요.") setMessage(null);
               }}
               onKeyDown={(e) => {
@@ -190,13 +182,14 @@ export function VocabStage2Spelling({
               }}
               placeholder="영어 스펠링 입력"
               autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
               spellCheck={false}
-              disabled={pending}
               aria-label="영어 스펠링 입력"
             />
             <div className="mt-6 flex justify-center">
-              <Button type="button" disabled={pending} onClick={checkAnswer}>
-                {pending ? "확인 중..." : "정답 확인"}
+              <Button type="button" onClick={checkAnswer}>
+                정답 확인
               </Button>
             </div>
           </>

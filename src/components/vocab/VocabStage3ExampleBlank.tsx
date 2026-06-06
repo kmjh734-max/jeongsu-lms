@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -49,7 +49,6 @@ export function VocabStage3ExampleBlank({
   } | null>(null);
   const [round, setRound] = useState(1);
   const [mastered, setMastered] = useState(0);
-  const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
   const [autoCompleting, setAutoCompleting] = useState(false);
 
@@ -58,25 +57,22 @@ export function VocabStage3ExampleBlank({
   const progressPercent = total > 0 ? Math.round((mastered / total) * 100) : 0;
 
   useEffect(() => {
-    if (!current || feedback?.showAnswer || pending) return;
-    const t = window.setTimeout(() => inputRef.current?.focus(), 50);
+    if (!current || feedback?.showAnswer) return;
+    const t = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(t);
-  }, [current, feedback, pending]);
+  }, [current, feedback]);
 
   useEffect(() => {
     if (total > 0 || items.length === 0 || autoCompleting) return;
     setAutoCompleting(true);
-    startTransition(async () => {
-      const result = await completeStage3(setId);
-      if (result.ok) {
-        router.push(`/student/vocab/${setId}`);
-        router.refresh();
-      }
+    router.push(`/student/vocab/${setId}`);
+    void completeStage3(setId).then((result) => {
+      if (result.ok) router.refresh();
     });
   }, [total, items.length, setId, router, autoCompleting]);
 
   function checkAnswer() {
-    if (!current || pending || feedback?.showAnswer) return;
+    if (!current || feedback?.showAnswer) return;
     const trimmed = answer.trim();
     if (!trimmed) {
       setMessage("답을 입력해주세요.");
@@ -90,36 +86,34 @@ export function VocabStage3ExampleBlank({
       current.acceptedAnswers.length > 1
         ? current.acceptedAnswers.join(" / ")
         : current.word;
+    const attemptRound = round;
 
-    startTransition(async () => {
-      await recordStage3ExampleAttempt(
-        setId,
-        current.itemId,
-        trimmed,
-        displayAnswer,
-        isCorrect,
-        round
-      );
+    void recordStage3ExampleAttempt(
+      setId,
+      current.itemId,
+      trimmed,
+      displayAnswer,
+      isCorrect,
+      attemptRound
+    );
 
-      if (isCorrect) {
-        setMastered((m) => m + 1);
-        const next = queue.slice(1);
-        if (next.length === 0) {
-          const result = await completeStage3(setId);
-          if (result.ok) {
-            router.push(`/student/vocab/${setId}`);
-            router.refresh();
-          }
-          return;
-        }
-        setQueue(next);
-        setAnswer("");
-        setFeedback(null);
-      } else {
-        setFeedback({ showAnswer: true, displayAnswer });
-        setRound((r) => r + 1);
+    if (isCorrect) {
+      setMastered((m) => m + 1);
+      const next = queue.slice(1);
+      if (next.length === 0) {
+        router.push(`/student/vocab/${setId}`);
+        void completeStage3(setId).then((result) => {
+          if (result.ok) router.refresh();
+        });
+        return;
       }
-    });
+      setQueue(next);
+      setAnswer("");
+      setFeedback(null);
+    } else {
+      setFeedback({ showAnswer: true, displayAnswer });
+      setRound((r) => r + 1);
+    }
   }
 
   function continueAfterWrong() {
@@ -227,7 +221,7 @@ export function VocabStage3ExampleBlank({
               className="ui-input mt-8 min-h-[3.5rem] text-center text-xl"
               value={answer}
               onChange={(e) => {
-                setAnswer(e.target.value);
+                setAnswer(e.target.value.toLowerCase());
                 if (message === "답을 입력해주세요.") setMessage(null);
               }}
               onKeyDown={(e) => {
@@ -238,13 +232,14 @@ export function VocabStage3ExampleBlank({
               }}
               placeholder="영어 단어 입력"
               autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
               spellCheck={false}
-              disabled={pending}
               aria-label="빈칸 영어 단어 입력"
             />
             <div className="mt-6 flex justify-center">
-              <Button type="button" disabled={pending} onClick={checkAnswer}>
-                {pending ? "확인 중..." : "정답 확인"}
+              <Button type="button" onClick={checkAnswer}>
+                정답 확인
               </Button>
             </div>
           </>

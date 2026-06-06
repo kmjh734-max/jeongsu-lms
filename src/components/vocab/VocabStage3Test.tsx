@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -29,7 +29,7 @@ export function VocabStage3Test({
   const inputRef = useRef<HTMLInputElement>(null);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [pending, startTransition] = useTransition();
+  const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const current = questions[index];
@@ -37,10 +37,10 @@ export function VocabStage3Test({
   const currentKey = current ? answerKey(current) : "";
 
   useEffect(() => {
-    if (!current || pending) return;
-    const t = window.setTimeout(() => inputRef.current?.focus(), 50);
+    if (!current || submitting) return;
+    const t = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(t);
-  }, [index, current, pending]);
+  }, [index, current, submitting]);
 
   const goNext = useCallback(() => {
     setMessage(null);
@@ -48,25 +48,31 @@ export function VocabStage3Test({
   }, [questions.length]);
 
   function submitAll() {
+    if (submitting) return;
+
     const unanswered = questions.filter(
       (q) => !(answers[answerKey(q)] ?? "").trim()
     ).length;
-    const msg =
-      unanswered > 0
-        ? `미응답 ${unanswered}문항은 오답 처리됩니다. 제출할까요?`
-        : "종합테스트를 제출할까요?";
-    if (!confirm(msg)) return;
+    if (unanswered > 0) {
+      const msg = `미응답 ${unanswered}문항은 오답 처리됩니다. 제출할까요?`;
+      if (!confirm(msg)) return;
+    }
 
-    startTransition(async () => {
-      setMessage(null);
-      const payload = questions.map((q) => ({
-        itemId: q.itemId,
-        studentAnswer: answers[answerKey(q)] ?? "",
-        questionType: q.questionType,
-      }));
-      const result = await submitStage4(setId, payload);
-      setMessage(result.message);
-      if (result.ok && result.attemptId) {
+    setSubmitting(true);
+    setMessage(null);
+    const payload = questions.map((q) => ({
+      itemId: q.itemId,
+      studentAnswer: answers[answerKey(q)] ?? "",
+      questionType: q.questionType,
+    }));
+
+    void submitStage4(setId, payload).then((result) => {
+      setSubmitting(false);
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      if (result.attemptId) {
         router.push(
           `/student/vocab/${setId}/stage4/result?attemptId=${result.attemptId}`
         );
@@ -75,7 +81,7 @@ export function VocabStage3Test({
   }
 
   function handleEnter() {
-    if (!current || pending) return;
+    if (!current || submitting) return;
     const value = (answers[currentKey] ?? "").trim();
     if (!value) {
       setMessage("답을 입력해주세요.");
@@ -115,7 +121,7 @@ export function VocabStage3Test({
       </div>
 
       {current && (
-        <div className="min-h-[min(55vh,440px)] rounded-3xl border-2 border-amber-200 bg-white p-8">
+        <div className="min-h-[min(48vh,360px)] rounded-2xl border-2 border-amber-200 bg-white p-6">
           <p className="text-sm font-semibold text-amber-700">
             {index + 1} / {questions.length} ·{" "}
             {isMeaning ? "뜻 문제" : "스펠링 문제"}
@@ -131,7 +137,10 @@ export function VocabStage3Test({
             className="ui-input mt-8 min-h-[3.5rem] w-full text-center text-lg"
             value={answers[currentKey] ?? ""}
             onChange={(e) => {
-              setAnswers((p) => ({ ...p, [currentKey]: e.target.value }));
+              const value = isMeaning
+                ? e.target.value
+                : e.target.value.toLowerCase();
+              setAnswers((p) => ({ ...p, [currentKey]: value }));
               if (message === "답을 입력해주세요.") setMessage(null);
             }}
             onKeyDown={(e) => {
@@ -144,8 +153,10 @@ export function VocabStage3Test({
               isMeaning ? "한글뜻 입력" : "영어 스펠링 입력"
             }
             autoComplete="off"
+            autoCapitalize={isMeaning ? "sentences" : "none"}
+            autoCorrect="off"
             spellCheck={false}
-            disabled={pending}
+            disabled={submitting}
             aria-label={isMeaning ? "한글뜻 입력" : "영어 스펠링 입력"}
           />
         </div>
@@ -168,7 +179,7 @@ export function VocabStage3Test({
         <Button
           type="button"
           variant="ghost"
-          disabled={index === 0 || pending}
+          disabled={index === 0 || submitting}
           onClick={() => {
             setMessage(null);
             setIndex((i) => i - 1);
@@ -177,13 +188,12 @@ export function VocabStage3Test({
           이전
         </Button>
         {isLast ? (
-          <Button type="button" disabled={pending} onClick={submitAll}>
-            {pending ? "제출 중..." : "제출하기"}
+          <Button type="button" disabled={submitting} onClick={submitAll}>
+            {submitting ? "제출 중..." : "제출하기"}
           </Button>
         ) : (
           <Button
             type="button"
-            disabled={pending}
             onClick={() => {
               const value = (answers[currentKey] ?? "").trim();
               if (!value) {
