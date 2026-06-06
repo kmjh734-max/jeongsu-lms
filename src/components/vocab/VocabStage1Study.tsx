@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -34,8 +34,8 @@ export function VocabStage1Study({
   const [seenIds, setSeenIds] = useState<Set<string>>(
     () => new Set(stage1Completed ? [] : initialSeenIds)
   );
-  const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
+  const lastHandledRef = useRef<string | null>(null);
   const speechOk = isSpeechSupported();
 
   const total = items.length;
@@ -53,28 +53,43 @@ export function VocabStage1Study({
 
   useEffect(() => {
     if (!speechOk || !current || flipped) return;
-    const t = window.setTimeout(() => speakEnglish(current.word), 300);
+    const t = window.setTimeout(() => speakEnglish(current.word), 80);
     return () => window.clearTimeout(t);
   }, [index, speechOk, current, flipped]);
 
   useEffect(() => () => stopSpeaking(), []);
 
   function handleResponse(known: boolean) {
-    if (!current || pending) return;
+    if (!current) return;
 
-    startTransition(async () => {
-      const result = await recordStage1Item(setId, current.id, known);
-      setMessage(result.message);
-      if (result.ok) {
-        if (!stage1Completed) {
-          setSeenIds((prev) => new Set([...prev, current.id]));
-        }
-        if (result.message.includes("1단계를 완료")) {
-          router.push(`/student/vocab/${setId}`);
-          router.refresh();
-          return;
-        }
-        if (index < total - 1) goTo(index + 1);
+    const handleKey = `${index}-${current.id}`;
+    if (lastHandledRef.current === handleKey) return;
+    lastHandledRef.current = handleKey;
+
+    const itemId = current.id;
+    const currentIndex = index;
+
+    if (!stage1Completed) {
+      setSeenIds((prev) => new Set([...prev, itemId]));
+    }
+
+    const nextSeen = new Set(seenIds);
+    if (!stage1Completed) nextSeen.add(itemId);
+    const allSeenNow = !stage1Completed && nextSeen.size >= total;
+
+    if (allSeenNow) {
+      router.push(`/student/vocab/${setId}`);
+    } else if (currentIndex < total - 1) {
+      goTo(currentIndex + 1);
+    }
+
+    void recordStage1Item(setId, itemId, known).then((result) => {
+      if (!result.ok) {
+        setMessage(result.message);
+        return;
+      }
+      if (result.message.includes("1단계를 완료")) {
+        router.refresh();
       }
     });
   }
@@ -86,7 +101,7 @@ export function VocabStage1Study({
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-8 px-2">
+    <div className="mx-auto w-full max-w-xl space-y-5 px-2">
       <div>
         <Link
           href={`/student/vocab/${setId}`}
@@ -105,48 +120,47 @@ export function VocabStage1Study({
 
       <div className="relative w-full" style={{ perspective: "1200px" }}>
         <div
-          className={`relative h-[min(72vh,560px)] min-h-[420px] w-full transition-transform duration-500 [transform-style:preserve-3d] ${
+          className={`relative h-[min(48vh,320px)] min-h-[220px] w-full transition-transform duration-200 [transform-style:preserve-3d] ${
             flipped ? "[transform:rotateY(180deg)]" : ""
           }`}
         >
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 rounded-3xl border-2 border-brand-200 bg-gradient-to-br from-white to-brand-50 px-8 py-12 [backface-visibility:hidden]">
-            <p className="text-sm font-semibold text-brand-600">영어 단어</p>
-            <p className="text-center text-4xl font-bold sm:text-5xl">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-brand-200 bg-gradient-to-br from-white to-brand-50 px-5 py-6 [backface-visibility:hidden]">
+            <p className="text-xs font-semibold text-brand-600">영어 단어</p>
+            <p className="text-center text-2xl font-bold sm:text-3xl">
               {current.word}
             </p>
             {speechOk && (
               <button
                 type="button"
-                className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm"
+                className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs"
                 onClick={() => speakEnglish(current.word)}
               >
                 🔊 발음 듣기
               </button>
             )}
-            <Button type="button" className="px-8" onClick={() => setFlipped(true)}>
+            <Button type="button" className="px-6" onClick={() => setFlipped(true)}>
               뜻 보기
             </Button>
           </div>
 
-          <div className="absolute inset-0 flex flex-col rounded-3xl border-2 border-slate-200 bg-white px-8 py-10 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-            <p className="text-sm font-semibold text-slate-500">뜻 · 예문</p>
-            <p className="mt-4 text-3xl font-bold text-brand-800">
+          <div className="absolute inset-0 flex flex-col rounded-2xl border-2 border-slate-200 bg-white px-5 py-5 [backface-visibility:hidden] [transform:rotateY(180deg)]">
+            <p className="text-xs font-semibold text-slate-500">뜻 · 예문</p>
+            <p className="mt-2 text-xl font-bold text-brand-800 sm:text-2xl">
               {current.meaning}
             </p>
             {current.example_sentence && (
-              <div className="mt-4 flex-1 overflow-y-auto rounded-xl bg-slate-50 p-4">
+              <div className="mt-2 flex-1 overflow-y-auto rounded-lg bg-slate-50 p-3 text-sm">
                 <p className="text-slate-800">{current.example_sentence}</p>
                 {current.example_meaning && (
-                  <p className="mt-2 text-slate-600">{current.example_meaning}</p>
+                  <p className="mt-1 text-slate-600">{current.example_meaning}</p>
                 )}
               </div>
             )}
-            <div className="mt-auto flex gap-3 pt-6">
+            <div className="mt-auto flex gap-2 pt-4">
               <Button
                 type="button"
                 variant="secondary"
                 className="flex-1"
-                disabled={pending}
                 onClick={() => handleResponse(true)}
               >
                 알아요
@@ -154,7 +168,6 @@ export function VocabStage1Study({
               <Button
                 type="button"
                 className="flex-1"
-                disabled={pending}
                 onClick={() => handleResponse(false)}
               >
                 몰라요

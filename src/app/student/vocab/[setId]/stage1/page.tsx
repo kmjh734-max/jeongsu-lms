@@ -18,7 +18,7 @@ export default async function StudentVocabStage1Page({ params }: PageProps) {
   if (ctx.itemCount < 1) redirect(`/student/vocab/${setId}`);
 
   return (
-    <div className="py-6 sm:py-10">
+    <div className="py-4 sm:py-6">
       <VocabStage1Study
         setId={setId}
         setTitle={ctx.set.title}
