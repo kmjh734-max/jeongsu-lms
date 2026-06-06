@@ -1,3 +1,4 @@
+import { extractChatMessageContent } from "@/lib/student-records/chat-content";
 import {
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
@@ -6,11 +7,13 @@ import {
   buildOcrChatBody,
   VISION_OCR_MODELS,
 } from "@/lib/student-records/ocr-chat";
-import { STUDENT_RECORD_VISION_BATCH_SIZE } from "@/lib/student-records/limits";
+import { STUDENT_RECORD_VISION_CONCURRENCY } from "@/lib/student-records/limits";
+
+type ImageDetail = "high" | "auto";
 
 type ContentPart =
   | { type: "text"; text: string }
-  | { type: "image_url"; image_url: { url: string; detail: "high" } };
+  | { type: "image_url"; image_url: { url: string; detail: ImageDetail } };
 
 const PAGE_EXTRACTION_SYSTEM = `당신은 학교생활기록부 OCR·전사 전문가입니다.
 첨부된 학생부 페이지 이미지에서 보이는 내용을 빠짐없이 한국어로 전사합니다.
@@ -39,24 +42,25 @@ function relaxProfile(
   return null;
 }
 
-function chunk<T>(items: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    out.push(items.slice(i, i + size));
-  }
-  return out;
-}
-
 function isUsefulOcrText(text: string): boolean {
-  return text.replace(/\s+/g, "").length >= 80;
+  return text.replace(/\s+/g, "").length >= 40;
 }
 
 async function callVisionText(
   apiKey: string,
   system: string,
   content: ContentPart[],
-  signal: AbortSignal
+  signal: AbortSignal,
+  detail: ImageDetail
 ): Promise<string | null> {
+  const contentWithDetail = content.map((part) => {
+    if (part.type !== "image_url") return part;
+    return {
+      type: "image_url" as const,
+      image_url: { url: part.image_url.url, detail },
+    };
+  });
+
   for (const model of VISION_OCR_MODELS) {
     let profile = defaultProfile();
 
@@ -69,7 +73,7 @@ async function callVisionText(
         },
         signal,
         body: JSON.stringify(
-          buildOcrChatBody(model, system, content, {
+          buildOcrChatBody(model, system, contentWithDetail, {
             includeTemperature: profile.includeTemperature,
             includeReasoningEffort: false,
           })
@@ -87,9 +91,11 @@ async function callVisionText(
       }
 
       const parsed = JSON.parse(bodyText) as {
-        choices?: { message?: { content?: string } }[];
+        choices?: { message?: { content?: unknown } }[];
       };
-      const raw = parsed.choices?.[0]?.message?.content?.trim() ?? "";
+      const raw = extractChatMessageContent(
+        parsed.choices?.[0]?.message?.content
+      );
       if (isUsefulOcrText(raw)) return raw;
     }
   }
@@ -97,75 +103,63 @@ async function callVisionText(
   return null;
 }
 
-async function extractPageRange(
+async function extractSinglePage(
   apiKey: string,
-  images: string[],
-  startPage: number,
+  imageUrl: string,
+  pageNum: number,
   totalPages: number,
   studentName: string,
   signal: AbortSignal
 ): Promise<string> {
-  const endPage = startPage + images.length - 1;
-  const rangeLabel =
-    images.length === 1
-      ? `학생부 페이지 ${startPage}`
-      : `학생부 페이지 ${startPage}~${endPage}`;
-
   const userText = [
     `학생: ${studentName}`,
-    `${rangeLabel} (총 ${totalPages}페이지 중)`,
-    "아래 이미지들의 내용을 전사·정리해 주세요.",
+    `학생부 페이지 ${pageNum} (총 ${totalPages}페이지 중)`,
+    "이 페이지 내용을 빠짐없이 전사·정리해 주세요.",
   ].join("\n");
 
-  const batchContent: ContentPart[] = [{ type: "text", text: userText }];
-  for (const url of images) {
-    batchContent.push({ type: "image_url", image_url: { url, detail: "high" } });
-  }
-
-  const batchText = await callVisionText(
-    apiKey,
-    PAGE_EXTRACTION_SYSTEM,
-    batchContent,
-    signal
-  );
-  if (batchText) {
-    return `=== ${rangeLabel} 전사 ===\n${batchText}`;
-  }
-
-  if (images.length === 1) {
-    return `=== ${rangeLabel} ===\n[이 구간 판독 실패]`;
-  }
-
-  const pageParts: string[] = [];
-  for (let i = 0; i < images.length; i++) {
-    const pageNum = startPage + i;
-    const singleContent: ContentPart[] = [
-      {
-        type: "text",
-        text: [
-          `학생: ${studentName}`,
-          `학생부 페이지 ${pageNum} (총 ${totalPages}페이지 중)`,
-          "이 페이지 내용을 전사·정리해 주세요.",
-        ].join("\n"),
-      },
-      { type: "image_url", image_url: { url: images[i]!, detail: "high" } },
+  for (const detail of ["high", "auto"] as const) {
+    const content: ContentPart[] = [
+      { type: "text", text: userText },
+      { type: "image_url", image_url: { url: imageUrl, detail } },
     ];
 
-    const singleText = await callVisionText(
+    const extracted = await callVisionText(
       apiKey,
       PAGE_EXTRACTION_SYSTEM,
-      singleContent,
-      signal
+      content,
+      signal,
+      detail
     );
-
-    pageParts.push(
-      singleText
-        ? `=== 학생부 페이지 ${pageNum} 전사 ===\n${singleText}`
-        : `=== 학생부 페이지 ${pageNum} ===\n[이 구간 판독 실패]`
-    );
+    if (extracted) {
+      return `=== 학생부 페이지 ${pageNum} 전사 ===\n${extracted}`;
+    }
   }
 
-  return pageParts.join("\n\n");
+  return `=== 학생부 페이지 ${pageNum} ===\n[이 구간 판독 실패]`;
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  worker: (item: T, index: number) => Promise<R>,
+  limit: number
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function runWorker() {
+    while (nextIndex < items.length) {
+      const current = nextIndex;
+      nextIndex += 1;
+      results[current] = await worker(items[current]!, current);
+    }
+  }
+
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    () => runWorker()
+  );
+  await Promise.all(workers);
+  return results;
 }
 
 export async function extractTextFromPageImages(
@@ -174,23 +168,29 @@ export async function extractTextFromPageImages(
   studentName: string,
   signal: AbortSignal
 ): Promise<string> {
-  const batches = chunk(pageImages, STUDENT_RECORD_VISION_BATCH_SIZE);
-  const parts: string[] = [];
-
-  for (let i = 0; i < batches.length; i++) {
-    const batch = batches[i]!;
-    const startPage = i * STUDENT_RECORD_VISION_BATCH_SIZE + 1;
-
-    const extracted = await extractPageRange(
-      apiKey,
-      batch,
-      startPage,
-      pageImages.length,
-      studentName,
-      signal
-    );
-    parts.push(extracted);
-  }
+  const parts = await mapWithConcurrency(
+    pageImages,
+    (imageUrl, index) =>
+      extractSinglePage(
+        apiKey,
+        imageUrl,
+        index + 1,
+        pageImages.length,
+        studentName,
+        signal
+      ),
+    STUDENT_RECORD_VISION_CONCURRENCY
+  );
 
   return parts.join("\n\n");
+}
+
+export function countSuccessfulOcrPages(text: string): {
+  success: number;
+  failed: number;
+  total: number;
+} {
+  const success = (text.match(/=== 학생부 페이지 \d+ 전사 ===/g) ?? []).length;
+  const failed = (text.match(/\[이 구간 판독 실패\]/g) ?? []).length;
+  return { success, failed, total: success + failed };
 }

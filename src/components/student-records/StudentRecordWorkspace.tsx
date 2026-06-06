@@ -9,14 +9,17 @@ import type {
   ReportStudentOption,
 } from "@/lib/reports/types";
 import {
+  chunkStudentRecordFiles,
   formatBytes,
   prepareStudentRecordFiles,
   readStudentRecordApiResponse,
   STUDENT_RECORD_MAX_PDF_PAGES,
   STUDENT_RECORD_MAX_TOTAL_BYTES,
+  validatePreparedExtractChunk,
   validatePreparedStudentRecordFiles,
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
+import { hasSubstantiveStudentRecordText } from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
 interface StudentRecordWorkspaceProps {
@@ -100,40 +103,97 @@ export function StudentRecordWorkspace({
         throw new Error(preparedError);
       }
 
-      const formData = new FormData();
-      if (selectedStudentId) {
-        formData.set("studentId", selectedStudentId);
-      }
-      if (!selectedStudentId && manualStudentName.trim()) {
-        formData.set("studentName", manualStudentName.trim());
-      }
-      formData.set("text", text);
-      for (const file of preparedFiles) {
-        formData.append("files", file);
+      const pastedText = text.trim();
+      const imageChunks =
+        preparedFiles.length > 0 ? chunkStudentRecordFiles(preparedFiles) : [];
+      const ocrTexts: string[] = [];
+      let resolvedStudentId: string | null = null;
+      let resolvedStudentName = "";
+
+      if (imageChunks.length === 0) {
+        const formData = new FormData();
+        if (selectedStudentId) formData.set("studentId", selectedStudentId);
+        if (!selectedStudentId && manualStudentName.trim()) {
+          formData.set("studentName", manualStudentName.trim());
+        }
+        formData.set("text", pastedText);
+
+        setProgressLabel("1/2 학생부 자료 읽는 중…");
+        const extractRes = await fetch("/api/student-records/extract", {
+          method: "POST",
+          body: formData,
+        });
+        const { data: extracted, error: extractError } =
+          await readStudentRecordApiResponse<{
+            ok: boolean;
+            message?: string;
+            text?: string;
+            studentId?: string | null;
+            studentName?: string;
+          }>(extractRes);
+
+        if (extractError) throw new Error(extractError);
+        if (!extracted?.ok || !extracted.text || !extracted.studentName) {
+          throw new Error(extracted?.message ?? "자료 읽기에 실패했습니다.");
+        }
+
+        resolvedStudentId = extracted.studentId ?? null;
+        resolvedStudentName = extracted.studentName;
+        ocrTexts.push(extracted.text);
+      } else {
+        for (let i = 0; i < imageChunks.length; i++) {
+          const chunk = imageChunks[i]!;
+          const chunkError = validatePreparedExtractChunk(chunk);
+          if (chunkError) throw new Error(chunkError);
+
+          setProgressLabel(
+            `1/2 OCR 전사 중… ${i + 1}/${imageChunks.length}묶음 (${chunk.length}페이지)`
+          );
+
+          const formData = new FormData();
+          if (selectedStudentId) formData.set("studentId", selectedStudentId);
+          if (!selectedStudentId && manualStudentName.trim()) {
+            formData.set("studentName", manualStudentName.trim());
+          }
+          if (i === 0 && pastedText) {
+            formData.set("text", pastedText);
+          }
+          for (const file of chunk) {
+            formData.append("files", file);
+          }
+
+          const extractRes = await fetch("/api/student-records/extract", {
+            method: "POST",
+            body: formData,
+          });
+          const { data: extracted, error: extractError } =
+            await readStudentRecordApiResponse<{
+              ok: boolean;
+              message?: string;
+              text?: string;
+              studentId?: string | null;
+              studentName?: string;
+            }>(extractRes);
+
+          if (extractError) throw new Error(extractError);
+          if (!extracted?.ok || !extracted.text || !extracted.studentName) {
+            throw new Error(
+              extracted?.message ??
+                `${i + 1}번째 OCR 묶음 처리에 실패했습니다.`
+            );
+          }
+
+          resolvedStudentId = extracted.studentId ?? resolvedStudentId;
+          resolvedStudentName = extracted.studentName;
+          ocrTexts.push(extracted.text);
+        }
       }
 
-      setProgressLabel(
-        `1/2 학생부 OCR 전사 중… (${preparedFiles.length}페이지)`
-      );
-
-      const extractRes = await fetch("/api/student-records/extract", {
-        method: "POST",
-        body: formData,
-      });
-      const { data: extracted, error: extractError } =
-        await readStudentRecordApiResponse<{
-          ok: boolean;
-          message?: string;
-          text?: string;
-          studentId?: string | null;
-          studentName?: string;
-        }>(extractRes);
-
-      if (extractError) {
-        throw new Error(extractError);
-      }
-      if (!extracted?.ok || !extracted.text || !extracted.studentName) {
-        throw new Error(extracted?.message ?? "자료 읽기에 실패했습니다.");
+      const combinedExtractedText = ocrTexts.join("\n\n");
+      if (!hasSubstantiveStudentRecordText(combinedExtractedText)) {
+        throw new Error(
+          "학생부 OCR 결과가 충분하지 않습니다. 스캔 선명도를 확인하거나 텍스트를 직접 붙여넣어 주세요."
+        );
       }
 
       setProgressLabel("2/2 입학사정관 보고서 생성 중…");
@@ -142,8 +202,8 @@ export function StudentRecordWorkspace({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentName: extracted.studentName,
-          text: extracted.text,
+          studentName: resolvedStudentName,
+          text: combinedExtractedText,
         }),
       });
       const { data: generated, error: generateError } =
@@ -163,8 +223,8 @@ export function StudentRecordWorkspace({
       }
 
       setResult({
-        studentId: extracted.studentId ?? null,
-        studentName: extracted.studentName,
+        studentId: resolvedStudentId,
+        studentName: resolvedStudentName,
         html: generated.html,
         generatedAt: generated.generatedAt,
       });

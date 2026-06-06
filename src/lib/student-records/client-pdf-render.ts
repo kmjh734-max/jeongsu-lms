@@ -1,9 +1,9 @@
 import {
   STUDENT_RECORD_MAX_PDF_PAGES,
-  STUDENT_RECORD_PREPARED_UPLOAD_BUDGET,
+  STUDENT_RECORD_PAGE_JPEG_TARGET_BYTES,
 } from "@/lib/student-records/limits";
 
-const MAX_PAGE_EDGE = 1400;
+const MAX_PAGE_EDGE = 2000;
 
 export async function pdfFileToJpegFiles(
   file: File,
@@ -19,9 +19,6 @@ export async function pdfFileToJpegFiles(
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjs.getDocument({ data }).promise;
   const pageLimit = Math.min(pdf.numPages, maxPages);
-  const perPageBudget = Math.floor(
-    STUDENT_RECORD_PREPARED_UPLOAD_BUDGET / Math.max(pageLimit, 1)
-  );
   const baseName = file.name.replace(/\.pdf$/i, "") || "student-record";
   const output: File[] = [];
 
@@ -31,7 +28,7 @@ export async function pdfFileToJpegFiles(
     const page = await pdf.getPage(pageNum);
     const viewport = page.getViewport({ scale: 1 });
     const edgeScale = MAX_PAGE_EDGE / Math.max(viewport.width, viewport.height);
-    const renderScale = Math.min(2, Math.max(1, edgeScale));
+    const renderScale = Math.min(2.5, Math.max(1.2, edgeScale));
     const scaled = page.getViewport({ scale: renderScale });
 
     const canvas = document.createElement("canvas");
@@ -40,17 +37,21 @@ export async function pdfFileToJpegFiles(
     const ctx = canvas.getContext("2d");
     if (!ctx) continue;
 
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-    let quality = 0.88;
+    let quality = 0.92;
     let blob: Blob | null = null;
-    for (let attempt = 0; attempt < 5; attempt++) {
+    for (let attempt = 0; attempt < 6; attempt++) {
       blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob(resolve, "image/jpeg", quality);
       });
       if (!blob) break;
-      if (blob.size <= perPageBudget) break;
-      quality -= 0.1;
+      if (blob.size <= STUDENT_RECORD_PAGE_JPEG_TARGET_BYTES) break;
+      quality -= 0.08;
+      if (quality < 0.55) break;
     }
 
     if (blob && blob.size > 0) {

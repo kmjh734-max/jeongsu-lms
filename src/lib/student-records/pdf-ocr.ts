@@ -1,3 +1,4 @@
+import { extractChatMessageContent } from "@/lib/student-records/chat-content";
 import {
   buildOcrChatBody,
   PDF_OCR_MODELS,
@@ -98,9 +99,11 @@ async function callOcrChat(
     }
 
     const parsed = JSON.parse(bodyText) as {
-      choices?: { message?: { content?: string }; finish_reason?: string }[];
+      choices?: { message?: { content?: unknown }; finish_reason?: string }[];
     };
-    const raw = parsed.choices?.[0]?.message?.content?.trim() ?? "";
+    const raw = extractChatMessageContent(
+      parsed.choices?.[0]?.message?.content
+    );
     if (raw.length >= 200) return raw;
   }
 

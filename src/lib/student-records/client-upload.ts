@@ -1,6 +1,7 @@
 import { pdfFileToJpegFiles } from "@/lib/student-records/client-pdf-render";
 import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
 import {
+  STUDENT_RECORD_EXTRACT_CHUNK_PAGES,
   STUDENT_RECORD_MAX_DIRECT_IMAGES,
   STUDENT_RECORD_MAX_IMAGE_BYTES,
   STUDENT_RECORD_MAX_PDF_BYTES,
@@ -9,9 +10,21 @@ import {
 } from "@/lib/student-records/limits";
 
 export {
+  STUDENT_RECORD_EXTRACT_CHUNK_PAGES,
   STUDENT_RECORD_MAX_PDF_PAGES,
   STUDENT_RECORD_MAX_TOTAL_BYTES,
 } from "@/lib/student-records/limits";
+
+export function chunkStudentRecordFiles(
+  files: File[],
+  chunkSize = STUDENT_RECORD_EXTRACT_CHUNK_PAGES
+): File[][] {
+  const chunks: File[][] = [];
+  for (let i = 0; i < files.length; i += chunkSize) {
+    chunks.push(files.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes}B`;
@@ -54,14 +67,11 @@ export function validateStudentRecordFiles(files: File[]): string | null {
   return null;
 }
 
-/** PDF→JPEG 변환 후 업로드 검증 */
+/** PDF→JPEG 변환 후 전체 페이지 수 검증 */
 export function validatePreparedStudentRecordFiles(files: File[]): string | null {
   let imageCount = 0;
-  let total = 0;
 
   for (const file of files) {
-    total += file.size;
-
     if (isPdfUpload(file)) {
       return "PDF 변환에 실패했습니다. 브라우저를 새로고침한 뒤 다시 시도해 주세요.";
     }
@@ -77,8 +87,31 @@ export function validatePreparedStudentRecordFiles(files: File[]): string | null
     return "지원 형식: PDF, JPG/PNG/WEBP 이미지입니다.";
   }
 
+  return null;
+}
+
+/** OCR extract 1회 요청 분량 검증 */
+export function validatePreparedExtractChunk(files: File[]): string | null {
+  if (files.length === 0) {
+    return "OCR할 이미지가 없습니다.";
+  }
+  if (files.length > STUDENT_RECORD_EXTRACT_CHUNK_PAGES) {
+    return `한 번에 OCR할 수 있는 페이지는 ${STUDENT_RECORD_EXTRACT_CHUNK_PAGES}장입니다.`;
+  }
+
+  let total = 0;
+  for (const file of files) {
+    total += file.size;
+    if (isPdfUpload(file)) {
+      return "PDF 변환에 실패했습니다. 브라우저를 새로고침한 뒤 다시 시도해 주세요.";
+    }
+    if (!isImageUpload(file)) {
+      return "지원 형식: JPG/PNG/WEBP 이미지입니다.";
+    }
+  }
+
   if (total > STUDENT_RECORD_MAX_TOTAL_BYTES) {
-    return `변환된 이미지 용량이 ${formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)}를 초과합니다. 페이지 수가 많은 PDF는 일부만 업로드하거나 선명도를 낮춰 주세요.`;
+    return `이미지 묶음 용량이 ${formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)}를 초과합니다. PDF 페이지 수를 줄여 주세요.`;
   }
 
   return null;
