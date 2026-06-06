@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { DAY_LABELS } from "@/lib/listening/schedule/days-of-week";
+import {
+  StudentListeningCalendar,
+  type ListeningCalendarData,
+} from "@/components/listening/StudentListeningCalendar";
 
 interface DailyTaskView {
   id: string;
@@ -21,6 +25,7 @@ export interface TodaySummary {
   todayTask: DailyTaskView | null;
   missedTasks: DailyTaskView[];
   nextStudyDate: string | null;
+  calendar?: ListeningCalendarData;
 }
 
 interface StudentListeningTodayPanelProps {
@@ -148,9 +153,15 @@ export function StudentListeningTodayPanel({
   const [loading, setLoading] = useState(!initialSummary);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (silent = false) => {
+  const load = useCallback(async (silent = false, year?: number, month?: number) => {
     if (!silent) setError(null);
-    const res = await fetch("/api/listening/schedule-assignments/today");
+    const params = new URLSearchParams();
+    if (year) params.set("year", String(year));
+    if (month) params.set("month", String(month));
+    const qs = params.toString();
+    const res = await fetch(
+      `/api/listening/schedule-assignments/today${qs ? `?${qs}` : ""}`
+    );
     const data = (await res.json()) as TodaySummary & {
       ok?: boolean;
       message?: string;
@@ -159,10 +170,19 @@ export function StudentListeningTodayPanel({
       if (!silent) {
         setError(data.message ?? "오늘 과제를 불러오지 못했습니다.");
       }
-      return;
+      return null;
     }
     setSummary(data);
+    return data;
   }, []);
+
+  const loadCalendarMonth = useCallback(
+    async (year: number, month: number) => {
+      const data = await load(true, year, month);
+      return data?.calendar ?? null;
+    },
+    [load]
+  );
 
   useEffect(() => {
     if (initialSummary) {
@@ -195,5 +215,15 @@ export function StudentListeningTodayPanel({
 
   if (!summary) return null;
 
-  return <TodaySummaryView summary={summary} />;
+  return (
+    <>
+      <TodaySummaryView summary={summary} />
+      {summary.calendar && (
+        <StudentListeningCalendar
+          initialCalendar={summary.calendar}
+          onMonthChange={loadCalendarMonth}
+        />
+      )}
+    </>
+  );
 }

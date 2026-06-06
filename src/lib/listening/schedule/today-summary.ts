@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import {
   nextStudyDateAfter,
   parseDateOnly,
@@ -115,7 +116,7 @@ function mapTaskRow(
 export async function getStudentScheduleTodaySummaryReadOnly(
   admin: SupabaseClient,
   studentId: string,
-  todayIso = toDateOnlyString(new Date())
+  todayIso = getTodayIsoKorea()
 ) {
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
 
@@ -202,13 +203,22 @@ export async function getStudentScheduleTodaySummaryReadOnly(
 }
 
 /** 누락된 일일 과제 생성 — 응답 후 백그라운드 실행 */
+function addDaysIso(iso: string, days: number): string {
+  const d = parseDateOnly(iso);
+  d.setDate(d.getDate() + days);
+  return toDateOnlyString(d);
+}
+
 export async function ensureStudentScheduleDailyTasks(
   admin: SupabaseClient,
   studentId: string,
-  todayIso = toDateOnlyString(new Date())
+  todayIso = getTodayIsoKorea(),
+  options?: { futureDays?: number }
 ): Promise<void> {
+  const futureDays = options?.futureDays ?? 30;
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
   const lookbackFrom = lookbackIsoFrom(todayIso, MISSED_TASK_LOOKBACK_DAYS);
+  const futureTo = addDaysIso(todayIso, futureDays);
 
   await Promise.all(
     assignments.map(async (assignment) => {
@@ -216,14 +226,19 @@ export async function ensureStudentScheduleDailyTasks(
         assignment.start_date > lookbackFrom
           ? assignment.start_date
           : lookbackFrom;
-      if (rangeFrom > todayIso) return;
+      const rangeTo =
+        assignment.end_date && assignment.end_date < futureTo
+          ? assignment.end_date
+          : futureTo;
+      if (rangeFrom > rangeTo) return;
+
       const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
       await ensureDailyTasksForStudentRange(
         admin,
         assignment,
         studentId,
         rangeFrom,
-        todayIso,
+        rangeTo,
         queue
       );
       await ensureDailyTaskForStudentDate(
@@ -240,7 +255,7 @@ export async function ensureStudentScheduleDailyTasks(
 export async function getStudentScheduleTodaySummary(
   admin: SupabaseClient,
   studentId: string,
-  todayIso = toDateOnlyString(new Date())
+  todayIso = getTodayIsoKorea()
 ) {
   await ensureStudentScheduleDailyTasks(admin, studentId, todayIso);
   return getStudentScheduleTodaySummaryReadOnly(admin, studentId, todayIso);

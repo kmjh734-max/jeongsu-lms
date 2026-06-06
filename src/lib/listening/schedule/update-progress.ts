@@ -16,7 +16,9 @@ export async function updateDailyTaskQuestionProgress(
 ): Promise<{ ok: boolean; message?: string; taskCompleted?: boolean }> {
   const { data: task } = await admin
     .from("listening_daily_tasks")
-    .select("id, student_id, assignment_id, completed_count, total_count, status")
+    .select(
+      "id, student_id, assignment_id, set_id, completed_count, total_count, status"
+    )
     .eq("id", opts.dailyTaskId)
     .maybeSingle();
 
@@ -24,14 +26,22 @@ export async function updateDailyTaskQuestionProgress(
     return { ok: false, message: "오늘 과제를 찾을 수 없습니다." };
   }
 
-  const { data: assignment } = await admin
-    .from("listening_schedule_assignments")
-    .select("require_dictation_pass, dictation_pass_score")
-    .eq("id", task.assignment_id)
-    .maybeSingle();
+  const [{ data: assignment }, { data: set }] = await Promise.all([
+    admin
+      .from("listening_schedule_assignments")
+      .select("require_dictation_pass, dictation_pass_score")
+      .eq("id", task.assignment_id)
+      .maybeSingle(),
+    admin
+      .from("listening_sets")
+      .select("dictation_enabled")
+      .eq("id", task.set_id as string)
+      .maybeSingle(),
+  ]);
 
   const requireDictation =
-    assignment?.require_dictation_pass ?? opts.requireDictationPass;
+    (assignment?.require_dictation_pass ?? opts.requireDictationPass) &&
+    set?.dictation_enabled !== false;
   const passScore =
     assignment?.dictation_pass_score ?? opts.dictationPassScore;
 

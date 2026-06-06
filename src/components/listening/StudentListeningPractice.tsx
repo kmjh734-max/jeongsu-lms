@@ -353,7 +353,13 @@ export function StudentListeningPractice({
     setObjectiveSubmitted((prev) => ({ ...prev, [q.id]: true }));
     setShowScript(false);
     if (scheduleMode) {
-      void reportScheduleProgress(q.id, { objectiveCompleted: true });
+      void reportScheduleProgress(q.id, {
+        objectiveCompleted: true,
+        dictationCompleted: !dictationRequired,
+        dictationScore: !dictationRequired
+          ? scheduleMode.dictationPassScore
+          : undefined,
+      });
       if (!dictationRequired) {
         setDictationByQuestion((prev) => ({
           ...prev,

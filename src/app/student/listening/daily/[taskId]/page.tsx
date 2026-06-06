@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { loadDailyTaskProgressMap } from "@/lib/listening/schedule/update-progress";
 import { StudentListeningPractice } from "@/components/listening/StudentListeningPractice";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -27,6 +28,11 @@ export default async function StudentListeningDailyTaskPage({
     .maybeSingle();
 
   if (!task) notFound();
+
+  const todayIso = getTodayIsoKorea();
+  if ((task.task_date as string) > todayIso) {
+    redirect("/student/listening");
+  }
 
   const { data: assignment } = await admin
     .from("listening_schedule_assignments")
