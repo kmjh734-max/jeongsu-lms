@@ -1,3 +1,8 @@
+export interface StudentRecordPdfDocument {
+  name: string;
+  dataUrl: string;
+}
+
 export interface StudentRecordAnalysisResult {
   studentId: string | null;
   studentName: string;
@@ -10,4 +15,5 @@ export interface AnalyzeStudentRecordInput {
   studentName: string;
   text: string;
   imageDataUrls: string[];
+  pdfDocuments: StudentRecordPdfDocument[];
 }

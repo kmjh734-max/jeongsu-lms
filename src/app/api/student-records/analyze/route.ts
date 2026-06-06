@@ -63,11 +63,16 @@ export async function POST(request: Request) {
     }
 
     const combinedText = parsed.textParts.join("\n\n");
-    if (!combinedText.trim() && parsed.imageDataUrls.length === 0) {
+    const hasMaterial =
+      combinedText.trim().length > 0 ||
+      parsed.imageDataUrls.length > 0 ||
+      parsed.pdfDocuments.length > 0;
+
+    if (!hasMaterial) {
       const fileCount = formData.getAll("files").length;
       if (fileCount > 0) {
         return jsonError(
-          "PDF/이미지 파일을 읽지 못했습니다. 용량을 줄이거나 JPG/PNG로 나눠 업로드해 주세요."
+          "PDF/이미지 파일을 읽지 못했습니다. 용량을 줄이거나 다시 시도해 주세요."
         );
       }
       return jsonError(
@@ -80,6 +85,7 @@ export async function POST(request: Request) {
       studentName,
       text: combinedText,
       imageDataUrls: parsed.imageDataUrls,
+      pdfDocuments: parsed.pdfDocuments,
     });
 
     if (!result.ok) {

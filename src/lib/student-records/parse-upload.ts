@@ -1,18 +1,20 @@
 import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
-import { createPdfParser } from "@/lib/student-records/pdf-runtime";
 import {
   STUDENT_RECORD_MAX_DIRECT_IMAGES,
   STUDENT_RECORD_MAX_PDF_BYTES,
   STUDENT_RECORD_MAX_PDF_PAGES,
   STUDENT_RECORD_MAX_TOTAL_BYTES,
-  STUDENT_RECORD_PDF_RENDER_WIDTH,
 } from "@/lib/student-records/limits";
+import { createPdfParser } from "@/lib/student-records/pdf-runtime";
+import { renderPdfPageImages } from "@/lib/student-records/render-pdf-pages";
+import type { StudentRecordPdfDocument } from "@/lib/student-records/types";
 
 export { isPdfUpload } from "@/lib/student-records/file-types";
 
 export interface ParsedStudentRecordUpload {
   textParts: string[];
   imageDataUrls: string[];
+  pdfDocuments: StudentRecordPdfDocument[];
 }
 
 export async function parseStudentRecordUpload(
@@ -25,12 +27,13 @@ export async function parseStudentRecordUpload(
   }
 
   const imageDataUrls: string[] = [];
+  const pdfDocuments: StudentRecordPdfDocument[] = [];
   const files = formData.getAll("files");
   let totalBytes = 0;
   let directImageCount = 0;
 
   if (files.length === 0) {
-    return { textParts, imageDataUrls };
+    return { textParts, imageDataUrls, pdfDocuments };
   }
 
   for (const entry of files) {
@@ -47,7 +50,13 @@ export async function parseStudentRecordUpload(
         throw new Error("PDF 파일은 4MB 이하만 업로드할 수 있습니다.");
       }
       const buffer = Buffer.from(await entry.arrayBuffer());
-      await processPdfFile(buffer, entry.name, textParts, imageDataUrls);
+      await processPdfFile(
+        buffer,
+        entry.name,
+        textParts,
+        imageDataUrls,
+        pdfDocuments
+      );
       continue;
     }
 
@@ -77,14 +86,19 @@ export async function parseStudentRecordUpload(
     );
   }
 
-  return { textParts, imageDataUrls };
+  return { textParts, imageDataUrls, pdfDocuments };
+}
+
+function toPdfDataUrl(buffer: Buffer): string {
+  return `data:application/pdf;base64,${buffer.toString("base64")}`;
 }
 
 async function processPdfFile(
   buffer: Buffer,
   name: string,
   textParts: string[],
-  imageDataUrls: string[]
+  imageDataUrls: string[],
+  pdfDocuments: StudentRecordPdfDocument[]
 ): Promise<void> {
   const parser = createPdfParser(buffer);
 
@@ -111,47 +125,40 @@ async function processPdfFile(
       return;
     }
 
-    const slotsLeft = STUDENT_RECORD_MAX_PDF_PAGES - imageDataUrls.length;
-    if (slotsLeft <= 0) {
-      throw new Error(`PDF(${name}) 이미지 변환 한도에 도달했습니다.`);
-    }
+    const pageLimit = Math.min(
+      totalPages,
+      STUDENT_RECORD_MAX_PDF_PAGES - imageDataUrls.length
+    );
 
-    const pageLimit = Math.min(totalPages, slotsLeft);
-    let screenshots;
-    try {
-      screenshots = await parser.getScreenshot({
-        first: pageLimit,
-        desiredWidth: STUDENT_RECORD_PDF_RENDER_WIDTH,
-        imageDataUrl: true,
-        imageBuffer: false,
-      });
-    } catch {
-      screenshots = null;
-    }
-
-    const pages = screenshots?.pages ?? [];
-    for (const page of pages) {
-      if (imageDataUrls.length >= STUDENT_RECORD_MAX_PDF_PAGES) break;
-      if (page.dataUrl?.startsWith("data:image/")) {
-        imageDataUrls.push(page.dataUrl);
+    if (pageLimit > 0) {
+      const rendered = await renderPdfPageImages(parser, pageLimit);
+      for (const url of rendered) {
+        if (imageDataUrls.length >= STUDENT_RECORD_MAX_PDF_PAGES) break;
+        imageDataUrls.push(url);
       }
     }
 
-    if (imageDataUrls.length === 0) {
-      throw new Error(
-        `PDF(${name})에서 내용을 읽지 못했습니다. 스캔 PDF라면 선명한 JPG/PNG로 나눠 업로드해 주세요.`
+    pdfDocuments.push({
+      name,
+      dataUrl: toPdfDataUrl(buffer),
+    });
+
+    const pageNote =
+      totalPages > pageLimit
+        ? ` (전체 ${totalPages}페이지, OCR로 전 페이지 분석)`
+        : totalPages > 0
+          ? ` (${totalPages}페이지)`
+          : "";
+
+    if (imageDataUrls.length > 0) {
+      textParts.push(
+        `[PDF: ${name}] 스캔 PDF — ${imageDataUrls.length}페이지 이미지 변환 + OpenAI OCR${pageNote}`
+      );
+    } else {
+      textParts.push(
+        `[PDF: ${name}] 스캔 PDF — OpenAI OCR로 분석합니다.${pageNote}`
       );
     }
-
-    const converted = pages.length;
-    const omitted =
-      totalPages > converted
-        ? ` (전체 ${totalPages}페이지 중 ${converted}페이지 변환, 나머지는 용량·한도로 제외)`
-        : "";
-
-    textParts.push(
-      `[PDF: ${name}] 스캔 PDF — ${converted}페이지를 이미지로 변환해 분석합니다.${omitted}`
-    );
 
     if (pdfText) {
       textParts.push(`[PDF: ${name} 부분 텍스트]\n${pdfText}`);
