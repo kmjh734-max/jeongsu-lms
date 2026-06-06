@@ -12,6 +12,7 @@ import {
   formatBytes,
   prepareStudentRecordFiles,
   readStudentRecordApiResponse,
+  STUDENT_RECORD_MAX_PDF_PAGES,
   STUDENT_RECORD_MAX_TOTAL_BYTES,
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
@@ -242,7 +243,8 @@ export function StudentRecordWorkspace({
         </h2>
         <p className="text-xs text-slate-500">
           성적표·세특·창체·행특 텍스트를 붙여넣거나, PDF·이미지(JPG/PNG)를
-          업로드하세요. 전체 용량은 약 {formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)}
+          업로드하세요. 스캔 PDF는 최대 {STUDENT_RECORD_MAX_PDF_PAGES}페이지까지
+          분석합니다. 전체 용량은 약 {formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)}
           이하를 권장합니다.
         </p>
         <textarea
@@ -279,7 +281,7 @@ export function StudentRecordWorkspace({
           disabled={analyzing}
           onClick={() => void runAnalysis()}
         >
-          {analyzing ? "분석 생성 중… (1~3분 소요)" : "학생부 분석 보고서 생성"}
+          {analyzing ? "분석 생성 중… (페이지 많으면 5분+)" : "학생부 분석 보고서 생성"}
         </Button>
       </div>
     </div>

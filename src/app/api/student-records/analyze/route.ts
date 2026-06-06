@@ -6,7 +6,7 @@ import { analyzeStudentRecord } from "@/lib/student-records/analyze";
 import { parseStudentRecordUpload } from "@/lib/student-records/parse-upload";
 
 export const runtime = "nodejs";
-export const maxDuration = 180;
+export const maxDuration = 300;
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
