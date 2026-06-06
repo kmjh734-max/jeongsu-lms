@@ -31,21 +31,19 @@ async function loadActiveAssignmentsForStudent(
 ): Promise<ScheduleAssignmentRow[]> {
   const byId = new Map<string, ScheduleAssignmentRow>();
 
-  const { data: direct } = await admin
-    .from("listening_schedule_assignments")
-    .select("*")
-    .eq("is_active", true)
-    .eq("target_type", "student")
-    .eq("target_student_id", studentId);
+  const [{ data: direct }, { data: classRows }] = await Promise.all([
+    admin
+      .from("listening_schedule_assignments")
+      .select("*")
+      .eq("is_active", true)
+      .eq("target_type", "student")
+      .eq("target_student_id", studentId),
+    admin.from("class_students").select("class_id").eq("student_id", studentId),
+  ]);
 
   for (const row of (direct ?? []) as ScheduleAssignmentRow[]) {
     byId.set(row.id, row);
   }
-
-  const { data: classRows } = await admin
-    .from("class_students")
-    .select("class_id")
-    .eq("student_id", studentId);
 
   const classIds = (classRows ?? []).map((r) => r.class_id as string);
   if (classIds.length > 0) {
@@ -113,47 +111,32 @@ function mapTaskRow(
   };
 }
 
-export async function getStudentScheduleTodaySummary(
+/** 기존 과제만 조회 — 페이지 로딩을 막지 않음 */
+export async function getStudentScheduleTodaySummaryReadOnly(
   admin: SupabaseClient,
   studentId: string,
   todayIso = toDateOnlyString(new Date())
 ) {
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
 
-  const lookbackFrom = lookbackIsoFrom(todayIso, MISSED_TASK_LOOKBACK_DAYS);
-  await Promise.all(
-    assignments.map(async (assignment) => {
-      const rangeFrom =
-        assignment.start_date > lookbackFrom ? assignment.start_date : lookbackFrom;
-      if (rangeFrom > todayIso) return;
-      const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
-      await ensureDailyTasksForStudentRange(
-        admin,
-        assignment,
-        studentId,
-        rangeFrom,
-        todayIso,
-        queue
-      );
-      await ensureDailyTaskForStudentDate(
-        admin,
-        assignment,
-        studentId,
-        todayIso,
-        queue
-      );
-    })
-  );
-
-  const { data: missedRows } = await admin
-    .from("listening_daily_tasks")
-    .select(
-      "id, assignment_id, task_date, set_id, question_ids, status, completed_count, total_count, assignment:listening_schedule_assignments(title)"
-    )
-    .eq("student_id", studentId)
-    .lt("task_date", todayIso)
-    .in("status", ["pending", "in_progress"])
-    .order("task_date", { ascending: true });
+  const [{ data: missedRows }, { data: todayRows }] = await Promise.all([
+    admin
+      .from("listening_daily_tasks")
+      .select(
+        "id, assignment_id, task_date, set_id, question_ids, status, completed_count, total_count, assignment:listening_schedule_assignments(title)"
+      )
+      .eq("student_id", studentId)
+      .lt("task_date", todayIso)
+      .in("status", ["pending", "in_progress"])
+      .order("task_date", { ascending: true }),
+    admin
+      .from("listening_daily_tasks")
+      .select(
+        "id, assignment_id, task_date, set_id, question_ids, status, completed_count, total_count"
+      )
+      .eq("student_id", studentId)
+      .eq("task_date", todayIso),
+  ]);
 
   const missedSetIds = (missedRows ?? []).map((r) => r.set_id as string);
   const missedSetTitles = await loadSetTitles(admin, missedSetIds);
@@ -170,28 +153,22 @@ export async function getStudentScheduleTodaySummary(
     );
   }
 
+  const assignmentById = new Map(assignments.map((a) => [a.id, a]));
   let todayTask: StudentDailyTaskView | null = null;
   let nextStudyDate: string | null = null;
 
+  for (const row of todayRows ?? []) {
+    if (todayTask) break;
+    const assignment = assignmentById.get(row.assignment_id as string);
+    if (!assignment) continue;
+    todayTask = mapTaskRow(
+      row as Record<string, unknown>,
+      assignment.title,
+      ""
+    );
+  }
+
   for (const assignment of assignments) {
-    const { data: todayRow } = await admin
-      .from("listening_daily_tasks")
-      .select(
-        "id, assignment_id, task_date, set_id, question_ids, status, completed_count, total_count"
-      )
-      .eq("student_id", studentId)
-      .eq("assignment_id", assignment.id)
-      .eq("task_date", todayIso)
-      .maybeSingle();
-
-    if (todayRow && !todayTask) {
-      todayTask = mapTaskRow(
-        todayRow as Record<string, unknown>,
-        assignment.title,
-        ""
-      );
-    }
-
     const next = nextStudyDateAfter(
       todayIso,
       assignment.days_of_week,
@@ -222,4 +199,49 @@ export async function getStudentScheduleTodaySummary(
     missedTasks,
     nextStudyDate,
   };
+}
+
+/** 누락된 일일 과제 생성 — 응답 후 백그라운드 실행 */
+export async function ensureStudentScheduleDailyTasks(
+  admin: SupabaseClient,
+  studentId: string,
+  todayIso = toDateOnlyString(new Date())
+): Promise<void> {
+  const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
+  const lookbackFrom = lookbackIsoFrom(todayIso, MISSED_TASK_LOOKBACK_DAYS);
+
+  await Promise.all(
+    assignments.map(async (assignment) => {
+      const rangeFrom =
+        assignment.start_date > lookbackFrom
+          ? assignment.start_date
+          : lookbackFrom;
+      if (rangeFrom > todayIso) return;
+      const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
+      await ensureDailyTasksForStudentRange(
+        admin,
+        assignment,
+        studentId,
+        rangeFrom,
+        todayIso,
+        queue
+      );
+      await ensureDailyTaskForStudentDate(
+        admin,
+        assignment,
+        studentId,
+        todayIso,
+        queue
+      );
+    })
+  );
+}
+
+export async function getStudentScheduleTodaySummary(
+  admin: SupabaseClient,
+  studentId: string,
+  todayIso = toDateOnlyString(new Date())
+) {
+  await ensureStudentScheduleDailyTasks(admin, studentId, todayIso);
+  return getStudentScheduleTodaySummaryReadOnly(admin, studentId, todayIso);
 }

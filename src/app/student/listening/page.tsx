@@ -3,18 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StudentListeningTodayPanel } from "@/components/listening/StudentListeningTodayPanel";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { getStudentScheduleTodaySummary } from "@/lib/listening/schedule/today-summary";
 import { fetchStudentListeningSets } from "@/lib/listening/student-sets";
 
 export default async function StudentListeningPage() {
-  const profile = await getCurrentProfile();
-  const supabase = await createClient();
-
-  const [sets, scheduleSummary] = await Promise.all([
-    fetchStudentListeningSets(supabase, profile!.id),
-    getStudentScheduleTodaySummary(createAdminClient(), profile!.id),
+  const [profile, supabase] = await Promise.all([
+    getCurrentProfile(),
+    createClient(),
   ]);
+
+  const sets = await fetchStudentListeningSets(supabase, profile!.id);
 
   return (
     <div>
@@ -23,15 +20,7 @@ export default async function StudentListeningPage() {
         description="배정된 듣기 연습을 진행합니다."
       />
       <div className="mt-6">
-        <StudentListeningTodayPanel
-          initialSummary={{
-            todayIso: scheduleSummary.todayIso,
-            isStudyDayToday: scheduleSummary.isStudyDayToday,
-            todayTask: scheduleSummary.todayTask,
-            missedTasks: scheduleSummary.missedTasks,
-            nextStudyDate: scheduleSummary.nextStudyDate,
-          }}
-        />
+        <StudentListeningTodayPanel />
         {sets.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
             <p>배정된 듣기 세트가 없습니다.</p>

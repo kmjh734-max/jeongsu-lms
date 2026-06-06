@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { BrandLogo } from "@/components/branding/BrandLogo";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { Badge } from "@/components/ui/Badge";
@@ -33,6 +34,13 @@ function isNavActive(pathname: string, href: string): boolean {
 
 export function AppHeader({ profile, items }: AppHeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    for (const item of items) {
+      router.prefetch(item.href);
+    }
+  }, [items, router]);
   const displayId =
     profile.username?.trim() ||
     profile.email?.split("@")[0] ||
@@ -76,6 +84,7 @@ export function AppHeader({ profile, items }: AppHeaderProps) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch
               className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                 active
                   ? "bg-brand-600 text-white"

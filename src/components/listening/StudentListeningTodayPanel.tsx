@@ -25,6 +25,8 @@ export interface TodaySummary {
 
 interface StudentListeningTodayPanelProps {
   initialSummary?: TodaySummary | null;
+  /** 과제 생성 후 갱신 */
+  refreshAfterEnsureMs?: number;
 }
 
 function formatStudyDate(iso: string): string {
@@ -140,20 +142,23 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
 
 export function StudentListeningTodayPanel({
   initialSummary = null,
+  refreshAfterEnsureMs = 2000,
 }: StudentListeningTodayPanelProps) {
   const [summary, setSummary] = useState<TodaySummary | null>(initialSummary);
   const [loading, setLoading] = useState(!initialSummary);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setError(null);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setError(null);
     const res = await fetch("/api/listening/schedule-assignments/today");
     const data = (await res.json()) as TodaySummary & {
       ok?: boolean;
       message?: string;
     };
     if (!data.ok) {
-      setError(data.message ?? "오늘 과제를 불러오지 못했습니다.");
+      if (!silent) {
+        setError(data.message ?? "오늘 과제를 불러오지 못했습니다.");
+      }
       return;
     }
     setSummary(data);
@@ -161,12 +166,20 @@ export function StudentListeningTodayPanel({
 
   useEffect(() => {
     if (initialSummary) {
-      void load();
+      setSummary(initialSummary);
+      setLoading(false);
       return;
     }
+
     setLoading(true);
     void load().finally(() => setLoading(false));
-  }, [initialSummary, load]);
+
+    if (refreshAfterEnsureMs <= 0) return;
+    const timer = window.setTimeout(() => {
+      void load(true);
+    }, refreshAfterEnsureMs);
+    return () => window.clearTimeout(timer);
+  }, [initialSummary, load, refreshAfterEnsureMs]);
 
   if (loading && !summary) {
     return (
