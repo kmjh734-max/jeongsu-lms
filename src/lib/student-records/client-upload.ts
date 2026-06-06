@@ -1,9 +1,4 @@
-const IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-]);
+import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
 
 /** Vercel 요청 본문 한도(4.5MB)를 고려한 안전 상한 */
 export const STUDENT_RECORD_MAX_TOTAL_BYTES = 3_500_000;
@@ -24,14 +19,14 @@ export function validateStudentRecordFiles(files: File[]): string | null {
   for (const file of files) {
     total += file.size;
 
-    if (file.type === "application/pdf") {
+    if (isPdfUpload(file)) {
       if (file.size > STUDENT_RECORD_MAX_PDF_BYTES) {
         return `PDF는 ${formatBytes(STUDENT_RECORD_MAX_PDF_BYTES)} 이하만 업로드할 수 있습니다. (${file.name})`;
       }
       continue;
     }
 
-    if (IMAGE_TYPES.has(file.type)) {
+    if (isImageUpload(file)) {
       imageCount += 1;
       if (imageCount > STUDENT_RECORD_MAX_IMAGES) {
         return `이미지는 최대 ${STUDENT_RECORD_MAX_IMAGES}장까지 업로드할 수 있습니다.`;
@@ -68,7 +63,7 @@ async function loadImage(file: File): Promise<HTMLImageElement> {
 }
 
 export async function compressImageForUpload(file: File): Promise<File> {
-  if (!IMAGE_TYPES.has(file.type)) return file;
+  if (!isImageUpload(file)) return file;
   if (file.size <= 400_000) return file;
 
   const img = await loadImage(file);
@@ -97,7 +92,7 @@ export async function compressImageForUpload(file: File): Promise<File> {
 export async function prepareStudentRecordFiles(files: File[]): Promise<File[]> {
   const prepared: File[] = [];
   for (const file of files) {
-    if (IMAGE_TYPES.has(file.type)) {
+    if (isImageUpload(file)) {
       prepared.push(await compressImageForUpload(file));
     } else {
       prepared.push(file);

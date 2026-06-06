@@ -1,14 +1,12 @@
 const MAX_IMAGE_BYTES = 1 * 1024 * 1024;
 const MAX_PDF_BYTES = 3 * 1024 * 1024;
 const MAX_IMAGES = 4;
+const MAX_PDF_PAGES = 4;
 const MAX_TOTAL_BYTES = 3_500_000;
 
-const IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-]);
+import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
+
+export { isPdfUpload } from "@/lib/student-records/file-types";
 
 export interface ParsedStudentRecordUpload {
   textParts: string[];
@@ -28,6 +26,10 @@ export async function parseStudentRecordUpload(
   const files = formData.getAll("files");
   let totalBytes = 0;
 
+  if (files.length === 0) {
+    return { textParts, imageDataUrls };
+  }
+
   for (const entry of files) {
     if (!(entry instanceof File) || entry.size === 0) continue;
     totalBytes += entry.size;
@@ -37,19 +39,16 @@ export async function parseStudentRecordUpload(
       );
     }
 
-    if (entry.type === "application/pdf") {
+    if (isPdfUpload(entry)) {
       if (entry.size > MAX_PDF_BYTES) {
         throw new Error("PDF 파일은 3MB 이하만 업로드할 수 있습니다.");
       }
       const buffer = Buffer.from(await entry.arrayBuffer());
-      const pdfText = await extractPdfText(buffer);
-      if (pdfText.trim()) {
-        textParts.push(`[PDF: ${entry.name}]\n${pdfText.trim()}`);
-      }
+      await processPdfFile(buffer, entry.name, textParts, imageDataUrls);
       continue;
     }
 
-    if (IMAGE_TYPES.has(entry.type)) {
+    if (isImageUpload(entry)) {
       if (imageDataUrls.length >= MAX_IMAGES) {
         throw new Error(`이미지는 최대 ${MAX_IMAGES}장까지 업로드할 수 있습니다.`);
       }
@@ -63,24 +62,74 @@ export async function parseStudentRecordUpload(
     }
 
     throw new Error(
-      "지원 형식: 텍스트, PDF, JPG/PNG/WEBP 이미지입니다."
+      `지원하지 않는 파일 형식입니다. (${entry.name || "unknown"}) PDF, JPG/PNG/WEBP만 업로드할 수 있습니다.`
     );
   }
 
   return { textParts, imageDataUrls };
 }
 
-async function extractPdfText(buffer: Buffer): Promise<string> {
+async function processPdfFile(
+  buffer: Buffer,
+  name: string,
+  textParts: string[],
+  imageDataUrls: string[]
+): Promise<void> {
+  const { PDFParse } = await import("pdf-parse");
+  const parser = new PDFParse({ data: buffer });
+
   try {
-    const { PDFParse } = await import("pdf-parse");
-    const parser = new PDFParse({ data: buffer });
+    let pdfText = "";
     try {
-      const result = await parser.getText();
-      return typeof result.text === "string" ? result.text : "";
-    } finally {
-      await parser.destroy();
+      const textResult = await parser.getText();
+      pdfText = typeof textResult.text === "string" ? textResult.text.trim() : "";
+    } catch {
+      pdfText = "";
     }
-  } catch {
-    return "";
+
+    if (pdfText) {
+      textParts.push(`[PDF: ${name}]\n${pdfText}`);
+      return;
+    }
+
+    const remainingSlots = MAX_IMAGES - imageDataUrls.length;
+    if (remainingSlots <= 0) {
+      throw new Error(
+        `PDF(${name})에서 텍스트를 추출하지 못했고, 이미지 변환 슬롯이 없습니다.`
+      );
+    }
+
+    const pageLimit = Math.min(MAX_PDF_PAGES, remainingSlots);
+    let screenshots;
+    try {
+      screenshots = await parser.getScreenshot({
+        first: pageLimit,
+        desiredWidth: 1000,
+        imageDataUrl: true,
+        imageBuffer: false,
+      });
+    } catch {
+      screenshots = null;
+    }
+
+    const pages = screenshots?.pages ?? [];
+    for (const page of pages) {
+      if (imageDataUrls.length >= MAX_IMAGES) break;
+      if (page.dataUrl?.startsWith("data:image/")) {
+        imageDataUrls.push(page.dataUrl);
+      }
+    }
+
+    if (imageDataUrls.length === 0) {
+      throw new Error(
+        `PDF(${name})에서 내용을 읽지 못했습니다. 스캔 PDF라면 선명한 JPG/PNG로 나눠 업로드해 주세요.`
+      );
+    }
+
+    textParts.push(
+      `[PDF: ${name}] 텍스트 레이어 없음 — ${pages.length}페이지를 이미지로 변환해 분석합니다.`
+    );
+  } finally {
+    await parser.destroy();
   }
 }

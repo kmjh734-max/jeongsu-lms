@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@ffmpeg-installer/ffmpeg"],
+  serverExternalPackages: [
+    "@ffmpeg-installer/ffmpeg",
+    "@napi-rs/canvas",
+    "pdf-parse",
+  ],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },
