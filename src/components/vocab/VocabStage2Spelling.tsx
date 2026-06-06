@@ -71,22 +71,30 @@ export function VocabStage2Spelling({
     const itemId = current.id;
     const attemptRound = round;
 
-    void recordStage2Attempt(setId, itemId, trimmed, isCorrect, attemptRound);
-
     if (isCorrect) {
       setMastered((m) => m + 1);
       const next = queue.slice(1);
       if (next.length === 0) {
-        router.push(`/student/vocab/${setId}`);
-        void completeStage2(setId).then((result) => {
-          if (result.ok) router.refresh();
-        });
+        void (async () => {
+          await recordStage2Attempt(
+            setId,
+            itemId,
+            trimmed,
+            true,
+            attemptRound
+          );
+          await completeStage2(setId);
+          router.push(`/student/vocab/${setId}`);
+          router.refresh();
+        })();
         return;
       }
+      void recordStage2Attempt(setId, itemId, trimmed, true, attemptRound);
       setQueue(next);
       setAnswer("");
       setFeedback(null);
     } else {
+      void recordStage2Attempt(setId, itemId, trimmed, false, attemptRound);
       setFeedback({ correct: false, showAnswer: true });
       setRound((r) => r + 1);
     }

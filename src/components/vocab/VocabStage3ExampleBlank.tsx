@@ -65,10 +65,11 @@ export function VocabStage3ExampleBlank({
   useEffect(() => {
     if (total > 0 || items.length === 0 || autoCompleting) return;
     setAutoCompleting(true);
-    router.push(`/student/vocab/${setId}`);
-    void completeStage3(setId).then((result) => {
-      if (result.ok) router.refresh();
-    });
+    void (async () => {
+      await completeStage3(setId);
+      router.push(`/student/vocab/${setId}`);
+      router.refresh();
+    })();
   }, [total, items.length, setId, router, autoCompleting]);
 
   function checkAnswer() {
@@ -88,29 +89,45 @@ export function VocabStage3ExampleBlank({
         : current.word;
     const attemptRound = round;
 
-    void recordStage3ExampleAttempt(
-      setId,
-      current.itemId,
-      trimmed,
-      displayAnswer,
-      isCorrect,
-      attemptRound
-    );
-
     if (isCorrect) {
       setMastered((m) => m + 1);
       const next = queue.slice(1);
       if (next.length === 0) {
-        router.push(`/student/vocab/${setId}`);
-        void completeStage3(setId).then((result) => {
-          if (result.ok) router.refresh();
-        });
+        void (async () => {
+          await recordStage3ExampleAttempt(
+            setId,
+            current.itemId,
+            trimmed,
+            displayAnswer,
+            true,
+            attemptRound
+          );
+          await completeStage3(setId);
+          router.push(`/student/vocab/${setId}`);
+          router.refresh();
+        })();
         return;
       }
+      void recordStage3ExampleAttempt(
+        setId,
+        current.itemId,
+        trimmed,
+        displayAnswer,
+        true,
+        attemptRound
+      );
       setQueue(next);
       setAnswer("");
       setFeedback(null);
     } else {
+      void recordStage3ExampleAttempt(
+        setId,
+        current.itemId,
+        trimmed,
+        displayAnswer,
+        false,
+        attemptRound
+      );
       setFeedback({ showAnswer: true, displayAnswer });
       setRound((r) => r + 1);
     }
