@@ -1,0 +1,52 @@
+import { isGpt5FamilyModel } from "@/lib/student-records/model";
+
+export const PDF_OCR_MAX_OUTPUT_TOKENS = 32_768;
+
+export const PDF_OCR_MODELS = ["gpt-5.5", "gpt-4o", "gpt-4o-mini"] as const;
+
+export function buildOcrChatBody(
+  model: string,
+  system: string,
+  content: unknown,
+  options?: { includeTemperature?: boolean; includeReasoningEffort?: boolean }
+): Record<string, unknown> {
+  const includeTemperature = options?.includeTemperature ?? !isGpt5FamilyModel(model);
+  const includeReasoningEffort =
+    options?.includeReasoningEffort ?? isGpt5FamilyModel(model);
+
+  const body: Record<string, unknown> = {
+    model,
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content },
+    ],
+  };
+
+  if (includeTemperature) {
+    body.temperature = 0.2;
+  }
+
+  if (isGpt5FamilyModel(model)) {
+    body.max_completion_tokens = PDF_OCR_MAX_OUTPUT_TOKENS;
+    if (includeReasoningEffort) {
+      body.reasoning_effort = "low";
+    }
+  } else {
+    body.max_tokens = PDF_OCR_MAX_OUTPUT_TOKENS;
+  }
+
+  return body;
+}
+
+export function sanitizePdfFilename(name: string): string {
+  const base = name.trim() || "student-record.pdf";
+  if (base.toLowerCase().endsWith(".pdf")) return base;
+  return `${base}.pdf`;
+}
+
+export function pdfDataUrlToBuffer(dataUrl: string): Buffer {
+  const marker = "base64,";
+  const idx = dataUrl.indexOf(marker);
+  const b64 = idx >= 0 ? dataUrl.slice(idx + marker.length) : dataUrl;
+  return Buffer.from(b64, "base64");
+}

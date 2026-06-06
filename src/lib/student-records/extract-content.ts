@@ -1,4 +1,5 @@
 import { STUDENT_RECORD_ANALYSIS_TIMEOUT_MS } from "@/lib/student-records/limits";
+import { hasSubstantiveStudentRecordText, stripOcrPlaceholders } from "@/lib/student-records/ocr-quality";
 import { extractTextFromPdfDocuments } from "@/lib/student-records/pdf-ocr";
 import type { AnalyzeStudentRecordInput } from "@/lib/student-records/types";
 import { extractTextFromPageImages } from "@/lib/student-records/vision-extract";
@@ -29,8 +30,12 @@ export async function extractStudentRecordContent(
   );
 
   try {
-    let reportText = input.text.trim();
-    let reportImages = [...input.imageDataUrls];
+    const chunks: string[] = [];
+
+    const pasted = input.text.trim();
+    if (pasted) {
+      chunks.push(pasted);
+    }
 
     if (input.pdfDocuments.length > 0) {
       const ocrText = await extractTextFromPdfDocuments(
@@ -40,36 +45,36 @@ export async function extractStudentRecordContent(
         controller.signal
       );
       if (ocrText.trim()) {
-        reportText = [reportText, ocrText].filter(Boolean).join("\n\n");
-        const ocrSucceeded =
-          ocrText.length > 300 && !ocrText.includes("[OCR 실패]");
-        if (ocrSucceeded) {
-          reportImages = [];
-        }
+        chunks.push(ocrText);
       }
     }
 
-    if (reportImages.length > 0) {
+    if (input.imageDataUrls.length > 0) {
       const extracted = await extractTextFromPageImages(
         apiKey,
-        reportImages,
+        input.imageDataUrls,
         input.studentName,
         controller.signal
       );
       if (extracted.trim()) {
-        reportText = [reportText, extracted].filter(Boolean).join("\n\n");
+        chunks.push(extracted);
       }
     }
 
-    if (!reportText.trim()) {
+    const combined = chunks.join("\n\n");
+    const substantive = stripOcrPlaceholders(combined);
+
+    if (!hasSubstantiveStudentRecordText(combined)) {
+      const hadPdf = input.pdfDocuments.length > 0;
       return {
         ok: false,
-        message:
-          "PDF/이미지에서 내용을 읽지 못했습니다. 파일이 선명한지 확인해 주세요.",
+        message: hadPdf
+          ? "PDF OCR에 실패했습니다. PDF 용량(4MB 이하)과 선명도를 확인한 뒤 다시 시도해 주세요."
+          : "PDF/이미지에서 내용을 읽지 못했습니다. 파일이 선명한지 확인해 주세요.",
       };
     }
 
-    return { ok: true, text: reportText };
+    return { ok: true, text: substantive };
   } catch {
     return {
       ok: false,

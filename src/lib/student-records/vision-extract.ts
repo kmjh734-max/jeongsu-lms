@@ -1,11 +1,12 @@
 import {
-  buildStudentRecordChatBody,
-  getStudentRecordModelCandidates,
   isGpt5FamilyModel,
-  isModelUnavailableError,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
 } from "@/lib/student-records/model";
+import {
+  buildOcrChatBody,
+  PDF_OCR_MODELS,
+} from "@/lib/student-records/ocr-chat";
 import { STUDENT_RECORD_VISION_BATCH_SIZE } from "@/lib/student-records/limits";
 
 type ContentPart =
@@ -66,10 +67,7 @@ async function callVisionText(
   content: ContentPart[],
   signal: AbortSignal
 ): Promise<string | null> {
-  const models = getStudentRecordModelCandidates();
-
-  for (let i = 0; i < models.length; i++) {
-    const model = models[i]!;
+  for (const model of PDF_OCR_MODELS) {
     let profile = defaultProfile(model);
 
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -81,31 +79,25 @@ async function callVisionText(
         },
         signal,
         body: JSON.stringify(
-          buildStudentRecordChatBody(model, system, content, profile)
+          buildOcrChatBody(model, system, content, profile)
         ),
       });
 
       const bodyText = await res.text();
       if (!res.ok) {
-        if (
-          i < models.length - 1 &&
-          isModelUnavailableError(res.status, bodyText)
-        ) {
-          break;
-        }
         const relaxed = relaxProfile(profile, bodyText);
         if (relaxed) {
           profile = relaxed;
           continue;
         }
-        return null;
+        break;
       }
 
       const parsed = JSON.parse(bodyText) as {
         choices?: { message?: { content?: string } }[];
       };
       const raw = parsed.choices?.[0]?.message?.content?.trim() ?? "";
-      if (raw) return raw;
+      if (raw.length >= 100) return raw;
     }
   }
 

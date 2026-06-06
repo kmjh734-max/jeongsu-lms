@@ -1,13 +1,17 @@
 import {
-  buildStudentRecordChatBody,
+  buildOcrChatBody,
+  PDF_OCR_MODELS,
+  pdfDataUrlToBuffer,
+  sanitizePdfFilename,
+} from "@/lib/student-records/ocr-chat";
+import {
   isGpt5FamilyModel,
-  isModelUnavailableError,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
 } from "@/lib/student-records/model";
+import { convertPdfBufferToPageImages } from "@/lib/student-records/pdf-to-images";
 import type { StudentRecordPdfDocument } from "@/lib/student-records/types";
-
-const PDF_OCR_MODELS = ["gpt-4o", "gpt-5.5", "gpt-5"];
+import { extractTextFromPageImages } from "@/lib/student-records/vision-extract";
 
 const PDF_OCR_SYSTEM = `당신은 학교생활기록부 OCR·전사 전문가입니다.
 첨부 PDF의 모든 페이지를 빠짐없이 읽고 한국어로 전사합니다.
@@ -23,12 +27,10 @@ const PDF_OCR_SYSTEM = `당신은 학교생활기록부 OCR·전사 전문가입
 - 페이지 구분: === 페이지 N === 형식 사용
 - 마크다운 없이 일반 텍스트만 출력합니다.`;
 
-type ContentPart =
+type FileContentPart =
   | { type: "text"; text: string }
-  | {
-      type: "file";
-      file: { filename: string; file_data: string };
-    };
+  | { type: "file"; file: { filename: string; file_data: string } }
+  | { type: "file"; file: { file_id: string } };
 
 type RequestProfile = {
   includeTemperature: boolean;
@@ -64,72 +66,204 @@ function relaxProfile(
   return changed ? next : null;
 }
 
+async function callOcrChat(
+  apiKey: string,
+  model: string,
+  content: FileContentPart[],
+  signal: AbortSignal
+): Promise<string | null> {
+  let profile = defaultProfile(model);
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      signal,
+      body: JSON.stringify(
+        buildOcrChatBody(model, PDF_OCR_SYSTEM, content, profile)
+      ),
+    });
+
+    const bodyText = await res.text();
+    if (!res.ok) {
+      const relaxed = relaxProfile(profile, bodyText);
+      if (relaxed) {
+        profile = relaxed;
+        continue;
+      }
+      return null;
+    }
+
+    const parsed = JSON.parse(bodyText) as {
+      choices?: { message?: { content?: string }; finish_reason?: string }[];
+    };
+    const raw = parsed.choices?.[0]?.message?.content?.trim() ?? "";
+    if (raw.length >= 200) return raw;
+  }
+
+  return null;
+}
+
+async function uploadPdfFile(
+  apiKey: string,
+  buffer: Buffer,
+  filename: string,
+  signal: AbortSignal
+): Promise<string | null> {
+  const form = new FormData();
+  form.append(
+    "file",
+    new Blob([Uint8Array.from(buffer)], { type: "application/pdf" }),
+    sanitizePdfFilename(filename)
+  );
+  form.append("purpose", "user_data");
+
+  const res = await fetch("https://api.openai.com/v1/files", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    signal,
+    body: form,
+  });
+
+  if (!res.ok) return null;
+
+  const json = (await res.json()) as { id?: string };
+  return json.id ?? null;
+}
+
+async function deleteOpenAiFile(
+  apiKey: string,
+  fileId: string
+): Promise<void> {
+  try {
+    await fetch(`https://api.openai.com/v1/files/${fileId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+  } catch {
+    // 정리 실패는 무시
+  }
+}
+
+async function ocrViaInlinePdf(
+  apiKey: string,
+  pdf: StudentRecordPdfDocument,
+  studentName: string,
+  signal: AbortSignal
+): Promise<string | null> {
+  const content: FileContentPart[] = [
+    {
+      type: "text",
+      text: [
+        `학생: ${studentName}`,
+        `파일: ${pdf.name}`,
+        "첨부 PDF 전체 페이지를 빠짐없이 OCR 전사해 주세요.",
+      ].join("\n"),
+    },
+    {
+      type: "file",
+      file: {
+        filename: sanitizePdfFilename(pdf.name),
+        file_data: pdf.dataUrl,
+      },
+    },
+  ];
+
+  for (const model of PDF_OCR_MODELS) {
+    const text = await callOcrChat(apiKey, model, content, signal);
+    if (text) return text;
+  }
+
+  return null;
+}
+
+async function ocrViaUploadedFile(
+  apiKey: string,
+  buffer: Buffer,
+  filename: string,
+  studentName: string,
+  signal: AbortSignal
+): Promise<string | null> {
+  const fileId = await uploadPdfFile(apiKey, buffer, filename, signal);
+  if (!fileId) return null;
+
+  try {
+    const content: FileContentPart[] = [
+      {
+        type: "text",
+        text: [
+          `학생: ${studentName}`,
+          `파일: ${filename}`,
+          "첨부 PDF 전체 페이지를 빠짐없이 OCR 전사해 주세요.",
+        ].join("\n"),
+      },
+      { type: "file", file: { file_id: fileId } },
+    ];
+
+    for (const model of PDF_OCR_MODELS) {
+      const text = await callOcrChat(apiKey, model, content, signal);
+      if (text) return text;
+    }
+    return null;
+  } finally {
+    await deleteOpenAiFile(apiKey, fileId);
+  }
+}
+
+async function ocrViaRenderedPages(
+  apiKey: string,
+  buffer: Buffer,
+  filename: string,
+  studentName: string,
+  signal: AbortSignal
+): Promise<string | null> {
+  const { pageCount, images } = await convertPdfBufferToPageImages(buffer);
+  if (images.length === 0) return null;
+
+  const extracted = await extractTextFromPageImages(
+    apiKey,
+    images,
+    studentName,
+    signal
+  );
+
+  if (!extracted.trim() || extracted.includes("[이 구간 판독 실패]")) {
+    const okParts = extracted
+      .split("=== 학생부 페이지")
+      .filter((p) => !p.includes("[이 구간 판독 실패]"));
+    if (okParts.length <= 1) return null;
+  }
+
+  return `=== PDF 페이지 OCR: ${filename} (${images.length}/${pageCount}페이지) ===\n${extracted}`;
+}
+
 async function ocrSinglePdf(
   apiKey: string,
   pdf: StudentRecordPdfDocument,
   studentName: string,
   signal: AbortSignal
 ): Promise<string | null> {
-  const content: ContentPart[] = [
-    {
-      type: "text",
-      text: [
-        `학생: ${studentName}`,
-        `파일: ${pdf.name}`,
-        "PDF 전체 페이지를 OCR 전사해 주세요.",
-      ].join("\n"),
-    },
-    {
-      type: "file",
-      file: {
-        filename: pdf.name.endsWith(".pdf") ? pdf.name : `${pdf.name}.pdf`,
-        file_data: pdf.dataUrl,
-      },
-    },
-  ];
+  const buffer = pdfDataUrlToBuffer(pdf.dataUrl);
 
-  for (let i = 0; i < PDF_OCR_MODELS.length; i++) {
-    const model = PDF_OCR_MODELS[i]!;
-    let profile = defaultProfile(model);
+  let text = await ocrViaInlinePdf(apiKey, pdf, studentName, signal);
+  if (text && text.length >= 300) return text;
 
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        signal,
-        body: JSON.stringify(
-          buildStudentRecordChatBody(model, PDF_OCR_SYSTEM, content, profile)
-        ),
-      });
+  text = await ocrViaUploadedFile(apiKey, buffer, pdf.name, studentName, signal);
+  if (text && text.length >= 300) return text;
 
-      const bodyText = await res.text();
-      if (!res.ok) {
-        if (
-          i < PDF_OCR_MODELS.length - 1 &&
-          isModelUnavailableError(res.status, bodyText)
-        ) {
-          break;
-        }
-        const relaxed = relaxProfile(profile, bodyText);
-        if (relaxed) {
-          profile = relaxed;
-          continue;
-        }
-        break;
-      }
+  text = await ocrViaRenderedPages(
+    apiKey,
+    buffer,
+    pdf.name,
+    studentName,
+    signal
+  );
+  if (text && text.length >= 300) return text;
 
-      const parsed = JSON.parse(bodyText) as {
-        choices?: { message?: { content?: string } }[];
-      };
-      const raw = parsed.choices?.[0]?.message?.content?.trim() ?? "";
-      if (raw) return raw;
-    }
-  }
-
-  return null;
+  return text;
 }
 
 export async function extractTextFromPdfDocuments(
