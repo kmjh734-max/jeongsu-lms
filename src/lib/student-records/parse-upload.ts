@@ -1,4 +1,5 @@
 import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
+import { createPdfParser } from "@/lib/student-records/pdf-runtime";
 import {
   STUDENT_RECORD_MAX_DIRECT_IMAGES,
   STUDENT_RECORD_MAX_PDF_BYTES,
@@ -85,8 +86,7 @@ async function processPdfFile(
   textParts: string[],
   imageDataUrls: string[]
 ): Promise<void> {
-  const { PDFParse } = await import("pdf-parse");
-  const parser = new PDFParse({ data: buffer });
+  const parser = createPdfParser(buffer);
 
   try {
     let pdfText = "";
