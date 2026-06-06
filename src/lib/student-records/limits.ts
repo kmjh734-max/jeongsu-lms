@@ -10,10 +10,13 @@ export const STUDENT_RECORD_MAX_DIRECT_IMAGES = 10;
 export const STUDENT_RECORD_MAX_PDF_PAGES = 40;
 
 /** PDF 페이지 렌더 해상도 (용량·속도 균형) */
-export const STUDENT_RECORD_PDF_RENDER_WIDTH = 800;
+export const STUDENT_RECORD_PDF_RENDER_WIDTH = 1200;
 
-/** 한 번에 Vision에 넣을 페이지 수 */
-export const STUDENT_RECORD_VISION_BATCH_SIZE = 8;
+/** 한 번에 Vision에 넣을 페이지 수 (작은 글자 인식용) */
+export const STUDENT_RECORD_VISION_BATCH_SIZE = 2;
+
+/** 클라이언트 PDF→JPEG 변환 후 업로드 예산 */
+export const STUDENT_RECORD_PREPARED_UPLOAD_BUDGET = 3_600_000;
 
 /** 이 수 초과 시 배치 전사 후 텍스트-only로 최종 보고서 생성 */
 export const STUDENT_RECORD_VISION_BATCH_THRESHOLD = 6;

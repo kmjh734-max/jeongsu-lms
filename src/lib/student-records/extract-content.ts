@@ -65,12 +65,15 @@ export async function extractStudentRecordContent(
     const substantive = stripOcrPlaceholders(combined);
 
     if (!hasSubstantiveStudentRecordText(combined)) {
+      const hadImages = input.imageDataUrls.length > 0;
       const hadPdf = input.pdfDocuments.length > 0;
       return {
         ok: false,
-        message: hadPdf
-          ? "PDF OCR에 실패했습니다. PDF 용량(4MB 이하)과 선명도를 확인한 뒤 다시 시도해 주세요."
-          : "PDF/이미지에서 내용을 읽지 못했습니다. 파일이 선명한지 확인해 주세요.",
+        message: hadImages
+          ? "학생부 이미지 OCR에 실패했습니다. 스캔 선명도를 확인하거나, 텍스트를 직접 붙여넣어 주세요."
+          : hadPdf
+            ? "PDF OCR에 실패했습니다. PDF 용량(4MB 이하)과 선명도를 확인한 뒤 다시 시도해 주세요."
+            : "PDF/이미지에서 내용을 읽지 못했습니다. 파일이 선명한지 확인해 주세요.",
       };
     }
 

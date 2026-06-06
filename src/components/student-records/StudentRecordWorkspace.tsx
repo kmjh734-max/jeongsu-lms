@@ -14,6 +14,7 @@ import {
   readStudentRecordApiResponse,
   STUDENT_RECORD_MAX_PDF_PAGES,
   STUDENT_RECORD_MAX_TOTAL_BYTES,
+  validatePreparedStudentRecordFiles,
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
@@ -90,11 +91,11 @@ export function StudentRecordWorkspace({
     setAnalyzing(true);
     setError(null);
     setResult(null);
-    setProgressLabel("1/2 학생부 자료 읽는 중… (PDF OCR)");
+    setProgressLabel("PDF·이미지 준비 중…");
 
     try {
-      const preparedFiles = await prepareStudentRecordFiles(files);
-      const preparedError = validateStudentRecordFiles(preparedFiles);
+      const preparedFiles = await prepareStudentRecordFiles(files, setProgressLabel);
+      const preparedError = validatePreparedStudentRecordFiles(preparedFiles);
       if (preparedError) {
         throw new Error(preparedError);
       }
@@ -110,6 +111,10 @@ export function StudentRecordWorkspace({
       for (const file of preparedFiles) {
         formData.append("files", file);
       }
+
+      setProgressLabel(
+        `1/2 학생부 OCR 전사 중… (${preparedFiles.length}페이지)`
+      );
 
       const extractRes = await fetch("/api/student-records/extract", {
         method: "POST",
@@ -272,8 +277,8 @@ export function StudentRecordWorkspace({
         </h2>
         <p className="text-xs text-slate-500">
           성적표·세특·창체·행특 텍스트를 붙여넣거나, PDF·이미지(JPG/PNG)를
-          업로드하세요. 스캔 PDF는 OpenAI OCR로 최대{" "}
-          {STUDENT_RECORD_MAX_PDF_PAGES}페이지까지 분석합니다. 전체 용량은 약{" "}
+          업로드하세요. 스캔 PDF는 브라우저에서 페이지 이미지로 변환한 뒤 OCR로
+          최대 {STUDENT_RECORD_MAX_PDF_PAGES}페이지까지 분석합니다. 전체 용량은 약{" "}
           {formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)} 이하를 권장합니다.
         </p>
         <textarea

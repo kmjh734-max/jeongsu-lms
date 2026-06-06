@@ -1,6 +1,5 @@
 import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
 import {
-  STUDENT_RECORD_MAX_DIRECT_IMAGES,
   STUDENT_RECORD_MAX_PDF_BYTES,
   STUDENT_RECORD_MAX_PDF_PAGES,
   STUDENT_RECORD_MAX_TOTAL_BYTES,
@@ -28,7 +27,6 @@ export async function parseStudentRecordUpload(
   const pdfDocuments: StudentRecordPdfDocument[] = [];
   const files = formData.getAll("files");
   let totalBytes = 0;
-  let directImageCount = 0;
 
   if (files.length === 0) {
     return { textParts, imageDataUrls, pdfDocuments };
@@ -59,12 +57,6 @@ export async function parseStudentRecordUpload(
     }
 
     if (isImageUpload(entry)) {
-      directImageCount += 1;
-      if (directImageCount > STUDENT_RECORD_MAX_DIRECT_IMAGES) {
-        throw new Error(
-          `이미지는 최대 ${STUDENT_RECORD_MAX_DIRECT_IMAGES}장까지 업로드할 수 있습니다.`
-        );
-      }
       if (imageDataUrls.length >= STUDENT_RECORD_MAX_PDF_PAGES) {
         throw new Error(
           `처리 가능한 이미지는 최대 ${STUDENT_RECORD_MAX_PDF_PAGES}장입니다.`
