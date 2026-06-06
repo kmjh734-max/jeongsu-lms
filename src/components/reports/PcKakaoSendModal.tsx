@@ -13,6 +13,8 @@ interface PcKakaoSendModalProps {
   parentMessage: string;
   copySucceeded: boolean;
   onOpenPrint: () => void;
+  pdfFileName?: string;
+  title?: string;
 }
 
 /** PC 카카오톡 수동 발송 안내 (API 미사용) */
@@ -24,9 +26,12 @@ export function PcKakaoSendModal({
   parentMessage,
   copySucceeded,
   onOpenPrint,
+  pdfFileName: pdfFileNameProp,
+  title = "PC 카톡 발송 준비 완료",
 }: PcKakaoSendModalProps) {
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
-  const pdfFileName = buildReportPdfFileName(studentName, rangeLabel);
+  const pdfFileName =
+    pdfFileNameProp ?? buildReportPdfFileName(studentName, rangeLabel);
 
   useEffect(() => {
     if (!open) return;
@@ -63,7 +68,7 @@ export function PcKakaoSendModal({
           id="pc-kakao-modal-title"
           className="text-lg font-semibold text-slate-900"
         >
-          PC 카톡 발송 준비 완료
+          {title}
         </h2>
 
         <ul className="mt-4 list-inside list-disc space-y-2 text-sm leading-relaxed text-slate-700">

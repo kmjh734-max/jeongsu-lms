@@ -67,7 +67,8 @@
   }
 
   #shared-report-print-root,
-  #listening-print-root {
+  #listening-print-root,
+  #student-record-print-root {
     visibility: visible;
   }
 
@@ -76,11 +77,14 @@
   #shared-report-print-root,
   #shared-report-print-root *,
   #listening-print-root,
-  #listening-print-root * {
+  #listening-print-root *,
+  #student-record-print-root,
+  #student-record-print-root * {
     visibility: visible;
   }
 
-  #report-print-modal {
+  #report-print-modal,
+  #student-record-print-modal {
     position: static !important;
     display: block !important;
     background: white !important;
@@ -90,7 +94,8 @@
 
   #a4-print-root,
   #shared-report-print-root,
-  #listening-print-root {
+  #listening-print-root,
+  #student-record-print-root {
     position: absolute;
     left: 0;
     top: 0;
