@@ -11,10 +11,15 @@ interface PageProps {
 
 export default async function StudentVocabStage3Page({ params }: PageProps) {
   const { setId } = await params;
-  const profile = await getCurrentProfile();
-  const supabase = await createClient();
+  const [profile, supabase] = await Promise.all([
+    getCurrentProfile(),
+    createClient(),
+  ]);
 
-  const ctx = await loadStudentVocabSetContext(supabase, profile!.id, setId);
+  const ctx = await loadStudentVocabSetContext(supabase, profile!.id, setId, {
+    items: "stage3",
+    progress: "hub",
+  });
   if (!ctx) notFound();
   if (!ctx.progress.stage2_completed) {
     redirect(`/student/vocab/${setId}`);
@@ -29,7 +34,7 @@ export default async function StudentVocabStage3Page({ params }: PageProps) {
       <VocabStage3ExampleBlank
         setId={setId}
         setTitle={ctx.set.title}
-        items={ctx.items}
+        itemCount={ctx.itemCount}
         questions={questions}
         excludedCount={excludedCount}
       />

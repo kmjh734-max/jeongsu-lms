@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { computeVocabSetStats } from "@/lib/vocab/stats";
+import { fetchVocabItemCountsBySetIds } from "@/lib/vocab/vocab-item-counts";
 import {
   stage3Completed,
   stage4BestScore,
@@ -43,60 +43,30 @@ export async function fetchStudentVocabSummaries(
 
   if (setIds.length === 0) return [];
 
-  const { data: sets } = await supabase
-    .from("vocab_sets")
-    .select("*")
-    .in("id", setIds)
-    .order("created_at", { ascending: false });
-
-  const publishedSets = (sets ?? []) as VocabSet[];
-  if (publishedSets.length === 0) return [];
-
-  const publishedIds = publishedSets.map((s) => s.id);
-
-  const [{ data: items }, { data: stageRows }] = await Promise.all([
+  const [{ data: sets }, { data: stageRows }, itemCounts] = await Promise.all([
     supabase
-      .from("vocab_items")
-      .select("id, set_id")
-      .in("set_id", publishedIds),
+      .from("vocab_sets")
+      .select("id, title, created_at")
+      .in("id", setIds)
+      .order("created_at", { ascending: false }),
     supabase
       .from("vocab_stage_progress")
       .select(
         "set_id, stage1_completed, stage2_completed, stage3_completed, stage4_passed, stage4_last_score, stage4_best_score, stage4_attempt_count, stage3_passed, stage3_last_score, stage3_best_score, stage3_attempt_count"
       )
       .eq("student_id", studentId)
-      .in("set_id", publishedIds),
+      .in("set_id", setIds),
+    fetchVocabItemCountsBySetIds(supabase, setIds),
   ]);
 
-  const itemsBySet = new Map<string, { id: string }[]>();
-  const allItemIds: string[] = [];
-  for (const item of items ?? []) {
-    allItemIds.push(item.id);
-    const list = itemsBySet.get(item.set_id) ?? [];
-    list.push({ id: item.id });
-    itemsBySet.set(item.set_id, list);
-  }
-
-  const { data: progress } =
-    allItemIds.length > 0
-      ? await supabase
-          .from("vocab_progress")
-          .select("item_id, status")
-          .eq("student_id", studentId)
-          .in("item_id", allItemIds)
-      : { data: [] as { item_id: string; status: string }[] };
-
-  const progressList = progress ?? [];
+  const publishedSets = (sets ?? []) as VocabSet[];
+  if (publishedSets.length === 0) return [];
 
   const stageBySet = new Map(
     (stageRows ?? []).map((r) => [r.set_id as string, r])
   );
 
   return publishedSets.map((set) => {
-    const setItems = itemsBySet.get(set.id) ?? [];
-    const itemIds = new Set(setItems.map((i) => i.id));
-    const setProgress = progressList.filter((p) => itemIds.has(p.item_id));
-    const stats = computeVocabSetStats(setItems, setProgress);
     const stage = stageBySet.get(set.id) as VocabStageProgress | undefined;
     const progress: VocabStageProgress =
       stage ??
@@ -114,7 +84,7 @@ export async function fetchStudentVocabSummaries(
 
     return {
       set,
-      itemCount: stats.itemCount,
+      itemCount: itemCounts.get(set.id) ?? 0,
       stage1Completed: Boolean(progress.stage1_completed),
       stage2Completed: Boolean(progress.stage2_completed),
       stage3Completed: stage3Completed(progress),

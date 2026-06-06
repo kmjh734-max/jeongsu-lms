@@ -13,7 +13,6 @@ import {
   gradeExampleBlankAnswer,
   type ExampleBlankQuestion,
 } from "@/lib/vocab/example-blank";
-import type { VocabItem } from "@/types/database";
 
 function shuffleQuestions(questions: ExampleBlankQuestion[]): ExampleBlankQuestion[] {
   const copy = [...questions];
@@ -27,7 +26,7 @@ function shuffleQuestions(questions: ExampleBlankQuestion[]): ExampleBlankQuesti
 interface VocabStage3ExampleBlankProps {
   setId: string;
   setTitle: string;
-  items: VocabItem[];
+  itemCount: number;
   questions: ExampleBlankQuestion[];
   excludedCount: number;
 }
@@ -35,7 +34,7 @@ interface VocabStage3ExampleBlankProps {
 export function VocabStage3ExampleBlank({
   setId,
   setTitle,
-  items,
+  itemCount,
   questions: initialQuestions,
   excludedCount,
 }: VocabStage3ExampleBlankProps) {
@@ -63,14 +62,14 @@ export function VocabStage3ExampleBlank({
   }, [current, feedback]);
 
   useEffect(() => {
-    if (total > 0 || items.length === 0 || autoCompleting) return;
+    if (total > 0 || itemCount === 0 || autoCompleting) return;
     setAutoCompleting(true);
     void (async () => {
       await completeStage3(setId);
       router.push(`/student/vocab/${setId}`);
       router.refresh();
     })();
-  }, [total, items.length, setId, router, autoCompleting]);
+  }, [total, itemCount, setId, router, autoCompleting]);
 
   function checkAnswer() {
     if (!current || feedback?.showAnswer) return;
@@ -142,7 +141,7 @@ export function VocabStage3ExampleBlank({
     setMessage(null);
   }
 
-  if (items.length === 0) {
+  if (itemCount === 0) {
     return <p className="text-center text-slate-600">단어가 없습니다.</p>;
   }
 

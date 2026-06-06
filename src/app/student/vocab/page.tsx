@@ -5,8 +5,10 @@ import { StudentVocabSetList } from "@/components/vocab/StudentVocabSetList";
 import { fetchStudentVocabSummaries } from "@/lib/vocab/student-sets";
 
 export default async function StudentVocabPage() {
-  const profile = await getCurrentProfile();
-  const supabase = await createClient();
+  const [profile, supabase] = await Promise.all([
+    getCurrentProfile(),
+    createClient(),
+  ]);
 
   const summaries = await fetchStudentVocabSummaries(supabase, profile!.id);
 
