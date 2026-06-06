@@ -8,6 +8,13 @@ import type {
   ReportClassOption,
   ReportStudentOption,
 } from "@/lib/reports/types";
+import {
+  formatBytes,
+  prepareStudentRecordFiles,
+  readStudentRecordApiResponse,
+  STUDENT_RECORD_MAX_TOTAL_BYTES,
+  validateStudentRecordFiles,
+} from "@/lib/student-records/client-upload";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
 interface StudentRecordWorkspaceProps {
@@ -25,6 +32,7 @@ export function StudentRecordWorkspace({
   const [nameQuery, setNameQuery] = useState("");
   const [loginQuery, setLoginQuery] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [manualStudentName, setManualStudentName] = useState("");
   const [text, setText] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [result, setResult] = useState<StudentRecordAnalysisResult | null>(null);
@@ -66,12 +74,14 @@ export function StudentRecordWorkspace({
   }, [loadStudents, hasInitialLists, classId, nameQuery, loginQuery]);
 
   async function runAnalysis() {
-    if (!selectedStudentId) {
-      setError("학생을 선택해 주세요.");
-      return;
-    }
     if (!text.trim() && files.length === 0) {
       setError("학생부 텍스트를 붙여넣거나 PDF/이미지를 업로드해 주세요.");
+      return;
+    }
+
+    const fileError = validateStudentRecordFiles(files);
+    if (fileError) {
+      setError(fileError);
       return;
     }
 
@@ -80,10 +90,21 @@ export function StudentRecordWorkspace({
     setResult(null);
 
     try {
+      const preparedFiles = await prepareStudentRecordFiles(files);
+      const preparedError = validateStudentRecordFiles(preparedFiles);
+      if (preparedError) {
+        throw new Error(preparedError);
+      }
+
       const formData = new FormData();
-      formData.set("studentId", selectedStudentId);
+      if (selectedStudentId) {
+        formData.set("studentId", selectedStudentId);
+      }
+      if (!selectedStudentId && manualStudentName.trim()) {
+        formData.set("studentName", manualStudentName.trim());
+      }
       formData.set("text", text);
-      for (const file of files) {
+      for (const file of preparedFiles) {
         formData.append("files", file);
       }
 
@@ -91,13 +112,24 @@ export function StudentRecordWorkspace({
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message ?? "분석에 실패했습니다.");
+      const { data, error: parseError } = await readStudentRecordApiResponse<{
+        ok: boolean;
+        message?: string;
+        studentId?: string | null;
+        studentName?: string;
+        html?: string;
+        generatedAt?: string;
+      }>(res);
+
+      if (parseError) {
+        throw new Error(parseError);
+      }
+      if (!data?.ok || !data.html || !data.studentName || !data.generatedAt) {
+        throw new Error(data?.message ?? "분석에 실패했습니다.");
       }
 
       setResult({
-        studentId: data.studentId,
+        studentId: data.studentId ?? null,
         studentName: data.studentName,
         html: data.html,
         generatedAt: data.generatedAt,
@@ -131,7 +163,11 @@ export function StudentRecordWorkspace({
       </div>
 
       <section className="no-print space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">1. 학생 선택</h2>
+        <h2 className="text-sm font-semibold text-slate-900">1. 학생 선택 (선택)</h2>
+        <p className="text-xs text-slate-500">
+          학생을 선택하지 않아도 자료만으로 분석할 수 있습니다. 미선택 시 아래
+          이름을 입력하거나, 학생부에서 이름을 추출합니다.
+        </p>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="block text-sm">
             <span className="mb-1 block text-slate-600">반</span>
@@ -176,7 +212,7 @@ export function StudentRecordWorkspace({
             onChange={(e) => setSelectedStudentId(e.target.value)}
             disabled={listLoading}
           >
-            <option value="">선택하세요</option>
+            <option value="">선택 안 함</option>
             {students.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -186,6 +222,18 @@ export function StudentRecordWorkspace({
             ))}
           </select>
         </label>
+
+        {!selectedStudentId && (
+          <label className="block text-sm">
+            <span className="mb-1 block text-slate-600">학생 이름 (선택)</span>
+            <input
+              className="ui-input"
+              value={manualStudentName}
+              onChange={(e) => setManualStudentName(e.target.value)}
+              placeholder="미입력 시 학생부에서 추출"
+            />
+          </label>
+        )}
       </section>
 
       <section className="no-print space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -194,7 +242,8 @@ export function StudentRecordWorkspace({
         </h2>
         <p className="text-xs text-slate-500">
           성적표·세특·창체·행특 텍스트를 붙여넣거나, PDF·이미지(JPG/PNG)를
-          업로드하세요. 여러 파일을 함께 올릴 수 있습니다.
+          업로드하세요. 전체 용량은 약 {formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)}
+          이하를 권장합니다.
         </p>
         <textarea
           className="ui-input min-h-[220px] font-mono text-xs leading-relaxed"
