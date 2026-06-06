@@ -61,41 +61,51 @@ function StageRow({
   buttonLabel,
   secondaryButtonLabel,
 }: StageRowProps) {
+  const actionButtons = (
+    <>
+      {locked || !href ? (
+        <span className="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-slate-100 px-3 text-xs text-slate-400 sm:flex-none">
+          {buttonLabel}
+        </span>
+      ) : (
+        <Link
+          href={href}
+          className="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-medium text-brand-700 hover:bg-brand-50 sm:flex-none sm:text-sm"
+        >
+          {buttonLabel}
+        </Link>
+      )}
+      {secondaryHref && secondaryButtonLabel && (
+        <Link
+          href={secondaryHref}
+          className="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 sm:flex-none sm:text-sm"
+        >
+          {secondaryButtonLabel}
+        </Link>
+      )}
+    </>
+  );
+
   return (
     <li
-      className={`flex items-center gap-3 border-b border-slate-100 px-4 py-3.5 last:border-b-0 ${
+      className={`border-b border-slate-100 px-4 py-3.5 last:border-b-0 ${
         locked ? "bg-slate-50/50" : "hover:bg-slate-50/80"
       }`}
     >
-      <span className="shrink-0 rounded-md bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-800">
-        {step}단계
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="font-semibold text-slate-900">{title}</p>
-        <p className="mt-0.5 text-sm text-slate-500">{desc}</p>
-      </div>
-      {statusPill(status, variant)}
-      <div className="flex shrink-0 gap-2">
-        {locked || !href ? (
-          <span className="inline-flex h-9 items-center rounded-lg bg-slate-100 px-3 text-xs text-slate-400">
-            {buttonLabel}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          <span className="shrink-0 rounded-md bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-800">
+            {step}단계
           </span>
-        ) : (
-          <Link
-            href={href}
-            className="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-brand-700 hover:bg-brand-50"
-          >
-            {buttonLabel}
-          </Link>
-        )}
-        {secondaryHref && secondaryButtonLabel && (
-          <Link
-            href={secondaryHref}
-            className="inline-flex h-9 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            {secondaryButtonLabel}
-          </Link>
-        )}
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-slate-900">{title}</p>
+            <p className="mt-0.5 text-sm text-slate-500">{desc}</p>
+          </div>
+          {statusPill(status, variant)}
+        </div>
+        <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
+          {actionButtons}
+        </div>
       </div>
     </li>
   );
