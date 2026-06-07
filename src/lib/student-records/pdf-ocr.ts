@@ -257,10 +257,8 @@ async function ocrSinglePdf(
 ): Promise<string | null> {
   const buffer = pdfDataUrlToBuffer(pdf.dataUrl);
 
-  let text = await ocrViaInlinePdf(apiKey, pdf, studentName, signal);
-  if (text && isReliableStudentRecordExtract(text)) return text;
-
-  text = await ocrViaUploadedFile(
+  // 스캔 PDF는 고해상도 페이지 Vision OCR이 가장 정확함
+  let text = await ocrViaRenderedPages(
     apiKey,
     buffer,
     pdf.name,
@@ -269,7 +267,10 @@ async function ocrSinglePdf(
   );
   if (text && isReliableStudentRecordExtract(text)) return text;
 
-  text = await ocrViaRenderedPages(
+  text = await ocrViaInlinePdf(apiKey, pdf, studentName, signal);
+  if (text && isReliableStudentRecordExtract(text)) return text;
+
+  text = await ocrViaUploadedFile(
     apiKey,
     buffer,
     pdf.name,

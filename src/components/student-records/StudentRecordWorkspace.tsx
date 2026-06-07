@@ -19,12 +19,8 @@ import {
   validatePreparedStudentRecordFiles,
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
-import { isPdfUpload } from "@/lib/student-records/file-types";
 import { STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL } from "@/lib/student-records/limits";
-import {
-  hasSubstantiveStudentRecordText,
-  isReliableStudentRecordExtract,
-} from "@/lib/student-records/ocr-quality";
+import { isReliableStudentRecordExtract } from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
 const PROGRESS_PREP_END = 12;
@@ -120,8 +116,6 @@ export function StudentRecordWorkspace({
     updateProgress("분석 준비 중…", 0);
     try {
       const pastedText = text.trim();
-      const pdfFiles = files.filter(isPdfUpload);
-      const directImageFiles = files.filter((file) => !isPdfUpload(file));
       let resolvedStudentId: string | null = null;
       let resolvedStudentName = "";
       let combinedExtractedText = "";
@@ -146,33 +140,7 @@ export function StudentRecordWorkspace({
         return data;
       };
 
-      if (pdfFiles.length > 0 && directImageFiles.length === 0) {
-        updateProgress("1/2 PDF 직접 OCR 중… (OpenAI)", 20);
-        const formData = buildFormData();
-        if (pastedText) formData.set("text", pastedText);
-        for (const pdf of pdfFiles) {
-          formData.append("files", pdf);
-        }
-
-        const pdfExtracted = await postExtract(formData);
-        if (
-          pdfExtracted?.ok &&
-          pdfExtracted.text &&
-          pdfExtracted.studentName &&
-          isReliableStudentRecordExtract(pdfExtracted.text)
-        ) {
-          resolvedStudentId = pdfExtracted.studentId ?? null;
-          resolvedStudentName = pdfExtracted.studentName;
-          combinedExtractedText = pdfExtracted.text;
-          updateProgress("PDF 직접 OCR 완료", PROGRESS_OCR_END);
-        } else if (pdfExtracted?.ok && pdfExtracted.text) {
-          updateProgress(
-            "PDF 직접 OCR 품질 부족 — 페이지 이미지 OCR로 재시도…",
-            12
-          );
-        }
-      }
-
+      // 고품질 OCR: PDF도 항상 고해상도 이미지 변환 후 페이지별 Vision OCR
       if (!combinedExtractedText) {
         updateProgress("PDF·이미지 준비 중…", 4);
         const preparedFiles = await prepareStudentRecordFiles(files, (label) => {

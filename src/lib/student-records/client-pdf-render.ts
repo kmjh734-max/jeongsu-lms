@@ -3,7 +3,7 @@ import {
   STUDENT_RECORD_PAGE_JPEG_TARGET_BYTES,
 } from "@/lib/student-records/limits";
 
-const MAX_PAGE_EDGE = 1600;
+const MAX_PAGE_EDGE = 2000;
 
 export async function pdfFileToJpegFiles(
   file: File,
@@ -42,7 +42,7 @@ export async function pdfFileToJpegFiles(
 
     await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-    let quality = 0.85;
+    let quality = 0.92;
     let blob: Blob | null = null;
     for (let attempt = 0; attempt < 6; attempt++) {
       blob = await new Promise<Blob | null>((resolve) => {
