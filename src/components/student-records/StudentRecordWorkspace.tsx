@@ -19,8 +19,12 @@ import {
   validatePreparedStudentRecordFiles,
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
+import { isPdfUpload } from "@/lib/student-records/file-types";
 import { STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL } from "@/lib/student-records/limits";
-import { isReliableStudentRecordExtract } from "@/lib/student-records/ocr-quality";
+import {
+  hasSubstantiveStudentRecordText,
+  isReliableStudentRecordExtract,
+} from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
 const PROGRESS_PREP_END = 12;
@@ -116,6 +120,8 @@ export function StudentRecordWorkspace({
     updateProgress("분석 준비 중…", 0);
     try {
       const pastedText = text.trim();
+      const pdfFiles = files.filter(isPdfUpload);
+      const directImageFiles = files.filter((file) => !isPdfUpload(file));
       let resolvedStudentId: string | null = null;
       let resolvedStudentName = "";
       let combinedExtractedText = "";
@@ -140,9 +146,8 @@ export function StudentRecordWorkspace({
         return data;
       };
 
-      // 고품질 OCR: PDF도 항상 고해상도 이미지 변환 후 페이지별 Vision OCR
       if (!combinedExtractedText) {
-        updateProgress("PDF·이미지 준비 중…", 4);
+        updateProgress("PDF·이미지 준비 중… (고해상도 OCR)", 4);
         const preparedFiles = await prepareStudentRecordFiles(files, (label) => {
           if (label.startsWith("PDF 변환")) {
             const match = label.match(/(\d+)\/(\d+)/);
@@ -393,10 +398,9 @@ export function StudentRecordWorkspace({
         </h2>
         <p className="text-xs text-slate-500">
           성적표·세특·창체·행특 텍스트를 붙여넣거나, PDF·이미지(JPG/PNG)를
-          업로드하세요. 스캔 PDF는 OpenAI PDF OCR을 먼저 시도하고, 실패 시
-          브라우저 이미지 변환 OCR로 최대 {STUDENT_RECORD_MAX_PDF_PAGES}페이지까지
-          분석합니다. 전체 용량은 약{" "}
-          {formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)} 이하를 권장합니다.
+          업로드하세요. 스캔 PDF는 고해상도 변환 후 OpenAI Vision(gpt-4o)으로
+          OCR합니다(최대 {STUDENT_RECORD_MAX_PDF_PAGES}페이지). 전체
+          용량은 약 {formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)} 이하를 권장합니다.
         </p>
         <textarea
           className="ui-input min-h-[220px] font-mono text-xs leading-relaxed"

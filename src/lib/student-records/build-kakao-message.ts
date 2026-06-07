@@ -1,4 +1,16 @@
-import { ACADEMY_NAME } from "@/lib/branding";
+import { academyConfig } from "@/config/academy";
+
+/** 카카오·붙여넣기용 — placeholder「학생」일 때 「학생 학생」 중복 방지 */
+export function formatStudentRecordReportSubject(studentName: string): string {
+  const name = studentName.trim();
+  if (!name || name === "학생") {
+    return "학교생활기록부 분석 보고서입니다.";
+  }
+  if (name.endsWith("학생")) {
+    return `${name} 학교생활기록부 분석 보고서입니다.`;
+  }
+  return `${name} 학생 학교생활기록부 분석 보고서입니다.`;
+}
 
 export function buildStudentRecordKakaoMessage(params: {
   studentName: string;
@@ -6,9 +18,9 @@ export function buildStudentRecordKakaoMessage(params: {
 }): string {
   const date = new Date().toLocaleDateString("ko-KR");
   const lines = [
-    `[${ACADEMY_NAME}] 학생부 분석 리포트`,
+    `[${academyConfig.academyName}] 학생부 분석 리포트`,
     "",
-    `${params.studentName} 학생 학교생활기록부 분석 보고서입니다.`,
+    formatStudentRecordReportSubject(params.studentName),
     `${date} 기준 입학사정관 관점 종합 분석입니다.`,
   ];
 

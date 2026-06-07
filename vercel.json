@@ -11,6 +11,9 @@
     },
     "src/app/api/student-records/analyze/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/student-records/share/route.ts": {
+      "maxDuration": 60
     }
   }
 }

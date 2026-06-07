@@ -1,4 +1,5 @@
 import { extractHtmlFromModelOutput } from "@/lib/student-records/extract-html";
+import { buildVerifiedGradeBlock } from "@/lib/student-records/grade-extract";
 import { STUDENT_RECORD_ANALYSIS_TIMEOUT_MS } from "@/lib/student-records/limits";
 import {
   buildStudentRecordChatBody,
@@ -57,6 +58,26 @@ export async function generateStudentRecordReport(
     return { ok: false, message: "분석할 학생부 내용이 없습니다." };
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(),
+    STUDENT_RECORD_ANALYSIS_TIMEOUT_MS
+  );
+
+  let reportSourceText = text.trim();
+  try {
+    const gradeBlock = await buildVerifiedGradeBlock(
+      apiKey,
+      reportSourceText,
+      controller.signal
+    );
+    if (gradeBlock) {
+      reportSourceText = `${reportSourceText}\n\n${gradeBlock}`;
+    }
+  } catch {
+    // 성적 블록 실패 시 OCR 원문만으로 보고서 생성
+  }
+
   const nameHint =
     studentName === "학생"
       ? "학생명이 지정되지 않았습니다. 자료에서 학생명·학교명·학년을 추출해 Hero 섹션에 반영하세요."
@@ -68,6 +89,7 @@ export async function generateStudentRecordReport(
     "아래는 학교생활기록부 원문 자료입니다. 시스템 지침(추가 규칙 A~K 포함)을 모두 준수하여 HTML만 출력하세요.",
     "",
     "【생성 전 필수 확인 — 규칙 J】",
+    "□ `=== 성적 산출 (코드 검증` 블록이 있으면 섹션2·Hero 성적 수치는 그 값을 그대로 사용 (재계산·수정 금지)",
     "□ 석차등급×이수학점 가중평균, 1·2·전체 학기 계산표",
     "□ 9등급 환산: 앵커 선형 보간, 단순 곱셈 금지, 「약」+ 면책 문구 + 골드 안내 박스",
     "□ 대학: K 0.08~0.17 세부구간·8항목(상향/적정/안정/전형추천)·주의학과 +0.2~0.4조정",
@@ -79,14 +101,8 @@ export async function generateStudentRecordReport(
     "□ 섹션 1~18 전체 포함 (축약 금지)",
     "",
     "=== 학생부 원문 ===",
-    text.trim(),
+    reportSourceText,
   ].join("\n");
-
-  const controller = new AbortController();
-  const timer = setTimeout(
-    () => controller.abort(),
-    STUDENT_RECORD_ANALYSIS_TIMEOUT_MS
-  );
 
   const models = getStudentRecordModelCandidates();
   let lastMessage = "학생부 분석 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.";

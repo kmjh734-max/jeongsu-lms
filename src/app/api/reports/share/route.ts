@@ -71,7 +71,7 @@ export async function POST(request: Request) {
 
     const token = generateShareToken();
     const expiresAt = shareExpiresAt(30);
-    const baseUrl = resolveShareBaseUrl(request);
+    const baseUrl = resolveShareBaseUrl();
 
     const admin = createAdminClient();
     const { error } = await admin.from("shared_reports").insert({

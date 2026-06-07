@@ -134,10 +134,10 @@ async function loadImage(file: File): Promise<HTMLImageElement> {
 
 export async function compressImageForUpload(file: File): Promise<File> {
   if (!isImageUpload(file)) return file;
-  if (file.size <= 500_000) return file;
+  if (file.size <= 300_000) return file;
 
   const img = await loadImage(file);
-  const maxEdge = 2000;
+  const maxEdge = 1600;
   const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
   const width = Math.max(1, Math.round(img.width * scale));
   const height = Math.max(1, Math.round(img.height * scale));
@@ -151,7 +151,7 @@ export async function compressImageForUpload(file: File): Promise<File> {
   ctx.drawImage(img, 0, 0, width, height);
 
   const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, "image/jpeg", 0.88);
+    canvas.toBlob(resolve, "image/jpeg", 0.78);
   });
   if (!blob || blob.size >= file.size) return file;
 
@@ -231,7 +231,7 @@ export async function readStudentRecordApiResponse<T extends { ok?: boolean; mes
       return {
         data: null,
         error:
-          "분석 시간이 서버 한도를 초과했습니다. PDF 용량을 줄이거나 잠시 후 다시 시도해 주세요.",
+          "처리 시간이 서버 한도(약 1~5분)를 초과했습니다. PDF 페이지 수를 줄이거나 잠시 후 다시 시도해 주세요. (용량이 작아도 페이지·OCR 단계가 많으면 시간이 걸립니다.)",
       };
     }
     if (res.status === 502 || res.status === 503) {

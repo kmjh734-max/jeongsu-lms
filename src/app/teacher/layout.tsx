@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/teacher/students", label: "학생 관리" },
   { href: "/teacher/progress", label: "수강 현황" },
   { href: "/teacher/reports", label: "학습 리포트" },
+  { href: "/teacher/student-records", label: "학생부 분석" },
 ];
 
 export default async function TeacherLayout({

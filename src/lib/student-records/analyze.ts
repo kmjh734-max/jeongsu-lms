@@ -1,3 +1,4 @@
+import { academyConfig } from "@/config/academy";
 import { extractHtmlFromModelOutput } from "@/lib/student-records/extract-html";
 import {
   STUDENT_RECORD_ANALYSIS_TIMEOUT_MS,
@@ -70,7 +71,7 @@ async function generateHtmlReport(
     nameHint,
     "",
     "아래는 학교생활기록부 원문 자료입니다.",
-    "정수학원 생기부 자가진단표 8항목을 학생부 근거로 채점하고, 지침에 따라 HTML 보고서만 생성하세요.",
+    `${academyConfig.academyName} 생기부 자가진단표 8항목을 학생부 근거로 채점하고, 지침에 따라 HTML 보고서만 생성하세요.`,
     "",
     text.trim() || "(텍스트 없음 — 첨부 이미지를 판독하세요)",
   ].join("\n");

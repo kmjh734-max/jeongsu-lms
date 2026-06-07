@@ -91,11 +91,13 @@ export async function extractStudentRecordContent(
     }
 
     return { ok: true, text: substantive };
-  } catch {
+  } catch (e) {
+    const timedOut = e instanceof Error && e.name === "AbortError";
     return {
       ok: false,
-      message:
-        "자료 읽기 시간이 초과되었거나 오류가 발생했습니다. PDF 용량을 줄여 다시 시도해 주세요.",
+      message: timedOut
+        ? "OCR 처리 시간이 초과했습니다. 페이지 수를 줄이거나 잠시 후 다시 시도해 주세요."
+        : "자료 읽기 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     };
   } finally {
     clearTimeout(timer);

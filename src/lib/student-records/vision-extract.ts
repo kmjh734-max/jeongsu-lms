@@ -1,39 +1,34 @@
 import { extractChatMessageContent } from "@/lib/student-records/chat-content";
-import { STUDENT_RECORD_VISION_CONCURRENCY } from "@/lib/student-records/limits";
 import {
-  isGpt5FamilyModel,
+  STUDENT_RECORD_VISION_BATCH_SIZE,
+  STUDENT_RECORD_VISION_CONCURRENCY,
+} from "@/lib/student-records/limits";
+import {
   isModelUnavailableError,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
 } from "@/lib/student-records/model";
+import {
+  isAcceptablePageOcr,
+  scorePageOcrText,
+} from "@/lib/student-records/ocr-quality";
 import { summarizeOpenAiError } from "@/lib/student-records/openai-errors";
 import {
   buildOcrChatBody,
   getOcrModelCandidates,
   VISION_OCR_MAX_OUTPUT_TOKENS,
 } from "@/lib/student-records/ocr-chat";
+import { VISION_PAGE_EXTRACTION_SYSTEM } from "@/lib/student-records/ocr-prompts";
+
+type ImageDetail = "auto" | "high";
 
 type ContentPart =
   | { type: "text"; text: string }
-  | { type: "image_url"; image_url: { url: string; detail: "high" } };
-
-const PAGE_EXTRACTION_SYSTEM = `당신은 학교생활기록부 OCR·전사 전문가입니다.
-첨부된 학생부 페이지 이미지에서 보이는 모든 글자·숫자·표를 빠짐없이 한국어로 전사합니다.
-
-반드시 전사:
-- 인적사항(이름, 학교, 학년)
-- 성적표: 학기, 과목, 학점, 원점수, 성취도, 석차등급, 비고
-- 교과 세특(과목별 세부능력특기사항)
-- 창의적 체험활동, 봉사활동, 행동특성 및 종합의견
-
-규칙:
-- 표·작은 글씨도 빠짐없이 옮깁니다.
-- 보이지 않는 내용은 추측하지 말고 [판독불가]로 표시합니다.
-- 출력 시작: === 학생부 페이지 N 전사 ===
-- 마크다운 없이 일반 텍스트만 출력합니다.`;
+  | { type: "image_url"; image_url: { url: string; detail: ImageDetail } };
 
 type RequestProfile = {
   includeTemperature: boolean;
+  includeSeed: boolean;
 };
 
 let lastVisionApiError: string | null = null;
@@ -47,96 +42,144 @@ export function resetLastVisionApiError(): void {
 }
 
 function defaultProfile(): RequestProfile {
-  return { includeTemperature: true };
+  return { includeTemperature: true, includeSeed: false };
 }
 
 function relaxProfile(
   profile: RequestProfile,
   bodyText: string
 ): RequestProfile | null {
-  if (profile.includeTemperature && isUnsupportedTemperatureError(bodyText)) {
-    return { includeTemperature: false };
+  const next = { ...profile };
+  let changed = false;
+
+  if (next.includeTemperature && isUnsupportedTemperatureError(bodyText)) {
+    next.includeTemperature = false;
+    changed = true;
+  }
+  if (next.includeSeed && isUnsupportedParameterError(bodyText, "seed")) {
+    next.includeSeed = false;
+    changed = true;
   }
   if (isUnsupportedParameterError(bodyText, "reasoning_effort")) {
-    return { includeTemperature: false };
+    next.includeTemperature = false;
+    changed = true;
   }
-  return null;
+
+  return changed ? next : null;
 }
 
-function isUsefulPageOcrText(text: string): boolean {
-  if (text.includes("[이 구간 판독 실패]")) return false;
-  const compact = text.replace(/\s+/g, "");
-  if (compact.length < 60) return false;
-  if (/석차|성취|과목|세특|학기|학년|봉사|창의|행동/.test(text)) return true;
-  return compact.length >= 120;
+function isUsefulOcrText(text: string): boolean {
+  return isAcceptablePageOcr(text);
+}
+
+function isValidBatchExtract(text: string, expectedPages: number): boolean {
+  if (!isUsefulOcrText(text)) return false;
+  if (expectedPages <= 1) return true;
+  const markers =
+    text.match(/=== 학생부 페이지 \d+ 전사 ===|=== 페이지 \d+ ===/g)?.length ??
+    0;
+  return markers >= Math.max(1, expectedPages - 1);
 }
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function callVisionTextForModel(
+function chunkPages<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/** 충분히 읽힌 페이지면 추가 모델 시도 없이 즉시 반환 */
+const PAGE_OCR_EARLY_EXIT_SCORE = 280;
+
+async function callVisionText(
   apiKey: string,
-  model: string,
   system: string,
   content: ContentPart[],
-  signal: AbortSignal
+  signal: AbortSignal,
+  detail: ImageDetail
 ): Promise<string | null> {
-  let profile = defaultProfile();
-
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      signal,
-      body: JSON.stringify(
-        buildOcrChatBody(model, system, content, {
-          includeTemperature: profile.includeTemperature,
-          includeReasoningEffort: isGpt5FamilyModel(model),
-          maxOutputTokens: VISION_OCR_MAX_OUTPUT_TOKENS,
-        })
-      ),
-    });
-
-    const bodyText = await res.text();
-    if (!res.ok) {
-      lastVisionApiError = summarizeOpenAiError(res.status, bodyText);
-
-      if (res.status === 429 && attempt < 2) {
-        await sleep(1500 * (attempt + 1));
-        continue;
-      }
-
-      if (isModelUnavailableError(res.status, bodyText)) {
-        return null;
-      }
-
-      const relaxed = relaxProfile(profile, bodyText);
-      if (relaxed) {
-        profile = relaxed;
-        continue;
-      }
-      return null;
-    }
-
-    const parsed = JSON.parse(bodyText) as {
-      choices?: { message?: { content?: unknown }; finish_reason?: string }[];
+  const contentWithDetail = content.map((part) => {
+    if (part.type !== "image_url") return part;
+    return {
+      type: "image_url" as const,
+      image_url: { url: part.image_url.url, detail },
     };
-    const finishReason = parsed.choices?.[0]?.finish_reason;
-    if (finishReason === "length") {
-      continue;
-    }
+  });
 
-    const raw = extractChatMessageContent(
-      parsed.choices?.[0]?.message?.content
-    );
-    if (isUsefulPageOcrText(raw)) return raw;
+  const models = getOcrModelCandidates();
+  let best: { text: string; score: number } | null = null;
+
+  for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
+    const model = models[modelIndex]!;
+    let profile = defaultProfile();
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        signal,
+        body: JSON.stringify(
+          buildOcrChatBody(model, system, contentWithDetail, {
+            mode: "vision",
+            includeTemperature: profile.includeTemperature,
+            includeSeed: profile.includeSeed,
+            includeReasoningEffort: false,
+            maxOutputTokens: VISION_OCR_MAX_OUTPUT_TOKENS,
+          })
+        ),
+      });
+
+      const bodyText = await res.text();
+      if (!res.ok) {
+        lastVisionApiError = summarizeOpenAiError(res.status, bodyText);
+
+        if (res.status === 429 && attempt < 2) {
+          await sleep(1200 * (attempt + 1));
+          continue;
+        }
+
+        if (
+          modelIndex < models.length - 1 &&
+          isModelUnavailableError(res.status, bodyText)
+        ) {
+          break;
+        }
+
+        const relaxed = relaxProfile(profile, bodyText);
+        if (relaxed) {
+          profile = relaxed;
+          continue;
+        }
+        break;
+      }
+
+      const parsed = JSON.parse(bodyText) as {
+        choices?: { message?: { content?: unknown } }[];
+      };
+      const raw = extractChatMessageContent(
+        parsed.choices?.[0]?.message?.content
+      );
+      if (!isUsefulOcrText(raw)) continue;
+
+      const score = scorePageOcrText(raw);
+      if (score >= PAGE_OCR_EARLY_EXIT_SCORE) {
+        return raw;
+      }
+      if (!best || score > best.score) {
+        best = { text: raw, score };
+      }
+    }
   }
 
-  return null;
+  return best?.text ?? null;
 }
 
 async function extractSinglePage(
@@ -150,22 +193,24 @@ async function extractSinglePage(
   const userText = [
     `학생: ${studentName}`,
     `학생부 페이지 ${pageNum} (총 ${totalPages}페이지 중)`,
-    "이 페이지의 표·세특·성적을 빠짐없이 전사해 주세요.",
-    `출력 시작: === 학생부 페이지 ${pageNum} 전사 ===`,
+    "이 페이지 내용을 보이는 그대로 전사해 주세요.",
+    "교과학습발달상황(성적표)이 있으면 표의 모든 과목 행을 빠짐없이 한 줄씩 적으세요 (공통국어1·공통수학1 등 포함).",
+    "성적 숫자(석차등급·학점)는 절대 수정하지 마세요.",
+    "출력 시작: === 학생부 페이지 N 전사 ===",
   ].join("\n");
 
-  const content: ContentPart[] = [
-    { type: "text", text: userText },
-    { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
-  ];
+  for (const detail of ["high"] as const) {
+    const content: ContentPart[] = [
+      { type: "text", text: userText },
+      { type: "image_url", image_url: { url: imageUrl, detail } },
+    ];
 
-  for (const model of getOcrModelCandidates()) {
-    const extracted = await callVisionTextForModel(
+    const extracted = await callVisionText(
       apiKey,
-      model,
-      PAGE_EXTRACTION_SYSTEM,
+      VISION_PAGE_EXTRACTION_SYSTEM,
       content,
-      signal
+      signal,
+      detail
     );
     if (extracted) {
       if (extracted.includes("=== 학생부 페이지")) return extracted;
@@ -174,6 +219,55 @@ async function extractSinglePage(
   }
 
   return `=== 학생부 페이지 ${pageNum} ===\n[이 구간 판독 실패]`;
+}
+
+async function extractPageBatch(
+  apiKey: string,
+  imageUrls: string[],
+  startPageNum: number,
+  totalPages: number,
+  studentName: string,
+  signal: AbortSignal
+): Promise<string> {
+  const pageNums = imageUrls.map((_, i) => startPageNum + i);
+  const userText = [
+    `학생: ${studentName}`,
+    `학생부 페이지 ${pageNums.join(", ")} (총 ${totalPages}페이지 중)`,
+    "각 페이지를 순서대로 그대로 전사하고, 페이지마다 === 학생부 페이지 N 전사 === 로 구분하세요.",
+    "성적표는 과목마다 별도 행으로 빠짐없이 전사하세요.",
+  ].join("\n");
+
+  for (const detail of ["high"] as const) {
+    const content: ContentPart[] = [{ type: "text", text: userText }];
+    for (const url of imageUrls) {
+      content.push({ type: "image_url", image_url: { url, detail } });
+    }
+
+    const extracted = await callVisionText(
+      apiKey,
+      VISION_PAGE_EXTRACTION_SYSTEM,
+      content,
+      signal,
+      detail
+    );
+    if (extracted && isValidBatchExtract(extracted, imageUrls.length)) {
+      return extracted;
+    }
+  }
+
+  const singles = await Promise.all(
+    imageUrls.map((url, i) =>
+      extractSinglePage(
+        apiKey,
+        url,
+        startPageNum + i,
+        totalPages,
+        studentName,
+        signal
+      )
+    )
+  );
+  return singles.join("\n\n");
 }
 
 async function mapWithConcurrency<T, R>(
@@ -210,17 +304,32 @@ export async function extractTextFromPageImages(
 
   if (pageImages.length === 0) return "";
 
+  if (pageImages.length === 1) {
+    return extractSinglePage(
+      apiKey,
+      pageImages[0]!,
+      1,
+      1,
+      studentName,
+      signal
+    );
+  }
+
+  const batches = chunkPages(pageImages, STUDENT_RECORD_VISION_BATCH_SIZE);
+
   const parts = await mapWithConcurrency(
-    pageImages,
-    (imageUrl, index) =>
-      extractSinglePage(
+    batches,
+    (batch, batchIndex) => {
+      const startPage = batchIndex * STUDENT_RECORD_VISION_BATCH_SIZE + 1;
+      return extractPageBatch(
         apiKey,
-        imageUrl,
-        index + 1,
+        batch,
+        startPage,
         pageImages.length,
         studentName,
         signal
-      ),
+      );
+    },
     STUDENT_RECORD_VISION_CONCURRENCY
   );
 

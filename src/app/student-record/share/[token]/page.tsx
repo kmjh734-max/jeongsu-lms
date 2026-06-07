@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ACADEMY_NAME, LOGO_SRC, SITE_URL } from "@/lib/branding";
+import { ACADEMY_NAME, OG_IMAGE_URL, SITE_NAME } from "@/lib/branding";
 import { lookupSharedStudentRecord } from "@/lib/student-records/get-shared-record";
 import { buildStudentRecordShareUrl } from "@/lib/student-records/share-token";
 
@@ -26,17 +26,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = `${studentName} 학생 학교생활기록부 분석 보고서입니다.`;
 
   return {
-    title: `${title} | ${ACADEMY_NAME}`,
+    title: `${title} | ${SITE_NAME}`,
     description,
     robots: { index: false, follow: false },
     openGraph: {
       type: "website",
       locale: "ko_KR",
       url: pageUrl,
-      siteName: ACADEMY_NAME,
+      siteName: SITE_NAME,
       title,
       description,
-      images: [{ url: `${SITE_URL}${LOGO_SRC}`, width: 800, height: 800 }],
+      images: [{ url: OG_IMAGE_URL, width: 1200, height: 630 }],
     },
   };
 }
