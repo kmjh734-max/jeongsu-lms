@@ -4,13 +4,22 @@ import { isGpt5FamilyModel } from "@/lib/student-records/model";
 export const PDF_OCR_MAX_OUTPUT_TOKENS = 16_384;
 
 /** Vision 배치 OCR 1회 출력 상한 */
-export const VISION_OCR_MAX_OUTPUT_TOKENS = 6_144;
+export const VISION_OCR_MAX_OUTPUT_TOKENS = 16_384;
 
-/** PDF 직접 OCR — mini 우선(저비용), 실패 시 4o */
-export const PDF_OCR_MODELS = ["gpt-4o-mini", "gpt-4o"] as const;
+export const OCR_MODEL_PRIMARY = "gpt-5";
+export const OCR_MODEL_FALLBACK = "gpt-4o";
 
-/** Vision OCR — mini 우선 */
-export const VISION_OCR_MODELS = ["gpt-4o-mini", "gpt-4o"] as const;
+/** OCR 모델 (미설정 시 gpt-5 → 실패 시 gpt-4o) */
+export function getOcrModelCandidates(): string[] {
+  const configured = process.env.OPENAI_MODEL_STUDENT_RECORDS_OCR?.trim();
+  if (configured) {
+    if (configured === OCR_MODEL_PRIMARY) {
+      return [OCR_MODEL_PRIMARY, OCR_MODEL_FALLBACK];
+    }
+    return [configured, OCR_MODEL_FALLBACK];
+  }
+  return [OCR_MODEL_PRIMARY, OCR_MODEL_FALLBACK];
+}
 
 export function buildOcrChatBody(
   model: string,

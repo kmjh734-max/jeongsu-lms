@@ -1,5 +1,8 @@
 import { STUDENT_RECORD_ANALYSIS_TIMEOUT_MS } from "@/lib/student-records/limits";
-import { hasSubstantiveStudentRecordText, stripOcrPlaceholders } from "@/lib/student-records/ocr-quality";
+import {
+  isReliableStudentRecordExtract,
+  stripOcrPlaceholders,
+} from "@/lib/student-records/ocr-quality";
 import { extractTextFromPdfDocuments } from "@/lib/student-records/pdf-ocr";
 import type { AnalyzeStudentRecordInput } from "@/lib/student-records/types";
 import {
@@ -68,7 +71,7 @@ export async function extractStudentRecordContent(
     const combined = chunks.join("\n\n");
     const substantive = stripOcrPlaceholders(combined);
 
-    if (!hasSubstantiveStudentRecordText(combined)) {
+    if (!isReliableStudentRecordExtract(combined)) {
       const hadImages = input.imageDataUrls.length > 0;
       const hadPdf = input.pdfDocuments.length > 0;
       const ocrStats = hadImages ? countSuccessfulOcrPages(combined) : null;

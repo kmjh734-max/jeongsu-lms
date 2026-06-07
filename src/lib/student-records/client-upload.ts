@@ -137,7 +137,7 @@ export async function compressImageForUpload(file: File): Promise<File> {
   if (file.size <= 300_000) return file;
 
   const img = await loadImage(file);
-  const maxEdge = 1400;
+  const maxEdge = 1600;
   const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
   const width = Math.max(1, Math.round(img.width * scale));
   const height = Math.max(1, Math.round(img.height * scale));

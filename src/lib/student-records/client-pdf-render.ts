@@ -3,7 +3,7 @@ import {
   STUDENT_RECORD_PAGE_JPEG_TARGET_BYTES,
 } from "@/lib/student-records/limits";
 
-const MAX_PAGE_EDGE = 1400;
+const MAX_PAGE_EDGE = 1600;
 
 export async function pdfFileToJpegFiles(
   file: File,

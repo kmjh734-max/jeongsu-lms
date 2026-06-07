@@ -21,7 +21,10 @@ import {
 } from "@/lib/student-records/client-upload";
 import { isPdfUpload } from "@/lib/student-records/file-types";
 import { STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL } from "@/lib/student-records/limits";
-import { hasSubstantiveStudentRecordText } from "@/lib/student-records/ocr-quality";
+import {
+  hasSubstantiveStudentRecordText,
+  isReliableStudentRecordExtract,
+} from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
 
 const PROGRESS_PREP_END = 12;
@@ -156,12 +159,17 @@ export function StudentRecordWorkspace({
           pdfExtracted?.ok &&
           pdfExtracted.text &&
           pdfExtracted.studentName &&
-          hasSubstantiveStudentRecordText(pdfExtracted.text)
+          isReliableStudentRecordExtract(pdfExtracted.text)
         ) {
           resolvedStudentId = pdfExtracted.studentId ?? null;
           resolvedStudentName = pdfExtracted.studentName;
           combinedExtractedText = pdfExtracted.text;
           updateProgress("PDF 직접 OCR 완료", PROGRESS_OCR_END);
+        } else if (pdfExtracted?.ok && pdfExtracted.text) {
+          updateProgress(
+            "PDF 직접 OCR 품질 부족 — 페이지 이미지 OCR로 재시도…",
+            12
+          );
         }
       }
 
@@ -267,7 +275,7 @@ export function StudentRecordWorkspace({
         }
 
         combinedExtractedText = ocrTexts.join("\n\n");
-        if (!hasSubstantiveStudentRecordText(combinedExtractedText)) {
+        if (!isReliableStudentRecordExtract(combinedExtractedText)) {
           throw new Error(
             "학생부 OCR 결과가 충분하지 않습니다. 스캔 선명도를 확인하거나 텍스트를 직접 붙여넣어 주세요."
           );

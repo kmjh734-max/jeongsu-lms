@@ -4,14 +4,16 @@ import {
   STUDENT_RECORD_VISION_CONCURRENCY,
 } from "@/lib/student-records/limits";
 import {
+  isGpt5FamilyModel,
+  isModelUnavailableError,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
 } from "@/lib/student-records/model";
 import { summarizeOpenAiError } from "@/lib/student-records/openai-errors";
 import {
   buildOcrChatBody,
+  getOcrModelCandidates,
   VISION_OCR_MAX_OUTPUT_TOKENS,
-  VISION_OCR_MODELS,
 } from "@/lib/student-records/ocr-chat";
 
 type ImageDetail = "auto" | "high";
@@ -62,6 +64,15 @@ function isUsefulOcrText(text: string): boolean {
   return text.replace(/\s+/g, "").length >= 30;
 }
 
+function isValidBatchExtract(text: string, expectedPages: number): boolean {
+  if (!isUsefulOcrText(text)) return false;
+  if (expectedPages <= 1) return true;
+  const markers =
+    text.match(/=== 학생부 페이지 \d+ 전사 ===|=== 페이지 \d+ ===/g)?.length ??
+    0;
+  return markers >= Math.max(1, expectedPages - 1);
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -89,10 +100,13 @@ async function callVisionText(
     };
   });
 
-  for (const model of VISION_OCR_MODELS) {
+  const models = getOcrModelCandidates();
+
+  for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
+    const model = models[modelIndex]!;
     let profile = defaultProfile();
 
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 3; attempt++) {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -103,7 +117,7 @@ async function callVisionText(
         body: JSON.stringify(
           buildOcrChatBody(model, system, contentWithDetail, {
             includeTemperature: profile.includeTemperature,
-            includeReasoningEffort: false,
+            includeReasoningEffort: isGpt5FamilyModel(model),
             maxOutputTokens: VISION_OCR_MAX_OUTPUT_TOKENS,
           })
         ),
@@ -113,9 +127,16 @@ async function callVisionText(
       if (!res.ok) {
         lastVisionApiError = summarizeOpenAiError(res.status, bodyText);
 
-        if (res.status === 429 && attempt < 1) {
-          await sleep(1200);
+        if (res.status === 429 && attempt < 2) {
+          await sleep(1200 * (attempt + 1));
           continue;
+        }
+
+        if (
+          modelIndex < models.length - 1 &&
+          isModelUnavailableError(res.status, bodyText)
+        ) {
+          break;
         }
 
         const relaxed = relaxProfile(profile, bodyText);
@@ -154,7 +175,7 @@ async function extractSinglePage(
     "출력 시작: === 학생부 페이지 N 전사 ===",
   ].join("\n");
 
-  for (const detail of ["auto", "high"] as const) {
+  for (const detail of ["high", "auto"] as const) {
     const content: ContentPart[] = [
       { type: "text", text: userText },
       { type: "image_url", image_url: { url: imageUrl, detail } },
@@ -191,7 +212,7 @@ async function extractPageBatch(
     "각 페이지를 순서대로 전사하고, 페이지마다 === 학생부 페이지 N 전사 === 로 구분하세요.",
   ].join("\n");
 
-  for (const detail of ["auto", "high"] as const) {
+  for (const detail of ["high", "auto"] as const) {
     const content: ContentPart[] = [{ type: "text", text: userText }];
     for (const url of imageUrls) {
       content.push({ type: "image_url", image_url: { url, detail } });
@@ -204,7 +225,9 @@ async function extractPageBatch(
       signal,
       detail
     );
-    if (extracted) return extracted;
+    if (extracted && isValidBatchExtract(extracted, imageUrls.length)) {
+      return extracted;
+    }
   }
 
   const singles = await Promise.all(
