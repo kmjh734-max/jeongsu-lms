@@ -1,8 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { ListeningStatusPanel } from "@/components/learning-status/ListeningStatusPanel";
 import { ListeningSetsListClient } from "@/components/listening/ListeningSetsListClient";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { loadListeningAssignmentSummaries } from "@/lib/listening/load-assignment-summaries";
+import { listReportClasses } from "@/lib/reports/list-students";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function TeacherListeningPage() {
   const profile = await getCurrentProfile();
@@ -23,18 +25,19 @@ export default async function TeacherListeningPage() {
   ]);
 
   const setList = sets ?? [];
-  const assignmentBySetId = await loadListeningAssignmentSummaries(
-    supabase,
-    setList.map((s) => s.id)
-  );
+  const [assignmentBySetId, statusClasses] = await Promise.all([
+    loadListeningAssignmentSummaries(supabase, setList.map((s) => s.id)),
+    listReportClasses(supabase, "teacher", profile!.id),
+  ]);
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageHeader
         title="듣기학습"
         description="다중 화자 대본으로 듣기 문항·음원을 만듭니다."
       />
-      <div className="mt-6">
+      <ListeningStatusPanel initialClasses={statusClasses} />
+      <div>
         <ListeningSetsListClient
           sets={setList}
           basePath="/teacher/listening"

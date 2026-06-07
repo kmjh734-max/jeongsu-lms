@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { VocabTodayStatusPanel } from "@/components/learning-status/VocabTodayStatusPanel";
 import type { VocabSidebarSet } from "@/components/vocab/VocabSidebar";
 import { useVocabSidebar } from "@/components/vocab/VocabSidebarContext";
 
@@ -29,6 +30,10 @@ export function VocabOverview({ role, classesHref }: VocabOverviewProps) {
 
   return (
     <div className="space-y-8">
+      <VocabTodayStatusPanel
+        initialClasses={classes.map((c) => ({ id: c.id, name: c.name }))}
+      />
+
       <div>
         <h1 className="text-2xl font-bold text-slate-900">단어 관리</h1>
         <p className="mt-2 text-slate-600">

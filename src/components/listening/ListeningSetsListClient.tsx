@@ -146,14 +146,26 @@ export function ListeningSetsListClient({
       </form>
 
       {schedulesPath && (
-        <p className="text-sm">
-          <Link
-            href={schedulesPath}
-            className="text-indigo-600 hover:underline"
+        <Link
+          href={schedulesPath}
+          className="flex items-center gap-4 rounded-2xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 via-white to-violet-50 p-5 shadow-sm transition hover:border-indigo-400 hover:shadow-md"
+        >
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-3xl text-white shadow"
+            aria-hidden
           >
-            스케줄 과제 관리 →
-          </Link>
-        </p>
+            📅
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-lg font-bold text-slate-900">스케줄 과제 관리</p>
+            <p className="text-sm text-slate-600">
+              반·학생별 듣기 과제 배정 · 취소 · 재활성화
+            </p>
+          </div>
+          <span className="shrink-0 text-2xl text-indigo-500" aria-hidden>
+            →
+          </span>
+        </Link>
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}

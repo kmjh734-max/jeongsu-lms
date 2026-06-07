@@ -1,9 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
-import { PageHeader } from "@/components/ui/PageHeader";
+import { ListeningStatusPanel } from "@/components/learning-status/ListeningStatusPanel";
 import { ListeningSetsListClient } from "@/components/listening/ListeningSetsListClient";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { loadListeningAssignmentSummaries } from "@/lib/listening/load-assignment-summaries";
+import { listReportClasses } from "@/lib/reports/list-students";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
 
 export default async function AdminListeningPage() {
+  const profile = await getCurrentProfile();
   const supabase = await createClient();
   const [{ data: sets }, { data: classes }] = await Promise.all([
     supabase
@@ -19,18 +23,19 @@ export default async function AdminListeningPage() {
   ]);
 
   const setList = sets ?? [];
-  const assignmentBySetId = await loadListeningAssignmentSummaries(
-    supabase,
-    setList.map((s) => s.id)
-  );
+  const [assignmentBySetId, statusClasses] = await Promise.all([
+    loadListeningAssignmentSummaries(supabase, setList.map((s) => s.id)),
+    listReportClasses(supabase, "admin", profile!.id),
+  ]);
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageHeader
         title="듣기학습"
         description="다중 화자(ANN/M/W) 대본 · AI 문항 · TTS 음원 관리"
       />
-      <div className="mt-6">
+      <ListeningStatusPanel initialClasses={statusClasses} />
+      <div>
         <ListeningSetsListClient
           sets={setList}
           basePath="/admin/listening"

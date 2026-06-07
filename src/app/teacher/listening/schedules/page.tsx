@@ -1,16 +1,30 @@
-import { PageHeader } from "@/components/ui/PageHeader";
-import { ListeningScheduleListClient } from "@/components/listening/ListeningScheduleListClient";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { ListeningScheduleManageClient } from "@/components/listening/ListeningScheduleManageClient";
+import { createClient } from "@/lib/supabase/server";
 
-export default function TeacherListeningSchedulesPage() {
+export default async function TeacherListeningSchedulesPage() {
+  const profile = await getCurrentProfile();
+  const supabase = await createClient();
+  const [{ data: classes }, { data: sets }] = await Promise.all([
+    supabase
+      .from("classes")
+      .select("id, name")
+      .eq("teacher_id", profile!.id)
+      .eq("is_active", true)
+      .order("name"),
+    supabase
+      .from("listening_sets")
+      .select("id, title")
+      .eq("teacher_id", profile!.id)
+      .order("created_at", { ascending: false })
+      .limit(200),
+  ]);
+
   return (
-    <div>
-      <PageHeader
-        title="듣기 스케줄 과제"
-        description="요일·일일 문항 수 기준으로 배정한 듣기 과제를 관리합니다."
-      />
-      <div className="mt-6">
-        <ListeningScheduleListClient basePath="/teacher/listening" />
-      </div>
-    </div>
+    <ListeningScheduleManageClient
+      basePath="/teacher/listening"
+      classes={classes ?? []}
+      sets={sets ?? []}
+    />
   );
 }

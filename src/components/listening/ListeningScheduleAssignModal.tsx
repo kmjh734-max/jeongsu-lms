@@ -16,27 +16,47 @@ interface StudentOption {
   name: string;
 }
 
+interface SetOption {
+  id: string;
+  title: string;
+}
+
 interface ListeningScheduleAssignModalProps {
-  setIds: string[];
-  setTitles: Record<string, string>;
+  setIds?: string[];
+  setTitles?: Record<string, string>;
+  availableSets?: SetOption[];
   classes: ClassOption[];
+  initialTargetType?: "class" | "student";
+  initialTargetClassId?: string;
+  initialTargetStudentId?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
 
 export function ListeningScheduleAssignModal({
-  setIds,
-  setTitles,
+  setIds: initialSetIds = [],
+  setTitles = {},
+  availableSets = [],
   classes,
+  initialTargetType,
+  initialTargetClassId,
+  initialTargetStudentId,
   onClose,
   onSuccess,
 }: ListeningScheduleAssignModalProps) {
+  const [selectedSetIds, setSelectedSetIds] = useState<string[]>(initialSetIds);
   const [title, setTitle] = useState("듣기 스케줄 과제");
-  const [targetType, setTargetType] = useState<"class" | "student">("class");
-  const [targetClassId, setTargetClassId] = useState(classes[0]?.id ?? "");
+  const [targetType, setTargetType] = useState<"class" | "student">(
+    initialTargetType ?? "class"
+  );
+  const [targetClassId, setTargetClassId] = useState(
+    initialTargetClassId ?? classes[0]?.id ?? ""
+  );
   const [studentSearch, setStudentSearch] = useState("");
   const [students, setStudents] = useState<StudentOption[]>([]);
-  const [targetStudentId, setTargetStudentId] = useState("");
+  const [targetStudentId, setTargetStudentId] = useState(
+    initialTargetStudentId ?? ""
+  );
   const [startDate, setStartDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
@@ -79,7 +99,22 @@ export function ListeningScheduleAssignModal({
     setDaysOfWeek([...preset]);
   }
 
+  function toggleSet(id: string) {
+    setSelectedSetIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
+  const resolvedSetTitles = { ...setTitles };
+  for (const s of availableSets) {
+    resolvedSetTitles[s.id] = s.title;
+  }
+
   async function submit() {
+    if (!selectedSetIds.length) {
+      setError("듣기 세트를 1개 이상 선택하세요.");
+      return;
+    }
     if (!daysOfWeek.length) {
       setError("학습 요일을 1개 이상 선택하세요.");
       return;
@@ -94,7 +129,7 @@ export function ListeningScheduleAssignModal({
         targetType,
         targetClassId: targetType === "class" ? targetClassId : null,
         targetStudentId: targetType === "student" ? targetStudentId : null,
-        setIds,
+        setIds: selectedSetIds,
         startDate,
         endDate: endDate || null,
         daysOfWeek: [...daysOfWeek].sort((a, b) => a - b),
@@ -119,15 +154,36 @@ export function ListeningScheduleAssignModal({
       <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-5 shadow-xl">
         <h2 className="text-lg font-semibold text-slate-900">스케줄 과제 배정</h2>
         <p className="mt-1 text-xs text-slate-600">
-          선택한 {setIds.length}개 세트 · 요일마다 {questionsPerDay}문항씩 순서대로 배정
+          선택 {selectedSetIds.length}개 세트 · 요일마다 {questionsPerDay}문항씩 순서대로 배정
         </p>
-        <ul className="mt-2 max-h-24 overflow-y-auto text-xs text-slate-500">
-          {setIds.map((id, i) => (
-            <li key={id}>
-              {i + 1}. {setTitles[id] ?? id}
-            </li>
-          ))}
-        </ul>
+
+        {availableSets.length > 0 ? (
+          <div className="mt-3 max-h-40 overflow-y-auto rounded-lg border border-slate-200 p-2">
+            <p className="mb-2 text-xs font-medium text-slate-700">듣기 세트 선택</p>
+            <ul className="space-y-1">
+              {availableSets.map((s) => (
+                <li key={s.id}>
+                  <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50">
+                    <input
+                      type="checkbox"
+                      checked={selectedSetIds.includes(s.id)}
+                      onChange={() => toggleSet(s.id)}
+                    />
+                    <span className="text-sm text-slate-800">{s.title}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <ul className="mt-2 max-h-24 overflow-y-auto text-xs text-slate-500">
+            {selectedSetIds.map((id, i) => (
+              <li key={id}>
+                {i + 1}. {resolvedSetTitles[id] ?? id}
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="mt-4 space-y-3 text-sm">
           <label className="block">
