@@ -358,7 +358,7 @@ export function ListeningScheduleManageClient({
                   <td className="font-medium text-slate-900">{a.title}</td>
                   <td>
                     <span
-                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                      className={`inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${
                         a.targetType === "class"
                           ? "bg-blue-100 text-blue-800"
                           : "bg-violet-100 text-violet-800"

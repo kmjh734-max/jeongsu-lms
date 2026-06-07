@@ -117,11 +117,9 @@ export async function listScheduleAssignments(
     const targetType = row.target_type as "class" | "student";
     let targetLabel = "";
     if (targetType === "class" && row.target_class_id) {
-      const name = classNameById.get(row.target_class_id as string);
-      targetLabel = name ? `반 ${name}` : "반";
+      targetLabel = classNameById.get(row.target_class_id as string) ?? "—";
     } else if (row.target_student_id) {
-      const name = studentNameById.get(row.target_student_id as string);
-      targetLabel = name ? `학생 ${name}` : "학생";
+      targetLabel = studentNameById.get(row.target_student_id as string) ?? "—";
     }
 
     const sets = setsByAssignment.get(row.id as string) ?? {
