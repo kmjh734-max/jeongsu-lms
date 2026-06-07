@@ -23,16 +23,17 @@ interface ListeningSetsListClientProps {
   sets: ListeningSetListItem[];
   basePath: "/admin/listening" | "/teacher/listening";
   classes?: ClassOption[];
-  schedulesPath?: string;
   assignmentBySetId?: Record<string, ListeningAssignmentSummary>;
+  /** 만들기 전용: 배정 UI 숨김 */
+  createOnly?: boolean;
 }
 
 export function ListeningSetsListClient({
   sets,
   basePath,
   classes = [],
-  schedulesPath,
   assignmentBySetId = {},
+  createOnly = false,
 }: ListeningSetsListClientProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -145,36 +146,13 @@ export function ListeningSetsListClient({
         </button>
       </form>
 
-      {schedulesPath && (
-        <Link
-          href={schedulesPath}
-          className="flex items-center gap-4 rounded-2xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 via-white to-violet-50 p-5 shadow-sm transition hover:border-indigo-400 hover:shadow-md"
-        >
-          <div
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-3xl text-white shadow"
-            aria-hidden
-          >
-            📅
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold text-slate-900">스케줄 과제 관리</p>
-            <p className="text-sm text-slate-600">
-              반·학생별 듣기 과제 배정 · 취소 · 재활성화
-            </p>
-          </div>
-          <span className="shrink-0 text-2xl text-indigo-500" aria-hidden>
-            →
-          </span>
-        </Link>
-      )}
-
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {sets.length === 0 ? (
         <p className="text-sm text-slate-600">등록된 듣기 세트가 없습니다.</p>
       ) : (
         <>
-          {canBatchAssign && (
+          {!createOnly && canBatchAssign && (
             <div className="flex flex-wrap items-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3 text-sm">
               <label className="flex items-center gap-2 font-medium text-slate-800">
                 <input
@@ -203,7 +181,7 @@ export function ListeningSetsListClient({
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
             {sets.map((set) => (
               <li key={set.id} className="flex items-center gap-2 px-4 py-3">
-                {canBatchAssign && (
+                {!createOnly && canBatchAssign && (
                   <input
                     type="checkbox"
                     checked={selectedIds.has(set.id)}
@@ -221,13 +199,15 @@ export function ListeningSetsListClient({
                     {set.is_published ? "공개" : "비공개"}
                   </span>
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setAssignSetId(set.id)}
-                  className="shrink-0 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-800 hover:bg-indigo-100"
-                >
-                  배정
-                </button>
+                {!createOnly && (
+                  <button
+                    type="button"
+                    onClick={() => setAssignSetId(set.id)}
+                    className="shrink-0 rounded-lg border border-indigo-200 bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-800 hover:bg-indigo-100"
+                  >
+                    배정
+                  </button>
+                )}
                 <Link
                   href={`${basePath}/${set.id}/print`}
                   className="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"

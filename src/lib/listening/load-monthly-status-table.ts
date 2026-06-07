@@ -3,7 +3,9 @@ import {
   getMonthDateRange,
   getTodayIsoKorea,
 } from "@/lib/date/korea-today";
+import { ensureDailyTasksForStudentRange } from "@/lib/listening/schedule/generate-daily-tasks";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
+import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import type {
   DailyTaskStatus,
   ScheduleAssignmentRow,
@@ -101,6 +103,83 @@ async function loadAssignmentsByStudent(
   return result;
 }
 
+async function ensureStatusDailyTasksForMonth(
+  admin: SupabaseClient,
+  studentIds: string[],
+  year: number,
+  month: number
+): Promise<void> {
+  const { start, end } = getMonthDateRange(year, month);
+  const todayIso = getTodayIsoKorea();
+  const rangeEnd = end > todayIso ? todayIso : end;
+  if (start > rangeEnd) return;
+
+  const assignmentsByStudent = await loadAssignmentsByStudent(
+    admin,
+    studentIds
+  );
+
+  const jobs: Array<() => Promise<void>> = [];
+  for (const studentId of studentIds) {
+    const assignments = assignmentsByStudent.get(studentId) ?? [];
+    for (const assignment of assignments) {
+      jobs.push(async () => {
+        const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
+        await ensureDailyTasksForStudentRange(
+          admin,
+          assignment,
+          studentId,
+          start,
+          rangeEnd,
+          queue
+        );
+      });
+    }
+  }
+
+  const batchSize = 6;
+  for (let i = 0; i < jobs.length; i += batchSize) {
+    await Promise.all(jobs.slice(i, i + batchSize).map((run) => run()));
+  }
+}
+
+function aggregateTasksForDay(rows: TaskRow[]): {
+  status: DailyTaskStatus | null;
+  completedCount: number;
+  totalCount: number;
+} {
+  if (rows.length === 0) {
+    return { status: null, completedCount: 0, totalCount: 0 };
+  }
+
+  const allCompleted = rows.every((r) => r.status === "completed");
+  if (allCompleted) {
+    return {
+      status: "completed",
+      completedCount: rows.reduce((sum, r) => sum + r.completed_count, 0),
+      totalCount: rows.reduce((sum, r) => sum + r.total_count, 0),
+    };
+  }
+
+  const anyProgress = rows.some(
+    (r) => r.status === "in_progress" || r.status === "completed"
+  );
+  if (anyProgress) {
+    return {
+      status: "in_progress",
+      completedCount: rows.reduce((sum, r) => sum + r.completed_count, 0),
+      totalCount: rows.reduce((sum, r) => sum + r.total_count, 0),
+    };
+  }
+
+  const pick = rows[0]!;
+  return {
+    status: pick.status,
+    completedCount: pick.completed_count,
+    totalCount: pick.total_count,
+  };
+}
+
 function isDateInAssignment(
   taskDateIso: string,
   assignment: ScheduleAssignmentRow
@@ -148,14 +227,15 @@ function buildStudentDays(
     );
     const isStudyDayFlag = studyAssignments.length > 0;
     const rows = tasksByDate.get(taskDate) ?? [];
-    const pick =
-      rows.find((r) => r.status !== "completed") ?? rows[0] ?? null;
+    const aggregated = aggregateTasksForDay(rows);
 
-    const completedCount = pick?.completed_count ?? 0;
+    const completedCount = aggregated.completedCount;
     const totalCount =
-      pick?.total_count ?? studyAssignments[0]?.questions_per_day ?? 0;
+      aggregated.totalCount > 0
+        ? aggregated.totalCount
+        : (studyAssignments[0]?.questions_per_day ?? 0);
     const symbol = toDaySymbol(
-      pick?.status ?? null,
+      aggregated.status,
       taskDate,
       todayIso,
       isStudyDayFlag,
@@ -180,6 +260,7 @@ function buildStudentDays(
 
 export async function loadListeningMonthlyStatusTable(
   supabase: SupabaseClient,
+  admin: SupabaseClient,
   role: UserRole,
   viewerId: string,
   options: {
@@ -213,9 +294,16 @@ export async function loadListeningMonthlyStatusTable(
   }
 
   const studentIds = students.map((s) => s.id);
+  await ensureStatusDailyTasksForMonth(
+    admin,
+    studentIds,
+    options.year,
+    options.month
+  );
+
   const [assignmentsByStudent, { data: taskRows }] = await Promise.all([
-    loadAssignmentsByStudent(supabase, studentIds),
-    supabase
+    loadAssignmentsByStudent(admin, studentIds),
+    admin
       .from("listening_daily_tasks")
       .select(
         "id, student_id, task_date, status, completed_count, total_count, assignment_id"

@@ -7,9 +7,11 @@ import {
 } from "@/lib/date/korea-today";
 import { loadListeningMonthlyStatusTable } from "@/lib/listening/load-monthly-status-table";
 import { listReportClasses } from "@/lib/reports/list-students";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const profile = await getCurrentProfile();
@@ -34,9 +36,10 @@ export async function GET(request: Request) {
   const loginQuery = searchParams.get("loginId") ?? "";
 
   const supabase = await createClient();
+  const admin = createAdminClient();
   const [classes, table] = await Promise.all([
     listReportClasses(supabase, profile.role, profile.id),
-    loadListeningMonthlyStatusTable(supabase, profile.role, profile.id, {
+    loadListeningMonthlyStatusTable(supabase, admin, profile.role, profile.id, {
       year,
       month,
       classId,
