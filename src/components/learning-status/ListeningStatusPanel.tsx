@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   HomeworkStatusLegend,
-  MonthlyHomeworkGrid,
+  MonthlyHomeworkDayHeaders,
+  MonthlyHomeworkSymbols,
 } from "@/components/learning-status/MonthlyHomeworkGrid";
 import {
   formatKoreaMonth,
@@ -55,6 +56,8 @@ export function ListeningStatusPanel({
   useEffect(() => {
     void loadStatus();
   }, [loadStatus]);
+
+  const headerDays = table?.rows[0]?.days ?? [];
 
   return (
     <section className="space-y-4 rounded-xl border border-indigo-200 bg-white p-4 shadow-sm">
@@ -120,43 +123,73 @@ export function ListeningStatusPanel({
 
       {table && table.rows.length > 0 && (
         <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-left text-xs font-semibold text-slate-700">
-              <tr>
-                <th className="sticky left-0 z-10 bg-slate-50 px-3 py-2">No</th>
-                <th className="sticky left-10 z-10 bg-slate-50 px-3 py-2">반</th>
-                <th className="sticky left-28 z-10 bg-slate-50 px-3 py-2">학생</th>
-                <th className="px-3 py-2">프로그램</th>
-                <th className="px-3 py-2">숙제현황</th>
-                <th className="px-3 py-2 whitespace-nowrap">완료/전체</th>
-                <th className="px-3 py-2">수행률</th>
+          <table className="w-max min-w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-slate-50 text-xs font-semibold text-slate-700">
+                <th
+                  rowSpan={2}
+                  className="sticky left-0 z-20 min-w-[2.5rem] border-b border-r border-slate-200 bg-slate-50 px-2 py-2 text-center"
+                >
+                  No
+                </th>
+                <th
+                  rowSpan={2}
+                  className="sticky left-[2.5rem] z-20 min-w-[4.5rem] border-b border-r border-slate-200 bg-slate-50 px-2 py-2"
+                >
+                  반
+                </th>
+                <th
+                  rowSpan={2}
+                  className="sticky left-[7rem] z-20 min-w-[5.5rem] border-b border-r border-slate-200 bg-slate-50 px-2 py-2"
+                >
+                  학생
+                </th>
+                <th
+                  colSpan={table.daysInMonth}
+                  className="border-b border-slate-200 px-2 py-1 text-center"
+                >
+                  숙제현황
+                </th>
+                <th
+                  rowSpan={2}
+                  className="min-w-[4.5rem] border-b border-l border-slate-200 px-2 py-2 text-center"
+                >
+                  완료/전체
+                </th>
+                <th
+                  rowSpan={2}
+                  className="min-w-[3.5rem] border-b border-slate-200 px-2 py-2 text-center"
+                >
+                  수행률
+                </th>
+              </tr>
+              <tr className="bg-slate-50">
+                <MonthlyHomeworkDayHeaders
+                  days={headerDays}
+                  daysInMonth={table.daysInMonth}
+                />
               </tr>
             </thead>
             <tbody>
               {table.rows.map((row, index) => (
                 <tr key={row.studentId} className="border-t border-slate-100">
-                  <td className="sticky left-0 z-10 bg-white px-3 py-2 text-slate-500">
+                  <td className="sticky left-0 z-10 border-r border-slate-100 bg-white px-2 py-2 text-center text-slate-500">
                     {index + 1}
                   </td>
-                  <td className="sticky left-10 z-10 bg-white px-3 py-2 whitespace-nowrap">
+                  <td className="sticky left-[2.5rem] z-10 border-r border-slate-100 bg-white px-2 py-2 whitespace-nowrap">
                     {row.classLabel}
                   </td>
-                  <td className="sticky left-28 z-10 bg-white px-3 py-2 font-medium text-slate-900 whitespace-nowrap">
+                  <td className="sticky left-[7rem] z-10 border-r border-slate-200 bg-white px-2 py-2 font-medium whitespace-nowrap text-slate-900">
                     {row.studentName}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-slate-700">
-                    {row.programLabel}
-                  </td>
-                  <td className="px-3 py-2">
-                    <MonthlyHomeworkGrid
-                      days={row.days}
-                      daysInMonth={table.daysInMonth}
-                    />
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-center">
+                  <MonthlyHomeworkSymbols
+                    days={row.days}
+                    daysInMonth={table.daysInMonth}
+                  />
+                  <td className="border-l border-slate-100 px-2 py-2 text-center whitespace-nowrap">
                     {row.completedCount}/{row.totalCount}
                   </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-center">
+                  <td className="px-2 py-2 text-center whitespace-nowrap">
                     {row.executionRate}%
                   </td>
                 </tr>
