@@ -10,27 +10,30 @@ export const STUDENT_RECORD_MAX_DIRECT_IMAGES = 10;
 export const STUDENT_RECORD_MAX_PDF_PAGES = 40;
 
 /** PDF 페이지 렌더 해상도 (용량·속도 균형) */
-export const STUDENT_RECORD_PDF_RENDER_WIDTH = 1200;
+export const STUDENT_RECORD_PDF_RENDER_WIDTH = 1000;
 
-/** 한 번에 Vision에 넣을 페이지 수 (작은 글자 인식용) */
-export const STUDENT_RECORD_VISION_BATCH_SIZE = 2;
+/** Vision 1회 API 호출당 페이지 수 (호출 수 ↓ = 속도·비용 절감) */
+export const STUDENT_RECORD_VISION_BATCH_SIZE = 3;
 
 /** 클라이언트 PDF→JPEG 변환 후 업로드 예산 (전체) */
 export const STUDENT_RECORD_PREPARED_UPLOAD_BUDGET = 3_600_000;
 
-/** OCR extract API 1회당 이미지 수 (4MB 한도·선명도 균형) */
-export const STUDENT_RECORD_EXTRACT_CHUNK_PAGES = 8;
+/** OCR extract API 1회당 이미지 수 (4MB 한도) */
+export const STUDENT_RECORD_EXTRACT_CHUNK_PAGES = 10;
 
-/** 페이지 JPEG 목표 용량 — 청크 업로드로 페이지당 선명도 확보 */
-export const STUDENT_RECORD_PAGE_JPEG_TARGET_BYTES = 380_000;
+/** 페이지 JPEG 목표 용량 */
+export const STUDENT_RECORD_PAGE_JPEG_TARGET_BYTES = 280_000;
 
-/** Vision OCR 동시 요청 수 (429 rate limit 방지) */
-export const STUDENT_RECORD_VISION_CONCURRENCY = 4;
+/** Vision OCR 동시 배치 수 */
+export const STUDENT_RECORD_VISION_CONCURRENCY = 3;
 
 /** 클라이언트 OCR 청크 병렬 요청 수 */
-export const STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL = 2;
+export const STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL = 3;
 
 /** 이 수 초과 시 배치 전사 후 텍스트-only로 최종 보고서 생성 */
 export const STUDENT_RECORD_VISION_BATCH_THRESHOLD = 6;
+
+/** 보고서 생성에 넣을 OCR 원문 최대 길이 (입력 토큰 절감) */
+export const STUDENT_RECORD_MAX_REPORT_INPUT_CHARS = 85_000;
 
 export const STUDENT_RECORD_ANALYSIS_TIMEOUT_MS = 300_000;

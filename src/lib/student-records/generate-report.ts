@@ -9,6 +9,7 @@ import {
   isUnsupportedTemperatureError,
 } from "@/lib/student-records/model";
 import { STUDENT_RECORD_ANALYSIS_SYSTEM_PROMPT } from "@/lib/student-records/system-prompt";
+import { trimStudentRecordExtractForReport } from "@/lib/student-records/trim-extract-text";
 
 type RequestProfile = {
   includeTemperature: boolean;
@@ -77,7 +78,7 @@ export async function generateStudentRecordReport(
     "□ <!DOCTYPE html> ~ </html> HTML만 출력",
     "",
     "=== 학생부 원문 ===",
-    text.trim(),
+    trimStudentRecordExtractForReport(text),
   ].join("\n");
 
   const controller = new AbortController();

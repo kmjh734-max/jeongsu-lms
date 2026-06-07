@@ -1,17 +1,26 @@
+export const STUDENT_RECORD_MODEL_FAST = "gpt-4o";
 export const STUDENT_RECORD_MODEL_PRIMARY = "gpt-5.5";
 export const STUDENT_RECORD_MODEL_FALLBACK = "gpt-5";
 
-export const STUDENT_RECORD_MAX_COMPLETION_TOKENS = 16_384;
+export const STUDENT_RECORD_MAX_COMPLETION_TOKENS = 12_000;
 
 export function getStudentRecordModelCandidates(): string[] {
   const configured = process.env.OPENAI_MODEL_STUDENT_RECORDS?.trim();
   if (configured) {
     if (configured === STUDENT_RECORD_MODEL_PRIMARY) {
-      return [STUDENT_RECORD_MODEL_PRIMARY, STUDENT_RECORD_MODEL_FALLBACK];
+      return [
+        STUDENT_RECORD_MODEL_FAST,
+        STUDENT_RECORD_MODEL_PRIMARY,
+        STUDENT_RECORD_MODEL_FALLBACK,
+      ];
     }
     return [configured];
   }
-  return [STUDENT_RECORD_MODEL_PRIMARY, STUDENT_RECORD_MODEL_FALLBACK];
+  return [
+    STUDENT_RECORD_MODEL_FAST,
+    STUDENT_RECORD_MODEL_PRIMARY,
+    STUDENT_RECORD_MODEL_FALLBACK,
+  ];
 }
 
 export function isGpt5FamilyModel(model: string): boolean {
@@ -88,7 +97,7 @@ export function buildStudentRecordChatBody(
   if (isGpt5FamilyModel(model)) {
     body.max_completion_tokens = STUDENT_RECORD_MAX_COMPLETION_TOKENS;
     if (includeReasoningEffort) {
-      body.reasoning_effort = "low";
+      body.reasoning_effort = "minimal";
     }
   } else {
     body.max_tokens = STUDENT_RECORD_MAX_COMPLETION_TOKENS;

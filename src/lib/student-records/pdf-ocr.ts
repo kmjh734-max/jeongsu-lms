@@ -1,6 +1,7 @@
 import { extractChatMessageContent } from "@/lib/student-records/chat-content";
 import {
   buildOcrChatBody,
+  PDF_OCR_MAX_OUTPUT_TOKENS,
   PDF_OCR_MODELS,
   pdfDataUrlToBuffer,
   sanitizePdfFilename,
@@ -30,8 +31,7 @@ const PDF_OCR_SYSTEM = `당신은 학교생활기록부 OCR·전사 전문가입
 
 type FileContentPart =
   | { type: "text"; text: string }
-  | { type: "file"; file: { filename: string; file_data: string } }
-  | { type: "file"; file: { file_id: string } };
+  | { type: "file"; file: { filename: string; file_data: string } };
 
 type RequestProfile = {
   includeTemperature: boolean;
@@ -41,7 +41,7 @@ type RequestProfile = {
 function defaultProfile(model: string): RequestProfile {
   return {
     includeTemperature: !isGpt5FamilyModel(model),
-    includeReasoningEffort: isGpt5FamilyModel(model),
+    includeReasoningEffort: false,
   };
 }
 
@@ -75,7 +75,7 @@ async function callOcrChat(
 ): Promise<string | null> {
   let profile = defaultProfile(model);
 
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -84,7 +84,10 @@ async function callOcrChat(
       },
       signal,
       body: JSON.stringify(
-        buildOcrChatBody(model, PDF_OCR_SYSTEM, content, profile)
+        buildOcrChatBody(model, PDF_OCR_SYSTEM, content, {
+          ...profile,
+          maxOutputTokens: PDF_OCR_MAX_OUTPUT_TOKENS,
+        })
       ),
     });
 
@@ -108,47 +111,6 @@ async function callOcrChat(
   }
 
   return null;
-}
-
-async function uploadPdfFile(
-  apiKey: string,
-  buffer: Buffer,
-  filename: string,
-  signal: AbortSignal
-): Promise<string | null> {
-  const form = new FormData();
-  form.append(
-    "file",
-    new Blob([Uint8Array.from(buffer)], { type: "application/pdf" }),
-    sanitizePdfFilename(filename)
-  );
-  form.append("purpose", "user_data");
-
-  const res = await fetch("https://api.openai.com/v1/files", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    signal,
-    body: form,
-  });
-
-  if (!res.ok) return null;
-
-  const json = (await res.json()) as { id?: string };
-  return json.id ?? null;
-}
-
-async function deleteOpenAiFile(
-  apiKey: string,
-  fileId: string
-): Promise<void> {
-  try {
-    await fetch(`https://api.openai.com/v1/files/${fileId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
-  } catch {
-    // 정리 실패는 무시
-  }
 }
 
 async function ocrViaInlinePdf(
@@ -177,43 +139,10 @@ async function ocrViaInlinePdf(
 
   for (const model of PDF_OCR_MODELS) {
     const text = await callOcrChat(apiKey, model, content, signal);
-    if (text) return text;
+    if (text && text.length >= 300) return text;
   }
 
   return null;
-}
-
-async function ocrViaUploadedFile(
-  apiKey: string,
-  buffer: Buffer,
-  filename: string,
-  studentName: string,
-  signal: AbortSignal
-): Promise<string | null> {
-  const fileId = await uploadPdfFile(apiKey, buffer, filename, signal);
-  if (!fileId) return null;
-
-  try {
-    const content: FileContentPart[] = [
-      {
-        type: "text",
-        text: [
-          `학생: ${studentName}`,
-          `파일: ${filename}`,
-          "첨부 PDF 전체 페이지를 빠짐없이 OCR 전사해 주세요.",
-        ].join("\n"),
-      },
-      { type: "file", file: { file_id: fileId } },
-    ];
-
-    for (const model of PDF_OCR_MODELS) {
-      const text = await callOcrChat(apiKey, model, content, signal);
-      if (text) return text;
-    }
-    return null;
-  } finally {
-    await deleteOpenAiFile(apiKey, fileId);
-  }
 }
 
 async function ocrViaRenderedPages(
@@ -233,12 +162,13 @@ async function ocrViaRenderedPages(
     signal
   );
 
-  if (!extracted.trim() || extracted.includes("[이 구간 판독 실패]")) {
-    const okParts = extracted
-      .split("=== 학생부 페이지")
-      .filter((p) => !p.includes("[이 구간 판독 실패]"));
-    if (okParts.length <= 1) return null;
-  }
+  if (!extracted.trim()) return null;
+
+  const failedOnly =
+    extracted.includes("[이 구간 판독 실패]") &&
+    !extracted.includes("=== 학생부 페이지") &&
+    !extracted.includes("전사 ===");
+  if (failedOnly) return null;
 
   return `=== PDF 페이지 OCR: ${filename} (${images.length}/${pageCount}페이지) ===\n${extracted}`;
 }
@@ -249,24 +179,11 @@ async function ocrSinglePdf(
   studentName: string,
   signal: AbortSignal
 ): Promise<string | null> {
+  const text = await ocrViaInlinePdf(apiKey, pdf, studentName, signal);
+  if (text && text.length >= 300) return text;
+
   const buffer = pdfDataUrlToBuffer(pdf.dataUrl);
-
-  let text = await ocrViaInlinePdf(apiKey, pdf, studentName, signal);
-  if (text && text.length >= 300) return text;
-
-  text = await ocrViaUploadedFile(apiKey, buffer, pdf.name, studentName, signal);
-  if (text && text.length >= 300) return text;
-
-  text = await ocrViaRenderedPages(
-    apiKey,
-    buffer,
-    pdf.name,
-    studentName,
-    signal
-  );
-  if (text && text.length >= 300) return text;
-
-  return text;
+  return ocrViaRenderedPages(apiKey, buffer, pdf.name, studentName, signal);
 }
 
 export async function extractTextFromPdfDocuments(

@@ -134,10 +134,10 @@ async function loadImage(file: File): Promise<HTMLImageElement> {
 
 export async function compressImageForUpload(file: File): Promise<File> {
   if (!isImageUpload(file)) return file;
-  if (file.size <= 400_000) return file;
+  if (file.size <= 300_000) return file;
 
   const img = await loadImage(file);
-  const maxEdge = 1600;
+  const maxEdge = 1400;
   const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
   const width = Math.max(1, Math.round(img.width * scale));
   const height = Math.max(1, Math.round(img.height * scale));
@@ -151,7 +151,7 @@ export async function compressImageForUpload(file: File): Promise<File> {
   ctx.drawImage(img, 0, 0, width, height);
 
   const blob = await new Promise<Blob | null>((resolve) => {
-    canvas.toBlob(resolve, "image/jpeg", 0.82);
+    canvas.toBlob(resolve, "image/jpeg", 0.78);
   });
   if (!blob || blob.size >= file.size) return file;
 

@@ -1,22 +1,33 @@
 import { isGpt5FamilyModel } from "@/lib/student-records/model";
 
-export const PDF_OCR_MAX_OUTPUT_TOKENS = 32_768;
+/** PDF 직접 OCR 1회 출력 상한 */
+export const PDF_OCR_MAX_OUTPUT_TOKENS = 16_384;
 
-/** PDF 직접 OCR — 4o가 스캔 PDF 인식률이 가장 안정적 */
-export const PDF_OCR_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-5.5"] as const;
+/** Vision 배치 OCR 1회 출력 상한 */
+export const VISION_OCR_MAX_OUTPUT_TOKENS = 6_144;
 
-/** Vision OCR — reasoning 모델은 이미지 응답이 비는 경우가 있어 4o 계열만 사용 */
-export const VISION_OCR_MODELS = ["gpt-4o", "gpt-4o-mini"] as const;
+/** PDF 직접 OCR — mini 우선(저비용), 실패 시 4o */
+export const PDF_OCR_MODELS = ["gpt-4o-mini", "gpt-4o"] as const;
+
+/** Vision OCR — mini 우선 */
+export const VISION_OCR_MODELS = ["gpt-4o-mini", "gpt-4o"] as const;
 
 export function buildOcrChatBody(
   model: string,
   system: string,
   content: unknown,
-  options?: { includeTemperature?: boolean; includeReasoningEffort?: boolean }
+  options?: {
+    includeTemperature?: boolean;
+    includeReasoningEffort?: boolean;
+    maxOutputTokens?: number;
+  }
 ): Record<string, unknown> {
   const includeTemperature = options?.includeTemperature ?? !isGpt5FamilyModel(model);
   const includeReasoningEffort =
     options?.includeReasoningEffort ?? isGpt5FamilyModel(model);
+  const maxOut =
+    options?.maxOutputTokens ??
+    (isGpt5FamilyModel(model) ? PDF_OCR_MAX_OUTPUT_TOKENS : PDF_OCR_MAX_OUTPUT_TOKENS);
 
   const body: Record<string, unknown> = {
     model,
@@ -31,12 +42,12 @@ export function buildOcrChatBody(
   }
 
   if (isGpt5FamilyModel(model)) {
-    body.max_completion_tokens = PDF_OCR_MAX_OUTPUT_TOKENS;
+    body.max_completion_tokens = maxOut;
     if (includeReasoningEffort) {
       body.reasoning_effort = "low";
     }
   } else {
-    body.max_tokens = PDF_OCR_MAX_OUTPUT_TOKENS;
+    body.max_tokens = maxOut;
   }
 
   return body;
