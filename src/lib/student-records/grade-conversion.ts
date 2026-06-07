@@ -2,17 +2,20 @@
  * 5등급제 평균 → 9등급 환산 추정값 (누적비율 기반 비교 지표, 공식 내신 환산 아님)
  * 앵커: 5등급제 평균(x) → 9등급 환산 추정값(y)
  */
+/** 9등급 환산 앵커 (선형 보간용). 입결 학교예시는 규칙 K 6구간 표 준수 */
 export const GRADE_5_TO_9_TABLE = [
-  { grade5: 1.0, grade9: 1.39, band: "최상위권 교과전형 경쟁권" },
-  { grade5: 1.083, grade9: 1.53, band: "최상위권~상위권 교과전형 검토권" },
-  { grade5: 1.167, grade9: 1.73, band: "상위권 대학 교과전형 일부 모집단위 검토권" },
-  { grade5: 1.333, grade9: 2.03, band: "서울 주요 대학 중상위권~중위권 일부 전형 검토권" },
-  { grade5: 1.5, grade9: 2.31, band: "인서울 및 수도권 주요 대학 교과전형 검토권" },
-  { grade5: 1.583, grade9: 2.45, band: "인서울 교과전형 기준선 부근" },
-  { grade5: 1.667, grade9: 2.61, band: "인서울 중하위권~수도권 대학 검토권" },
-  { grade5: 1.833, grade9: 2.88, band: "수도권 대학 중심 검토권" },
-  { grade5: 2.0, grade9: 3.16, band: "지방 거점 국립대 및 수도권 일부 대학 검토권" },
-  { grade5: 2.333, grade9: 3.68, band: "지방 사립대 및 일부 특성화 학과 검토권" },
+  { grade5: 1.0, grade9: 1.39, level: "구간1 최상위권 (1.00~1.25)" },
+  { grade5: 1.25, grade9: 1.87, level: "구간1 최상위권 (1.00~1.25)" },
+  { grade5: 1.333, grade9: 2.03, level: "구간2 인서울 중상위 (1.33~1.58)" },
+  { grade5: 1.583, grade9: 2.45, level: "구간2 인서울 중상위 (1.33~1.58)" },
+  { grade5: 1.667, grade9: 2.61, level: "구간3 인서울 중위·경기인천 (1.67~1.92)" },
+  { grade5: 1.92, grade9: 3.0, level: "구간3 인서울 중위·경기인천 (1.67~1.92)" },
+  { grade5: 2.0, grade9: 3.16, level: "구간4 수도권 중위·학종 활용 (2.00~2.33)" },
+  { grade5: 2.333, grade9: 3.68, level: "구간4 수도권 중위·학종 활용 (2.00~2.33)" },
+  { grade5: 2.42, grade9: 3.8, level: "구간5 수도권 하위·학종면접 (2.42~2.75)" },
+  { grade5: 2.75, grade9: 4.34, level: "구간5 수도권 하위·학종면접 (2.42~2.75)" },
+  { grade5: 2.83, grade9: 4.48, level: "구간6 전형구조 중심 (2.83~3.00)" },
+  { grade5: 3.0, grade9: 4.75, level: "구간6 전형구조 중심 (2.83~3.00)" },
 ] as const;
 
 export const GRADE_9_CONVERSION_DISCLAIMER =
@@ -20,17 +23,17 @@ export const GRADE_9_CONVERSION_DISCLAIMER =
 
 export function convertGrade5AverageToGrade9(grade5Average: number): {
   grade9: number;
-  band: string;
+  level: string;
 } {
   const table = GRADE_5_TO_9_TABLE;
   const g5 = grade5Average;
 
   if (g5 <= table[0]!.grade5) {
-    return { grade9: table[0]!.grade9, band: table[0]!.band };
+    return { grade9: table[0]!.grade9, level: table[0]!.level };
   }
   const last = table[table.length - 1]!;
   if (g5 >= last.grade5) {
-    return { grade9: last.grade9, band: last.band };
+    return { grade9: last.grade9, level: last.level };
   }
 
   for (let i = 0; i < table.length - 1; i++) {
@@ -41,12 +44,12 @@ export function convertGrade5AverageToGrade9(grade5Average: number): {
 
     if (g5 >= x1 && g5 <= x2) {
       const grade9 = y1 + ((g5 - x1) * (y2 - y1)) / (x2 - x1);
-      const band = g5 - x1 < x2 - g5 ? table[i]!.band : table[i + 1]!.band;
-      return { grade9: Math.round(grade9 * 100) / 100, band };
+      const level = g5 - x1 < x2 - g5 ? table[i]!.level : table[i + 1]!.level;
+      return { grade9: Math.round(grade9 * 100) / 100, level };
     }
   }
 
-  return { grade9: last.grade9, band: last.band };
+  return { grade9: last.grade9, level: last.level };
 }
 
 export const GRADE_CALCULATION_RULES = `━━━━━━━━━━━━━━━━━━━━
@@ -86,7 +89,7 @@ export const GRADE_CONVERSION_PROMPT = `━━━━━━━━━━━━━�
 리포트 섹션 2(석차등급 계산)에 반드시 다음 문장을 포함하라:
 「${GRADE_9_CONVERSION_DISCLAIMER}」
 
-■ 5등급제 평균 / 9등급 환산 추정값 / 해석 밴드 (앵커값)
+■ 5등급제 평균 / 9등급 환산 추정값 / 해석 수준 (앵커값)
 - 1.000 → 약 1.39
 - 1.083 → 약 1.53
 - 1.167 → 약 1.73
@@ -126,10 +129,11 @@ export const UNIVERSITY_TIER_RULES = `━━━━━━━━━━━━━━
 중요:
 아래 대학명은 「합격 가능 대학 리스트」가 아니다.
 절대 「이 학생은 이 대학 가능」이라고 단정하지 마라.
-아래는 교과전형 관점에서 내신 수준을 설명하기 위한 「대략적 입결 밴드 예시」일 뿐이다.
+아래는 교과전형 관점에서 내신 수준을 설명하기 위한 「대략적 입결 수준 예시」일 뿐이다.
+「밴드」라는 단어는 리포트에서 사용하지 않는다.
 
 반드시 사용할 표현:
-- 「교과전형 단순 내신 기준으로는 ___권에 가까운 밴드」
+- 「교과전형 단순 내신 기준으로는 ___권에 가까운 수준」
 - 「학생부종합전형에서는 세특, 탐구, 전공적합성, 학교 수준, 모집단위, 면접 여부에 따라 달라질 수 있음」
 - 「대학별 환산식과 전년도 입결 확인 필요」
 - 「상위권 대학 가능성은 조건부로만 판단」
@@ -137,16 +141,10 @@ export const UNIVERSITY_TIER_RULES = `━━━━━━━━━━━━━━
 사용 금지 표현:
 합격 가능, 안정권, 확실, 무조건, SKY 가능, 서성한 가능, 「이 대학 수준이다」 단정
 
-■ 5등급 평균 기준 해석 밴드 (보수적)
-- 1.00 전후: 최상위권 교과전형 경쟁권. 의약학·서울대·상위 학과는 전 과목 1등급에 가까운 안정성과 비교과 심화 필요.
-- 1.08 전후: 최상위권~상위권 교과전형 검토권. 대학별 환산식과 모집단위에 따라 차이 큼.
-- 1.17 전후: 상위권 대학 교과전형 일부 모집단위 검토권. 학종에서는 세특 깊이가 중요.
-- 1.33 전후: 서울 주요 대학 중상위권~중위권 일부 전형 검토권.
-- 1.50 전후: 인서울 및 수도권 주요 대학 교과전형 검토권. 상위권 대학은 학종 보완 필요.
-- 1.58 전후: 인서울 교과전형 기준선 부근. 학종에서는 탐구·진로·세특 완성도가 중요.
-- 1.67 전후: 인서울 중하위권~수도권 대학 검토권.
-- 1.83 전후: 수도권 대학 중심 검토권.
-- 2.00 전후: 지방 거점 국립대 및 수도권 일부 대학 검토권.
-- 2.33 전후: 지방 사립대 및 일부 특성화 학과 검토권.
+■ 5등급 평균 — 0.08~0.17 세부 구간 해석 (규칙 K-1)
+1등급=상위권처럼 뭉뚱그리지 말고, 1.00·1.08·1.17·1.25·1.33·1.50·1.58·1.67·1.83·1.92·2.00·2.33·2.42·2.75·2.83·3.00 앵커로 세분화.
 
-대학명 나열 시 「예시적 밴드」임을 표시하고, 대학어디가·모집요강·최근 3개년 입결·전형방법·모집단위별 경쟁률 확인 필요를 명시한다.`;
+■ 6대구간 + 상향/적정/안정 (규칙 K-2~5)
+대학 지원 현실성 섹션은 8항목(평균·환산·상향·적정·안정·비슷한라인·주의학과·전형추천) 필수.
+
+컴공·AI·전자전기·반도체·간호·보건·교육: +0.2~0.4등급 상향 조정.`;
