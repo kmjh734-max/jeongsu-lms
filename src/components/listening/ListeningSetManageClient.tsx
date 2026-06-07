@@ -739,7 +739,7 @@ export function ListeningSetManageClient({
                 {
                   value: "random" as const,
                   label: "랜덤 생성",
-                  description: "유형을 고르지 않고 문항 수만큼 무작위 유형 배정",
+                  description: "유형을 고르지 않고 1번부터 문항 수만큼 순서대로 배정",
                 },
                 {
                   value: "custom" as const,
@@ -790,7 +790,7 @@ export function ListeningSetManageClient({
             </div>
             <p className="mt-1 text-xs text-slate-500">
               {generationPlanMode === "random"
-                ? `실제 생성: ${plannedQuestionCount}문항 (유형 무작위)`
+                ? `실제 생성: ${plannedQuestionCount}문항 (1~${plannedQuestionCount}번 유형 순서)`
                 : selectedTypeIds.length === 1
                   ? `실제 생성: ${plannedQuestionCount}문항 (유형 ${selectedTypeIds[0]}번 × ${plannedQuestionCount})`
                   : selectedTypeIds.length > 0

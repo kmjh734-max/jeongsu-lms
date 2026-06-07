@@ -11,28 +11,16 @@ function clampQuestionCount(questionCount: number): number {
   return Math.min(Math.max(questionCount, 1), 20);
 }
 
-function shuffleInPlace<T>(arr: T[]): T[] {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j]!, arr[i]!];
-  }
-  return arr;
-}
-
-/** 랜덤: 학년 유형 풀에서 문항 수만큼 유형을 무작위 배정 (슬롯 1~N) */
+/** 랜덤 생성: 1번 유형부터 문항 수만큼 순서대로 배정 (5→1~5, 20→1~20) */
 export function planRandomGenerationSlots(opts: {
   questionCount: number;
   examTypes: ExamTypeTemplate[];
 }): ListeningGenerationSlot[] {
-  const count = clampQuestionCount(opts.questionCount);
-  const pool = opts.examTypes.map((t) => t.id);
-  if (pool.length === 0) return [];
-
-  const shuffled = shuffleInPlace([...pool]);
-  return Array.from({ length: count }, (_, i) => ({
-    typeId: shuffled[i % shuffled.length]!,
-    slotIndex: i + 1,
-  }));
+  return planCustomGenerationSlots({
+    questionCount: opts.questionCount,
+    selectedTypeIds: [],
+    examTypes: opts.examTypes,
+  });
 }
 
 /** 유형 선택: 비우면 1~N번 순서, 1개만 고르면 같은 유형 N문항, 여러 개면 선택 순서대로(최대 N) */
