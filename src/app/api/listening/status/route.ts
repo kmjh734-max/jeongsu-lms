@@ -6,12 +6,11 @@ import {
   parseKoreaMonthParam,
 } from "@/lib/date/korea-today";
 import { loadListeningMonthlyStatusTable } from "@/lib/listening/load-monthly-status-table";
-import { listReportClasses } from "@/lib/reports/list-students";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 export async function GET(request: Request) {
   const profile = await getCurrentProfile();
@@ -37,21 +36,23 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
   const admin = createAdminClient();
-  const [classes, table] = await Promise.all([
-    listReportClasses(supabase, profile.role, profile.id),
-    loadListeningMonthlyStatusTable(supabase, admin, profile.role, profile.id, {
+  const table = await loadListeningMonthlyStatusTable(
+    supabase,
+    admin,
+    profile.role,
+    profile.id,
+    {
       year,
       month,
       classId,
       nameQuery,
       loginQuery,
-    }),
-  ]);
+    }
+  );
 
   return NextResponse.json({
     ok: true,
     month: formatKoreaMonth(year, month),
-    classes,
     table,
   });
 }

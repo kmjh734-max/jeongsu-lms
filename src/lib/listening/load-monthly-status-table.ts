@@ -3,9 +3,7 @@ import {
   getMonthDateRange,
   getTodayIsoKorea,
 } from "@/lib/date/korea-today";
-import { ensureDailyTasksForStudentRange } from "@/lib/listening/schedule/generate-daily-tasks";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
-import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import type {
   DailyTaskStatus,
   ScheduleAssignmentRow,
@@ -101,46 +99,6 @@ async function loadAssignmentsByStudent(
   }
 
   return result;
-}
-
-async function ensureStatusDailyTasksForMonth(
-  admin: SupabaseClient,
-  studentIds: string[],
-  year: number,
-  month: number
-): Promise<void> {
-  const { start, end } = getMonthDateRange(year, month);
-  const todayIso = getTodayIsoKorea();
-  const rangeEnd = end > todayIso ? todayIso : end;
-  if (start > rangeEnd) return;
-
-  const assignmentsByStudent = await loadAssignmentsByStudent(
-    admin,
-    studentIds
-  );
-
-  const jobs: Array<() => Promise<void>> = [];
-  for (const studentId of studentIds) {
-    const assignments = assignmentsByStudent.get(studentId) ?? [];
-    for (const assignment of assignments) {
-      jobs.push(async () => {
-        const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
-        await ensureDailyTasksForStudentRange(
-          admin,
-          assignment,
-          studentId,
-          start,
-          rangeEnd,
-          queue
-        );
-      });
-    }
-  }
-
-  const batchSize = 6;
-  for (let i = 0; i < jobs.length; i += batchSize) {
-    await Promise.all(jobs.slice(i, i + batchSize).map((run) => run()));
-  }
 }
 
 function aggregateTasksForDay(rows: TaskRow[]): {
@@ -294,13 +252,6 @@ export async function loadListeningMonthlyStatusTable(
   }
 
   const studentIds = students.map((s) => s.id);
-  await ensureStatusDailyTasksForMonth(
-    admin,
-    studentIds,
-    options.year,
-    options.month
-  );
-
   const [assignmentsByStudent, { data: taskRows }] = await Promise.all([
     loadAssignmentsByStudent(admin, studentIds),
     admin
