@@ -1,8 +1,10 @@
+import { sanitizeStudentRecordReportHtml } from "@/lib/student-records/sanitize-report-html";
+
 export function extractHtmlFromModelOutput(raw: string): string {
   const trimmed = raw.trim();
   const fenced = trimmed.match(/```(?:html)?\s*([\s\S]*?)```/i);
   if (fenced?.[1]) {
-    return normalizeHtmlDocument(fenced[1].trim());
+    return sanitizeStudentRecordReportHtml(normalizeHtmlDocument(fenced[1].trim()));
   }
 
   const docStart = trimmed.search(/<!DOCTYPE\s+html/i);
@@ -13,12 +15,14 @@ export function extractHtmlFromModelOutput(raw: string): string {
   if (start >= 0) {
     const end = trimmed.toLowerCase().lastIndexOf("</html>");
     if (end > start) {
-      return normalizeHtmlDocument(trimmed.slice(start, end + 7));
+      return sanitizeStudentRecordReportHtml(
+        normalizeHtmlDocument(trimmed.slice(start, end + 7))
+      );
     }
-    return normalizeHtmlDocument(trimmed.slice(start));
+    return sanitizeStudentRecordReportHtml(normalizeHtmlDocument(trimmed.slice(start)));
   }
 
-  return normalizeHtmlDocument(trimmed);
+  return sanitizeStudentRecordReportHtml(normalizeHtmlDocument(trimmed));
 }
 
 function normalizeHtmlDocument(html: string): string {

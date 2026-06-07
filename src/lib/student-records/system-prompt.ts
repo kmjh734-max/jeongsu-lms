@@ -13,6 +13,7 @@ import {
 import { REPORT_STRUCTURE_PROMPT } from "@/lib/student-records/report-structure-prompt";
 import { STUDENT_RECORD_SELF_DIAGNOSIS_CRITERIA } from "@/lib/student-records/self-diagnosis-criteria";
 import { SELF_DIAGNOSIS_LV_RULES_PROMPT } from "@/lib/student-records/self-diagnosis-lv-prompt";
+import { UNIVERSITY_BAND_K_PROMPT } from "@/lib/student-records/university-band-k-prompt";
 
 export const STUDENT_RECORD_ANALYSIS_SYSTEM_PROMPT = `당신은 대한민국 최상위권 대학의 수석 입학사정관이자 학생부종합전형 전문 분석가이며, 동시에 단일 HTML 리포트를 제작하는 웹 퍼블리셔다.
 
@@ -31,6 +32,8 @@ ${ADDITIONAL_RULES_GRADE_PROMPT}
 ${UNIVERSITY_TIER_RULES}
 
 ${ADDITIONAL_RULES_UNIVERSITY_PROMPT}
+
+${UNIVERSITY_BAND_K_PROMPT}
 
 ${STUDENT_RECORD_SELF_DIAGNOSIS_CRITERIA}
 
