@@ -33,7 +33,4 @@ export const STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL = 3;
 /** 이 수 초과 시 배치 전사 후 텍스트-only로 최종 보고서 생성 */
 export const STUDENT_RECORD_VISION_BATCH_THRESHOLD = 6;
 
-/** 보고서 생성에 넣을 OCR 원문 최대 길이 (입력 토큰 절감) */
-export const STUDENT_RECORD_MAX_REPORT_INPUT_CHARS = 85_000;
-
 export const STUDENT_RECORD_ANALYSIS_TIMEOUT_MS = 300_000;

@@ -9,7 +9,6 @@ import {
   isUnsupportedTemperatureError,
 } from "@/lib/student-records/model";
 import { STUDENT_RECORD_ANALYSIS_SYSTEM_PROMPT } from "@/lib/student-records/system-prompt";
-import { trimStudentRecordExtractForReport } from "@/lib/student-records/trim-extract-text";
 
 type RequestProfile = {
   includeTemperature: boolean;
@@ -76,9 +75,11 @@ export async function generateStudentRecordReport(
     "□ 자가진단: 1~8번 모두 LV 점수(가중 LV 평균) 산정, 요약표+산정근거표+LV분석표, 총점 게이지",
     "□ 성적(정량) vs 자가진단(정성) 분리, 교과전형 vs 학종 분리",
     "□ <!DOCTYPE html> ~ </html> HTML만 출력",
+    "□ 섹션 6 HTML 디자인: Hero 그라데이션·카드·타임라인·2열·뱃지·게이지 등 프리미엄 UI 필수 (간소화 금지)",
+    "□ 섹션 1~18 전체 포함 (축약 금지)",
     "",
     "=== 학생부 원문 ===",
-    trimStudentRecordExtractForReport(text),
+    text.trim(),
   ].join("\n");
 
   const controller = new AbortController();
