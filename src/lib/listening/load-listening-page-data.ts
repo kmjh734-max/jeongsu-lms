@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  listListeningSetFolders,
+  type ListeningSetFolderRow,
+} from "@/lib/listening/folder-access";
 import { loadListeningAssignmentSummaries } from "@/lib/listening/load-assignment-summaries";
 import { listReportClasses } from "@/lib/reports/list-students";
 import type { UserRole } from "@/types/database";
@@ -8,7 +12,10 @@ export interface ListeningSetListItem {
   title: string;
   is_published: boolean;
   created_at: string;
+  folder_id: string | null;
 }
+
+export type ListeningSetFolderItem = ListeningSetFolderRow;
 
 export async function loadListeningPageData(
   supabase: SupabaseClient,
@@ -17,7 +24,7 @@ export async function loadListeningPageData(
 ) {
   let setsQuery = supabase
     .from("listening_sets")
-    .select("id, title, is_published, created_at")
+    .select("id, title, is_published, created_at, folder_id")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -30,6 +37,13 @@ export async function loadListeningPageData(
   if (role === "teacher") {
     setsQuery = setsQuery.eq("teacher_id", viewerId);
     classesQuery = classesQuery.eq("teacher_id", viewerId);
+  }
+
+  let folders: ListeningSetFolderRow[] = [];
+  try {
+    folders = await listListeningSetFolders(supabase, role, viewerId);
+  } catch {
+    folders = [];
   }
 
   const [{ data: sets }, { data: classes }, statusClasses] = await Promise.all([
@@ -46,6 +60,7 @@ export async function loadListeningPageData(
 
   return {
     sets: setList,
+    folders,
     classes: classes ?? [],
     assignmentBySetId,
     statusClasses,

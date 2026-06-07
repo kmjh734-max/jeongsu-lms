@@ -7,11 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 export default async function TeacherListeningSetsPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const { sets, classes, assignmentBySetId } = await loadListeningPageData(
-    supabase,
-    "teacher",
-    profile!.id
-  );
+  const { sets, folders, classes, assignmentBySetId } =
+    await loadListeningPageData(supabase, "teacher", profile!.id);
 
   return (
     <div className="space-y-6">
@@ -21,6 +18,7 @@ export default async function TeacherListeningSetsPage() {
       />
       <ListeningSetsListClient
         sets={sets}
+        folders={folders}
         basePath="/teacher/listening"
         classes={classes}
         assignmentBySetId={assignmentBySetId}

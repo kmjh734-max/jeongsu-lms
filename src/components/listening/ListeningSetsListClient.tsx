@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ListeningScheduleAssignModal } from "@/components/listening/ListeningScheduleAssignModal";
 import { ListeningSetAssignModal } from "@/components/listening/ListeningSetAssignModal";
 import type { ListeningAssignmentSummary } from "@/lib/listening/load-assignment-summaries";
+import type { ListeningSetFolderItem } from "@/lib/listening/load-listening-page-data";
 
 export interface ListeningSetListItem {
   id: string;
   title: string;
   is_published: boolean;
   created_at: string;
+  folder_id: string | null;
 }
 
 interface ClassOption {
@@ -19,8 +21,11 @@ interface ClassOption {
   name: string;
 }
 
+type FolderFilter = "all" | "uncategorized" | string;
+
 interface ListeningSetsListClientProps {
   sets: ListeningSetListItem[];
+  folders?: ListeningSetFolderItem[];
   basePath: "/admin/listening" | "/teacher/listening";
   classes?: ClassOption[];
   assignmentBySetId?: Record<string, ListeningAssignmentSummary>;
@@ -30,6 +35,7 @@ interface ListeningSetsListClientProps {
 
 export function ListeningSetsListClient({
   sets,
+  folders = [],
   basePath,
   classes = [],
   assignmentBySetId = {},
@@ -37,12 +43,21 @@ export function ListeningSetsListClient({
 }: ListeningSetsListClientProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
+  const [folderName, setFolderName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [folderBusy, setFolderBusy] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [movingSetId, setMovingSetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignSetId, setAssignSetId] = useState<string | null>(null);
+  const [folderFilter, setFolderFilter] = useState<FolderFilter>("all");
+  const [folderList, setFolderList] = useState(folders);
+
+  useEffect(() => {
+    setFolderList(folders);
+  }, [folders]);
 
   const setTitles = useMemo(() => {
     const m: Record<string, string> = {};
@@ -50,7 +65,41 @@ export function ListeningSetsListClient({
     return m;
   }, [sets]);
 
-  const allSelected = sets.length > 0 && selectedIds.size === sets.length;
+  const folderNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const f of folderList) m.set(f.id, f.name);
+    return m;
+  }, [folderList]);
+
+  const countsByFolder = useMemo(() => {
+    const counts = new Map<string | "uncategorized", number>();
+    counts.set("uncategorized", 0);
+    for (const f of folderList) counts.set(f.id, 0);
+    for (const set of sets) {
+      if (!set.folder_id) {
+        counts.set("uncategorized", (counts.get("uncategorized") ?? 0) + 1);
+      } else {
+        counts.set(set.folder_id, (counts.get(set.folder_id) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [sets, folderList]);
+
+  const filteredSets = useMemo(() => {
+    if (folderFilter === "all") return sets;
+    if (folderFilter === "uncategorized") {
+      return sets.filter((s) => !s.folder_id);
+    }
+    return sets.filter((s) => s.folder_id === folderFilter);
+  }, [sets, folderFilter]);
+
+  const activeFolderId =
+    folderFilter !== "all" && folderFilter !== "uncategorized"
+      ? folderFilter
+      : null;
+
+  const allSelected =
+    filteredSets.length > 0 && selectedIds.size === filteredSets.length;
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -65,8 +114,76 @@ export function ListeningSetsListClient({
     if (allSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(sets.map((s) => s.id)));
+      setSelectedIds(new Set(filteredSets.map((s) => s.id)));
     }
+  }
+
+  async function createFolder(e: React.FormEvent) {
+    e.preventDefault();
+    if (!folderName.trim()) return;
+    setFolderBusy(true);
+    setError(null);
+    const res = await fetch("/api/listening/folders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: folderName.trim() }),
+    });
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+      folder?: ListeningSetFolderItem;
+    };
+    setFolderBusy(false);
+    if (!data.ok || !data.folder) {
+      setError(data.message ?? "폴더 생성 실패");
+      return;
+    }
+    setFolderList((prev) => [...prev, data.folder!]);
+    setFolderName("");
+    setFolderFilter(data.folder.id);
+    router.refresh();
+  }
+
+  async function deleteFolder(folderId: string) {
+    const name = folderNameById.get(folderId) ?? "폴더";
+    if (
+      !window.confirm(
+        `「${name}」 폴더를 삭제할까요?\n안의 세트는 미분류로 이동합니다.`
+      )
+    ) {
+      return;
+    }
+    setFolderBusy(true);
+    setError(null);
+    const res = await fetch(`/api/listening/folders/${folderId}`, {
+      method: "DELETE",
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    setFolderBusy(false);
+    if (!data.ok) {
+      setError(data.message ?? "폴더 삭제 실패");
+      return;
+    }
+    setFolderList((prev) => prev.filter((f) => f.id !== folderId));
+    if (folderFilter === folderId) setFolderFilter("all");
+    router.refresh();
+  }
+
+  async function moveSetToFolder(setId: string, folderId: string | null) {
+    setMovingSetId(setId);
+    setError(null);
+    const res = await fetch(`/api/listening/sets/${setId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ folderId }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    setMovingSetId(null);
+    if (!data.ok) {
+      setError(data.message ?? "폴더 이동 실패");
+      return;
+    }
+    router.refresh();
   }
 
   async function createSet(e: React.FormEvent) {
@@ -77,7 +194,10 @@ export function ListeningSetsListClient({
     const res = await fetch("/api/listening/sets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim() }),
+      body: JSON.stringify({
+        title: title.trim(),
+        folderId: activeFolderId,
+      }),
     });
     const data = (await res.json()) as {
       ok?: boolean;
@@ -124,6 +244,83 @@ export function ListeningSetsListClient({
 
   return (
     <div className="space-y-6">
+      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-slate-900">폴더</h3>
+          {activeFolderId && (
+            <button
+              type="button"
+              disabled={folderBusy}
+              onClick={() => void deleteFolder(activeFolderId)}
+              className="text-xs text-red-600 hover:underline disabled:opacity-50"
+            >
+              이 폴더 삭제
+            </button>
+          )}
+        </div>
+
+        <form
+          onSubmit={createFolder}
+          className="flex flex-wrap items-end gap-2"
+        >
+          <label className="min-w-[180px] flex-1 text-sm font-medium text-slate-700">
+            새 폴더
+            <input
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              placeholder="예: 0605 시리즈"
+              className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={folderBusy}
+            className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-800 disabled:opacity-50"
+          >
+            {folderBusy ? "만드는 중…" : "폴더 만들기"}
+          </button>
+        </form>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setFolderFilter("all")}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+              folderFilter === "all"
+                ? "bg-indigo-600 text-white"
+                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            전체 ({sets.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFolderFilter("uncategorized")}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+              folderFilter === "uncategorized"
+                ? "bg-indigo-600 text-white"
+                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            미분류 ({countsByFolder.get("uncategorized") ?? 0})
+          </button>
+          {folderList.map((folder) => (
+            <button
+              key={folder.id}
+              type="button"
+              onClick={() => setFolderFilter(folder.id)}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                folderFilter === folder.id
+                  ? "bg-indigo-600 text-white"
+                  : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {folder.name} ({countsByFolder.get(folder.id) ?? 0})
+            </button>
+          ))}
+        </div>
+      </section>
+
       <form
         onSubmit={createSet}
         className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4"
@@ -137,6 +334,11 @@ export function ListeningSetsListClient({
             placeholder="예: 13회 듣기 연습"
           />
         </label>
+        {activeFolderId && (
+          <p className="text-xs text-slate-500">
+            「{folderNameById.get(activeFolderId)}」 폴더에 생성됩니다
+          </p>
+        )}
         <button
           type="submit"
           disabled={busy}
@@ -148,8 +350,12 @@ export function ListeningSetsListClient({
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {sets.length === 0 ? (
-        <p className="text-sm text-slate-600">등록된 듣기 세트가 없습니다.</p>
+      {filteredSets.length === 0 ? (
+        <p className="text-sm text-slate-600">
+          {sets.length === 0
+            ? "등록된 듣기 세트가 없습니다."
+            : "이 폴더에 세트가 없습니다."}
+        </p>
       ) : (
         <>
           {!createOnly && canBatchAssign && (
@@ -179,8 +385,8 @@ export function ListeningSetsListClient({
           )}
 
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-            {sets.map((set) => (
-              <li key={set.id} className="flex items-center gap-2 px-4 py-3">
+            {filteredSets.map((set) => (
+              <li key={set.id} className="flex flex-wrap items-center gap-2 px-4 py-3">
                 {!createOnly && canBatchAssign && (
                   <input
                     type="checkbox"
@@ -198,7 +404,31 @@ export function ListeningSetsListClient({
                   <span className="ml-2 text-xs text-slate-500">
                     {set.is_published ? "공개" : "비공개"}
                   </span>
+                  {set.folder_id && folderFilter === "all" && (
+                    <span className="ml-2 text-xs text-indigo-600">
+                      {folderNameById.get(set.folder_id) ?? "폴더"}
+                    </span>
+                  )}
                 </Link>
+                <select
+                  value={set.folder_id ?? ""}
+                  disabled={movingSetId === set.id}
+                  onChange={(e) =>
+                    void moveSetToFolder(
+                      set.id,
+                      e.target.value ? e.target.value : null
+                    )
+                  }
+                  className="shrink-0 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-700"
+                  aria-label={`${set.title} 폴더 이동`}
+                >
+                  <option value="">미분류</option>
+                  {folderList.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
                 {!createOnly && (
                   <button
                     type="button"

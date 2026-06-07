@@ -2,6 +2,7 @@ import { after, NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { deleteListeningSet } from "@/lib/listening/delete-set";
 import { ensureDictationPreparedForSet } from "@/lib/listening/dictation/prebuild-question";
+import { assertFolderAccessible } from "@/lib/listening/folder-access";
 import { createClient } from "@/lib/supabase/server";
 
 function jsonError(message: string, status = 200) {
@@ -32,9 +33,23 @@ export async function PATCH(
       dictation_blank_level?: string;
       dictation_randomize_on_retry?: boolean;
       dictation_lock_next_until_pass?: boolean;
+      folderId?: string | null;
     };
 
     const supabase = await createClient();
+
+    if (body.folderId) {
+      const allowed = await assertFolderAccessible(
+        supabase,
+        profile.role,
+        profile.id,
+        body.folderId
+      );
+      if (!allowed) {
+        return jsonError("선택한 폴더에 접근할 수 없습니다.", 403);
+      }
+    }
+
     const patch: Record<string, unknown> = {};
     if (typeof body.is_published === "boolean") patch.is_published = body.is_published;
     if (typeof body.title === "string" && body.title.trim()) {
@@ -77,6 +92,9 @@ export async function PATCH(
     }
     if (typeof body.dictation_lock_next_until_pass === "boolean") {
       patch.dictation_lock_next_until_pass = body.dictation_lock_next_until_pass;
+    }
+    if (body.folderId !== undefined) {
+      patch.folder_id = body.folderId;
     }
 
     if (Object.keys(patch).length === 0) {
