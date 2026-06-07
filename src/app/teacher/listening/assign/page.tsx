@@ -1,25 +1,14 @@
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { ListeningScheduleManageClient } from "@/components/listening/ListeningScheduleManageClient";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { loadScheduleAssignPageData } from "@/lib/listening/load-schedule-assign-page-data";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function TeacherListeningAssignPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const [{ data: classes }, { data: sets }] = await Promise.all([
-    supabase
-      .from("classes")
-      .select("id, name")
-      .eq("teacher_id", profile!.id)
-      .eq("is_active", true)
-      .order("name"),
-    supabase
-      .from("listening_sets")
-      .select("id, title")
-      .eq("teacher_id", profile!.id)
-      .order("created_at", { ascending: false })
-      .limit(200),
-  ]);
+  const { assignments, classes, sets, students } =
+    await loadScheduleAssignPageData(supabase, "teacher", profile!.id);
 
   return (
     <div className="space-y-6">
@@ -29,8 +18,10 @@ export default async function TeacherListeningAssignPage() {
       />
       <ListeningScheduleManageClient
         basePath="/teacher/listening"
-        classes={classes ?? []}
-        sets={sets ?? []}
+        classes={classes}
+        sets={sets}
+        initialAssignments={assignments}
+        initialStudents={students}
       />
     </div>
   );

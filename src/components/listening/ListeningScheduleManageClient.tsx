@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ListeningScheduleAddSetsModal } from "@/components/listening/ListeningScheduleAddSetsModal";
 import { ListeningScheduleAssignModal } from "@/components/listening/ListeningScheduleAssignModal";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
+import type { ScheduleAssignmentListItem } from "@/lib/listening/schedule/list-assignments";
 
 interface ClassOption {
   id: string;
@@ -13,20 +16,9 @@ interface SetOption {
   title: string;
 }
 
-interface ScheduleAssignmentItem {
+interface StudentOption {
   id: string;
-  title: string;
-  targetType: "class" | "student";
-  targetClassId: string | null;
-  targetStudentId: string | null;
-  targetLabel: string;
-  setCount: number;
-  setTitles: string[];
-  startDate: string;
-  endDate: string | null;
-  daysLabel: string;
-  questionsPerDay: number;
-  isActive: boolean;
+  name: string;
 }
 
 type ViewFilter = "all" | "class" | "student";
@@ -35,65 +27,81 @@ interface ListeningScheduleManageClientProps {
   basePath: "/admin/listening" | "/teacher/listening";
   classes: ClassOption[];
   sets: SetOption[];
+  initialAssignments?: ScheduleAssignmentListItem[];
+  initialStudents?: StudentOption[];
 }
 
 export function ListeningScheduleManageClient({
   basePath,
   classes,
   sets,
+  initialAssignments = [],
+  initialStudents = [],
 }: ListeningScheduleManageClientProps) {
-  const [items, setItems] = useState<ScheduleAssignmentItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<ScheduleAssignmentListItem[]>(
+    initialAssignments
+  );
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
   const [filterClassId, setFilterClassId] = useState("");
   const [filterStudentId, setFilterStudentId] = useState("");
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [addSetsTarget, setAddSetsTarget] =
+    useState<ScheduleAssignmentListItem | null>(null);
   const [assignPreset, setAssignPreset] = useState<{
     targetType?: "class" | "student";
     targetClassId?: string;
     targetStudentId?: string;
   }>({});
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    const res = await fetch("/api/listening/schedule-assignments");
-    const data = (await res.json()) as {
-      ok?: boolean;
-      assignments?: ScheduleAssignmentItem[];
-      message?: string;
-    };
-    setLoading(false);
-    if (!data.ok) {
-      setError(data.message ?? "목록을 불러오지 못했습니다.");
-      return;
+  const requestIdRef = useRef(0);
+  const hasInitialData = initialAssignments.length > 0;
+
+  const load = useCallback(async (options?: { silent?: boolean }) => {
+    const requestId = ++requestIdRef.current;
+    if (!options?.silent) {
+      setRefreshing(true);
     }
-    setItems(data.assignments ?? []);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/listening/schedule-assignments");
+      const data = (await res.json()) as {
+        ok?: boolean;
+        assignments?: ScheduleAssignmentListItem[];
+        message?: string;
+      };
+
+      if (requestId !== requestIdRef.current) return;
+
+      if (!data.ok) {
+        setError(data.message ?? "목록을 불러오지 못했습니다.");
+        return;
+      }
+      setItems(data.assignments ?? []);
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setRefreshing(false);
+      }
+    }
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (!hasInitialData) {
+      void load();
+    }
+  }, [hasInitialData, load]);
 
-  const [studentOptions, setStudentOptions] = useState<
-    { id: string; name: string }[]
-  >([]);
-
-  useEffect(() => {
-    if (viewFilter !== "student") return;
-    void (async () => {
-      const res = await fetch("/api/listening/student-options?limit=80");
-      const data = (await res.json()) as {
-        ok?: boolean;
-        students?: { id: string; name: string }[];
-      };
-      if (data.ok && data.students) {
-        setStudentOptions(data.students);
-      }
-    })();
-  }, [viewFilter]);
+  const studentSelectOptions = useMemo(
+    () =>
+      initialStudents.map((s) => ({
+        value: s.id,
+        label: s.name,
+      })),
+    [initialStudents]
+  );
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -112,6 +120,7 @@ export function ListeningScheduleManageClient({
   }, [items, viewFilter, filterClassId, filterStudentId]);
 
   const activeCount = items.filter((i) => i.isActive).length;
+  const initialLoading = refreshing && items.length === 0;
 
   async function setActive(id: string, isActive: boolean, title: string) {
     const msg = isActive
@@ -131,7 +140,7 @@ export function ListeningScheduleManageClient({
       setError(data.message ?? "처리 실패");
       return;
     }
-    void load();
+    void load({ silent: true });
   }
 
   async function removeAssignment(id: string, title: string) {
@@ -152,7 +161,26 @@ export function ListeningScheduleManageClient({
       setError(data.message ?? "삭제 실패");
       return;
     }
-    void load();
+    void load({ silent: true });
+  }
+
+  async function addSetsToAssignment(
+    assignmentId: string,
+    setIds: string[]
+  ): Promise<void> {
+    const res = await fetch(
+      `/api/listening/schedule-assignments/${assignmentId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ addSetIds: setIds }),
+      }
+    );
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (!data.ok) {
+      throw new Error(data.message ?? "세트 추가 실패");
+    }
+    void load({ silent: true });
   }
 
   function openAssignModal(preset?: {
@@ -178,6 +206,7 @@ export function ListeningScheduleManageClient({
             <h2 className="text-2xl font-bold text-slate-900">스케줄 과제 관리</h2>
             <p className="mt-1 text-sm text-slate-600">
               반·학생별 듣기 과제를 배정하고 취소합니다. 활성 {activeCount}건
+              {refreshing && items.length > 0 ? " · 업데이트 중…" : ""}
             </p>
           </div>
         </div>
@@ -234,21 +263,16 @@ export function ListeningScheduleManageClient({
         )}
 
         {viewFilter === "student" && (
-          <label className="text-sm font-medium text-slate-700">
-            학생 선택
-            <select
+          <div className="min-w-[220px]">
+            <SearchableSelect
+              label="학생 선택"
               value={filterStudentId}
-              onChange={(e) => setFilterStudentId(e.target.value)}
-              className="mt-1 block min-w-[160px] rounded-lg border border-slate-200 px-3 py-2"
-            >
-              <option value="">전체 학생</option>
-              {studentOptions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </label>
+              onChange={setFilterStudentId}
+              options={studentSelectOptions}
+              searchPlaceholder="학생 이름 검색"
+              emptyOptionLabel="전체 학생"
+            />
+          </div>
         )}
 
         {viewFilter === "class" && filterClassId && (
@@ -280,13 +304,25 @@ export function ListeningScheduleManageClient({
             이 학생에게 배정하기
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={() => void load()}
+          disabled={refreshing}
+          className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+        >
+          새로고침
+        </button>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {loading ? (
-        <p className="text-sm text-slate-600">불러오는 중…</p>
-      ) : filteredItems.length === 0 ? (
+      {initialLoading ? (
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-6">
+          <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
+          <div className="h-24 animate-pulse rounded bg-slate-200" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center">
           <p className="text-4xl" aria-hidden>
             📋
@@ -298,6 +334,10 @@ export function ListeningScheduleManageClient({
             위 「새 스케줄 배정」으로 반 또는 학생에게 과제를 넣어 주세요.
           </p>
         </div>
+      ) : filteredItems.length === 0 ? (
+        <p className="text-sm text-slate-500">
+          선택한 조건에 맞는 스케줄 과제가 없습니다.
+        </p>
       ) : (
         <div className="ui-table-wrap">
           <table className="ui-table">
@@ -327,10 +367,25 @@ export function ListeningScheduleManageClient({
                       {a.targetLabel}
                     </span>
                   </td>
-                  <td className="max-w-[200px] text-sm text-slate-700">
-                    {a.setTitles.length > 0
-                      ? a.setTitles.join(", ")
-                      : `세트 ${a.setCount}개`}
+                  <td className="max-w-[240px] text-sm text-slate-700">
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span>
+                        {a.setTitles.length > 0
+                          ? a.setTitles.join(", ")
+                          : `세트 ${a.setCount}개`}
+                      </span>
+                      {a.isActive &&
+                        sets.some((s) => !a.setIds.includes(s.id)) && (
+                        <button
+                          type="button"
+                          disabled={busyId === a.id}
+                          onClick={() => setAddSetsTarget(a)}
+                          className="shrink-0 rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-800 hover:bg-indigo-100 disabled:opacity-50"
+                        >
+                          + 추가
+                        </button>
+                        )}
+                    </div>
                   </td>
                   <td className="whitespace-nowrap text-sm">
                     {a.daysLabel}
@@ -398,8 +453,18 @@ export function ListeningScheduleManageClient({
           onClose={() => setShowAssignModal(false)}
           onSuccess={() => {
             setShowAssignModal(false);
-            void load();
+            void load({ silent: true });
           }}
+        />
+      )}
+
+      {addSetsTarget && (
+        <ListeningScheduleAddSetsModal
+          assignmentTitle={addSetsTarget.title}
+          existingSetIds={addSetsTarget.setIds}
+          availableSets={sets}
+          onClose={() => setAddSetsTarget(null)}
+          onSubmit={(setIds) => addSetsToAssignment(addSetsTarget.id, setIds)}
         />
       )}
     </div>
