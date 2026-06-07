@@ -59,7 +59,7 @@ export function StudentRecordReportView({
       </div>
 
       <StudentRecordShareActions
-        studentName={result.studentName}
+        result={result}
         onOpenPrint={() => setPrintOpen(true)}
         onPcKakaoPrepare={handlePcKakaoPrepare}
       />

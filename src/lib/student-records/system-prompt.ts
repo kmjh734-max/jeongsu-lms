@@ -1,10 +1,18 @@
 import {
+  ADDITIONAL_RULES_CHECKLIST_PROMPT,
+  ADDITIONAL_RULES_GRADE_PROMPT,
+  ADDITIONAL_RULES_TONE_PROMPT,
+  ADDITIONAL_RULES_UNIVERSITY_PROMPT,
+} from "@/lib/student-records/additional-rules-prompt";
+import {
+  GRADE_9_CONVERSION_DISCLAIMER,
   GRADE_CALCULATION_RULES,
   GRADE_CONVERSION_PROMPT,
   UNIVERSITY_TIER_RULES,
 } from "@/lib/student-records/grade-conversion";
 import { REPORT_STRUCTURE_PROMPT } from "@/lib/student-records/report-structure-prompt";
 import { STUDENT_RECORD_SELF_DIAGNOSIS_CRITERIA } from "@/lib/student-records/self-diagnosis-criteria";
+import { SELF_DIAGNOSIS_LV_RULES_PROMPT } from "@/lib/student-records/self-diagnosis-lv-prompt";
 
 export const STUDENT_RECORD_ANALYSIS_SYSTEM_PROMPT = `당신은 대한민국 최상위권 대학의 수석 입학사정관이자 학생부종합전형 전문 분석가이며, 동시에 단일 HTML 리포트를 제작하는 웹 퍼블리셔다.
 
@@ -16,8 +24,20 @@ ${GRADE_CALCULATION_RULES}
 
 ${GRADE_CONVERSION_PROMPT}
 
+리포트 섹션 2에 반드시 포함: 「${GRADE_9_CONVERSION_DISCLAIMER}」
+
+${ADDITIONAL_RULES_GRADE_PROMPT}
+
 ${UNIVERSITY_TIER_RULES}
+
+${ADDITIONAL_RULES_UNIVERSITY_PROMPT}
 
 ${STUDENT_RECORD_SELF_DIAGNOSIS_CRITERIA}
 
-${REPORT_STRUCTURE_PROMPT}`;
+${SELF_DIAGNOSIS_LV_RULES_PROMPT}
+
+${REPORT_STRUCTURE_PROMPT}
+
+${ADDITIONAL_RULES_TONE_PROMPT}
+
+${ADDITIONAL_RULES_CHECKLIST_PROMPT}`;

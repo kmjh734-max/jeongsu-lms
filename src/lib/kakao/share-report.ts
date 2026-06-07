@@ -103,6 +103,10 @@ export interface KakaoShareParams {
   studentName: string;
   periodLabel: string;
   shareUrl: string;
+  feedTitle?: string;
+  feedDescription?: string;
+  buttonTitle?: string;
+  pasteMessage?: string;
 }
 
 export type KakaoShareResult =
@@ -132,7 +136,9 @@ export async function copyKakaoPasteMessage(
 
 function buildTextPayload(params: KakaoShareParams): Record<string, unknown> {
   const shareUrl = normalizeShareUrl(params.shareUrl);
-  const text = buildKakaoPasteMessage({ ...params, shareUrl });
+  const text =
+    params.pasteMessage ??
+    buildKakaoPasteMessage({ ...params, shareUrl });
   return {
     objectType: "text",
     text,
@@ -149,8 +155,9 @@ function buildFeedPayload(
 ): Record<string, unknown> {
   const { studentName, periodLabel } = params;
   const shareUrl = normalizeShareUrl(params.shareUrl);
-  const title = `${studentName} 학생 학습 리포트`;
-  const description = `${periodLabel} 온라인 학습 현황 리포트입니다.`;
+  const title = params.feedTitle ?? `${studentName} 학생 학습 리포트`;
+  const description =
+    params.feedDescription ?? `${periodLabel} 온라인 학습 현황 리포트입니다.`;
 
   const content: Record<string, unknown> = {
     title,
@@ -173,7 +180,7 @@ function buildFeedPayload(
     content,
     buttons: [
       {
-        title: "리포트 보기",
+        title: params.buttonTitle ?? "리포트 보기",
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,

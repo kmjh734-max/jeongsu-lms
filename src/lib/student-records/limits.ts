@@ -19,13 +19,16 @@ export const STUDENT_RECORD_VISION_BATCH_SIZE = 2;
 export const STUDENT_RECORD_PREPARED_UPLOAD_BUDGET = 3_600_000;
 
 /** OCR extract API 1회당 이미지 수 (4MB 한도·선명도 균형) */
-export const STUDENT_RECORD_EXTRACT_CHUNK_PAGES = 5;
+export const STUDENT_RECORD_EXTRACT_CHUNK_PAGES = 8;
 
 /** 페이지 JPEG 목표 용량 — 청크 업로드로 페이지당 선명도 확보 */
 export const STUDENT_RECORD_PAGE_JPEG_TARGET_BYTES = 380_000;
 
 /** Vision OCR 동시 요청 수 (429 rate limit 방지) */
-export const STUDENT_RECORD_VISION_CONCURRENCY = 2;
+export const STUDENT_RECORD_VISION_CONCURRENCY = 4;
+
+/** 클라이언트 OCR 청크 병렬 요청 수 */
+export const STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL = 2;
 
 /** 이 수 초과 시 배치 전사 후 텍스트-only로 최종 보고서 생성 */
 export const STUDENT_RECORD_VISION_BATCH_THRESHOLD = 6;

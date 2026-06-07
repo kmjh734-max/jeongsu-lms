@@ -10,7 +10,9 @@ const PUBLIC_PREFIXES = [
   "/login",
   "/auth/callback",
   "/report/share",
+  "/student-record/share",
   "/api/reports/share",
+  "/api/student-records/share",
 ];
 
 function isPublicPath(pathname: string): boolean {

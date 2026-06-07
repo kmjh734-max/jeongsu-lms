@@ -20,8 +20,13 @@ import {
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
 import { isPdfUpload } from "@/lib/student-records/file-types";
+import { STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL } from "@/lib/student-records/limits";
 import { hasSubstantiveStudentRecordText } from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
+
+const PROGRESS_PREP_END = 12;
+const PROGRESS_OCR_END = 72;
+const PROGRESS_GENERATE_END = 98;
 
 type ExtractApiResult = {
   ok: boolean;
@@ -53,7 +58,13 @@ export function StudentRecordWorkspace({
   const [listLoading, setListLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [progressLabel, setProgressLabel] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState(0);
   const [error, setError] = useState<string | null>(null);
+
+  const updateProgress = useCallback((label: string, percent: number) => {
+    setProgressLabel(label);
+    setProgressPercent(Math.min(100, Math.max(0, Math.round(percent))));
+  }, []);
 
   const loadStudents = useCallback(async () => {
     setListLoading(true);
@@ -103,6 +114,7 @@ export function StudentRecordWorkspace({
     setAnalyzing(true);
     setError(null);
     setResult(null);
+    updateProgress("분석 준비 중…", 0);
     try {
       const pastedText = text.trim();
       const pdfFiles = files.filter(isPdfUpload);
@@ -132,7 +144,7 @@ export function StudentRecordWorkspace({
       };
 
       if (pdfFiles.length > 0 && directImageFiles.length === 0) {
-        setProgressLabel("1/2 PDF 직접 OCR 중… (OpenAI)");
+        updateProgress("1/2 PDF 직접 OCR 중… (OpenAI)", 20);
         const formData = buildFormData();
         if (pastedText) formData.set("text", pastedText);
         for (const pdf of pdfFiles) {
@@ -149,15 +161,26 @@ export function StudentRecordWorkspace({
           resolvedStudentId = pdfExtracted.studentId ?? null;
           resolvedStudentName = pdfExtracted.studentName;
           combinedExtractedText = pdfExtracted.text;
+          updateProgress("PDF 직접 OCR 완료", PROGRESS_OCR_END);
         }
       }
 
       if (!combinedExtractedText) {
-        setProgressLabel("PDF·이미지 준비 중…");
-        const preparedFiles = await prepareStudentRecordFiles(
-          files,
-          setProgressLabel
-        );
+        updateProgress("PDF·이미지 준비 중…", 4);
+        const preparedFiles = await prepareStudentRecordFiles(files, (label) => {
+          if (label.startsWith("PDF 변환")) {
+            const match = label.match(/(\d+)\/(\d+)/);
+            if (match) {
+              const current = Number(match[1]);
+              const total = Number(match[2]);
+              const pct =
+                4 + (current / Math.max(total, 1)) * (PROGRESS_PREP_END - 4);
+              updateProgress(`PDF 변환 ${current}/${total}…`, pct);
+              return;
+            }
+          }
+          updateProgress(label, 6);
+        });
         const preparedError = validatePreparedStudentRecordFiles(preparedFiles);
         if (preparedError) {
           throw new Error(preparedError);
@@ -170,7 +193,7 @@ export function StudentRecordWorkspace({
         if (imageChunks.length === 0) {
           const formData = buildFormData();
           formData.set("text", pastedText);
-          setProgressLabel("1/2 학생부 자료 읽는 중…");
+          updateProgress("1/2 학생부 자료 읽는 중…", 40);
           const extracted = await postExtract(formData);
           if (!extracted?.ok || !extracted.text || !extracted.studentName) {
             throw new Error(extracted?.message ?? "자료 읽기에 실패했습니다.");
@@ -179,17 +202,15 @@ export function StudentRecordWorkspace({
           resolvedStudentName = extracted.studentName;
           ocrTexts.push(extracted.text);
         } else {
-          for (let i = 0; i < imageChunks.length; i++) {
-            const chunk = imageChunks[i]!;
+          const ocrSpan = PROGRESS_OCR_END - PROGRESS_PREP_END;
+
+          const extractChunk = async (chunkIndex: number) => {
+            const chunk = imageChunks[chunkIndex]!;
             const chunkError = validatePreparedExtractChunk(chunk);
             if (chunkError) throw new Error(chunkError);
 
-            setProgressLabel(
-              `1/2 이미지 OCR 중… ${i + 1}/${imageChunks.length}묶음 (${chunk.length}페이지)`
-            );
-
             const formData = buildFormData();
-            if (i === 0 && pastedText) {
+            if (chunkIndex === 0 && pastedText) {
               formData.set("text", pastedText);
             }
             for (const file of chunk) {
@@ -200,13 +221,48 @@ export function StudentRecordWorkspace({
             if (!extracted?.ok || !extracted.text || !extracted.studentName) {
               throw new Error(
                 extracted?.message ??
-                  `${i + 1}번째 OCR 묶음 처리에 실패했습니다.`
+                  `${chunkIndex + 1}번째 OCR 묶음 처리에 실패했습니다.`
               );
             }
+            return extracted;
+          };
 
-            resolvedStudentId = extracted.studentId ?? resolvedStudentId;
-            resolvedStudentName = extracted.studentName;
-            ocrTexts.push(extracted.text);
+          for (
+            let i = 0;
+            i < imageChunks.length;
+            i += STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL
+          ) {
+            const batchIndices = Array.from(
+              {
+                length: Math.min(
+                  STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL,
+                  imageChunks.length - i
+                ),
+              },
+              (_, j) => i + j
+            );
+
+            updateProgress(
+              `1/2 이미지 OCR 중… ${i + 1}~${i + batchIndices.length}/${imageChunks.length}묶음`,
+              PROGRESS_PREP_END +
+                (i / imageChunks.length) * ocrSpan
+            );
+
+            const batchResults = await Promise.all(
+              batchIndices.map((chunkIndex) => extractChunk(chunkIndex))
+            );
+
+            for (const extracted of batchResults) {
+              resolvedStudentId = extracted.studentId ?? resolvedStudentId;
+              resolvedStudentName = extracted.studentName!;
+              ocrTexts.push(extracted.text!);
+            }
+
+            updateProgress(
+              `1/2 이미지 OCR 중… ${Math.min(i + batchIndices.length, imageChunks.length)}/${imageChunks.length}묶음 완료`,
+              PROGRESS_PREP_END +
+                ((i + batchIndices.length) / imageChunks.length) * ocrSpan
+            );
           }
         }
 
@@ -218,7 +274,7 @@ export function StudentRecordWorkspace({
         }
       }
 
-      setProgressLabel("2/2 입학사정관 보고서 생성 중…");
+      updateProgress("2/2 입학사정관 보고서 생성 중…", PROGRESS_GENERATE_END);
 
       const generateRes = await fetch("/api/student-records/generate", {
         method: "POST",
@@ -244,6 +300,7 @@ export function StudentRecordWorkspace({
         throw new Error(generated?.message ?? "보고서 생성에 실패했습니다.");
       }
 
+      updateProgress("보고서 생성 완료", 100);
       setResult({
         studentId: resolvedStudentId,
         studentName: resolvedStudentName,
@@ -255,6 +312,7 @@ export function StudentRecordWorkspace({
     } finally {
       setAnalyzing(false);
       setProgressLabel(null);
+      setProgressPercent(0);
     }
   }
 
@@ -392,16 +450,29 @@ export function StudentRecordWorkspace({
         </p>
       )}
 
-      <div className="no-print">
+      <div className="no-print space-y-3">
         <Button
           type="button"
           disabled={analyzing}
           onClick={() => void runAnalysis()}
         >
           {analyzing
-            ? (progressLabel ?? "분석 생성 중…")
+            ? `${progressLabel ?? "분석 생성 중…"} (${progressPercent}%)`
             : "학생부 분석 보고서 생성"}
         </Button>
+        {analyzing && (
+          <div className="max-w-md space-y-1">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-blue-600 transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <p className="text-xs text-slate-600">
+              {progressLabel ?? "분석 중…"} · {progressPercent}%
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
