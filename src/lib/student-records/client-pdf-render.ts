@@ -14,7 +14,7 @@ export async function pdfFileToJpegFiles(
 ): Promise<File[]> {
   const maxPages = options?.maxPages ?? STUDENT_RECORD_MAX_PDF_PAGES;
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
+  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
   const data = new Uint8Array(await file.arrayBuffer());
   const pdf = await pdfjs.getDocument({ data }).promise;
@@ -54,7 +54,7 @@ export async function pdfFileToJpegFiles(
       if (quality < 0.55) break;
     }
 
-    if (blob && blob.size > 0) {
+    if (blob && blob.size > 8_000) {
       output.push(
         new File([blob], `${baseName}-p${String(pageNum).padStart(2, "0")}.jpg`, {
           type: "image/jpeg",

@@ -3,6 +3,7 @@ import {
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
 } from "@/lib/student-records/model";
+import { summarizeOpenAiError } from "@/lib/student-records/openai-errors";
 import {
   buildOcrChatBody,
   VISION_OCR_MODELS,
@@ -25,6 +26,16 @@ type RequestProfile = {
   includeTemperature: boolean;
 };
 
+let lastVisionApiError: string | null = null;
+
+export function getLastVisionApiError(): string | null {
+  return lastVisionApiError;
+}
+
+export function resetLastVisionApiError(): void {
+  lastVisionApiError = null;
+}
+
 function defaultProfile(): RequestProfile {
   return { includeTemperature: true };
 }
@@ -43,7 +54,11 @@ function relaxProfile(
 }
 
 function isUsefulOcrText(text: string): boolean {
-  return text.replace(/\s+/g, "").length >= 40;
+  return text.replace(/\s+/g, "").length >= 30;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function callVisionText(
@@ -64,7 +79,7 @@ async function callVisionText(
   for (const model of VISION_OCR_MODELS) {
     let profile = defaultProfile();
 
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt++) {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -82,6 +97,13 @@ async function callVisionText(
 
       const bodyText = await res.text();
       if (!res.ok) {
+        lastVisionApiError = summarizeOpenAiError(res.status, bodyText);
+
+        if (res.status === 429 && attempt < 3) {
+          await sleep(1500 * (attempt + 1));
+          continue;
+        }
+
         const relaxed = relaxProfile(profile, bodyText);
         if (relaxed) {
           profile = relaxed;
@@ -168,7 +190,9 @@ export async function extractTextFromPageImages(
   studentName: string,
   signal: AbortSignal
 ): Promise<string> {
-  const parts = await mapWithConcurrency(
+  resetLastVisionApiError();
+
+  let parts = await mapWithConcurrency(
     pageImages,
     (imageUrl, index) =>
       extractSinglePage(
@@ -181,6 +205,23 @@ export async function extractTextFromPageImages(
       ),
     STUDENT_RECORD_VISION_CONCURRENCY
   );
+
+  const failedCount = parts.filter((p) => p.includes("[이 구간 판독 실패]")).length;
+  if (failedCount > 0 && failedCount === parts.length) {
+    parts = [];
+    for (let i = 0; i < pageImages.length; i++) {
+      parts.push(
+        await extractSinglePage(
+          apiKey,
+          pageImages[i]!,
+          i + 1,
+          pageImages.length,
+          studentName,
+          signal
+        )
+      );
+    }
+  }
 
   return parts.join("\n\n");
 }

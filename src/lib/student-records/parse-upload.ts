@@ -1,4 +1,8 @@
-import { isImageUpload, isPdfUpload } from "@/lib/student-records/file-types";
+import {
+  isImageUpload,
+  isPdfUpload,
+  resolveImageMimeType,
+} from "@/lib/student-records/file-types";
 import {
   STUDENT_RECORD_MAX_PDF_BYTES,
   STUDENT_RECORD_MAX_PDF_PAGES,
@@ -66,9 +70,8 @@ export async function parseStudentRecordUpload(
         throw new Error("이미지 파일은 1MB 이하만 업로드할 수 있습니다.");
       }
       const buffer = Buffer.from(await entry.arrayBuffer());
-      imageDataUrls.push(
-        `data:${entry.type};base64,${buffer.toString("base64")}`
-      );
+      const mime = resolveImageMimeType(entry);
+      imageDataUrls.push(`data:${mime};base64,${buffer.toString("base64")}`);
       continue;
     }
 

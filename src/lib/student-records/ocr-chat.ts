@@ -2,7 +2,8 @@ import { isGpt5FamilyModel } from "@/lib/student-records/model";
 
 export const PDF_OCR_MAX_OUTPUT_TOKENS = 32_768;
 
-export const PDF_OCR_MODELS = ["gpt-5.5", "gpt-4o", "gpt-4o-mini"] as const;
+/** PDF 직접 OCR — 4o가 스캔 PDF 인식률이 가장 안정적 */
+export const PDF_OCR_MODELS = ["gpt-4o", "gpt-4o-mini", "gpt-5.5"] as const;
 
 /** Vision OCR — reasoning 모델은 이미지 응답이 비는 경우가 있어 4o 계열만 사용 */
 export const VISION_OCR_MODELS = ["gpt-4o", "gpt-4o-mini"] as const;

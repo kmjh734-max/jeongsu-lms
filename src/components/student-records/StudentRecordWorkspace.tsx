@@ -19,8 +19,17 @@ import {
   validatePreparedStudentRecordFiles,
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
+import { isPdfUpload } from "@/lib/student-records/file-types";
 import { hasSubstantiveStudentRecordText } from "@/lib/student-records/ocr-quality";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
+
+type ExtractApiResult = {
+  ok: boolean;
+  message?: string;
+  text?: string;
+  studentId?: string | null;
+  studentName?: string;
+};
 
 interface StudentRecordWorkspaceProps {
   initialClasses?: ReportClassOption[];
@@ -94,106 +103,119 @@ export function StudentRecordWorkspace({
     setAnalyzing(true);
     setError(null);
     setResult(null);
-    setProgressLabel("PDF·이미지 준비 중…");
-
     try {
-      const preparedFiles = await prepareStudentRecordFiles(files, setProgressLabel);
-      const preparedError = validatePreparedStudentRecordFiles(preparedFiles);
-      if (preparedError) {
-        throw new Error(preparedError);
-      }
-
       const pastedText = text.trim();
-      const imageChunks =
-        preparedFiles.length > 0 ? chunkStudentRecordFiles(preparedFiles) : [];
-      const ocrTexts: string[] = [];
+      const pdfFiles = files.filter(isPdfUpload);
+      const directImageFiles = files.filter((file) => !isPdfUpload(file));
       let resolvedStudentId: string | null = null;
       let resolvedStudentName = "";
+      let combinedExtractedText = "";
 
-      if (imageChunks.length === 0) {
+      const buildFormData = () => {
         const formData = new FormData();
         if (selectedStudentId) formData.set("studentId", selectedStudentId);
         if (!selectedStudentId && manualStudentName.trim()) {
           formData.set("studentName", manualStudentName.trim());
         }
-        formData.set("text", pastedText);
+        return formData;
+      };
 
-        setProgressLabel("1/2 학생부 자료 읽는 중…");
+      const postExtract = async (formData: FormData) => {
         const extractRes = await fetch("/api/student-records/extract", {
           method: "POST",
           body: formData,
         });
-        const { data: extracted, error: extractError } =
-          await readStudentRecordApiResponse<{
-            ok: boolean;
-            message?: string;
-            text?: string;
-            studentId?: string | null;
-            studentName?: string;
-          }>(extractRes);
+        const { data, error } =
+          await readStudentRecordApiResponse<ExtractApiResult>(extractRes);
+        if (error) throw new Error(error);
+        return data;
+      };
 
-        if (extractError) throw new Error(extractError);
-        if (!extracted?.ok || !extracted.text || !extracted.studentName) {
-          throw new Error(extracted?.message ?? "자료 읽기에 실패했습니다.");
+      if (pdfFiles.length > 0 && directImageFiles.length === 0) {
+        setProgressLabel("1/2 PDF 직접 OCR 중… (OpenAI)");
+        const formData = buildFormData();
+        if (pastedText) formData.set("text", pastedText);
+        for (const pdf of pdfFiles) {
+          formData.append("files", pdf);
         }
 
-        resolvedStudentId = extracted.studentId ?? null;
-        resolvedStudentName = extracted.studentName;
-        ocrTexts.push(extracted.text);
-      } else {
-        for (let i = 0; i < imageChunks.length; i++) {
-          const chunk = imageChunks[i]!;
-          const chunkError = validatePreparedExtractChunk(chunk);
-          if (chunkError) throw new Error(chunkError);
-
-          setProgressLabel(
-            `1/2 OCR 전사 중… ${i + 1}/${imageChunks.length}묶음 (${chunk.length}페이지)`
-          );
-
-          const formData = new FormData();
-          if (selectedStudentId) formData.set("studentId", selectedStudentId);
-          if (!selectedStudentId && manualStudentName.trim()) {
-            formData.set("studentName", manualStudentName.trim());
-          }
-          if (i === 0 && pastedText) {
-            formData.set("text", pastedText);
-          }
-          for (const file of chunk) {
-            formData.append("files", file);
-          }
-
-          const extractRes = await fetch("/api/student-records/extract", {
-            method: "POST",
-            body: formData,
-          });
-          const { data: extracted, error: extractError } =
-            await readStudentRecordApiResponse<{
-              ok: boolean;
-              message?: string;
-              text?: string;
-              studentId?: string | null;
-              studentName?: string;
-            }>(extractRes);
-
-          if (extractError) throw new Error(extractError);
-          if (!extracted?.ok || !extracted.text || !extracted.studentName) {
-            throw new Error(
-              extracted?.message ??
-                `${i + 1}번째 OCR 묶음 처리에 실패했습니다.`
-            );
-          }
-
-          resolvedStudentId = extracted.studentId ?? resolvedStudentId;
-          resolvedStudentName = extracted.studentName;
-          ocrTexts.push(extracted.text);
+        const pdfExtracted = await postExtract(formData);
+        if (
+          pdfExtracted?.ok &&
+          pdfExtracted.text &&
+          pdfExtracted.studentName &&
+          hasSubstantiveStudentRecordText(pdfExtracted.text)
+        ) {
+          resolvedStudentId = pdfExtracted.studentId ?? null;
+          resolvedStudentName = pdfExtracted.studentName;
+          combinedExtractedText = pdfExtracted.text;
         }
       }
 
-      const combinedExtractedText = ocrTexts.join("\n\n");
-      if (!hasSubstantiveStudentRecordText(combinedExtractedText)) {
-        throw new Error(
-          "학생부 OCR 결과가 충분하지 않습니다. 스캔 선명도를 확인하거나 텍스트를 직접 붙여넣어 주세요."
+      if (!combinedExtractedText) {
+        setProgressLabel("PDF·이미지 준비 중…");
+        const preparedFiles = await prepareStudentRecordFiles(
+          files,
+          setProgressLabel
         );
+        const preparedError = validatePreparedStudentRecordFiles(preparedFiles);
+        if (preparedError) {
+          throw new Error(preparedError);
+        }
+
+        const imageChunks =
+          preparedFiles.length > 0 ? chunkStudentRecordFiles(preparedFiles) : [];
+        const ocrTexts: string[] = [];
+
+        if (imageChunks.length === 0) {
+          const formData = buildFormData();
+          formData.set("text", pastedText);
+          setProgressLabel("1/2 학생부 자료 읽는 중…");
+          const extracted = await postExtract(formData);
+          if (!extracted?.ok || !extracted.text || !extracted.studentName) {
+            throw new Error(extracted?.message ?? "자료 읽기에 실패했습니다.");
+          }
+          resolvedStudentId = extracted.studentId ?? null;
+          resolvedStudentName = extracted.studentName;
+          ocrTexts.push(extracted.text);
+        } else {
+          for (let i = 0; i < imageChunks.length; i++) {
+            const chunk = imageChunks[i]!;
+            const chunkError = validatePreparedExtractChunk(chunk);
+            if (chunkError) throw new Error(chunkError);
+
+            setProgressLabel(
+              `1/2 이미지 OCR 중… ${i + 1}/${imageChunks.length}묶음 (${chunk.length}페이지)`
+            );
+
+            const formData = buildFormData();
+            if (i === 0 && pastedText) {
+              formData.set("text", pastedText);
+            }
+            for (const file of chunk) {
+              formData.append("files", file);
+            }
+
+            const extracted = await postExtract(formData);
+            if (!extracted?.ok || !extracted.text || !extracted.studentName) {
+              throw new Error(
+                extracted?.message ??
+                  `${i + 1}번째 OCR 묶음 처리에 실패했습니다.`
+              );
+            }
+
+            resolvedStudentId = extracted.studentId ?? resolvedStudentId;
+            resolvedStudentName = extracted.studentName;
+            ocrTexts.push(extracted.text);
+          }
+        }
+
+        combinedExtractedText = ocrTexts.join("\n\n");
+        if (!hasSubstantiveStudentRecordText(combinedExtractedText)) {
+          throw new Error(
+            "학생부 OCR 결과가 충분하지 않습니다. 스캔 선명도를 확인하거나 텍스트를 직접 붙여넣어 주세요."
+          );
+        }
       }
 
       setProgressLabel("2/2 입학사정관 보고서 생성 중…");
@@ -337,8 +359,9 @@ export function StudentRecordWorkspace({
         </h2>
         <p className="text-xs text-slate-500">
           성적표·세특·창체·행특 텍스트를 붙여넣거나, PDF·이미지(JPG/PNG)를
-          업로드하세요. 스캔 PDF는 브라우저에서 페이지 이미지로 변환한 뒤 OCR로
-          최대 {STUDENT_RECORD_MAX_PDF_PAGES}페이지까지 분석합니다. 전체 용량은 약{" "}
+          업로드하세요. 스캔 PDF는 OpenAI PDF OCR을 먼저 시도하고, 실패 시
+          브라우저 이미지 변환 OCR로 최대 {STUDENT_RECORD_MAX_PDF_PAGES}페이지까지
+          분석합니다. 전체 용량은 약{" "}
           {formatBytes(STUDENT_RECORD_MAX_TOTAL_BYTES)} 이하를 권장합니다.
         </p>
         <textarea

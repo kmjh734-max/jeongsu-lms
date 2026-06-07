@@ -5,6 +5,7 @@ import type { AnalyzeStudentRecordInput } from "@/lib/student-records/types";
 import {
   countSuccessfulOcrPages,
   extractTextFromPageImages,
+  getLastVisionApiError,
 } from "@/lib/student-records/vision-extract";
 
 export async function extractStudentRecordContent(
@@ -74,11 +75,12 @@ export async function extractStudentRecordContent(
       const pageHint = ocrStats
         ? ` (${ocrStats.success}/${ocrStats.total}페이지 인식)`
         : "";
+      const apiHint = hadImages ? getLastVisionApiError() : null;
 
       return {
         ok: false,
         message: hadImages
-          ? `학생부 이미지 OCR에 실패했습니다${pageHint}. 스캔 선명도를 확인하거나, 텍스트를 직접 붙여넣어 주세요.`
+          ? `학생부 이미지 OCR에 실패했습니다${pageHint}.${apiHint ? ` ${apiHint}` : ""} 스캔 선명도를 확인하거나, 텍스트를 직접 붙여넣어 주세요.`
           : hadPdf
             ? "PDF OCR에 실패했습니다. PDF 용량(4MB 이하)과 선명도를 확인한 뒤 다시 시도해 주세요."
             : "PDF/이미지에서 내용을 읽지 못했습니다. 파일이 선명한지 확인해 주세요.",
