@@ -48,6 +48,33 @@
   .ui-section-card {
     @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-card sm:p-6;
   }
+
+  .listening-exam-sheet {
+    box-sizing: border-box;
+    width: 210mm;
+    background: #fff;
+    color: #1c1917;
+    padding: 9mm 11mm 11mm;
+  }
+
+  .listening-exam-columns {
+    column-count: 2;
+    column-gap: 7mm;
+    column-rule: 0.55pt solid #d6d3d1;
+    column-fill: balance;
+  }
+
+  .listening-exam-q {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 3.8mm;
+  }
+
+  .listening-exam-end {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
 
 @media print {
@@ -117,6 +144,17 @@
     width: 210mm !important;
     min-height: auto !important;
     background: white !important;
+    position: static !important;
+  }
+
+  .listening-exam-columns {
+    column-count: 2 !important;
+    column-gap: 7mm !important;
+  }
+
+  .listening-exam-q {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
   @page {
