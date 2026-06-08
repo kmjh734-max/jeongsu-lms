@@ -158,12 +158,12 @@ export const MIDDLE2_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
   },
   {
     id: 17,
-    question_type: "그림 상황 대화 고르기",
-    instruction: "다음 그림의 상황에 가장 적절한 대화를 고르시오.",
+    question_type: "특정 시점에 할 일 파악",
+    instruction: "대화를 듣고, ○○가 오늘 오후/이번 주말에 할 일로 가장 적절한 것을 고르시오.",
     format_guide:
-      "question_text describes one picture scenario. choices = 5 short English dialogues (2~4 lines each). needs_image_choices false; picture described in question_text.",
-    segment_guide: "N/A — choices contain full mini-dialogues.",
-    choice_guide: "5 English dialogue snippets; one matches pictured situation.",
+      "Schedule at specific time. target_person, target_time, planned_action, mentioned_other_actions. NOT immediate (8), request (15), suggestion (16).",
+    segment_guide: "M/W 6~8 turns. Multiple activities mentioned; final plan for target_time clear.",
+    choice_guide: "5 Korean activity phrases (~하기). needs_image_choices false.",
     difficulty_tier: "applied",
   },
   {

@@ -19,7 +19,7 @@ export function ListeningPrintQrCode({
     QRCode.toDataURL(url, {
       width: sizePx,
       margin: 1,
-      color: { dark: "#1e40af", light: "#ffffff" },
+      color: { dark: "#000000", light: "#ffffff" },
     })
       .then((result) => {
         if (!cancelled) setDataUrl(result);

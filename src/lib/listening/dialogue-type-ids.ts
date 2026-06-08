@@ -5,7 +5,7 @@ import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2
 /** 담화·단독 화자 유형 (M/W 교대 불필요) */
 export function getMonologueTypeIds(gradeLevel?: ListeningGradeLevel): Set<number> {
   if (gradeLevel === "middle2") {
-    return new Set([1, 10, 18, 17]);
+    return new Set([1, 10, 18]);
   }
   if (gradeLevel === "middle1") {
     return new Set([1, 3, 5, 14]);

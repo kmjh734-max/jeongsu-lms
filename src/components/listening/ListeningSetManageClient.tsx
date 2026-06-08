@@ -380,15 +380,13 @@ export function ListeningSetManageClient({
   async function regeneratePreviewItem(orderIndex: number) {
     setRegeneratingIndex(orderIndex);
     const prev = previewQuestions?.find((q) => q.order_index === orderIndex);
-    const slot =
-      generationSlots.find((s) => s.slotIndex === orderIndex) ??
-      generationSlots[0];
+    const slot = generationSlots.find((s) => s.slotIndex === orderIndex);
     const res = await fetch("/api/listening/generate-question-item", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         setId,
-        typeId: slot?.typeId,
+        typeId: slot?.typeId ?? orderIndex,
         orderIndex,
         mode: "exam",
         difficultyMode,

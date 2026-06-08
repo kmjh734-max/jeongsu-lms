@@ -14,6 +14,7 @@ import { buildType12OnlyGenerationPrompt } from "@/lib/listening/prompts/type12R
 import { buildType13OnlyGenerationPrompt } from "@/lib/listening/prompts/type13PlacePrompt";
 import { buildType14OnlyGenerationPrompt } from "@/lib/listening/prompts/type14TablePrompt";
 import { buildType15OnlyGenerationPrompt } from "@/lib/listening/prompts/type15RequestPrompt";
+import { buildType17OnlyGenerationPrompt } from "@/lib/listening/prompts/type17SchedulePrompt";
 import { buildType19OnlyGenerationPrompt } from "@/lib/listening/prompts/type19ResponsePrompt";
 import { buildType20OnlyGenerationPrompt } from "@/lib/listening/prompts/type20ResponsePrompt";
 import { QUALITY_CHECK_CRITERIA } from "@/lib/listening/prompts/qualityCheckPrompt";
@@ -94,18 +95,6 @@ const TYPE14_RELATIONSHIP = `
 - choices: 한글 "A―B" 형식 5개
 `.trim();
 
-const TYPE17_PICTURE_DIALOGUE = `
-==================================================
-중2 17번: 그림 상황 대화 고르기
-==================================================
-지시문: 다음 그림의 상황에 가장 적절한 대화를 고르시오.
-- question_text: 그림 상황을 영어로 설명 (예: "A boy is buying shoes at a store.")
-- segments: 빈 배열 또는 짧은 ANN 안내만 가능
-- choices: 영어 대화 미니 스크립트 5개 (각 2~4줄, Number One 스타일 불필요)
-- 정답 1개만 그림 상황과 일치
-- needs_image_choices: false (그림은 question_text로 설명)
-`.trim();
-
 function buildCustomMiddle2Prompt(
   typeId: number,
   rules: string,
@@ -170,7 +159,10 @@ export function buildMiddle2TypeOnlyGenerationPrompt(
     case 16:
       return wrapMiddle1TypePrompt(16, buildType12OnlyGenerationPrompt(previousProblems));
     case 17:
-      return buildCustomMiddle2Prompt(17, TYPE17_PICTURE_DIALOGUE, previousProblems);
+      return wrapMiddle1TypePrompt(
+        17,
+        buildType17OnlyGenerationPrompt(previousProblems)
+      );
     case 18:
       return wrapMiddle1TypePrompt(18, buildType5OnlyGenerationPrompt(previousProblems));
     case 19:
@@ -199,7 +191,7 @@ const MIDDLE2_TYPE_SUMMARIES: Record<number, string> = {
   14: "관계 파악 — target_job에 A―B",
   15: "부탁한 일 — requester, requested_action",
   16: "이유 파악 — reason_for_going",
-  17: "그림 상황 대화 — choices에 영어 대화 5개",
+  17: "특정 시점 할 일 — target_time, planned_action, 한글 ~하기 보기",
   18: "담화 언급하지 않은 것 — mention_plan",
   19: "응답 고르기 — 여자 마지막 → Man: ______",
   20: "응답 고르기 — 남자 마지막 → Woman: ______",

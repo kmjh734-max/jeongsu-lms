@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { resolveLoginEmail } from "@/lib/auth/username";
 import { getDashboardPathForRole } from "@/lib/auth/roles";
@@ -27,8 +27,15 @@ interface LoginFormProps {
   initialError?: string;
 }
 
+function safeRedirectPath(raw: string | null): string | null {
+  if (!raw?.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
 export function LoginForm({ initialError }: LoginFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectAfterLogin = safeRedirectPath(searchParams.get("redirect"));
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(initialError ?? null);
@@ -77,7 +84,9 @@ export function LoginForm({ initialError }: LoginFormProps) {
 
       const role = profile?.role as UserRole | undefined;
       if (role) {
-        router.push(getDashboardPathForRole(role));
+        router.push(
+          redirectAfterLogin ?? getDashboardPathForRole(role)
+        );
         router.refresh();
         return;
       }

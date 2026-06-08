@@ -6,15 +6,15 @@ import type { ListeningQuestionData } from "@/components/listening/ListeningQues
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import { LOGO_SRC } from "@/lib/branding";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
+import { buildStudentListeningAudioUrl } from "@/lib/listening/listen-url";
 import {
   paginateExamQuestions,
   type ExamPageLayout,
 } from "@/lib/listening/paginate-exam-questions";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
-const QUESTION_GAP_PX = 14;
-/** A4 본문 단 너비 (210mm - 좌우 패딩 11mm×2) */
-const CONTENT_WIDTH_CLASS = "w-[188mm]";
+const QUESTION_GAP_PX = 12;
+const COLUMN_WIDTH_CLASS = "w-[91mm]";
 
 interface ListeningExamPrintViewProps {
   title: string;
@@ -22,7 +22,7 @@ interface ListeningExamPrintViewProps {
   questions: ListeningQuestionData[];
   backHref: string;
   showScript?: boolean;
-  listenUrl: string;
+  setId: string;
 }
 
 interface PrintMeta {
@@ -48,7 +48,7 @@ export function ListeningExamPrintView({
   questions,
   backHref,
   showScript = false,
-  listenUrl,
+  setId,
 }: ListeningExamPrintViewProps) {
   const [examTitle, setExamTitle] = useState(title);
   const [studentName, setStudentName] = useState("");
@@ -89,8 +89,8 @@ export function ListeningExamPrintView({
 
     setPages(
       paginateExamQuestions(questionHeights, {
-        firstPageMaxPx: firstBody.clientHeight,
-        nextPageMaxPx: nextBody.clientHeight,
+        firstColumnMaxPx: firstBody.clientHeight,
+        nextColumnMaxPx: nextBody.clientHeight,
         questionGapPx: QUESTION_GAP_PX,
       })
     );
@@ -104,6 +104,7 @@ export function ListeningExamPrintView({
     studentNo,
     studentName,
     title,
+    setId,
   ]);
 
   function handlePrint() {
@@ -188,7 +189,7 @@ export function ListeningExamPrintView({
               </label>
             </div>
             <p className="mt-3 text-xs text-neutral-500">
-              A4 1단 · 보기 한 줄씩 · QR 듣기 · 넘치면 다음 페이지
+              A4 2단 · 보기 한 줄씩 · 문항별 QR 음성 · 넘치면 다음 페이지
               {pages && ` (${totalPages}페이지)`}
             </p>
           </div>
@@ -200,10 +201,14 @@ export function ListeningExamPrintView({
         className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
         aria-hidden
       >
-        <div className={CONTENT_WIDTH_CLASS}>
+        <div className={COLUMN_WIDTH_CLASS}>
           {questions.map((q) => (
-            <div key={q.id} data-measure-q={q.id} className="mb-[3.5mm]">
-              <ExamQuestionBlock question={q} showScript={showScript} />
+            <div key={q.id} data-measure-q={q.id} className="mb-[3mm]">
+              <ExamQuestionBlock
+                question={q}
+                setId={setId}
+                showScript={showScript}
+              />
             </div>
           ))}
         </div>
@@ -216,10 +221,11 @@ export function ListeningExamPrintView({
       >
         <ExamSheetPage
           meta={meta}
-          listenUrl={listenUrl}
+          setId={setId}
           pageIndex={0}
           totalPages={1}
-          items={[]}
+          left={[]}
+          right={[]}
           questions={questions}
           showScript={showScript}
           measureOnly
@@ -232,10 +238,11 @@ export function ListeningExamPrintView({
       >
         <ExamSheetPage
           meta={meta}
-          listenUrl={listenUrl}
+          setId={setId}
           pageIndex={1}
           totalPages={2}
-          items={[]}
+          left={[]}
+          right={[]}
           questions={questions}
           showScript={showScript}
           measureOnly
@@ -247,10 +254,11 @@ export function ListeningExamPrintView({
           {questions.length === 0 ? (
             <ExamSheetPage
               meta={meta}
-              listenUrl={listenUrl}
+              setId={setId}
               pageIndex={0}
               totalPages={1}
-              items={[]}
+              left={[]}
+              right={[]}
               questions={questions}
               showScript={showScript}
             />
@@ -263,10 +271,11 @@ export function ListeningExamPrintView({
               <ExamSheetPage
                 key={pageIndex}
                 meta={meta}
-                listenUrl={listenUrl}
+                setId={setId}
                 pageIndex={pageIndex}
                 totalPages={pages.length}
-                items={layout.items}
+                left={layout.left}
+                right={layout.right}
                 questions={questions}
                 showScript={showScript}
                 isLastPage={pageIndex === pages.length - 1}
@@ -281,20 +290,22 @@ export function ListeningExamPrintView({
 
 function ExamSheetPage({
   meta,
-  listenUrl,
+  setId,
   pageIndex,
   totalPages,
-  items,
+  left,
+  right,
   questions,
   showScript,
   isLastPage,
   measureOnly,
 }: {
   meta: PrintMeta;
-  listenUrl: string;
+  setId: string;
   pageIndex: number;
   totalPages: number;
-  items: number[];
+  left: number[];
+  right: number[];
   questions: ListeningQuestionData[];
   showScript: boolean;
   isLastPage?: boolean;
@@ -312,7 +323,7 @@ function ExamSheetPage({
         <header className="shrink-0 pb-[3mm]">
           <div className="flex items-stretch gap-[3mm]">
             <div className="flex shrink-0 flex-col justify-center">
-              <div className="rounded-xl bg-white p-[2mm] shadow-sm ring-1 ring-blue-100">
+              <div className="rounded-xl bg-white p-[2mm] shadow-sm ring-1 ring-slate-300 print:ring-slate-400">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={LOGO_SRC}
@@ -323,58 +334,60 @@ function ExamSheetPage({
             </div>
 
             <div
-              className="flex min-w-0 flex-1 flex-col justify-center rounded-r-2xl px-[4mm] py-[2.5mm] text-white shadow-[0_3px_12px_rgba(47,111,184,0.35)]"
+              className="flex min-w-0 flex-1 flex-col justify-center rounded-r-2xl px-[4mm] py-[2.5mm] text-white shadow-[0_3px_12px_rgba(15,23,42,0.25)] print:shadow-none"
               style={{
                 background:
-                  "linear-gradient(135deg, #6ba8eb 0%, #4a8fd4 45%, #2f6fb8 100%)",
+                  "linear-gradient(135deg, #1e3a5f 0%, #0f2744 55%, #0a1a2e 100%)",
               }}
             >
-              <p className="text-[7pt] font-semibold tracking-[0.25em] text-blue-50/90">
+              <p className="text-[7pt] font-bold tracking-[0.25em] text-slate-200">
                 ENGLISH LISTENING
               </p>
-              <h1 className="mt-[1mm] text-[13pt] font-bold leading-tight">
+              <h1 className="mt-[1mm] text-[13pt] font-extrabold leading-tight text-white">
                 {meta.examTitle}
               </h1>
-              <p className="mt-[0.5mm] text-[8pt] text-blue-50/90">
+              <p className="mt-[0.5mm] text-[8pt] font-semibold text-slate-200">
                 {meta.gradeLabel}
               </p>
             </div>
 
-            <div className="flex w-[26mm] shrink-0 flex-col items-center justify-center rounded-xl border border-blue-100 bg-gradient-to-b from-blue-50/80 to-white px-[1.5mm] py-[2mm] text-center shadow-sm">
-              <ListeningPrintQrCode url={listenUrl} sizePx={84} />
-              <p className="mt-[1mm] text-[6.5pt] font-bold text-blue-800">
-                듣기 QR
+            <div className="flex w-[30mm] shrink-0 flex-col items-center justify-center rounded-xl border-2 border-slate-800 bg-slate-50 px-[1.5mm] py-[2mm] text-center">
+              <p className="text-[6.5pt] font-extrabold leading-tight text-slate-900">
+                문항 번호 옆
+              </p>
+              <p className="text-[6.5pt] font-extrabold leading-tight text-slate-900">
+                QR로 듣기
               </p>
             </div>
           </div>
 
-          <table className="mt-[3mm] w-full border-collapse overflow-hidden rounded-lg border border-slate-300 text-[8pt] shadow-sm">
+          <table className="mt-[3mm] w-full border-collapse overflow-hidden rounded-lg border-2 border-slate-800 text-[8pt]">
             <tbody>
               <tr>
-                <th className="w-[12%] border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
+                <th className="w-[12%] border-r-2 border-slate-800 bg-slate-200 px-2 py-1.5 font-extrabold text-slate-900">
                   날짜
                 </th>
-                <td className="bg-white px-3 py-1.5 font-medium text-slate-900">
+                <td className="bg-white px-3 py-1.5 font-bold text-black">
                   {meta.examDate || "\u00a0"}
                 </td>
               </tr>
-              <tr className="border-t border-slate-300">
-                <th className="border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
+              <tr className="border-t-2 border-slate-800">
+                <th className="border-r-2 border-slate-800 bg-slate-200 px-2 py-1.5 font-extrabold text-slate-900">
                   반
                 </th>
-                <td className="border-r border-slate-200 bg-white px-2 py-1.5 text-center">
+                <td className="border-r border-slate-400 bg-white px-2 py-1.5 text-center font-bold text-black">
                   {meta.className || "\u00a0"}
                 </td>
-                <th className="w-[10%] border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
+                <th className="w-[10%] border-r-2 border-slate-800 bg-slate-200 px-2 py-1.5 font-extrabold text-slate-900">
                   번호
                 </th>
-                <td className="w-[10%] border-r border-slate-200 bg-white px-2 py-1.5 text-center">
+                <td className="w-[10%] border-r border-slate-400 bg-white px-2 py-1.5 text-center font-bold text-black">
                   {meta.studentNo || "\u00a0"}
                 </td>
-                <th className="w-[10%] border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
+                <th className="w-[10%] border-r-2 border-slate-800 bg-slate-200 px-2 py-1.5 font-extrabold text-slate-900">
                   이름
                 </th>
-                <td className="bg-white px-2 py-1.5 text-center font-semibold">
+                <td className="bg-white px-2 py-1.5 text-center font-extrabold text-black">
                   {meta.studentName || "\u00a0"}
                 </td>
               </tr>
@@ -382,10 +395,10 @@ function ExamSheetPage({
           </table>
         </header>
       ) : (
-        <header className="shrink-0 border-b border-dotted border-slate-300 pb-[2mm] pt-[1mm]">
+        <header className="shrink-0 border-b-2 border-dotted border-slate-500 pb-[2mm] pt-[1mm]">
           <div className="flex items-center justify-between text-[7.5pt]">
-            <span className="font-semibold text-slate-600">{meta.examTitle}</span>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-500">
+            <span className="font-extrabold text-black">{meta.examTitle}</span>
+            <span className="rounded-full border border-slate-400 bg-slate-100 px-2 py-0.5 font-bold text-slate-800">
               {pageIndex + 1} / {totalPages}
             </span>
           </div>
@@ -396,18 +409,24 @@ function ExamSheetPage({
         data-body-zone
         className="min-h-0 flex-1 overflow-hidden pt-[2.5mm]"
       >
-        <div className="space-y-[3.5mm]">
-          {items.map((qi) => (
-            <ExamQuestionBlock
-              key={questions[qi].id}
-              question={questions[qi]}
-              showScript={showScript}
-            />
-          ))}
+        <div className="grid h-full grid-cols-2 gap-[4mm]">
+          <QuestionColumn
+            indices={left}
+            questions={questions}
+            setId={setId}
+            showScript={showScript}
+          />
+          <QuestionColumn
+            indices={right}
+            questions={questions}
+            setId={setId}
+            showScript={showScript}
+            divided
+          />
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-neutral-200 py-[2mm] text-center text-[7pt] text-neutral-400">
+      <footer className="shrink-0 border-t-2 border-slate-400 py-[2mm] text-center text-[7pt] font-semibold text-slate-700">
         {isLastPage && !measureOnly ? (
           <span className="tracking-[0.3em]">— 끝 —</span>
         ) : (
@@ -420,11 +439,42 @@ function ExamSheetPage({
   );
 }
 
+function QuestionColumn({
+  indices,
+  questions,
+  setId,
+  showScript,
+  divided,
+}: {
+  indices: number[];
+  questions: ListeningQuestionData[];
+  setId: string;
+  showScript: boolean;
+  divided?: boolean;
+}) {
+  return (
+    <div
+      className={`min-h-0 space-y-[3mm] ${divided ? "border-l-2 border-slate-400 pl-[4mm]" : "pr-[1mm]"}`}
+    >
+      {indices.map((qi) => (
+        <ExamQuestionBlock
+          key={questions[qi].id}
+          question={questions[qi]}
+          setId={setId}
+          showScript={showScript}
+        />
+      ))}
+    </div>
+  );
+}
+
 function ExamQuestionBlock({
   question: q,
+  setId,
   showScript,
 }: {
   question: ListeningQuestionData;
+  setId: string;
   showScript: boolean;
 }) {
   const passageText = displayQuestionTextForOrder(
@@ -434,58 +484,62 @@ function ExamQuestionBlock({
   );
   const instruction = q.instruction?.trim();
   const numLabel = String(q.order_index).padStart(2, "0");
+  const audioUrl = buildStudentListeningAudioUrl(setId, q.order_index);
 
   return (
-    <section className="text-[8.5pt] leading-[1.6] text-slate-900">
-      <div className="flex items-end gap-[2mm]">
-        <span className="pb-[0.5mm] text-[15pt] font-extralight leading-none text-slate-300">
-          {numLabel}
-        </span>
-        <div className="mb-[1.5mm] flex-1 border-b border-dotted border-slate-300" />
-      </div>
+    <section className="text-[8.5pt] leading-[1.55] text-black print:text-black">
+      <div className="flex items-start gap-[1.5mm]">
+        <div className="flex shrink-0 flex-col items-center gap-[0.5mm]">
+          <span className="text-[14pt] font-black leading-none text-slate-800">
+            {numLabel}
+          </span>
+          <ListeningPrintQrCode url={audioUrl} sizePx={40} />
+        </div>
+        <div className="min-w-0 flex-1">
+          {instruction && (
+            <p className="font-extrabold leading-snug text-black">{instruction}</p>
+          )}
 
-      {instruction && (
-        <p className="mt-[1mm] font-bold leading-snug text-slate-900">
-          {instruction}
-        </p>
-      )}
-
-      {passageText && passageText !== instruction && (
-        <p className="mt-[1mm] leading-snug text-slate-800">{passageText}</p>
-      )}
-
-      {!instruction && !passageText && (
-        <p className="mt-[1mm] font-bold text-slate-900">듣기 문항</p>
-      )}
-
-      <ul className="mt-[2mm] list-none space-y-[1mm] pl-0">
-        {q.choices.map((choice, i) => (
-          <li key={i} className="flex gap-[2mm] leading-snug">
-            <span className="w-[4mm] shrink-0 text-slate-600">
-              {CIRCLED[i] ?? `${i + 1}.`}
-            </span>
-            <span className="min-w-0 flex-1 break-words">{choice}</span>
-          </li>
-        ))}
-      </ul>
-
-      {showScript && q.segments.length > 0 && (
-        <div className="mt-[2mm] rounded-md border border-dashed border-slate-300 bg-slate-50 px-[2mm] py-[1.5mm] text-[7.5pt] leading-snug text-slate-600">
-          {q.segments.map((seg) => (
-            <p key={seg.id}>
-              <span className="font-semibold text-slate-700">
-                {seg.speaker_type}:
-              </span>{" "}
-              {seg.text}
-            </p>
-          ))}
-          {q.script_translation && (
-            <p className="mt-[1mm] italic text-slate-500">
-              {q.script_translation}
+          {passageText && passageText !== instruction && (
+            <p className="mt-[0.8mm] font-semibold leading-snug text-slate-900">
+              {passageText}
             </p>
           )}
+
+          {!instruction && !passageText && (
+            <p className="font-extrabold text-black">듣기 문항</p>
+          )}
+
+          <ul className="mt-[1.5mm] list-none space-y-[0.8mm] pl-0">
+            {q.choices.map((choice, i) => (
+              <li key={i} className="flex gap-[1.5mm] leading-snug">
+                <span className="w-[4mm] shrink-0 font-bold text-black">
+                  {CIRCLED[i] ?? `${i + 1}.`}
+                </span>
+                <span className="min-w-0 flex-1 break-words font-semibold text-black">
+                  {choice}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {showScript && q.segments.length > 0 && (
+            <div className="mt-[1.5mm] rounded border border-dashed border-slate-500 bg-slate-50 px-[2mm] py-[1.5mm] text-[7.5pt] leading-snug text-slate-800">
+              {q.segments.map((seg) => (
+                <p key={seg.id}>
+                  <span className="font-bold text-black">{seg.speaker_type}:</span>{" "}
+                  {seg.text}
+                </p>
+              ))}
+              {q.script_translation && (
+                <p className="mt-[1mm] font-medium italic text-slate-700">
+                  {q.script_translation}
+                </p>
+              )}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </section>
   );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BrandLogo } from "@/components/branding/BrandLogo";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { LoginHero } from "@/components/auth/LoginHero";
@@ -26,13 +27,15 @@ export default async function LoginPage({ searchParams }: PageProps) {
                 {LOGIN_TAGLINE}
               </p>
             </div>
-            <LoginForm
-              initialError={
-                inactive
-                  ? "비활성화된 계정입니다. 학원에 문의해 주세요."
-                  : undefined
-              }
-            />
+            <Suspense fallback={<p className="text-center text-sm text-slate-500">로딩 중…</p>}>
+              <LoginForm
+                initialError={
+                  inactive
+                    ? "비활성화된 계정입니다. 학원에 문의해 주세요."
+                    : undefined
+                }
+              />
+            </Suspense>
           </div>
           <p className="mt-6 text-center text-xs text-slate-400">{SITE_NAME}</p>
         </div>
