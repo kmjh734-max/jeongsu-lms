@@ -3,6 +3,18 @@ export interface ExamPageLayout {
   right: number[];
 }
 
+/** 20문항 표준 시험: 2페이지 · 좌열 5 + 우열 5 */
+export function paginateStandardTwentyExam(): ExamPageLayout[] {
+  return [
+    { left: [0, 1, 2, 3, 4], right: [5, 6, 7, 8, 9] },
+    { left: [10, 11, 12, 13, 14], right: [15, 16, 17, 18, 19] },
+  ];
+}
+
+export function isStandardTwentyQuestionExam(count: number): boolean {
+  return count === 20;
+}
+
 /** A4 2단: 좌열 → 우열 순으로 채우고 넘치면 다음 페이지 */
 export function paginateExamQuestions(
   questionHeights: number[],

@@ -90,6 +90,8 @@
     break-after: page;
     page-break-after: always;
   }
+
+
 }
 
 @media print {
@@ -170,6 +172,27 @@
   .listening-exam-page-break {
     break-after: page !important;
     page-break-after: always !important;
+  }
+
+  body.listening-print-exam-only #listening-print-root .exam-print-answers {
+    display: none !important;
+  }
+
+  body.listening-print-answers-only #listening-print-root .exam-print-exam {
+    display: none !important;
+  }
+
+  body.listening-print-answers-only #listening-print-root .exam-print-answers,
+  body.listening-print-answers-only
+    #listening-print-root
+    .exam-print-answers
+    * {
+    visibility: visible !important;
+  }
+
+  .exam-print-answers {
+    break-before: page;
+    page-break-before: always;
   }
 
   @page {

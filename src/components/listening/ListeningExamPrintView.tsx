@@ -1,22 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import { LOGO_SRC } from "@/lib/branding";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { buildStudentListeningHubUrl } from "@/lib/listening/listen-url";
-import { normalizeTableData } from "@/lib/listening/table-data";
-import type { ListeningTableData } from "@/lib/listening/types";
 import {
+  isStandardTwentyQuestionExam,
   paginateExamQuestions,
+  paginateStandardTwentyExam,
   type ExamPageLayout,
 } from "@/lib/listening/paginate-exam-questions";
+import { normalizeTableData } from "@/lib/listening/table-data";
+import type { ListeningTableData } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 const QUESTION_GAP_PX = 12;
 const COLUMN_WIDTH_CLASS = "w-[91mm]";
+
+type PrintScope = "exam" | "answers" | "all";
 
 interface ListeningExamPrintViewProps {
   title: string;
@@ -44,6 +48,11 @@ function defaultExamDate() {
   });
 }
 
+function answerLabel(correctAnswer: number): string {
+  const idx = correctAnswer - 1;
+  return CIRCLED[idx] ?? String(correctAnswer);
+}
+
 export function ListeningExamPrintView({
   title,
   gradeLabel = "중학교 1학년",
@@ -57,12 +66,16 @@ export function ListeningExamPrintView({
   const [className, setClassName] = useState("");
   const [studentNo, setStudentNo] = useState("");
   const [examDate, setExamDate] = useState(defaultExamDate);
+  const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [pages, setPages] = useState<ExamPageLayout[] | null>(null);
 
   const measureRef = useRef<HTMLDivElement>(null);
   const probeFirstRef = useRef<HTMLDivElement>(null);
   const probeNextRef = useRef<HTMLDivElement>(null);
   const listenUrl = buildStudentListeningHubUrl(setId);
+
+  const useFixedTwentyLayout = isStandardTwentyQuestionExam(questions.length);
+  const evenSpacing = useFixedTwentyLayout;
 
   const meta: PrintMeta = {
     examTitle: examTitle.trim() || title,
@@ -73,7 +86,14 @@ export function ListeningExamPrintView({
     studentName,
   };
 
+  const resolvedPages = useMemo(() => {
+    if (useFixedTwentyLayout) return paginateStandardTwentyExam();
+    return pages;
+  }, [useFixedTwentyLayout, pages]);
+
   useLayoutEffect(() => {
+    if (useFixedTwentyLayout) return;
+
     const measureRoot = measureRef.current;
     const probeFirst = probeFirstRef.current;
     const probeNext = probeNextRef.current;
@@ -108,19 +128,38 @@ export function ListeningExamPrintView({
     studentName,
     title,
     setId,
+    useFixedTwentyLayout,
   ]);
 
-  function handlePrint() {
+  function runPrint(scope: PrintScope) {
     const prevTitle = document.title;
     const safeName = studentName.trim() || "학생";
-    document.title = `${safeName}_${meta.examTitle}`;
-    window.print();
+    const suffix =
+      scope === "answers" ? "_정답지" : scope === "exam" ? "" : "_전체";
+    document.title = `${safeName}_${meta.examTitle}${suffix}`;
+
+    const body = document.body;
+    body.classList.remove(
+      "listening-print-exam-only",
+      "listening-print-answers-only"
+    );
+    if (scope === "exam") body.classList.add("listening-print-exam-only");
+    if (scope === "answers") body.classList.add("listening-print-answers-only");
+
     window.setTimeout(() => {
-      document.title = prevTitle;
-    }, 500);
+      window.print();
+      window.setTimeout(() => {
+        document.title = prevTitle;
+        body.classList.remove(
+          "listening-print-exam-only",
+          "listening-print-answers-only"
+        );
+      }, 500);
+    }, 80);
   }
 
-  const totalPages = pages?.length ?? 0;
+  const totalPages = resolvedPages?.length ?? 0;
+  const layoutReady = useFixedTwentyLayout || pages !== null;
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
@@ -133,14 +172,32 @@ export function ListeningExamPrintView({
             >
               ← 편집으로 돌아가기
             </Link>
-            <button
-              type="button"
-              onClick={handlePrint}
-              disabled={!pages && questions.length > 0}
-              className="rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              인쇄 / PDF 저장
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => runPrint("exam")}
+                disabled={!layoutReady && questions.length > 0}
+                className="rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                시험지 인쇄
+              </button>
+              <button
+                type="button"
+                onClick={() => runPrint("answers")}
+                disabled={questions.length === 0}
+                className="rounded-lg border border-sky-300 bg-white px-4 py-2.5 text-sm font-semibold text-sky-800 disabled:opacity-50"
+              >
+                답지 인쇄
+              </button>
+              <button
+                type="button"
+                onClick={() => runPrint("all")}
+                disabled={!layoutReady && questions.length > 0}
+                className="rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                시험지+답지
+              </button>
+            </div>
           </div>
 
           <div className="mt-4 rounded-xl border border-sky-100 bg-sky-50/50 p-4">
@@ -188,67 +245,49 @@ export function ListeningExamPrintView({
                   onChange={(e) => setStudentName(e.target.value)}
                 />
               </label>
+              <label className="flex items-center gap-2 sm:col-span-2 lg:col-span-3">
+                <input
+                  type="checkbox"
+                  checked={includeAnswerKey}
+                  onChange={(e) => setIncludeAnswerKey(e.target.checked)}
+                  className="rounded border-sky-300"
+                />
+                <span className="text-sm text-slate-700">
+                  미리보기에 정답지 페이지 표시
+                </span>
+              </label>
             </div>
             <p className="mt-3 text-xs text-slate-500">
-              A4 2단 · 보기 한 줄씩 · QR로 전체/문항별 듣기
-              {pages && ` (${totalPages}페이지)`}
+              {useFixedTwentyLayout
+                ? "20문항 · 2페이지 균등 배치 (좌1~5·우6~10 / 좌11~15·우16~20)"
+                : "A4 2단 · 보기 한 줄씩 · QR 듣기"}
+              {resolvedPages && ` · 시험지 ${totalPages}페이지`}
             </p>
           </div>
         </div>
       </div>
 
-      <div
-        ref={measureRef}
-        className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
-        aria-hidden
-      >
-        <div className={COLUMN_WIDTH_CLASS}>
-          {questions.map((q) => (
-            <div key={q.id} data-measure-q={q.id} className="mb-[3mm]">
-              <ExamQuestionBlock question={q} showScript={showScript} />
+      {!useFixedTwentyLayout && (
+        <>
+          <div
+            ref={measureRef}
+            className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+            aria-hidden
+          >
+            <div className={COLUMN_WIDTH_CLASS}>
+              {questions.map((q) => (
+                <div key={q.id} data-measure-q={q.id} className="mb-[3mm]">
+                  <ExamQuestionBlock question={q} showScript={showScript} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      <div
-        ref={probeFirstRef}
-        className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
-        aria-hidden
-      >
-        <ExamSheetPage
-          meta={meta}
-          listenUrl={listenUrl}
-          pageIndex={0}
-          totalPages={1}
-          left={[]}
-          right={[]}
-          questions={questions}
-          showScript={showScript}
-          measureOnly
-        />
-      </div>
-      <div
-        ref={probeNextRef}
-        className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
-        aria-hidden
-      >
-        <ExamSheetPage
-          meta={meta}
-          listenUrl={listenUrl}
-          pageIndex={1}
-          totalPages={2}
-          left={[]}
-          right={[]}
-          questions={questions}
-          showScript={showScript}
-          measureOnly
-        />
-      </div>
-
-      <div className="mx-auto max-w-[210mm] space-y-6 py-8 print:space-y-0 print:py-0">
-        <div id="listening-print-root">
-          {questions.length === 0 ? (
+          <div
+            ref={probeFirstRef}
+            className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+            aria-hidden
+          >
             <ExamSheetPage
               meta={meta}
               listenUrl={listenUrl}
@@ -258,26 +297,79 @@ export function ListeningExamPrintView({
               right={[]}
               questions={questions}
               showScript={showScript}
+              evenSpacing={false}
+              measureOnly
             />
-          ) : !pages ? (
-            <div className="listening-exam-page listening-exam-sheet mx-auto flex h-[297mm] items-center justify-center text-sm text-slate-500">
-              시험지 레이아웃 계산 중…
-            </div>
-          ) : (
-            pages.map((layout, pageIndex) => (
+          </div>
+          <div
+            ref={probeNextRef}
+            className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+            aria-hidden
+          >
+            <ExamSheetPage
+              meta={meta}
+              listenUrl={listenUrl}
+              pageIndex={1}
+              totalPages={2}
+              left={[]}
+              right={[]}
+              questions={questions}
+              showScript={showScript}
+              evenSpacing={false}
+              measureOnly
+            />
+          </div>
+        </>
+      )}
+
+      <div className="mx-auto max-w-[210mm] space-y-6 py-8 print:space-y-0 print:py-0">
+        <div id="listening-print-root">
+          <div className="exam-print-exam">
+            {questions.length === 0 ? (
               <ExamSheetPage
-                key={pageIndex}
                 meta={meta}
                 listenUrl={listenUrl}
-                pageIndex={pageIndex}
-                totalPages={pages.length}
-                left={layout.left}
-                right={layout.right}
+                pageIndex={0}
+                totalPages={1}
+                left={[]}
+                right={[]}
                 questions={questions}
                 showScript={showScript}
-                isLastPage={pageIndex === pages.length - 1}
+                evenSpacing={false}
               />
-            ))
+            ) : !layoutReady ? (
+              <div className="listening-exam-page listening-exam-sheet mx-auto flex h-[297mm] items-center justify-center text-sm text-slate-500">
+                시험지 레이아웃 계산 중…
+              </div>
+            ) : (
+              resolvedPages!.map((layout, pageIndex) => (
+                <ExamSheetPage
+                  key={pageIndex}
+                  meta={meta}
+                  listenUrl={listenUrl}
+                  pageIndex={pageIndex}
+                  totalPages={resolvedPages!.length}
+                  left={layout.left}
+                  right={layout.right}
+                  questions={questions}
+                  showScript={showScript}
+                  evenSpacing={evenSpacing}
+                  isLastPage={pageIndex === resolvedPages!.length - 1}
+                />
+              ))
+            )}
+          </div>
+
+          {questions.length > 0 && (
+            <div
+              className={
+                includeAnswerKey
+                  ? "exam-print-answers"
+                  : "exam-print-answers hidden print:block"
+              }
+            >
+              <ExamAnswerKeyPages meta={meta} questions={questions} />
+            </div>
           )}
         </div>
       </div>
@@ -294,6 +386,7 @@ function ExamSheetPage({
   right,
   questions,
   showScript,
+  evenSpacing,
   isLastPage,
   measureOnly,
 }: {
@@ -305,6 +398,7 @@ function ExamSheetPage({
   right: number[];
   questions: ListeningQuestionData[];
   showScript: boolean;
+  evenSpacing: boolean;
   isLastPage?: boolean;
   measureOnly?: boolean;
 }) {
@@ -393,8 +487,7 @@ function ExamSheetPage({
             스캔 후{" "}
             <span className="font-semibold text-sky-800">전체 듣기</span> 또는{" "}
             <span className="font-semibold text-sky-800">문항별 듣기</span>를
-            선택하세요. 아래 문항은{" "}
-            <span className="font-semibold">위에서 아래</span>로 진행합니다.
+            선택하세요.
           </div>
         </header>
       ) : (
@@ -424,11 +517,13 @@ function ExamSheetPage({
             indices={left}
             questions={questions}
             showScript={showScript}
+            evenSpacing={evenSpacing}
           />
           <QuestionColumn
             indices={right}
             questions={questions}
             showScript={showScript}
+            evenSpacing={evenSpacing}
             divided
           />
         </div>
@@ -451,17 +546,42 @@ function QuestionColumn({
   indices,
   questions,
   showScript,
+  evenSpacing,
   divided,
 }: {
   indices: number[];
   questions: ListeningQuestionData[];
   showScript: boolean;
+  evenSpacing: boolean;
   divided?: boolean;
 }) {
+  const borderClass = divided
+    ? "border-l border-sky-200 pl-[3.5mm]"
+    : "pr-[0.5mm]";
+
+  if (evenSpacing) {
+    return (
+      <div className={`flex h-full min-h-0 flex-col ${borderClass}`}>
+        {indices.map((qi, i) => (
+          <div
+            key={questions[qi].id}
+            className={`flex min-h-0 flex-1 flex-col justify-center ${
+              i < indices.length - 1 ? "border-b border-sky-100/90" : ""
+            }`}
+          >
+            <ExamQuestionBlock
+              question={questions[qi]}
+              showScript={showScript}
+              compact
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={`min-h-0 space-y-[2.5mm] ${divided ? "border-l border-sky-200 pl-[3.5mm]" : "pr-[0.5mm]"}`}
-    >
+    <div className={`min-h-0 space-y-[2.5mm] ${borderClass}`}>
       {indices.map((qi) => (
         <ExamQuestionBlock
           key={questions[qi].id}
@@ -476,9 +596,11 @@ function QuestionColumn({
 function ExamQuestionBlock({
   question: q,
   showScript,
+  compact,
 }: {
   question: ListeningQuestionData;
   showScript: boolean;
+  compact?: boolean;
 }) {
   const passageText = displayQuestionTextForOrder(
     q.order_index,
@@ -488,11 +610,12 @@ function ExamQuestionBlock({
   const instruction = q.instruction?.trim();
   const numLabel = String(q.order_index).padStart(2, "0");
   const table = normalizeTableData(q.table_data);
+  const textSize = compact ? "text-[8pt]" : "text-[8.5pt]";
 
   return (
-    <section className="text-[8.5pt] leading-[1.55] text-slate-900">
+    <section className={`${textSize} leading-[1.5] text-slate-900`}>
       <div className="flex items-start gap-[2mm]">
-        <span className="mt-[0.3mm] flex h-[5.5mm] w-[5.5mm] shrink-0 items-center justify-center rounded-sm bg-sky-500 text-[7pt] font-extrabold leading-none text-white">
+        <span className="mt-[0.3mm] flex h-[5mm] w-[5mm] shrink-0 items-center justify-center rounded-sm bg-sky-500 text-[6.5pt] font-extrabold leading-none text-white">
           {numLabel}
         </span>
         <div className="min-w-0 flex-1">
@@ -501,7 +624,7 @@ function ExamQuestionBlock({
           )}
 
           {passageText && passageText !== instruction && (
-            <p className="mt-[0.6mm] leading-snug text-slate-800">
+            <p className="mt-[0.5mm] leading-snug text-slate-800">
               {passageText}
             </p>
           )}
@@ -510,9 +633,9 @@ function ExamQuestionBlock({
             <p className="font-bold text-slate-900">듣기 문항</p>
           )}
 
-          {table && <ExamPrintTable table={table} />}
+          {table && <ExamPrintTable table={table} compact={compact} />}
 
-          <ul className="mt-[1.2mm] list-none space-y-[0.6mm] pl-0">
+          <ul className="mt-[1mm] list-none space-y-[0.4mm] pl-0">
             {q.choices.map((choice, i) => (
               <li key={i} className="flex gap-[1.5mm] leading-snug">
                 <span className="w-[4mm] shrink-0 font-semibold text-sky-700">
@@ -526,18 +649,13 @@ function ExamQuestionBlock({
           </ul>
 
           {showScript && q.segments.length > 0 && (
-            <div className="mt-[1.2mm] rounded-md border border-sky-100 bg-sky-50/70 px-[2mm] py-[1.5mm] text-[7.5pt] leading-snug text-slate-700">
+            <div className="mt-[1mm] rounded-md border border-sky-100 bg-sky-50/70 px-[2mm] py-[1mm] text-[7pt] leading-snug text-slate-700">
               {q.segments.map((seg) => (
                 <p key={seg.id}>
                   <span className="font-bold text-sky-800">{seg.speaker_type}:</span>{" "}
                   {seg.text}
                 </p>
               ))}
-              {q.script_translation && (
-                <p className="mt-[0.8mm] italic text-slate-600">
-                  {q.script_translation}
-                </p>
-              )}
             </div>
           )}
         </div>
@@ -546,30 +664,270 @@ function ExamQuestionBlock({
   );
 }
 
-/** 14번(표 정보 불일치) 등 — 학생용 시험지(정답 표시 없음) */
-function ExamPrintTable({ table }: { table: ListeningTableData }) {
+function ExamPrintTable({
+  table,
+  compact,
+}: {
+  table: ListeningTableData;
+  compact?: boolean;
+}) {
   return (
-    <div className="mt-[1.2mm] overflow-hidden rounded border border-sky-300 text-[7pt] leading-[1.35]">
-      <p className="border-b border-sky-200 bg-sky-50 px-[1.5mm] py-[0.8mm] font-bold text-slate-900">
+    <div
+      className={`mt-[1mm] overflow-hidden rounded border border-sky-300 leading-[1.3] ${
+        compact ? "text-[6.5pt]" : "text-[7pt]"
+      }`}
+    >
+      <p className="border-b border-sky-200 bg-sky-50 px-[1.5mm] py-[0.6mm] font-bold text-slate-900">
         {table.title}
       </p>
       <table className="w-full border-collapse">
         <tbody>
           {table.rows.map((row) => (
             <tr key={row.no} className="border-t border-sky-100">
-              <td className="w-[5mm] px-[1mm] py-[0.5mm] align-top font-bold text-sky-800">
+              <td className="w-[5mm] px-[1mm] py-[0.4mm] font-bold text-sky-800">
                 {CIRCLED[row.no - 1] ?? row.no}
               </td>
-              <td className="w-[15mm] px-[1mm] py-[0.5mm] align-top font-semibold text-slate-800">
+              <td className="w-[14mm] px-[1mm] py-[0.4mm] font-semibold text-slate-800">
                 {row.label}
               </td>
-              <td className="px-[1mm] py-[0.5mm] align-top text-slate-900">
-                {row.value}
-              </td>
+              <td className="px-[1mm] py-[0.4mm] text-slate-900">{row.value}</td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function ExamAnswerKeyPages({
+  meta,
+  questions,
+}: {
+  meta: PrintMeta;
+  questions: ListeningQuestionData[];
+}) {
+  const useTwentyLayout = isStandardTwentyQuestionExam(questions.length);
+  const pageLayouts = useTwentyLayout
+    ? paginateStandardTwentyExam()
+    : [
+        {
+          left: questions.slice(0, Math.ceil(questions.length / 2)).map((_, i) => i),
+          right: questions
+            .slice(Math.ceil(questions.length / 2))
+            .map((_, i) => i + Math.ceil(questions.length / 2)),
+        },
+      ];
+
+  return (
+    <>
+      {pageLayouts.map((layout, pageIndex) => (
+        <ExamAnswerKeyPage
+          key={pageIndex}
+          meta={meta}
+          questions={questions}
+          left={layout.left}
+          right={layout.right}
+          pageIndex={pageIndex}
+          totalPages={pageLayouts.length}
+          evenSpacing={useTwentyLayout}
+          isLastPage={pageIndex === pageLayouts.length - 1}
+        />
+      ))}
+    </>
+  );
+}
+
+function ExamAnswerKeyPage({
+  meta,
+  questions,
+  left,
+  right,
+  pageIndex,
+  totalPages,
+  evenSpacing,
+  isLastPage,
+}: {
+  meta: PrintMeta;
+  questions: ListeningQuestionData[];
+  left: number[];
+  right: number[];
+  pageIndex: number;
+  totalPages: number;
+  evenSpacing: boolean;
+  isLastPage: boolean;
+}) {
+  const isFirst = pageIndex === 0;
+
+  return (
+    <article
+      className={`listening-exam-page listening-exam-sheet relative mx-auto flex h-[297mm] max-h-[297mm] min-h-[297mm] flex-col overflow-hidden bg-white shadow-lg print:shadow-none ${
+        !isLastPage ? "listening-exam-page-break" : ""
+      }`}
+    >
+      <header className="shrink-0">
+        {isFirst ? (
+          <div className="listening-exam-chevron-band -mx-[11mm] mb-[3mm] px-[11mm] pb-[3mm] pt-[2.5mm]">
+            <div className="flex items-center gap-[3mm]">
+              <div
+                className="listening-exam-ribbon flex min-w-0 flex-1 items-center gap-[2.5mm] py-[2.5mm] pl-[3mm] pr-[6mm] text-white"
+                style={{
+                  background:
+                    "linear-gradient(90deg, #0e7490 0%, #0891b2 55%, #38b6d0 100%)",
+                }}
+              >
+                <span className="shrink-0 rounded bg-white/95 px-[2.5mm] py-[0.5mm] text-[8pt] font-extrabold text-cyan-800">
+                  ANSWER KEY
+                </span>
+                <div className="min-w-0">
+                  <h1 className="truncate text-[12pt] font-extrabold leading-tight">
+                    {meta.examTitle} · 정답지
+                  </h1>
+                  <p className="text-[7.5pt] font-semibold text-cyan-50/95">
+                    {meta.gradeLabel} · {meta.examDate}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="border-b border-cyan-200 pb-[2mm] pt-[1mm]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[8pt] font-bold text-slate-800">
+                {meta.examTitle} · 정답지
+              </span>
+              <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[7pt] font-semibold text-cyan-800">
+                {pageIndex + 1} / {totalPages}
+              </span>
+            </div>
+          </div>
+        )}
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-hidden pt-[1.5mm]">
+        <div className="grid h-full grid-cols-2 gap-x-[4mm]">
+          <AnswerKeyColumn
+            indices={left}
+            questions={questions}
+            evenSpacing={evenSpacing}
+          />
+          <AnswerKeyColumn
+            indices={right}
+            questions={questions}
+            evenSpacing={evenSpacing}
+            divided
+          />
+        </div>
+      </div>
+
+      <footer className="shrink-0 border-t border-cyan-200 py-[1.5mm] text-center text-[7pt] font-medium text-cyan-800">
+        {isLastPage ? (
+          <span className="tracking-[0.2em]">— 교사용 정답지 —</span>
+        ) : (
+          <span>
+            {pageIndex + 1} / {totalPages}
+          </span>
+        )}
+      </footer>
+    </article>
+  );
+}
+
+function AnswerKeyColumn({
+  indices,
+  questions,
+  evenSpacing,
+  divided,
+}: {
+  indices: number[];
+  questions: ListeningQuestionData[];
+  evenSpacing: boolean;
+  divided?: boolean;
+}) {
+  const borderClass = divided
+    ? "border-l border-cyan-200 pl-[3.5mm]"
+    : "pr-[0.5mm]";
+
+  if (evenSpacing) {
+    return (
+      <div className={`flex h-full min-h-0 flex-col ${borderClass}`}>
+        {indices.map((qi, i) => (
+          <div
+            key={questions[qi].id}
+            className={`flex min-h-0 flex-1 flex-col justify-start overflow-hidden px-[0.5mm] pt-[1mm] ${
+              i < indices.length - 1 ? "border-b border-cyan-100" : ""
+            }`}
+          >
+            <AnswerKeyItem question={questions[qi]} compact />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className={`min-h-0 space-y-[2mm] ${borderClass}`}>
+      {indices.map((qi) => (
+        <AnswerKeyItem key={questions[qi].id} question={questions[qi]} />
+      ))}
+    </div>
+  );
+}
+
+function AnswerKeyItem({
+  question: q,
+  compact,
+}: {
+  question: ListeningQuestionData;
+  compact?: boolean;
+}) {
+  const idx = q.correct_answer - 1;
+  const choice = q.choices[idx] ?? "";
+  const answerSize = compact ? "text-[12pt]" : "text-[14pt]";
+  const choiceSize = compact ? "text-[7pt]" : "text-[8pt]";
+  const scriptSize = compact ? "text-[5.5pt]" : "text-[6.5pt]";
+
+  return (
+    <div className="min-h-0">
+      <div className="flex items-baseline gap-[2mm]">
+        <span
+          className={`w-[6mm] shrink-0 font-black tabular-nums text-slate-800 ${
+            compact ? "text-[9pt]" : "text-[11pt]"
+          }`}
+        >
+          {String(q.order_index).padStart(2, "0")}
+        </span>
+        <span className={`shrink-0 font-black text-cyan-700 ${answerSize}`}>
+          {answerLabel(q.correct_answer)}
+        </span>
+        <span
+          className={`min-w-0 flex-1 leading-snug text-slate-800 ${choiceSize} font-semibold`}
+        >
+          {choice}
+        </span>
+      </div>
+
+      {q.segments.length > 0 && (
+        <div
+          className={`mt-[0.5mm] rounded border border-cyan-100 bg-cyan-50/60 px-[1.5mm] py-[0.5mm] leading-snug text-slate-700 ${scriptSize}`}
+        >
+          {q.segments.map((seg) => (
+            <p key={seg.id}>
+              <span className="font-bold text-cyan-800">{seg.speaker_type}:</span>{" "}
+              {seg.text}
+            </p>
+          ))}
+        </div>
+      )}
+
+      {q.answer_clue && (
+        <p
+          className={`mt-[0.4mm] leading-snug text-slate-600 ${
+            compact ? "text-[5.5pt]" : "text-[6.5pt]"
+          }`}
+        >
+          <span className="font-semibold text-cyan-800">근거</span> {q.answer_clue}
+        </p>
+      )}
     </div>
   );
 }
