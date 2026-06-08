@@ -1,7 +1,5 @@
-import {
-  MIDDLE1_LISTENING_EXAM_TYPES,
-  type ExamTypeTemplate,
-} from "@/lib/listening/exam-types";
+import type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
+import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle1";
 
 /**
  * 중2 = 중1과 동일 20유형 (번호별 question_type·instruction·형식 동일).
