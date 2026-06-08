@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { DeleteFolderButton } from "@/components/vocab/DeleteFolderButton";
+import { VocabClassSidebarDelete } from "@/components/vocab/VocabClassSidebarDelete";
 import { useVocabSidebar } from "@/components/vocab/VocabSidebarContext";
 import type { VocabSidebarSet } from "@/components/vocab/vocab-sidebar-types";
+import type { Class } from "@/types/database";
 
 interface VocabCombinedSidebarProps {
   role: "admin" | "teacher";
@@ -47,7 +49,7 @@ export function VocabCombinedSidebar({
     "bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200/80";
 
   const showFolderPanel = mode === "sets" || mode === "assign";
-  const { folders, sets } = useVocabSidebar();
+  const { folders, sets, classes } = useVocabSidebar();
 
   return (
     <aside className="flex w-full shrink-0 flex-col border-r border-slate-200 bg-white lg:w-64">
@@ -89,12 +91,14 @@ export function VocabCombinedSidebar({
 
       {showFolderPanel && (
         <VocabFolderPanel
+          role={role}
           base={base}
           pathname={pathname}
           classesHref={classesHref}
           mode={mode}
           folders={folders}
           sets={sets}
+          classes={classes}
           onCreateFolder={onCreateFolder}
           onDeleteFolder={onDeleteFolder}
         />
@@ -103,22 +107,32 @@ export function VocabCombinedSidebar({
   );
 }
 
+function navLink(pathname: string, href: string, activeClass: string) {
+  const active =
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+  return active ? activeClass : "text-slate-700 hover:bg-slate-50";
+}
+
 function VocabFolderPanel({
+  role,
   base,
   pathname,
   classesHref,
   mode,
   folders,
   sets,
+  classes,
   onCreateFolder,
   onDeleteFolder,
 }: {
+  role: "admin" | "teacher";
   base: string;
   pathname: string;
   classesHref: string;
   mode: "assign" | "sets";
   folders: { id: string; name: string }[];
   sets: VocabSidebarSet[];
+  classes: Class[];
   onCreateFolder?: (name: string) => Promise<{ ok: boolean; message: string }>;
   onDeleteFolder?: (
     folderId: string
@@ -247,12 +261,52 @@ function VocabFolderPanel({
           )}
         </div>
 
-        <Link
-          href={classesHref}
-          className="mt-4 block rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-medium text-slate-600 hover:bg-slate-50"
-        >
-          반 관리 (클래스)
-        </Link>
+        <div className="mt-5 border-t border-slate-100 pt-4">
+          <p className="px-1 text-xs font-bold text-slate-600">
+            나의 클래스 ({classes.length})
+          </p>
+          <div className="mt-2 space-y-0.5">
+            <Link
+              href={classesHref}
+              className={`block rounded-lg px-3 py-2 text-sm ${navLink(pathname, classesHref, activeNav)}`}
+            >
+              + 클래스 관리
+            </Link>
+            {classes.length === 0 ? (
+              <p className="px-3 py-2 text-xs text-slate-500">
+                등록된 반이 없습니다.
+              </p>
+            ) : (
+              classes.map((cls) => {
+                const href =
+                  role === "admin"
+                    ? `/admin/classes/${cls.id}`
+                    : `/teacher/classes/${cls.id}`;
+                return (
+                  <div
+                    key={cls.id}
+                    className={`flex items-center gap-0.5 rounded-lg pr-1 ${navLink(pathname, href, activeNav)}`}
+                  >
+                    <Link
+                      href={href}
+                      className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-sm"
+                    >
+                      <span className="text-emerald-600" aria-hidden>
+                        👥
+                      </span>
+                      <span className="truncate">{cls.name}</span>
+                    </Link>
+                    <VocabClassSidebarDelete
+                      role={role}
+                      classId={cls.id}
+                      className={cls.name}
+                    />
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

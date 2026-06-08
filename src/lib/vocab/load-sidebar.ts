@@ -12,6 +12,20 @@ export async function loadVocabSidebarData(
   folders: VocabFolder[];
   sets: VocabSidebarSet[];
 }> {
+  const classesQuery =
+    role === "admin"
+      ? supabase
+          .from("classes")
+          .select("id, name")
+          .eq("is_active", true)
+          .order("name")
+      : supabase
+          .from("classes")
+          .select("id, name")
+          .eq("teacher_id", userId)
+          .eq("is_active", true)
+          .order("name");
+
   const foldersQuery =
     role === "admin"
       ? supabase.from("vocab_folders").select("id, name, created_at").order("name")
@@ -33,7 +47,11 @@ export async function loadVocabSidebarData(
           .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
           .order("created_at", { ascending: false });
 
-  const [foldersRes, setsRes] = await Promise.all([foldersQuery, setsQuery]);
+  const [classesRes, foldersRes, setsRes] = await Promise.all([
+    classesQuery,
+    foldersQuery,
+    setsQuery,
+  ]);
 
   const setList = setsRes.data ?? [];
   const itemCountBySet = await fetchVocabItemCountsBySetIds(
@@ -49,7 +67,7 @@ export async function loadVocabSidebarData(
   }));
 
   return {
-    classes: [],
+    classes: (classesRes.data ?? []) as Class[],
     folders: (foldersRes.data ?? []) as VocabFolder[],
     sets,
   };
