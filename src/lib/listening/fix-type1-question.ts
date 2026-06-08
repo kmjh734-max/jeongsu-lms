@@ -22,7 +22,6 @@ export function fixType1Question(
   gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   if (typeId !== 1) return q;
-  if (gradeLevel === "middle2") return q;
 
   const segments = normalizeType1Segments(q.segments);
   const choice_image_prompts = Array.isArray(q.choice_image_prompts)

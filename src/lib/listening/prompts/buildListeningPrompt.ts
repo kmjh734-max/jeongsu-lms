@@ -57,7 +57,7 @@ ${getCommonPrompt(grade)}
 ${getCopyrightBlock(grade)}
 
 이번 요청: 중2 영어듣기 ${types.length}개 유형을 순서대로 각 1문항씩 생성한다.
-order_index는 유형 번호와 반드시 일치.
+유형 번호·형식은 중1과 동일하다. order_index는 유형 번호와 반드시 일치.
 
 난이도 (유형별):
 ${difficultyBlock}

@@ -4,10 +4,7 @@ import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2
 
 /** 담화·단독 화자 유형 (M/W 교대 불필요) */
 export function getMonologueTypeIds(gradeLevel?: ListeningGradeLevel): Set<number> {
-  if (gradeLevel === "middle2") {
-    return new Set([1, 10, 18]);
-  }
-  if (gradeLevel === "middle1") {
+  if (gradeLevel === "middle2" || gradeLevel === "middle1") {
     return new Set([1, 3, 5, 14]);
   }
   return new Set([1, 3, 5, 10, 14, 17, 18]);
@@ -35,11 +32,10 @@ export function isDialogueExamType(
   return false;
 }
 
-/** 중1 전용 type fix (같은 번호가 중2에서는 다른 유형) */
+/** @deprecated 중2·중1 유형 동일 — 더 이상 학년별 fix 분기 없음 */
 export function isMiddle1OnlyTypeFix(
-  fixForTypeId: number,
-  gradeLevel?: ListeningGradeLevel
+  _fixForTypeId: number,
+  _gradeLevel?: ListeningGradeLevel
 ): boolean {
-  if (gradeLevel !== "middle2") return false;
-  return fixForTypeId === 3 || fixForTypeId === 5 || fixForTypeId === 14;
+  return false;
 }

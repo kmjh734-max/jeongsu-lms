@@ -15,6 +15,10 @@ export const COMMON_PROMPT_MIDDLE2 = `
 - 전체 대본(segment.text 합계) 문항별 75~115단어를 목표로 한다.
 - 기출을 그대로 따라 짧게만 쓰지 말 것.
 
+유형 구성 (필수):
+- 1~20번 유형은 중1 전국 영어듣기평가와 번호·유형명·지시문·출제 형식이 동일하다.
+- 난이도(문장 길이·정보량)만 아래 기준으로 약간 올린다.
+
 공통 생성 규칙:
 - 기존 기출 문장, 대본, 선택지를 그대로 복사하지 않는다.
 - 중2 수준의 자연스러운 영어 듣기 문항을 만든다.
@@ -63,9 +67,9 @@ export const MIDDLE2_JSON_OUTPUT_SCHEMA = `
   ]
 }
 
-11·14번: table_data 필수. 2·7번: needs_image_choices true 가능.
+14번: table_data 필수 { title, rows[5], mismatch_no, mismatch_reason }. question_text는 "".
+1·2번: needs_image_choices true 가능 (1번 묘사·2번 구입).
+18번: target_job, job_clues, distractor_jobs.
 19~20번: previous_turn, blank_speaker, correct_response_function, distractor_reasons(5).
-13번(거스름돈): final_time에 정답 금액 라벨(예: $4), mentioned_times에 계산 단서.
-14번(관계): target_job=정답 관계, job_clues, distractor_jobs.
-17번(특정 시점 할 일): 중1 17번과 동일. M/W 대화, choices=한글 활동(~하기) 5개, question_text="". 그림·영어 대화 선택지 금지.
+17번: target_person, target_time, planned_action, mentioned_other_actions. choices=한글 ~하기.
 `.trim();
