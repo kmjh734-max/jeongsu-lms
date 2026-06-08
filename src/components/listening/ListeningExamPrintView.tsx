@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
+import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import { LOGO_SRC } from "@/lib/branding";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import {
@@ -20,6 +21,7 @@ interface ListeningExamPrintViewProps {
   questions: ListeningQuestionData[];
   backHref: string;
   showScript?: boolean;
+  listenUrl: string;
 }
 
 interface PrintMeta {
@@ -45,6 +47,7 @@ export function ListeningExamPrintView({
   questions,
   backHref,
   showScript = false,
+  listenUrl,
 }: ListeningExamPrintViewProps) {
   const [examTitle, setExamTitle] = useState(title);
   const [studentName, setStudentName] = useState("");
@@ -184,8 +187,11 @@ export function ListeningExamPrintView({
               </label>
             </div>
             <p className="mt-3 text-xs text-neutral-500">
-              A4 · 2단 · 좌열 채운 뒤 우열 · 넘치면 다음 페이지
+              A4 · 2단 · QR로 해당 세트 듣기 · 넘치면 다음 페이지
               {pages && ` (현재 ${totalPages}페이지)`}
+            </p>
+            <p className="mt-1 break-all font-mono text-[10px] text-neutral-400">
+              {listenUrl}
             </p>
           </div>
         </div>
@@ -213,6 +219,7 @@ export function ListeningExamPrintView({
       >
         <ExamSheetPage
           meta={meta}
+          listenUrl={listenUrl}
           pageIndex={0}
           totalPages={1}
           left={[]}
@@ -229,6 +236,7 @@ export function ListeningExamPrintView({
       >
         <ExamSheetPage
           meta={meta}
+          listenUrl={listenUrl}
           pageIndex={1}
           totalPages={2}
           left={[]}
@@ -244,6 +252,7 @@ export function ListeningExamPrintView({
           {questions.length === 0 ? (
             <ExamSheetPage
               meta={meta}
+              listenUrl={listenUrl}
               pageIndex={0}
               totalPages={1}
               left={[]}
@@ -260,6 +269,7 @@ export function ListeningExamPrintView({
               <ExamSheetPage
                 key={pageIndex}
                 meta={meta}
+                listenUrl={listenUrl}
                 pageIndex={pageIndex}
                 totalPages={pages.length}
                 left={layout.left}
@@ -278,6 +288,7 @@ export function ListeningExamPrintView({
 
 function ExamSheetPage({
   meta,
+  listenUrl,
   pageIndex,
   totalPages,
   left,
@@ -288,6 +299,7 @@ function ExamSheetPage({
   measureOnly,
 }: {
   meta: PrintMeta;
+  listenUrl: string;
   pageIndex: number;
   totalPages: number;
   left: number[];
@@ -306,70 +318,91 @@ function ExamSheetPage({
       }`}
     >
       {isFirst ? (
-        <header className="shrink-0 border-b border-neutral-200 pb-[4mm]">
-          <div className="flex items-center gap-[4mm]">
-            <div className="shrink-0 rounded-lg bg-neutral-50 p-[2mm] ring-1 ring-neutral-200/80">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={LOGO_SRC}
-                alt="학원 로고"
-                className="h-[16mm] w-auto max-w-[40mm] object-contain"
-              />
+        <header className="shrink-0 pb-[3mm]">
+          <div className="flex items-stretch gap-[3mm]">
+            <div className="flex shrink-0 flex-col justify-center">
+              <div className="rounded-xl bg-white p-[2mm] shadow-sm ring-1 ring-blue-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={LOGO_SRC}
+                  alt="학원 로고"
+                  className="h-[14mm] w-auto max-w-[36mm] object-contain"
+                />
+              </div>
             </div>
-            <div className="min-w-0 flex-1 text-center">
-              <p className="text-[7.5pt] font-medium tracking-[0.32em] text-neutral-400">
-                E N G L I S H &nbsp; L I S T E N I N G
+
+            <div
+              className="flex min-w-0 flex-1 flex-col justify-center rounded-r-2xl px-[4mm] py-[2.5mm] text-white shadow-[0_3px_12px_rgba(47,111,184,0.35)]"
+              style={{
+                background:
+                  "linear-gradient(135deg, #6ba8eb 0%, #4a8fd4 45%, #2f6fb8 100%)",
+              }}
+            >
+              <p className="text-[7pt] font-semibold tracking-[0.25em] text-blue-50/90">
+                ENGLISH LISTENING
               </p>
-              <h1 className="mt-[1.5mm] text-[14pt] font-bold text-neutral-900">
+              <h1 className="mt-[1mm] text-[13pt] font-bold leading-tight">
                 {meta.examTitle}
               </h1>
-              <p className="mt-[0.5mm] text-[8.5pt] text-neutral-500">
+              <p className="mt-[0.5mm] text-[8pt] text-blue-50/90">
                 {meta.gradeLabel}
               </p>
             </div>
-            <div className="w-[40mm] shrink-0" aria-hidden />
+
+            <div className="flex w-[26mm] shrink-0 flex-col items-center justify-center rounded-xl border border-blue-100 bg-gradient-to-b from-blue-50/80 to-white px-[1.5mm] py-[2mm] text-center shadow-sm">
+              <ListeningPrintQrCode url={listenUrl} sizePx={84} />
+              <p className="mt-[1mm] text-[6.5pt] font-bold text-blue-800">
+                듣기 QR
+              </p>
+              <p className="text-[5.5pt] leading-tight text-blue-600/80">
+                스캔 후 재생
+              </p>
+            </div>
           </div>
 
-          <table className="mt-[3.5mm] w-full border-collapse text-[8pt]">
+          <table className="mt-[3mm] w-full border-collapse overflow-hidden rounded-lg border border-slate-300 text-[8pt] shadow-sm">
             <tbody>
-              <tr className="border border-neutral-300">
-                <th className="w-[14%] border-r border-neutral-300 bg-neutral-100 px-2 py-1.5 font-semibold text-neutral-600">
+              <tr>
+                <th className="w-[12%] border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
                   날짜
                 </th>
-                <td className="px-3 py-1.5 text-neutral-900" colSpan={5}>
+                <td className="bg-white px-3 py-1.5 font-medium text-slate-900">
                   {meta.examDate || "\u00a0"}
                 </td>
               </tr>
-              <tr className="border border-neutral-300 border-t-0">
-                <th className="border-r border-neutral-300 bg-neutral-100 px-2 py-1.5 font-semibold text-neutral-600">
+              <tr className="border-t border-slate-300">
+                <th className="border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
                   반
                 </th>
-                <td className="w-[18%] border-r border-neutral-300 px-2 py-1.5 text-center">
+                <td className="border-r border-slate-200 bg-white px-2 py-1.5 text-center">
                   {meta.className || "\u00a0"}
                 </td>
-                <th className="w-[12%] border-r border-neutral-300 bg-neutral-100 px-2 py-1.5 font-semibold text-neutral-600">
+                <th className="w-[10%] border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
                   번호
                 </th>
-                <td className="w-[12%] border-r border-neutral-300 px-2 py-1.5 text-center">
+                <td className="w-[10%] border-r border-slate-200 bg-white px-2 py-1.5 text-center">
                   {meta.studentNo || "\u00a0"}
                 </td>
-                <th className="w-[12%] border-r border-neutral-300 bg-neutral-100 px-2 py-1.5 font-semibold text-neutral-600">
+                <th className="w-[10%] border-r border-slate-300 bg-slate-100 px-2 py-1.5 font-bold text-slate-600">
                   이름
                 </th>
-                <td className="px-2 py-1.5 text-center font-medium">
+                <td className="bg-white px-2 py-1.5 text-center font-semibold">
                   {meta.studentName || "\u00a0"}
                 </td>
               </tr>
             </tbody>
           </table>
+
+          <div className="mt-[2.5mm] rounded-lg border border-indigo-100 bg-gradient-to-r from-indigo-50 via-violet-50/60 to-indigo-50 px-[3mm] py-[2mm] text-[7.5pt] leading-snug text-indigo-900/85">
+            ※ QR 코드로 듣기를 재생한 뒤, 아래 문항에 답하세요. 문항은{" "}
+            <span className="font-semibold">좌 → 우</span> 순으로 진행됩니다.
+          </div>
         </header>
       ) : (
-        <header className="shrink-0 border-b border-neutral-200 pb-[2mm] pt-[1mm]">
-          <div className="flex items-center justify-between text-[7.5pt] text-neutral-500">
-            <span className="font-medium tracking-wide text-neutral-600">
-              {meta.examTitle}
-            </span>
-            <span>
+        <header className="shrink-0 border-b border-dotted border-slate-300 pb-[2mm] pt-[1mm]">
+          <div className="flex items-center justify-between text-[7.5pt]">
+            <span className="font-semibold text-slate-600">{meta.examTitle}</span>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-500">
               {pageIndex + 1} / {totalPages}
             </span>
           </div>
@@ -378,7 +411,7 @@ function ExamSheetPage({
 
       <div
         data-body-zone
-        className="grid min-h-0 flex-1 grid-cols-2 gap-x-[6mm] overflow-hidden pt-[3mm]"
+        className="grid min-h-0 flex-1 grid-cols-2 gap-x-[5mm] overflow-hidden pt-[2.5mm]"
       >
         <QuestionColumn
           indices={left}
@@ -419,7 +452,7 @@ function QuestionColumn({
 }) {
   return (
     <div
-      className={`min-h-0 space-y-[3mm] ${divided ? "border-l border-neutral-200 pl-[4mm]" : "pr-[1mm]"}`}
+      className={`min-h-0 space-y-[3.5mm] ${divided ? "border-l border-dotted border-slate-300 pl-[4mm]" : "pr-[1mm]"}`}
     >
       {indices.map((qi) => (
         <ExamQuestionBlock
@@ -445,40 +478,76 @@ function ExamQuestionBlock({
   );
   const instruction = q.instruction?.trim();
   const headline = instruction || passageText || "듣기 문항";
+  const numLabel = String(q.order_index).padStart(2, "0");
 
   return (
-    <section className="text-[8.5pt] leading-[1.6] text-neutral-900">
-      <p className="text-justify">
-        <span className="mr-[1mm] font-bold tabular-nums">{q.order_index}</span>
+    <section className="text-[8pt] leading-[1.55] text-slate-900">
+      <div className="flex items-end gap-[2mm]">
+        <span className="pb-[0.5mm] text-[16pt] font-extralight leading-none text-slate-300">
+          {numLabel}
+        </span>
+        <div className="mb-[1.5mm] flex-1 border-b border-dotted border-slate-300" />
+      </div>
+
+      <p className="mt-[1mm] text-justify font-bold leading-snug text-slate-900">
         {headline}
       </p>
       {passageText && instruction && (
-        <p className="mt-[0.8mm] text-justify text-neutral-700">{passageText}</p>
+        <p className="mt-[0.8mm] text-justify text-[7.5pt] text-slate-600">
+          {passageText}
+        </p>
       )}
-      <ul className="mt-[1.2mm] space-y-[0.3mm]">
-        {q.choices.map((choice, i) => (
-          <li key={i} className="flex gap-[1mm] text-justify">
-            <span className="shrink-0 text-neutral-500">
-              {CIRCLED[i] ?? `${i + 1}.`}
-            </span>
-            <span>{choice}</span>
-          </li>
-        ))}
-      </ul>
+
+      <ChoiceGrid choices={q.choices} />
+
       {showScript && q.segments.length > 0 && (
-        <div className="mt-[1.5mm] border-l-2 border-neutral-200 pl-[2mm] text-[7.5pt] leading-snug text-neutral-600">
+        <div className="mt-[1.5mm] rounded-md border border-dashed border-slate-300 bg-slate-50 px-[2mm] py-[1.5mm] text-[7pt] leading-snug text-slate-600">
           {q.segments.map((seg) => (
             <p key={seg.id}>
-              <span className="font-medium">{seg.speaker_type}:</span> {seg.text}
+              <span className="font-semibold text-slate-700">
+                {seg.speaker_type}:
+              </span>{" "}
+              {seg.text}
             </p>
           ))}
           {q.script_translation && (
-            <p className="mt-[0.8mm] italic text-neutral-500">
+            <p className="mt-[0.8mm] italic text-slate-500">
               {q.script_translation}
             </p>
           )}
         </div>
       )}
     </section>
+  );
+}
+
+function ChoiceGrid({ choices }: { choices: string[] }) {
+  const leftIdx = [0, 2, 4].filter((i) => i < choices.length);
+  const rightIdx = [1, 3].filter((i) => i < choices.length);
+
+  return (
+    <div className="mt-[1.5mm] grid grid-cols-2 gap-x-[3mm] gap-y-[0.5mm] text-[7.5pt]">
+      <div className="space-y-[0.5mm]">
+        {leftIdx.map((i) => (
+          <ChoiceLine key={i} index={i} text={choices[i]} />
+        ))}
+      </div>
+      <div className="space-y-[0.5mm]">
+        {rightIdx.map((i) => (
+          <ChoiceLine key={i} index={i} text={choices[i]} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ChoiceLine({ index, text }: { index: number; text: string }) {
+  return (
+    <p className="flex gap-[1mm] text-justify leading-snug">
+      <span className="shrink-0 font-medium text-slate-500">
+        {CIRCLED[index] ?? `${index + 1}.`}
+      </span>
+      <span>{text}</span>
+    </p>
   );
 }

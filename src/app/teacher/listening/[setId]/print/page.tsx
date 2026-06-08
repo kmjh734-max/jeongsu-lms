@@ -4,6 +4,7 @@ import { ListeningExamPrintView } from "@/components/listening/ListeningExamPrin
 import { createClient } from "@/lib/supabase/server";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
 import { gradeLevelLabel, parseListeningGradeLevel } from "@/lib/listening/grade-level";
+import { buildStudentListeningSetUrl } from "@/lib/listening/listen-url";
 
 export default async function TeacherListeningPrintPage({
   params,
@@ -35,6 +36,7 @@ export default async function TeacherListeningPrintPage({
       questions={loaded.questions}
       backHref={`/teacher/listening/${setId}`}
       showScript={script === "1"}
+      listenUrl={buildStudentListeningSetUrl(setId)}
     />
   );
 }
