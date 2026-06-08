@@ -111,6 +111,19 @@
     min-height: auto !important;
   }
 
+  .listening-exam-page {
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    page-break-inside: avoid;
+  }
+
+  .listening-exam-page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
   @page {
     size: A4;
     margin: 0;
