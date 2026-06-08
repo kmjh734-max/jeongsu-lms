@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
-import { listReportClasses } from "@/lib/reports/list-students";
 import { loadVocabTodayStatusTable } from "@/lib/vocab/load-today-status-table";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,19 +29,20 @@ export async function GET(request: Request) {
   const loginQuery = searchParams.get("loginId") ?? "";
 
   const supabase = await createClient();
-  const [classes, table] = await Promise.all([
-    listReportClasses(supabase, profile.role, profile.id),
-    loadVocabTodayStatusTable(supabase, profile.role, profile.id, {
+  const table = await loadVocabTodayStatusTable(
+    supabase,
+    profile.role,
+    profile.id,
+    {
       dateIso,
       classId,
       nameQuery,
       loginQuery,
-    }),
-  ]);
+    }
+  );
 
   return NextResponse.json({
     ok: true,
-    classes,
     table,
   });
 }

@@ -2,22 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { VocabTodayStatusPanel } from "@/components/learning-status/VocabTodayStatusPanel";
-import type { VocabSidebarSet } from "@/components/vocab/VocabSidebar";
+import type { VocabSidebarSet } from "@/components/vocab/vocab-sidebar-types";
 import { useVocabSidebar } from "@/components/vocab/VocabSidebarContext";
 
-interface VocabOverviewProps {
+interface VocabSetsOverviewProps {
   role: "admin" | "teacher";
   classesHref: string;
 }
 
-export function VocabOverview({ role, classesHref }: VocabOverviewProps) {
-  const { classes, folders, sets } = useVocabSidebar();
+export function VocabSetsOverview({ role, classesHref }: VocabSetsOverviewProps) {
+  const { folders, sets } = useVocabSidebar();
   const pathname = usePathname();
   const base = role === "admin" ? "/admin/vocab" : "/teacher/vocab";
-  const isRoot = pathname === base;
+  const isSetsRoot = pathname === `${base}/sets`;
 
-  if (!isRoot) return null;
+  if (!isSetsRoot) return null;
 
   const unfiled = sets.filter((s) => !s.folder_id);
   const setsByFolder = new Map<string, VocabSidebarSet[]>();
@@ -30,21 +29,16 @@ export function VocabOverview({ role, classesHref }: VocabOverviewProps) {
 
   return (
     <div className="space-y-8">
-      <VocabTodayStatusPanel
-        initialClasses={classes.map((c) => ({ id: c.id, name: c.name }))}
-      />
-
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">단어 관리</h1>
+        <h1 className="text-2xl font-bold text-slate-900">단어세트 만들기</h1>
         <p className="mt-2 text-slate-600">
           왼쪽에서 폴더를 선택하거나, 아래 목록에서 바로 이동하세요.
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <StatCard label="폴더" value={folders.length} accent="emerald" />
         <StatCard label="단어세트" value={sets.length} accent="violet" />
-        <StatCard label="활성 반" value={classes.length} accent="slate" />
       </div>
 
       <section>
@@ -54,12 +48,12 @@ export function VocabOverview({ role, classesHref }: VocabOverviewProps) {
             href={classesHref}
             className="text-sm font-medium text-brand-600 hover:underline"
           >
-            + 클래스 관리
+            반 관리
           </Link>
         </div>
         {folders.length === 0 ? (
           <p className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-slate-500">
-            폴더가 없습니다. 왼쪽 사이드바에서 새 폴더를 만드세요.
+            폴더가 없습니다. 왼쪽에서 새 폴더를 만드세요.
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -125,12 +119,11 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  accent: "emerald" | "violet" | "slate";
+  accent: "emerald" | "violet";
 }) {
   const colors = {
     emerald: "text-emerald-700",
     violet: "text-violet-700",
-    slate: "text-slate-800",
   };
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

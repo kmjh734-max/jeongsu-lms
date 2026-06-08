@@ -7,6 +7,9 @@ export function revalidateVocabPaths(
   const base = role === "admin" ? "/admin/vocab" : "/teacher/vocab";
 
   revalidatePath(base);
+  revalidatePath(`${base}/sets`);
+  revalidatePath(`${base}/assign`);
+  revalidatePath(`${base}/status`);
   revalidatePath("/student/vocab");
   if (opts?.folderId) revalidatePath(`${base}/folder/${opts.folderId}`);
   if (opts?.setId) revalidatePath(`${base}/set/${opts.setId}`);

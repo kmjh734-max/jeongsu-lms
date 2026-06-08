@@ -1,8 +1,5 @@
-import { VocabOverview } from "@/components/vocab/VocabOverview";
+import { redirect } from "next/navigation";
 
-/** sidebar 데이터는 layout(VocabManageShell)에서만 로드 */
-export default function AdminVocabPage() {
-  return (
-    <VocabOverview role="admin" classesHref="/admin/classes" />
-  );
+export default function AdminVocabIndexPage() {
+  redirect("/admin/vocab/sets");
 }

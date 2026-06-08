@@ -36,7 +36,7 @@ export default async function AdminVocabSetPage({
   const typedSet = set as VocabSet;
   const listHref = typedSet.folder_id
     ? `/admin/vocab/folder/${typedSet.folder_id}`
-    : "/admin/vocab";
+    : "/admin/vocab/sets";
 
   const [{ data: items }, { data: teachers }] = await Promise.all([
     supabase

@@ -1,5 +1,5 @@
-import { VocabOverview } from "@/components/vocab/VocabOverview";
+import { redirect } from "next/navigation";
 
-export default function TeacherVocabPage() {
-  return <VocabOverview role="teacher" classesHref="/teacher/classes" />;
+export default function TeacherVocabIndexPage() {
+  redirect("/teacher/vocab/sets");
 }

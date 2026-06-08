@@ -2,7 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import type { Class, VocabFolder } from "@/types/database";
-import type { VocabSidebarSet } from "@/components/vocab/VocabSidebar";
+import type { VocabSidebarSet } from "@/components/vocab/vocab-sidebar-types";
 
 export interface VocabSidebarContextValue {
   classes: Class[];

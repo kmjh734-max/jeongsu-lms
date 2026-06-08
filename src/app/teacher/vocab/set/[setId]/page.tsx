@@ -38,7 +38,7 @@ export default async function TeacherVocabSetPage({
   const typedSet = set as VocabSet;
   const listHref = typedSet.folder_id
     ? `/teacher/vocab/folder/${typedSet.folder_id}`
-    : "/teacher/vocab";
+    : "/teacher/vocab/sets";
 
   const { data: items } = await supabase
     .from("vocab_items")

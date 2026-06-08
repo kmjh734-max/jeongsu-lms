@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Class, VocabFolder, VocabSet } from "@/types/database";
-import type { VocabSidebarSet } from "@/components/vocab/VocabSidebar";
+import type { Class, VocabFolder } from "@/types/database";
+import type { VocabSidebarSet } from "@/components/vocab/vocab-sidebar-types";
 import { fetchVocabItemCountsBySetIds } from "@/lib/vocab/vocab-item-counts";
 
 export async function loadVocabSidebarData(
@@ -12,50 +12,44 @@ export async function loadVocabSidebarData(
   folders: VocabFolder[];
   sets: VocabSidebarSet[];
 }> {
-  const [classesRes, foldersRes, setsRes] = await Promise.all([
+  const foldersQuery =
     role === "admin"
-      ? supabase
-          .from("classes")
-          .select("*")
-          .eq("is_active", true)
-          .order("name")
-      : supabase
-          .from("classes")
-          .select("*")
-          .eq("teacher_id", userId)
-          .eq("is_active", true)
-          .order("name"),
-    role === "admin"
-      ? supabase.from("vocab_folders").select("*").order("name")
+      ? supabase.from("vocab_folders").select("id, name, created_at").order("name")
       : supabase
           .from("vocab_folders")
-          .select("*")
+          .select("id, name, created_at")
           .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("name"),
+          .order("name");
+
+  const setsQuery =
     role === "admin"
-      ? supabase.from("vocab_sets").select("*").order("created_at", { ascending: false })
+      ? supabase
+          .from("vocab_sets")
+          .select("id, title, folder_id")
+          .order("created_at", { ascending: false })
       : supabase
           .from("vocab_sets")
-          .select("*")
+          .select("id, title, folder_id")
           .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("created_at", { ascending: false }),
-  ]);
+          .order("created_at", { ascending: false });
 
-  const setList = (setsRes.data ?? []) as VocabSet[];
+  const [foldersRes, setsRes] = await Promise.all([foldersQuery, setsQuery]);
+
+  const setList = setsRes.data ?? [];
   const itemCountBySet = await fetchVocabItemCountsBySetIds(
     supabase,
-    setList.map((s) => s.id)
+    setList.map((s) => s.id as string)
   );
 
   const sets = setList.map((s) => ({
-    id: s.id,
-    title: s.title,
-    folder_id: s.folder_id,
-    item_count: itemCountBySet.get(s.id) ?? 0,
+    id: s.id as string,
+    title: s.title as string,
+    folder_id: (s.folder_id as string | null) ?? null,
+    item_count: itemCountBySet.get(s.id as string) ?? 0,
   }));
 
   return {
-    classes: (classesRes.data ?? []) as Class[],
+    classes: [],
     folders: (foldersRes.data ?? []) as VocabFolder[],
     sets,
   };
