@@ -1,13 +1,13 @@
 export interface ExamPageLayout {
-  left: number[];
-  right: number[];
+  items: number[];
 }
 
+/** A4 1단: 위에서 아래로 채우고 넘치면 다음 페이지 */
 export function paginateExamQuestions(
   questionHeights: number[],
   opts: {
-    firstColumnMaxPx: number;
-    nextColumnMaxPx: number;
+    firstPageMaxPx: number;
+    nextPageMaxPx: number;
     questionGapPx: number;
   }
 ): ExamPageLayout[] {
@@ -19,33 +19,20 @@ export function paginateExamQuestions(
 
   while (idx < questionHeights.length) {
     const maxH =
-      pageIndex === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx;
-    const page: ExamPageLayout = { left: [], right: [] };
-    let leftUsed = 0;
-    let rightUsed = 0;
+      pageIndex === 0 ? opts.firstPageMaxPx : opts.nextPageMaxPx;
+    const items: number[] = [];
+    let used = 0;
 
     while (idx < questionHeights.length) {
       const need = questionHeights[idx] + opts.questionGapPx;
-      if (leftUsed + need > maxH) break;
-      page.left.push(idx);
-      leftUsed += need;
+      if (items.length > 0 && used + need > maxH) break;
+      items.push(idx);
+      used += need;
       idx++;
+      if (used > maxH && items.length === 1) break;
     }
 
-    while (idx < questionHeights.length) {
-      const need = questionHeights[idx] + opts.questionGapPx;
-      if (rightUsed + need > maxH) break;
-      page.right.push(idx);
-      rightUsed += need;
-      idx++;
-    }
-
-    if (page.left.length === 0 && page.right.length === 0) {
-      page.left.push(idx);
-      idx++;
-    }
-
-    pages.push(page);
+    pages.push({ items });
     pageIndex++;
   }
 

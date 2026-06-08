@@ -12,8 +12,9 @@ import {
 } from "@/lib/listening/paginate-exam-questions";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
-const QUESTION_GAP_PX = 12;
-const COLUMN_WIDTH_CLASS = "w-[91mm]";
+const QUESTION_GAP_PX = 14;
+/** A4 본문 단 너비 (210mm - 좌우 패딩 11mm×2) */
+const CONTENT_WIDTH_CLASS = "w-[188mm]";
 
 interface ListeningExamPrintViewProps {
   title: string;
@@ -86,13 +87,13 @@ export function ListeningExamPrintView({
       return el?.offsetHeight ?? 96;
     });
 
-    const layouts = paginateExamQuestions(questionHeights, {
-      firstColumnMaxPx: firstBody.clientHeight,
-      nextColumnMaxPx: nextBody.clientHeight,
-      questionGapPx: QUESTION_GAP_PX,
-    });
-
-    setPages(layouts);
+    setPages(
+      paginateExamQuestions(questionHeights, {
+        firstPageMaxPx: firstBody.clientHeight,
+        nextPageMaxPx: nextBody.clientHeight,
+        questionGapPx: QUESTION_GAP_PX,
+      })
+    );
   }, [
     questions,
     showScript,
@@ -187,25 +188,21 @@ export function ListeningExamPrintView({
               </label>
             </div>
             <p className="mt-3 text-xs text-neutral-500">
-              A4 · 2단 · QR로 해당 세트 듣기 · 넘치면 다음 페이지
-              {pages && ` (현재 ${totalPages}페이지)`}
-            </p>
-            <p className="mt-1 break-all font-mono text-[10px] text-neutral-400">
-              {listenUrl}
+              A4 1단 · 보기 한 줄씩 · QR 듣기 · 넘치면 다음 페이지
+              {pages && ` (${totalPages}페이지)`}
             </p>
           </div>
         </div>
       </div>
 
-      {/* 측정용 (화면 밖) */}
       <div
         ref={measureRef}
         className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
         aria-hidden
       >
-        <div className={COLUMN_WIDTH_CLASS}>
+        <div className={CONTENT_WIDTH_CLASS}>
           {questions.map((q) => (
-            <div key={q.id} data-measure-q={q.id}>
+            <div key={q.id} data-measure-q={q.id} className="mb-[3.5mm]">
               <ExamQuestionBlock question={q} showScript={showScript} />
             </div>
           ))}
@@ -222,8 +219,7 @@ export function ListeningExamPrintView({
           listenUrl={listenUrl}
           pageIndex={0}
           totalPages={1}
-          left={[]}
-          right={[]}
+          items={[]}
           questions={questions}
           showScript={showScript}
           measureOnly
@@ -239,8 +235,7 @@ export function ListeningExamPrintView({
           listenUrl={listenUrl}
           pageIndex={1}
           totalPages={2}
-          left={[]}
-          right={[]}
+          items={[]}
           questions={questions}
           showScript={showScript}
           measureOnly
@@ -255,8 +250,7 @@ export function ListeningExamPrintView({
               listenUrl={listenUrl}
               pageIndex={0}
               totalPages={1}
-              left={[]}
-              right={[]}
+              items={[]}
               questions={questions}
               showScript={showScript}
             />
@@ -272,8 +266,7 @@ export function ListeningExamPrintView({
                 listenUrl={listenUrl}
                 pageIndex={pageIndex}
                 totalPages={pages.length}
-                left={layout.left}
-                right={layout.right}
+                items={layout.items}
                 questions={questions}
                 showScript={showScript}
                 isLastPage={pageIndex === pages.length - 1}
@@ -291,8 +284,7 @@ function ExamSheetPage({
   listenUrl,
   pageIndex,
   totalPages,
-  left,
-  right,
+  items,
   questions,
   showScript,
   isLastPage,
@@ -302,8 +294,7 @@ function ExamSheetPage({
   listenUrl: string;
   pageIndex: number;
   totalPages: number;
-  left: number[];
-  right: number[];
+  items: number[];
   questions: ListeningQuestionData[];
   showScript: boolean;
   isLastPage?: boolean;
@@ -354,9 +345,6 @@ function ExamSheetPage({
               <p className="mt-[1mm] text-[6.5pt] font-bold text-blue-800">
                 듣기 QR
               </p>
-              <p className="text-[5.5pt] leading-tight text-blue-600/80">
-                스캔 후 재생
-              </p>
             </div>
           </div>
 
@@ -392,11 +380,6 @@ function ExamSheetPage({
               </tr>
             </tbody>
           </table>
-
-          <div className="mt-[2.5mm] rounded-lg border border-indigo-100 bg-gradient-to-r from-indigo-50 via-violet-50/60 to-indigo-50 px-[3mm] py-[2mm] text-[7.5pt] leading-snug text-indigo-900/85">
-            ※ QR 코드로 듣기를 재생한 뒤, 아래 문항에 답하세요. 문항은{" "}
-            <span className="font-semibold">좌 → 우</span> 순으로 진행됩니다.
-          </div>
         </header>
       ) : (
         <header className="shrink-0 border-b border-dotted border-slate-300 pb-[2mm] pt-[1mm]">
@@ -411,19 +394,17 @@ function ExamSheetPage({
 
       <div
         data-body-zone
-        className="grid min-h-0 flex-1 grid-cols-2 gap-x-[5mm] overflow-hidden pt-[2.5mm]"
+        className="min-h-0 flex-1 overflow-hidden pt-[2.5mm]"
       >
-        <QuestionColumn
-          indices={left}
-          questions={questions}
-          showScript={showScript}
-        />
-        <QuestionColumn
-          indices={right}
-          questions={questions}
-          showScript={showScript}
-          divided
-        />
+        <div className="space-y-[3.5mm]">
+          {items.map((qi) => (
+            <ExamQuestionBlock
+              key={questions[qi].id}
+              question={questions[qi]}
+              showScript={showScript}
+            />
+          ))}
+        </div>
       </div>
 
       <footer className="shrink-0 border-t border-neutral-200 py-[2mm] text-center text-[7pt] text-neutral-400">
@@ -439,32 +420,6 @@ function ExamSheetPage({
   );
 }
 
-function QuestionColumn({
-  indices,
-  questions,
-  showScript,
-  divided,
-}: {
-  indices: number[];
-  questions: ListeningQuestionData[];
-  showScript: boolean;
-  divided?: boolean;
-}) {
-  return (
-    <div
-      className={`min-h-0 space-y-[3.5mm] ${divided ? "border-l border-dotted border-slate-300 pl-[4mm]" : "pr-[1mm]"}`}
-    >
-      {indices.map((qi) => (
-        <ExamQuestionBlock
-          key={questions[qi].id}
-          question={questions[qi]}
-          showScript={showScript}
-        />
-      ))}
-    </div>
-  );
-}
-
 function ExamQuestionBlock({
   question: q,
   showScript,
@@ -474,34 +429,48 @@ function ExamQuestionBlock({
 }) {
   const passageText = displayQuestionTextForOrder(
     q.order_index,
-    q.question_text
+    q.question_text,
+    { forStudent: true }
   );
   const instruction = q.instruction?.trim();
-  const headline = instruction || passageText || "듣기 문항";
   const numLabel = String(q.order_index).padStart(2, "0");
 
   return (
-    <section className="text-[8pt] leading-[1.55] text-slate-900">
+    <section className="text-[8.5pt] leading-[1.6] text-slate-900">
       <div className="flex items-end gap-[2mm]">
-        <span className="pb-[0.5mm] text-[16pt] font-extralight leading-none text-slate-300">
+        <span className="pb-[0.5mm] text-[15pt] font-extralight leading-none text-slate-300">
           {numLabel}
         </span>
         <div className="mb-[1.5mm] flex-1 border-b border-dotted border-slate-300" />
       </div>
 
-      <p className="mt-[1mm] text-justify font-bold leading-snug text-slate-900">
-        {headline}
-      </p>
-      {passageText && instruction && (
-        <p className="mt-[0.8mm] text-justify text-[7.5pt] text-slate-600">
-          {passageText}
+      {instruction && (
+        <p className="mt-[1mm] font-bold leading-snug text-slate-900">
+          {instruction}
         </p>
       )}
 
-      <ChoiceGrid choices={q.choices} />
+      {passageText && passageText !== instruction && (
+        <p className="mt-[1mm] leading-snug text-slate-800">{passageText}</p>
+      )}
+
+      {!instruction && !passageText && (
+        <p className="mt-[1mm] font-bold text-slate-900">듣기 문항</p>
+      )}
+
+      <ul className="mt-[2mm] list-none space-y-[1mm] pl-0">
+        {q.choices.map((choice, i) => (
+          <li key={i} className="flex gap-[2mm] leading-snug">
+            <span className="w-[4mm] shrink-0 text-slate-600">
+              {CIRCLED[i] ?? `${i + 1}.`}
+            </span>
+            <span className="min-w-0 flex-1 break-words">{choice}</span>
+          </li>
+        ))}
+      </ul>
 
       {showScript && q.segments.length > 0 && (
-        <div className="mt-[1.5mm] rounded-md border border-dashed border-slate-300 bg-slate-50 px-[2mm] py-[1.5mm] text-[7pt] leading-snug text-slate-600">
+        <div className="mt-[2mm] rounded-md border border-dashed border-slate-300 bg-slate-50 px-[2mm] py-[1.5mm] text-[7.5pt] leading-snug text-slate-600">
           {q.segments.map((seg) => (
             <p key={seg.id}>
               <span className="font-semibold text-slate-700">
@@ -511,43 +480,12 @@ function ExamQuestionBlock({
             </p>
           ))}
           {q.script_translation && (
-            <p className="mt-[0.8mm] italic text-slate-500">
+            <p className="mt-[1mm] italic text-slate-500">
               {q.script_translation}
             </p>
           )}
         </div>
       )}
     </section>
-  );
-}
-
-function ChoiceGrid({ choices }: { choices: string[] }) {
-  const leftIdx = [0, 2, 4].filter((i) => i < choices.length);
-  const rightIdx = [1, 3].filter((i) => i < choices.length);
-
-  return (
-    <div className="mt-[1.5mm] grid grid-cols-2 gap-x-[3mm] gap-y-[0.5mm] text-[7.5pt]">
-      <div className="space-y-[0.5mm]">
-        {leftIdx.map((i) => (
-          <ChoiceLine key={i} index={i} text={choices[i]} />
-        ))}
-      </div>
-      <div className="space-y-[0.5mm]">
-        {rightIdx.map((i) => (
-          <ChoiceLine key={i} index={i} text={choices[i]} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ChoiceLine({ index, text }: { index: number; text: string }) {
-  return (
-    <p className="flex gap-[1mm] text-justify leading-snug">
-      <span className="shrink-0 font-medium text-slate-500">
-        {CIRCLED[index] ?? `${index + 1}.`}
-      </span>
-      <span>{text}</span>
-    </p>
   );
 }
