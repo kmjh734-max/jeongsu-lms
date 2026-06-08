@@ -67,5 +67,5 @@ export const MIDDLE2_JSON_OUTPUT_SCHEMA = `
 19~20번: previous_turn, blank_speaker, correct_response_function, distractor_reasons(5).
 13번(거스름돈): final_time에 정답 금액 라벨(예: $4), mentioned_times에 계산 단서.
 14번(관계): target_job=정답 관계, job_clues, distractor_jobs.
-17번(그림 대화): question_text에 그림 상황 영어 설명, choices=영어 대화 5개.
+17번(특정 시점 할 일): 중1 17번과 동일. M/W 대화, choices=한글 활동(~하기) 5개, question_text="". 그림·영어 대화 선택지 금지.
 `.trim();

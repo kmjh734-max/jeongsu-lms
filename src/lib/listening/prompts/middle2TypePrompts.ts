@@ -14,7 +14,10 @@ import { buildType12OnlyGenerationPrompt } from "@/lib/listening/prompts/type12R
 import { buildType13OnlyGenerationPrompt } from "@/lib/listening/prompts/type13PlacePrompt";
 import { buildType14OnlyGenerationPrompt } from "@/lib/listening/prompts/type14TablePrompt";
 import { buildType15OnlyGenerationPrompt } from "@/lib/listening/prompts/type15RequestPrompt";
-import { buildType17OnlyGenerationPrompt } from "@/lib/listening/prompts/type17SchedulePrompt";
+import {
+  buildType17OnlyGenerationPrompt,
+  getType17PromptBlockForExam,
+} from "@/lib/listening/prompts/type17SchedulePrompt";
 import { buildType19OnlyGenerationPrompt } from "@/lib/listening/prompts/type19ResponsePrompt";
 import { buildType20OnlyGenerationPrompt } from "@/lib/listening/prompts/type20ResponsePrompt";
 import { QUALITY_CHECK_CRITERIA } from "@/lib/listening/prompts/qualityCheckPrompt";
@@ -95,6 +98,20 @@ const TYPE14_RELATIONSHIP = `
 - choices: 한글 "A―B" 형식 5개
 `.trim();
 
+/** 중2 17번 = 중1 17번과 동일 (그림 대화 유형 아님) */
+function buildMiddle2Type17Prompt(previousProblems?: string[]): string {
+  return `
+${MIDDLE2_HARDER_NOTE}
+
+[중2 17번 = 중1 17번과 100% 동일]
+- 유형: 특정 시점에 할 일 파악
+- 금지: 그림 상황 설명, "Look at the picture", 영어 대화 미니스크립트 선택지
+- 필수: M/W 일정 대화 6~8턴, choices 한글 활동(~하기) 5개, question_text ""
+
+${buildType17OnlyGenerationPrompt(previousProblems)}
+`.trim();
+}
+
 function buildCustomMiddle2Prompt(
   typeId: number,
   rules: string,
@@ -159,10 +176,7 @@ export function buildMiddle2TypeOnlyGenerationPrompt(
     case 16:
       return wrapMiddle1TypePrompt(16, buildType12OnlyGenerationPrompt(previousProblems));
     case 17:
-      return wrapMiddle1TypePrompt(
-        17,
-        buildType17OnlyGenerationPrompt(previousProblems)
-      );
+      return buildMiddle2Type17Prompt(previousProblems);
     case 18:
       return wrapMiddle1TypePrompt(18, buildType5OnlyGenerationPrompt(previousProblems));
     case 19:
@@ -198,6 +212,13 @@ const MIDDLE2_TYPE_SUMMARIES: Record<number, string> = {
 };
 
 export function getMiddle2TypePromptBlockForExam(typeId: number): string {
+  if (typeId === 17) {
+    return `
+### 중2 유형 17 (= 중1 17번과 동일)
+${getType17PromptBlockForExam()}
+${MIDDLE2_HARDER_NOTE}
+`.trim();
+  }
   const summary = MIDDLE2_TYPE_SUMMARIES[typeId];
   if (!summary) return "";
   return `

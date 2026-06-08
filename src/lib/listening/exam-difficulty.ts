@@ -102,7 +102,7 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
     vocabulary:
       "grade 2+; numbers, prices, times; present perfect for experience OK; no subjunctive",
     extra:
-      "Total script 80~115 words. May include payment math, relationship inference, picture-dialogue choices.",
+      "Total script 80~115 words. May include payment math, relationship inference, schedule-at-time plans (type 17).",
   },
   advanced: {
     tier: "advanced",

@@ -16,7 +16,10 @@ import {
   normalizePlaceClues,
 } from "@/lib/listening/type13-place-choices";
 import { normalizeSourceFactsFromScript } from "@/lib/listening/type14-table-validation";
-import { normalizeMentionedOtherActions } from "@/lib/listening/type17-schedule-choices";
+import {
+  detectType17Contamination,
+  normalizeMentionedOtherActions,
+} from "@/lib/listening/type17-schedule-choices";
 import {
   normalizeDistractorJobs,
   normalizeJobClues,
@@ -393,30 +396,62 @@ export async function generateSingleExamQuestion(
   const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
 
-  let prompt = buildListeningSingleTypePrompt(
-    type,
-    difficultyMode,
-    previousProblems,
-    gradeLevel
-  );
-  if (typeId === 19 || typeId === 20) {
-    const assignment = pickContinuationScenario(typeId, previousProblems);
-    const scenarioBlock = formatAssignedScenarioBlock(assignment);
-    prompt = `${scenarioBlock}\n\n${prompt}`;
+  let problems = [...(previousProblems ?? [])];
+  let lastQuestion: GeneratedListeningQuestion | null = null;
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    let prompt = buildListeningSingleTypePrompt(
+      type,
+      difficultyMode,
+      problems.length ? problems : undefined,
+      gradeLevel
+    );
+    if (typeId === 19 || typeId === 20) {
+      const assignment = pickContinuationScenario(typeId, problems);
+      const scenarioBlock = formatAssignedScenarioBlock(assignment);
+      prompt = `${scenarioBlock}\n\n${prompt}`;
+    }
+    const questions = await fetchParsedQuestions(
+      apiKey,
+      prompt,
+      true,
+      [type],
+      gradeLevel,
+      1
+    );
+    const q = questions[0];
+    if (!q) throw new Error("문항 생성 실패");
+    lastQuestion = q;
+
+    if (typeId === 17) {
+      const contamination = detectType17Contamination(
+        q.segments,
+        q.choices,
+        q.question_text
+      );
+      if (contamination) {
+        problems = [...problems, contamination].slice(0, 12);
+        continue;
+      }
+    }
+
+    return finalizeListeningQuestionFast(
+      { ...q, order_index: slotIndex ?? typeId },
+      type,
+      gradeLevel
+    );
   }
-  const questions = await fetchParsedQuestions(
-    apiKey,
-    prompt,
-    true,
-    [type],
-    gradeLevel,
-    1
-  );
-  const q = questions[0];
-  if (!q) throw new Error("문항 생성 실패");
+
+  if (!lastQuestion) throw new Error("문항 생성 실패");
+
+  if (typeId === 17) {
+    throw new Error(
+      "17번 문항이 그림 대화 형식으로 생성되었습니다. 다시 생성해 주세요."
+    );
+  }
 
   return finalizeListeningQuestionFast(
-    { ...q, order_index: slotIndex ?? typeId },
+    { ...lastQuestion, order_index: slotIndex ?? typeId },
     type,
     gradeLevel
   );

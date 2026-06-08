@@ -215,6 +215,37 @@ export function validateType17ScheduleFields(q: {
   return { ok: issues.length === 0, issues };
 }
 
+const PICTURE_DIALOGUE_SCRIPT =
+  /look at the picture|most suitable dialogue|pictured situation|choose the dialogue/i;
+
+const ENGLISH_DIALOGUE_CHOICE = /^\s*(?:[MW]|Man|Woman)\s*:/i;
+
+/** AI가 구 중2 그림 대화 유형으로 잘못 생성했는지 */
+export function detectType17Contamination(
+  segments: Array<{ text?: string }>,
+  choices: string[],
+  questionText?: string
+): string | null {
+  const choiceCheck = checkKoreanActionChoices(choices);
+  if (!choiceCheck.ok) {
+    return choiceCheck.message ?? "17번: 선택지는 한글 활동(~하기) 5개여야 합니다.";
+  }
+
+  if (choices.some((c) => ENGLISH_DIALOGUE_CHOICE.test(c.trim()))) {
+    return "17번: 영어 대화(M:/W:) 선택지 금지 — 한글 활동 표현만";
+  }
+
+  const scriptBlob = [
+    questionText ?? "",
+    ...segments.map((s) => s.text ?? ""),
+  ].join(" ");
+  if (PICTURE_DIALOGUE_SCRIPT.test(scriptBlob)) {
+    return '17번: "Look at the picture" 등 그림 대화 대본 금지 — M/W 일정 계획 대화만';
+  }
+
+  return null;
+}
+
 export {
   actionMatchesChoice,
   checkKoreanActionChoices,

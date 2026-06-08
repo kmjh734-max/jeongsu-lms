@@ -68,7 +68,12 @@ const TYPE17_GENERATION_RULES = `
 - 15번: 부탁(Can/Could/Would you) — 17번은 본인/가족 계획
 - 16번: 제안(Why don't / Let's) — 17번은 실제로 하기로 한 일
 
-그림: needs_image_choices=false, visual_choice_type="none"
+그림: needs_image_choices=false, visual_choice_type="none", question_text=""
+
+절대 금지 (구 중2 그림 대화 유형):
+- "Look at the picture", "choose the dialogue" 등 그림·대화 고르기 안내
+- choices에 영어 대화(M:/W:/Man:/Woman:) 또는 점심·급식·카페 미니 대화
+- question_text에 그림 상황 영어 설명
 
 대본 (M/W, 6~8턴):
 1. 시점 계획 질문 → 2. 다른 활동/가능성 언급 → 3. 일정 변경·사정 → 4. 최종 계획 명확 → 5. 확인
