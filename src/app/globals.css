@@ -54,10 +54,36 @@
     width: 210mm;
     height: 297mm;
     background: #fff;
-    color: #000;
-    padding: 10mm 11mm 8mm;
+    color: #1a1a1a;
+    padding: 8mm 11mm 7mm;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  .listening-exam-chevron-band {
+    background-color: #e8f6fb;
+    background-image:
+      linear-gradient(
+        135deg,
+        transparent 33%,
+        rgba(126, 200, 227, 0.35) 33%,
+        rgba(126, 200, 227, 0.35) 38%,
+        transparent 38%
+      ),
+      linear-gradient(
+        225deg,
+        transparent 33%,
+        rgba(94, 179, 214, 0.28) 33%,
+        rgba(94, 179, 214, 0.28) 38%,
+        transparent 38%
+      ),
+      linear-gradient(90deg, #d4eff8 0%, #b8e4f0 45%, #9dd9ea 100%);
+    background-size: 18mm 18mm, 18mm 18mm, 100% 100%;
+  }
+
+  .listening-exam-ribbon {
+    background: linear-gradient(90deg, #38b6d0 0%, #5eb3d6 55%, #7ec8e3 100%);
+    clip-path: polygon(0 0, calc(100% - 5mm) 0, 100% 50%, calc(100% - 5mm) 100%, 0 100%);
   }
 
   .listening-exam-page-break {
