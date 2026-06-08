@@ -10,7 +10,8 @@ interface VocabSetCreateModalProps {
   role: "admin" | "teacher";
   teachers?: Profile[];
   basePath: "/admin/vocab" | "/teacher/vocab";
-  folderId: string;
+  folderId?: string | null;
+  folders?: { id: string; name: string }[];
   onCreate: (input: {
     title: string;
     description?: string;
@@ -26,20 +27,31 @@ export function VocabSetCreateModal({
   teachers = [],
   basePath,
   folderId,
+  folders = [],
   onCreate,
 }: VocabSetCreateModalProps) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [teacherId, setTeacherId] = useState("");
+  const [selectedFolderId, setSelectedFolderId] = useState(
+    folderId ?? folders[0]?.id ?? ""
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const needsFolderPick = !folderId;
+  const effectiveFolderId = folderId ?? selectedFolderId;
 
   if (!open) return null;
 
   async function createAndGo(mode: "direct" | "import") {
     if (!title.trim()) {
       setError("세트명을 입력해 주세요.");
+      return;
+    }
+    if (!effectiveFolderId) {
+      setError("폴더를 선택해 주세요.");
       return;
     }
 
@@ -50,7 +62,7 @@ export function VocabSetCreateModal({
       title: title.trim(),
       description: description.trim() || undefined,
       teacherId: role === "admin" ? teacherId || undefined : undefined,
-      folderId,
+      folderId: effectiveFolderId,
     });
 
     setLoading(false);
@@ -97,6 +109,32 @@ export function VocabSetCreateModal({
               disabled={loading}
             />
           </div>
+
+          {needsFolderPick && (
+            <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
+              <label className="w-20 shrink-0 text-sm font-semibold text-slate-800">
+                폴더
+              </label>
+              {folders.length === 0 ? (
+                <p className="text-sm text-amber-700">
+                  폴더가 없습니다. 먼저 폴더를 만드세요.
+                </p>
+              ) : (
+                <select
+                  className="ui-select flex-1"
+                  value={selectedFolderId}
+                  onChange={(e) => setSelectedFolderId(e.target.value)}
+                  disabled={loading}
+                >
+                  {folders.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
             <label className="w-20 shrink-0 text-sm font-semibold text-slate-800">
@@ -158,7 +196,7 @@ export function VocabSetCreateModal({
         <div className="grid grid-cols-2 gap-0 border-t border-slate-200">
           <button
             type="button"
-            disabled={loading}
+            disabled={loading || (needsFolderPick && folders.length === 0)}
             onClick={() => createAndGo("direct")}
             className="border-r border-slate-200 bg-white py-4 text-base font-bold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50"
           >
@@ -166,7 +204,7 @@ export function VocabSetCreateModal({
           </button>
           <button
             type="button"
-            disabled={loading}
+            disabled={loading || (needsFolderPick && folders.length === 0)}
             onClick={() => createAndGo("import")}
             className="bg-[#7cb518] py-4 text-base font-bold text-white transition hover:bg-[#6aa014] disabled:opacity-50"
           >
