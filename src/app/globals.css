@@ -115,13 +115,8 @@
     box-shadow: none !important;
     margin: 0 auto !important;
     width: 210mm !important;
-    min-height: 297mm !important;
-    page-break-inside: avoid;
-  }
-
-  .listening-exam-page-break {
-    page-break-after: always;
-    break-after: page;
+    min-height: auto !important;
+    background: white !important;
   }
 
   @page {
