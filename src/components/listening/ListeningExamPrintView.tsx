@@ -7,6 +7,8 @@ import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCod
 import { LOGO_SRC } from "@/lib/branding";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { buildStudentListeningHubUrl } from "@/lib/listening/listen-url";
+import { normalizeTableData } from "@/lib/listening/table-data";
+import type { ListeningTableData } from "@/lib/listening/types";
 import {
   paginateExamQuestions,
   type ExamPageLayout,
@@ -485,6 +487,7 @@ function ExamQuestionBlock({
   );
   const instruction = q.instruction?.trim();
   const numLabel = String(q.order_index).padStart(2, "0");
+  const table = normalizeTableData(q.table_data);
 
   return (
     <section className="text-[8.5pt] leading-[1.55] text-slate-900">
@@ -506,6 +509,8 @@ function ExamQuestionBlock({
           {!instruction && !passageText && (
             <p className="font-bold text-slate-900">듣기 문항</p>
           )}
+
+          {table && <ExamPrintTable table={table} />}
 
           <ul className="mt-[1.2mm] list-none space-y-[0.6mm] pl-0">
             {q.choices.map((choice, i) => (
@@ -538,5 +543,33 @@ function ExamQuestionBlock({
         </div>
       </div>
     </section>
+  );
+}
+
+/** 14번(표 정보 불일치) 등 — 학생용 시험지(정답 표시 없음) */
+function ExamPrintTable({ table }: { table: ListeningTableData }) {
+  return (
+    <div className="mt-[1.2mm] overflow-hidden rounded border border-sky-300 text-[7pt] leading-[1.35]">
+      <p className="border-b border-sky-200 bg-sky-50 px-[1.5mm] py-[0.8mm] font-bold text-slate-900">
+        {table.title}
+      </p>
+      <table className="w-full border-collapse">
+        <tbody>
+          {table.rows.map((row) => (
+            <tr key={row.no} className="border-t border-sky-100">
+              <td className="w-[5mm] px-[1mm] py-[0.5mm] align-top font-bold text-sky-800">
+                {CIRCLED[row.no - 1] ?? row.no}
+              </td>
+              <td className="w-[15mm] px-[1mm] py-[0.5mm] align-top font-semibold text-slate-800">
+                {row.label}
+              </td>
+              <td className="px-[1mm] py-[0.5mm] align-top text-slate-900">
+                {row.value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
