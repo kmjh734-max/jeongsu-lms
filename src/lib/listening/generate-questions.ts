@@ -49,8 +49,17 @@ import {
 } from "@/lib/listening/continuation-scenario-pool";
 import {
   formatAssignedType1SubjectBlock,
+  formatType1RegenerationAvoidBlock,
+  normalizeType1AnswerLabel,
   pickType1Subject,
+  type Type1SubjectAssignment,
 } from "@/lib/listening/type1-subject-pool";
+
+export interface Type1RegenerationContext {
+  excludeSubjectIds?: string[];
+  previousAnswer?: string;
+  previousScript?: string;
+}
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { listeningMaxCompletionTokensForCount } from "@/lib/listening/openai-listening-model";
 import {
@@ -323,7 +332,8 @@ async function fetchParsedQuestions(
   examMode: boolean,
   examTypes?: ExamTypeTemplate[],
   gradeLevel: ListeningGradeLevel = "middle1",
-  questionCount = 1
+  questionCount = 1,
+  temperature = 0.5
 ): Promise<GeneratedListeningQuestion[]> {
   const system = `${getListeningSystemPrompt(gradeLevel)}\nOutput JSON only. Use exact keys: questions, segments, choices, correct_answer. speakers: M, W, ANN only.`;
 
@@ -331,7 +341,7 @@ async function fetchParsedQuestions(
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const parsed = await listeningChatJson<unknown>(apiKey, {
-      temperature: 0.5,
+      temperature,
       system,
       user: attempt === 0 ? prompt : `${prompt}${PARSE_RETRY_SUFFIX}`,
       maxCompletionTokens: listeningMaxCompletionTokensForCount(questionCount),
@@ -402,13 +412,19 @@ export async function generateSingleExamQuestion(
   difficultyMode: ListeningDifficultyMode = "auto",
   previousProblems?: string[],
   gradeLevel: ListeningGradeLevel = "middle1",
-  slotIndex?: number
+  slotIndex?: number,
+  type1Regeneration?: Type1RegenerationContext
 ) {
   const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
   if (!type) throw new Error("유형을 찾을 수 없습니다.");
 
   let problems = [...(previousProblems ?? [])];
   let lastQuestion: GeneratedListeningQuestion | null = null;
+  const isRegeneration = Boolean(
+    type1Regeneration?.previousAnswer ||
+      type1Regeneration?.previousScript ||
+      (type1Regeneration?.excludeSubjectIds?.length ?? 0) > 0
+  );
 
   for (let attempt = 0; attempt < 3; attempt++) {
     let prompt = buildListeningSingleTypePrompt(
@@ -417,9 +433,21 @@ export async function generateSingleExamQuestion(
       problems.length ? problems : undefined,
       gradeLevel
     );
+    let type1Assignment: Type1SubjectAssignment | null = null;
     if (typeId === 1) {
-      const assignment = pickType1Subject(problems);
-      prompt = `${formatAssignedType1SubjectBlock(assignment)}\n\n${prompt}`;
+      type1Assignment = pickType1Subject(
+        problems,
+        type1Regeneration?.excludeSubjectIds ?? []
+      );
+      const regenBlock =
+        isRegeneration && type1Regeneration
+          ? `${formatType1RegenerationAvoidBlock({
+              previousSubjectId: type1Regeneration.excludeSubjectIds?.[0],
+              previousAnswer: type1Regeneration.previousAnswer,
+              previousScript: type1Regeneration.previousScript,
+            })}\n\n`
+          : "";
+      prompt = `${regenBlock}${formatAssignedType1SubjectBlock(type1Assignment)}\n\n${prompt}`;
     }
     if (typeId === 19 || typeId === 20) {
       const assignment = pickContinuationScenario(typeId, problems);
@@ -432,11 +460,35 @@ export async function generateSingleExamQuestion(
       true,
       [type],
       gradeLevel,
-      1
+      1,
+      isRegeneration ? 0.75 : 0.5
     );
     const q = questions[0];
     if (!q) throw new Error("문항 생성 실패");
     lastQuestion = q;
+
+    if (typeId === 1 && type1Assignment) {
+      const actualAnswer = q.choices[(q.correct_answer ?? 1) - 1] ?? "";
+      const expected = normalizeType1AnswerLabel(type1Assignment.answer);
+      const actual = normalizeType1AnswerLabel(actualAnswer);
+      if (actual !== expected) {
+        problems = [
+          ...problems,
+          `subject_id:${type1Assignment.id}|wrong_answer:${actualAnswer}|배정 정답 ${type1Assignment.answer} 불일치`,
+        ].slice(0, 12);
+        continue;
+      }
+      if (
+        type1Regeneration?.previousAnswer &&
+        actual === normalizeType1AnswerLabel(type1Regeneration.previousAnswer)
+      ) {
+        problems = [
+          ...problems,
+          `subject_id:repeat|answer:${actualAnswer}|이전과 동일 정답`,
+        ].slice(0, 12);
+        continue;
+      }
+    }
 
     if (typeId === 17) {
       const contamination = detectType17Contamination(

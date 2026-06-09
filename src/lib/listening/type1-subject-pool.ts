@@ -375,23 +375,69 @@ const TYPE1_SUBJECTS: Type1SubjectAssignment[] = [
   },
 ];
 
+export function normalizeType1AnswerLabel(answer: string): string {
+  return answer
+    .toLowerCase()
+    .replace(/^a\s+|^an\s+|^the\s+/i, "")
+    .trim();
+}
+
+export function findType1SubjectFromAnswer(
+  answer: string
+): Type1SubjectAssignment | undefined {
+  const norm = normalizeType1AnswerLabel(answer);
+  if (!norm) return undefined;
+  return TYPE1_SUBJECTS.find(
+    (s) => normalizeType1AnswerLabel(s.answer) === norm
+  );
+}
+
 export function parseUsedType1SubjectIds(previousProblems?: string[]): string[] {
   if (!previousProblems?.length) return [];
   const ids: string[] = [];
   for (const line of previousProblems) {
     const m = line.match(/subject_id:([a-z0-9_]+)/i);
-    if (m?.[1]) ids.push(m[1]);
+    if (m?.[1] && m[1] !== "unknown" && m[1] !== "repeat") ids.push(m[1]);
   }
   return ids;
 }
 
 export function pickType1Subject(
-  previousProblems?: string[]
+  previousProblems?: string[],
+  excludeSubjectIds: string[] = []
 ): Type1SubjectAssignment {
-  const used = new Set(parseUsedType1SubjectIds(previousProblems));
-  const available = TYPE1_SUBJECTS.filter((s) => !used.has(s.id));
+  const used = new Set([
+    ...parseUsedType1SubjectIds(previousProblems),
+    ...excludeSubjectIds.filter(Boolean),
+  ]);
+  let available = TYPE1_SUBJECTS.filter((s) => !used.has(s.id));
+  if (available.length === 0) {
+    available = TYPE1_SUBJECTS.filter((s) => !excludeSubjectIds.includes(s.id));
+  }
   const list = available.length > 0 ? available : TYPE1_SUBJECTS;
   return list[Math.floor(Math.random() * list.length)]!;
+}
+
+export function formatType1RegenerationAvoidBlock(input: {
+  previousSubjectId?: string;
+  previousAnswer?: string;
+  previousScript?: string;
+}): string {
+  const lines = [
+    "## 문항 다시 생성 (이전 문항과 반드시 다르게)",
+    "- 이전과 **다른 subject_id·다른 정답·다른 대본**으로 새로 작성한다.",
+  ];
+  if (input.previousSubjectId) {
+    lines.push(`- 이전 subject_id \`${input.previousSubjectId}\` 는 사용 금지.`);
+  }
+  if (input.previousAnswer?.trim()) {
+    lines.push(`- 이전 정답 \`${input.previousAnswer.trim()}\` 와 동일한 선택지는 정답으로 쓰지 말 것.`);
+  }
+  if (input.previousScript?.trim()) {
+    const snippet = input.previousScript.trim().slice(0, 200);
+    lines.push(`- 이전 대본과 문장·소재를 반복하지 말 것. (이전 대본 일부: ${snippet}…)`);
+  }
+  return lines.join("\n");
 }
 
 export function formatAssignedType1SubjectBlock(

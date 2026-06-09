@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
-import { generateSingleExamQuestion } from "@/lib/listening/generate-questions";
+import {
+  generateSingleExamQuestion,
+  type Type1RegenerationContext,
+} from "@/lib/listening/generate-questions";
+import {
+  buildType1AvoidList,
+  findType1SubjectFromAnswer,
+} from "@/lib/listening/type1-subject-pool";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
 import { getExamTypeById, getExamTypesForGrade } from "@/lib/listening/exam-types";
@@ -43,7 +50,9 @@ export async function POST(request: Request) {
 
     const { data: existing } = await access.admin
       .from("listening_questions")
-      .select("id, order_index, question_type, quality_issues, answer_validation")
+      .select(
+        "id, order_index, question_type, quality_issues, answer_validation, situation_type, choices, correct_answer, script_text"
+      )
       .eq("id", questionId)
       .eq("set_id", setId)
       .maybeSingle();
@@ -78,15 +87,55 @@ export async function POST(request: Request) {
       ...prevFromBody,
       ...storedIssues.filter(Boolean),
       ...prevFromValidation,
-    ].slice(0, 12);
+    ];
+
+    const existingChoices = Array.isArray(existing.choices)
+      ? (existing.choices as string[])
+      : [];
+    const previousAnswer =
+      existingChoices[(Number(existing.correct_answer) || 1) - 1] ?? "";
+    const previousSubjectId = String(existing.situation_type ?? "").trim();
+    const inferredSubjectId = findType1SubjectFromAnswer(previousAnswer)?.id;
+
+    if (typeId === 1) {
+      previousProblems.push(
+        ...buildType1AvoidList([
+          {
+            order_index: existing.order_index,
+            situation_type: previousSubjectId || inferredSubjectId,
+            choices: existingChoices,
+            correct_answer: Number(existing.correct_answer) || 1,
+          },
+        ])
+      );
+    }
+
+    const trimmedProblems = previousProblems.filter(Boolean).slice(0, 12);
+
+    let type1Regeneration: Type1RegenerationContext | undefined;
+    if (typeId === 1) {
+      const excludeSubjectIds = [
+        ...new Set(
+          [previousSubjectId, inferredSubjectId].filter((id): id is string =>
+            Boolean(id)
+          )
+        ),
+      ];
+      type1Regeneration = {
+        excludeSubjectIds,
+        previousAnswer: previousAnswer || undefined,
+        previousScript: String(existing.script_text ?? "").trim() || undefined,
+      };
+    }
 
     const generated = await generateSingleExamQuestion(
       apiKey,
       typeId,
       body.difficultyMode ?? "auto",
-      previousProblems.length ? previousProblems : undefined,
+      trimmedProblems.length ? trimmedProblems : undefined,
       gradeLevel,
-      slotIndex
+      slotIndex,
+      type1Regeneration
     );
 
     const saved = await replaceGeneratedQuestion(

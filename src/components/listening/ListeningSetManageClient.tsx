@@ -392,6 +392,14 @@ export function ListeningSetManageClient({
         difficultyMode,
         persist: false,
         previousProblems: prev?.problems,
+        previousQuestion: prev
+          ? {
+              situation_type: prev.situation_type,
+              choices: prev.choices,
+              correct_answer: prev.correct_answer,
+              script_text: prev.script_text,
+            }
+          : undefined,
       }),
     });
     const data = (await res.json()) as {
