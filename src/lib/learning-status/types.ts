@@ -9,19 +9,29 @@ export interface HomeworkDayCell {
   isStudyDay: boolean;
   completedCount: number;
   totalCount: number;
-  /** 해당 날짜 OMR 시험 최고 점수 */
-  examBestScore?: number | null;
-  examAttemptCount?: number;
 }
 
-export interface ListeningExamMonthSummary {
+export interface ListeningOmrAttemptRow {
+  studentId: string;
+  studentName: string;
+  classLabel: string;
+  setId: string;
+  setTitle: string;
+  examDate: string;
+  score: number;
+  correctCount: number;
+  totalCount: number;
+}
+
+export interface ListeningOmrStudentSummary {
+  studentId: string;
+  studentName: string;
+  classLabel: string;
   attemptCount: number;
   bestScore: number | null;
   latestScore: number | null;
-  latestCorrectCount: number | null;
-  latestTotalCount: number | null;
-  latestSetTitle: string | null;
   latestDate: string | null;
+  attempts: ListeningOmrAttemptRow[];
 }
 
 export interface ListeningStatusRow {
@@ -33,7 +43,6 @@ export interface ListeningStatusRow {
   completedCount: number;
   totalCount: number;
   executionRate: number;
-  examSummary: ListeningExamMonthSummary;
 }
 
 export interface ListeningStatusTable {
@@ -42,6 +51,7 @@ export interface ListeningStatusTable {
   todayIso: string;
   daysInMonth: number;
   rows: ListeningStatusRow[];
+  omrByStudent: ListeningOmrStudentSummary[];
 }
 
 export interface VocabTodayStatusRow {

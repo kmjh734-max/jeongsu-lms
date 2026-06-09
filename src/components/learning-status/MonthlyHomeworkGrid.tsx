@@ -67,7 +67,6 @@ export function MonthlyHomeworkSymbols({
         const cell = dayMap.get(day);
         const symbol = cell?.symbol ?? "none";
         const char = homeworkSymbolChar(symbol);
-        const examScore = cell?.examBestScore;
         return (
           <td
             key={day}
@@ -76,22 +75,15 @@ export function MonthlyHomeworkSymbols({
                 ? homeworkSymbolTitle(
                     symbol,
                     cell.completedCount,
-                    cell.totalCount,
-                    cell.examBestScore,
-                    cell.examAttemptCount
+                    cell.totalCount
                   )
                 : undefined
             }
-            className={`${DAY_CELL} border-l border-slate-100 px-0 py-1 text-center leading-tight ${symbolClass(symbol)} ${
+            className={`${DAY_CELL} border-l border-slate-100 px-0 py-2 text-center text-base leading-none ${symbolClass(symbol)} ${
               cell?.isToday ? "bg-amber-50" : ""
             }`}
           >
-            <span className="block text-base">{char || (examScore != null ? "·" : "")}</span>
-            {examScore != null && (
-              <span className="block text-[9px] font-bold tabular-nums text-indigo-700">
-                {examScore}
-              </span>
-            )}
+            {char || ""}
           </td>
         );
       })}
@@ -126,7 +118,6 @@ export function HomeworkStatusLegend() {
       <span className="text-base font-bold text-emerald-700">○</span> 완료{" "}
       <span className="text-base font-bold text-amber-700">△</span> 일부 완료{" "}
       <span className="text-base font-bold text-red-600">X</span> 미완료{" "}
-      <span className="text-indigo-700">숫자</span> OMR 점수{" "}
       <span className="text-slate-500">(빈칸: 과제 없음 · 토=파랑 · 일=빨강)</span>
     </p>
   );

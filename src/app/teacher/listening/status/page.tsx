@@ -17,7 +17,7 @@ export default async function TeacherListeningStatusPage() {
     <div className="space-y-6">
       <PageHeader
         title="듣기학습 현황"
-        description="학생별 월간 듣기학습·OMR 시험 점수를 확인합니다."
+        description="숙제 현황과 학생별 OMR 시험 결과를 각각 확인합니다."
       />
       <ListeningStatusPanel initialClasses={statusClasses} />
     </div>

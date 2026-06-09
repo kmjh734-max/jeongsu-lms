@@ -12,7 +12,8 @@ import type {
 import type {
   HomeworkDayCell,
   HomeworkDaySymbol,
-  ListeningExamMonthSummary,
+  ListeningOmrAttemptRow,
+  ListeningOmrStudentSummary,
   ListeningStatusRow,
   ListeningStatusTable,
 } from "@/lib/learning-status/types";
@@ -168,8 +169,6 @@ function toDaySymbol(
   return "missing";
 }
 
-type ExamDaySummary = { attemptCount: number; bestScore: number };
-
 type ExamAttemptRow = {
   student_id: string;
   set_id: string;
@@ -194,7 +193,6 @@ async function loadTeacherListeningSetIds(
 function buildStudentDays(
   assignments: ScheduleAssignmentRow[],
   tasksByDate: Map<string, TaskRow[]>,
-  examByDate: Map<string, ExamDaySummary>,
   year: number,
   month: number,
   daysInMonth: number,
@@ -218,7 +216,7 @@ function buildStudentDays(
       aggregated.totalCount > 0
         ? aggregated.totalCount
         : (studyAssignments[0]?.questions_per_day ?? 0);
-    let symbol = toDaySymbol(
+    const symbol = toDaySymbol(
       aggregated.status,
       taskDate,
       todayIso,
@@ -227,28 +225,15 @@ function buildStudentDays(
       totalCount
     );
 
-    const examDay = examByDate.get(taskDate);
-    if (examDay && taskDate <= todayIso) {
-      if (symbol === "none" || symbol === "missing" || symbol === "partial") {
-        symbol = examDay.bestScore >= 60 ? "complete" : "partial";
-      }
-    }
-
-    const studyDayFlag = isStudyDayFlag || Boolean(examDay);
-
     days.push({
       day,
       weekday,
       taskDate,
       symbol,
       isToday: taskDate === todayIso,
-      isStudyDay: studyDayFlag,
-      completedCount: examDay
-        ? Math.max(completedCount, examDay.attemptCount > 0 ? 1 : 0)
-        : completedCount,
+      isStudyDay: isStudyDayFlag,
+      completedCount,
       totalCount,
-      examBestScore: examDay?.bestScore ?? null,
-      examAttemptCount: examDay?.attemptCount ?? 0,
     });
   }
 
@@ -287,9 +272,16 @@ export async function loadListeningMonthlyStatusTable(
       todayIso,
       daysInMonth,
       rows: [],
+      omrByStudent: [],
     };
   }
 
+  const studentById = new Map(
+    students.map((s) => [
+      s.id,
+      { name: s.name, classLabel: s.classNames.join(", ") || "—" },
+    ])
+  );
   const studentIds = students.map((s) => s.id);
   const monthBounds = {
     start: getKoreaDayUtcBounds(start).start,
@@ -342,43 +334,28 @@ export async function loadListeningMonthlyStatusTable(
     }
   }
 
-  const examByStudentDate = new Map<string, Map<string, ExamDaySummary>>();
-  const examMonthByStudent = new Map<string, ListeningExamMonthSummary>();
+  const omrAttemptsByStudent = new Map<string, ListeningOmrAttemptRow[]>();
 
   for (const row of examRows) {
     const sid = row.student_id;
-    const dateIso = getTodayIsoKorea(new Date(row.submitted_at));
-    const score = row.score;
-    const byDate = examByStudentDate.get(sid) ?? new Map<string, ExamDaySummary>();
-    const prev = byDate.get(dateIso);
-    byDate.set(dateIso, {
-      attemptCount: (prev?.attemptCount ?? 0) + 1,
-      bestScore: Math.max(prev?.bestScore ?? 0, score),
-    });
-    examByStudentDate.set(sid, byDate);
+    const student = studentById.get(sid);
+    if (!student) continue;
 
-    const setTitle = setTitleById.get(row.set_id) ?? null;
-    const prevMonth = examMonthByStudent.get(sid);
-    if (!prevMonth) {
-      examMonthByStudent.set(sid, {
-        attemptCount: 1,
-        bestScore: score,
-        latestScore: score,
-        latestCorrectCount: row.correct_count,
-        latestTotalCount: row.total_count,
-        latestSetTitle: setTitle,
-        latestDate: dateIso,
-      });
-    } else {
-      examMonthByStudent.set(sid, {
-        ...prevMonth,
-        attemptCount: prevMonth.attemptCount + 1,
-        bestScore:
-          prevMonth.bestScore == null
-            ? score
-            : Math.max(prevMonth.bestScore, score),
-      });
-    }
+    const attempt: ListeningOmrAttemptRow = {
+      studentId: sid,
+      studentName: student.name,
+      classLabel: student.classLabel,
+      setId: row.set_id,
+      setTitle: setTitleById.get(row.set_id) ?? "듣기 시험",
+      examDate: getTodayIsoKorea(new Date(row.submitted_at)),
+      score: row.score,
+      correctCount: row.correct_count,
+      totalCount: row.total_count,
+    };
+
+    const list = omrAttemptsByStudent.get(sid) ?? [];
+    list.push(attempt);
+    omrAttemptsByStudent.set(sid, list);
   }
 
   const tasksByStudentDate = new Map<string, Map<string, TaskRow[]>>();
@@ -398,7 +375,6 @@ export async function loadListeningMonthlyStatusTable(
     const days = buildStudentDays(
       assignments,
       tasksByDate,
-      examByStudentDate.get(student.id) ?? new Map(),
       options.year,
       options.month,
       daysInMonth,
@@ -423,16 +399,6 @@ export async function loadListeningMonthlyStatusTable(
           ? assignments[0]!.title
           : `듣기학습 (${assignments.length}개 과제)`;
 
-    const examSummary = examMonthByStudent.get(student.id) ?? {
-      attemptCount: 0,
-      bestScore: null,
-      latestScore: null,
-      latestCorrectCount: null,
-      latestTotalCount: null,
-      latestSetTitle: null,
-      latestDate: null,
-    };
-
     return {
       studentId: student.id,
       studentName: student.name,
@@ -442,9 +408,30 @@ export async function loadListeningMonthlyStatusTable(
       completedCount,
       totalCount,
       executionRate,
-      examSummary,
     };
   });
+
+  const omrByStudent: ListeningOmrStudentSummary[] = students
+    .flatMap((student) => {
+      const attempts = (omrAttemptsByStudent.get(student.id) ?? []).sort(
+        (a, b) => b.examDate.localeCompare(a.examDate)
+      );
+      if (attempts.length === 0) return [];
+
+      const scores = attempts.map((a) => a.score);
+      const summary: ListeningOmrStudentSummary = {
+        studentId: student.id,
+        studentName: student.name,
+        classLabel: student.classNames.join(", ") || "—",
+        attemptCount: attempts.length,
+        bestScore: Math.max(...scores),
+        latestScore: attempts[0]!.score,
+        latestDate: attempts[0]!.examDate,
+        attempts,
+      };
+      return [summary];
+    })
+    .sort((a, b) => a.studentName.localeCompare(b.studentName, "ko"));
 
   return {
     year: options.year,
@@ -452,5 +439,6 @@ export async function loadListeningMonthlyStatusTable(
     todayIso,
     daysInMonth,
     rows,
+    omrByStudent,
   };
 }
