@@ -105,20 +105,108 @@ function padChoices(choices: string[]): string[] {
   return next.slice(0, 5);
 }
 
+function padImagePrompts(prompts?: string[]): string[] {
+  const next = [...(prompts ?? [])];
+  while (next.length < 5) next.push("");
+  return next.slice(0, 5);
+}
+
+function segmentsToDrafts(
+  segments: ListeningQuestionData["segments"]
+): SegmentDraft[] {
+  return (segments ?? []).map((s) => ({
+    id: s.id,
+    speaker: (s.speaker_type === "M" || s.speaker_type === "W"
+      ? s.speaker_type
+      : "ANN") as SegmentDraft["speaker"],
+    text: s.text,
+  }));
+}
+
+function questionContentKey(q: ListeningQuestionData): string {
+  return [
+    q.instruction,
+    q.question_text,
+    q.correct_answer,
+    q.explanation,
+    q.answer_clue ?? "",
+    q.choices.join("\x1f"),
+    (q.choice_image_prompts ?? []).join("\x1f"),
+    q.segments.map((s) => `${s.id}:${s.speaker_type}:${s.text}`).join("\x1f"),
+    q.audio_url ?? "",
+  ].join("\x1e");
+}
+
+function normalizeRegeneratedQuestion(
+  raw: Record<string, unknown>,
+  fallback: ListeningQuestionData
+): ListeningQuestionData {
+  const rawSegments = Array.isArray(raw.segments) ? raw.segments : [];
+  const segments =
+    rawSegments.length > 0
+      ? rawSegments.map((seg, index) => {
+          const row = seg as Record<string, unknown>;
+          const fallbackSeg = fallback.segments[index];
+          return {
+            id: String(row.id ?? fallbackSeg?.id ?? `seg-${index}`),
+            speaker_type: String(
+              row.speaker_type ?? row.speaker ?? fallbackSeg?.speaker_type ?? "M"
+            ),
+            text: String(row.text ?? ""),
+            audio_url:
+              (row.audio_url as string | null | undefined) ??
+              fallbackSeg?.audio_url ??
+              null,
+          };
+        })
+      : fallback.segments;
+
+  return {
+    ...fallback,
+    instruction: String(raw.instruction ?? fallback.instruction),
+    question_text: String(raw.question_text ?? fallback.question_text),
+    choices: Array.isArray(raw.choices)
+      ? (raw.choices as string[])
+      : fallback.choices,
+    correct_answer: Number(raw.correct_answer ?? fallback.correct_answer),
+    explanation: String(raw.explanation ?? fallback.explanation),
+    answer_clue: String(raw.answer_clue ?? fallback.answer_clue ?? ""),
+    script_translation: String(
+      raw.script_translation ?? fallback.script_translation
+    ),
+    audio_url: (raw.audio_url as string | null | undefined) ?? null,
+    choice_image_prompts: Array.isArray(raw.choice_image_prompts)
+      ? (raw.choice_image_prompts as string[])
+      : fallback.choice_image_prompts,
+    situation_type: String(raw.situation_type ?? fallback.situation_type ?? ""),
+    segments,
+  };
+}
+
 export function ListeningQuestionEditor({
   setId,
   question,
   speechSpeed = 0.9,
   onUpdated,
 }: ListeningQuestionEditorProps) {
-  const [segments, setSegments] = useState<SegmentDraft[]>(
-    (question.segments ?? []).map((s) => ({
-      id: s.id,
-      speaker: (s.speaker_type === "M" || s.speaker_type === "W"
-        ? s.speaker_type
-        : "ANN") as SegmentDraft["speaker"],
-      text: s.text,
-    }))
+  const applyQuestionToEditor = (q: ListeningQuestionData) => {
+    setSegments(segmentsToDrafts(q.segments));
+    setInstruction(q.instruction ?? "");
+    setQuestionText(
+      displayQuestionTextForOrder(q.order_index, q.question_text) ??
+        q.question_text
+    );
+    setChoices(padChoices(q.choices));
+    setImagePrompts(padImagePrompts(q.choice_image_prompts));
+    setCorrectAnswer(q.correct_answer);
+    setExplanation(q.explanation);
+    setAnswerClue(q.answer_clue ?? "");
+    setAudioUrl(q.audio_url);
+    setLocalContentKey(questionContentKey(q));
+  };
+
+  const [segments, setSegments] = useState<SegmentDraft[]>(() =>
+    segmentsToDrafts(question.segments)
   );
   const [instruction, setInstruction] = useState(question.instruction ?? "");
   const [questionText, setQuestionText] = useState(
@@ -129,16 +217,27 @@ export function ListeningQuestionEditor({
   const isFixedContinuationPassage =
     question.order_index === 19 || question.order_index === 20;
   const [choices, setChoices] = useState(padChoices(question.choices));
+  const [imagePrompts, setImagePrompts] = useState(() =>
+    padImagePrompts(question.choice_image_prompts)
+  );
   const [correctAnswer, setCorrectAnswer] = useState(question.correct_answer);
   const [explanation, setExplanation] = useState(question.explanation);
+  const [answerClue, setAnswerClue] = useState(question.answer_clue ?? "");
   const [audioUrl, setAudioUrl] = useState(question.audio_url);
+  const [localContentKey, setLocalContentKey] = useState(() =>
+    questionContentKey(question)
+  );
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const serverContentKey = questionContentKey(question);
+
   useEffect(() => {
-    setAudioUrl(question.audio_url);
-  }, [question.audio_url]);
+    if (serverContentKey !== localContentKey) {
+      applyQuestionToEditor(question);
+    }
+  }, [serverContentKey, localContentKey, question]);
 
   const filledChoiceCount = choices.filter((c) => c.trim()).length;
   const hasFinalAudio = !!audioUrl;
@@ -240,11 +339,17 @@ export function ListeningQuestionEditor({
       ok?: boolean;
       message?: string;
       audioNeedsRegeneration?: boolean;
+      question?: Record<string, unknown>;
     };
     setBusy(null);
     if (!data.ok) {
       setMessage(data.message ?? "재생성 실패");
       return;
+    }
+    if (data.question) {
+      applyQuestionToEditor(
+        normalizeRegeneratedQuestion(data.question, question)
+      );
     }
     setMessage(
       data.audioNeedsRegeneration
@@ -269,9 +374,9 @@ export function ListeningQuestionEditor({
           {instruction && (
             <p className="mt-1 text-sm text-slate-700">{instruction}</p>
           )}
-          {question.answer_clue && (
+          {answerClue && (
             <p className="mt-1 text-xs text-emerald-700">
-              정답 근거: {question.answer_clue}
+              정답 근거: {answerClue}
             </p>
           )}
         </div>
@@ -345,7 +450,7 @@ export function ListeningQuestionEditor({
               onClick={() => generateAudio(seg.id)}
               className="text-indigo-600 hover:underline disabled:opacity-50"
             >
-              {busy === `seg-${seg.id}` ? "생성 중…" : "이 줄만 다시 생성"}
+              {busy === `seg-${seg.id}` ? "생성 중…" : "이 줄만 음원 생성"}
             </button>
           </div>
         ))}
@@ -380,9 +485,9 @@ export function ListeningQuestionEditor({
               {(question.order_index === 1 ||
                 question.order_index === 2 ||
                 question.order_index === 3) &&
-                question.choice_image_prompts?.[i]?.trim() && (
+                imagePrompts[i]?.trim() && (
                   <p className="mt-1 text-xs text-slate-500">
-                    그림: {question.choice_image_prompts[i]}
+                    그림: {imagePrompts[i]}
                   </p>
                 )}
             </label>
