@@ -17,18 +17,23 @@ export interface OmrSubmitResult {
   isCorrect: boolean;
 }
 
+export type OmrAttemptResult = {
+  score: number;
+  correctCount: number;
+  totalCount: number;
+  submittedAt: string;
+  results: OmrSubmitResult[];
+};
+
 interface ListeningOmrSheetProps {
   setId: string;
   setTitle: string;
   questions: OmrQuestionItem[];
   canSubmit: boolean;
-  initialAttempt?: {
-    score: number;
-    correctCount: number;
-    totalCount: number;
-    submittedAt: string;
-    results: OmrSubmitResult[];
-  } | null;
+  answers: Record<string, number>;
+  onAnswersChange: (answers: Record<string, number>) => void;
+  result: OmrAttemptResult | null;
+  onResultChange: (result: OmrAttemptResult | null) => void;
 }
 
 export function ListeningOmrSheet({
@@ -36,44 +41,30 @@ export function ListeningOmrSheet({
   setTitle,
   questions,
   canSubmit,
-  initialAttempt,
+  answers,
+  onAnswersChange,
+  result,
+  onResultChange,
 }: ListeningOmrSheetProps) {
   const sorted = useMemo(
     () => [...questions].sort((a, b) => a.orderIndex - b.orderIndex),
     [questions]
   );
 
-  const [answers, setAnswers] = useState<Record<string, number>>(() => {
-    const init: Record<string, number> = {};
-    if (initialAttempt) {
-      for (const row of initialAttempt.results) {
-        if (row.studentAnswer != null) init[row.questionId] = row.studentAnswer;
-      }
-    }
-    return init;
-  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{
-    score: number;
-    correctCount: number;
-    totalCount: number;
-    submittedAt: string;
-    results: OmrSubmitResult[];
-  } | null>(initialAttempt ?? null);
 
   const answeredCount = sorted.filter((q) => answers[q.id] != null).length;
 
   function selectAnswer(questionId: string, choice: number) {
     if (!canSubmit || result) return;
-    setAnswers((prev) => {
-      if (prev[questionId] === choice) {
-        const next = { ...prev };
-        delete next[questionId];
-        return next;
-      }
-      return { ...prev, [questionId]: choice };
-    });
+    if (answers[questionId] === choice) {
+      const next = { ...answers };
+      delete next[questionId];
+      onAnswersChange(next);
+      return;
+    }
+    onAnswersChange({ ...answers, [questionId]: choice });
   }
 
   async function handleSubmit() {
@@ -121,7 +112,7 @@ export function ListeningOmrSheet({
         return;
       }
 
-      setResult({
+      onResultChange({
         score: data.score,
         correctCount: data.correctCount ?? 0,
         totalCount: data.totalCount ?? sorted.length,
@@ -136,8 +127,8 @@ export function ListeningOmrSheet({
   }
 
   function resetForRetry() {
-    setResult(null);
-    setAnswers({});
+    onResultChange(null);
+    onAnswersChange({});
     setError(null);
   }
 
@@ -166,7 +157,7 @@ export function ListeningOmrSheet({
       {!canSubmit && (
         <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           답안 제출은 <span className="font-semibold">학생 계정</span>으로 로그인한
-          뒤 이용할 수 있습니다. 음원 듣기는 계속 사용할 수 있습니다.
+          뒤 이용할 수 있습니다. 위에서 음원은 계속 들을 수 있습니다.
         </p>
       )}
 

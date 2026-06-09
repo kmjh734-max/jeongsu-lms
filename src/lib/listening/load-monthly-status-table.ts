@@ -12,6 +12,7 @@ import type {
 import type {
   HomeworkDayCell,
   HomeworkDaySymbol,
+  ListeningExamMonthSummary,
   ListeningStatusRow,
   ListeningStatusTable,
 } from "@/lib/learning-status/types";
@@ -225,6 +226,8 @@ function buildStudentDays(
         ? Math.max(completedCount, examDay.attemptCount > 0 ? 1 : 0)
         : completedCount,
       totalCount,
+      examBestScore: examDay?.bestScore ?? null,
+      examAttemptCount: examDay?.attemptCount ?? 0,
     });
   }
 
@@ -284,13 +287,18 @@ export async function loadListeningMonthlyStatusTable(
         .lte("task_date", end),
       admin
         .from("listening_exam_attempts")
-        .select("student_id, score, submitted_at")
+        .select(
+          "student_id, set_id, score, correct_count, total_count, submitted_at, set:listening_sets(title)"
+        )
         .in("student_id", studentIds)
         .gte("submitted_at", monthBounds.start)
-        .lte("submitted_at", monthBounds.end),
+        .lte("submitted_at", monthBounds.end)
+        .order("submitted_at", { ascending: false }),
     ]);
 
   const examByStudentDate = new Map<string, Map<string, ExamDaySummary>>();
+  const examMonthByStudent = new Map<string, ListeningExamMonthSummary>();
+
   for (const row of examRows ?? []) {
     const sid = row.student_id as string;
     const dateIso = getTodayIsoKorea(new Date(row.submitted_at as string));
@@ -302,6 +310,32 @@ export async function loadListeningMonthlyStatusTable(
       bestScore: Math.max(prev?.bestScore ?? 0, score),
     });
     examByStudentDate.set(sid, byDate);
+
+    const setRel = row.set as { title?: string } | { title?: string }[] | null;
+    const setTitle = Array.isArray(setRel)
+      ? setRel[0]?.title
+      : setRel?.title;
+    const prevMonth = examMonthByStudent.get(sid);
+    if (!prevMonth) {
+      examMonthByStudent.set(sid, {
+        attemptCount: 1,
+        bestScore: score,
+        latestScore: score,
+        latestCorrectCount: row.correct_count as number,
+        latestTotalCount: row.total_count as number,
+        latestSetTitle: setTitle ?? null,
+        latestDate: getTodayIsoKorea(new Date(row.submitted_at as string)),
+      });
+    } else {
+      examMonthByStudent.set(sid, {
+        ...prevMonth,
+        attemptCount: prevMonth.attemptCount + 1,
+        bestScore:
+          prevMonth.bestScore == null
+            ? score
+            : Math.max(prevMonth.bestScore, score),
+      });
+    }
   }
 
   const tasksByStudentDate = new Map<string, Map<string, TaskRow[]>>();
@@ -346,6 +380,16 @@ export async function loadListeningMonthlyStatusTable(
           ? assignments[0]!.title
           : `듣기학습 (${assignments.length}개 과제)`;
 
+    const examSummary = examMonthByStudent.get(student.id) ?? {
+      attemptCount: 0,
+      bestScore: null,
+      latestScore: null,
+      latestCorrectCount: null,
+      latestTotalCount: null,
+      latestSetTitle: null,
+      latestDate: null,
+    };
+
     return {
       studentId: student.id,
       studentName: student.name,
@@ -355,6 +399,7 @@ export async function loadListeningMonthlyStatusTable(
       completedCount,
       totalCount,
       executionRate,
+      examSummary,
     };
   });
 

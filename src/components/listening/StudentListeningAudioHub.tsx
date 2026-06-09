@@ -10,14 +10,17 @@ export interface ListeningAudioItem {
 interface StudentListeningAudioHubProps {
   setTitle: string;
   items: ListeningAudioItem[];
-  /** Exam hub 탭 안에 넣을 때 바깥 레이아웃 생략 */
+  /** Exam hub 안에 넣을 때 바깥 레이아웃 생략 */
   embedded?: boolean;
+  /** 상단 고정 영역용 촘촘한 레이아웃 */
+  compact?: boolean;
 }
 
 export function StudentListeningAudioHub({
   setTitle,
   items,
   embedded = false,
+  compact = false,
 }: StudentListeningAudioHubProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [mode, setMode] = useState<"idle" | "all" | "single">("idle");
@@ -91,26 +94,40 @@ export function StudentListeningAudioHub({
             </h1>
           </>
         )}
-        <p className={`text-center text-sm text-slate-500 ${embedded ? "" : "mt-1"}`}>
-          음원 {readyCount}/{totalCount}개 준비됨
-        </p>
+        {!compact && (
+          <p className={`text-center text-sm text-slate-500 ${embedded ? "" : "mt-1"}`}>
+            음원 {readyCount}/{totalCount}개 준비됨
+          </p>
+        )}
 
-        <div className={`rounded-2xl border border-sky-100 bg-white p-5 shadow-sm ${embedded ? "mt-0" : "mt-6"}`}>
+        <div
+          className={`rounded-2xl border border-sky-100 bg-white shadow-sm ${
+            compact ? "p-3" : "mt-6 p-5"
+          } ${embedded && !compact ? "mt-0" : ""}`}
+        >
           <button
             type="button"
             onClick={startAll}
             disabled={readyCount === 0}
-            className="w-full rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-3.5 text-sm font-bold text-white shadow-md disabled:opacity-40"
+            className={`w-full rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 font-bold text-white shadow-md disabled:opacity-40 ${
+              compact ? "px-3 py-2.5 text-xs" : "px-4 py-3.5 text-sm"
+            }`}
           >
-            전체 듣기 ({readyCount}문항 연속 재생)
+            전체 듣기 ({readyCount}문항)
           </button>
-          <p className="mt-2 text-center text-xs text-slate-500">
-            1번부터 순서대로 자동 재생됩니다
-          </p>
+          {!compact && (
+            <p className="mt-2 text-center text-xs text-slate-500">
+              1번부터 순서대로 자동 재생됩니다
+            </p>
+          )}
         </div>
 
         {(mode === "all" || mode === "single") && currentItem?.audioUrl && (
-          <div className="mt-4 rounded-2xl border border-sky-200 bg-sky-50/60 p-4">
+          <div
+            className={`rounded-2xl border border-sky-200 bg-sky-50/60 ${
+              compact ? "mt-2 p-3" : "mt-4 p-4"
+            }`}
+          >
             <p className="text-center text-sm font-semibold text-sky-800">
               {mode === "all"
                 ? `전체 듣기 · ${queuePos + 1}/${playable.length} · ${currentItem.orderIndex}번`
@@ -136,9 +153,17 @@ export function StudentListeningAudioHub({
           </div>
         )}
 
-        <div className="mt-6">
-          <p className="mb-3 text-sm font-bold text-slate-800">문항별 듣기</p>
-          <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+        <div className={compact ? "mt-2" : "mt-6"}>
+          {!compact && (
+            <p className="mb-3 text-sm font-bold text-slate-800">문항별 듣기</p>
+          )}
+          <ul
+            className={`grid gap-1.5 ${
+              compact
+                ? "grid-cols-5 sm:grid-cols-10"
+                : "grid-cols-4 gap-2 sm:grid-cols-5"
+            }`}
+          >
             {items.map((item) => {
               const hasAudio = Boolean(item.audioUrl);
               const isActive =
@@ -149,7 +174,9 @@ export function StudentListeningAudioHub({
                     type="button"
                     disabled={!hasAudio}
                     onClick={() => playOne(item.orderIndex)}
-                    className={`w-full rounded-xl border px-1 py-2.5 text-center text-sm font-bold tabular-nums transition ${
+                    className={`w-full rounded-xl border text-center font-bold tabular-nums transition ${
+                      compact ? "px-0.5 py-1.5 text-xs" : "px-1 py-2.5 text-sm"
+                    } ${
                       isActive
                         ? "border-sky-500 bg-sky-500 text-white"
                         : hasAudio

@@ -484,11 +484,9 @@ function ExamSheetPage({
 
           <div className="mt-[2.5mm] rounded-lg border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50/80 px-[3mm] py-[2mm] text-[7.5pt] leading-snug text-sky-900">
             <span className="font-bold text-sky-700">▶ 듣기·OMR 안내</span> QR
-            스캔 후{" "}
-            <span className="font-semibold text-sky-800">듣기</span> 탭에서
-            음원을 재생하고,{" "}
-            <span className="font-semibold text-sky-800">OMR 답안</span> 탭에서
-            마킹 후 제출하세요.
+            스캔 후 위에서 음원을 들으며 아래{" "}
+            <span className="font-semibold text-sky-800">OMR 답안</span>을
+            마킹하고 제출하세요.
           </div>
         </header>
       ) : (

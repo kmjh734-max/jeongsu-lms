@@ -214,7 +214,13 @@ export function ListeningStatusPanel({
                   </th>
                   <th
                     rowSpan={2}
-                    className="min-w-[4.5rem] border-b border-l border-slate-200 px-2 py-2 text-center"
+                    className="min-w-[7rem] border-b border-l border-slate-200 px-2 py-2 text-center"
+                  >
+                    OMR 시험
+                  </th>
+                  <th
+                    rowSpan={2}
+                    className="min-w-[4.5rem] border-b border-slate-200 px-2 py-2 text-center"
                   >
                     완료/전체
                   </th>
@@ -248,6 +254,25 @@ export function ListeningStatusPanel({
                       days={row.days}
                       daysInMonth={table.daysInMonth}
                     />
+                    <td className="border-l border-slate-100 px-2 py-2 text-center text-xs leading-snug">
+                      {row.examSummary.attemptCount > 0 ? (
+                        <>
+                          <span className="font-bold text-indigo-700 tabular-nums">
+                            {row.examSummary.latestScore}점
+                          </span>
+                          <span className="mt-0.5 block text-slate-500">
+                            {row.examSummary.latestCorrectCount}/
+                            {row.examSummary.latestTotalCount}
+                            {row.examSummary.bestScore != null &&
+                            row.examSummary.bestScore !== row.examSummary.latestScore
+                              ? ` · 최고 ${row.examSummary.bestScore}`
+                              : ""}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
                     <td className="border-l border-slate-100 px-2 py-2 text-center whitespace-nowrap">
                       {row.completedCount}/{row.totalCount}
                     </td>
