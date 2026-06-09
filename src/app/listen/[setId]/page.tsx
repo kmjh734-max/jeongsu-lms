@@ -11,7 +11,7 @@ export default async function ListenHubPage({
   const { setId } = await params;
 
   const profile = await getCurrentProfile();
-  if (!profile || profile.role !== "student") {
+  if (!profile) {
     redirect(`/login?redirect=${encodeURIComponent(`/listen/${setId}`)}`);
   }
 

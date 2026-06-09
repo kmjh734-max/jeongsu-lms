@@ -562,20 +562,32 @@ function QuestionColumn({
   if (evenSpacing) {
     return (
       <div className={`flex h-full min-h-0 flex-col ${borderClass}`}>
-        {indices.map((qi, i) => (
-          <div
-            key={questions[qi].id}
-            className={`flex min-h-0 flex-1 flex-col justify-center ${
-              i < indices.length - 1 ? "border-b border-sky-100/90" : ""
-            }`}
-          >
-            <ExamQuestionBlock
-              question={questions[qi]}
-              showScript={showScript}
-              compact
-            />
-          </div>
-        ))}
+        {indices.map((qi, i) => {
+          const hasTable = !!normalizeTableData(questions[qi].table_data);
+          return (
+            <div
+              key={questions[qi].id}
+              className="flex min-h-0 flex-1 flex-col overflow-hidden"
+            >
+              <div className="shrink-0 pt-[0.5mm]">
+                <ExamQuestionBlock
+                  question={questions[qi]}
+                  showScript={showScript}
+                  compact
+                  tableCompact={hasTable}
+                />
+              </div>
+              {i < indices.length - 1 ? (
+                <div
+                  aria-hidden
+                  className="mt-[1mm] min-h-[2mm] flex-1 border-b border-sky-100/90"
+                />
+              ) : (
+                <div className="min-h-0 flex-1" aria-hidden />
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -597,10 +609,12 @@ function ExamQuestionBlock({
   question: q,
   showScript,
   compact,
+  tableCompact,
 }: {
   question: ListeningQuestionData;
   showScript: boolean;
   compact?: boolean;
+  tableCompact?: boolean;
 }) {
   const passageText = displayQuestionTextForOrder(
     q.order_index,
@@ -610,10 +624,18 @@ function ExamQuestionBlock({
   const instruction = q.instruction?.trim();
   const numLabel = String(q.order_index).padStart(2, "0");
   const table = normalizeTableData(q.table_data);
-  const textSize = compact ? "text-[8pt]" : "text-[8.5pt]";
+  const textSize = tableCompact
+    ? "text-[7.5pt]"
+    : compact
+      ? "text-[8pt]"
+      : "text-[8.5pt]";
 
   return (
-    <section className={`${textSize} leading-[1.5] text-slate-900`}>
+    <section
+      className={`${textSize} leading-[1.45] text-slate-900 ${
+        tableCompact ? "leading-snug" : ""
+      }`}
+    >
       <div className="flex items-start gap-[2mm]">
         <span className="mt-[0.3mm] flex h-[5mm] w-[5mm] shrink-0 items-center justify-center rounded-sm bg-sky-500 text-[6.5pt] font-extrabold leading-none text-white">
           {numLabel}
@@ -633,9 +655,19 @@ function ExamQuestionBlock({
             <p className="font-bold text-slate-900">듣기 문항</p>
           )}
 
-          {table && <ExamPrintTable table={table} compact={compact} />}
+          {table && (
+            <ExamPrintTable
+              table={table}
+              compact={compact}
+              extraCompact={tableCompact}
+            />
+          )}
 
-          <ul className="mt-[1mm] list-none space-y-[0.4mm] pl-0">
+          <ul
+            className={`mt-[1mm] list-none pl-0 ${
+              tableCompact ? "space-y-0" : "space-y-[0.4mm]"
+            }`}
+          >
             {q.choices.map((choice, i) => (
               <li key={i} className="flex gap-[1.5mm] leading-snug">
                 <span className="w-[4mm] shrink-0 font-semibold text-sky-700">
@@ -667,30 +699,47 @@ function ExamQuestionBlock({
 function ExamPrintTable({
   table,
   compact,
+  extraCompact,
 }: {
   table: ListeningTableData;
   compact?: boolean;
+  extraCompact?: boolean;
 }) {
+  const fontSize = extraCompact
+    ? "text-[6pt]"
+    : compact
+      ? "text-[6.5pt]"
+      : "text-[7pt]";
+  const cellPad = extraCompact ? "py-[0.25mm]" : "py-[0.35mm]";
+
   return (
     <div
-      className={`mt-[1mm] overflow-hidden rounded border border-sky-300 leading-[1.3] ${
-        compact ? "text-[6.5pt]" : "text-[7pt]"
-      }`}
+      className={`mt-[0.8mm] overflow-hidden rounded border border-sky-300 leading-[1.25] ${fontSize}`}
     >
-      <p className="border-b border-sky-200 bg-sky-50 px-[1.5mm] py-[0.6mm] font-bold text-slate-900">
+      <p
+        className={`border-b border-sky-200 bg-sky-50 px-[1.2mm] font-bold text-slate-900 ${
+          extraCompact ? "py-[0.35mm]" : "py-[0.55mm]"
+        }`}
+      >
         {table.title}
       </p>
-      <table className="w-full border-collapse">
+      <table className="w-full border-collapse leading-tight">
         <tbody>
           {table.rows.map((row) => (
-            <tr key={row.no} className="border-t border-sky-100">
-              <td className="w-[5mm] px-[1mm] py-[0.4mm] font-bold text-sky-800">
+            <tr key={row.no} className="border-t border-sky-100/80">
+              <td
+                className={`w-[4.5mm] px-[0.8mm] ${cellPad} font-bold text-sky-800`}
+              >
                 {CIRCLED[row.no - 1] ?? row.no}
               </td>
-              <td className="w-[14mm] px-[1mm] py-[0.4mm] font-semibold text-slate-800">
+              <td
+                className={`w-[12mm] px-[0.8mm] ${cellPad} font-semibold text-slate-800`}
+              >
                 {row.label}
               </td>
-              <td className="px-[1mm] py-[0.4mm] text-slate-900">{row.value}</td>
+              <td className={`px-[0.8mm] ${cellPad} text-slate-900`}>
+                {row.value}
+              </td>
             </tr>
           ))}
         </tbody>

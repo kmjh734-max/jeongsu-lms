@@ -41,7 +41,8 @@ export async function middleware(request: NextRequest) {
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirectTo", pathname);
+    const returnPath = `${pathname}${request.nextUrl.search}`;
+    url.searchParams.set("redirect", returnPath);
     return NextResponse.redirect(url);
   }
 
@@ -62,6 +63,19 @@ export async function middleware(request: NextRequest) {
   const dashboardPath = getDashboardPathForRole(role);
 
   if (pathname === "/login") {
+    const rawRedirect =
+      request.nextUrl.searchParams.get("redirect") ??
+      request.nextUrl.searchParams.get("redirectTo");
+    if (
+      rawRedirect?.startsWith("/") &&
+      !rawRedirect.startsWith("//")
+    ) {
+      const url = request.nextUrl.clone();
+      const q = rawRedirect.indexOf("?");
+      url.pathname = q === -1 ? rawRedirect : rawRedirect.slice(0, q);
+      url.search = q === -1 ? "" : rawRedirect.slice(q);
+      return NextResponse.redirect(url);
+    }
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
     return NextResponse.redirect(url);

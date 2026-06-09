@@ -35,7 +35,9 @@ function safeRedirectPath(raw: string | null): string | null {
 export function LoginForm({ initialError }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectAfterLogin = safeRedirectPath(searchParams.get("redirect"));
+  const redirectAfterLogin = safeRedirectPath(
+    searchParams.get("redirect") ?? searchParams.get("redirectTo")
+  );
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(initialError ?? null);

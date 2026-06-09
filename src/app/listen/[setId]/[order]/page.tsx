@@ -13,8 +13,10 @@ export default async function ListenAudioPage({
   if (!Number.isFinite(orderIndex) || orderIndex < 1) notFound();
 
   const profile = await getCurrentProfile();
-  if (!profile || profile.role !== "student") {
-    redirect(`/login?redirect=${encodeURIComponent(`/listen/${setId}/${orderIndex}`)}`);
+  if (!profile) {
+    redirect(
+      `/login?redirect=${encodeURIComponent(`/listen/${setId}/${orderIndex}`)}`
+    );
   }
 
   if (profile.is_active === false) {
