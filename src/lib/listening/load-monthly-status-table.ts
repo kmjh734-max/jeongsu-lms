@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  getKoreaDayUtcBounds,
   getMonthDateRange,
   getTodayIsoKorea,
 } from "@/lib/date/korea-today";
@@ -166,9 +167,12 @@ function toDaySymbol(
   return "missing";
 }
 
+type ExamDaySummary = { attemptCount: number; bestScore: number };
+
 function buildStudentDays(
   assignments: ScheduleAssignmentRow[],
   tasksByDate: Map<string, TaskRow[]>,
+  examByDate: Map<string, ExamDaySummary>,
   year: number,
   month: number,
   daysInMonth: number,
@@ -192,7 +196,7 @@ function buildStudentDays(
       aggregated.totalCount > 0
         ? aggregated.totalCount
         : (studyAssignments[0]?.questions_per_day ?? 0);
-    const symbol = toDaySymbol(
+    let symbol = toDaySymbol(
       aggregated.status,
       taskDate,
       todayIso,
@@ -201,14 +205,25 @@ function buildStudentDays(
       totalCount
     );
 
+    const examDay = examByDate.get(taskDate);
+    if (examDay && taskDate <= todayIso) {
+      if (symbol === "none" || symbol === "missing" || symbol === "partial") {
+        symbol = examDay.bestScore >= 60 ? "complete" : "partial";
+      }
+    }
+
+    const studyDayFlag = isStudyDayFlag || Boolean(examDay);
+
     days.push({
       day,
       weekday,
       taskDate,
       symbol,
       isToday: taskDate === todayIso,
-      isStudyDay: isStudyDayFlag,
-      completedCount,
+      isStudyDay: studyDayFlag,
+      completedCount: examDay
+        ? Math.max(completedCount, examDay.attemptCount > 0 ? 1 : 0)
+        : completedCount,
       totalCount,
     });
   }
@@ -252,17 +267,42 @@ export async function loadListeningMonthlyStatusTable(
   }
 
   const studentIds = students.map((s) => s.id);
-  const [assignmentsByStudent, { data: taskRows }] = await Promise.all([
-    loadAssignmentsByStudent(admin, studentIds),
-    admin
-      .from("listening_daily_tasks")
-      .select(
-        "id, student_id, task_date, status, completed_count, total_count, assignment_id"
-      )
-      .in("student_id", studentIds)
-      .gte("task_date", start)
-      .lte("task_date", end),
-  ]);
+  const monthBounds = {
+    start: getKoreaDayUtcBounds(start).start,
+    end: getKoreaDayUtcBounds(end).end,
+  };
+  const [assignmentsByStudent, { data: taskRows }, { data: examRows }] =
+    await Promise.all([
+      loadAssignmentsByStudent(admin, studentIds),
+      admin
+        .from("listening_daily_tasks")
+        .select(
+          "id, student_id, task_date, status, completed_count, total_count, assignment_id"
+        )
+        .in("student_id", studentIds)
+        .gte("task_date", start)
+        .lte("task_date", end),
+      admin
+        .from("listening_exam_attempts")
+        .select("student_id, score, submitted_at")
+        .in("student_id", studentIds)
+        .gte("submitted_at", monthBounds.start)
+        .lte("submitted_at", monthBounds.end),
+    ]);
+
+  const examByStudentDate = new Map<string, Map<string, ExamDaySummary>>();
+  for (const row of examRows ?? []) {
+    const sid = row.student_id as string;
+    const dateIso = getTodayIsoKorea(new Date(row.submitted_at as string));
+    const score = row.score as number;
+    const byDate = examByStudentDate.get(sid) ?? new Map<string, ExamDaySummary>();
+    const prev = byDate.get(dateIso);
+    byDate.set(dateIso, {
+      attemptCount: (prev?.attemptCount ?? 0) + 1,
+      bestScore: Math.max(prev?.bestScore ?? 0, score),
+    });
+    examByStudentDate.set(sid, byDate);
+  }
 
   const tasksByStudentDate = new Map<string, Map<string, TaskRow[]>>();
   for (const row of (taskRows ?? []) as TaskRow[]) {
@@ -281,6 +321,7 @@ export async function loadListeningMonthlyStatusTable(
     const days = buildStudentDays(
       assignments,
       tasksByDate,
+      examByStudentDate.get(student.id) ?? new Map(),
       options.year,
       options.month,
       daysInMonth,

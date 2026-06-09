@@ -483,11 +483,12 @@ function ExamSheetPage({
           </table>
 
           <div className="mt-[2.5mm] rounded-lg border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50/80 px-[3mm] py-[2mm] text-[7.5pt] leading-snug text-sky-900">
-            <span className="font-bold text-sky-700">▶ 듣기 안내</span> QR
+            <span className="font-bold text-sky-700">▶ 듣기·OMR 안내</span> QR
             스캔 후{" "}
-            <span className="font-semibold text-sky-800">전체 듣기</span> 또는{" "}
-            <span className="font-semibold text-sky-800">문항별 듣기</span>를
-            선택하세요.
+            <span className="font-semibold text-sky-800">듣기</span> 탭에서
+            음원을 재생하고,{" "}
+            <span className="font-semibold text-sky-800">OMR 답안</span> 탭에서
+            마킹 후 제출하세요.
           </div>
         </header>
       ) : (
@@ -902,11 +903,19 @@ function AnswerKeyColumn({
         {indices.map((qi, i) => (
           <div
             key={questions[qi].id}
-            className={`flex min-h-0 flex-1 flex-col justify-start overflow-hidden px-[0.5mm] pt-[1mm] ${
-              i < indices.length - 1 ? "border-b border-cyan-100" : ""
-            }`}
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
           >
-            <AnswerKeyItem question={questions[qi]} compact />
+            <div className="shrink-0 px-[0.5mm] pt-[0.8mm]">
+              <AnswerKeyItem question={questions[qi]} compact />
+            </div>
+            {i < indices.length - 1 ? (
+              <div
+                aria-hidden
+                className="mt-[0.8mm] min-h-[1.5mm] flex-1 border-b border-cyan-100"
+              />
+            ) : (
+              <div className="min-h-0 flex-1" aria-hidden />
+            )}
           </div>
         ))}
       </div>
@@ -932,8 +941,9 @@ function AnswerKeyItem({
   const idx = q.correct_answer - 1;
   const choice = q.choices[idx] ?? "";
   const answerSize = compact ? "text-[12pt]" : "text-[14pt]";
-  const choiceSize = compact ? "text-[7pt]" : "text-[8pt]";
-  const scriptSize = compact ? "text-[5.5pt]" : "text-[6.5pt]";
+  const choiceSize = compact ? "text-[7.5pt]" : "text-[8pt]";
+  const scriptSize = compact ? "text-[8pt]" : "text-[8.5pt]";
+  const clueSize = compact ? "text-[7pt]" : "text-[7.5pt]";
 
   return (
     <div className="min-h-0">
@@ -957,11 +967,11 @@ function AnswerKeyItem({
 
       {q.segments.length > 0 && (
         <div
-          className={`mt-[0.5mm] rounded border border-cyan-100 bg-cyan-50/60 px-[1.5mm] py-[0.5mm] leading-snug text-slate-700 ${scriptSize}`}
+          className={`mt-[0.8mm] space-y-[0.3mm] rounded border border-cyan-200 bg-cyan-50/70 px-[2mm] py-[1mm] leading-[1.45] text-slate-800 ${scriptSize}`}
         >
           {q.segments.map((seg) => (
             <p key={seg.id}>
-              <span className="font-bold text-cyan-800">{seg.speaker_type}:</span>{" "}
+              <span className="font-bold text-cyan-900">{seg.speaker_type}:</span>{" "}
               {seg.text}
             </p>
           ))}
@@ -969,11 +979,7 @@ function AnswerKeyItem({
       )}
 
       {q.answer_clue && (
-        <p
-          className={`mt-[0.4mm] leading-snug text-slate-600 ${
-            compact ? "text-[5.5pt]" : "text-[6.5pt]"
-          }`}
-        >
+        <p className={`mt-[0.5mm] leading-snug text-slate-600 ${clueSize}`}>
           <span className="font-semibold text-cyan-800">근거</span> {q.answer_clue}
         </p>
       )}

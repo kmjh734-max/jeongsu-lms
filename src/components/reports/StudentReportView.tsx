@@ -188,6 +188,30 @@ export function StudentReportView({
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900">듣기 시험 (OMR)</h2>
+          <p className="mt-2 text-sm text-slate-600">{report.summary.listeningExamLine}</p>
+          {report.listeningExam.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-500">듣기 시험 제출 기록이 없습니다.</p>
+          ) : (
+            <div className="mt-4 space-y-4">
+              {report.listeningExam.map((e) => (
+                <article
+                  key={e.setId}
+                  className="rounded-xl border border-sky-100 bg-sky-50/40 p-4 text-sm"
+                >
+                  <h3 className="font-semibold text-slate-900">{e.setTitle}</h3>
+                  <p className="mt-1 text-slate-700">{e.summaryLine}</p>
+                  <p className="mt-2 text-slate-600">
+                    문항 {e.questionCount}개 · 시도 {e.attemptCount}회
+                    {e.bestScore != null ? ` · 최고 ${e.bestScore}점` : ""}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900">듣기 Dictation</h2>
           <p className="mt-2 text-sm text-slate-600">{report.summary.listeningDictationLine}</p>
           {report.listeningDictation.length === 0 ? (

@@ -58,6 +58,17 @@ export interface ListeningDictationReportRow {
   summaryLine: string;
 }
 
+export interface ListeningExamReportRow {
+  setId: string;
+  setTitle: string;
+  questionCount: number;
+  attemptCount: number;
+  bestScore: number | null;
+  latestScore: number | null;
+  latestSubmittedAt: string | null;
+  summaryLine: string;
+}
+
 export interface StudentReport {
   generatedAt: string;
   range: ReportRange;
@@ -73,9 +84,11 @@ export interface StudentReport {
     vocabLine: string;
     reviewLine: string;
     listeningDictationLine: string;
+    listeningExamLine: string;
   };
   courses: CourseReportSection[];
   vocabSets: VocabReportSection[];
   listeningDictation: ListeningDictationReportRow[];
+  listeningExam: ListeningExamReportRow[];
   reviewWords: ReviewWordRow[];
 }

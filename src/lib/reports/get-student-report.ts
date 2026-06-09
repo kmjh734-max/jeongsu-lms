@@ -13,9 +13,11 @@ import {
   parseReportRange,
 } from "@/lib/reports/date-range";
 import { buildListeningDictationReport } from "@/lib/listening/dictation/report-summary";
+import { buildListeningExamReport } from "@/lib/listening/exam/report-summary";
 import type {
   CourseReportSection,
   ListeningDictationReportRow,
+  ListeningExamReportRow,
   ReviewWordRow,
   StudentReport,
   VocabReportSection,
@@ -452,6 +454,22 @@ export async function getStudentReport(
           .map((d) => `${d.setTitle}: ${d.summaryLine}`)
           .join(" ");
 
+  const examSections = await buildListeningExamReport(supabase, studentId, range);
+  const listeningExam: ListeningExamReportRow[] = examSections.map((s) => ({
+    setId: s.setId,
+    setTitle: s.setTitle,
+    questionCount: s.questionCount,
+    attemptCount: s.attemptCount,
+    bestScore: s.bestScore,
+    latestScore: s.latestScore,
+    latestSubmittedAt: s.latestSubmittedAt,
+    summaryLine: s.summaryLine,
+  }));
+  const listeningExamLine =
+    listeningExam.length === 0
+      ? "듣기 시험(OMR) 기록이 없습니다."
+      : listeningExam.map((e) => `${e.setTitle}: ${e.summaryLine}`).join(" ");
+
   return {
     generatedAt,
     range,
@@ -467,10 +485,12 @@ export async function getStudentReport(
       vocabLine,
       reviewLine,
       listeningDictationLine,
+      listeningExamLine,
     },
     courses,
     vocabSets: vocabSetsReport,
     listeningDictation,
+    listeningExam,
     reviewWords,
   };
 }

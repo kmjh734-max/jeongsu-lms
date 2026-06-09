@@ -10,11 +10,14 @@ export interface ListeningAudioItem {
 interface StudentListeningAudioHubProps {
   setTitle: string;
   items: ListeningAudioItem[];
+  /** Exam hub 탭 안에 넣을 때 바깥 레이아웃 생략 */
+  embedded?: boolean;
 }
 
 export function StudentListeningAudioHub({
   setTitle,
   items,
+  embedded = false,
 }: StudentListeningAudioHubProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [mode, setMode] = useState<"idle" | "all" | "single">("idle");
@@ -76,20 +79,23 @@ export function StudentListeningAudioHub({
   const readyCount = playable.length;
   const totalCount = items.length;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-cyan-50/40 px-4 py-8">
-      <div className="mx-auto max-w-lg">
-        <p className="text-center text-xs font-semibold tracking-[0.25em] text-sky-600">
-          ENGLISH LISTENING
-        </p>
-        <h1 className="mt-2 text-center text-xl font-bold text-slate-900">
-          {setTitle}
-        </h1>
-        <p className="mt-1 text-center text-sm text-slate-500">
+  const inner = (
+    <>
+        {!embedded && (
+          <>
+            <p className="text-center text-xs font-semibold tracking-[0.25em] text-sky-600">
+              ENGLISH LISTENING
+            </p>
+            <h1 className="mt-2 text-center text-xl font-bold text-slate-900">
+              {setTitle}
+            </h1>
+          </>
+        )}
+        <p className={`text-center text-sm text-slate-500 ${embedded ? "" : "mt-1"}`}>
           음원 {readyCount}/{totalCount}개 준비됨
         </p>
 
-        <div className="mt-6 rounded-2xl border border-sky-100 bg-white p-5 shadow-sm">
+        <div className={`rounded-2xl border border-sky-100 bg-white p-5 shadow-sm ${embedded ? "mt-0" : "mt-6"}`}>
           <button
             type="button"
             onClick={startAll}
@@ -163,7 +169,16 @@ export function StudentListeningAudioHub({
             </p>
           )}
         </div>
-      </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div>{inner}</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-cyan-50/40 px-4 py-8">
+      <div className="mx-auto max-w-lg">{inner}</div>
     </div>
   );
 }
