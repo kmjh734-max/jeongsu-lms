@@ -8,6 +8,7 @@ import {
   formatAssignedScenarioBlock,
   pickContinuationScenario,
 } from "@/lib/listening/continuation-scenario-pool";
+import { applyBalancedChoicePositions } from "@/lib/listening/balance-correct-answer";
 import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
 import {
   generateSingleExamQuestion,
@@ -222,11 +223,12 @@ export async function generateExamQuestionsFromSlots(
     }
   }
 
-  return slots.map((slot) => {
+  const ordered = slots.map((slot) => {
     const q = bySlotIndex.get(slot.slotIndex);
     if (!q) throw new Error(`${slot.slotIndex}번 문항 생성 실패`);
     return q;
   });
+  return applyBalancedChoicePositions(ordered);
 }
 
 /** 자유 모드: 문항 수만큼 1회 API 호출 */
@@ -268,11 +270,12 @@ export async function generateFreeQuestionsFromSlots(
     throw new Error(`${count}문항 중 ${questions.length}개만 생성됨`);
   }
 
-  return slots.map((slot, i) =>
+  const finalized = slots.map((slot, i) =>
     finalizeListeningQuestionFast(
       { ...questions[i]!, order_index: slot.slotIndex },
       undefined,
       gradeLevel
     )
   );
+  return applyBalancedChoicePositions(finalized);
 }

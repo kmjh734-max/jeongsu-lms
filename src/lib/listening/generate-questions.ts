@@ -49,6 +49,10 @@ import {
 } from "@/lib/listening/continuation-scenario-pool";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { listeningMaxCompletionTokensForCount } from "@/lib/listening/openai-listening-model";
+import {
+  applyBalancedChoicePositions,
+  applyRandomChoicePosition,
+} from "@/lib/listening/balance-correct-answer";
 import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
 import type {
   GeneratedListeningQuestion,
@@ -373,14 +377,17 @@ export async function generateListeningQuestionsWithAi(
     gradeLevel,
     itemCount
   );
+  const finalized = questions.map((q, i) =>
+    finalizeListeningQuestionFast(
+      { ...q, order_index: i + 1 },
+      examTypes?.[i],
+      gradeLevel
+    )
+  );
   return {
-    questions: questions.map((q, i) =>
-      finalizeListeningQuestionFast(
-        { ...q, order_index: i + 1 },
-        examTypes?.[i],
-        gradeLevel
-      )
-    ),
+    questions: examMode
+      ? applyBalancedChoicePositions(finalized)
+      : finalized,
   };
 }
 
@@ -435,10 +442,12 @@ export async function generateSingleExamQuestion(
       }
     }
 
-    return finalizeListeningQuestionFast(
-      { ...q, order_index: slotIndex ?? typeId },
-      type,
-      gradeLevel
+    return applyRandomChoicePosition(
+      finalizeListeningQuestionFast(
+        { ...q, order_index: slotIndex ?? typeId },
+        type,
+        gradeLevel
+      )
     );
   }
 
@@ -450,10 +459,12 @@ export async function generateSingleExamQuestion(
     );
   }
 
-  return finalizeListeningQuestionFast(
-    { ...lastQuestion, order_index: slotIndex ?? typeId },
-    type,
-    gradeLevel
+  return applyRandomChoicePosition(
+    finalizeListeningQuestionFast(
+      { ...lastQuestion, order_index: slotIndex ?? typeId },
+      type,
+      gradeLevel
+    )
   );
 }
 
@@ -472,9 +483,11 @@ export async function generateSingleFreeQuestion(
   const questions = await fetchParsedQuestions(apiKey, prompt, false, undefined, gradeLevel);
   const q = questions[0];
   if (!q) throw new Error("문항 생성 실패");
-  return finalizeListeningQuestionFast(
-    { ...q, order_index: orderIndex },
-    undefined,
-    gradeLevel
+  return applyRandomChoicePosition(
+    finalizeListeningQuestionFast(
+      { ...q, order_index: orderIndex },
+      undefined,
+      gradeLevel
+    )
   );
 }

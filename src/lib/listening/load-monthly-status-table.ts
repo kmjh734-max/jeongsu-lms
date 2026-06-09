@@ -170,6 +170,27 @@ function toDaySymbol(
 
 type ExamDaySummary = { attemptCount: number; bestScore: number };
 
+type ExamAttemptRow = {
+  student_id: string;
+  set_id: string;
+  score: number;
+  correct_count: number;
+  total_count: number;
+  submitted_at: string;
+};
+
+async function loadTeacherListeningSetIds(
+  admin: SupabaseClient,
+  teacherId: string
+): Promise<Set<string>> {
+  const { data } = await admin
+    .from("listening_sets")
+    .select("id")
+    .or(`teacher_id.eq.${teacherId},created_by.eq.${teacherId}`);
+
+  return new Set((data ?? []).map((row) => row.id as string));
+}
+
 function buildStudentDays(
   assignments: ScheduleAssignmentRow[],
   tasksByDate: Map<string, TaskRow[]>,
@@ -274,7 +295,12 @@ export async function loadListeningMonthlyStatusTable(
     start: getKoreaDayUtcBounds(start).start,
     end: getKoreaDayUtcBounds(end).end,
   };
-  const [assignmentsByStudent, { data: taskRows }, { data: examRows }] =
+  const teacherSetIdsPromise =
+    role === "teacher"
+      ? loadTeacherListeningSetIds(admin, viewerId)
+      : Promise.resolve(null as Set<string> | null);
+
+  const [assignmentsByStudent, { data: taskRows }, examQuery, teacherSetIds] =
     await Promise.all([
       loadAssignmentsByStudent(admin, studentIds),
       admin
@@ -288,21 +314,41 @@ export async function loadListeningMonthlyStatusTable(
       admin
         .from("listening_exam_attempts")
         .select(
-          "student_id, set_id, score, correct_count, total_count, submitted_at, set:listening_sets(title)"
+          "student_id, set_id, score, correct_count, total_count, submitted_at"
         )
         .in("student_id", studentIds)
         .gte("submitted_at", monthBounds.start)
         .lte("submitted_at", monthBounds.end)
         .order("submitted_at", { ascending: false }),
+      teacherSetIdsPromise,
     ]);
+
+  let examRows = (examQuery.data ?? []) as ExamAttemptRow[];
+  if (teacherSetIds && teacherSetIds.size > 0) {
+    examRows = examRows.filter((row) => teacherSetIds.has(row.set_id));
+  } else if (teacherSetIds && teacherSetIds.size === 0) {
+    examRows = [];
+  }
+
+  const setTitleById = new Map<string, string>();
+  const examSetIds = [...new Set(examRows.map((row) => row.set_id))];
+  if (examSetIds.length > 0) {
+    const { data: setRows } = await admin
+      .from("listening_sets")
+      .select("id, title")
+      .in("id", examSetIds);
+    for (const set of setRows ?? []) {
+      setTitleById.set(set.id as string, set.title as string);
+    }
+  }
 
   const examByStudentDate = new Map<string, Map<string, ExamDaySummary>>();
   const examMonthByStudent = new Map<string, ListeningExamMonthSummary>();
 
-  for (const row of examRows ?? []) {
-    const sid = row.student_id as string;
-    const dateIso = getTodayIsoKorea(new Date(row.submitted_at as string));
-    const score = row.score as number;
+  for (const row of examRows) {
+    const sid = row.student_id;
+    const dateIso = getTodayIsoKorea(new Date(row.submitted_at));
+    const score = row.score;
     const byDate = examByStudentDate.get(sid) ?? new Map<string, ExamDaySummary>();
     const prev = byDate.get(dateIso);
     byDate.set(dateIso, {
@@ -311,20 +357,17 @@ export async function loadListeningMonthlyStatusTable(
     });
     examByStudentDate.set(sid, byDate);
 
-    const setRel = row.set as { title?: string } | { title?: string }[] | null;
-    const setTitle = Array.isArray(setRel)
-      ? setRel[0]?.title
-      : setRel?.title;
+    const setTitle = setTitleById.get(row.set_id) ?? null;
     const prevMonth = examMonthByStudent.get(sid);
     if (!prevMonth) {
       examMonthByStudent.set(sid, {
         attemptCount: 1,
         bestScore: score,
         latestScore: score,
-        latestCorrectCount: row.correct_count as number,
-        latestTotalCount: row.total_count as number,
-        latestSetTitle: setTitle ?? null,
-        latestDate: getTodayIsoKorea(new Date(row.submitted_at as string)),
+        latestCorrectCount: row.correct_count,
+        latestTotalCount: row.total_count,
+        latestSetTitle: setTitle,
+        latestDate: dateIso,
       });
     } else {
       examMonthByStudent.set(sid, {

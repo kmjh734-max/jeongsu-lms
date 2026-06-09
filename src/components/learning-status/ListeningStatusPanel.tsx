@@ -95,8 +95,8 @@ export function ListeningStatusPanel({
       <div>
         <h2 className="text-lg font-bold text-slate-900">듣기학습 현황표</h2>
         <p className="mt-1 text-sm text-slate-600">
-          학생별 월간 듣기학습 완료 여부를 한눈에 확인합니다. 오늘 날짜는
-          주황색으로 표시됩니다.
+          학생별 월간 듣기학습·OMR 시험 결과를 한눈에 확인합니다. 달력 숫자는
+          OMR 점수, 오른쪽 열은 최근 시험 점수입니다.
         </p>
       </div>
 
@@ -260,14 +260,27 @@ export function ListeningStatusPanel({
                           <span className="font-bold text-indigo-700 tabular-nums">
                             {row.examSummary.latestScore}점
                           </span>
-                          <span className="mt-0.5 block text-slate-500">
+                          <span className="mt-0.5 block text-slate-600">
                             {row.examSummary.latestCorrectCount}/
-                            {row.examSummary.latestTotalCount}
-                            {row.examSummary.bestScore != null &&
-                            row.examSummary.bestScore !== row.examSummary.latestScore
-                              ? ` · 최고 ${row.examSummary.bestScore}`
-                              : ""}
+                            {row.examSummary.latestTotalCount} 정답
                           </span>
+                          {row.examSummary.latestSetTitle && (
+                            <span className="mt-0.5 block truncate text-[10px] text-slate-500">
+                              {row.examSummary.latestSetTitle}
+                            </span>
+                          )}
+                          {row.examSummary.latestDate && (
+                            <span className="block text-[10px] text-slate-400">
+                              {row.examSummary.latestDate}
+                            </span>
+                          )}
+                          {row.examSummary.bestScore != null &&
+                            row.examSummary.bestScore !==
+                              row.examSummary.latestScore && (
+                              <span className="mt-0.5 block text-[10px] text-indigo-600">
+                                최고 {row.examSummary.bestScore}점
+                              </span>
+                            )}
                         </>
                       ) : (
                         <span className="text-slate-400">—</span>
