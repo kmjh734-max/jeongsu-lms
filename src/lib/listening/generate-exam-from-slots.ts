@@ -8,6 +8,10 @@ import {
   formatAssignedScenarioBlock,
   pickContinuationScenario,
 } from "@/lib/listening/continuation-scenario-pool";
+import {
+  formatAssignedType1SubjectBlock,
+  pickType1Subject,
+} from "@/lib/listening/type1-subject-pool";
 import { applyBalancedChoicePositions } from "@/lib/listening/balance-correct-answer";
 import { finalizeListeningQuestionFast } from "@/lib/listening/finalize-listening-question";
 import {
@@ -61,7 +65,13 @@ function buildSlotsBatchPrompt(
     .join("\n");
 
   let scenarioBlocks = "";
+  const usedType1Problems: string[] = [];
   for (const slot of slots) {
+    if (slot.typeId === 1) {
+      const assignment = pickType1Subject(usedType1Problems);
+      usedType1Problems.push(`subject_id:${assignment.id}`);
+      scenarioBlocks += `${formatAssignedType1SubjectBlock(assignment)}\n\n`;
+    }
     if (slot.typeId === 19 || slot.typeId === 20) {
       scenarioBlocks += `${formatAssignedScenarioBlock(
         pickContinuationScenario(slot.typeId)

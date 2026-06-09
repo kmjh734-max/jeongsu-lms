@@ -1,11 +1,11 @@
 /** 1번 선택지 같은 범주 검사 (휴리스틱) */
 
 const ANIMAL =
-  /\b(turtle|rabbit|bird|horse|snake|cat|dog|fish|bee|owl|penguin|dolphin|lion|tiger|frog|mouse|duck|pig|cow|sheep|monkey|elephant|bear|fox|wolf|chicken)\b/i;
+  /\b(turtle|rabbit|bird|horse|snake|cat|dog|fish|bee|owl|penguin|dolphin|lion|tiger|frog|mouse|duck|pig|cow|sheep|monkey|elephant|bear|fox|wolf|chicken|kangaroo|giraffe|beaver|butterfly|parrot|eagle|seal|whale|shark|zebra|camel|koala|otter|bat|moth|ladybug|dragonfly)\b/i;
 const PLACE =
-  /\b(library|bakery|hospital|museum|school|park|store|shop|market|station|airport|beach|farm|zoo|cinema|theater|restaurant|cafe|office|gym)\b/i;
+  /\b(library|bakery|hospital|museum|school|park|store|shop|market|station|airport|beach|farm|zoo|cinema|theater|restaurant|cafe|office|gym|aquarium|observatory|greenhouse|planetarium|harbor|stadium|laboratory)\b/i;
 const JOB =
-  /\b(doctor|nurse|teacher|pilot|cook|chef|driver|farmer|singer|artist|police|firefighter|builder|engineer|scientist|dentist|vet)\b/i;
+  /\b(doctor|nurse|teacher|pilot|cook|chef|driver|farmer|singer|artist|police|firefighter|builder|engineer|scientist|dentist|vet|veterinarian|librarian|architect|photographer|mechanic|astronaut|journalist|pharmacist|designer|clerk|reporter|lawyer)\b/i;
 
 export type ChoiceCategory = "animal" | "place" | "job" | "object" | "unknown";
 

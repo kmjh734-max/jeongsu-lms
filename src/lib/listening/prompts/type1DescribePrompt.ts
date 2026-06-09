@@ -81,10 +81,14 @@ const TYPE1_GENERATION_RULES = `
 5. What am I?
 
 정답 대상:
-- turtle, rabbit, pencil, umbrella, library, doctor 등 중1 수준.
-- 그림으로 표현하기 쉬운 단어.
+- [필수] 상단 "이번 1번 문항 필수 정답 대상" 블록이 있으면 그 정답·범주를 반드시 사용한다.
+- 블록이 없을 때만 자유 선택. 그림으로 표현하기 쉬운 중1~중3 수준 단어.
 - 선택지 5개는 반드시 같은 범주 (모두 동물 / 모두 사물 / 모두 장소 / 모두 직업).
 - 범주 섞기 금지 (turtle + pencil + hospital 금지).
+
+소재 다양성 (중요):
+- 상단 배정 블록의 subject_id·정답을 그대로 사용한다 (기출 소재·새 소재 모두 가능).
+- 연속 생성 시 같은 소재만 반복하지 않도록, 배정된 대상과 다른 subject_id는 쓰지 않는다.
 
 선택지:
 - 영어 단어 또는 짧은 명사구 (예: A turtle).
@@ -139,6 +143,9 @@ export function getType1PromptBlockForExam(): string {
 ### 1번 유형: 묘사 듣고 대상 고르기
 ${TYPE1_GENERATION_RULES}
 
-필수 필드: needs_image_choices=true, choice_image_prompts[5], question_text=""
+[일괄 생성 시] 각 1번 문항마다 상단 "이번 1번 문항 필수 정답 대상" 블록의 subject_id·정답을 반드시 따른다.
+문항마다 다른 subject_id가 배정되므로 소재가 자동으로 다양해진다.
+
+필수 필드: needs_image_choices=true, choice_image_prompts[5], question_text="", situation_type=subject_id
 `.trim();
 }

@@ -47,6 +47,10 @@ import {
   formatAssignedScenarioBlock,
   pickContinuationScenario,
 } from "@/lib/listening/continuation-scenario-pool";
+import {
+  formatAssignedType1SubjectBlock,
+  pickType1Subject,
+} from "@/lib/listening/type1-subject-pool";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { listeningMaxCompletionTokensForCount } from "@/lib/listening/openai-listening-model";
 import {
@@ -413,6 +417,10 @@ export async function generateSingleExamQuestion(
       problems.length ? problems : undefined,
       gradeLevel
     );
+    if (typeId === 1) {
+      const assignment = pickType1Subject(problems);
+      prompt = `${formatAssignedType1SubjectBlock(assignment)}\n\n${prompt}`;
+    }
     if (typeId === 19 || typeId === 20) {
       const assignment = pickContinuationScenario(typeId, problems);
       const scenarioBlock = formatAssignedScenarioBlock(assignment);
