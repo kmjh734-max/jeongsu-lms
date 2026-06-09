@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { ListeningSetManageClient } from "@/components/listening/ListeningSetManageClient";
+import { parseListeningGradeLevel } from "@/lib/listening/grade-level";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
 
 export default async function TeacherListeningSetPage({
@@ -41,9 +42,7 @@ export default async function TeacherListeningSetPage({
       <ListeningSetManageClient
         setId={loaded.set.id}
         title={loaded.set.title}
-        gradeLevel={
-          loaded.set.grade_level === "middle2" ? "middle2" : "middle1"
-        }
+        gradeLevel={parseListeningGradeLevel(loaded.set.grade_level)}
         isPublished={loaded.set.is_published}
         speechSpeed={loaded.set.speech_speed ?? 0.9}
         voiceAnnId={loaded.set.voice_ann_id ?? null}

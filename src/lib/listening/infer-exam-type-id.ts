@@ -1,12 +1,14 @@
 import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types";
 import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
+import { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 function typesForGrade(grade?: ListeningGradeLevel) {
+  if (grade === "middle3") return MIDDLE3_LISTENING_EXAM_TYPES;
   if (grade === "middle2") return MIDDLE2_LISTENING_EXAM_TYPES;
   if (grade === "middle1") return MIDDLE1_LISTENING_EXAM_TYPES;
-  return [...MIDDLE2_LISTENING_EXAM_TYPES, ...MIDDLE1_LISTENING_EXAM_TYPES];
+  return [...MIDDLE3_LISTENING_EXAM_TYPES, ...MIDDLE2_LISTENING_EXAM_TYPES, ...MIDDLE1_LISTENING_EXAM_TYPES];
 }
 
 /**

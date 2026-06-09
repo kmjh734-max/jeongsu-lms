@@ -3,13 +3,17 @@ import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
 import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle1";
 import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
+import { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
 
 export type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
 export { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle1";
 export { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
+export { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
 
 export function getExamTypesForGrade(grade: ListeningGradeLevel): ExamTypeTemplate[] {
-  return grade === "middle2" ? MIDDLE2_LISTENING_EXAM_TYPES : MIDDLE1_LISTENING_EXAM_TYPES;
+  if (grade === "middle3") return MIDDLE3_LISTENING_EXAM_TYPES;
+  if (grade === "middle2") return MIDDLE2_LISTENING_EXAM_TYPES;
+  return MIDDLE1_LISTENING_EXAM_TYPES;
 }
 
 export function getExamTypeById(

@@ -26,6 +26,7 @@ import {
 } from "@/lib/listening/prompts/commonPrompt";
 import { getCommonPrompt } from "@/lib/listening/prompts/commonPrompt";
 import { getAllMiddle2TypePromptBlocks } from "@/lib/listening/prompts/middle2TypePrompts";
+import { getAllMiddle3TypePromptBlocks } from "@/lib/listening/prompts/middle3TypePrompts";
 import { getAllTypePromptBlocks } from "@/lib/listening/prompts/typePrompts";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
@@ -46,9 +47,11 @@ function buildSlotsBatchPrompt(
     gradeLevel
   );
   const typeBlocks =
-    gradeLevel === "middle2"
-      ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
-      : getAllTypePromptBlocks(uniqueTypeIds);
+    gradeLevel === "middle3"
+      ? getAllMiddle3TypePromptBlocks(uniqueTypeIds)
+      : gradeLevel === "middle2"
+        ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
+        : getAllTypePromptBlocks(uniqueTypeIds);
 
   const slotSpec = slots
     .map(

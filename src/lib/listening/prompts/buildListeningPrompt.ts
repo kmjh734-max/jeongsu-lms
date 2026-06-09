@@ -14,6 +14,10 @@ import {
   buildMiddle2TypeOnlyGenerationPrompt,
   getAllMiddle2TypePromptBlocks,
 } from "@/lib/listening/prompts/middle2TypePrompts";
+import {
+  buildMiddle3TypeOnlyGenerationPrompt,
+  getAllMiddle3TypePromptBlocks,
+} from "@/lib/listening/prompts/middle3TypePrompts";
 import { buildType1OnlyGenerationPrompt } from "@/lib/listening/prompts/type1DescribePrompt";
 import { buildType2OnlyGenerationPrompt } from "@/lib/listening/prompts/type2PurchasePrompt";
 import { buildType3OnlyGenerationPrompt } from "@/lib/listening/prompts/type3WeatherPrompt";
@@ -45,9 +49,19 @@ export function buildListeningExamPrompt(
   difficultyMode: ListeningDifficultyMode,
   grade: ListeningGradeLevel = "middle1"
 ): string {
-  if (grade === "middle2") {
+  if (grade === "middle2" || grade === "middle3") {
+    const gradeLabel = gradeLevelShort(grade);
+    const buildTypeOnly =
+      grade === "middle3"
+        ? buildMiddle3TypeOnlyGenerationPrompt
+        : buildMiddle2TypeOnlyGenerationPrompt;
+    const getTypeBlocks =
+      grade === "middle3"
+        ? getAllMiddle3TypePromptBlocks
+        : getAllMiddle2TypePromptBlocks;
+
     if (types.length === 1) {
-      return buildMiddle2TypeOnlyGenerationPrompt(types[0]!.id);
+      return buildTypeOnly(types[0]!.id);
     }
     const typeIds = types.map((t) => t.id);
     const difficultyBlock = buildDifficultyPromptBlock(types, difficultyMode, grade);
@@ -56,13 +70,13 @@ ${getCommonPrompt(grade)}
 
 ${getCopyrightBlock(grade)}
 
-이번 요청: 중2 영어듣기 ${types.length}개 유형을 순서대로 각 1문항씩 생성한다.
+이번 요청: ${gradeLabel} 영어듣기 ${types.length}개 유형을 순서대로 각 1문항씩 생성한다.
 유형 번호·형식은 중1과 동일하다. order_index는 유형 번호와 반드시 일치.
 
 난이도 (유형별):
 ${difficultyBlock}
 
-${getAllMiddle2TypePromptBlocks(typeIds)}
+${getTypeBlocks(typeIds)}
 
 생성 후 스스로 검수:
 ${QUALITY_CHECK_CRITERIA}
@@ -169,7 +183,9 @@ export function buildListeningSingleTypePrompt(
   );
 
   let core: string;
-  if (grade === "middle2") {
+  if (grade === "middle3") {
+    core = buildMiddle3TypeOnlyGenerationPrompt(type.id, previousProblems);
+  } else if (grade === "middle2") {
     core = buildMiddle2TypeOnlyGenerationPrompt(type.id, previousProblems);
   } else if (type.id === 1) {
     core = buildType1OnlyGenerationPrompt(previousProblems);

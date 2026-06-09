@@ -58,7 +58,11 @@ export async function PATCH(
     if (typeof body.speech_speed === "number") {
       patch.speech_speed = Math.min(Math.max(body.speech_speed, 0.25), 4);
     }
-    if (body.grade_level === "middle1" || body.grade_level === "middle2") {
+    if (
+      body.grade_level === "middle1" ||
+      body.grade_level === "middle2" ||
+      body.grade_level === "middle3"
+    ) {
       patch.grade_level = body.grade_level;
     }
     if (body.voice_ann_id !== undefined) {

@@ -232,53 +232,78 @@ export function checkListeningQuestionQuality(
   const typeId = typeHint?.id ?? q.order_index;
   const isMonologue = MONOLOGUE_TYPE_IDS.has(typeId);
   const skipWordCountRules = gradeLevel === "middle1";
+  const wordCountRange =
+    gradeLevel === "middle3"
+      ? { min: 70, max: 125, label: "70~125" }
+      : { min: 50, max: 95, label: "55~90" };
+  const dialogueTurnRange =
+    gradeLevel === "middle3"
+      ? { min: 7, max: 11 }
+      : { min: 6, max: 8 };
+  const monologueSentenceRange =
+    gradeLevel === "middle3"
+      ? { min: 6, max: 8 }
+      : { min: 5, max: 7 };
+  const maxWordsPerSentence = gradeLevel === "middle3" ? 17 : 13;
+  const minWordsPerSentence = gradeLevel === "middle3" ? 8 : 5;
 
   if (!skipWordCountRules) {
     const totalWords = totalScriptWords(q);
-    if (totalWords < 50 || totalWords > 95) {
+    if (totalWords < wordCountRange.min || totalWords > wordCountRange.max) {
       issues.push({
         code: "word_count",
-        message: `대본 단어 수가 기준(55~90)을 벗어납니다 (${totalWords}단어).`,
+        message: `대본 단어 수가 기준(${wordCountRange.label})을 벗어납니다 (${totalWords}단어).`,
       });
     }
   }
 
   const turnCount = q.segments.length;
   if (isMonologue) {
-    if (turnCount < 5 || turnCount > 7) {
+    if (
+      turnCount < monologueSentenceRange.min ||
+      turnCount > monologueSentenceRange.max
+    ) {
       issues.push({
         code: "sentence_count",
-        message: `담화형은 5~7문장이어야 합니다 (${turnCount}개).`,
+        message: `담화형은 ${monologueSentenceRange.min}~${monologueSentenceRange.max}문장이어야 합니다 (${turnCount}개).`,
       });
     }
   } else if (typeId !== 19 && typeId !== 20) {
-    if (turnCount < 6 || turnCount > 8) {
+    if (
+      turnCount < dialogueTurnRange.min ||
+      turnCount > dialogueTurnRange.max
+    ) {
       issues.push({
         code: "turn_count",
-        message: `대화형은 6~8턴이어야 합니다 (${turnCount}턴).`,
+        message: `대화형은 ${dialogueTurnRange.min}~${dialogueTurnRange.max}턴이어야 합니다 (${turnCount}턴).`,
       });
     }
-  } else if (turnCount < 6 || turnCount > 8) {
+  } else if (
+    turnCount < dialogueTurnRange.min ||
+    turnCount > dialogueTurnRange.max
+  ) {
     issues.push({
       code: "turn_count",
-      message: `19~20번은 6~8턴이어야 합니다 (${turnCount}턴).`,
+      message: `19~20번은 ${dialogueTurnRange.min}~${dialogueTurnRange.max}턴이어야 합니다 (${turnCount}턴).`,
     });
   }
 
   if (!skipWordCountRules) {
-    const longCount = longSentenceCount(q, 13);
+    const longCount = longSentenceCount(q, maxWordsPerSentence);
     if (longCount > 0) {
       issues.push({
         code: "long_sentences",
-        message: `13단어를 넘는 문장이 ${longCount}개 있습니다 (문장당 6~13단어 권장).`,
+        message: `${maxWordsPerSentence}단어를 넘는 문장이 ${longCount}개 있습니다.`,
       });
     }
 
-    const shortCount = q.segments.filter((s) => wordCount(s.text) < 5).length;
+    const shortCount = q.segments.filter(
+      (s) => wordCount(s.text) < minWordsPerSentence
+    ).length;
     if (shortCount > Math.floor(q.segments.length / 2)) {
       issues.push({
         code: "short_sentences",
-        message: "문장이 너무 짧습니다 (6~13단어 권장).",
+        message: `문장이 너무 짧습니다 (${minWordsPerSentence}단어 이상 권장).`,
       });
     }
   }

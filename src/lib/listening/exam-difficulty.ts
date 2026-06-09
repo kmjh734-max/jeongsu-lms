@@ -69,6 +69,54 @@ export const DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> 
   },
 };
 
+/** 중3 — 2024~2026 전국 기출 대본 수준 */
+export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> = {
+  foundation: {
+    tier: "foundation",
+    label: "기초",
+    questionRange: "1~6번",
+    monologueSentences: "6~8 sentences",
+    dialogueTurns: "7~9 turns",
+    wordsPerSentence: "10~14 English words per sentence",
+    vocabulary: "grade 3 textbook vocabulary; natural collocations",
+    extra:
+      "Total script 75~100 words. Match typical 중3 기출 (shopping, phone calls, picture dialogue).",
+  },
+  standard: {
+    tier: "standard",
+    label: "보통",
+    questionRange: "7~12번",
+    monologueSentences: "6~8 sentences",
+    dialogueTurns: "7~10 turns",
+    wordsPerSentence: "11~16 English words per sentence",
+    vocabulary: "grade 3; relative clauses and present perfect OK",
+    extra: "Total script 85~110 words. One main idea with supporting details.",
+  },
+  applied: {
+    tier: "applied",
+    label: "심화",
+    questionRange: "13~18번",
+    monologueSentences: "6~8 sentences",
+    dialogueTurns: "8~10 turns",
+    wordsPerSentence: "12~17 English words per sentence",
+    vocabulary:
+      "grade 3+; prices, schedules, dates; passive voice OK; no subjunctive",
+    extra:
+      "Total script 90~115 words. May include payment math, table choice, schedule negotiation.",
+  },
+  advanced: {
+    tier: "advanced",
+    label: "고난도",
+    questionRange: "19~20번",
+    monologueSentences: "N/A (dialogue only)",
+    dialogueTurns: "7~10 turns",
+    wordsPerSentence: "10~16 words per line; reply choices 9~15 words in English",
+    vocabulary: "grade 3; contextual replies with specific detail",
+    extra:
+      "Dialogue ends with W (19) or M (20). Reply NOT in segments. Man:/Woman: ______ format.",
+  },
+};
+
 /** 중2 — 첨부 기출(2025·2026)보다 약간 긴 문장·어휘 */
 export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> = {
   foundation: {
@@ -120,7 +168,9 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
 export function getDifficultyRulesForGrade(
   grade: ListeningGradeLevel
 ): Record<ListeningDifficultyTier, DifficultyRules> {
-  return grade === "middle2" ? MIDDLE2_DIFFICULTY_RULES : DIFFICULTY_RULES;
+  if (grade === "middle3") return MIDDLE3_DIFFICULTY_RULES;
+  if (grade === "middle2") return MIDDLE2_DIFFICULTY_RULES;
+  return DIFFICULTY_RULES;
 }
 
 export const DIFFICULTY_MODE_OPTIONS: Array<{
@@ -175,9 +225,11 @@ export function buildDifficultyRequirementBlock(
 ): string {
   const rules = resolveDifficultyForType(type, mode, grade);
   const harderNote =
-    grade === "middle2"
-      ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
-      : "";
+    grade === "middle3"
+      ? " (중3: 2024~2026 전국 기출 대본 수준)"
+      : grade === "middle2"
+        ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
+        : "";
   if (grade === "middle1") {
     return `
 ## 난이도 (참고 — 중1은 문장·대화 **단어 수**로 저장을 막지 않음)
@@ -207,9 +259,11 @@ export function buildDifficultyPromptBlock(
   grade: ListeningGradeLevel = "middle1"
 ): string {
   const harderNote =
-    grade === "middle2"
-      ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
-      : "";
+    grade === "middle3"
+      ? " (중3: 2024~2026 전국 기출 대본 수준)"
+      : grade === "middle2"
+        ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
+        : "";
   return types
     .map((t, i) => {
       const rules = resolveDifficultyForType(t, mode, grade);
