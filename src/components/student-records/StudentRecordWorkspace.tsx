@@ -437,9 +437,8 @@ export function StudentRecordWorkspace({
           3. 분석 요청 (선택)
         </h2>
         <p className="text-xs text-slate-500">
-          AI에게 어떻게 분석할지 적어 주세요. 기본값은 성적을 제외하고 기록
-          내용만 분석하도록 되어 있습니다. 비우면 상세 분석(성적·대학 추천
-          포함) 모드로 생성됩니다.
+          기본값은 성적·등급 산출, 대학 추천, 세특·행특·창체까지 포함한 종합
+          분석입니다. 일부만 분석하려면 요청 내용을 수정해 주세요.
         </p>
         <textarea
           className="ui-input min-h-[120px] text-sm leading-relaxed"
