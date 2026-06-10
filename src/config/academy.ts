@@ -1,14 +1,17 @@
-/**
- * 학원별 브랜드·인증 설정 — video-app(정수학원) 전용
- */
-export const academyConfig = {
-  academyName: "정수학원",
-  lmsTitle: "정수학원 LMS",
-  loginSubtitle: "정수학원 온라인 학습관에 오신 것을 환영합니다.",
-  internalEmailDomain: "jslms.local",
-  logoPath: "/image/logo.png",
-  productionSiteUrl: "https://jeongsu-lms.vercel.app",
-  primaryColor: "#2563EB",
-} as const;
+import {
+  ACADEMY_PRESETS,
+  resolveAcademyId,
+  type AcademyId,
+  type AcademyPreset,
+} from "@/config/academies";
 
-export type AcademyConfig = typeof academyConfig;
+const academyId: AcademyId = resolveAcademyId(
+  process.env.NEXT_PUBLIC_ACADEMY_ID
+);
+
+/** Vercel 프로젝트별 `NEXT_PUBLIC_ACADEMY_ID` (jeongsu | iroom | allbarreun) */
+export const ACADEMY_ID = academyId;
+
+export const academyConfig: AcademyPreset = ACADEMY_PRESETS[academyId];
+
+export type AcademyConfig = AcademyPreset;

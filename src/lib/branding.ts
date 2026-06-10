@@ -8,7 +8,9 @@ export const SITE_URL =
 
 export const LOGO_SRC = academyConfig.logoPath;
 export const ACADEMY_NAME = academyConfig.academyName;
+export const ACADEMY_MOTTO = academyConfig.motto ?? "";
+export const DIRECTOR_IMAGE_SRC = academyConfig.directorImagePath ?? "";
+export const DIRECTOR_CAPTION = academyConfig.directorCaption ?? "";
 
 /** SNS·카카오톡 미리보기용 절대 URL */
-export const OG_IMAGE_URL = new URL("/image/logo.png", SITE_URL).toString();
-export const ACADEMY_MOTTO = "정확하게, 깊이 있게 배웁니다.";
+export const OG_IMAGE_URL = new URL(LOGO_SRC, SITE_URL).toString();
