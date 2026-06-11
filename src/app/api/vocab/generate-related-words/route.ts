@@ -8,8 +8,8 @@ interface RequestItem {
 }
 
 interface GeneratedItem extends RequestItem {
-  example_sentence: string;
-  example_meaning: string;
+  synonyms: string;
+  antonyms: string;
 }
 
 function jsonError(message: string, status = 200) {
@@ -32,27 +32,28 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as {
       items?: RequestItem[];
-      level?: "middle" | "high";
+      kind?: "synonyms" | "antonyms" | "both";
     };
+    const kind = body.kind ?? "both";
     const items = (body.items ?? []).filter(
       (i) => i.word?.trim() && i.meaning?.trim()
     );
-    const level = body.level === "high" ? "high" : "middle";
 
     if (items.length === 0) {
-      return jsonError("예문을 생성할 단어가 없습니다.");
+      return jsonError("생성할 단어가 없습니다.");
     }
 
-    const levelGuide =
-      level === "high"
-        ? "high school level (slightly richer vocabulary and structure, suitable for Korean high school students and exam prep)"
-        : "middle school level (short and clear, suitable for Korean middle school students)";
+    const fieldGuide =
+      kind === "synonyms"
+        ? `For each word, provide 2–4 English synonyms (comma-separated). Leave antonyms as empty string.`
+        : kind === "antonyms"
+          ? `For each word, provide 2–4 English antonyms (comma-separated). Leave synonyms as empty string.`
+          : `For each word, provide 2–4 English synonyms and 2–4 English antonyms (each comma-separated).`;
 
-    const prompt = `You are an English teacher creating vocabulary examples for Korean students.
+    const prompt = `You are an English vocabulary teacher for Korean students.
 
-For each word below, create ONE natural example sentence (${levelGuide}) and its Korean translation.
-The sentence must clearly show the meaning of the word. Word form may change naturally (e.g. provide → provides).
-Do not include inappropriate or sensitive content.
+${fieldGuide}
+Use words appropriate for middle/high school learners. Do not include inappropriate content.
 
 Return ONLY valid JSON in this exact shape (no markdown):
 {
@@ -60,8 +61,8 @@ Return ONLY valid JSON in this exact shape (no markdown):
     {
       "word": "exact word from input",
       "meaning": "exact meaning from input",
-      "example_sentence": "English sentence",
-      "example_meaning": "Korean translation"
+      "synonyms": "synonym1, synonym2",
+      "antonyms": "antonym1, antonym2"
     }
   ]
 }
@@ -77,7 +78,7 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        temperature: 0.5,
+        temperature: 0.4,
         response_format: { type: "json_object" },
         messages: [
           {
@@ -102,7 +103,7 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
 
     const content = data.choices?.[0]?.message?.content;
     if (!content) {
-      return jsonError("AI 예문 생성에 실패했습니다.");
+      return jsonError("AI 생성에 실패했습니다.");
     }
 
     let parsed: { items?: GeneratedItem[] };
@@ -114,7 +115,7 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
 
     const generated = parsed.items ?? [];
     if (generated.length === 0) {
-      return jsonError("AI가 예문을 반환하지 않았습니다. 다시 시도해 주세요.");
+      return jsonError("AI가 결과를 반환하지 않았습니다. 다시 시도해 주세요.");
     }
 
     const byWord = new Map(
@@ -126,19 +127,25 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
       return {
         word: item.word.trim(),
         meaning: item.meaning.trim(),
-        example_sentence: match?.example_sentence?.trim() ?? "",
-        example_meaning: match?.example_meaning?.trim() ?? "",
+        synonyms: match?.synonyms?.trim() ?? "",
+        antonyms: match?.antonyms?.trim() ?? "",
       };
     });
 
-    const filled = result.filter((r) => r.example_sentence);
+    const filled = result.filter((r) =>
+      kind === "synonyms"
+        ? r.synonyms
+        : kind === "antonyms"
+          ? r.antonyms
+          : r.synonyms || r.antonyms
+    );
     if (filled.length === 0) {
-      return jsonError("생성된 예문이 비어 있습니다. 다시 시도해 주세요.");
+      return jsonError("생성된 내용이 비어 있습니다. 다시 시도해 주세요.");
     }
 
-    return NextResponse.json({ ok: true, items: result });
+    return NextResponse.json({ ok: true, items: result, kind });
   } catch (err) {
-    console.error("generate-examples error", err);
-    return jsonError("AI 예문 생성에 실패했습니다.");
+    console.error("generate-related-words error", err);
+    return jsonError("AI 생성에 실패했습니다.");
   }
 }

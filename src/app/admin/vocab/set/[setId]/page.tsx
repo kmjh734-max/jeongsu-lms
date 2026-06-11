@@ -101,7 +101,7 @@ export default async function AdminVocabSetPage({
           단어 입력 ({itemList.length}개 저장됨)
         </h2>
         <p className="text-sm text-slate-500">
-          엑셀처럼 행을 추가·삭제하고, 붙여넣기 또는 AI로 예문을 채운 뒤 저장하세요.
+          엑셀처럼 행을 추가·삭제하고, AI로 예문·동의어·반의어를 생성한 뒤 저장하세요.
         </p>
         <VocabTableEditor
           setId={setId}

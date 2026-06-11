@@ -1,46 +1,41 @@
 export type VocabPrintMode =
   | "workbook"
   | "test"
-  | "example-middle"
-  | "example-high"
-  | "companion";
+  | "example"
+  | "synonyms"
+  | "antonyms";
 
 export const VOCAB_PRINT_MODE_LABELS: Record<VocabPrintMode, string> = {
   workbook: "단어장 (단어·뜻)",
   test: "뜻 쓰기 (단어만)",
-  "example-middle": "예문 (중등)",
-  "example-high": "예문 (고등)",
-  companion: "동반의어",
+  example: "예문",
+  synonyms: "동의어",
+  antonyms: "반의어",
 };
 
 export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
   if (
     raw === "test" ||
+    raw === "example" ||
+    raw === "synonyms" ||
+    raw === "antonyms" ||
     raw === "example-middle" ||
     raw === "example-high" ||
-    raw === "companion" ||
-    raw === "example"
+    raw === "companion"
   ) {
-    if (raw === "example") return "example-middle";
+    if (raw === "example-middle" || raw === "example-high") return "example";
+    if (raw === "companion") return "synonyms";
     return raw;
   }
   return "workbook";
 }
 
-export function modeNeedsEnrichment(mode: VocabPrintMode): boolean {
-  return (
-    mode === "example-middle" ||
-    mode === "example-high" ||
-    mode === "companion"
-  );
-}
-
 export function itemsPerVocabPrintPage(mode: VocabPrintMode): number {
   switch (mode) {
-    case "example-middle":
-    case "example-high":
+    case "example":
       return 14;
-    case "companion":
+    case "synonyms":
+    case "antonyms":
       return 18;
     case "test":
       return 18;

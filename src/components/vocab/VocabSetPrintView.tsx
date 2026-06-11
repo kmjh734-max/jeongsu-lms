@@ -2,13 +2,10 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
-import { fetchPrintEnrichmentBatched } from "@/lib/vocab/enrich-print-client";
-import type { EnrichPrintKind } from "@/lib/vocab/enrich-print-vocabulary";
 import {
   itemsPerVocabPrintPage,
-  modeNeedsEnrichment,
   paginateVocabItems,
   parseVocabPrintMode,
   VOCAB_PRINT_MODE_LABELS,
@@ -29,13 +26,6 @@ function formatNo(globalIndex: number) {
   return String(globalIndex + 1).padStart(3, "0");
 }
 
-function enrichKindFromMode(mode: VocabPrintMode): EnrichPrintKind | null {
-  if (mode === "example-middle") return "example-middle";
-  if (mode === "example-high") return "example-high";
-  if (mode === "companion") return "companion";
-  return null;
-}
-
 export function VocabSetPrintView({
   sections,
   backHref,
@@ -44,11 +34,6 @@ export function VocabSetPrintView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
-
-  const [enrichedSections, setEnrichedSections] =
-    useState<VocabPrintSection[]>(sections);
-  const [enriching, setEnriching] = useState(false);
-  const [enrichError, setEnrichError] = useState<string | null>(null);
 
   const totalItems = useMemo(
     () => sections.reduce((n, s) => n + s.items.length, 0),
@@ -66,7 +51,7 @@ export function VocabSetPrintView({
       globalPageNum: number;
     }[] = [];
     let globalPageNum = 0;
-    for (const section of enrichedSections) {
+    for (const section of sections) {
       const pages = paginateVocabItems(section.items, perPage);
       pages.forEach((pageItems, pageIndex) => {
         globalPageNum += 1;
@@ -80,60 +65,9 @@ export function VocabSetPrintView({
       });
     }
     return rows;
-  }, [enrichedSections, perPage]);
+  }, [sections, perPage]);
 
   const pageCount = flatPages.length;
-
-  useEffect(() => {
-    if (!modeNeedsEnrichment(mode)) {
-      setEnrichedSections(sections);
-      setEnrichError(null);
-      setEnriching(false);
-    }
-  }, [mode, sections]);
-
-  useEffect(() => {
-    const kind = enrichKindFromMode(mode);
-    if (!kind || !modeNeedsEnrichment(mode)) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function run() {
-      setEnriching(true);
-      setEnrichError(null);
-
-      const allItems = sections.flatMap((s) =>
-        s.items.map((i) => ({ word: i.word, meaning: i.meaning }))
-      );
-
-      const result = await fetchPrintEnrichmentBatched(kind!, allItems);
-      if (cancelled) return;
-
-      if (!result.ok) {
-        setEnrichError(result.message);
-        setEnriching(false);
-        return;
-      }
-
-      setEnrichedSections(
-        sections.map((section) => ({
-          ...section,
-          items: section.items.map((item) => ({
-            ...item,
-            enrichment: result.byWord.get(item.word.trim().toLowerCase()),
-          })),
-        }))
-      );
-      setEnriching(false);
-    }
-
-    void run();
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, sections]);
 
   const setMode = useCallback(
     (next: VocabPrintMode) => {
@@ -183,9 +117,8 @@ export function VocabSetPrintView({
                 <button
                   key={key}
                   type="button"
-                  disabled={enriching}
                   onClick={() => setMode(key)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                     mode === key
                       ? "bg-emerald-700 text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -204,23 +137,16 @@ export function VocabSetPrintView({
             <button
               type="button"
               onClick={handlePrint}
-              disabled={enriching}
-              className="rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
+              className="rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white hover:bg-emerald-800"
             >
               인쇄 / PDF 저장
             </button>
           </div>
         </div>
         <p className="mx-auto max-w-[210mm] border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-          {enriching
-            ? "AI가 예문·동반의어를 생성하는 중입니다…"
-            : "인쇄 대화상자에서 「PDF로 저장」을 선택하면 파일로 저장할 수 있습니다."}
+          예문·동의어·반의어는 세트 편집 화면에서 AI로 생성·저장한 내용이 인쇄됩니다. 인쇄
+          대화상자에서 「PDF로 저장」을 선택하면 파일로 저장할 수 있습니다.
         </p>
-        {enrichError ? (
-          <p className="mx-auto max-w-[210mm] px-4 pb-2 text-sm text-red-600" role="alert">
-            {enrichError}
-          </p>
-        ) : null}
       </div>
 
       <div className="mx-auto max-w-[210mm] space-y-6 py-8 print:space-y-0 print:py-0">
@@ -278,8 +204,10 @@ export function VocabSetPrintView({
                         <th className="col-word">WORD</th>
                         {mode === "test" ? (
                           <th className="col-meaning">뜻 쓰기</th>
-                        ) : mode === "companion" ? (
-                          <th className="col-meaning">뜻 · 동반의어</th>
+                        ) : mode === "synonyms" ? (
+                          <th className="col-meaning">뜻 · 동의어</th>
+                        ) : mode === "antonyms" ? (
+                          <th className="col-meaning">뜻 · 반의어</th>
                         ) : (
                           <th className="col-meaning">MEANING</th>
                         )}
@@ -338,19 +266,13 @@ function PrintRow({
   globalIndex: number;
   mode: VocabPrintMode;
 }) {
-  const enrich = item.enrichment;
-  const isExampleMode =
-    mode === "example-middle" || mode === "example-high";
-  const exampleSentence = isExampleMode
-    ? enrich?.example_sentence?.trim() || ""
-    : "";
-  const exampleMeaning = isExampleMode
-    ? enrich?.example_meaning?.trim() || ""
-    : "";
-  const companions =
-    mode === "companion" ? enrich?.companion_words?.trim() ?? "" : "";
+  const exampleSentence = item.example_sentence?.trim() ?? "";
+  const exampleMeaning = item.example_meaning?.trim() ?? "";
+  const synonyms = item.synonyms?.trim() ?? "";
+  const antonyms = item.antonyms?.trim() ?? "";
 
-  const showExample = isExampleMode && (exampleSentence || exampleMeaning);
+  const showExample =
+    mode === "example" && (exampleSentence || exampleMeaning);
 
   return (
     <tr className={`vocab-print-slot ${rowIndex % 2 === 1 ? "alt" : ""}`}>
@@ -370,10 +292,16 @@ function PrintRow({
         ) : (
           <>
             <span className="vocab-print-meaning">{item.meaning}</span>
-            {mode === "companion" && companions ? (
-              <p className="vocab-print-companion">
-                <span className="vocab-print-companion-label">동반</span>
-                {companions}
+            {mode === "synonyms" && synonyms ? (
+              <p className="vocab-print-related">
+                <span className="vocab-print-related-label">동의</span>
+                {synonyms}
+              </p>
+            ) : null}
+            {mode === "antonyms" && antonyms ? (
+              <p className="vocab-print-related">
+                <span className="vocab-print-related-label">반의</span>
+                {antonyms}
               </p>
             ) : null}
             {showExample && exampleMeaning ? (

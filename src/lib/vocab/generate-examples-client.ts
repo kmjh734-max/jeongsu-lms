@@ -10,8 +10,11 @@ export interface GenerateExampleResult {
   example_meaning: string;
 }
 
+export type ExampleLevel = "middle" | "high";
+
 export async function fetchGeneratedExamples(
-  items: GenerateExampleInput[]
+  items: GenerateExampleInput[],
+  level: ExampleLevel = "middle"
 ): Promise<
   | { ok: true; items: GenerateExampleResult[] }
   | { ok: false; message: string }
@@ -20,7 +23,7 @@ export async function fetchGeneratedExamples(
     const res = await fetch("/api/vocab/generate-examples", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items, level }),
       credentials: "same-origin",
     });
 

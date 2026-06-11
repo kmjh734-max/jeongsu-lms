@@ -6,6 +6,8 @@ export interface VocabItemSaveInput {
   meaning: string;
   example_sentence?: string;
   example_meaning?: string;
+  synonyms?: string;
+  antonyms?: string;
   order_index: number;
 }
 
@@ -21,6 +23,8 @@ export async function persistVocabItems(
       meaning: item.meaning.trim(),
       example_sentence: item.example_sentence?.trim() || null,
       example_meaning: item.example_meaning?.trim() || null,
+      synonyms: item.synonyms?.trim() || null,
+      antonyms: item.antonyms?.trim() || null,
       order_index: index,
     }))
     .filter((item) => item.word && item.meaning);
@@ -50,6 +54,8 @@ export async function persistVocabItems(
           part_of_speech: null,
           example_sentence: item.example_sentence,
           example_meaning: item.example_meaning,
+          synonyms: item.synonyms,
+          antonyms: item.antonyms,
           order_index: item.order_index,
         })
         .eq("id", item.id!)
@@ -73,6 +79,8 @@ export async function persistVocabItems(
           part_of_speech: null,
           example_sentence: item.example_sentence,
           example_meaning: item.example_meaning,
+          synonyms: item.synonyms,
+          antonyms: item.antonyms,
           order_index: item.order_index,
         }))
       )

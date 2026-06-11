@@ -145,6 +145,8 @@ export interface VocabItem {
   part_of_speech: string | null;
   example_sentence: string | null;
   example_meaning: string | null;
+  synonyms: string | null;
+  antonyms: string | null;
   order_index: number;
   created_at: string;
 }

@@ -1,14 +1,6 @@
 import type { VocabItem } from "@/types/database";
 
-export interface VocabPrintEnrichment {
-  example_sentence?: string;
-  example_meaning?: string;
-  companion_words?: string;
-}
-
-export interface VocabPrintRow extends VocabItem {
-  enrichment?: VocabPrintEnrichment;
-}
+export type VocabPrintRow = VocabItem;
 
 export interface VocabPrintSection {
   setId: string;
