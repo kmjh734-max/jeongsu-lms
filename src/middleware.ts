@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { isVocabEnabled, isVocabPath } from "@/lib/academy-features";
 import { updateSession } from "@/lib/supabase/middleware";
 import {
   getDashboardPathForRole,
@@ -36,6 +37,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (!isVocabEnabled() && pathname.startsWith("/api/vocab")) {
+    return NextResponse.json(
+      { ok: false, message: "이 학원에서는 단어학습을 사용하지 않습니다." },
+      { status: 404 }
+    );
+  }
+
   const { supabase, user, supabaseResponse } = await updateSession(request);
 
   if (!user) {
@@ -61,6 +69,13 @@ export async function middleware(request: NextRequest) {
   }
 
   const dashboardPath = getDashboardPathForRole(role);
+
+  if (!isVocabEnabled() && isVocabPath(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = dashboardPath;
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
 
   if (pathname === "/login") {
     const rawRedirect =

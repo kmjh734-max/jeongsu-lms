@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { filterNavItems } from "@/lib/academy-features";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
@@ -28,7 +29,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <DashboardLayout profile={profile} navItems={NAV_ITEMS}>
+    <DashboardLayout profile={profile} navItems={filterNavItems(NAV_ITEMS)}>
       {children}
     </DashboardLayout>
   );

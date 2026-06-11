@@ -8,6 +8,7 @@ import {
   ClassStudentsPanel,
 } from "@/components/classes/ClassDetailPanels";
 import { ClassVocabPanel } from "@/components/vocab/ClassVocabPanel";
+import { isVocabEnabled } from "@/lib/academy-features";
 import { loadClassVocabPanelData } from "@/lib/vocab/load-class-vocab";
 import { unwrapRelation } from "@/lib/progress/enrollment-progress";
 import * as classActions from "@/app/teacher/classes/actions";
@@ -91,12 +92,9 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
   const teacherList = (teachers ?? []) as Profile[];
 
-  const { students: vocabStudents, setOptions } = await loadClassVocabPanelData(
-    supabase,
-    "teacher",
-    profile!.id,
-    classId
-  );
+  const vocabPanel = isVocabEnabled()
+    ? await loadClassVocabPanelData(supabase, "teacher", profile!.id, classId)
+    : null;
 
   return (
     <div className="space-y-10">
@@ -152,18 +150,20 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
         />
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 font-semibold">학생별 단어장 배정</h3>
-        <ClassVocabPanel
-          classId={classId}
-          students={vocabStudents}
-          setOptions={setOptions}
-          onAssign={classActions.teacherAssignVocabSetToStudent}
-          onRemove={(assignmentId, cid) =>
-            classActions.teacherRemoveVocabSetFromStudent(cid, assignmentId)
-          }
-        />
-      </section>
+      {vocabPanel && (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 className="mb-4 font-semibold">학생별 단어장 배정</h3>
+          <ClassVocabPanel
+            classId={classId}
+            students={vocabPanel.students}
+            setOptions={vocabPanel.setOptions}
+            onAssign={classActions.teacherAssignVocabSetToStudent}
+            onRemove={(assignmentId, cid) =>
+              classActions.teacherRemoveVocabSetFromStudent(cid, assignmentId)
+            }
+          />
+        </section>
+      )}
     </div>
   );
 }

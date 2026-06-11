@@ -7,6 +7,7 @@ import {
   ClassStudentsPanel,
 } from "@/components/classes/ClassDetailPanels";
 import { ClassVocabPanel } from "@/components/vocab/ClassVocabPanel";
+import { isVocabEnabled } from "@/lib/academy-features";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { loadClassVocabPanelData } from "@/lib/vocab/load-class-vocab";
 import { unwrapRelation } from "@/lib/progress/enrollment-progress";
@@ -83,12 +84,9 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
     };
   });
 
-  const { students: vocabStudents, setOptions } = await loadClassVocabPanelData(
-    supabase,
-    "admin",
-    profile!.id,
-    classId
-  );
+  const vocabPanel = isVocabEnabled()
+    ? await loadClassVocabPanelData(supabase, "admin", profile!.id, classId)
+    : null;
 
   return (
     <div className="space-y-10">
@@ -136,18 +134,20 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
         />
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 font-semibold">학생별 단어장 배정</h3>
-        <ClassVocabPanel
-          classId={classId}
-          students={vocabStudents}
-          setOptions={setOptions}
-          onAssign={classActions.adminAssignVocabSetToStudent}
-          onRemove={(assignmentId, cid) =>
-            classActions.adminRemoveVocabSetFromStudent(cid, assignmentId)
-          }
-        />
-      </section>
+      {vocabPanel && (
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 className="mb-4 font-semibold">학생별 단어장 배정</h3>
+          <ClassVocabPanel
+            classId={classId}
+            students={vocabPanel.students}
+            setOptions={vocabPanel.setOptions}
+            onAssign={classActions.adminAssignVocabSetToStudent}
+            onRemove={(assignmentId, cid) =>
+              classActions.adminRemoveVocabSetFromStudent(cid, assignmentId)
+            }
+          />
+        </section>
+      )}
     </div>
   );
 }
