@@ -94,6 +94,213 @@
 
 }
 
+/* 단어장 인쇄 (시중 단어장 스타일) */
+.vocab-print-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 210mm;
+  min-height: 297mm;
+  max-height: 297mm;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 8px 30px rgb(15 23 42 / 0.12);
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+
+.vocab-print-header {
+  flex-shrink: 0;
+  border-bottom: 3px solid #0f5c44;
+}
+
+.vocab-print-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px 8px;
+  background: linear-gradient(135deg, #0d4f3c 0%, #157a57 55%, #1a8f66 100%);
+  color: #fff;
+}
+
+.vocab-print-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vocab-print-logo {
+  height: 36px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.vocab-print-academy {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.9;
+}
+
+.vocab-print-label {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.vocab-print-meta-fields {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.vocab-print-field-line {
+  display: inline-block;
+  width: 88px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.75);
+  height: 14px;
+}
+
+.vocab-print-field-short {
+  width: 64px;
+}
+
+.vocab-print-title {
+  margin: 0;
+  padding: 12px 14px 4px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f3d2e;
+  letter-spacing: -0.02em;
+}
+
+.vocab-print-desc {
+  margin: 0;
+  padding: 0 14px 6px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.vocab-print-header-foot {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 14px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #0f766e;
+}
+
+.vocab-print-table {
+  width: 100%;
+  flex: 1;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 11px;
+}
+
+.vocab-print-table thead th {
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 6px 8px;
+  border-bottom: 2px solid #a7f3d0;
+  text-align: left;
+}
+
+.vocab-print-table tbody tr {
+  border-bottom: 1px dotted #cbd5e1;
+}
+
+.vocab-print-table tbody tr.alt {
+  background: #f8fafc;
+}
+
+.vocab-print-table td {
+  vertical-align: top;
+  padding: 7px 8px;
+}
+
+.vocab-print-table .col-no {
+  width: 36px;
+  text-align: center;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.vocab-print-table .col-check {
+  width: 28px;
+  text-align: center;
+}
+
+.vocab-print-table .col-word {
+  width: 38%;
+}
+
+.vocab-print-checkbox {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid #94a3b8;
+  border-radius: 2px;
+  background: #fff;
+}
+
+.vocab-print-word {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.vocab-print-meaning {
+  font-size: 12px;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+.vocab-print-example {
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: #475569;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.vocab-print-example-meaning {
+  margin: 3px 0 0;
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.vocab-print-blank-lines {
+  display: block;
+  min-height: 28px;
+  border-bottom: 1px solid #cbd5e1;
+  margin-top: 4px;
+}
+
+.vocab-print-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px 10px;
+  border-top: 2px solid #0f5c44;
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+}
+
 @media print {
   .no-print {
     display: none !important;
@@ -112,7 +319,8 @@
 
   #shared-report-print-root,
   #listening-print-root,
-  #student-record-print-root {
+  #student-record-print-root,
+  #vocab-print-root {
     visibility: visible;
   }
 
@@ -123,7 +331,9 @@
   #listening-print-root,
   #listening-print-root *,
   #student-record-print-root,
-  #student-record-print-root * {
+  #student-record-print-root *,
+  #vocab-print-root,
+  #vocab-print-root * {
     visibility: visible;
   }
 
@@ -139,13 +349,31 @@
   #a4-print-root,
   #shared-report-print-root,
   #listening-print-root,
-  #student-record-print-root {
+  #student-record-print-root,
+  #vocab-print-root {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     box-shadow: none !important;
     margin: 0 auto !important;
+  }
+
+  .vocab-print-page {
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .vocab-print-page-break {
+    break-after: page !important;
+    page-break-after: always !important;
   }
 
   .a4-report {

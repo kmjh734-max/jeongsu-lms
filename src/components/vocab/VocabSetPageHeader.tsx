@@ -5,6 +5,7 @@ interface VocabSetPageHeaderProps {
   itemCount: number;
   backHref: string;
   backLabel?: string;
+  printHref?: string;
   assignLauncher: React.ReactNode;
 }
 
@@ -13,6 +14,7 @@ export function VocabSetPageHeader({
   itemCount,
   backHref,
   backLabel = "← 폴더로 돌아가기",
+  printHref,
   assignLauncher,
 }: VocabSetPageHeaderProps) {
   return (
@@ -36,7 +38,19 @@ export function VocabSetPageHeader({
               <p className="mt-1 text-sm text-slate-500">{itemCount} 카드</p>
             </div>
           </div>
-          {assignLauncher}
+          <div className="flex flex-wrap items-center gap-2">
+            {printHref ? (
+              <Link
+                href={printHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-emerald-700 bg-white px-4 py-2 text-sm font-bold text-emerald-800 shadow-sm hover:bg-emerald-50"
+              >
+                인쇄 / PDF
+              </Link>
+            ) : null}
+            {assignLauncher}
+          </div>
         </div>
       </div>
     </header>

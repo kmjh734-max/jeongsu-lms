@@ -78,6 +78,7 @@ export default async function AdminVocabSetPage({
         title={typedSet.title}
         itemCount={itemList.length}
         backHref={listHref}
+        printHref={`/admin/vocab/set/${setId}/print`}
         assignLauncher={
           <VocabSetAssignLauncher
             title={`단어장 배정 — ${typedSet.title}`}
