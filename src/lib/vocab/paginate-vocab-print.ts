@@ -1,3 +1,5 @@
+import type { VocabPrintSize } from "@/lib/vocab/vocab-print-size";
+
 export type VocabPrintMode = "workbook" | "test" | "full";
 
 export const VOCAB_PRINT_MODE_LABELS: Record<VocabPrintMode, string> = {
@@ -32,14 +34,18 @@ export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
   return "workbook";
 }
 
-export function itemsPerVocabPrintPage(mode: VocabPrintMode): number {
+export function itemsPerVocabPrintPage(
+  mode: VocabPrintMode,
+  size: VocabPrintSize = "a4"
+): number {
+  const compact = size === "b5";
   switch (mode) {
     case "full":
-      return 10;
+      return compact ? 8 : 10;
     case "test":
-      return 18;
+      return compact ? 15 : 18;
     default:
-      return 22;
+      return compact ? 18 : 22;
   }
 }
 

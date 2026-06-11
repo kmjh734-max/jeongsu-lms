@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
+import { highlightWordInSentence } from "@/lib/vocab/highlight-word-in-sentence";
 import {
   itemsPerVocabPrintPage,
   paginateVocabItems,
@@ -11,6 +12,12 @@ import {
   VOCAB_PRINT_MODE_LABELS,
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
+import {
+  parseVocabPrintSize,
+  VOCAB_PRINT_PAGE_DIMENSIONS,
+  VOCAB_PRINT_SIZE_LABELS,
+  type VocabPrintSize,
+} from "@/lib/vocab/vocab-print-size";
 import type {
   VocabPrintRow,
   VocabPrintSection,
@@ -23,7 +30,7 @@ interface VocabSetPrintViewProps {
 }
 
 function formatNo(globalIndex: number) {
-  return String(globalIndex + 1).padStart(3, "0");
+  return String(globalIndex + 1).padStart(4, "0");
 }
 
 export function VocabSetPrintView({
@@ -34,13 +41,15 @@ export function VocabSetPrintView({
   const router = useRouter();
   const searchParams = useSearchParams();
   const mode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
+  const size = parseVocabPrintSize(searchParams.get("size") ?? undefined);
+
+  const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
+  const perPage = itemsPerVocabPrintPage(mode, size);
 
   const totalItems = useMemo(
     () => sections.reduce((n, s) => n + s.items.length, 0),
     [sections]
   );
-
-  const perPage = itemsPerVocabPrintPage(mode);
 
   const flatPages = useMemo(() => {
     const rows: {
@@ -49,6 +58,7 @@ export function VocabSetPrintView({
       pageIndex: number;
       sectionPageTotal: number;
       globalPageNum: number;
+      sectionStartIndex: number;
     }[] = [];
     let globalPageNum = 0;
     for (const section of sections) {
@@ -61,6 +71,7 @@ export function VocabSetPrintView({
           pageIndex,
           sectionPageTotal: pages.length,
           globalPageNum,
+          sectionStartIndex: pageIndex * perPage,
         });
       });
     }
@@ -69,10 +80,27 @@ export function VocabSetPrintView({
 
   const pageCount = flatPages.length;
 
-  const setMode = useCallback(
-    (next: VocabPrintMode) => {
+  useEffect(() => {
+    const id = "vocab-print-page-size-style";
+    let el = document.getElementById(id) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement("style");
+      el.id = id;
+      document.head.appendChild(el);
+    }
+    el.textContent =
+      size === "b5"
+        ? "@page { size: B5 portrait; margin: 0; }"
+        : "@page { size: A4 portrait; margin: 0; }";
+    return () => {
+      el?.remove();
+    };
+  }, [size]);
+
+  const setQuery = useCallback(
+    (key: "mode" | "size", value: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      params.set("mode", next);
+      params.set(key, value);
       router.replace(`?${params.toString()}`);
     },
     [router, searchParams]
@@ -102,22 +130,41 @@ export function VocabSetPrintView({
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
       <div className="no-print sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-[210mm] flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div
+          className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+          style={{ maxWidth: pageDims.width }}
+        >
           <div>
             <p className="text-xs font-medium text-slate-500">단어장 인쇄</p>
             <h1 className="text-lg font-bold text-slate-900">{title}</h1>
             <p className="text-sm text-slate-500">
-              {totalItems}단어 · {pageCount}페이지
+              {totalItems}단어 · {pageCount}페이지 · {VOCAB_PRINT_SIZE_LABELS[size]}
               {sections.length > 1 ? ` · ${sections.length}개 세트` : ""}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">용지</span>
+            {(["a4", "b5"] as VocabPrintSize[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setQuery("size", key)}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  size === key
+                    ? "bg-slate-800 text-white"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                {VOCAB_PRINT_SIZE_LABELS[key]}
+              </button>
+            ))}
+            <span className="mx-1 text-slate-300">|</span>
             {(Object.keys(VOCAB_PRINT_MODE_LABELS) as VocabPrintMode[]).map(
               (key) => (
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setMode(key)}
+                  onClick={() => setQuery("mode", key)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                     mode === key
                       ? "bg-emerald-700 text-white"
@@ -143,49 +190,70 @@ export function VocabSetPrintView({
             </button>
           </div>
         </div>
-        <p className="mx-auto max-w-[210mm] border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-          예문·동의어·반의어는 세트 편집 화면에서 AI로 생성·저장한 내용이 인쇄됩니다. 인쇄
-          대화상자에서 「PDF로 저장」을 선택하면 파일로 저장할 수 있습니다.
+        <p
+          className="mx-auto border-t border-slate-100 px-4 py-2 text-xs text-slate-500"
+          style={{ maxWidth: pageDims.width }}
+        >
+          용지 크기({VOCAB_PRINT_SIZE_LABELS[size]})를 선택한 뒤 인쇄하세요. PDF 저장 시에도
+          같은 용지 설정이 적용됩니다.
         </p>
       </div>
 
-      <div className="mx-auto max-w-[210mm] space-y-6 py-8 print:space-y-0 print:py-0">
-        <div id="vocab-print-root">
+      <div
+        className="mx-auto space-y-6 py-8 print:space-y-0 print:py-0"
+        style={{ maxWidth: pageDims.width }}
+      >
+        <div id="vocab-print-root" data-size={size}>
           {flatPages.map(
             (
-              { section, pageItems, pageIndex, sectionPageTotal, globalPageNum },
+              {
+                section,
+                pageItems,
+                pageIndex,
+                sectionPageTotal,
+                globalPageNum,
+                sectionStartIndex,
+              },
               flatIndex
             ) => (
               <article
                 key={`${section.setId}-${pageIndex}`}
-                className={`vocab-print-page ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
+                className={`vocab-print-page vocab-print-page--${size} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
+                data-size={size}
                 style={
                   {
                     ["--vocab-rows-per-page" as string]: perPage,
+                    ["--vocab-page-width" as string]: pageDims.width,
+                    ["--vocab-page-height" as string]: pageDims.height,
+                    ["--vocab-body-height" as string]: pageDims.bodyHeight,
                   } as React.CSSProperties
                 }
               >
                 <header className="vocab-print-header">
-                  <div className="vocab-print-header-top">
-                    <div className="vocab-print-brand">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={LOGO_SRC} alt="" className="vocab-print-logo" />
-                      <div>
-                        <p className="vocab-print-academy">{ACADEMY_NAME}</p>
-                        <p className="vocab-print-label">VOCABULARY</p>
+                  <div className="vocab-print-header-band">
+                    <div className="vocab-print-day-badge">
+                      <span className="vocab-print-day-label">SET</span>
+                      <span className="vocab-print-day-num">
+                        {String(pageIndex + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+                    <div className="vocab-print-header-main">
+                      <div className="vocab-print-brand-row">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={LOGO_SRC} alt="" className="vocab-print-logo" />
+                        <div>
+                          <p className="vocab-print-academy">{ACADEMY_NAME}</p>
+                          <h2 className="vocab-print-title">{section.title}</h2>
+                        </div>
+                      </div>
+                      <div className="vocab-print-meta-fields">
+                        <span>이름</span>
+                        <span className="vocab-print-field-line" />
+                        <span>날짜</span>
+                        <span className="vocab-print-field-line vocab-print-field-short" />
                       </div>
                     </div>
-                    <div className="vocab-print-meta-fields">
-                      <span>이름</span>
-                      <span className="vocab-print-field-line" />
-                      <span>날짜</span>
-                      <span className="vocab-print-field-line vocab-print-field-short" />
-                    </div>
                   </div>
-                  <h2 className="vocab-print-title">{section.title}</h2>
-                  {section.description?.trim() ? (
-                    <p className="vocab-print-desc">{section.description.trim()}</p>
-                  ) : null}
                   <div className="vocab-print-header-foot">
                     <span>{VOCAB_PRINT_MODE_LABELS[mode]}</span>
                     <span>
@@ -195,53 +263,33 @@ export function VocabSetPrintView({
                   </div>
                 </header>
 
-                <div className="vocab-print-table-wrap">
-                  <table className="vocab-print-table">
-                    <thead>
-                      <tr>
-                        <th className="col-no">NO</th>
-                        <th className="col-check">✓</th>
-                        <th className="col-word">WORD</th>
-                        {mode === "test" ? (
-                          <th className="col-meaning">뜻 쓰기</th>
-                        ) : mode === "full" ? (
-                          <th className="col-meaning">뜻 · 예문해석 · 동의어 · 반의어</th>
-                        ) : (
-                          <th className="col-meaning">MEANING</th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pageItems.map((item, rowIndex) => {
-                        const globalIndex = pageIndex * perPage + rowIndex;
-                        if (!item) {
-                          return (
-                            <tr
-                              key={`empty-${rowIndex}`}
-                              className={`vocab-print-slot empty ${rowIndex % 2 === 1 ? "alt" : ""}`}
-                            >
-                              <td colSpan={4} />
-                            </tr>
-                          );
-                        }
-                        return (
-                          <PrintRow
-                            key={item.id}
-                            item={item}
-                            rowIndex={rowIndex}
-                            globalIndex={globalIndex}
-                            mode={mode}
-                          />
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                <div className="vocab-print-list">
+                  {pageItems.map((item, rowIndex) => {
+                    const globalIndex = sectionStartIndex + rowIndex;
+                    if (!item) {
+                      return (
+                        <div
+                          key={`empty-${rowIndex}`}
+                          className={`vocab-print-entry empty ${rowIndex % 2 === 1 ? "alt" : ""}`}
+                        />
+                      );
+                    }
+                    return (
+                      <PrintEntry
+                        key={item.id}
+                        item={item}
+                        rowIndex={rowIndex}
+                        globalIndex={globalIndex}
+                        mode={mode}
+                      />
+                    );
+                  })}
                 </div>
 
                 <footer className="vocab-print-footer">
                   <span>{ACADEMY_NAME}</span>
                   <span>
-                    {section.title} · p.{globalPageNum}
+                    {section.title} · p.{globalPageNum} · {VOCAB_PRINT_SIZE_LABELS[size]}
                   </span>
                 </footer>
               </article>
@@ -253,7 +301,7 @@ export function VocabSetPrintView({
   );
 }
 
-function PrintRow({
+function PrintEntry({
   item,
   rowIndex,
   globalIndex,
@@ -268,47 +316,64 @@ function PrintRow({
   const exampleMeaning = item.example_meaning?.trim() ?? "";
   const synonyms = item.synonyms?.trim() ?? "";
   const antonyms = item.antonyms?.trim() ?? "";
-
   const showFull = mode === "full";
 
   return (
-    <tr className={`vocab-print-slot ${rowIndex % 2 === 1 ? "alt" : ""}`}>
-      <td className="col-no">{formatNo(globalIndex)}</td>
-      <td className="col-check">
-        <span className="vocab-print-checkbox" />
-      </td>
-      <td className="col-word">
-        <span className="vocab-print-word">{item.word}</span>
-        {showFull && exampleSentence ? (
-          <p className="vocab-print-example">{exampleSentence}</p>
-        ) : null}
-      </td>
-      <td className="col-meaning">
+    <div className={`vocab-print-entry ${rowIndex % 2 === 1 ? "alt" : ""}`}>
+      <div className="vocab-print-entry-left">
+        <div className="vocab-print-entry-meta">
+          <span className="vocab-print-no">{formatNo(globalIndex)}</span>
+          <div className="vocab-print-checks" aria-hidden>
+            <span className="vocab-print-checkbox" />
+            <span className="vocab-print-checkbox" />
+          </div>
+        </div>
+        <p className="vocab-print-word">{item.word}</p>
+      </div>
+
+      <div className="vocab-print-entry-right">
         {mode === "test" ? (
-          <span className="vocab-print-blank-lines" />
+          <div className="vocab-print-test-blank" />
         ) : (
           <>
-            <span className="vocab-print-meaning">{item.meaning}</span>
+            <p className="vocab-print-meaning">
+              <span className="vocab-print-pos">·</span>
+              {item.meaning}
+            </p>
+
+            {showFull && exampleSentence ? (
+              <p className="vocab-print-example">
+                {highlightWordInSentence(exampleSentence, item.word)}
+              </p>
+            ) : null}
+
             {showFull && exampleMeaning ? (
-              <p className="vocab-print-example-meaning">{exampleMeaning}</p>
+              <p className="vocab-print-example-ko">{exampleMeaning}</p>
             ) : null}
-            {showFull && synonyms ? (
-              <p className="vocab-print-related">
-                <span className="vocab-print-related-label">동의</span>
-                {synonyms}
-              </p>
-            ) : null}
-            {showFull && antonyms ? (
-              <p className="vocab-print-related vocab-print-related-antonym">
-                <span className="vocab-print-related-label vocab-print-related-label-antonym">
-                  반의
-                </span>
-                {antonyms}
-              </p>
+
+            {showFull && (synonyms || antonyms) ? (
+              <div className="vocab-print-related-row">
+                {synonyms ? (
+                  <p className="vocab-print-related">
+                    <span className="vocab-print-related-icon vocab-print-related-icon--syn">
+                      +
+                    </span>
+                    <span className="vocab-print-related-text">{synonyms}</span>
+                  </p>
+                ) : null}
+                {antonyms ? (
+                  <p className="vocab-print-related">
+                    <span className="vocab-print-related-icon vocab-print-related-icon--ant">
+                      −
+                    </span>
+                    <span className="vocab-print-related-text">{antonyms}</span>
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </>
         )}
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }

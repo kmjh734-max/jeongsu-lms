@@ -99,250 +99,324 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 210mm;
-  min-height: 297mm;
-  max-height: 297mm;
+  width: var(--vocab-page-width, 210mm);
+  min-height: var(--vocab-page-height, 297mm);
+  max-height: var(--vocab-page-height, 297mm);
   margin: 0 auto;
   overflow: hidden;
   background: #fff;
-  color: #111827;
+  color: #1a1a1a;
   box-shadow: 0 8px 30px rgb(15 23 42 / 0.12);
-  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  font-family: "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
 }
 
 .vocab-print-header {
   flex-shrink: 0;
-  border-bottom: 3px solid #0f5c44;
+  border-bottom: 2px solid #e2e8f0;
 }
 
-.vocab-print-header-top {
+.vocab-print-header-band {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+}
+
+.vocab-print-day-badge {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  padding: 8px 6px;
+  background: linear-gradient(160deg, #1e3a5f 0%, #2563eb 100%);
+  color: #fff;
+  text-align: center;
+}
+
+.vocab-print-day-label {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+}
+
+.vocab-print-day-num {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.vocab-print-header-main {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px 8px;
-  background: linear-gradient(135deg, #0d4f3c 0%, #157a57 55%, #1a8f66 100%);
-  color: #fff;
+  gap: 10px;
+  padding: 8px 12px 8px 10px;
+  min-width: 0;
 }
 
-.vocab-print-brand {
+.vocab-print-brand-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .vocab-print-logo {
-  height: 36px;
+  height: 28px;
   width: auto;
-  max-width: 120px;
+  max-width: 88px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
 .vocab-print-academy {
-  font-size: 10px;
+  margin: 0;
+  font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  opacity: 0.9;
+  color: #64748b;
+  letter-spacing: 0.02em;
 }
 
-.vocab-print-label {
+.vocab-print-title {
+  margin: 2px 0 0;
   font-size: 15px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 .vocab-print-meta-fields {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 10px;
+  gap: 5px;
+  font-size: 9px;
   font-weight: 600;
+  color: #475569;
+  flex-shrink: 0;
 }
 
 .vocab-print-field-line {
   display: inline-block;
-  width: 88px;
-  border-bottom: 1px solid rgb(255 255 255 / 0.75);
-  height: 14px;
+  width: 72px;
+  border-bottom: 1px solid #94a3b8;
+  height: 12px;
 }
 
 .vocab-print-field-short {
-  width: 64px;
-}
-
-.vocab-print-title {
-  margin: 0;
-  padding: 12px 14px 4px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #0f3d2e;
-  letter-spacing: -0.02em;
-}
-
-.vocab-print-desc {
-  margin: 0;
-  padding: 0 14px 6px;
-  font-size: 11px;
-  color: #64748b;
+  width: 52px;
 }
 
 .vocab-print-header-foot {
   display: flex;
   justify-content: space-between;
-  padding: 4px 14px 8px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #0f766e;
-}
-
-.vocab-print-table-wrap {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.vocab-print-table {
-  width: 100%;
-  height: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-size: 11px;
-}
-
-.vocab-print-table tbody {
-  height: 100%;
-}
-
-.vocab-print-table thead th {
-  background: #ecfdf5;
-  color: #065f46;
+  padding: 4px 12px 6px;
   font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 6px 8px;
-  border-bottom: 2px solid #a7f3d0;
-  text-align: left;
-}
-
-.vocab-print-slot {
-  height: calc(225mm / var(--vocab-rows-per-page, 22));
-  border-bottom: 1px dotted #cbd5e1;
-}
-
-.vocab-print-slot.alt {
+  font-weight: 600;
+  color: #64748b;
   background: #f8fafc;
 }
 
-.vocab-print-slot.empty td {
-  padding: 0;
+.vocab-print-list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.vocab-print-table td {
-  vertical-align: top;
-  padding: 7px 8px;
-  height: inherit;
+.vocab-print-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  height: calc(var(--vocab-body-height, 225mm) / var(--vocab-rows-per-page, 22));
+  padding: 6px 12px 5px;
+  border-bottom: 1px solid #e2e8f0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.vocab-print-table .col-no {
-  width: 36px;
-  text-align: center;
-  font-family: ui-monospace, monospace;
-  font-size: 10px;
+.vocab-print-entry.alt {
+  background: #fafbfc;
+}
+
+.vocab-print-entry.empty {
+  border-bottom-color: #edf2f7;
+}
+
+.vocab-print-entry-left {
+  flex-shrink: 0;
+  width: 26%;
+  min-width: 72px;
+  max-width: 108px;
+}
+
+.vocab-print-entry-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.vocab-print-entry-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.vocab-print-no {
+  font-family: ui-monospace, "Consolas", monospace;
+  font-size: 9px;
   font-weight: 700;
-  color: #64748b;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
 }
 
-.vocab-print-table .col-check {
-  width: 28px;
-  text-align: center;
-}
-
-.vocab-print-table .col-word {
-  width: 38%;
+.vocab-print-checks {
+  display: flex;
+  gap: 3px;
 }
 
 .vocab-print-checkbox {
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 1.5px solid #94a3b8;
-  border-radius: 2px;
+  width: 10px;
+  height: 10px;
+  border: 1.2px solid #cbd5e1;
+  border-radius: 1px;
   background: #fff;
 }
 
 .vocab-print-word {
-  font-size: 13px;
-  font-weight: 700;
-  color: #0f172a;
-  line-height: 1.35;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+
+.vocab-print-page--b5 .vocab-print-word {
+  font-size: 12px;
 }
 
 .vocab-print-meaning {
-  font-size: 12px;
-  color: #1e293b;
-  line-height: 1.45;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #e11d48;
+  line-height: 1.4;
+}
+
+.vocab-print-page--b5 .vocab-print-meaning {
+  font-size: 10px;
+}
+
+.vocab-print-pos {
+  display: inline-block;
+  margin-right: 3px;
+  color: #f43f5e;
+  font-weight: 900;
 }
 
 .vocab-print-example {
-  margin: 4px 0 0;
-  font-size: 10px;
-  color: #475569;
-  line-height: 1.4;
-  font-style: italic;
-}
-
-.vocab-print-example-meaning {
   margin: 3px 0 0;
   font-size: 10px;
-  color: #64748b;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.vocab-print-page--b5 .vocab-print-example {
+  font-size: 9px;
+}
+
+.vocab-print-example-ko {
+  margin: 2px 0 0;
+  font-size: 9px;
+  color: #94a3b8;
   line-height: 1.4;
 }
 
-.vocab-print-blank-lines {
-  display: block;
-  min-height: 28px;
-  border-bottom: 1px solid #cbd5e1;
+.vocab-print-page--b5 .vocab-print-example-ko {
+  font-size: 8px;
+}
+
+.vocab-print-highlight {
+  color: #e11d48;
+  font-weight: 700;
+  font-style: normal;
+  background: transparent;
+  padding: 0;
+}
+
+.vocab-print-related-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   margin-top: 4px;
 }
 
 .vocab-print-related {
-  margin: 5px 0 0;
-  font-size: 10px;
-  color: #0f766e;
-  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.4;
+  color: #334155;
 }
 
-.vocab-print-related-label {
-  display: inline-block;
-  margin-right: 4px;
-  padding: 0 4px;
+.vocab-print-page--b5 .vocab-print-related {
   font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #fff;
-  background: #0d9488;
+}
+
+.vocab-print-related-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
   border-radius: 2px;
-  vertical-align: middle;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
 }
 
-.vocab-print-related-antonym {
-  color: #b45309;
+.vocab-print-related-icon--syn {
+  background: #16a34a;
 }
 
-.vocab-print-related-label-antonym {
-  background: #d97706;
+.vocab-print-related-icon--ant {
+  background: #2563eb;
+}
+
+.vocab-print-related-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.vocab-print-test-blank {
+  min-height: 24px;
+  margin-top: 4px;
+  border-bottom: 1px solid #cbd5e1;
 }
 
 .vocab-print-footer {
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
-  padding: 8px 14px 10px;
-  border-top: 2px solid #0f5c44;
-  font-size: 9px;
+  padding: 6px 12px 8px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 8px;
   font-weight: 600;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 @media print {
@@ -406,9 +480,9 @@
   .vocab-print-page {
     box-shadow: none !important;
     margin: 0 auto !important;
-    width: 210mm !important;
-    min-height: 297mm !important;
-    max-height: 297mm !important;
+    width: var(--vocab-page-width, 210mm) !important;
+    min-height: var(--vocab-page-height, 297mm) !important;
+    max-height: var(--vocab-page-height, 297mm) !important;
     overflow: hidden !important;
     background: white !important;
     -webkit-print-color-adjust: exact !important;
