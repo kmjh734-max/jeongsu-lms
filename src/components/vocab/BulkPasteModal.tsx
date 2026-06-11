@@ -21,7 +21,7 @@ export function BulkPasteModal({ open, onClose, onApply }: BulkPasteModalProps) 
     const parsed = parseBulkPaste(text);
     if (parsed.length === 0) {
       setHint(
-        "붙여넣은 내용에서 단어를 찾지 못했습니다. 탭·콤마·공백 구분을 확인해 주세요."
+        "붙여넣은 내용에서 단어를 찾지 못했습니다. 영어 단어 뒤에 한글 뜻이 오는지, 탭 구분을 확인해 주세요."
       );
       return;
     }
@@ -60,14 +60,16 @@ export function BulkPasteModal({ open, onClose, onApply }: BulkPasteModalProps) 
         </div>
         <div className="p-6">
           <p className="text-sm text-slate-600">
-            엑셀·구글시트에서 복사한 내용을 붙여넣으세요. 탭, 콤마, 여러 공백으로
-            구분됩니다.
+            엑셀·구글시트에서 복사한 내용을 붙여넣으세요. 열 구분은 탭을
+            사용하고, 한 줄에 붙여 넣을 때는 영어 단어와 한글 뜻 사이만
+            나뉩니다. 뜻 안의 콤마·공백(예: 여러가지의, 다른)은 그대로
+            유지됩니다.
           </p>
           <textarea
             className="ui-input mt-4 min-h-[200px] font-mono text-sm"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={`단어\t뜻\nprovide\t제공하다\nimportant\t중요한`}
+            placeholder={`단어\t뜻\nprovide\t제공하다\ndifferent\t여러가지의, 다른`}
           />
           {hint && (
             <p className="mt-2 text-sm text-slate-600" role="status">

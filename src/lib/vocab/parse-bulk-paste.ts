@@ -12,25 +12,86 @@ const HEADER_PATTERNS = [
   /^단어\s*뜻\s*예문/i,
 ];
 
+const HANGUL = /[\uAC00-\uD7A3]/;
+
 function isHeaderLine(line: string): boolean {
   const normalized = line.trim().toLowerCase();
   return HEADER_PATTERNS.some((p) => p.test(normalized));
 }
 
-function splitColumns(line: string): string[] {
-  if (line.includes("\t")) {
-    return line.split("\t").map((c) => c.trim());
+function rowFromColumns(cols: string[]): ParsedVocabRow | null {
+  const word = cols[0]?.trim() ?? "";
+  const meaning = cols[1]?.trim() ?? "";
+  if (!word || !meaning) return null;
+
+  return {
+    word,
+    meaning,
+    example_sentence: cols[2]?.trim() ?? "",
+    example_meaning: cols[3]?.trim() ?? "",
+  };
+}
+
+/** 탭 구분(엑셀·시트 복사) */
+function parseTabSeparatedLine(line: string): ParsedVocabRow | null {
+  const cols = line.split("\t").map((c) => c.trim());
+  return rowFromColumns(cols);
+}
+
+/**
+ * 영어(또는 영어 숙어)와 한글 뜻 사이만 나눈다.
+ * 한글 뜻 안의 콤마·여러 공백은 유지한다.
+ */
+function parseEnglishMeaningLine(line: string): ParsedVocabRow | null {
+  const trimmed = line.trim();
+
+  const commaIdx = trimmed.indexOf(",");
+  if (commaIdx > 0) {
+    const left = trimmed.slice(0, commaIdx).trim();
+    const right = trimmed.slice(commaIdx + 1).trim();
+    if (left && right && !HANGUL.test(left) && HANGUL.test(right)) {
+      return rowFromColumns([left, right]);
+    }
   }
-  if (line.includes(",")) {
-    return line.split(",").map((c) => c.trim());
+
+  const hangulMatch = trimmed.match(/^(.+?)\s+([\uAC00-\uD7A3].*)$/);
+  if (hangulMatch) {
+    const word = hangulMatch[1].trim();
+    const meaning = hangulMatch[2].trim();
+    if (word && meaning) {
+      return rowFromColumns([word, meaning]);
+    }
   }
-  const parts = line.trim().split(/\s{2,}/);
-  if (parts.length >= 2) return parts.map((c) => c.trim());
-  const spaced = line.trim().split(/\s+/);
+
+  const multiSpace = trimmed.match(/^(.+?)\s{2,}(.+)$/);
+  if (multiSpace) {
+    const word = multiSpace[1].trim();
+    const meaning = multiSpace[2].trim();
+    if (word && meaning && HANGUL.test(meaning)) {
+      return rowFromColumns([word, meaning]);
+    }
+  }
+
+  const spaced = trimmed.split(/\s+/);
   if (spaced.length >= 2) {
-    return [spaced[0], spaced.slice(1).join(" ")];
+    const word = spaced[0]?.trim() ?? "";
+    const meaning = spaced.slice(1).join(" ").trim();
+    if (word && meaning && HANGUL.test(meaning)) {
+      return rowFromColumns([word, meaning]);
+    }
   }
-  return [line.trim()];
+
+  return null;
+}
+
+function parseLine(line: string): ParsedVocabRow | null {
+  if (isHeaderLine(line)) return null;
+
+  if (line.includes("\t")) {
+    return parseTabSeparatedLine(line);
+  }
+
+  return parseEnglishMeaningLine(line);
 }
 
 export function parseBulkPaste(text: string): ParsedVocabRow[] {
@@ -42,19 +103,8 @@ export function parseBulkPaste(text: string): ParsedVocabRow[] {
   const rows: ParsedVocabRow[] = [];
 
   for (const line of lines) {
-    if (isHeaderLine(line)) continue;
-
-    const cols = splitColumns(line);
-    const word = cols[0]?.trim() ?? "";
-    const meaning = cols[1]?.trim() ?? "";
-    if (!word || !meaning) continue;
-
-    rows.push({
-      word,
-      meaning,
-      example_sentence: cols[2]?.trim() ?? "",
-      example_meaning: cols[3]?.trim() ?? "",
-    });
+    const row = parseLine(line);
+    if (row) rows.push(row);
   }
 
   return rows;
