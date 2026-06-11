@@ -10,6 +10,7 @@ import type {
 } from "@/lib/reports/types";
 import {
   chunkStudentRecordFiles,
+  fetchStudentRecordApi,
   formatBytes,
   prepareStudentRecordFiles,
   readStudentRecordApiResponse,
@@ -40,6 +41,14 @@ type ExtractApiResult = {
   studentName?: string;
 };
 
+type HistoryRecord = {
+  id: string;
+  studentName: string;
+  school: string | null;
+  generatedAt: string;
+  createdAt: string;
+};
+
 interface StudentRecordWorkspaceProps {
   initialClasses?: ReportClassOption[];
   initialStudents?: ReportStudentOption[];
@@ -56,7 +65,6 @@ export function StudentRecordWorkspace({
   const [loginQuery, setLoginQuery] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [manualStudentName, setManualStudentName] = useState("");
-  const [text, setText] = useState("");
   const [analysisInstructions, setAnalysisInstructions] = useState(
     DEFAULT_ANALYSIS_INSTRUCTIONS
   );
@@ -67,6 +75,10 @@ export function StudentRecordWorkspace({
   const [progressLabel, setProgressLabel] = useState<string | null>(null);
   const [progressPercent, setProgressPercent] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<HistoryRecord[]>([]);
+  const [historyBusyId, setHistoryBusyId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   const updateProgress = useCallback((label: string, percent: number) => {
     setProgressLabel(label);
@@ -96,6 +108,106 @@ export function StudentRecordWorkspace({
     }
   }, [classId, nameQuery, loginQuery]);
 
+  const loadHistory = useCallback(async () => {
+    try {
+      const res = await fetch("/api/student-records/history");
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setHistory(data.records ?? []);
+      }
+    } catch {
+      // 기록 로딩 실패는 분석 기능에 영향 없음
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
+
+  async function openHistoryRecord(id: string) {
+    setHistoryBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/student-records/history/${id}`);
+      const data = await res.json();
+      if (!res.ok || !data.ok || !data.record?.html) {
+        throw new Error(data.message ?? "기록을 불러오지 못했습니다.");
+      }
+      setResult({
+        studentId: data.record.studentId ?? null,
+        studentName: data.record.studentName ?? "학생",
+        html: data.record.html,
+        generatedAt: data.record.generatedAt,
+        recordId: data.record.id ?? id,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "기록을 불러오지 못했습니다.");
+    } finally {
+      setHistoryBusyId(null);
+    }
+  }
+
+  function startEditingRecord(record: HistoryRecord) {
+    setEditingId(record.id);
+    setEditingTitle(
+      record.school
+        ? `${record.school} · ${record.studentName}`
+        : record.studentName
+    );
+  }
+
+  async function renameHistoryRecord(id: string) {
+    const title = editingTitle.trim();
+    if (!title) {
+      setError("제목을 입력해 주세요.");
+      return;
+    }
+    setHistoryBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/student-records/history/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message ?? "제목 수정에 실패했습니다.");
+      }
+      setHistory((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, studentName: title, school: null } : r
+        )
+      );
+      setEditingId(null);
+      setEditingTitle("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "제목 수정에 실패했습니다.");
+    } finally {
+      setHistoryBusyId(null);
+    }
+  }
+
+  async function deleteHistoryRecord(id: string) {
+    if (!window.confirm("이 분석 기록을 삭제할까요?")) return;
+    setHistoryBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/student-records/history/${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message ?? "기록 삭제에 실패했습니다.");
+      }
+      setHistory((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "기록 삭제에 실패했습니다.");
+    } finally {
+      setHistoryBusyId(null);
+    }
+  }
+
   const hasInitialLists =
     initialClasses.length > 0 || initialStudents.length > 0;
 
@@ -107,8 +219,8 @@ export function StudentRecordWorkspace({
   }, [loadStudents, hasInitialLists, classId, nameQuery, loginQuery]);
 
   async function runAnalysis() {
-    if (!text.trim() && files.length === 0) {
-      setError("학생부 텍스트를 붙여넣거나 PDF/이미지를 업로드해 주세요.");
+    if (files.length === 0) {
+      setError("분석할 PDF 또는 이미지를 업로드해 주세요.");
       return;
     }
 
@@ -123,7 +235,6 @@ export function StudentRecordWorkspace({
     setResult(null);
     updateProgress("분석 준비 중…", 0);
     try {
-      const pastedText = text.trim();
       const pdfFiles = files.filter(isPdfUpload);
       const directImageFiles = files.filter((file) => !isPdfUpload(file));
       let resolvedStudentId: string | null = null;
@@ -140,10 +251,13 @@ export function StudentRecordWorkspace({
       };
 
       const postExtract = async (formData: FormData) => {
-        const extractRes = await fetch("/api/student-records/extract", {
-          method: "POST",
-          body: formData,
-        });
+        const extractRes = await fetchStudentRecordApi(
+          "/api/student-records/extract",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
         const { data, error } =
           await readStudentRecordApiResponse<ExtractApiResult>(extractRes);
         if (error) throw new Error(error);
@@ -151,7 +265,7 @@ export function StudentRecordWorkspace({
       };
 
       if (!combinedExtractedText) {
-        updateProgress("PDF·이미지 준비 중… (고해상도 OCR)", 4);
+        updateProgress("준비 단계 · 업로드한 파일을 변환하고 있어요", 4);
         const preparedFiles = await prepareStudentRecordFiles(files, (label) => {
           if (label.startsWith("PDF 변환")) {
             const match = label.match(/(\d+)\/(\d+)/);
@@ -160,11 +274,14 @@ export function StudentRecordWorkspace({
               const total = Number(match[2]);
               const pct =
                 4 + (current / Math.max(total, 1)) * (PROGRESS_PREP_END - 4);
-              updateProgress(`PDF 변환 ${current}/${total}…`, pct);
+              updateProgress(
+                `준비 단계 · PDF를 페이지 이미지로 변환 중 (${current}/${total}페이지)`,
+                pct
+              );
               return;
             }
           }
-          updateProgress(label, 6);
+          updateProgress("준비 단계 · 업로드한 파일을 변환하고 있어요", 6);
         });
         const preparedError = validatePreparedStudentRecordFiles(preparedFiles);
         if (preparedError) {
@@ -176,16 +293,9 @@ export function StudentRecordWorkspace({
         const ocrTexts: string[] = [];
 
         if (imageChunks.length === 0) {
-          const formData = buildFormData();
-          formData.set("text", pastedText);
-          updateProgress("1/2 학생부 자료 읽는 중…", 40);
-          const extracted = await postExtract(formData);
-          if (!extracted?.ok || !extracted.text || !extracted.studentName) {
-            throw new Error(extracted?.message ?? "자료 읽기에 실패했습니다.");
-          }
-          resolvedStudentId = extracted.studentId ?? null;
-          resolvedStudentName = extracted.studentName;
-          ocrTexts.push(extracted.text);
+          throw new Error(
+            "업로드한 파일에서 분석할 이미지를 찾지 못했습니다. 파일을 확인해 주세요."
+          );
         } else {
           const ocrSpan = PROGRESS_OCR_END - PROGRESS_PREP_END;
 
@@ -195,9 +305,6 @@ export function StudentRecordWorkspace({
             if (chunkError) throw new Error(chunkError);
 
             const formData = buildFormData();
-            if (chunkIndex === 0 && pastedText) {
-              formData.set("text", pastedText);
-            }
             for (const file of chunk) {
               formData.append("files", file);
             }
@@ -206,11 +313,14 @@ export function StudentRecordWorkspace({
             if (!extracted?.ok || !extracted.text || !extracted.studentName) {
               throw new Error(
                 extracted?.message ??
-                  `${chunkIndex + 1}번째 OCR 묶음 처리에 실패했습니다.`
+                  `${chunkIndex + 1}번째 페이지 묶음 인식에 실패했습니다.`
               );
             }
             return extracted;
           };
+
+          const totalPages = preparedFiles.length;
+          let pagesDone = 0;
 
           for (
             let i = 0;
@@ -226,11 +336,14 @@ export function StudentRecordWorkspace({
               },
               (_, j) => i + j
             );
+            const batchPages = batchIndices.reduce(
+              (sum, idx) => sum + imageChunks[idx]!.length,
+              0
+            );
 
             updateProgress(
-              `1/2 이미지 OCR 중… ${i + 1}~${i + batchIndices.length}/${imageChunks.length}묶음`,
-              PROGRESS_PREP_END +
-                (i / imageChunks.length) * ocrSpan
+              `1단계 · 학생부 내용 읽는 중 (${pagesDone + 1}~${Math.min(pagesDone + batchPages, totalPages)}/${totalPages}페이지)`,
+              PROGRESS_PREP_END + (pagesDone / totalPages) * ocrSpan
             );
 
             const batchResults = await Promise.all(
@@ -243,10 +356,11 @@ export function StudentRecordWorkspace({
               ocrTexts.push(extracted.text!);
             }
 
+            pagesDone = Math.min(pagesDone + batchPages, totalPages);
+
             updateProgress(
-              `1/2 이미지 OCR 중… ${Math.min(i + batchIndices.length, imageChunks.length)}/${imageChunks.length}묶음 완료`,
-              PROGRESS_PREP_END +
-                ((i + batchIndices.length) / imageChunks.length) * ocrSpan
+              `1단계 · 학생부 내용 읽기 완료 (${pagesDone}/${totalPages}페이지)`,
+              PROGRESS_PREP_END + (pagesDone / totalPages) * ocrSpan
             );
           }
         }
@@ -254,22 +368,43 @@ export function StudentRecordWorkspace({
         combinedExtractedText = ocrTexts.join("\n\n");
         if (!isReliableStudentRecordExtract(combinedExtractedText)) {
           throw new Error(
-            "학생부 OCR 결과가 충분하지 않습니다. 스캔 선명도를 확인하거나 텍스트를 직접 붙여넣어 주세요."
+            "학생부 OCR 결과가 충분하지 않습니다. 스캔 선명도를 확인한 뒤 다시 업로드해 주세요."
           );
         }
       }
 
-      updateProgress("2/2 입학사정관 보고서 생성 중…", PROGRESS_GENERATE_END);
+      updateProgress(
+        "2단계 · AI가 분석 보고서를 작성 중이에요 (보통 1~3분 소요)",
+        PROGRESS_OCR_END + 3
+      );
 
-      const generateRes = await fetch("/api/student-records/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentName: resolvedStudentName,
-          text: combinedExtractedText,
-          analysisInstructions: analysisInstructions.trim(),
-        }),
-      });
+      // 생성 단계는 1~3분 걸리므로 멈춰 보이지 않게 진행률을 천천히 올린다
+      const generateTicker = setInterval(() => {
+        setProgressPercent((p) =>
+          p < PROGRESS_GENERATE_END ? p + 1 : p
+        );
+      }, 5000);
+
+      let generateRes: Response;
+      try {
+        generateRes = await fetchStudentRecordApi(
+          "/api/student-records/generate",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              studentId: resolvedStudentId,
+              studentName: resolvedStudentName,
+              text: combinedExtractedText,
+              analysisInstructions: analysisInstructions.trim(),
+            }),
+          },
+          // 보고서 생성은 1회 2~3분 걸릴 수 있어 재시도는 1회만
+          1
+        );
+      } finally {
+        clearInterval(generateTicker);
+      }
       const { data: generated, error: generateError } =
         await readStudentRecordApiResponse<{
           ok: boolean;
@@ -277,6 +412,7 @@ export function StudentRecordWorkspace({
           html?: string;
           studentName?: string;
           generatedAt?: string;
+          recordId?: string | null;
         }>(generateRes);
 
       if (generateError) {
@@ -289,10 +425,13 @@ export function StudentRecordWorkspace({
       updateProgress("보고서 생성 완료", 100);
       setResult({
         studentId: resolvedStudentId,
-        studentName: resolvedStudentName,
+        // 학생 미선택 시 서버가 학생부 본문에서 찾아낸 실제 이름 사용
+        studentName: generated.studentName ?? resolvedStudentName,
         html: generated.html,
         generatedAt: generated.generatedAt,
+        recordId: generated.recordId ?? null,
       });
+      void loadHistory();
     } catch (e) {
       setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
     } finally {
@@ -310,6 +449,9 @@ export function StudentRecordWorkspace({
           setResult(null);
           setError(null);
         }}
+        onHtmlSaved={(html) =>
+          setResult((prev) => (prev ? { ...prev, html } : prev))
+        }
       />
     );
   }
@@ -402,19 +544,13 @@ export function StudentRecordWorkspace({
           2. 학생부 자료 입력
         </h2>
         <p className="text-xs text-slate-500">
-          성적표·세특·창체·행특 텍스트를 붙여넣거나, PDF·이미지(JPG/PNG)를
-          업로드하세요. 이미지는 장당 최대{" "}
+          성적표·세특·창체·행특이 담긴 PDF·이미지(JPG/PNG)를 업로드하세요.
+          이미지는 장당 최대{" "}
           {formatBytes(STUDENT_RECORD_MAX_IMAGE_BYTES)}까지 허용합니다. 스캔 PDF는
           고해상도 변환 후 OpenAI Vision(gpt-4o)으로 OCR합니다(최대{" "}
           {STUDENT_RECORD_MAX_PDF_PAGES}페이지). 파일은 자동으로 나눠
           업로드되므로 전체 용량 제한은 없습니다.
         </p>
-        <textarea
-          className="ui-input min-h-[220px] font-mono text-xs leading-relaxed"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="학생부 원문을 붙여넣으세요..."
-        />
         <input
           type="file"
           className="block w-full text-sm text-slate-600"
@@ -477,6 +613,97 @@ export function StudentRecordWorkspace({
           </div>
         )}
       </div>
+
+      <section className="no-print space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-semibold text-slate-900">분석 기록</h2>
+        {history.length === 0 ? (
+          <p className="text-xs text-slate-500">
+            저장된 분석 기록이 없습니다. 보고서를 생성하면 자동으로 저장됩니다.
+          </p>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {history.map((record) => (
+              <li
+                key={record.id}
+                className="flex flex-wrap items-center justify-between gap-2 py-2.5"
+              >
+                {editingId === record.id ? (
+                  <>
+                    <input
+                      type="text"
+                      className="ui-input min-w-0 flex-1 px-3 py-1.5 text-sm"
+                      value={editingTitle}
+                      maxLength={100}
+                      autoFocus
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void renameHistoryRecord(record.id);
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                    />
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                        disabled={historyBusyId === record.id}
+                        onClick={() => void renameHistoryRecord(record.id)}
+                      >
+                        {historyBusyId === record.id ? "저장 중…" : "저장"}
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                        onClick={() => setEditingId(null)}
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-slate-900">
+                        {record.school
+                          ? `${record.school} · ${record.studentName}`
+                          : record.studentName}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {new Date(record.generatedAt).toLocaleString("ko-KR")}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        disabled={historyBusyId === record.id}
+                        onClick={() => void openHistoryRecord(record.id)}
+                      >
+                        {historyBusyId === record.id ? "불러오는 중…" : "열람"}
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                        disabled={historyBusyId === record.id}
+                        onClick={() => startEditingRecord(record)}
+                      >
+                        제목 수정
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                        disabled={historyBusyId === record.id}
+                        onClick={() => void deleteHistoryRecord(record.id)}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
