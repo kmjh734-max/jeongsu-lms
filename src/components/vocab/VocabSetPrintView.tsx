@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
+import { generatePrintExamQuestions } from "@/lib/vocab/generate-print-test-questions";
 import { highlightWordInSentence } from "@/lib/vocab/highlight-word-in-sentence";
 import {
   itemsPerVocabPrintPage,
@@ -14,6 +16,13 @@ import {
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
 import {
+  examConfigToSearchParams,
+  examConfigTotal,
+  examQuestionsPerPage,
+  parseExamPrintConfig,
+  type ExamPrintConfig,
+} from "@/lib/vocab/vocab-print-exam-config";
+import {
   parseVocabPrintSize,
   VOCAB_PRINT_PAGE_DIMENSIONS,
   VOCAB_PRINT_SIZE_LABELS,
@@ -23,6 +32,7 @@ import type {
   VocabPrintRow,
   VocabPrintSection,
 } from "@/lib/vocab/vocab-print-types";
+import type { PrintExamQuestion } from "@/lib/vocab/generate-print-test-questions";
 
 interface VocabSetPrintViewProps {
   sections: VocabPrintSection[];
@@ -30,8 +40,44 @@ interface VocabSetPrintViewProps {
   documentTitle?: string;
 }
 
+const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
+
 function formatNo(globalIndex: number) {
   return String(globalIndex + 1).padStart(4, "0");
+}
+
+function PrintPageHeader({
+  sectionTitle,
+}: {
+  sectionTitle: string;
+}) {
+  return (
+    <>
+      <div className="vocab-print-top-line" />
+      <header className="vocab-print-header">
+        <div className="vocab-print-header-left">
+          <div className="vocab-print-logo-box">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={LOGO_SRC} alt={ACADEMY_NAME} className="vocab-print-logo-img" />
+          </div>
+          <div className="vocab-print-book-meta">
+            <p className="vocab-print-series">{ACADEMY_NAME}</p>
+            <h2 className="vocab-print-book-title">{sectionTitle}</h2>
+          </div>
+        </div>
+        <div className="vocab-print-header-right">
+          <div className="vocab-print-meta-line">
+            <span>이름</span>
+            <i />
+          </div>
+          <div className="vocab-print-meta-line">
+            <span>날짜</span>
+            <i />
+          </div>
+        </div>
+      </header>
+    </>
+  );
 }
 
 export function VocabSetPrintView({
@@ -43,16 +89,28 @@ export function VocabSetPrintView({
   const searchParams = useSearchParams();
   const mode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
   const size = parseVocabPrintSize(searchParams.get("size") ?? undefined);
+  const [examConfig, setExamConfig] = useState<ExamPrintConfig>(() =>
+    parseExamPrintConfig(searchParams)
+  );
 
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const perPage = itemsPerVocabPrintPage(mode, size);
+  const examPerPage = examQuestionsPerPage(size);
 
-  const totalItems = useMemo(
-    () => sections.reduce((n, s) => n + s.items.length, 0),
+  const allItems = useMemo(
+    () => sections.flatMap((s) => s.items),
     [sections]
   );
 
+  const totalItems = allItems.length;
+
+  const examGenerated = useMemo(() => {
+    if (mode !== "exam") return { questions: [] as PrintExamQuestion[], skipped: 0 };
+    return generatePrintExamQuestions(allItems, examConfig);
+  }, [mode, allItems, examConfig]);
+
   const flatPages = useMemo(() => {
+    if (mode === "exam") return [];
     const rows: {
       section: VocabPrintSection;
       pageItems: (VocabPrintRow | null)[];
@@ -77,9 +135,18 @@ export function VocabSetPrintView({
       });
     }
     return rows;
-  }, [sections, perPage]);
+  }, [sections, perPage, mode]);
 
-  const pageCount = flatPages.length;
+  const examPages = useMemo(() => {
+    if (mode !== "exam") return [] as (PrintExamQuestion | null)[][];
+    return paginateVocabItems(examGenerated.questions, examPerPage);
+  }, [mode, examGenerated.questions, examPerPage]);
+
+  const pageCount = mode === "exam" ? examPages.length : flatPages.length;
+
+  useEffect(() => {
+    setExamConfig(parseExamPrintConfig(searchParams));
+  }, [searchParams]);
 
   useEffect(() => {
     const id = "vocab-print-page-size-style";
@@ -107,6 +174,29 @@ export function VocabSetPrintView({
     [router, searchParams]
   );
 
+  const updateExamConfig = useCallback(
+    (next: ExamPrintConfig) => {
+      setExamConfig(next);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("mode", "exam");
+      for (const [k, v] of Object.entries(examConfigToSearchParams(next))) {
+        params.set(k, v);
+      }
+      for (const key of [
+        "word_mc",
+        "word_sa",
+        "meaning_mc",
+        "meaning_sa",
+        "example_mc",
+        "example_sa",
+      ] as const) {
+        if (next[key] <= 0) params.delete(key);
+      }
+      router.replace(`?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
   const handlePrint = useCallback(() => {
     window.print();
   }, []);
@@ -116,6 +206,9 @@ export function VocabSetPrintView({
     (sections.length === 1
       ? sections[0]!.title
       : `${sections.length}개 단어세트`);
+
+  const headerTitle =
+    sections.length === 1 ? sections[0]!.title : title;
 
   if (totalItems === 0) {
     return (
@@ -127,6 +220,8 @@ export function VocabSetPrintView({
       </div>
     );
   }
+
+  const examTotal = examConfigTotal(examConfig);
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
@@ -140,7 +235,9 @@ export function VocabSetPrintView({
             <h1 className="text-lg font-bold text-slate-900">{title}</h1>
             <p className="text-sm text-slate-500">
               {totalItems}단어 · {pageCount}페이지 · {VOCAB_PRINT_SIZE_LABELS[size]}
-              {sections.length > 1 ? ` · ${sections.length}개 세트` : ""}
+              {mode === "exam" && examGenerated.questions.length > 0
+                ? ` · 문항 ${examGenerated.questions.length}개`
+                : ""}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -185,19 +282,46 @@ export function VocabSetPrintView({
             <button
               type="button"
               onClick={handlePrint}
-              className="rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white hover:bg-emerald-800"
+              disabled={mode === "exam" && examGenerated.questions.length === 0}
+              className="rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
             >
               인쇄 / PDF 저장
             </button>
           </div>
         </div>
-        <p
-          className="mx-auto border-t border-slate-100 px-4 py-2 text-xs text-slate-500"
-          style={{ maxWidth: pageDims.width }}
-        >
-          용지 크기({VOCAB_PRINT_SIZE_LABELS[size]})를 선택한 뒤 인쇄하세요. PDF 저장 시에도
-          같은 용지 설정이 적용됩니다.
-        </p>
+
+        {mode === "exam" ? (
+          <div className="mx-auto px-4 pb-3" style={{ maxWidth: pageDims.width }}>
+            <VocabPrintExamConfig
+              config={examConfig}
+              onChange={updateExamConfig}
+              maxPool={totalItems}
+            />
+            {examTotal === 0 ? (
+              <p className="mt-2 text-xs text-amber-700">
+                문항 수를 입력하면 시험지가 생성됩니다.
+              </p>
+            ) : null}
+            {examTotal > 0 && examGenerated.questions.length === 0 ? (
+              <p className="mt-2 text-xs text-red-600">
+                문항을 만들 수 없습니다. 단어가 2개 이상이고, 예문 문항은 예문이 있는
+                단어가 필요합니다.
+              </p>
+            ) : null}
+            {examGenerated.skipped > 0 ? (
+              <p className="mt-2 text-xs text-amber-700">
+                {examGenerated.skipped}문항은 보기를 만들 수 없어 제외되었습니다.
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <p
+            className="mx-auto border-t border-slate-100 px-4 py-2 text-xs text-slate-500"
+            style={{ maxWidth: pageDims.width }}
+          >
+            용지 크기({VOCAB_PRINT_SIZE_LABELS[size]})를 선택한 뒤 인쇄하세요.
+          </p>
+        )}
       </div>
 
       <div
@@ -205,100 +329,141 @@ export function VocabSetPrintView({
         style={{ maxWidth: pageDims.width }}
       >
         <div id="vocab-print-root" data-size={size}>
-          {flatPages.map(
-            (
-              {
-                section,
-                pageItems,
-                pageIndex,
-                sectionPageTotal,
-                globalPageNum,
-                sectionStartIndex,
-              },
-              flatIndex
-            ) => (
-              <article
-                key={`${section.setId}-${pageIndex}`}
-                className={`vocab-print-page vocab-print-page--${size} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
-                data-size={size}
-                style={
+          {mode === "exam"
+            ? examPages.map((pageQuestions, pageIndex) => (
+                <article
+                  key={`exam-${pageIndex}`}
+                  className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
+                  data-size={size}
+                  style={
+                    {
+                      ["--vocab-rows-per-page" as string]: examPerPage,
+                      ["--vocab-page-width" as string]: pageDims.width,
+                      ["--vocab-page-height" as string]: pageDims.height,
+                    } as React.CSSProperties
+                  }
+                >
+                  <PrintPageHeader sectionTitle={headerTitle} />
+
+                  <div className="vocab-exam-list">
+                    {pageQuestions.map((q, rowIndex) => {
+                      if (!q) {
+                        return (
+                          <div
+                            key={`empty-${rowIndex}`}
+                            className="vocab-exam-row empty"
+                          />
+                        );
+                      }
+                      return <PrintExamEntry key={q.number} question={q} />;
+                    })}
+                  </div>
+
+                  <footer className="vocab-print-footer">
+                    <span>{ACADEMY_NAME}</span>
+                    <span>
+                      {pageIndex + 1} / {examPages.length}
+                    </span>
+                  </footer>
+                </article>
+              ))
+            : flatPages.map(
+                (
                   {
-                    ["--vocab-rows-per-page" as string]: perPage,
-                    ["--vocab-page-width" as string]: pageDims.width,
-                    ["--vocab-page-height" as string]: pageDims.height,
-                  } as React.CSSProperties
-                }
-              >
-                <div className="vocab-print-top-line" />
-
-                <header className="vocab-print-header">
-                  <div className="vocab-print-header-left">
-                    <div className="vocab-print-logo-box">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={LOGO_SRC}
-                        alt={ACADEMY_NAME}
-                        className="vocab-print-logo-img"
-                      />
-                    </div>
-                    <div className="vocab-print-book-meta">
-                      <p className="vocab-print-series">{ACADEMY_NAME}</p>
-                      <h2 className="vocab-print-book-title">{section.title}</h2>
-                    </div>
-                  </div>
-                  <div className="vocab-print-header-right">
-                    <div className="vocab-print-meta-line">
-                      <span>이름</span>
-                      <i />
-                    </div>
-                    <div className="vocab-print-meta-line">
-                      <span>날짜</span>
-                      <i />
-                    </div>
-                  </div>
-                </header>
-
-                <div className="vocab-print-table-head">
-                  <div>NO.</div>
-                  <div>WORD</div>
-                  <div>{tableHeadLabel(mode)}</div>
-                </div>
-
-                <div className="vocab-print-list">
-                  {pageItems.map((item, rowIndex) => {
-                    const globalIndex = sectionStartIndex + rowIndex;
-                    if (!item) {
-                      return (
-                        <div
-                          key={`empty-${rowIndex}`}
-                          className="vocab-print-row empty"
-                        />
-                      );
+                    section,
+                    pageItems,
+                    pageIndex,
+                    sectionPageTotal,
+                    globalPageNum,
+                    sectionStartIndex,
+                  },
+                  flatIndex
+                ) => (
+                  <article
+                    key={`${section.setId}-${pageIndex}`}
+                    className={`vocab-print-page vocab-print-page--${size} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
+                    data-size={size}
+                    style={
+                      {
+                        ["--vocab-rows-per-page" as string]: perPage,
+                        ["--vocab-page-width" as string]: pageDims.width,
+                        ["--vocab-page-height" as string]: pageDims.height,
+                      } as React.CSSProperties
                     }
-                    return (
-                      <PrintEntry
-                        key={item.id}
-                        item={item}
-                        globalIndex={globalIndex}
-                        mode={mode}
-                      />
-                    );
-                  })}
-                </div>
+                  >
+                    <PrintPageHeader sectionTitle={section.title} />
 
-                <footer className="vocab-print-footer">
-                  <span>{ACADEMY_NAME}</span>
-                  <span>
-                    {pageIndex + 1} / {sectionPageTotal}
-                    {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
-                  </span>
-                </footer>
-              </article>
-            )
-          )}
+                    <div className="vocab-print-table-head">
+                      <div>NO.</div>
+                      <div>WORD</div>
+                      <div>{tableHeadLabel(mode)}</div>
+                    </div>
+
+                    <div className="vocab-print-list">
+                      {pageItems.map((item, rowIndex) => {
+                        const globalIndex = sectionStartIndex + rowIndex;
+                        if (!item) {
+                          return (
+                            <div
+                              key={`empty-${rowIndex}`}
+                              className="vocab-print-row empty"
+                            />
+                          );
+                        }
+                        return (
+                          <PrintEntry
+                            key={item.id}
+                            item={item}
+                            globalIndex={globalIndex}
+                            mode={mode}
+                          />
+                        );
+                      })}
+                    </div>
+
+                    <footer className="vocab-print-footer">
+                      <span>{ACADEMY_NAME}</span>
+                      <span>
+                        {pageIndex + 1} / {sectionPageTotal}
+                        {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
+                      </span>
+                    </footer>
+                  </article>
+                )
+              )}
         </div>
       </div>
     </div>
+  );
+}
+
+function PrintExamEntry({ question }: { question: PrintExamQuestion }) {
+  return (
+    <section className="vocab-exam-row">
+      <div className="vocab-exam-q-head">
+        <span className="vocab-exam-q-no">{question.number}.</span>
+        <div className="vocab-exam-q-main">
+          <p className="vocab-exam-prompt">{question.prompt}</p>
+          {question.subPrompt ? (
+            <p className="vocab-exam-sub">{question.subPrompt}</p>
+          ) : null}
+        </div>
+      </div>
+      {question.choices ? (
+        <ul className="vocab-exam-choices">
+          {question.choices.map((choice, i) => (
+            <li key={i}>
+              <span className="vocab-exam-choice-mark">
+                {CHOICE_MARKS[i] ?? `${i + 1}.`}
+              </span>
+              {choice}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="vocab-exam-answer-line" />
+      )}
+    </section>
   );
 }
 
@@ -333,43 +498,37 @@ function PrintEntry({
       </div>
 
       <div className="vocab-print-content">
-        {mode === "test" ? (
-          <div className="vocab-print-test-blank" />
-        ) : (
-          <>
-            <div className="vocab-print-meaning-line">
-              <span className="vocab-print-meaning">{item.meaning}</span>
-              {pos ? <span className="vocab-print-pos">{pos}</span> : null}
-            </div>
+        <div className="vocab-print-meaning-line">
+          <span className="vocab-print-meaning">{item.meaning}</span>
+          {pos ? <span className="vocab-print-pos">{pos}</span> : null}
+        </div>
 
-            {showFull && exampleSentence ? (
-              <p className="vocab-print-example">
-                {highlightWordInSentence(exampleSentence, item.word)}
-              </p>
-            ) : null}
+        {showFull && exampleSentence ? (
+          <p className="vocab-print-example">
+            {highlightWordInSentence(exampleSentence, item.word)}
+          </p>
+        ) : null}
 
-            {showFull && exampleMeaning ? (
-              <p className="vocab-print-translation">{exampleMeaning}</p>
-            ) : null}
+        {showFull && exampleMeaning ? (
+          <p className="vocab-print-translation">{exampleMeaning}</p>
+        ) : null}
 
-            {showFull && (synonyms || antonyms) ? (
-              <div className="vocab-print-meta-tags">
-                {synonyms ? (
-                  <span className="vocab-print-tag syn">
-                    <span className="label">유의어</span>
-                    {synonyms}
-                  </span>
-                ) : null}
-                {antonyms ? (
-                  <span className="vocab-print-tag ant">
-                    <span className="label">반의어</span>
-                    {antonyms}
-                  </span>
-                ) : null}
-              </div>
+        {showFull && (synonyms || antonyms) ? (
+          <div className="vocab-print-meta-tags">
+            {synonyms ? (
+              <span className="vocab-print-tag syn">
+                <span className="label">유의어</span>
+                {synonyms}
+              </span>
             ) : null}
-          </>
-        )}
+            {antonyms ? (
+              <span className="vocab-print-tag ant">
+                <span className="label">반의어</span>
+                {antonyms}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </section>
   );

@@ -1,15 +1,16 @@
 import type { VocabPrintSize } from "@/lib/vocab/vocab-print-size";
 
-export type VocabPrintMode = "workbook" | "test" | "full";
+export type VocabPrintMode = "workbook" | "exam" | "full";
 
 export const VOCAB_PRINT_MODE_LABELS: Record<VocabPrintMode, string> = {
   workbook: "단어장 (단어·뜻)",
-  test: "뜻 쓰기 (단어만)",
+  exam: "시험지",
   full: "예문·동의어·반의어",
 };
 
 export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
   if (
+    raw === "exam" ||
     raw === "test" ||
     raw === "full" ||
     raw === "example" ||
@@ -29,6 +30,7 @@ export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
     ) {
       return "full";
     }
+    if (raw === "test") return "exam";
     return raw;
   }
   return "workbook";
@@ -43,15 +45,12 @@ export function itemsPerVocabPrintPage(
   switch (mode) {
     case "full":
       return 5;
-    case "test":
-      return 10;
     default:
       return 8;
   }
 }
 
 export function tableHeadLabel(mode: VocabPrintMode): string {
-  if (mode === "test") return "뜻 쓰기";
   if (mode === "full") return "MEANING / EXAMPLE";
   return "MEANING";
 }

@@ -411,12 +411,6 @@
   color: var(--vocab-blue);
 }
 
-.vocab-print-test-blank {
-  min-height: 32px;
-  margin-top: 4px;
-  border-bottom: 1px solid #cbd5e1;
-}
-
 .vocab-print-footer {
   flex-shrink: 0;
   margin-top: 0;
@@ -427,6 +421,107 @@
   font-size: var(--vocab-small-size);
   color: #94a3b8;
   font-weight: 600;
+}
+
+/* 시험지 인쇄 */
+.vocab-exam-list {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(var(--vocab-rows-per-page, 5), minmax(0, 1fr));
+  overflow: hidden;
+}
+
+.vocab-exam-row {
+  min-height: 0;
+  height: 100%;
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--vocab-soft-line);
+  box-sizing: border-box;
+  overflow: hidden;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.vocab-exam-row.empty {
+  border-bottom-color: var(--vocab-soft-line);
+}
+
+.vocab-exam-q-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.vocab-exam-q-no {
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--vocab-navy);
+  line-height: 1.3;
+}
+
+.vocab-print-page--b5 .vocab-exam-q-no {
+  font-size: 13px;
+}
+
+.vocab-exam-q-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.vocab-exam-prompt {
+  margin: 0;
+  font-size: calc(var(--vocab-body-size) + 2px);
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.vocab-exam-sub {
+  margin: 3px 0 0;
+  font-size: var(--vocab-small-size);
+  color: var(--vocab-muted);
+  font-weight: 600;
+}
+
+.vocab-exam-choices {
+  margin: 8px 0 0 28px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+}
+
+.vocab-print-page--b5 .vocab-exam-choices {
+  margin-left: 22px;
+  gap: 3px 10px;
+}
+
+.vocab-exam-choices li {
+  font-size: var(--vocab-body-size);
+  line-height: 1.45;
+  color: #1f2937;
+}
+
+.vocab-exam-choice-mark {
+  display: inline-block;
+  min-width: 1.4em;
+  font-weight: 800;
+  color: var(--vocab-navy);
+}
+
+.vocab-exam-answer-line {
+  margin: 10px 0 0 28px;
+  height: 28px;
+  border-bottom: 1.5px solid #94a3b8;
+}
+
+.vocab-print-page--b5 .vocab-exam-answer-line {
+  margin-left: 22px;
+  height: 24px;
 }
 
 @media print {
