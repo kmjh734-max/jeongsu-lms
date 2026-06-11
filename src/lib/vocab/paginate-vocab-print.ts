@@ -41,7 +41,7 @@ export function itemsPerVocabPrintPage(
   const compact = size === "b5";
   switch (mode) {
     case "full":
-      return compact ? 8 : 10;
+      return compact ? 7 : 9;
     case "test":
       return compact ? 15 : 18;
     default:

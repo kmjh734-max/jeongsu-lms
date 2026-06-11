@@ -320,26 +320,24 @@ function PrintEntry({
 
   return (
     <div className={`vocab-print-entry ${rowIndex % 2 === 1 ? "alt" : ""}`}>
-      <div className="vocab-print-entry-left">
-        <div className="vocab-print-entry-meta">
-          <span className="vocab-print-no">{formatNo(globalIndex)}</span>
-          <div className="vocab-print-checks" aria-hidden>
-            <span className="vocab-print-checkbox" />
-            <span className="vocab-print-checkbox" />
-          </div>
+      <div className="vocab-print-entry-index">
+        <span className="vocab-print-no">{formatNo(globalIndex)}</span>
+        <div className="vocab-print-checks" aria-hidden>
+          <span className="vocab-print-checkbox" />
+          <span className="vocab-print-checkbox" />
         </div>
-        <p className="vocab-print-word">{item.word}</p>
       </div>
 
-      <div className="vocab-print-entry-right">
+      <div className="vocab-print-entry-word">
+        <p className="vocab-print-word-text">{item.word}</p>
+      </div>
+
+      <div className="vocab-print-entry-body">
         {mode === "test" ? (
           <div className="vocab-print-test-blank" />
         ) : (
           <>
-            <p className="vocab-print-meaning">
-              <span className="vocab-print-pos">·</span>
-              {item.meaning}
-            </p>
+            <p className="vocab-print-meaning">{item.meaning}</p>
 
             {showFull && exampleSentence ? (
               <p className="vocab-print-example">
@@ -355,18 +353,14 @@ function PrintEntry({
               <div className="vocab-print-related-row">
                 {synonyms ? (
                   <p className="vocab-print-related">
-                    <span className="vocab-print-related-icon vocab-print-related-icon--syn">
-                      +
-                    </span>
-                    <span className="vocab-print-related-text">{synonyms}</span>
+                    <span className="vocab-print-related-tag">동의</span>
+                    {synonyms}
                   </p>
                 ) : null}
                 {antonyms ? (
-                  <p className="vocab-print-related">
-                    <span className="vocab-print-related-icon vocab-print-related-icon--ant">
-                      −
-                    </span>
-                    <span className="vocab-print-related-text">{antonyms}</span>
+                  <p className="vocab-print-related vocab-print-related--ant">
+                    <span className="vocab-print-related-tag">반의</span>
+                    {antonyms}
                   </p>
                 ) : null}
               </div>
