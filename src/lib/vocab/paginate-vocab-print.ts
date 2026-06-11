@@ -41,12 +41,18 @@ export function itemsPerVocabPrintPage(
   const compact = size === "b5";
   switch (mode) {
     case "full":
-      return compact ? 7 : 9;
+      return compact ? 4 : 5;
     case "test":
-      return compact ? 15 : 18;
+      return compact ? 8 : 10;
     default:
-      return compact ? 18 : 22;
+      return compact ? 7 : 8;
   }
+}
+
+export function tableHeadLabel(mode: VocabPrintMode): string {
+  if (mode === "test") return "뜻 쓰기";
+  if (mode === "full") return "MEANING / EXAMPLE";
+  return "MEANING";
 }
 
 /** 항상 perPage칸을 채워 동일 행 간격 유지 (빈 칸은 null) */

@@ -13,6 +13,6 @@ export const VOCAB_PRINT_PAGE_DIMENSIONS: Record<
   VocabPrintSize,
   { width: string; height: string; bodyHeight: string }
 > = {
-  a4: { width: "210mm", height: "297mm", bodyHeight: "218mm" },
-  b5: { width: "176mm", height: "250mm", bodyHeight: "182mm" },
+  a4: { width: "210mm", height: "297mm", bodyHeight: "198mm" },
+  b5: { width: "176mm", height: "250mm", bodyHeight: "164mm" },
 };

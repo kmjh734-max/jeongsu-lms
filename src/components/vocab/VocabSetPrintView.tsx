@@ -9,6 +9,7 @@ import {
   itemsPerVocabPrintPage,
   paginateVocabItems,
   parseVocabPrintMode,
+  tableHeadLabel,
   VOCAB_PRINT_MODE_LABELS,
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
@@ -90,8 +91,8 @@ export function VocabSetPrintView({
     }
     el.textContent =
       size === "b5"
-        ? "@page { size: B5 portrait; margin: 0; }"
-        : "@page { size: A4 portrait; margin: 0; }";
+        ? "@page { size: B5 portrait; margin: 8mm; }"
+        : "@page { size: A4 portrait; margin: 10mm; }";
     return () => {
       el?.remove();
     };
@@ -229,41 +230,52 @@ export function VocabSetPrintView({
                   } as React.CSSProperties
                 }
               >
+                <div className="vocab-print-top-line" />
+
                 <header className="vocab-print-header">
-                  <div className="vocab-print-header-top">
-                    <div className="vocab-print-header-logo-wrap">
+                  <div className="vocab-print-header-left">
+                    <div className="vocab-print-logo-box">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={LOGO_SRC}
                         alt={ACADEMY_NAME}
-                        className="vocab-print-logo-hero"
+                        className="vocab-print-logo-img"
                       />
                     </div>
-                    <div className="vocab-print-brand-block">
-                      <p className="vocab-print-academy">{ACADEMY_NAME}</p>
-                      <h2 className="vocab-print-title">{section.title}</h2>
-                    </div>
-                    <div className="vocab-print-meta-fields">
-                      <div className="vocab-print-meta-item">
-                        <span>이름</span>
-                        <span className="vocab-print-field-line" />
-                      </div>
-                      <div className="vocab-print-meta-item">
-                        <span>날짜</span>
-                        <span className="vocab-print-field-line vocab-print-field-short" />
-                      </div>
+                    <div className="vocab-print-book-meta">
+                      <p className="vocab-print-series">{ACADEMY_NAME}</p>
+                      <h2 className="vocab-print-book-title">{section.title}</h2>
+                      <p className="vocab-print-day">
+                        PAGE {String(pageIndex + 1).padStart(2, "0")}
+                      </p>
                     </div>
                   </div>
-                  <div className="vocab-print-header-foot">
-                    <span className="vocab-print-header-mode">
-                      {VOCAB_PRINT_MODE_LABELS[mode]}
-                    </span>
-                    <span className="vocab-print-header-page">
-                      {pageIndex + 1} / {sectionPageTotal}
-                      {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
-                    </span>
+                  <div className="vocab-print-header-right">
+                    <div className="vocab-print-meta-line">
+                      <span>이름</span>
+                      <i />
+                    </div>
+                    <div className="vocab-print-meta-line">
+                      <span>날짜</span>
+                      <i />
+                    </div>
                   </div>
                 </header>
+
+                <div className="vocab-print-sub-info">
+                  <span>
+                    <strong>학습목표</strong> {VOCAB_PRINT_MODE_LABELS[mode]}
+                  </span>
+                  <span>
+                    <strong>Check-Up</strong> 오늘의 단어 {perPage}개
+                  </span>
+                </div>
+
+                <div className="vocab-print-table-head">
+                  <div>NO.</div>
+                  <div>WORD</div>
+                  <div>{tableHeadLabel(mode)}</div>
+                </div>
 
                 <div className="vocab-print-list">
                   {pageItems.map((item, rowIndex) => {
@@ -272,7 +284,7 @@ export function VocabSetPrintView({
                       return (
                         <div
                           key={`empty-${rowIndex}`}
-                          className={`vocab-print-entry empty ${rowIndex % 2 === 1 ? "alt" : ""}`}
+                          className="vocab-print-row empty"
                         />
                       );
                     }
@@ -280,7 +292,6 @@ export function VocabSetPrintView({
                       <PrintEntry
                         key={item.id}
                         item={item}
-                        rowIndex={rowIndex}
                         globalIndex={globalIndex}
                         mode={mode}
                       />
@@ -289,9 +300,12 @@ export function VocabSetPrintView({
                 </div>
 
                 <footer className="vocab-print-footer">
-                  <span>{ACADEMY_NAME}</span>
                   <span>
-                    {section.title} · p.{globalPageNum} · {VOCAB_PRINT_SIZE_LABELS[size]}
+                    {ACADEMY_NAME} · {VOCAB_PRINT_SIZE_LABELS[size]}
+                  </span>
+                  <span>
+                    {pageIndex + 1} / {sectionPageTotal}
+                    {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
                   </span>
                 </footer>
               </article>
@@ -305,12 +319,10 @@ export function VocabSetPrintView({
 
 function PrintEntry({
   item,
-  rowIndex,
   globalIndex,
   mode,
 }: {
   item: VocabPrintRow;
-  rowIndex: number;
   globalIndex: number;
   mode: VocabPrintMode;
 }) {
@@ -319,27 +331,31 @@ function PrintEntry({
   const synonyms = item.synonyms?.trim() ?? "";
   const antonyms = item.antonyms?.trim() ?? "";
   const showFull = mode === "full";
+  const pos = item.part_of_speech?.trim();
 
   return (
-    <div className={`vocab-print-entry ${rowIndex % 2 === 1 ? "alt" : ""}`}>
-      <div className="vocab-print-entry-index">
-        <span className="vocab-print-no">{formatNo(globalIndex)}</span>
+    <section className="vocab-print-row">
+      <div className="vocab-print-row-left">
+        <div className="vocab-print-num">{formatNo(globalIndex)}</div>
         <div className="vocab-print-checks" aria-hidden>
-          <span className="vocab-print-checkbox" />
-          <span className="vocab-print-checkbox" />
+          <span className="vocab-print-check" />
+          <span className="vocab-print-check" />
         </div>
       </div>
 
-      <div className="vocab-print-entry-word">
-        <p className="vocab-print-word-text">{item.word}</p>
+      <div className="vocab-print-word-box">
+        <h2 className="vocab-print-word">{item.word}</h2>
       </div>
 
-      <div className="vocab-print-entry-body">
+      <div className="vocab-print-content">
         {mode === "test" ? (
           <div className="vocab-print-test-blank" />
         ) : (
           <>
-            <p className="vocab-print-meaning">{item.meaning}</p>
+            <div className="vocab-print-meaning-line">
+              <span className="vocab-print-meaning">{item.meaning}</span>
+              {pos ? <span className="vocab-print-pos">{pos}</span> : null}
+            </div>
 
             {showFull && exampleSentence ? (
               <p className="vocab-print-example">
@@ -348,28 +364,28 @@ function PrintEntry({
             ) : null}
 
             {showFull && exampleMeaning ? (
-              <p className="vocab-print-example-ko">{exampleMeaning}</p>
+              <p className="vocab-print-translation">{exampleMeaning}</p>
             ) : null}
 
             {showFull && (synonyms || antonyms) ? (
-              <div className="vocab-print-related-row">
+              <div className="vocab-print-meta-tags">
                 {synonyms ? (
-                  <p className="vocab-print-related">
-                    <span className="vocab-print-related-tag">동의</span>
+                  <span className="vocab-print-tag syn">
+                    <span className="label">유의어</span>
                     {synonyms}
-                  </p>
+                  </span>
                 ) : null}
                 {antonyms ? (
-                  <p className="vocab-print-related vocab-print-related--ant">
-                    <span className="vocab-print-related-tag">반의</span>
+                  <span className="vocab-print-tag ant">
+                    <span className="label">반의어</span>
                     {antonyms}
-                  </p>
+                  </span>
                 ) : null}
               </div>
             ) : null}
           </>
         )}
       </div>
-    </div>
+    </section>
   );
 }
