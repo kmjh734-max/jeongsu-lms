@@ -106,6 +106,10 @@
   --vocab-example-size: 10.5px;
   --vocab-example-ko-size: 9.5px;
   --vocab-related-size: 9.5px;
+  --vocab-header-title-size: 20px;
+  --vocab-header-academy-size: 10.5px;
+  --vocab-header-meta-size: 10.5px;
+  --vocab-header-foot-size: 9.5px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -131,18 +135,24 @@
   --vocab-example-size: 9.5px;
   --vocab-example-ko-size: 8.5px;
   --vocab-related-size: 8.5px;
+  --vocab-header-title-size: 18px;
+  --vocab-header-academy-size: 9.5px;
+  --vocab-header-meta-size: 9.5px;
+  --vocab-header-foot-size: 8.5px;
 }
 
 .vocab-print-header {
   flex-shrink: 0;
-  border-bottom: 2px solid #e2e8f0;
+  padding: 11px var(--vocab-pad-x) 0;
+  background: linear-gradient(180deg, #fafbfc 0%, #fff 72%);
 }
 
-.vocab-print-header-band {
+.vocab-print-header-top {
   display: flex;
-  align-items: stretch;
-  gap: 0;
-  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #1e293b;
 }
 
 .vocab-print-day-badge {
@@ -151,97 +161,132 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  padding: 8px 6px;
-  background: linear-gradient(160deg, #1e3a5f 0%, #2563eb 100%);
+  min-width: 54px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: linear-gradient(155deg, #1a2e44 0%, #2c4a6e 55%, #1e3a5f 100%);
   color: #fff;
   text-align: center;
+  box-shadow: 0 2px 8px rgb(30 41 59 / 0.18);
 }
 
 .vocab-print-day-label {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  opacity: 0.85;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  opacity: 0.88;
 }
 
 .vocab-print-day-num {
-  font-size: 18px;
+  margin-top: 2px;
+  font-size: 22px;
   font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 
-.vocab-print-header-main {
+.vocab-print-page--b5 .vocab-print-day-num {
+  font-size: 20px;
+}
+
+.vocab-print-brand-block {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px var(--vocab-pad-x) 8px 10px;
   min-width: 0;
 }
 
 .vocab-print-brand-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   min-width: 0;
 }
 
 .vocab-print-logo {
-  height: 28px;
+  height: 38px;
   width: auto;
-  max-width: 88px;
+  max-width: 96px;
   object-fit: contain;
+}
+
+.vocab-print-page--b5 .vocab-print-logo {
+  height: 34px;
+  max-width: 84px;
+}
+
+.vocab-print-brand-text {
+  min-width: 0;
 }
 
 .vocab-print-academy {
   margin: 0;
-  font-size: 9px;
+  font-size: var(--vocab-header-academy-size);
   font-weight: 600;
   color: #64748b;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
 }
 
 .vocab-print-title {
-  margin: 2px 0 0;
-  font-size: 15px;
+  margin: 3px 0 0;
+  font-size: var(--vocab-header-title-size);
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 
 .vocab-print-meta-fields {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+  font-size: var(--vocab-header-meta-size);
+  font-weight: 600;
+  color: #334155;
+}
+
+.vocab-print-meta-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 9px;
-  font-weight: 600;
-  color: #475569;
-  flex-shrink: 0;
+  gap: 6px;
 }
 
 .vocab-print-field-line {
   display: inline-block;
-  width: 72px;
-  border-bottom: 1px solid #94a3b8;
-  height: 12px;
+  width: 78px;
+  border-bottom: 1.5px solid #64748b;
+  height: 14px;
 }
 
 .vocab-print-field-short {
-  width: 52px;
+  width: 58px;
+}
+
+.vocab-print-page--b5 .vocab-print-field-line {
+  width: 64px;
+}
+
+.vocab-print-page--b5 .vocab-print-field-short {
+  width: 48px;
 }
 
 .vocab-print-header-foot {
   display: flex;
   justify-content: space-between;
-  padding: 4px var(--vocab-pad-x) 6px;
-  font-size: 9px;
+  align-items: center;
+  padding: 7px 0 9px;
+  font-size: var(--vocab-header-foot-size);
   font-weight: 600;
   color: #64748b;
-  background: #f8fafc;
+}
+
+.vocab-print-header-mode {
+  letter-spacing: 0.02em;
+}
+
+.vocab-print-header-page {
+  font-variant-numeric: tabular-nums;
+  color: #475569;
 }
 
 .vocab-print-list {

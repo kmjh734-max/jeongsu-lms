@@ -230,33 +230,39 @@ export function VocabSetPrintView({
                 }
               >
                 <header className="vocab-print-header">
-                  <div className="vocab-print-header-band">
+                  <div className="vocab-print-header-top">
                     <div className="vocab-print-day-badge">
                       <span className="vocab-print-day-label">SET</span>
                       <span className="vocab-print-day-num">
                         {String(pageIndex + 1).padStart(2, "0")}
                       </span>
                     </div>
-                    <div className="vocab-print-header-main">
+                    <div className="vocab-print-brand-block">
                       <div className="vocab-print-brand-row">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={LOGO_SRC} alt="" className="vocab-print-logo" />
-                        <div>
+                        <div className="vocab-print-brand-text">
                           <p className="vocab-print-academy">{ACADEMY_NAME}</p>
                           <h2 className="vocab-print-title">{section.title}</h2>
                         </div>
                       </div>
-                      <div className="vocab-print-meta-fields">
+                    </div>
+                    <div className="vocab-print-meta-fields">
+                      <div className="vocab-print-meta-item">
                         <span>이름</span>
                         <span className="vocab-print-field-line" />
+                      </div>
+                      <div className="vocab-print-meta-item">
                         <span>날짜</span>
                         <span className="vocab-print-field-line vocab-print-field-short" />
                       </div>
                     </div>
                   </div>
                   <div className="vocab-print-header-foot">
-                    <span>{VOCAB_PRINT_MODE_LABELS[mode]}</span>
-                    <span>
+                    <span className="vocab-print-header-mode">
+                      {VOCAB_PRINT_MODE_LABELS[mode]}
+                    </span>
+                    <span className="vocab-print-header-page">
                       {pageIndex + 1} / {sectionPageTotal}
                       {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
                     </span>
