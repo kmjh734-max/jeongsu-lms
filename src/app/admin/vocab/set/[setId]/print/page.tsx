@@ -14,9 +14,7 @@ export default async function AdminVocabSetPrintPage({ params }: PageProps) {
   const loaded = await loadVocabSetPrintData(supabase, setId);
   if (!loaded) notFound();
 
-  const backHref = loaded.set.folder_id
-    ? `/admin/vocab/set/${setId}`
-    : `/admin/vocab/set/${setId}`;
+  const backHref = `/admin/vocab/set/${setId}`;
 
   return (
     <Suspense
@@ -25,9 +23,14 @@ export default async function AdminVocabSetPrintPage({ params }: PageProps) {
       }
     >
       <VocabSetPrintView
-        title={loaded.set.title}
-        description={loaded.set.description}
-        items={loaded.items}
+        sections={[
+          {
+            setId: loaded.set.id,
+            title: loaded.set.title,
+            description: loaded.set.description,
+            items: loaded.items,
+          },
+        ]}
         backHref={backHref}
       />
     </Suspense>

@@ -25,9 +25,14 @@ export default async function TeacherVocabSetPrintPage({ params }: PageProps) {
       }
     >
       <VocabSetPrintView
-        title={loaded.set.title}
-        description={loaded.set.description}
-        items={loaded.items}
+        sections={[
+          {
+            setId: loaded.set.id,
+            title: loaded.set.title,
+            description: loaded.set.description,
+            items: loaded.items,
+          },
+        ]}
         backHref={backHref}
       />
     </Suspense>

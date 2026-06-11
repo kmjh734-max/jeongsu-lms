@@ -9,6 +9,7 @@ interface VocabFolderToolbarProps {
   onAssign: () => void;
   onCopy: () => void;
   onDelete: () => void;
+  onPrint?: () => void;
   disabled?: boolean;
 }
 
@@ -21,6 +22,7 @@ export function VocabFolderToolbar({
   onAssign,
   onCopy,
   onDelete,
+  onPrint,
   disabled = false,
 }: VocabFolderToolbarProps) {
   const hasSelection = selectedCount > 0;
@@ -49,6 +51,14 @@ export function VocabFolderToolbar({
           onClick={onAssign}
           disabled={disabled || !hasSelection}
         />
+        {onPrint ? (
+          <ToolbarButton
+            label="인쇄"
+            onClick={onPrint}
+            disabled={disabled || !hasSelection}
+            accent
+          />
+        ) : null}
         <ToolbarButton
           label="복사"
           onClick={onCopy}
@@ -80,11 +90,13 @@ function ToolbarButton({
   onClick,
   disabled,
   danger,
+  accent,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   danger?: boolean;
+  accent?: boolean;
 }) {
   return (
     <button
@@ -94,7 +106,9 @@ function ToolbarButton({
       className={`rounded-lg px-2.5 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
         danger
           ? "text-red-600 hover:bg-red-50"
-          : "text-slate-700 hover:bg-white hover:shadow-sm"
+          : accent
+            ? "bg-emerald-700 text-white hover:bg-emerald-800"
+            : "text-slate-700 hover:bg-white hover:shadow-sm"
       }`}
     >
       {label}

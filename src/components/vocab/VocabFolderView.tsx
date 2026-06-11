@@ -141,6 +141,15 @@ export function VocabFolderView({
     router.refresh();
   }
 
+  function openBulkPrint() {
+    if (selected.size === 0) return;
+    const params = new URLSearchParams({
+      sets: selectedIds.join(","),
+      back: `${basePath}/folder/${folderId}`,
+    });
+    window.open(`${basePath}/print?${params.toString()}`, "_blank", "noopener,noreferrer");
+  }
+
   async function handleBulkCopy() {
     if (!targetFolder || selected.size === 0) return;
     setLoading(true);
@@ -236,6 +245,7 @@ export function VocabFolderView({
             setBulkDialog("copy");
           }}
           onDelete={handleBulkDelete}
+          onPrint={openBulkPrint}
           disabled={loading}
         />
 

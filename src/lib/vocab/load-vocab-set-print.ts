@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { VocabItem, VocabSet } from "@/types/database";
+import type { VocabPrintSection } from "@/lib/vocab/vocab-print-types";
 
 export interface VocabSetPrintData {
   set: VocabSet;
@@ -33,4 +34,30 @@ export async function loadVocabSetPrintData(
     set: set as VocabSet,
     items: (items ?? []) as VocabItem[],
   };
+}
+
+export async function loadVocabSetsPrintData(
+  supabase: SupabaseClient,
+  setIds: string[],
+  teacherScopeId?: string
+): Promise<VocabPrintSection[]> {
+  const uniqueIds = [...new Set(setIds.filter(Boolean))];
+  const sections: VocabPrintSection[] = [];
+
+  for (const setId of uniqueIds) {
+    const loaded = await loadVocabSetPrintData(
+      supabase,
+      setId,
+      teacherScopeId
+    );
+    if (!loaded || loaded.items.length === 0) continue;
+    sections.push({
+      setId: loaded.set.id,
+      title: loaded.set.title,
+      description: loaded.set.description,
+      items: loaded.items,
+    });
+  }
+
+  return sections;
 }
