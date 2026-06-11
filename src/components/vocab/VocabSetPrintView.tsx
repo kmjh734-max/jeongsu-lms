@@ -231,21 +231,17 @@ export function VocabSetPrintView({
               >
                 <header className="vocab-print-header">
                   <div className="vocab-print-header-top">
-                    <div className="vocab-print-day-badge">
-                      <span className="vocab-print-day-label">SET</span>
-                      <span className="vocab-print-day-num">
-                        {String(pageIndex + 1).padStart(2, "0")}
-                      </span>
+                    <div className="vocab-print-header-logo-wrap">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={LOGO_SRC}
+                        alt={ACADEMY_NAME}
+                        className="vocab-print-logo-hero"
+                      />
                     </div>
                     <div className="vocab-print-brand-block">
-                      <div className="vocab-print-brand-row">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={LOGO_SRC} alt="" className="vocab-print-logo" />
-                        <div className="vocab-print-brand-text">
-                          <p className="vocab-print-academy">{ACADEMY_NAME}</p>
-                          <h2 className="vocab-print-title">{section.title}</h2>
-                        </div>
-                      </div>
+                      <p className="vocab-print-academy">{ACADEMY_NAME}</p>
+                      <h2 className="vocab-print-title">{section.title}</h2>
                     </div>
                     <div className="vocab-print-meta-fields">
                       <div className="vocab-print-meta-item">
