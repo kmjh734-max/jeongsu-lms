@@ -1,5 +1,5 @@
 import type { VocabItem } from "@/types/database";
-import { buildChoices, buildSpellingPrompt } from "@/lib/vocab/generate-test-questions";
+import { buildChoices } from "@/lib/vocab/generate-test-questions";
 import type { ExamPrintConfig, ExamQuestionKind } from "@/lib/vocab/vocab-print-exam-config";
 
 export interface PrintExamQuestion {
@@ -8,10 +8,6 @@ export interface PrintExamQuestion {
   prompt: string;
   subPrompt?: string;
   choices?: string[];
-}
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -76,32 +72,23 @@ function buildQuestion(
         subPrompt: "영어 단어를 쓰시오.",
       };
     case "example_mc": {
-      const ex = item.example_sentence?.trim();
-      if (!ex) return null;
-      const blanked = ex.replace(
-        new RegExp(`\\b${escapeRegExp(item.word)}\\b`, "gi"),
-        "______"
-      );
       const choices = buildChoices(pool, item, (i) => i.word);
       if (!choices || choices.length < 2) return null;
       return {
         kind,
         number: 0,
-        prompt: blanked,
-        subPrompt: "빈칸에 알맞은 단어를 고르시오.",
+        prompt: item.meaning,
+        subPrompt: "알맞은 단어를 고르시오.",
         choices,
       };
     }
-    case "example_sa": {
-      const blanked = buildSpellingPrompt(item).replace(/^예문:\s*/, "");
-      if (!blanked) return null;
+    case "example_sa":
       return {
         kind,
         number: 0,
-        prompt: blanked,
-        subPrompt: "빈칸에 알맞은 영어 단어를 쓰시오.",
+        prompt: item.meaning,
+        subPrompt: "영어 단어를 쓰시오.",
       };
-    }
     default:
       return null;
   }
@@ -119,13 +106,13 @@ const KIND_ORDER: { kind: ExamQuestionKind; configKey: keyof ExamPrintConfig }[]
 
 export function generatePrintExamQuestions(
   items: VocabItem[],
-  config: ExamPrintConfig
+  config: ExamPrintConfig,
+  options?: { shuffle?: boolean; shuffleSeed?: number }
 ): { questions: PrintExamQuestion[]; skipped: number } {
   if (items.length < 2) {
     return { questions: [], skipped: 0 };
   }
 
-  const withExample = items.filter((i) => i.example_sentence?.trim());
   const questions: PrintExamQuestion[] = [];
   let skipped = 0;
 
@@ -133,9 +120,7 @@ export function generatePrintExamQuestions(
     const count = config[configKey];
     if (count <= 0) continue;
 
-    const pool =
-      kind === "example_mc" || kind === "example_sa" ? withExample : items;
-    const picked = pickItems(pool, count);
+    const picked = pickItems(items, count);
 
     for (const item of picked) {
       const q = buildQuestion(kind, item, items);
@@ -143,9 +128,17 @@ export function generatePrintExamQuestions(
         skipped += 1;
         continue;
       }
-      questions.push({ ...q, number: questions.length + 1 });
+      questions.push(q);
     }
   }
 
-  return { questions, skipped };
+  // shuffleSeed changes re-run generation (e.g. 「순서 다시 섞기」)
+  void options?.shuffleSeed;
+
+  const ordered = options?.shuffle !== false ? shuffle(questions) : questions;
+
+  return {
+    questions: ordered.map((q, i) => ({ ...q, number: i + 1 })),
+    skipped,
+  };
 }

@@ -428,8 +428,16 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-rows: repeat(var(--vocab-rows-per-page, 5), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--vocab-exam-cols, 1), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--vocab-exam-rows-per-col, 5), minmax(0, 1fr));
+  column-gap: 14px;
   overflow: hidden;
+}
+
+.vocab-exam-list--2col,
+.vocab-exam-list--3col,
+.vocab-exam-list--4col {
+  column-gap: 10px;
 }
 
 .vocab-exam-row {
@@ -441,6 +449,14 @@
   overflow: hidden;
   break-inside: avoid;
   page-break-inside: avoid;
+}
+
+.vocab-exam-spacing-compact .vocab-exam-row {
+  padding: 4px 0 3px;
+}
+
+.vocab-exam-spacing-wide .vocab-exam-row {
+  padding: 14px 0 12px;
 }
 
 .vocab-exam-row.empty {
@@ -495,9 +511,27 @@
   gap: 4px 16px;
 }
 
+.vocab-exam-list--2col .vocab-exam-choices,
+.vocab-exam-list--3col .vocab-exam-choices,
+.vocab-exam-list--4col .vocab-exam-choices {
+  grid-template-columns: 1fr;
+  margin-left: 20px;
+  gap: 2px 0;
+}
+
 .vocab-print-page--b5 .vocab-exam-choices {
   margin-left: 22px;
   gap: 3px 10px;
+}
+
+.vocab-exam-spacing-compact .vocab-exam-choices {
+  margin-top: 4px;
+  gap: 1px 8px;
+}
+
+.vocab-exam-spacing-wide .vocab-exam-choices {
+  margin-top: 10px;
+  gap: 6px 16px;
 }
 
 .vocab-exam-choices li {
@@ -519,9 +553,54 @@
   border-bottom: 1.5px solid #94a3b8;
 }
 
+.vocab-exam-spacing-compact .vocab-exam-answer-line {
+  margin-top: 6px;
+  height: 22px;
+}
+
+.vocab-exam-spacing-wide .vocab-exam-answer-line {
+  margin-top: 14px;
+  height: 34px;
+}
+
 .vocab-print-page--b5 .vocab-exam-answer-line {
   margin-left: 22px;
   height: 24px;
+}
+
+/* 다단 시 폰트·여백 축소 */
+.vocab-exam-cols-3 .vocab-exam-q-no,
+.vocab-exam-cols-4 .vocab-exam-q-no {
+  font-size: 12px;
+}
+
+.vocab-exam-cols-3 .vocab-exam-prompt,
+.vocab-exam-cols-4 .vocab-exam-prompt {
+  font-size: calc(var(--vocab-body-size) - 1px);
+}
+
+.vocab-exam-cols-3 .vocab-exam-sub,
+.vocab-exam-cols-4 .vocab-exam-sub,
+.vocab-exam-cols-3 .vocab-exam-choices li,
+.vocab-exam-cols-4 .vocab-exam-choices li {
+  font-size: calc(var(--vocab-small-size) - 1px);
+}
+
+.vocab-exam-cols-3 .vocab-exam-q-head,
+.vocab-exam-cols-4 .vocab-exam-q-head {
+  gap: 4px;
+}
+
+.vocab-exam-cols-3 .vocab-exam-choices,
+.vocab-exam-cols-4 .vocab-exam-choices,
+.vocab-exam-cols-3 .vocab-exam-answer-line,
+.vocab-exam-cols-4 .vocab-exam-answer-line {
+  margin-left: 16px;
+}
+
+.vocab-exam-cols-4 .vocab-exam-row {
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 @media print {

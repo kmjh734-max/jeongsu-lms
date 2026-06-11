@@ -1,10 +1,21 @@
 "use client";
 
-import type { ExamPrintConfig } from "@/lib/vocab/vocab-print-exam-config";
+import type {
+  ExamColumnCount,
+  ExamLineSpacing,
+  ExamPrintConfig,
+  ExamPrintLayout,
+  ExamPrintSettings,
+} from "@/lib/vocab/vocab-print-exam-config";
+import {
+  EXAM_COLUMN_LABELS,
+  EXAM_LINE_SPACING_LABELS,
+} from "@/lib/vocab/vocab-print-exam-config";
 
 interface VocabPrintExamConfigProps {
-  config: ExamPrintConfig;
-  onChange: (config: ExamPrintConfig) => void;
+  settings: ExamPrintSettings;
+  onChange: (settings: ExamPrintSettings) => void;
+  onReshuffle: () => void;
   maxPool: number;
 }
 
@@ -14,22 +25,41 @@ const ROWS = [
   { label: "예문제시", mc: "example_mc" as const, sa: "example_sa" as const },
 ];
 
+const COLUMNS: ExamColumnCount[] = [1, 2, 3, 4];
+const SPACINGS: ExamLineSpacing[] = ["compact", "normal", "wide"];
+
 export function VocabPrintExamConfig({
-  config,
+  settings,
   onChange,
+  onReshuffle,
   maxPool,
 }: VocabPrintExamConfigProps) {
+  const { counts, layout } = settings;
+
+  function setCounts(next: ExamPrintConfig) {
+    onChange({ ...settings, counts: next });
+  }
+
+  function setLayout(next: Partial<ExamPrintLayout>) {
+    onChange({
+      ...settings,
+      layout: { ...layout, ...next },
+      shuffleSeed: layout.shuffle !== next.shuffle ? Date.now() : settings.shuffleSeed,
+    });
+  }
+
   function setCount(key: keyof ExamPrintConfig, raw: string) {
     const n = Number.parseInt(raw, 10);
     const value = Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 0;
-    onChange({ ...config, [key]: value });
+    setCounts({ ...counts, [key]: value });
   }
 
   return (
-    <div className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <p className="mb-2 text-xs font-semibold text-slate-600">
-        시험지 문항 수 (세트 단어 {maxPool}개 기준)
+    <div className="w-full space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-semibold text-slate-600">
+        시험지 문항 수 (세트 단어 {maxPool}개 · 예문제시는 한글 뜻 제시)
       </p>
+
       <table className="w-full max-w-md border-collapse text-sm">
         <thead>
           <tr className="text-xs text-slate-500">
@@ -47,7 +77,7 @@ export function VocabPrintExamConfig({
                   type="number"
                   min={0}
                   max={99}
-                  value={config[row.mc] || ""}
+                  value={counts[row.mc] || ""}
                   onChange={(e) => setCount(row.mc, e.target.value)}
                   className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-sm"
                 />
@@ -57,7 +87,7 @@ export function VocabPrintExamConfig({
                   type="number"
                   min={0}
                   max={99}
-                  value={config[row.sa] || ""}
+                  value={counts[row.sa] || ""}
                   onChange={(e) => setCount(row.sa, e.target.value)}
                   className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-sm"
                 />
@@ -66,6 +96,61 @@ export function VocabPrintExamConfig({
           ))}
         </tbody>
       </table>
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
+        <span className="text-xs font-semibold text-slate-600">단 구성</span>
+        {COLUMNS.map((col) => (
+          <button
+            key={col}
+            type="button"
+            onClick={() => setLayout({ columns: col })}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              layout.columns === col
+                ? "bg-slate-800 text-white"
+                : "bg-white text-slate-700 ring-1 ring-slate-300"
+            }`}
+          >
+            {EXAM_COLUMN_LABELS[col]}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold text-slate-600">줄간격</span>
+        {SPACINGS.map((spacing) => (
+          <button
+            key={spacing}
+            type="button"
+            onClick={() => setLayout({ lineSpacing: spacing })}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              layout.lineSpacing === spacing
+                ? "bg-slate-800 text-white"
+                : "bg-white text-slate-700 ring-1 ring-slate-300"
+            }`}
+          >
+            {EXAM_LINE_SPACING_LABELS[spacing]}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-2 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={layout.shuffle}
+            onChange={(e) => setLayout({ shuffle: e.target.checked })}
+            className="rounded border-slate-300"
+          />
+          문항 순서 랜덤
+        </label>
+        <button
+          type="button"
+          onClick={onReshuffle}
+          className="rounded-md bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-200"
+        >
+          순서 다시 섞기
+        </button>
+      </div>
     </div>
   );
 }

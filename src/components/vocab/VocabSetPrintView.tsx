@@ -16,11 +16,12 @@ import {
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
 import {
-  examConfigToSearchParams,
   examConfigTotal,
   examQuestionsPerPage,
-  parseExamPrintConfig,
-  type ExamPrintConfig,
+  examRowsPerColumn,
+  examSettingsToSearchParams,
+  parseExamPrintSettings,
+  type ExamPrintSettings,
 } from "@/lib/vocab/vocab-print-exam-config";
 import {
   parseVocabPrintSize,
@@ -89,13 +90,15 @@ export function VocabSetPrintView({
   const searchParams = useSearchParams();
   const mode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
   const size = parseVocabPrintSize(searchParams.get("size") ?? undefined);
-  const [examConfig, setExamConfig] = useState<ExamPrintConfig>(() =>
-    parseExamPrintConfig(searchParams)
+  const [examSettings, setExamSettings] = useState<ExamPrintSettings>(() =>
+    parseExamPrintSettings(searchParams)
   );
 
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const perPage = itemsPerVocabPrintPage(mode, size);
-  const examPerPage = examQuestionsPerPage(size);
+  const examCols = examSettings.layout.columns;
+  const examPerPage = examQuestionsPerPage(size, examCols);
+  const examRowsPerCol = examRowsPerColumn(size);
 
   const allItems = useMemo(
     () => sections.flatMap((s) => s.items),
@@ -106,8 +109,17 @@ export function VocabSetPrintView({
 
   const examGenerated = useMemo(() => {
     if (mode !== "exam") return { questions: [] as PrintExamQuestion[], skipped: 0 };
-    return generatePrintExamQuestions(allItems, examConfig);
-  }, [mode, allItems, examConfig]);
+    return generatePrintExamQuestions(allItems, examSettings.counts, {
+      shuffle: examSettings.layout.shuffle,
+      shuffleSeed: examSettings.shuffleSeed,
+    });
+  }, [
+    mode,
+    allItems,
+    examSettings.counts,
+    examSettings.layout.shuffle,
+    examSettings.shuffleSeed,
+  ]);
 
   const flatPages = useMemo(() => {
     if (mode === "exam") return [];
@@ -145,7 +157,7 @@ export function VocabSetPrintView({
   const pageCount = mode === "exam" ? examPages.length : flatPages.length;
 
   useEffect(() => {
-    setExamConfig(parseExamPrintConfig(searchParams));
+    setExamSettings(parseExamPrintSettings(searchParams));
   }, [searchParams]);
 
   useEffect(() => {
@@ -174,14 +186,10 @@ export function VocabSetPrintView({
     [router, searchParams]
   );
 
-  const updateExamConfig = useCallback(
-    (next: ExamPrintConfig) => {
-      setExamConfig(next);
+  const syncExamSettingsToUrl = useCallback(
+    (next: ExamPrintSettings) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("mode", "exam");
-      for (const [k, v] of Object.entries(examConfigToSearchParams(next))) {
-        params.set(k, v);
-      }
       for (const key of [
         "word_mc",
         "word_sa",
@@ -189,13 +197,34 @@ export function VocabSetPrintView({
         "meaning_sa",
         "example_mc",
         "example_sa",
-      ] as const) {
-        if (next[key] <= 0) params.delete(key);
+        "exam_cols",
+        "exam_spacing",
+        "exam_shuffle",
+        "exam_seed",
+      ]) {
+        params.delete(key);
+      }
+      for (const [k, v] of Object.entries(examSettingsToSearchParams(next))) {
+        params.set(k, v);
       }
       router.replace(`?${params.toString()}`);
     },
     [router, searchParams]
   );
+
+  const updateExamSettings = useCallback(
+    (next: ExamPrintSettings) => {
+      setExamSettings(next);
+      syncExamSettingsToUrl(next);
+    },
+    [syncExamSettingsToUrl]
+  );
+
+  const reshuffleExam = useCallback(() => {
+    const next = { ...examSettings, shuffleSeed: Date.now() };
+    setExamSettings(next);
+    syncExamSettingsToUrl(next);
+  }, [examSettings, syncExamSettingsToUrl]);
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -221,7 +250,7 @@ export function VocabSetPrintView({
     );
   }
 
-  const examTotal = examConfigTotal(examConfig);
+  const examTotal = examConfigTotal(examSettings.counts);
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
@@ -293,8 +322,9 @@ export function VocabSetPrintView({
         {mode === "exam" ? (
           <div className="mx-auto px-4 pb-3" style={{ maxWidth: pageDims.width }}>
             <VocabPrintExamConfig
-              config={examConfig}
-              onChange={updateExamConfig}
+              settings={examSettings}
+              onChange={updateExamSettings}
+              onReshuffle={reshuffleExam}
               maxPool={totalItems}
             />
             {examTotal === 0 ? (
@@ -304,8 +334,7 @@ export function VocabSetPrintView({
             ) : null}
             {examTotal > 0 && examGenerated.questions.length === 0 ? (
               <p className="mt-2 text-xs text-red-600">
-                문항을 만들 수 없습니다. 단어가 2개 이상이고, 예문 문항은 예문이 있는
-                단어가 필요합니다.
+                문항을 만들 수 없습니다. 객관식은 단어가 2개 이상 필요합니다.
               </p>
             ) : null}
             {examGenerated.skipped > 0 ? (
@@ -333,10 +362,12 @@ export function VocabSetPrintView({
             ? examPages.map((pageQuestions, pageIndex) => (
                 <article
                   key={`exam-${pageIndex}`}
-                  className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
+                  className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-cols-${examCols} vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
                   data-size={size}
                   style={
                     {
+                      ["--vocab-exam-cols" as string]: examCols,
+                      ["--vocab-exam-rows-per-col" as string]: examRowsPerCol,
                       ["--vocab-rows-per-page" as string]: examPerPage,
                       ["--vocab-page-width" as string]: pageDims.width,
                       ["--vocab-page-height" as string]: pageDims.height,
@@ -345,7 +376,7 @@ export function VocabSetPrintView({
                 >
                   <PrintPageHeader sectionTitle={headerTitle} />
 
-                  <div className="vocab-exam-list">
+                  <div className={`vocab-exam-list vocab-exam-list--${examCols}col`}>
                     {pageQuestions.map((q, rowIndex) => {
                       if (!q) {
                         return (

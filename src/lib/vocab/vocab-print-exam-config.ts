@@ -6,6 +6,9 @@ export type ExamQuestionKind =
   | "example_mc"
   | "example_sa";
 
+export type ExamColumnCount = 1 | 2 | 3 | 4;
+export type ExamLineSpacing = "compact" | "normal" | "wide";
+
 export interface ExamPrintConfig {
   word_mc: number;
   word_sa: number;
@@ -13,6 +16,19 @@ export interface ExamPrintConfig {
   meaning_sa: number;
   example_mc: number;
   example_sa: number;
+}
+
+export interface ExamPrintLayout {
+  columns: ExamColumnCount;
+  lineSpacing: ExamLineSpacing;
+  shuffle: boolean;
+}
+
+export interface ExamPrintSettings {
+  counts: ExamPrintConfig;
+  layout: ExamPrintLayout;
+  /** 변경 시 문항 순서 재생성 */
+  shuffleSeed: number;
 }
 
 export const DEFAULT_EXAM_PRINT_CONFIG: ExamPrintConfig = {
@@ -24,19 +40,30 @@ export const DEFAULT_EXAM_PRINT_CONFIG: ExamPrintConfig = {
   example_sa: 0,
 };
 
-export const EXAM_CONFIG_ROWS: {
-  key: keyof ExamPrintConfig;
-  label: string;
-  row: "word" | "meaning" | "example";
-  format: "mc" | "sa";
-}[] = [
-  { key: "word_mc", label: "단어제시", row: "word", format: "mc" },
-  { key: "word_sa", label: "단어제시", row: "word", format: "sa" },
-  { key: "meaning_mc", label: "의미제시", row: "meaning", format: "mc" },
-  { key: "meaning_sa", label: "의미제시", row: "meaning", format: "sa" },
-  { key: "example_mc", label: "예문제시", row: "example", format: "mc" },
-  { key: "example_sa", label: "예문제시", row: "example", format: "sa" },
-];
+export const DEFAULT_EXAM_LAYOUT: ExamPrintLayout = {
+  columns: 1,
+  lineSpacing: "normal",
+  shuffle: true,
+};
+
+export const DEFAULT_EXAM_SETTINGS: ExamPrintSettings = {
+  counts: DEFAULT_EXAM_PRINT_CONFIG,
+  layout: DEFAULT_EXAM_LAYOUT,
+  shuffleSeed: 0,
+};
+
+export const EXAM_COLUMN_LABELS: Record<ExamColumnCount, string> = {
+  1: "1단",
+  2: "2단",
+  3: "3단",
+  4: "4단",
+};
+
+export const EXAM_LINE_SPACING_LABELS: Record<ExamLineSpacing, string> = {
+  compact: "좁게",
+  normal: "보통",
+  wide: "넓게",
+};
 
 export function examConfigTotal(config: ExamPrintConfig): number {
   return (
@@ -49,34 +76,84 @@ export function examConfigTotal(config: ExamPrintConfig): number {
   );
 }
 
-export function parseExamPrintConfig(
+function readCount(
+  searchParams: URLSearchParams,
+  key: keyof ExamPrintConfig
+): number {
+  const raw = searchParams.get(key);
+  const n = raw ? Number.parseInt(raw, 10) : 0;
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 0;
+}
+
+export function parseExamColumnCount(raw: string | null): ExamColumnCount {
+  const n = raw ? Number.parseInt(raw, 10) : 1;
+  if (n === 2 || n === 3 || n === 4) return n;
+  return 1;
+}
+
+export function parseExamLineSpacing(raw: string | null): ExamLineSpacing {
+  if (raw === "compact" || raw === "wide") return raw;
+  return "normal";
+}
+
+export function parseExamPrintSettings(
   searchParams: URLSearchParams
-): ExamPrintConfig {
-  const read = (key: keyof ExamPrintConfig) => {
-    const raw = searchParams.get(key);
-    const n = raw ? Number.parseInt(raw, 10) : 0;
-    return Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 0;
-  };
+): ExamPrintSettings {
+  const shuffleParam = searchParams.get("exam_shuffle");
+  const shuffle =
+    shuffleParam === null ? true : shuffleParam === "1" || shuffleParam === "true";
+
+  const seedRaw = searchParams.get("exam_seed");
+  const shuffleSeed = seedRaw ? Number.parseInt(seedRaw, 10) || 0 : 0;
+
   return {
-    word_mc: read("word_mc"),
-    word_sa: read("word_sa"),
-    meaning_mc: read("meaning_mc"),
-    meaning_sa: read("meaning_sa"),
-    example_mc: read("example_mc"),
-    example_sa: read("example_sa"),
+    counts: {
+      word_mc: readCount(searchParams, "word_mc"),
+      word_sa: readCount(searchParams, "word_sa"),
+      meaning_mc: readCount(searchParams, "meaning_mc"),
+      meaning_sa: readCount(searchParams, "meaning_sa"),
+      example_mc: readCount(searchParams, "example_mc"),
+      example_sa: readCount(searchParams, "example_sa"),
+    },
+    layout: {
+      columns: parseExamColumnCount(searchParams.get("exam_cols")),
+      lineSpacing: parseExamLineSpacing(searchParams.get("exam_spacing")),
+      shuffle,
+    },
+    shuffleSeed,
   };
 }
 
-export function examConfigToSearchParams(
-  config: ExamPrintConfig
+export function examSettingsToSearchParams(
+  settings: ExamPrintSettings
 ): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const key of Object.keys(config) as (keyof ExamPrintConfig)[]) {
-    if (config[key] > 0) out[key] = String(config[key]);
+  for (const [k, v] of Object.entries(settings.counts)) {
+    if (v > 0) out[k] = String(v);
+  }
+  if (settings.layout.columns !== 1) {
+    out.exam_cols = String(settings.layout.columns);
+  }
+  if (settings.layout.lineSpacing !== "normal") {
+    out.exam_spacing = settings.layout.lineSpacing;
+  }
+  if (!settings.layout.shuffle) {
+    out.exam_shuffle = "0";
+  }
+  if (settings.shuffleSeed > 0) {
+    out.exam_seed = String(settings.shuffleSeed);
   }
   return out;
 }
 
-export function examQuestionsPerPage(size: "a4" | "b5"): number {
+/** 단당 기본 행 수 (B5 5행, A4 6행) */
+export function examRowsPerColumn(size: "a4" | "b5"): number {
   return size === "b5" ? 5 : 6;
+}
+
+export function examQuestionsPerPage(
+  size: "a4" | "b5",
+  columns: ExamColumnCount
+): number {
+  return examRowsPerColumn(size) * columns;
 }
