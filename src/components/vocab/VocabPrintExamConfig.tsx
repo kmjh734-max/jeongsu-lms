@@ -57,7 +57,7 @@ export function VocabPrintExamConfig({
   return (
     <div className="w-full space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
       <p className="text-xs font-semibold text-slate-600">
-        시험지 문항 수 (세트 단어 {maxPool}개 · 예문제시는 한글 뜻 제시)
+        시험지 문항 수 (세트 단어 {maxPool}개 · 예문제시는 예문 빈칸)
       </p>
 
       <table className="w-full max-w-md border-collapse text-sm">
@@ -116,7 +116,7 @@ export function VocabPrintExamConfig({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold text-slate-600">줄간격</span>
+        <span className="text-xs font-semibold text-slate-600">문항 간격</span>
         {SPACINGS.map((spacing) => (
           <button
             key={spacing}

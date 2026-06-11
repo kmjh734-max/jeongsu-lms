@@ -6,8 +6,27 @@ export interface PrintExamQuestion {
   kind: ExamQuestionKind;
   number: number;
   prompt: string;
-  subPrompt?: string;
   choices?: string[];
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function blankExampleSentence(item: VocabItem): string | null {
+  const sentence = item.example_sentence?.trim();
+  const word = item.word?.trim();
+  if (!sentence || !word) return null;
+  const re = new RegExp(`\\b${escapeRegExp(word)}\\b`, "i");
+  if (!re.test(sentence)) return null;
+  return sentence.replace(
+    new RegExp(`\\b${escapeRegExp(word)}\\b`, "gi"),
+    "______"
+  );
+}
+
+function itemsWithBlankableExample(items: VocabItem[]): VocabItem[] {
+  return items.filter((item) => blankExampleSentence(item) !== null);
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -38,57 +57,29 @@ function buildQuestion(
     case "word_mc": {
       const choices = buildChoices(pool, item, (i) => i.meaning);
       if (!choices || choices.length < 2) return null;
-      return {
-        kind,
-        number: 0,
-        prompt: item.word,
-        subPrompt: "알맞은 뜻을 고르시오.",
-        choices,
-      };
+      return { kind, number: 0, prompt: item.word, choices };
     }
     case "word_sa":
-      return {
-        kind,
-        number: 0,
-        prompt: item.word,
-        subPrompt: "뜻을 쓰시오.",
-      };
+      return { kind, number: 0, prompt: item.word };
     case "meaning_mc": {
       const choices = buildChoices(pool, item, (i) => i.word);
       if (!choices || choices.length < 2) return null;
-      return {
-        kind,
-        number: 0,
-        prompt: item.meaning,
-        subPrompt: "알맞은 단어를 고르시오.",
-        choices,
-      };
+      return { kind, number: 0, prompt: item.meaning, choices };
     }
     case "meaning_sa":
-      return {
-        kind,
-        number: 0,
-        prompt: item.meaning,
-        subPrompt: "영어 단어를 쓰시오.",
-      };
+      return { kind, number: 0, prompt: item.meaning };
     case "example_mc": {
+      const blanked = blankExampleSentence(item);
+      if (!blanked) return null;
       const choices = buildChoices(pool, item, (i) => i.word);
       if (!choices || choices.length < 2) return null;
-      return {
-        kind,
-        number: 0,
-        prompt: item.meaning,
-        subPrompt: "알맞은 단어를 고르시오.",
-        choices,
-      };
+      return { kind, number: 0, prompt: blanked, choices };
     }
-    case "example_sa":
-      return {
-        kind,
-        number: 0,
-        prompt: item.meaning,
-        subPrompt: "영어 단어를 쓰시오.",
-      };
+    case "example_sa": {
+      const blanked = blankExampleSentence(item);
+      if (!blanked) return null;
+      return { kind, number: 0, prompt: blanked };
+    }
     default:
       return null;
   }
@@ -116,11 +107,20 @@ export function generatePrintExamQuestions(
   const questions: PrintExamQuestion[] = [];
   let skipped = 0;
 
+  const examplePool = itemsWithBlankableExample(items);
+
   for (const { kind, configKey } of KIND_ORDER) {
     const count = config[configKey];
     if (count <= 0) continue;
 
-    const picked = pickItems(items, count);
+    const pool =
+      kind === "example_mc" || kind === "example_sa" ? examplePool : items;
+    if (pool.length === 0) {
+      skipped += count;
+      continue;
+    }
+
+    const picked = pickItems(pool, count);
 
     for (const item of picked) {
       const q = buildQuestion(kind, item, items);

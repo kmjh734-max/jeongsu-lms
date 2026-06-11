@@ -431,7 +431,16 @@
   grid-template-columns: repeat(var(--vocab-exam-cols, 1), minmax(0, 1fr));
   grid-template-rows: repeat(var(--vocab-exam-rows-per-col, 5), minmax(0, 1fr));
   column-gap: 14px;
+  row-gap: 8px;
   overflow: hidden;
+}
+
+.vocab-exam-spacing-compact .vocab-exam-list {
+  row-gap: 2px;
+}
+
+.vocab-exam-spacing-wide .vocab-exam-list {
+  row-gap: 18px;
 }
 
 .vocab-exam-list--2col,
@@ -449,14 +458,6 @@
   overflow: hidden;
   break-inside: avoid;
   page-break-inside: avoid;
-}
-
-.vocab-exam-spacing-compact .vocab-exam-row {
-  padding: 4px 0 3px;
-}
-
-.vocab-exam-spacing-wide .vocab-exam-row {
-  padding: 14px 0 12px;
 }
 
 .vocab-exam-row.empty {
@@ -524,16 +525,6 @@
   gap: 3px 10px;
 }
 
-.vocab-exam-spacing-compact .vocab-exam-choices {
-  margin-top: 4px;
-  gap: 1px 8px;
-}
-
-.vocab-exam-spacing-wide .vocab-exam-choices {
-  margin-top: 10px;
-  gap: 6px 16px;
-}
-
 .vocab-exam-choices li {
   font-size: var(--vocab-body-size);
   line-height: 1.45;
@@ -551,16 +542,6 @@
   margin: 10px 0 0 28px;
   height: 28px;
   border-bottom: 1.5px solid #94a3b8;
-}
-
-.vocab-exam-spacing-compact .vocab-exam-answer-line {
-  margin-top: 6px;
-  height: 22px;
-}
-
-.vocab-exam-spacing-wide .vocab-exam-answer-line {
-  margin-top: 14px;
-  height: 34px;
 }
 
 .vocab-print-page--b5 .vocab-exam-answer-line {

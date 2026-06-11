@@ -334,7 +334,8 @@ export function VocabSetPrintView({
             ) : null}
             {examTotal > 0 && examGenerated.questions.length === 0 ? (
               <p className="mt-2 text-xs text-red-600">
-                문항을 만들 수 없습니다. 객관식은 단어가 2개 이상 필요합니다.
+                문항을 만들 수 없습니다. 객관식은 단어 2개 이상, 예문 문항은
+                예문에 단어가 포함된 항목이 필요합니다.
               </p>
             ) : null}
             {examGenerated.skipped > 0 ? (
@@ -475,9 +476,6 @@ function PrintExamEntry({ question }: { question: PrintExamQuestion }) {
         <span className="vocab-exam-q-no">{question.number}.</span>
         <div className="vocab-exam-q-main">
           <p className="vocab-exam-prompt">{question.prompt}</p>
-          {question.subPrompt ? (
-            <p className="vocab-exam-sub">{question.subPrompt}</p>
-          ) : null}
         </div>
       </div>
       {question.choices ? (
