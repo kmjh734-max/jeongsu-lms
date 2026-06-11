@@ -245,9 +245,6 @@ export function VocabSetPrintView({
                     <div className="vocab-print-book-meta">
                       <p className="vocab-print-series">{ACADEMY_NAME}</p>
                       <h2 className="vocab-print-book-title">{section.title}</h2>
-                      <p className="vocab-print-day">
-                        PAGE {String(pageIndex + 1).padStart(2, "0")}
-                      </p>
                     </div>
                   </div>
                   <div className="vocab-print-header-right">
@@ -261,15 +258,6 @@ export function VocabSetPrintView({
                     </div>
                   </div>
                 </header>
-
-                <div className="vocab-print-sub-info">
-                  <span>
-                    <strong>학습목표</strong> {VOCAB_PRINT_MODE_LABELS[mode]}
-                  </span>
-                  <span>
-                    <strong>Check-Up</strong> 오늘의 단어 {perPage}개
-                  </span>
-                </div>
 
                 <div className="vocab-print-table-head">
                   <div>NO.</div>
@@ -300,9 +288,7 @@ export function VocabSetPrintView({
                 </div>
 
                 <footer className="vocab-print-footer">
-                  <span>
-                    {ACADEMY_NAME} · {VOCAB_PRINT_SIZE_LABELS[size]}
-                  </span>
+                  <span>{ACADEMY_NAME}</span>
                   <span>
                     {pageIndex + 1} / {sectionPageTotal}
                     {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}

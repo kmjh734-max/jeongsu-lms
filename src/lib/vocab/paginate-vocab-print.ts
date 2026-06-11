@@ -38,14 +38,15 @@ export function itemsPerVocabPrintPage(
   mode: VocabPrintMode,
   size: VocabPrintSize = "a4"
 ): number {
-  const compact = size === "b5";
+  if (size === "b5") return 5;
+
   switch (mode) {
     case "full":
-      return compact ? 4 : 5;
+      return 5;
     case "test":
-      return compact ? 8 : 10;
+      return 10;
     default:
-      return compact ? 7 : 8;
+      return 8;
   }
 }
 

@@ -216,15 +216,6 @@
   color: #111827;
 }
 
-.vocab-print-day {
-  margin: 2px 0 0;
-  font-size: var(--vocab-day-size);
-  line-height: 1.05;
-  color: var(--vocab-navy);
-  font-weight: 900;
-  letter-spacing: -0.04em;
-}
-
 .vocab-print-header-right {
   min-width: 170px;
   display: grid;
@@ -259,25 +250,12 @@
   font-style: normal;
 }
 
-.vocab-print-sub-info {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0 8px;
-  font-size: var(--vocab-small-size);
-  color: var(--vocab-muted);
-}
-
-.vocab-print-sub-info strong {
-  color: var(--vocab-navy);
-}
-
 .vocab-print-table-head {
   flex-shrink: 0;
   display: grid;
   grid-template-columns: var(--vocab-row-index-width) var(--vocab-row-word-width) 1fr;
   gap: var(--vocab-row-gap);
+  margin-top: 10px;
   padding: 8px 0;
   border-top: 1px solid var(--vocab-line);
   border-bottom: 1px solid var(--vocab-line);
