@@ -326,6 +326,14 @@
   vertical-align: middle;
 }
 
+.vocab-print-related-antonym {
+  color: #b45309;
+}
+
+.vocab-print-related-label-antonym {
+  background: #d97706;
+}
+
 .vocab-print-footer {
   flex-shrink: 0;
   display: flex;

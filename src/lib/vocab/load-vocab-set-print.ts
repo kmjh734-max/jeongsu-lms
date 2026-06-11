@@ -25,7 +25,9 @@ export async function loadVocabSetPrintData(
 
   const { data: items } = await supabase
     .from("vocab_items")
-    .select("*")
+    .select(
+      "id, set_id, word, meaning, part_of_speech, example_sentence, example_meaning, synonyms, antonyms, order_index, created_at"
+    )
     .eq("set_id", setId)
     .order("order_index")
     .order("created_at");

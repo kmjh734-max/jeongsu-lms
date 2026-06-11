@@ -1,21 +1,15 @@
-export type VocabPrintMode =
-  | "workbook"
-  | "test"
-  | "example"
-  | "synonyms"
-  | "antonyms";
+export type VocabPrintMode = "workbook" | "test" | "full";
 
 export const VOCAB_PRINT_MODE_LABELS: Record<VocabPrintMode, string> = {
   workbook: "단어장 (단어·뜻)",
   test: "뜻 쓰기 (단어만)",
-  example: "예문",
-  synonyms: "동의어",
-  antonyms: "반의어",
+  full: "예문·동의어·반의어",
 };
 
 export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
   if (
     raw === "test" ||
+    raw === "full" ||
     raw === "example" ||
     raw === "synonyms" ||
     raw === "antonyms" ||
@@ -23,8 +17,16 @@ export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
     raw === "example-high" ||
     raw === "companion"
   ) {
-    if (raw === "example-middle" || raw === "example-high") return "example";
-    if (raw === "companion") return "synonyms";
+    if (
+      raw === "example" ||
+      raw === "synonyms" ||
+      raw === "antonyms" ||
+      raw === "example-middle" ||
+      raw === "example-high" ||
+      raw === "companion"
+    ) {
+      return "full";
+    }
     return raw;
   }
   return "workbook";
@@ -32,11 +34,8 @@ export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
 
 export function itemsPerVocabPrintPage(mode: VocabPrintMode): number {
   switch (mode) {
-    case "example":
-      return 14;
-    case "synonyms":
-    case "antonyms":
-      return 18;
+    case "full":
+      return 10;
     case "test":
       return 18;
     default:

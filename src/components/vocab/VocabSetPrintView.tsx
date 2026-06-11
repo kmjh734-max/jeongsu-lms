@@ -204,10 +204,8 @@ export function VocabSetPrintView({
                         <th className="col-word">WORD</th>
                         {mode === "test" ? (
                           <th className="col-meaning">뜻 쓰기</th>
-                        ) : mode === "synonyms" ? (
-                          <th className="col-meaning">뜻 · 동의어</th>
-                        ) : mode === "antonyms" ? (
-                          <th className="col-meaning">뜻 · 반의어</th>
+                        ) : mode === "full" ? (
+                          <th className="col-meaning">뜻 · 예문해석 · 동의어 · 반의어</th>
                         ) : (
                           <th className="col-meaning">MEANING</th>
                         )}
@@ -271,8 +269,7 @@ function PrintRow({
   const synonyms = item.synonyms?.trim() ?? "";
   const antonyms = item.antonyms?.trim() ?? "";
 
-  const showExample =
-    mode === "example" && (exampleSentence || exampleMeaning);
+  const showFull = mode === "full";
 
   return (
     <tr className={`vocab-print-slot ${rowIndex % 2 === 1 ? "alt" : ""}`}>
@@ -282,7 +279,7 @@ function PrintRow({
       </td>
       <td className="col-word">
         <span className="vocab-print-word">{item.word}</span>
-        {showExample && exampleSentence ? (
+        {showFull && exampleSentence ? (
           <p className="vocab-print-example">{exampleSentence}</p>
         ) : null}
       </td>
@@ -292,20 +289,22 @@ function PrintRow({
         ) : (
           <>
             <span className="vocab-print-meaning">{item.meaning}</span>
-            {mode === "synonyms" && synonyms ? (
+            {showFull && exampleMeaning ? (
+              <p className="vocab-print-example-meaning">{exampleMeaning}</p>
+            ) : null}
+            {showFull && synonyms ? (
               <p className="vocab-print-related">
                 <span className="vocab-print-related-label">동의</span>
                 {synonyms}
               </p>
             ) : null}
-            {mode === "antonyms" && antonyms ? (
-              <p className="vocab-print-related">
-                <span className="vocab-print-related-label">반의</span>
+            {showFull && antonyms ? (
+              <p className="vocab-print-related vocab-print-related-antonym">
+                <span className="vocab-print-related-label vocab-print-related-label-antonym">
+                  반의
+                </span>
                 {antonyms}
               </p>
-            ) : null}
-            {showExample && exampleMeaning ? (
-              <p className="vocab-print-example-meaning">{exampleMeaning}</p>
             ) : null}
           </>
         )}
