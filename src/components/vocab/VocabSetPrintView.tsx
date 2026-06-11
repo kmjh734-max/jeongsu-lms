@@ -226,7 +226,6 @@ export function VocabSetPrintView({
                     ["--vocab-rows-per-page" as string]: perPage,
                     ["--vocab-page-width" as string]: pageDims.width,
                     ["--vocab-page-height" as string]: pageDims.height,
-                    ["--vocab-body-height" as string]: pageDims.bodyHeight,
                   } as React.CSSProperties
                 }
               >

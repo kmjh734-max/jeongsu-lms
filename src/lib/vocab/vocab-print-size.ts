@@ -11,8 +11,8 @@ export function parseVocabPrintSize(raw: string | undefined): VocabPrintSize {
 
 export const VOCAB_PRINT_PAGE_DIMENSIONS: Record<
   VocabPrintSize,
-  { width: string; height: string; bodyHeight: string }
+  { width: string; height: string }
 > = {
-  a4: { width: "210mm", height: "297mm", bodyHeight: "198mm" },
-  b5: { width: "176mm", height: "250mm", bodyHeight: "172mm" },
+  a4: { width: "210mm", height: "297mm" },
+  b5: { width: "176mm", height: "250mm" },
 };

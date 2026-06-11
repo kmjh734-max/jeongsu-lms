@@ -106,7 +106,7 @@
 
   --vocab-pad-x: 16mm;
   --vocab-pad-top: 16mm;
-  --vocab-pad-bottom: 14mm;
+  --vocab-pad-bottom: 10mm;
   --vocab-title-size: 28px;
   --vocab-day-size: 34px;
   --vocab-body-size: 14px;
@@ -136,7 +136,7 @@
 .vocab-print-page--b5 {
   --vocab-pad-x: 12mm;
   --vocab-pad-top: 14mm;
-  --vocab-pad-bottom: 12mm;
+  --vocab-pad-bottom: 8mm;
   --vocab-title-size: 24px;
   --vocab-day-size: 28px;
   --vocab-body-size: 12px;
@@ -268,8 +268,8 @@
 .vocab-print-list {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(var(--vocab-rows-per-page, 5), minmax(0, 1fr));
   overflow: hidden;
 }
 
@@ -277,7 +277,9 @@
   display: grid;
   grid-template-columns: var(--vocab-row-index-width) var(--vocab-row-word-width) 1fr;
   gap: var(--vocab-row-gap);
-  height: calc(var(--vocab-body-height, 198mm) / var(--vocab-rows-per-page, 5));
+  align-content: start;
+  min-height: 0;
+  height: 100%;
   padding: var(--vocab-row-pad-y) 0;
   border-bottom: 1px solid var(--vocab-soft-line);
   box-sizing: border-box;
@@ -417,8 +419,8 @@
 
 .vocab-print-footer {
   flex-shrink: 0;
-  margin-top: 12px;
-  padding-top: 8px;
+  margin-top: 0;
+  padding-top: 6px;
   border-top: 1px dashed var(--vocab-line);
   display: flex;
   justify-content: space-between;
