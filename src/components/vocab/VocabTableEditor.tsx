@@ -113,9 +113,8 @@ export function VocabTableEditor({
     });
   }, []);
 
-  const applyBulkPaste = useCallback(
-    (text: string) => {
-      const parsed = parseBulkPaste(text);
+  const applyParsedRows = useCallback(
+    (parsed: ReturnType<typeof parseBulkPaste>) => {
       const { merged, duplicates } = mergeParsedRows(rows, parsed);
       if (merged.length === 0) {
         return { added: 0, duplicates };
@@ -465,7 +464,7 @@ export function VocabTableEditor({
             onClick={() => setPasteOpen(true)}
             className="rounded-lg bg-[#7cb518] px-4 py-2 text-sm font-bold text-white hover:bg-[#6aa014]"
           >
-            여러 단어 붙여넣기
+            자료 가져오기
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -499,7 +498,7 @@ export function VocabTableEditor({
       <BulkPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}
-        onApply={applyBulkPaste}
+        onApplyRows={applyParsedRows}
       />
     </div>
   );
