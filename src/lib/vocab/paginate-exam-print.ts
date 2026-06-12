@@ -5,18 +5,12 @@ import {
 } from "@/lib/vocab/vocab-print-exam-config";
 
 export interface ExamPrintPageSlice {
-  basic: (PrintExamQuestion | null)[];
-  examples: (PrintExamQuestion | null)[];
+  basic: PrintExamQuestion[];
+  examples: PrintExamQuestion[];
 }
 
 function isExampleQuestion(q: PrintExamQuestion): boolean {
   return q.kind.startsWith("example_");
-}
-
-function padPage<T>(items: T[], perPage: number): (T | null)[] {
-  const chunk: (T | null)[] = [...items];
-  while (chunk.length < perPage) chunk.push(null);
-  return chunk;
 }
 
 export function paginateExamPrintPages(
@@ -33,23 +27,21 @@ export function paginateExamPrintPages(
   const pages: ExamPrintPageSlice[] = [];
 
   for (let bi = 0; bi < basic.length; bi += basicPerPage) {
-    const slice = basic.slice(bi, bi + basicPerPage);
     pages.push({
-      basic: padPage(slice, basicPerPage),
+      basic: basic.slice(bi, bi + basicPerPage),
       examples: [],
     });
   }
 
   for (let ei = 0; ei < examples.length; ei += examplePerPage) {
-    const slice = examples.slice(ei, ei + examplePerPage);
     pages.push({
       basic: [],
-      examples: padPage(slice, examplePerPage),
+      examples: examples.slice(ei, ei + examplePerPage),
     });
   }
 
   if (pages.length === 0) {
-    pages.push({ basic: padPage([], basicPerPage), examples: [] });
+    pages.push({ basic: [], examples: [] });
   }
 
   return pages;
