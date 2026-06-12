@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { generatePrintExamQuestions } from "@/lib/vocab/generate-print-test-questions";
@@ -15,7 +22,10 @@ import {
   VOCAB_PRINT_MODE_LABELS,
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
-import { paginateExamPrintPages } from "@/lib/vocab/paginate-exam-print";
+import {
+  paginateExamPrintFromHeights,
+  type ExamPrintPageSlice,
+} from "@/lib/vocab/paginate-exam-print";
 import {
   EXAM_ROW_GAP_PX,
   examConfigTotal,
@@ -148,23 +158,94 @@ export function VocabSetPrintView({
     return rows;
   }, [sections, perPage, mode]);
 
-  const examPages = useMemo(() => {
-    if (mode !== "exam") return [];
-    return paginateExamPrintPages(
-      examGenerated.questions,
-      size,
-      examCols,
-      examSettings.layout.lineSpacing
+  const title =
+    documentTitle ??
+    (sections.length === 1
+      ? sections[0]!.title
+      : `${sections.length}개 단어세트`);
+  const headerTitle =
+    sections.length === 1 ? sections[0]!.title : title;
+
+  const [examPages, setExamPages] = useState<ExamPrintPageSlice[] | null>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const probeRef = useRef<HTMLDivElement>(null);
+
+  const examBasicQuestions = useMemo(
+    () =>
+      examGenerated.questions.filter((q) => !q.kind.startsWith("example_")),
+    [examGenerated.questions]
+  );
+  const examExampleQuestions = useMemo(
+    () =>
+      examGenerated.questions.filter((q) => q.kind.startsWith("example_")),
+    [examGenerated.questions]
+  );
+
+  useLayoutEffect(() => {
+    if (mode !== "exam") {
+      setExamPages(null);
+      return;
+    }
+    if (examGenerated.questions.length === 0) {
+      setExamPages([{ basic: [], examples: [] }]);
+      return;
+    }
+
+    const measureRoot = measureRef.current;
+    const probe = probeRef.current;
+    if (!measureRoot || !probe) return;
+
+    const bodyZone = probe.querySelector<HTMLElement>("[data-exam-body-zone]");
+    if (!bodyZone) return;
+
+    const maxBodyHeightPx = bodyZone.clientHeight;
+    if (maxBodyHeightPx <= 0) return;
+
+    const basicHeights = examBasicQuestions.map((q) => {
+      const el = measureRoot.querySelector<HTMLElement>(
+        `[data-measure-basic="${q.number}"]`
+      );
+      return el?.offsetHeight ?? 72;
+    });
+
+    const exampleHeights = examExampleQuestions.map((q) => {
+      const el = measureRoot.querySelector<HTMLElement>(
+        `[data-measure-example="${q.number}"]`
+      );
+      return el?.offsetHeight ?? 96;
+    });
+
+    setExamPages(
+      paginateExamPrintFromHeights(
+        examGenerated.questions,
+        basicHeights,
+        exampleHeights,
+        maxBodyHeightPx,
+        examCols,
+        examRowGapPx
+      )
     );
   }, [
     mode,
     examGenerated.questions,
+    examBasicQuestions,
+    examExampleQuestions,
     size,
     examCols,
+    examRowGapPx,
     examSettings.layout.lineSpacing,
+    headerTitle,
   ]);
 
-  const pageCount = mode === "exam" ? examPages.length : flatPages.length;
+  const examLayoutReady = mode !== "exam" || examPages !== null;
+  const resolvedExamPages = examPages ?? [];
+
+  const pageCount =
+    mode === "exam"
+      ? examLayoutReady
+        ? resolvedExamPages.length
+        : 0
+      : flatPages.length;
 
   useEffect(() => {
     setExamSettings(parseExamPrintSettings(searchParams));
@@ -240,14 +321,12 @@ export function VocabSetPrintView({
     window.print();
   }, []);
 
-  const title =
-    documentTitle ??
-    (sections.length === 1
-      ? sections[0]!.title
-      : `${sections.length}개 단어세트`);
-
-  const headerTitle =
-    sections.length === 1 ? sections[0]!.title : title;
+  const examPageStyle = {
+    ["--vocab-exam-cols" as string]: examCols,
+    ["--vocab-exam-row-gap" as string]: `${examRowGapPx}px`,
+    ["--vocab-page-width" as string]: pageDims.width,
+    ["--vocab-page-height" as string]: pageDims.height,
+  } as React.CSSProperties;
 
   if (totalItems === 0) {
     return (
@@ -264,19 +343,20 @@ export function VocabSetPrintView({
 
   const previewPages =
     mode === "exam" ? (
-      examPages.map((pageSlice, pageIndex) => (
+      !examLayoutReady ? (
+        <div
+          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam flex items-center justify-center text-sm text-slate-500`}
+          style={examPageStyle}
+        >
+          시험지 레이아웃 계산 중…
+        </div>
+      ) : (
+        resolvedExamPages.map((pageSlice, pageIndex) => (
         <article
           key={`exam-${pageIndex}`}
-          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
+          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < resolvedExamPages.length - 1 ? "vocab-print-page-break" : ""}`}
           data-size={size}
-          style={
-            {
-              ["--vocab-exam-cols" as string]: examCols,
-              ["--vocab-exam-row-gap" as string]: `${examRowGapPx}px`,
-              ["--vocab-page-width" as string]: pageDims.width,
-              ["--vocab-page-height" as string]: pageDims.height,
-            } as React.CSSProperties
-          }
+          style={examPageStyle}
         >
           <PrintPageHeader sectionTitle={headerTitle} />
 
@@ -306,11 +386,12 @@ export function VocabSetPrintView({
           <footer className="vocab-print-footer">
             <span>{ACADEMY_NAME}</span>
             <span>
-              {pageIndex + 1} / {examPages.length}
+              {pageIndex + 1} / {resolvedExamPages.length}
             </span>
           </footer>
         </article>
       ))
+      )
     ) : (
       flatPages.map(
         (
@@ -380,6 +461,59 @@ export function VocabSetPrintView({
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
+      {mode === "exam" && examGenerated.questions.length > 0 ? (
+        <>
+          <div
+            ref={measureRef}
+            className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+            aria-hidden
+          >
+            <article
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing}`}
+              style={examPageStyle}
+            >
+              <div
+                className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
+              >
+                {examBasicQuestions.map((q) => (
+                  <div key={q.number} data-measure-basic={q.number}>
+                    <PrintExamEntry question={q} />
+                  </div>
+                ))}
+              </div>
+            </article>
+            <article
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing}`}
+              style={examPageStyle}
+            >
+              <div className="vocab-exam-list vocab-exam-list--examples">
+                {examExampleQuestions.map((q) => (
+                  <div key={q.number} data-measure-example={q.number}>
+                    <PrintExamEntry question={q} variant="example" />
+                  </div>
+                ))}
+              </div>
+            </article>
+          </div>
+          <div
+            ref={probeRef}
+            className="pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+            aria-hidden
+          >
+            <article
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam`}
+              style={examPageStyle}
+            >
+              <PrintPageHeader sectionTitle={headerTitle} />
+              <div data-exam-body-zone className="min-h-0 flex-1" />
+              <footer className="vocab-print-footer">
+                <span>{ACADEMY_NAME}</span>
+                <span>1 / 1</span>
+              </footer>
+            </article>
+          </div>
+        </>
+      ) : null}
       <div className="flex min-h-screen print:block">
         <aside className="no-print w-[min(100%,320px)] shrink-0 border-r border-slate-200 bg-white">
           <div className="sticky top-0 flex max-h-screen flex-col gap-4 overflow-y-auto p-4">
@@ -473,7 +607,10 @@ export function VocabSetPrintView({
               <button
                 type="button"
                 onClick={handlePrint}
-                disabled={mode === "exam" && examGenerated.questions.length === 0}
+                disabled={
+                  mode === "exam" &&
+                  (examGenerated.questions.length === 0 || !examLayoutReady)
+                }
                 className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
               >
                 인쇄 / PDF 저장
