@@ -57,7 +57,7 @@ export function VocabPrintExamConfig({
   return (
     <div className="w-full space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
       <p className="text-xs font-semibold text-slate-600">
-        시험지 문항 수 (세트 단어 {maxPool}개 · 예문제시는 예문 빈칸)
+        시험지 문항 수 (세트 단어 {maxPool}개 · 예문은 단어·의미 다음 1단 출력)
       </p>
 
       <table className="w-full max-w-md border-collapse text-sm">
@@ -98,7 +98,9 @@ export function VocabPrintExamConfig({
       </table>
 
       <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
-        <span className="text-xs font-semibold text-slate-600">단 구성</span>
+        <span className="text-xs font-semibold text-slate-600">
+          단 구성 (단어·의미)
+        </span>
         {COLUMNS.map((col) => (
           <button
             key={col}

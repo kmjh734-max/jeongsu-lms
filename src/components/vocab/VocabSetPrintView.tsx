@@ -15,10 +15,10 @@ import {
   VOCAB_PRINT_MODE_LABELS,
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
+import { paginateExamPrintPages } from "@/lib/vocab/paginate-exam-print";
 import {
+  EXAM_ROW_GAP_PX,
   examConfigTotal,
-  examQuestionsPerPage,
-  examRowsPerColumn,
   examSettingsToSearchParams,
   parseExamPrintSettings,
   type ExamPrintSettings,
@@ -97,8 +97,7 @@ export function VocabSetPrintView({
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const perPage = itemsPerVocabPrintPage(mode, size);
   const examCols = examSettings.layout.columns;
-  const examPerPage = examQuestionsPerPage(size, examCols);
-  const examRowsPerCol = examRowsPerColumn(size);
+  const examRowGapPx = EXAM_ROW_GAP_PX[examSettings.layout.lineSpacing];
 
   const allItems = useMemo(
     () => sections.flatMap((s) => s.items),
@@ -150,9 +149,13 @@ export function VocabSetPrintView({
   }, [sections, perPage, mode]);
 
   const examPages = useMemo(() => {
-    if (mode !== "exam") return [] as (PrintExamQuestion | null)[][];
-    return paginateVocabItems(examGenerated.questions, examPerPage);
-  }, [mode, examGenerated.questions, examPerPage]);
+    if (mode !== "exam") return [];
+    return paginateExamPrintPages(
+      examGenerated.questions,
+      size,
+      examCols
+    );
+  }, [mode, examGenerated.questions, size, examCols]);
 
   const pageCount = mode === "exam" ? examPages.length : flatPages.length;
 
@@ -360,16 +363,15 @@ export function VocabSetPrintView({
       >
         <div id="vocab-print-root" data-size={size}>
           {mode === "exam"
-            ? examPages.map((pageQuestions, pageIndex) => (
+            ? examPages.map((pageSlice, pageIndex) => (
                 <article
                   key={`exam-${pageIndex}`}
-                  className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-cols-${examCols} vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
+                  className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
                   data-size={size}
                   style={
                     {
                       ["--vocab-exam-cols" as string]: examCols,
-                      ["--vocab-exam-rows-per-col" as string]: examRowsPerCol,
-                      ["--vocab-rows-per-page" as string]: examPerPage,
+                      ["--vocab-exam-row-gap" as string]: `${examRowGapPx}px`,
                       ["--vocab-page-width" as string]: pageDims.width,
                       ["--vocab-page-height" as string]: pageDims.height,
                     } as React.CSSProperties
@@ -377,18 +379,27 @@ export function VocabSetPrintView({
                 >
                   <PrintPageHeader sectionTitle={headerTitle} />
 
-                  <div className={`vocab-exam-list vocab-exam-list--${examCols}col`}>
-                    {pageQuestions.map((q, rowIndex) => {
-                      if (!q) {
-                        return (
-                          <div
-                            key={`empty-${rowIndex}`}
-                            className="vocab-exam-row empty"
+                  <div className="vocab-exam-body">
+                    {pageSlice.basic.length > 0 ? (
+                      <div
+                        className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
+                      >
+                        {pageSlice.basic.map((q) => (
+                          <PrintExamEntry key={q.number} question={q} />
+                        ))}
+                      </div>
+                    ) : null}
+                    {pageSlice.examples.length > 0 ? (
+                      <div className="vocab-exam-list vocab-exam-list--examples">
+                        {pageSlice.examples.map((q) => (
+                          <PrintExamEntry
+                            key={q.number}
+                            question={q}
+                            variant="example"
                           />
-                        );
-                      }
-                      return <PrintExamEntry key={q.number} question={q} />;
-                    })}
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
 
                   <footer className="vocab-print-footer">
@@ -469,9 +480,17 @@ export function VocabSetPrintView({
   );
 }
 
-function PrintExamEntry({ question }: { question: PrintExamQuestion }) {
+function PrintExamEntry({
+  question,
+  variant = "basic",
+}: {
+  question: PrintExamQuestion;
+  variant?: "basic" | "example";
+}) {
   return (
-    <section className="vocab-exam-row">
+    <section
+      className={`vocab-exam-row${variant === "example" ? " vocab-exam-row--example" : ""}`}
+    >
       <div className="vocab-exam-q-head">
         <span className="vocab-exam-q-no">{question.number}.</span>
         <div className="vocab-exam-q-main">

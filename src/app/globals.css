@@ -424,44 +424,51 @@
 }
 
 /* 시험지 인쇄 */
-.vocab-exam-list {
+.vocab-exam-body {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(var(--vocab-exam-cols, 1), minmax(0, 1fr));
-  grid-template-rows: repeat(var(--vocab-exam-rows-per-col, 5), minmax(0, 1fr));
-  column-gap: 14px;
-  row-gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   overflow: hidden;
 }
 
-.vocab-exam-spacing-compact .vocab-exam-list {
-  row-gap: 2px;
+.vocab-exam-list--basic {
+  display: grid;
+  grid-template-columns: repeat(var(--vocab-exam-cols, 1), minmax(0, 1fr));
+  grid-auto-rows: auto;
+  align-content: start;
+  column-gap: 14px;
+  row-gap: var(--vocab-exam-row-gap, 4px);
 }
 
-.vocab-exam-spacing-wide .vocab-exam-list {
-  row-gap: 18px;
-}
-
-.vocab-exam-list--2col,
-.vocab-exam-list--3col,
-.vocab-exam-list--4col {
+.vocab-exam-list--basic.vocab-exam-list--2col,
+.vocab-exam-list--basic.vocab-exam-list--3col,
+.vocab-exam-list--basic.vocab-exam-list--4col {
   column-gap: 10px;
 }
 
+.vocab-exam-list--examples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vocab-exam-row-gap, 4px);
+}
+
 .vocab-exam-row {
-  min-height: 0;
-  height: 100%;
-  padding: 10px 0 8px;
+  padding: 2px 0 4px;
   border-bottom: 1px solid var(--vocab-soft-line);
   box-sizing: border-box;
-  overflow: hidden;
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-.vocab-exam-row.empty {
-  border-bottom-color: var(--vocab-soft-line);
+.vocab-exam-row--example {
+  width: 100%;
+}
+
+.vocab-exam-row--example .vocab-exam-choices {
+  grid-template-columns: 1fr 1fr;
+  margin-left: 28px;
 }
 
 .vocab-exam-q-head {
@@ -512,9 +519,9 @@
   gap: 4px 16px;
 }
 
-.vocab-exam-list--2col .vocab-exam-choices,
-.vocab-exam-list--3col .vocab-exam-choices,
-.vocab-exam-list--4col .vocab-exam-choices {
+.vocab-exam-list--basic.vocab-exam-list--2col .vocab-exam-choices,
+.vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-choices,
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-choices {
   grid-template-columns: 1fr;
   margin-left: 20px;
   gap: 2px 0;
@@ -549,37 +556,35 @@
   height: 24px;
 }
 
-/* 다단 시 폰트·여백 축소 */
-.vocab-exam-cols-3 .vocab-exam-q-no,
-.vocab-exam-cols-4 .vocab-exam-q-no {
+/* 단어·의미 다단 시 폰트·여백 축소 */
+.vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-q-no,
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-q-no {
   font-size: 12px;
 }
 
-.vocab-exam-cols-3 .vocab-exam-prompt,
-.vocab-exam-cols-4 .vocab-exam-prompt {
+.vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-prompt,
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-prompt {
   font-size: calc(var(--vocab-body-size) - 1px);
 }
 
-.vocab-exam-cols-3 .vocab-exam-sub,
-.vocab-exam-cols-4 .vocab-exam-sub,
-.vocab-exam-cols-3 .vocab-exam-choices li,
-.vocab-exam-cols-4 .vocab-exam-choices li {
+.vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-choices li,
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-choices li {
   font-size: calc(var(--vocab-small-size) - 1px);
 }
 
-.vocab-exam-cols-3 .vocab-exam-q-head,
-.vocab-exam-cols-4 .vocab-exam-q-head {
+.vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-q-head,
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-q-head {
   gap: 4px;
 }
 
-.vocab-exam-cols-3 .vocab-exam-choices,
-.vocab-exam-cols-4 .vocab-exam-choices,
-.vocab-exam-cols-3 .vocab-exam-answer-line,
-.vocab-exam-cols-4 .vocab-exam-answer-line {
+.vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-choices,
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-choices,
+.vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-answer-line,
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-answer-line {
   margin-left: 16px;
 }
 
-.vocab-exam-cols-4 .vocab-exam-row {
+.vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-row {
   padding-left: 2px;
   padding-right: 2px;
 }

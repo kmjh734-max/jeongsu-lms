@@ -104,7 +104,8 @@ export function generatePrintExamQuestions(
     return { questions: [], skipped: 0 };
   }
 
-  const questions: PrintExamQuestion[] = [];
+  const basicQuestions: PrintExamQuestion[] = [];
+  const exampleQuestions: PrintExamQuestion[] = [];
   let skipped = 0;
 
   const examplePool = itemsWithBlankableExample(items);
@@ -113,14 +114,15 @@ export function generatePrintExamQuestions(
     const count = config[configKey];
     if (count <= 0) continue;
 
-    const pool =
-      kind === "example_mc" || kind === "example_sa" ? examplePool : items;
+    const isExample = kind === "example_mc" || kind === "example_sa";
+    const pool = isExample ? examplePool : items;
     if (pool.length === 0) {
       skipped += count;
       continue;
     }
 
     const picked = pickItems(pool, count);
+    const bucket = isExample ? exampleQuestions : basicQuestions;
 
     for (const item of picked) {
       const q = buildQuestion(kind, item, items);
@@ -128,17 +130,22 @@ export function generatePrintExamQuestions(
         skipped += 1;
         continue;
       }
-      questions.push(q);
+      bucket.push(q);
     }
   }
 
   // shuffleSeed changes re-run generation (e.g. 「순서 다시 섞기」)
   void options?.shuffleSeed;
 
-  const ordered = options?.shuffle !== false ? shuffle(questions) : questions;
+  const doShuffle = options?.shuffle !== false;
+  const orderedBasic = doShuffle ? shuffle(basicQuestions) : basicQuestions;
+  const orderedExamples = doShuffle ? shuffle(exampleQuestions) : exampleQuestions;
 
   return {
-    questions: ordered.map((q, i) => ({ ...q, number: i + 1 })),
+    questions: [...orderedBasic, ...orderedExamples].map((q, i) => ({
+      ...q,
+      number: i + 1,
+    })),
     skipped,
   };
 }

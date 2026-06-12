@@ -65,11 +65,11 @@ export const EXAM_LINE_SPACING_LABELS: Record<ExamLineSpacing, string> = {
   wide: "넓게",
 };
 
-/** 문항 사이 간격 (px) — 그리드 row-gap */
+/** 문항 사이 간격 (px) */
 export const EXAM_ROW_GAP_PX: Record<ExamLineSpacing, number> = {
-  compact: 2,
-  normal: 8,
-  wide: 18,
+  compact: 0,
+  normal: 4,
+  wide: 10,
 };
 
 export function examConfigTotal(config: ExamPrintConfig): number {
