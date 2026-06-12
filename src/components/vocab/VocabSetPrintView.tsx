@@ -153,9 +153,16 @@ export function VocabSetPrintView({
     return paginateExamPrintPages(
       examGenerated.questions,
       size,
-      examCols
+      examCols,
+      examSettings.layout.lineSpacing
     );
-  }, [mode, examGenerated.questions, size, examCols]);
+  }, [
+    mode,
+    examGenerated.questions,
+    size,
+    examCols,
+    examSettings.layout.lineSpacing,
+  ]);
 
   const pageCount = mode === "exam" ? examPages.length : flatPages.length;
 
