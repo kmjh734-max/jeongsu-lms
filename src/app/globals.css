@@ -431,10 +431,7 @@
   }
 }
 
-/* 시험지 인쇄 — 문항은 위부터 쌓고, 페이지 최대 개수 초과 시 다음 페이지 */
-.vocab-print-page--exam .vocab-print-footer {
-  margin-top: auto;
-}
+/* 시험지 인쇄 — 문항은 위부터 쌓고, 넘치면 다음 페이지 (예문은 단어·뜻 바로 아래) */
 
 .vocab-exam-body {
   flex: 0 0 auto;

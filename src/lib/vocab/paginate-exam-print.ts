@@ -11,6 +11,7 @@ export interface ExamPrintPageSlice {
 }
 
 const MM_TO_PX = 96 / 25.4;
+const BASIC_EXAMPLE_GAP_PX = 8;
 
 /** 헤더·푸터·여백 제외 본문 영역 높이 (px) */
 function examContentHeightPx(size: "a4" | "b5"): number {
@@ -79,38 +80,55 @@ function isExampleQuestion(q: PrintExamQuestion): boolean {
   return q.kind.startsWith("example_");
 }
 
-function paginateByHeight(
-  questions: PrintExamQuestion[],
+function paginateExamFlow(
+  basic: PrintExamQuestion[],
+  examples: PrintExamQuestion[],
   size: "a4" | "b5",
   cols: ExamColumnCount,
-  spacing: ExamLineSpacing,
-  fullWidth = false
-): PrintExamQuestion[][] {
-  if (questions.length === 0) return [];
-
+  spacing: ExamLineSpacing
+): ExamPrintPageSlice[] {
   const maxH = examContentHeightPx(size);
-  const columnCount = fullWidth ? 1 : cols;
-  const pages: PrintExamQuestion[][] = [];
-  let page: PrintExamQuestion[] = [];
+  const pages: ExamPrintPageSlice[] = [];
+  let page: ExamPrintPageSlice = { basic: [], examples: [] };
   let usedH = 0;
 
-  for (let i = 0; i < questions.length; i += columnCount) {
-    const row = questions.slice(i, i + columnCount);
-    const rowH = Math.max(
-      ...row.map((q) => estimateQuestionHeightPx(q, size, cols, spacing, fullWidth))
-    );
+  const hasContent = () => page.basic.length > 0 || page.examples.length > 0;
 
-    if (page.length > 0 && usedH + rowH > maxH) {
-      pages.push(page);
-      page = [];
-      usedH = 0;
-    }
+  const flush = () => {
+    if (!hasContent()) return;
+    pages.push(page);
+    page = { basic: [], examples: [] };
+    usedH = 0;
+  };
 
-    page.push(...row);
+  const addRow = (rowH: number, add: () => void) => {
+    if (hasContent() && usedH + rowH > maxH) flush();
+    add();
     usedH += rowH;
+  };
+
+  for (let i = 0; i < basic.length; i += cols) {
+    const row = basic.slice(i, i + cols);
+    const rowH = Math.max(
+      ...row.map((q) => estimateQuestionHeightPx(q, size, cols, spacing, false))
+    );
+    addRow(rowH, () => {
+      page.basic.push(...row);
+    });
   }
 
-  if (page.length > 0) pages.push(page);
+  for (let i = 0; i < examples.length; i++) {
+    const q = examples[i];
+    let rowH = estimateQuestionHeightPx(q, size, cols, spacing, true);
+    if (page.basic.length > 0 && page.examples.length === 0) {
+      rowH += BASIC_EXAMPLE_GAP_PX;
+    }
+    addRow(rowH, () => {
+      page.examples.push(q);
+    });
+  }
+
+  flush();
   return pages;
 }
 
@@ -123,23 +141,7 @@ export function paginateExamPrintPages(
   const basic = questions.filter((q) => !isExampleQuestion(q));
   const examples = questions.filter(isExampleQuestion);
 
-  const basicPages = paginateByHeight(basic, size, columns, lineSpacing, false);
-  const examplePages = paginateByHeight(
-    examples,
-    size,
-    columns,
-    lineSpacing,
-    true
-  );
-
-  const pages: ExamPrintPageSlice[] = basicPages.map((chunk) => ({
-    basic: chunk,
-    examples: [],
-  }));
-
-  for (const chunk of examplePages) {
-    pages.push({ basic: [], examples: chunk });
-  }
+  const pages = paginateExamFlow(basic, examples, size, columns, lineSpacing);
 
   if (pages.length === 0) {
     pages.push({ basic: [], examples: [] });
