@@ -5,12 +5,18 @@ import {
 } from "@/lib/vocab/vocab-print-exam-config";
 
 export interface ExamPrintPageSlice {
-  basic: PrintExamQuestion[];
-  examples: PrintExamQuestion[];
+  basic: (PrintExamQuestion | null)[];
+  examples: (PrintExamQuestion | null)[];
 }
 
 function isExampleQuestion(q: PrintExamQuestion): boolean {
   return q.kind.startsWith("example_");
+}
+
+function padPage<T>(items: T[], perPage: number): (T | null)[] {
+  const chunk: (T | null)[] = [...items];
+  while (chunk.length < perPage) chunk.push(null);
+  return chunk;
 }
 
 export function paginateExamPrintPages(
@@ -25,34 +31,25 @@ export function paginateExamPrintPages(
   const examplePerPage = examRowsPerColumn(size);
 
   const pages: ExamPrintPageSlice[] = [];
-  let bi = 0;
-  let ei = 0;
 
-  while (bi < basic.length) {
-    const chunk = basic.slice(bi, bi + basicPerPage);
-    bi += chunk.length;
-
-    const page: ExamPrintPageSlice = { basic: chunk, examples: [] };
-
-    if (bi >= basic.length && chunk.length < basicPerPage && ei < examples.length) {
-      const exChunk = examples.slice(ei, ei + examplePerPage);
-      ei += exChunk.length;
-      page.examples = exChunk;
-    }
-
-    pages.push(page);
+  for (let bi = 0; bi < basic.length; bi += basicPerPage) {
+    const slice = basic.slice(bi, bi + basicPerPage);
+    pages.push({
+      basic: padPage(slice, basicPerPage),
+      examples: [],
+    });
   }
 
-  while (ei < examples.length) {
+  for (let ei = 0; ei < examples.length; ei += examplePerPage) {
+    const slice = examples.slice(ei, ei + examplePerPage);
     pages.push({
       basic: [],
-      examples: examples.slice(ei, ei + examplePerPage),
+      examples: padPage(slice, examplePerPage),
     });
-    ei += examplePerPage;
   }
 
   if (pages.length === 0) {
-    pages.push({ basic: [], examples: [] });
+    pages.push({ basic: padPage([], basicPerPage), examples: [] });
   }
 
   return pages;

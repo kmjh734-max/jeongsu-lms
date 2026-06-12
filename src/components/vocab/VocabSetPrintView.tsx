@@ -19,6 +19,7 @@ import { paginateExamPrintPages } from "@/lib/vocab/paginate-exam-print";
 import {
   EXAM_ROW_GAP_PX,
   examConfigTotal,
+  examRowsPerColumn,
   examSettingsToSearchParams,
   parseExamPrintSettings,
   type ExamPrintSettings,
@@ -97,6 +98,7 @@ export function VocabSetPrintView({
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const perPage = itemsPerVocabPrintPage(mode, size);
   const examCols = examSettings.layout.columns;
+  const examRowsPerCol = examRowsPerColumn(size);
   const examRowGapPx = EXAM_ROW_GAP_PX[examSettings.layout.lineSpacing];
 
   const allItems = useMemo(
@@ -265,6 +267,7 @@ export function VocabSetPrintView({
           style={
             {
               ["--vocab-exam-cols" as string]: examCols,
+              ["--vocab-exam-rows-per-col" as string]: examRowsPerCol,
               ["--vocab-exam-row-gap" as string]: `${examRowGapPx}px`,
               ["--vocab-page-width" as string]: pageDims.width,
               ["--vocab-page-height" as string]: pageDims.height,
@@ -274,24 +277,38 @@ export function VocabSetPrintView({
           <PrintPageHeader sectionTitle={headerTitle} />
 
           <div className="vocab-exam-body">
-            {pageSlice.basic.length > 0 ? (
+            {pageSlice.basic.some(Boolean) ? (
               <div
                 className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
               >
-                {pageSlice.basic.map((q) => (
-                  <PrintExamEntry key={q.number} question={q} />
-                ))}
+                {pageSlice.basic.map((q, rowIndex) =>
+                  q ? (
+                    <PrintExamEntry key={q.number} question={q} />
+                  ) : (
+                    <div
+                      key={`empty-b-${rowIndex}`}
+                      className="vocab-exam-row empty"
+                    />
+                  )
+                )}
               </div>
             ) : null}
-            {pageSlice.examples.length > 0 ? (
+            {pageSlice.examples.some(Boolean) ? (
               <div className="vocab-exam-list vocab-exam-list--examples">
-                {pageSlice.examples.map((q) => (
-                  <PrintExamEntry
-                    key={q.number}
-                    question={q}
-                    variant="example"
-                  />
-                ))}
+                {pageSlice.examples.map((q, rowIndex) =>
+                  q ? (
+                    <PrintExamEntry
+                      key={q.number}
+                      question={q}
+                      variant="example"
+                    />
+                  ) : (
+                    <div
+                      key={`empty-e-${rowIndex}`}
+                      className="vocab-exam-row empty"
+                    />
+                  )
+                )}
               </div>
             ) : null}
           </div>
