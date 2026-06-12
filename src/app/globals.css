@@ -423,6 +423,14 @@
   font-weight: 600;
 }
 
+/* 단어장 인쇄 미리보기 (화면) */
+@media screen {
+  #vocab-print-root .vocab-print-page {
+    box-shadow: 0 14px 40px rgb(15 23 42 / 0.16);
+    outline: 1px solid rgb(148 163 184 / 0.35);
+  }
+}
+
 /* 시험지 인쇄 */
 .vocab-exam-body {
   flex: 1;

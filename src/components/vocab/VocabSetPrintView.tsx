@@ -255,226 +255,250 @@ export function VocabSetPrintView({
 
   const examTotal = examConfigTotal(examSettings.counts);
 
+  const previewPages =
+    mode === "exam" ? (
+      examPages.map((pageSlice, pageIndex) => (
+        <article
+          key={`exam-${pageIndex}`}
+          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
+          data-size={size}
+          style={
+            {
+              ["--vocab-exam-cols" as string]: examCols,
+              ["--vocab-exam-row-gap" as string]: `${examRowGapPx}px`,
+              ["--vocab-page-width" as string]: pageDims.width,
+              ["--vocab-page-height" as string]: pageDims.height,
+            } as React.CSSProperties
+          }
+        >
+          <PrintPageHeader sectionTitle={headerTitle} />
+
+          <div className="vocab-exam-body">
+            {pageSlice.basic.length > 0 ? (
+              <div
+                className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
+              >
+                {pageSlice.basic.map((q) => (
+                  <PrintExamEntry key={q.number} question={q} />
+                ))}
+              </div>
+            ) : null}
+            {pageSlice.examples.length > 0 ? (
+              <div className="vocab-exam-list vocab-exam-list--examples">
+                {pageSlice.examples.map((q) => (
+                  <PrintExamEntry
+                    key={q.number}
+                    question={q}
+                    variant="example"
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <footer className="vocab-print-footer">
+            <span>{ACADEMY_NAME}</span>
+            <span>
+              {pageIndex + 1} / {examPages.length}
+            </span>
+          </footer>
+        </article>
+      ))
+    ) : (
+      flatPages.map(
+        (
+          {
+            section,
+            pageItems,
+            pageIndex,
+            sectionPageTotal,
+            globalPageNum,
+            sectionStartIndex,
+          },
+          flatIndex
+        ) => (
+          <article
+            key={`${section.setId}-${pageIndex}`}
+            className={`vocab-print-page vocab-print-page--${size} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
+            data-size={size}
+            style={
+              {
+                ["--vocab-rows-per-page" as string]: perPage,
+                ["--vocab-page-width" as string]: pageDims.width,
+                ["--vocab-page-height" as string]: pageDims.height,
+              } as React.CSSProperties
+            }
+          >
+            <PrintPageHeader sectionTitle={section.title} />
+
+            <div className="vocab-print-table-head">
+              <div>NO.</div>
+              <div>WORD</div>
+              <div>{tableHeadLabel(mode)}</div>
+            </div>
+
+            <div className="vocab-print-list">
+              {pageItems.map((item, rowIndex) => {
+                const globalIndex = sectionStartIndex + rowIndex;
+                if (!item) {
+                  return (
+                    <div
+                      key={`empty-${rowIndex}`}
+                      className="vocab-print-row empty"
+                    />
+                  );
+                }
+                return (
+                  <PrintEntry
+                    key={item.id}
+                    item={item}
+                    globalIndex={globalIndex}
+                    mode={mode}
+                  />
+                );
+              })}
+            </div>
+
+            <footer className="vocab-print-footer">
+              <span>{ACADEMY_NAME}</span>
+              <span>
+                {pageIndex + 1} / {sectionPageTotal}
+                {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
+              </span>
+            </footer>
+          </article>
+        )
+      )
+    );
+
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
-      <div className="no-print sticky top-0 z-10 border-b border-slate-200 bg-white shadow-sm">
-        <div
-          className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-          style={{ maxWidth: pageDims.width }}
-        >
-          <div>
-            <p className="text-xs font-medium text-slate-500">단어장 인쇄</p>
-            <h1 className="text-lg font-bold text-slate-900">{title}</h1>
-            <p className="text-sm text-slate-500">
-              {totalItems}단어 · {pageCount}페이지 · {VOCAB_PRINT_SIZE_LABELS[size]}
-              {mode === "exam" && examGenerated.questions.length > 0
-                ? ` · 문항 ${examGenerated.questions.length}개`
-                : ""}
+      <div className="flex min-h-screen print:block">
+        <aside className="no-print w-[min(100%,320px)] shrink-0 border-r border-slate-200 bg-white">
+          <div className="sticky top-0 flex max-h-screen flex-col gap-4 overflow-y-auto p-4">
+            <div>
+              <p className="text-xs font-medium text-slate-500">단어장 인쇄</p>
+              <h1 className="mt-0.5 text-base font-bold leading-snug text-slate-900">
+                {title}
+              </h1>
+              <p className="mt-1 text-xs text-slate-500">
+                {totalItems}단어 · {pageCount}페이지 · {VOCAB_PRINT_SIZE_LABELS[size]}
+                {mode === "exam" && examGenerated.questions.length > 0
+                  ? ` · 문항 ${examGenerated.questions.length}개`
+                  : ""}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-600">용지</p>
+              <div className="flex gap-2">
+                {(["a4", "b5"] as VocabPrintSize[]).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setQuery("size", key)}
+                    className={`flex-1 rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                      size === key
+                        ? "bg-slate-800 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    {VOCAB_PRINT_SIZE_LABELS[key]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-600">인쇄 종류</p>
+              <div className="flex flex-col gap-1.5">
+                {(Object.keys(VOCAB_PRINT_MODE_LABELS) as VocabPrintMode[]).map(
+                  (key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setQuery("mode", key)}
+                      className={`rounded-lg px-3 py-2 text-left text-xs font-semibold transition ${
+                        mode === key
+                          ? "bg-emerald-700 text-white"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      }`}
+                    >
+                      {VOCAB_PRINT_MODE_LABELS[key]}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+
+            {mode === "exam" ? (
+              <div className="space-y-2">
+                <VocabPrintExamConfig
+                  settings={examSettings}
+                  onChange={updateExamSettings}
+                  onReshuffle={reshuffleExam}
+                  maxPool={totalItems}
+                />
+                {examTotal === 0 ? (
+                  <p className="text-xs text-amber-700">
+                    문항 수를 입력하면 시험지가 생성됩니다.
+                  </p>
+                ) : null}
+                {examTotal > 0 && examGenerated.questions.length === 0 ? (
+                  <p className="text-xs text-red-600">
+                    문항을 만들 수 없습니다. 객관식은 단어 2개 이상, 예문 문항은
+                    예문에 단어가 포함된 항목이 필요합니다.
+                  </p>
+                ) : null}
+                {examGenerated.skipped > 0 ? (
+                  <p className="text-xs text-amber-700">
+                    {examGenerated.skipped}문항은 보기를 만들 수 없어 제외되었습니다.
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500">
+                용지 크기({VOCAB_PRINT_SIZE_LABELS[size]})를 선택한 뒤 인쇄하세요.
+              </p>
+            )}
+
+            <div className="mt-auto flex flex-col gap-2 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                onClick={handlePrint}
+                disabled={mode === "exam" && examGenerated.questions.length === 0}
+                className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
+              >
+                인쇄 / PDF 저장
+              </button>
+              <Link
+                href={backHref}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                돌아가기
+              </Link>
+            </div>
+          </div>
+        </aside>
+
+        <main className="min-w-0 flex-1 overflow-auto bg-slate-300/40 print:overflow-visible print:bg-white">
+          <div className="no-print border-b border-slate-300/60 bg-slate-200/80 px-5 py-2.5 backdrop-blur-sm">
+            <p className="text-sm font-semibold text-slate-700">미리보기</p>
+            <p className="text-xs text-slate-500">
+              {pageCount}페이지 · 스크롤하여 전체 확인
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-slate-500">용지</span>
-            {(["a4", "b5"] as VocabPrintSize[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setQuery("size", key)}
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  size === key
-                    ? "bg-slate-800 text-white"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
-              >
-                {VOCAB_PRINT_SIZE_LABELS[key]}
-              </button>
-            ))}
-            <span className="mx-1 text-slate-300">|</span>
-            {(Object.keys(VOCAB_PRINT_MODE_LABELS) as VocabPrintMode[]).map(
-              (key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setQuery("mode", key)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    mode === key
-                      ? "bg-emerald-700 text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  {VOCAB_PRINT_MODE_LABELS[key]}
-                </button>
-              )
-            )}
-            <Link
-              href={backHref}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+
+          <div className="flex justify-center p-5 pb-12 print:p-0">
+            <div
+              id="vocab-print-root"
+              data-size={size}
+              className="flex w-full max-w-[920px] flex-col items-center gap-8 print:max-w-none print:gap-0"
             >
-              돌아가기
-            </Link>
-            <button
-              type="button"
-              onClick={handlePrint}
-              disabled={mode === "exam" && examGenerated.questions.length === 0}
-              className="rounded-lg bg-emerald-700 px-4 py-1.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
-            >
-              인쇄 / PDF 저장
-            </button>
+              {previewPages}
+            </div>
           </div>
-        </div>
-
-        {mode === "exam" ? (
-          <div className="mx-auto px-4 pb-3" style={{ maxWidth: pageDims.width }}>
-            <VocabPrintExamConfig
-              settings={examSettings}
-              onChange={updateExamSettings}
-              onReshuffle={reshuffleExam}
-              maxPool={totalItems}
-            />
-            {examTotal === 0 ? (
-              <p className="mt-2 text-xs text-amber-700">
-                문항 수를 입력하면 시험지가 생성됩니다.
-              </p>
-            ) : null}
-            {examTotal > 0 && examGenerated.questions.length === 0 ? (
-              <p className="mt-2 text-xs text-red-600">
-                문항을 만들 수 없습니다. 객관식은 단어 2개 이상, 예문 문항은
-                예문에 단어가 포함된 항목이 필요합니다.
-              </p>
-            ) : null}
-            {examGenerated.skipped > 0 ? (
-              <p className="mt-2 text-xs text-amber-700">
-                {examGenerated.skipped}문항은 보기를 만들 수 없어 제외되었습니다.
-              </p>
-            ) : null}
-          </div>
-        ) : (
-          <p
-            className="mx-auto border-t border-slate-100 px-4 py-2 text-xs text-slate-500"
-            style={{ maxWidth: pageDims.width }}
-          >
-            용지 크기({VOCAB_PRINT_SIZE_LABELS[size]})를 선택한 뒤 인쇄하세요.
-          </p>
-        )}
-      </div>
-
-      <div
-        className="mx-auto space-y-6 py-8 print:space-y-0 print:py-0"
-        style={{ maxWidth: pageDims.width }}
-      >
-        <div id="vocab-print-root" data-size={size}>
-          {mode === "exam"
-            ? examPages.map((pageSlice, pageIndex) => (
-                <article
-                  key={`exam-${pageIndex}`}
-                  className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < examPages.length - 1 ? "vocab-print-page-break" : ""}`}
-                  data-size={size}
-                  style={
-                    {
-                      ["--vocab-exam-cols" as string]: examCols,
-                      ["--vocab-exam-row-gap" as string]: `${examRowGapPx}px`,
-                      ["--vocab-page-width" as string]: pageDims.width,
-                      ["--vocab-page-height" as string]: pageDims.height,
-                    } as React.CSSProperties
-                  }
-                >
-                  <PrintPageHeader sectionTitle={headerTitle} />
-
-                  <div className="vocab-exam-body">
-                    {pageSlice.basic.length > 0 ? (
-                      <div
-                        className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
-                      >
-                        {pageSlice.basic.map((q) => (
-                          <PrintExamEntry key={q.number} question={q} />
-                        ))}
-                      </div>
-                    ) : null}
-                    {pageSlice.examples.length > 0 ? (
-                      <div className="vocab-exam-list vocab-exam-list--examples">
-                        {pageSlice.examples.map((q) => (
-                          <PrintExamEntry
-                            key={q.number}
-                            question={q}
-                            variant="example"
-                          />
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <footer className="vocab-print-footer">
-                    <span>{ACADEMY_NAME}</span>
-                    <span>
-                      {pageIndex + 1} / {examPages.length}
-                    </span>
-                  </footer>
-                </article>
-              ))
-            : flatPages.map(
-                (
-                  {
-                    section,
-                    pageItems,
-                    pageIndex,
-                    sectionPageTotal,
-                    globalPageNum,
-                    sectionStartIndex,
-                  },
-                  flatIndex
-                ) => (
-                  <article
-                    key={`${section.setId}-${pageIndex}`}
-                    className={`vocab-print-page vocab-print-page--${size} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
-                    data-size={size}
-                    style={
-                      {
-                        ["--vocab-rows-per-page" as string]: perPage,
-                        ["--vocab-page-width" as string]: pageDims.width,
-                        ["--vocab-page-height" as string]: pageDims.height,
-                      } as React.CSSProperties
-                    }
-                  >
-                    <PrintPageHeader sectionTitle={section.title} />
-
-                    <div className="vocab-print-table-head">
-                      <div>NO.</div>
-                      <div>WORD</div>
-                      <div>{tableHeadLabel(mode)}</div>
-                    </div>
-
-                    <div className="vocab-print-list">
-                      {pageItems.map((item, rowIndex) => {
-                        const globalIndex = sectionStartIndex + rowIndex;
-                        if (!item) {
-                          return (
-                            <div
-                              key={`empty-${rowIndex}`}
-                              className="vocab-print-row empty"
-                            />
-                          );
-                        }
-                        return (
-                          <PrintEntry
-                            key={item.id}
-                            item={item}
-                            globalIndex={globalIndex}
-                            mode={mode}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    <footer className="vocab-print-footer">
-                      <span>{ACADEMY_NAME}</span>
-                      <span>
-                        {pageIndex + 1} / {sectionPageTotal}
-                        {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
-                      </span>
-                    </footer>
-                  </article>
-                )
-              )}
-        </div>
+        </main>
       </div>
     </div>
   );

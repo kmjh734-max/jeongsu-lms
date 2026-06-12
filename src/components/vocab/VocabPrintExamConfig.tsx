@@ -60,7 +60,7 @@ export function VocabPrintExamConfig({
         시험지 문항 수 (세트 단어 {maxPool}개 · 예문은 단어·의미 다음 1단 출력)
       </p>
 
-      <table className="w-full max-w-md border-collapse text-sm">
+      <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="text-xs text-slate-500">
             <th className="pb-2 text-left font-medium" />
