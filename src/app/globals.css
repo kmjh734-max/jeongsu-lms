@@ -431,14 +431,25 @@
   }
 }
 
-/* 시험지 인쇄 */
+/* 시험지 인쇄 — 페이지 높이는 문항량만큼만 (빈 여백 없음) */
+.vocab-print-page--exam {
+  min-height: auto;
+  max-height: none;
+  height: auto;
+  overflow: visible;
+}
+
 .vocab-exam-body {
-  flex: 1;
-  min-height: 0;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.vocab-print-page--exam .vocab-print-footer {
+  flex-shrink: 0;
+  margin-top: 6px;
 }
 
 .vocab-exam-list--basic {
@@ -665,6 +676,13 @@
     background: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  .vocab-print-page--exam {
+    min-height: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   .vocab-print-page-break {
