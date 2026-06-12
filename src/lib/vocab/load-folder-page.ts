@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SITE_NAME } from "@/lib/branding";
-import { loadFolderAssignPanelData } from "@/lib/vocab/load-assign-panel";
 import { fetchVocabItemCountsBySetIds } from "@/lib/vocab/vocab-item-counts";
 import type { Profile, VocabFolder, VocabSet } from "@/types/database";
 
@@ -18,7 +17,6 @@ export interface VocabFolderPageData {
   ownerUsername: string | null;
   sets: VocabFolderSetRow[];
   folderOptions: { id: string; name: string }[];
-  assignPanel: Awaited<ReturnType<typeof loadFolderAssignPanelData>>;
   teachers?: Profile[];
 }
 
@@ -60,13 +58,10 @@ export async function loadVocabFolderPageData(
           .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
           .order("name");
 
-  const [setsRes, foldersRes, ownerRes, teachersRes, assignPanel] =
-    await Promise.all([
+  const [setsRes, foldersRes, ownerRes, teachersRes] = await Promise.all([
     role === "admin"
       ? setsQuery
-      : setsQuery.or(
-          `teacher_id.eq.${userId},created_by.eq.${userId}`
-        ),
+      : setsQuery.or(`teacher_id.eq.${userId},created_by.eq.${userId}`),
     foldersQuery,
     supabase
       .from("profiles")
@@ -81,7 +76,6 @@ export async function loadVocabFolderPageData(
           .eq("is_active", true)
           .order("name")
       : Promise.resolve({ data: [] as Profile[] }),
-    loadFolderAssignPanelData(supabase, role, userId, folderId),
   ]);
 
   const setList = (setsRes.data ?? []) as (VocabSet & {
@@ -112,7 +106,6 @@ export async function loadVocabFolderPageData(
       id: f.id as string,
       name: f.name as string,
     })),
-    assignPanel,
     teachers:
       role === "admin" ? ((teachersRes.data ?? []) as Profile[]) : undefined,
   };

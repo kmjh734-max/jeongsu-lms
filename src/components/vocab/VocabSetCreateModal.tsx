@@ -16,7 +16,7 @@ interface VocabSetCreateModalProps {
     title: string;
     description?: string;
     teacherId?: string;
-    folderId: string;
+    folderId?: string | null;
   }) => Promise<{ ok: boolean; message: string; setId?: string }>;
 }
 
@@ -40,7 +40,7 @@ export function VocabSetCreateModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const needsFolderPick = !folderId;
+  const needsFolderPick = folderId === undefined || folderId === null;
   const effectiveFolderId = folderId ?? selectedFolderId;
 
   if (!open) return null;
@@ -48,10 +48,6 @@ export function VocabSetCreateModal({
   async function createAndGo(mode: "direct" | "import") {
     if (!title.trim()) {
       setError("세트명을 입력해 주세요.");
-      return;
-    }
-    if (!effectiveFolderId) {
-      setError("폴더를 선택해 주세요.");
       return;
     }
 
@@ -62,7 +58,7 @@ export function VocabSetCreateModal({
       title: title.trim(),
       description: description.trim() || undefined,
       teacherId: role === "admin" ? teacherId || undefined : undefined,
-      folderId: effectiveFolderId,
+      folderId: effectiveFolderId || null,
     });
 
     setLoading(false);
@@ -110,31 +106,26 @@ export function VocabSetCreateModal({
             />
           </div>
 
-          {needsFolderPick && (
+          {needsFolderPick ? (
             <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
               <label className="w-20 shrink-0 text-sm font-semibold text-slate-800">
                 폴더
               </label>
-              {folders.length === 0 ? (
-                <p className="text-sm text-amber-700">
-                  폴더가 없습니다. 먼저 폴더를 만드세요.
-                </p>
-              ) : (
-                <select
-                  className="ui-select flex-1"
-                  value={selectedFolderId}
-                  onChange={(e) => setSelectedFolderId(e.target.value)}
-                  disabled={loading}
-                >
-                  {folders.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
-                    </option>
-                  ))}
-                </select>
-              )}
+              <select
+                className="ui-select flex-1"
+                value={selectedFolderId}
+                onChange={(e) => setSelectedFolderId(e.target.value)}
+                disabled={loading}
+              >
+                <option value="">미분류 (폴더 없음)</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+          ) : null}
 
           <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
             <label className="w-20 shrink-0 text-sm font-semibold text-slate-800">
@@ -182,7 +173,7 @@ export function VocabSetCreateModal({
               </select>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              단어장은 폴더에 저장됩니다. 학생별 배정은 반 관리에서 하세요.
+              폴더 없이도 세트를 만들 수 있습니다. 학생별 배정은 반 관리에서 하세요.
             </p>
           </div>
 
@@ -196,7 +187,7 @@ export function VocabSetCreateModal({
         <div className="grid grid-cols-2 gap-0 border-t border-slate-200">
           <button
             type="button"
-            disabled={loading || (needsFolderPick && folders.length === 0)}
+            disabled={loading}
             onClick={() => createAndGo("direct")}
             className="border-r border-slate-200 bg-white py-4 text-base font-bold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-50"
           >
@@ -204,7 +195,7 @@ export function VocabSetCreateModal({
           </button>
           <button
             type="button"
-            disabled={loading || (needsFolderPick && folders.length === 0)}
+            disabled={loading}
             onClick={() => createAndGo("import")}
             className="bg-[#7cb518] py-4 text-base font-bold text-white transition hover:bg-[#6aa014] disabled:opacity-50"
           >

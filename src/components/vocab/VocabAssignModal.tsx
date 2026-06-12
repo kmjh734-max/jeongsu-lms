@@ -8,7 +8,9 @@ interface VocabAssignModalProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  assignment: VocabAssignmentSectionProps;
+  assignment: VocabAssignmentSectionProps | null;
+  loading?: boolean;
+  error?: string | null;
 }
 
 export function VocabAssignModal({
@@ -16,6 +18,8 @@ export function VocabAssignModal({
   onClose,
   title,
   assignment,
+  loading = false,
+  error = null,
 }: VocabAssignModalProps) {
   useEffect(() => {
     if (!open) return;
@@ -63,7 +67,17 @@ export function VocabAssignModal({
           </button>
         </div>
         <div className="overflow-y-auto px-5 py-5 sm:px-6">
-          <VocabAssignmentSection {...assignment} />
+          {loading ? (
+            <p className="py-8 text-center text-sm text-slate-500">
+              배정 정보를 불러오는 중…
+            </p>
+          ) : error ? (
+            <p className="py-8 text-center text-sm text-red-600" role="alert">
+              {error}
+            </p>
+          ) : assignment ? (
+            <VocabAssignmentSection {...assignment} />
+          ) : null}
         </div>
       </div>
     </div>

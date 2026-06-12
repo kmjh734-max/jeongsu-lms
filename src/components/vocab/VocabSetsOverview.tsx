@@ -70,7 +70,7 @@ export function VocabSetsOverview({
         <div>
           <h1 className="text-2xl font-bold text-slate-900">단어세트 만들기</h1>
           <p className="mt-2 text-slate-600">
-            폴더를 만들고 단어세트를 추가하세요.
+            폴더 없이도 세트를 만들 수 있습니다. 필요하면 폴더로 묶어 관리하세요.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">

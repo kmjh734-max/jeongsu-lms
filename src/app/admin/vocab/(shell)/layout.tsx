@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import * as actions from "@/app/admin/vocab/actions";
 import { renderVocabShell } from "@/lib/vocab/render-vocab-shell";
 
-export default async function AdminVocabSetsLayout({
+export default async function AdminVocabShellLayout({
   children,
 }: {
   children: ReactNode;

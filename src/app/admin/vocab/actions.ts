@@ -55,23 +55,23 @@ export async function createVocabSet(input: {
   title: string;
   description?: string;
   teacherId?: string;
-  folderId: string;
+  folderId?: string | null;
 }): Promise<ActionResult & { setId?: string }> {
   const { profile, error } = await requireAdmin();
   if (error) return error;
 
   const title = input.title.trim();
   if (!title) return actionError("단어장 제목을 입력해 주세요.");
-  if (!input.folderId) return actionError("폴더를 선택해 주세요.");
 
+  const folderId = input.folderId?.trim() || null;
   const supabase = await createClient();
-  const orderIndex = await nextVocabSetOrderIndex(supabase, input.folderId);
+  const orderIndex = await nextVocabSetOrderIndex(supabase, folderId);
   const { data, error: insertError } = await supabase
     .from("vocab_sets")
     .insert({
       title,
       description: input.description?.trim() || null,
-      folder_id: input.folderId,
+      folder_id: folderId,
       order_index: orderIndex,
       teacher_id: input.teacherId || null,
       created_by: profile!.id,
@@ -82,7 +82,7 @@ export async function createVocabSet(input: {
 
   if (insertError) return actionError(insertError.message);
 
-  revalidateVocabPaths(ROLE, { folderId: input.folderId, setId: data.id });
+  revalidateVocabPaths(ROLE, { folderId: folderId ?? undefined, setId: data.id });
   return { ...actionSuccess("단어장이 생성되었습니다."), setId: data.id };
 }
 

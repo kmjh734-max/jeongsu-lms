@@ -28,15 +28,19 @@ export async function persistVocabSetOrder(
 
 export async function nextVocabSetOrderIndex(
   supabase: SupabaseClient,
-  folderId: string
+  folderId: string | null
 ): Promise<number> {
-  const { data } = await supabase
+  let query = supabase
     .from("vocab_sets")
     .select("order_index")
-    .eq("folder_id", folderId)
     .order("order_index", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  query = folderId
+    ? query.eq("folder_id", folderId)
+    : query.is("folder_id", null);
+
+  const { data } = await query.maybeSingle();
 
   return ((data?.order_index as number | undefined) ?? -1) + 1;
 }

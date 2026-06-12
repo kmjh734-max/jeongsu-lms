@@ -11,6 +11,7 @@ import type { VocabSetRowData } from "@/components/vocab/VocabSetRow";
 import type { VocabAssignmentSectionProps } from "@/components/vocab/VocabAssignmentSection";
 import * as adminActions from "@/app/admin/vocab/actions";
 import * as teacherActions from "@/app/teacher/vocab/actions";
+import type { VocabAssignPanelData } from "@/lib/vocab/assign-panel-types";
 import type { Profile } from "@/types/database";
 
 interface FolderOption {
@@ -29,10 +30,6 @@ interface VocabFolderViewProps {
   sets: VocabSetRowData[];
   folders: FolderOption[];
   teachers?: Profile[];
-  folderAssignment: Omit<
-    Extract<VocabAssignmentSectionProps, { variant: "folder" }>,
-    "role" | "variant" | "folderId"
-  >;
 }
 
 export function VocabFolderView({
@@ -46,7 +43,6 @@ export function VocabFolderView({
   sets,
   folders,
   teachers,
-  folderAssignment,
 }: VocabFolderViewProps) {
   const router = useRouter();
   const basePath = role === "admin" ? "/admin/vocab" : "/teacher/vocab";
@@ -61,6 +57,11 @@ export function VocabFolderView({
   const [bulkDialog, setBulkDialog] = useState<"move" | "copy" | null>(null);
   const [targetFolder, setTargetFolder] = useState(folderId);
   const [loading, setLoading] = useState(false);
+  const [assignPanel, setAssignPanel] = useState<VocabAssignPanelData | null>(
+    null
+  );
+  const [assignPanelLoading, setAssignPanelLoading] = useState(false);
+  const [assignPanelError, setAssignPanelError] = useState<string | null>(null);
 
   const selectedIds = useMemo(() => [...selected], [selected]);
   const allSelected = sets.length > 0 && selected.size === sets.length;
@@ -85,6 +86,41 @@ export function VocabFolderView({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open once from URL
   }, [initialAssignOpen]);
+
+  useEffect(() => {
+    if (!assignOpen) return;
+
+    const url =
+      assignMode === "set" && singleSetId
+        ? `/api/vocab/assign-panel?setId=${encodeURIComponent(singleSetId)}`
+        : `/api/vocab/assign-panel?folderId=${encodeURIComponent(folderId)}`;
+
+    let cancelled = false;
+    setAssignPanelLoading(true);
+    setAssignPanelError(null);
+
+    fetch(url)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("load failed");
+        return res.json() as Promise<VocabAssignPanelData>;
+      })
+      .then((data) => {
+        if (!cancelled) {
+          setAssignPanel(data);
+          setAssignPanelLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAssignPanelError("배정 정보를 불러오지 못했습니다.");
+          setAssignPanelLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [assignOpen, assignMode, singleSetId, folderId]);
 
   function openSetAssign(setId: string) {
     setAssignMode("set");
@@ -170,9 +206,19 @@ export function VocabFolderView({
     router.refresh();
   }
 
-  const assignmentProps: VocabAssignmentSectionProps =
-    assignMode === "folder"
-      ? { role, variant: "folder", folderId, ...folderAssignment }
+  const assignmentProps: VocabAssignmentSectionProps | null = assignPanel
+    ? assignMode === "folder"
+      ? {
+          role,
+          variant: "folder",
+          folderId,
+          scopeLabel: folderName,
+          setCount: assignPanel.setCount,
+          setTitles: assignPanel.setTitles,
+          classes: assignPanel.classes,
+          allStudents: assignPanel.allStudents,
+          assignments: assignPanel.assignments,
+        }
       : assignMode === "bulk"
         ? {
             role,
@@ -181,8 +227,8 @@ export function VocabFolderView({
             scopeLabel: `${selected.size}개 단어세트`,
             setCount: selected.size,
             setTitles: bulkTitles,
-            classes: folderAssignment.classes,
-            allStudents: folderAssignment.allStudents,
+            classes: assignPanel.classes,
+            allStudents: assignPanel.allStudents,
             assignments: [],
           }
         : {
@@ -192,12 +238,13 @@ export function VocabFolderView({
             scopeLabel: singleSet?.title ?? "",
             setCount: 1,
             setTitles: singleSet ? [singleSet.title] : [],
-            classes: folderAssignment.classes,
-            allStudents: folderAssignment.allStudents,
-            assignments: folderAssignment.assignments.filter(
+            classes: assignPanel.classes,
+            allStudents: assignPanel.allStudents,
+            assignments: assignPanel.assignments.filter(
               (a) => a.set_id === singleSetId
             ),
-          };
+          }
+    : null;
 
   const assignModalTitle =
     assignMode === "folder"
@@ -292,6 +339,8 @@ export function VocabFolderView({
         onClose={() => setAssignOpen(false)}
         title={assignModalTitle}
         assignment={assignmentProps}
+        loading={assignPanelLoading}
+        error={assignPanelError}
       />
 
       {bulkDialog && (

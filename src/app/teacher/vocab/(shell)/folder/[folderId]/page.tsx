@@ -27,7 +27,7 @@ export default async function TeacherVocabFolderPage({
 
   if (!data) notFound();
 
-  const { folder, assignPanel, ...rest } = data;
+  const { folder, ...rest } = data;
 
   return (
     <VocabFolderView
@@ -40,14 +40,6 @@ export default async function TeacherVocabFolderPage({
       ownerUsername={rest.ownerUsername}
       sets={rest.sets}
       folders={rest.folderOptions}
-      folderAssignment={{
-        scopeLabel: folder.name,
-        setCount: assignPanel.setCount,
-        setTitles: assignPanel.setTitles,
-        classes: assignPanel.classes,
-        allStudents: assignPanel.allStudents,
-        assignments: assignPanel.assignments,
-      }}
     />
   );
 }

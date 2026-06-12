@@ -3,20 +3,25 @@
 import { useEffect, useState } from "react";
 import { VocabAssignModal } from "@/components/vocab/VocabAssignModal";
 import type { VocabAssignmentSectionProps } from "@/components/vocab/VocabAssignmentSection";
+import type { VocabAssignPanelData } from "@/lib/vocab/assign-panel-types";
 
 interface VocabSetAssignLauncherProps {
   title: string;
-  assignment: VocabAssignmentSectionProps;
-  /** 인라인 패널도 함께 표시 */
-  showInline?: boolean;
+  role: "admin" | "teacher";
+  setId: string;
+  setTitle: string;
 }
 
 export function VocabSetAssignLauncher({
   title,
-  assignment,
-  showInline = false,
+  role,
+  setId,
+  setTitle,
 }: VocabSetAssignLauncherProps) {
   const [open, setOpen] = useState(false);
+  const [panel, setPanel] = useState<VocabAssignPanelData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -25,6 +30,50 @@ export function VocabSetAssignLauncher({
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/vocab/assign-panel?setId=${encodeURIComponent(setId)}`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("load failed");
+        return res.json() as Promise<VocabAssignPanelData>;
+      })
+      .then((data) => {
+        if (!cancelled) {
+          setPanel(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError("배정 정보를 불러오지 못했습니다.");
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, setId]);
+
+  const assignment: VocabAssignmentSectionProps | null = panel
+    ? {
+        variant: "set",
+        role,
+        setId,
+        scopeLabel: setTitle,
+        setCount: panel.setCount,
+        setTitles: panel.setTitles,
+        classes: panel.classes,
+        allStudents: panel.allStudents,
+        assignments: panel.assignments,
+      }
+    : null;
 
   return (
     <>
@@ -40,16 +89,9 @@ export function VocabSetAssignLauncher({
         onClose={() => setOpen(false)}
         title={title}
         assignment={assignment}
+        loading={loading}
+        error={error}
       />
-      {showInline && (
-        <section
-          id="assign"
-          className="scroll-mt-6 mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-          <h2 className="mb-4 font-semibold text-slate-900">학생·반 배정</h2>
-          {/* inline import would need duplicate - skip showInline default false */}
-        </section>
-      )}
     </>
   );
 }

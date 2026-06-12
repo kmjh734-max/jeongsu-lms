@@ -1,70 +1,57 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { VocabSetAssignLauncher } from "@/components/vocab/VocabSetAssignLauncher";
 import { VocabSetPageHeader } from "@/components/vocab/VocabSetPageHeader";
 import { VocabSetManagePanel } from "@/components/vocab/VocabSetManagePanel";
 import { VocabTableEditor } from "@/components/vocab/VocabTableEditor";
 import { VocabStageProgressTable } from "@/components/vocab/VocabStageProgressTable";
-import { loadSetAssignPanelData } from "@/lib/vocab/load-assign-panel";
 import { loadSetStageProgressRows } from "@/lib/vocab/load-set-stage-progress";
-import * as actions from "@/app/teacher/vocab/actions";
-import type { VocabItem, VocabSet } from "@/types/database";
+import * as actions from "@/app/admin/vocab/actions";
+import type { Profile, VocabItem, VocabSet } from "@/types/database";
 
 interface PageProps {
   params: Promise<{ setId: string }>;
   searchParams: Promise<{ import?: string }>;
 }
 
-export default async function TeacherVocabSetPage({
+export default async function AdminVocabSetPage({
   params,
   searchParams,
 }: PageProps) {
   const { setId } = await params;
   const { import: importParam } = await searchParams;
-  const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const teacherId = profile!.id;
 
   const { data: set } = await supabase
     .from("vocab_sets")
     .select("*")
     .eq("id", setId)
-    .or(`teacher_id.eq.${teacherId},created_by.eq.${teacherId}`)
     .single();
 
   if (!set) notFound();
 
   const typedSet = set as VocabSet;
   const listHref = typedSet.folder_id
-    ? `/teacher/vocab/folder/${typedSet.folder_id}`
-    : "/teacher/vocab/sets";
+    ? `/admin/vocab/folder/${typedSet.folder_id}`
+    : "/admin/vocab/sets";
 
-  const { data: items } = await supabase
-    .from("vocab_items")
-    .select("*")
-    .eq("set_id", setId)
-    .order("order_index")
-    .order("created_at");
-
-  const itemList = (items ?? []) as VocabItem[];
-
-  const [stageRows, assignPanel] = await Promise.all([
-    loadSetStageProgressRows(supabase, setId),
-    loadSetAssignPanelData(supabase, "teacher", teacherId, setId),
+  const [{ data: items }, { data: teachers }] = await Promise.all([
+    supabase
+      .from("vocab_items")
+      .select("*")
+      .eq("set_id", setId)
+      .order("order_index")
+      .order("created_at"),
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("role", "teacher")
+      .eq("is_active", true)
+      .order("name"),
   ]);
 
-  const assignment = {
-    variant: "set" as const,
-    role: "teacher" as const,
-    setId,
-    scopeLabel: typedSet.title,
-    setCount: assignPanel.setCount,
-    setTitles: assignPanel.setTitles,
-    classes: assignPanel.classes,
-    allStudents: assignPanel.allStudents,
-    assignments: assignPanel.assignments,
-  };
+  const itemList = (items ?? []) as VocabItem[];
+  const stageRows = await loadSetStageProgressRows(supabase, setId);
 
   return (
     <div className="space-y-8">
@@ -72,18 +59,21 @@ export default async function TeacherVocabSetPage({
         title={typedSet.title}
         itemCount={itemList.length}
         backHref={listHref}
-        printHref={`/teacher/vocab/set/${setId}/print`}
+        printHref={`/admin/vocab/set/${setId}/print`}
         assignLauncher={
           <VocabSetAssignLauncher
             title={`단어장 배정 — ${typedSet.title}`}
-            assignment={assignment}
+            role="admin"
+            setId={setId}
+            setTitle={typedSet.title}
           />
         }
       />
 
       <VocabSetManagePanel
         set={typedSet}
-        role="teacher"
+        role="admin"
+        teachers={(teachers ?? []) as Profile[]}
         onUpdate={actions.updateVocabSet}
         onDelete={actions.deleteVocabSet}
         listHref={listHref}

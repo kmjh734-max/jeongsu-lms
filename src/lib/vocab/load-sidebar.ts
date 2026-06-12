@@ -1,9 +1,10 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Class, VocabFolder } from "@/types/database";
 import type { VocabSidebarSet } from "@/components/vocab/vocab-sidebar-types";
 import { fetchVocabItemCountsBySetIds } from "@/lib/vocab/vocab-item-counts";
 
-export async function loadVocabSidebarData(
+export const loadVocabSidebarData = cache(async function loadVocabSidebarData(
   supabase: SupabaseClient,
   role: "admin" | "teacher",
   userId: string
@@ -71,4 +72,4 @@ export async function loadVocabSidebarData(
     folders: (foldersRes.data ?? []) as VocabFolder[],
     sets,
   };
-}
+});

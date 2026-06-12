@@ -44,20 +44,48 @@ export async function loadVocabSetsPrintData(
   teacherScopeId?: string
 ): Promise<VocabPrintSection[]> {
   const uniqueIds = [...new Set(setIds.filter(Boolean))];
+  if (uniqueIds.length === 0) return [];
+
+  let setsQuery = supabase.from("vocab_sets").select("*").in("id", uniqueIds);
+  if (teacherScopeId) {
+    setsQuery = setsQuery.or(
+      `teacher_id.eq.${teacherScopeId},created_by.eq.${teacherScopeId}`
+    );
+  }
+
+  const { data: sets } = await setsQuery;
+  if (!sets?.length) return [];
+
+  const allowedSetIds = sets.map((s) => s.id as string);
+  const { data: items } = await supabase
+    .from("vocab_items")
+    .select(
+      "id, set_id, word, meaning, part_of_speech, example_sentence, example_meaning, synonyms, antonyms, order_index, created_at"
+    )
+    .in("set_id", allowedSetIds)
+    .order("order_index")
+    .order("created_at");
+
+  const itemsBySet = new Map<string, VocabItem[]>();
+  for (const item of items ?? []) {
+    const sid = item.set_id as string;
+    const list = itemsBySet.get(sid) ?? [];
+    list.push(item as VocabItem);
+    itemsBySet.set(sid, list);
+  }
+
+  const setById = new Map(sets.map((s) => [s.id as string, s as VocabSet]));
   const sections: VocabPrintSection[] = [];
 
   for (const setId of uniqueIds) {
-    const loaded = await loadVocabSetPrintData(
-      supabase,
-      setId,
-      teacherScopeId
-    );
-    if (!loaded || loaded.items.length === 0) continue;
+    const set = setById.get(setId);
+    const setItems = itemsBySet.get(setId);
+    if (!set || !setItems?.length) continue;
     sections.push({
-      setId: loaded.set.id,
-      title: loaded.set.title,
-      description: loaded.set.description,
-      items: loaded.items,
+      setId: set.id,
+      title: set.title,
+      description: set.description,
+      items: setItems,
     });
   }
 

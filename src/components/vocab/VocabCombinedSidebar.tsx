@@ -48,7 +48,13 @@ export function VocabCombinedSidebar({
   const activeClass =
     "bg-emerald-50 font-semibold text-emerald-900 ring-1 ring-emerald-200/80";
 
-  const showFolderPanel = mode === "sets" || mode === "assign";
+  const effectiveMode =
+    pathname.includes("/status") || mode === "status"
+      ? "status"
+      : pathname.includes("/assign") || mode === "assign"
+        ? "assign"
+        : "sets";
+  const showFolderPanel = effectiveMode === "sets" || effectiveMode === "assign";
   const { folders, sets, classes } = useVocabSidebar();
 
   return (
@@ -95,7 +101,7 @@ export function VocabCombinedSidebar({
           base={base}
           pathname={pathname}
           classesHref={classesHref}
-          mode={mode}
+          mode={effectiveMode === "assign" ? "assign" : "sets"}
           folders={folders}
           sets={sets}
           classes={classes}

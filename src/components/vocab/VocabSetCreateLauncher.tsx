@@ -15,7 +15,7 @@ interface VocabSetCreateLauncherProps {
     title: string;
     description?: string;
     teacherId?: string;
-    folderId: string;
+    folderId?: string | null;
   }) => Promise<{ ok: boolean; message: string; setId?: string }>;
 }
 
