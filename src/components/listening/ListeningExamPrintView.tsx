@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
-import { LOGO_SRC } from "@/lib/branding";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { buildStudentListeningHubUrl } from "@/lib/listening/listen-url";
 import {
@@ -17,7 +16,7 @@ import { normalizeTableData } from "@/lib/listening/table-data";
 import type { ListeningTableData } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
-const QUESTION_GAP_PX = 12;
+const QUESTION_GAP_PX = 8;
 const COLUMN_WIDTH_CLASS = "w-[91mm]";
 
 type PrintScope = "exam" | "answers" | "all";
@@ -51,6 +50,65 @@ function defaultExamDate() {
 function answerLabel(correctAnswer: number): string {
   const idx = correctAnswer - 1;
   return CIRCLED[idx] ?? String(correctAnswer);
+}
+
+function examEditionLabel(
+  questions: ListeningQuestionData[],
+  pageIndex: number
+): string {
+  if (questions.length === 0) return "01";
+  const idx = Math.min(
+    questions.length - 1,
+    pageIndex === 0 ? 0 : pageIndex * 8
+  );
+  return String(questions[idx]?.order_index ?? pageIndex + 1).padStart(2, "0");
+}
+
+function speakerLabel(type: string): string {
+  const t = type.toUpperCase();
+  if (t === "M" || t === "MAN") return "M";
+  if (t === "W" || t === "WOMAN") return "W";
+  if (t === "A" || t === "ANN") return "A";
+  return type;
+}
+
+function renderScriptWithBlanks(text: string, blankOffset: { n: number }) {
+  const parts = text.split(/(_{4,}|\[blank\])/gi);
+  return parts.map((part, i) => {
+    if (/_{4,}|\[blank\]/i.test(part)) {
+      const no = blankOffset.n++;
+      return (
+        <span key={i} className="listening-exam-blank-marker">
+          {no}
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function PrintScriptPanel({
+  segments,
+  compact,
+}: {
+  segments: ListeningQuestionData["segments"];
+  compact?: boolean;
+}) {
+  const blankOffset = { n: 1 };
+  const size = compact ? "text-[6.5pt]" : "text-[7pt]";
+
+  return (
+    <div className={`listening-exam-script-col ${size}`}>
+      {segments.map((seg) => (
+        <p key={seg.id} className="leading-snug">
+          <span className="listening-exam-speaker">
+            {speakerLabel(seg.speaker_type)}:
+          </span>{" "}
+          {renderScriptWithBlanks(seg.text, blankOffset)}
+        </p>
+      ))}
+    </div>
+  );
 }
 
 export function ListeningExamPrintView({
@@ -412,98 +470,56 @@ function ExamSheetPage({
     >
       {isFirst ? (
         <header className="shrink-0">
-          <div className="listening-exam-chevron-band -mx-[11mm] mb-[3mm] px-[11mm] pb-[3mm] pt-[2.5mm]">
-            <div className="flex items-center gap-[3mm]">
-              <div className="flex shrink-0 items-center rounded-lg bg-white/90 px-[2mm] py-[1.5mm] shadow-sm ring-1 ring-sky-200/80">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={LOGO_SRC}
-                  alt="학원 로고"
-                  className="h-[12mm] w-auto max-w-[32mm] object-contain"
-                />
-              </div>
-
-              <div className="listening-exam-ribbon flex min-w-0 flex-1 items-center gap-[2.5mm] py-[2mm] pl-[3mm] pr-[6mm] text-white">
-                <span className="shrink-0 rounded bg-white/95 px-[2mm] py-[0.5mm] text-[7pt] font-extrabold tracking-wide text-sky-700">
-                  LISTENING
-                </span>
-                <div className="min-w-0">
-                  <h1 className="truncate text-[11pt] font-extrabold leading-tight">
-                    {meta.examTitle}
-                  </h1>
-                  <p className="text-[7pt] font-semibold text-sky-50/95">
-                    {meta.gradeLabel}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex w-[24mm] shrink-0 flex-col items-center rounded-lg bg-white/95 px-[1mm] py-[1.5mm] shadow-sm ring-1 ring-sky-200">
-                <ListeningPrintQrCode url={listenUrl} sizePx={72} />
-                <p className="mt-[0.5mm] text-[6pt] font-bold text-sky-800">
-                  듣기 QR
-                </p>
-              </div>
+          <div className="listening-exam-header-bar">
+            <div className="listening-exam-header-edition">
+              <span className="listening-exam-header-edition-label">
+                LISTENING
+              </span>
+              <span className="listening-exam-header-edition-no">
+                {examEditionLabel(questions, pageIndex)}회
+              </span>
+            </div>
+            <div className="listening-exam-header-main">
+              <p className="listening-exam-header-sub">Listening Practice</p>
+              <h1 className="listening-exam-header-title">{meta.examTitle}</h1>
+              <p className="listening-exam-header-sub">{meta.gradeLabel}</p>
+            </div>
+            <div className="listening-exam-header-qr">
+              <ListeningPrintQrCode url={listenUrl} sizePx={64} />
+              <p className="listening-exam-header-qr-label">듣기 QR</p>
             </div>
           </div>
 
-          <table className="w-full border-collapse overflow-hidden rounded-lg border border-sky-200 text-[8pt]">
+          <table className="listening-exam-info-table">
             <tbody>
               <tr>
-                <th className="w-[12%] border-r border-sky-200 bg-sky-100 px-2 py-1.5 font-bold text-sky-900">
-                  날짜
-                </th>
-                <td
-                  colSpan={5}
-                  className="bg-white px-3 py-1.5 font-semibold text-slate-900"
-                >
-                  {meta.examDate || "\u00a0"}
-                </td>
+                <th>날짜</th>
+                <td colSpan={5}>{meta.examDate || "\u00a0"}</td>
               </tr>
-              <tr className="border-t border-sky-200">
-                <th className="border-r border-sky-200 bg-sky-100 px-2 py-1.5 font-bold text-sky-900">
-                  반
-                </th>
-                <td className="w-[14%] border-r border-sky-100 bg-white px-2 py-1.5 text-center font-semibold text-slate-900">
-                  {meta.className || "\u00a0"}
-                </td>
-                <th className="w-[10%] border-r border-sky-200 bg-sky-100 px-2 py-1.5 font-bold text-sky-900">
-                  번호
-                </th>
-                <td className="w-[10%] border-r border-sky-100 bg-white px-2 py-1.5 text-center font-semibold text-slate-900">
-                  {meta.studentNo || "\u00a0"}
-                </td>
-                <th className="w-[10%] border-r border-sky-200 bg-sky-100 px-2 py-1.5 font-bold text-sky-900">
-                  이름
-                </th>
-                <td className="bg-white px-2 py-1.5 text-center font-bold text-slate-900">
-                  {meta.studentName || "\u00a0"}
-                </td>
+              <tr>
+                <th>반</th>
+                <td>{meta.className || "\u00a0"}</td>
+                <th>번호</th>
+                <td>{meta.studentNo || "\u00a0"}</td>
+                <th>이름</th>
+                <td>{meta.studentName || "\u00a0"}</td>
               </tr>
             </tbody>
           </table>
 
-          <div className="mt-[2.5mm] rounded-lg border border-sky-200 bg-gradient-to-r from-sky-50 to-cyan-50/80 px-[3mm] py-[2mm] text-[7.5pt] leading-snug text-sky-900">
-            <span className="font-bold text-sky-700">▶ 듣기·OMR 안내</span> QR
-            스캔 후 위에서 음원을 들으며 아래{" "}
-            <span className="font-semibold text-sky-800">OMR 답안</span>을
-            마킹하고 제출하세요.
+          <div className="listening-exam-guide">
+            <strong>▶ 안내</strong> QR로 음원을 듣고 아래 문항의 답을 골라
+            OMR에 마킹하세요.
           </div>
         </header>
       ) : (
-        <header className="shrink-0 border-b border-sky-200 pb-[2mm] pt-[1mm]">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex min-w-0 items-center gap-[2mm]">
-              <span className="shrink-0 rounded bg-sky-500 px-[2mm] py-[0.3mm] text-[6.5pt] font-bold text-white">
-                LISTENING
-              </span>
-              <span className="truncate text-[7.5pt] font-bold text-slate-800">
-                {meta.examTitle}
-              </span>
-            </div>
-            <span className="shrink-0 rounded-full bg-sky-100 px-2 py-0.5 text-[7pt] font-semibold text-sky-800">
-              {pageIndex + 1} / {totalPages}
-            </span>
-          </div>
+        <header className="listening-exam-subheader shrink-0">
+          <span className="listening-exam-subheader-title">
+            {meta.examTitle}
+          </span>
+          <span className="listening-exam-subheader-page">
+            {pageIndex + 1} / {totalPages}
+          </span>
         </header>
       )}
 
@@ -528,9 +544,10 @@ function ExamSheetPage({
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-sky-200 py-[1.5mm] text-center text-[7pt] font-medium text-sky-700/80">
+      <footer className="listening-exam-footer shrink-0">
+        <span>{meta.examTitle}</span>
         {isLastPage && !measureOnly ? (
-          <span className="tracking-[0.25em]">— 끝 —</span>
+          <span>— 끝 —</span>
         ) : (
           <span>
             {pageIndex + 1} / {totalPages}
@@ -554,9 +571,7 @@ function QuestionColumn({
   evenSpacing: boolean;
   divided?: boolean;
 }) {
-  const borderClass = divided
-    ? "border-l border-sky-200 pl-[3.5mm]"
-    : "pr-[0.5mm]";
+  const borderClass = divided ? "listening-exam-col-divider" : "pr-[0.5mm]";
 
   if (evenSpacing) {
     return (
@@ -579,7 +594,7 @@ function QuestionColumn({
               {i < indices.length - 1 ? (
                 <div
                   aria-hidden
-                  className="mt-[1mm] min-h-[2mm] flex-1 border-b border-sky-100/90"
+                  className="mt-[1mm] min-h-[2mm] flex-1 border-b border-slate-200/70"
                 />
               ) : (
                 <div className="min-h-0 flex-1" aria-hidden />
@@ -628,69 +643,69 @@ function ExamQuestionBlock({
     : compact
       ? "text-[8pt]"
       : "text-[8.5pt]";
+  const hasScript = showScript && q.segments.length > 0;
+
+  const questionBody = (
+    <>
+      {instruction && (
+        <p className="listening-exam-q-instruction">{instruction}</p>
+      )}
+
+      {passageText && passageText !== instruction && (
+        <p className="listening-exam-q-passage">{passageText}</p>
+      )}
+
+      {!instruction && !passageText && (
+        <p className="listening-exam-q-instruction">듣기 문항</p>
+      )}
+
+      {table && (
+        <ExamPrintTable
+          table={table}
+          compact={compact}
+          extraCompact={tableCompact}
+        />
+      )}
+
+      <ul
+        className={`mt-[0.8mm] list-none pl-0 ${
+          tableCompact ? "space-y-0" : "space-y-[0.3mm]"
+        }`}
+      >
+        {q.choices.map((choice, i) => (
+          <li key={i} className="flex gap-[1.5mm] leading-snug">
+            <span className="listening-exam-choice-mark">
+              {CIRCLED[i] ?? `${i + 1}.`}
+            </span>
+            <span className="min-w-0 flex-1 break-words text-slate-900">
+              {choice}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 
   return (
     <section
-      className={`${textSize} leading-[1.45] text-slate-900 ${
+      className={`${textSize} leading-[1.4] text-slate-900 ${
         tableCompact ? "leading-snug" : ""
       }`}
     >
-      <div className="flex items-start gap-[2mm]">
-        <span className="mt-[0.3mm] flex h-[5mm] w-[5mm] shrink-0 items-center justify-center rounded-sm bg-sky-500 text-[6.5pt] font-extrabold leading-none text-white">
-          {numLabel}
-        </span>
-        <div className="min-w-0 flex-1">
-          {instruction && (
-            <p className="font-bold leading-snug text-slate-900">{instruction}</p>
-          )}
-
-          {passageText && passageText !== instruction && (
-            <p className="mt-[0.5mm] leading-snug text-slate-800">
-              {passageText}
-            </p>
-          )}
-
-          {!instruction && !passageText && (
-            <p className="font-bold text-slate-900">듣기 문항</p>
-          )}
-
-          {table && (
-            <ExamPrintTable
-              table={table}
-              compact={compact}
-              extraCompact={tableCompact}
-            />
-          )}
-
-          <ul
-            className={`mt-[1mm] list-none pl-0 ${
-              tableCompact ? "space-y-0" : "space-y-[0.4mm]"
-            }`}
-          >
-            {q.choices.map((choice, i) => (
-              <li key={i} className="flex gap-[1.5mm] leading-snug">
-                <span className="w-[4mm] shrink-0 font-semibold text-sky-700">
-                  {CIRCLED[i] ?? `${i + 1}.`}
-                </span>
-                <span className="min-w-0 flex-1 break-words text-slate-900">
-                  {choice}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          {showScript && q.segments.length > 0 && (
-            <div className="mt-[1mm] rounded-md border border-sky-100 bg-sky-50/70 px-[2mm] py-[1mm] text-[7pt] leading-snug text-slate-700">
-              {q.segments.map((seg) => (
-                <p key={seg.id}>
-                  <span className="font-bold text-sky-800">{seg.speaker_type}:</span>{" "}
-                  {seg.text}
-                </p>
-              ))}
-            </div>
-          )}
+      {hasScript ? (
+        <div className="grid grid-cols-2 gap-[2.5mm]">
+          <div className="flex items-start gap-[2mm]">
+            <span className="listening-exam-q-num">{numLabel}</span>
+            <div className="min-w-0 flex-1">{questionBody}</div>
+          </div>
+          <PrintScriptPanel segments={q.segments} compact={compact} />
         </div>
-      </div>
+      ) : (
+        <div className="flex items-start gap-[2mm]">
+          <span className="listening-exam-q-num">{numLabel}</span>
+          <div className="min-w-0 flex-1">{questionBody}</div>
+        </div>
+      )}
     </section>
   );
 }
@@ -712,11 +727,9 @@ function ExamPrintTable({
   const cellPad = extraCompact ? "py-[0.25mm]" : "py-[0.35mm]";
 
   return (
-    <div
-      className={`mt-[0.8mm] overflow-hidden rounded border border-sky-300 leading-[1.25] ${fontSize}`}
-    >
+    <div className={`listening-exam-print-table ${fontSize}`}>
       <p
-        className={`border-b border-sky-200 bg-sky-50 px-[1.2mm] font-bold text-slate-900 ${
+        className={`listening-exam-print-table-title ${
           extraCompact ? "py-[0.35mm]" : "py-[0.55mm]"
         }`}
       >
@@ -725,20 +738,12 @@ function ExamPrintTable({
       <table className="w-full border-collapse leading-tight">
         <tbody>
           {table.rows.map((row) => (
-            <tr key={row.no} className="border-t border-sky-100/80">
-              <td
-                className={`w-[4.5mm] px-[0.8mm] ${cellPad} font-bold text-sky-800`}
-              >
+            <tr key={row.no}>
+              <td className={`col-no ${cellPad}`}>
                 {CIRCLED[row.no - 1] ?? row.no}
               </td>
-              <td
-                className={`w-[12mm] px-[0.8mm] ${cellPad} font-semibold text-slate-800`}
-              >
-                {row.label}
-              </td>
-              <td className={`px-[0.8mm] ${cellPad} text-slate-900`}>
-                {row.value}
-              </td>
+              <td className={`col-label ${cellPad}`}>{row.label}</td>
+              <td className={cellPad}>{row.value}</td>
             </tr>
           ))}
         </tbody>
@@ -814,39 +819,22 @@ function ExamAnswerKeyPage({
     >
       <header className="shrink-0">
         {isFirst ? (
-          <div className="listening-exam-chevron-band -mx-[11mm] mb-[3mm] px-[11mm] pb-[3mm] pt-[2.5mm]">
-            <div className="flex items-center gap-[3mm]">
-              <div
-                className="listening-exam-ribbon flex min-w-0 flex-1 items-center gap-[2.5mm] py-[2.5mm] pl-[3mm] pr-[6mm] text-white"
-                style={{
-                  background:
-                    "linear-gradient(90deg, #0e7490 0%, #0891b2 55%, #38b6d0 100%)",
-                }}
-              >
-                <span className="shrink-0 rounded bg-white/95 px-[2.5mm] py-[0.5mm] text-[8pt] font-extrabold text-cyan-800">
-                  ANSWER KEY
-                </span>
-                <div className="min-w-0">
-                  <h1 className="truncate text-[12pt] font-extrabold leading-tight">
-                    {meta.examTitle} · 정답지
-                  </h1>
-                  <p className="text-[7.5pt] font-semibold text-cyan-50/95">
-                    {meta.gradeLabel} · {meta.examDate}
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="listening-exam-answer-key-bar">
+            <p className="listening-exam-answer-key-title">
+              {meta.examTitle} · 정답지
+            </p>
+            <p className="listening-exam-answer-key-sub">
+              {meta.gradeLabel} · {meta.examDate}
+            </p>
           </div>
         ) : (
-          <div className="border-b border-cyan-200 pb-[2mm] pt-[1mm]">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[8pt] font-bold text-slate-800">
-                {meta.examTitle} · 정답지
-              </span>
-              <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[7pt] font-semibold text-cyan-800">
-                {pageIndex + 1} / {totalPages}
-              </span>
-            </div>
+          <div className="listening-exam-subheader">
+            <span className="listening-exam-subheader-title">
+              {meta.examTitle} · 정답지
+            </span>
+            <span className="listening-exam-subheader-page">
+              {pageIndex + 1} / {totalPages}
+            </span>
           </div>
         )}
       </header>
@@ -867,9 +855,10 @@ function ExamAnswerKeyPage({
         </div>
       </div>
 
-      <footer className="shrink-0 border-t border-cyan-200 py-[1.5mm] text-center text-[7pt] font-medium text-cyan-800">
+      <footer className="listening-exam-footer shrink-0">
+        <span>교사용 정답지</span>
         {isLastPage ? (
-          <span className="tracking-[0.2em]">— 교사용 정답지 —</span>
+          <span>— 끝 —</span>
         ) : (
           <span>
             {pageIndex + 1} / {totalPages}
@@ -891,9 +880,7 @@ function AnswerKeyColumn({
   evenSpacing: boolean;
   divided?: boolean;
 }) {
-  const borderClass = divided
-    ? "border-l border-cyan-200 pl-[3.5mm]"
-    : "pr-[0.5mm]";
+  const borderClass = divided ? "listening-exam-col-divider" : "pr-[0.5mm]";
 
   if (evenSpacing) {
     return (
@@ -909,7 +896,7 @@ function AnswerKeyColumn({
             {i < indices.length - 1 ? (
               <div
                 aria-hidden
-                className="mt-[0.8mm] min-h-[1.5mm] flex-1 border-b border-cyan-100"
+                className="mt-[0.8mm] min-h-[1.5mm] flex-1 border-b border-slate-200/80"
               />
             ) : (
               <div className="min-h-0 flex-1" aria-hidden />
@@ -947,13 +934,13 @@ function AnswerKeyItem({
     <div className="min-h-0">
       <div className="flex items-baseline gap-[2mm]">
         <span
-          className={`w-[6mm] shrink-0 font-black tabular-nums text-slate-800 ${
-            compact ? "text-[9pt]" : "text-[11pt]"
+          className={`listening-exam-q-num shrink-0 tabular-nums ${
+            compact ? "text-[9pt]" : "text-[10pt]"
           }`}
         >
           {String(q.order_index).padStart(2, "0")}
         </span>
-        <span className={`shrink-0 font-black text-cyan-700 ${answerSize}`}>
+        <span className={`shrink-0 font-black text-[#1f5f54] ${answerSize}`}>
           {answerLabel(q.correct_answer)}
         </span>
         <span
@@ -964,21 +951,15 @@ function AnswerKeyItem({
       </div>
 
       {q.segments.length > 0 && (
-        <div
-          className={`mt-[0.8mm] space-y-[0.3mm] rounded border border-cyan-200 bg-cyan-50/70 px-[2mm] py-[1mm] leading-[1.45] text-slate-800 ${scriptSize}`}
-        >
-          {q.segments.map((seg) => (
-            <p key={seg.id}>
-              <span className="font-bold text-cyan-900">{seg.speaker_type}:</span>{" "}
-              {seg.text}
-            </p>
-          ))}
+        <div className={`mt-[0.8mm] ${scriptSize}`}>
+          <PrintScriptPanel segments={q.segments} compact={compact} />
         </div>
       )}
 
       {q.answer_clue && (
         <p className={`mt-[0.5mm] leading-snug text-slate-600 ${clueSize}`}>
-          <span className="font-semibold text-cyan-800">근거</span> {q.answer_clue}
+          <span className="font-semibold text-[#1f5f54]">근거</span>{" "}
+          {q.answer_clue}
         </p>
       )}
     </div>

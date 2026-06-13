@@ -55,35 +55,274 @@
     height: 297mm;
     background: #fff;
     color: #1a1a1a;
-    padding: 8mm 11mm 7mm;
+    padding: 9mm 11mm 7mm;
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
+  .listening-exam-header-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: -9mm -11mm 3mm;
+    background: linear-gradient(180deg, #1f5f54 0%, #184a42 100%);
+    color: #fff;
+    min-height: 14mm;
+  }
+
+  .listening-exam-header-edition {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 22mm;
+    padding: 2mm 3mm;
+    background: #2f7a6c;
+    border-right: 1px solid rgb(255 255 255 / 0.15);
+  }
+
+  .listening-exam-header-edition-label {
+    font-size: 6pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    opacity: 0.9;
+  }
+
+  .listening-exam-header-edition-no {
+    font-size: 14pt;
+    font-weight: 900;
+    line-height: 1;
+    margin-top: 0.5mm;
+  }
+
+  .listening-exam-header-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2mm 4mm;
+    min-width: 0;
+  }
+
+  .listening-exam-header-sub {
+    font-size: 6.5pt;
+    font-weight: 600;
+    opacity: 0.85;
+    letter-spacing: 0.04em;
+  }
+
+  .listening-exam-header-title {
+    font-size: 12pt;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-top: 0.5mm;
+  }
+
+  .listening-exam-header-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5mm 3mm;
+    background: rgb(255 255 255 / 0.96);
+    color: #184a42;
+    border-left: 1px solid rgb(255 255 255 / 0.15);
+  }
+
+  .listening-exam-header-qr-label {
+    font-size: 5.5pt;
+    font-weight: 800;
+    margin-top: 0.5mm;
+  }
+
+  .listening-exam-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 7.5pt;
+    border: 1px solid #b8c4c0;
+  }
+
+  .listening-exam-info-table th {
+    width: 10%;
+    background: #eef4f2;
+    border: 1px solid #c5d0cc;
+    padding: 1.2mm 2mm;
+    font-weight: 800;
+    color: #1f5f54;
+    text-align: center;
+  }
+
+  .listening-exam-info-table td {
+    border: 1px solid #d8e0dd;
+    padding: 1.2mm 2.5mm;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-align: center;
+  }
+
+  .listening-exam-guide {
+    margin-top: 2mm;
+    padding: 1.5mm 2.5mm;
+    border: 1px solid #c5d0cc;
+    background: #f7faf9;
+    font-size: 7pt;
+    line-height: 1.4;
+    color: #2a4a44;
+  }
+
+  .listening-exam-subheader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2mm;
+    padding-bottom: 2mm;
+    border-bottom: 2px solid #1f5f54;
+    margin-bottom: 1mm;
+  }
+
+  .listening-exam-subheader-title {
+    font-size: 8pt;
+    font-weight: 800;
+    color: #1a1a1a;
+  }
+
+  .listening-exam-subheader-page {
+    font-size: 7pt;
+    font-weight: 700;
+    color: #1f5f54;
+  }
+
+  .listening-exam-col-divider {
+    border-left: 1px solid #c8d0cc;
+    padding-left: 3.5mm;
+  }
+
+  .listening-exam-q-num {
+    font-size: 10pt;
+    font-weight: 900;
+    color: #111;
+    line-height: 1;
+    min-width: 6mm;
+  }
+
+  .listening-exam-q-instruction {
+    font-weight: 800;
+    color: #111;
+    line-height: 1.35;
+  }
+
+  .listening-exam-q-passage {
+    margin-top: 0.5mm;
+    color: #222;
+    line-height: 1.35;
+  }
+
+  .listening-exam-choice-mark {
+    width: 4mm;
+    flex-shrink: 0;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  .listening-exam-script-col {
+    border: 1px solid #d0d8d5;
+    background: #fafcfb;
+    padding: 1.5mm 2mm;
+    font-size: 7pt;
+    line-height: 1.45;
+    color: #222;
+  }
+
+  .listening-exam-speaker {
+    font-weight: 800;
+    color: #1f5f54;
+  }
+
+  .listening-exam-blank-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 4mm;
+    height: 4mm;
+    margin: 0 0.5mm;
+    border-radius: 999px;
+    background: #e87722;
+    color: #fff;
+    font-size: 5.5pt;
+    font-weight: 900;
+    vertical-align: middle;
+  }
+
+  .listening-exam-print-table {
+    margin-top: 1mm;
+    border: 1px solid #8a9a94;
+    font-size: 6.5pt;
+    line-height: 1.25;
+  }
+
+  .listening-exam-print-table-title {
+    border-bottom: 1px solid #8a9a94;
+    background: #eef4f2;
+    padding: 0.8mm 1.5mm;
+    font-weight: 800;
+    color: #1a1a1a;
+  }
+
+  .listening-exam-print-table td {
+    border-top: 1px solid #d5ddd9;
+    padding: 0.5mm 1mm;
+    vertical-align: top;
+  }
+
+  .listening-exam-print-table .col-no {
+    width: 5mm;
+    font-weight: 800;
+    color: #1f5f54;
+    text-align: center;
+  }
+
+  .listening-exam-print-table .col-label {
+    width: 14mm;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .listening-exam-footer {
+    border-top: 1px solid #c5d0cc;
+    padding-top: 1.5mm;
+    display: flex;
+    justify-content: space-between;
+    font-size: 7pt;
+    font-weight: 600;
+    color: #5a6a64;
+  }
+
+  .listening-exam-answer-key-bar {
+    margin: -9mm -11mm 3mm;
+    background: linear-gradient(180deg, #1a4f6e 0%, #153f58 100%);
+    color: #fff;
+    padding: 3mm 4mm;
+  }
+
+  .listening-exam-answer-key-title {
+    font-size: 11pt;
+    font-weight: 900;
+  }
+
+  .listening-exam-answer-key-sub {
+    font-size: 7pt;
+    opacity: 0.9;
+    margin-top: 0.5mm;
+  }
+
   .listening-exam-chevron-band {
-    background-color: #e8f6fb;
-    background-image:
-      linear-gradient(
-        135deg,
-        transparent 33%,
-        rgba(126, 200, 227, 0.35) 33%,
-        rgba(126, 200, 227, 0.35) 38%,
-        transparent 38%
-      ),
-      linear-gradient(
-        225deg,
-        transparent 33%,
-        rgba(94, 179, 214, 0.28) 33%,
-        rgba(94, 179, 214, 0.28) 38%,
-        transparent 38%
-      ),
-      linear-gradient(90deg, #d4eff8 0%, #b8e4f0 45%, #9dd9ea 100%);
-    background-size: 18mm 18mm, 18mm 18mm, 100% 100%;
+    display: none;
   }
 
   .listening-exam-ribbon {
-    background: linear-gradient(90deg, #38b6d0 0%, #5eb3d6 55%, #7ec8e3 100%);
-    clip-path: polygon(0 0, calc(100% - 5mm) 0, 100% 50%, calc(100% - 5mm) 100%, 0 100%);
+    background: transparent;
+    clip-path: none;
   }
 
   .listening-exam-page-break {
