@@ -95,10 +95,12 @@ function PrintScriptPanel({
   compact?: boolean;
 }) {
   const blankOffset = { n: 1 };
-  const size = compact ? "text-[6.5pt]" : "text-[7pt]";
 
   return (
-    <div className={`listening-exam-script-col ${size}`}>
+    <div
+      className={`listening-exam-script-col ${compact ? "listening-exam-script-col--compact" : ""}`}
+    >
+      <p className="listening-exam-script-title">MINI SCRIPT</p>
       {segments.map((seg) => (
         <p key={seg.id} className="leading-snug">
           <span className="listening-exam-speaker">
@@ -485,7 +487,7 @@ function ExamSheetPage({
               <p className="listening-exam-header-sub">{meta.gradeLabel}</p>
             </div>
             <div className="listening-exam-header-qr">
-              <ListeningPrintQrCode url={listenUrl} sizePx={64} />
+              <ListeningPrintQrCode url={listenUrl} sizePx={72} />
               <p className="listening-exam-header-qr-label">듣기 QR</p>
             </div>
           </div>
@@ -508,8 +510,8 @@ function ExamSheetPage({
           </table>
 
           <div className="listening-exam-guide">
-            <strong>▶ 안내</strong> QR로 음원을 듣고 아래 문항의 답을 골라
-            OMR에 마킹하세요.
+            <strong>LISTENING TIP</strong> QR로 음원을 듣고 아래 문항의
+            답을 골라 OMR에 마킹하세요.
           </div>
         </header>
       ) : (
@@ -638,15 +640,25 @@ function ExamQuestionBlock({
   const instruction = q.instruction?.trim();
   const numLabel = String(q.order_index).padStart(2, "0");
   const table = normalizeTableData(q.table_data);
-  const textSize = tableCompact
-    ? "text-[7.5pt]"
+  const blockClass = tableCompact
+    ? "listening-exam-q-block listening-exam-q-block--table-compact"
     : compact
-      ? "text-[8pt]"
-      : "text-[8.5pt]";
+      ? "listening-exam-q-block listening-exam-q-block--compact"
+      : "listening-exam-q-block";
   const hasScript = showScript && q.segments.length > 0;
+  const typeName = q.question_type?.trim();
 
   const questionBody = (
     <>
+      {typeName ? (
+        <div className="listening-exam-type-head">
+          <span className="listening-exam-type-label">
+            유형 {q.order_index}
+          </span>
+          <span className="listening-exam-type-name">{typeName}</span>
+        </div>
+      ) : null}
+
       {instruction && (
         <p className="listening-exam-q-instruction">{instruction}</p>
       )}
@@ -668,16 +680,16 @@ function ExamQuestionBlock({
       )}
 
       <ul
-        className={`mt-[0.8mm] list-none pl-0 ${
-          tableCompact ? "space-y-0" : "space-y-[0.3mm]"
+        className={`mt-[1mm] list-none pl-0 ${
+          tableCompact ? "space-y-0" : "space-y-[0.5mm]"
         }`}
       >
         {q.choices.map((choice, i) => (
-          <li key={i} className="flex gap-[1.5mm] leading-snug">
+          <li key={i} className="flex gap-[2mm] leading-snug">
             <span className="listening-exam-choice-mark">
               {CIRCLED[i] ?? `${i + 1}.`}
             </span>
-            <span className="min-w-0 flex-1 break-words text-slate-900">
+            <span className="listening-exam-choice-text min-w-0 flex-1 break-words">
               {choice}
             </span>
           </li>
@@ -687,11 +699,7 @@ function ExamQuestionBlock({
   );
 
   return (
-    <section
-      className={`${textSize} leading-[1.4] text-slate-900 ${
-        tableCompact ? "leading-snug" : ""
-      }`}
-    >
+    <section className={blockClass}>
       {hasScript ? (
         <div className="grid grid-cols-2 gap-[2.5mm]">
           <div className="flex items-start gap-[2mm]">
@@ -719,22 +727,16 @@ function ExamPrintTable({
   compact?: boolean;
   extraCompact?: boolean;
 }) {
-  const fontSize = extraCompact
-    ? "text-[6pt]"
+  const tableClass = extraCompact
+    ? "listening-exam-print-table listening-exam-print-table--extra-compact"
     : compact
-      ? "text-[6.5pt]"
-      : "text-[7pt]";
-  const cellPad = extraCompact ? "py-[0.25mm]" : "py-[0.35mm]";
+      ? "listening-exam-print-table listening-exam-print-table--compact"
+      : "listening-exam-print-table";
+  const cellPad = extraCompact ? "py-[0.5mm]" : "py-[0.7mm]";
 
   return (
-    <div className={`listening-exam-print-table ${fontSize}`}>
-      <p
-        className={`listening-exam-print-table-title ${
-          extraCompact ? "py-[0.35mm]" : "py-[0.55mm]"
-        }`}
-      >
-        {table.title}
-      </p>
+    <div className={tableClass}>
+      <p className="listening-exam-print-table-title">{table.title}</p>
       <table className="w-full border-collapse leading-tight">
         <tbody>
           {table.rows.map((row) => (
@@ -925,10 +927,10 @@ function AnswerKeyItem({
 }) {
   const idx = q.correct_answer - 1;
   const choice = q.choices[idx] ?? "";
-  const answerSize = compact ? "text-[12pt]" : "text-[14pt]";
-  const choiceSize = compact ? "text-[7.5pt]" : "text-[8pt]";
-  const scriptSize = compact ? "text-[8pt]" : "text-[8.5pt]";
-  const clueSize = compact ? "text-[7pt]" : "text-[7.5pt]";
+  const answerSize = compact ? "text-[13pt]" : "text-[15pt]";
+  const choiceSize = compact ? "text-[9pt]" : "text-[10pt]";
+  const scriptSize = compact ? "text-[9pt]" : "text-[10pt]";
+  const clueSize = compact ? "text-[8.5pt]" : "text-[9.5pt]";
 
   return (
     <div className="min-h-0">
@@ -940,7 +942,7 @@ function AnswerKeyItem({
         >
           {String(q.order_index).padStart(2, "0")}
         </span>
-        <span className={`shrink-0 font-black text-[#1f5f54] ${answerSize}`}>
+        <span className={`shrink-0 font-black text-[#234b8c] ${answerSize}`}>
           {answerLabel(q.correct_answer)}
         </span>
         <span
@@ -958,7 +960,7 @@ function AnswerKeyItem({
 
       {q.answer_clue && (
         <p className={`mt-[0.5mm] leading-snug text-slate-600 ${clueSize}`}>
-          <span className="font-semibold text-[#1f5f54]">근거</span>{" "}
+          <span className="font-semibold text-[#234b8c]">근거</span>{" "}
           {q.answer_clue}
         </p>
       )}
