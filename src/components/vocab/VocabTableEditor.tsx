@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BulkPasteModal } from "@/components/vocab/BulkPasteModal";
 import {
@@ -136,9 +136,35 @@ export function VocabTableEditor({
   const [saving, setSaving] = useState(false);
   const [aiLoadingKey, setAiLoadingKey] = useState<string | null>(null);
   const [bulkAiLoading, setBulkAiLoading] = useState(false);
-  const [bulkRelatedLoading, setBulkRelatedLoading] =
-    useState<RelatedWordsKind | null>(null);
+  const [bulkRelatedLoading, setBulkRelatedLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const [tableScrollWidth, setTableScrollWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+
+    const update = () => setTableScrollWidth(el.scrollWidth);
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [rows]);
+
+  const syncScrollFromTop = useCallback(() => {
+    const main = tableScrollRef.current;
+    const top = topScrollRef.current;
+    if (main && top) main.scrollLeft = top.scrollLeft;
+  }, []);
+
+  const syncScrollFromTable = useCallback(() => {
+    const main = tableScrollRef.current;
+    const top = topScrollRef.current;
+    if (main && top) top.scrollLeft = main.scrollLeft;
+  }, []);
 
   useEffect(() => {
     if (initialImportOpen) setPasteOpen(true);
@@ -278,14 +304,14 @@ export function VocabTableEditor({
   );
 
   const generateRelatedForRow = useCallback(
-    async (rowKey: string, kind: "synonyms" | "antonyms") => {
+    async (rowKey: string) => {
       const row = rows.find((r) => r.rowKey === rowKey);
       if (!row?.word.trim() || !row.meaning.trim()) return;
 
-      setAiLoadingKey(`${rowKey}-${kind}`);
+      setAiLoadingKey(`${rowKey}-related`);
       const result = await fetchGeneratedRelatedWords(
         [{ word: row.word.trim(), meaning: row.meaning.trim() }],
-        kind
+        "both"
       );
       setAiLoadingKey(null);
 
@@ -305,11 +331,63 @@ export function VocabTableEditor({
             antonyms: gen.antonyms,
           },
         ],
-        kind
+        "both"
       );
     },
     [rows, applyGeneratedRelated]
   );
+
+  const generateAllSynonymsAntonyms = useCallback(async () => {
+    const targets = rows.filter(
+      (r) =>
+        r.word.trim() &&
+        r.meaning.trim() &&
+        (!r.synonyms.trim() || !r.antonyms.trim())
+    );
+    if (targets.length === 0) {
+      setStatus("동의어·반의어가 모두 채워진 단어만 있습니다.");
+      return;
+    }
+
+    setBulkRelatedLoading(true);
+    setStatus(null);
+    const result = await fetchGeneratedRelatedWords(
+      targets.map((t) => ({
+        word: t.word.trim(),
+        meaning: t.meaning.trim(),
+      })),
+      "both"
+    );
+    setBulkRelatedLoading(false);
+
+    if (!result.ok) {
+      setStatus(result.message);
+      return;
+    }
+
+    const byWord = new Map(
+      result.items.map((i) => [i.word.trim().toLowerCase(), i])
+    );
+    const updates = targets
+      .map((t) => {
+        const gen = byWord.get(t.word.trim().toLowerCase());
+        if (!gen) return null;
+        if (!gen.synonyms?.trim() && !gen.antonyms?.trim()) return null;
+        return {
+          rowKey: t.rowKey,
+          synonyms: gen.synonyms,
+          antonyms: gen.antonyms,
+        };
+      })
+      .filter(Boolean) as {
+      rowKey: string;
+      synonyms: string;
+      antonyms: string;
+    }[];
+
+    applyGeneratedRelated(updates, "both");
+    setStatus(`${updates.length}개 단어에 동의어·반의어가 생성되었습니다.`);
+  }, [rows, applyGeneratedRelated]);
 
   const generateAllEmptyExamples = useCallback(async () => {
     const targets = rows.filter(
@@ -363,66 +441,7 @@ export function VocabTableEditor({
     setStatus(`${updates.length}개 단어에 예문이 생성되었습니다.`);
   }, [rows, exampleLevel, applyGeneratedExamples]);
 
-  const generateAllRelated = useCallback(
-    async (kind: "synonyms" | "antonyms") => {
-      const field = kind === "synonyms" ? "synonyms" : "antonyms";
-      const targets = rows.filter(
-        (r) => r.word.trim() && r.meaning.trim() && !r[field].trim()
-      );
-      if (targets.length === 0) {
-        setStatus(
-          kind === "synonyms"
-            ? "동의어가 비어 있는 단어가 없습니다."
-            : "반의어가 비어 있는 단어가 없습니다."
-        );
-        return;
-      }
-
-      setBulkRelatedLoading(kind);
-      setStatus(null);
-      const result = await fetchGeneratedRelatedWords(
-        targets.map((t) => ({
-          word: t.word.trim(),
-          meaning: t.meaning.trim(),
-        })),
-        kind
-      );
-      setBulkRelatedLoading(null);
-
-      if (!result.ok) {
-        setStatus(result.message);
-        return;
-      }
-
-      const byWord = new Map(
-        result.items.map((i) => [i.word.trim().toLowerCase(), i])
-      );
-      const updates = targets
-        .map((t) => {
-          const gen = byWord.get(t.word.trim().toLowerCase());
-          if (!gen) return null;
-          const value =
-            kind === "synonyms" ? gen.synonyms?.trim() : gen.antonyms?.trim();
-          if (!value) return null;
-          return {
-            rowKey: t.rowKey,
-            synonyms: gen.synonyms,
-            antonyms: gen.antonyms,
-          };
-        })
-        .filter(Boolean) as {
-        rowKey: string;
-        synonyms: string;
-        antonyms: string;
-      }[];
-
-      applyGeneratedRelated(updates, kind);
-      setStatus(
-        `${updates.length}개 단어에 ${kind === "synonyms" ? "동의어" : "반의어"}가 생성되었습니다.`
-      );
-    },
-    [rows, applyGeneratedRelated]
-  );
+  const aiBusy = bulkAiLoading || bulkRelatedLoading;
 
   const handleMeaningBlur = useCallback(
     (rowKey: string) => {
@@ -474,86 +493,82 @@ export function VocabTableEditor({
     if (result.ok) router.refresh();
   }
 
-  const aiBusy = bulkAiLoading || bulkRelatedLoading !== null;
+  const inputClass =
+    "w-full rounded border border-slate-200 px-2 py-1.5 text-sm text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200";
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="text-xs font-medium text-slate-600">예문 수준</label>
-          <select
-            className="rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800"
-            value={exampleLevel}
-            onChange={(e) => setExampleLevel(e.target.value as ExampleLevel)}
-            disabled={aiBusy || saving}
-          >
-            <option value="middle">중등</option>
-            <option value="high">고등</option>
-          </select>
-          <label className="ml-2 flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={autoAi}
-              onChange={(e) => setAutoAi(e.target.checked)}
-              className="rounded border-slate-300 text-emerald-600"
-            />
-            예문 자동입력 (AI)
-          </label>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={bulkAiLoading || saving}
-            onClick={generateAllEmptyExamples}
-            className="rounded-md bg-violet-100 px-3 py-1.5 text-xs font-semibold text-violet-800 hover:bg-violet-200 disabled:opacity-50"
-          >
-            {bulkAiLoading ? "생성 중..." : "AI 예문 일괄 생성"}
-          </button>
-          <button
-            type="button"
-            disabled={bulkRelatedLoading !== null || saving}
-            onClick={() => generateAllRelated("synonyms")}
-            className="rounded-md bg-teal-100 px-3 py-1.5 text-xs font-semibold text-teal-800 hover:bg-teal-200 disabled:opacity-50"
-          >
-            {bulkRelatedLoading === "synonyms"
-              ? "생성 중..."
-              : "AI 동의어 일괄 생성"}
-          </button>
-          <button
-            type="button"
-            disabled={bulkRelatedLoading !== null || saving}
-            onClick={() => generateAllRelated("antonyms")}
-            className="rounded-md bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-900 hover:bg-amber-200 disabled:opacity-50"
-          >
-            {bulkRelatedLoading === "antonyms"
-              ? "생성 중..."
-              : "AI 반의어 일괄 생성"}
-          </button>
-        </div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
+        <label className="text-xs font-medium text-slate-600">예문 수준</label>
+        <select
+          className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-800"
+          value={exampleLevel}
+          onChange={(e) => setExampleLevel(e.target.value as ExampleLevel)}
+          disabled={aiBusy || saving}
+        >
+          <option value="middle">중등</option>
+          <option value="high">고등</option>
+        </select>
+        <label className="flex items-center gap-1.5 text-xs text-slate-700">
+          <input
+            type="checkbox"
+            checked={autoAi}
+            onChange={(e) => setAutoAi(e.target.checked)}
+            className="rounded border-slate-300 text-emerald-600"
+          />
+          예문 자동입력 (AI)
+        </label>
+        <span className="hidden h-4 w-px bg-slate-300 sm:inline" />
+        <button
+          type="button"
+          disabled={bulkAiLoading || saving}
+          onClick={generateAllEmptyExamples}
+          className="rounded bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-200 disabled:opacity-50"
+        >
+          {bulkAiLoading ? "생성 중..." : "AI 예문 일괄"}
+        </button>
+        <button
+          type="button"
+          disabled={bulkRelatedLoading || saving}
+          onClick={generateAllSynonymsAntonyms}
+          className="rounded bg-teal-100 px-2.5 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-200 disabled:opacity-50"
+        >
+          {bulkRelatedLoading ? "생성 중..." : "AI 동의어·반의어 일괄"}
+        </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px] border-collapse text-sm">
-          <thead>
-            <tr className="bg-slate-500 text-white">
-              <th className="w-[88px] px-2 py-2 text-center font-semibold" />
-              <th className="min-w-[120px] px-3 py-2 text-left font-semibold">
+      <div
+        ref={topScrollRef}
+        onScroll={syncScrollFromTop}
+        className="overflow-x-auto overflow-y-hidden border-b border-slate-100"
+        aria-hidden
+      >
+        <div style={{ width: tableScrollWidth, height: 10 }} />
+      </div>
+
+      <div
+        ref={tableScrollRef}
+        onScroll={syncScrollFromTable}
+        className="max-h-[min(68vh,640px)] overflow-auto"
+      >
+        <table className="w-full min-w-[920px] border-collapse text-sm">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-slate-600 text-white">
+              <th className="w-[72px] px-1.5 py-1.5 text-center text-xs font-semibold" />
+              <th className="min-w-[100px] px-2 py-1.5 text-left text-xs font-semibold">
                 단어
               </th>
-              <th className="min-w-[140px] px-3 py-2 text-left font-semibold">
+              <th className="min-w-[110px] px-2 py-1.5 text-left text-xs font-semibold">
                 뜻
               </th>
-              <th className="min-w-[200px] px-3 py-2 text-left font-semibold">
+              <th className="min-w-[170px] px-2 py-1.5 text-left text-xs font-semibold">
                 예문
               </th>
-              <th className="min-w-[180px] px-3 py-2 text-left font-semibold">
+              <th className="min-w-[150px] px-2 py-1.5 text-left text-xs font-semibold">
                 예문 해석
               </th>
-              <th className="min-w-[160px] px-3 py-2 text-left font-semibold">
-                동의어
-              </th>
-              <th className="min-w-[160px] px-3 py-2 text-left font-semibold">
-                반의어
+              <th className="min-w-[150px] px-2 py-1.5 text-left text-xs font-semibold">
+                동의어 · 반의어
               </th>
             </tr>
           </thead>
@@ -561,18 +576,18 @@ export function VocabTableEditor({
             {rows.map((row, index) => (
               <tr
                 key={row.rowKey}
-                className="border-b border-slate-100 hover:bg-slate-50/50"
+                className="border-b border-slate-100 hover:bg-slate-50/60"
               >
-                <td className="align-top px-2 py-2">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xs font-mono text-slate-500">
+                <td className="align-top px-1.5 py-1">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-[10px] font-mono text-slate-500">
                       {rowNumber(index)}
                     </span>
                     <button
                       type="button"
                       title="행 삭제"
                       onClick={() => removeRow(row.rowKey)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-red-500 text-lg font-bold leading-none text-white shadow-sm hover:bg-red-600"
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-base font-bold leading-none text-white hover:bg-red-600"
                     >
                       −
                     </button>
@@ -580,15 +595,15 @@ export function VocabTableEditor({
                       type="button"
                       title="행 추가"
                       onClick={() => insertRowAfter(row.rowKey)}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-500 text-lg font-bold leading-none text-white shadow-sm hover:bg-violet-600"
+                      className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500 text-base font-bold leading-none text-white hover:bg-violet-600"
                     >
                       +
                     </button>
                   </div>
                 </td>
-                <td className="px-2 py-2 align-top">
+                <td className="px-1.5 py-1 align-top">
                   <input
-                    className="w-full rounded border border-slate-200 px-2 py-2 text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200"
+                    className={inputClass}
                     value={row.word}
                     onChange={(e) =>
                       updateRow(row.rowKey, "word", e.target.value)
@@ -596,9 +611,9 @@ export function VocabTableEditor({
                     placeholder="provide"
                   />
                 </td>
-                <td className="px-2 py-2 align-top">
+                <td className="px-1.5 py-1 align-top">
                   <input
-                    className="w-full rounded border border-slate-200 px-2 py-2 text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200"
+                    className={inputClass}
                     value={row.meaning}
                     onChange={(e) =>
                       updateRow(row.rowKey, "meaning", e.target.value)
@@ -607,10 +622,10 @@ export function VocabTableEditor({
                     placeholder="제공하다"
                   />
                 </td>
-                <td className="px-2 py-2 align-top">
+                <td className="px-1.5 py-1 align-top">
                   <div className="relative">
                     <input
-                      className="w-full rounded border border-slate-200 py-2 pl-2 pr-9 text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200"
+                      className={`${inputClass} pr-8`}
                       value={row.example_sentence}
                       onChange={(e) =>
                         updateRow(row.rowKey, "example_sentence", e.target.value)
@@ -625,9 +640,9 @@ export function VocabTableEditor({
                     />
                   </div>
                 </td>
-                <td className="px-2 py-2 align-top">
+                <td className="px-1.5 py-1 align-top">
                   <input
-                    className="w-full rounded border border-slate-200 px-2 py-2 text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200"
+                    className={inputClass}
                     value={row.example_meaning}
                     onChange={(e) =>
                       updateRow(row.rowKey, "example_meaning", e.target.value)
@@ -635,39 +650,29 @@ export function VocabTableEditor({
                     placeholder="학교는 점심을 제공한다."
                   />
                 </td>
-                <td className="px-2 py-2 align-top">
-                  <div className="relative">
+                <td className="px-1.5 py-1 align-top">
+                  <div className="relative pr-8">
                     <input
-                      className="w-full rounded border border-slate-200 py-2 pl-2 pr-9 text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200"
+                      className={`${inputClass} mb-1`}
                       value={row.synonyms}
                       onChange={(e) =>
                         updateRow(row.rowKey, "synonyms", e.target.value)
                       }
-                      placeholder="supply, offer"
+                      placeholder="동의어"
                     />
-                    <AiSparkleButton
-                      title="AI 동의어 생성"
-                      disabled={!row.word.trim() || !row.meaning.trim()}
-                      loading={aiLoadingKey === `${row.rowKey}-synonyms`}
-                      onClick={() => generateRelatedForRow(row.rowKey, "synonyms")}
-                    />
-                  </div>
-                </td>
-                <td className="px-2 py-2 align-top">
-                  <div className="relative">
                     <input
-                      className="w-full rounded border border-slate-200 py-2 pl-2 pr-9 text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200"
+                      className={inputClass}
                       value={row.antonyms}
                       onChange={(e) =>
                         updateRow(row.rowKey, "antonyms", e.target.value)
                       }
-                      placeholder="withhold, deny"
+                      placeholder="반의어"
                     />
                     <AiSparkleButton
-                      title="AI 반의어 생성"
+                      title="AI 동의어·반의어 생성"
                       disabled={!row.word.trim() || !row.meaning.trim()}
-                      loading={aiLoadingKey === `${row.rowKey}-antonyms`}
-                      onClick={() => generateRelatedForRow(row.rowKey, "antonyms")}
+                      loading={aiLoadingKey === `${row.rowKey}-related`}
+                      onClick={() => generateRelatedForRow(row.rowKey)}
                     />
                   </div>
                 </td>
@@ -677,19 +682,19 @@ export function VocabTableEditor({
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-2">
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setRows((prev) => [...prev, emptyRow()])}
-            className="rounded-lg border border-emerald-600 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+            className="rounded-lg border border-emerald-600 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
           >
             행 추가
           </button>
           <button
             type="button"
             onClick={() => setPasteOpen(true)}
-            className="rounded-lg bg-[#7cb518] px-4 py-2 text-sm font-bold text-white hover:bg-[#6aa014]"
+            className="rounded-lg bg-[#7cb518] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#6aa014]"
           >
             자료 가져오기
           </button>
@@ -702,7 +707,7 @@ export function VocabTableEditor({
             type="button"
             disabled={saving}
             onClick={handleSave}
-            className="rounded-lg bg-brand-600 px-6 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-50"
+            className="rounded-lg bg-brand-600 px-5 py-1.5 text-xs font-bold text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {saving ? "저장 중..." : "저장"}
           </button>
@@ -711,7 +716,7 @@ export function VocabTableEditor({
 
       {status && (
         <p
-          className={`border-t px-4 py-2 text-sm ${
+          className={`border-t px-3 py-1.5 text-xs ${
             status.includes("되었") || status.includes("생성")
               ? "text-green-700"
               : "text-red-600"

@@ -79,12 +79,12 @@ export default async function AdminVocabSetPage({
         listHref={listHref}
       />
 
-      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="font-semibold text-slate-900">
+      <section className="space-y-2 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <h2 className="text-base font-semibold text-slate-900">
           단어 입력 ({itemList.length}개 저장됨)
         </h2>
-        <p className="text-sm text-slate-500">
-          엑셀처럼 행을 추가·삭제하고, AI로 예문·동의어·반의어를 생성한 뒤 저장하세요.
+        <p className="text-xs text-slate-500">
+          행을 추가·삭제하고 AI로 예문·동의어·반의어를 생성한 뒤 저장하세요.
         </p>
         <VocabTableEditor
           setId={setId}
