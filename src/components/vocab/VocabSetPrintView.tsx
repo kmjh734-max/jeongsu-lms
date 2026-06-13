@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  memo,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -22,10 +22,7 @@ import {
   VOCAB_PRINT_MODE_LABELS,
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
-import {
-  paginateExamPrintFromHeights,
-  type ExamPrintPageSlice,
-} from "@/lib/vocab/paginate-exam-print";
+import { useVocabExamPagination } from "@/lib/vocab/use-vocab-exam-pagination";
 import {
   EXAM_ROW_GAP_PX,
   examConfigTotal,
@@ -166,88 +163,40 @@ export function VocabSetPrintView({
   const headerTitle =
     sections.length === 1 ? sections[0]!.title : title;
 
-  const [examPages, setExamPages] = useState<ExamPrintPageSlice[] | null>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
+  const urlSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skipUrlEchoRef = useRef(false);
 
-  const examBasicQuestions = useMemo(
-    () =>
-      examGenerated.questions.filter((q) => !q.kind.startsWith("example_")),
-    [examGenerated.questions]
-  );
-  const examExampleQuestions = useMemo(
-    () =>
-      examGenerated.questions.filter((q) => q.kind.startsWith("example_")),
-    [examGenerated.questions]
-  );
-
-  useLayoutEffect(() => {
-    if (mode !== "exam") {
-      setExamPages(null);
-      return;
-    }
-    if (examGenerated.questions.length === 0) {
-      setExamPages([{ basic: [], examples: [] }]);
-      return;
-    }
-
-    const measureRoot = measureRef.current;
-    const probe = probeRef.current;
-    if (!measureRoot || !probe) return;
-
-    const bodyZone = probe.querySelector<HTMLElement>("[data-exam-body-zone]");
-    if (!bodyZone) return;
-
-    const maxBodyHeightPx = bodyZone.clientHeight;
-    if (maxBodyHeightPx <= 0) return;
-
-    const basicHeights = examBasicQuestions.map((q) => {
-      const el = measureRoot.querySelector<HTMLElement>(
-        `[data-measure-basic="${q.number}"]`
-      );
-      return el?.offsetHeight ?? 72;
-    });
-
-    const exampleHeights = examExampleQuestions.map((q) => {
-      const el = measureRoot.querySelector<HTMLElement>(
-        `[data-measure-example="${q.number}"]`
-      );
-      return el?.offsetHeight ?? 96;
-    });
-
-    setExamPages(
-      paginateExamPrintFromHeights(
-        examGenerated.questions,
-        basicHeights,
-        exampleHeights,
-        maxBodyHeightPx,
-        examCols,
-        examRowGapPx
-      )
-    );
-  }, [
-    mode,
-    examGenerated.questions,
-    examBasicQuestions,
-    examExampleQuestions,
+  const examPagination = useVocabExamPagination({
+    enabled: mode === "exam",
+    questions: examGenerated.questions,
     size,
-    examCols,
-    examRowGapPx,
-    examSettings.layout.lineSpacing,
-    headerTitle,
-  ]);
+    cols: examCols,
+    rowGapPx: examRowGapPx,
+    lineSpacing: examSettings.layout.lineSpacing,
+    measureRef,
+    probeRef,
+  });
 
-  const examLayoutReady = mode !== "exam" || examPages !== null;
-  const resolvedExamPages = examPages ?? [];
+  const resolvedExamPages = examPagination.pages;
+  const examBasicQuestions = examPagination.basic;
+  const examExampleQuestions = examPagination.examples;
 
   const pageCount =
-    mode === "exam"
-      ? examLayoutReady
-        ? resolvedExamPages.length
-        : 0
-      : flatPages.length;
+    mode === "exam" ? resolvedExamPages.length : flatPages.length;
 
   useEffect(() => {
+    return () => {
+      if (urlSyncTimerRef.current) clearTimeout(urlSyncTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (skipUrlEchoRef.current) {
+      skipUrlEchoRef.current = false;
+      return;
+    }
     setExamSettings(parseExamPrintSettings(searchParams));
   }, [searchParams]);
 
@@ -298,22 +247,34 @@ export function VocabSetPrintView({
       for (const [k, v] of Object.entries(examSettingsToSearchParams(next))) {
         params.set(k, v);
       }
+      skipUrlEchoRef.current = true;
       router.replace(`?${params.toString()}`);
     },
     [router, searchParams]
   );
 
+  const queueExamSettingsUrlSync = useCallback(
+    (next: ExamPrintSettings) => {
+      if (urlSyncTimerRef.current) clearTimeout(urlSyncTimerRef.current);
+      urlSyncTimerRef.current = setTimeout(() => {
+        syncExamSettingsToUrl(next);
+      }, 350);
+    },
+    [syncExamSettingsToUrl]
+  );
+
   const updateExamSettings = useCallback(
     (next: ExamPrintSettings) => {
       setExamSettings(next);
-      syncExamSettingsToUrl(next);
+      queueExamSettingsUrlSync(next);
     },
-    [syncExamSettingsToUrl]
+    [queueExamSettingsUrlSync]
   );
 
   const reshuffleExam = useCallback(() => {
     const next = { ...examSettings, shuffleSeed: Date.now() };
     setExamSettings(next);
+    if (urlSyncTimerRef.current) clearTimeout(urlSyncTimerRef.current);
     syncExamSettingsToUrl(next);
   }, [examSettings, syncExamSettingsToUrl]);
 
@@ -343,15 +304,7 @@ export function VocabSetPrintView({
 
   const previewPages =
     mode === "exam" ? (
-      !examLayoutReady ? (
-        <div
-          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam flex items-center justify-center text-sm text-slate-500`}
-          style={examPageStyle}
-        >
-          시험지 레이아웃 계산 중…
-        </div>
-      ) : (
-        resolvedExamPages.map((pageSlice, pageIndex) => (
+      resolvedExamPages.map((pageSlice, pageIndex) => (
         <article
           key={`exam-${pageIndex}`}
           className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < resolvedExamPages.length - 1 ? "vocab-print-page-break" : ""}`}
@@ -391,7 +344,6 @@ export function VocabSetPrintView({
           </footer>
         </article>
       ))
-      )
     ) : (
       flatPages.map(
         (
@@ -481,11 +433,6 @@ export function VocabSetPrintView({
                   </div>
                 ))}
               </div>
-            </article>
-            <article
-              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing}`}
-              style={examPageStyle}
-            >
               <div className="vocab-exam-list vocab-exam-list--examples">
                 {examExampleQuestions.map((q) => (
                   <div key={q.number} data-measure-example={q.number}>
@@ -607,10 +554,7 @@ export function VocabSetPrintView({
               <button
                 type="button"
                 onClick={handlePrint}
-                disabled={
-                  mode === "exam" &&
-                  (examGenerated.questions.length === 0 || !examLayoutReady)
-                }
+                disabled={mode === "exam" && examGenerated.questions.length === 0}
                 className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
               >
                 인쇄 / PDF 저장
@@ -648,7 +592,7 @@ export function VocabSetPrintView({
   );
 }
 
-function PrintExamEntry({
+const PrintExamEntry = memo(function PrintExamEntry({
   question,
   variant = "basic",
 }: {
@@ -681,7 +625,7 @@ function PrintExamEntry({
       )}
     </section>
   );
-}
+});
 
 function PrintEntry({
   item,

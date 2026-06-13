@@ -77,16 +77,14 @@ function paginateExamFlow(
 }
 
 export function paginateExamPrintFromHeights(
-  questions: PrintExamQuestion[],
+  basic: PrintExamQuestion[],
+  examples: PrintExamQuestion[],
   basicHeights: number[],
   exampleHeights: number[],
   maxBodyHeightPx: number,
   columns: ExamColumnCount,
   rowGapPx: number
 ): ExamPrintPageSlice[] {
-  const basic = questions.filter((q) => !isExampleQuestion(q));
-  const examples = questions.filter(isExampleQuestion);
-
   const pages = paginateExamFlow(
     basic,
     examples,
@@ -104,7 +102,7 @@ export function paginateExamPrintFromHeights(
   return pages;
 }
 
-/** 추정치 기반 (측정 전 폴백) */
+/** 추정치 기반 (측정 전 즉시 미리보기) */
 export function paginateExamPrintPages(
   questions: PrintExamQuestion[],
   _size: "a4" | "b5",
@@ -112,13 +110,14 @@ export function paginateExamPrintPages(
   lineSpacing: ExamLineSpacing = "normal"
 ): ExamPrintPageSlice[] {
   const rowGapPx = EXAM_ROW_GAP_PX[lineSpacing];
-  const fallbackBasic = 72 + rowGapPx;
-  const fallbackExample = 96 + rowGapPx;
+  const fallbackBasic = 72;
+  const fallbackExample = 96;
   const basic = questions.filter((q) => !isExampleQuestion(q));
   const examples = questions.filter(isExampleQuestion);
 
   return paginateExamPrintFromHeights(
-    questions,
+    basic,
+    examples,
     basic.map(() => fallbackBasic),
     examples.map(() => fallbackExample),
     99999,
