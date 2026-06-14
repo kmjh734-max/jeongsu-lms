@@ -15,7 +15,7 @@ export function isStandardTwentyQuestionExam(count: number): boolean {
   return count === 20;
 }
 
-/** A4 2단: 좌열 → 우열 순으로 채우고 넘치면 다음 페이지 */
+/** A4 2단: 좌열 → 우열 순으로 채우고, 넘치면 다음 페이지 (문항 높이만큼만 간격) */
 export function paginateExamQuestions(
   questionHeights: number[],
   opts: {
@@ -38,7 +38,15 @@ export function paginateExamQuestions(
     let rightUsed = 0;
 
     while (idx < questionHeights.length) {
-      const need = questionHeights[idx] + opts.questionGapPx;
+      const gap = page.left.length > 0 ? opts.questionGapPx : 0;
+      const need = questionHeights[idx]! + gap;
+      if (page.left.length > 0 && leftUsed + need > maxH) break;
+      if (page.left.length === 0 && need > maxH) {
+        page.left.push(idx);
+        leftUsed += need;
+        idx++;
+        break;
+      }
       if (leftUsed + need > maxH) break;
       page.left.push(idx);
       leftUsed += need;
@@ -46,7 +54,15 @@ export function paginateExamQuestions(
     }
 
     while (idx < questionHeights.length) {
-      const need = questionHeights[idx] + opts.questionGapPx;
+      const gap = page.right.length > 0 ? opts.questionGapPx : 0;
+      const need = questionHeights[idx]! + gap;
+      if (page.right.length > 0 && rightUsed + need > maxH) break;
+      if (page.right.length === 0 && need > maxH) {
+        page.right.push(idx);
+        rightUsed += need;
+        idx++;
+        break;
+      }
       if (rightUsed + need > maxH) break;
       page.right.push(idx);
       rightUsed += need;

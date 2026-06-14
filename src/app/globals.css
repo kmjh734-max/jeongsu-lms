@@ -394,6 +394,28 @@
     margin-top: 0.8mm;
   }
 
+  .listening-exam-col-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2.5mm;
+  }
+
+  .listening-exam-body-zone {
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+    padding-top: 2mm;
+  }
+
+  .listening-exam-body-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 4mm;
+    align-items: start;
+    align-content: start;
+  }
+
   .listening-exam-chevron-band {
     display: none;
   }
