@@ -17,7 +17,7 @@ import type { ListeningTableData } from "@/lib/listening/types";
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 /** 우열(구분선 패딩) 기준 최소 열 너비 — 이보다 넓게 측정하면 줄바꿈이 달라져 잘림 발생 */
 const COLUMN_WIDTH_CLASS = "w-[89mm]";
-const QUESTION_GAP_MM = 6;
+const QUESTION_GAP_MM = 12;
 const QUESTION_GAP_PX = Math.round((QUESTION_GAP_MM * 96) / 25.4);
 const COLUMN_SAFETY_PX = 28;
 const QUESTION_COLUMN_GAP_STYLE = { gap: `${QUESTION_GAP_MM}mm` } as const;
