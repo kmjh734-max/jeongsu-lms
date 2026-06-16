@@ -31,18 +31,7 @@ interface ListeningExamPrintViewProps {
 interface PrintMeta {
   examTitle: string;
   gradeLabel: string;
-  examDate: string;
-  className: string;
-  studentNo: string;
   studentName: string;
-}
-
-function defaultExamDate() {
-  return new Date().toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 }
 
 function answerLabel(correctAnswer: number): string {
@@ -117,9 +106,6 @@ export function ListeningExamPrintView({
 }: ListeningExamPrintViewProps) {
   const [examTitle, setExamTitle] = useState(title);
   const [studentName, setStudentName] = useState("");
-  const [className, setClassName] = useState("");
-  const [studentNo, setStudentNo] = useState("");
-  const [examDate, setExamDate] = useState(defaultExamDate);
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [pages, setPages] = useState<ExamPageLayout[] | null>(null);
 
@@ -131,9 +117,6 @@ export function ListeningExamPrintView({
   const meta: PrintMeta = {
     examTitle: examTitle.trim() || title,
     gradeLabel,
-    examDate,
-    className,
-    studentNo,
     studentName,
   };
 
@@ -173,9 +156,6 @@ export function ListeningExamPrintView({
     showScript,
     examTitle,
     gradeLabel,
-    examDate,
-    className,
-    studentNo,
     studentName,
     title,
     setId,
@@ -263,36 +243,13 @@ export function ListeningExamPrintView({
                   onChange={(e) => setExamTitle(e.target.value)}
                 />
               </label>
-              <label className="block">
-                <span className="mb-1 block text-xs text-slate-600">날짜</span>
-                <input
-                  className="ui-input"
-                  value={examDate}
-                  onChange={(e) => setExamDate(e.target.value)}
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs text-slate-600">반</span>
-                <input
-                  className="ui-input"
-                  value={className}
-                  onChange={(e) => setClassName(e.target.value)}
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-xs text-neutral-600">번호</span>
-                <input
-                  className="ui-input"
-                  value={studentNo}
-                  onChange={(e) => setStudentNo(e.target.value)}
-                />
-              </label>
-              <label className="block sm:col-span-2">
+              <label className="block sm:col-span-2 lg:col-span-3">
                 <span className="mb-1 block text-xs text-neutral-600">이름</span>
                 <input
                   className="ui-input"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
+                  placeholder="인쇄 파일명에 사용 (선택)"
                 />
               </label>
               <label className="flex items-center gap-2 sm:col-span-2 lg:col-span-3">
@@ -477,14 +434,6 @@ function ExamSheetPage({
           <table className="listening-exam-info-table">
             <tbody>
               <tr>
-                <th>날짜</th>
-                <td colSpan={5}>{meta.examDate || "\u00a0"}</td>
-              </tr>
-              <tr>
-                <th>반</th>
-                <td>{meta.className || "\u00a0"}</td>
-                <th>번호</th>
-                <td>{meta.studentNo || "\u00a0"}</td>
                 <th>이름</th>
                 <td>{meta.studentName || "\u00a0"}</td>
               </tr>
@@ -720,9 +669,7 @@ function ExamAnswerKeyPage({
             <p className="listening-exam-answer-key-title">
               {meta.examTitle} · 정답지
             </p>
-            <p className="listening-exam-answer-key-sub">
-              {meta.gradeLabel} · {meta.examDate}
-            </p>
+            <p className="listening-exam-answer-key-sub">{meta.gradeLabel}</p>
           </div>
         ) : (
           <div className="listening-exam-subheader">
