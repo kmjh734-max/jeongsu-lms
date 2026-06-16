@@ -22,17 +22,20 @@ export function paginateExamQuestions(
     firstColumnMaxPx: number;
     nextColumnMaxPx: number;
     questionGapPx: number;
+    columnSafetyPx?: number;
   }
 ): ExamPageLayout[] {
   if (questionHeights.length === 0) return [];
 
+  const safety = opts.columnSafetyPx ?? 0;
   const pages: ExamPageLayout[] = [];
   let idx = 0;
   let pageIndex = 0;
 
   while (idx < questionHeights.length) {
     const maxH =
-      pageIndex === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx;
+      (pageIndex === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx) -
+      safety;
     const page: ExamPageLayout = { left: [], right: [] };
     let leftUsed = 0;
     let rightUsed = 0;
@@ -79,4 +82,32 @@ export function paginateExamQuestions(
   }
 
   return pages;
+}
+
+/** 렌더 후 열 오버플로가 감지되면 마지막 문항을 다음 열/페이지로 옮긴다. */
+export function moveLastOverflowItem(
+  pages: ExamPageLayout[],
+  pageIndex: number,
+  side: "left" | "right"
+): ExamPageLayout[] | null {
+  if (pageIndex < 0 || pageIndex >= pages.length) return null;
+
+  const next = pages.map((p) => ({ left: [...p.left], right: [...p.right] }));
+  const page = next[pageIndex];
+  if (!page) return null;
+
+  const col = side === "left" ? page.left : page.right;
+  if (col.length === 0) return null;
+
+  const moved = col.pop()!;
+  if (side === "left") {
+    page.right.unshift(moved);
+  } else {
+    if (!next[pageIndex + 1]) {
+      next.push({ left: [], right: [] });
+    }
+    next[pageIndex + 1]!.left.unshift(moved);
+  }
+
+  return next;
 }

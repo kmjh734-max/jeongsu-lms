@@ -7,6 +7,7 @@ import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCod
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { buildStudentListeningHubUrl } from "@/lib/listening/listen-url";
 import {
+  moveLastOverflowItem,
   paginateExamQuestions,
   type ExamPageLayout,
 } from "@/lib/listening/paginate-exam-questions";
@@ -14,10 +15,13 @@ import { normalizeTableData } from "@/lib/listening/table-data";
 import type { ListeningTableData } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
-const QUESTION_GAP_MM = 5;
+/** 우열(구분선 패딩) 기준 최소 열 너비 — 이보다 넓게 측정하면 줄바꿈이 달라져 잘림 발생 */
+const COLUMN_WIDTH_CLASS = "w-[89mm]";
+const QUESTION_GAP_MM = 6;
 const QUESTION_GAP_PX = Math.round((QUESTION_GAP_MM * 96) / 25.4);
+const COLUMN_SAFETY_PX = 28;
 const QUESTION_COLUMN_GAP_STYLE = { gap: `${QUESTION_GAP_MM}mm` } as const;
-const COLUMN_WIDTH_CLASS = "w-[91mm]";
+const MAX_OVERFLOW_FIXES = 200;
 
 type PrintScope = "exam" | "answers" | "all";
 
@@ -110,10 +114,12 @@ export function ListeningExamPrintView({
   const [studentName, setStudentName] = useState("");
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [pages, setPages] = useState<ExamPageLayout[] | null>(null);
+  const [pagesVerified, setPagesVerified] = useState(false);
 
   const measureRef = useRef<HTMLDivElement>(null);
   const probeFirstRef = useRef<HTMLDivElement>(null);
   const probeNextRef = useRef<HTMLDivElement>(null);
+  const overflowFixAttempts = useRef(0);
   const listenUrl = buildStudentListeningHubUrl(setId);
 
   const meta: PrintMeta = {
@@ -127,6 +133,7 @@ export function ListeningExamPrintView({
   useLayoutEffect(() => {
     if (questions.length === 0) {
       setPages([]);
+      setPagesVerified(true);
       return;
     }
 
@@ -135,24 +142,32 @@ export function ListeningExamPrintView({
     const probeNext = probeNextRef.current;
     if (!measureRoot || !probeFirst || !probeNext) return;
 
-    const firstBody = probeFirst.querySelector<HTMLElement>("[data-body-zone]");
-    const nextBody = probeNext.querySelector<HTMLElement>("[data-body-zone]");
-    if (!firstBody || !nextBody) return;
+    const measureAndPaginate = () => {
+      const firstBody = probeFirst.querySelector<HTMLElement>("[data-body-zone]");
+      const nextBody = probeNext.querySelector<HTMLElement>("[data-body-zone]");
+      if (!firstBody || !nextBody) return;
 
-    const questionHeights = questions.map((q) => {
-      const el = measureRoot.querySelector<HTMLElement>(
-        `[data-measure-q="${q.id}"]`
+      const questionHeights = questions.map((q) => {
+        const el = measureRoot.querySelector<HTMLElement>(
+          `[data-measure-q="${q.id}"]`
+        );
+        return Math.ceil(el?.offsetHeight ?? 96);
+      });
+
+      overflowFixAttempts.current = 0;
+      setPagesVerified(false);
+      setPages(
+        paginateExamQuestions(questionHeights, {
+          firstColumnMaxPx: firstBody.clientHeight,
+          nextColumnMaxPx: nextBody.clientHeight,
+          questionGapPx: QUESTION_GAP_PX,
+          columnSafetyPx: COLUMN_SAFETY_PX,
+        })
       );
-      return el?.offsetHeight ?? 96;
-    });
+    };
 
-    setPages(
-      paginateExamQuestions(questionHeights, {
-        firstColumnMaxPx: firstBody.clientHeight,
-        nextColumnMaxPx: nextBody.clientHeight,
-        questionGapPx: QUESTION_GAP_PX,
-      })
-    );
+    measureAndPaginate();
+    void document.fonts?.ready?.then(measureAndPaginate);
   }, [
     questions,
     showScript,
@@ -162,6 +177,47 @@ export function ListeningExamPrintView({
     title,
     setId,
   ]);
+
+  useLayoutEffect(() => {
+    if (!pages || questions.length === 0) return;
+
+    const root = document.getElementById("listening-print-root");
+    if (!root) return;
+
+    let overflow: { page: number; side: "left" | "right" } | null = null;
+    root.querySelectorAll<HTMLElement>("[data-exam-column]").forEach((col) => {
+      if (overflow) return;
+      const bodyZone = col.closest<HTMLElement>("[data-body-zone]");
+      const maxH = bodyZone?.clientHeight ?? 0;
+      if (maxH <= 0 || col.scrollHeight <= maxH + 2) return;
+      const page = Number(col.dataset.page);
+      const side = col.dataset.side;
+      if (!Number.isFinite(page) || (side !== "left" && side !== "right")) {
+        return;
+      }
+      overflow = { page, side };
+    });
+
+    if (!overflow) {
+      overflowFixAttempts.current = 0;
+      setPagesVerified(true);
+      return;
+    }
+
+    if (overflowFixAttempts.current >= MAX_OVERFLOW_FIXES) {
+      setPagesVerified(true);
+      return;
+    }
+
+    overflowFixAttempts.current += 1;
+    setPagesVerified(false);
+    setPages((prev) => {
+      if (!prev) return prev;
+      return (
+        moveLastOverflowItem(prev, overflow!.page, overflow!.side) ?? prev
+      );
+    });
+  }, [pages, questions, showScript, examTitle, gradeLabel, studentName]);
 
   function runPrint(scope: PrintScope) {
     const prevTitle = document.title;
@@ -191,7 +247,7 @@ export function ListeningExamPrintView({
   }
 
   const totalPages = resolvedPages?.length ?? 0;
-  const layoutReady = pages !== null;
+  const layoutReady = pages !== null && pagesVerified;
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
@@ -337,25 +393,41 @@ export function ListeningExamPrintView({
                 questions={questions}
                 showScript={showScript}
               />
-            ) : !layoutReady ? (
+            ) : !pages ? (
               <div className="listening-exam-page listening-exam-sheet mx-auto flex h-[297mm] items-center justify-center text-sm text-slate-500">
                 시험지 레이아웃 계산 중…
               </div>
             ) : (
-              resolvedPages!.map((layout, pageIndex) => (
-                <ExamSheetPage
-                  key={pageIndex}
-                  meta={meta}
-                  listenUrl={listenUrl}
-                  pageIndex={pageIndex}
-                  totalPages={resolvedPages!.length}
-                  left={layout.left}
-                  right={layout.right}
-                  questions={questions}
-                  showScript={showScript}
-                  isLastPage={pageIndex === resolvedPages!.length - 1}
-                />
-              ))
+              <>
+                {!layoutReady && (
+                  <div className="listening-exam-page listening-exam-sheet mx-auto flex h-[297mm] items-center justify-center text-sm text-slate-500">
+                    시험지 레이아웃 계산 중…
+                  </div>
+                )}
+                <div
+                  className={
+                    layoutReady
+                      ? undefined
+                      : "pointer-events-none fixed -left-[200vw] top-0 opacity-0"
+                  }
+                  aria-hidden={!layoutReady}
+                >
+                  {resolvedPages!.map((layout, pageIndex) => (
+                    <ExamSheetPage
+                      key={pageIndex}
+                      meta={meta}
+                      listenUrl={listenUrl}
+                      pageIndex={pageIndex}
+                      totalPages={resolvedPages!.length}
+                      left={layout.left}
+                      right={layout.right}
+                      questions={questions}
+                      showScript={showScript}
+                      isLastPage={pageIndex === resolvedPages!.length - 1}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
 
@@ -464,12 +536,16 @@ function ExamSheetPage({
             indices={left}
             questions={questions}
             showScript={showScript}
+            pageIndex={pageIndex}
+            side="left"
           />
           <QuestionColumn
             indices={right}
             questions={questions}
             showScript={showScript}
             divided
+            pageIndex={pageIndex}
+            side="right"
           />
         </div>
       </div>
@@ -493,16 +569,23 @@ function QuestionColumn({
   questions,
   showScript,
   divided,
+  pageIndex,
+  side,
 }: {
   indices: number[];
   questions: ListeningQuestionData[];
   showScript: boolean;
   divided?: boolean;
+  pageIndex: number;
+  side: "left" | "right";
 }) {
   const borderClass = divided ? "listening-exam-col-divider" : "pr-[0.5mm]";
 
   return (
     <div
+      data-exam-column
+      data-page={pageIndex}
+      data-side={side}
       className={`listening-exam-col-stack ${borderClass}`}
       style={QUESTION_COLUMN_GAP_STYLE}
     >
