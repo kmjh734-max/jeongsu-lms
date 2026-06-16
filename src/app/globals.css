@@ -206,6 +206,8 @@
   .listening-exam-q-block {
     font-size: 10.5pt;
     line-height: 1.48;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   .listening-exam-q-block--compact {

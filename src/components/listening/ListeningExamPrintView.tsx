@@ -18,10 +18,20 @@ const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 /** 우열(구분선 패딩) 기준 최소 열 너비 — 이보다 넓게 측정하면 줄바꿈이 달라져 잘림 발생 */
 const COLUMN_WIDTH_CLASS = "w-[89mm]";
 const QUESTION_GAP_MM = 12;
-const QUESTION_GAP_PX = Math.round((QUESTION_GAP_MM * 96) / 25.4);
+const QUESTION_GAP_MM_WITH_SCRIPT = 4;
 const COLUMN_SAFETY_PX = 28;
-const QUESTION_COLUMN_GAP_STYLE = { gap: `${QUESTION_GAP_MM}mm` } as const;
+const COLUMN_SAFETY_PX_WITH_SCRIPT = 56;
 const MAX_OVERFLOW_FIXES = 200;
+
+function getExamLayoutConfig(showScript: boolean) {
+  const gapMm = showScript ? QUESTION_GAP_MM_WITH_SCRIPT : QUESTION_GAP_MM;
+  return {
+    gapMm,
+    gapPx: Math.round((gapMm * 96) / 25.4),
+    gapStyle: { gap: `${gapMm}mm` } as const,
+    columnSafetyPx: showScript ? COLUMN_SAFETY_PX_WITH_SCRIPT : COLUMN_SAFETY_PX,
+  };
+}
 
 type PrintScope = "exam" | "answers" | "all";
 
@@ -82,13 +92,17 @@ function renderScriptWithBlanks(text: string, blankOffset: { n: number }) {
 
 function PrintScriptPanel({
   segments,
+  compact = false,
 }: {
   segments: ListeningQuestionData["segments"];
+  compact?: boolean;
 }) {
   const blankOffset = { n: 1 };
 
   return (
-    <div className="listening-exam-script-col">
+    <div
+      className={`listening-exam-script-col${compact ? " listening-exam-script-col--compact" : ""}`}
+    >
       <p className="listening-exam-script-title">MINI SCRIPT</p>
       {segments.map((seg) => (
         <p key={seg.id} className="leading-snug">
@@ -129,6 +143,7 @@ export function ListeningExamPrintView({
   };
 
   const resolvedPages = pages;
+  const layoutConfig = getExamLayoutConfig(showScript);
 
   useLayoutEffect(() => {
     if (questions.length === 0) {
@@ -148,10 +163,15 @@ export function ListeningExamPrintView({
       if (!firstBody || !nextBody) return;
 
       const questionHeights = questions.map((q) => {
-        const el = measureRoot.querySelector<HTMLElement>(
+        const examEl = measureRoot.querySelector<HTMLElement>(
           `[data-measure-q="${q.id}"]`
         );
-        return Math.ceil(el?.offsetHeight ?? 96);
+        const answerEl = measureRoot.querySelector<HTMLElement>(
+          `[data-measure-answer-q="${q.id}"]`
+        );
+        const examH = Math.ceil(examEl?.offsetHeight ?? 96);
+        const answerH = answerEl ? Math.ceil(answerEl.offsetHeight) : 0;
+        return Math.max(examH, answerH);
       });
 
       overflowFixAttempts.current = 0;
@@ -160,8 +180,8 @@ export function ListeningExamPrintView({
         paginateExamQuestions(questionHeights, {
           firstColumnMaxPx: firstBody.clientHeight,
           nextColumnMaxPx: nextBody.clientHeight,
-          questionGapPx: QUESTION_GAP_PX,
-          columnSafetyPx: COLUMN_SAFETY_PX,
+          questionGapPx: layoutConfig.gapPx,
+          columnSafetyPx: layoutConfig.columnSafetyPx,
         })
       );
     };
@@ -176,6 +196,8 @@ export function ListeningExamPrintView({
     studentName,
     title,
     setId,
+    layoutConfig.gapPx,
+    layoutConfig.columnSafetyPx,
   ]);
 
   useLayoutEffect(() => {
@@ -189,7 +211,15 @@ export function ListeningExamPrintView({
       if (overflow) return;
       const bodyZone = col.closest<HTMLElement>("[data-body-zone]");
       const maxH = bodyZone?.clientHeight ?? 0;
-      if (maxH <= 0 || col.scrollHeight <= maxH + 2) return;
+      if (maxH <= 0) return;
+
+      const columnOverflow = col.scrollHeight > maxH + 2;
+      const bodyBottom = bodyZone.getBoundingClientRect().bottom;
+      const questionOverflow = Array.from(
+        col.querySelectorAll<HTMLElement>("[data-exam-question]")
+      ).some((qEl) => qEl.getBoundingClientRect().bottom > bodyBottom + 1);
+
+      if (!columnOverflow && !questionOverflow) return;
       const page = Number(col.dataset.page);
       const side = col.dataset.side;
       if (!Number.isFinite(page) || (side !== "left" && side !== "right")) {
@@ -337,8 +367,13 @@ export function ListeningExamPrintView({
       >
         <div className={COLUMN_WIDTH_CLASS}>
           {questions.map((q) => (
-            <div key={q.id} data-measure-q={q.id}>
-              <ExamQuestionBlock question={q} showScript={showScript} />
+            <div key={q.id}>
+              <div data-measure-q={q.id}>
+                <ExamQuestionBlock question={q} showScript={showScript} />
+              </div>
+              <div data-measure-answer-q={q.id}>
+                <AnswerKeyItem question={q} compactScript={showScript} />
+              </div>
             </div>
           ))}
         </div>
@@ -359,6 +394,7 @@ export function ListeningExamPrintView({
           questions={questions}
           showScript={showScript}
           measureOnly
+          questionGapStyle={layoutConfig.gapStyle}
         />
       </div>
       <div
@@ -376,6 +412,7 @@ export function ListeningExamPrintView({
           questions={questions}
           showScript={showScript}
           measureOnly
+          questionGapStyle={layoutConfig.gapStyle}
         />
       </div>
 
@@ -392,6 +429,7 @@ export function ListeningExamPrintView({
                 right={[]}
                 questions={questions}
                 showScript={showScript}
+                questionGapStyle={layoutConfig.gapStyle}
               />
             ) : !pages ? (
               <div className="listening-exam-page listening-exam-sheet mx-auto flex h-[297mm] items-center justify-center text-sm text-slate-500">
@@ -423,6 +461,7 @@ export function ListeningExamPrintView({
                       right={layout.right}
                       questions={questions}
                       showScript={showScript}
+                      questionGapStyle={layoutConfig.gapStyle}
                       isLastPage={pageIndex === resolvedPages!.length - 1}
                     />
                   ))}
@@ -443,6 +482,7 @@ export function ListeningExamPrintView({
                 meta={meta}
                 questions={questions}
                 pageLayouts={resolvedPages!}
+                questionGapStyle={layoutConfig.gapStyle}
               />
             </div>
           )}
@@ -463,6 +503,7 @@ function ExamSheetPage({
   showScript,
   isLastPage,
   measureOnly,
+  questionGapStyle,
 }: {
   meta: PrintMeta;
   listenUrl: string;
@@ -474,6 +515,7 @@ function ExamSheetPage({
   showScript: boolean;
   isLastPage?: boolean;
   measureOnly?: boolean;
+  questionGapStyle: { gap: string };
 }) {
   const isFirst = pageIndex === 0;
 
@@ -538,6 +580,7 @@ function ExamSheetPage({
             showScript={showScript}
             pageIndex={pageIndex}
             side="left"
+            questionGapStyle={questionGapStyle}
           />
           <QuestionColumn
             indices={right}
@@ -546,6 +589,7 @@ function ExamSheetPage({
             divided
             pageIndex={pageIndex}
             side="right"
+            questionGapStyle={questionGapStyle}
           />
         </div>
       </div>
@@ -571,6 +615,7 @@ function QuestionColumn({
   divided,
   pageIndex,
   side,
+  questionGapStyle,
 }: {
   indices: number[];
   questions: ListeningQuestionData[];
@@ -578,6 +623,7 @@ function QuestionColumn({
   divided?: boolean;
   pageIndex: number;
   side: "left" | "right";
+  questionGapStyle: { gap: string };
 }) {
   const borderClass = divided ? "listening-exam-col-divider" : "pr-[0.5mm]";
 
@@ -587,7 +633,7 @@ function QuestionColumn({
       data-page={pageIndex}
       data-side={side}
       className={`listening-exam-col-stack ${borderClass}`}
-      style={QUESTION_COLUMN_GAP_STYLE}
+      style={questionGapStyle}
     >
       {indices.map((qi) => (
         <ExamQuestionBlock
@@ -659,14 +705,14 @@ function ExamQuestionBlock({
   );
 
   return (
-    <section className="listening-exam-q-block">
+    <section className="listening-exam-q-block" data-exam-question>
       {hasScript ? (
         <div className="grid grid-cols-2 gap-[2.5mm]">
           <div className="flex items-start gap-[2mm]">
             <span className="listening-exam-q-num">{numLabel}</span>
             <div className="min-w-0 flex-1">{questionBody}</div>
           </div>
-          <PrintScriptPanel segments={q.segments} />
+          <PrintScriptPanel segments={q.segments} compact={showScript} />
         </div>
       ) : (
         <div className="flex items-start gap-[2mm]">
@@ -703,10 +749,12 @@ function ExamAnswerKeyPages({
   meta,
   questions,
   pageLayouts,
+  questionGapStyle,
 }: {
   meta: PrintMeta;
   questions: ListeningQuestionData[];
   pageLayouts: ExamPageLayout[];
+  questionGapStyle: { gap: string };
 }) {
   return (
     <>
@@ -720,6 +768,7 @@ function ExamAnswerKeyPages({
           pageIndex={pageIndex}
           totalPages={pageLayouts.length}
           isLastPage={pageIndex === pageLayouts.length - 1}
+          questionGapStyle={questionGapStyle}
         />
       ))}
     </>
@@ -734,6 +783,7 @@ function ExamAnswerKeyPage({
   pageIndex,
   totalPages,
   isLastPage,
+  questionGapStyle,
 }: {
   meta: PrintMeta;
   questions: ListeningQuestionData[];
@@ -742,6 +792,7 @@ function ExamAnswerKeyPage({
   pageIndex: number;
   totalPages: number;
   isLastPage: boolean;
+  questionGapStyle: { gap: string };
 }) {
   const isFirst = pageIndex === 0;
 
@@ -773,8 +824,21 @@ function ExamAnswerKeyPage({
 
       <div data-body-zone className="listening-exam-body-zone">
         <div className="listening-exam-body-cols">
-          <AnswerKeyColumn indices={left} questions={questions} />
-          <AnswerKeyColumn indices={right} questions={questions} divided />
+          <AnswerKeyColumn
+            indices={left}
+            questions={questions}
+            pageIndex={pageIndex}
+            side="left"
+            questionGapStyle={questionGapStyle}
+          />
+          <AnswerKeyColumn
+            indices={right}
+            questions={questions}
+            divided
+            pageIndex={pageIndex}
+            side="right"
+            questionGapStyle={questionGapStyle}
+          />
         </div>
       </div>
 
@@ -796,17 +860,26 @@ function AnswerKeyColumn({
   indices,
   questions,
   divided,
+  pageIndex,
+  side,
+  questionGapStyle,
 }: {
   indices: number[];
   questions: ListeningQuestionData[];
   divided?: boolean;
+  pageIndex: number;
+  side: "left" | "right";
+  questionGapStyle: { gap: string };
 }) {
   const borderClass = divided ? "listening-exam-col-divider" : "pr-[0.5mm]";
 
   return (
     <div
+      data-exam-column
+      data-page={pageIndex}
+      data-side={side}
       className={`listening-exam-col-stack ${borderClass}`}
-      style={QUESTION_COLUMN_GAP_STYLE}
+      style={questionGapStyle}
     >
       {indices.map((qi) => (
         <AnswerKeyItem key={questions[qi].id} question={questions[qi]} />
@@ -815,7 +888,13 @@ function AnswerKeyColumn({
   );
 }
 
-function AnswerKeyItem({ question: q }: { question: ListeningQuestionData }) {
+function AnswerKeyItem({
+  question: q,
+  compactScript = false,
+}: {
+  question: ListeningQuestionData;
+  compactScript?: boolean;
+}) {
   const idx = q.correct_answer - 1;
   const choice = q.choices[idx] ?? "";
   const answerSize = "text-[15pt]";
@@ -824,7 +903,7 @@ function AnswerKeyItem({ question: q }: { question: ListeningQuestionData }) {
   const clueSize = "text-[9.5pt]";
 
   return (
-    <div className="min-h-0">
+    <div className="min-h-0" data-exam-question>
       <div className="flex items-baseline gap-[2mm]">
         <span className="listening-exam-q-num shrink-0 tabular-nums">
           {String(q.order_index).padStart(2, "0")}
@@ -841,7 +920,7 @@ function AnswerKeyItem({ question: q }: { question: ListeningQuestionData }) {
 
       {q.segments.length > 0 && (
         <div className={`mt-[0.8mm] ${scriptSize}`}>
-          <PrintScriptPanel segments={q.segments} />
+          <PrintScriptPanel segments={q.segments} compact={compactScript} />
         </div>
       )}
 
