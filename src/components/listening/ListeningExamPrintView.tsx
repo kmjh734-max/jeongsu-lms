@@ -738,11 +738,11 @@ function AnswerKeyItem({ question: q }: { question: ListeningQuestionData }) {
         <span className="listening-exam-q-num shrink-0 tabular-nums">
           {String(q.order_index).padStart(2, "0")}
         </span>
-        <span className={`shrink-0 font-black text-[#234b8c] ${answerSize}`}>
+        <span className={`shrink-0 font-normal text-[#234b8c] ${answerSize}`}>
           {answerLabel(q.correct_answer)}
         </span>
         <span
-          className={`min-w-0 flex-1 leading-snug text-slate-800 ${choiceSize} font-semibold`}
+          className={`min-w-0 flex-1 leading-snug font-normal text-slate-800 ${choiceSize}`}
         >
           {choice}
         </span>

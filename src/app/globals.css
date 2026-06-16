@@ -268,14 +268,14 @@
   .listening-exam-choice-mark {
     width: 5mm;
     flex-shrink: 0;
-    font-size: 1.05em;
-    font-weight: 800;
-    color: #1a3a6e;
+    font-size: 1em;
+    font-weight: 400;
+    color: #1a1a1a;
   }
 
   .listening-exam-choice-text {
     font-size: 1em;
-    font-weight: 600;
+    font-weight: 400;
     color: #1a1a1a;
   }
 
