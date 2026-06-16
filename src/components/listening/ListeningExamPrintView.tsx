@@ -14,7 +14,9 @@ import { normalizeTableData } from "@/lib/listening/table-data";
 import type { ListeningTableData } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
-const QUESTION_GAP_PX = 9;
+const QUESTION_GAP_MM = 5;
+const QUESTION_GAP_PX = Math.round((QUESTION_GAP_MM * 96) / 25.4);
+const QUESTION_COLUMN_GAP_STYLE = { gap: `${QUESTION_GAP_MM}mm` } as const;
 const COLUMN_WIDTH_CLASS = "w-[91mm]";
 
 type PrintScope = "exam" | "answers" | "all";
@@ -500,7 +502,10 @@ function QuestionColumn({
   const borderClass = divided ? "listening-exam-col-divider" : "pr-[0.5mm]";
 
   return (
-    <div className={`listening-exam-col-stack ${borderClass}`}>
+    <div
+      className={`listening-exam-col-stack ${borderClass}`}
+      style={QUESTION_COLUMN_GAP_STYLE}
+    >
       {indices.map((qi) => (
         <ExamQuestionBlock
           key={questions[qi].id}
@@ -716,7 +721,10 @@ function AnswerKeyColumn({
   const borderClass = divided ? "listening-exam-col-divider" : "pr-[0.5mm]";
 
   return (
-    <div className={`listening-exam-col-stack ${borderClass}`}>
+    <div
+      className={`listening-exam-col-stack ${borderClass}`}
+      style={QUESTION_COLUMN_GAP_STYLE}
+    >
       {indices.map((qi) => (
         <AnswerKeyItem key={questions[qi].id} question={questions[qi]} />
       ))}

@@ -398,7 +398,6 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 2.5mm;
   }
 
   .listening-exam-body-zone {
