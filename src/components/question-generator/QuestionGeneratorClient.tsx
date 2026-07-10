@@ -210,19 +210,32 @@ export function QuestionGeneratorClient({
     setCounts(sanitizeCounts(next, MAX_SETS_PER_TYPE));
   }
 
+  /** 프리셋 키들을 현재 값에 +n (클릭할 때마다 누적) */
+  function addCounts(entries: Array<[string, number]>) {
+    setCounts((prev) => {
+      const next = { ...prev };
+      for (const [key, add] of entries) {
+        if (!(key in next)) continue;
+        next[key] = Math.min(
+          MAX_SETS_PER_TYPE,
+          Math.max(0, (next[key] ?? 0) + add)
+        );
+      }
+      return next;
+    });
+    setModeTab("custom");
+  }
+
   function applySystemPreset(slug: string) {
     const p = SYSTEM_PRESETS.find((x) => x.slug === slug);
     if (!p) return;
     applyCounts(p.config.counts);
     setModeTab(slug);
     if (slug.startsWith("main_idea")) {
-      setOpenCats({
+      setOpenCats((prev) => ({
+        ...prev,
         main_idea: true,
-        details: false,
-        inference: false,
-        grammar_vocabulary: false,
-        subjective: false,
-      });
+      }));
     }
   }
 
