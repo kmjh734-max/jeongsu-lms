@@ -22,8 +22,9 @@ function typeRules(option: QuestionTypeOption): string {
         ? `5 ENGLISH factual choices. Ask which DOES match the passage. Exactly one true.`
         : `5 Korean choices. Ask which IS true. Exactly one true.`;
     case "topic":
+      return `5 ENGLISH topic phrases (noun phrases, not full sentences). Exactly one correct. Cover the WHOLE passage. Distractors: partial, too narrow, opposite, or off-topic.`;
     case "title":
-      return `5 ${ko ? "Korean" : "English"} choices covering the WHOLE passage. Exactly one correct.`;
+      return `5 ENGLISH title options (Title Case, concise). Exactly one correct. Distractors: too narrow, too broad, misleading, or opposite.`;
     case "summary_mcq":
       if (code === "요약문추론") {
         return `Create a one-sentence Korean summary with blanks (A) and (B). 5 choices as word pairs like ① success …… effort. Exactly one correct.`;

@@ -388,11 +388,12 @@ export function QuestionGeneratorClient({
         <div className="flex flex-wrap gap-2">
           {[
             { id: "custom", label: "유형 직접 설정" },
-            { id: "standard_mixed", label: "표준 종합 (고1)" },
-            { id: "main_idea_focus", label: "대의·내용 집중" },
+            { id: "main_idea_focus", label: "주제·제목 (대의)" },
+            { id: "main_idea_full", label: "대의 파악 전체" },
             { id: "blank_order_focus", label: "빈칸·배열 집중" },
             { id: "grammar_vocab_focus", label: "어법·어휘 집중" },
             { id: "advanced_full", label: "고난도 통합" },
+            { id: "standard_mixed", label: "표준 종합 (고1)" },
           ].map((tab) => (
             <button
               key={tab.id}

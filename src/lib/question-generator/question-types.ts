@@ -242,9 +242,9 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "main_idea",
         "주제",
         "default",
-        "korean",
+        "english",
         true,
-        "윗글의 주제",
+        "지문(상) + 영어 주제 선택지(하)",
         "주제추론",
         "윗글의 주제로 알맞은 것은?"
       ),
@@ -253,9 +253,9 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "main_idea",
         "제목",
         "default",
-        "korean",
+        "english",
         true,
-        "윗글의 제목",
+        "지문(상) + 영어 제목 선택지(하)",
         "제목추론",
         "윗글의 제목으로 알맞은 것은?"
       ),

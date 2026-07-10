@@ -17,6 +17,7 @@ type QuestionRow = {
   choices: Array<{ number: number; text: string }> | null;
   correct_answer: unknown;
   explanation: string;
+  question_type?: string;
 };
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -34,12 +35,16 @@ function extractBannerNo(sourceDetail: string): string | null {
   return m ? m[1] : null;
 }
 
-/** 원문과 다르면 변형 지문만 문항 아래에 표시 */
-function modifiedOnly(q: QuestionRow, sharedOriginal: string): string | null {
+function padNo(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** 문항용 지문: 변형이 있으면 변형, 없으면 원문 */
+function questionPassage(q: QuestionRow): string {
   const mod = (q.passage_modified || "").trim();
-  if (!mod) return null;
-  if (normalizePassage(mod) === normalizePassage(sharedOriginal)) return null;
-  return mod;
+  const orig = (q.passage_original || "").trim();
+  if (mod && normalizePassage(mod) !== normalizePassage(orig)) return mod;
+  return orig || mod;
 }
 
 function buildClipboardText(
@@ -47,8 +52,7 @@ function buildClipboardText(
   title: string,
   grade: string,
   sourceDetail: string,
-  questions: QuestionRow[],
-  sharedOriginal: string
+  questions: QuestionRow[]
 ): string {
   if (mode === "answers") {
     const lines: string[] = [
@@ -58,8 +62,10 @@ function buildClipboardText(
     ];
     questions.forEach((q, i) => {
       lines.push(
-        `${i + 1}. ${formatAnswer(q.correct_answer)} — ${q.explanation}`
+        `${padNo(i + 1)}  ${formatAnswer(q.correct_answer)}`
       );
+      lines.push(q.explanation);
+      lines.push("");
     });
     return lines.join("\n");
   }
@@ -71,20 +77,16 @@ function buildClipboardText(
     sourceDetail,
     "",
   ];
-  if (bannerNo) lines.push(`┃3월 ${bannerNo}번┃`);
-  if (sharedOriginal) {
-    lines.push("", sharedOriginal, "");
-  }
+  if (bannerNo) lines.push(`┃3월 ${bannerNo}번┃`, "");
 
   questions.forEach((q, i) => {
     const extra = cleanQuestionText(q.question_text);
-    const mod = modifiedOnly(q, sharedOriginal);
-    lines.push(`${i + 1}. ${q.instruction}`);
-    if (mod) lines.push(mod);
+    lines.push(`${padNo(i + 1)}  ${q.instruction}`);
+    lines.push(questionPassage(q));
     if (extra) lines.push(extra);
     if (q.choices?.length) {
       for (const c of q.choices) {
-        lines.push(`${CIRCLED[c.number - 1] ?? c.number} ${c.text}`);
+        lines.push(`${CIRCLED[c.number - 1] ?? c.number}  ${c.text}`);
       }
     }
     lines.push("");
@@ -136,13 +138,14 @@ export function QuestionPrintView({
     void load();
   }, [load]);
 
-  /** 공통 원문 지문 (항상 상단 1회) */
-  const sharedOriginal = useMemo(() => {
-    if (questions.length === 0) return "";
-    return (
-      questions.find((q) => q.passage_original?.trim())?.passage_original ||
-      ""
-    ).trim();
+  /** 주제·제목 위주면 대의파악(상하) 레이아웃 */
+  const isMainIdeaSheet = useMemo(() => {
+    if (questions.length === 0) return false;
+    const mainTypes = new Set(["topic", "title", "summary_mcq"]);
+    const mainCount = questions.filter((q) =>
+      mainTypes.has(q.question_type || "")
+    ).length;
+    return mainCount >= Math.ceil(questions.length * 0.6);
   }, [questions]);
 
   const bannerNo = extractBannerNo(sourceDetail);
@@ -159,14 +162,7 @@ export function QuestionPrintView({
 
   async function copyAll() {
     await navigator.clipboard.writeText(
-      buildClipboardText(
-        mode,
-        title,
-        grade,
-        sourceDetail,
-        questions,
-        sharedOriginal
-      )
+      buildClipboardText(mode, title, grade, sourceDetail, questions)
     );
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
@@ -193,7 +189,9 @@ export function QuestionPrintView({
         <p className="mx-auto mt-2 max-w-4xl text-xs text-slate-500">
           {mode === "answers"
             ? "해설지 · 브라우저에서 PDF로 저장"
-            : "문제지 · 원문 1회 + 문항 순차 2단"}
+            : isMainIdeaSheet
+              ? "대의파악 양식 · 문항마다 발문 → 지문(상) → 선택지(하)"
+              : "문제지 · 문항마다 상하 구성"}
         </p>
       </div>
 
@@ -206,7 +204,11 @@ export function QuestionPrintView({
             <header className="qg-print-header">
               <div>
                 <p className="qg-print-kicker">
-                  {grade ? `${grade} 변형문제` : "변형문제"}
+                  {grade
+                    ? `${grade} ${isMainIdeaSheet ? "주제·제목" : "변형문제"}`
+                    : isMainIdeaSheet
+                      ? "주제·제목"
+                      : "변형문제"}
                 </p>
                 <h1 className="qg-print-title">{title}</h1>
                 {sourceDetail && (
@@ -219,26 +221,20 @@ export function QuestionPrintView({
               <p className="qg-print-meta">{questions.length}문항</p>
             </header>
 
-            {sharedOriginal && (
-              <div className="qg-print-passage qg-print-passage-lead">
-                {sharedOriginal}
-              </div>
-            )}
-
-            {/* CSS multi-column: 1→2→3 순서로 흐르며 지문 중복 없음 */}
-            <div className="qg-print-flow">
+            {/* 상하 구분 카드 × 2열 */}
+            <div className="qg-print-stack">
               {questions.map((q, i) => {
                 const extra = cleanQuestionText(q.question_text);
-                const mod = modifiedOnly(q, sharedOriginal);
+                const passage = questionPassage(q);
                 return (
-                  <section key={q.id} className="qg-print-q">
+                  <section key={q.id} className="qg-print-card">
                     <p className="qg-print-q-head">
-                      <span className="qg-print-q-num">{i + 1}.</span>{" "}
+                      <span className="qg-print-q-num">{padNo(i + 1)}</span>{" "}
                       {q.instruction}
                     </p>
-                    {mod && (
-                      <div className="qg-print-passage qg-print-passage-mod">
-                        {mod}
+                    {passage && (
+                      <div className="qg-print-passage qg-print-passage-block">
+                        {passage}
                       </div>
                     )}
                     {extra ? (
@@ -266,14 +262,19 @@ export function QuestionPrintView({
             <header className="qg-print-header qg-print-header-answer">
               <h1 className="qg-print-title">{title} · 해설지</h1>
             </header>
-            <ol className="qg-print-answer-list">
+            <div className="qg-print-answer-blocks">
               {questions.map((q, i) => (
-                <li key={q.id}>
-                  <strong>{i + 1}.</strong> {formatAnswer(q.correct_answer)}
-                  <span className="qg-print-answer-exp"> — {q.explanation}</span>
-                </li>
+                <section key={q.id} className="qg-print-answer-block">
+                  <p className="qg-print-answer-head">
+                    <strong>{padNo(i + 1)}</strong>{" "}
+                    <span className="qg-print-answer-mark">
+                      {formatAnswer(q.correct_answer)}
+                    </span>
+                  </p>
+                  <p className="qg-print-answer-body">{q.explanation}</p>
+                </section>
               ))}
-            </ol>
+            </div>
           </article>
         )}
       </div>

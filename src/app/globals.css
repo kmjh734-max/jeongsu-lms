@@ -1046,6 +1046,64 @@
   -webkit-column-break-inside: avoid;
 }
 
+/* 대의파악 등: 문항 카드 상(지문)·하(선택지) × 2열 */
+.qg-print-stack {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 5mm;
+  row-gap: 4mm;
+  align-items: start;
+}
+
+.qg-print-card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  padding-bottom: 3mm;
+  border-bottom: 1px solid #d5e0ef;
+  font-size: 9.5pt;
+  line-height: 1.45;
+}
+
+.qg-print-passage-block {
+  margin: 1.5mm 0 2mm;
+  padding: 0;
+  border: none;
+  font-size: 9pt;
+  line-height: 1.48;
+}
+
+.qg-print-answer-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5mm;
+}
+
+.qg-print-answer-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  padding-bottom: 2.5mm;
+  border-bottom: 1px solid #e8eef6;
+}
+
+.qg-print-answer-head {
+  font-size: 10.5pt;
+  font-weight: 800;
+  margin-bottom: 1mm;
+  color: #1a3a6e;
+}
+
+.qg-print-answer-mark {
+  color: #c45c26;
+  font-weight: 900;
+}
+
+.qg-print-answer-body {
+  font-size: 9.5pt;
+  line-height: 1.55;
+  color: #222;
+  white-space: pre-wrap;
+}
+
 .qg-print-col-right {
   border-left: 1.5px solid #d5e0ef;
   padding-left: 4mm;
