@@ -203,7 +203,7 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
     case "grammar": {
       const catalog = grammarCatalogPromptBlock();
       if (code === "어법모두고르기") {
-        return `어법 모두 고르기 — 『처음 만나는 수능 어법』 스타터 범위:
+        return `어법 모두 고르기 — 『어법끝 START』+『처음 만나는 수능 어법』 범위:
 - passageModified = FULL ENGLISH passage (keep original wording mostly) with exactly five grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ.
 - Format: ⓐ<u>target</u> (HTML underline). Targets = single words or short phrases.
 - Exactly 2 or 3 spots are grammatically WRONG; the others MUST be fully correct in context.
@@ -217,7 +217,7 @@ LANGUAGE: passage ENGLISH only.
 ${catalog}`;
       }
       if (code === "어법개수") {
-        return `어법 개수 — 『처음 만나는 수능 어법』 스타터 범위:
+        return `어법 개수 — 『어법끝 START』+『처음 만나는 수능 어법』 범위:
 - passageModified = FULL ENGLISH passage with exactly six grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ as ⓐ<u>target</u>.
 - Put 1~5 textbook-catalog errors (same rules/catalog as 어법모두고르기); rest correct.
 - choices MUST be EXACTLY and ONLY these five texts in order (never skip, never invent other numbers like only 2개/5개):
@@ -750,7 +750,7 @@ ${
 }
 ${
   option.type === "grammar"
-    ? "- Grammar errors MUST stay inside 『처음 만나는 수능 어법』 스타터 UNIT 01–13 Points listed in the type rules. Explanation cites UNIT/Point."
+    ? "- Grammar errors MUST stay inside 『어법끝 START』 Point 01–23 and/or 『처음 만나는 수능 어법』 UNIT 01–13 (catalog in type rules). Explanation cites Point/UNIT."
     : ""
 }
 ${paraphraseSystemHint}
