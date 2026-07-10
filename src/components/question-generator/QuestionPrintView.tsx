@@ -100,10 +100,12 @@ export function QuestionPrintView({
   jobId,
   backHref,
   mode = "exam",
+  autoPrint = false,
 }: {
   jobId: string;
   backHref: string;
   mode?: "exam" | "answers";
+  autoPrint?: boolean;
 }) {
   const [title, setTitle] = useState("영어 변형문제");
   const [grade, setGrade] = useState("");
@@ -140,7 +142,6 @@ export function QuestionPrintView({
     void load();
   }, [load]);
 
-  /** 주제·제목 위주면 대의파악(상하) 레이아웃 */
   const isMainIdeaSheet = useMemo(() => {
     if (questions.length === 0) return false;
     const mainTypes = new Set(["topic", "title", "summary_mcq"]);
@@ -152,6 +153,19 @@ export function QuestionPrintView({
 
   const bannerNo = extractBannerNo(sourceDetail);
   const sheetTitle = mode === "answers" ? `${title} · 해설지` : title;
+
+  useEffect(() => {
+    if (!autoPrint || questions.length === 0) return;
+    const t = window.setTimeout(() => {
+      const prev = document.title;
+      document.title = sheetTitle;
+      window.print();
+      window.setTimeout(() => {
+        document.title = prev;
+      }, 500);
+    }, 700);
+    return () => window.clearTimeout(t);
+  }, [autoPrint, questions.length, sheetTitle]);
 
   function runPrint() {
     const prev = document.title;
