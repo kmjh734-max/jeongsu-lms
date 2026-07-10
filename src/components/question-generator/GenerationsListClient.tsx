@@ -83,6 +83,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [copying, setCopying] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -125,6 +126,60 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
       return;
     }
     setSelected(new Set(jobs.map((j) => j.id)));
+  }
+
+  async function copyAndRegenerate(ids: string[]) {
+    if (ids.length === 0) {
+      setError("복사할 항목을 선택해 주세요.");
+      return;
+    }
+    if (ids.length > 5) {
+      setError("한 번에 최대 5개까지 복사·재생성할 수 있습니다.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `선택한 ${ids.length}개 자료를 복사해 같은 설정으로 다시 생성할까요?`
+      )
+    ) {
+      return;
+    }
+    setCopying(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/question-generator/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ copyFromIds: ids }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.message ?? "복사·재생성에 실패했습니다.");
+        return;
+      }
+      const newJobs = (data.jobs ?? []) as Array<{ jobId: string }>;
+      for (const j of newJobs) {
+        void fetch(`/api/question-generator/jobs/${j.jobId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "process" }),
+        });
+      }
+      setMessage(
+        `${data.copied}개 자료를 복사해 재생성 중입니다. 목록에서 진행 상태를 확인하세요.`
+      );
+      await load();
+      if (newJobs[0]?.jobId) {
+        window.setTimeout(() => {
+          window.location.href = `${basePath}/generations/${newJobs[0]!.jobId}`;
+        }, 400);
+      }
+    } catch {
+      setError("복사·재생성 요청에 실패했습니다.");
+    } finally {
+      setCopying(false);
+    }
   }
 
   async function deleteSelected() {
@@ -177,7 +232,15 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
             </Link>
             <button
               type="button"
-              disabled={deleting || selectedCount === 0}
+              disabled={copying || deleting || selectedCount === 0}
+              onClick={() => void copyAndRegenerate(Array.from(selected))}
+              className="rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-800 hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {copying ? "복사 중…" : "선택 복사·재생성"}
+            </button>
+            <button
+              type="button"
+              disabled={deleting || copying || selectedCount === 0}
               onClick={() => void deleteSelected()}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -306,6 +369,14 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                         >
                           보기
                         </Link>
+                        <button
+                          type="button"
+                          disabled={copying || deleting}
+                          onClick={() => void copyAndRegenerate([j.id])}
+                          className="text-sm text-slate-600 hover:underline disabled:opacity-40"
+                        >
+                          복사·재생성
+                        </button>
                         {(j.status === "completed" ||
                           j.status === "partially_completed") &&
                           j.total_completed > 0 && (
