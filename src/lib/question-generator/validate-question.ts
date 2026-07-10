@@ -19,12 +19,10 @@ export function validateGeneratedQuestion(opts: {
   if (option.isObjective) {
     const slotInPassage =
       option.type === "sentence_insertion" ||
-      option.type === "irrelevant_sentence";
-    const numberOnlyChoices =
-      option.type === "vocabulary" && option.aingkaCode === "어휘추론";
+      option.type === "irrelevant_sentence" ||
+      (option.type === "vocabulary" && option.aingkaCode === "어휘추론");
 
     if (slotInPassage) {
-      // 본문 ①~⑤가 보기 — 하단 선택지 불필요
       if (
         option.type === "sentence_insertion" &&
         !(q.questionText || "").trim()
@@ -42,11 +40,23 @@ export function validateGeneratedQuestion(opts: {
       warnings.push("선택지 번호가 중복되었습니다.");
       score -= 15;
     }
-    if (!slotInPassage && !numberOnlyChoices) {
+    if (!slotInPassage) {
       const empty = (q.choices ?? []).some((c) => !c.text.trim());
       if (empty) {
         warnings.push("빈 선택지가 있습니다.");
         score -= 20;
+      }
+    }
+
+    // 개수형: 1개~5개 고정 검증
+    if (
+      (option.type === "grammar" && option.aingkaCode === "어법개수") ||
+      (option.type === "vocabulary" && option.aingkaCode === "어휘개수")
+    ) {
+      const texts = (q.choices ?? []).map((c) => c.text.trim());
+      if (texts.join("|") !== "1개|2개|3개|4개|5개") {
+        warnings.push("개수 보기가 1개~5개 형식이 아닙니다.");
+        score -= 40;
       }
     }
   }

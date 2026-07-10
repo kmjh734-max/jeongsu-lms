@@ -152,7 +152,8 @@ function QuestionBlock({
     !isInsertion &&
     !isIrrelevant &&
     q.choices &&
-    q.choices.length > 0;
+    q.choices.length > 0 &&
+    q.choices.some((c) => String(c.text ?? "").trim().length > 0);
 
   if (isCount) {
     return (

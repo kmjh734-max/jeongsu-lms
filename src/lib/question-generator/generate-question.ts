@@ -201,30 +201,25 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
     }
     case "grammar":
       if (code === "어법모두고르기") {
-        return `어법 모두 고르기 — 학력평가/내신형:
-- passageModified = ENGLISH passage with exactly five underlined grammar spots marked ⓐ ⓑ ⓒ ⓓ ⓔ.
-- Format each spot as: ⓐ<u>word or phrase</u> (use HTML <u> for underline).
-- Make 2 or 3 of them grammatically WRONG; the rest must be grammatically CORRECT in context.
-- Wrong items: real HS-exam grammar errors (relative pronoun, agreement, voice, to-infinitive/gerund, conjunction, etc.).
-- choices: exactly 5 Korean combination options listing which letters are wrong, e.g.
-  {"number":1,"text":"ⓐ, ⓑ"}, {"number":2,"text":"ⓐ, ⓒ"}, ...
-- Exactly ONE choice lists ALL and ONLY the wrong letters (no extras, none missing).
-- correctAnswer 1-5. questionText empty.
-- explanation (Korean): list which letters are wrong and why briefly.
-LANGUAGE: passageModified ENGLISH only.`;
+        return `어법 모두 고르기 — 고1 학력평가·내신 고퀄리티:
+- passageModified = FULL ENGLISH passage (keep original wording mostly) with exactly five grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ.
+- Format: ⓐ<u>target</u> (HTML underline). Targets = single words or short phrases that test real grammar points.
+- Exactly 2 or 3 spots are grammatically WRONG; the others MUST be fully correct in context.
+- Error quality (필수): use authentic Korean HS exam error types — relative pronoun (which/that/what), S-V agreement, voice (active/passive), to-V vs V-ing, conjunction/preposition, parallel structure, tense consistency. Do NOT invent nonsense words.
+- Distractors (correct underlines) must look like tempting test points but be actually correct.
+- choices: exactly 5 combination options (Korean), e.g. "ⓐ, ⓒ" / "ⓑ, ⓓ, ⓔ". Exactly ONE choice lists ALL and ONLY the wrong letters.
+- correctAnswer 1-5. questionText empty. explanation: Korean, name wrong letters + brief reason each.
+LANGUAGE: passage ENGLISH only.`;
       }
       if (code === "어법개수") {
-        return `어법 개수 — 학력평가/내신형:
-- passageModified = ENGLISH passage with exactly six underlined grammar spots marked ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ.
-- Format each spot as: ⓐ<u>word or phrase</u> (use HTML <u> for underline).
-- Make between 1 and 5 of them grammatically WRONG; the rest CORRECT.
-- Wrong items: real HS-exam grammar errors (agreement, relative, voice, tense, article, parallel, etc.).
-- choices MUST be exactly:
-  {"number":1,"text":"1개"}, {"number":2,"text":"2개"}, {"number":3,"text":"3개"}, {"number":4,"text":"4개"}, {"number":5,"text":"5개"}
-- correctAnswer = the choice number matching the COUNT of wrong spots (if 3 wrong → correctAnswer 3).
-- questionText empty.
-- explanation (Korean): state the count and briefly which letters are wrong.
-LANGUAGE: passageModified ENGLISH only.`;
+        return `어법 개수 — 고1 학력평가·내신 고퀄리티:
+- passageModified = FULL ENGLISH passage with exactly six grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ as ⓐ<u>target</u>.
+- Put 1~5 authentic grammar errors (same exam-quality rules as above); rest correct.
+- choices MUST be EXACTLY and ONLY these five texts in order (never skip, never invent other numbers like only 2개/5개):
+  1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
+- correctAnswer = N where N is the exact count of wrong spots (so if 3 wrong, correctAnswer is 3 and choice text is "3개").
+- questionText empty. explanation: Korean count + which letters wrong.
+LANGUAGE: passage ENGLISH only.`;
       }
       // legacy fallbacks
       if (code === "어법연결") {
@@ -236,28 +231,26 @@ LANGUAGE: passageModified ENGLISH only.`;
       return `Mark 5 underlined spots ⓐ~ⓔ with <u>...</u> in passageModified. Exactly ONE grammatically wrong. choices ①ⓐ~⑤ⓔ.`;
     case "vocabulary":
       if (code === "어휘개수") {
-        return `어휘 개수 — 학력평가/내신형:
-- passageModified = ENGLISH passage with exactly six underlined vocabulary spots marked ① ② ③ ④ ⑤ ⑥.
-- Format each spot as: ①<u>word or short phrase</u> (HTML <u> underline).
-- Make between 1 and 5 of them contextually WRONG (wrong word choice / antonym / wrong collocation in context); the rest CORRECT.
-- Wrong items should look plausible but not fit the meaning (like mock-exam 어휘 추론).
-- choices MUST be exactly:
-  {"number":1,"text":"1개"}, {"number":2,"text":"2개"}, {"number":3,"text":"3개"}, {"number":4,"text":"4개"}, {"number":5,"text":"5개"}
-- correctAnswer = choice number matching the COUNT of wrong spots (3 wrong → correctAnswer 3).
-- questionText empty.
-- explanation (Korean): state the count and which numbers are wrong briefly.
-LANGUAGE: passageModified ENGLISH only.`;
+        return `어휘 개수 — 고1 학력평가·내신 고퀄리티:
+- passageModified = FULL ENGLISH passage with exactly six vocabulary spots ① ② ③ ④ ⑤ ⑥ as ①<u>word/phrase</u>.
+- Put 1~5 contextually WRONG items; rest correct and natural.
+- Wrong-item quality (필수): change meaning subtly — antonym, near-miss synonym, wrong collocation, or word that fits grammar but not sense. Must still look like a real vocabulary trap (not random/gibberish).
+- Correct underlines should be important content words that could tempt students.
+- choices MUST be EXACTLY and ONLY these five texts in order (never omit, never use sparse sets like only 2개 and 5개):
+  1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
+- correctAnswer = N = count of wrong spots (3 wrong → correctAnswer 3).
+- questionText empty. explanation: Korean.
+LANGUAGE: passage ENGLISH only.`;
       }
-      // 어휘추론 (어색한 것 고르기) — PDF형 ①~⑤
-      return `어휘 어색한 것 고르기 — 학력평가/내신형:
-- passageModified = ENGLISH passage with exactly five underlined vocabulary spots marked ① ② ③ ④ ⑤.
-- Format each spot as: ①<u>word or short phrase</u> (HTML <u> underline).
-- Exactly ONE of the five is contextually WRONG (inappropriate word in context); the other four are correct.
-- Wrong item: near-synonym/antonym/wrong collocation that looks related but does not fit.
-- choices: five options with EMPTY text (numbers only), e.g. [{"number":1,"text":""},...{"number":5,"text":""}].
-- correctAnswer 1-5 matching the wrong underlined number. questionText empty.
-- explanation (Korean): which number is wrong and why briefly.
-LANGUAGE: passageModified ENGLISH only.`;
+      // 어휘추론 (어색한 것 고르기) — PDF형 ①~⑤, 하단 보기 없음
+      return `어휘 어색한 것 고르기 — 고1 학력평가·내신 고퀄리티:
+- passageModified = FULL ENGLISH passage with exactly five vocabulary spots ① ② ③ ④ ⑤ as ①<u>word/phrase</u>.
+- Exactly ONE is contextually WRONG; the other four are clearly correct in context.
+- Wrong-item quality (필수): antonym / near-miss synonym / wrong collocation that looks related to the topic but breaks meaning (classic 문맥상 부적절). Not a grammar error; not a random unrelated word.
+- choices: omit or empty array — numbers IN the passage are the options; do NOT print a separate choice list.
+- correctAnswer 1-5 = the wrong underlined number. questionText empty.
+- explanation (Korean): which number + why the word fails in context + what would fit.
+LANGUAGE: passage ENGLISH only.`;
     case "underlined_inference":
       if (code === "목적추론") {
         return `5 ENGLISH purpose choices (To + verb). Exactly one correct. passageModified optional. LANGUAGE: choices ENGLISH only.`;
@@ -287,13 +280,22 @@ LANGUAGE: passageModified ENGLISH only.`;
   }
 }
 
-/** 지문 표지(①~⑤)와 정답이 묶인 유형은 셔플하면 안 됨 */
+/** 지문 표지와 정답이 묶이거나 개수 보기가 고정인 유형은 셔플 금지 */
 const NO_SHUFFLE_TYPES = new Set([
   "vocabulary",
+  "grammar",
   "irrelevant_sentence",
   "sentence_insertion",
   "content_count",
 ]);
+
+const COUNT_CHOICES = [
+  { number: 1, text: "1개" },
+  { number: 2, text: "2개" },
+  { number: 3, text: "3개" },
+  { number: 4, text: "4개" },
+  { number: 5, text: "5개" },
+];
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -370,10 +372,6 @@ function normalizePayload(
   passage: string,
   forcedInstruction: string
 ): GeneratedQuestionPayload {
-  const keepEmptyChoiceText =
-    option.type === "sentence_insertion" ||
-    (option.type === "vocabulary" && option.aingkaCode === "어휘추론");
-
   let choices = Array.isArray(raw.choices)
     ? raw.choices
         .map((c, i) => {
@@ -383,21 +381,25 @@ function normalizePayload(
             text: String(row.text ?? ""),
           };
         })
-        .filter((c) => keepEmptyChoiceText || c.text.trim())
+        .filter((c) => c.text.trim())
     : undefined;
 
-  // 일치개수·문장삽입·무관: 하단 선택지 없음 (본문 표지가 보기)
+  // 일치개수·문장삽입·무관·어휘고르기: 하단 선택지 없음 (본문 표지가 보기)
   if (
     option.type === "content_count" ||
     option.type === "sentence_insertion" ||
-    option.type === "irrelevant_sentence"
+    option.type === "irrelevant_sentence" ||
+    (option.type === "vocabulary" && option.aingkaCode === "어휘추론")
   ) {
     choices = undefined;
   }
 
-  // 어휘 고르기: ①~⑤ 숫자 보기 (본문 표지와 대응, 텍스트 비움)
-  if (option.type === "vocabulary" && option.aingkaCode === "어휘추론") {
-    choices = [1, 2, 3, 4, 5].map((n) => ({ number: n, text: "" }));
+  // 어법/어휘 개수: 보기 고정 1개~5개 (모델이 2개·5개만 내는 것 방지)
+  if (
+    (option.type === "grammar" && option.aingkaCode === "어법개수") ||
+    (option.type === "vocabulary" && option.aingkaCode === "어휘개수")
+  ) {
+    choices = COUNT_CHOICES.map((c) => ({ ...c }));
   }
 
   let correctAnswer: string | number | number[] = raw.correctAnswer as
@@ -412,6 +414,16 @@ function normalizePayload(
         ? correctAnswer
         : parseInt(String(correctAnswer ?? "").replace(/[^\d]/g, ""), 10);
     correctAnswer = Number.isFinite(n) ? String(n) : "0";
+  } else if (
+    (option.type === "grammar" && option.aingkaCode === "어법개수") ||
+    (option.type === "vocabulary" && option.aingkaCode === "어휘개수")
+  ) {
+    const n =
+      typeof correctAnswer === "number"
+        ? correctAnswer
+        : parseInt(String(correctAnswer ?? "").replace(/[^\d]/g, ""), 10);
+    const clamped = Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 1;
+    correctAnswer = clamped;
   } else {
     const parsed = parseChoiceAnswer(correctAnswer);
     if (
@@ -579,22 +591,39 @@ export function assertBasicQuestionShape(
   }
 
   if (option.type === "vocabulary" && option.isObjective) {
-    if (!q.choices || q.choices.length < 5) {
-      return "객관식 선택지가 5개 미만입니다.";
-    }
     const mod = q.passageModified || "";
     if (option.aingkaCode === "어휘개수") {
+      if (!q.choices || q.choices.length < 5) {
+        return "객관식 선택지가 5개 미만입니다.";
+      }
+      const texts = (q.choices ?? []).map((c) => c.text.trim());
+      if (texts.join("|") !== "1개|2개|3개|4개|5개") {
+        return "어휘 개수 보기는 1개~5개여야 합니다.";
+      }
       if (!/[①②③④⑤⑥]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
         return "어휘 개수 문항은 ①~⑥ 밑줄 표지가 필요합니다.";
       }
     } else {
-      // 어휘추론
+      // 어휘추론: 하단 보기 없음
+      q.choices = undefined;
       if (!/[①②③④⑤]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
         return "어휘 고르기 문항은 ①~⑤ 밑줄 표지가 필요합니다.";
       }
+      const ans = parseChoiceAnswer(q.correctAnswer);
+      if (ans == null) {
+        return "어휘 고르기 정답은 1~5여야 합니다.";
+      }
+      q.correctAnswer = ans;
     }
     if (hasHangul(mod)) {
       return "본문은 영어여야 합니다 (한글 포함됨).";
+    }
+  }
+
+  if (option.type === "grammar" && option.aingkaCode === "어법개수") {
+    const texts = (q.choices ?? []).map((c) => c.text.trim());
+    if (texts.join("|") !== "1개|2개|3개|4개|5개") {
+      return "어법 개수 보기는 1개~5개여야 합니다.";
     }
   }
 
@@ -698,6 +727,16 @@ ${
     ? "- Do NOT return choices for 무관한문장; mark ⓐⓑⓒⓓⓔ IN the passage. The irrelevant sentence must reuse similar passage words but shift topic/point (not bizarre)."
     : ""
 }
+${
+  option.aingkaCode === "어휘추론"
+    ? "- Do NOT return bottom choices for 어휘 고르기; ①~⑤ in the passage are enough. correctAnswer is the wrong number."
+    : ""
+}
+${
+  option.aingkaCode === "어법개수" || option.aingkaCode === "어휘개수"
+    ? '- Count choices MUST be exactly ["1개","2개","3개","4개","5개"] in order — never sparse options.'
+    : ""
+}
 ${paraphraseSystemHint}
 ${typeRules(option)}`,
     user: JSON.stringify({
@@ -705,7 +744,6 @@ ${typeRules(option)}`,
       difficulty: option.difficulty,
       forcedInstruction,
       passage,
-      // 영어 본문 유형에는 한글 힌트를 넣지 않음 (한글 생성 유도 방지)
       hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis,
       schema: {
         ...(option.type === "sentence_insertion"
@@ -722,32 +760,56 @@ ${typeRules(option)}`,
                 choices: [],
                 correctAnswer: "integer 1-5 (ⓐ=1 … ⓔ=5)",
               }
-            : allowSkip
+            : option.aingkaCode === "어휘추론"
               ? {
-                  passageModified: "ENGLISH passage with <u>target</u>",
-                  choices: [{ number: 1, text: "ENGLISH meaning paraphrase" }],
+                  passageModified:
+                    "ENGLISH passage with ①<u>…</u> … ⑤<u>…</u>; exactly one wrong",
+                  choices: [],
                   correctAnswer: "integer 1-5",
-                  skip: "boolean optional",
-                  reason: "string optional",
                 }
-              : {
-                  choices: [{ number: 1, text: "string" }],
-                  correctAnswer: "integer 1-5 (vary; not always 1)",
-                  ...(needsModified ? { passageModified: "string" } : {}),
-                  ...(needsQuestionText
-                    ? {
-                        questionText:
-                          "(1) ...\\n(2) ...\\n(3) ...\\n(4) ...\\n(5) ...\\n(6) ...",
-                        correctAnswer: "integer count of FALSE statements",
-                        choices: [],
-                      }
-                    : {}),
-                }),
+              : option.aingkaCode === "어법개수" ||
+                  option.aingkaCode === "어휘개수"
+                ? {
+                    passageModified: "ENGLISH passage with underlined spots",
+                    choices: [
+                      { number: 1, text: "1개" },
+                      { number: 2, text: "2개" },
+                      { number: 3, text: "3개" },
+                      { number: 4, text: "4개" },
+                      { number: 5, text: "5개" },
+                    ],
+                    correctAnswer: "integer 1-5 (= count of wrong spots)",
+                  }
+                : allowSkip
+                  ? {
+                      passageModified: "ENGLISH passage with <u>target</u>",
+                      choices: [
+                        { number: 1, text: "ENGLISH meaning paraphrase" },
+                      ],
+                      correctAnswer: "integer 1-5",
+                      skip: "boolean optional",
+                      reason: "string optional",
+                    }
+                  : {
+                      choices: [{ number: 1, text: "string" }],
+                      correctAnswer: "integer 1-5 (vary; not always 1)",
+                      ...(needsModified ? { passageModified: "string" } : {}),
+                      ...(needsQuestionText
+                        ? {
+                            questionText:
+                              "(1) ...\\n(2) ...\\n(3) ...\\n(4) ...\\n(5) ...\\n(6) ...",
+                            correctAnswer: "integer count of FALSE statements",
+                            choices: [],
+                          }
+                        : {}),
+                    }),
         explanation: "ko",
       },
     }),
-    temperature: 0.25,
-    maxTokens: 1600,
+    temperature:
+      option.type === "grammar" || option.type === "vocabulary" ? 0.4 : 0.25,
+    maxTokens:
+      option.type === "grammar" || option.type === "vocabulary" ? 2200 : 1600,
   })) as Record<string, unknown>;
 
   if (allowSkip && raw.skip === true) {

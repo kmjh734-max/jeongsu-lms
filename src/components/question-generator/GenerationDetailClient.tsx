@@ -429,6 +429,12 @@ export function GenerationDetailClient({
                       )}
                       {q.question_type !== "sentence_insertion" &&
                         q.question_type !== "irrelevant_sentence" &&
+                        !(
+                          q.question_type === "vocabulary" &&
+                          (!q.choices ||
+                            q.choices.length === 0 ||
+                            q.choices.every((c) => !String(c.text ?? "").trim()))
+                        ) &&
                         q.choices &&
                         q.choices.length > 0 && (
                           <ul className="mt-2 space-y-1 text-sm">
