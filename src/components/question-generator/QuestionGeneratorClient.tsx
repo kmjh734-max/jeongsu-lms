@@ -653,35 +653,27 @@ export function QuestionGeneratorClient({
                               </div>
                             </div>
                           ))}
-                          <div className="flex flex-col gap-1.5">
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              className="w-full text-xs"
-                              onClick={() =>
-                                addCounts([
-                                  ["title:en:high:제목추론", 1],
-                                  ["topic:en:high:주제추론", 1],
-                                ])
-                              }
-                            >
-                              제목·주제 (영)상 +1
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              className="w-full text-xs"
-                              onClick={() =>
-                                addCounts([
-                                  ["title:en:high:제목추론", 1],
-                                  ["topic:en:high:주제추론", 1],
-                                  ["summary_mcq:ko:high:요지추론", 1],
-                                ])
-                              }
-                            >
-                              모두 넣기 (+1)
-                            </Button>
-                          </div>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="w-full text-xs"
+                            onClick={() =>
+                              addCounts([
+                                ["title:en:low:제목추론", 1],
+                                ["title:en:high:제목추론", 1],
+                                ["title:ko:low:제목추론", 1],
+                                ["title:ko:high:제목추론", 1],
+                                ["topic:en:low:주제추론", 1],
+                                ["topic:en:high:주제추론", 1],
+                                ["topic:ko:low:주제추론", 1],
+                                ["topic:ko:high:주제추론", 1],
+                                ["summary_mcq:ko:low:요지추론", 1],
+                                ["summary_mcq:ko:high:요지추론", 1],
+                              ])
+                            }
+                          >
+                            모두 넣기 (+1)
+                          </Button>
                         </div>
                       ) : (
                         <div className="space-y-1.5">
