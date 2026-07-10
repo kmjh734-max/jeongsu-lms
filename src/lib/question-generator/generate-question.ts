@@ -7,16 +7,33 @@ import type {
   PassageAnalysis,
 } from "@/lib/question-generator/types";
 
+/** 제목·주제·요지·일치/불일치/일치개수: 본문 표현을 그대로 베끼지 말고 paraphrase */
+function paraphraseChoiceRules(lang: "english" | "korean" | undefined): string {
+  const langHint =
+    lang === "korean"
+      ? "Korean choices: translate the idea, then reword — never paste English phrases from the passage."
+      : lang === "english"
+        ? "English choices: synonym/rephrase heavily; do not lift consecutive content words from the passage."
+        : "Reword ideas; do not copy passage wording.";
+  return `PARAPHRASE (필수 · 학력평가형):
+- Every choice/statement must paraphrase key content words (synonyms, different structure, reworded meaning).
+- Ban copying distinctive multi-word chunks or long phrases from the passage.
+- Correct items: same meaning via paraphrase; distractors: plausible but wrong via subtle meaning shifts.
+- Prefer vocabulary that tests understanding of paraphrased wording (동의어·우회 표현 많이).
+- ${langHint}`;
+}
+
 function typeRules(option: QuestionTypeOption): string {
   const code = option.aingkaCode || "";
   const en = option.choiceLanguage === "english";
-  const ko = option.choiceLanguage === "korean";
+  const paraphrase = paraphraseChoiceRules(option.choiceLanguage);
 
   switch (option.type) {
     case "content_false":
       return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
 Ask which does NOT match. Exactly ONE false; the other four must be true.
 Style like Korean HS mock exams (효자/학력평가 내용불일치).
+${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer falsehood, weaker distractors"
@@ -28,6 +45,7 @@ Difficulty: ${
       return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
 Ask which DOES match. Exactly ONE true; the other four must be false.
 Style like Korean HS mock exams (효자/학력평가 내용일치).
+${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct fact, weaker distractors"
@@ -47,6 +65,7 @@ Difficulty: ${
 - choices: omit or empty array. No ①~⑤ options.
 - Do NOT change the passage; omit passageModified.
 - explanation: list which numbers are false and why (Korean, brief).
+${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer true/false"
@@ -55,7 +74,9 @@ Difficulty: ${
             : "standard"
       }.`;
     case "topic":
-      return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct. Difficulty: ${
+      return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct.
+${paraphrase}
+Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct answer, weaker distractors"
           : option.difficulty === "high"
@@ -63,7 +84,9 @@ Difficulty: ${
             : "standard"
       }.`;
     case "title":
-      return `${en ? "5 ENGLISH Title Case titles" : "5 Korean titles"}. Exactly one correct. Difficulty: ${
+      return `${en ? "5 ENGLISH Title Case titles" : "5 Korean titles"}. Exactly one correct.
+${paraphrase}
+Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct answer, weaker distractors"
           : option.difficulty === "high"
@@ -77,6 +100,7 @@ Difficulty: ${
 - Do NOT invent a summary sentence with blanks (A)/(B).
 - Do NOT use …… / ... pair choices (e.g. "성공 …… 노력").
 - questionText must be empty.
+${paraphrase}
 - Exactly one correct. Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하)"
@@ -337,15 +361,27 @@ export async function generateOneQuestion(opts: {
   ].includes(option.type);
 
   const needsQuestionText = option.type === "content_count";
+  const paraphraseTypes = new Set([
+    "title",
+    "topic",
+    "summary_mcq",
+    "content_true",
+    "content_false",
+    "content_count",
+  ]);
+  const paraphraseSystemHint = paraphraseTypes.has(option.type)
+    ? "- Choices/<보기> MUST paraphrase passage wording (synonyms, rewording). Do NOT copy distinctive phrases from the passage."
+    : "";
 
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: `Korean HS English exam writer. ONE question JSON only. Fast & concise.
 - instruction EXACTLY: ${JSON.stringify(forcedInstruction)}
-- No meta tags. ${needsQuestionText ? "Fill questionText with (A)~(E) statements." : 'questionText usually "".'}
+- No meta tags. ${needsQuestionText ? "Fill questionText with (1)(2)… statements." : 'questionText usually "".'}
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
 - ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
 - explanation: 1-2 Korean sentences.
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
+${paraphraseSystemHint}
 ${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
