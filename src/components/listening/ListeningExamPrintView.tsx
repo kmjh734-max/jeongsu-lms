@@ -211,7 +211,7 @@ export function ListeningExamPrintView({
       if (overflow) return;
       const bodyZone = col.closest<HTMLElement>("[data-body-zone]");
       const maxH = bodyZone?.clientHeight ?? 0;
-      if (maxH <= 0) return;
+      if (!bodyZone || maxH <= 0) return;
 
       const columnOverflow = col.scrollHeight > maxH + 2;
       const bodyBottom = bodyZone.getBoundingClientRect().bottom;

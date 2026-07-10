@@ -1,0 +1,48 @@
+/** 유형별 최대 세트 수 */
+export const MAX_SETS_PER_TYPE = 5;
+
+/** 한 번에 생성 가능한 최대 문항 수 */
+export const MAX_TOTAL_QUESTIONS = 30;
+
+/** 검수 통과 최소 점수 */
+export const VALIDATION_PASS_SCORE = 85;
+
+/** 문항당 최대 재생성 횟수 */
+export const MAX_REGENERATION_ATTEMPTS = 2;
+
+/** AI 동시 요청 수 */
+export const GENERATION_CONCURRENCY = 2;
+
+/** 지문 최소 단어 수 (경고) */
+export const MIN_PASSAGE_WORDS = 40;
+
+/** 지문 최소 문장 수 (순서/삽입 등 경고) */
+export const MIN_PASSAGE_SENTENCES_FOR_ORDER = 4;
+
+export const GRADES = [
+  { value: "중1", label: "중1" },
+  { value: "중2", label: "중2" },
+  { value: "중3", label: "중3" },
+  { value: "고1", label: "고1" },
+  { value: "고2", label: "고2" },
+  { value: "고3", label: "고3" },
+] as const;
+
+export const SOURCE_TYPES = [
+  { value: "교과서", label: "교과서" },
+  { value: "부교재", label: "부교재" },
+  { value: "모의고사", label: "모의고사" },
+  { value: "자체 지문", label: "자체 지문" },
+  { value: "기타", label: "기타" },
+] as const;
+
+export const OVERALL_DIFFICULTIES = [
+  { value: "기본", label: "기본" },
+  { value: "내신", label: "내신" },
+  { value: "고난도", label: "고난도" },
+] as const;
+
+export type GradeValue = (typeof GRADES)[number]["value"];
+export type SourceTypeValue = (typeof SOURCE_TYPES)[number]["value"];
+export type OverallDifficultyValue =
+  (typeof OVERALL_DIFFICULTIES)[number]["value"];

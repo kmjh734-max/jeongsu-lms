@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/admin/courses", label: "강좌 관리" },
   { href: "/admin/vocab", label: "단어학습" },
   { href: "/admin/listening", label: "듣기학습" },
+  { href: "/admin/question-generator", label: "변형문제" },
   { href: "/admin/classes", label: "반 관리" },
   { href: "/admin/students", label: "학생·수강" },
   { href: "/admin/progress", label: "수강 현황" },
