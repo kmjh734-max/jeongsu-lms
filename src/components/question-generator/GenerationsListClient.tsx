@@ -72,16 +72,6 @@ function passageCount(j: JobRow): number {
   return 1;
 }
 
-function viewHref(basePath: string, j: JobRow): string {
-  const noResults =
-    (j.status === "pending" || j.status === "failed") &&
-    (j.total_completed ?? 0) === 0;
-  if (noResults) {
-    return `${basePath}/new?fromJob=${encodeURIComponent(j.id)}`;
-  }
-  return `${basePath}/generations/${j.id}`;
-}
-
 function shortId(id: string): string {
   return id.replace(/-/g, "").slice(0, 6).toUpperCase();
 }
