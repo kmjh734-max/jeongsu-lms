@@ -218,19 +218,19 @@ export function QuestionPrintView({
         return el ? Math.ceil(el.getBoundingClientRect().height) : 120;
       });
 
-      // 1페이지: 헤더 공간 제외, 이후 페이지: 본문 전체
+      // 인쇄 시트 높이(286mm) − 여백·헤더 여유
       const mmToPx = (mm: number) => (mm * 96) / 25.4;
-      const firstColMax = mmToPx(245);
-      const nextColMax = mmToPx(265);
+      const firstColMax = mmToPx(250);
+      const nextColMax = mmToPx(258);
 
-      setPages(
-        paginateExamQuestions(heights, {
-          firstColumnMaxPx: firstColMax,
-          nextColumnMaxPx: nextColMax,
-          questionGapPx: QUESTION_GAP_PX,
-          columnSafetyPx: COLUMN_SAFETY_PX,
-        })
-      );
+      const layouts = paginateExamQuestions(heights, {
+        firstColumnMaxPx: firstColMax,
+        nextColumnMaxPx: nextColMax,
+        questionGapPx: QUESTION_GAP_PX,
+        columnSafetyPx: COLUMN_SAFETY_PX,
+      }).filter((p) => p.left.length > 0 || p.right.length > 0);
+
+      setPages(layouts);
     };
 
     const t = window.setTimeout(run, 50);
@@ -320,7 +320,7 @@ export function QuestionPrintView({
         : [];
 
   return (
-    <div className="min-h-screen bg-slate-200 print:bg-white">
+    <div className="qg-print-app min-h-screen bg-slate-200 print:min-h-0 print:bg-white">
       <div className="no-print sticky top-0 z-10 border-b bg-white px-4 py-3 shadow-sm">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3">
           <Link href={backHref} className="text-sm text-slate-700 hover:underline">
@@ -340,12 +340,12 @@ export function QuestionPrintView({
         </p>
       </div>
 
-      {/* 측정용 (숨김) — 열 폭과 동일 */}
+      {/* 측정용 (숨김) — 열 폭과 동일 · 인쇄 시 display:none */}
       {mode === "exam" && (
         <div
           ref={measureRef}
           aria-hidden
-          className="qg-print-measure"
+          className="qg-print-measure no-print"
           style={{ width: `${COL_WIDTH_MM}mm` }}
         >
           {questions.map((q, i) => (
@@ -362,7 +362,9 @@ export function QuestionPrintView({
             <article
               key={pageIdx}
               className={`qg-print-page qg-print-sheet ${
-                pageIdx < examPages.length - 1 ? "qg-print-page-break" : ""
+                pageIdx < examPages.length - 1
+                  ? "qg-print-page-break"
+                  : "qg-print-page-last"
               }`}
             >
               {renderHeader(pageIdx > 0)}

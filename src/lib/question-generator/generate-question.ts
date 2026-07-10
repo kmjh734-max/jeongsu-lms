@@ -94,13 +94,86 @@ function typeRules(option: QuestionTypeOption): string {
   }
 }
 
+/** 지문 표지(①~⑤)와 정답이 묶인 유형은 셔플하면 안 됨 */
+const NO_SHUFFLE_TYPES = new Set([
+  "grammar",
+  "vocabulary",
+  "irrelevant_sentence",
+  "sentence_insertion",
+]);
+
+const CIRCLED = ["①", "②", "③", "④", "⑤"];
+
+function parseChoiceAnswer(raw: unknown): number | null {
+  if (typeof raw === "number" && raw >= 1 && raw <= 5) return raw;
+  if (typeof raw === "string") {
+    const m = raw.trim().match(/^([1-5])/);
+    if (m) return Number(m[1]);
+    const ci = CIRCLED.indexOf(raw.trim());
+    if (ci >= 0) return ci + 1;
+  }
+  return null;
+}
+
+/** 객관식 선택지를 섞고 정답 번호를 맞춤 (① 편향 방지) */
+function shuffleObjectiveChoices(
+  choices: Array<{ number: number; text: string }>,
+  correctAnswer: number,
+  explanation: string
+): {
+  choices: Array<{ number: number; text: string }>;
+  correctAnswer: number;
+  explanation: string;
+} {
+  const n = choices.length;
+  if (n < 2 || correctAnswer < 1 || correctAnswer > n) {
+    return { choices, correctAnswer, explanation };
+  }
+
+  const texts = choices.map((c) => c.text);
+  const correctText = texts[correctAnswer - 1]!;
+
+  for (let i = texts.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = texts[i]!;
+    texts[i] = texts[j]!;
+    texts[j] = tmp;
+  }
+
+  const newCorrect = texts.findIndex((t) => t === correctText) + 1;
+  const newChoices = texts.map((text, i) => ({ number: i + 1, text }));
+
+  let nextExplanation = explanation;
+  if (newCorrect !== correctAnswer && explanation) {
+    const from = CIRCLED[correctAnswer - 1]!;
+    const to = CIRCLED[newCorrect - 1]!;
+    nextExplanation = explanation
+      .split(from)
+      .join(to)
+      .replace(
+        new RegExp(`정답\\s*[:：]?\\s*${correctAnswer}\\s*번?`, "g"),
+        `정답: ${newCorrect}번`
+      )
+      .replace(
+        new RegExp(`답\\s*[:：]?\\s*${correctAnswer}\\b`, "g"),
+        `답: ${newCorrect}`
+      );
+  }
+
+  return {
+    choices: newChoices,
+    correctAnswer: newCorrect || correctAnswer,
+    explanation: nextExplanation,
+  };
+}
+
 function normalizePayload(
   raw: Record<string, unknown>,
   option: QuestionTypeOption,
   passage: string,
   forcedInstruction: string
 ): GeneratedQuestionPayload {
-  const choices = Array.isArray(raw.choices)
+  let choices = Array.isArray(raw.choices)
     ? raw.choices
         .map((c, i) => {
           const row = (c ?? {}) as Record<string, unknown>;
@@ -116,7 +189,23 @@ function normalizePayload(
     | string
     | number
     | number[];
-  if (correctAnswer == null) correctAnswer = 1;
+  let explanation = String(raw.explanation ?? "");
+
+  const parsed = parseChoiceAnswer(correctAnswer);
+  if (
+    option.isObjective &&
+    choices &&
+    choices.length >= 2 &&
+    !NO_SHUFFLE_TYPES.has(option.type)
+  ) {
+    const before = parsed ?? 1;
+    const shuffled = shuffleObjectiveChoices(choices, before, explanation);
+    choices = shuffled.choices;
+    correctAnswer = shuffled.correctAnswer;
+    explanation = shuffled.explanation;
+  } else if (correctAnswer == null) {
+    correctAnswer = parsed ?? 1;
+  }
 
   return {
     type: option.type,
@@ -133,7 +222,7 @@ function normalizePayload(
     acceptableAnswers: Array.isArray(raw.acceptableAnswers)
       ? raw.acceptableAnswers.map((x) => String(x))
       : undefined,
-    explanation: String(raw.explanation ?? ""),
+    explanation,
     evidence: [],
     scoringGuide:
       raw.scoringGuide && typeof raw.scoringGuide === "object"
@@ -193,6 +282,7 @@ export async function generateOneQuestion(opts: {
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
 - ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
 - explanation: 1-2 Korean sentences.
+- For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
 ${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
@@ -202,7 +292,7 @@ ${typeRules(option)}`,
       hint: slimAnalysis,
       schema: {
         choices: [{ number: 1, text: "string" }],
-        correctAnswer: 1,
+        correctAnswer: "integer 1-5 (vary; not always 1)",
         explanation: "ko",
         ...(needsModified ? { passageModified: "string" } : {}),
       },
