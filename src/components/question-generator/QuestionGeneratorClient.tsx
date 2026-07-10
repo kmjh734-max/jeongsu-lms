@@ -65,10 +65,10 @@ export function QuestionGeneratorClient({
   const [modeTab, setModeTab] = useState<string>("custom");
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({
     main_idea: true,
-    details: false,
-    inference: false,
-    grammar_vocabulary: false,
-    subjective: false,
+    details: true,
+    inference: true,
+    grammar_vocabulary: true,
+    subjective: true,
   });
   const [presets, setPresets] = useState<PresetRow[]>([]);
   const [passageId, setPassageId] = useState<string | null>(null);
@@ -447,7 +447,7 @@ export function QuestionGeneratorClient({
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="지문을 여러 개 넣고, 왼쪽에서 유형 세트를 고르면 지문마다 같은 유형으로 생성됩니다."
+        description="왼쪽에서 유형 세트 수를 고르고, 오른쪽에 지문을 여러 개 넣으면 지문마다 같은 유형으로 생성됩니다."
         action={
           <Link
             href={`${basePath}/generations`}
@@ -525,61 +525,7 @@ export function QuestionGeneratorClient({
 
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] lg:items-start">
         {/* 왼쪽: 유형별 세트 */}
-        <aside className="space-y-3 lg:sticky lg:top-4 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
-            <h2 className="mb-2 text-sm font-semibold text-slate-900">
-              생성 방식
-            </h2>
-            <div className="flex flex-col gap-1.5">
-              {[
-                { id: "custom", label: "유형 직접 설정" },
-                { id: "main_idea_focus", label: "주제·제목 (대의)" },
-                { id: "main_idea_full", label: "대의 파악 전체" },
-                { id: "blank_order_focus", label: "빈칸·배열 집중" },
-                { id: "grammar_vocab_focus", label: "어법·어휘 집중" },
-                { id: "advanced_full", label: "고난도 통합" },
-                { id: "standard_mixed", label: "표준 종합 (고1)" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => {
-                    if (tab.id === "custom") setModeTab("custom");
-                    else applySystemPreset(tab.id);
-                  }}
-                  className={`rounded-lg px-3 py-2 text-left text-sm font-medium ${
-                    modeTab === tab.id
-                      ? "bg-brand-700 text-white"
-                      : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-              {personalPresets.length > 0 && (
-                <select
-                  className="ui-select mt-1 w-full"
-                  value={modeTab.startsWith("preset:") ? modeTab : ""}
-                  onChange={(e) => {
-                    const id = e.target.value.replace("preset:", "");
-                    const p = personalPresets.find((x) => x.id === id);
-                    if (p) applyDbPreset(p);
-                  }}
-                >
-                  <option value="">저장한 프리셋…</option>
-                  {personalPresets.map((p) => (
-                    <option key={p.id} value={`preset:${p.id}`}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <p className="mt-2 text-xs text-slate-500">
-              선택한 세트는 모든 지문에 동일하게 적용됩니다.
-            </p>
-          </section>
-
+        <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
           <section className="space-y-2">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-sm font-semibold text-slate-900">
@@ -589,6 +535,9 @@ export function QuestionGeneratorClient({
                 지문당 {perPassageTotals.total}문항
               </span>
             </div>
+            <p className="px-1 text-xs text-slate-500">
+              선택한 세트는 모든 지문에 동일하게 적용됩니다.
+            </p>
             {sortedGroups.map((group) => {
               const selectedInGroup = group.options.reduce(
                 (acc, o) => acc + (counts[o.key] ?? 0),
@@ -671,6 +620,7 @@ export function QuestionGeneratorClient({
                                     (o) => o.key === key
                                   );
                                   if (!opt) return null;
+                                  const n = counts[key] ?? 0;
                                   return (
                                     <div
                                       key={key}
@@ -679,41 +629,21 @@ export function QuestionGeneratorClient({
                                       <span className="block truncate text-[11px] font-medium text-slate-800">
                                         {opt.label}
                                       </span>
-                                      <div className="mt-1 flex items-center gap-0.5">
+                                      <div className="mt-1 flex items-center justify-between gap-1">
                                         <button
                                           type="button"
-                                          className="h-7 w-7 rounded border border-slate-200 bg-white text-slate-700"
-                                          onClick={() =>
-                                            setCount(
-                                              key,
-                                              (counts[key] ?? 0) - 1
-                                            )
-                                          }
+                                          className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                          onClick={() => setCount(key, n - 1)}
                                         >
                                           −
                                         </button>
-                                        <input
-                                          type="number"
-                                          min={0}
-                                          max={MAX_SETS_PER_TYPE}
-                                          className="ui-input w-10 py-0.5 text-center text-sm"
-                                          value={counts[key] ?? 0}
-                                          onChange={(e) =>
-                                            setCount(
-                                              key,
-                                              Number(e.target.value)
-                                            )
-                                          }
-                                        />
+                                        <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                          {n}
+                                        </span>
                                         <button
                                           type="button"
-                                          className="h-7 w-7 rounded border border-slate-200 bg-white text-slate-700"
-                                          onClick={() =>
-                                            setCount(
-                                              key,
-                                              (counts[key] ?? 0) + 1
-                                            )
-                                          }
+                                          className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                          onClick={() => setCount(key, n + 1)}
                                         >
                                           +
                                         </button>
@@ -749,44 +679,36 @@ export function QuestionGeneratorClient({
                         </div>
                       ) : (
                         <div className="space-y-1.5">
-                          {group.options.map((opt) => (
-                            <div
-                              key={opt.key}
-                              className="flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/80 px-1.5 py-1"
-                            >
-                              <span className="min-w-0 flex-1 truncate text-xs text-slate-800">
-                                {opt.label}
-                              </span>
-                              <button
-                                type="button"
-                                className="h-7 w-7 shrink-0 rounded border border-slate-200 bg-white text-slate-700"
-                                onClick={() =>
-                                  setCount(opt.key, (counts[opt.key] ?? 0) - 1)
-                                }
+                          {group.options.map((opt) => {
+                            const n = counts[opt.key] ?? 0;
+                            return (
+                              <div
+                                key={opt.key}
+                                className="flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/80 px-1.5 py-1"
                               >
-                                −
-                              </button>
-                              <input
-                                type="number"
-                                min={0}
-                                max={MAX_SETS_PER_TYPE}
-                                className="ui-input w-10 shrink-0 py-0.5 text-center text-sm"
-                                value={counts[opt.key] ?? 0}
-                                onChange={(e) =>
-                                  setCount(opt.key, Number(e.target.value))
-                                }
-                              />
-                              <button
-                                type="button"
-                                className="h-7 w-7 shrink-0 rounded border border-slate-200 bg-white text-slate-700"
-                                onClick={() =>
-                                  setCount(opt.key, (counts[opt.key] ?? 0) + 1)
-                                }
-                              >
-                                +
-                              </button>
-                            </div>
-                          ))}
+                                <span className="min-w-0 flex-1 truncate text-xs text-slate-800">
+                                  {opt.label}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  onClick={() => setCount(opt.key, n - 1)}
+                                >
+                                  −
+                                </button>
+                                <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-slate-900">
+                                  {n}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  onClick={() => setCount(opt.key, n + 1)}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -794,6 +716,24 @@ export function QuestionGeneratorClient({
                 </div>
               );
             })}
+            {personalPresets.length > 0 && (
+              <select
+                className="ui-select w-full"
+                value={modeTab.startsWith("preset:") ? modeTab : ""}
+                onChange={(e) => {
+                  const id = e.target.value.replace("preset:", "");
+                  const p = personalPresets.find((x) => x.id === id);
+                  if (p) applyDbPreset(p);
+                }}
+              >
+                <option value="">저장한 프리셋 불러오기…</option>
+                {personalPresets.map((p) => (
+                  <option key={p.id} value={`preset:${p.id}`}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </section>
         </aside>
 
