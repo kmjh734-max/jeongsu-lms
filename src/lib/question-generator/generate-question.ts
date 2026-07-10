@@ -235,7 +235,29 @@ LANGUAGE: passageModified ENGLISH only.`;
       }
       return `Mark 5 underlined spots ⓐ~ⓔ with <u>...</u> in passageModified. Exactly ONE grammatically wrong. choices ①ⓐ~⑤ⓔ.`;
     case "vocabulary":
-      return `Mark 5 underlined words (A)~(E) with <u>...</u>. Exactly ONE contextually wrong.`;
+      if (code === "어휘개수") {
+        return `어휘 개수 — 학력평가/내신형:
+- passageModified = ENGLISH passage with exactly six underlined vocabulary spots marked ① ② ③ ④ ⑤ ⑥.
+- Format each spot as: ①<u>word or short phrase</u> (HTML <u> underline).
+- Make between 1 and 5 of them contextually WRONG (wrong word choice / antonym / wrong collocation in context); the rest CORRECT.
+- Wrong items should look plausible but not fit the meaning (like mock-exam 어휘 추론).
+- choices MUST be exactly:
+  {"number":1,"text":"1개"}, {"number":2,"text":"2개"}, {"number":3,"text":"3개"}, {"number":4,"text":"4개"}, {"number":5,"text":"5개"}
+- correctAnswer = choice number matching the COUNT of wrong spots (3 wrong → correctAnswer 3).
+- questionText empty.
+- explanation (Korean): state the count and which numbers are wrong briefly.
+LANGUAGE: passageModified ENGLISH only.`;
+      }
+      // 어휘추론 (어색한 것 고르기) — PDF형 ①~⑤
+      return `어휘 어색한 것 고르기 — 학력평가/내신형:
+- passageModified = ENGLISH passage with exactly five underlined vocabulary spots marked ① ② ③ ④ ⑤.
+- Format each spot as: ①<u>word or short phrase</u> (HTML <u> underline).
+- Exactly ONE of the five is contextually WRONG (inappropriate word in context); the other four are correct.
+- Wrong item: near-synonym/antonym/wrong collocation that looks related but does not fit.
+- choices: five options with EMPTY text (numbers only), e.g. [{"number":1,"text":""},...{"number":5,"text":""}].
+- correctAnswer 1-5 matching the wrong underlined number. questionText empty.
+- explanation (Korean): which number is wrong and why briefly.
+LANGUAGE: passageModified ENGLISH only.`;
     case "underlined_inference":
       if (code === "목적추론") {
         return `5 ENGLISH purpose choices (To + verb). Exactly one correct. passageModified optional. LANGUAGE: choices ENGLISH only.`;
@@ -348,7 +370,9 @@ function normalizePayload(
   passage: string,
   forcedInstruction: string
 ): GeneratedQuestionPayload {
-  const keepEmptyChoiceText = option.type === "sentence_insertion";
+  const keepEmptyChoiceText =
+    option.type === "sentence_insertion" ||
+    (option.type === "vocabulary" && option.aingkaCode === "어휘추론");
 
   let choices = Array.isArray(raw.choices)
     ? raw.choices
@@ -369,6 +393,11 @@ function normalizePayload(
     option.type === "irrelevant_sentence"
   ) {
     choices = undefined;
+  }
+
+  // 어휘 고르기: ①~⑤ 숫자 보기 (본문 표지와 대응, 텍스트 비움)
+  if (option.type === "vocabulary" && option.aingkaCode === "어휘추론") {
+    choices = [1, 2, 3, 4, 5].map((n) => ({ number: n, text: "" }));
   }
 
   let correctAnswer: string | number | number[] = raw.correctAnswer as
@@ -406,13 +435,15 @@ function normalizePayload(
   let passageModified =
     typeof raw.passageModified === "string" ? raw.passageModified : undefined;
 
-  // 함축·어법: markdown 밑줄을 <u>로 정규화
+  // 함축·어법·어휘: markdown 밑줄을 <u>로 정규화
   if (
     (option.type === "underlined_inference" &&
       option.aingkaCode === "함축의미추론") ||
     (option.type === "grammar" &&
       (option.aingkaCode === "어법모두고르기" ||
-        option.aingkaCode === "어법개수"))
+        option.aingkaCode === "어법개수")) ||
+    (option.type === "vocabulary" &&
+      (option.aingkaCode === "어휘추론" || option.aingkaCode === "어휘개수"))
   ) {
     if (passageModified) {
       passageModified = passageModified
@@ -459,12 +490,14 @@ export function assertBasicQuestionShape(
     "sentence_blank",
     "sentence_insertion",
     "irrelevant_sentence",
+    "grammar",
+    "vocabulary",
   ]);
   if (englishBodyTypes.has(option.type)) {
     const body = [
       q.passageModified || "",
       option.type === "sentence_insertion" ? q.questionText || "" : "",
-      ...(option.type === "grammar"
+      ...(option.type === "grammar" || option.type === "vocabulary"
         ? []
         : (q.choices ?? []).map((c) => c.text)),
     ].join("\n");
@@ -545,6 +578,26 @@ export function assertBasicQuestionShape(
     }
   }
 
+  if (option.type === "vocabulary" && option.isObjective) {
+    if (!q.choices || q.choices.length < 5) {
+      return "객관식 선택지가 5개 미만입니다.";
+    }
+    const mod = q.passageModified || "";
+    if (option.aingkaCode === "어휘개수") {
+      if (!/[①②③④⑤⑥]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
+        return "어휘 개수 문항은 ①~⑥ 밑줄 표지가 필요합니다.";
+      }
+    } else {
+      // 어휘추론
+      if (!/[①②③④⑤]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
+        return "어휘 고르기 문항은 ①~⑤ 밑줄 표지가 필요합니다.";
+      }
+    }
+    if (hasHangul(mod)) {
+      return "본문은 영어여야 합니다 (한글 포함됨).";
+    }
+  }
+
   return null;
 }
 
@@ -578,10 +631,11 @@ export async function generateOneQuestion(opts: {
     "sentence_insertion",
     "irrelevant_sentence",
     "grammar",
+    "vocabulary",
   ]);
   const englishOnlyHint = englishBodyTypes.has(option.type)
-    ? option.type === "grammar"
-      ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only. Choice texts may be Korean (조합/개수). Never put Hangul in the passage."
+    ? option.type === "grammar" || option.type === "vocabulary"
+      ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only. Choice texts may be Korean (조합/개수) or empty numbers. Never put Hangul in the passage."
       : "- CRITICAL LANGUAGE: passageModified, questionText (if any), and choices MUST be ENGLISH only. Never put Korean Hangul in passage or choices. Only instruction/explanation may be Korean."
     : "";
 

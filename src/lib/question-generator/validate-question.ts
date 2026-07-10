@@ -20,6 +20,8 @@ export function validateGeneratedQuestion(opts: {
     const slotInPassage =
       option.type === "sentence_insertion" ||
       option.type === "irrelevant_sentence";
+    const numberOnlyChoices =
+      option.type === "vocabulary" && option.aingkaCode === "어휘추론";
 
     if (slotInPassage) {
       // 본문 ①~⑤가 보기 — 하단 선택지 불필요
@@ -40,7 +42,7 @@ export function validateGeneratedQuestion(opts: {
       warnings.push("선택지 번호가 중복되었습니다.");
       score -= 15;
     }
-    if (!slotInPassage) {
+    if (!slotInPassage && !numberOnlyChoices) {
       const empty = (q.choices ?? []).some((c) => !c.text.trim());
       if (empty) {
         warnings.push("빈 선택지가 있습니다.");

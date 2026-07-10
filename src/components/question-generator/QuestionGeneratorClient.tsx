@@ -1034,17 +1034,71 @@ export function QuestionGeneratorClient({
                   ) : isGrammar ? (
                     <div className="space-y-3">
                       <p className="text-[11px] leading-snug text-slate-500">
-                        어법 · 밑줄 ⓐ~ⓔ 모두 고르기 / ⓐ~ⓕ 개수 (어휘는 추후)
+                        어법 · 어휘 (고르기 / 개수)
+                      </p>
+                      <p className="text-xs font-semibold text-slate-700">
+                        어법
                       </p>
                       {(
                         [
                           {
                             key: "grammar:na:default:어법모두고르기",
-                            hint: "어색한 것 모두",
+                            hint: "ⓐ~ⓔ 어색한 것 모두",
                           },
                           {
                             key: "grammar:na:default:어법개수",
-                            hint: "어색한 것 개수",
+                            hint: "ⓐ~ⓕ 어색한 것 개수",
+                          },
+                        ] as const
+                      ).map((row) => {
+                        const opt = group.options.find((o) => o.key === row.key);
+                        if (!opt) return null;
+                        const n = counts[row.key] ?? 0;
+                        return (
+                          <div
+                            key={row.key}
+                            className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5"
+                          >
+                            <span className="block text-[11px] font-medium text-slate-800">
+                              {opt.label}
+                            </span>
+                            <span className="mb-1 block text-[10px] text-slate-500">
+                              {row.hint}
+                            </span>
+                            <div className="flex items-center justify-between gap-1">
+                              <button
+                                type="button"
+                                className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                onClick={() => setCount(row.key, n - 1)}
+                              >
+                                −
+                              </button>
+                              <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                {n}
+                              </span>
+                              <button
+                                type="button"
+                                className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                onClick={() => setCount(row.key, n + 1)}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <p className="pt-1 text-xs font-semibold text-slate-700">
+                        어휘
+                      </p>
+                      {(
+                        [
+                          {
+                            key: "vocabulary:na:default:어휘추론",
+                            hint: "①~⑤ 문맥상 부적절",
+                          },
+                          {
+                            key: "vocabulary:na:default:어휘개수",
+                            hint: "①~⑥ 부적절한 것 개수",
                           },
                         ] as const
                       ).map((row) => {
@@ -1092,6 +1146,8 @@ export function QuestionGeneratorClient({
                           addCounts([
                             ["grammar:na:default:어법모두고르기", 1],
                             ["grammar:na:default:어법개수", 1],
+                            ["vocabulary:na:default:어휘추론", 1],
+                            ["vocabulary:na:default:어휘개수", 1],
                           ])
                         }
                       >

@@ -52,7 +52,7 @@ export type AingkaOption = ReturnType<typeof opt>;
 export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
   {
     category: "grammar_vocabulary",
-    label: "Section · 어법",
+    label: "Section · 어법·어휘",
     options: [
       opt(
         "grammar",
@@ -75,6 +75,28 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "ⓐ~ⓕ 중 어법상 어색한 것의 개수",
         "어법개수",
         "윗글의 밑줄 친 ⓐ~ⓕ 중, 어법상 어색한 것의 개수는?"
+      ),
+      opt(
+        "vocabulary",
+        "grammar_vocabulary",
+        "어색한 것 고르기",
+        "default",
+        null,
+        true,
+        "①~⑤ 중 문맥상 낱말 쓰임이 적절하지 않은 것",
+        "어휘추론",
+        "위의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?"
+      ),
+      opt(
+        "vocabulary",
+        "grammar_vocabulary",
+        "어색한 것 개수",
+        "default",
+        null,
+        true,
+        "①~⑥ 중 문맥상 쓰임이 적절하지 않은 것의 개수",
+        "어휘개수",
+        "위의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것의 개수는?"
       ),
     ],
   },
