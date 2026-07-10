@@ -555,7 +555,7 @@ export function QuestionGeneratorClient({
                   type="button"
                   onClick={() => openPdfs(jobProgress.jobId)}
                 >
-                  문제·해설 PDF 다시 열기
+                  문제·해설 PDF 열기
                 </Button>
                 <Button
                   type="button"
