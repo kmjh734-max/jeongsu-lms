@@ -240,22 +240,22 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
       opt(
         "topic",
         "main_idea",
-        "주제",
+        "주제 (영어 선택지)",
         "default",
         "english",
         true,
-        "지문(상) + 영어 주제 선택지(하)",
+        "발문 → 지문(상) → 영어 주제 ①~⑤(하)",
         "주제추론",
         "윗글의 주제로 알맞은 것은?"
       ),
       opt(
         "title",
         "main_idea",
-        "제목",
+        "제목 (영어 선택지)",
         "default",
         "english",
         true,
-        "지문(상) + 영어 제목 선택지(하)",
+        "발문 → 지문(상) → 영어 제목 ①~⑤(하)",
         "제목추론",
         "윗글의 제목으로 알맞은 것은?"
       ),

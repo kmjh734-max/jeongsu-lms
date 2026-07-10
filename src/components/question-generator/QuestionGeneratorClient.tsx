@@ -49,10 +49,10 @@ export function QuestionGeneratorClient({
   const [modeTab, setModeTab] = useState<string>("custom");
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({
     main_idea: true,
-    details: true,
-    inference: true,
-    grammar_vocabulary: true,
-    subjective: true,
+    details: false,
+    inference: false,
+    grammar_vocabulary: false,
+    subjective: false,
   });
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [presets, setPresets] = useState<PresetRow[]>([]);
@@ -163,6 +163,15 @@ export function QuestionGeneratorClient({
     if (!p) return;
     applyCounts(p.config.counts);
     setModeTab(slug);
+    if (slug.startsWith("main_idea")) {
+      setOpenCats({
+        main_idea: true,
+        details: false,
+        inference: false,
+        grammar_vocabulary: false,
+        subjective: false,
+      });
+    }
   }
 
   function applyDbPreset(p: PresetRow) {
@@ -251,7 +260,7 @@ export function QuestionGeneratorClient({
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="고1 학력평가 수준의 유형·난이도로 변형문제를 만듭니다. 생성 후 바로 문제·해설지 PDF를 받을 수 있습니다."
+        description="주제·제목은 지문(상)+영어 선택지(하) PDF로 나갑니다. 생성 후 문제·해설지 PDF를 바로 받을 수 있습니다."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -439,16 +448,32 @@ export function QuestionGeneratorClient({
 
       <section className="mb-6 space-y-3">
         <h2 className="text-sm font-semibold text-slate-900">유형별 세트 수</h2>
-        {QUESTION_TYPE_GROUPS.map((group) => {
+        {([...QUESTION_TYPE_GROUPS] as typeof QUESTION_TYPE_GROUPS)
+          .sort((a, b) => {
+            const order = [
+              "main_idea",
+              "details",
+              "inference",
+              "grammar_vocabulary",
+              "subjective",
+            ];
+            return order.indexOf(a.category) - order.indexOf(b.category);
+          })
+          .map((group) => {
           const selectedInGroup = group.options.reduce(
             (acc, o) => acc + (counts[o.key] ?? 0),
             0
           );
           const open = openCats[group.category] ?? true;
+          const isMainIdea = group.category === "main_idea";
           return (
             <div
               key={group.category}
-              className="rounded-2xl border border-slate-200 bg-white shadow-card"
+              className={`rounded-2xl border bg-white shadow-card ${
+                isMainIdea
+                  ? "border-brand-300 ring-1 ring-brand-100"
+                  : "border-slate-200"
+              }`}
             >
               <button
                 type="button"
@@ -472,6 +497,37 @@ export function QuestionGeneratorClient({
               </button>
               {open && (
                 <div className="border-t border-slate-100 px-4 py-3">
+                  {isMainIdea && (
+                    <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                      <p className="border-b border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-brand-800">
+                        PDF 출력 양식 (상하 구분) · 주제·제목은 영어 선택지
+                      </p>
+                      <div className="grid gap-0 sm:grid-cols-2">
+                        <div className="border-b border-slate-200 p-3 sm:border-b-0 sm:border-r">
+                          <p className="text-[11px] font-bold text-slate-500">
+                            上 · 지문
+                          </p>
+                          <p className="mt-1 font-serif text-[11px] leading-relaxed text-slate-700">
+                            We have biases that support our biases! If we&apos;re
+                            partial to one option…
+                          </p>
+                        </div>
+                        <div className="p-3">
+                          <p className="text-[11px] font-bold text-slate-500">
+                            下 · 선택지
+                          </p>
+                          <p className="mt-1 text-[11px] font-medium text-slate-800">
+                            윗글의 주제로 알맞은 것은?
+                          </p>
+                          <ul className="mt-1 space-y-0.5 text-[11px] text-slate-600">
+                            <li>① Evaluating candidates through intuition</li>
+                            <li>② Understanding confirmation bias in hiring</li>
+                            <li>③ Why first impressions are always right</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid gap-2 lg:grid-cols-2">
                     {group.options.map((opt) => (
                       <div
@@ -533,6 +589,24 @@ export function QuestionGeneratorClient({
                         }
                       </p>
                     )}
+                  {isMainIdea && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => applySystemPreset("main_idea_focus")}
+                      >
+                        주제·제목 1세트씩 넣기
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => applySystemPreset("main_idea_full")}
+                      >
+                        대의 4유형 넣기
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
