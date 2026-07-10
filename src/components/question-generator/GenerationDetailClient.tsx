@@ -233,6 +233,12 @@ export function GenerationDetailClient({
             >
               생성 기록
             </Link>
+            <Link
+              href={`${basePath}/generations/${jobId}/print`}
+              className="rounded-lg bg-brand-700 px-3 py-2 text-sm font-medium text-white"
+            >
+              PDF·인쇄 / 복사
+            </Link>
             {questions.length > 0 && (
               <Button type="button" onClick={() => void approveAll()}>
                 일괄 승인

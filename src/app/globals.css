@@ -936,7 +936,150 @@
   padding-right: 2px;
 }
 
+/* 영어 변형문제 인쇄 (A4 2단) */
+.qg-print-sheet {
+  box-sizing: border-box;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 10mm 9mm 8mm;
+  background: #fff;
+  color: #111;
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+}
+
+.qg-print-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2.5px solid #1a3a6e;
+  padding-bottom: 3mm;
+  margin-bottom: 3mm;
+}
+
+.qg-print-header-answer {
+  background: #1a3a6e;
+  color: #fff;
+  margin: -10mm -9mm 4mm;
+  padding: 5mm 9mm;
+  border: none;
+}
+
+.qg-print-kicker {
+  font-size: 9pt;
+  font-weight: 800;
+  color: #234b8c;
+  letter-spacing: 0.04em;
+}
+
+.qg-print-title {
+  font-size: 15pt;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-top: 1mm;
+}
+
+.qg-print-header-answer .qg-print-title {
+  color: #fff;
+  margin: 0;
+}
+
+.qg-print-sub,
+.qg-print-meta {
+  font-size: 9pt;
+  color: #555;
+  margin-top: 1mm;
+}
+
+.qg-print-guide {
+  font-size: 10pt;
+  font-weight: 700;
+  margin-bottom: 3mm;
+  color: #222;
+}
+
+.qg-print-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 5mm;
+  align-items: start;
+}
+
+.qg-print-col-right {
+  border-left: 1.5px solid #d5e0ef;
+  padding-left: 4mm;
+}
+
+.qg-print-q {
+  margin-bottom: 4.5mm;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  font-size: 9.5pt;
+  line-height: 1.45;
+}
+
+.qg-print-q-head {
+  font-weight: 800;
+  margin-bottom: 1.5mm;
+}
+
+.qg-print-q-num {
+  color: #1a3a6e;
+}
+
+.qg-print-passage {
+  white-space: pre-wrap;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 9.2pt;
+  line-height: 1.5;
+  margin-bottom: 1.5mm;
+  color: #1a1a1a;
+}
+
+.qg-print-extra {
+  white-space: pre-wrap;
+  font-size: 9pt;
+  margin-bottom: 1.5mm;
+  color: #333;
+}
+
+.qg-print-choices {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.qg-print-choices li {
+  display: flex;
+  gap: 1.5mm;
+  margin-bottom: 0.6mm;
+}
+
+.qg-print-choice-mark {
+  flex-shrink: 0;
+  width: 5mm;
+  color: #1a3a6e;
+}
+
+.qg-print-answer-list {
+  font-size: 10pt;
+  line-height: 1.55;
+  padding-left: 5mm;
+}
+
+.qg-print-answer-exp {
+  color: #444;
+  font-weight: 400;
+}
+
+.qg-print-page-break {
+  break-before: page;
+  page-break-before: always;
+}
+
 @media print {
+/* 영어 변형문제 인쇄 (A4 2단) */
   .no-print {
     display: none !important;
   }
@@ -955,7 +1098,8 @@
   #shared-report-print-root,
   #listening-print-root,
   #student-record-print-root,
-  #vocab-print-root {
+  #vocab-print-root,
+  #qg-print-root {
     visibility: visible;
   }
 
@@ -968,8 +1112,17 @@
   #student-record-print-root,
   #student-record-print-root *,
   #vocab-print-root,
-  #vocab-print-root * {
+  #vocab-print-root *,
+  #qg-print-root,
+  #qg-print-root * {
     visibility: visible;
+  }
+
+  #qg-print-root {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
   }
 
   #report-print-modal,
@@ -1051,6 +1204,21 @@
     .exam-print-answers
     * {
     visibility: visible !important;
+  }
+
+  .qg-print-sheet {
+    box-shadow: none !important;
+    margin: 0 auto !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .qg-print-page-break {
+    break-before: page !important;
+    page-break-before: always !important;
   }
 
   .exam-print-answers {

@@ -1,73 +1,76 @@
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
+import { KOREAN_INSTRUCTION_BY_KEY } from "@/lib/question-generator/question-types";
 import type { QuestionTypeOption } from "@/lib/question-generator/types";
 import type {
   GeneratedQuestionPayload,
   PassageAnalysis,
 } from "@/lib/question-generator/types";
 
-const TYPE_RULES: Record<string, string> = {
-  title:
-    "Create a 5-choice title question. Exactly one correct answer. Correct title must cover the WHOLE passage, not a detail. Distractors use passage topics but wrong scope/focus.",
-  topic:
-    "Create a 5-choice main-idea/topic question. Distinguish topic from mere subject matter. Exactly one correct answer.",
-  summary_mcq:
-    "Create a one-sentence summary with 1-2 blanks and 5 choices. If two blanks, choices are word pairs. Avoid multiple grammatically possible answers.",
-  content_true:
-    "Create a 5-choice 'which is true' question. Each choice uses different evidence. Exactly one true choice.",
-  content_false:
-    "Create a 5-choice 'which is NOT true' question. Exactly one false choice; others must be true per passage.",
-  content_count:
-    "Provide exactly 5 statements. Ask how many are true (0-5). Store correctAnswer as that count. Evidence for each statement.",
-  order:
-    "Provide intro + paragraphs A/B/C. Five order choices. Exactly one coherent order using connectors/pronouns/time.",
-  sentence_blank:
-    "Blank a key phrase/sentence. 5 English choices. Answer must follow passage logic.",
-  irrelevant_sentence:
-    "Number sentences and insert one irrelevant sentence that is not too obvious. Exactly one answer.",
-  sentence_insertion:
-    "Give one sentence to insert and mark ①-⑤ positions in passageModified. Exactly one correct slot.",
-  underlined_inference:
-    "Underline a key expression; ask contextual meaning with 5 choices. Not dictionary-only.",
-  grammar:
-    "Mark 5 underlined spots in passageModified. Exactly ONE is grammatically wrong; others must be correct. Do not destroy meaning. Avoid controversial grammar.",
-  vocabulary:
-    "Mark 5 underlined words. Exactly ONE is contextually inappropriate. Store original vs replaced in explanation/evidence.",
-  summary_short:
-    "Subjective summary completion with blanks. Provide model answer and acceptableAnswers.",
-  writing:
-    "Korean prompt/conditions for English writing. Provide model answer, required keywords, scoringGuide.",
-  short_title:
-    "Ask student to write a title. Provide 2-3 model answers and required keywords. Default English answers.",
-  short_topic:
-    "Ask student to write the topic/main idea. Provide 2-3 model answers and required keywords.",
-};
-
-function difficultyGuide(d: QuestionTypeOption["difficulty"]): string {
-  if (d === "low") return "Difficulty LOW: clearer contrast between correct and wrong answers.";
-  if (d === "medium") return "Difficulty MEDIUM: requires paragraph-level understanding.";
-  if (d === "high")
-    return "Difficulty HIGH: subtle distractors; still exactly one correct answer.";
-  return "Use a standard exam difficulty.";
-}
-
-function languageGuide(lang: QuestionTypeOption["choiceLanguage"]): string {
-  if (lang === "english") return "Write choices in natural English.";
-  if (lang === "korean") return "Write choices in natural Korean (not translationese).";
-  return "Use the language appropriate for this question type.";
+function typeRules(option: QuestionTypeOption): string {
+  const key = option.key;
+  if (key.includes(":binary")) {
+    return `Create a grammar/vocabulary binary-choice passage.
+Rewrite the passage with several [optionA / optionB] brackets (5~8 places).
+One side is correct, the other is a plausible distractor (grammar or vocabulary).
+correctAnswer must be a JSON array of the correct words/phrases in order.
+Also provide Korean translation of the full passage in questionText or explanation.
+instruction must be exactly the Korean stem provided.`;
+  }
+  if (key.includes(":underline") || option.type === "grammar") {
+    if (key.includes(":rewrite")) {
+      return `Create a rewrite-practice item: passage with several (wrongForm) parentheses.
+Student must correct each to the proper form.
+correctAnswer: array of corrected forms. explanation lists each fix with reason.
+Do not destroy overall meaning.`;
+    }
+    if (option.type === "grammar" && key.includes(":underline")) {
+      return `Mark exactly 5 underlined spots in passageModified using forms like ①word ②word ...
+Exactly ONE is grammatically wrong; the other four must be correct.
+correctAnswer is the number 1-5 of the wrong item.
+Choices may be omitted or be just ①~⑤.`;
+    }
+  }
+  switch (option.type) {
+    case "content_false":
+      return `5 Korean choices. Ask which is NOT true. Exactly one false choice. Others must be true.`;
+    case "content_true":
+      return `5 Korean choices. Ask which IS true. Exactly one true choice.`;
+    case "vocabulary":
+      return `Mark 5 underlined words in passageModified. Exactly ONE is contextually inappropriate. correctAnswer 1-5.`;
+    case "sentence_insertion":
+      return `Provide one sentence to insert. Mark ①~⑤ slots in passageModified. correctAnswer 1-5.`;
+    case "irrelevant_sentence":
+      return `Number sentences ①~⑤ in passageModified; one is irrelevant. correctAnswer 1-5.`;
+    case "order":
+      return `Give a lead-in paragraph, then A/B/C paragraphs. 5 order choices like (A)-(C)-(B). Exactly one correct order.`;
+    case "summary_short":
+      return `Provide full Korean translation first, then English passage with several _____ blanks for key words.
+correctAnswer: array of answers for blanks. acceptableAnswers optional.`;
+    case "topic":
+    case "title":
+      return `5 Korean choices. Exactly one correct. Cover whole passage, not a detail.`;
+    case "sentence_blank":
+      return `Blank a key phrase in passageModified. 5 English choices. Exactly one correct.`;
+    case "writing":
+      return `Korean prompt + list of given English words the student must use.
+Provide model English answer and scoringGuide with requiredKeywords.`;
+    default:
+      return `Follow standard Korean high-school exam format for this type.`;
+  }
 }
 
 function normalizePayload(
   raw: Record<string, unknown>,
   option: QuestionTypeOption,
-  passage: string
+  passage: string,
+  forcedInstruction: string
 ): GeneratedQuestionPayload {
   const choices = Array.isArray(raw.choices)
     ? raw.choices
         .map((c, i) => {
           const row = (c ?? {}) as Record<string, unknown>;
           return {
-            number:
-              typeof row.number === "number" ? row.number : i + 1,
+            number: typeof row.number === "number" ? row.number : i + 1,
             text: String(row.text ?? ""),
           };
         })
@@ -90,11 +93,6 @@ function normalizePayload(
     | number[];
   if (correctAnswer == null) correctAnswer = 1;
 
-  const scoring =
-    raw.scoringGuide && typeof raw.scoringGuide === "object"
-      ? (raw.scoringGuide as GeneratedQuestionPayload["scoringGuide"])
-      : undefined;
-
   return {
     type: option.type,
     category: option.category,
@@ -103,7 +101,7 @@ function normalizePayload(
     passageOriginal: passage,
     passageModified:
       typeof raw.passageModified === "string" ? raw.passageModified : undefined,
-    instruction: String(raw.instruction ?? ""),
+    instruction: forcedInstruction,
     questionText: String(raw.questionText ?? ""),
     choices,
     correctAnswer,
@@ -112,7 +110,10 @@ function normalizePayload(
       : undefined,
     explanation: String(raw.explanation ?? ""),
     evidence,
-    scoringGuide: scoring,
+    scoringGuide:
+      raw.scoringGuide && typeof raw.scoringGuide === "object"
+        ? (raw.scoringGuide as GeneratedQuestionPayload["scoringGuide"])
+        : undefined,
   };
 }
 
@@ -120,13 +121,14 @@ export function assertBasicQuestionShape(
   q: GeneratedQuestionPayload,
   option: QuestionTypeOption
 ): string | null {
-  if (!q.instruction.trim() && !q.questionText.trim()) {
-    return "발문/문제 텍스트가 비어 있습니다.";
-  }
+  if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
-  if (option.isObjective) {
+  if (option.isObjective && option.type !== "grammar") {
     if (!q.choices || q.choices.length < 5) {
-      return "객관식 선택지가 5개 미만입니다.";
+      // grammar underline may use ①~⑤ only in passage
+      if (option.type !== "vocabulary" && !option.key.includes(":underline")) {
+        return "객관식 선택지가 5개 미만입니다.";
+      }
     }
   }
   return null;
@@ -140,56 +142,61 @@ export async function generateOneQuestion(opts: {
   overallDifficulty: string;
 }): Promise<GeneratedQuestionPayload> {
   const { option, passage, analysis } = opts;
+  const forcedInstruction =
+    KOREAN_INSTRUCTION_BY_KEY[option.key] ??
+    "다음 글을 읽고 물음에 답하시오.";
+
   const raw = (await questionGeneratorChatJsonWithRetry({
-    system: `You are an expert Korean English exam item writer for middle/high school.
+    system: `You are an expert Korean high-school English 내신 변형문제 writer (WooJack/SkunkWorks 11-step style).
 Return ONLY valid JSON for ONE question.
-Never rewrite the original passage wording unless the question type requires a modified display passage (grammar/vocab/insertion/irrelevant/order/blank). When modifying, keep meaning intact except for the intentional test point.
-${TYPE_RULES[option.type] ?? ""}
-${difficultyGuide(option.difficulty)}
-${languageGuide(option.choiceLanguage)}
-Include evidence from the passage. Include a validation object with overallScore 0-100.`,
+CRITICAL:
+- instruction MUST be exactly this Korean string: ${JSON.stringify(forcedInstruction)}
+- Do NOT write English stems/instructions.
+- Keep original passage wording unless the type requires a modified display passage.
+- Choices for content/topic/title must be natural Korean (not translationese).
+- Provide evidence and Korean explanation.
+${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
       overallDifficulty: opts.overallDifficulty,
-      requestedType: option.type,
-      requestedDifficulty: option.difficulty,
-      choiceLanguage: option.choiceLanguage,
+      optionKey: option.key,
       optionLabel: option.label,
+      requestedType: option.type,
+      forcedInstruction,
       passage,
       analysis,
       outputSchema: {
-        instruction: "string",
-        questionText: "string",
+        instruction: forcedInstruction,
+        questionText: "string (extra prompt, Korean translation, given words, etc.)",
         passageModified: "string|optional",
         choices: [{ number: 1, text: "string" }],
-        correctAnswer: "number|string|number[]",
+        correctAnswer: "number|string|array",
         acceptableAnswers: ["string"],
-        explanation: "string",
+        explanation: "string in Korean",
         evidence: [{ sentence: "string", description: "string" }],
         scoringGuide: {
           totalPoints: 5,
           fullScoreCondition: "string",
           partialScoreConditions: [{ points: 2, condition: "string" }],
           requiredKeywords: ["string"],
-          requiredGrammar: ["string"],
         },
         validation: {
           singleCorrectAnswer: true,
           answerMatchesExplanation: true,
           evidenceExists: true,
-          ambiguityRisk: "low|medium|high",
+          ambiguityRisk: "low",
           difficultyMatch: true,
           grammarChecked: true,
           overallScore: 90,
-          warnings: ["string"],
+          warnings: [],
         },
       },
     }),
-    temperature: 0.4,
+    temperature: 0.35,
     maxTokens: 4500,
   })) as Record<string, unknown>;
 
-  const payload = normalizePayload(raw, option, passage);
+  const payload = normalizePayload(raw, option, passage, forcedInstruction);
   if (raw.validation && typeof raw.validation === "object") {
     const v = raw.validation as Record<string, unknown>;
     payload.validation = {

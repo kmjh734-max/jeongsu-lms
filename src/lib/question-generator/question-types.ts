@@ -4,6 +4,9 @@ import type {
   QuestionTypeOption,
 } from "@/lib/question-generator/types";
 
+/**
+ * 우작 11단계 내신 변형문제 유형 (샘플 PDF 기준)
+ */
 function opt(
   type: QuestionTypeOption["type"],
   category: QuestionCategory,
@@ -11,7 +14,8 @@ function opt(
   difficulty: QuestionTypeOption["difficulty"],
   choiceLanguage: QuestionTypeOption["choiceLanguage"],
   isObjective: boolean,
-  preview: string
+  preview: string,
+  keySuffix?: string
 ): QuestionTypeOption {
   const lang =
     choiceLanguage === "english"
@@ -28,7 +32,7 @@ function opt(
           ? "mid"
           : "high";
   return {
-    key: `${type}:${lang}:${diff}`,
+    key: `${type}:${lang}:${diff}${keySuffix ? `:${keySuffix}` : ""}`,
     type,
     category,
     label,
@@ -41,74 +45,162 @@ function opt(
 
 export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
   {
-    category: "main_idea",
-    label: "대의 파악",
-    options: [
-      opt("title", "main_idea", "제목 · 영어 · 하", "low", "english", true, "지문 전체를 포괄하는 제목을 고르는 5지선다 (영어 선택지, 하)"),
-      opt("title", "main_idea", "제목 · 영어 · 상", "high", "english", true, "지문 전체를 포괄하는 제목을 고르는 5지선다 (영어 선택지, 상)"),
-      opt("title", "main_idea", "제목 · 한글 · 하", "low", "korean", true, "지문 전체를 포괄하는 제목을 고르는 5지선다 (한글 선택지, 하)"),
-      opt("title", "main_idea", "제목 · 한글 · 상", "high", "korean", true, "지문 전체를 포괄하는 제목을 고르는 5지선다 (한글 선택지, 상)"),
-      opt("topic", "main_idea", "주제 · 영어 · 하", "low", "english", true, "글의 중심 생각을 고르는 5지선다 (영어, 하)"),
-      opt("topic", "main_idea", "주제 · 영어 · 상", "high", "english", true, "글의 중심 생각을 고르는 5지선다 (영어, 상)"),
-      opt("topic", "main_idea", "주제 · 한글 · 하", "low", "korean", true, "글의 중심 생각을 고르는 5지선다 (한글, 하)"),
-      opt("topic", "main_idea", "주제 · 한글 · 상", "high", "korean", true, "글의 중심 생각을 고르는 5지선다 (한글, 상)"),
-      opt("summary_mcq", "main_idea", "요약문 완성 객관식", "default", null, true, "요지 요약문의 빈칸을 채우는 5지선다"),
-    ],
-  },
-  {
     category: "details",
-    label: "세부 정보",
+    label: "1단계 · 내용 일치",
     options: [
-      opt("content_true", "details", "내용 일치 · 영어 · 하", "low", "english", true, "본문과 일치하는 내용을 고르는 5지선다 (영어, 하)"),
-      opt("content_true", "details", "내용 일치 · 영어 · 상", "high", "english", true, "본문과 일치하는 내용을 고르는 5지선다 (영어, 상)"),
-      opt("content_true", "details", "내용 일치 · 한글 · 하", "low", "korean", true, "본문과 일치하는 내용을 고르는 5지선다 (한글, 하)"),
-      opt("content_true", "details", "내용 일치 · 한글 · 상", "high", "korean", true, "본문과 일치하는 내용을 고르는 5지선다 (한글, 상)"),
-      opt("content_false", "details", "내용 불일치 · 영어 · 하", "low", "english", true, "본문과 일치하지 않는 내용을 고르는 5지선다 (영어, 하)"),
-      opt("content_false", "details", "내용 불일치 · 영어 · 상", "high", "english", true, "본문과 일치하지 않는 내용을 고르는 5지선다 (영어, 상)"),
-      opt("content_false", "details", "내용 불일치 · 한글 · 하", "low", "korean", true, "본문과 일치하지 않는 내용을 고르는 5지선다 (한글, 하)"),
-      opt("content_false", "details", "내용 불일치 · 한글 · 상", "high", "korean", true, "본문과 일치하지 않는 내용을 고르는 5지선다 (한글, 상)"),
-      opt("content_count", "details", "일치하는 내용의 개수", "default", null, true, "5개 진술 중 본문과 일치하는 개수를 고름"),
-    ],
-  },
-  {
-    category: "inference",
-    label: "추론 능력",
-    options: [
-      opt("order", "inference", "글의 순서", "default", null, true, "도입부 + A/B/C 순서를 고르는 5지선다"),
-      opt("sentence_blank", "inference", "문장 빈칸 · 하", "low", "english", true, "핵심 어구/문장 빈칸 5지선다 (하)"),
-      opt("sentence_blank", "inference", "문장 빈칸 · 중", "medium", "english", true, "핵심 어구/문장 빈칸 5지선다 (중)"),
-      opt("sentence_blank", "inference", "문장 빈칸 · 상", "high", "english", true, "핵심 어구/문장 빈칸 5지선다 (상)"),
-      opt("irrelevant_sentence", "inference", "흐름과 무관한 문장 · 하", "low", null, true, "번호 매긴 문장 중 무관한 문장 고르기 (하)"),
-      opt("irrelevant_sentence", "inference", "흐름과 무관한 문장 · 중", "medium", null, true, "번호 매긴 문장 중 무관한 문장 고르기 (중)"),
-      opt("irrelevant_sentence", "inference", "흐름과 무관한 문장 · 상", "high", null, true, "번호 매긴 문장 중 무관한 문장 고르기 (상)"),
-      opt("sentence_insertion", "inference", "문장 삽입 위치 · 하", "low", null, true, "주어진 문장이 들어갈 ①~⑤ 위치 고르기 (하)"),
-      opt("sentence_insertion", "inference", "문장 삽입 위치 · 중", "medium", null, true, "주어진 문장이 들어갈 ①~⑤ 위치 고르기 (중)"),
-      opt("sentence_insertion", "inference", "문장 삽입 위치 · 상", "high", null, true, "주어진 문장이 들어갈 ①~⑤ 위치 고르기 (상)"),
-      opt("underlined_inference", "inference", "밑줄 의미 추론", "default", "english", true, "밑줄 친 표현의 문맥상 의미 5지선다"),
+      opt(
+        "content_false",
+        "details",
+        "내용 불일치 (한글 선택지)",
+        "default",
+        "korean",
+        true,
+        "「위 글의 내용과 일치하지 않는 것은?」 한글 5지선다"
+      ),
+      opt(
+        "content_true",
+        "details",
+        "내용 일치 (한글 선택지)",
+        "default",
+        "korean",
+        true,
+        "「위 글의 내용과 일치하는 것은?」 한글 5지선다"
+      ),
     ],
   },
   {
     category: "grammar_vocabulary",
-    label: "어법·어휘",
+    label: "2·4·5·6단계 · 어법·어휘",
     options: [
-      opt("grammar", "grammar_vocabulary", "어법 · 하", "low", null, true, "본문 5곳 중 어법상 틀린 곳 1개 고르기 (하)"),
-      opt("grammar", "grammar_vocabulary", "어법 · 중", "medium", null, true, "본문 5곳 중 어법상 틀린 곳 1개 고르기 (중)"),
-      opt("grammar", "grammar_vocabulary", "어법 · 상", "high", null, true, "본문 5곳 중 어법상 틀린 곳 1개 고르기 (상)"),
-      opt("vocabulary", "grammar_vocabulary", "어휘 · 하", "low", null, true, "본문 5곳 중 문맥상 부적절한 어휘 1개 고르기 (하)"),
-      opt("vocabulary", "grammar_vocabulary", "어휘 · 중", "medium", null, true, "본문 5곳 중 문맥상 부적절한 어휘 1개 고르기 (중)"),
-      opt("vocabulary", "grammar_vocabulary", "어휘 · 상", "high", null, true, "본문 5곳 중 문맥상 부적절한 어휘 1개 고르기 (상)"),
+      opt(
+        "grammar",
+        "grammar_vocabulary",
+        "2단계 어법·어휘 양자택일",
+        "default",
+        null,
+        false,
+        "본문 [A / B] 괄호에서 올바른 표현 고르기 (여러 곳)",
+        "binary"
+      ),
+      opt(
+        "grammar",
+        "grammar_vocabulary",
+        "4단계 어법 (밑줄 5곳)",
+        "default",
+        null,
+        true,
+        "「밑줄 친 부분 중 어법상 틀린 것은?」",
+        "underline"
+      ),
+      opt(
+        "vocabulary",
+        "grammar_vocabulary",
+        "5단계 어휘의 적절성",
+        "default",
+        null,
+        true,
+        "「밑줄 친 부분 중 문맥상 적절하지 않은 것은?」"
+      ),
+      opt(
+        "grammar",
+        "grammar_vocabulary",
+        "6단계 어법 고쳐 쓰기",
+        "default",
+        null,
+        false,
+        "괄호 안 표현을 맥락·어법에 맞게 고쳐 쓰기",
+        "rewrite"
+      ),
+    ],
+  },
+  {
+    category: "inference",
+    label: "3·8단계 · 글의 흐름·순서",
+    options: [
+      opt(
+        "sentence_insertion",
+        "inference",
+        "3단계 문장 삽입 위치",
+        "default",
+        null,
+        true,
+        "「주어진 문장이 들어가기에 가장 적절한 곳은?」 ①~⑤"
+      ),
+      opt(
+        "irrelevant_sentence",
+        "inference",
+        "3단계 흐름과 무관한 문장",
+        "default",
+        null,
+        true,
+        "「글의 흐름과 관계 없는 문장은?」"
+      ),
+      opt(
+        "order",
+        "inference",
+        "8단계 글의 순서",
+        "default",
+        null,
+        true,
+        "주어진 글 다음에 이어질 순서로 알맞은 것은?"
+      ),
+    ],
+  },
+  {
+    category: "main_idea",
+    label: "7·9·10단계 · 빈칸·주제",
+    options: [
+      opt(
+        "summary_short",
+        "main_idea",
+        "7단계 본문 이해 빈칸",
+        "default",
+        null,
+        false,
+        "우리말 해석을 보고 영어 빈칸에 알맞은 단어 채우기"
+      ),
+      opt(
+        "topic",
+        "main_idea",
+        "9단계 주제 (한글 선택지)",
+        "default",
+        "korean",
+        true,
+        "「위 글의 주제로 가장 적절한 것은?」"
+      ),
+      opt(
+        "sentence_blank",
+        "main_idea",
+        "10단계 빈칸 추론",
+        "default",
+        "english",
+        true,
+        "「빈칸에 들어갈 말로 가장 적절한 것은?」 영어 선택지"
+      ),
+      opt(
+        "title",
+        "main_idea",
+        "9단계 제목 (한글 선택지)",
+        "default",
+        "korean",
+        true,
+        "「위 글의 제목으로 가장 적절한 것은?」"
+      ),
     ],
   },
   {
     category: "subjective",
-    label: "주관식·서술형",
+    label: "11단계 · 서술형",
     options: [
-      opt("summary_short", "subjective", "요약문 완성 주관식", "default", null, false, "요약문 빈칸을 직접 쓰는 주관식"),
-      opt("writing", "subjective", "서술형 영작 · 하", "low", null, false, "조건에 맞는 영어 문장 작성 (하)"),
-      opt("writing", "subjective", "서술형 영작 · 중", "medium", null, false, "조건에 맞는 영어 문장 작성 (중)"),
-      opt("writing", "subjective", "서술형 영작 · 상", "high", null, false, "조건에 맞는 영어 문장 작성 (상)"),
-      opt("short_title", "subjective", "서술형 제목", "default", null, false, "적절한 제목을 직접 작성"),
-      opt("short_topic", "subjective", "서술형 주제", "default", null, false, "글의 주제를 직접 작성"),
+      opt(
+        "writing",
+        "subjective",
+        "11단계 주어진 단어로 영작",
+        "default",
+        null,
+        false,
+        "우리말 조건을 주어진 영어 단어를 사용해 영작"
+      ),
     ],
   },
 ];
@@ -157,3 +249,30 @@ export function expandCountRequests(
   }
   return list;
 }
+
+/** 발문 고정 템플릿 (항상 한글) */
+export const KOREAN_INSTRUCTION_BY_KEY: Record<string, string> = {
+  "content_false:ko:default": "위 글의 내용과 일치하지 않는 것은?",
+  "content_true:ko:default": "위 글의 내용과 일치하는 것은?",
+  "grammar:na:default:binary":
+    "아래 괄호 안의 표현들 중에서 올바른 표현을 고르세요.",
+  "grammar:na:default:underline":
+    "위 글의 밑줄 친 부분 중, 어법상 틀린 것은?",
+  "vocabulary:na:default":
+    "위 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?",
+  "grammar:na:default:rewrite":
+    "아래 글의 괄호 안에 주어진 표현들을 글의 맥락과 어법에 알맞게 고쳐 쓰시오.",
+  "sentence_insertion:na:default":
+    "글의 흐름으로 보아, 주어진 문장이 들어가기에 가장 적절한 곳은?",
+  "irrelevant_sentence:na:default":
+    "글의 흐름으로 보아, 주어진 글에서 흐름과 관계 없는 문장은?",
+  "order:na:default":
+    "주어진 글 다음에 이어질 글의 순서로 가장 적절한 것은?",
+  "summary_short:na:default":
+    "주어진 우리말 해석에 알맞게 빈칸에 알맞은 단어들을 채워 넣으세요.",
+  "topic:ko:default": "위 글의 주제로 가장 적절한 것은?",
+  "title:ko:default": "위 글의 제목으로 가장 적절한 것은?",
+  "sentence_blank:en:default": "빈칸에 들어갈 말로 가장 적절한 것은?",
+  "writing:na:default":
+    "다음 우리말 내용을 주어진 영어 단어를 모두 사용하여 영작하시오.",
+};

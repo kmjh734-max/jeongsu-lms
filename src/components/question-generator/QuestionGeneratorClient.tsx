@@ -251,7 +251,7 @@ export function QuestionGeneratorClient({
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="지문을 입력하고 유형·난이도·세트 수를 지정해 변형문제를 생성합니다. 생성된 문제는 검수·승인 후 문제은행에 저장됩니다."
+        description="우작 11단계 스타일(내용·어법·흐름·빈칸·서술형)로 변형문제를 생성합니다. 자동 검수 후 A4 2단으로 인쇄·PDF 저장·복사가 가능합니다."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -388,10 +388,10 @@ export function QuestionGeneratorClient({
         <div className="flex flex-wrap gap-2">
           {[
             { id: "custom", label: "유형 직접 설정" },
-            { id: "basic_set", label: "기본 종합세트" },
-            { id: "naesin_set", label: "내신 종합세트" },
-            { id: "grammar_vocab_focus", label: "어법·어휘 집중" },
-            { id: "writing_focus", label: "서술형 집중" },
+            { id: "woojack_core", label: "11단계 핵심 세트" },
+            { id: "woojack_objective", label: "객관식 집중" },
+            { id: "woojack_grammar_vocab", label: "어법·어휘 집중" },
+            { id: "woojack_writing", label: "서술·빈칸 집중" },
           ].map((tab) => (
             <button
               key={tab.id}

@@ -62,6 +62,7 @@ function toRow(
     errorMessage?: string | null;
   }
 ) {
+  const approved = opts.status === "approved";
   return {
     passage_id: opts.passageId,
     generation_job_id: opts.jobId,
@@ -86,6 +87,8 @@ function toRow(
     generation_attempt: opts.attempt,
     error_message: opts.errorMessage ?? null,
     created_by: opts.userId,
+    approved_by: approved ? opts.userId : null,
+    approved_at: approved ? new Date().toISOString() : null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -98,7 +101,7 @@ async function generateWithValidation(opts: {
   overallDifficulty: string;
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
-  status: "draft" | "needs_review";
+  status: "draft" | "needs_review" | "approved";
   attempt: number;
   error: string | null;
 }> {
@@ -117,15 +120,17 @@ async function generateWithValidation(opts: {
       payload.validation = validation;
 
       if (!shouldRegenerate(validation) || attempt > MAX_REGENERATION_ATTEMPTS) {
-        const status =
-          shouldRegenerate(validation) || validation.overallScore < 85
-            ? "needs_review"
-            : "draft";
+        // 자동 검수: 통과하면 바로 approved, 미통과면 needs_review (강사 수동 검수 UI 없이 출력은 가능)
+        const failed =
+          shouldRegenerate(validation) || validation.overallScore < 85;
+        const status = failed ? "needs_review" : "approved";
         return {
           payload,
           status,
           attempt,
-          error: status === "needs_review" ? "자동 검수 기준 미달 — 강사 검토 필요" : null,
+          error: failed
+            ? "자동 검수 기준 미달 — 해설을 확인하세요."
+            : null,
         };
       }
     } catch (e) {
