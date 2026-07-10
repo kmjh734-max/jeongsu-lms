@@ -102,57 +102,37 @@ async function generateWithValidation(opts: {
   sourceDetail?: string;
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
-  status: "draft" | "needs_review" | "approved";
+  status: "approved";
   attempt: number;
   error: string | null;
 }> {
   let lastError: string | null = null;
-  let lastPayload: GeneratedQuestionPayload | null = null;
 
   for (let attempt = 1; attempt <= MAX_REGENERATION_ATTEMPTS + 1; attempt++) {
     try {
       const payload = await generateOneQuestion(opts);
-      lastPayload = payload;
-      const validation = await validateGeneratedQuestion({
+      const validation = validateGeneratedQuestion({
         passage: opts.passage,
         option: opts.option,
         question: payload,
       });
       payload.validation = validation;
 
-      if (!shouldRegenerate(validation) || attempt > MAX_REGENERATION_ATTEMPTS) {
-        // 자동 검수: 통과하면 바로 approved, 미통과면 needs_review (강사 수동 검수 UI 없이 출력은 가능)
-        const failed =
-          shouldRegenerate(validation) || validation.overallScore < 85;
-        const status = failed ? "needs_review" : "approved";
-        return {
-          payload,
-          status,
-          attempt,
-          error: failed
-            ? "자동 검수 기준 미달 — 해설을 확인하세요."
-            : null,
-        };
+      if (!shouldRegenerate(validation)) {
+        return { payload, status: "approved", attempt, error: null };
       }
+      lastError = validation.warnings.join(" · ") || "형태 검수 미달";
     } catch (e) {
       lastError = e instanceof Error ? e.message : "생성 실패";
     }
   }
 
-  if (lastPayload) {
-    return {
-      payload: lastPayload,
-      status: "needs_review",
-      attempt: MAX_REGENERATION_ATTEMPTS + 1,
-      error: lastError ?? "검수 미통과",
-    };
-  }
-
+  // 미달·실패 문항은 저장하지 않고 폐기
   return {
     payload: null,
-    status: "needs_review",
+    status: "approved",
     attempt: MAX_REGENERATION_ATTEMPTS + 1,
-    error: lastError ?? "생성 실패",
+    error: lastError ?? "생성 실패 — 문항 폐기",
   };
 }
 
@@ -252,32 +232,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
 
       if (!result.payload) {
         failed += 1;
-        await admin.from("generated_english_questions").insert(
-          toRow(
-            {
-              type: option.type,
-              category: option.category,
-              difficulty: option.difficulty,
-              choiceLanguage: option.choiceLanguage,
-              passageOriginal: passageRow.passage,
-              instruction: "",
-              questionText: "",
-              correctAnswer: 1,
-              explanation: "",
-              evidence: [],
-            },
-            {
-              passageId,
-              jobId,
-              option,
-              userId,
-              attempt: result.attempt,
-              status: "needs_review",
-              validationScore: 0,
-              errorMessage: result.error,
-            }
-          )
-        );
+        // 불량 문항은 DB에 넣지 않고 폐기
       } else {
         completed += 1;
         await admin.from("generated_english_questions").insert(
@@ -287,9 +242,9 @@ export async function runGenerationJob(jobId: string): Promise<void> {
             option,
             userId,
             attempt: result.attempt,
-            status: result.status,
+            status: "approved",
             validationScore: result.payload.validation?.overallScore ?? null,
-            errorMessage: result.error,
+            errorMessage: null,
           })
         );
       }
@@ -382,7 +337,7 @@ export async function regenerateSingleQuestion(opts: {
   });
 
   if (!result.payload) {
-    throw new Error(result.error ?? "재생성에 실패했습니다.");
+    throw new Error(result.error ?? "재생성에 실패했습니다. 문항을 삭제하세요.");
   }
 
   const before = { ...q };
@@ -394,13 +349,15 @@ export async function regenerateSingleQuestion(opts: {
     correct_answer: result.payload.correctAnswer,
     acceptable_answers: result.payload.acceptableAnswers ?? null,
     explanation: result.payload.explanation,
-    evidence: result.payload.evidence ?? [],
+    evidence: [],
     scoring_guide: result.payload.scoringGuide ?? null,
     validation_result: result.payload.validation ?? null,
     validation_score: result.payload.validation?.overallScore ?? null,
-    status: result.status,
+    status: "approved",
     generation_attempt: (q.generation_attempt ?? 1) + 1,
-    error_message: result.error,
+    error_message: null,
+    approved_by: q.created_by,
+    approved_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 

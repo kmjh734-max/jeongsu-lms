@@ -251,7 +251,7 @@ export function QuestionGeneratorClient({
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="고1 학력평가 수준의 유형·난이도로 변형문제를 만듭니다. 「윗글의 …」 발문·①~⑤ 선택지 · 자동 검수 후 A4 2단 PDF·복사."
+        description="고1 학력평가 수준의 유형·난이도로 변형문제를 만듭니다. 생성 후 바로 문제·해설지 PDF를 받을 수 있습니다."
         action={
           <div className="flex flex-wrap gap-2">
             <Link

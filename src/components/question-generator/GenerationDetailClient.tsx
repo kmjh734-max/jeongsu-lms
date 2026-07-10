@@ -5,23 +5,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { cleanQuestionText } from "@/lib/question-generator/text-utils";
 
 type QuestionRow = {
   id: string;
   category: string;
   question_type: string;
-  difficulty: string;
-  choice_language: string | null;
   instruction: string;
   question_text: string;
   passage_modified: string | null;
+  passage_original?: string;
   choices: Array<{ number: number; text: string }> | null;
   correct_answer: unknown;
   explanation: string;
-  evidence: Array<{ sentence: string; description: string }> | null;
-  scoring_guide: unknown;
-  validation_score: number | null;
-  validation_result: { warnings?: string[] } | null;
   status: string;
   error_message: string | null;
   option_key: string | null;
@@ -39,11 +35,21 @@ const STATUS_LABEL: Record<string, string> = {
   pending: "대기",
   analyzing: "지문 분석 중",
   generating: "생성 중",
-  validating: "검수 중",
+  validating: "생성 중",
   partially_completed: "일부 완료",
   completed: "완료",
   failed: "실패",
 };
+
+const CIRCLED = ["①", "②", "③", "④", "⑤"];
+
+function formatAnswer(a: unknown): string {
+  if (Array.isArray(a)) return a.join(" / ");
+  if (typeof a === "number" && a >= 1 && a <= 5) {
+    return CIRCLED[a - 1] ?? String(a);
+  }
+  return String(a ?? "");
+}
 
 export function GenerationDetailClient({
   jobId,
@@ -89,7 +95,7 @@ export function GenerationDetailClient({
       job.status
     );
     if (!running) return;
-    const t = window.setInterval(() => void load(), 2500);
+    const t = window.setInterval(() => void load(), 2000);
     return () => window.clearInterval(t);
   }, [job, load]);
 
@@ -102,49 +108,6 @@ export function GenerationDetailClient({
     }
     return map;
   }, [questions]);
-
-  async function approveOne(id: string) {
-    setBusyId(id);
-    try {
-      const res = await fetch(`/api/question-generator/questions/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "approved" }),
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        setError(data.message);
-        return;
-      }
-      await load();
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function approveAll() {
-    const risky = questions.filter(
-      (q) =>
-        (q.validation_score != null && q.validation_score < 85) ||
-        (q.validation_result?.warnings?.length ?? 0) > 0 ||
-        q.status === "needs_review"
-    );
-    if (risky.length > 0) {
-      const ok = window.confirm(
-        `검수 점수·경고가 있는 문항 ${risky.length}개가 포함되어 있습니다. 그래도 일괄 승인할까요?`
-      );
-      if (!ok) return;
-    }
-    for (const q of questions) {
-      if (q.status === "approved") continue;
-      await fetch(`/api/question-generator/questions/${q.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "approved" }),
-      });
-    }
-    await load();
-  }
 
   async function runAction(id: string, action: string) {
     setBusyId(id);
@@ -175,7 +138,6 @@ export function GenerationDetailClient({
           choices: editDraft.choices,
           correct_answer: editDraft.correct_answer,
           explanation: editDraft.explanation,
-          evidence: editDraft.evidence,
         }),
       });
       const data = await res.json();
@@ -210,6 +172,9 @@ export function GenerationDetailClient({
     job &&
     ["pending", "analyzing", "generating", "validating"].includes(job.status);
 
+  const printExamHref = `${basePath}/generations/${jobId}/print?mode=exam`;
+  const printAnswersHref = `${basePath}/generations/${jobId}/print?mode=answers`;
+
   return (
     <div>
       <PageHeader
@@ -218,7 +183,7 @@ export function GenerationDetailClient({
           job?.english_source_passages?.title ||
           "생성 결과"
         }
-        description="유형별로 생성된 문제를 검토·수정·승인합니다."
+        description="생성된 문제를 바로 PDF로 저장할 수 있습니다."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -233,20 +198,26 @@ export function GenerationDetailClient({
             >
               생성 기록
             </Link>
-            <Link
-              href={`${basePath}/generations/${jobId}/print`}
-              className="rounded-lg bg-brand-700 px-3 py-2 text-sm font-medium text-white"
-            >
-              PDF·인쇄 / 복사
-            </Link>
-            {questions.length > 0 && (
-              <Button type="button" onClick={() => void approveAll()}>
-                일괄 승인
-              </Button>
-            )}
           </div>
         }
       />
+
+      {questions.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-3">
+          <Link
+            href={printExamHref}
+            className="inline-flex items-center rounded-xl bg-brand-700 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-800"
+          >
+            문제 PDF
+          </Link>
+          <Link
+            href={printAnswersHref}
+            className="inline-flex items-center rounded-xl border border-brand-700 bg-white px-5 py-3 text-sm font-semibold text-brand-800 shadow-sm hover:bg-brand-50"
+          >
+            해설지 PDF
+          </Link>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4">
@@ -265,13 +236,20 @@ export function GenerationDetailClient({
             </span>
             <span className="text-slate-500">
               완료 {job.total_completed}/{job.total_requested}
-              {job.total_failed > 0 ? ` · 실패 ${job.total_failed}` : ""}
+              {job.total_failed > 0
+                ? ` · 폐기 ${job.total_failed}`
+                : ""}
             </span>
             {running && (
               <span className="animate-pulse text-brand-700">진행 중…</span>
             )}
-            {(job.status === "failed" || job.status === "partially_completed") && (
-              <Button type="button" variant="secondary" onClick={() => void retryJob()}>
+            {(job.status === "failed" ||
+              job.status === "partially_completed") && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void retryJob()}
+              >
                 실패 유형 재시도
               </Button>
             )}
@@ -291,52 +269,14 @@ export function GenerationDetailClient({
             </span>
           </h2>
           <div className="space-y-4">
-            {list.map((q) => {
+            {list.map((q, idx) => {
               const editing = editingId === q.id;
+              const extra = cleanQuestionText(q.question_text);
               return (
                 <article
                   key={q.id}
                   className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
                 >
-                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded bg-brand-50 px-2 py-0.5 font-semibold text-brand-800">
-                      {q.question_type}
-                    </span>
-                    <span className="rounded bg-slate-100 px-2 py-0.5">
-                      {q.difficulty}
-                    </span>
-                    {q.choice_language && (
-                      <span className="rounded bg-slate-100 px-2 py-0.5">
-                        {q.choice_language}
-                      </span>
-                    )}
-                    <span
-                      className={`rounded px-2 py-0.5 font-medium ${
-                        q.status === "approved"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : q.status === "needs_review"
-                            ? "bg-amber-100 text-amber-900"
-                            : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      {q.status}
-                    </span>
-                    {q.validation_score != null && (
-                      <span className="text-slate-600">
-                        검수 {q.validation_score}점
-                      </span>
-                    )}
-                  </div>
-
-                  {(q.validation_result?.warnings?.length ?? 0) > 0 && (
-                    <p className="mb-2 text-xs text-amber-800">
-                      경고: {q.validation_result!.warnings!.join(" · ")}
-                    </p>
-                  )}
-                  {q.error_message && (
-                    <p className="mb-2 text-xs text-red-600">{q.error_message}</p>
-                  )}
-
                   {editing ? (
                     <div className="space-y-2">
                       <label className="block text-xs">
@@ -353,9 +293,9 @@ export function GenerationDetailClient({
                         />
                       </label>
                       <label className="block text-xs">
-                        문제
+                        추가 안내 (선택)
                         <textarea
-                          className="ui-input mt-1 min-h-[80px]"
+                          className="ui-input mt-1 min-h-[60px]"
                           value={editDraft.question_text ?? ""}
                           onChange={(e) =>
                             setEditDraft((d) => ({
@@ -405,9 +345,10 @@ export function GenerationDetailClient({
                             const num = Number(v);
                             setEditDraft((d) => ({
                               ...d,
-                              correct_answer: Number.isFinite(num) && v.trim() !== ""
-                                ? num
-                                : v,
+                              correct_answer:
+                                Number.isFinite(num) && v.trim() !== ""
+                                  ? num
+                                  : v,
                             }));
                           }}
                         />
@@ -444,45 +385,36 @@ export function GenerationDetailClient({
                     </div>
                   ) : (
                     <>
-                      <p className="text-sm font-medium text-slate-900">
-                        {q.instruction}
+                      <p className="text-sm font-semibold text-slate-900">
+                        {idx + 1}. {q.instruction}
                       </p>
                       {q.passage_modified && (
                         <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 font-serif text-sm text-slate-800">
                           {q.passage_modified}
                         </pre>
                       )}
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800">
-                        {q.question_text}
-                      </p>
+                      {extra && (
+                        <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800">
+                          {extra}
+                        </p>
+                      )}
                       {q.choices && q.choices.length > 0 && (
                         <ul className="mt-2 space-y-1 text-sm">
                           {q.choices.map((c) => (
                             <li key={c.number}>
-                              {c.number}. {c.text}
+                              {CIRCLED[c.number - 1] ?? `${c.number}.`} {c.text}
                             </li>
                           ))}
                         </ul>
                       )}
-                      <p className="mt-2 text-sm">
+                      <p className="mt-3 text-sm">
                         <span className="font-semibold text-brand-800">정답</span>{" "}
-                        {JSON.stringify(q.correct_answer)}
+                        {formatAnswer(q.correct_answer)}
                       </p>
                       <p className="mt-1 text-sm text-slate-700">
-                        <span className="font-semibold">해설</span> {q.explanation}
+                        <span className="font-semibold">해설</span>{" "}
+                        {q.explanation}
                       </p>
-                      {q.evidence && q.evidence.length > 0 && (
-                        <div className="mt-2 text-xs text-slate-600">
-                          <p className="font-semibold">근거</p>
-                          <ul className="list-disc pl-4">
-                            {q.evidence.map((e, i) => (
-                              <li key={i}>
-                                {e.sentence} — {e.description}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                     </>
                   )}
 
@@ -503,43 +435,7 @@ export function GenerationDetailClient({
                       disabled={busyId === q.id}
                       onClick={() => void runAction(q.id, "regenerate")}
                     >
-                      전체 재생성
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busyId === q.id}
-                      onClick={() => void runAction(q.id, "regenerate_choices")}
-                    >
-                      선택지만 재생성
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busyId === q.id}
-                      onClick={() => void runAction(q.id, "revalidate")}
-                    >
-                      다시 검수
-                    </Button>
-                    <Button
-                      type="button"
-                      disabled={busyId === q.id || q.status === "approved"}
-                      onClick={() => void approveOne(q.id)}
-                    >
-                      승인
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() =>
-                        void fetch(`/api/question-generator/questions/${q.id}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ status: "needs_review" }),
-                        }).then(load)
-                      }
-                    >
-                      검수 보류
+                      재생성
                     </Button>
                     <Button
                       type="button"
@@ -548,12 +444,6 @@ export function GenerationDetailClient({
                     >
                       삭제
                     </Button>
-                    <Link
-                      href={`${basePath}/questions/${q.id}`}
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                    >
-                      상세
-                    </Link>
                   </div>
                 </article>
               );

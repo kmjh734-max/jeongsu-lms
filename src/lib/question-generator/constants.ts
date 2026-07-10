@@ -4,14 +4,14 @@ export const MAX_SETS_PER_TYPE = 5;
 /** 한 번에 생성 가능한 최대 문항 수 */
 export const MAX_TOTAL_QUESTIONS = 30;
 
-/** 검수 통과 최소 점수 */
-export const VALIDATION_PASS_SCORE = 85;
+/** 로컬 검수 통과 최소 점수 (미달 시 문항 폐기) */
+export const VALIDATION_PASS_SCORE = 70;
 
-/** 문항당 최대 재생성 횟수 */
-export const MAX_REGENERATION_ATTEMPTS = 2;
+/** 문항당 최대 재생성 횟수 (실패 시 폐기) */
+export const MAX_REGENERATION_ATTEMPTS = 1;
 
 /** AI 동시 요청 수 */
-export const GENERATION_CONCURRENCY = 2;
+export const GENERATION_CONCURRENCY = 4;
 
 /** 지문 최소 단어 수 (경고) */
 export const MIN_PASSAGE_WORDS = 40;
