@@ -21,9 +21,12 @@ export function validateGeneratedQuestion(opts: {
       option.type === "sentence_insertion" ||
       option.type === "irrelevant_sentence";
 
-    if (option.type === "sentence_insertion") {
+    if (slotInPassage) {
       // 본문 ①~⑤가 보기 — 하단 선택지 불필요
-      if (!(q.questionText || "").trim()) {
+      if (
+        option.type === "sentence_insertion" &&
+        !(q.questionText || "").trim()
+      ) {
         warnings.push("주어진 문장이 없습니다.");
         score -= 40;
       }
@@ -33,10 +36,7 @@ export function validateGeneratedQuestion(opts: {
     }
 
     const nums = new Set((q.choices ?? []).map((c) => c.number));
-    if (
-      option.type !== "sentence_insertion" &&
-      nums.size !== (q.choices?.length ?? 0)
-    ) {
+    if (!slotInPassage && nums.size !== (q.choices?.length ?? 0)) {
       warnings.push("선택지 번호가 중복되었습니다.");
       score -= 15;
     }

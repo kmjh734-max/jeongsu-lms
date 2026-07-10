@@ -96,7 +96,7 @@ export const SYSTEM_PRESETS: Array<{
       ["sentence_insertion:na:high:문장삽입", 1],
       ["topic:en:high:주제추론", 1],
       ["title:en:high:제목추론", 1],
-      ["underlined_inference:ko:default:함축의미추론", 1],
+      ["underlined_inference:en:default:함축의미추론", 1],
       ["writing:na:default:서술형영작", 1],
     ]),
   },

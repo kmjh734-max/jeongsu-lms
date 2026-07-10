@@ -334,15 +334,15 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "무관한문장",
         "윗글의 (A)~(E) 중, 흐름상 관계없는 것은?"
       ),
-      // 함축의미추론: 난이도 없음
+      // 함축의미추론: 난이도 없음 · 영어 보기
       opt(
         "underlined_inference",
         "inference",
         "함축 의미",
         "default",
-        "korean",
+        "english",
         true,
-        "밑줄 친 표현의 문맥상 의미 (해당 표현 없으면 생략)",
+        "밑줄 친 표현의 문맥상 의미 · 영어 선택지 (해당 표현 없으면 생략)",
         "함축의미추론",
         "윗글의 밑줄 친 부분이 의미하는 바로 알맞은 것은?"
       ),
@@ -578,7 +578,18 @@ export function sanitizeCounts(
 ): Record<string, number> {
   const base = emptyCounts();
   if (!counts) return base;
-  for (const [k, v] of Object.entries(counts)) {
+  const migrated: Record<string, number> = { ...counts };
+  // 함축의미: 한글 보기 키 → 영어 보기 키
+  const oldHamchuk = "underlined_inference:ko:default:함축의미추론";
+  const newHamchuk = "underlined_inference:en:default:함축의미추론";
+  if ((migrated[oldHamchuk] ?? 0) > 0) {
+    migrated[newHamchuk] = Math.max(
+      migrated[newHamchuk] ?? 0,
+      migrated[oldHamchuk] ?? 0
+    );
+    delete migrated[oldHamchuk];
+  }
+  for (const [k, v] of Object.entries(migrated)) {
     if (k.includes("요약문")) continue;
     if (!(k in base)) continue;
     const n = Math.max(0, Math.min(maxPerType, Math.floor(Number(v) || 0)));

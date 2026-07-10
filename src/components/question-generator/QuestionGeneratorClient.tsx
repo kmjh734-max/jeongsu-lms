@@ -871,12 +871,12 @@ export function QuestionGeneratorClient({
                         </p>
                         {(() => {
                           const key =
-                            "underlined_inference:ko:default:함축의미추론";
+                            "underlined_inference:en:default:함축의미추론";
                           const n = counts[key] ?? 0;
                           return (
                             <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
                               <span className="min-w-0 flex-1 truncate text-[11px] text-slate-600">
-                                밑줄 표현 의미 · 없으면 생략
+                                영어 보기 · 없으면 생략
                               </span>
                               <button
                                 type="button"
@@ -914,7 +914,7 @@ export function QuestionGeneratorClient({
                             ["irrelevant_sentence:na:low:무관한문장", 1],
                             ["irrelevant_sentence:na:high:무관한문장", 1],
                             [
-                              "underlined_inference:ko:default:함축의미추론",
+                              "underlined_inference:en:default:함축의미추론",
                               1,
                             ],
                           ])

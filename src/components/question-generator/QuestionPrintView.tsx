@@ -150,6 +150,7 @@ function QuestionBlock({
   const showChoices =
     !isCount &&
     !isInsertion &&
+    !isIrrelevant &&
     q.choices &&
     q.choices.length > 0;
 
@@ -196,11 +197,7 @@ function QuestionBlock({
         <p className="qg-print-extra">{extra}</p>
       ) : null}
       {showChoices && (
-        <ul
-          className={`qg-print-choices${
-            isIrrelevant ? " qg-print-choices-numbers" : ""
-          }`}
-        >
+        <ul className="qg-print-choices">
           {q.choices!.map((c) => (
             <li key={c.number}>
               <span className="qg-print-choice-mark">

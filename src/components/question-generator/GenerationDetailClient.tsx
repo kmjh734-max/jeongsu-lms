@@ -413,6 +413,7 @@ export function GenerationDetailClient({
                         </p>
                       )}
                       {q.question_type !== "sentence_insertion" &&
+                        q.question_type !== "irrelevant_sentence" &&
                         q.choices &&
                         q.choices.length > 0 && (
                           <ul className="mt-2 space-y-1 text-sm">

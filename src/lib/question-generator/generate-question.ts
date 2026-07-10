@@ -177,7 +177,7 @@ LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
 - CRITICAL: PARAPHRASE the ENTIRE passage in passageModified (ENGLISH synonyms/rewording throughout).
 - Mark five candidate sentences in the passage with ① ② ③ ④ ⑤ (circled numbers before each).
 - Exactly ONE of those five is irrelevant to the flow (plausible but breaks cohesion).
-- choices MUST be exactly 5 numbered options with EMPTY text (or just leave text ""), like [{"number":1,"text":""},...{"number":5,"text":""}].
+- choices: omit or empty array — numbers IN the passage are the options; do NOT invent bottom choice texts.
 - correctAnswer 1-5. questionText empty.
 LANGUAGE: passageModified MUST be ENGLISH only.`;
       }
@@ -186,7 +186,7 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
 - Take one flow-critical sentence and REPLACE it with an unrelated ENGLISH sentence that breaks cohesion.
 - Mark five candidate sentences with ① ② ③ ④ ⑤ in the passage.
 - Exactly ONE of those five is the irrelevant replacement.
-- choices MUST be exactly 5 numbered options with EMPTY text: [{"number":1,"text":""},...{"number":5,"text":""}].
+- choices: omit or empty array — numbers IN the passage are the options; do NOT invent bottom choice texts.
 - correctAnswer 1-5. questionText empty.
 LANGUAGE: passageModified MUST be ENGLISH only.`;
     case "grammar":
@@ -212,10 +212,11 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
 - The target must be a flow-critical word/phrase/clause with implied/contextual meaning.
 - Do NOT use markdown, asterisks, or Korean in the passage. Only <u>...</u> for the underline.
 - questionText must be empty.
-- 5 Korean meaning choices (short phrases). Exactly one correct.
+- 5 ENGLISH meaning/paraphrase choices (short phrases explaining the underlined part). Exactly one correct.
+- LANGUAGE: ALL choices MUST be ENGLISH only (no Korean in choices).
 - If no suitable implied-meaning expression exists, return {"skip":true,"reason":"적합한 함축 표현 없음"}.`;
       }
-      return `Underline a key expression with <u>...</u> in passageModified. 5 Korean meaning choices.`;
+      return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
     case "writing":
       return `Korean prompt + <조건> + given words. Model answer in correctAnswer.`;
     case "summary_short":
@@ -311,9 +312,7 @@ function normalizePayload(
   passage: string,
   forcedInstruction: string
 ): GeneratedQuestionPayload {
-  const keepEmptyChoiceText =
-    option.type === "irrelevant_sentence" ||
-    option.type === "sentence_insertion";
+  const keepEmptyChoiceText = option.type === "sentence_insertion";
 
   let choices = Array.isArray(raw.choices)
     ? raw.choices
@@ -327,21 +326,13 @@ function normalizePayload(
         .filter((c) => keepEmptyChoiceText || c.text.trim())
     : undefined;
 
-  // 일치개수·문장삽입: 하단 선택지 없음 (본문 슬롯이 보기)
+  // 일치개수·문장삽입·무관: 하단 선택지 없음 (본문 표지가 보기)
   if (
     option.type === "content_count" ||
-    option.type === "sentence_insertion"
+    option.type === "sentence_insertion" ||
+    option.type === "irrelevant_sentence"
   ) {
     choices = undefined;
-  }
-
-  // 무관한 문장: ①~⑤ 숫자 보기 강제 (본문에 표지, 하단은 번호만)
-  if (option.type === "irrelevant_sentence") {
-    const byNum = new Map((choices ?? []).map((c) => [c.number, c.text]));
-    choices = [1, 2, 3, 4, 5].map((n) => ({
-      number: n,
-      text: (byNum.get(n) ?? "").trim(),
-    }));
   }
 
   let correctAnswer: string | number | number[] = raw.correctAnswer as
@@ -450,13 +441,11 @@ export function assertBasicQuestionShape(
     }
     q.choices = undefined;
   } else if (option.type === "irrelevant_sentence") {
-    if (!q.choices || q.choices.length < 5) {
-      return "무관한 문장은 ①~⑤ 선택지가 필요합니다.";
-    }
     const mod = q.passageModified || "";
     if (!/[①②③④⑤]/.test(mod) && !/\([A-E]\)/.test(mod)) {
       return "무관한 문장 본문에 ①~⑤(또는 A~E) 표지가 필요합니다.";
     }
+    q.choices = undefined;
   } else if (
     option.type === "underlined_inference" &&
     option.aingkaCode === "함축의미추론"
@@ -467,6 +456,9 @@ export function assertBasicQuestionShape(
     }
     if (!q.choices || q.choices.length < 5) {
       return "객관식 선택지가 5개 미만입니다.";
+    }
+    if ((q.choices ?? []).some((c) => hasHangul(c.text))) {
+      return "함축의미추론 선택지는 영어여야 합니다.";
     }
   } else if (option.isObjective && option.choiceLanguage) {
     if (!q.choices || q.choices.length < 5) {
@@ -585,7 +577,7 @@ ${
 }
 ${
   option.type === "irrelevant_sentence"
-    ? '- Return choices as five empty-text options: [{"number":1,"text":""},{"number":2,"text":""},{"number":3,"text":""},{"number":4,"text":""},{"number":5,"text":""}].'
+    ? "- Do NOT return choices for 무관한문장; ①~⑤ marks IN the passage are the options."
     : ""
 }
 ${paraphraseSystemHint}
@@ -608,19 +600,13 @@ ${typeRules(option)}`,
           : option.type === "irrelevant_sentence"
             ? {
                 passageModified: "ENGLISH passage with ① ② ③ ④ ⑤ marks",
-                choices: [
-                  { number: 1, text: "" },
-                  { number: 2, text: "" },
-                  { number: 3, text: "" },
-                  { number: 4, text: "" },
-                  { number: 5, text: "" },
-                ],
+                choices: [],
                 correctAnswer: "integer 1-5",
               }
             : allowSkip
               ? {
                   passageModified: "ENGLISH passage with <u>target</u>",
-                  choices: [{ number: 1, text: "한글 의미" }],
+                  choices: [{ number: 1, text: "ENGLISH meaning paraphrase" }],
                   correctAnswer: "integer 1-5",
                   skip: "boolean optional",
                   reason: "string optional",
