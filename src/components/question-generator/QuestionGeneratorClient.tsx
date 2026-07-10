@@ -500,9 +500,8 @@ export function QuestionGeneratorClient({
                   {isMainIdea ? (
                     <div className="space-y-4">
                       <p className="text-xs text-slate-500">
-                        난이도 <strong>하</strong>(쉬움 · 0.5p) /{" "}
-                        <strong>상</strong>(어려움 · 1p) · (영)=영어 선택지 ·
-                        (한)=한글 선택지
+                        난이도 <strong>하</strong>(쉬움) / <strong>상</strong>
+                        (어려움) · (영)=영어 선택지 · (한)=한글 선택지
                       </p>
                       {(
                         [
@@ -545,10 +544,6 @@ export function QuestionGeneratorClient({
                             {row.keys.map((key) => {
                               const opt = group.options.find((o) => o.key === key);
                               if (!opt) return null;
-                              const pts =
-                                opt.difficulty === "low"
-                                  ? "0.5p/지문"
-                                  : "1p/지문";
                               return (
                                 <div
                                   key={key}
@@ -556,9 +551,6 @@ export function QuestionGeneratorClient({
                                 >
                                   <span className="text-sm font-medium text-slate-900">
                                     {opt.label}
-                                  </span>
-                                  <span className="text-[10px] text-slate-500">
-                                    {pts}
                                   </span>
                                   <div className="mt-1 flex items-center gap-1">
                                     <button

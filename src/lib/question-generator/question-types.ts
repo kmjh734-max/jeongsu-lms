@@ -245,7 +245,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "low",
         "english",
         true,
-        "제목 · 영어 선택지 · 난이도 하 (0.5p/지문)",
+        "제목 · 영어 선택지 · 난이도 하",
         "제목추론",
         "윗글의 제목으로 알맞은 것은?"
       ),
@@ -256,7 +256,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "high",
         "english",
         true,
-        "제목 · 영어 선택지 · 난이도 상 (1p/지문)",
+        "제목 · 영어 선택지 · 난이도 상",
         "제목추론",
         "윗글의 제목으로 알맞은 것은?"
       ),
@@ -267,7 +267,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "low",
         "korean",
         true,
-        "제목 · 한글 선택지 · 난이도 하 (0.5p/지문)",
+        "제목 · 한글 선택지 · 난이도 하",
         "제목추론",
         "윗글의 제목으로 알맞은 것은?"
       ),
@@ -278,7 +278,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "high",
         "korean",
         true,
-        "제목 · 한글 선택지 · 난이도 상 (1p/지문)",
+        "제목 · 한글 선택지 · 난이도 상",
         "제목추론",
         "윗글의 제목으로 알맞은 것은?"
       ),
@@ -290,7 +290,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "low",
         "english",
         true,
-        "주제 · 영어 선택지 · 난이도 하 (0.5p/지문)",
+        "주제 · 영어 선택지 · 난이도 하",
         "주제추론",
         "윗글의 주제로 알맞은 것은?"
       ),
@@ -301,7 +301,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "high",
         "english",
         true,
-        "주제 · 영어 선택지 · 난이도 상 (1p/지문)",
+        "주제 · 영어 선택지 · 난이도 상",
         "주제추론",
         "윗글의 주제로 알맞은 것은?"
       ),
@@ -312,7 +312,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "low",
         "korean",
         true,
-        "주제 · 한글 선택지 · 난이도 하 (0.5p/지문)",
+        "주제 · 한글 선택지 · 난이도 하",
         "주제추론",
         "윗글의 주제로 알맞은 것은?"
       ),
@@ -323,7 +323,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "high",
         "korean",
         true,
-        "주제 · 한글 선택지 · 난이도 상 (1p/지문)",
+        "주제 · 한글 선택지 · 난이도 상",
         "주제추론",
         "윗글의 주제로 알맞은 것은?"
       ),
@@ -356,7 +356,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "default",
         "korean",
         true,
-        "요약문 (A)(B) · 1p/지문",
+        "요약문 (A)(B)",
         "요약문추론",
         "윗글을 아래와 같이 요약할 때, 빈칸 (A), (B)에 들어갈 말로 가장 적절한 것은?"
       ),
