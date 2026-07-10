@@ -206,8 +206,8 @@ export function QuestionPrintView({
           {mode === "answers"
             ? "해설지 · 브라우저에서 PDF로 저장"
             : isMainIdeaSheet
-              ? "대의파악 · 문항마다 발문·지문·선택지"
-              : "문제지 · 문항마다 상하 구성"}
+              ? "대의파악 · A4 2단"
+              : "문제지 · A4 2단"}
         </p>
       </div>
 

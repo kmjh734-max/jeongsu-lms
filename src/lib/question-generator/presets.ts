@@ -45,12 +45,11 @@ export const SYSTEM_PRESETS: Array<{
   {
     slug: "main_idea_full",
     name: "대의 파악 전체",
-    description: "제목·주제(영 상) · 요지(상) · 요약문",
+    description: "제목·주제(영 상) · 요지(상)",
     config: withCounts([
       ["title:en:high:제목추론", 1],
       ["topic:en:high:주제추론", 1],
       ["summary_mcq:ko:high:요지추론", 1],
-      ["summary_mcq:ko:default:요약문추론", 1],
     ]),
   },
   {

@@ -171,42 +171,40 @@ export async function generateOneQuestion(opts: {
   const slimAnalysis = {
     overallTopic: analysis.overallTopic,
     overallMainIdea: analysis.overallMainIdea,
-    keyVocabulary: (analysis.keyVocabulary ?? []).slice(0, 8),
-    grammarPoints: (analysis.grammarPoints ?? []).slice(0, 5),
-    blankCandidates: (analysis.blankCandidates ?? []).slice(0, 4),
-    sentenceFacts: (analysis.sentenceFacts ?? []).slice(0, 6),
+    titleCandidates: (analysis.titleCandidates ?? []).slice(0, 4),
   };
 
+  const needsModified = [
+    "grammar",
+    "vocabulary",
+    "sentence_blank",
+    "order",
+    "sentence_insertion",
+    "irrelevant_sentence",
+  ].includes(option.type);
+
   const raw = (await questionGeneratorChatJsonWithRetry({
-    system: `You are an expert Korean high-school English exam writer (고1 학력평가 level).
-Return ONLY valid JSON for ONE question. Be concise.
-CRITICAL:
-- instruction MUST be exactly: ${JSON.stringify(forcedInstruction)}
-- Korean stems only. Do NOT add meta tags like [202603H1...]. Do NOT write "다음 글을 읽고 물음에 답하시오".
-- questionText: optional short Korean notes only, or empty string. No tags.
-- Do NOT include evidence or validation fields.
-- Keep original passage wording unless type needs passageModified.
-- Choice language must match the type rules.
-- explanation: 2-4 Korean sentences (no evidence list).
+    system: `Korean HS English exam writer. ONE question JSON only. Fast & concise.
+- instruction EXACTLY: ${JSON.stringify(forcedInstruction)}
+- No meta tags. questionText usually "".
+- ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
+- explanation: 1-2 Korean sentences.
 ${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
-      overallDifficulty: opts.overallDifficulty,
-      optionLabel: option.label,
+      difficulty: option.difficulty,
       forcedInstruction,
       passage,
-      analysis: slimAnalysis,
-      outputSchema: {
-        instruction: forcedInstruction,
-        questionText: "",
-        passageModified: "string|optional",
+      hint: slimAnalysis,
+      schema: {
         choices: [{ number: 1, text: "string" }],
-        correctAnswer: "number|string",
-        explanation: "string in Korean",
+        correctAnswer: 1,
+        explanation: "ko",
+        ...(needsModified ? { passageModified: "string" } : {}),
       },
     }),
-    temperature: 0.3,
-    maxTokens: 2800,
+    temperature: 0.25,
+    maxTokens: 1600,
   })) as Record<string, unknown>;
 
   const payload = normalizePayload(raw, option, passage, forcedInstruction);

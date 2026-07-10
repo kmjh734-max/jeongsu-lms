@@ -349,17 +349,6 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "요지추론",
         "윗글의 요지로 알맞은 것은?"
       ),
-      opt(
-        "summary_mcq",
-        "main_idea",
-        "요약문완성",
-        "default",
-        "korean",
-        true,
-        "요약문 (A)(B)",
-        "요약문추론",
-        "윗글을 아래와 같이 요약할 때, 빈칸 (A), (B)에 들어갈 말로 가장 적절한 것은?"
-      ),
     ],
   },
   {

@@ -119,6 +119,7 @@ export function QuestionGeneratorClient({
 
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (jobProgress && !jobProgress.done) return; // 생성 중에는 이탈 허용
       if (dirty) {
         e.preventDefault();
         e.returnValue = "";
@@ -126,7 +127,30 @@ export function QuestionGeneratorClient({
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [dirty]);
+  }, [dirty, jobProgress]);
+
+  const JOB_STORAGE_KEY = "qg-active-job";
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(JOB_STORAGE_KEY);
+      if (!raw || jobProgress) return;
+      const saved = JSON.parse(raw) as { jobId: string; total: number };
+      if (saved?.jobId) {
+        setJobProgress({
+          jobId: saved.jobId,
+          status: "generating",
+          message: "이어서 진행 상황 확인 중…",
+          completed: 0,
+          total: saved.total || 1,
+          failed: 0,
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const saveDraft = useCallback(async () => {
     setMessage(null);
@@ -261,6 +285,14 @@ export function QuestionGeneratorClient({
         total: totals.total,
         failed: 0,
       });
+      try {
+        sessionStorage.setItem(
+          "qg-active-job",
+          JSON.stringify({ jobId: data.jobId, total: totals.total })
+        );
+      } catch {
+        /* ignore */
+      }
       void fetch(`/api/question-generator/jobs/${data.jobId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -322,6 +354,11 @@ export function QuestionGeneratorClient({
 
         if (terminal && pdfOpenedForJob.current !== jobProgress.jobId) {
           pdfOpenedForJob.current = jobProgress.jobId;
+          try {
+            sessionStorage.removeItem("qg-active-job");
+          } catch {
+            /* ignore */
+          }
           if (job.status === "failed") {
             setError(job.error_message || "생성에 실패했습니다.");
           } else if ((job.total_completed ?? 0) > 0) {
@@ -362,7 +399,7 @@ export function QuestionGeneratorClient({
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="생성하면 진행률만 보이고, 끝나면 문제 PDF·해설지 PDF가 자동으로 열립니다."
+        description="생성 중에도 다른 페이지로 이동할 수 있습니다. 완료되면 문제·해설 PDF가 자동으로 열립니다."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -375,65 +412,57 @@ export function QuestionGeneratorClient({
         }
       />
 
-      {(generating || jobProgress?.done) && jobProgress && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            {generating ? (
-              <>
-                <p className="text-center text-lg font-semibold text-slate-900">
-                  문제 생성 중
+      {jobProgress && (
+        <div className="sticky top-0 z-30 mb-4 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 shadow-sm">
+          {generating ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-brand-900">
+                  문제 생성 중 · {jobProgress.completed + jobProgress.failed}/
+                  {jobProgress.total}
                 </p>
-                <p className="mt-2 text-center text-sm text-slate-600">
-                  {jobProgress.message}
+                <p className="truncate text-xs text-brand-800">
+                  {jobProgress.message} · 이 페이지를 나가도 생성은 계속됩니다
                 </p>
-                <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100">
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/80">
                   <div
                     className="h-full rounded-full bg-brand-700 transition-all duration-500"
                     style={{ width: `${Math.max(pct, 4)}%` }}
                   />
                 </div>
-                <p className="mt-3 text-center text-sm font-medium text-slate-800">
-                  {jobProgress.completed + jobProgress.failed} /{" "}
-                  {jobProgress.total}
-                  {jobProgress.failed > 0
-                    ? ` (폐기 ${jobProgress.failed})`
-                    : ""}
-                </p>
-                <p className="mt-1 text-center text-xs text-slate-400">
-                  완료되면 문제·해설 PDF가 자동으로 열립니다
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-center text-lg font-semibold text-slate-900">
-                  생성 완료
-                </p>
-                <p className="mt-2 text-center text-sm text-slate-600">
-                  문제 PDF · 해설지 PDF 탭이 열렸습니다.
-                  <br />
-                  (팝업이 막혔다면 아래 버튼으로 다시 여세요)
-                </p>
-                <div className="mt-5 flex flex-col gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => openPdfs(jobProgress.jobId)}
-                  >
-                    문제·해설 PDF 다시 열기
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      setJobProgress(null);
-                      setError(null);
-                    }}
-                  >
-                    닫기
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
+              </div>
+              <Link
+                href={`${basePath}/generations`}
+                className="shrink-0 rounded-lg border border-brand-300 bg-white px-3 py-2 text-xs font-medium text-brand-800"
+              >
+                기록으로
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-brand-900">
+                생성 완료 · PDF 탭을 확인하세요
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  onClick={() => openPdfs(jobProgress.jobId)}
+                >
+                  문제·해설 PDF 다시 열기
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setJobProgress(null);
+                    setError(null);
+                  }}
+                >
+                  닫기
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -448,7 +477,7 @@ export function QuestionGeneratorClient({
         </div>
       )}
 
-      <div className={generating ? "pointer-events-none select-none opacity-40" : undefined}>
+      <div>
       <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
         <h2 className="mb-4 text-sm font-semibold text-slate-900">기본 정보</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -676,10 +705,6 @@ export function QuestionGeneratorClient({
                               "summary_mcq:ko:low:요지추론",
                               "summary_mcq:ko:high:요지추론",
                             ],
-                          },
-                          {
-                            rowLabel: "요약문완성 세트 수",
-                            keys: ["summary_mcq:ko:default:요약문추론"],
                           },
                         ] as const
                       ).map((row) => (
