@@ -142,6 +142,26 @@ function QuestionBlock({
   );
 }
 
+function AnswerBlock({
+  q,
+  index,
+}: {
+  q: QuestionRow;
+  index: number;
+}) {
+  return (
+    <section className="qg-print-card qg-print-answer-card">
+      <p className="qg-print-answer-head">
+        <span className="qg-print-q-num">{padNo(index)}</span>{" "}
+        <span className="qg-print-answer-mark">
+          {formatAnswer(q.correct_answer)}
+        </span>
+      </p>
+      <p className="qg-print-answer-body">{q.explanation}</p>
+    </section>
+  );
+}
+
 export function QuestionPrintView({
   jobId,
   backHref,
@@ -203,9 +223,9 @@ export function QuestionPrintView({
   const bannerNo = extractBannerNo(sourceDetail);
   const sheetTitle = mode === "answers" ? `${title} · 해설지` : title;
 
-  /** 측정 → A4 2단 페이지 분할 */
+  /** 측정 → A4 2단 페이지 분할 (문제지·해설지 공통) */
   useEffect(() => {
-    if (mode !== "exam" || questions.length === 0) {
+    if (questions.length === 0) {
       setPages([]);
       return;
     }
@@ -215,10 +235,9 @@ export function QuestionPrintView({
       if (!root) return;
       const heights = questions.map((q) => {
         const el = root.querySelector<HTMLElement>(`[data-measure-q="${q.id}"]`);
-        return el ? Math.ceil(el.getBoundingClientRect().height) : 120;
+        return el ? Math.ceil(el.getBoundingClientRect().height) : 80;
       });
 
-      // 인쇄 시트 높이(286mm) − 여백·헤더 여유
       const mmToPx = (mm: number) => (mm * 96) / 25.4;
       const firstColMax = mmToPx(250);
       const nextColMax = mmToPx(258);
@@ -242,10 +261,7 @@ export function QuestionPrintView({
 
   useEffect(() => {
     if (!autoPrint || printedRef.current) return;
-    if (mode === "exam" && (pages.length === 0 || questions.length === 0)) {
-      return;
-    }
-    if (mode === "answers" && questions.length === 0) return;
+    if (pages.length === 0 || questions.length === 0) return;
 
     printedRef.current = true;
     const t = window.setTimeout(() => {
@@ -277,23 +293,27 @@ export function QuestionPrintView({
   }
 
   function renderHeader(compact: boolean) {
+    const kind =
+      mode === "answers"
+        ? "해설지"
+        : isMainIdeaSheet
+          ? "주제·제목"
+          : "변형문제";
     return (
       <header
-        className={`qg-print-header ${compact ? "qg-print-header-compact" : ""}`}
+        className={`qg-print-header ${compact ? "qg-print-header-compact" : ""} ${
+          mode === "answers" ? "qg-print-header-answer-sheet" : ""
+        }`}
       >
         <div>
           <p className="qg-print-kicker">
-            {grade
-              ? `${grade} ${isMainIdeaSheet ? "주제·제목" : "변형문제"}`
-              : isMainIdeaSheet
-                ? "주제·제목"
-                : "변형문제"}
+            {grade ? `${grade} ${kind}` : kind}
           </p>
           {!compact && <h1 className="qg-print-title">{title}</h1>}
           {!compact && sourceDetail && (
             <p className="qg-print-sub">{sourceDetail}</p>
           )}
-          {bannerNo && !compact && (
+          {bannerNo && !compact && mode === "exam" && (
             <p className="qg-print-banner">┃3월 {bannerNo}번┃</p>
           )}
           {compact && (
@@ -307,7 +327,7 @@ export function QuestionPrintView({
 
   if (error) return <p className="p-6 text-red-600">{error}</p>;
 
-  const examPages =
+  const sheetPages =
     pages.length > 0
       ? pages
       : questions.length > 0
@@ -337,79 +357,65 @@ export function QuestionPrintView({
         </div>
         <p className="mx-auto mt-2 max-w-4xl text-xs text-slate-500">
           A4 2단 · 페이지 단위 분할 · 브라우저에서 PDF로 저장
+          {mode === "answers" ? " (해설지)" : ""}
         </p>
       </div>
 
-      {/* 측정용 (숨김) — 열 폭과 동일 · 인쇄 시 display:none */}
-      {mode === "exam" && (
-        <div
-          ref={measureRef}
-          aria-hidden
-          className="qg-print-measure no-print"
-          style={{ width: `${COL_WIDTH_MM}mm` }}
-        >
-          {questions.map((q, i) => (
-            <div key={q.id} data-measure-q={q.id}>
+      {/* 측정용 (숨김) */}
+      <div
+        ref={measureRef}
+        aria-hidden
+        className="qg-print-measure no-print"
+        style={{ width: `${COL_WIDTH_MM}mm` }}
+      >
+        {questions.map((q, i) => (
+          <div key={q.id} data-measure-q={q.id}>
+            {mode === "exam" ? (
               <QuestionBlock q={q} index={i + 1} />
-            </div>
-          ))}
-        </div>
-      )}
+            ) : (
+              <AnswerBlock q={q} index={i + 1} />
+            )}
+          </div>
+        ))}
+      </div>
 
       <div id="qg-print-root" className="mx-auto max-w-[210mm] py-6 print:py-0">
-        {mode === "exam" ? (
-          examPages.map((page, pageIdx) => (
-            <article
-              key={pageIdx}
-              className={`qg-print-page qg-print-sheet ${
-                pageIdx < examPages.length - 1
-                  ? "qg-print-page-break"
-                  : "qg-print-page-last"
-              }`}
-            >
-              {renderHeader(pageIdx > 0)}
-              <div className="qg-print-cols">
-                <div className="qg-print-col">
-                  {page.left.map((qi) => {
-                    const q = questions[qi];
-                    if (!q) return null;
-                    return (
-                      <QuestionBlock key={q.id} q={q} index={qi + 1} />
-                    );
-                  })}
-                </div>
-                <div className="qg-print-col qg-print-col-right">
-                  {page.right.map((qi) => {
-                    const q = questions[qi];
-                    if (!q) return null;
-                    return (
-                      <QuestionBlock key={q.id} q={q} index={qi + 1} />
-                    );
-                  })}
-                </div>
+        {sheetPages.map((page, pageIdx) => (
+          <article
+            key={pageIdx}
+            className={`qg-print-page qg-print-sheet ${
+              pageIdx < sheetPages.length - 1
+                ? "qg-print-page-break"
+                : "qg-print-page-last"
+            }`}
+          >
+            {renderHeader(pageIdx > 0)}
+            <div className="qg-print-cols">
+              <div className="qg-print-col">
+                {page.left.map((qi) => {
+                  const q = questions[qi];
+                  if (!q) return null;
+                  return mode === "exam" ? (
+                    <QuestionBlock key={q.id} q={q} index={qi + 1} />
+                  ) : (
+                    <AnswerBlock key={q.id} q={q} index={qi + 1} />
+                  );
+                })}
               </div>
-            </article>
-          ))
-        ) : (
-          <article className="qg-print-page qg-print-sheet">
-            <header className="qg-print-header qg-print-header-answer">
-              <h1 className="qg-print-title">{title} · 해설지</h1>
-            </header>
-            <div className="qg-print-answer-blocks">
-              {questions.map((q, i) => (
-                <section key={q.id} className="qg-print-answer-block">
-                  <p className="qg-print-answer-head">
-                    <strong>{padNo(i + 1)}</strong>{" "}
-                    <span className="qg-print-answer-mark">
-                      {formatAnswer(q.correct_answer)}
-                    </span>
-                  </p>
-                  <p className="qg-print-answer-body">{q.explanation}</p>
-                </section>
-              ))}
+              <div className="qg-print-col qg-print-col-right">
+                {page.right.map((qi) => {
+                  const q = questions[qi];
+                  if (!q) return null;
+                  return mode === "exam" ? (
+                    <QuestionBlock key={q.id} q={q} index={qi + 1} />
+                  ) : (
+                    <AnswerBlock key={q.id} q={q} index={qi + 1} />
+                  );
+                })}
+              </div>
             </div>
           </article>
-        )}
+        ))}
       </div>
     </div>
   );

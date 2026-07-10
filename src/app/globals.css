@@ -987,6 +987,48 @@
   letter-spacing: 0.04em;
 }
 
+/* 해설지 헤더 — 문제지와 같은 테두리 스타일, 강조만 다름 */
+.qg-print-header-answer-sheet .qg-print-kicker {
+  color: #c45c26;
+}
+
+.qg-print-answer-card .qg-print-answer-head {
+  margin-bottom: 1.2mm;
+}
+
+.qg-print-answer-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+}
+
+.qg-print-answer-block {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  padding-bottom: 2mm;
+  border-bottom: 1px solid #e8eef6;
+}
+
+.qg-print-answer-head {
+  font-size: 10pt;
+  font-weight: 800;
+  margin-bottom: 1mm;
+  color: #1a3a6e;
+}
+
+.qg-print-answer-mark {
+  color: #c45c26;
+  font-weight: 900;
+}
+
+.qg-print-answer-body {
+  font-size: 9pt;
+  line-height: 1.5;
+  color: #222;
+  white-space: normal;
+  text-align: justify;
+}
+
 .qg-print-title {
   font-size: 13pt;
   font-weight: 900;
@@ -1112,39 +1154,6 @@
   width: 4.5mm;
   color: #1a3a6e;
   font-weight: 700;
-}
-
-.qg-print-answer-blocks {
-  display: flex;
-  flex-direction: column;
-  gap: 3mm;
-}
-
-.qg-print-answer-block {
-  break-inside: avoid;
-  page-break-inside: avoid;
-  padding-bottom: 2mm;
-  border-bottom: 1px solid #e8eef6;
-}
-
-.qg-print-answer-head {
-  font-size: 10pt;
-  font-weight: 800;
-  margin-bottom: 1mm;
-  color: #1a3a6e;
-}
-
-.qg-print-answer-mark {
-  color: #c45c26;
-  font-weight: 900;
-}
-
-.qg-print-answer-body {
-  font-size: 9pt;
-  line-height: 1.5;
-  color: #222;
-  white-space: normal;
-  text-align: justify;
 }
 
 .qg-print-page-break {
