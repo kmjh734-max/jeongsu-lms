@@ -388,25 +388,42 @@ export function GenerationDetailClient({
                       <p className="text-sm font-semibold text-slate-900">
                         {idx + 1}. {q.instruction}
                       </p>
-                      {q.passage_modified && (
-                        <pre className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 font-serif text-sm text-slate-800">
-                          {q.passage_modified}
-                        </pre>
+                      {q.question_type === "sentence_insertion" && extra && (
+                        <div className="mt-2 rounded-md border-2 border-slate-700 bg-slate-50 px-3 py-2 font-serif text-sm text-slate-900">
+                          {extra}
+                        </div>
                       )}
-                      {extra && (
+                      {q.passage_modified && (
+                        <div
+                          className="mt-2 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 font-serif text-sm text-slate-800 [&_u]:font-semibold [&_u]:underline"
+                          dangerouslySetInnerHTML={{
+                            __html: (q.passage_modified || "")
+                              .replace(/&/g, "&amp;")
+                              .replace(/</g, "&lt;")
+                              .replace(/>/g, "&gt;")
+                              .replace(/&lt;u&gt;/gi, "<u>")
+                              .replace(/&lt;\/u&gt;/gi, "</u>")
+                              .replace(/\n/g, "<br/>"),
+                          }}
+                        />
+                      )}
+                      {q.question_type !== "sentence_insertion" && extra && (
                         <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800">
                           {extra}
                         </p>
                       )}
-                      {q.choices && q.choices.length > 0 && (
-                        <ul className="mt-2 space-y-1 text-sm">
-                          {q.choices.map((c) => (
-                            <li key={c.number}>
-                              {CIRCLED[c.number - 1] ?? `${c.number}.`} {c.text}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      {q.question_type !== "sentence_insertion" &&
+                        q.choices &&
+                        q.choices.length > 0 && (
+                          <ul className="mt-2 space-y-1 text-sm">
+                            {q.choices.map((c) => (
+                              <li key={c.number}>
+                                {CIRCLED[c.number - 1] ?? `${c.number}.`}
+                                {c.text.trim() ? ` ${c.text}` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       <p className="mt-3 text-sm">
                         <span className="font-semibold text-brand-800">정답</span>{" "}
                         {formatAnswer(q.correct_answer)}

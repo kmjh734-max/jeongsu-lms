@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import {
   paginateExamQuestions,
@@ -78,6 +78,62 @@ function parseBogiLines(text: string): string[] {
   return cleaned.split(/\n+/).map((s) => s.trim()).filter(Boolean);
 }
 
+/** <u>…</u> 및 일반 텍스트를 인쇄용 노드로 변환 */
+function renderMarkedText(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const re = /<u>([\s\S]*?)<\/u>/gi;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) {
+      nodes.push(
+        <span key={`t${key++}`}>{text.slice(last, m.index)}</span>
+      );
+    }
+    nodes.push(
+      <u key={`u${key++}`} className="qg-print-u">
+        {m[1]}
+      </u>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) {
+    nodes.push(<span key={`t${key++}`}>{text.slice(last)}</span>);
+  }
+  return nodes.length > 0 ? nodes : [text];
+}
+
+function PassageParas({ text }: { text: string }) {
+  const raw = (text || "").replace(/\r\n/g, "\n").trim();
+  const blocks = raw
+    ? raw
+        .split(/\n\s*\n+/)
+        .map((para) =>
+          para
+            .split(/\n/)
+            .map((l) => l.trim())
+            .filter(Boolean)
+            .join(" ")
+            .replace(/\s+/g, " ")
+            .trim()
+        )
+        .filter(Boolean)
+    : [];
+
+  if (blocks.length === 0) return null;
+
+  return (
+    <div className="qg-print-passage qg-print-passage-block">
+      {blocks.map((p, pi) => (
+        <p key={pi} className="qg-print-passage-p">
+          {renderMarkedText(p)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function QuestionBlock({
   q,
   index,
@@ -86,9 +142,16 @@ function QuestionBlock({
   index: number;
 }) {
   const isCount = q.question_type === "content_count";
+  const isInsertion = q.question_type === "sentence_insertion";
+  const isIrrelevant = q.question_type === "irrelevant_sentence";
   const extra = cleanQuestionText(q.question_text);
-  const paras = reflowPassageForPrint(questionPassage(q));
+  const passage = questionPassage(q);
   const bogiLines = isCount ? parseBogiLines(q.question_text) : [];
+  const showChoices =
+    !isCount &&
+    !isInsertion &&
+    q.choices &&
+    q.choices.length > 0;
 
   if (isCount) {
     return (
@@ -99,9 +162,9 @@ function QuestionBlock({
           </span>{" "}
           {q.instruction}
         </p>
-        {paras.length > 0 && (
+        {passage.trim() && (
           <div className="qg-print-count-box qg-print-passage-block">
-            {paras.map((p, pi) => (
+            {reflowPassageForPrint(passage).map((p, pi) => (
               <p key={pi} className="qg-print-passage-p">
                 {p}
               </p>
@@ -125,24 +188,25 @@ function QuestionBlock({
       <p className="qg-print-q-head">
         <span className="qg-print-q-num">{padNo(index)}</span> {q.instruction}
       </p>
-      {paras.length > 0 && (
-        <div className="qg-print-passage qg-print-passage-block">
-          {paras.map((p, pi) => (
-            <p key={pi} className="qg-print-passage-p">
-              {p}
-            </p>
-          ))}
-        </div>
-      )}
-      {extra ? <p className="qg-print-extra">{extra}</p> : null}
-      {q.choices && q.choices.length > 0 && (
-        <ul className="qg-print-choices">
-          {q.choices.map((c) => (
+      {isInsertion && extra ? (
+        <div className="qg-print-given-box">{extra}</div>
+      ) : null}
+      {passage.trim() ? <PassageParas text={passage} /> : null}
+      {!isInsertion && extra ? (
+        <p className="qg-print-extra">{extra}</p>
+      ) : null}
+      {showChoices && (
+        <ul
+          className={`qg-print-choices${
+            isIrrelevant ? " qg-print-choices-numbers" : ""
+          }`}
+        >
+          {q.choices!.map((c) => (
             <li key={c.number}>
               <span className="qg-print-choice-mark">
                 {CIRCLED[c.number - 1] ?? `${c.number}.`}
               </span>
-              <span>{c.text}</span>
+              {c.text.trim() ? <span>{c.text}</span> : null}
             </li>
           ))}
         </ul>

@@ -17,19 +17,35 @@ export function validateGeneratedQuestion(opts: {
   let score = 100;
 
   if (option.isObjective) {
-    if (!q.choices || q.choices.length !== 5) {
+    const slotInPassage =
+      option.type === "sentence_insertion" ||
+      option.type === "irrelevant_sentence";
+
+    if (option.type === "sentence_insertion") {
+      // 본문 ①~⑤가 보기 — 하단 선택지 불필요
+      if (!(q.questionText || "").trim()) {
+        warnings.push("주어진 문장이 없습니다.");
+        score -= 40;
+      }
+    } else if (!q.choices || q.choices.length !== 5) {
       warnings.push("선택지 개수가 5개가 아닙니다.");
       score -= 40;
     }
+
     const nums = new Set((q.choices ?? []).map((c) => c.number));
-    if (nums.size !== (q.choices?.length ?? 0)) {
+    if (
+      option.type !== "sentence_insertion" &&
+      nums.size !== (q.choices?.length ?? 0)
+    ) {
       warnings.push("선택지 번호가 중복되었습니다.");
       score -= 15;
     }
-    const empty = (q.choices ?? []).some((c) => !c.text.trim());
-    if (empty) {
-      warnings.push("빈 선택지가 있습니다.");
-      score -= 20;
+    if (!slotInPassage) {
+      const empty = (q.choices ?? []).some((c) => !c.text.trim());
+      if (empty) {
+        warnings.push("빈 선택지가 있습니다.");
+        score -= 20;
+      }
     }
   }
 
