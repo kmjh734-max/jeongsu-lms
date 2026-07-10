@@ -284,14 +284,26 @@ LANGUAGE: passage ENGLISH only.`;
         return `5 English emotion-change choices like "worried → relieved". Exactly one correct. LANGUAGE: choices ENGLISH only.`;
       }
       if (code === "함축의미추론") {
-        return `함축의미추론 (난이도 없음):
-- passageModified = the ENGLISH passage with EXACTLY ONE target expression wrapped in HTML underline tags: <u>target phrase</u>
-- The target must be a flow-critical word/phrase/clause with implied/contextual meaning.
-- Do NOT use markdown, asterisks, or Korean in the passage. Only <u>...</u> for the underline.
-- questionText must be empty.
-- 5 ENGLISH meaning/paraphrase choices (short phrases explaining the underlined part). Exactly one correct.
-- LANGUAGE: ALL choices MUST be ENGLISH only (no Korean in choices).
-- If no suitable implied-meaning expression exists, return {"skip":true,"reason":"적합한 함축 표현 없음"}.`;
+        return `함축의미추론 — 학력평가·수능형 (첨부 기출 동형):
+형식:
+- passageModified = 영어 지문 전체. 함축 표현 딱 1곳에 (A)<u>표현</u> (반드시 (A) 표지 + HTML 밑줄).
+- 대상: 관용·비유·아이러니·문맥 의존 표현 (예: do double duty, have nothing to wear, an unavoidable burden, illusion of competence).
+- 사전적·글자 그대로 뜻만으로는 답이 안 되는 표현을 고를 것. 없으면 {"skip":true,"reason":"적합한 함축 표현 없음"}.
+- questionText "".
+- choices: 영어 짧은 구/절 5개. 정답 1개.
+
+정답 품질 (필수 · 가장 중요):
+- 정답은 밑줄의 ‘사전 뜻’이 아니라 앞뒤 문장이 말하는 구체적 문맥 의미여야 함.
+- 나쁜 예: do double duty → "do two things" / "perform two functions" (너무 일반·사전적)
+- 좋은 예: do double duty → "provide both financial and mental savings"
+  (지문이 money + time/mental energy를 말하므로 그 내용을 담은 paraphrase)
+- 나쁜 예: have nothing to wear → "own no clothes"
+- 좋은 예: "cannot choose anything suitable because there are too many options"
+- 오답: 글자 그대로 해석, 부분만 맞는 말, 지문과 반대·무관한 해석. 모두 영어·비슷한 길이.
+
+해설(explanation) 한글:
+- 형식: 정답은 ④이다. 밑줄 「…」은 문맥상 ○○를 뜻한다. 바로 앞/뒤에서 …라고 했으므로, ‘두 가지 일을 한다’ 같은 막연한 말이 아니라 「…」가 가장 적절하다.
+- voice 등 영어 은어 금지.`;
       }
       return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
     case "writing":
@@ -492,6 +504,22 @@ function normalizePayload(
     }
   }
 
+  let instructionOut = forcedInstruction;
+  if (
+    option.type === "underlined_inference" &&
+    option.aingkaCode === "함축의미추론" &&
+    passageModified
+  ) {
+    const um = passageModified.match(/<u>([\s\S]*?)<\/u>/i);
+    const phrase = (um?.[1] || "").replace(/\s+/g, " ").trim();
+    if (phrase) {
+      if (!/\(A\)\s*<u>/i.test(passageModified)) {
+        passageModified = passageModified.replace(/<u>/i, "(A)<u>");
+      }
+      instructionOut = `다음 글의 밑줄 친 (A)${phrase}가 의미하는 바로 가장 적절한 것은?`;
+    }
+  }
+
   return {
     type: option.type,
     category: option.category,
@@ -499,7 +527,7 @@ function normalizePayload(
     choiceLanguage: option.choiceLanguage,
     passageOriginal: passage,
     passageModified,
-    instruction: forcedInstruction,
+    instruction: instructionOut,
     questionText: cleanQuestionText(String(raw.questionText ?? "")),
     choices,
     correctAnswer,
@@ -566,11 +594,21 @@ export function assertBasicQuestionShape(
     if (!/<u>[\s\S]*?<\/u>/i.test(mod)) {
       return "함축의미추론은 본문에 <u>밑줄</u> 표시가 필요합니다.";
     }
+    if (!/\(A\)/i.test(mod)) {
+      // normalizePayload에서 보정하지만, 이중 안전
+      q.passageModified = mod.replace(/<u>/i, "(A)<u>");
+    }
     if (!q.choices || q.choices.length < 5) {
       return "객관식 선택지가 5개 미만입니다.";
     }
     if ((q.choices ?? []).some((c) => hasHangul(c.text))) {
       return "함축의미추론 선택지는 영어여야 합니다.";
+    }
+    // 발문에 밑줄 표현 반영
+    const um = (q.passageModified || "").match(/<u>([\s\S]*?)<\/u>/i);
+    const phrase = (um?.[1] || "").replace(/\s+/g, " ").trim();
+    if (phrase && !q.instruction.includes(phrase)) {
+      q.instruction = `다음 글의 밑줄 친 (A)${phrase}가 의미하는 바로 가장 적절한 것은?`;
     }
   } else if (option.isObjective && option.choiceLanguage) {
     if (!q.choices || q.choices.length < 5) {
@@ -737,13 +775,16 @@ export async function generateOneQuestion(opts: {
 - explanation: ${
       option.type === "grammar"
         ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
-        : "1-2 Korean sentences."
+        : option.type === "underlined_inference" &&
+            option.aingkaCode === "함축의미추론"
+          ? "학생용 한글: 정답 번호 + 밑줄의 문맥 의미 + 왜 사전적 풀이(두 가지 기능을 한다 등)가 아닌지."
+          : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
 ${englishOnlyHint}
 ${
   allowSkip
-    ? '- If no suitable implied-meaning target exists, return {"skip":true,"reason":"..."} only. Otherwise wrap the target in <u>...</u> inside passageModified.'
+    ? '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.'
     : ""
 }
 ${
