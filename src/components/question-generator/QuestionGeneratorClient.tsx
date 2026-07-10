@@ -16,6 +16,7 @@ import { SYSTEM_PRESETS } from "@/lib/question-generator/presets";
 import {
   emptyCounts,
   QUESTION_TYPE_GROUPS,
+  sanitizeCounts,
   sumCounts,
 } from "@/lib/question-generator/question-types";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
@@ -185,11 +186,7 @@ export function QuestionGeneratorClient({
   }
 
   function applyCounts(next: Record<string, number>) {
-    const base = emptyCounts();
-    for (const [k, v] of Object.entries(next)) {
-      if (k in base) base[k] = Math.max(0, Math.min(MAX_SETS_PER_TYPE, v));
-    }
-    setCounts(base);
+    setCounts(sanitizeCounts(next, MAX_SETS_PER_TYPE));
   }
 
   function applySystemPreset(slug: string) {

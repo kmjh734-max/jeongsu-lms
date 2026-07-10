@@ -46,6 +46,25 @@ export function validateGeneratedQuestion(opts: {
     score -= 30;
   }
 
+  // 요지인데 요약문완성(빈칸·…… 쌍)으로 나온 경우 폐기
+  if (option.type === "summary_mcq") {
+    const blob = [
+      q.questionText,
+      q.instruction,
+      ...(q.choices ?? []).map((c) => c.text),
+    ]
+      .join("\n")
+      .toLowerCase();
+    const looksLikeSummaryBlank =
+      /요약문/.test(blob) ||
+      (/\(a\)/.test(blob) && /\(b\)/.test(blob)) ||
+      (q.choices ?? []).some((c) => /……|\.{2,}\s*\S+\s*\.{2,}|…{2,}/.test(c.text));
+    if (looksLikeSummaryBlank) {
+      warnings.push("요약문완성 형식이 감지되어 요지 문항으로 사용할 수 없습니다.");
+      score -= 80;
+    }
+  }
+
   return {
     singleCorrectAnswer: true,
     answerMatchesExplanation: Boolean(q.explanation.trim()),

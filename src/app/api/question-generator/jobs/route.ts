@@ -8,7 +8,10 @@ import {
   MAX_TOTAL_QUESTIONS,
   MIN_PASSAGE_WORDS,
 } from "@/lib/question-generator/constants";
-import { sumCounts } from "@/lib/question-generator/question-types";
+import {
+  sanitizeCounts,
+  sumCounts,
+} from "@/lib/question-generator/question-types";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -46,6 +49,9 @@ export async function POST(req: Request) {
     };
     const config = body.config;
     if (!config) return jsonError("설정이 필요합니다.");
+
+    // 폐기된 요약문 키·알 수 없는 유형 제거
+    config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
 
     const passage = (config.passage ?? "").trim();
     if (!passage) return jsonError("영어 지문을 입력해 주세요.");

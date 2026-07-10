@@ -3,11 +3,13 @@ import { analyzePassage } from "@/lib/question-generator/analyze-passage";
 import {
   GENERATION_CONCURRENCY,
   MAX_REGENERATION_ATTEMPTS,
+  MAX_SETS_PER_TYPE,
 } from "@/lib/question-generator/constants";
 import { generateOneQuestion } from "@/lib/question-generator/generate-question";
 import {
   expandCountRequests,
   findOptionByKey,
+  sanitizeCounts,
 } from "@/lib/question-generator/question-types";
 import {
   shouldRegenerate,
@@ -160,6 +162,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     .eq("generation_job_id", jobId);
 
   const config = job.request_config as GenerationRequestConfig;
+  config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
   const passageId = job.passage_id as string;
   const userId = job.created_by as string;
 

@@ -369,11 +369,11 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
       opt(
         "summary_short",
         "subjective",
-        "요약·요지 쓰기",
+        "요지 영작",
         "default",
         null,
         false,
-        "요지를 조건에 맞게 쓰기",
+        "요지를 조건에 맞게 영작",
         "요지영작",
         "다음 글의 요지를 주어진 <조건>에 알맞게 한 문장으로 영작하시오."
       ),
@@ -420,6 +420,22 @@ export function emptyCounts(): Record<string, number> {
   const counts: Record<string, number> = {};
   for (const o of ALL_QUESTION_OPTIONS) counts[o.key] = 0;
   return counts;
+}
+
+/** 알려진 유형만 남기고, 폐기된 요약문 키는 무조건 제거 */
+export function sanitizeCounts(
+  counts: Record<string, number> | null | undefined,
+  maxPerType = 5
+): Record<string, number> {
+  const base = emptyCounts();
+  if (!counts) return base;
+  for (const [k, v] of Object.entries(counts)) {
+    if (k.includes("요약문")) continue;
+    if (!(k in base)) continue;
+    const n = Math.max(0, Math.min(maxPerType, Math.floor(Number(v) || 0)));
+    if (n > 0) base[k] = n;
+  }
+  return base;
 }
 
 export function sumCounts(counts: Record<string, number>): {

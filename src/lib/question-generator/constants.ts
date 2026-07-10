@@ -7,8 +7,8 @@ export const MAX_TOTAL_QUESTIONS = 30;
 /** 로컬 검수 통과 최소 점수 (미달 시 문항 폐기) */
 export const VALIDATION_PASS_SCORE = 70;
 
-/** 문항당 최대 재생성 횟수 (0 = 1회만 시도, 실패 시 폐기) */
-export const MAX_REGENERATION_ATTEMPTS = 0;
+/** 문항당 최대 재생성 횟수 (요약문 오생성 등 1회 재시도) */
+export const MAX_REGENERATION_ATTEMPTS = 1;
 
 /** AI 동시 요청 수 */
 export const GENERATION_CONCURRENCY = 6;

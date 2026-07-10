@@ -38,10 +38,13 @@ function typeRules(option: QuestionTypeOption): string {
             : "standard"
       }.`;
     case "summary_mcq":
-      if (code === "요약문추론") {
-        return `Create a one-sentence Korean summary with blanks (A) and (B). 5 choices as word pairs like ① success …… effort. Exactly one correct.`;
-      }
-      return `5 Korean choices for the main point (요지). Exactly one correct. Difficulty: ${
+      // 요약문완성(빈칸 (A)(B) · …… 쌍)은 폐기됨. 요지 객관식만 허용.
+      return `요지 MCQ only (NOT 요약문완성).
+- 5 FULL Korean sentence/phrase choices for the main point (요지).
+- Do NOT invent a summary sentence with blanks (A)/(B).
+- Do NOT use …… / ... pair choices (e.g. "성공 …… 노력").
+- questionText must be empty.
+- Exactly one correct. Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하)"
           : option.difficulty === "high"
@@ -187,6 +190,7 @@ export async function generateOneQuestion(opts: {
     system: `Korean HS English exam writer. ONE question JSON only. Fast & concise.
 - instruction EXACTLY: ${JSON.stringify(forcedInstruction)}
 - No meta tags. questionText usually "".
+- NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
 - ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
 - explanation: 1-2 Korean sentences.
 ${typeRules(option)}`,
