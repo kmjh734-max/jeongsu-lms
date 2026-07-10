@@ -23,9 +23,9 @@ export const SYSTEM_PRESETS: Array<{
     slug: "standard_mixed",
     name: "표준 종합 (고1)",
     description:
-      "고1 학력평가 수준 · 어법연결·연결어·목적·불일치·무관·빈칸",
+      "고1 학력평가 수준 · 어법·연결어·목적·불일치·무관·빈칸",
     config: withCounts([
-      ["grammar:en:default:어법연결", 1],
+      ["grammar:na:default:어법모두고르기", 1],
       ["sentence_blank:en:default:연결어빈칸", 1],
       ["underlined_inference:en:default:목적추론", 1],
       ["content_false:en:high:내용불일치", 1],
@@ -69,29 +69,26 @@ export const SYSTEM_PRESETS: Array<{
   },
   {
     slug: "grammar_vocab_focus",
-    name: "어법·어휘 집중",
-    description: "어법연결·어법·어휘·고쳐쓰기",
+    name: "어법 집중",
+    description: "어법 모두 고르기 · 어법 개수",
     config: withCounts([
-      ["grammar:en:default:어법연결", 1],
-      ["grammar:na:default:어법추론", 1],
-      ["vocabulary:na:default:어휘추론", 1],
-      ["grammar:na:default:어법고쳐쓰기", 1],
+      ["grammar:na:default:어법모두고르기", 1],
+      ["grammar:na:default:어법개수", 1],
     ]),
   },
   {
     slug: "advanced_full",
     name: "고난도 통합",
     description:
-      "학력평가 상위권 · 목적·불일치·어법·어휘·빈칸·순서·삽입·주제·함축·영작",
+      "학력평가 상위권 · 목적·불일치·어법·빈칸·순서·삽입·주제·함축·영작",
     config: withCounts([
-      ["grammar:en:default:어법연결", 1],
+      ["grammar:na:default:어법모두고르기", 1],
+      ["grammar:na:default:어법개수", 1],
       ["sentence_blank:en:default:연결어빈칸", 1],
       ["underlined_inference:en:default:목적추론", 1],
       ["content_false:en:high:내용불일치", 1],
       ["irrelevant_sentence:na:high:무관한문장", 1],
       ["sentence_blank:en:high:빈칸추론", 1],
-      ["grammar:na:default:어법추론", 1],
-      ["vocabulary:na:default:어휘추론", 1],
       ["order:na:high:순서추론", 1],
       ["sentence_insertion:na:high:문장삽입", 1],
       ["topic:en:high:주제추론", 1],

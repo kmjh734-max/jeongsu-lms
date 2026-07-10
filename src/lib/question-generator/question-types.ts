@@ -52,51 +52,29 @@ export type AingkaOption = ReturnType<typeof opt>;
 export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
   {
     category: "grammar_vocabulary",
-    label: "Section · 어법·어휘",
+    label: "Section · 어법",
     options: [
       opt(
         "grammar",
         "grammar_vocabulary",
-        "어법 연결형 (ⓐⓑⓒ)",
+        "밑줄 모두 고르기",
         "default",
-        "english",
+        null,
         true,
-        "괄호 ⓐⓑⓒ에서 어법상 알맞은 말 연결",
-        "어법연결",
-        "윗글의 괄호 ⓐ, ⓑ, ⓒ에서 어법상 알맞은 말로 바르게 연결된 것은?"
+        "ⓐ~ⓔ 중 어법상 어색한 것을 모두 고르기 (조합 선택)",
+        "어법모두고르기",
+        "윗글의 밑줄 친 ⓐ~ⓔ 중, 어법상 어색한 것을 모두 고르면?"
       ),
       opt(
         "grammar",
         "grammar_vocabulary",
-        "어법 밑줄 (어색한 것)",
+        "어색한 것 개수",
         "default",
         null,
         true,
-        "밑줄 ⓐ~ⓔ 중 어법상 어색한 것",
-        "어법추론",
-        "윗글의 밑줄 친 ⓐ~ⓔ 중, 어법상 어색한 것은?"
-      ),
-      opt(
-        "vocabulary",
-        "grammar_vocabulary",
-        "어휘 밑줄 (부적절)",
-        "default",
-        null,
-        true,
-        "문맥상 낱말 쓰임이 적절하지 않은 것",
-        "어휘추론",
-        "윗글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?"
-      ),
-      opt(
-        "grammar",
-        "grammar_vocabulary",
-        "어법 고쳐 쓰기",
-        "default",
-        null,
-        false,
-        "어법상 어색한 부분을 찾아 고치기",
-        "어법고쳐쓰기",
-        "윗글에서 어법상 어색한 부분을 찾아 바르게 고쳐 쓰시오."
+        "ⓐ~ⓕ 중 어법상 어색한 것의 개수",
+        "어법개수",
+        "윗글의 밑줄 친 ⓐ~ⓕ 중, 어법상 어색한 것의 개수는?"
       ),
     ],
   },

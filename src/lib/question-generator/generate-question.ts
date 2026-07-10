@@ -200,15 +200,42 @@ ${irrelevantQuality}
 LANGUAGE: passageModified MUST be ENGLISH only.`;
     }
     case "grammar":
+      if (code === "어법모두고르기") {
+        return `어법 모두 고르기 — 학력평가/내신형:
+- passageModified = ENGLISH passage with exactly five underlined grammar spots marked ⓐ ⓑ ⓒ ⓓ ⓔ.
+- Format each spot as: ⓐ<u>word or phrase</u> (use HTML <u> for underline).
+- Make 2 or 3 of them grammatically WRONG; the rest must be grammatically CORRECT in context.
+- Wrong items: real HS-exam grammar errors (relative pronoun, agreement, voice, to-infinitive/gerund, conjunction, etc.).
+- choices: exactly 5 Korean combination options listing which letters are wrong, e.g.
+  {"number":1,"text":"ⓐ, ⓑ"}, {"number":2,"text":"ⓐ, ⓒ"}, ...
+- Exactly ONE choice lists ALL and ONLY the wrong letters (no extras, none missing).
+- correctAnswer 1-5. questionText empty.
+- explanation (Korean): list which letters are wrong and why briefly.
+LANGUAGE: passageModified ENGLISH only.`;
+      }
+      if (code === "어법개수") {
+        return `어법 개수 — 학력평가/내신형:
+- passageModified = ENGLISH passage with exactly six underlined grammar spots marked ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ.
+- Format each spot as: ⓐ<u>word or phrase</u> (use HTML <u> for underline).
+- Make between 1 and 5 of them grammatically WRONG; the rest CORRECT.
+- Wrong items: real HS-exam grammar errors (agreement, relative, voice, tense, article, parallel, etc.).
+- choices MUST be exactly:
+  {"number":1,"text":"1개"}, {"number":2,"text":"2개"}, {"number":3,"text":"3개"}, {"number":4,"text":"4개"}, {"number":5,"text":"5개"}
+- correctAnswer = the choice number matching the COUNT of wrong spots (if 3 wrong → correctAnswer 3).
+- questionText empty.
+- explanation (Korean): state the count and briefly which letters are wrong.
+LANGUAGE: passageModified ENGLISH only.`;
+      }
+      // legacy fallbacks
       if (code === "어법연결") {
         return `In passageModified mark ⓐ, ⓑ, ⓒ with two alternatives in parentheses. 5 ENGLISH connection choices. Exactly one correct.`;
       }
       if (code === "어법고쳐쓰기") {
         return `No MCQ. Student finds one grammar error and rewrites. Model rewrite in correctAnswer.`;
       }
-      return `Mark 5 underlined spots in passageModified. Exactly ONE grammatically wrong.`;
+      return `Mark 5 underlined spots ⓐ~ⓔ with <u>...</u> in passageModified. Exactly ONE grammatically wrong. choices ①ⓐ~⑤ⓔ.`;
     case "vocabulary":
-      return `Mark 5 underlined words. Exactly ONE contextually wrong.`;
+      return `Mark 5 underlined words (A)~(E) with <u>...</u>. Exactly ONE contextually wrong.`;
     case "underlined_inference":
       if (code === "목적추론") {
         return `5 ENGLISH purpose choices (To + verb). Exactly one correct. passageModified optional. LANGUAGE: choices ENGLISH only.`;
@@ -240,7 +267,6 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
 
 /** 지문 표지(①~⑤)와 정답이 묶인 유형은 셔플하면 안 됨 */
 const NO_SHUFFLE_TYPES = new Set([
-  "grammar",
   "vocabulary",
   "irrelevant_sentence",
   "sentence_insertion",
@@ -380,18 +406,22 @@ function normalizePayload(
   let passageModified =
     typeof raw.passageModified === "string" ? raw.passageModified : undefined;
 
-  // 함축: markdown 밑줄을 <u>로 정규화
+  // 함축·어법: markdown 밑줄을 <u>로 정규화
   if (
-    option.type === "underlined_inference" &&
-    option.aingkaCode === "함축의미추론" &&
-    passageModified
+    (option.type === "underlined_inference" &&
+      option.aingkaCode === "함축의미추론") ||
+    (option.type === "grammar" &&
+      (option.aingkaCode === "어법모두고르기" ||
+        option.aingkaCode === "어법개수"))
   ) {
-    passageModified = passageModified
-      .replace(/<\/?underline>/gi, (m) =>
-        m.startsWith("</") ? "</u>" : "<u>"
-      )
-      .replace(/__(.+?)__/g, "<u>$1</u>")
-      .replace(/\*\*(.+?)\*\*/g, "<u>$1</u>");
+    if (passageModified) {
+      passageModified = passageModified
+        .replace(/<\/?underline>/gi, (m) =>
+          m.startsWith("</") ? "</u>" : "<u>"
+        )
+        .replace(/__(.+?)__/g, "<u>$1</u>")
+        .replace(/\*\*(.+?)\*\*/g, "<u>$1</u>");
+    }
   }
 
   return {
@@ -434,7 +464,9 @@ export function assertBasicQuestionShape(
     const body = [
       q.passageModified || "",
       option.type === "sentence_insertion" ? q.questionText || "" : "",
-      ...(q.choices ?? []).map((c) => c.text),
+      ...(option.type === "grammar"
+        ? []
+        : (q.choices ?? []).map((c) => c.text)),
     ].join("\n");
     if (hasHangul(body)) {
       return "본문·선택지는 영어여야 합니다 (한글 포함됨).";
@@ -494,6 +526,25 @@ export function assertBasicQuestionShape(
     return "객관식 선택지가 5개 미만입니다.";
   }
 
+  if (option.type === "grammar" && option.isObjective) {
+    if (!q.choices || q.choices.length < 5) {
+      return "객관식 선택지가 5개 미만입니다.";
+    }
+    const mod = q.passageModified || "";
+    if (option.aingkaCode === "어법개수") {
+      if (!/[ⓐⓑⓒⓓⓔⓕ]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
+        return "어법 개수 문항은 ⓐ~ⓕ 밑줄 표지가 필요합니다.";
+      }
+    } else if (option.aingkaCode === "어법모두고르기") {
+      if (!/[ⓐⓑⓒⓓⓔ]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
+        return "어법 모두 고르기 문항은 ⓐ~ⓔ 밑줄 표지가 필요합니다.";
+      }
+    }
+    if (hasHangul(mod)) {
+      return "본문은 영어여야 합니다 (한글 포함됨).";
+    }
+  }
+
   return null;
 }
 
@@ -526,9 +577,12 @@ export async function generateOneQuestion(opts: {
     "sentence_blank",
     "sentence_insertion",
     "irrelevant_sentence",
+    "grammar",
   ]);
   const englishOnlyHint = englishBodyTypes.has(option.type)
-    ? "- CRITICAL LANGUAGE: passageModified, questionText (if any), and choices MUST be ENGLISH only. Never put Korean Hangul in passage or choices. Only instruction/explanation may be Korean."
+    ? option.type === "grammar"
+      ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only. Choice texts may be Korean (조합/개수). Never put Hangul in the passage."
+      : "- CRITICAL LANGUAGE: passageModified, questionText (if any), and choices MUST be ENGLISH only. Never put Korean Hangul in passage or choices. Only instruction/explanation may be Korean."
     : "";
 
   const needsModified = [

@@ -28,7 +28,7 @@ const CATEGORY_LABEL: Record<string, string> = {
   main_idea: "대의 파악",
   details: "세부 정보",
   inference: "추론 능력",
-  grammar_vocabulary: "어법·어휘",
+  grammar_vocabulary: "어법",
   subjective: "주관식·서술형",
 };
 
