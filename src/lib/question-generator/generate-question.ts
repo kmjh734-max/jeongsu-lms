@@ -1,3 +1,4 @@
+import { grammarCatalogPromptBlock } from "@/lib/question-generator/grammar-catalog";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
 import { findAingkaOption } from "@/lib/question-generator/question-types";
 import { cleanQuestionText } from "@/lib/question-generator/text-utils";
@@ -199,27 +200,34 @@ ${irrelevantQuality}
 - correctAnswer 1-5 mapping ⓐ=1 … ⓔ=5. questionText empty.
 LANGUAGE: passageModified MUST be ENGLISH only.`;
     }
-    case "grammar":
+    case "grammar": {
+      const catalog = grammarCatalogPromptBlock();
       if (code === "어법모두고르기") {
-        return `어법 모두 고르기 — 고1 학력평가·내신 고퀄리티:
+        return `어법 모두 고르기 — 『처음 만나는 수능 어법』 스타터 범위:
 - passageModified = FULL ENGLISH passage (keep original wording mostly) with exactly five grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ.
-- Format: ⓐ<u>target</u> (HTML underline). Targets = single words or short phrases that test real grammar points.
+- Format: ⓐ<u>target</u> (HTML underline). Targets = single words or short phrases.
 - Exactly 2 or 3 spots are grammatically WRONG; the others MUST be fully correct in context.
-- Error quality (필수): use authentic Korean HS exam error types — relative pronoun (which/that/what), S-V agreement, voice (active/passive), to-V vs V-ing, conjunction/preposition, parallel structure, tense consistency. Do NOT invent nonsense words.
-- Distractors (correct underlines) must look like tempting test points but be actually correct.
+- Error quality (필수): EVERY wrong spot MUST be one of the textbook Points below. Prefer ‘결정적 출제 어법’ traps. Do NOT invent nonsense words or out-of-scope grammar.
+- Distractors (correct underlines) must look like the same textbook points but be actually correct.
 - choices: exactly 5 combination options (Korean), e.g. "ⓐ, ⓒ" / "ⓑ, ⓓ, ⓔ". Exactly ONE choice lists ALL and ONLY the wrong letters.
-- correctAnswer 1-5. questionText empty. explanation: Korean, name wrong letters + brief reason each.
-LANGUAGE: passage ENGLISH only.`;
+- correctAnswer 1-5. questionText empty.
+- explanation (Korean): wrong letters + each mapped to UNIT/Point title + one-line reason.
+LANGUAGE: passage ENGLISH only.
+
+${catalog}`;
       }
       if (code === "어법개수") {
-        return `어법 개수 — 고1 학력평가·내신 고퀄리티:
+        return `어법 개수 — 『처음 만나는 수능 어법』 스타터 범위:
 - passageModified = FULL ENGLISH passage with exactly six grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ as ⓐ<u>target</u>.
-- Put 1~5 authentic grammar errors (same exam-quality rules as above); rest correct.
+- Put 1~5 textbook-catalog errors (same rules/catalog as 어법모두고르기); rest correct.
 - choices MUST be EXACTLY and ONLY these five texts in order (never skip, never invent other numbers like only 2개/5개):
   1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
 - correctAnswer = N where N is the exact count of wrong spots (so if 3 wrong, correctAnswer is 3 and choice text is "3개").
-- questionText empty. explanation: Korean count + which letters wrong.
-LANGUAGE: passage ENGLISH only.`;
+- questionText empty.
+- explanation (Korean): count + wrong letters + each UNIT/Point title.
+LANGUAGE: passage ENGLISH only.
+
+${catalog}`;
       }
       // legacy fallbacks
       if (code === "어법연결") {
@@ -228,7 +236,10 @@ LANGUAGE: passage ENGLISH only.`;
       if (code === "어법고쳐쓰기") {
         return `No MCQ. Student finds one grammar error and rewrites. Model rewrite in correctAnswer.`;
       }
-      return `Mark 5 underlined spots ⓐ~ⓔ with <u>...</u> in passageModified. Exactly ONE grammatically wrong. choices ①ⓐ~⑤ⓔ.`;
+      return `Mark 5 underlined spots ⓐ~ⓔ with <u>...</u> in passageModified. Exactly ONE grammatically wrong. choices ①ⓐ~⑤ⓔ.
+Errors must follow the textbook catalog:
+${catalog}`;
+    }
     case "vocabulary":
       if (code === "어휘개수") {
         return `어휘 개수 — 고1 학력평가·내신 고퀄리티:
@@ -735,6 +746,11 @@ ${
 ${
   option.aingkaCode === "어법개수" || option.aingkaCode === "어휘개수"
     ? '- Count choices MUST be exactly ["1개","2개","3개","4개","5개"] in order — never sparse options.'
+    : ""
+}
+${
+  option.type === "grammar"
+    ? "- Grammar errors MUST stay inside 『처음 만나는 수능 어법』 스타터 UNIT 01–13 Points listed in the type rules. Explanation cites UNIT/Point."
     : ""
 }
 ${paraphraseSystemHint}
