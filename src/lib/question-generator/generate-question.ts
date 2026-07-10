@@ -171,24 +171,34 @@ LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
 - correctAnswer 1-5. Exactly one best slot.
 LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
-    case "irrelevant_sentence":
+    case "irrelevant_sentence": {
+      const irrelevantQuality = `IRRELEVANT SENTENCE QUALITY (효자 기출동형 — 필수):
+- Do NOT invent a bizarre, random, or absurd sentence that has nothing to do with the passage vocabulary.
+- The irrelevant sentence MUST reuse similar words / related content from the passage (same domain, overlapping vocabulary) so it LOOKS related at a glance.
+- But it must break cohesion: different topic focus OR a different point that does not connect to the surrounding sentences (e.g. science-funding passage → a sentence about exercise/mental health that shares "people/discuss" style but wrong point; commitment/social life → animals/instinct that shares "social" but wrong point).
+- It should feel like a plausible mock-exam distractor: thematically adjacent wording, logically unconnected.`;
       if (option.difficulty === "high") {
         return `무관한문장 HIGH (상) — 효자 기출동형:
 - CRITICAL: PARAPHRASE the ENTIRE passage in passageModified (ENGLISH synonyms/rewording throughout).
-- Mark five candidate sentences in the passage with ① ② ③ ④ ⑤ (circled numbers before each).
-- Exactly ONE of those five is irrelevant to the flow (plausible but breaks cohesion).
-- choices: omit or empty array — numbers IN the passage are the options; do NOT invent bottom choice texts.
-- correctAnswer 1-5. questionText empty.
+- Mark five candidate sentences with ⓐ ⓑ ⓒ ⓓ ⓔ (circled letters before each).
+- Exactly ONE of ⓐ~ⓔ is the irrelevant sentence.
+${irrelevantQuality}
+- For HIGH: the irrelevant sentence should be subtler — same keywords/theme words, but a shifted claim/point that does not follow.
+- choices: omit or empty array — letters IN the passage are the options; do NOT invent bottom choice texts.
+- correctAnswer 1-5 mapping ⓐ=1 … ⓔ=5. questionText empty.
 LANGUAGE: passageModified MUST be ENGLISH only.`;
       }
       return `무관한문장 LOW (하) — 효자 기출동형:
 - Keep most of the passage ORIGINAL ENGLISH in passageModified.
-- Take one flow-critical sentence and REPLACE it with an unrelated ENGLISH sentence that breaks cohesion.
-- Mark five candidate sentences with ① ② ③ ④ ⑤ in the passage.
-- Exactly ONE of those five is the irrelevant replacement.
-- choices: omit or empty array — numbers IN the passage are the options; do NOT invent bottom choice texts.
-- correctAnswer 1-5. questionText empty.
+- Replace ONE sentence with an irrelevant ENGLISH sentence (or insert one among five marked sentences).
+- Mark five candidate sentences with ⓐ ⓑ ⓒ ⓓ ⓔ in the passage.
+- Exactly ONE of ⓐ~ⓔ is the irrelevant sentence.
+${irrelevantQuality}
+- For LOW: the topic shift can be clearer (still reuse similar wording; never totally weird).
+- choices: omit or empty array — letters IN the passage are the options; do NOT invent bottom choice texts.
+- correctAnswer 1-5 mapping ⓐ=1 … ⓔ=5. questionText empty.
 LANGUAGE: passageModified MUST be ENGLISH only.`;
+    }
     case "grammar":
       if (code === "어법연결") {
         return `In passageModified mark ⓐ, ⓑ, ⓒ with two alternatives in parentheses. 5 ENGLISH connection choices. Exactly one correct.`;
@@ -442,8 +452,8 @@ export function assertBasicQuestionShape(
     q.choices = undefined;
   } else if (option.type === "irrelevant_sentence") {
     const mod = q.passageModified || "";
-    if (!/[①②③④⑤]/.test(mod) && !/\([A-E]\)/.test(mod)) {
-      return "무관한 문장 본문에 ①~⑤(또는 A~E) 표지가 필요합니다.";
+    if (!/[ⓐⓑⓒⓓⓔ]/.test(mod) && !/[①②③④⑤]/.test(mod) && !/\([A-E]\)/.test(mod)) {
+      return "무관한 문장 본문에 ⓐ~ⓔ 표지가 필요합니다.";
     }
     q.choices = undefined;
   } else if (
@@ -577,7 +587,7 @@ ${
 }
 ${
   option.type === "irrelevant_sentence"
-    ? "- Do NOT return choices for 무관한문장; ①~⑤ marks IN the passage are the options."
+    ? "- Do NOT return choices for 무관한문장; mark ⓐⓑⓒⓓⓔ IN the passage. The irrelevant sentence must reuse similar passage words but shift topic/point (not bizarre)."
     : ""
 }
 ${paraphraseSystemHint}
@@ -599,9 +609,10 @@ ${typeRules(option)}`,
             }
           : option.type === "irrelevant_sentence"
             ? {
-                passageModified: "ENGLISH passage with ① ② ③ ④ ⑤ marks",
+                passageModified:
+                  "ENGLISH passage with ⓐ ⓑ ⓒ ⓓ ⓔ; one sentence similar in wording but off-point",
                 choices: [],
-                correctAnswer: "integer 1-5",
+                correctAnswer: "integer 1-5 (ⓐ=1 … ⓔ=5)",
               }
             : allowSkip
               ? {

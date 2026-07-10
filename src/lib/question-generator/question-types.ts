@@ -319,9 +319,9 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "low",
         null,
         true,
-        "중요 문장 → 무관 문장으로 교체",
+        "중요 문장 → 주제·포인트가 다른 무관 문장(어휘는 유사)",
         "무관한문장",
-        "윗글의 (A)~(E) 중, 흐름상 관계없는 것은?"
+        "다음 글의 전체 흐름과 가장 관계없는 문장은?"
       ),
       opt(
         "irrelevant_sentence",
@@ -330,9 +330,9 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "high",
         null,
         true,
-        "본문 전체 paraphrase + 무관 문장",
+        "본문 paraphrase + 어휘 유사·포인트 다른 무관 문장",
         "무관한문장",
-        "윗글의 (A)~(E) 중, 흐름상 관계없는 것은?"
+        "다음 글의 전체 흐름과 가장 관계없는 문장은?"
       ),
       // 함축의미추론: 난이도 없음 · 영어 보기
       opt(
