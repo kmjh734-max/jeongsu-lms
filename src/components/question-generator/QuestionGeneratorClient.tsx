@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   GRADES,
+  MAX_PASSAGES,
   MAX_SETS_PER_TYPE,
   MAX_TOTAL_QUESTIONS,
   OVERALL_DIFFICULTIES,
   SOURCE_TYPES,
 } from "@/lib/question-generator/constants";
+import { emptyPassageInput } from "@/lib/question-generator/passages";
 import { SYSTEM_PRESETS } from "@/lib/question-generator/presets";
 import {
   emptyCounts,
@@ -19,7 +21,10 @@ import {
   sanitizeCounts,
   sumCounts,
 } from "@/lib/question-generator/question-types";
-import type { GenerationRequestConfig } from "@/lib/question-generator/types";
+import type {
+  GenerationRequestConfig,
+  PassageInput,
+} from "@/lib/question-generator/types";
 
 type Role = "admin" | "teacher";
 
@@ -31,6 +36,14 @@ interface PresetRow {
   is_system: boolean;
   slug?: string | null;
 }
+
+const CATEGORY_ORDER = [
+  "main_idea",
+  "details",
+  "inference",
+  "grammar_vocabulary",
+  "subjective",
+] as const;
 
 export function QuestionGeneratorClient({
   role,
@@ -45,7 +58,9 @@ export function QuestionGeneratorClient({
   const [sourceType, setSourceType] = useState("모의고사");
   const [sourceDetail, setSourceDetail] = useState("");
   const [overallDifficulty, setOverallDifficulty] = useState("내신");
-  const [passage, setPassage] = useState("");
+  const [passages, setPassages] = useState<PassageInput[]>([
+    emptyPassageInput(),
+  ]);
   const [counts, setCounts] = useState<Record<string, number>>(emptyCounts);
   const [modeTab, setModeTab] = useState<string>("custom");
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({
@@ -55,7 +70,6 @@ export function QuestionGeneratorClient({
     grammar_vocabulary: false,
     subjective: false,
   });
-  const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [presets, setPresets] = useState<PresetRow[]>([]);
   const [passageId, setPassageId] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -77,7 +91,12 @@ export function QuestionGeneratorClient({
   } | null>(null);
   const pdfOpenedForJob = useRef<string | null>(null);
 
-  const totals = useMemo(() => sumCounts(counts), [counts]);
+  const filledPassages = useMemo(
+    () => passages.filter((p) => p.text.trim()),
+    [passages]
+  );
+  const perPassageTotals = useMemo(() => sumCounts(counts), [counts]);
+  const grandTotal = perPassageTotals.total * Math.max(1, filledPassages.length);
 
   const config: GenerationRequestConfig = useMemo(
     () => ({
@@ -87,7 +106,8 @@ export function QuestionGeneratorClient({
       sourceType,
       sourceDetail,
       overallDifficulty,
-      passage,
+      passage: filledPassages[0]?.text ?? "",
+      passages,
       mode: modeTab === "custom" ? "custom" : "preset",
       presetId: modeTab.startsWith("preset:") ? modeTab.slice(7) : null,
       counts,
@@ -99,7 +119,8 @@ export function QuestionGeneratorClient({
       sourceType,
       sourceDetail,
       overallDifficulty,
-      passage,
+      passages,
+      filledPassages,
       modeTab,
       counts,
     ]
@@ -120,7 +141,7 @@ export function QuestionGeneratorClient({
 
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (jobProgress && !jobProgress.done) return; // 생성 중에는 이탈 허용
+      if (jobProgress && !jobProgress.done) return;
       if (dirty) {
         e.preventDefault();
         e.returnValue = "";
@@ -217,6 +238,25 @@ export function QuestionGeneratorClient({
     setError(null);
   }
 
+  function updatePassage(index: number, patch: Partial<PassageInput>) {
+    setPassages((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, ...patch } : p))
+    );
+  }
+
+  function addPassage() {
+    if (passages.length >= MAX_PASSAGES) {
+      setError(`지문은 최대 ${MAX_PASSAGES}개까지 넣을 수 있습니다.`);
+      return;
+    }
+    setPassages((prev) => [...prev, emptyPassageInput()]);
+  }
+
+  function removePassage(index: number) {
+    if (passages.length <= 1) return;
+    setPassages((prev) => prev.filter((_, i) => i !== index));
+  }
+
   async function savePreset() {
     if (!presetName.trim()) {
       setError("프리셋 이름을 입력해 주세요.");
@@ -249,16 +289,18 @@ export function QuestionGeneratorClient({
     setError(null);
     setMessage(null);
     try {
-      if (totals.total <= 0) {
+      if (perPassageTotals.total <= 0) {
         setError("생성할 문항을 1개 이상 선택해 주세요.");
         return;
       }
-      if (totals.total > MAX_TOTAL_QUESTIONS) {
-        setError(`최대 ${MAX_TOTAL_QUESTIONS}문항까지 생성할 수 있습니다.`);
+      if (filledPassages.length === 0) {
+        setError("영어 지문을 1개 이상 입력해 주세요.");
         return;
       }
-      if (!passage.trim()) {
-        setError("영어 지문을 입력해 주세요.");
+      if (grandTotal > MAX_TOTAL_QUESTIONS) {
+        setError(
+          `최대 ${MAX_TOTAL_QUESTIONS}문항까지 생성할 수 있습니다. (지문 ${filledPassages.length} × ${perPassageTotals.total} = ${grandTotal})`
+        );
         return;
       }
 
@@ -279,13 +321,13 @@ export function QuestionGeneratorClient({
         status: "pending",
         message: "생성 준비 중…",
         completed: 0,
-        total: totals.total,
+        total: grandTotal,
         failed: 0,
       });
       try {
         sessionStorage.setItem(
           "qg-active-job",
-          JSON.stringify({ jobId: data.jobId, total: totals.total })
+          JSON.stringify({ jobId: data.jobId, total: grandTotal })
         );
       } catch {
         /* ignore */
@@ -341,8 +383,7 @@ export function QuestionGeneratorClient({
           jobId: jobProgress.jobId,
           status: job.status,
           message:
-            job.progress_message ||
-            (terminal ? "생성 완료" : "생성 중…"),
+            job.progress_message || (terminal ? "생성 완료" : "생성 중…"),
           completed: job.total_completed ?? 0,
           total: job.total_requested || jobProgress.total,
           failed: job.total_failed ?? 0,
@@ -392,20 +433,28 @@ export function QuestionGeneratorClient({
         ? 5
         : 0;
 
+  const sortedGroups = useMemo(
+    () =>
+      [...QUESTION_TYPE_GROUPS].sort(
+        (a, b) =>
+          CATEGORY_ORDER.indexOf(a.category as (typeof CATEGORY_ORDER)[number]) -
+          CATEGORY_ORDER.indexOf(b.category as (typeof CATEGORY_ORDER)[number])
+      ),
+    []
+  );
+
   return (
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="생성 중에도 다른 페이지로 이동할 수 있습니다. 완료되면 문제·해설 PDF가 자동으로 열립니다."
+        description="지문을 여러 개 넣고, 왼쪽에서 유형 세트를 고르면 지문마다 같은 유형으로 생성됩니다."
         action={
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={`${basePath}/generations`}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-            >
-              생성 기록
-            </Link>
-          </div>
+          <Link
+            href={`${basePath}/generations`}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+          >
+            생성 기록
+          </Link>
         }
       />
 
@@ -474,425 +523,491 @@ export function QuestionGeneratorClient({
         </div>
       )}
 
-      <div>
-      <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-        <h2 className="mb-4 text-sm font-semibold text-slate-900">기본 정보</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="block sm:col-span-2 lg:col-span-3">
-            <span className="ui-label">자료 제목</span>
-            <input
-              className="ui-input mt-1"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="예: 2026년 3월 고1 모의고사 32번 변형"
-            />
-          </label>
-          <label className="block">
-            <span className="ui-label">학교명 (선택)</span>
-            <input
-              className="ui-input mt-1"
-              value={schoolName}
-              onChange={(e) => setSchoolName(e.target.value)}
-            />
-          </label>
-          <label className="block">
-            <span className="ui-label">학년</span>
-            <select
-              className="ui-select mt-1"
-              value={grade}
-              onChange={(e) => setGrade(e.target.value)}
-            >
-              {GRADES.map((g) => (
-                <option key={g.value} value={g.value}>
-                  {g.label}
-                </option>
+      <div className="grid gap-4 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] lg:items-start">
+        {/* 왼쪽: 유형별 세트 */}
+        <aside className="space-y-3 lg:sticky lg:top-4 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
+          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card">
+            <h2 className="mb-2 text-sm font-semibold text-slate-900">
+              생성 방식
+            </h2>
+            <div className="flex flex-col gap-1.5">
+              {[
+                { id: "custom", label: "유형 직접 설정" },
+                { id: "main_idea_focus", label: "주제·제목 (대의)" },
+                { id: "main_idea_full", label: "대의 파악 전체" },
+                { id: "blank_order_focus", label: "빈칸·배열 집중" },
+                { id: "grammar_vocab_focus", label: "어법·어휘 집중" },
+                { id: "advanced_full", label: "고난도 통합" },
+                { id: "standard_mixed", label: "표준 종합 (고1)" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    if (tab.id === "custom") setModeTab("custom");
+                    else applySystemPreset(tab.id);
+                  }}
+                  className={`rounded-lg px-3 py-2 text-left text-sm font-medium ${
+                    modeTab === tab.id
+                      ? "bg-brand-700 text-white"
+                      : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  {tab.label}
+                </button>
               ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="ui-label">출처</span>
-            <select
-              className="ui-select mt-1"
-              value={sourceType}
-              onChange={(e) => setSourceType(e.target.value)}
-            >
-              {SOURCE_TYPES.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block sm:col-span-2">
-            <span className="ui-label">출처 상세</span>
-            <input
-              className="ui-input mt-1"
-              value={sourceDetail}
-              onChange={(e) => setSourceDetail(e.target.value)}
-              placeholder="예: 2026년 3월 고1 모의고사 32번"
-            />
-          </label>
-          <label className="block">
-            <span className="ui-label">전체 난이도 기준</span>
-            <select
-              className="ui-select mt-1"
-              value={overallDifficulty}
-              onChange={(e) => setOverallDifficulty(e.target.value)}
-            >
-              {OVERALL_DIFFICULTIES.map((d) => (
-                <option key={d.value} value={d.value}>
-                  {d.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block sm:col-span-2 lg:col-span-3">
-            <span className="ui-label">영어 지문</span>
-            <textarea
-              className="ui-input mt-1 min-h-[220px] font-serif text-[15px] leading-relaxed"
-              value={passage}
-              onChange={(e) => setPassage(e.target.value)}
-              placeholder="영어 지문을 그대로 붙여넣으세요. 줄바꿈·문장부호·따옴표는 임의로 바꾸지 않습니다."
-              spellCheck={false}
-            />
-          </label>
-        </div>
-        <p className="mt-2 text-xs text-slate-500">
-          {savedAt
-            ? `마지막 임시 저장: ${new Date(savedAt).toLocaleString("ko-KR")}`
-            : "변경 사항은 자동으로 임시 저장됩니다."}
-          {role === "admin" ? " · 관리자" : " · 강사"}
-        </p>
-      </section>
-
-      <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">생성 방식</h2>
-        <div className="flex flex-wrap gap-2">
-          {[
-            { id: "custom", label: "유형 직접 설정" },
-            { id: "main_idea_focus", label: "주제·제목 (대의)" },
-            { id: "main_idea_full", label: "대의 파악 전체" },
-            { id: "blank_order_focus", label: "빈칸·배열 집중" },
-            { id: "grammar_vocab_focus", label: "어법·어휘 집중" },
-            { id: "advanced_full", label: "고난도 통합" },
-            { id: "standard_mixed", label: "표준 종합 (고1)" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => {
-                if (tab.id === "custom") setModeTab("custom");
-                else applySystemPreset(tab.id);
-              }}
-              className={`rounded-lg px-3 py-2 text-sm font-medium ${
-                modeTab === tab.id ||
-                (tab.id !== "custom" && modeTab === tab.id)
-                  ? "bg-brand-700 text-white"
-                  : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-          {personalPresets.length > 0 && (
-            <select
-              className="ui-select w-auto"
-              value={modeTab.startsWith("preset:") ? modeTab : ""}
-              onChange={(e) => {
-                const id = e.target.value.replace("preset:", "");
-                const p = personalPresets.find((x) => x.id === id);
-                if (p) applyDbPreset(p);
-              }}
-            >
-              <option value="">저장한 프리셋…</option>
-              {personalPresets.map((p) => (
-                <option key={p.id} value={`preset:${p.id}`}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-        <p className="mt-2 text-xs text-slate-500">
-          프리셋을 선택하면 아래 세트 수가 자동 입력되며, 이후 직접 수정할 수
-          있습니다.
-        </p>
-      </section>
-
-      <section className="mb-6 space-y-3">
-        <h2 className="text-sm font-semibold text-slate-900">유형별 세트 수</h2>
-        {([...QUESTION_TYPE_GROUPS] as typeof QUESTION_TYPE_GROUPS)
-          .sort((a, b) => {
-            const order = [
-              "main_idea",
-              "details",
-              "inference",
-              "grammar_vocabulary",
-              "subjective",
-            ];
-            return order.indexOf(a.category) - order.indexOf(b.category);
-          })
-          .map((group) => {
-          const selectedInGroup = group.options.reduce(
-            (acc, o) => acc + (counts[o.key] ?? 0),
-            0
-          );
-          const open = openCats[group.category] ?? true;
-          const isMainIdea = group.category === "main_idea";
-          return (
-            <div
-              key={group.category}
-              className={`rounded-2xl border bg-white shadow-card ${
-                isMainIdea
-                  ? "border-brand-300 ring-1 ring-brand-100"
-                  : "border-slate-200"
-              }`}
-            >
-              <button
-                type="button"
-                className="flex w-full items-center justify-between px-4 py-3 text-left"
-                onClick={() =>
-                  setOpenCats((prev) => ({
-                    ...prev,
-                    [group.category]: !open,
-                  }))
-                }
-              >
-                <span className="font-semibold text-slate-900">
-                  {group.label}
-                  {selectedInGroup > 0 && (
-                    <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">
-                      {selectedInGroup}
-                    </span>
-                  )}
-                </span>
-                <span className="text-slate-400">{open ? "▲" : "▼"}</span>
-              </button>
-              {open && (
-                <div className="border-t border-slate-100 px-4 py-3">
-                  {isMainIdea ? (
-                    <div className="space-y-4">
-                      <p className="text-xs text-slate-500">
-                        난이도 <strong>하</strong>(쉬움) / <strong>상</strong>
-                        (어려움) · (영)=영어 선택지 · (한)=한글 선택지
-                      </p>
-                      {(
-                        [
-                          {
-                            rowLabel: "제목 세트 수",
-                            keys: [
-                              "title:en:low:제목추론",
-                              "title:en:high:제목추론",
-                              "title:ko:low:제목추론",
-                              "title:ko:high:제목추론",
-                            ],
-                          },
-                          {
-                            rowLabel: "주제 세트 수",
-                            keys: [
-                              "topic:en:low:주제추론",
-                              "topic:en:high:주제추론",
-                              "topic:ko:low:주제추론",
-                              "topic:ko:high:주제추론",
-                            ],
-                          },
-                          {
-                            rowLabel: "요지 세트 수",
-                            keys: [
-                              "summary_mcq:ko:low:요지추론",
-                              "summary_mcq:ko:high:요지추론",
-                            ],
-                          },
-                        ] as const
-                      ).map((row) => (
-                        <div key={row.rowLabel}>
-                          <p className="mb-2 text-sm font-semibold text-slate-800">
-                            {row.rowLabel}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {row.keys.map((key) => {
-                              const opt = group.options.find((o) => o.key === key);
-                              if (!opt) return null;
-                              return (
-                                <div
-                                  key={key}
-                                  className="flex min-w-[140px] flex-1 flex-col gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 sm:max-w-[180px]"
-                                >
-                                  <span className="text-sm font-medium text-slate-900">
-                                    {opt.label}
-                                  </span>
-                                  <div className="mt-1 flex items-center gap-1">
-                                    <button
-                                      type="button"
-                                      className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
-                                      onClick={() =>
-                                        setCount(key, (counts[key] ?? 0) - 1)
-                                      }
-                                    >
-                                      −
-                                    </button>
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={MAX_SETS_PER_TYPE}
-                                      className="ui-input w-12 py-1 text-center"
-                                      value={counts[key] ?? 0}
-                                      onChange={(e) =>
-                                        setCount(key, Number(e.target.value))
-                                      }
-                                    />
-                                    <button
-                                      type="button"
-                                      className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
-                                      onClick={() =>
-                                        setCount(key, (counts[key] ?? 0) + 1)
-                                      }
-                                    >
-                                      +
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => applySystemPreset("main_idea_focus")}
-                        >
-                          제목·주제 (영)상 1씩
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => applySystemPreset("main_idea_full")}
-                        >
-                          대의 전체 넣기
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="grid gap-2 lg:grid-cols-2">
-                        {group.options.map((opt) => (
-                          <div
-                            key={opt.key}
-                            className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50/80 px-2 py-1.5"
-                          >
-                            <span className="min-w-0 flex-1 text-sm text-slate-800">
-                              {opt.label}
-                            </span>
-                            <button
-                              type="button"
-                              className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
-                              title={opt.preview}
-                              onClick={() =>
-                                setPreviewKey(
-                                  previewKey === opt.key ? null : opt.key
-                                )
-                              }
-                            >
-                              미리보기
-                            </button>
-                            <button
-                              type="button"
-                              className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
-                              onClick={() =>
-                                setCount(opt.key, (counts[opt.key] ?? 0) - 1)
-                              }
-                            >
-                              −
-                            </button>
-                            <input
-                              type="number"
-                              min={0}
-                              max={MAX_SETS_PER_TYPE}
-                              className="ui-input w-14 py-1 text-center"
-                              value={counts[opt.key] ?? 0}
-                              onChange={(e) =>
-                                setCount(opt.key, Number(e.target.value))
-                              }
-                            />
-                            <button
-                              type="button"
-                              className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
-                              onClick={() =>
-                                setCount(opt.key, (counts[opt.key] ?? 0) + 1)
-                              }
-                            >
-                              +
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      {previewKey &&
-                        group.options.some((o) => o.key === previewKey) && (
-                          <p className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900">
-                            {
-                              group.options.find((o) => o.key === previewKey)
-                                ?.preview
-                            }
-                          </p>
-                        )}
-                    </>
-                  )}
-                </div>
+              {personalPresets.length > 0 && (
+                <select
+                  className="ui-select mt-1 w-full"
+                  value={modeTab.startsWith("preset:") ? modeTab : ""}
+                  onChange={(e) => {
+                    const id = e.target.value.replace("preset:", "");
+                    const p = personalPresets.find((x) => x.id === id);
+                    if (p) applyDbPreset(p);
+                  }}
+                >
+                  <option value="">저장한 프리셋…</option>
+                  {personalPresets.map((p) => (
+                    <option key={p.id} value={`preset:${p.id}`}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
-          );
-        })}
-      </section>
+            <p className="mt-2 text-xs text-slate-500">
+              선택한 세트는 모든 지문에 동일하게 적용됩니다.
+            </p>
+          </section>
 
-      {showPresetForm && (
-        <section className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
-          <h3 className="mb-2 text-sm font-semibold text-slate-900">
-            현재 설정을 프리셋으로 저장
-          </h3>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <input
-              className="ui-input"
-              placeholder="프리셋 이름"
-              value={presetName}
-              onChange={(e) => setPresetName(e.target.value)}
-            />
-            <input
-              className="ui-input"
-              placeholder="설명 (선택)"
-              value={presetDesc}
-              onChange={(e) => setPresetDesc(e.target.value)}
-            />
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button type="button" onClick={() => void savePreset()}>
-              저장
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShowPresetForm(false)}
-            >
-              취소
-            </Button>
-          </div>
-        </section>
-      )}
+          <section className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-sm font-semibold text-slate-900">
+                유형별 세트 수
+              </h2>
+              <span className="text-xs text-slate-500">
+                지문당 {perPassageTotals.total}문항
+              </span>
+            </div>
+            {sortedGroups.map((group) => {
+              const selectedInGroup = group.options.reduce(
+                (acc, o) => acc + (counts[o.key] ?? 0),
+                0
+              );
+              const open = openCats[group.category] ?? true;
+              const isMainIdea = group.category === "main_idea";
+              return (
+                <div
+                  key={group.category}
+                  className={`rounded-2xl border bg-white shadow-card ${
+                    isMainIdea
+                      ? "border-brand-300 ring-1 ring-brand-100"
+                      : "border-slate-200"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between px-3 py-2.5 text-left"
+                    onClick={() =>
+                      setOpenCats((prev) => ({
+                        ...prev,
+                        [group.category]: !open,
+                      }))
+                    }
+                  >
+                    <span className="text-sm font-semibold text-slate-900">
+                      {group.label.replace(/^Section ·\s*/, "")}
+                      {selectedInGroup > 0 && (
+                        <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">
+                          {selectedInGroup}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-slate-400">{open ? "▲" : "▼"}</span>
+                  </button>
+                  {open && (
+                    <div className="border-t border-slate-100 px-3 py-2.5">
+                      {isMainIdea ? (
+                        <div className="space-y-3">
+                          <p className="text-[11px] leading-snug text-slate-500">
+                            하/상 · (영)/(한)
+                          </p>
+                          {(
+                            [
+                              {
+                                rowLabel: "제목",
+                                keys: [
+                                  "title:en:low:제목추론",
+                                  "title:en:high:제목추론",
+                                  "title:ko:low:제목추론",
+                                  "title:ko:high:제목추론",
+                                ],
+                              },
+                              {
+                                rowLabel: "주제",
+                                keys: [
+                                  "topic:en:low:주제추론",
+                                  "topic:en:high:주제추론",
+                                  "topic:ko:low:주제추론",
+                                  "topic:ko:high:주제추론",
+                                ],
+                              },
+                              {
+                                rowLabel: "요지",
+                                keys: [
+                                  "summary_mcq:ko:low:요지추론",
+                                  "summary_mcq:ko:high:요지추론",
+                                ],
+                              },
+                            ] as const
+                          ).map((row) => (
+                            <div key={row.rowLabel}>
+                              <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                                {row.rowLabel}
+                              </p>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                {row.keys.map((key) => {
+                                  const opt = group.options.find(
+                                    (o) => o.key === key
+                                  );
+                                  if (!opt) return null;
+                                  return (
+                                    <div
+                                      key={key}
+                                      className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                                    >
+                                      <span className="block truncate text-[11px] font-medium text-slate-800">
+                                        {opt.label}
+                                      </span>
+                                      <div className="mt-1 flex items-center gap-0.5">
+                                        <button
+                                          type="button"
+                                          className="h-7 w-7 rounded border border-slate-200 bg-white text-slate-700"
+                                          onClick={() =>
+                                            setCount(
+                                              key,
+                                              (counts[key] ?? 0) - 1
+                                            )
+                                          }
+                                        >
+                                          −
+                                        </button>
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          max={MAX_SETS_PER_TYPE}
+                                          className="ui-input w-10 py-0.5 text-center text-sm"
+                                          value={counts[key] ?? 0}
+                                          onChange={(e) =>
+                                            setCount(
+                                              key,
+                                              Number(e.target.value)
+                                            )
+                                          }
+                                        />
+                                        <button
+                                          type="button"
+                                          className="h-7 w-7 rounded border border-slate-200 bg-white text-slate-700"
+                                          onClick={() =>
+                                            setCount(
+                                              key,
+                                              (counts[key] ?? 0) + 1
+                                            )
+                                          }
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                          <div className="flex flex-col gap-1.5">
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              className="w-full text-xs"
+                              onClick={() =>
+                                applySystemPreset("main_idea_focus")
+                              }
+                            >
+                              제목·주제 (영)상 1씩
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              className="w-full text-xs"
+                              onClick={() =>
+                                applySystemPreset("main_idea_full")
+                              }
+                            >
+                              대의 전체 넣기
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {group.options.map((opt) => (
+                            <div
+                              key={opt.key}
+                              className="flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/80 px-1.5 py-1"
+                            >
+                              <span className="min-w-0 flex-1 truncate text-xs text-slate-800">
+                                {opt.label}
+                              </span>
+                              <button
+                                type="button"
+                                className="h-7 w-7 shrink-0 rounded border border-slate-200 bg-white text-slate-700"
+                                onClick={() =>
+                                  setCount(opt.key, (counts[opt.key] ?? 0) - 1)
+                                }
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                min={0}
+                                max={MAX_SETS_PER_TYPE}
+                                className="ui-input w-10 shrink-0 py-0.5 text-center text-sm"
+                                value={counts[opt.key] ?? 0}
+                                onChange={(e) =>
+                                  setCount(opt.key, Number(e.target.value))
+                                }
+                              />
+                              <button
+                                type="button"
+                                className="h-7 w-7 shrink-0 rounded border border-slate-200 bg-white text-slate-700"
+                                onClick={() =>
+                                  setCount(opt.key, (counts[opt.key] ?? 0) + 1)
+                                }
+                              >
+                                +
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </section>
+        </aside>
+
+        {/* 오른쪽: 기본 정보 + 지문들 */}
+        <div className="min-w-0 space-y-4">
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+            <h2 className="mb-4 text-sm font-semibold text-slate-900">
+              기본 정보
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block sm:col-span-2">
+                <span className="ui-label">자료 제목</span>
+                <input
+                  className="ui-input mt-1"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="예: 2026년 3월 고1 모의고사 변형"
+                />
+              </label>
+              <label className="block">
+                <span className="ui-label">학교명 (선택)</span>
+                <input
+                  className="ui-input mt-1"
+                  value={schoolName}
+                  onChange={(e) => setSchoolName(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="ui-label">학년</span>
+                <select
+                  className="ui-select mt-1"
+                  value={grade}
+                  onChange={(e) => setGrade(e.target.value)}
+                >
+                  {GRADES.map((g) => (
+                    <option key={g.value} value={g.value}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="ui-label">출처</span>
+                <select
+                  className="ui-select mt-1"
+                  value={sourceType}
+                  onChange={(e) => setSourceType(e.target.value)}
+                >
+                  {SOURCE_TYPES.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="ui-label">전체 난이도 기준</span>
+                <select
+                  className="ui-select mt-1"
+                  value={overallDifficulty}
+                  onChange={(e) => setOverallDifficulty(e.target.value)}
+                >
+                  {OVERALL_DIFFICULTIES.map((d) => (
+                    <option key={d.value} value={d.value}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="ui-label">공통 출처 상세</span>
+                <input
+                  className="ui-input mt-1"
+                  value={sourceDetail}
+                  onChange={(e) => setSourceDetail(e.target.value)}
+                  placeholder="예: 2026년 3월 고1 모의고사 (지문별로 덮어쓸 수 있음)"
+                />
+              </label>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              {savedAt
+                ? `마지막 임시 저장: ${new Date(savedAt).toLocaleString("ko-KR")}`
+                : "변경 사항은 자동으로 임시 저장됩니다."}
+              {role === "admin" ? " · 관리자" : " · 강사"}
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-slate-900">
+                영어 지문
+                <span className="ml-2 text-xs font-normal text-slate-500">
+                  {filledPassages.length}/{passages.length}개 입력 · 최대{" "}
+                  {MAX_PASSAGES}개
+                </span>
+              </h2>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={passages.length >= MAX_PASSAGES}
+                onClick={addPassage}
+              >
+                + 지문 추가
+              </Button>
+            </div>
+
+            {passages.map((p, index) => (
+              <div
+                key={p.clientId ?? index}
+                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
+              >
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-brand-800">
+                    지문 {index + 1}
+                  </p>
+                  {passages.length > 1 && (
+                    <button
+                      type="button"
+                      className="text-xs text-red-600 hover:underline"
+                      onClick={() => removePassage(index)}
+                    >
+                      삭제
+                    </button>
+                  )}
+                </div>
+                <div className="mb-3 grid gap-2 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="ui-label">지문 제목 (선택)</span>
+                    <input
+                      className="ui-input mt-1"
+                      value={p.title ?? ""}
+                      onChange={(e) =>
+                        updatePassage(index, { title: e.target.value })
+                      }
+                      placeholder={`${title || "자료 제목"} · 지문 ${index + 1}`}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="ui-label">출처 상세 (선택)</span>
+                    <input
+                      className="ui-input mt-1"
+                      value={p.sourceDetail ?? ""}
+                      onChange={(e) =>
+                        updatePassage(index, { sourceDetail: e.target.value })
+                      }
+                      placeholder={sourceDetail || "공통 출처 사용"}
+                    />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="ui-label">본문</span>
+                  <textarea
+                    className="ui-input mt-1 min-h-[180px] font-serif text-[15px] leading-relaxed"
+                    value={p.text}
+                    onChange={(e) =>
+                      updatePassage(index, { text: e.target.value })
+                    }
+                    placeholder="영어 지문을 그대로 붙여넣으세요."
+                    spellCheck={false}
+                  />
+                </label>
+              </div>
+            ))}
+          </section>
+
+          {showPresetForm && (
+            <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+              <h3 className="mb-2 text-sm font-semibold text-slate-900">
+                현재 유형 설정을 프리셋으로 저장
+              </h3>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <input
+                  className="ui-input"
+                  placeholder="프리셋 이름"
+                  value={presetName}
+                  onChange={(e) => setPresetName(e.target.value)}
+                />
+                <input
+                  className="ui-input"
+                  placeholder="설명 (선택)"
+                  value={presetDesc}
+                  onChange={(e) => setPresetDesc(e.target.value)}
+                />
+              </div>
+              <div className="mt-3 flex gap-2">
+                <Button type="button" onClick={() => void savePreset()}>
+                  저장
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setShowPresetForm(false)}
+                >
+                  취소
+                </Button>
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
 
       <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="text-sm text-slate-700">
             <span className="font-semibold text-slate-900">
-              총 {totals.total}문항
+              총 {grandTotal}문항
             </span>
             <span className="mx-2 text-slate-300">|</span>
-            객관식 {totals.objective}
+            지문 {Math.max(filledPassages.length, 1)}개 × 지문당{" "}
+            {perPassageTotals.total}
             <span className="mx-2 text-slate-300">|</span>
-            주관식 {totals.subjective}
-            <span className="mx-2 text-slate-300">|</span>
-            유형 {totals.selectedTypes}종
-            {totals.total > MAX_TOTAL_QUESTIONS && (
+            객관식 {perPassageTotals.objective} · 주관식{" "}
+            {perPassageTotals.subjective}
+            {grandTotal > MAX_TOTAL_QUESTIONS && (
               <span className="ml-2 text-red-600">
                 (최대 {MAX_TOTAL_QUESTIONS} 초과)
               </span>
@@ -907,7 +1022,7 @@ export function QuestionGeneratorClient({
               임시 저장
             </Button>
             <Button type="button" variant="ghost" onClick={resetAll}>
-              전체 초기화
+              유형 초기화
             </Button>
             <Button
               type="button"
@@ -918,14 +1033,18 @@ export function QuestionGeneratorClient({
             </Button>
             <Button
               type="button"
-              disabled={busy || generating || totals.total === 0}
+              disabled={
+                busy ||
+                generating ||
+                perPassageTotals.total === 0 ||
+                filledPassages.length === 0
+              }
               onClick={() => void startGenerate()}
             >
               {generating ? "생성 중…" : busy ? "요청 중…" : "변형문제 생성"}
             </Button>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );

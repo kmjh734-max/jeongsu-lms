@@ -6,6 +6,7 @@ import {
   MAX_SETS_PER_TYPE,
 } from "@/lib/question-generator/constants";
 import { generateOneQuestion } from "@/lib/question-generator/generate-question";
+import { resolvePassages } from "@/lib/question-generator/passages";
 import {
   expandCountRequests,
   findOptionByKey,
@@ -138,6 +139,15 @@ async function generateWithValidation(opts: {
   };
 }
 
+type WorkItem = {
+  passageId: string;
+  passageText: string;
+  analysis: PassageAnalysis;
+  option: QuestionTypeOption;
+  sourceDetail?: string;
+  label: string;
+};
+
 /**
  * Long-running job processor. Safe to call once; ignores if already running/done.
  */
@@ -163,52 +173,89 @@ export async function runGenerationJob(jobId: string): Promise<void> {
 
   const config = job.request_config as GenerationRequestConfig;
   config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
-  const passageId = job.passage_id as string;
   const userId = job.created_by as string;
 
-  const { data: passageRow } = await admin
-    .from("english_source_passages")
-    .select("*")
-    .eq("id", passageId)
-    .single();
+  const passageIds =
+    Array.isArray(config.passageIds) && config.passageIds.length > 0
+      ? config.passageIds
+      : [job.passage_id as string];
 
-  if (!passageRow) {
-    await updateJob(jobId, {
-      status: "failed",
-      error_message: "지문을 찾을 수 없습니다.",
-      completed_at: new Date().toISOString(),
-    });
-    return;
-  }
+  const resolved = resolvePassages(config);
 
   try {
     await updateJob(jobId, {
       status: "analyzing",
-      progress_message: "지문 분석 중",
+      progress_message: `지문 분석 중 (0/${passageIds.length})`,
       error_message: null,
     });
 
-    let analysis = passageRow.analysis as PassageAnalysis | null;
-    if (!analysis) {
-      analysis = await analyzePassage({
-        passage: passageRow.passage,
-        grade: passageRow.grade,
-        overallDifficulty: passageRow.overall_difficulty,
-      });
-      await admin
+    const options = expandCountRequests(config.counts ?? {});
+    const work: WorkItem[] = [];
+
+    for (let pi = 0; pi < passageIds.length; pi++) {
+      const passageId = passageIds[pi]!;
+      const { data: passageRow } = await admin
         .from("english_source_passages")
-        .update({
+        .select("*")
+        .eq("id", passageId)
+        .single();
+
+      if (!passageRow) {
+        await updateJob(jobId, {
+          status: "failed",
+          error_message: `지문 ${pi + 1}을(를) 찾을 수 없습니다.`,
+          completed_at: new Date().toISOString(),
+        });
+        return;
+      }
+
+      await updateJob(jobId, {
+        status: "analyzing",
+        progress_message: `지문 분석 중 (${pi + 1}/${passageIds.length})`,
+      });
+
+      let analysis = passageRow.analysis as PassageAnalysis | null;
+      if (!analysis) {
+        analysis = await analyzePassage({
+          passage: passageRow.passage,
+          grade: passageRow.grade,
+          overallDifficulty: passageRow.overall_difficulty,
+        });
+        await admin
+          .from("english_source_passages")
+          .update({
+            analysis,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", passageId);
+      }
+
+      const meta = resolved[pi];
+      const sourceDetail =
+        meta?.sourceDetail ||
+        config.sourceDetail ||
+        passageRow.source_detail ||
+        undefined;
+
+      for (const option of options) {
+        work.push({
+          passageId,
+          passageText: passageRow.passage,
           analysis,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", passageId);
+          option,
+          sourceDetail,
+          label:
+            passageIds.length > 1
+              ? `지문${pi + 1} · ${option.label}`
+              : option.label,
+        });
+      }
     }
 
-    const options = expandCountRequests(config.counts ?? {});
     await updateJob(jobId, {
       status: "generating",
-      progress_message: `문제 생성 중 (0/${options.length})`,
-      total_requested: options.length,
+      progress_message: `문제 생성 중 (0/${work.length})`,
+      total_requested: work.length,
       total_completed: 0,
       total_failed: 0,
     });
@@ -216,33 +263,30 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     let completed = 0;
     let failed = 0;
 
-    await mapPool(options, GENERATION_CONCURRENCY, async (option) => {
+    await mapPool(work, GENERATION_CONCURRENCY, async (item) => {
       await updateJob(jobId, {
-        progress_message: `${option.label} 생성 중 (${completed + failed}/${options.length})`,
+        progress_message: `${item.label} 생성 중 (${completed + failed}/${work.length})`,
         status: "generating",
       });
 
       const result = await generateWithValidation({
-        passage: passageRow.passage,
-        analysis: analysis!,
-        option,
-        grade: config.grade || passageRow.grade,
-        overallDifficulty:
-          config.overallDifficulty || passageRow.overall_difficulty,
-        sourceDetail:
-          config.sourceDetail || passageRow.source_detail || undefined,
+        passage: item.passageText,
+        analysis: item.analysis,
+        option: item.option,
+        grade: config.grade || "고1",
+        overallDifficulty: config.overallDifficulty || "기본",
+        sourceDetail: item.sourceDetail,
       });
 
       if (!result.payload) {
         failed += 1;
-        // 불량 문항은 DB에 넣지 않고 폐기
       } else {
         completed += 1;
         await admin.from("generated_english_questions").insert(
           toRow(result.payload, {
-            passageId,
+            passageId: item.passageId,
             jobId,
-            option,
+            option: item.option,
             userId,
             attempt: result.attempt,
             status: "approved",
@@ -255,7 +299,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       await updateJob(jobId, {
         total_completed: completed,
         total_failed: failed,
-        progress_message: `${completed + failed}/${options.length} 완료`,
+        progress_message: `${completed + failed}/${work.length} 완료`,
       });
     });
 

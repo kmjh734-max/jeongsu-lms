@@ -4,10 +4,15 @@ import {
   requireStaffProfile,
 } from "@/lib/question-generator/api-helpers";
 import {
+  MAX_PASSAGES,
   MAX_SETS_PER_TYPE,
   MAX_TOTAL_QUESTIONS,
   MIN_PASSAGE_WORDS,
 } from "@/lib/question-generator/constants";
+import {
+  resolvePassages,
+  wordCount,
+} from "@/lib/question-generator/passages";
 import {
   sanitizeCounts,
   sumCounts,
@@ -50,22 +55,34 @@ export async function POST(req: Request) {
     const config = body.config;
     if (!config) return jsonError("설정이 필요합니다.");
 
-    // 폐기된 요약문 키·알 수 없는 유형 제거
     config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
 
-    const passage = (config.passage ?? "").trim();
-    if (!passage) return jsonError("영어 지문을 입력해 주세요.");
-
-    const wordCount = passage.split(/\s+/).filter(Boolean).length;
-    if (wordCount < Math.min(15, MIN_PASSAGE_WORDS)) {
-      return jsonError("지문이 너무 짧습니다. 더 긴 영어 지문을 입력해 주세요.");
+    const passages = resolvePassages(config);
+    if (passages.length === 0) {
+      return jsonError("영어 지문을 1개 이상 입력해 주세요.");
+    }
+    if (passages.length > MAX_PASSAGES) {
+      return jsonError(`지문은 최대 ${MAX_PASSAGES}개까지 넣을 수 있습니다.`);
     }
 
-    const title = (config.title ?? "").trim() || "무제 지문";
-    const { total } = sumCounts(config.counts ?? {});
-    if (total <= 0) return jsonError("생성할 문항 수를 1개 이상 선택해 주세요.");
+    for (let i = 0; i < passages.length; i++) {
+      const wc = wordCount(passages[i]!.text);
+      if (wc < Math.min(15, MIN_PASSAGE_WORDS)) {
+        return jsonError(
+          `지문 ${i + 1}이(가) 너무 짧습니다. 더 긴 영어 지문을 입력해 주세요.`
+        );
+      }
+    }
+
+    const perPassage = sumCounts(config.counts ?? {}).total;
+    if (perPassage <= 0) {
+      return jsonError("생성할 문항 수를 1개 이상 선택해 주세요.");
+    }
+    const total = perPassage * passages.length;
     if (total > MAX_TOTAL_QUESTIONS) {
-      return jsonError(`한 번에 최대 ${MAX_TOTAL_QUESTIONS}문항까지 생성할 수 있습니다.`);
+      return jsonError(
+        `한 번에 최대 ${MAX_TOTAL_QUESTIONS}문항까지 생성할 수 있습니다. (지문 ${passages.length}개 × ${perPassage}문항 = ${total})`
+      );
     }
     for (const n of Object.values(config.counts ?? {})) {
       if (n < 0 || n > MAX_SETS_PER_TYPE) {
@@ -74,33 +91,51 @@ export async function POST(req: Request) {
     }
 
     const supabase = await createClient();
-    const { data: passageRow, error: pErr } = await supabase
-      .from("english_source_passages")
-      .insert({
-        title,
-        passage,
-        school_name: config.schoolName?.trim() || null,
-        grade: config.grade || "고1",
-        source_type: config.sourceType || "자체 지문",
-        source_detail: config.sourceDetail?.trim() || null,
-        overall_difficulty: config.overallDifficulty || "기본",
-        draft_config: config,
-        created_by: profile.id,
-      })
-      .select("id")
-      .single();
+    const passageIds: string[] = [];
 
-    if (pErr || !passageRow) {
-      return jsonError(pErr?.message ?? "지문 저장에 실패했습니다.", 500);
+    for (const p of passages) {
+      const { data: passageRow, error: pErr } = await supabase
+        .from("english_source_passages")
+        .insert({
+          title: p.title,
+          passage: p.text,
+          school_name: config.schoolName?.trim() || null,
+          grade: config.grade || "고1",
+          source_type: config.sourceType || "자체 지문",
+          source_detail: p.sourceDetail || null,
+          overall_difficulty: config.overallDifficulty || "기본",
+          draft_config: config,
+          created_by: profile.id,
+        })
+        .select("id")
+        .single();
+
+      if (pErr || !passageRow) {
+        return jsonError(pErr?.message ?? "지문 저장에 실패했습니다.", 500);
+      }
+      passageIds.push(passageRow.id);
     }
+
+    const primaryId = passageIds[0]!;
+    const requestConfig: GenerationRequestConfig = {
+      ...config,
+      passage: passages[0]!.text,
+      passages: passages.map((p, i) => ({
+        clientId: p.clientId,
+        title: p.title,
+        sourceDetail: p.sourceDetail,
+        text: p.text,
+      })),
+      passageIds,
+    };
 
     const { data: job, error: jErr } = await supabase
       .from("question_generation_jobs")
       .insert({
-        passage_id: passageRow.id,
+        passage_id: primaryId,
         generation_mode: config.mode || "custom",
         preset_id: config.presetId || null,
-        request_config: config,
+        request_config: requestConfig,
         status: "pending",
         total_requested: total,
         created_by: profile.id,
@@ -113,7 +148,11 @@ export async function POST(req: Request) {
       return jsonError(jErr?.message ?? "작업 생성에 실패했습니다.", 500);
     }
 
-    return jsonOk({ jobId: job.id, passageId: passageRow.id });
+    return jsonOk({
+      jobId: job.id,
+      passageId: primaryId,
+      passageIds,
+    });
   } catch (e) {
     if (e instanceof Response) return e;
     return jsonError(

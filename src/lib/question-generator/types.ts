@@ -71,6 +71,17 @@ export interface GenerationRequestCounts {
   [optionKey: string]: number;
 }
 
+/** 생성 요청에 포함되는 개별 지문 */
+export interface PassageInput {
+  /** 클라이언트 임시 id (저장용) */
+  clientId?: string;
+  /** 지문별 제목 (비우면 공통 제목 + 번호) */
+  title?: string;
+  /** 지문별 출처 상세 (비우면 공통 sourceDetail) */
+  sourceDetail?: string;
+  text: string;
+}
+
 export interface GenerationRequestConfig {
   title: string;
   schoolName: string;
@@ -78,7 +89,12 @@ export interface GenerationRequestConfig {
   sourceType: string;
   sourceDetail: string;
   overallDifficulty: string;
+  /** 단일 지문(하위 호환). passages가 있으면 무시될 수 있음 */
   passage: string;
+  /** 다중 지문 (지문마다 동일 유형 세트 적용) */
+  passages?: PassageInput[];
+  /** 생성 시 저장된 지문 row id 목록 */
+  passageIds?: string[];
   mode: GenerationMode;
   presetId: string | null;
   counts: GenerationRequestCounts;

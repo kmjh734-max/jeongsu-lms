@@ -1,8 +1,11 @@
 /** 유형별 최대 세트 수 */
 export const MAX_SETS_PER_TYPE = 5;
 
-/** 한 번에 생성 가능한 최대 문항 수 */
-export const MAX_TOTAL_QUESTIONS = 30;
+/** 한 번에 생성 가능한 최대 문항 수 (지문 수 × 유형 합) */
+export const MAX_TOTAL_QUESTIONS = 80;
+
+/** 한 번에 넣을 수 있는 최대 지문 수 */
+export const MAX_PASSAGES = 8;
 
 /** 로컬 검수 통과 최소 점수 (미달 시 문항 폐기) */
 export const VALIDATION_PASS_SCORE = 70;
