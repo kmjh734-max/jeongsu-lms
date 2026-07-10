@@ -5,7 +5,7 @@ import {
   MAX_REGENERATION_ATTEMPTS,
   MAX_SETS_PER_TYPE,
 } from "@/lib/question-generator/constants";
-import { generateOneQuestion } from "@/lib/question-generator/generate-question";
+import { generateOneQuestion, SkipQuestionError } from "@/lib/question-generator/generate-question";
 import { resolvePassages } from "@/lib/question-generator/passages";
 import {
   expandCountRequests,
@@ -108,6 +108,7 @@ async function generateWithValidation(opts: {
   status: "approved";
   attempt: number;
   error: string | null;
+  skipped?: boolean;
 }> {
   let lastError: string | null = null;
 
@@ -126,6 +127,15 @@ async function generateWithValidation(opts: {
       }
       lastError = validation.warnings.join(" · ") || "형태 검수 미달";
     } catch (e) {
+      if (e instanceof SkipQuestionError) {
+        return {
+          payload: null,
+          status: "approved",
+          attempt,
+          error: e.message,
+          skipped: true,
+        };
+      }
       lastError = e instanceof Error ? e.message : "생성 실패";
     }
   }
@@ -262,10 +272,11 @@ export async function runGenerationJob(jobId: string): Promise<void> {
 
     let completed = 0;
     let failed = 0;
+    let skipped = 0;
 
     await mapPool(work, GENERATION_CONCURRENCY, async (item) => {
       await updateJob(jobId, {
-        progress_message: `${item.label} 생성 중 (${completed + failed}/${work.length})`,
+        progress_message: `${item.label} 생성 중 (${completed + failed + skipped}/${work.length})`,
         status: "generating",
       });
 
@@ -278,7 +289,9 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         sourceDetail: item.sourceDetail,
       });
 
-      if (!result.payload) {
+      if (result.skipped) {
+        skipped += 1;
+      } else if (!result.payload) {
         failed += 1;
       } else {
         completed += 1;
@@ -299,7 +312,9 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       await updateJob(jobId, {
         total_completed: completed,
         total_failed: failed,
-        progress_message: `${completed + failed}/${work.length} 완료`,
+        progress_message: `${completed + failed + skipped}/${work.length} 완료${
+          skipped > 0 ? ` (생략 ${skipped})` : ""
+        }`,
       });
     });
 
@@ -314,7 +329,9 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       status: finalStatus,
       progress_message:
         finalStatus === "completed"
-          ? "생성 완료"
+          ? skipped > 0
+            ? `생성 완료 (생략 ${skipped})`
+            : "생성 완료"
           : finalStatus === "partially_completed"
             ? "일부 문항 생성 완료"
             : "생성 실패",

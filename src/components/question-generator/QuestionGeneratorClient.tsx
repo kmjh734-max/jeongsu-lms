@@ -545,6 +545,7 @@ export function QuestionGeneratorClient({
               const open = openCats[group.category] ?? true;
               const isMainIdea = group.category === "main_idea";
               const isDetails = group.category === "details";
+              const isInference = group.category === "inference";
               return (
                 <div
                   key={group.category}
@@ -779,6 +780,193 @@ export function QuestionGeneratorClient({
                       >
                         모두 넣기 (+1)
                       </Button>
+                    </div>
+                  ) : isInference ? (
+                    <div className="space-y-3">
+                      <p className="text-[11px] leading-snug text-slate-500">
+                        하/상 · 효자·학력평가형 (순서·빈칸·삽입·무관)
+                      </p>
+                      {(
+                        [
+                          {
+                            rowLabel: "순서",
+                            keys: [
+                              "order:na:low:순서추론",
+                              "order:na:high:순서추론",
+                            ],
+                          },
+                          {
+                            rowLabel: "문장빈칸",
+                            keys: [
+                              "sentence_blank:en:low:빈칸추론",
+                              "sentence_blank:en:high:빈칸추론",
+                            ],
+                          },
+                          {
+                            rowLabel: "삽입",
+                            keys: [
+                              "sentence_insertion:na:low:문장삽입",
+                              "sentence_insertion:na:high:문장삽입",
+                            ],
+                          },
+                          {
+                            rowLabel: "무관한 문장",
+                            keys: [
+                              "irrelevant_sentence:na:low:무관한문장",
+                              "irrelevant_sentence:na:high:무관한문장",
+                            ],
+                          },
+                        ] as const
+                      ).map((row) => (
+                        <div key={row.rowLabel}>
+                          <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                            {row.rowLabel}
+                          </p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {row.keys.map((key) => {
+                              const opt = group.options.find(
+                                (o) => o.key === key
+                              );
+                              if (!opt) return null;
+                              const n = counts[key] ?? 0;
+                              return (
+                                <div
+                                  key={key}
+                                  className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                                >
+                                  <span className="block truncate text-[11px] font-medium text-slate-800">
+                                    {opt.label}
+                                  </span>
+                                  <div className="mt-1 flex items-center justify-between gap-1">
+                                    <button
+                                      type="button"
+                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      onClick={() => setCount(key, n - 1)}
+                                    >
+                                      −
+                                    </button>
+                                    <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                      {n}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      onClick={() => setCount(key, n + 1)}
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                      <div>
+                        <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                          함축의미추론
+                          <span className="ml-1 font-normal text-slate-400">
+                            (난이도 없음)
+                          </span>
+                        </p>
+                        {(() => {
+                          const key =
+                            "underlined_inference:ko:default:함축의미추론";
+                          const n = counts[key] ?? 0;
+                          return (
+                            <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+                              <span className="min-w-0 flex-1 truncate text-[11px] text-slate-600">
+                                밑줄 표현 의미 · 없으면 생략
+                              </span>
+                              <button
+                                type="button"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                onClick={() => setCount(key, n - 1)}
+                              >
+                                −
+                              </button>
+                              <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-slate-900">
+                                {n}
+                              </span>
+                              <button
+                                type="button"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                onClick={() => setCount(key, n + 1)}
+                              >
+                                +
+                              </button>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full text-xs"
+                        onClick={() =>
+                          addCounts([
+                            ["order:na:low:순서추론", 1],
+                            ["order:na:high:순서추론", 1],
+                            ["sentence_blank:en:low:빈칸추론", 1],
+                            ["sentence_blank:en:high:빈칸추론", 1],
+                            ["sentence_insertion:na:low:문장삽입", 1],
+                            ["sentence_insertion:na:high:문장삽입", 1],
+                            ["irrelevant_sentence:na:low:무관한문장", 1],
+                            ["irrelevant_sentence:na:high:무관한문장", 1],
+                            [
+                              "underlined_inference:ko:default:함축의미추론",
+                              1,
+                            ],
+                          ])
+                        }
+                      >
+                        모두 넣기 (+1)
+                      </Button>
+                      <details className="rounded-lg border border-slate-100 bg-slate-50/50 px-2 py-1.5">
+                        <summary className="cursor-pointer text-[11px] font-medium text-slate-500">
+                          기타 (목적·심경·연결어)
+                        </summary>
+                        <div className="mt-1.5 space-y-1.5">
+                          {[
+                            "underlined_inference:en:default:목적추론",
+                            "underlined_inference:en:default:심경추론",
+                            "sentence_blank:en:default:연결어빈칸",
+                          ].map((key) => {
+                            const opt = group.options.find(
+                              (o) => o.key === key
+                            );
+                            if (!opt) return null;
+                            const n = counts[key] ?? 0;
+                            return (
+                              <div
+                                key={key}
+                                className="flex items-center gap-1.5 rounded-lg border border-slate-100 bg-white px-1.5 py-1"
+                              >
+                                <span className="min-w-0 flex-1 truncate text-xs text-slate-800">
+                                  {opt.label}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  onClick={() => setCount(key, n - 1)}
+                                >
+                                  −
+                                </button>
+                                <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-slate-900">
+                                  {n}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  onClick={() => setCount(key, n + 1)}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </details>
                     </div>
                   ) : (
                         <div className="space-y-1.5">

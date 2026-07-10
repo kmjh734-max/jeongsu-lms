@@ -7,8 +7,18 @@ import type {
   PassageAnalysis,
 } from "@/lib/question-generator/types";
 
+/** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
+export class SkipQuestionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SkipQuestionError";
+  }
+}
+
 /** 제목·주제·요지·일치/불일치/일치개수: 본문 표현을 그대로 베끼지 말고 paraphrase */
-function paraphraseChoiceRules(lang: "english" | "korean" | undefined): string {
+function paraphraseChoiceRules(
+  lang: "english" | "korean" | null | undefined
+): string {
   const langHint =
     lang === "korean"
       ? "Korean choices: translate the idea, then reword — never paste English phrases from the passage."
@@ -112,13 +122,59 @@ ${paraphrase}
       if (code === "연결어빈칸") {
         return `In passageModified put discourse blanks (A) and (B). 5 ENGLISH pair choices like "However …… Therefore". Exactly one correct.`;
       }
-      return `Blank a key phrase/clause in passageModified with ______. 5 English choices. Exactly one correct.`;
+      // 문장빈칸 (효자·학력평가형)
+      if (option.difficulty === "high") {
+        return `문장빈칸 HIGH (상) — 효자 기출동형:
+- In passageModified, blank ONE important sentence (or key clause) with ____________________________________.
+- The blanked content must be a flow-critical sentence from the passage.
+- 5 ENGLISH full-sentence/phrase choices.
+- CRITICAL: ALL choices (including the correct one) must PARAPHRASE the blanked sentence — synonyms/rewording, NOT copy the original wording.
+- Exactly one correct. questionText empty.`;
+      }
+      return `문장빈칸 LOW (하) — 효자 기출동형:
+- In passageModified, blank ONE important sentence (or key clause) with ____________________________________.
+- The blanked content must be a flow-critical sentence from the passage (like mock-exam sentence blanks).
+- 5 ENGLISH full-sentence/phrase choices that fit the blank; correct answer may stay close to the original sentence meaning/wording.
+- Exactly one correct. questionText empty.`;
     case "order":
-      return `Lead-in + paragraphs A/B/C. 5 order choices. Exactly one correct.`;
+      if (option.difficulty === "high") {
+        return `순서추론 HIGH (상) — 효자 기출동형:
+- Format: lead-in paragraph (지시문) + paragraphs (A)(B)(C) + 5 order choices like (A)-(C)-(B).
+- CRITICAL: PARAPHRASE the lead-in (지시문) only — reword synonyms/structure; do NOT copy it verbatim from the passage.
+- Keep (A)(B)(C) body paragraphs as ORIGINAL wording from the passage (do not paraphrase A/B/C).
+- Exactly one correct order. Put lead-in+(A)(B)(C) in passageModified. questionText empty.`;
+      }
+      return `순서추론 LOW (하) — 효자 기출동형:
+- Format: lead-in paragraph (지시문) + paragraphs (A)(B)(C) + 5 order choices like (A)-(C)-(B).
+- Keep the lead-in (지시문) as ORIGINAL wording from the passage (do not paraphrase).
+- Keep (A)(B)(C) as ORIGINAL wording from the passage.
+- Exactly one correct order. Put lead-in+(A)(B)(C) in passageModified. questionText empty.`;
     case "sentence_insertion":
-      return `One sentence to insert + ①~⑤ slots in passageModified. correctAnswer 1-5.`;
+      if (option.difficulty === "high") {
+        return `문장삽입 HIGH (상) — 효자 기출동형 (PDF: 위치):
+- Pick a flow-critical sentence from the passage as the sentence to insert.
+- CRITICAL: The given sentence (questionText) must be a PARAPHRASE of that sentence (synonyms/rewording), not a verbatim copy.
+- passageModified = remaining passage with five insertion slots ①~⑤ (or ( 1 )~( 5 )).
+- correctAnswer 1-5. Exactly one best slot.`;
+      }
+      return `문장삽입 LOW (하) — 효자 기출동형 (PDF: 위치):
+- Pick a flow-critical sentence from the passage as the sentence to insert.
+- The given sentence (questionText) uses ORIGINAL wording from the passage (do not paraphrase).
+- passageModified = remaining passage with five insertion slots ①~⑤ (or ( 1 )~( 5 )).
+- correctAnswer 1-5. Exactly one best slot.`;
     case "irrelevant_sentence":
-      return `Label five sentences (A)~(E) in passageModified; exactly ONE is irrelevant. correctAnswer 1-5.`;
+      if (option.difficulty === "high") {
+        return `무관한문장 HIGH (상) — 효자 기출동형:
+- CRITICAL: PARAPHRASE the ENTIRE passage in passageModified (synonyms/rewording throughout).
+- Label five sentences (A)~(E) in that paraphrased passage; exactly ONE is irrelevant to the flow.
+- The irrelevant sentence should still look plausible but break cohesion.
+- correctAnswer 1-5 mapping to (A)~(E). questionText empty.`;
+      }
+      return `무관한문장 LOW (하) — 효자 기출동형:
+- Keep most of the passage ORIGINAL in passageModified.
+- Take one flow-critical sentence and REPLACE it with an unrelated (irrelevant) sentence that breaks cohesion.
+- Label five sentences (A)~(E); exactly ONE is the irrelevant replacement.
+- correctAnswer 1-5 mapping to (A)~(E). questionText empty.`;
     case "grammar":
       if (code === "어법연결") {
         return `In passageModified mark ⓐ, ⓑ, ⓒ with two alternatives in parentheses. 5 ENGLISH connection choices. Exactly one correct.`;
@@ -137,7 +193,10 @@ ${paraphrase}
         return `5 English emotion-change choices like "worried → relieved". Exactly one correct.`;
       }
       if (code === "함축의미추론") {
-        return `Underline the target expression. 5 Korean meaning choices. Exactly one correct.`;
+        return `함축의미추론 (난이도 없음):
+- Underline ONE flow-critical word/phrase/clause in passageModified that carries implied/contextual meaning (not a plain dictionary word with no nuance).
+- 5 Korean meaning choices. Exactly one correct.
+- If the passage has NO suitable implied-meaning expression, return JSON {"skip":true,"reason":"적합한 함축 표현 없음"} instead of inventing a weak item.`;
       }
       return `Underline a key expression. 5 Korean meaning choices.`;
     case "writing":
@@ -358,9 +417,11 @@ export async function generateOneQuestion(opts: {
     "order",
     "sentence_insertion",
     "irrelevant_sentence",
+    "underlined_inference",
   ].includes(option.type);
 
-  const needsQuestionText = option.type === "content_count";
+  const needsQuestionText =
+    option.type === "content_count" || option.type === "sentence_insertion";
   const paraphraseTypes = new Set([
     "title",
     "topic",
@@ -373,14 +434,30 @@ export async function generateOneQuestion(opts: {
     ? "- Choices/<보기> MUST paraphrase passage wording (synonyms, rewording). Do NOT copy distinctive phrases from the passage."
     : "";
 
+  const allowSkip =
+    option.type === "underlined_inference" &&
+    (option.aingkaCode === "함축의미추론" ||
+      findAingkaOption(option.key)?.aingkaCode === "함축의미추론");
+
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: `Korean HS English exam writer. ONE question JSON only. Fast & concise.
 - instruction EXACTLY: ${JSON.stringify(forcedInstruction)}
-- No meta tags. ${needsQuestionText ? "Fill questionText with (1)(2)… statements." : 'questionText usually "".'}
+- No meta tags. ${
+      needsQuestionText
+        ? option.type === "sentence_insertion"
+          ? "Fill questionText with the given sentence to insert."
+          : "Fill questionText with (1)(2)… statements."
+        : 'questionText usually "".'
+    }
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
 - ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
 - explanation: 1-2 Korean sentences.
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
+${
+  allowSkip
+    ? '- If no suitable implied-meaning target exists, return {"skip":true,"reason":"..."} only.'
+    : ""
+}
 ${paraphraseSystemHint}
 ${typeRules(option)}`,
     user: JSON.stringify({
@@ -395,18 +472,27 @@ ${typeRules(option)}`,
         explanation: "ko",
         ...(needsModified ? { passageModified: "string" } : {}),
         ...(needsQuestionText
-          ? {
-              questionText:
-                "(1) ...\\n(2) ...\\n(3) ...\\n(4) ...\\n(5) ...\\n(6) ...",
-              correctAnswer: "integer count of FALSE statements",
-              choices: [],
-            }
+          ? option.type === "sentence_insertion"
+            ? { questionText: "given sentence to insert" }
+            : {
+                questionText:
+                  "(1) ...\\n(2) ...\\n(3) ...\\n(4) ...\\n(5) ...\\n(6) ...",
+                correctAnswer: "integer count of FALSE statements",
+                choices: [],
+              }
           : {}),
+        ...(allowSkip ? { skip: "boolean optional", reason: "string optional" } : {}),
       },
     }),
     temperature: 0.25,
     maxTokens: 1600,
   })) as Record<string, unknown>;
+
+  if (allowSkip && raw.skip === true) {
+    throw new SkipQuestionError(
+      String(raw.reason || "적합한 함축 표현이 없어 문항을 생략합니다.")
+    );
+  }
 
   const payload = normalizePayload(raw, option, passage, forcedInstruction);
   const shapeError = assertBasicQuestionShape(payload, option);

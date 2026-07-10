@@ -240,8 +240,113 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
   },
   {
     category: "inference",
-    label: "Section · 빈칸·흐름·순서",
+    label: "Section · 추론 능력",
     options: [
+      // 순서: 하/상
+      opt(
+        "order",
+        "inference",
+        "하",
+        "low",
+        null,
+        true,
+        "지시문 원문 · (A)(B)(C) 원문",
+        "순서추론",
+        "주어진 글 다음에 이어질 글의 순서로 가장 적절한 것은?"
+      ),
+      opt(
+        "order",
+        "inference",
+        "상",
+        "high",
+        null,
+        true,
+        "지시문 paraphrase · (A)(B)(C) 원문",
+        "순서추론",
+        "주어진 글 다음에 이어질 글의 순서로 가장 적절한 것은?"
+      ),
+      // 문장빈칸: 하/상
+      opt(
+        "sentence_blank",
+        "inference",
+        "하",
+        "low",
+        "english",
+        true,
+        "중요 문장 빈칸 · 보기 원문에 가깝게",
+        "빈칸추론",
+        "윗글의 빈칸에 들어갈 말로 알맞은 것은?"
+      ),
+      opt(
+        "sentence_blank",
+        "inference",
+        "상",
+        "high",
+        "english",
+        true,
+        "중요 문장 빈칸 · 보기 paraphrase",
+        "빈칸추론",
+        "윗글의 빈칸에 들어갈 말로 알맞은 것은?"
+      ),
+      // 삽입(위치): 하/상
+      opt(
+        "sentence_insertion",
+        "inference",
+        "하",
+        "low",
+        null,
+        true,
+        "흐름상 중요 문장 삽입 · 원문",
+        "문장삽입",
+        "글의 흐름으로 보아, 주어진 문장이 들어가기에 가장 적절한 곳은?"
+      ),
+      opt(
+        "sentence_insertion",
+        "inference",
+        "상",
+        "high",
+        null,
+        true,
+        "흐름상 중요 문장 삽입 · paraphrase",
+        "문장삽입",
+        "글의 흐름으로 보아, 주어진 문장이 들어가기에 가장 적절한 곳은?"
+      ),
+      // 무관한 문장: 하/상
+      opt(
+        "irrelevant_sentence",
+        "inference",
+        "하",
+        "low",
+        null,
+        true,
+        "중요 문장 → 무관 문장으로 교체",
+        "무관한문장",
+        "윗글의 (A)~(E) 중, 흐름상 관계없는 것은?"
+      ),
+      opt(
+        "irrelevant_sentence",
+        "inference",
+        "상",
+        "high",
+        null,
+        true,
+        "본문 전체 paraphrase + 무관 문장",
+        "무관한문장",
+        "윗글의 (A)~(E) 중, 흐름상 관계없는 것은?"
+      ),
+      // 함축의미추론: 난이도 없음
+      opt(
+        "underlined_inference",
+        "inference",
+        "함축 의미",
+        "default",
+        "korean",
+        true,
+        "밑줄 친 표현의 문맥상 의미 (해당 표현 없으면 생략)",
+        "함축의미추론",
+        "윗글의 밑줄 친 부분이 의미하는 바로 알맞은 것은?"
+      ),
+      // 기타 (프리셋 호환)
       opt(
         "underlined_inference",
         "inference",
@@ -265,17 +370,6 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "윗글에 드러난 심경 변화로 알맞은 것은?"
       ),
       opt(
-        "underlined_inference",
-        "inference",
-        "함축 의미",
-        "default",
-        "korean",
-        true,
-        "밑줄 친 표현의 문맥상 의미",
-        "함축의미추론",
-        "윗글의 밑줄 친 부분이 의미하는 바로 알맞은 것은?"
-      ),
-      opt(
         "sentence_blank",
         "inference",
         "연결어 빈칸 (A)(B)",
@@ -285,50 +379,6 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "담화 표지 (A)(B) 연결 선택",
         "연결어빈칸",
         "윗글의 빈칸 (A), (B)에 들어갈 알맞은 말로 연결된 것은?"
-      ),
-      opt(
-        "sentence_blank",
-        "inference",
-        "빈칸 추론 (구·절)",
-        "default",
-        "english",
-        true,
-        "빈칸에 들어갈 말",
-        "빈칸추론",
-        "윗글의 빈칸에 들어갈 말로 알맞은 것은?"
-      ),
-      opt(
-        "irrelevant_sentence",
-        "inference",
-        "무관한 문장",
-        "default",
-        null,
-        true,
-        "(A)~(E) 중 흐름상 관계없는 것",
-        "무관한문장",
-        "윗글의 (A)~(E) 중, 흐름상 관계없는 것은?"
-      ),
-      opt(
-        "sentence_insertion",
-        "inference",
-        "문장 삽입",
-        "default",
-        null,
-        true,
-        "주어진 문장 위치",
-        "문장삽입",
-        "글의 흐름으로 보아, 주어진 문장이 들어가기에 가장 적절한 곳은?"
-      ),
-      opt(
-        "order",
-        "inference",
-        "글의 순서",
-        "default",
-        null,
-        true,
-        "이어질 글의 순서",
-        "순서추론",
-        "주어진 글 다음에 이어질 글의 순서로 가장 적절한 것은?"
       ),
     ],
   },
