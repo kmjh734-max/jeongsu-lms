@@ -1,5 +1,6 @@
 import {
   grammarCatalogPromptBlock,
+  grammarExplanationRules,
   pickGrammarFocus,
 } from "@/lib/question-generator/grammar-catalog";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
@@ -205,36 +206,37 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
     }
     case "grammar": {
       const catalog = grammarCatalogPromptBlock();
+      const explainRules = grammarExplanationRules();
       if (code === "어법모두고르기") {
         const wrongN = Math.random() < 0.5 ? 2 : 3;
         const { focusBlock } = pickGrammarFocus(wrongN);
-        return `어법 모두 고르기 — 유닛×CASE 다양 출제:
+        return `어법 모두 고르기 — 교재 단원별 문법 다양 출제:
 ${focusBlock}
 
-FORMAT:
-- passageModified = FULL ENGLISH with exactly five spots ⓐⓑⓒⓓⓔ as ⓐ<u>target</u>.
-- Exactly ${wrongN} spots WRONG — each MUST match one FOCUS CASE above (different units).
-- Remaining spots CORRECT but look like distractor unit patterns.
-- choices: 5 Korean combinations; exactly ONE lists ALL and ONLY wrong letters.
-- correctAnswer 1-5. questionText empty.
-- explanation: Korean — each wrong letter → [unit/case id] + trap tag + reason.
-LANGUAGE: passage ENGLISH only.
+형식:
+- passageModified = 영어 지문, 밑줄 정확히 5개 ⓐⓑⓒⓓⓔ → ⓐ<u>대상</u>
+- 틀린 곳 정확히 ${wrongN}개 — 위 ‘이번 문항’ 문법을 서로 다른 단원으로 하나씩
+- 나머지 밑줄은 맞게 (함정처럼 보이되 옳음)
+- choices: 한글 조합 보기 5개, 정답 하나만 틀린 기호를 빠짐없이
+- correctAnswer 1-5. questionText 빈칸
+${explainRules}
+LANGUAGE: 지문은 영어만.
 
 ${catalog}`;
       }
       if (code === "어법개수") {
         const wrongN = 1 + Math.floor(Math.random() * 5);
         const { focusBlock } = pickGrammarFocus(wrongN);
-        return `어법 개수 — 유닛×CASE 다양 출제:
+        return `어법 개수 — 교재 단원별 문법 다양 출제:
 ${focusBlock}
 
-FORMAT:
-- passageModified = FULL ENGLISH with exactly six spots ⓐ~ⓕ as ⓐ<u>target</u>.
-- Exactly ${wrongN} spots WRONG — each MUST match one FOCUS CASE (different units). Rest correct.
-- choices MUST be EXACTLY: 1:"1개" 2:"2개" 3:"3개" 4:"4개" 5:"5개"
-- correctAnswer = ${wrongN}.
-- questionText empty. explanation: count + letters + [unit/case id].
-LANGUAGE: passage ENGLISH only.
+형식:
+- passageModified = 영어 지문, 밑줄 정확히 6개 ⓐ~ⓕ → ⓐ<u>대상</u>
+- 틀린 곳 정확히 ${wrongN}개 — 위 ‘이번 문항’ 문법 (단원 중복 없이). 나머지 맞음
+- choices 고정: 1:"1개" 2:"2개" 3:"3개" 4:"4개" 5:"5개"
+- correctAnswer = ${wrongN}. questionText 빈칸
+${explainRules}
+LANGUAGE: 지문은 영어만.
 
 ${catalog}`;
       }
@@ -246,9 +248,9 @@ ${catalog}`;
       }
       {
         const { focusBlock } = pickGrammarFocus(1);
-        return `Mark 5 underlined spots ⓐ~ⓔ. Exactly ONE wrong using FOCUS CASE.
+        return `밑줄 5개 중 틀린 것 1개.
 ${focusBlock}
-
+${explainRules}
 ${catalog}`;
       }
     }
@@ -732,7 +734,11 @@ export async function generateOneQuestion(opts: {
     }
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
 - ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
-- explanation: 1-2 Korean sentences.
+- explanation: ${
+      option.type === "grammar"
+        ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
+        : "1-2 Korean sentences."
+    }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
 ${englishOnlyHint}
 ${
@@ -762,7 +768,7 @@ ${
 }
 ${
   option.type === "grammar"
-    ? "- Grammar: follow THIS QUESTION FOCUS unit×CASE list. Ban adjacent trivial S-V; at most one sv trap; wrong spots must use different morphological pair families."
+    ? "- 어법: ‘이번 문항’ 문법을 따르고, 해설은 쉬운 한글만(voice/relative/CASE id 금지)."
     : ""
 }
 ${paraphraseSystemHint}
