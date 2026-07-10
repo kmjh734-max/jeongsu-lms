@@ -14,7 +14,6 @@ import {
   SOURCE_TYPES,
 } from "@/lib/question-generator/constants";
 import { emptyPassageInput } from "@/lib/question-generator/passages";
-import { SYSTEM_PRESETS } from "@/lib/question-generator/presets";
 import {
   emptyCounts,
   QUESTION_TYPE_GROUPS,
@@ -224,19 +223,6 @@ export function QuestionGeneratorClient({
       return next;
     });
     setModeTab("custom");
-  }
-
-  function applySystemPreset(slug: string) {
-    const p = SYSTEM_PRESETS.find((x) => x.slug === slug);
-    if (!p) return;
-    applyCounts(p.config.counts);
-    setModeTab(slug);
-    if (slug.startsWith("main_idea")) {
-      setOpenCats((prev) => ({
-        ...prev,
-        main_idea: true,
-      }));
-    }
   }
 
   function applyDbPreset(p: PresetRow) {
@@ -673,20 +659,27 @@ export function QuestionGeneratorClient({
                               variant="secondary"
                               className="w-full text-xs"
                               onClick={() =>
-                                applySystemPreset("main_idea_focus")
+                                addCounts([
+                                  ["title:en:high:제목추론", 1],
+                                  ["topic:en:high:주제추론", 1],
+                                ])
                               }
                             >
-                              제목·주제 (영)상 1씩
+                              제목·주제 (영)상 +1
                             </Button>
                             <Button
                               type="button"
                               variant="secondary"
                               className="w-full text-xs"
                               onClick={() =>
-                                applySystemPreset("main_idea_full")
+                                addCounts([
+                                  ["title:en:high:제목추론", 1],
+                                  ["topic:en:high:주제추론", 1],
+                                  ["summary_mcq:ko:high:요지추론", 1],
+                                ])
                               }
                             >
-                              대의 전체 넣기
+                              모두 넣기 (+1)
                             </Button>
                           </div>
                         </div>
