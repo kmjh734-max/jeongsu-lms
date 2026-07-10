@@ -187,16 +187,16 @@ export function GenerationDetailClient({
         action={
           <div className="flex flex-wrap gap-2">
             <Link
-              href={`${basePath}`}
+              href={basePath}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
             >
-              ← 생성으로
+              ← 내 자료
             </Link>
             <Link
-              href={`${basePath}/generations`}
+              href={`${basePath}/new`}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
             >
-              생성 기록
+              새로 만들기
             </Link>
           </div>
         }
