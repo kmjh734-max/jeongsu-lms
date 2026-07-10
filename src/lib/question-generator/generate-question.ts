@@ -1,4 +1,7 @@
-import { grammarCatalogPromptBlock } from "@/lib/question-generator/grammar-catalog";
+import {
+  grammarCatalogPromptBlock,
+  pickGrammarFocus,
+} from "@/lib/question-generator/grammar-catalog";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
 import { findAingkaOption } from "@/lib/question-generator/question-types";
 import { cleanQuestionText } from "@/lib/question-generator/text-utils";
@@ -203,43 +206,51 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
     case "grammar": {
       const catalog = grammarCatalogPromptBlock();
       if (code === "어법모두고르기") {
-        return `어법 모두 고르기 — 교재형 출제 메커니즘 ONLY:
-- passageModified = FULL ENGLISH passage with exactly five spots ⓐ ⓑ ⓒ ⓓ ⓔ as ⓐ<u>target</u>.
-- Exactly 2 or 3 spots WRONG; others fully correct.
-- QUALITY GATE (필수):
-  · Every wrong spot MUST follow an ALLOWED TRAP mechanism below (requiredShape).
-  · S-V: ONLY 「주어+(긴 수식어)+동사」 with nearby-noun lure. NEVER adjacent such things change/changes.
-  · Prefer high-frequency: sv-modifier, voice-verb, relative-role, participle-modify, verb-vs-verbal, prep-conj, tense-adverbial-future.
-  · Wrong form must look like a real 학력평가 네모/밑줄 선택지 (is/are, which/that, to-V/V-ing, v-ing/p.p. …).
-- choices: 5 Korean combination options; exactly ONE lists ALL and ONLY wrong letters.
+        const wrongN = Math.random() < 0.5 ? 2 : 3;
+        const { focusBlock } = pickGrammarFocus(wrongN);
+        return `어법 모두 고르기 — 유닛×CASE 다양 출제:
+${focusBlock}
+
+FORMAT:
+- passageModified = FULL ENGLISH with exactly five spots ⓐⓑⓒⓓⓔ as ⓐ<u>target</u>.
+- Exactly ${wrongN} spots WRONG — each MUST match one FOCUS CASE above (different units).
+- Remaining spots CORRECT but look like distractor unit patterns.
+- choices: 5 Korean combinations; exactly ONE lists ALL and ONLY wrong letters.
 - correctAnswer 1-5. questionText empty.
-- explanation: Korean — wrong letters + trap tag (어법끝Pxx / 처음Uxx) + why.
+- explanation: Korean — each wrong letter → [unit/case id] + trap tag + reason.
 LANGUAGE: passage ENGLISH only.
 
 ${catalog}`;
       }
       if (code === "어법개수") {
-        return `어법 개수 — 교재형 출제 메커니즘 ONLY:
+        const wrongN = 1 + Math.floor(Math.random() * 5);
+        const { focusBlock } = pickGrammarFocus(wrongN);
+        return `어법 개수 — 유닛×CASE 다양 출제:
+${focusBlock}
+
+FORMAT:
 - passageModified = FULL ENGLISH with exactly six spots ⓐ~ⓕ as ⓐ<u>target</u>.
-- Put 1~5 WRONG spots using ALLOWED TRAPS only (same QUALITY GATE as 어법모두고르기).
-- NEVER adjacent S-V number traps without a modifier between subject and verb.
+- Exactly ${wrongN} spots WRONG — each MUST match one FOCUS CASE (different units). Rest correct.
 - choices MUST be EXACTLY: 1:"1개" 2:"2개" 3:"3개" 4:"4개" 5:"5개"
-- correctAnswer = count of wrong spots.
-- questionText empty. explanation: count + letters + trap tags.
+- correctAnswer = ${wrongN}.
+- questionText empty. explanation: count + letters + [unit/case id].
 LANGUAGE: passage ENGLISH only.
 
 ${catalog}`;
       }
-      // legacy fallbacks
       if (code === "어법연결") {
         return `In passageModified mark ⓐ, ⓑ, ⓒ with two alternatives in parentheses. 5 ENGLISH connection choices. Exactly one correct.`;
       }
       if (code === "어법고쳐쓰기") {
         return `No MCQ. Student finds one grammar error and rewrites. Model rewrite in correctAnswer.`;
       }
-      return `Mark 5 underlined spots ⓐ~ⓔ with <u>...</u> in passageModified. Exactly ONE grammatically wrong. choices ①ⓐ~⑤ⓔ.
-Errors must follow exam-trap catalog (no adjacent trivial S-V):
+      {
+        const { focusBlock } = pickGrammarFocus(1);
+        return `Mark 5 underlined spots ⓐ~ⓔ. Exactly ONE wrong using FOCUS CASE.
+${focusBlock}
+
 ${catalog}`;
+      }
     }
     case "vocabulary":
       if (code === "어휘개수") {
@@ -751,7 +762,7 @@ ${
 }
 ${
   option.type === "grammar"
-    ? "- Grammar: ONLY exam-trap mechanisms (어법끝 P01–23 / 처음만나는 결정적 출제). Ban adjacent trivial S-V (such things change/changes). Explanation cites 어법끝Pxx or 처음Uxx."
+    ? "- Grammar: follow THIS QUESTION FOCUS unit×CASE list. Ban adjacent trivial S-V; at most one sv trap; wrong spots must use different morphological pair families."
     : ""
 }
 ${paraphraseSystemHint}
@@ -824,9 +835,13 @@ ${typeRules(option)}`,
       },
     }),
     temperature:
-      option.type === "grammar" || option.type === "vocabulary" ? 0.4 : 0.25,
+      option.type === "grammar"
+        ? 0.55
+        : option.type === "vocabulary"
+          ? 0.4
+          : 0.25,
     maxTokens:
-      option.type === "grammar" || option.type === "vocabulary" ? 2200 : 1600,
+      option.type === "grammar" || option.type === "vocabulary" ? 2800 : 1600,
   })) as Record<string, unknown>;
 
   if (allowSkip && raw.skip === true) {

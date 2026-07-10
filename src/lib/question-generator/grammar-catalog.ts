@@ -1,15 +1,11 @@
 /**
- * 어법 출제 카탈로그 — 교재가 가르치는 ‘출제 메커니즘’ 기준
+ * 어법 출제 — 교재 유닛×CASE 뱅크 + 문항마다 다른 포커스 샘플링
  *
- * 근거 교재:
- *  - 『어법끝(개정) START』 PART I Point 01–23 (네모) + PART II 밑줄 적용
- *  - 『처음 만나는 수능 어법』 스타터(입문) UNIT 01–13 ‘결정적 출제 어법’
+ * 어법끝(개정) START PART I UNIT 01–10 (Point 01–23)
+ * 처음 만나는 수능 어법 스타터 UNIT 01–13
  *
- * 핵심 원칙 (교재 원문):
- *  - 수일치: 「주어+(수식어구)+동사」로 출제되는 것이 대부분.
- *    수식어 안 명사 수가 주어와 달라 오답을 유도한다.
- *  - 금지: 주어·동사가 바로 붙어 있는 단순 수일치
- *    (예: such things change/changes) — 시험 함정이 아님.
+ * 원칙: 단원 나열이 아니라 CASE별 ‘네모 형태·심는 법’이 달라야 함.
+ * 금지: 인접 단순 수일치(such things change/changes), 같은 is/are 패턴 반복.
  */
 
 export const GRAMMAR_TEXTBOOK_TITLES = [
@@ -17,391 +13,746 @@ export const GRAMMAR_TEXTBOOK_TITLES = [
   "처음 만나는 수능 어법 스타터(입문)",
 ] as const;
 
-export const GRAMMAR_TEXTBOOK_TITLE = GRAMMAR_TEXTBOOK_TITLES.join(" · ");
-
-/** 절대 만들지 말 것 — 교재/기출 함정이 아닌 가짜 오류 */
 export const GRAMMAR_HARD_BANS = [
-  "주어와 동사가 바로 인접한 단순 수일치 (such things change/changes, people like/likes, students study/studies)",
-  "철자·오타·존재하지 않는 단어로 ‘틀린 척’하기",
-  "의미만 어색하고 문법적으로는 맞는 어휘 교체(그건 어휘 문항)",
-  "교재 Point에 없는 희귀 구문·작위적 도치 남발",
-  "밑줄 하나만 보고도 답이 보이는 초근접 함정 (수식어 없이 S+V만)",
+  "주어·동사 인접 단순 수일치 (such things change/changes, people like/likes)",
+  "틀린 밑줄 2개 이상이 전부 is/are·has/have 같은 동일 형태 쌍",
+  "수일치만 연속 출제 (한 문항에 S-V 함정 최대 1개)",
+  "철자·난센스 단어·어휘 의미만 틀린 함정",
 ] as const;
 
-export type ExamTrap = {
-  /** 어법끝 Point 번호 (없으면 null) */
-  eobeopPoint: number | null;
-  /** 처음만나는 UNIT */
-  cheoeumUnit: number | null;
+export type GrammarCase = {
   id: string;
-  title: string;
-  /** 교재가 말하는 출제 메커니즘 */
+  /** 어법끝 Point (없으면 null) */
+  point: number | null;
+  name: string;
+  /** 네모에 나오는 형태 쌍 — 다양성 판별용 */
+  pairForms: string;
   mechanism: string;
-  /** 반드시 지문에 심어야 하는 구조 */
-  requiredShape: string;
-  /** 좋은 함정 예시 (패턴) */
-  goodPattern: string;
-  /** 나쁜/금지 예시 */
-  badPattern: string;
+  /** 지문에 어떻게 심는지 */
+  plant: string;
+  example: string;
 };
 
-/**
- * 실제 출제되는 함정만 — 빈도·교재 ‘결정적 출제’·CASE 기준
- * (단순 인접 수일치 같은 Warm-up 수준은 제외)
- */
-export const EXAM_TRAPS: ExamTrap[] = [
-  // ─── 수일치 (어법끝 P01–04 / 처음만나는 U01) ───
-  {
-    eobeopPoint: 1,
-    cheoeumUnit: 1,
-    id: "sv-modifier",
-    title: "주어 + (긴 수식어) + 동사 — 수식어 끝 명사 혼동",
-    mechanism:
-      "「주어+(수식어구)+동사」가 대부분. 수식어(전명구·v-ing·to-v·p.p.·관계사절·형용사구·삽입) 안 명사 수가 주어와 달라 오답 유도.",
-    requiredShape:
-      "핵심 주어와 동사 사이에 수식어가 끼고, 동사 직전(수식어 끝) 명사 수 ≠ 주어 수. 틀린 동사는 수식어 끝 명사에 맞춘 형태.",
-    goodPattern:
-      "The main purpose of food labels on products are… (× are←products) / One CEO in … companies have… (× have←companies) / People living in … facilities use…",
-    badPattern:
-      "Such things change/changes — 수식어 없음, 인접 수일치. 출제 가치 없음.",
-  },
-  {
-    eobeopPoint: 2,
-    cheoeumUnit: 1,
-    id: "sv-relative-antecedent",
-    title: "관계사절 동사 수 = 선행사 (선행사≠직전 명사)",
-    mechanism:
-      "주격 관계대명사 뒤 동사는 선행사와 일치. 선행사+수식어+관계사일 때 수식어 끝 명사를 선행사로 착각.",
-    requiredShape:
-      "… N1 (수식어 … N2) which/that/who + V … 에서 V를 N2에 맞춘 오류, 또는 단순 선행사 수 불일치.",
-    goodPattern:
-      "any food on those shelves which have an unusual odor (× have←shelves, 선행사 food) / photos that was deleted (× was←photos)",
-    badPattern: "the dogs that bark/barks — 선행사 직후·혼동 명사 없음.",
-  },
-  {
-    eobeopPoint: 3,
-    cheoeumUnit: 1,
-    id: "sv-inversion-there",
-    title: "도치·There — 동사 뒤 진짜 주어",
-    mechanism:
-      "부사(구)/부정어 도치, There+V+S. 앞에 나온 명사나 there를 주어로 착각하지 말고 동사 뒤 주어에 수 일치.",
-    requiredShape:
-      "In/On/Behind… + V + 복수주어, Not until/Only/Little… + aux + S, There is/are + 실제 주어.",
-    goodPattern:
-      "In the back seat … was/were two boys / There has/have been some increases / No longer is/are self-driving cars…",
-    badPattern: "There are books / There is a book — 함정 없이 정답만 보이는 인접형.",
-  },
-  {
-    eobeopPoint: 4,
-    cheoeumUnit: 1,
-    id: "sv-subject-form",
-    title: "주어 형태 — 동명사·절·each/every·부분표현 of",
-    mechanism:
-      "v-ing/to-v/명사절 주어→단수(동사 근처 복수 명사로 유인). each/every→단수, both→복수, the+형용사→복수. 부분표현+of+N은 of 뒤 N에 일치.",
-    requiredShape:
-      "주어가 비명사(절·준동사)이거나 수량표현이고, 동사 근처에 다른 수의 명사가 있어 유인.",
-    goodPattern:
-      "Accepting … in your problems mean/means (× mean←problems) / Whether … exists is/are… / The majority of our clients is/are… / Each of the countries have/has…",
-    badPattern: "Running is/are fun — 유인 명사 없는 단순형.",
-  },
+export type GrammarUnitBank = {
+  key: string;
+  eobeopUnit: number | null;
+  cheoeumUnit: number | null;
+  title: string;
+  cases: GrammarCase[];
+};
 
-  // ─── 명사·대명사 (P05–06 / U10) ───
+/** 유닛 하나씩 — CASE가 곧 출제 패턴 */
+export const GRAMMAR_UNIT_BANKS: GrammarUnitBank[] = [
   {
-    eobeopPoint: 5,
+    key: "sv",
+    eobeopUnit: 1,
+    cheoeumUnit: 1,
+    title: "주어·동사 수일치",
+    cases: [
+      {
+        id: "sv-prep",
+        point: 1,
+        name: "주어+(전명구)+동사",
+        pairForms: "is/are·has/have·was/were",
+        mechanism: "수식어 끝 명사 수 ≠ 주어 → 그 명사에 동사 맞춤이 오답",
+        plant: "핵심 주어와 동사 사이에 of/in/by/about + 복수(또는 단수) 명사 끼우기",
+        example: "The main purpose of food labels … are(×)/is / studies of big business have/has",
+      },
+      {
+        id: "sv-ving-tov",
+        point: 1,
+        name: "주어+(v-ing/to-v)+동사",
+        pairForms: "is/are·make/makes",
+        mechanism: "분사·부정사구 속 명사로 유인",
+        plant: "주어 뒤 showing/to show … + 복수명사 + 단수동사(또는 반대)",
+        example: "The museum showing many paintings are(×)/is / One way to show respect … are(×)/is",
+      },
+      {
+        id: "sv-pp",
+        point: 1,
+        name: "주어+(p.p.)+동사",
+        pairForms: "is/are·belongs/belong",
+        mechanism: "과거분사구 속 명사 유인. p.p.를 정동사로 착각하지 말 것(정답 쪽)",
+        plant: "Products made from milk is(×)/are / pipes used to transport oil is(×)/are",
+        example: "Gold coins found in this area belongs(×)/belong",
+      },
+      {
+        id: "sv-rel-mod",
+        point: 1,
+        name: "주어+[관계사절/형용사구]+동사",
+        pairForms: "is/are·improve/improves",
+        mechanism: "관계절·후치 형용사구 끝 명사 유인",
+        plant: "clothes that have … is(×)/are / A film full of violent scenes are(×)/is",
+        example: "company which specializes in … services are(×)/is located",
+      },
+      {
+        id: "sv-insert",
+        point: 1,
+        name: "주어+삽입(동격/관계/분사)+동사",
+        pairForms: "has/have·is/are",
+        mechanism: "콤마 삽입어 속 명사를 주어로 혼동",
+        plant: "A cell, the smallest unit …, have(×)/has",
+        example: "This relationship, a partnership between the countries, have(×)/has",
+      },
+      {
+        id: "sv-rel-ante",
+        point: 2,
+        name: "관계절 동사 수=선행사 (직전 명사 함정)",
+        pairForms: "was/were·is/are·interest/interests",
+        mechanism: "선행사+수식어+관계사일 때 수식어 끝 명사 ≠ 선행사",
+        plant: "food on those shelves which have(×)/has odor / photos that was(×)/were deleted",
+        example: "anything to read that interest(×)/interests them",
+      },
+      {
+        id: "sv-invert",
+        point: 3,
+        name: "부사·부정어 도치 — 동사 뒤 주어",
+        pairForms: "was/were·is/are·does/do",
+        mechanism: "앞에 나온 명사 말고 동사 뒤 주어에 일치",
+        plant: "In the back seat … was/were two boys / No longer is/are cars … / Little does/do …",
+        example: "Only then is(×)/are the messages removed",
+      },
+      {
+        id: "sv-there",
+        point: 3,
+        name: "There + V + 실제 주어",
+        pairForms: "is/are·has/have",
+        mechanism: "there 뒤 동사는 뒤 주어 수",
+        plant: "There has/have been some increases / There is/are mice",
+        example: "There is(×)/are two emergency exits",
+      },
+      {
+        id: "sv-form",
+        point: 4,
+        name: "동명사·절·each/every·부분표현 of",
+        pairForms: "mean/means·is/are·has/have",
+        mechanism: "비명사 주어 단수 + 근처 복수 유인; of 뒤 명사에 일치하는 부분표현",
+        plant: "Accepting … problems mean(×)/means / Whether … exists is/are / majority of clients is/are",
+        example: "Each of the countries have(×)/has / The young is(×)/are",
+      },
+    ],
+  },
+  {
+    key: "noun",
+    eobeopUnit: 2,
     cheoeumUnit: 10,
-    id: "pronoun-agree",
-    title: "대명사 수·격 — 문장 안 단수/복수 명사 혼재",
-    mechanism:
-      "대명사 수일치 출제 비중 최고. 단수·복수 명사가 같이 있어 지시 대상을 헷갈리게 함. 소유대명사·재귀도.",
-    requiredShape:
-      "지시대명사/인칭대명사가 가리킬 후보 명사가 2개 이상(수 다름). 틀린 쪽은 잘못된 선행사에 맞춤.",
-    goodPattern:
-      "Plastic … allows it/them to travel… (× them←plastics 복수 유인, 선행사 Plastic) / dried him/himself",
-    badPattern: "The boy lost his/her book — 성만 틀린 작위적 함정.",
+    title: "명사·대명사",
+    cases: [
+      {
+        id: "noun-pron-num",
+        point: 5,
+        name: "대명사 수일치 (단수·복수 명사 혼재)",
+        pairForms: "it/them·its/their",
+        mechanism: "지시 후보 명사 2개(수 다름) — 잘못된 선행사에 맞춤",
+        plant: "단수 총칭 주어 + 복수 세부 명사 근처에서 them/their 오류",
+        example: "Plastic … allows it/them to travel / … products … it(×)/them",
+      },
+      {
+        id: "noun-poss-refl",
+        point: 5,
+        name: "소유대명사·재귀대명사",
+        pairForms: "his/himself·mine/my·him/himself",
+        mechanism: "목적어=주어 → 재귀; 소유대명사 vs 소유격",
+        plant: "dried him(×)/himself / Can I use your(×)/yours?",
+        example: "I do mind him/his talking",
+      },
+      {
+        id: "noun-count",
+        point: 6,
+        name: "가산/불가산 수식어",
+        pairForms: "many/much·few/little·a/—",
+        mechanism: "information/advice/equipment + many/a; 가산 + much",
+        plant: "many informations(×) / much ideas(×) / an advice(×)",
+        example: "a few equipment(×) / little books(×)",
+      },
+    ],
   },
   {
-    eobeopPoint: 6,
-    cheoeumUnit: 10,
-    id: "noun-count",
-    title: "가산/불가산 수식어",
-    mechanism: "information/advice/equipment 등 불가산에 many/a few/a; 가산에 much/little.",
-    requiredShape: "전형적 불가산·가산 명사 + 잘못된 수량 수식어.",
-    goodPattern: "many informations (×) / much ideas (×) / an advice (×)",
-    badPattern: "a book / books — 함정 없는 기본형.",
-  },
-
-  // ─── 시제 (P07–08 / U02) ───
-  {
-    eobeopPoint: 7,
+    key: "tense",
+    eobeopUnit: 3,
     cheoeumUnit: 2,
-    id: "tense-past-perfect",
-    title: "단순과거 vs 현재완료 — 부사(구)로 구분",
-    mechanism:
-      "yesterday/ago/last/in+연도 → 과거. since/for/already/just/recently(계속·결과) → 현재완료. 부사와 시제 불일치가 함정.",
-    requiredShape: "시제 판별 부사(구)가 있고, 동사 시제가 그와 충돌.",
-    goodPattern:
-      "He died/has died in 1933 (× has died) / Since 2000, businesses experienced/have experienced (× experienced)",
-    badPattern: "I go/went to school yesterday — 너무 초보·부사 없이 시제만.",
+    title: "동사 시제",
+    cases: [
+      {
+        id: "tense-adv",
+        point: 7,
+        name: "단순과거 vs 현재완료 — 부사",
+        pairForms: "died/has died·experienced/have experienced",
+        mechanism: "in+연도/ago/yesterday→과거; since/for/already→현재완료",
+        plant: "부사(구)와 충돌하는 시제 형태를 밑줄",
+        example: "He has died(×)/died in 1933 / Since 2000, … experienced(×)/have experienced",
+      },
+      {
+        id: "tense-clause",
+        point: 8,
+        name: "시간·조건 부사절 — will 금지",
+        pairForms: "will be/are·will arrive/arrives",
+        mechanism: "when/if/unless/until 절 안 미래 대신 현재",
+        plant: "If you will be(×)/are careful / When he will arrive(×)/arrives",
+        example: "unless it will rain(×)/rains",
+      },
+      {
+        id: "tense-past-perf",
+        point: null,
+        name: "과거완료 — 기준 과거보다 앞선 일",
+        pairForms: "misspelled/had misspelled·was/had been",
+        mechanism: "과거 시점 이전에 완료된 동작에 단순과거 사용 오류",
+        plant: "When he learned that he misspelled(×)/had misspelled …",
+        example: "bones was preserved(×)/had been preserved (문맥상 과거완료·완료수동)",
+      },
+    ],
   },
   {
-    eobeopPoint: 8,
-    cheoeumUnit: 2,
-    id: "tense-adverbial-future",
-    title: "시간·조건 부사절 — 미래 대신 현재",
-    mechanism: "when/if/unless/until/before/after 부사절에 will 쓰지 않음. 네모는 현재/미래 형태.",
-    requiredShape: "시간·조건 종속절 안에 will/be going to가 들어간 오류.",
-    goodPattern: "If you will be/are not careful… (× will be) / When he will arrive/arrives…",
-    badPattern: "I will go tomorrow — 주절 미래는 정상.",
-  },
-
-  // ─── 조동사·가정법 (P09–10 / U03–04) ───
-  {
-    eobeopPoint: 9,
+    key: "modal",
+    eobeopUnit: 4,
     cheoeumUnit: 3,
-    id: "modal-perfect",
-    title: "조동사+원형 vs 조동사+have p.p.",
-    mechanism: "과거 추측·후회는 modal+have p.p. 현재·미래 의무·능력은 modal+원형.",
-    requiredShape: "과거 맥락인데 modal+원형, 또는 그 반대.",
-    goodPattern:
-      "must feel/have felt (과거 사건 후회·추측) / may even be/have been",
-    badPattern: "can swim/swims — 조동사 뒤 원형만 건드리는 초보 함정.",
+    title: "조동사·법",
+    cases: [
+      {
+        id: "modal-perf",
+        point: 9,
+        name: "조동사+원형 vs +have p.p.",
+        pairForms: "must feel/must have felt·may be/may have been",
+        mechanism: "과거 추측·후회는 have p.p.",
+        plant: "과거 사건 서술 중 must feel(×)/have felt",
+        example: "may even be(×)/have been a composer then",
+      },
+      {
+        id: "modal-should-that",
+        point: 10,
+        name: "주장·요구·제안 that+(should+)원형",
+        pairForms: "join/joined·ask/asks",
+        mechanism: "request/suggest/insist that절에 과거·3인칭 -s",
+        plant: "requested that she joined(×)/join / suggested that a newcomer asks(×)/ask",
+        example: "insisted that we went(×)/go",
+      },
+      {
+        id: "modal-habit",
+        point: null,
+        name: "과거 습관 used to / would",
+        pairForms: "used to eat/eating·would/could",
+        mechanism: "used to + 원형; be used to + v-ing와 구분(태 유닛과 연계 가능)",
+        plant: "people used to eating(×)/eat more when…",
+        example: "we would/could go nowhere (문맥 습관)",
+      },
+    ],
   },
   {
-    eobeopPoint: 10,
+    key: "subjunctive",
+    eobeopUnit: 4,
     cheoeumUnit: 4,
-    id: "subjunctive",
-    title: "가정법 과거 vs 과거완료 · that절 (should+)원형",
-    mechanism:
-      "현재 반대=과거형/were+would. 과거 반대=had p.p.+would have. suggest/insist/request that+(should+)원형.",
-    requiredShape: "가정 if/wish/as if 시제 불일치, 또는 that절에 joined/asks 같은 일반 시제.",
-    goodPattern:
-      "If he wrote… he would get/have gotten (시제 짝) / requested that she join/joined (× joined)",
-    badPattern: "If I am rich I will… — 직설만 있는 작위문.",
+    title: "가정법",
+    cases: [
+      {
+        id: "subj-past",
+        point: 10,
+        name: "가정법 과거 vs 과거완료 짝",
+        pairForms: "would get/would have gotten·lived/live",
+        mechanism: "현재 반대=과거+would; 과거 반대=had p.p.+would have",
+        plant: "If he wrote… he would have gotten(×)/would get (시제 짝 깨기) 또는 반대",
+        example: "If the check have(×)/had been enclosed, would they have responded…",
+      },
+      {
+        id: "subj-wish-asif",
+        point: null,
+        name: "I wish / as if 가정법",
+        pairForms: "will/would·do/did",
+        mechanism: "wish/as if 뒤 가정 시제",
+        plant: "I wish the drought will(×)/would end / as if competitors do(×)/did not exist",
+        example: "wish … will(×)/would",
+      },
+    ],
   },
-
-  // ─── 태 (P11–12 / U05) — 출제 빈도 매우 높음 ───
   {
-    eobeopPoint: 11,
+    key: "voice",
+    eobeopUnit: 5,
     cheoeumUnit: 5,
-    id: "voice-verb",
-    title: "능동 vs 수동 — 주어가 행위자인지 대상인지",
-    mechanism:
-      "태 구별은 출제 빈도 매우 높음. 주어-동사 의미 관계. 관계절 능동/수동, consist of 등 수동처럼 보이는 능동, appear/seem 수동 불가.",
-    requiredShape:
-      "타동사인데 목적어 없이 능동, 또는 자동사·상태동사를 수동으로. 관계절에서 선행사와의 능동/수동 오류.",
-    goodPattern:
-      "problems solved/were solved / This concept has discussed/has been discussed / photo appeared/was appeared (× was appeared) / consist of → *is consisted of (×)",
-    badPattern: "He eats/is eaten an apple — 의미상 말도 안 되는 작위 수동.",
+    title: "능동·수동 태",
+    cases: [
+      {
+        id: "voice-basic",
+        point: 11,
+        name: "능동 vs 수동 (시제별 형태)",
+        pairForms: "pick/are picked·has discussed/has been discussed·making/being made",
+        mechanism: "주어가 행위자인지 대상인지. 진행·완료 수동 형태",
+        plant: "Coffee beans pick(×)/are picked / concept has discussed(×)/has been discussed",
+        example: "oceans are polluting(×)/being polluted / films have produced(×)/been produced",
+      },
+      {
+        id: "voice-no-pass",
+        point: 11,
+        name: "수동 불가·유사수동 동사",
+        pairForms: "occur/are occurred·consists/is consisted·appeared/was appeared",
+        mechanism: "happen/occur/exist/consist of → 능동 유지. seem/appear 수동 혼동",
+        plant: "accidents are occurred(×)/occur / Indonesia is consisted(×)/consists of",
+        example: "photo was appeared(×)/appeared / Life is existed(×)/exists",
+      },
+      {
+        id: "voice-rel",
+        point: 11,
+        name: "관계절 능동 vs 수동",
+        pairForms: "kept/was kept·has changed/has been changed·seen/been seen",
+        mechanism: "선행사와 관계절 동사의 능동/수동 관계",
+        plant: "95% of which has never seen(×)/been seen / content of which kept(×)/was kept",
+        example: "invention that has changed/been changed the world (문맥)",
+      },
+      {
+        id: "voice-used-to",
+        point: 11,
+        name: "be used to-v vs be used to v-ing",
+        pairForms: "to attract/attracting·to living/live",
+        mechanism: "be used to + 명사/v-ing(익숙) vs be used to-v(목적·수단)",
+        plant: "Feathers may be used to attracting(×)/attract / Sherpas are used to live(×)/living",
+        example: "grapes can be used to making(×)/make wine",
+      },
+      {
+        id: "voice-verbal",
+        point: 12,
+        name: "to부정사·동명사 태",
+        pairForms: "to see/to be seen·leaving/being left·to receive/receiving",
+        mechanism: "의미상 주어가 받으면 to be p.p. / being p.p.",
+        plant: "want the letter to send(×)/to be sent / avoid being/to be injured",
+        example: "imagine … injuring/injured a lot of people (의미상 주어)",
+      },
+    ],
   },
   {
-    eobeopPoint: 12,
-    cheoeumUnit: 5,
-    id: "voice-verbal",
-    title: "to부정사·동명사 태 — 의미상 주어부터",
-    mechanism: "의미상 주어가 동작을 받으면 to be p.p. / being p.p.",
-    requiredShape: "의미상 주어가 수동인데 to-V/V-ing 능동형(또는 반대).",
-    goodPattern: "want the letter to send/to be sent / avoid being / to be caught",
-    badPattern: "I want to go/to be gone — 의미상 주어가 능동인데 수동.",
-  },
-
-  // ─── 분사 (P13–15 / U07) ───
-  {
-    eobeopPoint: 13,
+    key: "participle",
+    eobeopUnit: 6,
     cheoeumUnit: 7,
-    id: "participle-modify",
-    title: "수식 분사 — 명사와의 능동/수동",
-    mechanism: "명사를 수식하는 v-ing(능동) vs p.p.(수동). filling/filled, needing/needed.",
-    requiredShape: "피수식 명사가 행위자면 p.p. 오류, 대상이면 v-ing 오류.",
-    goodPattern:
-      "a sandwich filling/filled with tuna / girl walking/walked up the street / space needing/needed to heal",
-    badPattern: "the running/runned boy — 비표준·작위.",
+    title: "분사·분사구문",
+    cases: [
+      {
+        id: "part-mod",
+        point: 13,
+        name: "수식 분사 능동(v-ing) vs 수동(p.p.)",
+        pairForms: "filling/filled·walking/walked·needing/needed",
+        mechanism: "피수식 명사와의 능동/수동",
+        plant: "sandwich filling(×)/filled with tuna / girl walking/walked up the street",
+        example: "space needing/needed to heal",
+      },
+      {
+        id: "part-abs",
+        point: 14,
+        name: "분사구문 · with+명사+분사",
+        pairForms: "Looking/Looked·Surprising/Surprised",
+        mechanism: "주절 주어와 능동/수동",
+        plant: "Looking/Looked into those eyes, I… / Surprising(×)/Surprised by the news, he…",
+        example: "with the door opening/opened (문맥)",
+      },
+      {
+        id: "part-emotion",
+        point: 15,
+        name: "감정동사 -ing vs -ed",
+        pairForms: "tiring/tired·relaxing/relaxed·amazing/amazed",
+        mechanism: "원인(사물)-ing / 경험자(사람)-ed",
+        plant: "I am tiring(×)/tired / Still amazing(×)/amazed by his success, he…",
+        example: "The music was very relaxed(×)/relaxing",
+      },
+    ],
   },
   {
-    eobeopPoint: 14,
-    cheoeumUnit: 7,
-    id: "participle-absolute",
-    title: "분사구문 — 주절 주어와의 능동/수동 (+ with+명사+분사)",
-    mechanism: "분사구문 의미상 주어=주절 주어. Looking/Looked into those eyes…",
-    requiredShape: "주절 주어가 수동인데 현재분사(또는 반대). with+O+V-ing/p.p. 혼동.",
-    goodPattern:
-      "Looking/Looked into those eyes, I knew… / Surprising/Surprised by the news, he…",
-    badPattern: "Walking to school, the rain fell — 의미상 주어 불일치만(현학)보다 능동/수동 우선.",
-  },
-  {
-    eobeopPoint: 15,
-    cheoeumUnit: 7,
-    id: "participle-emotion",
-    title: "감정동사 -ing(원인) vs -ed(경험자)",
-    mechanism: "보어·수식에서 interesting(사물) / interested(사람).",
-    requiredShape: "사람 주어에 -ing, 사물·원인에 -ed.",
-    goodPattern: "I am tiring/tired / The music was relaxing/relaxed (보어 대상 확인)",
-    badPattern: "an interesting/interested book — 너무 초보만 단독 출제 지양(가능하면 긴 문장).",
-  },
-
-  // ─── 준동사 (P16–18 / U06) ───
-  {
-    eobeopPoint: 16,
+    key: "verbal",
+    eobeopUnit: 7,
     cheoeumUnit: 6,
-    id: "verb-vs-verbal",
-    title: "동사 자리 vs 준동사 자리",
-    mechanism:
-      "접속사·관계사 없이 동사 2개 불가. p.p.를 동사로 착각, 명사·동사 겸용 단어 주의. do vs be 대동사.",
-    requiredShape:
-      "이미 정동사가 있는데 또 정동사, 또는 정동사 자리에 v-ing만. used to transport oil에서 used를 동사로 착각하는 유형과 연계.",
-    goodPattern:
-      "keep to search/searching / decide do/to do / Volunteering helps/helping to reduce…",
-    badPattern: "He going to school — 초등 수준 비문.",
+    title: "동사와 준동사",
+    cases: [
+      {
+        id: "verb-slot",
+        point: 16,
+        name: "정동사 자리 vs 준동사 자리",
+        pairForms: "Keep/Keeping·demanded/demanding·is bring/to bring",
+        mechanism: "접속사 없이 동사 2개 불가; 주어 자리 v-ing; 목적 to-V",
+        plant: "Keep(×)/Keeping the lens covered … is recommended / purpose is bring(×)/to bring",
+        example: "customer … demanded/demanding a refund (이미 관계절 동사 있음)",
+      },
+      {
+        id: "verb-do-be",
+        point: 16,
+        name: "대동사 do vs be",
+        pairForms: "do/are·did/was",
+        mechanism: "앞 동사가 일반동사면 do, be동사면 be",
+        plant: "spend more time … than they are(×)/do / she did/was (fall asleep)",
+        example: "others do/are not (are in favor …)",
+      },
+      {
+        id: "verb-obj",
+        point: 17,
+        name: "목적어 to-V / V-ing (동사별·의미차)",
+        pairForms: "to apologize/apologizing·to travel/traveling·to brush/brushing",
+        mechanism: "refuse/learn/need→to-V; enjoy/avoid→V-ing; remember/forget/stop/try 의미",
+        plant: "refuse apologizing(×)/to apologize / enjoy to travel(×)/traveling / Remember brushing(×)/to brush",
+        example: "regret to say/saying / tried to taste/tasting",
+      },
+      {
+        id: "verb-it-obj",
+        point: 17,
+        name: "가목적어 it + 진목적어",
+        pairForms: "make it to-V / make to-V",
+        mechanism: "make/find/think it + adj + to-V",
+        plant: "make possible to… → make it possible to… 형태 깨기",
+        example: "find it difficult to / *find difficult to (×)",
+      },
+      {
+        id: "verb-oc",
+        point: 18,
+        name: "목적격보어 원형/to-V/p.p.",
+        pairForms: "kick/to kick·be/to be·examine/examined",
+        mechanism: "사역·지각+원형; allow/tell+to-V; 목적어가 받으면 p.p.",
+        plant: "saw me to kick(×)/kick / told students be(×)/to be ready / have teeth examine(×)/examined",
+        example: "get the work finish(×)/finished / women to look/looking/look at",
+      },
+    ],
   },
   {
-    eobeopPoint: 17,
-    cheoeumUnit: 6,
-    id: "object-form",
-    title: "목적어 to-V / V-ing · 가·진목적어",
-    mechanism:
-      "동사별 목적어 형태. remember/forget/stop/try 의미 차이. make/find it + to-V.",
-    requiredShape: "목적어 자리에 원형·잘못된 to-V/V-ing.",
-    goodPattern:
-      "keep searching / agreed to transport / forgot to give/giving / begin to accept/accepting",
-    badPattern: "want going — 너무 노골적; 가능하면 빈출 동사 목록 사용.",
-  },
-  {
-    eobeopPoint: 18,
-    cheoeumUnit: 6,
-    id: "object-complement",
-    title: "목적격보어 — 능동(원형/to-V) vs 수동(p.p.)",
-    mechanism: "사역·지각+원형, allow/force+to-V. 목적어가 받으면 p.p.",
-    requiredShape: "make/let/see/hear + O + V / to-V / p.p. 중 관계 오류.",
-    goodPattern:
-      "saw me kick/to kick / told students be/to be ready / get the work finish/finished",
-    badPattern: "make him to go — 가능하나, 능동/수동 관계형과 섞어 출제 권장.",
-  },
-
-  // ─── 병렬·비교 (P19–20 / U09·12) ───
-  {
-    eobeopPoint: 19,
+    key: "parallel",
+    eobeopUnit: 8,
     cheoeumUnit: 9,
-    id: "parallel",
-    title: "등위·상관접속사 병렬 — 형태 일치",
-    mechanism: "and/or/but, not only A but also B — A·B 문법 형태 대등.",
-    requiredShape: "접속사로 이어진 두 항의 품사·시제·to-V/V-ing 불일치.",
-    goodPattern:
-      "turned off the light and goes/went… / not only cleaned but also washes/washed…",
-    badPattern: "I like apples and orange — 단수복수만(약함).",
+    title: "병렬구조",
+    cases: [
+      {
+        id: "par-and",
+        point: 19,
+        name: "and/or/but 병렬",
+        pairForms: "rescues/rescuing·find/found·sailing/to sail",
+        mechanism: "등위접속사 앞뒤 형태 대등",
+        plant: "defeats … and then rescuing(×)/rescues / buying … and to sail(×)/sailing",
+        example: "train officers or building(×)/build housing",
+      },
+      {
+        id: "par-correl",
+        point: 19,
+        name: "not only A but also B / both A and B",
+        pairForms: "reduces/reducing·carry/to carry",
+        mechanism: "상관접속사 A·B 형태 일치",
+        plant: "not only improves … but also reducing(×)/reduces / both confusing and cost(×)/costly",
+        example: "not only taste good but also to carry(×)/carry",
+      },
+    ],
   },
   {
-    eobeopPoint: 20,
+    key: "compare",
+    eobeopUnit: 8,
     cheoeumUnit: 12,
-    id: "comparison",
-    title: "비교 — 원급/비교급/최상급 · 비교대상 병렬",
-    mechanism: "as…as / -er than / the -est. 비교 대상 형태 일치. very+비교급 불가.",
-    requiredShape: "비교 형태 깨짐 또는 A than B에서 B 형태 불일치.",
-    goodPattern:
-      "more important than getting married / as old as… / much/very better (× very)",
-    badPattern: "bigger/more bigger — 가능하나 비교대상 병렬과 함께 쓰면 더 교재형.",
+    title: "비교구문",
+    cases: [
+      {
+        id: "cmp-form",
+        point: 20,
+        name: "원급·비교급·최상급 형태",
+        pairForms: "greater/great·faster/fastest·as difficult as/than·more/most",
+        mechanism: "as…as / -er than / the -est. as … than(×)",
+        plant: "desire … should be great(×)/greater than / not as difficult as/than(×) learning",
+        example: "the more(×)/most amazing city / as free/freely as possible",
+      },
+      {
+        id: "cmp-parallel",
+        point: 20,
+        name: "비교 대상 병렬",
+        pairForms: "getting/to get·that of / those of",
+        mechanism: "A than B에서 B 형태·대명사 일치",
+        plant: "more important than to get(×)/getting married / taller than me/I (문맥)",
+        example: "better than that of / *better than of (×)",
+      },
+      {
+        id: "cmp-very",
+        point: null,
+        name: "비교급 강조 — very 불가",
+        pairForms: "very/much·very/far",
+        mechanism: "much/even/far/still + 비교급. very+비교급(×)",
+        plant: "very better(×)/much better",
+        example: "very more important(×)/far more important",
+      },
+    ],
   },
-
-  // ─── 형용사·부사 / 전치사·접속사 (P21–22 / U11·09) ───
   {
-    eobeopPoint: 21,
+    key: "adjadv",
+    eobeopUnit: 9,
     cheoeumUnit: 11,
-    id: "adj-adv",
-    title: "형용사 vs 부사 자리 (긴 문장·보어)",
-    mechanism:
-      "명수식=형용사, 동·형·부 수식=부사. makes a child easy/easily distracted. hard/hardly·late/lately.",
-    requiredShape: "보어·목적격보어·동사수식 자리에서 형/부 교체. 가능하면 수식 대상이 멀리 있음.",
-    goodPattern:
-      "makes a child easy/easily distracted / The disorder… / hard/hardly worked",
-    badPattern: "She runs quick/quickly — 초보 단독형 지양.",
+    title: "형용사·부사",
+    cases: [
+      {
+        id: "adj-slot",
+        point: 21,
+        name: "형용사 vs 부사 자리",
+        pairForms: "official/officially·easy/easily·powerful/powerfully",
+        mechanism: "명수식=형; 동·형 수식=부. 목적격보어 자리 주의",
+        plant: "are official(×)/officially recognized / makes a child easy/easily distracted",
+        example: "are powerful/powerfully influences (명수식→형용사)",
+      },
+      {
+        id: "adj-ly-meaning",
+        point: 21,
+        name: "hard/hardly·high/highly·late/lately",
+        pairForms: "high/highly·hard/hardly·late/lately",
+        mechanism: "-ly 붙이면 뜻 달라지는 쌍",
+        plant: "flying high/highly(×) / hard/hardly ever remember / late/lately",
+        example: "experiment is high(×)/highly educational",
+      },
+      {
+        id: "adj-complement",
+        point: 21,
+        name: "보어 형용사 취하는 동사",
+        pairForms: "calm/calmly·gray/grayly",
+        mechanism: "remain/become/seem/make + 형용사 보어",
+        plant: "stay calm/calmly(×) / grows gray / makes me crazy",
+        example: "looks happy/happily(×)",
+      },
+    ],
   },
   {
-    eobeopPoint: 22,
+    key: "prepconj",
+    eobeopUnit: 9,
     cheoeumUnit: 9,
-    id: "prep-conj",
-    title: "전치사 vs 접속사 · to+v-ing · like/alike",
-    mechanism:
-      "전치사+명사(구)/v-ing, 접속사+S+V. despite/although, during/while, because of/because. look forward to + v-ing.",
-    requiredShape: "절이 필요한데 전치사, 명사구인데 접속사. to 뒤 원형 오류.",
-    goodPattern:
-      "during/while he played / because of/because he was… / look forward to meet/meeting / like/alike",
-    badPattern: "in the room / in he room — 비문.",
+    title: "전치사·접속사",
+    cases: [
+      {
+        id: "pc-pair",
+        point: 22,
+        name: "during/while·despite/although·because of/because",
+        pairForms: "During/While·despite/though·Because/Because of",
+        mechanism: "전치사+명사구 vs 접속사+S+V",
+        plant: "During/While the past summer… / despite/though he was… / Because/Because of the rain…",
+        example: "while he played / during the vacation",
+      },
+      {
+        id: "pc-to-ving",
+        point: 22,
+        name: "전치사 to + v-ing",
+        pairForms: "to meet/meeting·to live/living",
+        mechanism: "look forward to / be used to / object to + v-ing",
+        plant: "look forward to meet(×)/meeting",
+        example: "object to be(×)/being treated",
+      },
+      {
+        id: "pc-like",
+        point: 22,
+        name: "like vs alike",
+        pairForms: "like/alike",
+        mechanism: "like 전치사/접속사; alike 형·부 (보어)",
+        plant: "Just like/alike people, no two places… / They look like/alike",
+        example: "alike people(×) at the start of sentence needing like",
+      },
+    ],
   },
-
-  // ─── 관계사·that/what (P23 / U08·09) ───
   {
-    eobeopPoint: 23,
+    key: "relative",
+    eobeopUnit: 10,
     cheoeumUnit: 8,
-    id: "relative-role",
-    title: "that/what · 관계대명사 격 · 관계대명사 vs 관계부사",
-    mechanism:
-      "완전절→접속사 that, 불완전절·선행사 없음→what. 격(who/whom/whose). 불완전→관계대명사, 완전→관계부사. 전치사+관계대명사.",
-    requiredShape:
-      "절 완전/불완전을 깨는 which/that/what/where 교체, 또는 격 오류. 선행사 역할 확인.",
-    goodPattern:
-      "Tell me the story that/what you like / can’t believe that/what you’re saying / park which/where we love / questions to which… / who/whose heart…",
-    badPattern: "the man who/which — 가능하나 격·완전/불완전형 우선.",
+    title: "관계사·that/what",
+    cases: [
+      {
+        id: "rel-that-what",
+        point: 23,
+        name: "that vs what (완전/불완전·선행사)",
+        pairForms: "that/what",
+        mechanism: "완전 명사절→that; 불완전·선행사 없음→what; 선행사 있으면 관계 that",
+        plant: "The truth is that/what most people… / get that/what they need / table that/what is made",
+        example: "This car is that(×)/what my brother plans to buy",
+      },
+      {
+        id: "rel-case",
+        point: 23,
+        name: "관계대명사 격·whose",
+        pairForms: "who/whom·whose/which·who/which",
+        mechanism: "주격/목적격/소유격. whose vs its",
+        plant: "historian whose/which work… / person whose/whom you want / animal its(×)/whose brain",
+        example: "man who/which robbed / machine whom(×)/that I broke",
+      },
+      {
+        id: "rel-cont",
+        point: 23,
+        name: "계속적 용법 — that 불가",
+        pairForms: "which/that·who/that",
+        mechanism: "콤마 뒤 보충 설명에 that(×)",
+        plant: "Pyeongchang, that(×)/which is a city… / John, that(×)/who is the captain",
+        example: "feathers, which/that(×) keep out",
+      },
+      {
+        id: "rel-vs-adv",
+        point: 23,
+        name: "관계대명사 vs 관계부사 / 전치사+관계대명사",
+        pairForms: "which/where·that/where·which/to which",
+        mechanism: "불완전절→관계대명사; 완전절→관계부사. to which 등",
+        plant: "park which/where we love(불완전 love의 목적어) / place which/where we played(완전)",
+        example: "questions which/to which I forgot to give an answer / the way how(×)",
+      },
+      {
+        id: "rel-vs-pron",
+        point: 23,
+        name: "관계대명사 vs 인칭대명사",
+        pairForms: "he/who·they/which·it/that",
+        mechanism: "절을 이끌어야 하는데 he/they",
+        plant: "the doctor he(×)/who examined me / places they(×)/which have history",
+        example: "blender, and it/that works (콤마+and면 대명사 OK — 문맥)",
+      },
+    ],
   },
-
-  // ─── 처음만나는 추가 (U13) — 어법끝 네모 23포인트 밖이지만 교재 결정적 출제 ───
   {
-    eobeopPoint: null,
+    key: "special",
+    eobeopUnit: null,
     cheoeumUnit: 13,
-    id: "special-cleft-indirect",
-    title: "It~that 강조 · 간접의문 어순",
-    mechanism: "강조구문 It is/was…that. 간접의문=의문사+S+V (도치 유지 금지).",
-    requiredShape: "강조구문 깨짐, 또는 간접의문에 do/does/did+S 도치.",
-    goodPattern:
-      "It was in 1990 that… / ask what time it is / *ask what time is it (× 간접)",
-    badPattern: "단순 Yes/No 의문만 도치 — 간접의문 맥락 필요.",
+    title: "특수구문 (강조·도치·부정·간접의문)",
+    cases: [
+      {
+        id: "sp-cleft",
+        point: null,
+        name: "It ~ that 강조",
+        pairForms: "that/what·It is/This is",
+        mechanism: "It is/was + 강조요소 + that …",
+        plant: "It is this fact … what(×)/that causes…",
+        example: "It was in 1990 that…",
+      },
+      {
+        id: "sp-indirect",
+        point: null,
+        name: "간접의문 어순",
+        pairForms: "he went/did he go·I could/could I",
+        mechanism: "의문사+S+V. 도치 유지(×)",
+        plant: "don’t know why did he go(×)/he went / doubted whether could I(×)/I could",
+        example: "how much disclosure is / is disclosure(×) appropriate",
+      },
+      {
+        id: "sp-partial-neg",
+        point: null,
+        name: "부분부정 not always/all",
+        pairForms: "not always/always not·not all/all not",
+        mechanism: "not + all/every/always/both = 부분부정",
+        plant: "always not(×)/not always be able / Humans have always not(×)/not always had",
+        example: "All students do not… (부분부정 문맥)",
+      },
+    ],
   },
 ];
 
-/** @deprecated — EXAM_TRAPS 사용. 호환용 빈 껍데기 유지하지 않음 */
-export type GrammarUnit = {
-  unit: number;
-  title: string;
-  points: Array<{ id: string; title: string; traps: string[] }>;
-  examFocus: string[];
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export type GrammarFocusPick = {
+  wrongCases: Array<{ unit: GrammarUnitBank; c: GrammarCase }>;
+  distractorCases: Array<{ unit: GrammarUnitBank; c: GrammarCase }>;
+  focusBlock: string;
 };
 
-/** 프롬프트용 — 메커니즘·금지·패턴 중심 (토큰은 길지만 정확도 우선) */
-export function grammarCatalogPromptBlock(): string {
-  const lines: string[] = [
-    "GRAMMAR EXAM TRAPS — from 어법끝 START P01–23 + 처음 만나는 수능 어법 ‘결정적 출제’.",
-    "Plant WRONG underlines ONLY using mechanisms below. Correct underlines = same family but actually right.",
-    "",
-    "HARD BANS (위반 시 문항 실패):",
-    ...GRAMMAR_HARD_BANS.map((b) => `  ✗ ${b}`),
-    "",
-    "S-V AGREEMENT RULE (교재 원문 요지):",
-    "  ✓ MUST: Subject + (modifier phrase/clause) + Verb, and the noun at the END of the modifier has a DIFFERENT number from the real subject; the wrong verb agrees with that nearby noun.",
-    "  ✗ NEVER: adjacent S+V number swap with no intervening modifier (such things change/changes).",
-    "",
-    "ALLOWED TRAPS:",
-  ];
+/**
+ * 문항마다 다른 유닛·CASE·형태 쌍을 강제.
+ * wrongCount: 어법모두고르기 2~3, 어법개수 1~5
+ */
+export function pickGrammarFocus(wrongCount: number): GrammarFocusPick {
+  const n = Math.max(1, Math.min(wrongCount, 5));
+  const units = shuffle(GRAMMAR_UNIT_BANKS);
 
-  for (const t of EXAM_TRAPS) {
+  // S-V는 최대 1유닛만
+  const pickedUnits: GrammarUnitBank[] = [];
+  let usedSv = false;
+  for (const u of units) {
+    if (pickedUnits.length >= n) break;
+    if (u.key === "sv") {
+      if (usedSv) continue;
+      usedSv = true;
+    }
+    pickedUnits.push(u);
+  }
+  // 부족하면 나머지에서 채움 (sv 제외 우선)
+  if (pickedUnits.length < n) {
+    for (const u of units) {
+      if (pickedUnits.length >= n) break;
+      if (pickedUnits.includes(u)) continue;
+      if (u.key === "sv" && usedSv) continue;
+      pickedUnits.push(u);
+    }
+  }
+
+  const wrongCases = pickedUnits.map((unit) => {
+    const c = shuffle(unit.cases)[0];
+    return { unit, c };
+  });
+
+  // 정답 밑줄용 — 다른 유닛에서 ‘맞아 보이는’ CASE
+  const distractorCases: GrammarFocusPick["distractorCases"] = [];
+  for (const u of shuffle(GRAMMAR_UNIT_BANKS)) {
+    if (distractorCases.length >= 3) break;
+    if (pickedUnits.includes(u)) continue;
+    distractorCases.push({ unit: u, c: shuffle(u.cases)[0] });
+  }
+
+  const pairSet = new Set(wrongCases.map((x) => x.c.pairForms.split("·")[0]));
+  const lines: string[] = [
+    "=== THIS QUESTION FOCUS (필수 · 다른 문항과 패턴 다르게) ===",
+    `Wrong spots MUST implement these ${wrongCases.length} DIFFERENT unit CASEs (one each):`,
+  ];
+  wrongCases.forEach((x, i) => {
     const tag = [
-      t.eobeopPoint != null ? `어법끝P${String(t.eobeopPoint).padStart(2, "0")}` : null,
-      t.cheoeumUnit != null
-        ? `처음U${String(t.cheoeumUnit).padStart(2, "0")}`
+      x.unit.eobeopUnit != null
+        ? `어법끝U${String(x.unit.eobeopUnit).padStart(2, "0")}`
         : null,
+      x.unit.cheoeumUnit != null
+        ? `처음U${String(x.unit.cheoeumUnit).padStart(2, "0")}`
+        : null,
+      x.c.point != null ? `P${String(x.c.point).padStart(2, "0")}` : null,
     ]
       .filter(Boolean)
       .join("/");
-    lines.push(`• [${tag}] ${t.title}`);
-    lines.push(`    메커니즘: ${t.mechanism}`);
-    lines.push(`    필수구조: ${t.requiredShape}`);
-    lines.push(`    ✓ ${t.goodPattern}`);
-    lines.push(`    ✗ ${t.badPattern}`);
-  }
-
+    lines.push(
+      `${i + 1}) [${x.unit.key}/${x.c.id}] ${tag} ${x.unit.title} · ${x.c.name}`
+    );
+    lines.push(`   네모형태: ${x.c.pairForms}`);
+    lines.push(`   메커니즘: ${x.c.mechanism}`);
+    lines.push(`   심는법: ${x.c.plant}`);
+    lines.push(`   예: ${x.c.example}`);
+  });
   lines.push("");
+  lines.push("Correct underlines: look like these other units but be actually right:");
+  for (const x of distractorCases) {
+    lines.push(
+      `  · [${x.unit.key}/${x.c.id}] ${x.c.name} (${x.c.pairForms}) — keep CORRECT`
+    );
+  }
+  lines.push("");
+  lines.push("DIVERSITY CHECK:");
   lines.push(
-    "Coverage: use 2+ different trap IDs across ⓐ~ⓔ/ⓕ (e.g. sv-modifier + voice-verb + relative-role)."
+    `  · pair-form families used: ${[...pairSet].join(", ")} — do NOT make all wrongs the same family`
+  );
+  lines.push("  · At most ONE sv-* trap in the whole question");
+  lines.push(
+    "  · NEVER adjacent S-V (such things change/changes); S-V only with long modifier lure"
   );
   lines.push(
-    "explanation (Korean): for each wrong letter cite trap id/tag + one line (e.g. 「어법끝P01 수식어 끝 companies에 동사 맞춤」)."
+    "  · Morphological shapes of wrong targets must differ (e.g. voice p.p. + relative that/what + to-V/V-ing), not three number-agreement verbs"
   );
 
+  return { wrongCases, distractorCases, focusBlock: lines.join("\n") };
+}
+
+/** 전체 뱅크 요약 (포커스 외 참고) */
+export function grammarCatalogPromptBlock(): string {
+  const lines: string[] = [
+    "FULL UNIT×CASE BANK (reference; THIS QUESTION FOCUS above overrides for wrong spots):",
+    `Sources: ${GRAMMAR_TEXTBOOK_TITLES.join(" · ")}`,
+    "",
+    "HARD BANS:",
+    ...GRAMMAR_HARD_BANS.map((b) => `  ✗ ${b}`),
+    "",
+  ];
+  for (const u of GRAMMAR_UNIT_BANKS) {
+    const tag = [
+      u.eobeopUnit != null ? `어법끝U${u.eobeopUnit}` : null,
+      u.cheoeumUnit != null ? `처음U${u.cheoeumUnit}` : null,
+    ]
+      .filter(Boolean)
+      .join("/");
+    lines.push(`■ ${u.key} ${u.title} (${tag})`);
+    for (const c of u.cases) {
+      lines.push(
+        `  - ${c.id}: ${c.name} [${c.pairForms}] | ${c.mechanism}`
+      );
+    }
+  }
   return lines.join("\n");
 }
