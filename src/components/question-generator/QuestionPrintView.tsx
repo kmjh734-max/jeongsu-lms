@@ -37,13 +37,51 @@ function formatAnswer(a: unknown): string {
   return String(a ?? "");
 }
 
-function buildClipboardText(title: string, questions: QuestionRow[]): string {
-  const lines: string[] = [`2026년 03월 모의고사 변형문제`, title, "", "Part Ⅰ", ""];
+function passageBody(q: QuestionRow): string {
+  return (q.passage_modified || q.passage_original || "").trim();
+}
+
+/** 서울시 통합본처럼 동일 지문은 한 번만 출력 */
+function shouldShowPassage(
+  questions: QuestionRow[],
+  index: number
+): boolean {
+  if (index === 0) return true;
+  const cur = passageBody(questions[index]);
+  const prev = passageBody(questions[index - 1]);
+  return cur !== prev;
+}
+
+function extractBannerNo(sourceDetail: string): string | null {
+  const m = sourceDetail.match(/(\d{1,2})\s*번/);
+  return m ? m[1] : null;
+}
+
+function buildClipboardText(
+  title: string,
+  grade: string,
+  sourceDetail: string,
+  questions: QuestionRow[]
+): string {
+  const bannerNo = extractBannerNo(sourceDetail);
+  const lines: string[] = [
+    grade ? `${grade} 학력평가·변형문제` : "학력평가·변형문제",
+    title,
+    sourceDetail,
+    "",
+  ];
+  if (bannerNo) {
+    lines.push(`┃3월 ${bannerNo}번┃`);
+  }
+  lines.push("∎ 다음 글을 읽고 물음에 답하시오.", "");
+
   questions.forEach((q, i) => {
     const { tag, extra } = splitTagAndExtra(q.question_text);
     lines.push(`${i + 1}. ${q.instruction}`);
     if (tag) lines.push(tag);
-    lines.push(q.passage_modified || q.passage_original);
+    if (shouldShowPassage(questions, i)) {
+      lines.push(passageBody(q));
+    }
     if (extra) lines.push(extra);
     if (q.choices?.length) {
       for (const c of q.choices) {
@@ -102,6 +140,19 @@ export function QuestionPrintView({
     void load();
   }, [load]);
 
+  /** 앞쪽 연속 동일 지문은 상단에 1회만 두고, 문항에서는 생략 */
+  const sharedLeadPassage = useMemo(() => {
+    if (questions.length < 2) return null;
+    const first = passageBody(questions[0]);
+    if (!first) return null;
+    let sameCount = 1;
+    for (let i = 1; i < questions.length; i++) {
+      if (passageBody(questions[i]) === first) sameCount += 1;
+      else break;
+    }
+    return sameCount >= 2 ? first : null;
+  }, [questions]);
+
   const leftRight = useMemo(() => {
     const mid = Math.ceil(questions.length / 2);
     return {
@@ -109,6 +160,8 @@ export function QuestionPrintView({
       right: questions.slice(mid),
     };
   }, [questions]);
+
+  const bannerNo = extractBannerNo(sourceDetail);
 
   function runPrint() {
     const prev = document.title;
@@ -120,22 +173,27 @@ export function QuestionPrintView({
   }
 
   async function copyAll() {
-    await navigator.clipboard.writeText(buildClipboardText(title, questions));
+    await navigator.clipboard.writeText(
+      buildClipboardText(title, grade, sourceDetail, questions)
+    );
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   }
 
-  function renderQuestion(q: QuestionRow, index: number) {
+  function renderQuestion(q: QuestionRow, index: number, globalIndex: number) {
     const { tag, extra } = splitTagAndExtra(q.question_text);
+    const body = passageBody(q);
+    const coveredByLead =
+      sharedLeadPassage != null && body === sharedLeadPassage;
+    const showPassage =
+      !coveredByLead && shouldShowPassage(questions, globalIndex - 1);
     return (
       <section key={q.id} className="qg-print-q">
         <p className="qg-print-q-head">
           <span className="qg-print-q-num">{index}.</span> {q.instruction}
         </p>
         {tag && <p className="qg-print-tag">{tag}</p>}
-        <div className="qg-print-passage">
-          {q.passage_modified || q.passage_original}
-        </div>
+        {showPassage && <div className="qg-print-passage">{body}</div>}
         {extra && <p className="qg-print-extra">{extra}</p>}
         {q.choices && q.choices.length > 0 && (
           <ul className="qg-print-choices">
@@ -180,7 +238,7 @@ export function QuestionPrintView({
           </div>
         </div>
         <p className="mx-auto mt-2 max-w-4xl text-xs text-slate-500">
-          아잉카 양식: 한글 발문 + [태그] + 지문 + ①~⑤ · A4 2단 · PDF로 저장 가능
+          서울시 학력평가 양식: 「윗글의 …」 발문 · 동일 지문 1회 출력 · A4 2단
         </p>
       </div>
 
@@ -192,24 +250,41 @@ export function QuestionPrintView({
           <header className="qg-print-header">
             <div>
               <p className="qg-print-kicker">
-                {grade ? `${grade} 모의고사 변형문제` : "모의고사 변형문제"}
+                {grade
+                  ? `${grade} 학력평가·변형문제`
+                  : "학력평가·변형문제"}
               </p>
               <h1 className="qg-print-title">{title}</h1>
               {sourceDetail && (
                 <p className="qg-print-sub">{sourceDetail}</p>
               )}
-              <p className="qg-print-part">Part Ⅰ</p>
+              {bannerNo && (
+                <p className="qg-print-banner">┃3월 {bannerNo}번┃</p>
+              )}
+              <p className="qg-print-guide">
+                ∎ 다음 글을 읽고 물음에 답하시오.
+              </p>
             </div>
             <p className="qg-print-meta">{questions.length}문항</p>
           </header>
 
+          {sharedLeadPassage && (
+            <div className="qg-print-passage qg-print-passage-lead">
+              {sharedLeadPassage}
+            </div>
+          )}
+
           <div className="qg-print-cols">
             <div className="qg-print-col">
-              {leftRight.left.map((q, i) => renderQuestion(q, i + 1))}
+              {leftRight.left.map((q, i) => renderQuestion(q, i + 1, i + 1))}
             </div>
             <div className="qg-print-col qg-print-col-right">
               {leftRight.right.map((q, i) =>
-                renderQuestion(q, leftRight.left.length + i + 1)
+                renderQuestion(
+                  q,
+                  leftRight.left.length + i + 1,
+                  leftRight.left.length + i + 1
+                )
               )}
             </div>
           </div>

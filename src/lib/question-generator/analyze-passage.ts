@@ -17,9 +17,11 @@ export async function analyzePassage(opts: {
 }): Promise<PassageAnalysis> {
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: `You are an expert Korean high-school English reading exam designer.
+Target: 서울특별시교육청 학력평가 (고1) + 모의고사 변형 출제 수준.
 Analyze the passage carefully. Return ONLY valid JSON.
 Do NOT alter the original passage wording, punctuation, quotes, or dashes.
-Respond in Korean for descriptive fields unless the field is an English quote from the passage.`,
+Respond in Korean for descriptive fields unless the field is an English quote from the passage.
+Also note: purpose of the text, discourse markers, grammar traps, and facts useful for content-match/mismatch items.`,
     user: JSON.stringify({
       grade: opts.grade,
       overallDifficulty: opts.overallDifficulty,

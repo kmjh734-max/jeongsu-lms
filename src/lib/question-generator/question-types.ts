@@ -5,8 +5,8 @@ import type {
 } from "@/lib/question-generator/types";
 
 /**
- * 아잉카 모의고사 변형문제 유형
- * 예: [202603H1_22요지추론_변형] + 한글 발문 + 지문 + ①~⑤
+ * 서울시 학력평가 예상문제 + 아잉카 모의 변형 유형
+ * 발문: 「윗글의 …」 / 태그: [202603H1_18목적추론_변형]
  */
 function opt(
   type: QuestionTypeOption["type"],
@@ -51,80 +51,69 @@ export type AingkaOption = ReturnType<typeof opt>;
 
 export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
   {
-    category: "main_idea",
-    label: "대의 파악 (주제·제목·요지)",
+    category: "grammar_vocabulary",
+    label: "Section · 어법·어휘",
     options: [
       opt(
-        "topic",
-        "main_idea",
-        "주제 추론",
+        "grammar",
+        "grammar_vocabulary",
+        "어법 연결형 (ⓐⓑⓒ)",
         "default",
-        "korean",
+        "english",
         true,
-        "「다음 글의 주제로 가장 적절한 것은?」",
-        "주제추론",
-        "다음 글의 주제로 가장 적절한 것은?"
+        "괄호 ⓐⓑⓒ에서 어법상 알맞은 말 연결",
+        "어법연결",
+        "윗글의 괄호 ⓐ, ⓑ, ⓒ에서 어법상 알맞은 말로 바르게 연결된 것은?"
       ),
       opt(
-        "title",
-        "main_idea",
-        "제목 추론",
+        "grammar",
+        "grammar_vocabulary",
+        "어법 밑줄 (어색한 것)",
         "default",
-        "korean",
+        null,
         true,
-        "「다음 글의 제목으로 가장 적절한 것은?」",
-        "제목추론",
-        "다음 글의 제목으로 가장 적절한 것은?"
+        "밑줄 ⓐ~ⓔ 중 어법상 어색한 것",
+        "어법추론",
+        "윗글의 밑줄 친 ⓐ~ⓔ 중, 어법상 어색한 것은?"
       ),
       opt(
-        "summary_mcq",
-        "main_idea",
-        "요지 추론",
+        "vocabulary",
+        "grammar_vocabulary",
+        "어휘 밑줄 (부적절)",
         "default",
-        "korean",
+        null,
         true,
-        "「다음 글의 요지로 가장 적절한 것은?」",
-        "요지추론",
-        "다음 글의 요지로 가장 적절한 것은?"
+        "문맥상 낱말 쓰임이 적절하지 않은 것",
+        "어휘추론",
+        "윗글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?"
       ),
       opt(
-        "summary_mcq",
-        "main_idea",
-        "요약문 빈칸 (A)(B)",
+        "grammar",
+        "grammar_vocabulary",
+        "어법 고쳐 쓰기",
         "default",
-        "korean",
-        true,
-        "한 문장 요약 빈칸 (A)(B) 선택",
-        "요약문추론",
-        "다음 글의 내용을 한 문장으로 요약하고자 한다. 빈칸 (A), (B)에 들어갈 말로 가장 적절한 것은?"
+        null,
+        false,
+        "어법상 어색한 부분을 찾아 고치기",
+        "어법고쳐쓰기",
+        "윗글에서 어법상 어색한 부분을 찾아 바르게 고쳐 쓰시오."
       ),
     ],
   },
   {
     category: "details",
-    label: "세부 정보 (일치·불일치·심경)",
+    label: "Section · 세부·목적·심경",
     options: [
       opt(
-        "content_true",
+        "underlined_inference",
         "details",
-        "내용 일치",
+        "목적 추론",
         "default",
-        "korean",
+        "english",
         true,
-        "「다음 글의 내용과 일치하는 것은?」",
-        "내용일치",
-        "다음 글의 내용과 일치하는 것은?"
-      ),
-      opt(
-        "content_false",
-        "details",
-        "내용 불일치",
-        "default",
-        "korean",
-        true,
-        "「다음 글의 내용과 일치하지 않는 것은?」",
-        "내용불일치",
-        "다음 글의 내용과 일치하지 않는 것은?"
+        "「윗글의 목적으로 알맞은 것은?」 영어 선택지",
+        "목적추론",
+        "윗글의 목적으로 알맞은 것은?"
       ),
       opt(
         "underlined_inference",
@@ -133,59 +122,81 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "default",
         "english",
         true,
-        "「I의 심경 변화로 가장 적절한 것은?」 영어 선택지",
+        "심경 변화 영어 선택지",
         "심경추론",
-        "다음 글에 드러난 I의 심경 변화로 가장 적절한 것은?"
+        "윗글에 드러난 심경 변화로 알맞은 것은?"
+      ),
+      opt(
+        "content_false",
+        "details",
+        "내용 불일치 (영어 선택지)",
+        "default",
+        "english",
+        true,
+        "「윗글의 내용과 일치하지 않는 것은?」",
+        "내용불일치",
+        "윗글의 내용과 일치하지 않는 것은?"
+      ),
+      opt(
+        "content_true",
+        "details",
+        "내용 일치 (영어 선택지)",
+        "default",
+        "english",
+        true,
+        "「윗글의 내용과 일치하는 것은?」",
+        "내용일치",
+        "윗글의 내용과 일치하는 것은?"
+      ),
+      opt(
+        "content_false",
+        "details",
+        "내용 불일치 (한글 선택지)",
+        "default",
+        "korean",
+        true,
+        "한글 선택지 내용 불일치",
+        "내용불일치한글",
+        "다음 글의 내용과 일치하지 않는 것은?"
       ),
       opt(
         "underlined_inference",
         "details",
-        "밑줄 의미 추론",
+        "함축 의미",
         "default",
         "korean",
         true,
         "밑줄 친 표현의 문맥상 의미",
         "함축의미추론",
-        "다음 글에서 밑줄 친 부분이 의미하는 바로 가장 적절한 것은?"
+        "윗글의 밑줄 친 부분이 의미하는 바로 알맞은 것은?"
       ),
     ],
   },
   {
     category: "inference",
-    label: "추론 (빈칸·순서·삽입·무관)",
+    label: "Section · 빈칸·흐름·순서",
     options: [
       opt(
         "sentence_blank",
         "inference",
-        "빈칸 추론",
+        "연결어 빈칸 (A)(B)",
         "default",
         "english",
         true,
-        "「다음 빈칸에 들어갈 말로 가장 적절한 것을 고르시오.」",
+        "담화 표지 (A)(B) 연결 선택",
+        "연결어빈칸",
+        "윗글의 빈칸 (A), (B)에 들어갈 알맞은 말로 연결된 것은?"
+      ),
+      opt(
+        "sentence_blank",
+        "inference",
+        "빈칸 추론 (구·절)",
+        "default",
+        "english",
+        true,
+        "빈칸에 들어갈 말",
         "빈칸추론",
-        "다음 빈칸에 들어갈 말로 가장 적절한 것을 고르시오."
-      ),
-      opt(
-        "order",
-        "inference",
-        "글의 순서",
-        "default",
-        null,
-        true,
-        "주어진 글 다음 순서",
-        "순서추론",
-        "주어진 글 다음에 이어질 글의 순서로 가장 적절한 것은?"
-      ),
-      opt(
-        "sentence_insertion",
-        "inference",
-        "문장 삽입",
-        "default",
-        null,
-        true,
-        "「주어진 문장이 들어가기에 가장 적절한 곳」",
-        "문장삽입",
-        "글의 흐름으로 보아, 주어진 문장이 들어가기에 가장 적절한 곳을 고르시오."
+        "윗글의 빈칸에 들어갈 말로 알맞은 것은?"
       ),
       opt(
         "irrelevant_sentence",
@@ -194,65 +205,131 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "default",
         null,
         true,
-        "「전체 흐름과 관계 없는 문장은?」",
+        "(A)~(E) 중 흐름상 관계없는 것",
         "무관한문장",
-        "다음 글에서 전체 흐름과 관계 없는 문장은?"
+        "윗글의 (A)~(E) 중, 흐름상 관계없는 것은?"
+      ),
+      opt(
+        "sentence_insertion",
+        "inference",
+        "문장 삽입",
+        "default",
+        null,
+        true,
+        "주어진 문장 위치",
+        "문장삽입",
+        "글의 흐름으로 보아, 주어진 문장이 들어가기에 가장 적절한 곳은?"
+      ),
+      opt(
+        "order",
+        "inference",
+        "글의 순서",
+        "default",
+        null,
+        true,
+        "이어질 글의 순서",
+        "순서추론",
+        "주어진 글 다음에 이어질 글의 순서로 가장 적절한 것은?"
       ),
     ],
   },
   {
-    category: "grammar_vocabulary",
-    label: "어법·어휘",
+    category: "main_idea",
+    label: "Section · 대의 파악",
     options: [
       opt(
-        "grammar",
-        "grammar_vocabulary",
-        "어법",
+        "topic",
+        "main_idea",
+        "주제",
         "default",
-        null,
+        "korean",
         true,
-        "「밑줄 친 부분 중 어법상 틀린 것은?」",
-        "어법추론",
-        "다음 글의 밑줄 친 부분 중, 어법상 틀린 것은?"
+        "윗글의 주제",
+        "주제추론",
+        "윗글의 주제로 알맞은 것은?"
       ),
       opt(
-        "vocabulary",
-        "grammar_vocabulary",
-        "어휘",
+        "title",
+        "main_idea",
+        "제목",
         "default",
-        null,
+        "korean",
         true,
-        "「문맥상 낱말의 쓰임이 적절하지 않은 것은?」",
-        "어휘추론",
-        "다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?"
+        "윗글의 제목",
+        "제목추론",
+        "윗글의 제목으로 알맞은 것은?"
+      ),
+      opt(
+        "summary_mcq",
+        "main_idea",
+        "요지",
+        "default",
+        "korean",
+        true,
+        "윗글의 요지",
+        "요지추론",
+        "윗글의 요지로 알맞은 것은?"
+      ),
+      opt(
+        "summary_mcq",
+        "main_idea",
+        "요약문 완성 (A)(B)",
+        "default",
+        "korean",
+        true,
+        "요약문 빈칸 선택",
+        "요약문추론",
+        "윗글을 아래와 같이 요약할 때, 빈칸 (A), (B)에 들어갈 말로 가장 적절한 것은?"
       ),
     ],
   },
   {
     category: "subjective",
-    label: "서술·주관",
+    label: "Section · 서술형",
     options: [
       opt(
         "writing",
         "subjective",
-        "영작 (주어진 단어)",
+        "조건 영작",
         "default",
         null,
         false,
-        "우리말 + 제시 단어로 영작",
+        "조건에 맞게 영작",
         "서술형영작",
-        "다음 우리말 내용을 주어진 영어 단어를 모두 사용하여 영작하시오."
+        "다음 우리말 내용을 <조건>에 알맞게 영작하시오."
       ),
       opt(
         "summary_short",
         "subjective",
-        "빈칸 단어 쓰기",
+        "요약·요지 쓰기",
         "default",
         null,
         false,
-        "빈칸에 알맞은 단어 쓰기",
-        "빈칸쓰기",
-        "다음 글의 빈칸에 들어갈 알맞은 단어를 쓰시오."
+        "요지를 조건에 맞게 쓰기",
+        "요지영작",
+        "다음 글의 요지를 주어진 <조건>에 알맞게 한 문장으로 영작하시오."
+      ),
+      opt(
+        "short_title",
+        "subjective",
+        "제목 쓰기",
+        "default",
+        null,
+        false,
+        "제목 영작",
+        "제목영작",
+        "윗글의 제목을 영어로 쓰시오."
+      ),
+      opt(
+        "short_topic",
+        "subjective",
+        "주제 쓰기",
+        "default",
+        null,
+        false,
+        "주제 영작",
+        "주제영작",
+        "윗글의 주제를 영어로 쓰시오."
       ),
     ],
   },
@@ -322,7 +399,7 @@ export function buildAingkaTag(opts: {
   return `[${prefix}${opts.aingkaCode}_변형]`;
 }
 
-/** @deprecated use option.koreanStem via findAingkaOption */
-export const KOREAN_INSTRUCTION_BY_KEY: Record<string, string> = Object.fromEntries(
-  (ALL_QUESTION_OPTIONS as AingkaOption[]).map((o) => [o.key, o.koreanStem])
-);
+export const KOREAN_INSTRUCTION_BY_KEY: Record<string, string> =
+  Object.fromEntries(
+    (ALL_QUESTION_OPTIONS as AingkaOption[]).map((o) => [o.key, o.koreanStem])
+  );

@@ -992,6 +992,27 @@
   color: #1a3a6e;
 }
 
+.qg-print-sub {
+  margin-top: 1mm;
+  font-size: 9pt;
+  color: #4a5568;
+}
+
+.qg-print-banner {
+  margin-top: 2mm;
+  font-size: 11pt;
+  font-weight: 900;
+  color: #1a3a6e;
+  letter-spacing: 0.02em;
+}
+
+.qg-print-meta {
+  font-size: 9pt;
+  font-weight: 700;
+  color: #4a5568;
+  white-space: nowrap;
+}
+
 .qg-print-tag {
   font-size: 8.5pt;
   font-weight: 700;
@@ -1033,6 +1054,12 @@
 
 .qg-print-q-num {
   color: #1a3a6e;
+}
+
+.qg-print-passage-lead {
+  margin-bottom: 4mm;
+  padding-bottom: 3mm;
+  border-bottom: 1px solid #d5e0ef;
 }
 
 .qg-print-passage {

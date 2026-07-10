@@ -251,7 +251,7 @@ export function QuestionGeneratorClient({
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="아잉카 모의고사 변형 양식(한글 발문·[태그]·지문·①~⑤)으로 생성합니다. 자동 검수 후 A4 2단 PDF·복사가 가능합니다."
+        description="서울시 학력평가·아잉카 변형 양식(「윗글의 …」 발문·영어/한글 선택지·①~⑤)으로 생성합니다. 자동 검수 후 A4 2단 PDF·복사가 가능합니다."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -388,10 +388,10 @@ export function QuestionGeneratorClient({
         <div className="flex flex-wrap gap-2">
           {[
             { id: "custom", label: "유형 직접 설정" },
+            { id: "seoul_section1", label: "서울시 Section ❶" },
+            { id: "seoul_section2", label: "서울시 Section ❷" },
+            { id: "seoul_full", label: "서울시 통합 (고난도)" },
             { id: "aingka_core", label: "아잉카 핵심 변형" },
-            { id: "aingka_main_idea", label: "대의 파악 집중" },
-            { id: "aingka_inference", label: "빈칸·배열 집중" },
-            { id: "aingka_grammar_vocab", label: "어법·어휘 집중" },
           ].map((tab) => (
             <button
               key={tab.id}

@@ -10,42 +10,67 @@ import type {
 } from "@/lib/question-generator/types";
 
 function typeRules(option: QuestionTypeOption): string {
+  const code = option.aingkaCode || "";
+  const en = option.choiceLanguage === "english";
+  const ko = option.choiceLanguage === "korean";
+
   switch (option.type) {
     case "content_false":
-      return `5 Korean choices. Ask which is NOT true. Exactly one false.`;
+      return en
+        ? `5 ENGLISH factual choices. Ask which does NOT match the passage. Exactly one false; distractors must be close but wrong.`
+        : `5 Korean choices. Ask which is NOT true. Exactly one false.`;
     case "content_true":
-      return `5 Korean choices. Ask which IS true. Exactly one true.`;
+      return en
+        ? `5 ENGLISH factual choices. Ask which DOES match the passage. Exactly one true.`
+        : `5 Korean choices. Ask which IS true. Exactly one true.`;
     case "topic":
     case "title":
-      return `5 Korean choices covering the WHOLE passage. Exactly one correct.`;
+      return `5 ${ko ? "Korean" : "English"} choices covering the WHOLE passage. Exactly one correct.`;
     case "summary_mcq":
-      if (option.aingkaCode === "요약문추론") {
+      if (code === "요약문추론") {
         return `Create a one-sentence Korean summary with blanks (A) and (B). 5 choices as word pairs like ① success …… effort. Exactly one correct.`;
       }
       return `5 Korean choices for the main point (요지). Exactly one correct.`;
     case "sentence_blank":
-      return `Blank a key phrase in passageModified with ______. 5 English choices. Exactly one correct.`;
+      if (code === "연결어빈칸") {
+        return `In passageModified put discourse blanks (A) and (B) (e.g. However / Therefore / For example / In addition). 5 ENGLISH pair choices like "However …… Therefore". Exactly one correct.`;
+      }
+      return `Blank a key phrase/clause in passageModified with ______. 5 English choices. Exactly one correct. Level: 고1 학력평가.`;
     case "order":
-      return `Lead-in + A/B/C. 5 order choices. Exactly one correct.`;
+      return `Lead-in + paragraphs A/B/C. 5 order choices (e.g. (A)-(C)-(B)). Exactly one correct.`;
     case "sentence_insertion":
       return `One sentence to insert + ①~⑤ slots in passageModified. correctAnswer 1-5.`;
     case "irrelevant_sentence":
-      return `Number sentences ①~⑤; one is irrelevant. correctAnswer 1-5.`;
+      return `Label five sentences (A)~(E) in passageModified; exactly ONE is irrelevant to the flow. correctAnswer maps to that letter's position 1-5.`;
     case "grammar":
-      return `Mark 5 underlined spots ①~⑤ in passageModified. Exactly ONE grammatically wrong.`;
+      if (code === "어법연결") {
+        return `In passageModified mark three grammar points as ⓐ, ⓑ, ⓒ with two alternatives in parentheses, e.g. (is / are). 5 ENGLISH connection choices like "is …… are …… has". Exactly one correct combination.`;
+      }
+      if (code === "어법고쳐쓰기") {
+        return `No MCQ. Student finds one grammar error and rewrites correctly. Put model rewrite in correctAnswer (string) and list requiredKeywords if useful.`;
+      }
+      return `Mark 5 underlined spots ⓐ~ⓔ (or ①~⑤) in passageModified. Exactly ONE grammatically wrong.`;
     case "vocabulary":
-      return `Mark 5 underlined words ①~⑤. Exactly ONE contextually wrong.`;
+      return `Mark 5 underlined words ⓐ~ⓔ (or ①~⑤). Exactly ONE contextually wrong.`;
     case "underlined_inference":
-      if (option.aingkaCode === "심경추론") {
+      if (code === "목적추론") {
+        return `5 ENGLISH purpose choices (To + verb / infinitive). Exactly one correct. No need to underline unless natural.`;
+      }
+      if (code === "심경추론") {
         return `5 English emotion-change choices like "worried → relieved". Exactly one correct.`;
+      }
+      if (code === "함축의미추론") {
+        return `Underline the target expression in passageModified. 5 Korean meaning choices. Exactly one correct.`;
       }
       return `Underline a key expression in passageModified. 5 Korean meaning choices.`;
     case "writing":
-      return `Korean prompt + given English words. Model answer + requiredKeywords.`;
+      return `Korean prompt + <조건> + given English words. Model answer in correctAnswer + requiredKeywords.`;
     case "summary_short":
-      return `English passage with blanks; student fills words. correctAnswer array.`;
+    case "short_title":
+    case "short_topic":
+      return `Short constructed response. Put model answer in correctAnswer (string). Include scoringGuide if helpful.`;
     default:
-      return `Follow Korean mock-exam variation style (아잉카).`;
+      return `Follow Seoul 학력평가 + Aingka mock-exam variation style.`;
   }
 }
 
@@ -162,15 +187,17 @@ export async function generateOneQuestion(opts: {
   });
 
   const raw = (await questionGeneratorChatJsonWithRetry({
-    system: `You are an expert Korean high-school English mock-exam VARIATION writer (아잉카 style).
+    system: `You are an expert Korean high-school English exam writer.
+Target level & style: 서울특별시교육청 학력평가 예상문제 (고1 3월) + 아잉카 모의 변형.
 Return ONLY valid JSON for ONE question.
 CRITICAL RULES:
 - instruction MUST be exactly: ${JSON.stringify(forcedInstruction)}
-- All stems/instructions in Korean only.
+- Stems are Korean only (often 「윗글의 …」). Never English stems.
 - Put meta tag ${JSON.stringify(metaTag)} at the start of questionText on its own line.
-- Keep original passage wording unless the type needs passageModified (grammar/vocab/blank/order/insertion/irrelevant).
-- For Korean choices: natural Korean, not translationese.
-- Match 수능/모의고사 variation quality (아잉카 변형문제).
+- Keep original passage wording unless the type needs passageModified (grammar/vocab/blank/discourse/order/insertion/irrelevant).
+- Choice language must match the type rules (English for 목적·내용불일치·연결어·어법연결 when specified).
+- Distractors must be competitive (고1 학력평가 난이도) — not trivially wrong.
+- Explanations in Korean with clear evidence from the passage.
 ${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
