@@ -1034,6 +1034,18 @@
   align-items: start;
 }
 
+.qg-print-flow {
+  column-count: 2;
+  column-gap: 5mm;
+  column-rule: 1.5px solid #d5e0ef;
+}
+
+.qg-print-flow .qg-print-q {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+}
+
 .qg-print-col-right {
   border-left: 1.5px solid #d5e0ef;
   padding-left: 4mm;
@@ -1058,8 +1070,16 @@
 
 .qg-print-passage-lead {
   margin-bottom: 4mm;
-  padding-bottom: 3mm;
-  border-bottom: 1px solid #d5e0ef;
+  padding: 2.5mm 0 3mm;
+  border-bottom: 1.5px solid #1a3a6e;
+}
+
+.qg-print-passage-mod {
+  margin: 1.5mm 0;
+  padding: 1.5mm;
+  background: #f7f9fc;
+  border-left: 2px solid #c5d4ea;
+  font-size: 8.8pt;
 }
 
 .qg-print-passage {
