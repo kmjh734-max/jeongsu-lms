@@ -544,6 +544,7 @@ export function QuestionGeneratorClient({
               );
               const open = openCats[group.category] ?? true;
               const isMainIdea = group.category === "main_idea";
+              const isDetails = group.category === "details";
               return (
                 <div
                   key={group.category}
@@ -575,107 +576,211 @@ export function QuestionGeneratorClient({
                   </button>
                   {open && (
                     <div className="border-t border-slate-100 px-3 py-2.5">
-                      {isMainIdea ? (
-                        <div className="space-y-3">
-                          <p className="text-[11px] leading-snug text-slate-500">
-                            하/상 · (영)/(한)
+                  {isMainIdea ? (
+                    <div className="space-y-3">
+                      <p className="text-[11px] leading-snug text-slate-500">
+                        하/상 · (영)/(한)
+                      </p>
+                      {(
+                        [
+                          {
+                            rowLabel: "제목",
+                            keys: [
+                              "title:en:low:제목추론",
+                              "title:en:high:제목추론",
+                              "title:ko:low:제목추론",
+                              "title:ko:high:제목추론",
+                            ],
+                          },
+                          {
+                            rowLabel: "주제",
+                            keys: [
+                              "topic:en:low:주제추론",
+                              "topic:en:high:주제추론",
+                              "topic:ko:low:주제추론",
+                              "topic:ko:high:주제추론",
+                            ],
+                          },
+                          {
+                            rowLabel: "요지",
+                            keys: [
+                              "summary_mcq:ko:low:요지추론",
+                              "summary_mcq:ko:high:요지추론",
+                            ],
+                          },
+                        ] as const
+                      ).map((row) => (
+                        <div key={row.rowLabel}>
+                          <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                            {row.rowLabel}
                           </p>
-                          {(
-                            [
-                              {
-                                rowLabel: "제목",
-                                keys: [
-                                  "title:en:low:제목추론",
-                                  "title:en:high:제목추론",
-                                  "title:ko:low:제목추론",
-                                  "title:ko:high:제목추론",
-                                ],
-                              },
-                              {
-                                rowLabel: "주제",
-                                keys: [
-                                  "topic:en:low:주제추론",
-                                  "topic:en:high:주제추론",
-                                  "topic:ko:low:주제추론",
-                                  "topic:ko:high:주제추론",
-                                ],
-                              },
-                              {
-                                rowLabel: "요지",
-                                keys: [
-                                  "summary_mcq:ko:low:요지추론",
-                                  "summary_mcq:ko:high:요지추론",
-                                ],
-                              },
-                            ] as const
-                          ).map((row) => (
-                            <div key={row.rowLabel}>
-                              <p className="mb-1.5 text-xs font-semibold text-slate-700">
-                                {row.rowLabel}
-                              </p>
-                              <div className="grid grid-cols-2 gap-1.5">
-                                {row.keys.map((key) => {
-                                  const opt = group.options.find(
-                                    (o) => o.key === key
-                                  );
-                                  if (!opt) return null;
-                                  const n = counts[key] ?? 0;
-                                  return (
-                                    <div
-                                      key={key}
-                                      className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {row.keys.map((key) => {
+                              const opt = group.options.find(
+                                (o) => o.key === key
+                              );
+                              if (!opt) return null;
+                              const n = counts[key] ?? 0;
+                              return (
+                                <div
+                                  key={key}
+                                  className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                                >
+                                  <span className="block truncate text-[11px] font-medium text-slate-800">
+                                    {opt.label}
+                                  </span>
+                                  <div className="mt-1 flex items-center justify-between gap-1">
+                                    <button
+                                      type="button"
+                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      onClick={() => setCount(key, n - 1)}
                                     >
-                                      <span className="block truncate text-[11px] font-medium text-slate-800">
-                                        {opt.label}
-                                      </span>
-                                      <div className="mt-1 flex items-center justify-between gap-1">
-                                        <button
-                                          type="button"
-                                          className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
-                                          onClick={() => setCount(key, n - 1)}
-                                        >
-                                          −
-                                        </button>
-                                        <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
-                                          {n}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
-                                          onClick={() => setCount(key, n + 1)}
-                                        >
-                                          +
-                                        </button>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          ))}
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            className="w-full text-xs"
-                            onClick={() =>
-                              addCounts([
-                                ["title:en:low:제목추론", 1],
-                                ["title:en:high:제목추론", 1],
-                                ["title:ko:low:제목추론", 1],
-                                ["title:ko:high:제목추론", 1],
-                                ["topic:en:low:주제추론", 1],
-                                ["topic:en:high:주제추론", 1],
-                                ["topic:ko:low:주제추론", 1],
-                                ["topic:ko:high:주제추론", 1],
-                                ["summary_mcq:ko:low:요지추론", 1],
-                                ["summary_mcq:ko:high:요지추론", 1],
-                              ])
-                            }
-                          >
-                            모두 넣기 (+1)
-                          </Button>
+                                      −
+                                    </button>
+                                    <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                      {n}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      onClick={() => setCount(key, n + 1)}
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      ) : (
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full text-xs"
+                        onClick={() =>
+                          addCounts([
+                            ["title:en:low:제목추론", 1],
+                            ["title:en:high:제목추론", 1],
+                            ["title:ko:low:제목추론", 1],
+                            ["title:ko:high:제목추론", 1],
+                            ["topic:en:low:주제추론", 1],
+                            ["topic:en:high:주제추론", 1],
+                            ["topic:ko:low:주제추론", 1],
+                            ["topic:ko:high:주제추론", 1],
+                            ["summary_mcq:ko:low:요지추론", 1],
+                            ["summary_mcq:ko:high:요지추론", 1],
+                          ])
+                        }
+                      >
+                        모두 넣기 (+1)
+                      </Button>
+                    </div>
+                  ) : isDetails ? (
+                    <div className="space-y-3">
+                      <p className="text-[11px] leading-snug text-slate-500">
+                        하/상 · (영)/(한) · 효자·학력평가형 일치/불일치
+                      </p>
+                      {(
+                        [
+                          {
+                            rowLabel: "일치",
+                            keys: [
+                              "content_true:en:low:내용일치",
+                              "content_true:en:high:내용일치",
+                              "content_true:ko:low:내용일치",
+                              "content_true:ko:high:내용일치",
+                            ],
+                          },
+                          {
+                            rowLabel: "불일치",
+                            keys: [
+                              "content_false:en:low:내용불일치",
+                              "content_false:en:high:내용불일치",
+                              "content_false:ko:low:내용불일치",
+                              "content_false:ko:high:내용불일치",
+                            ],
+                          },
+                          {
+                            rowLabel: "일치개수",
+                            keys: [
+                              "content_count:en:low:일치개수",
+                              "content_count:en:high:일치개수",
+                              "content_count:ko:low:일치개수",
+                              "content_count:ko:high:일치개수",
+                            ],
+                          },
+                        ] as const
+                      ).map((row) => (
+                        <div key={row.rowLabel}>
+                          <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                            {row.rowLabel} 세트 수
+                          </p>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {row.keys.map((key) => {
+                              const opt = group.options.find(
+                                (o) => o.key === key
+                              );
+                              if (!opt) return null;
+                              const n = counts[key] ?? 0;
+                              return (
+                                <div
+                                  key={key}
+                                  className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                                >
+                                  <span className="block truncate text-[11px] font-medium text-slate-800">
+                                    {opt.label}
+                                  </span>
+                                  <div className="mt-1 flex items-center justify-between gap-1">
+                                    <button
+                                      type="button"
+                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      onClick={() => setCount(key, n - 1)}
+                                    >
+                                      −
+                                    </button>
+                                    <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                      {n}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      onClick={() => setCount(key, n + 1)}
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="w-full text-xs"
+                        onClick={() =>
+                          addCounts([
+                            ["content_true:en:low:내용일치", 1],
+                            ["content_true:en:high:내용일치", 1],
+                            ["content_true:ko:low:내용일치", 1],
+                            ["content_true:ko:high:내용일치", 1],
+                            ["content_false:en:low:내용불일치", 1],
+                            ["content_false:en:high:내용불일치", 1],
+                            ["content_false:ko:low:내용불일치", 1],
+                            ["content_false:ko:high:내용불일치", 1],
+                            ["content_count:en:low:일치개수", 1],
+                            ["content_count:en:high:일치개수", 1],
+                            ["content_count:ko:low:일치개수", 1],
+                            ["content_count:ko:high:일치개수", 1],
+                          ])
+                        }
+                      >
+                        모두 넣기 (+1)
+                      </Button>
+                    </div>
+                  ) : (
                         <div className="space-y-1.5">
                           {group.options.map((opt) => {
                             const n = counts[opt.key] ?? 0;

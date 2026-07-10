@@ -102,11 +102,149 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
   },
   {
     category: "details",
-    label: "Section · 세부·목적·심경",
+    label: "Section · 세부 정보",
+    options: [
+      opt(
+        "content_true",
+        "details",
+        "(영) 하",
+        "low",
+        "english",
+        true,
+        "내용 일치 · 영어 선택지 · 난이도 하",
+        "내용일치",
+        "윗글의 내용과 일치하는 것은?"
+      ),
+      opt(
+        "content_true",
+        "details",
+        "(영) 상",
+        "high",
+        "english",
+        true,
+        "내용 일치 · 영어 선택지 · 난이도 상",
+        "내용일치",
+        "윗글의 내용과 일치하는 것은?"
+      ),
+      opt(
+        "content_true",
+        "details",
+        "(한) 하",
+        "low",
+        "korean",
+        true,
+        "내용 일치 · 한글 선택지 · 난이도 하",
+        "내용일치",
+        "윗글의 내용과 일치하는 것은?"
+      ),
+      opt(
+        "content_true",
+        "details",
+        "(한) 상",
+        "high",
+        "korean",
+        true,
+        "내용 일치 · 한글 선택지 · 난이도 상",
+        "내용일치",
+        "윗글의 내용과 일치하는 것은?"
+      ),
+      opt(
+        "content_false",
+        "details",
+        "(영) 하",
+        "low",
+        "english",
+        true,
+        "내용 불일치 · 영어 선택지 · 난이도 하",
+        "내용불일치",
+        "윗글의 내용과 일치하지 않는 것은?"
+      ),
+      opt(
+        "content_false",
+        "details",
+        "(영) 상",
+        "high",
+        "english",
+        true,
+        "내용 불일치 · 영어 선택지 · 난이도 상",
+        "내용불일치",
+        "윗글의 내용과 일치하지 않는 것은?"
+      ),
+      opt(
+        "content_false",
+        "details",
+        "(한) 하",
+        "low",
+        "korean",
+        true,
+        "내용 불일치 · 한글 선택지 · 난이도 하",
+        "내용불일치",
+        "윗글의 내용과 일치하지 않는 것은?"
+      ),
+      opt(
+        "content_false",
+        "details",
+        "(한) 상",
+        "high",
+        "korean",
+        true,
+        "내용 불일치 · 한글 선택지 · 난이도 상",
+        "내용불일치",
+        "윗글의 내용과 일치하지 않는 것은?"
+      ),
+      opt(
+        "content_count",
+        "details",
+        "(영) 하",
+        "low",
+        "english",
+        true,
+        "일치 개수 · 영어 진술 5개 · 난이도 하",
+        "일치개수",
+        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+      ),
+      opt(
+        "content_count",
+        "details",
+        "(영) 상",
+        "high",
+        "english",
+        true,
+        "일치 개수 · 영어 진술 5개 · 난이도 상",
+        "일치개수",
+        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+      ),
+      opt(
+        "content_count",
+        "details",
+        "(한) 하",
+        "low",
+        "korean",
+        true,
+        "일치 개수 · 한글 진술 5개 · 난이도 하",
+        "일치개수",
+        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+      ),
+      opt(
+        "content_count",
+        "details",
+        "(한) 상",
+        "high",
+        "korean",
+        true,
+        "일치 개수 · 한글 진술 5개 · 난이도 상",
+        "일치개수",
+        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+      ),
+    ],
+  },
+  {
+    category: "inference",
+    label: "Section · 빈칸·흐름·순서",
     options: [
       opt(
         "underlined_inference",
-        "details",
+        "inference",
         "목적 추론",
         "default",
         "english",
@@ -117,7 +255,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
       ),
       opt(
         "underlined_inference",
-        "details",
+        "inference",
         "심경 변화",
         "default",
         "english",
@@ -127,41 +265,8 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "윗글에 드러난 심경 변화로 알맞은 것은?"
       ),
       opt(
-        "content_false",
-        "details",
-        "내용 불일치 (영어 선택지)",
-        "default",
-        "english",
-        true,
-        "「윗글의 내용과 일치하지 않는 것은?」",
-        "내용불일치",
-        "윗글의 내용과 일치하지 않는 것은?"
-      ),
-      opt(
-        "content_true",
-        "details",
-        "내용 일치 (영어 선택지)",
-        "default",
-        "english",
-        true,
-        "「윗글의 내용과 일치하는 것은?」",
-        "내용일치",
-        "윗글의 내용과 일치하는 것은?"
-      ),
-      opt(
-        "content_false",
-        "details",
-        "내용 불일치 (한글 선택지)",
-        "default",
-        "korean",
-        true,
-        "한글 선택지 내용 불일치",
-        "내용불일치한글",
-        "다음 글의 내용과 일치하지 않는 것은?"
-      ),
-      opt(
         "underlined_inference",
-        "details",
+        "inference",
         "함축 의미",
         "default",
         "korean",
@@ -170,12 +275,6 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "함축의미추론",
         "윗글의 밑줄 친 부분이 의미하는 바로 알맞은 것은?"
       ),
-    ],
-  },
-  {
-    category: "inference",
-    label: "Section · 빈칸·흐름·순서",
-    options: [
       opt(
         "sentence_blank",
         "inference",

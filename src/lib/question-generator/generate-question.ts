@@ -14,13 +14,43 @@ function typeRules(option: QuestionTypeOption): string {
 
   switch (option.type) {
     case "content_false":
-      return en
-        ? `5 ENGLISH factual choices. Ask which does NOT match the passage. Exactly one false; distractors must be close but wrong.`
-        : `5 Korean choices. Ask which is NOT true. Exactly one false.`;
+      return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
+Ask which does NOT match. Exactly ONE false; the other four must be true.
+Style like Korean HS mock exams (효자/학력평가 내용불일치).
+Difficulty: ${
+        option.difficulty === "low"
+          ? "LOW (하) — clearer falsehood, weaker distractors"
+          : option.difficulty === "high"
+            ? "HIGH (상) — subtle falsehood, close distractors, longer choices OK"
+            : "standard"
+      }. questionText empty.`;
     case "content_true":
-      return en
-        ? `5 ENGLISH factual choices. Ask which DOES match the passage. Exactly one true.`
-        : `5 Korean choices. Ask which IS true. Exactly one true.`;
+      return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
+Ask which DOES match. Exactly ONE true; the other four must be false.
+Style like Korean HS mock exams (효자/학력평가 내용일치).
+Difficulty: ${
+        option.difficulty === "low"
+          ? "LOW (하) — clearer correct fact, weaker distractors"
+          : option.difficulty === "high"
+            ? "HIGH (상) — nuanced correct answer, competitive distractors"
+            : "standard"
+      }. questionText empty.`;
+    case "content_count":
+      return `일치개수 type (count how many statements match the passage).
+- Put exactly 5 statements in questionText, labeled (A)~(E), language: ${
+        en ? "ENGLISH" : "Korean"
+      }.
+- Some statements true, some false (mix 1~4 true).
+- choices MUST be exactly: "1개","2개","3개","4개","5개" (numbers 1-5).
+- correctAnswer = how many of (A)~(E) are true (integer 1-5).
+- Do NOT change the passage; omit passageModified.
+Difficulty: ${
+        option.difficulty === "low"
+          ? "LOW (하) — clearer true/false statements"
+          : option.difficulty === "high"
+            ? "HIGH (상) — subtler true/false distinctions"
+            : "standard"
+      }.`;
     case "topic":
       return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct. Difficulty: ${
         option.difficulty === "low"
@@ -100,6 +130,7 @@ const NO_SHUFFLE_TYPES = new Set([
   "vocabulary",
   "irrelevant_sentence",
   "sentence_insertion",
+  "content_count",
 ]);
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -242,6 +273,12 @@ export function assertBasicQuestionShape(
       return "객관식 선택지가 5개 미만입니다.";
     }
   }
+  if (option.type === "content_count") {
+    const qt = (q.questionText || "").trim();
+    if (!qt || !/\(A\)/i.test(qt) || !/\(E\)/i.test(qt)) {
+      return "일치개수 문항은 (A)~(E) 진술이 필요합니다.";
+    }
+  }
   return null;
 }
 
@@ -275,10 +312,12 @@ export async function generateOneQuestion(opts: {
     "irrelevant_sentence",
   ].includes(option.type);
 
+  const needsQuestionText = option.type === "content_count";
+
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: `Korean HS English exam writer. ONE question JSON only. Fast & concise.
 - instruction EXACTLY: ${JSON.stringify(forcedInstruction)}
-- No meta tags. questionText usually "".
+- No meta tags. ${needsQuestionText ? "Fill questionText with (A)~(E) statements." : 'questionText usually "".'}
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
 - ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
 - explanation: 1-2 Korean sentences.
@@ -295,6 +334,12 @@ ${typeRules(option)}`,
         correctAnswer: "integer 1-5 (vary; not always 1)",
         explanation: "ko",
         ...(needsModified ? { passageModified: "string" } : {}),
+        ...(needsQuestionText
+          ? {
+              questionText:
+                "(A) ...\\n(B) ...\\n(C) ...\\n(D) ...\\n(E) ...",
+            }
+          : {}),
       },
     }),
     temperature: 0.25,
