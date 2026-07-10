@@ -60,9 +60,10 @@ export async function POST(req: Request) {
       const ids = body.copyFromIds.filter(
         (id) => typeof id === "string" && id.length > 0
       );
+      // ── 선택 복사 (생성은 시작하지 않음) ──
       if (ids.length === 0) return jsonError("복사할 항목을 선택해 주세요.");
       if (ids.length > 5) {
-        return jsonError("한 번에 최대 5개까지 복사·재생성할 수 있습니다.");
+        return jsonError("한 번에 최대 5개까지 복사할 수 있습니다.");
       }
 
       const supabase = await createClient();
@@ -85,9 +86,9 @@ export async function POST(req: Request) {
       for (const src of sources) {
         const raw = (src.request_config ?? {}) as GenerationRequestConfig;
         const baseTitle = (raw.title || "무제").trim() || "무제";
-        const title = /재생성\s*$/.test(baseTitle)
+        const title = /·\s*복사\s*$/.test(baseTitle)
           ? baseTitle
-          : `${baseTitle} · 재생성`;
+          : `${baseTitle} · 복사`;
 
         const config: GenerationRequestConfig = {
           title,

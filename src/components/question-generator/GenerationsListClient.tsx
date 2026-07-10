@@ -84,6 +84,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [copying, setCopying] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -128,18 +129,18 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
     setSelected(new Set(jobs.map((j) => j.id)));
   }
 
-  async function copyAndRegenerate(ids: string[]) {
+  async function copySelected(ids: string[]) {
     if (ids.length === 0) {
       setError("복사할 항목을 선택해 주세요.");
       return;
     }
     if (ids.length > 5) {
-      setError("한 번에 최대 5개까지 복사·재생성할 수 있습니다.");
+      setError("한 번에 최대 5개까지 복사할 수 있습니다.");
       return;
     }
     if (
       !window.confirm(
-        `선택한 ${ids.length}개 자료를 복사해 같은 설정으로 다시 생성할까요?`
+        `선택한 ${ids.length}개 자료를 복사할까요? (생성은 시작하지 않습니다)`
       )
     ) {
       return;
@@ -155,30 +156,55 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
       });
       const data = await res.json();
       if (!data.ok) {
-        setError(data.message ?? "복사·재생성에 실패했습니다.");
+        setError(data.message ?? "복사에 실패했습니다.");
         return;
       }
-      const newJobs = (data.jobs ?? []) as Array<{ jobId: string }>;
-      for (const j of newJobs) {
-        void fetch(`/api/question-generator/jobs/${j.jobId}`, {
+      setMessage(
+        `${data.copied}개 자료를 복사했습니다. 필요하면 「재생성」을 눌러 주세요.`
+      );
+      await load();
+    } catch {
+      setError("복사 요청에 실패했습니다.");
+    } finally {
+      setCopying(false);
+    }
+  }
+
+  async function regenerateSelected(ids: string[]) {
+    if (ids.length === 0) {
+      setError("재생성할 항목을 선택해 주세요.");
+      return;
+    }
+    if (ids.length > 5) {
+      setError("한 번에 최대 5개까지 재생성할 수 있습니다.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `선택한 ${ids.length}개 자료를 다시 생성할까요? 기존 문항은 지워지고 새로 만들어집니다.`
+      )
+    ) {
+      return;
+    }
+    setRegenerating(true);
+    setError(null);
+    setMessage(null);
+    try {
+      for (const id of ids) {
+        void fetch(`/api/question-generator/jobs/${id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "process" }),
+          body: JSON.stringify({ action: "retry" }),
         });
       }
       setMessage(
-        `${data.copied}개 자료를 복사해 재생성 중입니다. 목록에서 진행 상태를 확인하세요.`
+        `${ids.length}개 자료 재생성을 시작했습니다. 목록에서 진행 상태를 확인하세요.`
       );
-      await load();
-      if (newJobs[0]?.jobId) {
-        window.setTimeout(() => {
-          window.location.href = `${basePath}/generations/${newJobs[0]!.jobId}`;
-        }, 400);
-      }
+      window.setTimeout(() => void load(), 1000);
     } catch {
-      setError("복사·재생성 요청에 실패했습니다.");
+      setError("재생성 요청에 실패했습니다.");
     } finally {
-      setCopying(false);
+      setRegenerating(false);
     }
   }
 
@@ -232,15 +258,29 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
             </Link>
             <button
               type="button"
-              disabled={copying || deleting || selectedCount === 0}
-              onClick={() => void copyAndRegenerate(Array.from(selected))}
+              disabled={
+                copying || regenerating || deleting || selectedCount === 0
+              }
+              onClick={() => void copySelected(Array.from(selected))}
               className="rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-800 hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {copying ? "복사 중…" : "선택 복사·재생성"}
+              {copying ? "복사 중…" : "선택 복사"}
             </button>
             <button
               type="button"
-              disabled={deleting || copying || selectedCount === 0}
+              disabled={
+                copying || regenerating || deleting || selectedCount === 0
+              }
+              onClick={() => void regenerateSelected(Array.from(selected))}
+              className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {regenerating ? "재생성 중…" : "선택 재생성"}
+            </button>
+            <button
+              type="button"
+              disabled={
+                deleting || copying || regenerating || selectedCount === 0
+              }
               onClick={() => void deleteSelected()}
               className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -371,11 +411,26 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                         </Link>
                         <button
                           type="button"
-                          disabled={copying || deleting}
-                          onClick={() => void copyAndRegenerate([j.id])}
+                          disabled={copying || regenerating || deleting}
+                          onClick={() => void copySelected([j.id])}
                           className="text-sm text-slate-600 hover:underline disabled:opacity-40"
                         >
-                          복사·재생성
+                          복사
+                        </button>
+                        <button
+                          type="button"
+                          disabled={
+                            copying ||
+                            regenerating ||
+                            deleting ||
+                            ["analyzing", "generating", "validating"].includes(
+                              j.status
+                            )
+                          }
+                          onClick={() => void regenerateSelected([j.id])}
+                          className="text-sm text-amber-800 hover:underline disabled:opacity-40"
+                        >
+                          재생성
                         </button>
                         {(j.status === "completed" ||
                           j.status === "partially_completed") &&
