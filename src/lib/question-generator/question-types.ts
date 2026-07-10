@@ -198,10 +198,10 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "(영) 하",
         "low",
         "english",
-        true,
-        "일치 개수 · 영어 진술 5개 · 난이도 하",
+        false,
+        "<보기> 영어 진술 · 불일치 개수 기입 · 난이도 하",
         "일치개수",
-        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+        "다음 글을 읽고 <보기> 중 글의 내용과 일치하지 않는 것의 개수를 적으시오."
       ),
       opt(
         "content_count",
@@ -209,10 +209,10 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "(영) 상",
         "high",
         "english",
-        true,
-        "일치 개수 · 영어 진술 5개 · 난이도 상",
+        false,
+        "<보기> 영어 진술 · 불일치 개수 기입 · 난이도 상",
         "일치개수",
-        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+        "다음 글을 읽고 <보기> 중 글의 내용과 일치하지 않는 것의 개수를 적으시오."
       ),
       opt(
         "content_count",
@@ -220,10 +220,10 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "(한) 하",
         "low",
         "korean",
-        true,
-        "일치 개수 · 한글 진술 5개 · 난이도 하",
+        false,
+        "<보기> 한글 진술 · 불일치 개수 기입 · 난이도 하",
         "일치개수",
-        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+        "다음 글을 읽고 <보기> 중 글의 내용과 일치하지 않는 것의 개수를 적으시오."
       ),
       opt(
         "content_count",
@@ -231,10 +231,10 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "(한) 상",
         "high",
         "korean",
-        true,
-        "일치 개수 · 한글 진술 5개 · 난이도 상",
+        false,
+        "<보기> 한글 진술 · 불일치 개수 기입 · 난이도 상",
         "일치개수",
-        "윗글의 내용과 일치하는 것은 모두 몇 개인가?"
+        "다음 글을 읽고 <보기> 중 글의 내용과 일치하지 않는 것의 개수를 적으시오."
       ),
     ],
   },

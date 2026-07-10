@@ -36,19 +36,22 @@ Difficulty: ${
             : "standard"
       }. questionText empty.`;
     case "content_count":
-      return `일치개수 type (count how many statements match the passage).
-- Put exactly 5 statements in questionText, labeled (A)~(E), language: ${
-        en ? "ENGLISH" : "Korean"
+      return `일치개수 SHORT-ANSWER (NOT MCQ). Format like Korean school worksheets.
+- instruction is fixed (count how many <보기> items do NOT match the passage).
+- questionText = <보기> statements only, labeled (1) (2) (3) ... each on its own line.
+- Language of statements: ${en ? "ENGLISH" : "Korean"}.
+- Statement count: ${
+        option.difficulty === "high" ? "exactly 8" : "exactly 6"
       }.
-- Some statements true, some false (mix 1~4 true).
-- choices MUST be exactly: "1개","2개","3개","4개","5개" (numbers 1-5).
-- correctAnswer = how many of (A)~(E) are true (integer 1-5).
+- Mix true and false statements; correctAnswer = the COUNT of FALSE (non-matching) statements as an integer string (e.g. "3").
+- choices: omit or empty array. No ①~⑤ options.
 - Do NOT change the passage; omit passageModified.
+- explanation: list which numbers are false and why (Korean, brief).
 Difficulty: ${
         option.difficulty === "low"
-          ? "LOW (하) — clearer true/false statements"
+          ? "LOW (하) — clearer true/false"
           : option.difficulty === "high"
-            ? "HIGH (상) — subtler true/false distinctions"
+            ? "HIGH (상) — subtler distinctions"
             : "standard"
       }.`;
     case "topic":
@@ -216,12 +219,24 @@ function normalizePayload(
         .filter((c) => c.text.trim())
     : undefined;
 
+  // 일치개수는 기입형 — 선택지 제거
+  if (option.type === "content_count") {
+    choices = undefined;
+  }
+
   let correctAnswer: string | number | number[] = raw.correctAnswer as
     | string
     | number
     | number[];
   let explanation = String(raw.explanation ?? "");
 
+  if (option.type === "content_count") {
+    const n =
+      typeof correctAnswer === "number"
+        ? correctAnswer
+        : parseInt(String(correctAnswer ?? "").replace(/[^\d]/g, ""), 10);
+    correctAnswer = Number.isFinite(n) ? String(n) : "0";
+  } else {
   const parsed = parseChoiceAnswer(correctAnswer);
   if (
     option.isObjective &&
@@ -236,6 +251,7 @@ function normalizePayload(
     explanation = shuffled.explanation;
   } else if (correctAnswer == null) {
     correctAnswer = parsed ?? 1;
+  }
   }
 
   return {
@@ -275,8 +291,16 @@ export function assertBasicQuestionShape(
   }
   if (option.type === "content_count") {
     const qt = (q.questionText || "").trim();
-    if (!qt || !/\(A\)/i.test(qt) || !/\(E\)/i.test(qt)) {
-      return "일치개수 문항은 (A)~(E) 진술이 필요합니다.";
+    if (!qt || !/\(1\)/.test(qt)) {
+      return "일치개수 문항은 <보기> (1)(2)… 진술이 필요합니다.";
+    }
+    if (q.choices && q.choices.length > 0) {
+      // 객관식 선택지는 쓰지 않음
+      q.choices = undefined;
+    }
+    const ans = String(q.correctAnswer ?? "").trim();
+    if (!/^\d+$/.test(ans)) {
+      return "일치개수 정답은 숫자(개수)여야 합니다.";
     }
   }
   return null;
@@ -337,7 +361,9 @@ ${typeRules(option)}`,
         ...(needsQuestionText
           ? {
               questionText:
-                "(A) ...\\n(B) ...\\n(C) ...\\n(D) ...\\n(E) ...",
+                "(1) ...\\n(2) ...\\n(3) ...\\n(4) ...\\n(5) ...\\n(6) ...",
+              correctAnswer: "integer count of FALSE statements",
+              choices: [],
             }
           : {}),
       },

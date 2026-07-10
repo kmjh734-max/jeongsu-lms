@@ -102,6 +102,15 @@ function buildClipboardText(
   return lines.join("\n");
 }
 
+function parseBogiLines(text: string): string[] {
+  const cleaned = cleanQuestionText(text).trim();
+  if (!cleaned) return [];
+  // (1) ... (2) ... 또는 줄바꿈 단위
+  const parts = cleaned.split(/(?=\(\d+\))/).map((s) => s.trim()).filter(Boolean);
+  if (parts.length >= 2) return parts;
+  return cleaned.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+}
+
 function QuestionBlock({
   q,
   index,
@@ -109,8 +118,41 @@ function QuestionBlock({
   q: QuestionRow;
   index: number;
 }) {
+  const isCount = q.question_type === "content_count";
   const extra = cleanQuestionText(q.question_text);
   const paras = reflowPassageForPrint(questionPassage(q));
+  const bogiLines = isCount ? parseBogiLines(q.question_text) : [];
+
+  if (isCount) {
+    return (
+      <section className="qg-print-card qg-print-count-card">
+        <p className="qg-print-q-head">
+          <span className="qg-print-q-num qg-print-count-num">
+            {padNo(index)}
+          </span>{" "}
+          {q.instruction}
+        </p>
+        {paras.length > 0 && (
+          <div className="qg-print-count-box qg-print-passage-block">
+            {paras.map((p, pi) => (
+              <p key={pi} className="qg-print-passage-p">
+                {p}
+              </p>
+            ))}
+          </div>
+        )}
+        <p className="qg-print-bogi-label">&lt;보기&gt;</p>
+        <div className="qg-print-count-box qg-print-bogi-box">
+          {bogiLines.map((line, i) => (
+            <p key={i} className="qg-print-bogi-line">
+              {line}
+            </p>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="qg-print-card">
       <p className="qg-print-q-head">

@@ -1156,6 +1156,45 @@
   font-weight: 700;
 }
 
+/* 일치개수: 지문 박스 + <보기> 박스 */
+.qg-print-count-num {
+  color: #2f7a3e;
+}
+
+.qg-print-count-box {
+  border: 1.2px solid #3a8f4a;
+  padding: 2mm 2.2mm;
+  margin: 1.5mm 0 2mm;
+  background: #fff;
+}
+
+.qg-print-bogi-label {
+  text-align: center;
+  font-size: 9.5pt;
+  font-weight: 900;
+  color: #2f7a3e;
+  margin: 1.5mm 0 1mm;
+  letter-spacing: 0.02em;
+}
+
+.qg-print-bogi-box {
+  margin-top: 0;
+}
+
+.qg-print-bogi-line {
+  margin: 0 0 1mm;
+  font-size: 8.4pt;
+  line-height: 1.4;
+  color: #1a1a1a;
+  text-align: left;
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.qg-print-bogi-line:last-child {
+  margin-bottom: 0;
+}
+
 .qg-print-page-break {
   break-after: page;
   page-break-after: always;
