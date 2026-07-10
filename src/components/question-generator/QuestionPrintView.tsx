@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import {
+  paginateExamQuestions,
+  type ExamPageLayout,
+} from "@/lib/listening/paginate-exam-questions";
 import {
   cleanQuestionText,
   normalizePassage,
@@ -23,6 +27,11 @@ type QuestionRow = {
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
+/** A4 본문 열 폭(mm) — 여백·중간 구분선 반영 */
+const COL_WIDTH_MM = 88;
+const QUESTION_GAP_PX = 14;
+const COLUMN_SAFETY_PX = 12;
+
 function formatAnswer(a: unknown): string {
   if (Array.isArray(a)) return a.join(" / ");
   if (typeof a === "number" && a >= 1 && a <= 5) {
@@ -40,7 +49,6 @@ function padNo(n: number): string {
   return String(n).padStart(2, "0");
 }
 
-/** 문항용 지문: 변형이 있으면 변형, 없으면 원문 */
 function questionPassage(q: QuestionRow): string {
   const mod = (q.passage_modified || "").trim();
   const orig = (q.passage_original || "").trim();
@@ -62,9 +70,7 @@ function buildClipboardText(
       "",
     ];
     questions.forEach((q, i) => {
-      lines.push(
-        `${padNo(i + 1)}  ${formatAnswer(q.correct_answer)}`
-      );
+      lines.push(`${padNo(i + 1)}  ${formatAnswer(q.correct_answer)}`);
       lines.push(q.explanation);
       lines.push("");
     });
@@ -96,6 +102,46 @@ function buildClipboardText(
   return lines.join("\n");
 }
 
+function QuestionBlock({
+  q,
+  index,
+}: {
+  q: QuestionRow;
+  index: number;
+}) {
+  const extra = cleanQuestionText(q.question_text);
+  const paras = reflowPassageForPrint(questionPassage(q));
+  return (
+    <section className="qg-print-card">
+      <p className="qg-print-q-head">
+        <span className="qg-print-q-num">{padNo(index)}</span> {q.instruction}
+      </p>
+      {paras.length > 0 && (
+        <div className="qg-print-passage qg-print-passage-block">
+          {paras.map((p, pi) => (
+            <p key={pi} className="qg-print-passage-p">
+              {p}
+            </p>
+          ))}
+        </div>
+      )}
+      {extra ? <p className="qg-print-extra">{extra}</p> : null}
+      {q.choices && q.choices.length > 0 && (
+        <ul className="qg-print-choices">
+          {q.choices.map((c) => (
+            <li key={c.number}>
+              <span className="qg-print-choice-mark">
+                {CIRCLED[c.number - 1] ?? `${c.number}.`}
+              </span>
+              <span>{c.text}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export function QuestionPrintView({
   jobId,
   backHref,
@@ -113,6 +159,9 @@ export function QuestionPrintView({
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pages, setPages] = useState<ExamPageLayout[]>([]);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const printedRef = useRef(false);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/question-generator/jobs/${jobId}`);
@@ -154,8 +203,51 @@ export function QuestionPrintView({
   const bannerNo = extractBannerNo(sourceDetail);
   const sheetTitle = mode === "answers" ? `${title} · 해설지` : title;
 
+  /** 측정 → A4 2단 페이지 분할 */
   useEffect(() => {
-    if (!autoPrint || questions.length === 0) return;
+    if (mode !== "exam" || questions.length === 0) {
+      setPages([]);
+      return;
+    }
+
+    const run = () => {
+      const root = measureRef.current;
+      if (!root) return;
+      const heights = questions.map((q) => {
+        const el = root.querySelector<HTMLElement>(`[data-measure-q="${q.id}"]`);
+        return el ? Math.ceil(el.getBoundingClientRect().height) : 120;
+      });
+
+      // 1페이지: 헤더 공간 제외, 이후 페이지: 본문 전체
+      const mmToPx = (mm: number) => (mm * 96) / 25.4;
+      const firstColMax = mmToPx(245);
+      const nextColMax = mmToPx(265);
+
+      setPages(
+        paginateExamQuestions(heights, {
+          firstColumnMaxPx: firstColMax,
+          nextColumnMaxPx: nextColMax,
+          questionGapPx: QUESTION_GAP_PX,
+          columnSafetyPx: COLUMN_SAFETY_PX,
+        })
+      );
+    };
+
+    const t = window.setTimeout(run, 50);
+    void document.fonts?.ready?.then(() => {
+      window.setTimeout(run, 30);
+    });
+    return () => window.clearTimeout(t);
+  }, [questions, mode]);
+
+  useEffect(() => {
+    if (!autoPrint || printedRef.current) return;
+    if (mode === "exam" && (pages.length === 0 || questions.length === 0)) {
+      return;
+    }
+    if (mode === "answers" && questions.length === 0) return;
+
+    printedRef.current = true;
     const t = window.setTimeout(() => {
       const prev = document.title;
       document.title = sheetTitle;
@@ -163,9 +255,9 @@ export function QuestionPrintView({
       window.setTimeout(() => {
         document.title = prev;
       }, 500);
-    }, 700);
+    }, 900);
     return () => window.clearTimeout(t);
-  }, [autoPrint, questions.length, sheetTitle]);
+  }, [autoPrint, mode, pages.length, questions.length, sheetTitle]);
 
   function runPrint() {
     const prev = document.title;
@@ -184,14 +276,55 @@ export function QuestionPrintView({
     window.setTimeout(() => setCopied(false), 2000);
   }
 
+  function renderHeader(compact: boolean) {
+    return (
+      <header
+        className={`qg-print-header ${compact ? "qg-print-header-compact" : ""}`}
+      >
+        <div>
+          <p className="qg-print-kicker">
+            {grade
+              ? `${grade} ${isMainIdeaSheet ? "주제·제목" : "변형문제"}`
+              : isMainIdeaSheet
+                ? "주제·제목"
+                : "변형문제"}
+          </p>
+          {!compact && <h1 className="qg-print-title">{title}</h1>}
+          {!compact && sourceDetail && (
+            <p className="qg-print-sub">{sourceDetail}</p>
+          )}
+          {bannerNo && !compact && (
+            <p className="qg-print-banner">┃3월 {bannerNo}번┃</p>
+          )}
+          {compact && (
+            <p className="qg-print-title qg-print-title-sm">{title}</p>
+          )}
+        </div>
+        <p className="qg-print-meta">{questions.length}문항</p>
+      </header>
+    );
+  }
+
   if (error) return <p className="p-6 text-red-600">{error}</p>;
+
+  const examPages =
+    pages.length > 0
+      ? pages
+      : questions.length > 0
+        ? [
+            {
+              left: questions.map((_, i) => i),
+              right: [] as number[],
+            },
+          ]
+        : [];
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
       <div className="no-print sticky top-0 z-10 border-b bg-white px-4 py-3 shadow-sm">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3">
           <Link href={backHref} className="text-sm text-slate-700 hover:underline">
-            ← 결과로
+            ← 뒤로
           </Link>
           <div className="flex flex-wrap items-center gap-2">
             <Button type="button" variant="secondary" onClick={() => void copyAll()}>
@@ -203,80 +336,58 @@ export function QuestionPrintView({
           </div>
         </div>
         <p className="mx-auto mt-2 max-w-4xl text-xs text-slate-500">
-          {mode === "answers"
-            ? "해설지 · 브라우저에서 PDF로 저장"
-            : isMainIdeaSheet
-              ? "대의파악 · A4 2단"
-              : "문제지 · A4 2단"}
+          A4 2단 · 페이지 단위 분할 · 브라우저에서 PDF로 저장
         </p>
       </div>
 
-      <div
-        id="qg-print-root"
-        className="mx-auto max-w-[210mm] space-y-6 py-6 print:space-y-0 print:py-0"
-      >
-        {mode === "exam" ? (
-          <article className="qg-print-page qg-print-sheet">
-            <header className="qg-print-header">
-              <div>
-                <p className="qg-print-kicker">
-                  {grade
-                    ? `${grade} ${isMainIdeaSheet ? "주제·제목" : "변형문제"}`
-                    : isMainIdeaSheet
-                      ? "주제·제목"
-                      : "변형문제"}
-                </p>
-                <h1 className="qg-print-title">{title}</h1>
-                {sourceDetail && (
-                  <p className="qg-print-sub">{sourceDetail}</p>
-                )}
-                {bannerNo && (
-                  <p className="qg-print-banner">┃3월 {bannerNo}번┃</p>
-                )}
-              </div>
-              <p className="qg-print-meta">{questions.length}문항</p>
-            </header>
-
-            {/* 1열 · A4 폭 자연 줄바꿈 · 페이지 넘김 */}
-            <div className="qg-print-stack">
-              {questions.map((q, i) => {
-                const extra = cleanQuestionText(q.question_text);
-                const paras = reflowPassageForPrint(questionPassage(q));
-                return (
-                  <section key={q.id} className="qg-print-card">
-                    <p className="qg-print-q-head">
-                      <span className="qg-print-q-num">{padNo(i + 1)}</span>{" "}
-                      {q.instruction}
-                    </p>
-                    {paras.length > 0 && (
-                      <div className="qg-print-passage qg-print-passage-block">
-                        {paras.map((p, pi) => (
-                          <p key={pi} className="qg-print-passage-p">
-                            {p}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-                    {extra ? (
-                      <p className="qg-print-extra">{extra}</p>
-                    ) : null}
-                    {q.choices && q.choices.length > 0 && (
-                      <ul className="qg-print-choices">
-                        {q.choices.map((c) => (
-                          <li key={c.number}>
-                            <span className="qg-print-choice-mark">
-                              {CIRCLED[c.number - 1] ?? `${c.number}.`}
-                            </span>
-                            <span>{c.text}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </section>
-                );
-              })}
+      {/* 측정용 (숨김) — 열 폭과 동일 */}
+      {mode === "exam" && (
+        <div
+          ref={measureRef}
+          aria-hidden
+          className="qg-print-measure"
+          style={{ width: `${COL_WIDTH_MM}mm` }}
+        >
+          {questions.map((q, i) => (
+            <div key={q.id} data-measure-q={q.id}>
+              <QuestionBlock q={q} index={i + 1} />
             </div>
-          </article>
+          ))}
+        </div>
+      )}
+
+      <div id="qg-print-root" className="mx-auto max-w-[210mm] py-6 print:py-0">
+        {mode === "exam" ? (
+          examPages.map((page, pageIdx) => (
+            <article
+              key={pageIdx}
+              className={`qg-print-page qg-print-sheet ${
+                pageIdx < examPages.length - 1 ? "qg-print-page-break" : ""
+              }`}
+            >
+              {renderHeader(pageIdx > 0)}
+              <div className="qg-print-cols">
+                <div className="qg-print-col">
+                  {page.left.map((qi) => {
+                    const q = questions[qi];
+                    if (!q) return null;
+                    return (
+                      <QuestionBlock key={q.id} q={q} index={qi + 1} />
+                    );
+                  })}
+                </div>
+                <div className="qg-print-col qg-print-col-right">
+                  {page.right.map((qi) => {
+                    const q = questions[qi];
+                    if (!q) return null;
+                    return (
+                      <QuestionBlock key={q.id} q={q} index={qi + 1} />
+                    );
+                  })}
+                </div>
+              </div>
+            </article>
+          ))
         ) : (
           <article className="qg-print-page qg-print-sheet">
             <header className="qg-print-header qg-print-header-answer">

@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -434,7 +434,7 @@
 
 }
 
-/* 단어장 인쇄 (시중 단어장 스타일) */
+/* ?⑥뼱???몄뇙 (?쒖쨷 ?⑥뼱???ㅽ??? */
 .vocab-print-page {
   --vocab-navy: #1a237e;
   --vocab-blue: #1565c0;
@@ -763,7 +763,7 @@
   font-weight: 600;
 }
 
-/* 단어장 인쇄 미리보기 (화면) */
+/* ?⑥뼱???몄뇙 誘몃━蹂닿린 (?붾㈃) */
 @media screen {
   #vocab-print-root .vocab-print-page {
     box-shadow: 0 14px 40px rgb(15 23 42 / 0.16);
@@ -771,7 +771,7 @@
   }
 }
 
-/* 시험지 인쇄 — 문항은 위부터 쌓고, 넘치면 다음 페이지 (예문은 단어·뜻 바로 아래) */
+/* ?쒗뿕吏 ?몄뇙 ??臾명빆? ?꾨????볤퀬, ?섏튂硫??ㅼ쓬 ?섏씠吏 (?덈Ц? ?⑥뼱쨌??諛붾줈 ?꾨옒) */
 
 .vocab-exam-body {
   flex: 0 0 auto;
@@ -903,7 +903,7 @@
   height: 24px;
 }
 
-/* 단어·의미 다단 시 폰트·여백 축소 */
+/* ?⑥뼱쨌?섎? ?ㅻ떒 ???고듃쨌?щ갚 異뺤냼 */
 .vocab-exam-list--basic.vocab-exam-list--3col .vocab-exam-q-no,
 .vocab-exam-list--basic.vocab-exam-list--4col .vocab-exam-q-no {
   font-size: 12px;
@@ -936,49 +936,67 @@
   padding-right: 2px;
 }
 
-/* 영어 변형문제 인쇄 (A4 2단) */
+/* ?곸뼱 蹂?뺣Ц???몄뇙 (A4 2?? */
 .qg-print-sheet {
   box-sizing: border-box;
   width: 210mm;
   min-height: 297mm;
-  margin: 0 auto;
-  padding: 12mm 14mm 10mm;
+  margin: 0 auto 8mm;
+  padding: 10mm 10mm 8mm;
   background: #fff;
   color: #111;
   font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
-  overflow: visible;
+  overflow: hidden;
+}
+
+.qg-print-measure {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .qg-print-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  border-bottom: 2.5px solid #1a3a6e;
-  padding-bottom: 3mm;
+  border-bottom: 2px solid #1a3a6e;
+  padding-bottom: 2.5mm;
   margin-bottom: 3mm;
+}
+
+.qg-print-header-compact {
+  padding-bottom: 1.5mm;
+  margin-bottom: 2mm;
 }
 
 .qg-print-header-answer {
   background: #1a3a6e;
   color: #fff;
-  margin: -10mm -9mm 4mm;
-  padding: 5mm 9mm;
+  margin: -10mm -10mm 4mm;
+  padding: 5mm 10mm;
   border: none;
 }
 
 .qg-print-kicker {
-  font-size: 9pt;
+  font-size: 8.5pt;
   font-weight: 800;
   color: #234b8c;
   letter-spacing: 0.04em;
 }
 
 .qg-print-title {
-  font-size: 15pt;
+  font-size: 13pt;
   font-weight: 900;
   line-height: 1.25;
   margin-top: 1mm;
+}
+
+.qg-print-title-sm {
+  font-size: 11pt;
+  margin-top: 0.5mm;
 }
 
 .qg-print-header-answer .qg-print-title {
@@ -986,101 +1004,77 @@
   margin: 0;
 }
 
-.qg-print-part {
-  margin-top: 2mm;
-  font-size: 11pt;
-  font-weight: 900;
-  color: #1a3a6e;
-}
-
 .qg-print-sub {
-  margin-top: 1mm;
-  font-size: 9pt;
+  margin-top: 0.5mm;
+  font-size: 8.5pt;
   color: #4a5568;
 }
 
 .qg-print-banner {
-  margin-top: 2mm;
-  font-size: 11pt;
+  margin-top: 1mm;
+  font-size: 10pt;
   font-weight: 900;
   color: #1a3a6e;
-  letter-spacing: 0.02em;
 }
 
 .qg-print-meta {
-  font-size: 9pt;
+  font-size: 8.5pt;
   font-weight: 700;
   color: #4a5568;
   white-space: nowrap;
 }
 
-.qg-print-tag {
-  font-size: 8.5pt;
-  font-weight: 700;
-  color: #5a6a80;
-  margin-bottom: 1.5mm;
-}
-
-.qg-print-guide {
-  font-size: 10pt;
-  font-weight: 700;
-  margin-bottom: 3mm;
-  color: #222;
-}
-
+/* 紐낆떆??醫뙿룹슦 2??(?섏씠吏 ?⑥쐞) */
 .qg-print-cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 5mm;
   align-items: start;
+  min-height: 0;
 }
 
-.qg-print-flow {
-  column-count: 2;
-  column-gap: 5mm;
-  column-rule: 1.5px solid #d5e0ef;
+.qg-print-col {
+  min-width: 0;
 }
 
-.qg-print-flow .qg-print-q {
-  break-inside: avoid;
-  page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-}
-
-/* A4 2단 · 자연 페이지 넘김 */
-.qg-print-stack {
-  column-count: 2;
-  column-gap: 6mm;
-  column-fill: auto;
-  width: 100%;
+.qg-print-col-right {
+  border-left: 1.2px solid #c5d0e0;
+  padding-left: 4mm;
 }
 
 .qg-print-card {
   break-inside: avoid;
   page-break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  display: inline-block;
-  width: 100%;
-  vertical-align: top;
-  padding-bottom: 3.5mm;
-  margin: 0 0 4mm;
-  border-bottom: 1px solid #d5e0ef;
+  padding-bottom: 2.5mm;
+  margin: 0 0 3mm;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 9pt;
+  line-height: 1.4;
+}
+
+.qg-print-q-head {
+  font-weight: 800;
+  margin-bottom: 1.2mm;
   font-size: 9.5pt;
-  line-height: 1.45;
+}
+
+.qg-print-q-num {
+  color: #1a3a6e;
+  font-weight: 900;
 }
 
 .qg-print-passage-block {
-  margin: 1.5mm 0 2mm;
+  margin: 1mm 0 1.5mm;
   padding: 0;
   border: none;
 }
 
 .qg-print-passage-p {
-  margin: 0 0 1.5mm;
+  margin: 0 0 1.2mm;
   padding: 0;
   font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
-  font-size: 9.2pt;
-  line-height: 1.55;
+  font-size: 8.6pt;
+  line-height: 1.48;
   text-align: justify;
   word-break: normal;
   overflow-wrap: break-word;
@@ -1092,21 +1086,49 @@
   margin-bottom: 0;
 }
 
+.qg-print-extra {
+  white-space: normal;
+  font-size: 8.5pt;
+  margin-bottom: 1mm;
+  color: #333;
+}
+
+.qg-print-choices {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.qg-print-choices li {
+  display: flex;
+  gap: 1.2mm;
+  margin-bottom: 0.4mm;
+  font-size: 8.5pt;
+  line-height: 1.35;
+}
+
+.qg-print-choice-mark {
+  flex-shrink: 0;
+  width: 4.5mm;
+  color: #1a3a6e;
+  font-weight: 700;
+}
+
 .qg-print-answer-blocks {
   display: flex;
   flex-direction: column;
-  gap: 3.5mm;
+  gap: 3mm;
 }
 
 .qg-print-answer-block {
   break-inside: avoid;
   page-break-inside: avoid;
-  padding-bottom: 2.5mm;
+  padding-bottom: 2mm;
   border-bottom: 1px solid #e8eef6;
 }
 
 .qg-print-answer-head {
-  font-size: 10.5pt;
+  font-size: 10pt;
   font-weight: 800;
   margin-bottom: 1mm;
   color: #1a3a6e;
@@ -1118,111 +1140,28 @@
 }
 
 .qg-print-answer-body {
-  font-size: 9.5pt;
-  line-height: 1.55;
+  font-size: 9pt;
+  line-height: 1.5;
   color: #222;
   white-space: normal;
   text-align: justify;
 }
 
-.qg-print-col-right {
-  border-left: 1.5px solid #d5e0ef;
-  padding-left: 4mm;
-}
-
-.qg-print-q {
-  margin-bottom: 4.5mm;
-  break-inside: auto;
-  page-break-inside: auto;
-  font-size: 9.5pt;
-  line-height: 1.45;
-}
-
-.qg-print-q-head {
-  font-weight: 800;
-  margin-bottom: 1.5mm;
-  break-after: avoid;
-  page-break-after: avoid;
-}
-
-.qg-print-q-num {
-  color: #1a3a6e;
-}
-
-.qg-print-passage-lead {
-  margin-bottom: 4mm;
-  padding: 2.5mm 0 3mm;
-  border-bottom: 1.5px solid #1a3a6e;
-}
-
-.qg-print-passage-mod {
-  margin: 1.5mm 0;
-  padding: 1.5mm;
-  background: #f7f9fc;
-  border-left: 2px solid #c5d4ea;
-  font-size: 8.8pt;
+.qg-print-page-break {
+  break-after: page;
+  page-break-after: always;
 }
 
 .qg-print-passage {
   white-space: normal;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 10.5pt;
-  line-height: 1.65;
-  margin-bottom: 1.5mm;
   color: #1a1a1a;
-  text-align: justify;
-}
-
-.qg-print-extra {
-  white-space: normal;
-  font-size: 9.5pt;
-  margin-bottom: 1.5mm;
-  color: #333;
-}
-
-.qg-print-choices {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-
-.qg-print-choices li {
-  display: flex;
-  gap: 2mm;
-  margin-bottom: 1mm;
-  line-height: 1.45;
-}
-
-.qg-print-choice-mark {
-  flex-shrink: 0;
-  width: 5mm;
-  color: #1a3a6e;
-  font-weight: 700;
-}
-
-.qg-print-answer-list {
-  font-size: 10pt;
-  line-height: 1.55;
-  padding-left: 5mm;
-}
-
-.qg-print-answer-exp {
-  color: #444;
-  font-weight: 400;
-}
-
-.qg-print-page-break {
-  break-before: page;
-  page-break-before: always;
 }
 
 @media print {
-/* 영어 변형문제 인쇄 (A4) */
+/* 영어 변형문제 인쇄 (A4 2단 페이지) */
   @page {
     size: A4;
-    margin: 12mm 14mm;
+    margin: 0;
   }
 
   .no-print {
@@ -1267,9 +1206,9 @@
     position: static !important;
     left: auto !important;
     top: auto !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     overflow: visible !important;
   }
@@ -1358,57 +1297,30 @@
   .qg-print-sheet {
     box-shadow: none !important;
     margin: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    min-height: auto !important;
-    height: auto !important;
-    padding: 0 !important;
-    overflow: visible !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
+    padding: 10mm !important;
+    overflow: hidden !important;
     background: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  .qg-print-stack {
-    column-count: 2 !important;
-    column-gap: 6mm !important;
-  }
-
-  .qg-print-card {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-    -webkit-column-break-inside: avoid !important;
-  }
-
-  /* 지문이 매우 길면 카드 단위로 다음 단/페이지로 */
-  .qg-print-passage-block,
-  .qg-print-passage-p {
-    orphans: 2;
-    widows: 2;
-  }
-
-  .qg-print-choices {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-
-  .qg-print-q-head {
-    break-after: avoid !important;
-    page-break-after: avoid !important;
+  .qg-print-cols {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    column-gap: 5mm !important;
   }
 
   .qg-print-page-break {
-    break-before: page !important;
-    page-break-before: always !important;
+    break-after: page !important;
+    page-break-after: always !important;
   }
 
   .exam-print-answers {
     break-before: page;
     page-break-before: always;
-  }
-
-  @page {
-    size: A4;
-    margin: 0;
   }
 }
