@@ -203,28 +203,29 @@ LANGUAGE: passageModified MUST be ENGLISH only.`;
     case "grammar": {
       const catalog = grammarCatalogPromptBlock();
       if (code === "어법모두고르기") {
-        return `어법 모두 고르기 — 『어법끝 START』+『처음 만나는 수능 어법』 범위:
-- passageModified = FULL ENGLISH passage (keep original wording mostly) with exactly five grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ.
-- Format: ⓐ<u>target</u> (HTML underline). Targets = single words or short phrases.
-- Exactly 2 or 3 spots are grammatically WRONG; the others MUST be fully correct in context.
-- Error quality (필수): EVERY wrong spot MUST be one of the textbook Points below. Prefer ‘결정적 출제 어법’ traps. Do NOT invent nonsense words or out-of-scope grammar.
-- Distractors (correct underlines) must look like the same textbook points but be actually correct.
-- choices: exactly 5 combination options (Korean), e.g. "ⓐ, ⓒ" / "ⓑ, ⓓ, ⓔ". Exactly ONE choice lists ALL and ONLY the wrong letters.
+        return `어법 모두 고르기 — 교재형 출제 메커니즘 ONLY:
+- passageModified = FULL ENGLISH passage with exactly five spots ⓐ ⓑ ⓒ ⓓ ⓔ as ⓐ<u>target</u>.
+- Exactly 2 or 3 spots WRONG; others fully correct.
+- QUALITY GATE (필수):
+  · Every wrong spot MUST follow an ALLOWED TRAP mechanism below (requiredShape).
+  · S-V: ONLY 「주어+(긴 수식어)+동사」 with nearby-noun lure. NEVER adjacent such things change/changes.
+  · Prefer high-frequency: sv-modifier, voice-verb, relative-role, participle-modify, verb-vs-verbal, prep-conj, tense-adverbial-future.
+  · Wrong form must look like a real 학력평가 네모/밑줄 선택지 (is/are, which/that, to-V/V-ing, v-ing/p.p. …).
+- choices: 5 Korean combination options; exactly ONE lists ALL and ONLY wrong letters.
 - correctAnswer 1-5. questionText empty.
-- explanation (Korean): wrong letters + each mapped to UNIT/Point title + one-line reason.
+- explanation: Korean — wrong letters + trap tag (어법끝Pxx / 처음Uxx) + why.
 LANGUAGE: passage ENGLISH only.
 
 ${catalog}`;
       }
       if (code === "어법개수") {
-        return `어법 개수 — 『어법끝 START』+『처음 만나는 수능 어법』 범위:
-- passageModified = FULL ENGLISH passage with exactly six grammar spots ⓐ ⓑ ⓒ ⓓ ⓔ ⓕ as ⓐ<u>target</u>.
-- Put 1~5 textbook-catalog errors (same rules/catalog as 어법모두고르기); rest correct.
-- choices MUST be EXACTLY and ONLY these five texts in order (never skip, never invent other numbers like only 2개/5개):
-  1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
-- correctAnswer = N where N is the exact count of wrong spots (so if 3 wrong, correctAnswer is 3 and choice text is "3개").
-- questionText empty.
-- explanation (Korean): count + wrong letters + each UNIT/Point title.
+        return `어법 개수 — 교재형 출제 메커니즘 ONLY:
+- passageModified = FULL ENGLISH with exactly six spots ⓐ~ⓕ as ⓐ<u>target</u>.
+- Put 1~5 WRONG spots using ALLOWED TRAPS only (same QUALITY GATE as 어법모두고르기).
+- NEVER adjacent S-V number traps without a modifier between subject and verb.
+- choices MUST be EXACTLY: 1:"1개" 2:"2개" 3:"3개" 4:"4개" 5:"5개"
+- correctAnswer = count of wrong spots.
+- questionText empty. explanation: count + letters + trap tags.
 LANGUAGE: passage ENGLISH only.
 
 ${catalog}`;
@@ -237,7 +238,7 @@ ${catalog}`;
         return `No MCQ. Student finds one grammar error and rewrites. Model rewrite in correctAnswer.`;
       }
       return `Mark 5 underlined spots ⓐ~ⓔ with <u>...</u> in passageModified. Exactly ONE grammatically wrong. choices ①ⓐ~⑤ⓔ.
-Errors must follow the textbook catalog:
+Errors must follow exam-trap catalog (no adjacent trivial S-V):
 ${catalog}`;
     }
     case "vocabulary":
@@ -750,7 +751,7 @@ ${
 }
 ${
   option.type === "grammar"
-    ? "- Grammar errors MUST stay inside 『어법끝 START』 Point 01–23 and/or 『처음 만나는 수능 어법』 UNIT 01–13 (catalog in type rules). Explanation cites Point/UNIT."
+    ? "- Grammar: ONLY exam-trap mechanisms (어법끝 P01–23 / 처음만나는 결정적 출제). Ban adjacent trivial S-V (such things change/changes). Explanation cites 어법끝Pxx or 처음Uxx."
     : ""
 }
 ${paraphraseSystemHint}
