@@ -99,6 +99,7 @@ async function generateWithValidation(opts: {
   option: QuestionTypeOption;
   grade: string;
   overallDifficulty: string;
+  sourceDetail?: string;
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
   status: "draft" | "needs_review" | "approved";
@@ -245,6 +246,8 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         grade: config.grade || passageRow.grade,
         overallDifficulty:
           config.overallDifficulty || passageRow.overall_difficulty,
+        sourceDetail:
+          config.sourceDetail || passageRow.source_detail || undefined,
       });
 
       if (!result.payload) {
@@ -343,7 +346,7 @@ export async function regenerateSingleQuestion(opts: {
 
   const { data: passageRow } = await admin
     .from("english_source_passages")
-    .select("passage, grade, overall_difficulty, analysis")
+    .select("passage, grade, overall_difficulty, analysis, source_detail")
     .eq("id", q.passage_id)
     .single();
 
@@ -375,6 +378,7 @@ export async function regenerateSingleQuestion(opts: {
     option: option as QuestionTypeOption,
     grade: passageRow.grade,
     overallDifficulty: passageRow.overall_difficulty,
+    sourceDetail: passageRow.source_detail || undefined,
   });
 
   if (!result.payload) {

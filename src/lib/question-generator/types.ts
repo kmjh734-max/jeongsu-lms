@@ -55,6 +55,10 @@ export interface QuestionTypeOption {
   choiceLanguage: ChoiceLanguage;
   isObjective: boolean;
   preview: string;
+  /** 아잉카 태그용 코드 (예: 요지추론) */
+  aingkaCode?: string;
+  /** 고정 한글 발문 */
+  koreanStem?: string;
 }
 
 export interface QuestionTypeGroup {

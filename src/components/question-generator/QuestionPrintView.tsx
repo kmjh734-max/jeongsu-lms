@@ -6,9 +6,6 @@ import { Button } from "@/components/ui/Button";
 
 type QuestionRow = {
   id: string;
-  category: string;
-  question_type: string;
-  option_key: string | null;
   instruction: string;
   question_text: string;
   passage_original: string;
@@ -16,10 +13,21 @@ type QuestionRow = {
   choices: Array<{ number: number; text: string }> | null;
   correct_answer: unknown;
   explanation: string;
-  status: string;
 };
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
+
+function splitTagAndExtra(questionText: string): {
+  tag: string | null;
+  extra: string;
+} {
+  const lines = (questionText || "").split(/\n/);
+  const first = lines[0]?.trim() ?? "";
+  if (first.startsWith("[") && first.endsWith("]")) {
+    return { tag: first, extra: lines.slice(1).join("\n").trim() };
+  }
+  return { tag: null, extra: questionText || "" };
+}
 
 function formatAnswer(a: unknown): string {
   if (Array.isArray(a)) return a.join(" / ");
@@ -29,17 +37,14 @@ function formatAnswer(a: unknown): string {
   return String(a ?? "");
 }
 
-function buildClipboardText(
-  title: string,
-  questions: QuestionRow[]
-): string {
-  const lines: string[] = [title, ""];
+function buildClipboardText(title: string, questions: QuestionRow[]): string {
+  const lines: string[] = [`2026년 03월 모의고사 변형문제`, title, "", "Part Ⅰ", ""];
   questions.forEach((q, i) => {
+    const { tag, extra } = splitTagAndExtra(q.question_text);
     lines.push(`${i + 1}. ${q.instruction}`);
-    if (q.passage_modified || q.passage_original) {
-      lines.push(q.passage_modified || q.passage_original);
-    }
-    if (q.question_text) lines.push(q.question_text);
+    if (tag) lines.push(tag);
+    lines.push(q.passage_modified || q.passage_original);
+    if (extra) lines.push(extra);
     if (q.choices?.length) {
       for (const c of q.choices) {
         lines.push(`${CIRCLED[c.number - 1] ?? c.number} ${c.text}`);
@@ -49,9 +54,7 @@ function buildClipboardText(
   });
   lines.push("— 정답 —");
   questions.forEach((q, i) => {
-    lines.push(
-      `${i + 1}. ${formatAnswer(q.correct_answer)} | ${q.explanation}`
-    );
+    lines.push(`${i + 1}. ${formatAnswer(q.correct_answer)}`);
   });
   return lines.join("\n");
 }
@@ -65,6 +68,7 @@ export function QuestionPrintView({
 }) {
   const [title, setTitle] = useState("영어 변형문제");
   const [grade, setGrade] = useState("");
+  const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [includeAnswers, setIncludeAnswers] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -83,7 +87,14 @@ export function QuestionPrintView({
         job?.english_source_passages?.title ||
         "영어 변형문제"
     );
-    setGrade(job?.request_config?.grade || job?.english_source_passages?.grade || "");
+    setGrade(
+      job?.request_config?.grade || job?.english_source_passages?.grade || ""
+    );
+    setSourceDetail(
+      job?.request_config?.sourceDetail ||
+        job?.english_source_passages?.source_detail ||
+        ""
+    );
     setQuestions(data.questions ?? []);
   }, [jobId]);
 
@@ -109,26 +120,23 @@ export function QuestionPrintView({
   }
 
   async function copyAll() {
-    const text = buildClipboardText(title, questions);
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(buildClipboardText(title, questions));
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   }
 
   function renderQuestion(q: QuestionRow, index: number) {
+    const { tag, extra } = splitTagAndExtra(q.question_text);
     return (
       <section key={q.id} className="qg-print-q">
         <p className="qg-print-q-head">
           <span className="qg-print-q-num">{index}.</span> {q.instruction}
         </p>
-        {(q.passage_modified || q.passage_original) && (
-          <div className="qg-print-passage">
-            {q.passage_modified || q.passage_original}
-          </div>
-        )}
-        {q.question_text && (
-          <p className="qg-print-extra">{q.question_text}</p>
-        )}
+        {tag && <p className="qg-print-tag">{tag}</p>}
+        <div className="qg-print-passage">
+          {q.passage_modified || q.passage_original}
+        </div>
+        {extra && <p className="qg-print-extra">{extra}</p>}
         {q.choices && q.choices.length > 0 && (
           <ul className="qg-print-choices">
             {q.choices.map((c) => (
@@ -145,9 +153,7 @@ export function QuestionPrintView({
     );
   }
 
-  if (error) {
-    return <p className="p-6 text-red-600">{error}</p>;
-  }
+  if (error) return <p className="p-6 text-red-600">{error}</p>;
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
@@ -174,24 +180,28 @@ export function QuestionPrintView({
           </div>
         </div>
         <p className="mx-auto mt-2 max-w-4xl text-xs text-slate-500">
-          인쇄 대화상자에서 「PDF로 저장」을 선택하면 PDF 파일로 저장할 수 있습니다. A4 · 2단
+          아잉카 양식: 한글 발문 + [태그] + 지문 + ①~⑤ · A4 2단 · PDF로 저장 가능
         </p>
       </div>
 
-      <div id="qg-print-root" className="mx-auto max-w-[210mm] space-y-6 py-6 print:space-y-0 print:py-0">
+      <div
+        id="qg-print-root"
+        className="mx-auto max-w-[210mm] space-y-6 py-6 print:space-y-0 print:py-0"
+      >
         <article className="qg-print-page qg-print-sheet">
           <header className="qg-print-header">
             <div>
-              <p className="qg-print-kicker">영어 변형문제</p>
+              <p className="qg-print-kicker">
+                {grade ? `${grade} 모의고사 변형문제` : "모의고사 변형문제"}
+              </p>
               <h1 className="qg-print-title">{title}</h1>
-              {grade && <p className="qg-print-sub">{grade}</p>}
+              {sourceDetail && (
+                <p className="qg-print-sub">{sourceDetail}</p>
+              )}
+              <p className="qg-print-part">Part Ⅰ</p>
             </div>
-            <p className="qg-print-meta">A4 2단 · {questions.length}문항</p>
+            <p className="qg-print-meta">{questions.length}문항</p>
           </header>
-
-          <div className="qg-print-guide">
-            Φ 다음 글을 읽고 물음에 답하시오.
-          </div>
 
           <div className="qg-print-cols">
             <div className="qg-print-col">
@@ -208,7 +218,7 @@ export function QuestionPrintView({
         {includeAnswers && questions.length > 0 && (
           <article className="qg-print-page qg-print-sheet qg-print-page-break">
             <header className="qg-print-header qg-print-header-answer">
-              <h1 className="qg-print-title">{title} · 정답지</h1>
+              <h1 className="qg-print-title">{title} · 정답</h1>
             </header>
             <ol className="qg-print-answer-list">
               {questions.map((q, i) => (

@@ -985,11 +985,18 @@
   margin: 0;
 }
 
-.qg-print-sub,
-.qg-print-meta {
-  font-size: 9pt;
-  color: #555;
-  margin-top: 1mm;
+.qg-print-part {
+  margin-top: 2mm;
+  font-size: 11pt;
+  font-weight: 900;
+  color: #1a3a6e;
+}
+
+.qg-print-tag {
+  font-size: 8.5pt;
+  font-weight: 700;
+  color: #5a6a80;
+  margin-bottom: 1.5mm;
 }
 
 .qg-print-guide {

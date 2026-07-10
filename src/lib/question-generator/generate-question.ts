@@ -1,5 +1,8 @@
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
-import { KOREAN_INSTRUCTION_BY_KEY } from "@/lib/question-generator/question-types";
+import {
+  buildAingkaTag,
+  findAingkaOption,
+} from "@/lib/question-generator/question-types";
 import type { QuestionTypeOption } from "@/lib/question-generator/types";
 import type {
   GeneratedQuestionPayload,
@@ -7,55 +10,42 @@ import type {
 } from "@/lib/question-generator/types";
 
 function typeRules(option: QuestionTypeOption): string {
-  const key = option.key;
-  if (key.includes(":binary")) {
-    return `Create a grammar/vocabulary binary-choice passage.
-Rewrite the passage with several [optionA / optionB] brackets (5~8 places).
-One side is correct, the other is a plausible distractor (grammar or vocabulary).
-correctAnswer must be a JSON array of the correct words/phrases in order.
-Also provide Korean translation of the full passage in questionText or explanation.
-instruction must be exactly the Korean stem provided.`;
-  }
-  if (key.includes(":underline") || option.type === "grammar") {
-    if (key.includes(":rewrite")) {
-      return `Create a rewrite-practice item: passage with several (wrongForm) parentheses.
-Student must correct each to the proper form.
-correctAnswer: array of corrected forms. explanation lists each fix with reason.
-Do not destroy overall meaning.`;
-    }
-    if (option.type === "grammar" && key.includes(":underline")) {
-      return `Mark exactly 5 underlined spots in passageModified using forms like ①word ②word ...
-Exactly ONE is grammatically wrong; the other four must be correct.
-correctAnswer is the number 1-5 of the wrong item.
-Choices may be omitted or be just ①~⑤.`;
-    }
-  }
   switch (option.type) {
     case "content_false":
-      return `5 Korean choices. Ask which is NOT true. Exactly one false choice. Others must be true.`;
+      return `5 Korean choices. Ask which is NOT true. Exactly one false.`;
     case "content_true":
-      return `5 Korean choices. Ask which IS true. Exactly one true choice.`;
-    case "vocabulary":
-      return `Mark 5 underlined words in passageModified. Exactly ONE is contextually inappropriate. correctAnswer 1-5.`;
-    case "sentence_insertion":
-      return `Provide one sentence to insert. Mark ①~⑤ slots in passageModified. correctAnswer 1-5.`;
-    case "irrelevant_sentence":
-      return `Number sentences ①~⑤ in passageModified; one is irrelevant. correctAnswer 1-5.`;
-    case "order":
-      return `Give a lead-in paragraph, then A/B/C paragraphs. 5 order choices like (A)-(C)-(B). Exactly one correct order.`;
-    case "summary_short":
-      return `Provide full Korean translation first, then English passage with several _____ blanks for key words.
-correctAnswer: array of answers for blanks. acceptableAnswers optional.`;
+      return `5 Korean choices. Ask which IS true. Exactly one true.`;
     case "topic":
     case "title":
-      return `5 Korean choices. Exactly one correct. Cover whole passage, not a detail.`;
+      return `5 Korean choices covering the WHOLE passage. Exactly one correct.`;
+    case "summary_mcq":
+      if (option.aingkaCode === "요약문추론") {
+        return `Create a one-sentence Korean summary with blanks (A) and (B). 5 choices as word pairs like ① success …… effort. Exactly one correct.`;
+      }
+      return `5 Korean choices for the main point (요지). Exactly one correct.`;
     case "sentence_blank":
-      return `Blank a key phrase in passageModified. 5 English choices. Exactly one correct.`;
+      return `Blank a key phrase in passageModified with ______. 5 English choices. Exactly one correct.`;
+    case "order":
+      return `Lead-in + A/B/C. 5 order choices. Exactly one correct.`;
+    case "sentence_insertion":
+      return `One sentence to insert + ①~⑤ slots in passageModified. correctAnswer 1-5.`;
+    case "irrelevant_sentence":
+      return `Number sentences ①~⑤; one is irrelevant. correctAnswer 1-5.`;
+    case "grammar":
+      return `Mark 5 underlined spots ①~⑤ in passageModified. Exactly ONE grammatically wrong.`;
+    case "vocabulary":
+      return `Mark 5 underlined words ①~⑤. Exactly ONE contextually wrong.`;
+    case "underlined_inference":
+      if (option.aingkaCode === "심경추론") {
+        return `5 English emotion-change choices like "worried → relieved". Exactly one correct.`;
+      }
+      return `Underline a key expression in passageModified. 5 Korean meaning choices.`;
     case "writing":
-      return `Korean prompt + list of given English words the student must use.
-Provide model English answer and scoringGuide with requiredKeywords.`;
+      return `Korean prompt + given English words. Model answer + requiredKeywords.`;
+    case "summary_short":
+      return `English passage with blanks; student fills words. correctAnswer array.`;
     default:
-      return `Follow standard Korean high-school exam format for this type.`;
+      return `Follow Korean mock-exam variation style (아잉카).`;
   }
 }
 
@@ -63,7 +53,8 @@ function normalizePayload(
   raw: Record<string, unknown>,
   option: QuestionTypeOption,
   passage: string,
-  forcedInstruction: string
+  forcedInstruction: string,
+  metaTag: string
 ): GeneratedQuestionPayload {
   const choices = Array.isArray(raw.choices)
     ? raw.choices
@@ -93,6 +84,12 @@ function normalizePayload(
     | number[];
   if (correctAnswer == null) correctAnswer = 1;
 
+  // 아잉카: questionText 앞에 태그 저장 (인쇄용)
+  const body = String(raw.questionText ?? "").trim();
+  const questionText = body.startsWith("[")
+    ? body
+    : `${metaTag}\n${body}`.trim();
+
   return {
     type: option.type,
     category: option.category,
@@ -102,7 +99,7 @@ function normalizePayload(
     passageModified:
       typeof raw.passageModified === "string" ? raw.passageModified : undefined,
     instruction: forcedInstruction,
-    questionText: String(raw.questionText ?? ""),
+    questionText,
     choices,
     correctAnswer,
     acceptableAnswers: Array.isArray(raw.acceptableAnswers)
@@ -123,12 +120,9 @@ export function assertBasicQuestionShape(
 ): string | null {
   if (!q.instruction.trim()) return "발문이 비어 있습니다.";
   if (!q.explanation.trim()) return "해설이 비어 있습니다.";
-  if (option.isObjective && option.type !== "grammar") {
+  if (option.isObjective && option.choiceLanguage) {
     if (!q.choices || q.choices.length < 5) {
-      // grammar underline may use ①~⑤ only in passage
-      if (option.type !== "vocabulary" && !option.key.includes(":underline")) {
-        return "객관식 선택지가 5개 미만입니다.";
-      }
+      return "객관식 선택지가 5개 미만입니다.";
     }
   }
   return null;
@@ -140,46 +134,62 @@ export async function generateOneQuestion(opts: {
   option: QuestionTypeOption;
   grade: string;
   overallDifficulty: string;
+  sourceDetail?: string;
 }): Promise<GeneratedQuestionPayload> {
   const { option, passage, analysis } = opts;
+  const aingka = findAingkaOption(option.key);
   const forcedInstruction =
-    KOREAN_INSTRUCTION_BY_KEY[option.key] ??
+    aingka?.koreanStem ||
+    option.koreanStem ||
     "다음 글을 읽고 물음에 답하시오.";
 
+  const gradeCode = /고\s*1|고1|H1/i.test(opts.grade)
+    ? "H1"
+    : /고\s*2|고2|H2/i.test(opts.grade)
+      ? "H2"
+      : /고\s*3|고3|H3/i.test(opts.grade)
+        ? "H3"
+        : /중\s*3|중3|M3/i.test(opts.grade)
+          ? "M3"
+          : "H1";
+
+  const noMatch = opts.sourceDetail?.match(/(\d{1,2})\s*번/);
+  const metaTag = buildAingkaTag({
+    yearMonth: "202603",
+    gradeCode,
+    questionNo: noMatch?.[1],
+    aingkaCode: aingka?.aingkaCode || option.aingkaCode || option.type,
+  });
+
   const raw = (await questionGeneratorChatJsonWithRetry({
-    system: `You are an expert Korean high-school English 내신 변형문제 writer (WooJack/SkunkWorks 11-step style).
+    system: `You are an expert Korean high-school English mock-exam VARIATION writer (아잉카 style).
 Return ONLY valid JSON for ONE question.
-CRITICAL:
-- instruction MUST be exactly this Korean string: ${JSON.stringify(forcedInstruction)}
-- Do NOT write English stems/instructions.
-- Keep original passage wording unless the type requires a modified display passage.
-- Choices for content/topic/title must be natural Korean (not translationese).
-- Provide evidence and Korean explanation.
+CRITICAL RULES:
+- instruction MUST be exactly: ${JSON.stringify(forcedInstruction)}
+- All stems/instructions in Korean only.
+- Put meta tag ${JSON.stringify(metaTag)} at the start of questionText on its own line.
+- Keep original passage wording unless the type needs passageModified (grammar/vocab/blank/order/insertion/irrelevant).
+- For Korean choices: natural Korean, not translationese.
+- Match 수능/모의고사 variation quality (아잉카 변형문제).
 ${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
       overallDifficulty: opts.overallDifficulty,
       optionKey: option.key,
       optionLabel: option.label,
-      requestedType: option.type,
+      aingkaCode: aingka?.aingkaCode,
       forcedInstruction,
+      metaTag,
       passage,
       analysis,
       outputSchema: {
         instruction: forcedInstruction,
-        questionText: "string (extra prompt, Korean translation, given words, etc.)",
+        questionText: `${metaTag}\\n(optional extra Korean notes)`,
         passageModified: "string|optional",
         choices: [{ number: 1, text: "string" }],
         correctAnswer: "number|string|array",
-        acceptableAnswers: ["string"],
         explanation: "string in Korean",
         evidence: [{ sentence: "string", description: "string" }],
-        scoringGuide: {
-          totalPoints: 5,
-          fullScoreCondition: "string",
-          partialScoreConditions: [{ points: 2, condition: "string" }],
-          requiredKeywords: ["string"],
-        },
         validation: {
           singleCorrectAnswer: true,
           answerMatchesExplanation: true,
@@ -196,7 +206,13 @@ ${typeRules(option)}`,
     maxTokens: 4500,
   })) as Record<string, unknown>;
 
-  const payload = normalizePayload(raw, option, passage, forcedInstruction);
+  const payload = normalizePayload(
+    raw,
+    option,
+    passage,
+    forcedInstruction,
+    metaTag
+  );
   if (raw.validation && typeof raw.validation === "object") {
     const v = raw.validation as Record<string, unknown>;
     payload.validation = {
