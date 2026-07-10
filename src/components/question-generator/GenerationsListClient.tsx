@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { PageHeader } from "@/components/ui/PageHeader";
 
@@ -78,19 +78,89 @@ function shortId(id: string): string {
 
 export function GenerationsListClient({ basePath }: { basePath: string }) {
   const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/question-generator/jobs");
+      const d = await res.json();
+      if (!d.ok) setError(d.message);
+      else {
+        setJobs(d.jobs ?? []);
+        setSelected(new Set());
+      }
+    } catch {
+      setError("목록을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetch("/api/question-generator/jobs")
-      .then((r) => r.json())
-      .then((d) => {
-        if (!d.ok) setError(d.message);
-        else setJobs(d.jobs ?? []);
-      })
-      .catch(() => setError("목록을 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
-  }, []);
+    void load();
+  }, [load]);
+
+  const allSelected =
+    jobs.length > 0 && jobs.every((j) => selected.has(j.id));
+
+  const selectedCount = useMemo(() => selected.size, [selected]);
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (allSelected) {
+      setSelected(new Set());
+      return;
+    }
+    setSelected(new Set(jobs.map((j) => j.id)));
+  }
+
+  async function deleteSelected() {
+    if (selectedCount === 0) {
+      setError("삭제할 항목을 선택해 주세요.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `선택한 ${selectedCount}개 자료를 삭제할까요? 관련 문항도 함께 삭제됩니다.`
+      )
+    ) {
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/question-generator/jobs", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selected) }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.message ?? "삭제에 실패했습니다.");
+        return;
+      }
+      setMessage(`${data.deleted}개 자료를 삭제했습니다.`);
+      await load();
+    } catch {
+      setError("삭제 요청에 실패했습니다.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <div>
@@ -105,12 +175,14 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
             >
               + 새로 만들기
             </Link>
-            <Link
-              href={`${basePath}/new`}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            <button
+              type="button"
+              disabled={deleting || selectedCount === 0}
+              onClick={() => void deleteSelected()}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              변형문제 생성
-            </Link>
+              {deleting ? "삭제 중…" : "선택삭제"}
+            </button>
           </div>
         }
       />
@@ -126,11 +198,25 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
           <Alert variant="error">{error}</Alert>
         </div>
       )}
+      {message && (
+        <div className="mb-4">
+          <Alert variant="success">{message}</Alert>
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
         <table className="ui-table w-full text-sm">
           <thead>
             <tr>
+              <th className="w-12">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  aria-label="전체 선택"
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+              </th>
               <th className="w-24">#</th>
               <th>제목</th>
               <th className="w-24">지문 수</th>
@@ -143,7 +229,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={7} className="py-10 text-center text-slate-500">
+                <td colSpan={8} className="py-10 text-center text-slate-500">
                   불러오는 중…
                 </td>
               </tr>
@@ -155,8 +241,23 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                   j.request_config?.title ||
                   j.english_source_passages?.title ||
                   "무제";
+                const checked = selected.has(j.id);
                 return (
-                  <tr key={j.id} className="hover:bg-slate-50/80">
+                  <tr
+                    key={j.id}
+                    className={`hover:bg-slate-50/80 ${
+                      checked ? "bg-brand-50/40" : ""
+                    }`}
+                  >
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleOne(j.id)}
+                        aria-label={`${title} 선택`}
+                        className="h-4 w-4 rounded border-slate-300"
+                      />
+                    </td>
                     <td className="font-mono text-xs text-slate-500">
                       {shortId(j.id)}
                     </td>
@@ -232,7 +333,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
               })}
             {!loading && jobs.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-slate-500">
+                <td colSpan={8} className="py-12 text-center text-slate-500">
                   <p className="mb-3">아직 만든 변형문제가 없습니다.</p>
                   <Link
                     href={`${basePath}/new`}

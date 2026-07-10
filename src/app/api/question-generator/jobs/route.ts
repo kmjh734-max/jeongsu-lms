@@ -161,3 +161,57 @@ export async function POST(req: Request) {
     );
   }
 }
+
+/** 선택 삭제: 문항 → 작업 순으로 제거 */
+export async function DELETE(req: Request) {
+  try {
+    const profile = await requireStaffProfile();
+    const body = (await req.json().catch(() => ({}))) as { ids?: string[] };
+    const ids = Array.isArray(body.ids)
+      ? body.ids.filter((id) => typeof id === "string" && id.length > 0)
+      : [];
+    if (ids.length === 0) return jsonError("삭제할 항목을 선택해 주세요.");
+    if (ids.length > 50) return jsonError("한 번에 최대 50개까지 삭제할 수 있습니다.");
+
+    const supabase = await createClient();
+
+    let jobQuery = supabase
+      .from("question_generation_jobs")
+      .select("id")
+      .in("id", ids);
+    if (profile.role === "teacher") {
+      jobQuery = jobQuery.eq("created_by", profile.id);
+    }
+    const { data: owned, error: ownErr } = await jobQuery;
+    if (ownErr) return jsonError(ownErr.message, 500);
+
+    const allowed = (owned ?? []).map((r) => r.id as string);
+    if (allowed.length === 0) {
+      return jsonError("삭제할 수 있는 항목이 없습니다.", 403);
+    }
+
+    const { error: qErr } = await supabase
+      .from("generated_english_questions")
+      .delete()
+      .in("generation_job_id", allowed);
+    if (qErr) return jsonError(qErr.message, 500);
+
+    let del = supabase
+      .from("question_generation_jobs")
+      .delete()
+      .in("id", allowed);
+    if (profile.role === "teacher") {
+      del = del.eq("created_by", profile.id);
+    }
+    const { error: jErr } = await del;
+    if (jErr) return jsonError(jErr.message, 500);
+
+    return jsonOk({ deleted: allowed.length, ids: allowed });
+  } catch (e) {
+    if (e instanceof Response) return e;
+    return jsonError(
+      e instanceof Error ? e.message : "삭제에 실패했습니다.",
+      500
+    );
+  }
+}
