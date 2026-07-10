@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import {
   cleanQuestionText,
   normalizePassage,
+  reflowPassageForPrint,
 } from "@/lib/question-generator/text-utils";
 
 type QuestionRow = {
@@ -82,7 +83,8 @@ function buildClipboardText(
   questions.forEach((q, i) => {
     const extra = cleanQuestionText(q.question_text);
     lines.push(`${padNo(i + 1)}  ${q.instruction}`);
-    lines.push(questionPassage(q));
+    const paras = reflowPassageForPrint(questionPassage(q));
+    if (paras.length) lines.push(paras.join("\n\n"));
     if (extra) lines.push(extra);
     if (q.choices?.length) {
       for (const c of q.choices) {
@@ -221,20 +223,24 @@ export function QuestionPrintView({
               <p className="qg-print-meta">{questions.length}문항</p>
             </header>
 
-            {/* 상하 구분 카드 × 2열 */}
+            {/* 1열 · A4 폭 자연 줄바꿈 · 페이지 넘김 */}
             <div className="qg-print-stack">
               {questions.map((q, i) => {
                 const extra = cleanQuestionText(q.question_text);
-                const passage = questionPassage(q);
+                const paras = reflowPassageForPrint(questionPassage(q));
                 return (
                   <section key={q.id} className="qg-print-card">
                     <p className="qg-print-q-head">
                       <span className="qg-print-q-num">{padNo(i + 1)}</span>{" "}
                       {q.instruction}
                     </p>
-                    {passage && (
+                    {paras.length > 0 && (
                       <div className="qg-print-passage qg-print-passage-block">
-                        {passage}
+                        {paras.map((p, pi) => (
+                          <p key={pi} className="qg-print-passage-p">
+                            {p}
+                          </p>
+                        ))}
                       </div>
                     )}
                     {extra ? (

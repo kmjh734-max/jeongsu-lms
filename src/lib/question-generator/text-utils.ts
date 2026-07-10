@@ -19,3 +19,24 @@ export function cleanQuestionText(text: string): string {
 export function normalizePassage(text: string): string {
   return (text || "").replace(/\s+/g, " ").trim();
 }
+
+/**
+ * 복사·붙여넣기 시 생긴 어색한 줄바꿈을 풀어 A4 폭에 맞게 자연스럽게 흐르게 함.
+ * 빈 줄(문단)만 유지하고, 한 줄 개행은 공백으로 합침.
+ */
+export function reflowPassageForPrint(text: string): string[] {
+  const raw = (text || "").replace(/\r\n/g, "\n").trim();
+  if (!raw) return [];
+  return raw
+    .split(/\n\s*\n+/)
+    .map((para) =>
+      para
+        .split(/\n/)
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .filter(Boolean);
+}
