@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -73,6 +74,7 @@ export function GenerationDetailClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Partial<QuestionRow>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
+  const router = useRouter();
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/question-generator/jobs/${jobId}`);
@@ -88,6 +90,19 @@ export function GenerationDetailClient({
   useEffect(() => {
     void load();
   }, [load]);
+
+  // 대기·실패 + 문항 0 → 생성 화면(지문·유형)으로
+  useEffect(() => {
+    if (!job) return;
+    const empty =
+      (job.status === "pending" || job.status === "failed") &&
+      (job.total_completed ?? 0) === 0 &&
+      questions.length === 0;
+    if (!empty) return;
+    router.replace(
+      `${basePath}/new?fromJob=${encodeURIComponent(jobId)}`
+    );
+  }, [job, questions.length, basePath, jobId, router]);
 
   useEffect(() => {
     if (!job) return;

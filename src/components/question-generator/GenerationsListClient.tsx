@@ -72,8 +72,28 @@ function passageCount(j: JobRow): number {
   return 1;
 }
 
+function viewHref(basePath: string, j: JobRow): string {
+  const noResults =
+    (j.status === "pending" || j.status === "failed") &&
+    (j.total_completed ?? 0) === 0;
+  if (noResults) {
+    return `${basePath}/new?fromJob=${encodeURIComponent(j.id)}`;
+  }
+  return `${basePath}/generations/${j.id}`;
+}
+
 function shortId(id: string): string {
   return id.replace(/-/g, "").slice(0, 6).toUpperCase();
+}
+
+function viewHref(basePath: string, j: JobRow): string {
+  const noResults =
+    (j.status === "pending" || j.status === "failed") &&
+    (j.total_completed ?? 0) === 0;
+  if (noResults) {
+    return `${basePath}/new?fromJob=${encodeURIComponent(j.id)}`;
+  }
+  return `${basePath}/generations/${j.id}`;
 }
 
 export function GenerationsListClient({ basePath }: { basePath: string }) {
@@ -366,7 +386,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                     </td>
                     <td>
                       <Link
-                        href={`${basePath}/generations/${j.id}`}
+                        href={viewHref(basePath, j)}
                         className="font-medium text-slate-900 hover:text-brand-700 hover:underline"
                       >
                         {title}
@@ -404,7 +424,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                     <td>
                       <div className="flex flex-wrap gap-2">
                         <Link
-                          href={`${basePath}/generations/${j.id}`}
+                          href={viewHref(basePath, j)}
                           className="text-sm text-brand-700 hover:underline"
                         >
                           보기

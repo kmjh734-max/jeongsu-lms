@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -89,6 +90,10 @@ export function QuestionGeneratorClient({
     done?: boolean;
   } | null>(null);
   const pdfOpenedForJob = useRef<string | null>(null);
+  const searchParams = useSearchParams();
+  const fromJobId = searchParams.get("fromJob");
+  const fromJobLoaded = useRef(false);
+  const skipDirtyOnce = useRef(false);
 
   const filledPassages = useMemo(
     () => passages.filter((p) => p.text.trim()),
@@ -135,6 +140,63 @@ export function QuestionGeneratorClient({
   }, []);
 
   useEffect(() => {
+    if (!fromJobId || fromJobLoaded.current) return;
+    fromJobLoaded.current = true;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/question-generator/jobs/${fromJobId}`);
+        const d = await res.json();
+        if (!d.ok || cancelled) {
+          if (!cancelled) setError(d.message ?? "자료를 불러오지 못했습니다.");
+          return;
+        }
+        const cfg = (d.job?.request_config ?? {}) as GenerationRequestConfig;
+        setTitle((cfg.title ?? "").trim() || "");
+        setSchoolName(cfg.schoolName ?? "");
+        setGrade(cfg.grade || "고1");
+        setSourceType(cfg.sourceType || "모의고사");
+        setSourceDetail(cfg.sourceDetail ?? "");
+        setOverallDifficulty(cfg.overallDifficulty || "내신");
+        setCounts(sanitizeCounts(cfg.counts, MAX_SETS_PER_TYPE));
+        if (cfg.presetId) setModeTab(`preset:${cfg.presetId}`);
+        else setModeTab("custom");
+
+        const list = Array.isArray(cfg.passages) ? cfg.passages : [];
+        const loaded: PassageInput[] = list
+          .map((p) => ({
+            clientId: p.clientId || emptyPassageInput().clientId,
+            title: p.title ?? "",
+            sourceDetail: p.sourceDetail ?? "",
+            text: (p.text ?? "").trim(),
+          }))
+          .filter((p) => p.text);
+        if (loaded.length === 0 && (cfg.passage ?? "").trim()) {
+          loaded.push({
+            ...emptyPassageInput(),
+            text: cfg.passage.trim(),
+            title: cfg.title ?? "",
+            sourceDetail: cfg.sourceDetail ?? "",
+          });
+        }
+        setPassages(loaded.length > 0 ? loaded : [emptyPassageInput()]);
+        skipDirtyOnce.current = true;
+        setDirty(false);
+        setMessage("복사한 자료의 지문·유형 설정을 불러왔습니다. 확인 후 생성하세요.");
+      } catch {
+        if (!cancelled) setError("자료를 불러오지 못했습니다.");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fromJobId]);
+
+  useEffect(() => {
+    if (skipDirtyOnce.current) {
+      skipDirtyOnce.current = false;
+      return;
+    }
     setDirty(true);
   }, [config]);
 
