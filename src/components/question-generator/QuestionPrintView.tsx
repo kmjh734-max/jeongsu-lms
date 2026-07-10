@@ -7,6 +7,7 @@ import {
   paginateExamQuestions,
   type ExamPageLayout,
 } from "@/lib/listening/paginate-exam-questions";
+import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   cleanQuestionText,
   normalizePassage,
@@ -31,6 +32,16 @@ const CIRCLED = ["①", "②", "③", "④", "⑤"];
 const COL_WIDTH_MM = 88;
 const QUESTION_GAP_PX = 14;
 const COLUMN_SAFETY_PX = 12;
+const BRANDING_STORAGE_KEY = "qg-print-branding";
+
+type PrintBranding = {
+  headerKicker: string;
+  headerTitle: string;
+  headerSub: string;
+  footerLeft: string;
+  footerRight: string;
+  showLogo: boolean;
+};
 
 function formatAnswer(a: unknown): string {
   if (Array.isArray(a)) return a.join(" / ");
@@ -56,57 +67,13 @@ function questionPassage(q: QuestionRow): string {
   return orig || mod;
 }
 
-function buildClipboardText(
-  mode: "exam" | "answers",
-  title: string,
-  grade: string,
-  sourceDetail: string,
-  questions: QuestionRow[]
-): string {
-  if (mode === "answers") {
-    const lines: string[] = [
-      grade ? `${grade} 해설지` : "해설지",
-      title,
-      "",
-    ];
-    questions.forEach((q, i) => {
-      lines.push(`${padNo(i + 1)}  ${formatAnswer(q.correct_answer)}`);
-      lines.push(q.explanation);
-      lines.push("");
-    });
-    return lines.join("\n");
-  }
-
-  const bannerNo = extractBannerNo(sourceDetail);
-  const lines: string[] = [
-    grade ? `${grade} 변형문제` : "변형문제",
-    title,
-    sourceDetail,
-    "",
-  ];
-  if (bannerNo) lines.push(`┃3월 ${bannerNo}번┃`, "");
-
-  questions.forEach((q, i) => {
-    const extra = cleanQuestionText(q.question_text);
-    lines.push(`${padNo(i + 1)}  ${q.instruction}`);
-    const paras = reflowPassageForPrint(questionPassage(q));
-    if (paras.length) lines.push(paras.join("\n\n"));
-    if (extra) lines.push(extra);
-    if (q.choices?.length) {
-      for (const c of q.choices) {
-        lines.push(`${CIRCLED[c.number - 1] ?? c.number}  ${c.text}`);
-      }
-    }
-    lines.push("");
-  });
-  return lines.join("\n");
-}
-
 function parseBogiLines(text: string): string[] {
   const cleaned = cleanQuestionText(text).trim();
   if (!cleaned) return [];
-  // (1) ... (2) ... 또는 줄바꿈 단위
-  const parts = cleaned.split(/(?=\(\d+\))/).map((s) => s.trim()).filter(Boolean);
+  const parts = cleaned
+    .split(/(?=\(\d+\))/)
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (parts.length >= 2) return parts;
   return cleaned.split(/\n+/).map((s) => s.trim()).filter(Boolean);
 }
@@ -204,6 +171,16 @@ function AnswerBlock({
   );
 }
 
+function loadStoredBranding(): Partial<PrintBranding> | null {
+  try {
+    const raw = localStorage.getItem(BRANDING_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as Partial<PrintBranding>;
+  } catch {
+    return null;
+  }
+}
+
 export function QuestionPrintView({
   jobId,
   backHref,
@@ -219,9 +196,17 @@ export function QuestionPrintView({
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pages, setPages] = useState<ExamPageLayout[]>([]);
+  const [branding, setBranding] = useState<PrintBranding>({
+    headerKicker: ACADEMY_NAME,
+    headerTitle: "",
+    headerSub: "",
+    footerLeft: ACADEMY_NAME,
+    footerRight: "영어 변형문제",
+    showLogo: true,
+  });
+  const [brandingReady, setBrandingReady] = useState(false);
   const measureRef = useRef<HTMLDivElement>(null);
   const printedRef = useRef(false);
 
@@ -233,39 +218,57 @@ export function QuestionPrintView({
       return;
     }
     const job = data.job;
-    setTitle(
+    const nextTitle =
       job?.request_config?.title ||
-        job?.english_source_passages?.title ||
-        "영어 변형문제"
-    );
-    setGrade(
-      job?.request_config?.grade || job?.english_source_passages?.grade || ""
-    );
-    setSourceDetail(
+      job?.english_source_passages?.title ||
+      "영어 변형문제";
+    const nextGrade =
+      job?.request_config?.grade || job?.english_source_passages?.grade || "";
+    const nextDetail =
       job?.request_config?.sourceDetail ||
-        job?.english_source_passages?.source_detail ||
-        ""
-    );
+      job?.english_source_passages?.source_detail ||
+      "";
+    setTitle(nextTitle);
+    setGrade(nextGrade);
+    setSourceDetail(nextDetail);
     setQuestions(data.questions ?? []);
-  }, [jobId]);
+
+    setBranding((prev) => {
+      const stored = typeof window !== "undefined" ? loadStoredBranding() : null;
+      const kind = mode === "answers" ? "해설지" : "변형문제";
+      return {
+        headerKicker:
+          stored?.headerKicker ??
+          prev.headerKicker ??
+          `${ACADEMY_NAME}${nextGrade ? ` · ${nextGrade}` : ""}`,
+        headerTitle: stored?.headerTitle || nextTitle,
+        headerSub: stored?.headerSub ?? nextDetail,
+        footerLeft: stored?.footerLeft ?? ACADEMY_NAME,
+        footerRight: stored?.footerRight ?? `영어 ${kind}`,
+        showLogo: stored?.showLogo ?? true,
+      };
+    });
+    setBrandingReady(true);
+  }, [jobId, mode]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const isMainIdeaSheet = useMemo(() => {
-    if (questions.length === 0) return false;
-    const mainTypes = new Set(["topic", "title", "summary_mcq"]);
-    const mainCount = questions.filter((q) =>
-      mainTypes.has(q.question_type || "")
-    ).length;
-    return mainCount >= Math.ceil(questions.length * 0.6);
-  }, [questions]);
+  useEffect(() => {
+    if (!brandingReady) return;
+    try {
+      localStorage.setItem(BRANDING_STORAGE_KEY, JSON.stringify(branding));
+    } catch {
+      /* ignore */
+    }
+  }, [branding, brandingReady]);
 
   const bannerNo = extractBannerNo(sourceDetail);
-  const sheetTitle = mode === "answers" ? `${title} · 해설지` : title;
+  const sheetTitle =
+    branding.headerTitle ||
+    (mode === "answers" ? `${title} · 해설지` : title);
 
-  /** 측정 → A4 2단 페이지 분할 (문제지·해설지 공통) */
   useEffect(() => {
     if (questions.length === 0) {
       setPages([]);
@@ -281,8 +284,9 @@ export function QuestionPrintView({
       });
 
       const mmToPx = (mm: number) => (mm * 96) / 25.4;
-      const firstColMax = mmToPx(250);
-      const nextColMax = mmToPx(258);
+      // 머릿말·꼬릿말 공간 확보
+      const firstColMax = mmToPx(232);
+      const nextColMax = mmToPx(240);
 
       const layouts = paginateExamQuestions(heights, {
         firstColumnMaxPx: firstColMax,
@@ -299,7 +303,7 @@ export function QuestionPrintView({
       window.setTimeout(run, 30);
     });
     return () => window.clearTimeout(t);
-  }, [questions, mode]);
+  }, [questions, mode, branding.headerTitle, branding.headerSub]);
 
   useEffect(() => {
     if (!autoPrint || printedRef.current) return;
@@ -326,44 +330,88 @@ export function QuestionPrintView({
     }, 500);
   }
 
-  async function copyAll() {
-    await navigator.clipboard.writeText(
-      buildClipboardText(mode, title, grade, sourceDetail, questions)
-    );
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+  function patchBranding(patch: Partial<PrintBranding>) {
+    setBranding((prev) => ({ ...prev, ...patch }));
   }
 
-  function renderHeader(compact: boolean) {
-    const kind =
-      mode === "answers"
-        ? "해설지"
-        : isMainIdeaSheet
-          ? "주제·제목"
-          : "변형문제";
+  function resetBranding() {
+    const kind = mode === "answers" ? "해설지" : "변형문제";
+    setBranding({
+      headerKicker: `${ACADEMY_NAME}${grade ? ` · ${grade}` : ""}`,
+      headerTitle: title,
+      headerSub: sourceDetail,
+      footerLeft: ACADEMY_NAME,
+      footerRight: `영어 ${kind}`,
+      showLogo: true,
+    });
+  }
+
+  function renderHeader(compact: boolean, pageIdx: number, totalPages: number) {
     return (
       <header
         className={`qg-print-header ${compact ? "qg-print-header-compact" : ""} ${
           mode === "answers" ? "qg-print-header-answer-sheet" : ""
         }`}
       >
-        <div>
-          <p className="qg-print-kicker">
-            {grade ? `${grade} ${kind}` : kind}
-          </p>
-          {!compact && <h1 className="qg-print-title">{title}</h1>}
-          {!compact && sourceDetail && (
-            <p className="qg-print-sub">{sourceDetail}</p>
+        <div className="qg-print-header-main">
+          {branding.showLogo && (
+            <div className="qg-print-logo-box">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={LOGO_SRC}
+                alt={ACADEMY_NAME}
+                className="qg-print-logo-img"
+              />
+            </div>
           )}
-          {bannerNo && !compact && mode === "exam" && (
-            <p className="qg-print-banner">┃3월 {bannerNo}번┃</p>
-          )}
-          {compact && (
-            <p className="qg-print-title qg-print-title-sm">{title}</p>
-          )}
+          <div className="qg-print-header-text">
+            {branding.headerKicker && (
+              <p className="qg-print-kicker">{branding.headerKicker}</p>
+            )}
+            {!compact && branding.headerTitle && (
+              <h1 className="qg-print-title">{branding.headerTitle}</h1>
+            )}
+            {!compact && branding.headerSub && (
+              <p className="qg-print-sub">{branding.headerSub}</p>
+            )}
+            {bannerNo && !compact && mode === "exam" && (
+              <p className="qg-print-banner">┃3월 {bannerNo}번┃</p>
+            )}
+            {compact && branding.headerTitle && (
+              <p className="qg-print-title qg-print-title-sm">
+                {branding.headerTitle}
+              </p>
+            )}
+          </div>
         </div>
-        <p className="qg-print-meta">{questions.length}문항</p>
+        <div className="qg-print-header-aside">
+          <p className="qg-print-meta">{questions.length}문항</p>
+          <p className="qg-print-page-no">
+            {pageIdx + 1}/{totalPages}
+          </p>
+        </div>
       </header>
+    );
+  }
+
+  function renderFooter() {
+    return (
+      <footer className="qg-print-footer">
+        <div className="qg-print-footer-left">
+          {branding.showLogo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={LOGO_SRC}
+              alt=""
+              className="qg-print-footer-logo"
+            />
+          )}
+          <span>{branding.footerLeft || ACADEMY_NAME}</span>
+        </div>
+        <span className="qg-print-footer-right">
+          {branding.footerRight || "영어 변형문제"}
+        </span>
+      </footer>
     );
   }
 
@@ -388,22 +436,82 @@ export function QuestionPrintView({
           <Link href={backHref} className="text-sm text-slate-700 hover:underline">
             ← 뒤로
           </Link>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" variant="secondary" onClick={() => void copyAll()}>
-              {copied ? "복사됨" : "클립보드 복사"}
-            </Button>
-            <Button type="button" onClick={runPrint}>
-              PDF 저장 / 인쇄
-            </Button>
-          </div>
+          <Button type="button" onClick={runPrint}>
+            PDF 저장 / 인쇄
+          </Button>
         </div>
-        <p className="mx-auto mt-2 max-w-4xl text-xs text-slate-500">
-          A4 2단 · 페이지 단위 분할 · 브라우저에서 PDF로 저장
-          {mode === "answers" ? " (해설지)" : ""}
-        </p>
+
+        <div className="mx-auto mt-3 max-w-4xl rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-slate-700">
+              머릿말 · 꼬릿말 (인쇄에 반영)
+            </p>
+            <button
+              type="button"
+              className="text-xs text-brand-700 hover:underline"
+              onClick={resetBranding}
+            >
+              기본값으로
+            </button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="block text-xs text-slate-600">
+              머릿말 상단
+              <input
+                className="ui-input mt-1 py-1.5 text-sm"
+                value={branding.headerKicker}
+                onChange={(e) => patchBranding({ headerKicker: e.target.value })}
+                placeholder={ACADEMY_NAME}
+              />
+            </label>
+            <label className="block text-xs text-slate-600">
+              머릿말 제목
+              <input
+                className="ui-input mt-1 py-1.5 text-sm"
+                value={branding.headerTitle}
+                onChange={(e) => patchBranding({ headerTitle: e.target.value })}
+                placeholder="자료 제목"
+              />
+            </label>
+            <label className="block text-xs text-slate-600 sm:col-span-2">
+              머릿말 부제
+              <input
+                className="ui-input mt-1 py-1.5 text-sm"
+                value={branding.headerSub}
+                onChange={(e) => patchBranding({ headerSub: e.target.value })}
+                placeholder="출처·설명"
+              />
+            </label>
+            <label className="block text-xs text-slate-600">
+              꼬릿말 왼쪽
+              <input
+                className="ui-input mt-1 py-1.5 text-sm"
+                value={branding.footerLeft}
+                onChange={(e) => patchBranding({ footerLeft: e.target.value })}
+                placeholder={ACADEMY_NAME}
+              />
+            </label>
+            <label className="block text-xs text-slate-600">
+              꼬릿말 오른쪽
+              <input
+                className="ui-input mt-1 py-1.5 text-sm"
+                value={branding.footerRight}
+                onChange={(e) => patchBranding({ footerRight: e.target.value })}
+                placeholder="영어 변형문제"
+              />
+            </label>
+          </div>
+          <label className="mt-2 flex items-center gap-2 text-xs text-slate-700">
+            <input
+              type="checkbox"
+              checked={branding.showLogo}
+              onChange={(e) => patchBranding({ showLogo: e.target.checked })}
+            />
+            학원 로고 표시 (머릿말·꼬릿말)
+          </label>
+        </div>
       </div>
 
-      {/* 측정용 (숨김) */}
       <div
         ref={measureRef}
         aria-hidden
@@ -431,7 +539,7 @@ export function QuestionPrintView({
                 : "qg-print-page-last"
             }`}
           >
-            {renderHeader(pageIdx > 0)}
+            {renderHeader(pageIdx > 0, pageIdx, sheetPages.length)}
             <div className="qg-print-cols">
               <div className="qg-print-col">
                 {page.left.map((qi) => {
@@ -456,6 +564,7 @@ export function QuestionPrintView({
                 })}
               </div>
             </div>
+            {renderFooter()}
           </article>
         ))}
       </div>
