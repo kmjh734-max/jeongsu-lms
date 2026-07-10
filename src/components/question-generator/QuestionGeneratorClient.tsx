@@ -449,10 +449,10 @@ export function QuestionGeneratorClient({
         description="왼쪽에서 유형 세트 수를 고르고, 오른쪽에 지문을 여러 개 넣으면 지문마다 같은 유형으로 생성됩니다."
         action={
           <Link
-            href={`${basePath}/generations`}
+            href={basePath}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
           >
-            생성 기록
+            ← 내 자료
           </Link>
         }
       />
@@ -477,10 +477,10 @@ export function QuestionGeneratorClient({
                 </div>
               </div>
               <Link
-                href={`${basePath}/generations`}
+                href={basePath}
                 className="shrink-0 rounded-lg border border-brand-300 bg-white px-3 py-2 text-xs font-medium text-brand-800"
               >
-                기록으로
+                내 자료로
               </Link>
             </div>
           ) : (

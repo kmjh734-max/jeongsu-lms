@@ -1,5 +1,5 @@
-import { GenerationsListClient } from "@/components/question-generator/GenerationsListClient";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return <GenerationsListClient basePath="/admin/question-generator" />;
+export default function AdminGenerationsRedirect() {
+  redirect("/admin/question-generator");
 }

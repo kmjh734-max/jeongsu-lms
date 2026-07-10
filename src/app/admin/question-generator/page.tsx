@@ -1,7 +1,5 @@
-import { QuestionGeneratorClient } from "@/components/question-generator/QuestionGeneratorClient";
+import { GenerationsListClient } from "@/components/question-generator/GenerationsListClient";
 
 export default function AdminQuestionGeneratorPage() {
-  return (
-    <QuestionGeneratorClient role="admin" basePath="/admin/question-generator" />
-  );
+  return <GenerationsListClient basePath="/admin/question-generator" />;
 }
