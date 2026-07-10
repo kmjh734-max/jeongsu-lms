@@ -5,8 +5,8 @@ import type {
 } from "@/lib/question-generator/types";
 
 /**
- * 서울시 학력평가 예상문제 + 아잉카 모의 변형 유형
- * 발문: 「윗글의 …」 / 태그: [202603H1_18목적추론_변형]
+ * 고1 학력평가 수준의 변형 유형
+ * 발문: 「윗글의 …」 / 태그: [202603H1_22요지추론_변형]
  */
 function opt(
   type: QuestionTypeOption["type"],

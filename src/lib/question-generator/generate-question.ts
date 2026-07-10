@@ -70,7 +70,7 @@ function typeRules(option: QuestionTypeOption): string {
     case "short_topic":
       return `Short constructed response. Put model answer in correctAnswer (string). Include scoringGuide if helpful.`;
     default:
-      return `Follow Seoul 학력평가 + Aingka mock-exam variation style.`;
+      return `Follow Korean high-school 학력평가 mock-exam variation style (고1 level).`;
   }
 }
 
@@ -109,7 +109,7 @@ function normalizePayload(
     | number[];
   if (correctAnswer == null) correctAnswer = 1;
 
-  // 아잉카: questionText 앞에 태그 저장 (인쇄용)
+  // 인쇄용 메타 태그 (유형 코드)
   const body = String(raw.questionText ?? "").trim();
   const questionText = body.startsWith("[")
     ? body
@@ -188,7 +188,7 @@ export async function generateOneQuestion(opts: {
 
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: `You are an expert Korean high-school English exam writer.
-Target level & style: 서울특별시교육청 학력평가 예상문제 (고1 3월) + 아잉카 모의 변형.
+Target level & style: 서울특별시교육청 학력평가 예상문제 (고1 3월) 수준의 변형문제.
 Return ONLY valid JSON for ONE question.
 CRITICAL RULES:
 - instruction MUST be exactly: ${JSON.stringify(forcedInstruction)}
