@@ -22,14 +22,32 @@ function typeRules(option: QuestionTypeOption): string {
         ? `5 ENGLISH factual choices. Ask which DOES match the passage. Exactly one true.`
         : `5 Korean choices. Ask which IS true. Exactly one true.`;
     case "topic":
-      return `5 ENGLISH topic phrases (noun phrases, not full sentences). Exactly one correct. Cover the WHOLE passage. Distractors: partial, too narrow, opposite, or off-topic.`;
+      return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct. Difficulty: ${
+        option.difficulty === "low"
+          ? "LOW (하) — clearer correct answer, weaker distractors"
+          : option.difficulty === "high"
+            ? "HIGH (상) — competitive distractors, nuanced"
+            : "standard"
+      }.`;
     case "title":
-      return `5 ENGLISH title options (Title Case, concise). Exactly one correct. Distractors: too narrow, too broad, misleading, or opposite.`;
+      return `${en ? "5 ENGLISH Title Case titles" : "5 Korean titles"}. Exactly one correct. Difficulty: ${
+        option.difficulty === "low"
+          ? "LOW (하) — clearer correct answer, weaker distractors"
+          : option.difficulty === "high"
+            ? "HIGH (상) — competitive distractors, nuanced"
+            : "standard"
+      }.`;
     case "summary_mcq":
       if (code === "요약문추론") {
         return `Create a one-sentence Korean summary with blanks (A) and (B). 5 choices as word pairs like ① success …… effort. Exactly one correct.`;
       }
-      return `5 Korean choices for the main point (요지). Exactly one correct.`;
+      return `5 Korean choices for the main point (요지). Exactly one correct. Difficulty: ${
+        option.difficulty === "low"
+          ? "LOW (하)"
+          : option.difficulty === "high"
+            ? "HIGH (상)"
+            : "standard"
+      }.`;
     case "sentence_blank":
       if (code === "연결어빈칸") {
         return `In passageModified put discourse blanks (A) and (B). 5 ENGLISH pair choices like "However …… Therefore". Exactly one correct.`;

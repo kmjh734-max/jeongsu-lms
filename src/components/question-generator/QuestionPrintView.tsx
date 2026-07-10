@@ -190,7 +190,7 @@ export function QuestionPrintView({
           {mode === "answers"
             ? "해설지 · 브라우저에서 PDF로 저장"
             : isMainIdeaSheet
-              ? "대의파악 양식 · 문항마다 발문 → 지문(상) → 선택지(하)"
+              ? "대의파악 · 문항마다 발문·지문·선택지"
               : "문제지 · 문항마다 상하 구성"}
         </p>
       </div>

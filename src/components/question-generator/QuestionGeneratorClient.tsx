@@ -260,7 +260,7 @@ export function QuestionGeneratorClient({
     <div className="pb-28">
       <PageHeader
         title="영어 변형문제 생성"
-        description="주제·제목은 지문(상)+영어 선택지(하) PDF로 나갑니다. 생성 후 문제·해설지 PDF를 바로 받을 수 있습니다."
+        description="대의파악은 제목·주제별로 (영/한)×(하/상) 난이도를 고를 수 있습니다. 생성 후 문제·해설지 PDF를 바로 받습니다."
         action={
           <div className="flex flex-wrap gap-2">
             <Link
@@ -497,115 +497,186 @@ export function QuestionGeneratorClient({
               </button>
               {open && (
                 <div className="border-t border-slate-100 px-4 py-3">
-                  {isMainIdea && (
-                    <div className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                      <p className="border-b border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-brand-800">
-                        PDF 출력 양식 (상하 구분) · 주제·제목은 영어 선택지
+                  {isMainIdea ? (
+                    <div className="space-y-4">
+                      <p className="text-xs text-slate-500">
+                        난이도 <strong>하</strong>(쉬움 · 0.5p) /{" "}
+                        <strong>상</strong>(어려움 · 1p) · (영)=영어 선택지 ·
+                        (한)=한글 선택지
                       </p>
-                      <div className="grid gap-0 sm:grid-cols-2">
-                        <div className="border-b border-slate-200 p-3 sm:border-b-0 sm:border-r">
-                          <p className="text-[11px] font-bold text-slate-500">
-                            上 · 지문
+                      {(
+                        [
+                          {
+                            rowLabel: "제목 세트 수",
+                            keys: [
+                              "title:en:low:제목추론",
+                              "title:en:high:제목추론",
+                              "title:ko:low:제목추론",
+                              "title:ko:high:제목추론",
+                            ],
+                          },
+                          {
+                            rowLabel: "주제 세트 수",
+                            keys: [
+                              "topic:en:low:주제추론",
+                              "topic:en:high:주제추론",
+                              "topic:ko:low:주제추론",
+                              "topic:ko:high:주제추론",
+                            ],
+                          },
+                          {
+                            rowLabel: "요지 세트 수",
+                            keys: [
+                              "summary_mcq:ko:low:요지추론",
+                              "summary_mcq:ko:high:요지추론",
+                            ],
+                          },
+                          {
+                            rowLabel: "요약문완성 세트 수",
+                            keys: ["summary_mcq:ko:default:요약문추론"],
+                          },
+                        ] as const
+                      ).map((row) => (
+                        <div key={row.rowLabel}>
+                          <p className="mb-2 text-sm font-semibold text-slate-800">
+                            {row.rowLabel}
                           </p>
-                          <p className="mt-1 font-serif text-[11px] leading-relaxed text-slate-700">
-                            We have biases that support our biases! If we&apos;re
-                            partial to one option…
-                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {row.keys.map((key) => {
+                              const opt = group.options.find((o) => o.key === key);
+                              if (!opt) return null;
+                              const pts =
+                                opt.difficulty === "low"
+                                  ? "0.5p/지문"
+                                  : "1p/지문";
+                              return (
+                                <div
+                                  key={key}
+                                  className="flex min-w-[140px] flex-1 flex-col gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 sm:max-w-[180px]"
+                                >
+                                  <span className="text-sm font-medium text-slate-900">
+                                    {opt.label}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500">
+                                    {pts}
+                                  </span>
+                                  <div className="mt-1 flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
+                                      onClick={() =>
+                                        setCount(key, (counts[key] ?? 0) - 1)
+                                      }
+                                    >
+                                      −
+                                    </button>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      max={MAX_SETS_PER_TYPE}
+                                      className="ui-input w-12 py-1 text-center"
+                                      value={counts[key] ?? 0}
+                                      onChange={(e) =>
+                                        setCount(key, Number(e.target.value))
+                                      }
+                                    />
+                                    <button
+                                      type="button"
+                                      className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
+                                      onClick={() =>
+                                        setCount(key, (counts[key] ?? 0) + 1)
+                                      }
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                        <div className="p-3">
-                          <p className="text-[11px] font-bold text-slate-500">
-                            下 · 선택지
-                          </p>
-                          <p className="mt-1 text-[11px] font-medium text-slate-800">
-                            윗글의 주제로 알맞은 것은?
-                          </p>
-                          <ul className="mt-1 space-y-0.5 text-[11px] text-slate-600">
-                            <li>① Evaluating candidates through intuition</li>
-                            <li>② Understanding confirmation bias in hiring</li>
-                            <li>③ Why first impressions are always right</li>
-                          </ul>
-                        </div>
+                      ))}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => applySystemPreset("main_idea_focus")}
+                        >
+                          제목·주제 (영)상 1씩
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => applySystemPreset("main_idea_full")}
+                        >
+                          대의 전체 넣기
+                        </Button>
                       </div>
                     </div>
-                  )}
-                  <div className="grid gap-2 lg:grid-cols-2">
-                    {group.options.map((opt) => (
-                      <div
-                        key={opt.key}
-                        className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50/80 px-2 py-1.5"
-                      >
-                        <span className="min-w-0 flex-1 text-sm text-slate-800">
-                          {opt.label}
-                        </span>
-                        <button
-                          type="button"
-                          className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
-                          title={opt.preview}
-                          onClick={() =>
-                            setPreviewKey(
-                              previewKey === opt.key ? null : opt.key
-                            )
-                          }
-                        >
-                          미리보기
-                        </button>
-                        <button
-                          type="button"
-                          className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
-                          onClick={() =>
-                            setCount(opt.key, (counts[opt.key] ?? 0) - 1)
-                          }
-                        >
-                          −
-                        </button>
-                        <input
-                          type="number"
-                          min={0}
-                          max={MAX_SETS_PER_TYPE}
-                          className="ui-input w-14 py-1 text-center"
-                          value={counts[opt.key] ?? 0}
-                          onChange={(e) =>
-                            setCount(opt.key, Number(e.target.value))
-                          }
-                        />
-                        <button
-                          type="button"
-                          className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
-                          onClick={() =>
-                            setCount(opt.key, (counts[opt.key] ?? 0) + 1)
-                          }
-                        >
-                          +
-                        </button>
+                  ) : (
+                    <>
+                      <div className="grid gap-2 lg:grid-cols-2">
+                        {group.options.map((opt) => (
+                          <div
+                            key={opt.key}
+                            className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50/80 px-2 py-1.5"
+                          >
+                            <span className="min-w-0 flex-1 text-sm text-slate-800">
+                              {opt.label}
+                            </span>
+                            <button
+                              type="button"
+                              className="rounded border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
+                              title={opt.preview}
+                              onClick={() =>
+                                setPreviewKey(
+                                  previewKey === opt.key ? null : opt.key
+                                )
+                              }
+                            >
+                              미리보기
+                            </button>
+                            <button
+                              type="button"
+                              className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
+                              onClick={() =>
+                                setCount(opt.key, (counts[opt.key] ?? 0) - 1)
+                              }
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              min={0}
+                              max={MAX_SETS_PER_TYPE}
+                              className="ui-input w-14 py-1 text-center"
+                              value={counts[opt.key] ?? 0}
+                              onChange={(e) =>
+                                setCount(opt.key, Number(e.target.value))
+                              }
+                            />
+                            <button
+                              type="button"
+                              className="h-8 w-8 rounded border border-slate-200 bg-white text-slate-700"
+                              onClick={() =>
+                                setCount(opt.key, (counts[opt.key] ?? 0) + 1)
+                              }
+                            >
+                              +
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  {previewKey &&
-                    group.options.some((o) => o.key === previewKey) && (
-                      <p className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900">
-                        {
-                          group.options.find((o) => o.key === previewKey)
-                            ?.preview
-                        }
-                      </p>
-                    )}
-                  {isMainIdea && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => applySystemPreset("main_idea_focus")}
-                      >
-                        주제·제목 1세트씩 넣기
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => applySystemPreset("main_idea_full")}
-                      >
-                        대의 4유형 넣기
-                      </Button>
-                    </div>
+                      {previewKey &&
+                        group.options.some((o) => o.key === previewKey) && (
+                          <p className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-900">
+                            {
+                              group.options.find((o) => o.key === previewKey)
+                                ?.preview
+                            }
+                          </p>
+                        )}
+                    </>
                   )}
                 </div>
               )}
