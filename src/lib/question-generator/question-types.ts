@@ -522,7 +522,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "default",
         null,
         false,
-        "ⓐ 빈칸 · 어형 변화 없이 단어 배열",
+        "어법서술형 GP 기반 · 중요 문장 · 어형 고정 배열",
         "제시어배열기본",
         "다음 글의 흐름에 맞게, 밑줄 친 ⓐ의 우리말 해석에 맞도록 <보기>의 단어들을 알맞게 배열하여 문장을 완성하시오."
       ),
@@ -533,7 +533,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "default",
         null,
         false,
-        "ⓐ 빈칸 · 필요 시 어형 변화 허용",
+        "어법서술형 GP 기반 · 중요 문장 · 필요 시 어형 변화",
         "제시어배열어형변화",
         "다음 <해석>의 우리말 문장과 같은 뜻이 되도록 <보기>의 표현만을 모두 한 번씩 사용하여 주어진 문장을 완성하시오."
       ),
@@ -544,7 +544,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "default",
         null,
         false,
-        "ⓐ 빈칸 · 단어 추가·어형 변화 허용",
+        "어법서술형 GP 기반 · 중요 문장 · 단어 추가·어형 변화",
         "제시어배열단어추가",
         "다음 글의 흐름과 밑줄 친 ⓐ의 우리말 해석에 맞도록 <보기>의 단어를 활용하여 문장을 완성하시오."
       ),

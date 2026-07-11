@@ -24,6 +24,11 @@ import type {
   GeneratedQuestionPayload,
   PassageAnalysis,
 } from "@/lib/question-generator/types";
+import {
+  pickWordOrderFocus,
+  wordOrderCatalogBrief,
+  type WordOrderMode,
+} from "@/lib/question-generator/word-order-catalog";
 
 /** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
 export class SkipQuestionError extends Error {
@@ -335,66 +340,60 @@ ${choiceExplanationRules()}
       }
       return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
     case "writing": {
-      if (code === "제시어배열기본") {
-        return `서술형 · 제시어 배열 [기본] (수특·내신형):
-- passageModified = 영어 지문. 흐름상 중요한 한 곳에 빈칸 ⓐ__________ (또는 ⓐ ________________).
-- 빈칸에 들어갈 문장/절은 지문 흐름과 자연스럽게 이어져야 함.
-- questionText 형식(필수, 이 순서·태그 유지):
+      if (
+        code === "제시어배열기본" ||
+        code === "제시어배열어형변화" ||
+        code === "제시어배열단어추가"
+      ) {
+        const mode: WordOrderMode =
+          code === "제시어배열기본"
+            ? "basic"
+            : code === "제시어배열어형변화"
+              ? "inflect"
+              : "add";
+        const { focusBlock, point, c } = pickWordOrderFocus(mode);
+        const catalog = wordOrderCatalogBrief();
+        const modeRules =
+          mode === "basic"
+            ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용 / 어형을 변화시키지 말 것
+- <보기>: 이미 정답에 쓸 형태 그대로 (변화 불필요). 8~12개
+- correctAnswer = <보기> 단어만 어형 변화 없이 배열한 결과`
+            : mode === "inflect"
+              ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 어형 변화
+- <보기>: 원형·기본형 위주 (교재 ‘필요 시 어형 변화 가능’형)
+- correctAnswer = 어형 변화를 적용한 완성 영어 (예: ${c.example})`
+              : `- <조건>: 단어 중복·어형 변화 가능 / <보기>에 없는 단어 추가 가능 (교재 ‘한 단어 추가’·긴 영작형)
+- <보기>: 핵심 어휘 6~10개
+- correctAnswer = 관사·전치사·접속사 추가·어형 변화 포함한 완성문 (예: ${c.example})`;
+
+        return `서술형 · 제시어 배열 — 『고등영어 어법서술형』 반영
+${focusBlock}
+
+형식 (수특·내신·교재 서술형 연습 동형):
+- passageModified = 영어 지문. 위 CASE에 맞는 **중요 문장/절** 한 곳을 ⓐ__________ 빈칸으로.
+  · 지문의 핵심 주장·결과·정의·조건 등 ‘중요 문장’을 대상으로 할 것 (사소한 연결 문장 금지).
+  · 필요하면 그 문장만 교재 구문에 맞게 다듬어 빈칸화 (나머지 지문은 유지).
+- questionText 형식(필수, 태그·순서 유지):
 <조건>
-○ 주어진 단어를 모두 한 번씩만 사용할 것
-○ 어형을 변화시키지 말 것
+(모드 규칙에 맞는 ○ 조건 1~2줄)
 
 <보기>
-word1 / word2 / word3 / … (8~12개, 정답 문장을 섞은 단어·기능어)
+word1 / word2 / …
 
 <해석>
-(빈칸 문장의 자연스러운 한국어 해석 한 문장)
+(빈칸 정답의 자연스러운 한국어 한 문장)
 
-- correctAnswer = 빈칸에 들어갈 영어 정답 전문 (어형 변화 없이 <보기> 단어만 배열한 결과).
-- acceptableAnswers: 구두점·대소문자만 다른 허용 답 있으면 배열.
-- choices 없음.
-- explanation 한글: 정답 문장 + 배열 포인트(어순·전치사 등) 1~2문장.
-- 금지: 어형 변화 필요한 정답, <보기>에 없는 단어 사용.`;
-      }
-      if (code === "제시어배열어형변화") {
-        return `서술형 · 제시어 배열 [어형변화 허용] (수특·내신형):
-- passageModified = 영어 지문 + 빈칸 ⓐ________ (문장 일부 또는 절).
-- questionText 형식:
-<조건>
-○ 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 단어의 어형을 변화시킬 것
+${modeRules}
+- acceptableAnswers: 구두점·대소문자만 다른 허용 답
+- choices 없음
+- explanation 한글: 정답 문장 + GP${String(point.point).padStart(2, "0")} ${c.koLabel} 포인트 (${c.koTip})
+- 금지: 이번 POINT와 무관한 단순 SVO만 반복, 지문과 무관한 새 주제 문장
 
-<보기>
-word1 / word2 / … (원형·기본형 위주; 정답에서 followed/testing 등으로 변화)
-
-<해석>
-(빈칸에 해당하는 한국어 해석)
-
-- correctAnswer = 어형 변화를 적용한 완성 영어 (예: must be followed by testing that confirms or disproves).
-- 모든 <보기> 단어를 한 번씩 사용(변화된 형태 포함).
-- explanation 한글: 정답 + 어떤 어형을 어떻게 바꿨는지.
-- choices 없음.`;
-      }
-      if (code === "제시어배열단어추가") {
-        return `서술형 · 제시어 배열 [단어 추가·변화 허용] (수특·내신형):
-- passageModified = 영어 지문 + 빈칸 ⓐ________ (비교적 긴 문장 가능).
-- questionText 형식:
-<조건>
-○ 주어진 단어는 필요할 경우 두 번 이상 사용하거나 어형을 변화시킬 수 있음
-○ <보기>에 없는 단어를 추가해도 됨
-
-<보기>
-핵심 어휘 6~10개 (가설·동사 원형 등)
-
-<해석>
-(빈칸 전체 문장의 한국어 해석 — 다소 긴 복문 OK)
-
-- correctAnswer = 완성 영어 문장/절 (관사·전치사·접속사 추가·어형 변화 포함).
-- <보기> 핵심어는 의미상 반영. 추가 기능어·변화 허용.
-- explanation 한글: 정답 + 구조 포인트(not A but B, 수동 등).
-- choices 없음.`;
+${catalog}`;
       }
       return `Korean prompt + <조건> + given words in questionText. Model English answer in correctAnswer. passageModified optional.`;
-    }    case "summary_short":
+    }
+    case "summary_short":
     case "short_title":
     case "short_topic":
       return `Short constructed response. Model answer in correctAnswer.`;
@@ -893,7 +892,7 @@ export async function generateOneQuestion(opts: {
         ? option.type === "sentence_insertion"
           ? "Fill questionText with the ENGLISH given sentence to insert."
           : isWordOrder
-            ? "Fill questionText with <조건>, <보기>, <해석> blocks exactly as type rules."
+            ? "Fill questionText with <조건>, <보기>, <해석>. Blank = IMPORTANT passage sentence reflecting the sampled GRAMMAR POINT (not a trivial SVO)."
             : option.type === "content_count"
               ? "Fill questionText with (1)(2)… statements."
               : "Fill questionText with <조건>/<보기> as needed."
