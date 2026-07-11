@@ -170,7 +170,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
         return;
       }
       setMessage(
-        `${data.copied}개 자료를 복사했습니다. 필요하면 「재생성」을 눌러 주세요.`
+        `${data.copied}개 자료를 복사했습니다. 「보기」에서 확인 후 생성하면 그 자료에 바로 만들어집니다.`
       );
       await load();
     } catch {

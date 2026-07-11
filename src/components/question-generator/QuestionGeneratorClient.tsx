@@ -182,8 +182,9 @@ export function QuestionGeneratorClient({
         setPassages(loaded.length > 0 ? loaded : [emptyPassageInput()]);
         skipDirtyOnce.current = true;
         setDirty(false);
-        setMessage("복사한 자료의 지문·유형 설정을 불러왔습니다. 확인 후 생성하세요.");
-      } catch {
+        setMessage(
+          "복사한 자료의 지문·유형 설정을 불러왔습니다. 생성하면 이 자료에 바로 만들어집니다."
+        );      } catch {
         if (!cancelled) setError("자료를 불러오지 못했습니다.");
       }
     })();
@@ -368,7 +369,10 @@ export function QuestionGeneratorClient({
       const res = await fetch("/api/question-generator/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config }),
+        body: JSON.stringify({
+          config,
+          ...(fromJobId ? { reuseJobId: fromJobId } : {}),
+        }),
       });
       const data = await res.json();
       if (!data.ok) {
@@ -380,7 +384,9 @@ export function QuestionGeneratorClient({
       setJobProgress({
         jobId: data.jobId,
         status: "pending",
-        message: "생성 준비 중…",
+        message: data.reused
+          ? "복사한 자료에서 생성 중…"
+          : "생성 준비 중…",
         completed: 0,
         total: grandTotal,
         failed: 0,
@@ -398,6 +404,9 @@ export function QuestionGeneratorClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "process" }),
       });
+      if (fromJobId && data.reused) {
+        setMessage("복사한 자료에 문항을 생성합니다.");
+      }
     } catch {
       setError("생성 요청에 실패했습니다.");
     } finally {

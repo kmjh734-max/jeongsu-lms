@@ -53,6 +53,8 @@ export async function POST(req: Request) {
       start?: boolean;
       /** 기존 작업 설정을 복사해 새 생성 작업 만들기 */
       copyFromIds?: string[];
+      /** 복사·불러오기한 작업에 이어서 생성 (새 작업 만들지 않음) */
+      reuseJobId?: string;
     };
 
     // ── 선택 복사·재생성 ──
@@ -133,7 +135,18 @@ export async function POST(req: Request) {
     if (!config) return jsonError("설정이 필요합니다.");
 
     const supabase = await createClient();
-    const result = await createJobFromConfig(supabase, profile.id, config);
+    const reuseJobId =
+      typeof body.reuseJobId === "string" && body.reuseJobId.length > 0
+        ? body.reuseJobId
+        : undefined;
+    const result = await createJobFromConfig(
+      supabase,
+      profile.id,
+      config,
+      reuseJobId
+        ? { reuseJobId, role: profile.role }
+        : undefined
+    );
     if ("error" in result) {
       return jsonError(result.error, result.status ?? 400);
     }
@@ -142,6 +155,7 @@ export async function POST(req: Request) {
       jobId: result.jobId,
       passageId: result.passageId,
       passageIds: result.passageIds,
+      reused: Boolean(reuseJobId),
     });
   } catch (e) {
     if (e instanceof Response) return e;
@@ -162,7 +176,8 @@ type CreateJobErr = { error: string; status?: number };
 async function createJobFromConfig(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
-  config: GenerationRequestConfig
+  config: GenerationRequestConfig,
+  reuse?: { reuseJobId: string; role: string }
 ): Promise<CreateJobOk | CreateJobErr> {
   config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
 
@@ -207,6 +222,33 @@ async function createJobFromConfig(
     }
   }
 
+  if (reuse?.reuseJobId) {
+    let jobQ = supabase
+      .from("question_generation_jobs")
+      .select("id, status, created_by")
+      .eq("id", reuse.reuseJobId);
+    if (reuse.role === "teacher") {
+      jobQ = jobQ.eq("created_by", userId);
+    }
+    const { data: existing, error: exErr } = await jobQ.maybeSingle();
+    if (exErr) {
+      return { error: exErr.message, status: 500 };
+    }
+    if (!existing) {
+      return { error: "이어서 생성할 작업을 찾을 수 없습니다.", status: 404 };
+    }
+    if (
+      ["analyzing", "generating", "validating"].includes(
+        String(existing.status)
+      )
+    ) {
+      return {
+        error: "이미 생성 중인 작업입니다. 잠시 후 다시 시도해 주세요.",
+        status: 409,
+      };
+    }
+  }
+
   const passageIds: string[] = [];
 
   for (const p of passages) {
@@ -247,6 +289,49 @@ async function createJobFromConfig(
     })),
     passageIds,
   };
+
+  if (reuse?.reuseJobId) {
+    // 기존 문항 제거 후 같은 job에 설정만 갱신 (새 목록 항목 방지)
+    const { error: delQErr } = await supabase
+      .from("generated_english_questions")
+      .delete()
+      .eq("generation_job_id", reuse.reuseJobId);
+    if (delQErr) {
+      return { error: delQErr.message, status: 500 };
+    }
+
+    const { data: job, error: jErr } = await supabase
+      .from("question_generation_jobs")
+      .update({
+        passage_id: primaryId,
+        generation_mode: config.mode || "custom",
+        preset_id: config.presetId || null,
+        request_config: requestConfig,
+        status: "pending",
+        total_requested: total,
+        total_completed: 0,
+        total_failed: 0,
+        error_message: null,
+        completed_at: null,
+        progress_message: "대기 중",
+      })
+      .eq("id", reuse.reuseJobId)
+      .select("id")
+      .single();
+
+    if (jErr || !job) {
+      return {
+        error: jErr?.message ?? "작업 갱신에 실패했습니다.",
+        status: 500,
+      };
+    }
+
+    return {
+      jobId: job.id as string,
+      passageId: primaryId,
+      passageIds,
+    };
+  }
 
   const { data: job, error: jErr } = await supabase
     .from("question_generation_jobs")
