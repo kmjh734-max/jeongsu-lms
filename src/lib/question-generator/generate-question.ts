@@ -58,11 +58,12 @@ function paraphraseChoiceRules(
       : lang === "english"
         ? "English choices: synonym/rephrase heavily; do not lift consecutive content words from the passage."
         : "Reword ideas; do not copy passage wording.";
-  return `PARAPHRASE (필수 · 학력평가형):
+  return `PARAPHRASE (필수 · 학력평가형 · 어휘 다양성):
 - Every choice/statement must paraphrase key content words (synonyms, different structure, reworded meaning).
 - Ban copying distinctive multi-word chunks or long phrases from the passage.
 - Correct items: same meaning via paraphrase; distractors: plausible but wrong via subtle meaning shifts.
-- Prefer vocabulary that tests understanding of paraphrased wording (동의어·우회 표현 많이).
+- Prefer vocabulary that tests understanding of paraphrased wording (동의어·유의어·우회 표현 많이).
+- Same passage → many items: DO NOT recycle the same 5–8 theme words across items. Rotate synonym sets (e.g. progress↔advance/improvement; consumer↔buyer/shopper only if needed — prefer harder alternates). Use antonyms mainly inside distractors (미세한 의미 반전).
 - ${langHint}`;
 }
 
@@ -1147,6 +1148,8 @@ export async function generateOneQuestion(opts: {
   grade: string;
   overallDifficulty: string;
   sourceDetail?: string;
+  /** 같은 지문 내 슬롯 (어휘·paraphrase 다양화) */
+  diversitySlot?: { index: number; total: number; label: string };
 }): Promise<GeneratedQuestionPayload> {
   const { option, passage, analysis } = opts;
   const meta = findAingkaOption(option.key);
@@ -1246,11 +1249,16 @@ export async function generateOneQuestion(opts: {
     "content_count",
   ]);
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
-    ? "- Choices/<보기> MUST paraphrase passage wording (synonyms, rewording). Do NOT copy distinctive phrases from the passage."
+    ? "- Choices/<보기> MUST paraphrase with ROTATING synonyms/near-synonyms (동의어·유의어). Do NOT copy passage phrases. Across same-passage items, avoid reusing the same theme-word set every time; vary wording and use antonyms mainly in distractors."
     : "";
   const craftSystemHint = option.isObjective
     ? "- 보기: 5개 모두 그럴듯하게. 정답만 눈에 띄지 않게. 강한 오답 ≥2. 황당 오답 금지. 정답 하나. 길이·구조 균형."
     : "";
+
+  const diversityHint =
+    opts.diversitySlot && opts.diversitySlot.total > 1
+      ? `- DIVERSITY SLOT ${opts.diversitySlot.index + 1}/${opts.diversitySlot.total} (${opts.diversitySlot.label}): same passage has many items. Use a DISTINCT synonym/near-synonym set and DISTINCT hardWords for THIS slot. Do not reuse the most obvious passage theme words that every slot would pick. Distractors may use subtle antonym/contrast shifts.`
+      : "";
 
   const allowSkip =
     (option.type === "underlined_inference" &&
@@ -1303,7 +1311,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: Include 4~8 {word, meaning} when (a) MCQ has English choice texts, OR (b) 일치개수(content_count) with English <보기> statements (from those statements) or Korean <보기> (from the English passage). Pick genuinely hard high-school words (e.g. conscious, voucher, misprint, comparable). NEVER include easy basics like consumer/people/important/money/make/need/progress/information/viewer/financial. word = dictionary lemma. meaning = short Korean gloss. If no hard words fit → hardWords []. Otherwise (한글 요지/주제 선지, 1개~5개만, 서술·삽입·밑줄형 등) → hardWords MUST be [].
+- hardWords: Include 4~6 {word, meaning} when (a) MCQ has English choice texts, OR (b) 일치개수(content_count) with English <보기> statements (from those statements) or Korean <보기> (from the English passage). Pick genuinely hard high-school words that appear in THIS item's distinctive paraphrase (e.g. conscious, voucher, misprint, comparable, scrutinize). Prefer DIFFERENT lemmas than other typical items for the same passage — do not always list the same passage theme words. NEVER include easy basics like consumer/people/important/money/make/need/progress/information/viewer/financial. word = dictionary lemma. meaning = short Korean gloss. If no hard words fit → hardWords []. Otherwise (한글 요지/주제 선지, 1개~5개만, 서술·삽입·밑줄형 등) → hardWords MUST be [].
 ${englishOnlyHint}
 ${
   allowSkip
@@ -1339,12 +1347,20 @@ ${
 }
 ${paraphraseSystemHint}
 ${craftSystemHint}
+${diversityHint}
 ${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
       difficulty: option.difficulty,
       forcedInstruction,
       passage,
+      diversitySlot: opts.diversitySlot
+        ? {
+            index: opts.diversitySlot.index + 1,
+            total: opts.diversitySlot.total,
+            label: opts.diversitySlot.label,
+          }
+        : undefined,
       hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis,
       schema: {
         ...(option.type === "sentence_insertion"

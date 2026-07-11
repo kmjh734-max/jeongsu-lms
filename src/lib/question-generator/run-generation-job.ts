@@ -5,7 +5,7 @@ import {
   MAX_REGENERATION_ATTEMPTS,
   MAX_SETS_PER_TYPE,
 } from "@/lib/question-generator/constants";
-import { syncExamVocabSetFromJob } from "@/lib/question-generator/exam-vocab";
+import { syncExamVocabSetFromJob, diversifyJobHardWords } from "@/lib/question-generator/exam-vocab";
 import { generateOneQuestion, SkipQuestionError } from "@/lib/question-generator/generate-question";
 import { resolvePassages } from "@/lib/question-generator/passages";
 import {
@@ -105,6 +105,7 @@ async function generateWithValidation(opts: {
   grade: string;
   overallDifficulty: string;
   sourceDetail?: string;
+  diversitySlot?: { index: number; total: number; label: string };
 }): Promise<{
   payload: GeneratedQuestionPayload | null;
   status: "approved";
@@ -158,6 +159,7 @@ type WorkItem = {
   option: QuestionTypeOption;
   sourceDetail?: string;
   label: string;
+  diversitySlot: { index: number; total: number; label: string };
 };
 
 /**
@@ -260,8 +262,32 @@ export async function runGenerationJob(jobId: string): Promise<void> {
             passageIds.length > 1
               ? `지문${pi + 1} · ${option.label}`
               : option.label,
+          diversitySlot: {
+            index: 0,
+            total: 0,
+            label: option.label,
+          },
         });
       }
+    }
+
+    // 지문별로 슬롯 번호 부여 (동의어·보기단어 다양화 힌트)
+    const slotByPassage = new Map<string, number>();
+    const totalByPassage = new Map<string, number>();
+    for (const item of work) {
+      totalByPassage.set(
+        item.passageId,
+        (totalByPassage.get(item.passageId) ?? 0) + 1
+      );
+    }
+    for (const item of work) {
+      const idx = slotByPassage.get(item.passageId) ?? 0;
+      slotByPassage.set(item.passageId, idx + 1);
+      item.diversitySlot = {
+        index: idx,
+        total: totalByPassage.get(item.passageId) ?? 1,
+        label: item.label,
+      };
     }
 
     await updateJob(jobId, {
@@ -289,6 +315,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         grade: config.grade || "고1",
         overallDifficulty: config.overallDifficulty || "기본",
         sourceDetail: item.sourceDetail,
+        diversitySlot: item.diversitySlot,
       });
 
       if (result.skipped) {
@@ -345,6 +372,11 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     });
 
     if (completed > 0) {
+      try {
+        await diversifyJobHardWords(jobId);
+      } catch (e) {
+        console.error("hard words diversify failed", e);
+      }
       try {
         await syncExamVocabSetFromJob(jobId);
       } catch (e) {

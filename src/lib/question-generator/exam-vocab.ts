@@ -1481,3 +1481,92 @@ export async function ensureExamCompactStageSkip(
     })
     .eq("id", progress.id);
 }
+
+/**
+ * 같은 지문 문항들 사이에서 hard_words 중복을 줄인다.
+ * 고유 단어는 해당 문항에, 공유 단어는 아직 단어가 적은 문항에만 배정.
+ */
+export async function diversifyJobHardWords(jobId: string): Promise<void> {
+  const admin = createAdminClient();
+  const { data: questions } = await admin
+    .from("generated_english_questions")
+    .select(
+      "id, passage_id, hard_words, choices, question_type, option_key, question_text, choice_language"
+    )
+    .eq("generation_job_id", jobId)
+    .order("created_at", { ascending: true });
+
+  if (!questions?.length) return;
+
+  const byPassage = new Map<string, typeof questions>();
+  for (const q of questions) {
+    const pid = String(q.passage_id ?? "");
+    if (!byPassage.has(pid)) byPassage.set(pid, []);
+    byPassage.get(pid)!.push(q);
+  }
+
+  for (const group of byPassage.values()) {
+    const eligible = group.filter((q) =>
+      questionNeedsVocabGloss({
+        choices: q.choices as Array<{ text?: string }> | null,
+        questionType: q.question_type as string | null,
+        optionKey: q.option_key as string | null,
+        questionText: q.question_text as string | null,
+        choiceLanguage: q.choice_language as string | null,
+      })
+    );
+    if (eligible.length <= 1) continue;
+
+    type Row = { id: string; words: HardWord[] };
+    const perQ: Row[] = eligible.map((q) => ({
+      id: q.id as string,
+      words: normalizeHardWords(q.hard_words),
+    }));
+
+    const assigned = new Map<string, HardWord[]>();
+    for (const row of perQ) assigned.set(row.id, []);
+
+    const owners = new Map<string, { ids: string[]; word: HardWord }>();
+    for (const row of perQ) {
+      for (const w of row.words) {
+        const k = hardWordDedupeKey(w.word);
+        if (!k) continue;
+        const cur = owners.get(k);
+        if (!cur) owners.set(k, { ids: [row.id], word: w });
+        else if (!cur.ids.includes(row.id)) cur.ids.push(row.id);
+      }
+    }
+
+    const claimed = new Set<string>();
+
+    // 1) 한 문항에만 있는 단어 → 그 문항
+    for (const [k, info] of owners) {
+      if (info.ids.length !== 1) continue;
+      const id = info.ids[0]!;
+      const list = assigned.get(id)!;
+      if (list.length >= 8) continue;
+      list.push(info.word);
+      claimed.add(k);
+    }
+
+    // 2) 여러 문항 공유 단어 → 현재 개수가 적은 문항 우선
+    for (const [k, info] of owners) {
+      if (claimed.has(k)) continue;
+      const pick = [...info.ids]
+        .map((id) => ({ id, n: assigned.get(id)!.length }))
+        .filter((x) => x.n < 6)
+        .sort((a, b) => a.n - b.n)[0];
+      if (!pick) continue;
+      assigned.get(pick.id)!.push(info.word);
+      claimed.add(k);
+    }
+
+    for (const [id, words] of assigned) {
+      const unique = dedupeHardWords(words).slice(0, 8);
+      await admin
+        .from("generated_english_questions")
+        .update({ hard_words: unique, updated_at: new Date().toISOString() })
+        .eq("id", id);
+    }
+  }
+}

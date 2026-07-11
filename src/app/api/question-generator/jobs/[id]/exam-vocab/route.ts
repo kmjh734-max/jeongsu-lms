@@ -1,5 +1,8 @@
 import { jsonError, jsonOk, requireStaffProfile } from "@/lib/question-generator/api-helpers";
-import { syncExamVocabSetFromJob } from "@/lib/question-generator/exam-vocab";
+import {
+  diversifyJobHardWords,
+  syncExamVocabSetFromJob,
+} from "@/lib/question-generator/exam-vocab";
 import { createClient } from "@/lib/supabase/server";
 
 /** 인쇄용: 변형문제 job → 보기 단어장 동기화 후 vocabSetId 반환 */
@@ -23,6 +26,11 @@ export async function POST(
     if (error) return jsonError(error.message, 500);
     if (!job) return jsonError("작업을 찾을 수 없습니다.", 404);
 
+    try {
+      await diversifyJobHardWords(id);
+    } catch {
+      /* ignore diversify errors; sync still useful */
+    }
     const setId = await syncExamVocabSetFromJob(id);
     return jsonOk({
       vocabSetId: setId ?? job.vocab_set_id ?? null,
