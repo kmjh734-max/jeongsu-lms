@@ -110,6 +110,24 @@ export function parseReferenceAnswerBlock(text: string): {
   return { labels: labels.length ? labels : ["ⓐ"] };
 }
 
+/** 어법 오류 수정 서술형: <조건> + <답안행> */
+export function parseGrammarCorrectionBlocks(text: string): {
+  conditions: string;
+  rowCount: number;
+} | null {
+  const cleaned = cleanQuestionText(text).trim();
+  if (!/<조건>/.test(cleaned) || !/<답안행>/.test(cleaned)) return null;
+  if (/<보기>|<해석>|<요약문>/.test(cleaned)) return null;
+  const conditions =
+    cleaned.match(/<조건>\s*([\s\S]*?)(?=<답안행>|$)/)?.[1]?.trim() ?? "";
+  const rowRaw =
+    cleaned.match(/<답안행>\s*(\d+)/)?.[1] ??
+    cleaned.match(/<답안행>\s*([\s\S]*?)$/)?.[1]?.trim() ??
+    "";
+  const rowCount = Math.max(1, Math.min(5, parseInt(String(rowRaw), 10) || 2));
+  return { conditions, rowCount };
+}
+
 /** 단어 수 (영어 공백 기준) */
 export function countEnglishWords(text: string): number {
   return (text || "")

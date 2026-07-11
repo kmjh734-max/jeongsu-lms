@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   cleanQuestionText,
+  parseGrammarCorrectionBlocks,
   parseReferenceAnswerBlock,
   parseSummaryWritingBlocks,
   parseWordOrderBlocks,
@@ -295,12 +296,16 @@ export function GenerationDetailClient({
               const wordOrder = summaryWriting
                 ? null
                 : parseWordOrderBlocks(q.question_text);
-              const referenceAnswer =
+              const grammarFix =
                 summaryWriting || wordOrder
+                  ? null
+                  : parseGrammarCorrectionBlocks(q.question_text);
+              const referenceAnswer =
+                summaryWriting || wordOrder || grammarFix
                   ? null
                   : parseReferenceAnswerBlock(q.question_text);
               const extra =
-                summaryWriting || wordOrder || referenceAnswer
+                summaryWriting || wordOrder || referenceAnswer || grammarFix
                   ? ""
                   : cleanQuestionText(q.question_text);
               return (
@@ -511,6 +516,45 @@ export function GenerationDetailClient({
                           </p>
                         </div>
                       )}
+                      {grammarFix && (
+                        <div className="mt-3 space-y-2 text-sm">
+                          <div className="rounded-md border border-slate-400 px-3 py-2">
+                            <p className="mb-1 font-semibold text-slate-900">
+                              &lt;조건&gt;
+                            </p>
+                            <p className="whitespace-pre-wrap text-slate-800">
+                              {grammarFix.conditions}
+                            </p>
+                          </div>
+                          <table className="w-full border-collapse text-center text-sm">
+                            <thead>
+                              <tr>
+                                <th className="border border-slate-400 bg-slate-50 px-2 py-1">
+                                  어법상 틀린 곳의 기호
+                                </th>
+                                <th className="border border-slate-400 bg-slate-50 px-2 py-1">
+                                  바르게 고친 것
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Array.from(
+                                { length: grammarFix.rowCount },
+                                (_, i) => (
+                                  <tr key={i}>
+                                    <td className="border border-slate-400 px-2 py-3">
+                                      &nbsp;
+                                    </td>
+                                    <td className="border border-slate-400 px-2 py-3">
+                                      &nbsp;
+                                    </td>
+                                  </tr>
+                                )
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                       {referenceAnswer && (
                         <div className="mt-3 space-y-1 text-sm">
                           {referenceAnswer.labels.map((lab) => (
@@ -527,6 +571,7 @@ export function GenerationDetailClient({
                         !wordOrder &&
                         !summaryWriting &&
                         !referenceAnswer &&
+                        !grammarFix &&
                         extra && (
                         <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800">
                           {extra}
@@ -537,6 +582,7 @@ export function GenerationDetailClient({
                         !wordOrder &&
                         !summaryWriting &&
                         !referenceAnswer &&
+                        !grammarFix &&
                         !(
                           q.question_type === "vocabulary" &&
                           (!q.choices ||

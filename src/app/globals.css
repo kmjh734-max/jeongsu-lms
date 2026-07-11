@@ -1273,6 +1273,30 @@
   color: #0f172a;
 }
 
+.qg-print-fix-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5mm;
+  font-size: 8pt;
+}
+
+.qg-print-fix-table th,
+.qg-print-fix-table td {
+  border: 1px solid #334155;
+  padding: 1.6mm 1.2mm;
+  text-align: center;
+}
+
+.qg-print-fix-table th {
+  background: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.qg-print-fix-table td {
+  height: 7mm;
+}
+
 .qg-print-u {
   text-decoration: underline;
   text-underline-offset: 1.5px;

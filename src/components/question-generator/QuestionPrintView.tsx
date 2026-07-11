@@ -11,6 +11,7 @@ import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   cleanQuestionText,
   normalizePassage,
+  parseGrammarCorrectionBlocks,
   parseReferenceAnswerBlock,
   parseSummaryWritingBlocks,
   parseWordOrderBlocks,
@@ -209,6 +210,42 @@ function SummaryWritingBoxes({
   );
 }
 
+function GrammarCorrectionBoxes({
+  blocks,
+}: {
+  blocks: NonNullable<ReturnType<typeof parseGrammarCorrectionBlocks>>;
+}) {
+  const rows = Array.from({ length: blocks.rowCount }, (_, i) => i);
+  return (
+    <div className="qg-print-word-order">
+      <div className="qg-print-wo-box">
+        <p className="qg-print-wo-label">&lt;조건&gt;</p>
+        <div className="qg-print-wo-body">
+          {blocks.conditions.split(/\n+/).map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
+        </div>
+      </div>
+      <table className="qg-print-fix-table">
+        <thead>
+          <tr>
+            <th>어법상 틀린 곳의 기호</th>
+            <th>바르게 고친 것</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((i) => (
+            <tr key={i}>
+              <td>&nbsp;</td>
+              <td>&nbsp;</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function QuestionBlock({
   q,
   index,
@@ -223,12 +260,16 @@ function QuestionBlock({
   const wordOrder = summaryWriting
     ? null
     : parseWordOrderBlocks(q.question_text);
-  const referenceAnswer =
+  const grammarFix =
     summaryWriting || wordOrder
+      ? null
+      : parseGrammarCorrectionBlocks(q.question_text);
+  const referenceAnswer =
+    summaryWriting || wordOrder || grammarFix
       ? null
       : parseReferenceAnswerBlock(q.question_text);
   const extra =
-    summaryWriting || wordOrder || referenceAnswer
+    summaryWriting || wordOrder || referenceAnswer || grammarFix
       ? ""
       : cleanQuestionText(q.question_text);
   const passage = questionPassage(q);
@@ -240,6 +281,7 @@ function QuestionBlock({
     !wordOrder &&
     !summaryWriting &&
     !referenceAnswer &&
+    !grammarFix &&
     q.choices &&
     q.choices.length > 0 &&
     q.choices.some((c) => String(c.text ?? "").trim().length > 0);
@@ -287,6 +329,7 @@ function QuestionBlock({
         <SummaryWritingBoxes blocks={summaryWriting} />
       ) : null}
       {wordOrder ? <WordOrderBoxes blocks={wordOrder} /> : null}
+      {grammarFix ? <GrammarCorrectionBoxes blocks={grammarFix} /> : null}
       {referenceAnswer
         ? referenceAnswer.labels.map((lab) => (
             <p key={lab} className="qg-print-wo-answer-line">
@@ -298,6 +341,7 @@ function QuestionBlock({
       !wordOrder &&
       !summaryWriting &&
       !referenceAnswer &&
+      !grammarFix &&
       extra ? (
         <p className="qg-print-extra">{extra}</p>
       ) : null}

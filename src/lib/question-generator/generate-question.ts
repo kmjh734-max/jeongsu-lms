@@ -291,6 +291,57 @@ ${catalog}`;
       if (code === "어법고쳐쓰기") {
         return `No MCQ. Student finds one grammar error and rewrites. Model rewrite in correctAnswer.`;
       }
+      if (
+        code === "어법오류수정2" ||
+        code === "어법오류수정3" ||
+        code === "어법문장오류수정"
+      ) {
+        const wrongN =
+          code === "어법오류수정2" ? 2 : code === "어법오류수정3" ? 3 : 2;
+        const { focusBlock } = pickGrammarFocus(wrongN);
+        if (code === "어법문장오류수정") {
+          return `서술형 · 어법 틀린 문장 수정 (수특형):
+${focusBlock}
+
+형식:
+- passageModified = 영어 지문. 문장(또는 절) 앞에 ① ② ③ ④ ⑤ 표지.
+- 어법상 틀린 문장 정확히 ${wrongN}개 — 위 ‘이번 문항’ 문법을 서로 다른 단원으로 반영.
+- 나머지 문장은 어법상 맞음.
+- questionText:
+<조건>
+○ 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함
+
+<답안행>
+${wrongN}
+- correctAnswer 형식: "③: why / ④: to continue" (번호 + 바르게 고친 핵심 형태)
+- choices 없음. explanation 한글: 각 번호의 틀린 점 → 바른 형태 + 쉬운 이유.
+LANGUAGE: 지문 영어만.
+
+${catalog}`;
+        }
+        const marks =
+          wrongN === 2
+            ? "ⓐⓑⓒⓓⓔ (5개 밑줄)"
+            : "ⓐⓑⓒⓓⓔⓕⓖ (7개 밑줄)";
+        return `서술형 · 어법 틀린 곳 ${wrongN}개 수정 (수특형):
+${focusBlock}
+
+형식:
+- passageModified = 영어 지문. 밑줄 정확히 ${marks} → ⓐ<u>대상</u>
+- 틀린 곳 정확히 ${wrongN}개 — 위 ‘이번 문항’ 문법을 서로 다른 단원으로 하나씩.
+- 나머지 밑줄은 어법상 맞음 (함정처럼 보이되 옳음).
+- questionText:
+<조건>
+○ 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함
+
+<답안행>
+${wrongN}
+- correctAnswer 형식 예: "ⓒ: alike / ⓓ: show up / ⓔ: what" (기호 + 바른 형태, ${wrongN}쌍)
+- choices 없음. explanation 한글: 각 기호의 틀린 점 → 바른 형태 + 쉬운 이유 (영어 은어 금지).
+LANGUAGE: 지문 영어만.
+
+${catalog}`;
+      }
       {
         const { focusBlock } = pickGrammarFocus(1);
         return `밑줄 5개 중 틀린 것 1개.
@@ -666,7 +717,11 @@ function normalizePayload(
       (option.aingkaCode === "어휘추론" || option.aingkaCode === "어휘개수")) ||
     (option.type === "writing" &&
       (option.aingkaCode === "지칭대명사서술" ||
-        option.aingkaCode === "특정표현의미서술"))
+        option.aingkaCode === "특정표현의미서술")) ||
+    (option.type === "grammar" &&
+      (option.aingkaCode === "어법오류수정2" ||
+        option.aingkaCode === "어법오류수정3" ||
+        option.aingkaCode === "어법문장오류수정"))
   ) {
     if (passageModified) {
       passageModified = passageModified
@@ -900,6 +955,50 @@ export function assertBasicQuestionShape(
     q.correctAnswer = ans;
     q.choices = undefined;
   } else if (
+    option.type === "grammar" &&
+    (option.aingkaCode === "어법오류수정2" ||
+      option.aingkaCode === "어법오류수정3" ||
+      option.aingkaCode === "어법문장오류수정")
+  ) {
+    const wrongN =
+      option.aingkaCode === "어법오류수정2"
+        ? 2
+        : option.aingkaCode === "어법오류수정3"
+          ? 3
+          : 2;
+    const mod = q.passageModified || "";
+    if (hasHangul(mod)) {
+      return "어법 수정 본문은 영어여야 합니다.";
+    }
+    if (option.aingkaCode === "어법문장오류수정") {
+      if (!/[①②③④⑤]/.test(mod)) {
+        return "문장 단위 어법 수정은 ①~⑤ 표지가 필요합니다.";
+      }
+    } else if (option.aingkaCode === "어법오류수정2") {
+      if (!/[ⓐⓑⓒⓓⓔ]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
+        return "어법 2개 수정은 ⓐ~ⓔ 밑줄이 필요합니다.";
+      }
+    } else if (!/[ⓐⓑⓒⓓⓔⓕⓖ]/.test(mod) || !/<u>[\s\S]*?<\/u>/i.test(mod)) {
+      return "어법 3개 수정은 ⓐ~ⓖ 밑줄이 필요합니다.";
+    }
+    const ans = String(q.correctAnswer ?? "").trim();
+    if (!ans) {
+      return "어법 수정 정답(기호+바른 형태)이 필요합니다.";
+    }
+    const pairs = ans
+      .split(/\s*\/\s*|\n+/)
+      .map((s) => s.trim())
+      .filter((s) => /[ⓐ-ⓖ①-⑤]/.test(s) || /:/.test(s));
+    if (pairs.length < wrongN) {
+      return `어법 수정 정답은 ${wrongN}쌍(기호: 바른형태)이어야 합니다.`;
+    }
+    if (!/<조건>/.test(q.questionText || "")) {
+      q.questionText = `<조건>\n○ 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함\n\n<답안행>\n${wrongN}`;
+    } else if (!/<답안행>/.test(q.questionText || "")) {
+      q.questionText = `${q.questionText}\n\n<답안행>\n${wrongN}`;
+    }
+    q.choices = undefined;
+  } else if (
     option.type === "summary_short" &&
     (option.aingkaCode === "요약문빈칸영작" ||
       option.aingkaCode === "요약문빈칸2단어" ||
@@ -1089,6 +1188,15 @@ export async function generateOneQuestion(opts: {
       : "- CRITICAL LANGUAGE: passageModified, questionText (if any), and choices MUST be ENGLISH only. Never put Korean Hangul in passage or choices. Only instruction/explanation may be Korean."
     : "";
 
+  const grammarFixCodes = new Set([
+    "어법오류수정2",
+    "어법오류수정3",
+    "어법문장오류수정",
+  ]);
+  const isGrammarFix =
+    option.type === "grammar" &&
+    grammarFixCodes.has(option.aingkaCode || meta?.aingkaCode || "");
+
   const needsModified =
     [
       "grammar",
@@ -1108,6 +1216,7 @@ export async function generateOneQuestion(opts: {
     isWordOrder ||
     isSummaryBlank ||
     isReferenceWriting ||
+    isGrammarFix ||
     (option.type === "writing" && option.aingkaCode === "서술형영작");
   const paraphraseTypes = new Set([
     "title",
@@ -1143,6 +1252,8 @@ export async function generateOneQuestion(opts: {
               ? "Fill questionText with <조건>, optional <보기>, and <요약문> with ⓐ/ⓑ blanks."
               : isReferenceWriting
                 ? "Fill questionText with <지칭답란> and ⓐ. passageModified needs <u>underline</u>."
+              : isGrammarFix
+                ? "Fill questionText with <조건> and <답안행>N. No MCQ choices."
             : option.type === "content_count"
               ? "Fill questionText with (1)(2)… statements."
               : "Fill questionText with <조건>/<보기> as needed."
@@ -1163,6 +1274,8 @@ export async function generateOneQuestion(opts: {
         ? "한글: 정답 문장 + 배열/어형 포인트."
         : isReferenceWriting
           ? "한글: 정답(본문 구) + 왜 그것이 가리키는 바/문맥 의미인지."
+        : isGrammarFix
+          ? "학생용 한글: 각 기호/번호 + 틀린 점 → 바른 형태 + 쉬운 이유. 영어 은어 금지."
         : option.type === "grammar"
         ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
         : option.type === "underlined_inference" &&
