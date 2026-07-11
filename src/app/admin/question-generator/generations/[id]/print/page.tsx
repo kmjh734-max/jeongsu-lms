@@ -14,7 +14,8 @@ export default async function Page({
   return (
     <QuestionPrintView
       jobId={id}
-      backHref={`/admin/question-generator/generations/${id}`}
+      backHref="/admin/question-generator/generations"
+      printBaseHref={`/admin/question-generator/generations/${id}`}
       mode={mode}
       layout={layout}
     />

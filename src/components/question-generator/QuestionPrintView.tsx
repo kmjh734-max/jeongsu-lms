@@ -446,11 +446,15 @@ function loadStoredBranding(): Partial<PrintBranding> | null {
 export function QuestionPrintView({
   jobId,
   backHref,
+  printBaseHref,
   mode = "exam",
   layout: layoutProp = "mixed",
 }: {
   jobId: string;
+  /** ← 뒤로: 내 자료 목록 */
   backHref: string;
+  /** 문제지/해설지 전환용 (…/generations/{id}) */
+  printBaseHref: string;
   mode?: "exam" | "answers";
   layout?: PrintLayoutMode;
 }) {
@@ -810,7 +814,7 @@ export function QuestionPrintView({
               보기 전환
             </p>
             <Link
-              href={`${backHref}/print?mode=exam${printLayout === "byType" ? "&layout=byType" : ""}`}
+              href={`${printBaseHref}/print?mode=exam${printLayout === "byType" ? "&layout=byType" : ""}`}
               className={`rounded-lg px-3 py-2 text-xs font-semibold ${
                 mode === "exam"
                   ? "bg-brand-700 text-white"
@@ -820,7 +824,7 @@ export function QuestionPrintView({
               문제지
             </Link>
             <Link
-              href={`${backHref}/print?mode=answers`}
+              href={`${printBaseHref}/print?mode=answers`}
               className={`rounded-lg px-3 py-2 text-xs font-semibold ${
                 mode === "answers"
                   ? "bg-brand-700 text-white"
