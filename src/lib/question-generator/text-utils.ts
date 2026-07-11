@@ -59,10 +59,14 @@ export function normalizePassage(text: string): string {
 export function countEnglishSentences(text: string): number {
   const cleaned = normalizePassage(text);
   if (!cleaned) return 0;
-  return cleaned
-    .split(/(?<=[.!?])\s+/)
+  const parts = cleaned
+    .split(/(?<=[.!?])(?:\s+|$)/)
     .map((s) => s.trim())
-    .filter((s) => s.length >= 8 && /[A-Za-z]/.test(s)).length;
+    .filter((s) => {
+      const letters = (s.match(/[A-Za-z]/g) ?? []).length;
+      return letters >= 3;
+    });
+  return parts.length;
 }
 
 /** 제시어 배열 questionText의 <조건>/<보기>/<해석> 블록 파싱 */
