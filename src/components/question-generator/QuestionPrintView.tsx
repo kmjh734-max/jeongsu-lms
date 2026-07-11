@@ -13,6 +13,7 @@ import {
   buildExamVocabUrl,
   parseHardWordsColumn,
 } from "@/lib/question-generator/exam-vocab";
+import { groupQuestionsByPrintType } from "@/lib/question-generator/print-type-groups";
 import {
   cleanQuestionText,
   normalizePassage,
@@ -34,30 +35,23 @@ type QuestionRow = {
   explanation: string;
   question_type?: string;
   category?: string;
+  option_key?: string | null;
   hard_words?: Array<{ word: string; meaning: string }> | null;
-};
-
-const CATEGORY_ORDER = [
-  "main_idea",
-  "details",
-  "inference",
-  "grammar_vocabulary",
-  "subjective",
-] as const;
-
-const CATEGORY_LABEL: Record<string, string> = {
-  main_idea: "대의 파악",
-  details: "세부 정보",
-  inference: "추론 능력",
-  grammar_vocabulary: "어법·어휘",
-  subjective: "주관식·서술형",
 };
 
 type PrintLayoutMode = "mixed" | "byType";
 
-type DisplayItem =
-  | { kind: "header"; id: string; label: string }
-  | { kind: "q"; id: string; q: QuestionRow; num: number };
+type DisplayItem = {
+  kind: "q";
+  id: string;
+  q: QuestionRow;
+  num: number;
+};
+
+type SheetPage = ExamPageLayout & {
+  /** 유형별 출력: 이 페이지가 새 유형의 첫 장일 때 소제목 */
+  sectionLabel?: string;
+};
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -459,7 +453,7 @@ export function QuestionPrintView({
   const [printLayout, setPrintLayout] = useState<PrintLayoutMode>(layoutProp);
   const [vocabSetId, setVocabSetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pages, setPages] = useState<ExamPageLayout[]>([]);
+  const [pages, setPages] = useState<SheetPage[]>([]);
   const [branding, setBranding] = useState<PrintBranding>({
     headerKicker: ACADEMY_NAME,
     headerTitle: "",
@@ -558,34 +552,30 @@ export function QuestionPrintView({
         num: i + 1,
       }));
     }
-    const byCat = new Map<string, QuestionRow[]>();
-    for (const q of questions) {
-      const cat = q.category || "other";
-      if (!byCat.has(cat)) byCat.set(cat, []);
-      byCat.get(cat)!.push(q);
-    }
-    const order = [
-      ...CATEGORY_ORDER.filter((c) => byCat.has(c)),
-      ...[...byCat.keys()].filter(
-        (c) => !(CATEGORY_ORDER as readonly string[]).includes(c)
-      ),
-    ];
+    const groups = groupQuestionsByPrintType(questions);
     const items: DisplayItem[] = [];
     let num = 1;
-    for (const cat of order) {
-      const list = byCat.get(cat) ?? [];
-      if (list.length === 0) continue;
-      items.push({
-        kind: "header",
-        id: `hdr-${cat}`,
-        label: CATEGORY_LABEL[cat] ?? cat,
-      });
-      for (const q of list) {
+    for (const g of groups) {
+      for (const q of g.items) {
         items.push({ kind: "q", id: q.id, q, num });
         num++;
       }
     }
     return items;
+  }, [questions, printLayout]);
+
+  /** 유형별: 각 유형 구간 [start, end) — 새 페이지 강제용 */
+  const typeRanges = useMemo(() => {
+    if (printLayout !== "byType" || questions.length === 0) return [];
+    const groups = groupQuestionsByPrintType(questions);
+    const ranges: { start: number; end: number; label: string }[] = [];
+    let start = 0;
+    for (const g of groups) {
+      const end = start + g.items.length;
+      ranges.push({ start, end, label: g.label });
+      start = end;
+    }
+    return ranges;
   }, [questions, printLayout]);
 
   useEffect(() => {
@@ -607,14 +597,43 @@ export function QuestionPrintView({
       const mmToPx = (mm: number) => (mm * 96) / 25.4;
       const firstColMax = mmToPx(232);
       const nextColMax = mmToPx(240);
-
-      const layouts = paginateExamQuestions(heights, {
+      const paginateOpts = {
         firstColumnMaxPx: firstColMax,
         nextColumnMaxPx: nextColMax,
         questionGapPx: QUESTION_GAP_PX,
         columnSafetyPx: COLUMN_SAFETY_PX,
-      }).filter((p) => p.left.length > 0 || p.right.length > 0);
+      };
 
+      if (printLayout === "byType" && typeRanges.length > 0) {
+        const all: SheetPage[] = [];
+        const bannerReservePx = mmToPx(8); // 유형 소제목 배너
+        let isDocFirstSection = true;
+        for (const range of typeRanges) {
+          if (range.end <= range.start) continue;
+          const slice = heights.slice(range.start, range.end);
+          const layouts = paginateExamQuestions(slice, {
+            firstColumnMaxPx:
+              (isDocFirstSection ? firstColMax : nextColMax) - bannerReservePx,
+            nextColumnMaxPx: nextColMax,
+            questionGapPx: QUESTION_GAP_PX,
+            columnSafetyPx: COLUMN_SAFETY_PX,
+          }).filter((p) => p.left.length > 0 || p.right.length > 0);
+          layouts.forEach((layout, i) => {
+            all.push({
+              sectionLabel: i === 0 ? range.label : undefined,
+              left: layout.left.map((j) => j + range.start),
+              right: layout.right.map((j) => j + range.start),
+            });
+          });
+          isDocFirstSection = false;
+        }
+        setPages(all);
+        return;
+      }
+
+      const layouts = paginateExamQuestions(heights, paginateOpts).filter(
+        (p) => p.left.length > 0 || p.right.length > 0
+      );
       setPages(layouts);
     };
 
@@ -623,7 +642,7 @@ export function QuestionPrintView({
       window.setTimeout(run, 30);
     });
     return () => window.clearTimeout(t);
-  }, [displayItems, mode, branding.headerTitle, branding.headerSub, printLayout]);
+  }, [displayItems, mode, branding.headerTitle, branding.headerSub, printLayout, typeRanges]);
 
   useEffect(() => {
     if (!autoPrint || printedRef.current) return;
@@ -764,13 +783,6 @@ export function QuestionPrintView({
 
   function renderDisplayItem(item: DisplayItem | undefined) {
     if (!item) return null;
-    if (item.kind === "header") {
-      return (
-        <div className="qg-print-section-hdr">
-          <p>{item.label}</p>
-        </div>
-      );
-    }
     return mode === "exam" ? (
       <QuestionBlock q={item.q} index={item.num} />
     ) : (
@@ -912,6 +924,11 @@ export function QuestionPrintView({
             }`}
           >
             {renderHeader(pageIdx > 0, pageIdx, sheetPages.length)}
+            {page.sectionLabel ? (
+              <div className="qg-print-type-banner">
+                <p className="qg-print-type-banner-title">{page.sectionLabel}</p>
+              </div>
+            ) : null}
             <div className="qg-print-cols">
               <div className="qg-print-col">
                 {page.left.map((ii) => (

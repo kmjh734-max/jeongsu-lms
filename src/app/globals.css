@@ -1244,6 +1244,22 @@
   letter-spacing: -0.01em;
 }
 
+.qg-print-type-banner {
+  margin: 0 0 2.5mm;
+  padding: 1.6mm 2mm;
+  border: 1.2px solid #1a3a6e;
+  background: #f1f5f9;
+}
+
+.qg-print-type-banner-title {
+  margin: 0;
+  font-size: 11pt;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
 .qg-print-wo-box {
   margin: 0.8mm 0;
   border: 1px solid #334155;
