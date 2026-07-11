@@ -1297,6 +1297,61 @@
   height: 7mm;
 }
 
+.qg-print-hard-words {
+  margin-top: 1.2mm;
+  padding-top: 1mm;
+  border-top: 0.4px dashed #94a3b8;
+}
+
+.qg-print-hard-words-label {
+  margin: 0 0 0.6mm;
+  font-size: 7.5pt;
+  font-weight: 700;
+  color: #334155;
+}
+
+.qg-print-hard-words-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4mm 2.5mm;
+}
+
+.qg-print-hard-words-list li {
+  font-size: 7.5pt;
+  line-height: 1.35;
+  color: #1e293b;
+}
+
+.qg-print-hw-en {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  margin-right: 1mm;
+}
+
+.qg-print-hw-ko {
+  color: #475569;
+}
+
+.qg-print-vocab-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6mm;
+  margin-bottom: 1.5mm;
+}
+
+.qg-print-vocab-qr-label {
+  margin: 0;
+  font-size: 6.5pt;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  color: #0f172a;
+}
+
 .qg-print-u {
   text-decoration: underline;
   text-underline-offset: 1.5px;

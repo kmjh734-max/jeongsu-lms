@@ -21,6 +21,9 @@ export default async function StudentVocabStage3Page({ params }: PageProps) {
     progress: "hub",
   });
   if (!ctx) notFound();
+  if (ctx.set.exam_compact) {
+    redirect(`/student/vocab/${setId}`);
+  }
   if (!ctx.progress.stage2_completed) {
     redirect(`/student/vocab/${setId}`);
   }

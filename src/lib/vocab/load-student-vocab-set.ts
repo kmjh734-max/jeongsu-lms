@@ -98,7 +98,11 @@ export async function loadStudentVocabSetContext(
 
   const [{ data: set, error: setError }, assigned, itemsResult, progress] =
     await Promise.all([
-      supabase.from("vocab_sets").select("id, title").eq("id", setId).maybeSingle(),
+      supabase
+        .from("vocab_sets")
+        .select("id, title, exam_compact")
+        .eq("id", setId)
+        .maybeSingle(),
       isStudentAssignedToVocabSet(supabase, studentId, setId),
       fetchVocabItems(supabase, setId, itemsLoad),
       loadStageProgress(supabase, studentId, setId, {

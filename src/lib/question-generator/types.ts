@@ -168,6 +168,8 @@ export interface GeneratedQuestionPayload {
   correctAnswer: string | number | number[];
   acceptableAnswers?: string[];
   explanation: string;
+  /** 보기·지문에서 뽑은 고난도 단어 (해설지·단어학습) */
+  hardWords?: Array<{ word: string; meaning: string }>;
   evidence: GeneratedEvidence[];
   scoringGuide?: ScoringGuide;
   validation?: QuestionValidation;

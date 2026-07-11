@@ -5,6 +5,7 @@ import {
   MAX_REGENERATION_ATTEMPTS,
   MAX_SETS_PER_TYPE,
 } from "@/lib/question-generator/constants";
+import { syncExamVocabSetFromJob } from "@/lib/question-generator/exam-vocab";
 import { generateOneQuestion, SkipQuestionError } from "@/lib/question-generator/generate-question";
 import { resolvePassages } from "@/lib/question-generator/passages";
 import {
@@ -82,6 +83,7 @@ function toRow(
     correct_answer: payload.correctAnswer,
     acceptable_answers: payload.acceptableAnswers ?? null,
     explanation: payload.explanation,
+    hard_words: payload.hardWords ?? [],
     evidence: payload.evidence ?? [],
     scoring_guide: payload.scoringGuide ?? null,
     validation_result: payload.validation ?? null,
@@ -341,6 +343,14 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       total_completed: completed,
       total_failed: failed,
     });
+
+    if (completed > 0) {
+      try {
+        await syncExamVocabSetFromJob(jobId);
+      } catch (e) {
+        console.error("exam vocab sync failed", e);
+      }
+    }
   } catch (e) {
     await updateJob(jobId, {
       status: "failed",

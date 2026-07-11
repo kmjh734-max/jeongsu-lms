@@ -24,6 +24,7 @@ import {
   passageHasConsecutiveWords,
   parseSummaryWritingBlocks,
 } from "@/lib/question-generator/text-utils";
+import { normalizeHardWordsFromRaw } from "@/lib/question-generator/exam-vocab";
 import type { QuestionTypeOption } from "@/lib/question-generator/types";
 import type {
   GeneratedQuestionPayload,
@@ -800,6 +801,7 @@ function normalizePayload(
       ? raw.acceptableAnswers.map((x) => String(x))
       : undefined,
     explanation,
+    hardWords: normalizeHardWordsFromRaw(raw.hardWords),
     evidence: [],
     scoringGuide:
       raw.scoringGuide && typeof raw.scoringGuide === "object"
@@ -1284,6 +1286,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
+- hardWords: REQUIRED array of 4~8 {word, meaning} — difficult English words from English choices (보기) or key passage words if choices are Korean/empty. meaning = short Korean gloss for high-school students. Skip ultra-basic (the/and/people/make).
 ${englishOnlyHint}
 ${
   allowSkip
@@ -1385,6 +1388,7 @@ ${typeRules(option)}`,
                         : {}),
                     }),
         explanation: "ko",
+        hardWords: [{ word: "EN", meaning: "한글뜻" }],
       },
     }),
     temperature:

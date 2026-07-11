@@ -3,11 +3,16 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
+import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import {
   paginateExamQuestions,
   type ExamPageLayout,
 } from "@/lib/listening/paginate-exam-questions";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
+import {
+  buildExamVocabUrl,
+  parseHardWordsColumn,
+} from "@/lib/question-generator/exam-vocab";
 import {
   cleanQuestionText,
   normalizePassage,
@@ -28,6 +33,7 @@ type QuestionRow = {
   correct_answer: unknown;
   explanation: string;
   question_type?: string;
+  hard_words?: Array<{ word: string; meaning: string }> | null;
 };
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -368,6 +374,7 @@ function AnswerBlock({
   q: QuestionRow;
   index: number;
 }) {
+  const hardWords = parseHardWordsColumn(q.hard_words);
   return (
     <section className="qg-print-card qg-print-answer-card">
       <p className="qg-print-answer-head">
@@ -377,6 +384,19 @@ function AnswerBlock({
         </span>
       </p>
       <p className="qg-print-answer-body">{q.explanation}</p>
+      {hardWords.length > 0 ? (
+        <div className="qg-print-hard-words">
+          <p className="qg-print-hard-words-label">보기 단어</p>
+          <ul className="qg-print-hard-words-list">
+            {hardWords.map((w) => (
+              <li key={`${w.word}-${w.meaning}`}>
+                <span className="qg-print-hw-en">{w.word}</span>
+                <span className="qg-print-hw-ko">{w.meaning}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -406,6 +426,7 @@ export function QuestionPrintView({
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
+  const [vocabSetId, setVocabSetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pages, setPages] = useState<ExamPageLayout[]>([]);
   const [branding, setBranding] = useState<PrintBranding>({
@@ -442,6 +463,23 @@ export function QuestionPrintView({
     setGrade(nextGrade);
     setSourceDetail(nextDetail);
     setQuestions(data.questions ?? []);
+    setVocabSetId(
+      typeof job?.vocab_set_id === "string" ? job.vocab_set_id : null
+    );
+
+    // 보기 단어장 동기화 (없을 때 생성)
+    try {
+      const vr = await fetch(
+        `/api/question-generator/jobs/${jobId}/exam-vocab`,
+        { method: "POST" }
+      );
+      const vd = await vr.json();
+      if (vd.ok && vd.vocabSetId) {
+        setVocabSetId(vd.vocabSetId as string);
+      }
+    } catch {
+      /* ignore */
+    }
 
     setBranding((prev) => {
       const stored = typeof window !== "undefined" ? loadStoredBranding() : null;
@@ -557,6 +595,8 @@ export function QuestionPrintView({
   }
 
   function renderHeader(compact: boolean, pageIdx: number, totalPages: number) {
+    const showVocabQr =
+      mode === "exam" && !compact && pageIdx === 0 && Boolean(vocabSetId);
     return (
       <header
         className={`qg-print-header ${compact ? "qg-print-header-compact" : ""} ${
@@ -595,6 +635,19 @@ export function QuestionPrintView({
           </div>
         </div>
         <div className="qg-print-header-aside">
+          {showVocabQr ? (
+            <div className="qg-print-vocab-qr">
+              <ListeningPrintQrCode
+                url={buildExamVocabUrl(vocabSetId!)}
+                sizePx={72}
+              />
+              <p className="qg-print-vocab-qr-label">
+                보기 단어
+                <br />
+                학습 QR
+              </p>
+            </div>
+          ) : null}
           <p className="qg-print-meta">{questions.length}문항</p>
           <p className="qg-print-page-no">
             {pageIdx + 1}/{totalPages}

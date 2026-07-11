@@ -14,6 +14,8 @@ interface VocabSetStageHubProps {
   setTitle: string;
   itemCount: number;
   progress: VocabStageProgress;
+  /** 변형문제 QR 학습: 예문(3단계) 생략 */
+  examCompact?: boolean;
 }
 
 function statusPill(
@@ -116,10 +118,13 @@ export function VocabSetStageHub({
   setTitle,
   itemCount,
   progress,
+  examCompact = false,
 }: VocabSetStageHubProps) {
   const stage1Done = progress.stage1_completed;
   const stage2Done = progress.stage2_completed;
-  const stage3Done = stage3Completed(progress);
+  const stage3Done = examCompact
+    ? stage2Done
+    : stage3Completed(progress);
   const stage4Pass = stage4Passed(progress);
   const attemptCount = stage4AttemptCount(progress);
   const lastScore = stage4LastScore(progress);
@@ -156,6 +161,11 @@ export function VocabSetStageHub({
           ← 단어장 목록
         </Link>
         <h1 className="mt-1 text-lg font-bold text-slate-900">{setTitle}</h1>
+        {examCompact ? (
+          <p className="mt-1 text-sm text-slate-500">
+            변형문제 연계 · 1·2·4단계만 학습합니다 (예문 단계 생략).
+          </p>
+        ) : null}
       </div>
 
       {itemCount < 1 ? (
@@ -194,22 +204,24 @@ export function VocabSetStageHub({
               locked={!stage1Done}
               buttonLabel={stage2Done ? "다시 하기" : "시작하기"}
             />
+            {!examCompact && (
+              <StageRow
+                step="3"
+                title="예문 빈칸 학습"
+                desc="예문 빈칸에 들어갈 영어 단어 입력"
+                status={stage3Status}
+                variant={
+                  !stage2Done ? "locked" : stage3Done ? "done" : "todo"
+                }
+                href={
+                  stage2Done ? `/student/vocab/${setId}/stage3` : undefined
+                }
+                locked={!stage2Done}
+                buttonLabel={stage3Done ? "다시 하기" : "시작하기"}
+              />
+            )}
             <StageRow
-              step="3"
-              title="예문 빈칸 학습"
-              desc="예문 빈칸에 들어갈 영어 단어 입력"
-              status={stage3Status}
-              variant={
-                !stage2Done ? "locked" : stage3Done ? "done" : "todo"
-              }
-              href={
-                stage2Done ? `/student/vocab/${setId}/stage3` : undefined
-              }
-              locked={!stage2Done}
-              buttonLabel={stage3Done ? "다시 하기" : "시작하기"}
-            />
-            <StageRow
-              step="4"
+              step={examCompact ? "3" : "4"}
               title="종합테스트"
               desc={`뜻·스펠링 혼합 · ${STAGE4_PASS_SCORE}점 이상 합격`}
               status={stage4Status}

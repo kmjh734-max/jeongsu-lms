@@ -132,6 +132,8 @@ export interface VocabSet {
   teacher_id: string | null;
   created_by: string | null;
   is_published: boolean;
+  exam_compact?: boolean;
+  source_job_id?: string | null;
   created_at: string;
   teacher?: Profile | null;
   folder?: VocabFolder | null;

@@ -185,10 +185,15 @@ export async function completeStage2(setId: string): Promise<ActionResult> {
     })
     .eq("id", progress.id);
 
+  const { ensureExamCompactStageSkip } = await import(
+    "@/lib/question-generator/exam-vocab"
+  );
+  await ensureExamCompactStageSkip(profile!.id, setId);
+
   revalidatePath("/student/vocab");
   revalidatePath(`/student/vocab/${setId}`);
 
-  return actionSuccess("2단계를 완료했습니다. 3단계 예문 빈칸 학습을 시작할 수 있습니다.");
+  return actionSuccess("2단계를 완료했습니다.");
 }
 
 export async function recordStage3ExampleAttempt(
