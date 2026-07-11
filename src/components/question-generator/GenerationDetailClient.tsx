@@ -194,6 +194,7 @@ export function GenerationDetailClient({
     ["pending", "analyzing", "generating", "validating"].includes(job.status);
 
   const printExamHref = `${basePath}/generations/${jobId}/print?mode=exam`;
+  const printExamByTypeHref = `${basePath}/generations/${jobId}/print?mode=exam&layout=byType`;
   const printAnswersHref = `${basePath}/generations/${jobId}/print?mode=answers`;
 
   return (
@@ -229,11 +230,17 @@ export function GenerationDetailClient({
             href={printExamHref}
             className="inline-flex items-center rounded-xl bg-brand-700 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-800"
           >
-            문제 PDF
+            종합 문제 PDF
+          </Link>
+          <Link
+            href={printExamByTypeHref}
+            className="inline-flex items-center rounded-xl border border-brand-700 bg-white px-5 py-3 text-sm font-semibold text-brand-800 shadow-sm hover:bg-brand-50"
+          >
+            유형별 문제 PDF
           </Link>
           <Link
             href={printAnswersHref}
-            className="inline-flex items-center rounded-xl border border-brand-700 bg-white px-5 py-3 text-sm font-semibold text-brand-800 shadow-sm hover:bg-brand-50"
+            className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
           >
             해설지 PDF
           </Link>
@@ -486,25 +493,31 @@ export function GenerationDetailClient({
                         </div>
                       )}
                       {wordOrder && (
-                        <div className="mt-3 space-y-2 text-sm">
-                          <div className="rounded-md border border-slate-400 px-3 py-2">
-                            <p className="mb-1 font-semibold text-slate-900">
+                        <div className="mt-3 space-y-1.5 text-sm">
+                          <div className="rounded-md border border-slate-400 px-2.5 py-1.5">
+                            <p className="mb-0.5 font-semibold text-slate-900">
                               &lt;조건&gt;
                             </p>
                             <p className="whitespace-pre-wrap text-slate-800">
                               {wordOrder.conditions}
                             </p>
                           </div>
-                          <div className="rounded-md border border-slate-400 px-3 py-2">
-                            <p className="mb-1 font-semibold text-slate-900">
+                          <div className="rounded-md border border-slate-400 px-2.5 py-1.5">
+                            <p className="mb-0.5 font-semibold text-slate-900">
                               &lt;보기&gt;
+                              {wordOrder.allowExtraWords ? (
+                                <span className="font-normal text-slate-500">
+                                  {" "}
+                                  · 없는 단어 추가 가능
+                                </span>
+                              ) : null}
                             </p>
                             <p className="text-center font-serif text-slate-900">
                               {wordOrder.words}
                             </p>
                           </div>
-                          <div className="rounded-md border border-slate-400 px-3 py-2">
-                            <p className="mb-1 font-semibold text-slate-900">
+                          <div className="rounded-md border border-slate-400 px-2.5 py-1.5">
+                            <p className="mb-0.5 font-semibold text-slate-900">
                               &lt;해석&gt;
                             </p>
                             <p className="whitespace-pre-wrap text-slate-800">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import {
@@ -33,8 +33,31 @@ type QuestionRow = {
   correct_answer: unknown;
   explanation: string;
   question_type?: string;
+  category?: string;
   hard_words?: Array<{ word: string; meaning: string }> | null;
 };
+
+const CATEGORY_ORDER = [
+  "main_idea",
+  "details",
+  "inference",
+  "grammar_vocabulary",
+  "subjective",
+] as const;
+
+const CATEGORY_LABEL: Record<string, string> = {
+  main_idea: "대의 파악",
+  details: "세부 정보",
+  inference: "추론 능력",
+  grammar_vocabulary: "어법·어휘",
+  subjective: "주관식·서술형",
+};
+
+type PrintLayoutMode = "mixed" | "byType";
+
+type DisplayItem =
+  | { kind: "header"; id: string; label: string }
+  | { kind: "q"; id: string; q: QuestionRow; num: number };
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -160,7 +183,12 @@ function WordOrderBoxes({
         </div>
       </div>
       <div className="qg-print-wo-box">
-        <p className="qg-print-wo-label">&lt;보기&gt;</p>
+        <p className="qg-print-wo-label">
+          &lt;보기&gt;
+          {blocks.allowExtraWords ? (
+            <span className="qg-print-wo-hint"> · 없는 단어 추가 가능</span>
+          ) : null}
+        </p>
         <div className="qg-print-wo-body qg-print-wo-words">
           {blocks.words}
         </div>
@@ -416,16 +444,19 @@ export function QuestionPrintView({
   backHref,
   mode = "exam",
   autoPrint = false,
+  layout: layoutProp = "mixed",
 }: {
   jobId: string;
   backHref: string;
   mode?: "exam" | "answers";
   autoPrint?: boolean;
+  layout?: PrintLayoutMode;
 }) {
   const [title, setTitle] = useState("영어 변형문제");
   const [grade, setGrade] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
+  const [printLayout, setPrintLayout] = useState<PrintLayoutMode>(layoutProp);
   const [vocabSetId, setVocabSetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pages, setPages] = useState<ExamPageLayout[]>([]);
@@ -517,8 +548,48 @@ export function QuestionPrintView({
     branding.headerTitle ||
     (mode === "answers" ? `${title} · 해설지` : title);
 
+  const displayItems: DisplayItem[] = useMemo(() => {
+    if (questions.length === 0) return [];
+    if (printLayout !== "byType") {
+      return questions.map((q, i) => ({
+        kind: "q" as const,
+        id: q.id,
+        q,
+        num: i + 1,
+      }));
+    }
+    const byCat = new Map<string, QuestionRow[]>();
+    for (const q of questions) {
+      const cat = q.category || "other";
+      if (!byCat.has(cat)) byCat.set(cat, []);
+      byCat.get(cat)!.push(q);
+    }
+    const order = [
+      ...CATEGORY_ORDER.filter((c) => byCat.has(c)),
+      ...[...byCat.keys()].filter(
+        (c) => !(CATEGORY_ORDER as readonly string[]).includes(c)
+      ),
+    ];
+    const items: DisplayItem[] = [];
+    let num = 1;
+    for (const cat of order) {
+      const list = byCat.get(cat) ?? [];
+      if (list.length === 0) continue;
+      items.push({
+        kind: "header",
+        id: `hdr-${cat}`,
+        label: CATEGORY_LABEL[cat] ?? cat,
+      });
+      for (const q of list) {
+        items.push({ kind: "q", id: q.id, q, num });
+        num++;
+      }
+    }
+    return items;
+  }, [questions, printLayout]);
+
   useEffect(() => {
-    if (questions.length === 0) {
+    if (displayItems.length === 0) {
       setPages([]);
       return;
     }
@@ -526,13 +597,14 @@ export function QuestionPrintView({
     const run = () => {
       const root = measureRef.current;
       if (!root) return;
-      const heights = questions.map((q) => {
-        const el = root.querySelector<HTMLElement>(`[data-measure-q="${q.id}"]`);
-        return el ? Math.ceil(el.getBoundingClientRect().height) : 80;
+      const heights = displayItems.map((item) => {
+        const el = root.querySelector<HTMLElement>(
+          `[data-measure-q="${item.id}"]`
+        );
+        return el ? Math.ceil(el.getBoundingClientRect().height) : 40;
       });
 
       const mmToPx = (mm: number) => (mm * 96) / 25.4;
-      // 머릿말·꼬릿말 공간 확보
       const firstColMax = mmToPx(232);
       const nextColMax = mmToPx(240);
 
@@ -551,11 +623,11 @@ export function QuestionPrintView({
       window.setTimeout(run, 30);
     });
     return () => window.clearTimeout(t);
-  }, [questions, mode, branding.headerTitle, branding.headerSub]);
+  }, [displayItems, mode, branding.headerTitle, branding.headerSub, printLayout]);
 
   useEffect(() => {
     if (!autoPrint || printedRef.current) return;
-    if (pages.length === 0 || questions.length === 0) return;
+    if (pages.length === 0 || displayItems.length === 0) return;
 
     printedRef.current = true;
     const t = window.setTimeout(() => {
@@ -567,7 +639,7 @@ export function QuestionPrintView({
       }, 500);
     }, 900);
     return () => window.clearTimeout(t);
-  }, [autoPrint, mode, pages.length, questions.length, sheetTitle]);
+  }, [autoPrint, mode, pages.length, displayItems.length, sheetTitle]);
 
   function runPrint() {
     const prev = document.title;
@@ -639,12 +711,10 @@ export function QuestionPrintView({
             <div className="qg-print-vocab-qr">
               <ListeningPrintQrCode
                 url={buildExamVocabUrl(vocabSetId!)}
-                sizePx={72}
+                sizePx={56}
               />
               <p className="qg-print-vocab-qr-label">
-                보기 단어
-                <br />
-                학습 QR
+                보기 단어 학습 QR
               </p>
             </div>
           ) : null}
@@ -683,14 +753,30 @@ export function QuestionPrintView({
   const sheetPages =
     pages.length > 0
       ? pages
-      : questions.length > 0
+      : displayItems.length > 0
         ? [
             {
-              left: questions.map((_, i) => i),
+              left: displayItems.map((_, i) => i),
               right: [] as number[],
             },
           ]
         : [];
+
+  function renderDisplayItem(item: DisplayItem | undefined) {
+    if (!item) return null;
+    if (item.kind === "header") {
+      return (
+        <div className="qg-print-section-hdr">
+          <p>{item.label}</p>
+        </div>
+      );
+    }
+    return mode === "exam" ? (
+      <QuestionBlock q={item.q} index={item.num} />
+    ) : (
+      <AnswerBlock q={item.q} index={item.num} />
+    );
+  }
 
   return (
     <div className="qg-print-app min-h-screen bg-slate-200 print:min-h-0 print:bg-white">
@@ -703,6 +789,33 @@ export function QuestionPrintView({
             PDF 저장 / 인쇄
           </Button>
         </div>
+
+        {mode === "exam" && (
+          <div className="mx-auto mt-3 flex max-w-4xl flex-wrap gap-2">
+            <button
+              type="button"
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                printLayout === "mixed"
+                  ? "bg-brand-700 text-white"
+                  : "border border-slate-200 bg-white text-slate-700"
+              }`}
+              onClick={() => setPrintLayout("mixed")}
+            >
+              종합해서 출력
+            </button>
+            <button
+              type="button"
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                printLayout === "byType"
+                  ? "bg-brand-700 text-white"
+                  : "border border-slate-200 bg-white text-slate-700"
+              }`}
+              onClick={() => setPrintLayout("byType")}
+            >
+              유형별 출력
+            </button>
+          </div>
+        )}
 
         <div className="mx-auto mt-3 max-w-4xl rounded-xl border border-slate-200 bg-slate-50 p-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -781,13 +894,9 @@ export function QuestionPrintView({
         className="qg-print-measure no-print"
         style={{ width: `${COL_WIDTH_MM}mm` }}
       >
-        {questions.map((q, i) => (
-          <div key={q.id} data-measure-q={q.id}>
-            {mode === "exam" ? (
-              <QuestionBlock q={q} index={i + 1} />
-            ) : (
-              <AnswerBlock q={q} index={i + 1} />
-            )}
+        {displayItems.map((item) => (
+          <div key={item.id} data-measure-q={item.id}>
+            {renderDisplayItem(item)}
           </div>
         ))}
       </div>
@@ -805,26 +914,18 @@ export function QuestionPrintView({
             {renderHeader(pageIdx > 0, pageIdx, sheetPages.length)}
             <div className="qg-print-cols">
               <div className="qg-print-col">
-                {page.left.map((qi) => {
-                  const q = questions[qi];
-                  if (!q) return null;
-                  return mode === "exam" ? (
-                    <QuestionBlock key={q.id} q={q} index={qi + 1} />
-                  ) : (
-                    <AnswerBlock key={q.id} q={q} index={qi + 1} />
-                  );
-                })}
+                {page.left.map((ii) => (
+                  <div key={displayItems[ii]?.id ?? ii}>
+                    {renderDisplayItem(displayItems[ii])}
+                  </div>
+                ))}
               </div>
               <div className="qg-print-col qg-print-col-right">
-                {page.right.map((qi) => {
-                  const q = questions[qi];
-                  if (!q) return null;
-                  return mode === "exam" ? (
-                    <QuestionBlock key={q.id} q={q} index={qi + 1} />
-                  ) : (
-                    <AnswerBlock key={q.id} q={q} index={qi + 1} />
-                  );
-                })}
+                {page.right.map((ii) => (
+                  <div key={displayItems[ii]?.id ?? ii}>
+                    {renderDisplayItem(displayItems[ii])}
+                  </div>
+                ))}
               </div>
             </div>
             {renderFooter()}

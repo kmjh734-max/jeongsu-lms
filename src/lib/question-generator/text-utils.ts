@@ -1,3 +1,8 @@
+import {
+  lemmaWordBankOnly,
+  stripExtraWordHint,
+} from "@/lib/question-generator/word-order-normalize";
+
 /** 메타 태그·군더더기 발문 제거 */
 export function cleanQuestionText(text: string): string {
   return (text || "")
@@ -25,6 +30,7 @@ export function parseWordOrderBlocks(text: string): {
   conditions: string;
   words: string;
   translation: string;
+  allowExtraWords: boolean;
 } | null {
   const cleaned = cleanQuestionText(text).trim();
   if (
@@ -34,14 +40,29 @@ export function parseWordOrderBlocks(text: string): {
   ) {
     return null;
   }
-  const conditions =
+  let conditions =
     cleaned.match(/<조건>\s*([\s\S]*?)(?=<보기>|$)/)?.[1]?.trim() ?? "";
-  const words =
+  let words =
     cleaned.match(/<보기>\s*([\s\S]*?)(?=<해석>|$)/)?.[1]?.trim() ?? "";
   const translation =
     cleaned.match(/<해석>\s*([\s\S]*?)$/)?.[1]?.trim() ?? "";
   if (!conditions && !words && !translation) return null;
-  return { conditions, words, translation };
+
+  words = words
+    .replace(/<\/?보기>/gi, "")
+    .replace(/<?보기>?\s*에\s*없는\s*단어\s*추가\s*가능/gi, "")
+    .replace(/없는\s*단어\s*추가\s*가능/gi, "")
+    .trim();
+
+  const stripped = stripExtraWordHint(conditions);
+  conditions = stripped.conditions;
+  const allowExtraWords =
+    stripped.allowExtraWords ||
+    /없는\s*단어\s*추가|추가\s*가능/.test(cleaned);
+
+  words = lemmaWordBankOnly(words);
+
+  return { conditions, words, translation, allowExtraWords };
 }
 
 /** 요약문 서술형 questionText: <조건> / (선택)<보기> / <요약문> */

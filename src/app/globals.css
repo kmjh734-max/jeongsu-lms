@@ -963,10 +963,10 @@
 .qg-print-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   border-bottom: 2px solid #1a3a6e;
-  padding-bottom: 2.5mm;
-  margin-bottom: 3mm;
+  padding-bottom: 2mm;
+  margin-bottom: 2.5mm;
   gap: 3mm;
 }
 
@@ -1002,6 +1002,11 @@
 }
 
 .qg-print-header-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.4mm;
   text-align: right;
   flex-shrink: 0;
 }
@@ -1225,33 +1230,49 @@
   color: #1e293b;
 }
 
-.qg-print-word-order {
-  margin-top: 1.5mm;
+.qg-print-section-hdr {
+  margin: 1.5mm 0 1mm;
+  padding-bottom: 0.6mm;
+  border-bottom: 1px solid #94a3b8;
+}
+
+.qg-print-section-hdr p {
+  margin: 0;
+  font-size: 9pt;
+  font-weight: 700;
+  color: #1a3a6e;
+  letter-spacing: -0.01em;
 }
 
 .qg-print-wo-box {
-  margin: 1.2mm 0;
+  margin: 0.8mm 0;
   border: 1px solid #334155;
-  padding: 1.4mm 2mm 1.8mm;
+  padding: 0.9mm 1.6mm 1mm;
 }
 
 .qg-print-wo-label {
-  margin: 0 0 0.8mm;
+  margin: 0 0 0.4mm;
   font-size: 8pt;
   font-weight: 700;
   color: #0f172a;
 }
 
+.qg-print-wo-hint {
+  font-weight: 500;
+  font-size: 7.5pt;
+  color: #475569;
+}
+
 .qg-print-wo-body {
   margin: 0;
   font-size: 8.4pt;
-  line-height: 1.45;
+  line-height: 1.35;
   color: #1e293b;
   white-space: pre-wrap;
 }
 
 .qg-print-wo-body p {
-  margin: 0 0 0.4mm;
+  margin: 0 0 0.2mm;
 }
 
 .qg-print-wo-words {
@@ -1337,10 +1358,10 @@
 
 .qg-print-vocab-qr {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.6mm;
-  margin-bottom: 1.5mm;
+  gap: 1.2mm;
+  margin-bottom: 0.4mm;
 }
 
 .qg-print-vocab-qr-label {
@@ -1348,7 +1369,7 @@
   font-size: 6.5pt;
   font-weight: 700;
   line-height: 1.2;
-  text-align: center;
+  text-align: left;
   color: #0f172a;
 }
 

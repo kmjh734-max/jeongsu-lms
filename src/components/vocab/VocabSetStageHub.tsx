@@ -163,10 +163,19 @@ export function VocabSetStageHub({
         <h1 className="mt-1 text-lg font-bold text-slate-900">{setTitle}</h1>
         {examCompact ? (
           <p className="mt-1 text-sm text-slate-500">
-            변형문제 연계 · 1·2·4단계만 학습합니다 (예문 단계 생략).
+            변형문제 연계 · 로그인 없이 빠른 학습(1·2·3단계)을 권장합니다.
           </p>
         ) : null}
       </div>
+
+      {examCompact ? (
+        <Link
+          href={`/exam-vocab/${setId}`}
+          className="flex w-full items-center justify-center rounded-xl bg-brand-700 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-800"
+        >
+          빠른 학습 시작 (단계 즉시 전환)
+        </Link>
+      ) : null}
 
       {itemCount < 1 ? (
         <p className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-slate-600">

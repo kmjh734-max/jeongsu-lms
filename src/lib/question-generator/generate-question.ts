@@ -35,6 +35,7 @@ import {
   wordOrderCatalogBrief,
   type WordOrderMode,
 } from "@/lib/question-generator/word-order-catalog";
+import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
 
 /** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
 export class SkipQuestionError extends Error {
@@ -438,16 +439,19 @@ LANGUAGE: 지문·정답 영어만.`;
         const catalog = wordOrderCatalogBrief();
         const modeRules =
           mode === "basic"
-            ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용 / 어형을 변화시키지 말 것
-- <보기>: 이미 정답에 쓸 형태 그대로 (변화 불필요). 8~12개
-- correctAnswer = <보기> 단어만 어형 변화 없이 배열한 결과`
+            ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용 (필요 시 어형 변화 가능)
+- <보기>: 반드시 원형·기본형만 (복수·과거·3인칭 -s 금지). 생성 후 시스템이 무작위로 섞음. 8~12개
+- correctAnswer = 어형·어순을 맞춘 완성 영어`
             : mode === "inflect"
               ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 어형 변화
-- <보기>: 원형·기본형 위주 (교재 ‘필요 시 어형 변화 가능’형)
+- <보기>: 반드시 원형·기본형만 (과거·과거분사·복수 금지). 생성 후 시스템이 무작위로 섞음
 - correctAnswer = 어형 변화를 적용한 완성 영어 (예: ${c.example})`
-              : `- <조건>: 단어 중복·어형 변화 가능 / <보기>에 없는 단어 추가 가능 (교재 ‘한 단어 추가’·긴 영작형)
-- <보기>: 핵심 어휘 6~10개
-- correctAnswer = 관사·전치사·접속사 추가·어형 변화 포함한 완성문 (예: ${c.example})`;
+              : `- <조건>은 반드시 아래 두 줄만 (한 줄에 / 로 붙이지 말 것):
+○ 단어 중복·어형 변화 가능
+○ <보기>에 없는 단어 추가 가능
+- <보기>: 핵심 어휘 원형 6~10개만 (과거형·복수형·안내문 금지). 생성 후 시스템이 무작위로 섞음
+- correctAnswer = 관사·전치사·접속사 추가·어형 변화 포함한 완성문 (예: ${c.example})
+- 금지: <보기> 안에 '에 없는 단어' 문구·문법 설명·중복 <보기> 태그`;
 
         return `서술형 · 제시어 배열 — 『고등영어 어법서술형』 반영
 ${focusBlock}
@@ -898,6 +902,7 @@ export function assertBasicQuestionShape(
       return "제시어 배열 정답(영어 완성문)이 필요합니다.";
     }
     q.choices = undefined;
+    q.questionText = normalizeWordOrderQuestionText(q.questionText || "");
   } else if (
     option.type === "writing" &&
     (option.aingkaCode === "지칭대명사서술" ||
