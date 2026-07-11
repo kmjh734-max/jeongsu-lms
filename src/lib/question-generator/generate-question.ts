@@ -1303,7 +1303,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: Include 4~8 {word, meaning} when (a) MCQ has English choice texts, OR (b) 일치개수(content_count) with English <보기> statements (take hard words from those statements) or Korean <보기> (then from the English passage). word = dictionary lemma. meaning = short Korean gloss. Skip ultra-basic words. Otherwise (한글 요지/주제 선지, 1개~5개만, 서술·삽입·밑줄형 등) → hardWords MUST be [].
+- hardWords: Include 4~8 {word, meaning} when (a) MCQ has English choice texts, OR (b) 일치개수(content_count) with English <보기> statements (from those statements) or Korean <보기> (from the English passage). Pick genuinely hard high-school words (e.g. conscious, voucher, misprint, comparable). NEVER include easy basics like consumer/people/important/money/make/need/progress/information/viewer/financial. word = dictionary lemma. meaning = short Korean gloss. If no hard words fit → hardWords []. Otherwise (한글 요지/주제 선지, 1개~5개만, 서술·삽입·밑줄형 등) → hardWords MUST be [].
 ${englishOnlyHint}
 ${
   allowSkip
