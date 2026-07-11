@@ -100,7 +100,7 @@ export function parseWordOrderBlocks(text: string): {
 
   words = words
     .replace(/<\/?보기>/gi, "")
-    .replace(/<?보기>?\s*에\s*없는\s*단어\s*추가\s*가능/gi, "")
+    .replace(/(?:보기)?\s*에\s*없는\s*단어\s*추가\s*가능/gi, "")
     .replace(/없는\s*단어\s*추가\s*가능/gi, "")
     // 조건 줄이 보기에 섞인 경우 제거
     .replace(/^○\s*.+$/gm, "")

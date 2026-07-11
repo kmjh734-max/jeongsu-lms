@@ -338,7 +338,7 @@ export function splitWordBank(raw: string): string[] {
   return raw
     .split(/\s*\/\s*|\s*,\s*|\n+/)
     .map((w) => w.trim())
-    .filter(Boolean);
+    .filter((w) => w && /[A-Za-z]/.test(w) && !/[\uAC00-\uD7A3]/.test(w));
 }
 
 export function joinWordBank(words: string[]): string {
@@ -346,21 +346,38 @@ export function joinWordBank(words: string[]): string {
 }
 
 export function normalizeAndShuffleWordBank(raw: string): string {
-  const tokens = splitWordBank(raw).map(lemmaEnglishToken).filter(Boolean);
-  if (tokens.length === 0) return raw.trim();
+  const tokens = splitWordBank(scrubWordBankNoise(raw))
+    .map(lemmaEnglishToken)
+    .filter(Boolean);
+  if (tokens.length === 0) return "";
   shuffleInPlace(tokens);
   return joinWordBank(tokens);
 }
 
 /** 표시용: 원형만 (재섞기 없음 — 매 렌더마다 순서가 바뀌지 않게) */
 export function lemmaWordBankOnly(raw: string): string {
-  const tokens = splitWordBank(raw).map(lemmaEnglishToken).filter(Boolean);
-  if (tokens.length === 0) return raw.trim();
+  const tokens = splitWordBank(scrubWordBankNoise(raw))
+    .map(lemmaEnglishToken)
+    .filter(Boolean);
+  if (tokens.length === 0) return "";
   return joinWordBank(tokens);
 }
 
+/** 보기에 섞인 «에 없는 단어 추가 가능»·한글 잔여 제거 */
 const EXTRA_WORD_RE =
-  /<?보기>?\s*에\s*없는\s*단어\s*추가\s*가능|없는\s*단어\s*추가\s*가능/gi;
+  /(?:<\/?보기>|\s*보기)?\s*에\s*없는\s*단어\s*추가\s*가능|없는\s*단어\s*추가\s*가능/gi;
+
+export function scrubWordBankNoise(raw: string): string {
+  return (raw || "")
+    .replace(/<\/?보기>/gi, "")
+    .replace(EXTRA_WORD_RE, " ")
+    .replace(/^○\s*.+$/gm, " ")
+    .replace(/[\uAC00-\uD7A3]+/g, " ")
+    .replace(/\/\s*\//g, "/")
+    .replace(/^\s*\/\s*|\s*\/\s*$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
 
 export function stripExtraWordHint(conditions: string): {
   conditions: string;
@@ -373,6 +390,10 @@ export function stripExtraWordHint(conditions: string): {
     .replace(/\s*\/\s*$/g, "")
     .replace(/^\s*\/\s*/g, "")
     .replace(/\n{2,}/g, "\n")
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter((l) => l && !/^○\s*$/.test(l) && !/^·\s*$/.test(l))
+    .join("\n")
     .trim();
   // 한 줄에 여러 조건이 / 로 이어진 경우 줄바꿈
   if (!/\n/.test(next) && /\s\/\s/.test(next)) {
@@ -391,7 +412,9 @@ export function stripExtraWordHint(conditions: string): {
 
 /** questionText의 <보기>·<조건>을 정리해 다시 조립 */
 export function normalizeWordOrderQuestionText(questionText: string): string {
-  const cleaned = (questionText || "").trim();
+  const cleaned = (questionText || "")
+    .replace(/<보기>(의|를|에|만|와|과|로|을|은|이|가)/g, "보기$1")
+    .trim();
   if (!/<조건>/.test(cleaned) || !/<보기>/.test(cleaned) || !/<해석>/.test(cleaned)) {
     return questionText;
   }
@@ -402,10 +425,8 @@ export function normalizeWordOrderQuestionText(questionText: string): string {
   const translation =
     cleaned.match(/<해석>\s*([\s\S]*?)$/)?.[1]?.trim() ?? "";
 
-  // 보기 본문에 섞인 안내·중복 태그 제거
-  words = words
-    .replace(/<\/?보기>/gi, "")
-    .replace(EXTRA_WORD_RE, "")
+  // 보기 본문에 섞인 안내·중복 태그·한글 잔여 제거
+  words = scrubWordBankNoise(words)
     .replace(/가정법[\s\S]*?(?=\n|$)/g, "")
     .trim();
   // 조건에 문법 팁이 잘못 들어간 경우 조건만 남김 (긴 문법 설명은 제거하지 않되 보기 힌트는 분리)
