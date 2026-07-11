@@ -1225,6 +1225,48 @@
   color: #1e293b;
 }
 
+.qg-print-word-order {
+  margin-top: 1.5mm;
+}
+
+.qg-print-wo-box {
+  margin: 1.2mm 0;
+  border: 1px solid #334155;
+  padding: 1.4mm 2mm 1.8mm;
+}
+
+.qg-print-wo-label {
+  margin: 0 0 0.8mm;
+  font-size: 8pt;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.qg-print-wo-body {
+  margin: 0;
+  font-size: 8.4pt;
+  line-height: 1.45;
+  color: #1e293b;
+  white-space: pre-wrap;
+}
+
+.qg-print-wo-body p {
+  margin: 0 0 0.4mm;
+}
+
+.qg-print-wo-words {
+  font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.qg-print-wo-answer-line {
+  margin: 2mm 0 0;
+  font-size: 8.6pt;
+  font-weight: 600;
+  color: #0f172a;
+}
+
 .qg-print-u {
   text-decoration: underline;
   text-underline-offset: 1.5px;

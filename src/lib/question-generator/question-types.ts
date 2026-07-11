@@ -518,6 +518,39 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
       opt(
         "writing",
         "subjective",
+        "제시어 배열 · 기본",
+        "default",
+        null,
+        false,
+        "ⓐ 빈칸 · 어형 변화 없이 단어 배열",
+        "제시어배열기본",
+        "다음 글의 흐름에 맞게, 밑줄 친 ⓐ의 우리말 해석에 맞도록 <보기>의 단어들을 알맞게 배열하여 문장을 완성하시오."
+      ),
+      opt(
+        "writing",
+        "subjective",
+        "제시어 배열 · 어형변화",
+        "default",
+        null,
+        false,
+        "ⓐ 빈칸 · 필요 시 어형 변화 허용",
+        "제시어배열어형변화",
+        "다음 <해석>의 우리말 문장과 같은 뜻이 되도록 <보기>의 표현만을 모두 한 번씩 사용하여 주어진 문장을 완성하시오."
+      ),
+      opt(
+        "writing",
+        "subjective",
+        "제시어 배열 · 단어추가",
+        "default",
+        null,
+        false,
+        "ⓐ 빈칸 · 단어 추가·어형 변화 허용",
+        "제시어배열단어추가",
+        "다음 글의 흐름과 밑줄 친 ⓐ의 우리말 해석에 맞도록 <보기>의 단어를 활용하여 문장을 완성하시오."
+      ),
+      opt(
+        "writing",
+        "subjective",
         "조건 영작",
         "default",
         null,

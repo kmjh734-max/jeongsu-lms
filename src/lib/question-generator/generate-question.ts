@@ -334,9 +334,67 @@ ${choiceExplanationRules()}
 해설 한글: 정답 번호 + 문맥 paraphrase 이유 + 왜 직역/일반론이 아닌지.`;
       }
       return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
-    case "writing":
-      return `Korean prompt + <조건> + given words. Model answer in correctAnswer.`;
-    case "summary_short":
+    case "writing": {
+      if (code === "제시어배열기본") {
+        return `서술형 · 제시어 배열 [기본] (수특·내신형):
+- passageModified = 영어 지문. 흐름상 중요한 한 곳에 빈칸 ⓐ__________ (또는 ⓐ ________________).
+- 빈칸에 들어갈 문장/절은 지문 흐름과 자연스럽게 이어져야 함.
+- questionText 형식(필수, 이 순서·태그 유지):
+<조건>
+○ 주어진 단어를 모두 한 번씩만 사용할 것
+○ 어형을 변화시키지 말 것
+
+<보기>
+word1 / word2 / word3 / … (8~12개, 정답 문장을 섞은 단어·기능어)
+
+<해석>
+(빈칸 문장의 자연스러운 한국어 해석 한 문장)
+
+- correctAnswer = 빈칸에 들어갈 영어 정답 전문 (어형 변화 없이 <보기> 단어만 배열한 결과).
+- acceptableAnswers: 구두점·대소문자만 다른 허용 답 있으면 배열.
+- choices 없음.
+- explanation 한글: 정답 문장 + 배열 포인트(어순·전치사 등) 1~2문장.
+- 금지: 어형 변화 필요한 정답, <보기>에 없는 단어 사용.`;
+      }
+      if (code === "제시어배열어형변화") {
+        return `서술형 · 제시어 배열 [어형변화 허용] (수특·내신형):
+- passageModified = 영어 지문 + 빈칸 ⓐ________ (문장 일부 또는 절).
+- questionText 형식:
+<조건>
+○ 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 단어의 어형을 변화시킬 것
+
+<보기>
+word1 / word2 / … (원형·기본형 위주; 정답에서 followed/testing 등으로 변화)
+
+<해석>
+(빈칸에 해당하는 한국어 해석)
+
+- correctAnswer = 어형 변화를 적용한 완성 영어 (예: must be followed by testing that confirms or disproves).
+- 모든 <보기> 단어를 한 번씩 사용(변화된 형태 포함).
+- explanation 한글: 정답 + 어떤 어형을 어떻게 바꿨는지.
+- choices 없음.`;
+      }
+      if (code === "제시어배열단어추가") {
+        return `서술형 · 제시어 배열 [단어 추가·변화 허용] (수특·내신형):
+- passageModified = 영어 지문 + 빈칸 ⓐ________ (비교적 긴 문장 가능).
+- questionText 형식:
+<조건>
+○ 주어진 단어는 필요할 경우 두 번 이상 사용하거나 어형을 변화시킬 수 있음
+○ <보기>에 없는 단어를 추가해도 됨
+
+<보기>
+핵심 어휘 6~10개 (가설·동사 원형 등)
+
+<해석>
+(빈칸 전체 문장의 한국어 해석 — 다소 긴 복문 OK)
+
+- correctAnswer = 완성 영어 문장/절 (관사·전치사·접속사 추가·어형 변화 포함).
+- <보기> 핵심어는 의미상 반영. 추가 기능어·변화 허용.
+- explanation 한글: 정답 + 구조 포인트(not A but B, 수동 등).
+- choices 없음.`;
+      }
+      return `Korean prompt + <조건> + given words in questionText. Model English answer in correctAnswer. passageModified optional.`;
+    }    case "summary_short":
     case "short_title":
     case "short_topic":
       return `Short constructed response. Model answer in correctAnswer.`;
@@ -638,6 +696,27 @@ export function assertBasicQuestionShape(
     if (phrase && !q.instruction.includes(phrase)) {
       q.instruction = `다음 글의 밑줄 친 (A)${phrase}가 의미하는 바로 가장 적절한 것은?`;
     }
+  } else if (
+    option.type === "writing" &&
+    (option.aingkaCode === "제시어배열기본" ||
+      option.aingkaCode === "제시어배열어형변화" ||
+      option.aingkaCode === "제시어배열단어추가")
+  ) {
+    const qt = q.questionText || "";
+    if (!/<조건>/.test(qt) || !/<보기>/.test(qt) || !/<해석>/.test(qt)) {
+      return "제시어 배열은 questionText에 <조건>·<보기>·<해석>이 필요합니다.";
+    }
+    const mod = q.passageModified || "";
+    if (!/ⓐ/.test(mod) || !/_{3,}/.test(mod)) {
+      return "제시어 배열 본문에 ⓐ__________ 빈칸 표시가 필요합니다.";
+    }
+    if (hasHangul(mod)) {
+      return "제시어 배열 본문은 영어여야 합니다 (한글 포함됨).";
+    }
+    if (!String(q.correctAnswer ?? "").trim()) {
+      return "제시어 배열 정답(영어 완성문)이 필요합니다.";
+    }
+    q.choices = undefined;
   } else if (option.isObjective && option.choiceLanguage) {
     if (!q.choices || q.choices.length < 5) {
       return "객관식 선택지가 5개 미만입니다.";
@@ -745,6 +824,15 @@ export async function generateOneQuestion(opts: {
     titleCandidates: (analysis.titleCandidates ?? []).slice(0, 4),
   };
 
+  const wordOrderCodes = new Set([
+    "제시어배열기본",
+    "제시어배열어형변화",
+    "제시어배열단어추가",
+  ]);
+  const isWordOrder =
+    option.type === "writing" &&
+    wordOrderCodes.has(option.aingkaCode || meta?.aingkaCode || "");
+
   const englishBodyTypes = new Set([
     "order",
     "sentence_blank",
@@ -753,24 +841,30 @@ export async function generateOneQuestion(opts: {
     "grammar",
     "vocabulary",
   ]);
-  const englishOnlyHint = englishBodyTypes.has(option.type)
+  const englishOnlyHint = isWordOrder
+    ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only (blank ⓐ__________). questionText may include Korean in <해석>. correctAnswer ENGLISH."
+    : englishBodyTypes.has(option.type)
     ? option.type === "grammar" || option.type === "vocabulary"
       ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only. Choice texts may be Korean (조합/개수) or empty numbers. Never put Hangul in the passage."
       : "- CRITICAL LANGUAGE: passageModified, questionText (if any), and choices MUST be ENGLISH only. Never put Korean Hangul in passage or choices. Only instruction/explanation may be Korean."
     : "";
 
-  const needsModified = [
-    "grammar",
-    "vocabulary",
-    "sentence_blank",
-    "order",
-    "sentence_insertion",
-    "irrelevant_sentence",
-    "underlined_inference",
-  ].includes(option.type);
+  const needsModified =
+    [
+      "grammar",
+      "vocabulary",
+      "sentence_blank",
+      "order",
+      "sentence_insertion",
+      "irrelevant_sentence",
+      "underlined_inference",
+    ].includes(option.type) || isWordOrder;
 
   const needsQuestionText =
-    option.type === "content_count" || option.type === "sentence_insertion";
+    option.type === "content_count" ||
+    option.type === "sentence_insertion" ||
+    isWordOrder ||
+    (option.type === "writing" && option.aingkaCode === "서술형영작");
   const paraphraseTypes = new Set([
     "title",
     "topic",
@@ -798,13 +892,25 @@ export async function generateOneQuestion(opts: {
       needsQuestionText
         ? option.type === "sentence_insertion"
           ? "Fill questionText with the ENGLISH given sentence to insert."
-          : "Fill questionText with (1)(2)… statements."
+          : isWordOrder
+            ? "Fill questionText with <조건>, <보기>, <해석> blocks exactly as type rules."
+            : option.type === "content_count"
+              ? "Fill questionText with (1)(2)… statements."
+              : "Fill questionText with <조건>/<보기> as needed."
         : 'questionText usually "".'
     }
 - NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
-- ${needsModified ? "Use passageModified when needed." : "Do NOT change passage; omit passageModified."}
+- ${
+      needsModified
+        ? isWordOrder
+          ? "passageModified MUST include blank ⓐ__________ in the ENGLISH passage."
+          : "Use passageModified when needed."
+        : "Do NOT change passage; omit passageModified."
+    }
 - explanation: ${
-      option.type === "grammar"
+      isWordOrder
+        ? "한글: 정답 문장 + 배열/어형 포인트."
+        : option.type === "grammar"
         ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
         : option.type === "underlined_inference" &&
             option.aingkaCode === "함축의미추론"

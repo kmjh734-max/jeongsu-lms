@@ -11,6 +11,7 @@ import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   cleanQuestionText,
   normalizePassage,
+  parseWordOrderBlocks,
   reflowPassageForPrint,
 } from "@/lib/question-generator/text-utils";
 
@@ -134,6 +135,38 @@ function PassageParas({ text }: { text: string }) {
   );
 }
 
+function WordOrderBoxes({
+  blocks,
+}: {
+  blocks: NonNullable<ReturnType<typeof parseWordOrderBlocks>>;
+}) {
+  return (
+    <div className="qg-print-word-order">
+      <div className="qg-print-wo-box">
+        <p className="qg-print-wo-label">&lt;조건&gt;</p>
+        <div className="qg-print-wo-body">
+          {blocks.conditions.split(/\n+/).map((line, i) => (
+            <p key={i}>{line}</p>
+          ))}
+        </div>
+      </div>
+      <div className="qg-print-wo-box">
+        <p className="qg-print-wo-label">&lt;보기&gt;</p>
+        <div className="qg-print-wo-body qg-print-wo-words">
+          {blocks.words}
+        </div>
+      </div>
+      <div className="qg-print-wo-box">
+        <p className="qg-print-wo-label">&lt;해석&gt;</p>
+        <div className="qg-print-wo-body">{blocks.translation}</div>
+      </div>
+      <p className="qg-print-wo-answer-line">
+        ⓐ : _______________________________________________
+      </p>
+    </div>
+  );
+}
+
 function QuestionBlock({
   q,
   index,
@@ -144,13 +177,15 @@ function QuestionBlock({
   const isCount = q.question_type === "content_count";
   const isInsertion = q.question_type === "sentence_insertion";
   const isIrrelevant = q.question_type === "irrelevant_sentence";
-  const extra = cleanQuestionText(q.question_text);
+  const wordOrder = parseWordOrderBlocks(q.question_text);
+  const extra = wordOrder ? "" : cleanQuestionText(q.question_text);
   const passage = questionPassage(q);
   const bogiLines = isCount ? parseBogiLines(q.question_text) : [];
   const showChoices =
     !isCount &&
     !isInsertion &&
     !isIrrelevant &&
+    !wordOrder &&
     q.choices &&
     q.choices.length > 0 &&
     q.choices.some((c) => String(c.text ?? "").trim().length > 0);
@@ -194,7 +229,8 @@ function QuestionBlock({
         <div className="qg-print-given-box">{extra}</div>
       ) : null}
       {passage.trim() ? <PassageParas text={passage} /> : null}
-      {!isInsertion && extra ? (
+      {wordOrder ? <WordOrderBoxes blocks={wordOrder} /> : null}
+      {!isInsertion && !wordOrder && extra ? (
         <p className="qg-print-extra">{extra}</p>
       ) : null}
       {showChoices && (

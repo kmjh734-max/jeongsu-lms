@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { cleanQuestionText } from "@/lib/question-generator/text-utils";
+import { cleanQuestionText, parseWordOrderBlocks } from "@/lib/question-generator/text-utils";
 
 type QuestionRow = {
   id: string;
@@ -286,7 +286,8 @@ export function GenerationDetailClient({
           <div className="space-y-4">
             {list.map((q, idx) => {
               const editing = editingId === q.id;
-              const extra = cleanQuestionText(q.question_text);
+              const wordOrder = parseWordOrderBlocks(q.question_text);
+              const extra = wordOrder ? "" : cleanQuestionText(q.question_text);
               return (
                 <article
                   key={q.id}
@@ -422,13 +423,47 @@ export function GenerationDetailClient({
                           }}
                         />
                       )}
-                      {q.question_type !== "sentence_insertion" && extra && (
+                      {wordOrder && (
+                        <div className="mt-3 space-y-2 text-sm">
+                          <div className="rounded-md border border-slate-400 px-3 py-2">
+                            <p className="mb-1 font-semibold text-slate-900">
+                              &lt;조건&gt;
+                            </p>
+                            <p className="whitespace-pre-wrap text-slate-800">
+                              {wordOrder.conditions}
+                            </p>
+                          </div>
+                          <div className="rounded-md border border-slate-400 px-3 py-2">
+                            <p className="mb-1 font-semibold text-slate-900">
+                              &lt;보기&gt;
+                            </p>
+                            <p className="text-center font-serif text-slate-900">
+                              {wordOrder.words}
+                            </p>
+                          </div>
+                          <div className="rounded-md border border-slate-400 px-3 py-2">
+                            <p className="mb-1 font-semibold text-slate-900">
+                              &lt;해석&gt;
+                            </p>
+                            <p className="whitespace-pre-wrap text-slate-800">
+                              {wordOrder.translation}
+                            </p>
+                          </div>
+                          <p className="font-medium text-slate-900">
+                            ⓐ : ________________
+                          </p>
+                        </div>
+                      )}
+                      {q.question_type !== "sentence_insertion" &&
+                        !wordOrder &&
+                        extra && (
                         <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800">
                           {extra}
                         </p>
                       )}
                       {q.question_type !== "sentence_insertion" &&
                         q.question_type !== "irrelevant_sentence" &&
+                        !wordOrder &&
                         !(
                           q.question_type === "vocabulary" &&
                           (!q.choices ||
