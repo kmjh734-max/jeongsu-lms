@@ -14,16 +14,14 @@ const PUBLIC_PREFIXES = [
   "/student-record/share",
   "/api/reports/share",
   "/api/student-records/share",
-  "/exam-vocab",
-  "/api/exam-vocab",
 ];
 
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return true;
   }
-  // 구 시험지 QR 경로 → 공개 학습으로 (미들웨어에서 바로 치환)
-  if (pathname.startsWith("/student/vocab/exam/")) return true;
+  // 이미 인쇄된 구 QR → 로그인 후 학생 학습으로 이어지도록 공개 통과
+  if (pathname.startsWith("/exam-vocab/")) return true;
   if (pathname.startsWith("/_next")) return true;
   if (pathname.startsWith("/favicon")) return true;
   if (pathname.startsWith("/image/")) return true;
@@ -35,16 +33,6 @@ function isPublicPath(pathname: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // 구 QR → 공개 단어학습
-  if (pathname.startsWith("/student/vocab/exam/")) {
-    const setId = pathname.replace("/student/vocab/exam/", "").split("/")[0];
-    if (setId) {
-      const url = request.nextUrl.clone();
-      url.pathname = `/exam-vocab/${setId}`;
-      return NextResponse.redirect(url);
-    }
-  }
 
   // 공개 경로는 세션/역할 검사 없이 통과 (학부모 리포트 링크 등)
   if (isPublicPath(pathname)) {

@@ -1011,14 +1011,28 @@
   flex-shrink: 0;
 }
 
+.qg-print-header-aside-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3mm;
+}
+
 .qg-print-header-aside-meta {
   display: flex;
+  flex-direction: row;
   align-items: baseline;
-  gap: 2mm;
+  gap: 0;
+  white-space: nowrap;
+}
+
+.qg-print-header-aside-meta .qg-print-meta {
+  margin: 0;
 }
 
 .qg-print-header-aside-meta .qg-print-page-no {
-  margin-top: 0;
+  margin: 0;
+  font-weight: 600;
 }
 
 .qg-print-page-no {
@@ -1386,13 +1400,13 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 1mm;
+  gap: 1.2mm;
   margin: 0;
 }
 
 .qg-print-vocab-qr-label {
   margin: 0;
-  font-size: 6pt;
+  font-size: 6.5pt;
   font-weight: 700;
   line-height: 1.15;
   text-align: left;

@@ -8,9 +8,9 @@ function siteBase(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL).replace(/\/$/, "");
 }
 
-/** 시험지 QR — 변형문제 연계 단어학습 (로그인 불필요) */
+/** 시험지 QR — 변형문제 연계 단어학습 (1·2·4단계) */
 export function buildExamVocabUrl(setId: string): string {
-  return `${siteBase()}/exam-vocab/${setId}`;
+  return `${siteBase()}/student/vocab/exam/${setId}`;
 }
 
 function normalizeHardWords(raw: unknown): HardWord[] {

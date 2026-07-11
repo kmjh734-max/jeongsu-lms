@@ -726,25 +726,29 @@ export function QuestionPrintView({
           </div>
         </div>
         <div className="qg-print-header-aside">
-          <div className="qg-print-header-aside-meta">
-            <p className="qg-print-meta">{questions.length}문항</p>
-            <p className="qg-print-page-no">
-              {pageIdx + 1}/{totalPages}
-            </p>
-          </div>
-          {showVocabQr ? (
-            <div className="qg-print-vocab-qr">
-              <ListeningPrintQrCode
-                url={buildExamVocabUrl(vocabSetId!)}
-                sizePx={40}
-              />
-              <p className="qg-print-vocab-qr-label">
-                보기 단어
-                <br />
-                학습 QR
+          <div className="qg-print-header-aside-row">
+            <div className="qg-print-header-aside-meta">
+              <p className="qg-print-meta">
+                {questions.length}문항{" "}
+                <span className="qg-print-page-no">
+                  {pageIdx + 1}/{totalPages}
+                </span>
               </p>
             </div>
-          ) : null}
+            {showVocabQr ? (
+              <div className="qg-print-vocab-qr">
+                <ListeningPrintQrCode
+                  url={buildExamVocabUrl(vocabSetId!)}
+                  sizePx={52}
+                />
+                <p className="qg-print-vocab-qr-label">
+                  보기 단어
+                  <br />
+                  학습 QR
+                </p>
+              </div>
+            ) : null}
+          </div>
         </div>
       </header>
     );
