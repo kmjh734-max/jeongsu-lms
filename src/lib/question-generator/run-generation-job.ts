@@ -4,6 +4,7 @@ import {
   GENERATION_CONCURRENCY,
   MAX_REGENERATION_ATTEMPTS,
   MAX_SETS_PER_TYPE,
+  MIN_SENTENCES_FOR_INSERTION_IRRELEVANT,
 } from "@/lib/question-generator/constants";
 import { syncExamVocabSetFromJob, diversifyJobHardWords } from "@/lib/question-generator/exam-vocab";
 import { generateOneQuestion, SkipQuestionError } from "@/lib/question-generator/generate-question";
@@ -17,6 +18,7 @@ import {
   shouldRegenerate,
   validateGeneratedQuestion,
 } from "@/lib/question-generator/validate-question";
+import { countEnglishSentences } from "@/lib/question-generator/text-utils";
 import type {
   GenerationRequestConfig,
   GeneratedQuestionPayload,
@@ -307,6 +309,24 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         progress_message: `${item.label} 생성 중 (${completed + failed + skipped}/${work.length})`,
         status: "generating",
       });
+
+      // 문장삽입·무관한문장: 문장 5개 이하면 AI 호출 없이 생략
+      if (
+        (item.option.type === "sentence_insertion" ||
+          item.option.type === "irrelevant_sentence") &&
+        countEnglishSentences(item.passageText) <
+          MIN_SENTENCES_FOR_INSERTION_IRRELEVANT
+      ) {
+        skipped += 1;
+        await updateJob(jobId, {
+          total_completed: completed,
+          total_failed: failed,
+          progress_message: `${completed + failed + skipped}/${work.length} 완료${
+            skipped > 0 ? ` (생략 ${skipped})` : ""
+          }`,
+        });
+        return;
+      }
 
       const result = await generateWithValidation({
         passage: item.passageText,

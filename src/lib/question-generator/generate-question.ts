@@ -20,10 +20,12 @@ import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/ope
 import { findAingkaOption } from "@/lib/question-generator/question-types";
 import {
   cleanQuestionText,
+  countEnglishSentences,
   countEnglishWords,
   passageHasConsecutiveWords,
   parseSummaryWritingBlocks,
 } from "@/lib/question-generator/text-utils";
+import { MIN_SENTENCES_FOR_INSERTION_IRRELEVANT } from "@/lib/question-generator/constants";
 import {
   questionNeedsVocabGloss,
   normalizeHardWordsFromRaw,
@@ -1152,6 +1154,20 @@ export async function generateOneQuestion(opts: {
   diversitySlot?: { index: number; total: number; label: string };
 }): Promise<GeneratedQuestionPayload> {
   const { option, passage, analysis } = opts;
+
+  // 문장삽입·무관한문장: 문장 5개 이하면 출제 불가
+  if (
+    option.type === "sentence_insertion" ||
+    option.type === "irrelevant_sentence"
+  ) {
+    const n = countEnglishSentences(passage);
+    if (n < MIN_SENTENCES_FOR_INSERTION_IRRELEVANT) {
+      throw new SkipQuestionError(
+        `지문 문장이 ${n}개라 문장삽입·무관한문장을 생략합니다 (6개 이상 필요).`
+      );
+    }
+  }
+
   const meta = findAingkaOption(option.key);
   if (meta?.aingkaCode && !option.aingkaCode) {
     option.aingkaCode = meta.aingkaCode;

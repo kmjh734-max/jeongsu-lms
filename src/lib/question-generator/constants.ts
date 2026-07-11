@@ -22,6 +22,9 @@ export const MIN_PASSAGE_WORDS = 40;
 /** 지문 최소 문장 수 (순서/삽입 등 경고) */
 export const MIN_PASSAGE_SENTENCES_FOR_ORDER = 4;
 
+/** 문장삽입·무관한문장: 문장 수가 이 값 이하이면 생성 생략 (5개 초과 필요) */
+export const MIN_SENTENCES_FOR_INSERTION_IRRELEVANT = 6;
+
 export const GRADES = [
   { value: "중1", label: "중1" },
   { value: "중2", label: "중2" },

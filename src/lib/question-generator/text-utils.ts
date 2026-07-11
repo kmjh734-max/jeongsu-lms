@@ -55,6 +55,16 @@ export function normalizePassage(text: string): string {
   return (text || "").replace(/\s+/g, " ").trim();
 }
 
+/** 영어 지문 문장 수 추정 (.?! 기준) */
+export function countEnglishSentences(text: string): number {
+  const cleaned = normalizePassage(text);
+  if (!cleaned) return 0;
+  return cleaned
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 8 && /[A-Za-z]/.test(s)).length;
+}
+
 /** 제시어 배열 questionText의 <조건>/<보기>/<해석> 블록 파싱 */
 export function parseWordOrderBlocks(text: string): {
   conditions: string;
