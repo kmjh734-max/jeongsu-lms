@@ -24,7 +24,10 @@ import {
   passageHasConsecutiveWords,
   parseSummaryWritingBlocks,
 } from "@/lib/question-generator/text-utils";
-import { normalizeHardWordsFromRaw } from "@/lib/question-generator/exam-vocab";
+import {
+  choicesNeedVocabGloss,
+  normalizeHardWordsFromRaw,
+} from "@/lib/question-generator/exam-vocab";
 import type { QuestionTypeOption } from "@/lib/question-generator/types";
 import type {
   GeneratedQuestionPayload,
@@ -806,7 +809,9 @@ function normalizePayload(
       ? raw.acceptableAnswers.map((x) => String(x))
       : undefined,
     explanation,
-    hardWords: normalizeHardWordsFromRaw(raw.hardWords),
+    hardWords: choicesNeedVocabGloss(choices)
+      ? normalizeHardWordsFromRaw(raw.hardWords)
+      : [],
     evidence: [],
     scoringGuide:
       raw.scoringGuide && typeof raw.scoringGuide === "object"
@@ -1292,7 +1297,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: REQUIRED array of 4~8 {word, meaning} — difficult English words from English choices (보기) or key passage words if choices are Korean/empty. word MUST be dictionary base form (lemma): verbs → infinitive (allows→allow, tested→test, known→know), nouns → singular (consumers→consumer, cities→city). Never store past/past participle/3rd-person -s/plural. meaning = short Korean gloss for high-school students. Skip ultra-basic (the/and/people/make).
+- hardWords: ONLY when choices are English glossable 보기 (MCQ with English option texts). Then 4~8 {word, meaning} from those choices. word = dictionary lemma (allows→allow, consumers→consumer). meaning = short Korean gloss. Skip ultra-basic words. If choices are Korean, count-only (1개~5개), empty, or this is subjective/삽입/밑줄형 with no English bottom choices → hardWords MUST be [].
 ${englishOnlyHint}
 ${
   allowSkip

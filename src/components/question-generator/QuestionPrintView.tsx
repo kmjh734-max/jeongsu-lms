@@ -11,6 +11,7 @@ import {
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   buildExamVocabUrl,
+  choicesNeedVocabGloss,
   parseHardWordsColumn,
 } from "@/lib/question-generator/exam-vocab";
 import { groupQuestionsByPrintType } from "@/lib/question-generator/print-type-groups";
@@ -396,7 +397,9 @@ function AnswerBlock({
   q: QuestionRow;
   index: number;
 }) {
-  const hardWords = parseHardWordsColumn(q.hard_words);
+  const hardWords = choicesNeedVocabGloss(q.choices)
+    ? parseHardWordsColumn(q.hard_words)
+    : [];
   return (
     <section className="qg-print-card qg-print-answer-card">
       <p className="qg-print-answer-head">

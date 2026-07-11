@@ -60,6 +60,29 @@ export function parseHardWordsColumn(raw: unknown): HardWord[] {
 }
 
 /**
+ * 해설지 «보기 단어»·QR 단어장: 영어 선지가 있는 객관식에만 붙인다.
+ * 한글 요지/주제, 1개~5개 개수형, 선지 없는 서술·삽입형은 false.
+ */
+export function choicesNeedVocabGloss(
+  choices:
+    | Array<{ number?: number; text?: string } | null>
+    | null
+    | undefined
+): boolean {
+  if (!choices?.length) return false;
+  let englishish = 0;
+  for (const c of choices) {
+    const t = String(c?.text ?? "").trim();
+    if (!t) continue;
+    if (/^\d+\s*개$/.test(t)) continue;
+    const latin = (t.match(/[A-Za-z]/g) ?? []).length;
+    const hangul = (t.match(/[\uAC00-\uD7A3]/g) ?? []).length;
+    if (latin >= 3 && latin > hangul) englishish += 1;
+  }
+  return englishish >= 2;
+}
+
+/**
  * 생성 완료 job의 문항 hard_words를 모아 exam_compact 단어장으로 동기화.
  * 기존 vocab_set_id가 있으면 단어만 갱신.
  */
@@ -76,13 +99,16 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
 
   const { data: questions } = await admin
     .from("generated_english_questions")
-    .select("hard_words, instruction")
+    .select("hard_words, choices, instruction")
     .eq("generation_job_id", jobId)
     .order("created_at", { ascending: true });
 
   const merged: HardWord[] = [];
   const seen = new Set<string>();
   for (const q of questions ?? []) {
+    if (!choicesNeedVocabGloss(q.choices as Array<{ text?: string }> | null)) {
+      continue;
+    }
     for (const w of normalizeHardWords(q.hard_words)) {
       const key = w.word.toLowerCase();
       if (seen.has(key)) continue;
