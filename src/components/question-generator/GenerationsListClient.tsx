@@ -83,6 +83,10 @@ function viewHref(basePath: string, j: JobRow): string {
   if (noResults) {
     return `${basePath}/new?fromJob=${encodeURIComponent(j.id)}`;
   }
+  // 제목 클릭 → 세부 정보 대신 종합 문제 PDF 화면
+  if ((j.total_completed ?? 0) > 0) {
+    return `${basePath}/generations/${j.id}/print?mode=exam`;
+  }
   return `${basePath}/generations/${j.id}`;
 }
 
