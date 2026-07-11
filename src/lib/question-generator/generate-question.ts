@@ -1,6 +1,8 @@
 import {
   choiceCraftCommonRules,
+  choiceExplanationRules,
   contentFalseChoiceCraft,
+  grammarChoiceCraftNote,
   impliedMeaningChoiceCraft,
   insertionChoiceCraft,
   irrelevantChoiceCraft,
@@ -63,6 +65,7 @@ Style like Korean HS mock exams (효자/학력평가 내용불일치).
 ${craft}
 ${contentFalseChoiceCraft(en)}
 ${paraphrase}
+${choiceExplanationRules()}
 Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer falsehood, weaker distractors"
@@ -77,6 +80,7 @@ Style like Korean HS mock exams (효자/학력평가 내용일치).
 ${craft}
 ${contentFalseChoiceCraft(en)}
 ${paraphrase}
+${choiceExplanationRules()}
 Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct fact, weaker distractors"
@@ -111,6 +115,7 @@ Difficulty: ${
 ${craft}
 ${topicChoiceCraft(en)}
 ${paraphrase}
+${choiceExplanationRules()}
 Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct answer, weaker distractors"
@@ -123,6 +128,7 @@ Difficulty: ${
 ${craft}
 ${titleChoiceCraft(en)}
 ${paraphrase}
+${choiceExplanationRules()}
 Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하) — clearer correct answer, weaker distractors"
@@ -140,6 +146,7 @@ Difficulty: ${
 ${craft}
 ${summaryChoiceCraft(en)}
 ${paraphrase}
+${choiceExplanationRules()}
 - Exactly one correct. Difficulty: ${
         option.difficulty === "low"
           ? "LOW (하)"
@@ -246,6 +253,7 @@ ${focusBlock}
 - choices: 한글 조합 보기 5개, 정답 하나만 틀린 기호를 빠짐없이
 - correctAnswer 1-5. questionText 빈칸
 ${explainRules}
+${grammarChoiceCraftNote()}
 LANGUAGE: 지문은 영어만.
 
 ${catalog}`;
@@ -262,6 +270,7 @@ ${focusBlock}
 - choices 고정: 1:"1개" 2:"2개" 3:"3개" 4:"4개" 5:"5개"
 - correctAnswer = ${wrongN}. questionText 빈칸
 ${explainRules}
+${grammarChoiceCraftNote()}
 LANGUAGE: 지문은 영어만.
 
 ${catalog}`;
@@ -286,6 +295,7 @@ ${catalog}`;
 - passageModified = FULL ENGLISH passage with exactly six vocabulary spots ① ② ③ ④ ⑤ ⑥ as ①<u>word/phrase</u>.
 - Put 1~5 contextually WRONG items; rest correct and natural.
 ${vocabChoiceCraft()}
+${choiceExplanationRules()}
 - choices MUST be EXACTLY and ONLY these five texts in order:
   1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
 - correctAnswer = N = count of wrong spots.
@@ -297,6 +307,7 @@ LANGUAGE: passage ENGLISH only.`;
 - passageModified = FULL ENGLISH passage with exactly five vocabulary spots ① ② ③ ④ ⑤ as ①<u>word/phrase</u>.
 - Exactly ONE is contextually WRONG; the other four are clearly correct in context.
 ${vocabChoiceCraft()}
+${choiceExplanationRules()}
 - choices: omit or empty array — numbers IN the passage are the options; do NOT print a separate choice list.
 - correctAnswer 1-5 = the wrong underlined number. questionText empty.
 - explanation (Korean): which number + why opposite in context + replacement word.
@@ -319,6 +330,7 @@ ${choiceCraftCommonRules()}`;
 - questionText "". choices: 영어 구/절 5개.
 ${choiceCraftCommonRules()}
 ${impliedMeaningChoiceCraft()}
+${choiceExplanationRules()}
 해설 한글: 정답 번호 + 문맥 paraphrase 이유 + 왜 직역/일반론이 아닌지.`;
       }
       return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
@@ -770,6 +782,9 @@ export async function generateOneQuestion(opts: {
   const paraphraseSystemHint = paraphraseTypes.has(option.type)
     ? "- Choices/<보기> MUST paraphrase passage wording (synonyms, rewording). Do NOT copy distinctive phrases from the passage."
     : "";
+  const craftSystemHint = option.isObjective
+    ? "- 보기: 5개 모두 그럴듯하게. 정답만 눈에 띄지 않게. 강한 오답 ≥2. 황당 오답 금지. 정답 하나. 길이·구조 균형."
+    : "";
 
   const allowSkip =
     option.type === "underlined_inference" &&
@@ -829,6 +844,7 @@ ${
     : ""
 }
 ${paraphraseSystemHint}
+${craftSystemHint}
 ${typeRules(option)}`,
     user: JSON.stringify({
       grade: opts.grade,
