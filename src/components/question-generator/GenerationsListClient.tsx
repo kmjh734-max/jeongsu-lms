@@ -318,10 +318,10 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
       )}
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
-        <table className="ui-table w-full text-sm">
+        <table className="ui-table w-full text-sm [&_th]:px-2.5 [&_th]:py-2 [&_td]:px-2.5 [&_td]:py-2">
           <thead>
             <tr>
-              <th className="w-12">
+              <th className="w-10">
                 <input
                   type="checkbox"
                   checked={allSelected}
@@ -330,13 +330,13 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                   className="h-4 w-4 rounded border-slate-300"
                 />
               </th>
-              <th className="w-24">#</th>
+              <th className="w-16">#</th>
               <th>제목</th>
-              <th className="w-24">지문 수</th>
-              <th className="w-28">문항</th>
-              <th className="w-28">상태</th>
-              <th className="w-40">작성일</th>
-              <th className="w-36"></th>
+              <th className="w-16 whitespace-nowrap">지문</th>
+              <th className="w-20 whitespace-nowrap">문항</th>
+              <th className="w-24">상태</th>
+              <th className="w-28 whitespace-nowrap">작성일</th>
+              <th className="w-44"></th>
             </tr>
           </thead>
           <tbody>
@@ -374,7 +374,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                     <td className="font-mono text-xs text-slate-500">
                       {shortId(j.id)}
                     </td>
-                    <td>
+                    <td className="max-w-[14rem] truncate sm:max-w-xs">
                       <Link
                         href={viewHref(basePath, j)}
                         className="font-medium text-slate-900 hover:text-brand-700 hover:underline"
@@ -382,7 +382,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                         {title}
                       </Link>
                       {j.request_config?.grade && (
-                        <span className="ml-2 text-xs text-slate-400">
+                        <span className="ml-1.5 text-xs text-slate-400">
                           {j.request_config.grade}
                         </span>
                       )}
@@ -398,12 +398,12 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                     </td>
                     <td>
                       <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${st.className}`}
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${st.className}`}
                       >
                         {st.label}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap text-slate-600">
+                    <td className="whitespace-nowrap text-xs text-slate-600">
                       {new Date(j.created_at).toLocaleString("ko-KR", {
                         month: "2-digit",
                         day: "2-digit",
@@ -412,10 +412,10 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                       })}
                     </td>
                     <td>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
                         <Link
                           href={viewHref(basePath, j)}
-                          className="text-sm text-brand-700 hover:underline"
+                          className="text-xs font-medium text-brand-700 hover:underline"
                         >
                           보기
                         </Link>
@@ -423,7 +423,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                           type="button"
                           disabled={copying || regenerating || deleting}
                           onClick={() => void copySelected([j.id])}
-                          className="text-sm text-slate-600 hover:underline disabled:opacity-40"
+                          className="text-xs text-slate-600 hover:underline disabled:opacity-40"
                         >
                           복사
                         </button>
@@ -438,7 +438,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                             )
                           }
                           onClick={() => void regenerateSelected([j.id])}
-                          className="text-sm text-amber-800 hover:underline disabled:opacity-40"
+                          className="text-xs text-amber-800 hover:underline disabled:opacity-40"
                         >
                           재생성
                         </button>
@@ -448,13 +448,13 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                             <>
                               <Link
                                 href={`${basePath}/generations/${j.id}/print?mode=exam`}
-                                className="text-sm text-slate-600 hover:underline"
+                                className="text-xs text-slate-600 hover:underline"
                               >
                                 문제
                               </Link>
                               <Link
                                 href={`${basePath}/generations/${j.id}/print?mode=answers`}
-                                className="text-sm text-slate-600 hover:underline"
+                                className="text-xs text-slate-600 hover:underline"
                               >
                                 해설
                               </Link>
