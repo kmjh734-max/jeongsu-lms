@@ -449,14 +449,12 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                               <Link
                                 href={`${basePath}/generations/${j.id}/print?mode=exam`}
                                 className="text-sm text-slate-600 hover:underline"
-                                target="_blank"
                               >
                                 문제
                               </Link>
                               <Link
                                 href={`${basePath}/generations/${j.id}/print?mode=answers`}
                                 className="text-sm text-slate-600 hover:underline"
-                                target="_blank"
                               >
                                 해설
                               </Link>

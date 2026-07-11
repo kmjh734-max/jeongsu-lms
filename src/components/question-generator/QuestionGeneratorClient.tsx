@@ -427,12 +427,8 @@ export function QuestionGeneratorClient({
   }
 
   function openPdfs(jobId: string) {
-    const exam = `${basePath}/generations/${jobId}/print?mode=exam`;
-    const answers = `${basePath}/generations/${jobId}/print?mode=answers`;
-    window.open(exam, "_blank", "noopener,noreferrer");
-    window.setTimeout(() => {
-      window.open(answers, "_blank", "noopener,noreferrer");
-    }, 600);
+    // 같은 탭에서 문제 PDF로 이동 (새 창 금지). 해설지는 인쇄 화면 왼쪽에서 전환.
+    window.location.assign(`${basePath}/generations/${jobId}/print?mode=exam`);
   }
 
   useEffect(() => {

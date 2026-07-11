@@ -259,7 +259,49 @@ const ING_KEEP = new Set([
   "warning",
 ]);
 
-/** 동사 과거·3인칭 / 명사 복수 → 기본형 */
+/** 동사 과거·3인칭 / 명사 복수 → 기본형 (고신뢰만; e 임의 추가·삭제 금지) */
+const S_KEEP = new Set(
+  [
+    "always",
+    "news",
+    "means",
+    "series",
+    "species",
+    "physics",
+    "mathematics",
+    "economics",
+    "politics",
+    "basics",
+    "thanks",
+    "towards",
+    "afterwards",
+    "focus",
+    "campus",
+    "status",
+    "bonus",
+    "virus",
+    "process",
+    "access",
+    "success",
+    "progress",
+    "address",
+    "business",
+    "perhaps",
+    "otherwise",
+    "ourselves",
+    "themselves",
+    "yourselves",
+    "analysis",
+    "basis",
+    "crisis",
+    "thesis",
+    "across",
+    "unless",
+    "whereas",
+    "besides",
+  ].map((w) => w.toLowerCase())
+);
+
 export function lemmaEnglishToken(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return trimmed;
@@ -267,68 +309,59 @@ export function lemmaEnglishToken(raw: string): string {
   if (FUNCTION_KEEP.has(lower)) return lower;
   if (IRREGULAR[lower]) return IRREGULAR[lower];
   if (IRREGULAR_NOUN[lower]) return IRREGULAR_NOUN[lower];
+  if (S_KEEP.has(lower)) return lower;
 
   // -ies → y (cities → city, studies → study)
   if (/^[a-z]+ies$/i.test(lower) && lower.length > 4) {
     return lower.slice(0, -3) + "y";
   }
-  // -ves → f (wolves → wolf) — lives already in IRREGULAR_NOUN
+  // -ves → f (wolves → wolf) — lives/leaves 등은 IRREGULAR_NOUN
   if (/^[a-z]+ves$/i.test(lower) && lower.length > 4) {
     return lower.slice(0, -3) + "f";
   }
-  // -oes → o (heroes → hero)
+  // -oes → o (heroes → hero, goes → go)
   if (/^[a-z]+oes$/i.test(lower) && lower.length > 4) {
     return lower.slice(0, -2);
   }
-  // -sses / -ches / -shes / -xes → drop -es
-  if (/[sxz]es$/i.test(lower) || /(?:ch|sh)es$/i.test(lower)) {
+  // -sses / -ches / -shes / -xes / -zes → drop -es
+  if (/(?:ss|ch|sh|x|z)es$/i.test(lower)) {
     return lower.slice(0, -2);
   }
-  // -ed 과거 (tested → test, allowed → allow)
+  // buses / gases → bus / gas
+  if (/[aeiou]ses$/i.test(lower) && lower.length > 4) {
+    return lower.slice(0, -2);
+  }
+  // -ied → y (studied → study)
+  if (/^[a-z]+ied$/i.test(lower) && lower.length > 4) {
+    return lower.slice(0, -3) + "y";
+  }
+  // -ed: 고신뢰만 — 불규칙 맵 또는 자음 중복 (stopped → stop). e 임의 부착 금지.
   if (/^[a-z]+ed$/i.test(lower) && lower.length > 4) {
     const stem = lower.slice(0, -2);
-    // stopped → stop
-    if (/(.)\1$/.test(stem) && !/[aeiou][aeiou]/.test(stem.slice(-3, -1))) {
+    if (/(.)\1$/.test(stem) && stem.length >= 3) {
       return stem.slice(0, -1);
     }
-    // liked → like
-    if (/[aeiou][^aeiou]e$/i.test(stem + "e") || /[^aeiou]e$/.test(stem)) {
-      /* keep stem */
-    }
-    if (/[^aeiou]e$/i.test(stem)) return stem;
-    // decided → decide
-    if (/[cdghklmnprstv]e?d$/i.test(lower)) {
-      const tryE = stem + "e";
-      if (
-        /(?:at|id|ud|is|us|os|ase|ose|use|ive|ize|ise)$/i.test(tryE) ||
-        /e$/.test(stem) === false
-      ) {
-        // preferred: create←created already in map; decide←decided
-        if (/[cdghklmnprstv]$/i.test(stem) && !/[aeiou]$/i.test(stem)) {
-          return stem + "e";
-        }
-      }
-    }
-    return stem;
+    return lower;
   }
-  // -ing (분사용). meaning·morning 등 어간이 아닌 -ing 명사는 유지
+  // -ing: 명사 유지 · 자음 중복만 (running → run). making→make 등 추측 금지.
   if (/^[a-z]+ing$/i.test(lower) && lower.length > 5) {
     if (ING_KEEP.has(lower)) return lower;
     const stem = lower.slice(0, -3);
-    if (/(.)\1$/.test(stem)) return stem.slice(0, -1);
-    // making → make (단모음 CVC만 +e; meaning→meane 방지)
-    if (
-      /[^aeiou][aeiou][^aeiou]$/i.test(stem) &&
-      !/[aeiou]{2}/i.test(stem.slice(-3))
-    ) {
-      return stem + "e";
+    if (/(.)\1$/.test(stem) && stem.length >= 2) {
+      return stem.slice(0, -1);
     }
-    if (/[aeiou]$/i.test(stem)) return stem; // going → go
-    return stem;
+    return lower;
   }
-  // 3인칭·복수 -s (allows → allow, consumers → consumer)
-  if (/^[a-z]+s$/i.test(lower) && lower.length > 3 && !/ss$/i.test(lower)) {
-    return lower.slice(0, -1);
+  // 3인칭·복수 -s (allows → allow, consumers → consumer, changes → change)
+  if (/^[a-z]+s$/i.test(lower) && lower.length > 4 && !/ss$/i.test(lower)) {
+    if (/(?:ous|ius|us|is|ess|asis|esis|osis)$/i.test(lower)) return lower;
+    // pages → page, changes → change
+    if (/[bcdfghjklmnpqrstvwxyz]es$/i.test(lower)) {
+      return lower.slice(0, -1);
+    }
+    if (/[^aeiou]s$/i.test(lower)) {
+      return lower.slice(0, -1);
+    }
   }
 
   return lower;

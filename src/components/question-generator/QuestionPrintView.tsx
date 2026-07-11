@@ -784,162 +784,211 @@ export function QuestionPrintView({
 
   return (
     <div className="qg-print-app min-h-screen bg-slate-200 print:min-h-0 print:bg-white">
-      <div className="no-print sticky top-0 z-10 border-b bg-white px-4 py-3 shadow-sm">
-        <div className="mr-auto flex max-w-4xl flex-wrap items-center justify-between gap-3">
-          <Link href={backHref} className="text-sm text-slate-700 hover:underline">
-            ← 뒤로
-          </Link>
-          <Button type="button" onClick={runPrint}>
-            PDF 저장 / 인쇄
-          </Button>
-        </div>
-
-        {mode === "exam" && (
-          <div className="mr-auto mt-3 flex max-w-4xl flex-wrap gap-2">
-            <button
-              type="button"
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                printLayout === "mixed"
-                  ? "bg-brand-700 text-white"
-                  : "border border-slate-200 bg-white text-slate-700"
-              }`}
-              onClick={() => setPrintLayout("mixed")}
+      <div className="no-print flex min-h-screen print:block print:min-h-0">
+        <aside className="sticky top-0 flex h-screen w-[min(100%,320px)] shrink-0 flex-col gap-3 overflow-y-auto border-r border-slate-200 bg-white p-4 shadow-sm print:hidden">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Link
+              href={backHref}
+              className="text-sm text-slate-700 hover:underline"
             >
-              종합해서 출력
-            </button>
-            <button
-              type="button"
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                printLayout === "byType"
-                  ? "bg-brand-700 text-white"
-                  : "border border-slate-200 bg-white text-slate-700"
-              }`}
-              onClick={() => setPrintLayout("byType")}
-            >
-              유형별 출력
-            </button>
+              ← 뒤로
+            </Link>
+            <Button type="button" onClick={runPrint}>
+              PDF 저장 / 인쇄
+            </Button>
           </div>
-        )}
 
-        <div className="mr-auto mt-3 max-w-4xl rounded-xl border border-slate-200 bg-slate-50 p-3">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-semibold text-slate-700">
-              머릿말 · 꼬릿말 (인쇄에 반영)
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              보기 전환
             </p>
-            <button
-              type="button"
-              className="text-xs text-brand-700 hover:underline"
-              onClick={resetBranding}
+            <Link
+              href={`${backHref}/print?mode=exam${printLayout === "byType" ? "&layout=byType" : ""}`}
+              className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+                mode === "exam"
+                  ? "bg-brand-700 text-white"
+                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
             >
-              기본값으로
-            </button>
+              문제지
+            </Link>
+            <Link
+              href={`${backHref}/print?mode=answers`}
+              className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+                mode === "answers"
+                  ? "bg-brand-700 text-white"
+                  : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              해설지
+            </Link>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <label className="block text-xs text-slate-600">
-              머릿말 상단
-              <input
-                className="ui-input mt-1 py-1.5 text-sm"
-                value={branding.headerKicker}
-                onChange={(e) => patchBranding({ headerKicker: e.target.value })}
-                placeholder={ACADEMY_NAME}
-              />
-            </label>
-            <label className="block text-xs text-slate-600">
-              머릿말 제목
-              <input
-                className="ui-input mt-1 py-1.5 text-sm"
-                value={branding.headerTitle}
-                onChange={(e) => patchBranding({ headerTitle: e.target.value })}
-                placeholder="자료 제목"
-              />
-            </label>
-            <label className="block text-xs text-slate-600 sm:col-span-2">
-              머릿말 부제
-              <input
-                className="ui-input mt-1 py-1.5 text-sm"
-                value={branding.headerSub}
-                onChange={(e) => patchBranding({ headerSub: e.target.value })}
-                placeholder="출처·설명"
-              />
-            </label>
-            <label className="block text-xs text-slate-600">
-              꼬릿말 왼쪽
-              <input
-                className="ui-input mt-1 py-1.5 text-sm"
-                value={branding.footerLeft}
-                onChange={(e) => patchBranding({ footerLeft: e.target.value })}
-                placeholder={ACADEMY_NAME}
-              />
-            </label>
-            <label className="block text-xs text-slate-600">
-              꼬릿말 오른쪽
-              <input
-                className="ui-input mt-1 py-1.5 text-sm"
-                value={branding.footerRight}
-                onChange={(e) => patchBranding({ footerRight: e.target.value })}
-                placeholder="영어 변형문제"
-              />
-            </label>
-          </div>
-          <label className="mt-2 flex items-center gap-2 text-xs text-slate-700">
-            <input
-              type="checkbox"
-              checked={branding.showLogo}
-              onChange={(e) => patchBranding({ showLogo: e.target.checked })}
-            />
-            학원 로고 표시 (머릿말·꼬릿말)
-          </label>
-        </div>
-      </div>
 
-      <div
-        ref={measureRef}
-        aria-hidden
-        className="qg-print-measure no-print"
-        style={{ width: `${COL_WIDTH_MM}mm` }}
-      >
-        {displayItems.map((item) => (
-          <div key={item.id} data-measure-q={item.id}>
-            {renderDisplayItem(item)}
-          </div>
-        ))}
-      </div>
-
-      <div id="qg-print-root" className="mr-auto max-w-[210mm] px-4 py-6 print:px-0 print:py-0">
-        {sheetPages.map((page, pageIdx) => (
-          <article
-            key={pageIdx}
-            className={`qg-print-page qg-print-sheet ${
-              pageIdx < sheetPages.length - 1
-                ? "qg-print-page-break"
-                : "qg-print-page-last"
-            }`}
-          >
-            {renderHeader(pageIdx > 0, pageIdx, sheetPages.length)}
-            {page.sectionLabel ? (
-              <div className="qg-print-type-banner">
-                <p className="qg-print-type-banner-title">{page.sectionLabel}</p>
-              </div>
-            ) : null}
-            <div className="qg-print-cols">
-              <div className="qg-print-col">
-                {page.left.map((ii) => (
-                  <div key={displayItems[ii]?.id ?? ii}>
-                    {renderDisplayItem(displayItems[ii])}
-                  </div>
-                ))}
-              </div>
-              <div className="qg-print-col qg-print-col-right">
-                {page.right.map((ii) => (
-                  <div key={displayItems[ii]?.id ?? ii}>
-                    {renderDisplayItem(displayItems[ii])}
-                  </div>
-                ))}
-              </div>
+          {mode === "exam" && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                출력 방식
+              </p>
+              <button
+                type="button"
+                className={`rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                  printLayout === "mixed"
+                    ? "bg-brand-700 text-white"
+                    : "border border-slate-200 bg-white text-slate-700"
+                }`}
+                onClick={() => setPrintLayout("mixed")}
+              >
+                종합해서 출력
+              </button>
+              <button
+                type="button"
+                className={`rounded-lg px-3 py-2 text-left text-xs font-semibold ${
+                  printLayout === "byType"
+                    ? "bg-brand-700 text-white"
+                    : "border border-slate-200 bg-white text-slate-700"
+                }`}
+                onClick={() => setPrintLayout("byType")}
+              >
+                유형별 출력
+              </button>
             </div>
-            {renderFooter()}
-          </article>
-        ))}
+          )}
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-slate-700">
+                머릿말 · 꼬릿말
+              </p>
+              <button
+                type="button"
+                className="text-xs text-brand-700 hover:underline"
+                onClick={resetBranding}
+              >
+                기본값으로
+              </button>
+            </div>
+            <div className="grid gap-2">
+              <label className="block text-xs text-slate-600">
+                머릿말 상단
+                <input
+                  className="ui-input mt-1 py-1.5 text-sm"
+                  value={branding.headerKicker}
+                  onChange={(e) =>
+                    patchBranding({ headerKicker: e.target.value })
+                  }
+                  placeholder={ACADEMY_NAME}
+                />
+              </label>
+              <label className="block text-xs text-slate-600">
+                머릿말 제목
+                <input
+                  className="ui-input mt-1 py-1.5 text-sm"
+                  value={branding.headerTitle}
+                  onChange={(e) =>
+                    patchBranding({ headerTitle: e.target.value })
+                  }
+                  placeholder="자료 제목"
+                />
+              </label>
+              <label className="block text-xs text-slate-600">
+                머릿말 부제
+                <input
+                  className="ui-input mt-1 py-1.5 text-sm"
+                  value={branding.headerSub}
+                  onChange={(e) => patchBranding({ headerSub: e.target.value })}
+                  placeholder="출처·설명"
+                />
+              </label>
+              <label className="block text-xs text-slate-600">
+                꼬릿말 왼쪽
+                <input
+                  className="ui-input mt-1 py-1.5 text-sm"
+                  value={branding.footerLeft}
+                  onChange={(e) =>
+                    patchBranding({ footerLeft: e.target.value })
+                  }
+                  placeholder={ACADEMY_NAME}
+                />
+              </label>
+              <label className="block text-xs text-slate-600">
+                꼬릿말 오른쪽
+                <input
+                  className="ui-input mt-1 py-1.5 text-sm"
+                  value={branding.footerRight}
+                  onChange={(e) =>
+                    patchBranding({ footerRight: e.target.value })
+                  }
+                  placeholder="영어 변형문제"
+                />
+              </label>
+            </div>
+            <label className="mt-2 flex items-center gap-2 text-xs text-slate-700">
+              <input
+                type="checkbox"
+                checked={branding.showLogo}
+                onChange={(e) => patchBranding({ showLogo: e.target.checked })}
+              />
+              학원 로고 표시
+            </label>
+          </div>
+        </aside>
+
+        <div className="min-w-0 flex-1">
+          <div
+            ref={measureRef}
+            aria-hidden
+            className="qg-print-measure no-print"
+            style={{ width: `${COL_WIDTH_MM}mm` }}
+          >
+            {displayItems.map((item) => (
+              <div key={item.id} data-measure-q={item.id}>
+                {renderDisplayItem(item)}
+              </div>
+            ))}
+          </div>
+
+          <div
+            id="qg-print-root"
+            className="max-w-[210mm] px-4 py-6 print:mx-0 print:max-w-none print:px-0 print:py-0"
+          >
+            {sheetPages.map((page, pageIdx) => (
+              <article
+                key={pageIdx}
+                className={`qg-print-page qg-print-sheet ${
+                  pageIdx < sheetPages.length - 1
+                    ? "qg-print-page-break"
+                    : "qg-print-page-last"
+                }`}
+              >
+                {renderHeader(pageIdx > 0, pageIdx, sheetPages.length)}
+                {page.sectionLabel ? (
+                  <div className="qg-print-type-banner">
+                    <p className="qg-print-type-banner-title">
+                      {page.sectionLabel}
+                    </p>
+                  </div>
+                ) : null}
+                <div className="qg-print-cols">
+                  <div className="qg-print-col">
+                    {page.left.map((ii) => (
+                      <div key={displayItems[ii]?.id ?? ii}>
+                        {renderDisplayItem(displayItems[ii])}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="qg-print-col qg-print-col-right">
+                    {page.right.map((ii) => (
+                      <div key={displayItems[ii]?.id ?? ii}>
+                        {renderDisplayItem(displayItems[ii])}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {renderFooter()}
+              </article>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
