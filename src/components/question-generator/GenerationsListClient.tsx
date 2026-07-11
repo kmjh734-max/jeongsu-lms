@@ -413,12 +413,6 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                     </td>
                     <td>
                       <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                        <Link
-                          href={viewHref(basePath, j)}
-                          className="text-xs font-medium text-brand-700 hover:underline"
-                        >
-                          보기
-                        </Link>
                         <button
                           type="button"
                           disabled={copying || regenerating || deleting}
