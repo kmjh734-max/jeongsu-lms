@@ -60,8 +60,9 @@ export function parseHardWordsColumn(raw: unknown): HardWord[] {
 }
 
 /**
- * 해설지 «보기 단어»·QR 단어장: 영어 선지가 있는 객관식에만 붙인다.
- * 한글 요지/주제, 1개~5개 개수형, 선지 없는 서술·삽입형은 false.
+ * 해설지 «보기 단어»·QR 단어장에 포함할지.
+ * - 영어 선지 객관식
+ * - 일치개수(content_count): 하단 선지 없이 <보기> 진술·지문 어휘
  */
 export function choicesNeedVocabGloss(
   choices:
@@ -82,6 +83,38 @@ export function choicesNeedVocabGloss(
   return englishish >= 2;
 }
 
+export function questionNeedsVocabGloss(input: {
+  choices?:
+    | Array<{ number?: number; text?: string } | null>
+    | null
+    | undefined;
+  questionType?: string | null;
+  optionKey?: string | null;
+  questionText?: string | null;
+  choiceLanguage?: string | null;
+}): boolean {
+  if (choicesNeedVocabGloss(input.choices)) return true;
+
+  const type = (input.questionType || "").trim();
+  const key = (input.optionKey || "").trim();
+  const isContentCount =
+    type === "content_count" ||
+    key.startsWith("content_count:") ||
+    key.includes(":일치개수");
+
+  if (isContentCount) return true;
+
+  // 저장된 hard_words가 있어도, 유형 정보가 비어 있으면 영어 <보기> 진술로 추정
+  const qt = input.questionText || "";
+  if (/<보기>/.test(qt)) {
+    const latin = (qt.match(/[A-Za-z]/g) ?? []).length;
+    const hangul = (qt.match(/[\uAC00-\uD7A3]/g) ?? []).length;
+    if (latin >= 40 && latin > hangul) return true;
+  }
+
+  return false;
+}
+
 /**
  * 생성 완료 job의 문항 hard_words를 모아 exam_compact 단어장으로 동기화.
  * 기존 vocab_set_id가 있으면 단어만 갱신.
@@ -99,14 +132,24 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
 
   const { data: questions } = await admin
     .from("generated_english_questions")
-    .select("hard_words, choices, instruction")
+    .select(
+      "hard_words, choices, instruction, question_type, option_key, question_text, choice_language"
+    )
     .eq("generation_job_id", jobId)
     .order("created_at", { ascending: true });
 
   const merged: HardWord[] = [];
   const seen = new Set<string>();
   for (const q of questions ?? []) {
-    if (!choicesNeedVocabGloss(q.choices as Array<{ text?: string }> | null)) {
+    if (
+      !questionNeedsVocabGloss({
+        choices: q.choices as Array<{ text?: string }> | null,
+        questionType: q.question_type as string | null,
+        optionKey: q.option_key as string | null,
+        questionText: q.question_text as string | null,
+        choiceLanguage: q.choice_language as string | null,
+      })
+    ) {
       continue;
     }
     for (const w of normalizeHardWords(q.hard_words)) {

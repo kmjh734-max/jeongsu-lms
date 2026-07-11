@@ -11,7 +11,7 @@ import {
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   buildExamVocabUrl,
-  choicesNeedVocabGloss,
+  questionNeedsVocabGloss,
   parseHardWordsColumn,
 } from "@/lib/question-generator/exam-vocab";
 import { groupQuestionsByPrintType } from "@/lib/question-generator/print-type-groups";
@@ -38,6 +38,7 @@ type QuestionRow = {
   category?: string;
   option_key?: string | null;
   hard_words?: Array<{ word: string; meaning: string }> | null;
+  choice_language?: string | null;
 };
 
 type PrintLayoutMode = "mixed" | "byType";
@@ -397,7 +398,13 @@ function AnswerBlock({
   q: QuestionRow;
   index: number;
 }) {
-  const hardWords = choicesNeedVocabGloss(q.choices)
+  const hardWords = questionNeedsVocabGloss({
+    choices: q.choices,
+    questionType: q.question_type,
+    optionKey: q.option_key,
+    questionText: q.question_text,
+    choiceLanguage: q.choice_language,
+  })
     ? parseHardWordsColumn(q.hard_words)
     : [];
   return (
