@@ -7,9 +7,21 @@ import { Button } from "@/components/ui/Button";
 import { submitStage4 } from "@/app/student/vocab/actions";
 import type { Stage3Question } from "@/lib/vocab/build-stage3-questions";
 import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import { gradeSpellingAnswer } from "@/lib/vocab/grade-spelling";
+import {
+  loadExamGuestProgress,
+  saveExamGuestProgress,
+} from "@/lib/vocab/exam-guest-progress";
 
 function answerKey(q: Stage3Question): string {
   return `${q.itemId}:${q.questionType}`;
+}
+
+function gradeMeaning(student: string, correct: string): boolean {
+  const a = student.trim().toLowerCase().replace(/\s+/g, "");
+  const b = correct.trim().toLowerCase().replace(/\s+/g, "");
+  if (!a) return false;
+  return a === b || a.includes(b) || b.includes(a);
 }
 
 interface VocabStage3TestProps {
@@ -17,6 +29,8 @@ interface VocabStage3TestProps {
   setTitle: string;
   questions: Stage3Question[];
   stageNumber?: number;
+  hubHref?: string;
+  guestMode?: boolean;
 }
 
 export function VocabStage3Test({
@@ -24,8 +38,11 @@ export function VocabStage3Test({
   setTitle,
   questions,
   stageNumber = 4,
+  hubHref,
+  guestMode = false,
 }: VocabStage3TestProps) {
   const router = useRouter();
+  const hub = hubHref ?? `/student/vocab/${setId}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -47,6 +64,35 @@ export function VocabStage3Test({
     setIndex((i) => Math.min(i + 1, questions.length - 1));
   }, [questions.length]);
 
+  function finishGuest() {
+    let correct = 0;
+    for (const q of questions) {
+      const ans = (answers[answerKey(q)] ?? "").trim();
+      const ok =
+        q.questionType === "spelling"
+          ? gradeSpellingAnswer(q.correctAnswer, ans)
+          : gradeMeaning(ans, q.correctAnswer);
+      if (ok) correct += 1;
+    }
+    const score =
+      questions.length > 0
+        ? Math.round((correct / questions.length) * 100)
+        : 0;
+    const passed = score >= STAGE4_PASS_SCORE;
+    const prev = loadExamGuestProgress(setId);
+    saveExamGuestProgress(setId, {
+      ...prev,
+      stage4Last: score,
+      stage4Best: Math.max(prev.stage4Best, score),
+      stage4Passed: prev.stage4Passed || passed,
+      stage4Attempts: prev.stage4Attempts + 1,
+    });
+    setSubmitting(false);
+    router.push(
+      `${hub}?score=${score}&passed=${passed ? "1" : "0"}`
+    );
+  }
+
   function submitAll() {
     if (submitting) return;
 
@@ -60,6 +106,12 @@ export function VocabStage3Test({
 
     setSubmitting(true);
     setMessage(null);
+
+    if (guestMode) {
+      finishGuest();
+      return;
+    }
+
     const payload = questions.map((q) => ({
       itemId: q.itemId,
       studentAnswer: answers[answerKey(q)] ?? "",
@@ -76,6 +128,9 @@ export function VocabStage3Test({
         router.push(
           `/student/vocab/${setId}/stage4/result?attemptId=${result.attemptId}`
         );
+      } else {
+        router.push(hub);
+        router.refresh();
       }
     });
   }
@@ -105,10 +160,7 @@ export function VocabStage3Test({
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 px-2">
       <div>
-        <Link
-          href={`/student/vocab/${setId}`}
-          className="text-sm text-brand-600 hover:underline"
-        >
+        <Link href={hub} className="text-sm text-brand-600 hover:underline">
           ← 단어장으로
         </Link>
         <h1 className="mt-2 text-xl font-semibold">
@@ -118,95 +170,60 @@ export function VocabStage3Test({
           한글뜻 50% + 영어 스펠링 50% · {STAGE4_PASS_SCORE}점 이상 합격 · Enter로
           다음/제출
         </p>
+        <p className="mt-1 text-sm text-slate-500">
+          {index + 1} / {questions.length}
+        </p>
       </div>
 
-      {current && (
-        <div className="min-h-[min(48vh,360px)] rounded-2xl border-2 border-amber-200 bg-white p-6">
-          <p className="text-sm font-semibold text-amber-700">
-            {index + 1} / {questions.length} ·{" "}
-            {isMeaning ? "뜻 문제" : "스펠링 문제"}
-          </p>
-          <p className="mt-2 text-center text-sm text-slate-600">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <p className="text-xs font-semibold text-slate-500">
+          {isMeaning ? "뜻 쓰기" : "스펠링"}
+        </p>
+        <p className="mt-3 text-center text-2xl font-bold text-slate-900">
+          {current.questionText}
+        </p>
+        {current.promptExtra && (
+          <p className="mt-2 text-center text-sm text-slate-500">
             {current.promptExtra}
           </p>
-          <p className="mt-4 text-center text-3xl font-bold">
-            {current.questionText}
-          </p>
-          <input
-            ref={inputRef}
-            className="ui-input mt-8 min-h-[3.5rem] w-full text-center text-lg"
-            value={answers[currentKey] ?? ""}
-            onChange={(e) => {
-              const value = isMeaning
-                ? e.target.value
-                : e.target.value.toLowerCase();
-              setAnswers((p) => ({ ...p, [currentKey]: value }));
-              if (message === "답을 입력해주세요.") setMessage(null);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleEnter();
-              }
-            }}
-            placeholder={
-              isMeaning ? "한글뜻 입력" : "영어 스펠링 입력"
+        )}
+        <input
+          ref={inputRef}
+          className="ui-input mt-6 min-h-[3.5rem] text-center text-xl"
+          value={answers[currentKey] ?? ""}
+          onChange={(e) =>
+            setAnswers((prev) => ({ ...prev, [currentKey]: e.target.value }))
+          }
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleEnter();
             }
-            autoComplete="off"
-            autoCapitalize={isMeaning ? "sentences" : "none"}
-            autoCorrect="off"
-            spellCheck={false}
-            disabled={submitting}
-            aria-label={isMeaning ? "한글뜻 입력" : "영어 스펠링 입력"}
-          />
-        </div>
-      )}
-
-      {message && (
-        <p
-          className={`text-center text-sm ${
-            message === "답을 입력해주세요."
-              ? "font-medium text-amber-700"
-              : "text-slate-600"
-          }`}
-          role="status"
-        >
-          {message}
-        </p>
-      )}
-
-      <div className="flex justify-between gap-3">
-        <Button
-          type="button"
-          variant="ghost"
-          disabled={index === 0 || submitting}
-          onClick={() => {
-            setMessage(null);
-            setIndex((i) => i - 1);
           }}
-        >
-          이전
-        </Button>
-        {isLast ? (
-          <Button type="button" disabled={submitting} onClick={submitAll}>
-            {submitting ? "제출 중..." : "제출하기"}
-          </Button>
-        ) : (
+          disabled={submitting}
+        />
+        {message && (
+          <p className="mt-3 text-center text-sm text-rose-600">{message}</p>
+        )}
+        <div className="mt-6 flex gap-2">
           <Button
             type="button"
-            onClick={() => {
-              const value = (answers[currentKey] ?? "").trim();
-              if (!value) {
-                setMessage("답을 입력해주세요.");
-                inputRef.current?.focus();
-                return;
-              }
-              goNext();
-            }}
+            variant="secondary"
+            className="flex-1"
+            disabled={index === 0 || submitting}
+            onClick={() => setIndex((i) => Math.max(0, i - 1))}
           >
-            다음
+            이전
           </Button>
-        )}
+          <Button
+            type="button"
+            className="flex-1"
+            disabled={submitting}
+            onClick={handleEnter}
+          >
+            {isLast ? (submitting ? "제출 중…" : "제출") : "다음"}
+          </Button>
+        </div>
       </div>
     </div>
   );

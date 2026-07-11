@@ -10,6 +10,10 @@ import {
   recordStage2Attempt,
 } from "@/app/student/vocab/actions";
 import { gradeSpellingAnswer } from "@/lib/vocab/grade-spelling";
+import {
+  loadExamGuestProgress,
+  saveExamGuestProgress,
+} from "@/lib/vocab/exam-guest-progress";
 import type { VocabItem } from "@/types/database";
 
 function shuffleIds(ids: string[]): string[] {
@@ -25,14 +29,19 @@ interface VocabStage2SpellingProps {
   setId: string;
   setTitle: string;
   items: VocabItem[];
+  hubHref?: string;
+  guestMode?: boolean;
 }
 
 export function VocabStage2Spelling({
   setId,
   setTitle,
   items,
+  hubHref,
+  guestMode = false,
 }: VocabStage2SpellingProps) {
   const router = useRouter();
+  const hub = hubHref ?? `/student/vocab/${setId}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const itemById = new Map(items.map((i) => [i.id, i]));
   const [queue, setQueue] = useState(() => shuffleIds(items.map((i) => i.id)));
@@ -76,6 +85,12 @@ export function VocabStage2Spelling({
       const next = queue.slice(1);
       if (next.length === 0) {
         void (async () => {
+          if (guestMode) {
+            const prev = loadExamGuestProgress(setId);
+            saveExamGuestProgress(setId, { ...prev, stage2Done: true });
+            router.push(hub);
+            return;
+          }
           await recordStage2Attempt(
             setId,
             itemId,
@@ -84,17 +99,21 @@ export function VocabStage2Spelling({
             attemptRound
           );
           await completeStage2(setId);
-          router.push(`/student/vocab/${setId}`);
+          router.push(hub);
           router.refresh();
         })();
         return;
       }
-      void recordStage2Attempt(setId, itemId, trimmed, true, attemptRound);
+      if (!guestMode) {
+        void recordStage2Attempt(setId, itemId, trimmed, true, attemptRound);
+      }
       setQueue(next);
       setAnswer("");
       setFeedback(null);
     } else {
-      void recordStage2Attempt(setId, itemId, trimmed, false, attemptRound);
+      if (!guestMode) {
+        void recordStage2Attempt(setId, itemId, trimmed, false, attemptRound);
+      }
       setFeedback({ correct: false, showAnswer: true });
       setRound((r) => r + 1);
     }
@@ -120,7 +139,7 @@ export function VocabStage2Spelling({
         <Button
           type="button"
           className="mt-4"
-          onClick={() => router.push(`/student/vocab/${setId}`)}
+          onClick={() => router.push(hub)}
         >
           단어장으로
         </Button>
@@ -132,7 +151,7 @@ export function VocabStage2Spelling({
     <div className="mx-auto w-full max-w-2xl space-y-4 px-2">
       <div>
         <Link
-          href={`/student/vocab/${setId}`}
+          href={hub}
           className="text-sm text-brand-600 hover:underline"
         >
           ← 단어장으로

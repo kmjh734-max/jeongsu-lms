@@ -1,3 +1,7 @@
+﻿"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ButtonLink } from "@/components/ui/Button";
 import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
 import type { VocabFinalTestAnswer, VocabFinalTestAttempt } from "@/types/database";
@@ -8,6 +12,8 @@ interface VocabStage3ResultViewProps {
   attempt: VocabFinalTestAttempt;
   answers: VocabFinalTestAnswer[];
   stageNumber?: number;
+  hubHref?: string;
+  autoReturnSeconds?: number;
 }
 
 function AnswerResultCard({ a }: { a: VocabFinalTestAnswer }) {
@@ -47,9 +53,22 @@ export function VocabStage3ResultView({
   attempt,
   answers,
   stageNumber = 4,
+  hubHref,
+  autoReturnSeconds = 3,
 }: VocabStage3ResultViewProps) {
+  const router = useRouter();
+  const hub = hubHref ?? `/student/vocab/${setId}`;
   const wrong = answers.filter((a) => !a.is_correct);
   const meaningAnswers = answers.filter((a) => a.question_type === "meaning");
+
+  useEffect(() => {
+    if (autoReturnSeconds <= 0) return;
+    const t = window.setTimeout(() => {
+      router.push(hub);
+      router.refresh();
+    }, autoReturnSeconds * 1000);
+    return () => window.clearTimeout(t);
+  }, [autoReturnSeconds, hub, router]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-2">
@@ -58,6 +77,11 @@ export function VocabStage3ResultView({
         <p className="text-sm text-slate-600">
           {stageNumber}단계 종합테스트 결과
         </p>
+        {autoReturnSeconds > 0 && (
+          <p className="mt-1 text-xs text-slate-400">
+            {autoReturnSeconds}초 후 단어장 화면으로 이동합니다…
+          </p>
+        )}
       </div>
 
       <div
@@ -87,9 +111,7 @@ export function VocabStage3ResultView({
 
       {meaningAnswers.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-semibold text-slate-900">
-            뜻 문제 채점 (AI)
-          </h2>
+          <h2 className="font-semibold text-slate-900">뜻 문제 채점 (AI)</h2>
           <ul className="space-y-3">
             {meaningAnswers.map((a) => (
               <AnswerResultCard key={a.id} a={a} />
@@ -118,7 +140,7 @@ export function VocabStage3ResultView({
         <ButtonLink href={`/student/vocab/${setId}/stage4`}>
           다시 {stageNumber}단계 도전하기
         </ButtonLink>
-        <ButtonLink href={`/student/vocab/${setId}`} variant="secondary">
+        <ButtonLink href={hub} variant="secondary">
           단어장으로 돌아가기
         </ButtonLink>
       </div>

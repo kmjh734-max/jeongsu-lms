@@ -11,6 +11,10 @@ import {
   speakEnglish,
   stopSpeaking,
 } from "@/lib/vocab/speak-client";
+import {
+  loadExamGuestProgress,
+  saveExamGuestProgress,
+} from "@/lib/vocab/exam-guest-progress";
 import type { VocabItem } from "@/types/database";
 
 interface VocabStage1StudyProps {
@@ -19,6 +23,10 @@ interface VocabStage1StudyProps {
   items: VocabItem[];
   initialSeenIds: string[];
   stage1Completed: boolean;
+  /** 완료 후 이동 경로 (기본: 학생 단어장 허브) */
+  hubHref?: string;
+  /** 로그인 없이 localStorage에만 저장 */
+  guestMode?: boolean;
 }
 
 export function VocabStage1Study({
@@ -27,8 +35,11 @@ export function VocabStage1Study({
   items,
   initialSeenIds,
   stage1Completed,
+  hubHref,
+  guestMode = false,
 }: VocabStage1StudyProps) {
   const router = useRouter();
+  const hub = hubHref ?? `/student/vocab/${setId}`;
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [seenIds, setSeenIds] = useState<Set<string>>(
@@ -59,6 +70,11 @@ export function VocabStage1Study({
 
   useEffect(() => () => stopSpeaking(), []);
 
+  function finishToHub() {
+    router.push(hub);
+    if (!guestMode) router.refresh();
+  }
+
   function handleResponse(known: boolean) {
     if (!current) return;
 
@@ -76,11 +92,24 @@ export function VocabStage1Study({
     const nextSeen = new Set(seenIds);
     if (!stage1Completed) nextSeen.add(itemId);
     const allSeenNow = !stage1Completed && nextSeen.size >= total;
+    const atLastCard = currentIndex >= total - 1;
 
-    if (allSeenNow) {
-      router.push(`/student/vocab/${setId}`);
+    if (allSeenNow || (stage1Completed && atLastCard)) {
+      finishToHub();
     } else if (currentIndex < total - 1) {
       goTo(currentIndex + 1);
+    }
+
+    if (guestMode) {
+      if (!stage1Completed) {
+        const prev = loadExamGuestProgress(setId);
+        saveExamGuestProgress(setId, {
+          ...prev,
+          stage1Seen: [...nextSeen],
+          stage1Done: allSeenNow || prev.stage1Done,
+        });
+      }
+      return;
     }
 
     void recordStage1Item(setId, itemId, known).then((result) => {
@@ -104,7 +133,7 @@ export function VocabStage1Study({
     <div className="mx-auto w-full max-w-xl space-y-5 px-2">
       <div>
         <Link
-          href={`/student/vocab/${setId}`}
+          href={hub}
           className="text-sm text-brand-600 hover:underline"
         >
           ← 단어장으로

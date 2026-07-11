@@ -1,11 +1,42 @@
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { notFound } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { ExamVocabGuestHub } from "@/components/vocab/ExamVocabGuestHub";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ setId: string }>;
 }
 
-/** 구 공개 QR URL → 기존 학생 단어학습 진입으로 */
-export default async function ExamVocabLegacyRedirect({ params }: PageProps) {
+/** 시험지 QR — 로그인 없이 보기 단어 학습 허브 */
+export default async function ExamVocabHubPage({ params }: PageProps) {
   const { setId } = await params;
-  redirect(`/student/vocab/exam/${setId}`);
+  const admin = createAdminClient();
+  const { data: set } = await admin
+    .from("vocab_sets")
+    .select("id, title, exam_compact")
+    .eq("id", setId)
+    .maybeSingle();
+
+  if (!set || !set.exam_compact) notFound();
+
+  const { count } = await admin
+    .from("vocab_items")
+    .select("id", { count: "exact", head: true })
+    .eq("set_id", setId);
+
+  return (
+    <Suspense
+      fallback={
+        <p className="p-8 text-center text-sm text-slate-500">불러오는 중…</p>
+      }
+    >
+      <ExamVocabGuestHub
+        setId={set.id}
+        title={set.title || "보기 단어"}
+        itemCount={count ?? 0}
+      />
+    </Suspense>
+  );
 }
