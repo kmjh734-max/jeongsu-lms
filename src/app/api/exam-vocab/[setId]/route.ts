@@ -1,5 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError, jsonOk } from "@/lib/question-generator/api-helpers";
+import { dedupeVocabItemRows } from "@/lib/question-generator/exam-vocab";
+import { persistVocabItems } from "@/lib/vocab/save-items";
 
 export const dynamic = "force-dynamic";
 
@@ -33,9 +35,39 @@ export async function GET(
       .order("order_index")
       .order("created_at");
 
+    const raw = items ?? [];
+    const unique = dedupeVocabItemRows(raw);
+
+    // 이미 쌓인 중복이 있으면 DB도 정리 (다음 학습부터 카드 수 일치)
+    if (unique.length < raw.length) {
+      await persistVocabItems(
+        admin,
+        setId,
+        unique.map((row, i) => ({
+          word: row.word,
+          meaning: row.meaning,
+          example_sentence: row.example_sentence ?? undefined,
+          example_meaning: row.example_meaning ?? undefined,
+          order_index: i,
+        }))
+      );
+      const { data: refreshed } = await admin
+        .from("vocab_items")
+        .select(
+          "id, set_id, word, meaning, example_sentence, example_meaning, order_index, created_at"
+        )
+        .eq("set_id", setId)
+        .order("order_index")
+        .order("created_at");
+      return jsonOk({
+        set: { id: set.id, title: set.title || "보기 단어" },
+        items: refreshed ?? unique,
+      });
+    }
+
     return jsonOk({
       set: { id: set.id, title: set.title || "보기 단어" },
-      items: items ?? [],
+      items: unique,
     });
   } catch {
     return jsonError("불러오기에 실패했습니다.", 500);

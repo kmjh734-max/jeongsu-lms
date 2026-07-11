@@ -59,6 +59,60 @@ export function parseHardWordsColumn(raw: unknown): HardWord[] {
   return normalizeHardWords(raw);
 }
 
+/** QR·단어장용: 원형 기준 중복 제거 (progress/Progress, allows/allow 등) */
+export function hardWordDedupeKey(word: string): string {
+  return lemmaHardWordForm(word)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+export function dedupeHardWords(words: HardWord[]): HardWord[] {
+  const byKey = new Map<string, HardWord>();
+  for (const item of words) {
+    const word = lemmaHardWordForm(String(item.word ?? "").trim());
+    const meaning = String(item.meaning ?? "").trim();
+    if (!word || !meaning) continue;
+    if (word.length > 40 || meaning.length > 80) continue;
+    const key = hardWordDedupeKey(word);
+    if (!key) continue;
+    const prev = byKey.get(key);
+    if (!prev) {
+      byKey.set(key, { word, meaning });
+      continue;
+    }
+    if (meaning.length > prev.meaning.length) {
+      byKey.set(key, { word: prev.word, meaning });
+    }
+  }
+  return [...byKey.values()];
+}
+
+/** DB vocab_items 행 중복 제거 (학습 카드용) */
+export function dedupeVocabItemRows<
+  T extends { word: string; meaning: string; order_index?: number | null },
+>(items: T[]): T[] {
+  const byKey = new Map<string, T>();
+  for (const item of items) {
+    const word = lemmaHardWordForm(String(item.word ?? "").trim());
+    const meaning = String(item.meaning ?? "").trim();
+    if (!word || !meaning) continue;
+    const key = hardWordDedupeKey(word);
+    if (!key) continue;
+    const prev = byKey.get(key);
+    if (!prev) {
+      byKey.set(key, { ...item, word, meaning });
+      continue;
+    }
+    if (meaning.length > String(prev.meaning ?? "").trim().length) {
+      byKey.set(key, { ...prev, meaning });
+    }
+  }
+  return [...byKey.values()].map((row, i) => ({
+    ...row,
+    order_index: i,
+  }));
+}
+
 /**
  * 해설지 «보기 단어»·QR 단어장에 포함할지.
  * - 영어 선지 객관식
@@ -139,7 +193,6 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
     .order("created_at", { ascending: true });
 
   const merged: HardWord[] = [];
-  const seen = new Set<string>();
   for (const q of questions ?? []) {
     if (
       !questionNeedsVocabGloss({
@@ -153,14 +206,12 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
       continue;
     }
     for (const w of normalizeHardWords(q.hard_words)) {
-      const key = w.word.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
       merged.push(w);
     }
   }
 
-  if (merged.length === 0) return (job.vocab_set_id as string | null) ?? null;
+  const unique = dedupeHardWords(merged);
+  if (unique.length === 0) return (job.vocab_set_id as string | null) ?? null;
 
   const cfg = (job.request_config ?? {}) as { title?: string; grade?: string };
   const titleBase = (cfg.title || "변형문제").trim() || "변형문제";
@@ -211,7 +262,7 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
   const persist = await persistVocabItems(
     admin,
     setId,
-    merged.map((w, i) => ({
+    unique.map((w, i) => ({
       word: w.word,
       meaning: w.meaning,
       order_index: i,

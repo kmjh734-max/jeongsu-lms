@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ExamVocabGuestHub } from "@/components/vocab/ExamVocabGuestHub";
+import { dedupeVocabItemRows } from "@/lib/question-generator/exam-vocab";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +22,13 @@ export default async function ExamVocabHubPage({ params }: PageProps) {
 
   if (!set || !set.exam_compact) notFound();
 
-  const { count } = await admin
+  const { data: items } = await admin
     .from("vocab_items")
-    .select("id", { count: "exact", head: true })
-    .eq("set_id", setId);
+    .select("id, word, meaning, order_index")
+    .eq("set_id", setId)
+    .order("order_index");
+
+  const uniqueCount = dedupeVocabItemRows(items ?? []).length;
 
   return (
     <Suspense
@@ -35,7 +39,7 @@ export default async function ExamVocabHubPage({ params }: PageProps) {
       <ExamVocabGuestHub
         setId={set.id}
         title={set.title || "보기 단어"}
-        itemCount={count ?? 0}
+        itemCount={uniqueCount}
       />
     </Suspense>
   );
