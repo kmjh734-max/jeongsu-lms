@@ -415,8 +415,8 @@ export function QuestionGeneratorClient({
   }
 
   function openPdfs(jobId: string) {
-    const exam = `${basePath}/generations/${jobId}/print?mode=exam&autoprint=1`;
-    const answers = `${basePath}/generations/${jobId}/print?mode=answers&autoprint=1`;
+    const exam = `${basePath}/generations/${jobId}/print?mode=exam`;
+    const answers = `${basePath}/generations/${jobId}/print?mode=answers`;
     window.open(exam, "_blank", "noopener,noreferrer");
     window.setTimeout(() => {
       window.open(answers, "_blank", "noopener,noreferrer");

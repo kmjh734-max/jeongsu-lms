@@ -440,13 +440,11 @@ export function QuestionPrintView({
   jobId,
   backHref,
   mode = "exam",
-  autoPrint = false,
   layout: layoutProp = "mixed",
 }: {
   jobId: string;
   backHref: string;
   mode?: "exam" | "answers";
-  autoPrint?: boolean;
   layout?: PrintLayoutMode;
 }) {
   const [title, setTitle] = useState("영어 변형문제");
@@ -467,7 +465,6 @@ export function QuestionPrintView({
   });
   const [brandingReady, setBrandingReady] = useState(false);
   const measureRef = useRef<HTMLDivElement>(null);
-  const printedRef = useRef(false);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/question-generator/jobs/${jobId}`);
@@ -647,22 +644,6 @@ export function QuestionPrintView({
     return () => window.clearTimeout(t);
   }, [displayItems, mode, branding.headerTitle, branding.headerSub, printLayout, typeRanges]);
 
-  useEffect(() => {
-    if (!autoPrint || printedRef.current) return;
-    if (pages.length === 0 || displayItems.length === 0) return;
-
-    printedRef.current = true;
-    const t = window.setTimeout(() => {
-      const prev = document.title;
-      document.title = sheetTitle;
-      window.print();
-      window.setTimeout(() => {
-        document.title = prev;
-      }, 500);
-    }, 900);
-    return () => window.clearTimeout(t);
-  }, [autoPrint, mode, pages.length, displayItems.length, sheetTitle]);
-
   function runPrint() {
     const prev = document.title;
     document.title = sheetTitle;
@@ -804,7 +785,7 @@ export function QuestionPrintView({
   return (
     <div className="qg-print-app min-h-screen bg-slate-200 print:min-h-0 print:bg-white">
       <div className="no-print sticky top-0 z-10 border-b bg-white px-4 py-3 shadow-sm">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3">
+        <div className="mr-auto flex max-w-4xl flex-wrap items-center justify-between gap-3">
           <Link href={backHref} className="text-sm text-slate-700 hover:underline">
             ← 뒤로
           </Link>
@@ -814,7 +795,7 @@ export function QuestionPrintView({
         </div>
 
         {mode === "exam" && (
-          <div className="mx-auto mt-3 flex max-w-4xl flex-wrap gap-2">
+          <div className="mr-auto mt-3 flex max-w-4xl flex-wrap gap-2">
             <button
               type="button"
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
@@ -840,7 +821,7 @@ export function QuestionPrintView({
           </div>
         )}
 
-        <div className="mx-auto mt-3 max-w-4xl rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <div className="mr-auto mt-3 max-w-4xl rounded-xl border border-slate-200 bg-slate-50 p-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-semibold text-slate-700">
               머릿말 · 꼬릿말 (인쇄에 반영)
@@ -924,7 +905,7 @@ export function QuestionPrintView({
         ))}
       </div>
 
-      <div id="qg-print-root" className="mx-auto max-w-[210mm] py-6 print:py-0">
+      <div id="qg-print-root" className="mr-auto max-w-[210mm] px-4 py-6 print:px-0 print:py-0">
         {sheetPages.map((page, pageIdx) => (
           <article
             key={pageIdx}
