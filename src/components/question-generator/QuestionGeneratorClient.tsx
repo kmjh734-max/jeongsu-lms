@@ -300,6 +300,18 @@ export function QuestionGeneratorClient({
     setError(null);
   }
 
+  /** 한 카테고리(대의 파악 등) 세트만 0으로 */
+  function resetCategory(keys: string[]) {
+    setCounts((prev) => {
+      const next = { ...prev };
+      for (const key of keys) {
+        if (key in next) next[key] = 0;
+      }
+      return next;
+    });
+    setModeTab("custom");
+  }
+
   function updatePassage(index: number, patch: Partial<PassageInput>) {
     setPassages((prev) =>
       prev.map((p, i) => (i === index ? { ...p, ...patch } : p))
@@ -627,28 +639,40 @@ export function QuestionGeneratorClient({
                       : "border-slate-200"
                   }`}
                 >
-                  <button
-                    type="button"
-                    className="flex w-full items-center justify-between px-2.5 py-1.5 text-left"
-                    onClick={() =>
-                      setOpenCats((prev) => ({
-                        ...prev,
-                        [group.category]: !open,
-                      }))
-                    }
-                  >
-                    <span className="text-sm font-semibold text-slate-900">
-                      {group.label.replace(/^Section ·\s*/, "")}
-                      {selectedInGroup > 0 && (
-                        <span className="ml-2 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-bold text-brand-800">
-                          {selectedInGroup}
-                        </span>
-                      )}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      {open ? "▲" : "▼"}
-                    </span>
-                  </button>
+                  <div className="flex w-full items-center gap-1 px-2.5 py-1.5">
+                    <button
+                      type="button"
+                      className="flex min-w-0 flex-1 items-center justify-between text-left"
+                      onClick={() =>
+                        setOpenCats((prev) => ({
+                          ...prev,
+                          [group.category]: !open,
+                        }))
+                      }
+                    >
+                      <span className="text-sm font-semibold text-slate-900">
+                        {group.label.replace(/^Section ·\s*/, "")}
+                        {selectedInGroup > 0 && (
+                          <span className="ml-2 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-bold text-brand-800">
+                            {selectedInGroup}
+                          </span>
+                        )}
+                      </span>
+                      <span className="ml-2 shrink-0 text-xs text-slate-400">
+                        {open ? "▲" : "▼"}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="shrink-0 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 disabled:cursor-default disabled:opacity-40"
+                      disabled={selectedInGroup === 0}
+                      onClick={() =>
+                        resetCategory(group.options.map((o) => o.key))
+                      }
+                    >
+                      초기화
+                    </button>
+                  </div>
                   {open && (
                     <div className="border-t border-slate-100 px-2 py-1.5">
                   {isMainIdea ? (
