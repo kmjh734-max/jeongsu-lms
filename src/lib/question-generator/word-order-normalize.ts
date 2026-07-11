@@ -227,6 +227,38 @@ function shuffleInPlace<T>(arr: T[]): T[] {
   return arr;
 }
 
+/** -ing로 끝나지만 분사가 아닌 기본형·명사 */
+const ING_KEEP = new Set([
+  "meaning",
+  "feeling",
+  "building",
+  "ceiling",
+  "sibling",
+  "morning",
+  "evening",
+  "something",
+  "anything",
+  "nothing",
+  "everything",
+  "wedding",
+  "meeting",
+  "hearing",
+  "during",
+  "according",
+  "regarding",
+  "including",
+  "excluding",
+  "following",
+  "outstanding",
+  "understanding",
+  "beginning",
+  "clothing",
+  "housing",
+  "offering",
+  "training",
+  "warning",
+]);
+
 /** 동사 과거·3인칭 / 명사 복수 → 기본형 */
 export function lemmaEnglishToken(raw: string): string {
   const trimmed = raw.trim();
@@ -279,11 +311,19 @@ export function lemmaEnglishToken(raw: string): string {
     }
     return stem;
   }
-  // -ing
+  // -ing (분사용). meaning·morning 등 어간이 아닌 -ing 명사는 유지
   if (/^[a-z]+ing$/i.test(lower) && lower.length > 5) {
+    if (ING_KEEP.has(lower)) return lower;
     const stem = lower.slice(0, -3);
     if (/(.)\1$/.test(stem)) return stem.slice(0, -1);
-    if (/[aeiou][^aeiou]$/i.test(stem)) return stem + "e";
+    // making → make (단모음 CVC만 +e; meaning→meane 방지)
+    if (
+      /[^aeiou][aeiou][^aeiou]$/i.test(stem) &&
+      !/[aeiou]{2}/i.test(stem.slice(-3))
+    ) {
+      return stem + "e";
+    }
+    if (/[aeiou]$/i.test(stem)) return stem; // going → go
     return stem;
   }
   // 3인칭·복수 -s (allows → allow, consumers → consumer)
