@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { persistVocabItems } from "@/lib/vocab/save-items";
 import { SITE_URL } from "@/lib/branding";
+import { lemmaEnglishToken } from "@/lib/question-generator/word-order-normalize";
 
 export type HardWord = { word: string; meaning: string };
 
@@ -13,17 +14,30 @@ export function buildExamVocabUrl(setId: string): string {
   return `${siteBase()}/exam-vocab/${setId}`;
 }
 
+/** 보기·중요 단어 → 동사/명사 원형 (복수·과거·3인칭 등 제거) */
+export function lemmaHardWordForm(raw: string): string {
+  return raw
+    .trim()
+    .split(/\s+/)
+    .map((tok) => {
+      const cleaned = tok.replace(/^[^a-zA-Z']+|[^a-zA-Z']+$/g, "");
+      if (!cleaned) return "";
+      return lemmaEnglishToken(cleaned);
+    })
+    .filter(Boolean)
+    .join(" ");
+}
+
 function normalizeHardWords(raw: unknown): HardWord[] {
   if (!Array.isArray(raw)) return [];
   const out: HardWord[] = [];
   const seen = new Set<string>();
   for (const item of raw) {
     if (!item || typeof item !== "object") continue;
-    const word = String(
+    const original = String(
       (item as { word?: unknown }).word ?? ""
-    )
-      .trim()
-      .toLowerCase();
+    ).trim();
+    const word = lemmaHardWordForm(original);
     const meaning = String(
       (item as { meaning?: unknown }).meaning ??
         (item as { meaningKo?: unknown }).meaningKo ??
@@ -31,12 +45,10 @@ function normalizeHardWords(raw: unknown): HardWord[] {
     ).trim();
     if (!word || !meaning) continue;
     if (word.length > 40 || meaning.length > 80) continue;
-    if (seen.has(word)) continue;
-    seen.add(word);
-    out.push({
-      word: String((item as { word?: unknown }).word ?? "").trim(),
-      meaning,
-    });
+    const key = word.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ word, meaning });
   }
   return out.slice(0, 12);
 }

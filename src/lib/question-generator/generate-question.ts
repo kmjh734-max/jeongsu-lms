@@ -1291,7 +1291,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: REQUIRED array of 4~8 {word, meaning} — difficult English words from English choices (보기) or key passage words if choices are Korean/empty. meaning = short Korean gloss for high-school students. Skip ultra-basic (the/and/people/make).
+- hardWords: REQUIRED array of 4~8 {word, meaning} — difficult English words from English choices (보기) or key passage words if choices are Korean/empty. word MUST be dictionary base form (lemma): verbs → infinitive (allows→allow, tested→test, known→know), nouns → singular (consumers→consumer, cities→city). Never store past/past participle/3rd-person -s/plural. meaning = short Korean gloss for high-school students. Skip ultra-basic (the/and/people/make).
 ${englishOnlyHint}
 ${
   allowSkip
