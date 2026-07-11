@@ -1167,6 +1167,51 @@ export function isTooEasyHardWord(word: string): boolean {
   return parts.every((p) => EASY_HARD_WORD_SKIP.has(p) || p.length <= 3);
 }
 
+/** 비정상·합성 괴물 어휘 (national monies 등) */
+const WEIRD_HARD_WORD_SKIP = new Set(
+  [
+    "monies",
+    "moneys",
+    "datas",
+    "informations",
+    "advices",
+    "furnitures",
+    "equipments",
+    "softwares",
+    "hardwares",
+    "stuffs",
+    "homeworks",
+    "luggages",
+    "traffics",
+    "knowledges",
+    "researches",
+  ].map((w) => w.toLowerCase())
+);
+
+/**
+ * 보기 단어로 쓸 수 없는 항목:
+ * - 두 단어 이상 구 (national monies 등)
+ * - 비정상 복수·괴물형
+ * - 쉬운 단어
+ */
+export function isInvalidHardWord(word: string): boolean {
+  const original = String(word ?? "").trim();
+  if (!original) return true;
+  // 단일어만 허용 (공백·하이픈 구 금지)
+  if (/[\s/]/.test(original) || (original.match(/-/g) ?? []).length > 1) {
+    return true;
+  }
+  const raw = lemmaHardWordForm(original).toLowerCase().trim();
+  const token = raw.replace(/[^a-z']/g, "");
+  if (!token) return true;
+  if (/\s/.test(raw)) return true;
+  if (WEIRD_HARD_WORD_SKIP.has(token)) return true;
+  // money류 오복수·어색한 -ies 잔존
+  if (/^(monies|moneys)$/.test(token)) return true;
+  if (isTooEasyHardWord(token)) return true;
+  return false;
+}
+
 function normalizeHardWords(raw: unknown): HardWord[] {
   if (!Array.isArray(raw)) return [];
   const out: HardWord[] = [];
@@ -1176,6 +1221,7 @@ function normalizeHardWords(raw: unknown): HardWord[] {
     const original = String(
       (item as { word?: unknown }).word ?? ""
     ).trim();
+    if (isInvalidHardWord(original)) continue;
     const word = lemmaHardWordForm(original);
     const meaning = String(
       (item as { meaning?: unknown }).meaning ??
@@ -1183,7 +1229,7 @@ function normalizeHardWords(raw: unknown): HardWord[] {
         ""
     ).trim();
     if (!word || !meaning) continue;
-    if (isTooEasyHardWord(word)) continue;
+    if (isInvalidHardWord(word)) continue;
     if (word.length > 40 || meaning.length > 80) continue;
     const key = word.toLowerCase();
     if (seen.has(key)) continue;
@@ -1209,10 +1255,12 @@ export function hardWordDedupeKey(word: string): string {
 export function dedupeHardWords(words: HardWord[]): HardWord[] {
   const byKey = new Map<string, HardWord>();
   for (const item of words) {
-    const word = lemmaHardWordForm(String(item.word ?? "").trim());
+    const original = String(item.word ?? "").trim();
+    if (isInvalidHardWord(original)) continue;
+    const word = lemmaHardWordForm(original);
     const meaning = String(item.meaning ?? "").trim();
     if (!word || !meaning) continue;
-    if (isTooEasyHardWord(word)) continue;
+    if (isInvalidHardWord(word)) continue;
     if (word.length > 40 || meaning.length > 80) continue;
     const key = hardWordDedupeKey(word);
     if (!key) continue;
@@ -1234,10 +1282,12 @@ export function dedupeVocabItemRows<
 >(items: T[]): T[] {
   const byKey = new Map<string, T>();
   for (const item of items) {
-    const word = lemmaHardWordForm(String(item.word ?? "").trim());
+    const original = String(item.word ?? "").trim();
+    if (isInvalidHardWord(original)) continue;
+    const word = lemmaHardWordForm(original);
     const meaning = String(item.meaning ?? "").trim();
     if (!word || !meaning) continue;
-    if (isTooEasyHardWord(word)) continue;
+    if (isInvalidHardWord(word)) continue;
     const key = hardWordDedupeKey(word);
     if (!key) continue;
     const prev = byKey.get(key);

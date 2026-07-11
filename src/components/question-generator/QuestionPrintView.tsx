@@ -658,10 +658,15 @@ export function QuestionPrintView({
   function runPrint() {
     const prev = document.title;
     document.title = sheetTitle;
-    window.print();
-    window.setTimeout(() => {
-      document.title = prev;
-    }, 500);
+    // 레이아웃·폰트 반영 후 인쇄 (빈 미리보기 방지)
+    requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        window.print();
+        window.setTimeout(() => {
+          document.title = prev;
+        }, 500);
+      }, 50);
+    });
   }
 
   function patchBranding(patch: Partial<PrintBranding>) {
@@ -795,8 +800,8 @@ export function QuestionPrintView({
 
   return (
     <div className="qg-print-app min-h-screen bg-slate-200 print:min-h-0 print:bg-white">
-      <div className="no-print flex min-h-screen print:block print:min-h-0">
-        <aside className="sticky top-0 flex h-screen w-[min(100%,320px)] shrink-0 flex-col gap-3 overflow-y-auto border-r border-slate-200 bg-white p-4 shadow-sm print:hidden">
+      <div className="flex min-h-screen print:block print:min-h-0">
+        <aside className="no-print sticky top-0 flex h-screen w-[min(100%,320px)] shrink-0 flex-col gap-3 overflow-y-auto border-r border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Link
               href={backHref}

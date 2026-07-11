@@ -1327,7 +1327,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: Include 4~6 {word, meaning} when (a) MCQ has English choice texts, OR (b) 일치개수(content_count) with English <보기> statements (from those statements) or Korean <보기> (from the English passage). Pick genuinely hard high-school words that appear in THIS item's distinctive paraphrase (e.g. conscious, voucher, misprint, comparable, scrutinize). Prefer DIFFERENT lemmas than other typical items for the same passage — do not always list the same passage theme words. NEVER include easy basics like consumer/people/important/money/make/need/progress/information/viewer/financial. word = dictionary lemma. meaning = short Korean gloss. If no hard words fit → hardWords []. Otherwise (한글 요지/주제 선지, 1개~5개만, 서술·삽입·밑줄형 등) → hardWords MUST be [].
+- hardWords: Include 4~6 {word, meaning} when (a) MCQ has English choice texts, OR (b) 일치개수(content_count) with English <보기> statements (from those statements) or Korean <보기> (from the English passage). Each word MUST be a single real dictionary lemma (one token only — NEVER phrases like "national monies"). Pick genuinely hard high-school words distinctive to THIS item (e.g. conscious, voucher, misprint, comparable, scrutinize). Prefer DIFFERENT lemmas than other slots for the same passage. NEVER include easy basics (consumer/people/important/money/make/need/progress/information/viewer/financial) or invented plurals (monies/datas/informations). meaning = short Korean gloss. If no hard words fit → hardWords []. Otherwise (한글 요지/주제 선지, 1개~5개만, 서술·삽입·밑줄형 등) → hardWords MUST be [].
 ${englishOnlyHint}
 ${
   allowSkip

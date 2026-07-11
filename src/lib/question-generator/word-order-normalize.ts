@@ -211,6 +211,8 @@ const IRREGULAR_NOUN: Record<string, string> = {
   knives: "knife",
   wives: "wife",
   selves: "self",
+  monies: "money",
+  moneys: "money",
   analyses: "analysis",
   crises: "crisis",
   theses: "thesis",

@@ -1648,6 +1648,13 @@
     background: white !important;
     min-height: 0 !important;
     height: auto !important;
+    display: block !important;
+  }
+
+  .qg-print-app > .flex {
+    display: block !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
 
   .qg-print-sheet {
