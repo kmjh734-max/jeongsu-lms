@@ -1162,9 +1162,9 @@ export function isTooEasyHardWord(word: string): boolean {
     .map((p) => p.replace(/[^a-z']/g, ""))
     .filter(Boolean);
   if (parts.length === 0) return true;
-  // 짧은 단일어(3글자 이하)는 기본어로 간주
-  if (parts.length === 1 && parts[0].length <= 3) return true;
-  return parts.every((p) => EASY_HARD_WORD_SKIP.has(p) || p.length <= 3);
+  // 1~2글자 기능어만 무조건 제외. 3글자라도 목록에 없으면 유지(swap급 짧은 난단어 허용)
+  if (parts.length === 1 && parts[0].length <= 2) return true;
+  return parts.every((p) => EASY_HARD_WORD_SKIP.has(p) || p.length <= 2);
 }
 
 /** 비정상·합성 괴물 어휘 (national monies 등) */
