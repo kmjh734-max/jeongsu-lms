@@ -636,50 +636,6 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "어법문장오류수정",
         "다음 글의 ①~⑤ 중 어법상 틀린 문장의 번호를 모두 쓰고, 틀린 부분을 찾아 바르게 고치시오."
       ),
-      opt(
-        "writing",
-        "subjective",
-        "조건 영작",
-        "default",
-        null,
-        false,
-        "조건에 맞게 영작",
-        "서술형영작",
-        "다음 우리말 내용을 <조건>에 알맞게 영작하시오."
-      ),
-      opt(
-        "summary_short",
-        "subjective",
-        "요지 영작",
-        "default",
-        null,
-        false,
-        "요지를 조건에 맞게 영작",
-        "요지영작",
-        "다음 글의 요지를 주어진 <조건>에 알맞게 한 문장으로 영작하시오."
-      ),
-      opt(
-        "short_title",
-        "subjective",
-        "제목 쓰기",
-        "default",
-        null,
-        false,
-        "제목 영작",
-        "제목영작",
-        "윗글의 제목을 영어로 쓰시오."
-      ),
-      opt(
-        "short_topic",
-        "subjective",
-        "주제 쓰기",
-        "default",
-        null,
-        false,
-        "주제 영작",
-        "주제영작",
-        "윗글의 주제를 영어로 쓰시오."
-      ),
     ],
   },
 ];

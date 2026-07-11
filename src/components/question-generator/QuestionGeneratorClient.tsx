@@ -595,8 +595,8 @@ export function QuestionGeneratorClient({
 
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] lg:items-start">
         {/* 왼쪽: 유형별 세트 */}
-        <aside className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-          <section className="space-y-2">
+        <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+          <section className="space-y-1.5">
             <div className="flex items-center justify-between px-1">
               <h2 className="text-sm font-semibold text-slate-900">
                 유형별 세트 수
@@ -605,7 +605,7 @@ export function QuestionGeneratorClient({
                 지문당 {perPassageTotals.total}문항
               </span>
             </div>
-            <p className="px-1 text-xs text-slate-500">
+            <p className="px-1 text-[11px] text-slate-500">
               선택한 세트는 모든 지문에 동일하게 적용됩니다.
             </p>
             {sortedGroups.map((group) => {
@@ -629,7 +629,7 @@ export function QuestionGeneratorClient({
                 >
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between px-3 py-2.5 text-left"
+                    className="flex w-full items-center justify-between px-2.5 py-1.5 text-left"
                     onClick={() =>
                       setOpenCats((prev) => ({
                         ...prev,
@@ -640,17 +640,19 @@ export function QuestionGeneratorClient({
                     <span className="text-sm font-semibold text-slate-900">
                       {group.label.replace(/^Section ·\s*/, "")}
                       {selectedInGroup > 0 && (
-                        <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-bold text-brand-800">
+                        <span className="ml-2 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] font-bold text-brand-800">
                           {selectedInGroup}
                         </span>
                       )}
                     </span>
-                    <span className="text-slate-400">{open ? "▲" : "▼"}</span>
+                    <span className="text-xs text-slate-400">
+                      {open ? "▲" : "▼"}
+                    </span>
                   </button>
                   {open && (
-                    <div className="border-t border-slate-100 px-3 py-2.5">
+                    <div className="border-t border-slate-100 px-2 py-1.5">
                   {isMainIdea ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <p className="text-[11px] leading-snug text-slate-500">
                         하/상 · (영)/(한)
                       </p>
@@ -684,10 +686,10 @@ export function QuestionGeneratorClient({
                         ] as const
                       ).map((row) => (
                         <div key={row.rowLabel}>
-                          <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                          <p className="mb-1 text-[11px] font-semibold text-slate-700">
                             {row.rowLabel}
                           </p>
-                          <div className="grid grid-cols-2 gap-1.5">
+                          <div className="grid grid-cols-2 gap-1">
                             {row.keys.map((key) => {
                               const opt = group.options.find(
                                 (o) => o.key === key
@@ -697,25 +699,25 @@ export function QuestionGeneratorClient({
                               return (
                                 <div
                                   key={key}
-                                  className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                                  className="rounded border border-slate-200 bg-slate-50 px-1.5 py-1"
                                 >
                                   <span className="block truncate text-[11px] font-medium text-slate-800">
                                     {opt.label}
                                   </span>
-                                  <div className="mt-1 flex items-center justify-between gap-1">
+                                  <div className="mt-0.5 flex items-center justify-between gap-0.5">
                                     <button
                                       type="button"
-                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                       onClick={() => setCount(key, n - 1)}
                                     >
                                       −
                                     </button>
-                                    <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                    <span className="min-w-[1.25rem] text-center text-xs font-bold tabular-nums text-slate-900">
                                       {n}
                                     </span>
                                     <button
                                       type="button"
-                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                       onClick={() => setCount(key, n + 1)}
                                     >
                                       +
@@ -750,7 +752,7 @@ export function QuestionGeneratorClient({
                       </Button>
                     </div>
                   ) : isDetails ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <p className="text-[11px] leading-snug text-slate-500">
                         하/상 · (영)/(한) · 효자·학력평가형 일치/불일치
                       </p>
@@ -786,10 +788,10 @@ export function QuestionGeneratorClient({
                         ] as const
                       ).map((row) => (
                         <div key={row.rowLabel}>
-                          <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                          <p className="mb-1 text-[11px] font-semibold text-slate-700">
                             {row.rowLabel} 세트 수
                           </p>
-                          <div className="grid grid-cols-2 gap-1.5">
+                          <div className="grid grid-cols-2 gap-1">
                             {row.keys.map((key) => {
                               const opt = group.options.find(
                                 (o) => o.key === key
@@ -799,25 +801,25 @@ export function QuestionGeneratorClient({
                               return (
                                 <div
                                   key={key}
-                                  className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                                  className="rounded border border-slate-200 bg-slate-50 px-1.5 py-1"
                                 >
                                   <span className="block truncate text-[11px] font-medium text-slate-800">
                                     {opt.label}
                                   </span>
-                                  <div className="mt-1 flex items-center justify-between gap-1">
+                                  <div className="mt-0.5 flex items-center justify-between gap-0.5">
                                     <button
                                       type="button"
-                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                       onClick={() => setCount(key, n - 1)}
                                     >
                                       −
                                     </button>
-                                    <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                    <span className="min-w-[1.25rem] text-center text-xs font-bold tabular-nums text-slate-900">
                                       {n}
                                     </span>
                                     <button
                                       type="button"
-                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                       onClick={() => setCount(key, n + 1)}
                                     >
                                       +
@@ -854,7 +856,7 @@ export function QuestionGeneratorClient({
                       </Button>
                     </div>
                   ) : isInference ? (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <p className="text-[11px] leading-snug text-slate-500">
                         하/상 · 효자·학력평가형 (순서·빈칸·삽입·무관)
                       </p>
@@ -891,10 +893,10 @@ export function QuestionGeneratorClient({
                         ] as const
                       ).map((row) => (
                         <div key={row.rowLabel}>
-                          <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                          <p className="mb-1 text-[11px] font-semibold text-slate-700">
                             {row.rowLabel}
                           </p>
-                          <div className="grid grid-cols-2 gap-1.5">
+                          <div className="grid grid-cols-2 gap-1">
                             {row.keys.map((key) => {
                               const opt = group.options.find(
                                 (o) => o.key === key
@@ -904,25 +906,25 @@ export function QuestionGeneratorClient({
                               return (
                                 <div
                                   key={key}
-                                  className="rounded-lg border border-slate-200 bg-slate-50 px-1.5 py-1.5"
+                                  className="rounded border border-slate-200 bg-slate-50 px-1.5 py-1"
                                 >
-                                  <span className="block truncate text-[11px] font-medium text-slate-800">
+                                  <span className="block truncate text-[10px] font-medium text-slate-800">
                                     {opt.label}
                                   </span>
-                                  <div className="mt-1 flex items-center justify-between gap-1">
+                                  <div className="mt-0.5 flex items-center justify-between gap-0.5">
                                     <button
                                       type="button"
-                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                       onClick={() => setCount(key, n - 1)}
                                     >
                                       −
                                     </button>
-                                    <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
+                                    <span className="min-w-[1.25rem] text-center text-xs font-bold tabular-nums text-slate-900">
                                       {n}
                                     </span>
                                     <button
                                       type="button"
-                                      className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                      className="flex h-6 w-6 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                       onClick={() => setCount(key, n + 1)}
                                     >
                                       +
@@ -935,7 +937,7 @@ export function QuestionGeneratorClient({
                         </div>
                       ))}
                       <div>
-                        <p className="mb-1.5 text-xs font-semibold text-slate-700">
+                        <p className="mb-1 text-[11px] font-semibold text-slate-700">
                           함축의미추론
                           <span className="ml-1 font-normal text-slate-400">
                             (난이도 없음)
@@ -946,13 +948,13 @@ export function QuestionGeneratorClient({
                             "underlined_inference:en:default:함축의미추론";
                           const n = counts[key] ?? 0;
                           return (
-                            <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+                            <div className="flex items-center gap-1 rounded border border-slate-200 bg-slate-50 px-1.5 py-1">
                               <span className="min-w-0 flex-1 truncate text-[11px] text-slate-600">
                                 영어 보기 · 없으면 생략
                               </span>
                               <button
                                 type="button"
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                 onClick={() => setCount(key, n - 1)}
                               >
                                 −
@@ -962,7 +964,7 @@ export function QuestionGeneratorClient({
                               </span>
                               <button
                                 type="button"
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                 onClick={() => setCount(key, n + 1)}
                               >
                                 +
@@ -998,7 +1000,7 @@ export function QuestionGeneratorClient({
                         <summary className="cursor-pointer text-[11px] font-medium text-slate-500">
                           기타 (목적·심경·연결어)
                         </summary>
-                        <div className="mt-1.5 space-y-1.5">
+                        <div className="mt-1 space-y-0.5">
                           {[
                             "underlined_inference:en:default:목적추론",
                             "underlined_inference:en:default:심경추론",
@@ -1012,14 +1014,14 @@ export function QuestionGeneratorClient({
                             return (
                               <div
                                 key={key}
-                                className="flex items-center gap-1.5 rounded-lg border border-slate-100 bg-white px-1.5 py-1"
+                                className="flex items-center gap-1 rounded border border-slate-100 bg-white px-1.5 py-0.5"
                               >
-                                <span className="min-w-0 flex-1 truncate text-xs text-slate-800">
+                                <span className="min-w-0 flex-1 truncate text-[11px] text-slate-800">
                                   {opt.label}
                                 </span>
                                 <button
                                   type="button"
-                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                   onClick={() => setCount(key, n - 1)}
                                 >
                                   −
@@ -1029,7 +1031,7 @@ export function QuestionGeneratorClient({
                                 </span>
                                 <button
                                   type="button"
-                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                   onClick={() => setCount(key, n + 1)}
                                 >
                                   +
@@ -1041,73 +1043,24 @@ export function QuestionGeneratorClient({
                       </details>
                     </div>
                   ) : isGrammar ? (
-                    <div className="space-y-3">
-                      <p className="text-[11px] leading-snug text-slate-500">
-                        어법 · 어휘 (고르기 / 개수)
-                      </p>
-                      <p className="text-xs font-semibold text-slate-700">
-                        어법
-                      </p>
+                    <div className="space-y-1">
                       {(
                         [
                           {
                             key: "grammar:na:default:어법모두고르기",
-                            hint: "ⓐ~ⓔ 어색한 것 모두",
+                            label: "어법 모두",
                           },
                           {
                             key: "grammar:na:default:어법개수",
-                            hint: "ⓐ~ⓕ 어색한 것 개수",
+                            label: "어법 개수",
                           },
-                        ] as const
-                      ).map((row) => {
-                        const opt = group.options.find((o) => o.key === row.key);
-                        if (!opt) return null;
-                        const n = counts[row.key] ?? 0;
-                        return (
-                          <div
-                            key={row.key}
-                            className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5"
-                          >
-                            <span className="block text-[11px] font-medium text-slate-800">
-                              {opt.label}
-                            </span>
-                            <span className="mb-1 block text-[10px] text-slate-500">
-                              {row.hint}
-                            </span>
-                            <div className="flex items-center justify-between gap-1">
-                              <button
-                                type="button"
-                                className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
-                                onClick={() => setCount(row.key, n - 1)}
-                              >
-                                −
-                              </button>
-                              <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
-                                {n}
-                              </span>
-                              <button
-                                type="button"
-                                className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
-                                onClick={() => setCount(row.key, n + 1)}
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <p className="pt-1 text-xs font-semibold text-slate-700">
-                        어휘
-                      </p>
-                      {(
-                        [
                           {
                             key: "vocabulary:na:default:어휘추론",
-                            hint: "①~⑤ 문맥상 부적절",
+                            label: "어휘 추론",
                           },
                           {
                             key: "vocabulary:na:default:어휘개수",
-                            hint: "①~⑥ 부적절한 것 개수",
+                            label: "어휘 개수",
                           },
                         ] as const
                       ).map((row) => {
@@ -1117,40 +1070,35 @@ export function QuestionGeneratorClient({
                         return (
                           <div
                             key={row.key}
-                            className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5"
+                            className="flex items-center gap-1 rounded border border-slate-100 bg-slate-50/80 px-1.5 py-0.5"
                           >
-                            <span className="block text-[11px] font-medium text-slate-800">
-                              {opt.label}
+                            <span className="min-w-0 flex-1 truncate text-[11px] text-slate-800">
+                              {row.label}
                             </span>
-                            <span className="mb-1 block text-[10px] text-slate-500">
-                              {row.hint}
+                            <button
+                              type="button"
+                              className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
+                              onClick={() => setCount(row.key, n - 1)}
+                            >
+                              −
+                            </button>
+                            <span className="w-5 shrink-0 text-center text-xs font-bold tabular-nums text-slate-900">
+                              {n}
                             </span>
-                            <div className="flex items-center justify-between gap-1">
-                              <button
-                                type="button"
-                                className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
-                                onClick={() => setCount(row.key, n - 1)}
-                              >
-                                −
-                              </button>
-                              <span className="min-w-[1.5rem] text-center text-sm font-bold tabular-nums text-slate-900">
-                                {n}
-                              </span>
-                              <button
-                                type="button"
-                                className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
-                                onClick={() => setCount(row.key, n + 1)}
-                              >
-                                +
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
+                              onClick={() => setCount(row.key, n + 1)}
+                            >
+                              +
+                            </button>
                           </div>
                         );
                       })}
                       <Button
                         type="button"
                         variant="secondary"
-                        className="w-full text-xs"
+                        className="mt-1 w-full text-xs"
                         onClick={() =>
                           addCounts([
                             ["grammar:na:default:어법모두고르기", 1],
@@ -1164,30 +1112,30 @@ export function QuestionGeneratorClient({
                       </Button>
                     </div>
                   ) : (
-                        <div className="space-y-1.5">
+                        <div className="space-y-0.5">
                           {group.options.map((opt) => {
                             const n = counts[opt.key] ?? 0;
                             return (
                               <div
                                 key={opt.key}
-                                className="flex items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50/80 px-1.5 py-1"
+                                className="flex items-center gap-1 rounded border border-slate-100 bg-slate-50/80 px-1.5 py-0.5"
                               >
-                                <span className="min-w-0 flex-1 truncate text-xs text-slate-800">
+                                <span className="min-w-0 flex-1 truncate text-[11px] text-slate-800">
                                   {opt.label}
                                 </span>
                                 <button
                                   type="button"
-                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                   onClick={() => setCount(opt.key, n - 1)}
                                 >
                                   −
                                 </button>
-                                <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums text-slate-900">
+                                <span className="w-5 shrink-0 text-center text-xs font-bold tabular-nums text-slate-900">
                                   {n}
                                 </span>
                                 <button
                                   type="button"
-                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-base font-semibold text-slate-700"
+                                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-slate-200 bg-white text-sm font-semibold text-slate-700"
                                   onClick={() => setCount(opt.key, n + 1)}
                                 >
                                   +

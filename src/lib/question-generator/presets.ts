@@ -82,7 +82,7 @@ export const SYSTEM_PRESETS: Array<{
     slug: "advanced_full",
     name: "고난도 통합",
     description:
-      "학력평가 상위권 · 목적·불일치·어법·어휘·빈칸·순서·삽입·주제·함축·영작",
+      "학력평가 상위권 · 목적·불일치·어법·어휘·빈칸·순서·삽입·주제·함축·제시어배열",
     config: withCounts([
       ["grammar:na:default:어법모두고르기", 1],
       ["grammar:na:default:어법개수", 1],
@@ -98,7 +98,7 @@ export const SYSTEM_PRESETS: Array<{
       ["topic:en:high:주제추론", 1],
       ["title:en:high:제목추론", 1],
       ["underlined_inference:en:default:함축의미추론", 1],
-      ["writing:na:default:서술형영작", 1],
+      ["writing:na:default:제시어배열기본", 1],
     ]),
   },
 ];
