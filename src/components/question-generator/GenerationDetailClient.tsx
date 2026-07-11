@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   cleanQuestionText,
+  parseReferenceAnswerBlock,
   parseSummaryWritingBlocks,
   parseWordOrderBlocks,
 } from "@/lib/question-generator/text-utils";
@@ -294,8 +295,12 @@ export function GenerationDetailClient({
               const wordOrder = summaryWriting
                 ? null
                 : parseWordOrderBlocks(q.question_text);
-              const extra =
+              const referenceAnswer =
                 summaryWriting || wordOrder
+                  ? null
+                  : parseReferenceAnswerBlock(q.question_text);
+              const extra =
+                summaryWriting || wordOrder || referenceAnswer
                   ? ""
                   : cleanQuestionText(q.question_text);
               return (
@@ -506,9 +511,22 @@ export function GenerationDetailClient({
                           </p>
                         </div>
                       )}
+                      {referenceAnswer && (
+                        <div className="mt-3 space-y-1 text-sm">
+                          {referenceAnswer.labels.map((lab) => (
+                            <p
+                              key={lab}
+                              className="font-medium text-slate-900"
+                            >
+                              {lab} : ________________
+                            </p>
+                          ))}
+                        </div>
+                      )}
                       {q.question_type !== "sentence_insertion" &&
                         !wordOrder &&
                         !summaryWriting &&
+                        !referenceAnswer &&
                         extra && (
                         <p className="mt-2 whitespace-pre-wrap text-sm text-slate-800">
                           {extra}
@@ -518,6 +536,7 @@ export function GenerationDetailClient({
                         q.question_type !== "irrelevant_sentence" &&
                         !wordOrder &&
                         !summaryWriting &&
+                        !referenceAnswer &&
                         !(
                           q.question_type === "vocabulary" &&
                           (!q.choices ||

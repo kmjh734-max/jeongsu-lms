@@ -98,6 +98,27 @@ export function passageHasConsecutiveWords(
   return ` ${p} `.includes(` ${ph} `);
 }
 
+/** 지칭 서술형 답란 마커 */
+export function parseReferenceAnswerBlock(text: string): {
+  labels: string[];
+} | null {
+  const cleaned = cleanQuestionText(text).trim();
+  if (!/<지칭답란>/.test(cleaned)) return null;
+  const body =
+    cleaned.match(/<지칭답란>\s*([\s\S]*?)$/)?.[1]?.trim() ?? "";
+  const labels = (body.match(/[ⓐⓑⓒⓓⓔ]/g) ?? []).filter(Boolean);
+  return { labels: labels.length ? labels : ["ⓐ"] };
+}
+
+/** 단어 수 (영어 공백 기준) */
+export function countEnglishWords(text: string): number {
+  return (text || "")
+    .replace(/[^\p{L}\p{N}\s']/gu, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
 /**
  * 복사·붙여넣기 시 생긴 어색한 줄바꿈을 풀어 A4 폭에 맞게 자연스럽게 흐르게 함.
  * 빈 줄(문단)만 유지하고, 한 줄 개행은 공백으로 합침.

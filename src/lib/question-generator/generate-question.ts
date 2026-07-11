@@ -20,6 +20,7 @@ import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/ope
 import { findAingkaOption } from "@/lib/question-generator/question-types";
 import {
   cleanQuestionText,
+  countEnglishWords,
   passageHasConsecutiveWords,
   parseSummaryWritingBlocks,
 } from "@/lib/question-generator/text-utils";
@@ -344,6 +345,32 @@ ${choiceExplanationRules()}
       }
       return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
     case "writing": {
+      if (code === "지칭대명사서술") {
+        return `서술형 · 지칭 추론 · 대명사·지시사 (수특형):
+- passageModified = 영어 지문. 지시 대상이 분명한 대명사·지시사 1곳에 ⓐ<u>it</u> (또는 this/that/they/these/those/them).
+- 앞선 문맥에 선행사(명사·동명사 등)가 본문에 그대로 있어야 함.
+- 적합한 대명사 지칭이 없으면 {"skip":true,"reason":"명확한 대명사 지칭 없음"}.
+- questionText:
+<지칭답란>
+ⓐ
+- correctAnswer = 본문에 나오는 선행사 (보통 1단어, 필요 시 2단어). 예: Thinking / anxiety
+- 정답은 밑줄 대명사 앞쪽 본문에 실제 존재하는 단어(형태 그대로).
+- choices 없음. explanation 한글: 왜 그 선행사인지.
+- instruction은 생성 후 시스템이 밑줄 단어에 맞게 고침 (템플릿 유지해도 됨).`;
+      }
+      if (code === "특정표현의미서술") {
+        return `서술형 · 지칭 추론 · 특정 표현 의미 (수특형):
+- passageModified = 영어 지문. 관용·비유·함축 표현 1곳을 <u>표현</u> (예: in the same boat).
+- 그 표현의 문맥 의미와 같은 말이 본문 다른 곳에 연속 구로 있어야 함.
+- 없으면 {"skip":true,"reason":"문맥 동의 구 없음"}.
+- 정답 구 단어 수 N = 4~10 (본문 연속 단어 수와 일치).
+- questionText:
+<지칭답란>
+ⓐ
+- correctAnswer = 본문에서 찾은 연속 N단어 구 (예: dealing with internal anxiety in social situations)
+- choices 없음. explanation 한글: 밑줄 표현 ↔ 본문 구 대응.
+LANGUAGE: 지문·정답 영어만.`;
+      }
       if (
         code === "제시어배열기본" ||
         code === "제시어배열어형변화" ||
@@ -628,7 +655,7 @@ function normalizePayload(
   let passageModified =
     typeof raw.passageModified === "string" ? raw.passageModified : undefined;
 
-  // 함축·어법·어휘: markdown 밑줄을 <u>로 정규화
+  // 함축·어법·어휘·지칭서술: markdown 밑줄을 <u>로 정규화
   if (
     (option.type === "underlined_inference" &&
       option.aingkaCode === "함축의미추론") ||
@@ -636,7 +663,10 @@ function normalizePayload(
       (option.aingkaCode === "어법모두고르기" ||
         option.aingkaCode === "어법개수")) ||
     (option.type === "vocabulary" &&
-      (option.aingkaCode === "어휘추론" || option.aingkaCode === "어휘개수"))
+      (option.aingkaCode === "어휘추론" || option.aingkaCode === "어휘개수")) ||
+    (option.type === "writing" &&
+      (option.aingkaCode === "지칭대명사서술" ||
+        option.aingkaCode === "특정표현의미서술"))
   ) {
     if (passageModified) {
       passageModified = passageModified
@@ -661,6 +691,42 @@ function normalizePayload(
         passageModified = passageModified.replace(/<u>/i, "(A)<u>");
       }
       instructionOut = `다음 글의 밑줄 친 (A)${phrase}가 의미하는 바로 가장 적절한 것은?`;
+    }
+  }
+  if (
+    option.type === "writing" &&
+    option.aingkaCode === "지칭대명사서술" &&
+    passageModified
+  ) {
+    const um = passageModified.match(
+      /ⓐ\s*<u>([\s\S]*?)<\/u>|<u>([\s\S]*?)<\/u>/i
+    );
+    const pronoun = (um?.[1] || um?.[2] || "it").replace(/\s+/g, " ").trim();
+    if (!/ⓐ\s*<u>/i.test(passageModified) && /<u>/i.test(passageModified)) {
+      passageModified = passageModified.replace(/<u>/i, "ⓐ<u>");
+    }
+    const ansWord = String(correctAnswer ?? "")
+      .replace(/^ⓐ\s*[:：]?\s*/i, "")
+      .trim();
+    const n = Math.max(1, countEnglishWords(ansWord) || 1);
+    instructionOut =
+      n === 1
+        ? `다음 글의 밑줄 친 ⓐ${pronoun}이 가리키는 바를 본문에서 정확히 찾아 한 단어의 영어로 쓰시오.`
+        : `다음 글의 밑줄 친 ⓐ${pronoun}이 가리키는 바를 본문에서 정확히 찾아 ${n}단어의 영어로 쓰시오.`;
+  }
+  if (
+    option.type === "writing" &&
+    option.aingkaCode === "특정표현의미서술" &&
+    passageModified
+  ) {
+    const um = passageModified.match(/<u>([\s\S]*?)<\/u>/i);
+    const expr = (um?.[1] || "").replace(/\s+/g, " ").trim();
+    const ansPhrase = String(correctAnswer ?? "")
+      .replace(/^ⓐ\s*[:：]?\s*/i, "")
+      .trim();
+    const n = Math.max(1, countEnglishWords(ansPhrase) || 1);
+    if (expr) {
+      instructionOut = `다음 글의 밑줄 친 ${expr}가 문맥상 의미하는 바를 본문에서 찾아 ${n}단어의 영어로 쓰시오.`;
     }
   }
 
@@ -774,6 +840,64 @@ export function assertBasicQuestionShape(
     if (!String(q.correctAnswer ?? "").trim()) {
       return "제시어 배열 정답(영어 완성문)이 필요합니다.";
     }
+    q.choices = undefined;
+  } else if (
+    option.type === "writing" &&
+    (option.aingkaCode === "지칭대명사서술" ||
+      option.aingkaCode === "특정표현의미서술")
+  ) {
+    const mod = q.passageModified || "";
+    if (!/<u>[\s\S]*?<\/u>/i.test(mod)) {
+      return "지칭 서술형은 본문에 <u>밑줄</u>이 필요합니다.";
+    }
+    if (hasHangul(mod)) {
+      return "지칭 서술형 본문은 영어여야 합니다.";
+    }
+    const ans = String(q.correctAnswer ?? "")
+      .replace(/^ⓐ\s*[:：]?\s*/i, "")
+      .trim();
+    if (!ans) {
+      return "지칭 서술형 정답이 필요합니다.";
+    }
+    if (hasHangul(ans)) {
+      return "지칭 서술형 정답은 영어여야 합니다.";
+    }
+    const bodyForMatch = `${q.passageOriginal || ""}\n${mod}`;
+    if (option.aingkaCode === "지칭대명사서술") {
+      if (!/ⓐ\s*<u>/i.test(mod)) {
+        return "대명사 지칭은 본문에 ⓐ<u>…</u> 표시가 필요합니다.";
+      }
+      const n = countEnglishWords(ans);
+      if (n < 1 || n > 3) {
+        return "대명사 지칭 정답은 본문에서 찾은 1~3단어여야 합니다.";
+      }
+      if (!passageHasConsecutiveWords(bodyForMatch, ans, n)) {
+        return "대명사 지칭 정답이 본문에 있어야 합니다.";
+      }
+      const um = mod.match(/ⓐ\s*<u>([\s\S]*?)<\/u>/i);
+      const pronoun = (um?.[1] || "it").replace(/\s+/g, " ").trim();
+      q.instruction =
+        n === 1
+          ? `다음 글의 밑줄 친 ⓐ${pronoun}이 가리키는 바를 본문에서 정확히 찾아 한 단어의 영어로 쓰시오.`
+          : `다음 글의 밑줄 친 ⓐ${pronoun}이 가리키는 바를 본문에서 정확히 찾아 ${n}단어의 영어로 쓰시오.`;
+    } else {
+      const n = countEnglishWords(ans);
+      if (n < 3 || n > 12) {
+        return "특정 표현 의미 정답은 본문 연속 3~12단어여야 합니다.";
+      }
+      if (!passageHasConsecutiveWords(bodyForMatch, ans, n)) {
+        return "특정 표현 의미 정답이 본문에 연속 구로 있어야 합니다.";
+      }
+      const um = mod.match(/<u>([\s\S]*?)<\/u>/i);
+      const expr = (um?.[1] || "").replace(/\s+/g, " ").trim();
+      if (expr) {
+        q.instruction = `다음 글의 밑줄 친 ${expr}가 문맥상 의미하는 바를 본문에서 찾아 ${n}단어의 영어로 쓰시오.`;
+      }
+    }
+    if (!/<지칭답란>/.test(q.questionText || "")) {
+      q.questionText = "<지칭답란>\nⓐ";
+    }
+    q.correctAnswer = ans;
     q.choices = undefined;
   } else if (
     option.type === "summary_short" &&
@@ -931,6 +1055,11 @@ export async function generateOneQuestion(opts: {
     option.type === "writing" &&
     wordOrderCodes.has(option.aingkaCode || meta?.aingkaCode || "");
 
+  const referenceCodes = new Set(["지칭대명사서술", "특정표현의미서술"]);
+  const isReferenceWriting =
+    option.type === "writing" &&
+    referenceCodes.has(option.aingkaCode || meta?.aingkaCode || "");
+
   const summaryBlankCodes = new Set([
     "요약문빈칸영작",
     "요약문빈칸2단어",
@@ -952,6 +1081,8 @@ export async function generateOneQuestion(opts: {
     ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only (blank ⓐ__________). questionText may include Korean in <해석>. correctAnswer ENGLISH."
     : isSummaryBlank
       ? "- CRITICAL LANGUAGE: <요약문> and correctAnswer ENGLISH only. <조건> may be Korean. Do NOT create old 요약문완성 MCQ with (A)/(B) …… pairs."
+      : isReferenceWriting
+        ? "- CRITICAL LANGUAGE: passageModified ENGLISH with <u>underline</u>. correctAnswer = exact words from passage. questionText = <지칭답란>."
     : englishBodyTypes.has(option.type)
     ? option.type === "grammar" || option.type === "vocabulary"
       ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only. Choice texts may be Korean (조합/개수) or empty numbers. Never put Hangul in the passage."
@@ -967,13 +1098,16 @@ export async function generateOneQuestion(opts: {
       "sentence_insertion",
       "irrelevant_sentence",
       "underlined_inference",
-    ].includes(option.type) || isWordOrder;
+    ].includes(option.type) ||
+    isWordOrder ||
+    isReferenceWriting;
 
   const needsQuestionText =
     option.type === "content_count" ||
     option.type === "sentence_insertion" ||
     isWordOrder ||
     isSummaryBlank ||
+    isReferenceWriting ||
     (option.type === "writing" && option.aingkaCode === "서술형영작");
   const paraphraseTypes = new Set([
     "title",
@@ -991,9 +1125,10 @@ export async function generateOneQuestion(opts: {
     : "";
 
   const allowSkip =
-    option.type === "underlined_inference" &&
-    (option.aingkaCode === "함축의미추론" ||
-      meta?.aingkaCode === "함축의미추론");
+    (option.type === "underlined_inference" &&
+      (option.aingkaCode === "함축의미추론" ||
+        meta?.aingkaCode === "함축의미추론")) ||
+    isReferenceWriting;
 
   const raw = (await questionGeneratorChatJsonWithRetry({
     system: `Korean HS English exam writer. ONE question JSON only. Fast & concise.
@@ -1006,6 +1141,8 @@ export async function generateOneQuestion(opts: {
             ? "Fill questionText with <조건>, <보기>, <해석>. Blank = IMPORTANT passage sentence reflecting the sampled GRAMMAR POINT (not a trivial SVO)."
             : isSummaryBlank
               ? "Fill questionText with <조건>, optional <보기>, and <요약문> with ⓐ/ⓑ blanks."
+              : isReferenceWriting
+                ? "Fill questionText with <지칭답란> and ⓐ. passageModified needs <u>underline</u>."
             : option.type === "content_count"
               ? "Fill questionText with (1)(2)… statements."
               : "Fill questionText with <조건>/<보기> as needed."
@@ -1016,12 +1153,16 @@ export async function generateOneQuestion(opts: {
       needsModified
         ? isWordOrder
           ? "passageModified MUST include blank ⓐ__________ in the ENGLISH passage."
+          : isReferenceWriting
+            ? "passageModified MUST underline the pronoun/expression with <u>…</u> (대명사는 ⓐ<u>it</u>)."
           : "Use passageModified when needed."
         : "Do NOT change passage; omit passageModified."
     }
 - explanation: ${
       isWordOrder
         ? "한글: 정답 문장 + 배열/어형 포인트."
+        : isReferenceWriting
+          ? "한글: 정답(본문 구) + 왜 그것이 가리키는 바/문맥 의미인지."
         : option.type === "grammar"
         ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
         : option.type === "underlined_inference" &&
@@ -1033,7 +1174,9 @@ export async function generateOneQuestion(opts: {
 ${englishOnlyHint}
 ${
   allowSkip
-    ? '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.'
+    ? isReferenceWriting
+      ? '- 지칭 서술: 명확한 선행사/문맥 동의 구가 있을 때만. 없으면 {"skip":true,"reason":"..."}.'
+      : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.'
     : ""
 }
 ${

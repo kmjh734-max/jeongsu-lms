@@ -11,6 +11,7 @@ import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   cleanQuestionText,
   normalizePassage,
+  parseReferenceAnswerBlock,
   parseSummaryWritingBlocks,
   parseWordOrderBlocks,
   reflowPassageForPrint,
@@ -222,8 +223,14 @@ function QuestionBlock({
   const wordOrder = summaryWriting
     ? null
     : parseWordOrderBlocks(q.question_text);
+  const referenceAnswer =
+    summaryWriting || wordOrder
+      ? null
+      : parseReferenceAnswerBlock(q.question_text);
   const extra =
-    summaryWriting || wordOrder ? "" : cleanQuestionText(q.question_text);
+    summaryWriting || wordOrder || referenceAnswer
+      ? ""
+      : cleanQuestionText(q.question_text);
   const passage = questionPassage(q);
   const bogiLines = isCount ? parseBogiLines(q.question_text) : [];
   const showChoices =
@@ -232,6 +239,7 @@ function QuestionBlock({
     !isIrrelevant &&
     !wordOrder &&
     !summaryWriting &&
+    !referenceAnswer &&
     q.choices &&
     q.choices.length > 0 &&
     q.choices.some((c) => String(c.text ?? "").trim().length > 0);
@@ -279,7 +287,18 @@ function QuestionBlock({
         <SummaryWritingBoxes blocks={summaryWriting} />
       ) : null}
       {wordOrder ? <WordOrderBoxes blocks={wordOrder} /> : null}
-      {!isInsertion && !wordOrder && !summaryWriting && extra ? (
+      {referenceAnswer
+        ? referenceAnswer.labels.map((lab) => (
+            <p key={lab} className="qg-print-wo-answer-line">
+              {lab} : _______________________________________________
+            </p>
+          ))
+        : null}
+      {!isInsertion &&
+      !wordOrder &&
+      !summaryWriting &&
+      !referenceAnswer &&
+      extra ? (
         <p className="qg-print-extra">{extra}</p>
       ) : null}
       {showChoices && (

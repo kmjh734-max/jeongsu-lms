@@ -584,6 +584,28 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
       opt(
         "writing",
         "subjective",
+        "지칭 · 대명사·지시사",
+        "default",
+        null,
+        false,
+        "밑줄 대명사·지시사가 가리키는 말 · 본문에서 찾아 영작",
+        "지칭대명사서술",
+        "다음 글의 밑줄 친 ⓐit이 가리키는 바를 본문에서 정확히 찾아 한 단어의 영어로 쓰시오."
+      ),
+      opt(
+        "writing",
+        "subjective",
+        "지칭 · 특정 표현",
+        "default",
+        null,
+        false,
+        "밑줄 표현의 문맥 의미 · 본문에서 N단어로 찾아 쓰기",
+        "특정표현의미서술",
+        "다음 글의 밑줄 친 표현이 문맥상 의미하는 바를 본문에서 찾아 영어로 쓰시오."
+      ),
+      opt(
+        "writing",
+        "subjective",
         "조건 영작",
         "default",
         null,
