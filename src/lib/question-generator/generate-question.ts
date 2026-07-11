@@ -1,4 +1,15 @@
 import {
+  choiceCraftCommonRules,
+  contentFalseChoiceCraft,
+  impliedMeaningChoiceCraft,
+  insertionChoiceCraft,
+  irrelevantChoiceCraft,
+  summaryChoiceCraft,
+  titleChoiceCraft,
+  topicChoiceCraft,
+  vocabChoiceCraft,
+} from "@/lib/question-generator/choice-craft";
+import {
   grammarCatalogPromptBlock,
   grammarExplanationRules,
   pickGrammarFocus,
@@ -42,12 +53,15 @@ function typeRules(option: QuestionTypeOption): string {
   const code = option.aingkaCode || "";
   const en = option.choiceLanguage === "english";
   const paraphrase = paraphraseChoiceRules(option.choiceLanguage);
+  const craft = choiceCraftCommonRules();
 
   switch (option.type) {
     case "content_false":
       return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
 Ask which does NOT match. Exactly ONE false; the other four must be true.
 Style like Korean HS mock exams (효자/학력평가 내용불일치).
+${craft}
+${contentFalseChoiceCraft(en)}
 ${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
@@ -60,6 +74,8 @@ Difficulty: ${
       return `${en ? "5 ENGLISH" : "5 Korean"} factual choices about the WHOLE passage.
 Ask which DOES match. Exactly ONE true; the other four must be false.
 Style like Korean HS mock exams (효자/학력평가 내용일치).
+${craft}
+${contentFalseChoiceCraft(en)}
 ${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
@@ -80,6 +96,8 @@ Difficulty: ${
 - choices: omit or empty array. No ①~⑤ options.
 - Do NOT change the passage; omit passageModified.
 - explanation: list which numbers are false and why (Korean, brief).
+${craft}
+${contentFalseChoiceCraft(en)}
 ${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
@@ -90,6 +108,8 @@ Difficulty: ${
       }.`;
     case "topic":
       return `${en ? "5 ENGLISH" : "5 Korean"} topic phrases. Exactly one correct.
+${craft}
+${topicChoiceCraft(en)}
 ${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
@@ -100,6 +120,8 @@ Difficulty: ${
       }.`;
     case "title":
       return `${en ? "5 ENGLISH Title Case titles" : "5 Korean titles"}. Exactly one correct.
+${craft}
+${titleChoiceCraft(en)}
 ${paraphrase}
 Difficulty: ${
         option.difficulty === "low"
@@ -111,10 +133,12 @@ Difficulty: ${
     case "summary_mcq":
       // 요약문완성(빈칸 (A)(B) · …… 쌍)은 폐기됨. 요지 객관식만 허용.
       return `요지 MCQ only (NOT 요약문완성).
-- 5 FULL Korean sentence/phrase choices for the main point (요지).
+- 5 FULL ${en ? "ENGLISH" : "Korean"} sentence choices for the main point (요지).
 - Do NOT invent a summary sentence with blanks (A)/(B).
 - Do NOT use …… / ... pair choices (e.g. "성공 …… 노력").
 - questionText must be empty.
+${craft}
+${summaryChoiceCraft(en)}
 ${paraphrase}
 - Exactly one correct. Difficulty: ${
         option.difficulty === "low"
@@ -167,6 +191,7 @@ LANGUAGE: passageModified + ALL choices MUST be ENGLISH only. Never write Korean
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
 - correctAnswer 1-5. Exactly one best slot.
+${insertionChoiceCraft()}
 LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
       }
       return `문장삽입 LOW (하) — 효자 기출동형 (PDF: 위치):
@@ -175,13 +200,14 @@ LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
 - passageModified = remaining ENGLISH passage with five insertion slots marked ① ② ③ ④ ⑤ in the text.
 - choices: omit or empty array — slots IN the passage are the options; do NOT invent separate choice texts.
 - correctAnswer 1-5. Exactly one best slot.
+${insertionChoiceCraft()}
 LANGUAGE: questionText + passageModified MUST be ENGLISH only.`;
     case "irrelevant_sentence": {
       const irrelevantQuality = `IRRELEVANT SENTENCE QUALITY (효자 기출동형 — 필수):
 - Do NOT invent a bizarre, random, or absurd sentence that has nothing to do with the passage vocabulary.
 - The irrelevant sentence MUST reuse similar words / related content from the passage (same domain, overlapping vocabulary) so it LOOKS related at a glance.
-- But it must break cohesion: different topic focus OR a different point that does not connect to the surrounding sentences (e.g. science-funding passage → a sentence about exercise/mental health that shares "people/discuss" style but wrong point; commitment/social life → animals/instinct that shares "social" but wrong point).
-- It should feel like a plausible mock-exam distractor: thematically adjacent wording, logically unconnected.`;
+- But it must break cohesion: different topic focus OR a different point that does not connect to the surrounding sentences.
+${irrelevantChoiceCraft()}`;
       if (option.difficulty === "high") {
         return `무관한문장 HIGH (상) — 효자 기출동형:
 - CRITICAL: PARAPHRASE the ENTIRE passage in passageModified (ENGLISH synonyms/rewording throughout).
@@ -256,54 +282,44 @@ ${catalog}`;
     }
     case "vocabulary":
       if (code === "어휘개수") {
-        return `어휘 개수 — 고1 학력평가·내신 고퀄리티:
+        return `어휘 개수 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
 - passageModified = FULL ENGLISH passage with exactly six vocabulary spots ① ② ③ ④ ⑤ ⑥ as ①<u>word/phrase</u>.
 - Put 1~5 contextually WRONG items; rest correct and natural.
-- Wrong-item quality (필수): change meaning subtly — antonym, near-miss synonym, wrong collocation, or word that fits grammar but not sense. Must still look like a real vocabulary trap (not random/gibberish).
-- Correct underlines should be important content words that could tempt students.
-- choices MUST be EXACTLY and ONLY these five texts in order (never omit, never use sparse sets like only 2개 and 5개):
+${vocabChoiceCraft()}
+- choices MUST be EXACTLY and ONLY these five texts in order:
   1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
-- correctAnswer = N = count of wrong spots (3 wrong → correctAnswer 3).
-- questionText empty. explanation: Korean.
+- correctAnswer = N = count of wrong spots.
+- questionText empty. explanation: Korean — 틀린 번호 + 왜 반대인지 + 바른 말.
 LANGUAGE: passage ENGLISH only.`;
       }
       // 어휘추론 (어색한 것 고르기) — PDF형 ①~⑤, 하단 보기 없음
-      return `어휘 어색한 것 고르기 — 고1 학력평가·내신 고퀄리티:
+      return `어휘 어색한 것 고르기 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
 - passageModified = FULL ENGLISH passage with exactly five vocabulary spots ① ② ③ ④ ⑤ as ①<u>word/phrase</u>.
 - Exactly ONE is contextually WRONG; the other four are clearly correct in context.
-- Wrong-item quality (필수): antonym / near-miss synonym / wrong collocation that looks related to the topic but breaks meaning (classic 문맥상 부적절). Not a grammar error; not a random unrelated word.
+${vocabChoiceCraft()}
 - choices: omit or empty array — numbers IN the passage are the options; do NOT print a separate choice list.
 - correctAnswer 1-5 = the wrong underlined number. questionText empty.
-- explanation (Korean): which number + why the word fails in context + what would fit.
+- explanation (Korean): which number + why opposite in context + replacement word.
 LANGUAGE: passage ENGLISH only.`;
     case "underlined_inference":
       if (code === "목적추론") {
-        return `5 ENGLISH purpose choices (To + verb). Exactly one correct. passageModified optional. LANGUAGE: choices ENGLISH only.`;
+        return `5 ENGLISH purpose choices (To + verb). Exactly one correct. passageModified optional. LANGUAGE: choices ENGLISH only.
+${choiceCraftCommonRules()}`;
       }
       if (code === "심경추론") {
-        return `5 English emotion-change choices like "worried → relieved". Exactly one correct. LANGUAGE: choices ENGLISH only.`;
+        return `5 English emotion-change choices like "worried → relieved". Exactly one correct. LANGUAGE: choices ENGLISH only.
+${choiceCraftCommonRules()}`;
       }
       if (code === "함축의미추론") {
-        return `함축의미추론 — 학력평가·수능형 (첨부 기출 동형):
+        return `함축의미추론 — A4 변형·학력평가 동형:
 형식:
-- passageModified = 영어 지문 전체. 함축 표현 딱 1곳에 (A)<u>표현</u> (반드시 (A) 표지 + HTML 밑줄).
-- 대상: 관용·비유·아이러니·문맥 의존 표현 (예: do double duty, have nothing to wear, an unavoidable burden, illusion of competence).
-- 사전적·글자 그대로 뜻만으로는 답이 안 되는 표현을 고를 것. 없으면 {"skip":true,"reason":"적합한 함축 표현 없음"}.
-- questionText "".
-- choices: 영어 짧은 구/절 5개. 정답 1개.
-
-정답 품질 (필수 · 가장 중요):
-- 정답은 밑줄의 ‘사전 뜻’이 아니라 앞뒤 문장이 말하는 구체적 문맥 의미여야 함.
-- 나쁜 예: do double duty → "do two things" / "perform two functions" (너무 일반·사전적)
-- 좋은 예: do double duty → "provide both financial and mental savings"
-  (지문이 money + time/mental energy를 말하므로 그 내용을 담은 paraphrase)
-- 나쁜 예: have nothing to wear → "own no clothes"
-- 좋은 예: "cannot choose anything suitable because there are too many options"
-- 오답: 글자 그대로 해석, 부분만 맞는 말, 지문과 반대·무관한 해석. 모두 영어·비슷한 길이.
-
-해설(explanation) 한글:
-- 형식: 정답은 ④이다. 밑줄 「…」은 문맥상 ○○를 뜻한다. 바로 앞/뒤에서 …라고 했으므로, ‘두 가지 일을 한다’ 같은 막연한 말이 아니라 「…」가 가장 적절하다.
-- voice 등 영어 은어 금지.`;
+- passageModified = 영어 지문. 함축 표현 1곳 (A)<u>표현</u>.
+- 대상 예(A4): "the arrow is as likely to point in the reverse direction", "a game of waiting for our own turn to speak"
+- 없으면 {"skip":true,"reason":"적합한 함축 표현 없음"}.
+- questionText "". choices: 영어 구/절 5개.
+${choiceCraftCommonRules()}
+${impliedMeaningChoiceCraft()}
+해설 한글: 정답 번호 + 문맥 paraphrase 이유 + 왜 직역/일반론이 아닌지.`;
       }
       return `Underline a key expression with <u>...</u> in passageModified. 5 ENGLISH meaning choices.`;
     case "writing":

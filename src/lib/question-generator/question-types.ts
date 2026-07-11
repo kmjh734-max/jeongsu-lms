@@ -63,7 +63,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "ⓐ~ⓔ 중 어법상 어색한 것을 모두 고르기 (조합 선택)",
         "어법모두고르기",
-        "윗글의 밑줄 친 ⓐ~ⓔ 중, 어법상 어색한 것을 모두 고르면?"
+        "다음 글의 밑줄 친 ⓐ~ⓔ 중, 어법상 어색한 것을 모두 고르면?"
       ),
       opt(
         "grammar",
@@ -74,7 +74,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "ⓐ~ⓕ 중 어법상 어색한 것의 개수",
         "어법개수",
-        "윗글의 밑줄 친 ⓐ~ⓕ 중, 어법상 어색한 것의 개수는?"
+        "다음 글의 밑줄 친 부분 중, 어법상 틀린 것의 개수는?"
       ),
       opt(
         "vocabulary",
@@ -85,7 +85,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "①~⑤ 중 문맥상 낱말 쓰임이 적절하지 않은 것",
         "어휘추론",
-        "위의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?"
+        "다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것은?"
       ),
       opt(
         "vocabulary",
@@ -96,7 +96,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "①~⑥ 중 문맥상 쓰임이 적절하지 않은 것의 개수",
         "어휘개수",
-        "위의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것의 개수는?"
+        "다음 글의 밑줄 친 부분 중, 문맥상 낱말의 쓰임이 적절하지 않은 것의 개수는?"
       ),
     ],
   },
@@ -396,7 +396,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "제목 · 영어 선택지 · 난이도 하",
         "제목추론",
-        "윗글의 제목으로 알맞은 것은?"
+        "다음 글의 제목으로 가장 적절한 것을 고르시오."
       ),
       opt(
         "title",
@@ -407,7 +407,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "제목 · 영어 선택지 · 난이도 상",
         "제목추론",
-        "윗글의 제목으로 알맞은 것은?"
+        "다음 글의 제목으로 가장 적절한 것을 고르시오."
       ),
       opt(
         "title",
@@ -418,7 +418,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "제목 · 한글 선택지 · 난이도 하",
         "제목추론",
-        "윗글의 제목으로 알맞은 것은?"
+        "다음 글의 제목으로 가장 적절한 것을 고르시오."
       ),
       opt(
         "title",
@@ -429,7 +429,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "제목 · 한글 선택지 · 난이도 상",
         "제목추론",
-        "윗글의 제목으로 알맞은 것은?"
+        "다음 글의 제목으로 가장 적절한 것을 고르시오."
       ),
       // 주제: (영/한) × (하/상)
       opt(
@@ -441,7 +441,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "주제 · 영어 선택지 · 난이도 하",
         "주제추론",
-        "윗글의 주제로 알맞은 것은?"
+        "다음 글의 주제로 가장 적절한 것을 고르시오."
       ),
       opt(
         "topic",
@@ -452,7 +452,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "주제 · 영어 선택지 · 난이도 상",
         "주제추론",
-        "윗글의 주제로 알맞은 것은?"
+        "다음 글의 주제로 가장 적절한 것을 고르시오."
       ),
       opt(
         "topic",
@@ -463,7 +463,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "주제 · 한글 선택지 · 난이도 하",
         "주제추론",
-        "윗글의 주제로 알맞은 것은?"
+        "다음 글의 주제로 가장 적절한 것을 고르시오."
       ),
       opt(
         "topic",
@@ -474,7 +474,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "주제 · 한글 선택지 · 난이도 상",
         "주제추론",
-        "윗글의 주제로 알맞은 것은?"
+        "다음 글의 주제로 가장 적절한 것을 고르시오."
       ),
       opt(
         "summary_mcq",
@@ -485,7 +485,7 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "요지 · 난이도 하",
         "요지추론",
-        "윗글의 요지로 알맞은 것은?"
+        "다음 글의 요지로 가장 적절한 것을 고르시오."
       ),
       opt(
         "summary_mcq",
@@ -496,7 +496,18 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         true,
         "요지 · 난이도 상",
         "요지추론",
-        "윗글의 요지로 알맞은 것은?"
+        "다음 글의 요지로 가장 적절한 것을 고르시오."
+      ),
+      opt(
+        "summary_mcq",
+        "main_idea",
+        "요지 (영)",
+        "default",
+        "english",
+        true,
+        "요지 · 영어 선택지 (A4 변형동형)",
+        "요지추론",
+        "다음 글의 요지로 가장 적절한 것을 고르시오."
       ),
     ],
   },
