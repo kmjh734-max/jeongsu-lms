@@ -18,7 +18,11 @@ import {
 } from "@/lib/question-generator/grammar-catalog";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
 import { findAingkaOption } from "@/lib/question-generator/question-types";
-import { cleanQuestionText } from "@/lib/question-generator/text-utils";
+import {
+  cleanQuestionText,
+  passageHasConsecutiveWords,
+  parseSummaryWritingBlocks,
+} from "@/lib/question-generator/text-utils";
 import type { QuestionTypeOption } from "@/lib/question-generator/types";
 import type {
   GeneratedQuestionPayload,
@@ -393,7 +397,62 @@ ${catalog}`;
       }
       return `Korean prompt + <조건> + given words in questionText. Model English answer in correctAnswer. passageModified optional.`;
     }
-    case "summary_short":
+    case "summary_short": {
+      if (code === "요약문빈칸영작") {
+        return `서술형 · 요약문 빈칸 영작 (수특형 · <보기> 배열):
+- passageModified 생략(원문 지문 사용). 지문은 영어만.
+- questionText 형식(필수):
+<조건>
+○ <보기>의 단어를 모두 한 번씩만 사용할 것
+○ 글의 내용에 맞게 ⓐ, ⓑ를 완성할 것
+○ ⓐ는 N단어, ⓑ는 M단어로 쓸 것 (N+M = <보기> 단어 수, 예: 6·5)
+
+<보기>
+word1 / word2 / … (10~14개, 정답 ⓐ+ⓑ를 섞은 단어·기능어)
+
+<요약문>
+(영어 요약 1~2문장. 핵심만 paraphrase. 빈칸 ⓐ__________ 와 ⓑ__________ 포함)
+
+- correctAnswer 형식: "ⓐ: … / ⓑ: …" (완성 영어 구)
+- 요약문은 지문 직역이 아니라 요지 paraphrase. 빈칸은 요약 핵심어구.
+- choices 없음. explanation 한글: 정답 + 왜 그 배열인지.`;
+      }
+      if (code === "요약문빈칸2단어") {
+        return `서술형 · 요약문 빈칸 · 본문에서 연속 2단어 찾기 (수특형):
+- passageModified 생략. 지문 영어만.
+- questionText 형식(필수):
+<조건>
+○ 본문에서 찾아 쓸 것
+○ ⓐ는 본문에 나오는 연속된 두 단어로 쓸 것
+○ ⓑ(및 ⓒ가 있으면)는 본문의 한 단어로 쓸 것 (형태 변형 금지)
+○ 본문에 제시된 단어의 형태를 변형하지 말 것
+
+<요약문>
+(영어 paraphrase 요약. ⓐ__________ 는 연속 2단어 자리, ⓑ__________ 는 1단어. 필요 시 ⓒ도 1단어)
+
+- 정답 구는 반드시 원문 passage에 연속으로 그대로 존재 (대소문자만 달라도 됨).
+- correctAnswer: "ⓐ: social muscle / ⓑ: compassion" 형식
+- choices 없음. explanation 한글: 본문 어디 근거인지.`;
+      }
+      if (code === "요약문빈칸3단어") {
+        return `서술형 · 요약문 빈칸 · 본문에서 연속 3단어 찾기 (수특형):
+- passageModified 생략. 지문 영어만.
+- questionText 형식(필수):
+<조건>
+○ 본문에서 찾아 쓸 것
+○ ⓐ는 본문에 나오는 연속된 세 단어로 쓸 것
+○ 다른 빈칸이 있으면 본문 단어(1~2단어)로, 형태 변형 금지
+○ 본문에 제시된 단어의 형태를 변형하지 말 것
+
+<요약문>
+(영어 paraphrase 요약. 핵심 빈칸 ⓐ__________ = 연속 3단어)
+
+- 정답 ⓐ 구는 원문에 연속 3단어로 존재해야 함.
+- correctAnswer: "ⓐ: … … … / ⓑ: …" 형식
+- choices 없음. explanation 한글.`;
+      }
+      return `요지 영작. <조건>이 있으면 questionText에 넣고, correctAnswer에 영어 한 문장.`;
+    }
     case "short_title":
     case "short_topic":
       return `Short constructed response. Model answer in correctAnswer.`;
@@ -716,6 +775,46 @@ export function assertBasicQuestionShape(
       return "제시어 배열 정답(영어 완성문)이 필요합니다.";
     }
     q.choices = undefined;
+  } else if (
+    option.type === "summary_short" &&
+    (option.aingkaCode === "요약문빈칸영작" ||
+      option.aingkaCode === "요약문빈칸2단어" ||
+      option.aingkaCode === "요약문빈칸3단어")
+  ) {
+    const qt = q.questionText || "";
+    const blocks = parseSummaryWritingBlocks(qt);
+    if (!blocks) {
+      return "요약문 서술형은 questionText에 <조건>·<요약문>이 필요합니다.";
+    }
+    if (option.aingkaCode === "요약문빈칸영작" && !blocks.words) {
+      return "요약문 빈칸 영작은 <보기>가 필요합니다.";
+    }
+    if (!/[ⓐ]/.test(blocks.summary) || !/_{3,}/.test(blocks.summary)) {
+      return "요약문에 ⓐ__________ 빈칸이 필요합니다.";
+    }
+    if (hasHangul(blocks.summary)) {
+      return "요약문은 영어여야 합니다 (한글 포함됨).";
+    }
+    const ans = String(q.correctAnswer ?? "").trim();
+    if (!ans) {
+      return "요약문 빈칸 정답이 필요합니다.";
+    }
+    const passage = q.passageOriginal || "";
+    if (
+      option.aingkaCode === "요약문빈칸2단어" ||
+      option.aingkaCode === "요약문빈칸3단어"
+    ) {
+      const n = option.aingkaCode === "요약문빈칸2단어" ? 2 : 3;
+      // ⓐ: phrase 추출
+      const m =
+        ans.match(/ⓐ\s*[:：]?\s*([^/ⓐⓑⓒ\n]+)/i) ||
+        ans.match(/^([^/]+)/);
+      const phrase = (m?.[1] || "").trim();
+      if (!passageHasConsecutiveWords(passage, phrase, n)) {
+        return `요약문 ${n}단어 정답(ⓐ)이 본문에 연속 ${n}단어로 있어야 합니다.`;
+      }
+    }
+    q.choices = undefined;
   } else if (option.isObjective && option.choiceLanguage) {
     if (!q.choices || q.choices.length < 5) {
       return "객관식 선택지가 5개 미만입니다.";
@@ -832,6 +931,15 @@ export async function generateOneQuestion(opts: {
     option.type === "writing" &&
     wordOrderCodes.has(option.aingkaCode || meta?.aingkaCode || "");
 
+  const summaryBlankCodes = new Set([
+    "요약문빈칸영작",
+    "요약문빈칸2단어",
+    "요약문빈칸3단어",
+  ]);
+  const isSummaryBlank =
+    option.type === "summary_short" &&
+    summaryBlankCodes.has(option.aingkaCode || meta?.aingkaCode || "");
+
   const englishBodyTypes = new Set([
     "order",
     "sentence_blank",
@@ -842,6 +950,8 @@ export async function generateOneQuestion(opts: {
   ]);
   const englishOnlyHint = isWordOrder
     ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only (blank ⓐ__________). questionText may include Korean in <해석>. correctAnswer ENGLISH."
+    : isSummaryBlank
+      ? "- CRITICAL LANGUAGE: <요약문> and correctAnswer ENGLISH only. <조건> may be Korean. Do NOT create old 요약문완성 MCQ with (A)/(B) …… pairs."
     : englishBodyTypes.has(option.type)
     ? option.type === "grammar" || option.type === "vocabulary"
       ? "- CRITICAL LANGUAGE: passageModified MUST be ENGLISH only. Choice texts may be Korean (조합/개수) or empty numbers. Never put Hangul in the passage."
@@ -863,6 +973,7 @@ export async function generateOneQuestion(opts: {
     option.type === "content_count" ||
     option.type === "sentence_insertion" ||
     isWordOrder ||
+    isSummaryBlank ||
     (option.type === "writing" && option.aingkaCode === "서술형영작");
   const paraphraseTypes = new Set([
     "title",
@@ -893,6 +1004,8 @@ export async function generateOneQuestion(opts: {
           ? "Fill questionText with the ENGLISH given sentence to insert."
           : isWordOrder
             ? "Fill questionText with <조건>, <보기>, <해석>. Blank = IMPORTANT passage sentence reflecting the sampled GRAMMAR POINT (not a trivial SVO)."
+            : isSummaryBlank
+              ? "Fill questionText with <조건>, optional <보기>, and <요약문> with ⓐ/ⓑ blanks."
             : option.type === "content_count"
               ? "Fill questionText with (1)(2)… statements."
               : "Fill questionText with <조건>/<보기> as needed."

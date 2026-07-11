@@ -44,6 +44,60 @@ export function parseWordOrderBlocks(text: string): {
   return { conditions, words, translation };
 }
 
+/** 요약문 서술형 questionText: <조건> / (선택)<보기> / <요약문> */
+export function parseSummaryWritingBlocks(text: string): {
+  conditions: string;
+  words: string | null;
+  summary: string;
+  blankLabels: string[];
+} | null {
+  const cleaned = cleanQuestionText(text).trim();
+  if (!/<조건>/.test(cleaned) || !/<요약문>/.test(cleaned)) {
+    return null;
+  }
+  const hasBogi = /<보기>/.test(cleaned);
+  const conditions =
+    cleaned
+      .match(
+        hasBogi
+          ? /<조건>\s*([\s\S]*?)(?=<보기>|$)/
+          : /<조건>\s*([\s\S]*?)(?=<요약문>|$)/
+      )?.[1]
+      ?.trim() ?? "";
+  const words = hasBogi
+    ? cleaned.match(/<보기>\s*([\s\S]*?)(?=<요약문>|$)/)?.[1]?.trim() ?? ""
+    : null;
+  const summary =
+    cleaned.match(/<요약문>\s*([\s\S]*?)$/)?.[1]?.trim() ?? "";
+  if (!summary) return null;
+  const blankLabels = Array.from(
+    new Set(summary.match(/[ⓐⓑⓒⓓⓔ]/g) ?? [])
+  ).sort();
+  return { conditions, words, summary, blankLabels };
+}
+
+/** 본문에 연속 N단어로 존재하는지 (대소문자·구두점 무시) */
+export function passageHasConsecutiveWords(
+  passage: string,
+  phrase: string,
+  expectedWordCount?: number
+): boolean {
+  const norm = (s: string) =>
+    (s || "")
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s']/gu, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  const p = norm(passage);
+  const ph = norm(phrase);
+  if (!p || !ph) return false;
+  const words = ph.split(" ").filter(Boolean);
+  if (expectedWordCount != null && words.length !== expectedWordCount) {
+    return false;
+  }
+  return ` ${p} `.includes(` ${ph} `);
+}
+
 /**
  * 복사·붙여넣기 시 생긴 어색한 줄바꿈을 풀어 A4 폭에 맞게 자연스럽게 흐르게 함.
  * 빈 줄(문단)만 유지하고, 한 줄 개행은 공백으로 합침.

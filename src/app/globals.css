@@ -1260,6 +1260,12 @@
   letter-spacing: 0.01em;
 }
 
+.qg-print-wo-summary {
+  font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
+  text-align: justify;
+  line-height: 1.5;
+}
+
 .qg-print-wo-answer-line {
   margin: 2mm 0 0;
   font-size: 8.6pt;

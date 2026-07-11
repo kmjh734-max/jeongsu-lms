@@ -549,6 +549,39 @@ export const QUESTION_TYPE_GROUPS: QuestionTypeGroup[] = [
         "다음 글의 흐름과 밑줄 친 ⓐ의 우리말 해석에 맞도록 <보기>의 단어를 활용하여 문장을 완성하시오."
       ),
       opt(
+        "summary_short",
+        "subjective",
+        "요약문 빈칸 · 영작",
+        "default",
+        null,
+        false,
+        "요약문 ⓐⓑ · <보기> 단어 배열 영작",
+        "요약문빈칸영작",
+        "다음 글의 흐름에 맞게 <보기>의 단어를 올바른 순서로 배열하여 요약문의 빈칸 ⓐ, ⓑ를 완성하시오."
+      ),
+      opt(
+        "summary_short",
+        "subjective",
+        "요약문 빈칸 · 2단어",
+        "default",
+        null,
+        false,
+        "요약문 빈칸 · 본문 연속 2단어 찾기",
+        "요약문빈칸2단어",
+        "다음 글의 내용을 바탕으로 요약문의 빈칸에 들어갈 말을 본문에서 찾아 쓰시오."
+      ),
+      opt(
+        "summary_short",
+        "subjective",
+        "요약문 빈칸 · 3단어",
+        "default",
+        null,
+        false,
+        "요약문 빈칸 · 본문 연속 3단어 찾기",
+        "요약문빈칸3단어",
+        "다음 글의 내용을 바탕으로 요약문의 빈칸에 들어갈 말을 본문에서 찾아 쓰시오."
+      ),
+      opt(
         "writing",
         "subjective",
         "조건 영작",
@@ -615,7 +648,7 @@ export function emptyCounts(): Record<string, number> {
   return counts;
 }
 
-/** 알려진 유형만 남기고, 폐기된 요약문 키는 무조건 제거 */
+/** 알려진 유형만 남기고, 폐기된 객관식 요약문완성 키만 제거 */
 export function sanitizeCounts(
   counts: Record<string, number> | null | undefined,
   maxPerType = 5
@@ -634,7 +667,8 @@ export function sanitizeCounts(
     delete migrated[oldHamchuk];
   }
   for (const [k, v] of Object.entries(migrated)) {
-    if (k.includes("요약문")) continue;
+    // 구형 객관식 요약문완성만 차단 (서술형 요약문 빈칸은 허용)
+    if (/요약문완성/.test(k)) continue;
     if (!(k in base)) continue;
     const n = Math.max(0, Math.min(maxPerType, Math.floor(Number(v) || 0)));
     if (n > 0) base[k] = n;
