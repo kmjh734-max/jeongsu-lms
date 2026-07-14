@@ -13,7 +13,6 @@ import {
   buildExamVocabUrl,
   questionNeedsVocabGloss,
   parseHardWordsColumn,
-  resolveSchoolBand,
   type SchoolBand,
 } from "@/lib/question-generator/exam-vocab";
 import { groupQuestionsByPrintType } from "@/lib/question-generator/print-type-groups";
@@ -64,6 +63,26 @@ const COL_WIDTH_MM = 88;
 const QUESTION_GAP_PX = 14;
 const COLUMN_SAFETY_PX = 12;
 const BRANDING_STORAGE_KEY = "qg-print-branding";
+const VOCAB_BAND_STORAGE_KEY = "qg-print-vocab-band";
+
+function loadStoredVocabBand(): SchoolBand | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = localStorage.getItem(VOCAB_BAND_STORAGE_KEY);
+    if (v === "중등" || v === "고등") return v;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function saveStoredVocabBand(band: SchoolBand) {
+  try {
+    localStorage.setItem(VOCAB_BAND_STORAGE_KEY, band);
+  } catch {
+    /* ignore */
+  }
+}
 
 type PrintBranding = {
   headerKicker: string;
@@ -468,6 +487,8 @@ export function QuestionPrintView({
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [printLayout, setPrintLayout] = useState<PrintLayoutMode>(layoutProp);
   const [vocabSetId, setVocabSetId] = useState<string | null>(null);
+  const [vocabBand, setVocabBand] = useState<SchoolBand>("중등");
+  const [vocabSyncing, setVocabSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pages, setPages] = useState<SheetPage[]>([]);
   const [branding, setBranding] = useState<PrintBranding>({
@@ -507,11 +528,19 @@ export function QuestionPrintView({
       typeof job?.vocab_set_id === "string" ? job.vocab_set_id : null
     );
 
-    // 보기 단어장 동기화 (없을 때 생성)
+    const storedBand = loadStoredVocabBand();
+    const band: SchoolBand = storedBand ?? "중등";
+    setVocabBand(band);
+
+    // 보기 단어장 동기화 (해설지에서 고른 중등/고등 기준)
     try {
       const vr = await fetch(
         `/api/question-generator/jobs/${jobId}/exam-vocab`,
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schoolBand: band }),
+        }
       );
       const vd = await vr.json();
       if (vd.ok && vd.vocabSetId) {
@@ -795,12 +824,36 @@ export function QuestionPrintView({
 
   function renderDisplayItem(item: DisplayItem | undefined) {
     if (!item) return null;
-    const schoolBand = resolveSchoolBand(grade);
     return mode === "exam" ? (
       <QuestionBlock q={item.q} index={item.num} />
     ) : (
-      <AnswerBlock q={item.q} index={item.num} schoolBand={schoolBand} />
+      <AnswerBlock q={item.q} index={item.num} schoolBand={vocabBand} />
     );
+  }
+
+  async function applyVocabBand(next: SchoolBand) {
+    if (next === vocabBand || vocabSyncing) return;
+    setVocabBand(next);
+    saveStoredVocabBand(next);
+    setVocabSyncing(true);
+    try {
+      const vr = await fetch(
+        `/api/question-generator/jobs/${jobId}/exam-vocab`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ schoolBand: next }),
+        }
+      );
+      const vd = await vr.json();
+      if (vd.ok && vd.vocabSetId) {
+        setVocabSetId(vd.vocabSetId as string);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      setVocabSyncing(false);
+    }
   }
 
   return (
@@ -844,6 +897,44 @@ export function QuestionPrintView({
               해설지
             </Link>
           </div>
+
+          {mode === "answers" && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                보기 단어 수준
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  disabled={vocabSyncing}
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+                    vocabBand === "중등"
+                      ? "bg-brand-700 text-white"
+                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
+                  onClick={() => void applyVocabBand("중등")}
+                >
+                  중등
+                </button>
+                <button
+                  type="button"
+                  disabled={vocabSyncing}
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+                    vocabBand === "고등"
+                      ? "bg-brand-700 text-white"
+                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
+                  onClick={() => void applyVocabBand("고등")}
+                >
+                  고등
+                </button>
+              </div>
+              <p className="text-[11px] leading-snug text-slate-500">
+                해설 보기 단어·QR 단어장 난이도를 조정합니다. (생성 학년과
+                무관)
+              </p>
+            </div>
+          )}
 
           {mode === "exam" && (
             <div className="flex flex-col gap-1.5">

@@ -5,9 +5,10 @@ import { lemmaEnglishToken } from "@/lib/question-generator/word-order-normalize
 
 export type HardWord = { word: string; meaning: string };
 
-/** 어휘 정리 수준 — 중1~중3 → 중등, 고1~고3 → 고등 */
+/** 어휘 정리 수준 — 해설지에서 선택 (생성 시 학년과 분리) */
 export type SchoolBand = "중등" | "고등";
 
+/** UI 기본값용. 생성·필터의 출처는 해설지 토글. */
 export function resolveSchoolBand(grade: string | null | undefined): SchoolBand {
   const g = String(grade ?? "").trim();
   if (/^중[123]$/.test(g) || g === "중등") return "중등";
@@ -1478,8 +1479,12 @@ export function questionNeedsVocabGloss(input: {
 /**
  * 생성 완료 job의 문항 hard_words를 모아 exam_compact 단어장으로 동기화.
  * 기존 vocab_set_id가 있으면 단어만 갱신.
+ * band: 해설지에서 선택한 중등/고등 (학년과 무관).
  */
-export async function syncExamVocabSetFromJob(jobId: string): Promise<string | null> {
+export async function syncExamVocabSetFromJob(
+  jobId: string,
+  band: SchoolBand = "중등"
+): Promise<string | null> {
   const admin = createAdminClient();
   const { data: job, error } = await admin
     .from("question_generation_jobs")
@@ -1499,7 +1504,6 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
     .order("created_at", { ascending: true });
 
   const cfg = (job.request_config ?? {}) as { title?: string; grade?: string };
-  const band = resolveSchoolBand(cfg.grade);
 
   const merged: HardWord[] = [];
   for (const q of questions ?? []) {
@@ -1657,14 +1661,8 @@ export async function ensureExamCompactStageSkip(
  */
 export async function diversifyJobHardWords(jobId: string): Promise<void> {
   const admin = createAdminClient();
-  const { data: job } = await admin
-    .from("question_generation_jobs")
-    .select("request_config")
-    .eq("id", jobId)
-    .maybeSingle();
-  const band = resolveSchoolBand(
-    (job?.request_config as { grade?: string } | null)?.grade
-  );
+  // 저장은 중등(넓은) 기준 — 고등 필터는 해설지·동기화 시 적용
+  const band: SchoolBand = "중등";
 
   const { data: questions } = await admin
     .from("generated_english_questions")
