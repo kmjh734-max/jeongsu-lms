@@ -5,15 +5,14 @@ import { lemmaEnglishToken } from "@/lib/question-generator/word-order-normalize
 
 export type HardWord = { word: string; meaning: string };
 
-/** 어휘 정리 수준 — 해설지에서 선택 (생성 시 학년과 분리) */
-export type SchoolBand = "중등" | "고등";
-
-/** UI 기본값용. 생성·필터의 출처는 해설지 토글. */
-export function resolveSchoolBand(grade: string | null | undefined): SchoolBand {
-  const g = String(grade ?? "").trim();
-  if (/^중[123]$/.test(g) || g === "중등") return "중등";
-  return "고등";
-}
+/**
+ * 중3 ≈ 미국 Grade 8 (MetaMetrics / CCSS Appendix A)
+ * - Grade 8 text complexity: 1010L–1185L
+ * - Grade 8 reader mid-year IQR: ~985L–1295L
+ * 보기 단어: 이 대역(≥약 1000L)에 해당하는 어휘와 그 이상만 정리.
+ * 단어별 공식 Lexile API는 비공개이므로 아래 프록시로 근사한다.
+ */
+export const JUNGA3_LEXILE_FLOOR = 1000;
 
 function siteBase(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL).replace(/\/$/, "");
@@ -39,9 +38,10 @@ export function lemmaHardWordForm(raw: string): string {
 }
 
 /**
- * 중등·고등 공통 — 초급·기능어만 (중등에서는 이 목록만 제외해 중급 학습 단어를 남김)
+ * 렉사일 ~1000L 미만(초등~중학 초반 교실 영어)에 해당하는 초고빈도·기능어.
+ * 목록에 있으면 무조건 제외.
  */
-const EASY_HARD_WORD_SKIP_CORE = new Set(
+const BELOW_JUNGA3_SKIP = new Set(
   [
     "a", "an", "the", "to", "of", "in", "on", "at", "for", "from", "with", "by",
     "as", "if", "or", "and", "but", "not", "no", "so", "than", "that", "this",
@@ -67,7 +67,7 @@ const EASY_HARD_WORD_SKIP_CORE = new Set(
     "boy", "girl", "friend", "family", "home", "house", "school", "student",
     "teacher", "class", "day", "days", "time", "year", "years", "week", "month",
     "today", "tomorrow", "yesterday", "morning", "night", "thing", "things",
-    "way", "ways", "place", "places", "world", "life", "lives", "work", "job",
+    "way", "ways", "place", "places", "world", "life", "lives", "job",
     "money", "food", "water", "book", "books", "word", "words", "name", "names",
     "number", "numbers", "good", "bad", "big", "small", "long", "short", "new",
     "old", "young", "high", "low", "many", "much", "more", "most", "some", "any",
@@ -77,1163 +77,47 @@ const EASY_HARD_WORD_SKIP_CORE = new Set(
     "already", "always", "never", "often", "sometimes", "here", "there", "now",
     "then", "too", "well", "back", "up", "down", "out", "over", "after", "before",
     "about", "into", "through", "during", "without", "because", "while", "until",
-    "about", "really", "please", "thanks", "hello", "ok", "okay",
+    "really", "please", "thanks", "hello", "ok", "okay",
+    "color", "colour", "red", "blue", "green", "black", "white", "mother", "father",
+    "brother", "sister", "dog", "cat", "apple", "city", "town", "country", "english",
+    "korea", "korean", "love", "loved", "hate", "fun", "nice", "pretty", "clean",
+    "dirty", "hot", "cold", "fast", "slow", "early", "late", "busy", "free",
+    "ready", "sure", "again", "away", "near", "far", "under", "above", "between",
+    "among", "both", "few", "lot", "lots", "kind", "such", "own", "once", "twice",
+    "half", "enough", "almost", "together", "alone", "someone", "anyone", "everyone",
+    "something", "anything", "everything", "nothing", "somewhere", "anywhere",
   ].map((w) => w.toLowerCase())
 );
-
-/** 고등 — 중등에서 배우지만 고등 해설·QR에서는 제외할 중급 고빈도어 포함 */
-const EASY_HARD_WORD_SKIP = new Set(
-  [
-    // 기능어·대명사·조동사
-    "a",
-    "an",
-    "the",
-    "to",
-    "of",
-    "in",
-    "on",
-    "at",
-    "for",
-    "from",
-    "with",
-    "by",
-    "as",
-    "if",
-    "or",
-    "and",
-    "but",
-    "not",
-    "no",
-    "so",
-    "than",
-    "that",
-    "this",
-    "these",
-    "those",
-    "it",
-    "its",
-    "they",
-    "them",
-    "their",
-    "he",
-    "she",
-    "him",
-    "her",
-    "we",
-    "us",
-    "our",
-    "you",
-    "your",
-    "i",
-    "me",
-    "my",
-    "who",
-    "which",
-    "what",
-    "when",
-    "where",
-    "why",
-    "how",
-    "will",
-    "would",
-    "can",
-    "could",
-    "shall",
-    "should",
-    "may",
-    "might",
-    "must",
-    "do",
-    "does",
-    "did",
-    "be",
-    "am",
-    "is",
-    "are",
-    "was",
-    "were",
-    "been",
-    "being",
-    "have",
-    "has",
-    "had",
-    "having",
-    "get",
-    "got",
-    "go",
-    "went",
-    "come",
-    "came",
-    "make",
-    "made",
-    "take",
-    "took",
-    "give",
-    "gave",
-    "given",
-    "see",
-    "saw",
-    "seen",
-    "know",
-    "knew",
-    "known",
-    "think",
-    "thought",
-    "say",
-    "said",
-    "tell",
-    "told",
-    "ask",
-    "want",
-    "need",
-    "like",
-    "love",
-    "use",
-    "used",
-    "try",
-    "tried",
-    "find",
-    "found",
-    "put",
-    "let",
-    "keep",
-    "kept",
-    "feel",
-    "felt",
-    "become",
-    "became",
-    "leave",
-    "left",
-    "call",
-    "called",
-    "show",
-    "showed",
-    "shown",
-    "help",
-    "helped",
-    "work",
-    "worked",
-    "play",
-    "played",
-    "live",
-    "lived",
-    "look",
-    "looked",
-    "seem",
-    "seemed",
-    "start",
-    "started",
-    "stop",
-    "stopped",
-    "open",
-    "opened",
-    "close",
-    "closed",
-    "move",
-    "moved",
-    "run",
-    "ran",
-    "walk",
-    "walked",
-    "buy",
-    "bought",
-    "sell",
-    "sold",
-    "pay",
-    "paid",
-    "read",
-    "write",
-    "wrote",
-    "written",
-    "learn",
-    "learned",
-    "study",
-    "studied",
-    "teach",
-    "taught",
-    "change",
-    "changed",
-    "happen",
-    "happened",
-    "create",
-    "created",
-    "include",
-    "included",
-    "provide",
-    "provided",
-    "allow",
-    "allowed",
-    "require",
-    "required",
-    "decide",
-    "decided",
-    "suggest",
-    "suggested",
-    "mean",
-    "meant",
-    "believe",
-    "believed",
-    "understand",
-    "understood",
-    "remember",
-    "remembered",
-    "forget",
-    "forgot",
-    "bring",
-    "brought",
-    "carry",
-    "carried",
-    "hold",
-    "held",
-    "follow",
-    "followed",
-    "lead",
-    "led",
-    "grow",
-    "grew",
-    "grown",
-    "build",
-    "built",
-    "cut",
-    "set",
-    "turn",
-    "turned",
-    "add",
-    "added",
-    "check",
-    "checked",
-    "choose",
-    "chose",
-    "chosen",
-    "spend",
-    "spent",
-    "save",
-    "saved",
-    "send",
-    "sent",
-    "receive",
-    "received",
-    "expect",
-    "expected",
-    "hope",
-    "hoped",
-    "plan",
-    "planned",
-    "offer",
-    "offered",
-    "cause",
-    "caused",
-    "result",
-    "results",
-    "increase",
-    "increased",
-    "reduce",
-    "reduced",
-    "improve",
-    "improved",
-    "develop",
-    "developed",
-    "produce",
-    "produced",
-    "support",
-    "supported",
-    "protect",
-    "protected",
-    "control",
-    "controlled",
-    "share",
-    "shared",
-    "join",
-    "joined",
-    "meet",
-    "met",
-    "visit",
-    "visited",
-    "travel",
-    "traveled",
-    "travelled",
-    "enjoy",
-    "enjoyed",
-    "prefer",
-    "preferred",
-    "agree",
-    "agreed",
-    "disagree",
-    "disagreed",
-    "argue",
-    "argued",
-    "explain",
-    "explained",
-    "describe",
-    "described",
-    "compare",
-    "compared",
-    "consider",
-    "considered",
-    "continue",
-    "continued",
-    "remain",
-    "remained",
-    "appear",
-    "appeared",
-    "exist",
-    "existed",
-    "depend",
-    "depended",
-    "base",
-    "based",
-    "focus",
-    "focused",
-    "relate",
-    "related",
-    "affect",
-    "affected",
-    "effect",
-    "effects",
-    "point",
-    "points",
-    "part",
-    "parts",
-    "place",
-    "places",
-    "area",
-    "areas",
-    "way",
-    "ways",
-    "case",
-    "cases",
-    "fact",
-    "facts",
-    "idea",
-    "ideas",
-    "problem",
-    "problems",
-    "question",
-    "questions",
-    "answer",
-    "answers",
-    "reason",
-    "reasons",
-    "example",
-    "examples",
-    "story",
-    "stories",
-    "number",
-    "numbers",
-    "group",
-    "groups",
-    "system",
-    "systems",
-    "process",
-    "processes",
-    "level",
-    "levels",
-    "type",
-    "types",
-    "kind",
-    "kinds",
-    "form",
-    "forms",
-    "role",
-    "roles",
-    "side",
-    "sides",
-    "end",
-    "ends",
-    "line",
-    "lines",
-    "view",
-    "views",
-    "order",
-    "orders",
-    "power",
-    "powers",
-    "value",
-    "values",
-    "interest",
-    "interests",
-    "service",
-    "services",
-    "product",
-    "products",
-    "market",
-    "markets",
-    "business",
-    "company",
-    "companies",
-    "industry",
-    "industries",
-    "government",
-    "governments",
-    "society",
-    "societies",
-    "community",
-    "communities",
-    "culture",
-    "cultures",
-    "history",
-    "nature",
-    "world",
-    "country",
-    "countries",
-    "city",
-    "cities",
-    "town",
-    "towns",
-    "school",
-    "schools",
-    "student",
-    "students",
-    "teacher",
-    "teachers",
-    "class",
-    "classes",
-    "university",
-    "universities",
-    "college",
-    "colleges",
-    "education",
-    "research",
-    "study",
-    "studies",
-    "science",
-    "technology",
-    "information",
-    "data",
-    "computer",
-    "computers",
-    "internet",
-    "media",
-    "news",
-    "art",
-    "music",
-    "book",
-    "books",
-    "movie",
-    "movies",
-    "film",
-    "films",
-    "game",
-    "games",
-    "sport",
-    "sports",
-    "food",
-    "water",
-    "money",
-    "price",
-    "prices",
-    "cost",
-    "costs",
-    "job",
-    "jobs",
-    "work",
-    "worker",
-    "workers",
-    "consumer",
-    "consumers",
-    "customer",
-    "customers",
-    "user",
-    "users",
-    "person",
-    "people",
-    "man",
-    "men",
-    "woman",
-    "women",
-    "child",
-    "children",
-    "kid",
-    "kids",
-    "boy",
-    "boys",
-    "girl",
-    "girls",
-    "family",
-    "families",
-    "friend",
-    "friends",
-    "parent",
-    "parents",
-    "member",
-    "members",
-    "human",
-    "humans",
-    "life",
-    "lives",
-    "death",
-    "health",
-    "body",
-    "bodies",
-    "mind",
-    "minds",
-    "hand",
-    "hands",
-    "eye",
-    "eyes",
-    "face",
-    "faces",
-    "head",
-    "heads",
-    "heart",
-    "hearts",
-    "time",
-    "times",
-    "day",
-    "days",
-    "week",
-    "weeks",
-    "month",
-    "months",
-    "year",
-    "years",
-    "hour",
-    "hours",
-    "minute",
-    "minutes",
-    "today",
-    "tomorrow",
-    "yesterday",
-    "morning",
-    "evening",
-    "night",
-    "nights",
-    "future",
-    "past",
-    "present",
-    "age",
-    "ages",
-    "home",
-    "homes",
-    "house",
-    "houses",
-    "room",
-    "rooms",
-    "door",
-    "doors",
-    "car",
-    "cars",
-    "road",
-    "roads",
-    "space",
-    "spaces",
-    "thing",
-    "things",
-    "something",
-    "anything",
-    "everything",
-    "nothing",
-    "someone",
-    "anyone",
-    "everyone",
-    "someone",
-    "other",
-    "others",
-    "another",
-    "same",
-    "different",
-    "new",
-    "old",
-    "young",
-    "good",
-    "better",
-    "best",
-    "bad",
-    "worse",
-    "worst",
-    "big",
-    "small",
-    "large",
-    "little",
-    "long",
-    "short",
-    "high",
-    "low",
-    "early",
-    "late",
-    "fast",
-    "slow",
-    "hard",
-    "easy",
-    "important",
-    "possible",
-    "available",
-    "special",
-    "common",
-    "public",
-    "private",
-    "personal",
-    "social",
-    "local",
-    "national",
-    "international",
-    "natural",
-    "real",
-    "true",
-    "false",
-    "right",
-    "wrong",
-    "sure",
-    "clear",
-    "simple",
-    "main",
-    "major",
-    "basic",
-    "general",
-    "specific",
-    "similar",
-    "various",
-    "several",
-    "many",
-    "much",
-    "more",
-    "most",
-    "some",
-    "any",
-    "all",
-    "each",
-    "every",
-    "both",
-    "few",
-    "lot",
-    "lots",
-    "enough",
-    "only",
-    "also",
-    "even",
-    "still",
-    "already",
-    "always",
-    "never",
-    "often",
-    "sometimes",
-    "usually",
-    "really",
-    "very",
-    "too",
-    "quite",
-    "just",
-    "almost",
-    "about",
-    "around",
-    "over",
-    "under",
-    "through",
-    "between",
-    "among",
-    "during",
-    "before",
-    "after",
-    "since",
-    "until",
-    "while",
-    "because",
-    "although",
-    "though",
-    "however",
-    "therefore",
-    "thus",
-    "then",
-    "now",
-    "here",
-    "there",
-    "up",
-    "down",
-    "out",
-    "off",
-    "into",
-    "onto",
-    "upon",
-    "without",
-    "within",
-    "across",
-    "along",
-    "against",
-    "toward",
-    "towards",
-    "yes",
-    "well",
-    "back",
-    "away",
-    "again",
-    "once",
-    "twice",
-    "first",
-    "second",
-    "third",
-    "last",
-    "next",
-    "own",
-    "such",
-    "able",
-    "unable",
-    "full",
-    "empty",
-    "free",
-    "safe",
-    "strong",
-    "weak",
-    "happy",
-    "sad",
-    "afraid",
-    "ready",
-    "sure",
-    "certain",
-    "likely",
-    "unlikely",
-    "useful",
-    "useless",
-    "successful",
-    "necessary",
-    "unnecessary",
-    "positive",
-    "negative",
-    "modern",
-    "traditional",
-    "popular",
-    "famous",
-    "rich",
-    "poor",
-    "hot",
-    "cold",
-    "warm",
-    "cool",
-    "dark",
-    "light",
-    "heavy",
-    "soft",
-    "clean",
-    "dirty",
-    "quiet",
-    "loud",
-    "beautiful",
-    "ugly",
-    "interesting",
-    "boring",
-    "difficult",
-    "simple",
-    "complex",
-    "complete",
-    "incomplete",
-    "final",
-    "total",
-    "whole",
-    "half",
-    "single",
-    "double",
-    "daily",
-    "weekly",
-    "monthly",
-    "yearly",
-    "online",
-    "offline",
-    "global",
-    "economic",
-    "political",
-    "environmental",
-    "cultural",
-    "medical",
-    "physical",
-    "mental",
-    "emotional",
-    "financial",
-    "digital",
-    "original",
-    "normal",
-    "regular",
-    "standard",
-    "average",
-    "recent",
-    "current",
-    "previous",
-    "following",
-    "according",
-    "including",
-    "regarding",
-    "progress",
-    "success",
-    "failure",
-    "effort",
-    "experience",
-    "knowledge",
-    "skill",
-    "skills",
-    "ability",
-    "abilities",
-    "opportunity",
-    "opportunities",
-    "challenge",
-    "challenges",
-    "goal",
-    "goals",
-    "purpose",
-    "purposes",
-    "benefit",
-    "benefits",
-    "risk",
-    "risks",
-    "danger",
-    "dangers",
-    "safety",
-    "quality",
-    "quantity",
-    "amount",
-    "amounts",
-    "size",
-    "sizes",
-    "speed",
-    "energy",
-    "force",
-    "pressure",
-    "temperature",
-    "weather",
-    "environment",
-    "pollution",
-    "climate",
-    "earth",
-    "animal",
-    "animals",
-    "plant",
-    "plants",
-    "tree",
-    "trees",
-    "color",
-    "colour",
-    "colors",
-    "colours",
-    "sound",
-    "sounds",
-    "image",
-    "images",
-    "picture",
-    "pictures",
-    "photo",
-    "photos",
-    "video",
-    "videos",
-    "message",
-    "messages",
-    "letter",
-    "letters",
-    "email",
-    "emails",
-    "phone",
-    "phones",
-    "language",
-    "languages",
-    "word",
-    "words",
-    "sentence",
-    "sentences",
-    "meaning",
-    "meanings",
-    "definition",
-    "definitions",
-    "term",
-    "terms",
-    "name",
-    "names",
-    "title",
-    "titles",
-    "topic",
-    "topics",
-    "subject",
-    "subjects",
-    "content",
-    "contents",
-    "detail",
-    "details",
-    "summary",
-    "summaries",
-    "report",
-    "reports",
-    "article",
-    "articles",
-    "text",
-    "texts",
-    "page",
-    "pages",
-    "list",
-    "lists",
-    "table",
-    "tables",
-    "figure",
-    "figures",
-    "graph",
-    "graphs",
-    "chart",
-    "charts",
-    "model",
-    "models",
-    "method",
-    "methods",
-    "way",
-    "approach",
-    "approaches",
-    "strategy",
-    "strategies",
-    "solution",
-    "solutions",
-    "decision",
-    "decisions",
-    "choice",
-    "choices",
-    "option",
-    "options",
-    "action",
-    "actions",
-    "activity",
-    "activities",
-    "event",
-    "events",
-    "situation",
-    "situations",
-    "condition",
-    "conditions",
-    "state",
-    "states",
-    "status",
-    "position",
-    "positions",
-    "direction",
-    "directions",
-    "distance",
-    "distances",
-    "period",
-    "periods",
-    "moment",
-    "moments",
-    "step",
-    "steps",
-    "stage",
-    "stages",
-    "rate",
-    "rates",
-    "percent",
-    "percentage",
-    "percentages",
-    "degree",
-    "degrees",
-    "range",
-    "ranges",
-    "limit",
-    "limits",
-    "rule",
-    "rules",
-    "law",
-    "laws",
-    "right",
-    "rights",
-    "duty",
-    "duties",
-    "responsibility",
-    "responsibilities",
-    "freedom",
-    "peace",
-    "war",
-    "wars",
-    "conflict",
-    "conflicts",
-    "issue",
-    "issues",
-    "matter",
-    "matters",
-    "concern",
-    "concerns",
-    "attention",
-    "care",
-    "respect",
-    "trust",
-    "honesty",
-    "courage",
-    "patience",
-    "confidence",
-    "pride",
-    "shame",
-    "fear",
-    "anger",
-    "joy",
-    "pain",
-    "pleasure",
-    "fun",
-    "hobby",
-    "hobbies",
-    "habit",
-    "habits",
-    "dream",
-    "dreams",
-    "wish",
-    "wishes",
-    "desire",
-    "desires",
-    "need",
-    "needs",
-    "want",
-    "wants",
-    "demand",
-    "demands",
-    "supply",
-    "supplies",
-    "trade",
-    "trades",
-    "deal",
-    "deals",
-    "contract",
-    "contracts",
-    "agreement",
-    "agreements",
-    "relationship",
-    "relationships",
-    "connection",
-    "connections",
-    "difference",
-    "differences",
-    "similarity",
-    "similarities",
-    "advantage",
-    "advantages",
-    "disadvantage",
-    "disadvantages",
-    "strength",
-    "strengths",
-    "weakness",
-    "weaknesses",
-    "feature",
-    "features",
-    "character",
-    "characters",
-    "personality",
-    "behavior",
-    "behaviour",
-    "attitude",
-    "attitudes",
-    "opinion",
-    "opinions",
-    "belief",
-    "beliefs",
-    "theory",
-    "theories",
-    "practice",
-    "practices",
-    "training",
-    "practice",
-    "test",
-    "tests",
-    "exam",
-    "exams",
-    "grade",
-    "grades",
-    "score",
-    "scores",
-    "mark",
-    "marks",
-    "pass",
-    "fail",
-    "win",
-    "won",
-    "lose",
-    "lost",
-    "team",
-    "teams",
-    "player",
-    "players",
-    "audience",
-    "viewer",
-    "viewers",
-    "reader",
-    "readers",
-    "writer",
-    "writers",
-    "author",
-    "authors",
-    "speaker",
-    "speakers",
-    "listener",
-    "listeners",
-    "leader",
-    "leaders",
-    "manager",
-    "managers",
-    "doctor",
-    "doctors",
-    "patient",
-    "patients",
-    "nurse",
-    "nurses",
-    "engineer",
-    "engineers",
-    "scientist",
-    "scientists",
-    "artist",
-    "artists",
-    "actor",
-    "actors",
-    "actress",
-    "farmer",
-    "farmers",
-    "driver",
-    "drivers",
-    "tourist",
-    "tourists",
-    "guest",
-    "guests",
-    "host",
-    "hosts",
-    "owner",
-    "owners",
-    "boss",
-    "bosses",
-    "employee",
-    "employees",
-    "staff",
-    "partner",
-    "partners",
-    "neighbor",
-    "neighbour",
-    "neighbors",
-    "neighbours",
-    "stranger",
-    "strangers",
-    "citizen",
-    "citizens",
-    "adult",
-    "adults",
-    "teenager",
-    "teenagers",
-    "baby",
-    "babies",
-  ].map((w) => w.toLowerCase())
-);
-
-/** 수준별 쉬운 단어 제외 집합 */
-function easySkipSetForBand(band: SchoolBand): Set<string> {
-  return band === "중등" ? EASY_HARD_WORD_SKIP_CORE : EASY_HARD_WORD_SKIP;
-}
 
 /**
- * 해설지·QR에 남길 난이도 점수 (높을수록 우선).
- * 쉬운 단어가 살아남고 어려운 단어가 잘리는 문제를 줄이기 위함.
+ * MetaMetrics 단어 Lexile 대용 프록시 (L 단위).
+ * 길이·접사로 academic/mid-band 단어를 ~1000L+로 올리고, 초고빈도 목록은 낮게 둔다.
  */
-export function hardWordPriorityScore(word: string): number {
+export function estimateLexileProxy(word: string): number {
   const w = lemmaHardWordForm(word).toLowerCase().replace(/[^a-z']/g, "");
   if (!w) return 0;
-  let score = Math.min(w.length, 14) * 4;
+  if (BELOW_JUNGA3_SKIP.has(w)) return 400;
+  // len6≈1000, len7≈1030, len8≈1060 … (중3 바닥 ~1000L에 맞춤)
+  let L = 820 + Math.min(w.length, 14) * 30;
   if (
     /(?:ize|ise|ous|ive|tion|sion|ance|ence|ment|ship|ology|graphy|phobia|esque|ible|able)$/.test(
       w
     )
   ) {
-    score += 12;
+    L += 120;
   }
   if (/^(un|in|im|ir|dis|mis|over|under|re|pre|non|anti)/.test(w) && w.length >= 6) {
-    score += 6;
+    L += 80;
   }
-  if (/[jqxz]/.test(w)) score += 3;
-  // 짧은 어간도 기본어가 아니면 가점 (swap, skim…)
-  if (w.length <= 5 && !EASY_HARD_WORD_SKIP_CORE.has(w)) score += 5;
-  // 고등 제외 목록에 있으면 (남아 있어도) 감점 — 우선순위 낮춤
-  if (EASY_HARD_WORD_SKIP.has(w) && !EASY_HARD_WORD_SKIP_CORE.has(w)) score -= 8;
-  return score;
+  if (/[jqxz]/.test(w)) L += 40;
+  // 짧은 비기초 어간 (swap, skim, grasp…) — 3글자 이하 교실 영어는 제외
+  if (w.length >= 4 && w.length <= 5) L += 120;
+  return Math.max(200, Math.min(1600, Math.round(L)));
+}
+
+/** 해설지·QR 정렬용 (높을수록 우선) */
+export function hardWordPriorityScore(word: string): number {
+  return estimateLexileProxy(word);
 }
 
 function sortHardWordsByPriority(words: HardWord[]): HardWord[] {
@@ -1244,11 +128,8 @@ function sortHardWordsByPriority(words: HardWord[]): HardWord[] {
   );
 }
 
-/** 수준별: 초급(또는 고등 기준 중급까지)이라 보기 단어·QR에서 제외 */
-export function isTooEasyHardWord(
-  word: string,
-  band: SchoolBand = "고등"
-): boolean {
+/** 중3 Lexile(~1000L) 미만이라 보기 단어·QR에서 제외 */
+export function isTooEasyHardWord(word: string): boolean {
   const raw = lemmaHardWordForm(String(word ?? "").trim());
   if (!raw) return true;
   const parts = raw
@@ -1257,10 +138,13 @@ export function isTooEasyHardWord(
     .map((p) => p.replace(/[^a-z']/g, ""))
     .filter(Boolean);
   if (parts.length === 0) return true;
-  // 1~2글자 기능어만 무조건 제외. 3글자라도 목록에 없으면 유지(swap급 짧은 난단어 허용)
   if (parts.length === 1 && parts[0]!.length <= 2) return true;
-  const skip = easySkipSetForBand(band);
-  return parts.every((p) => skip.has(p) || p.length <= 2);
+  return parts.every(
+    (p) =>
+      p.length <= 2 ||
+      BELOW_JUNGA3_SKIP.has(p) ||
+      estimateLexileProxy(p) < JUNGA3_LEXILE_FLOOR
+  );
 }
 
 /** 비정상·합성 괴물 어휘 (national monies 등) */
@@ -1286,17 +170,13 @@ const WEIRD_HARD_WORD_SKIP = new Set(
 
 /**
  * 보기 단어로 쓸 수 없는 항목:
- * - 두 단어 이상 구 (national monies 등)
+ * - 두 단어 이상 구
  * - 비정상 복수·괴물형
- * - 해당 수준에서 쉬운 단어
+ * - 중3 Lexile(~1000L) 미만
  */
-export function isInvalidHardWord(
-  word: string,
-  band: SchoolBand = "고등"
-): boolean {
+export function isInvalidHardWord(word: string): boolean {
   const original = String(word ?? "").trim();
   if (!original) return true;
-  // 단일어만 허용 (공백·하이픈 구 금지)
   if (/[\s/]/.test(original) || (original.match(/-/g) ?? []).length > 1) {
     return true;
   }
@@ -1305,17 +185,13 @@ export function isInvalidHardWord(
   if (!token) return true;
   if (/\s/.test(raw)) return true;
   if (WEIRD_HARD_WORD_SKIP.has(token)) return true;
-  // money류 오복수·어색한 -ies 잔존
   if (/^(monies|moneys)$/.test(token)) return true;
-  if (isTooEasyHardWord(token, band)) return true;
+  if (isTooEasyHardWord(token)) return true;
   return false;
 }
 
-function normalizeHardWords(
-  raw: unknown,
-  band: SchoolBand = "고등",
-  limit = 12
-): HardWord[] {
+
+function normalizeHardWords(raw: unknown, limit = 12): HardWord[] {
   if (!Array.isArray(raw)) return [];
   const out: HardWord[] = [];
   const seen = new Set<string>();
@@ -1324,7 +200,7 @@ function normalizeHardWords(
     const original = String(
       (item as { word?: unknown }).word ?? ""
     ).trim();
-    if (isInvalidHardWord(original, band)) continue;
+    if (isInvalidHardWord(original)) continue;
     const word = lemmaHardWordForm(original);
     const meaning = String(
       (item as { meaning?: unknown }).meaning ??
@@ -1332,7 +208,7 @@ function normalizeHardWords(
         ""
     ).trim();
     if (!word || !meaning) continue;
-    if (isInvalidHardWord(word, band)) continue;
+    if (isInvalidHardWord(word)) continue;
     if (word.length > 40 || meaning.length > 80) continue;
     const key = word.toLowerCase();
     if (seen.has(key)) continue;
@@ -1343,18 +219,12 @@ function normalizeHardWords(
   return sortHardWordsByPriority(out).slice(0, limit);
 }
 
-export function normalizeHardWordsFromRaw(
-  raw: unknown,
-  band: SchoolBand = "고등"
-): HardWord[] {
-  return normalizeHardWords(raw, band);
+export function normalizeHardWordsFromRaw(raw: unknown): HardWord[] {
+  return normalizeHardWords(raw);
 }
 
-export function parseHardWordsColumn(
-  raw: unknown,
-  band: SchoolBand = "고등"
-): HardWord[] {
-  return normalizeHardWords(raw, band);
+export function parseHardWordsColumn(raw: unknown): HardWord[] {
+  return normalizeHardWords(raw);
 }
 
 /** QR·단어장용: 원형 기준 중복 제거 (progress/Progress, allows/allow 등) */
@@ -1364,18 +234,15 @@ export function hardWordDedupeKey(word: string): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-export function dedupeHardWords(
-  words: HardWord[],
-  band: SchoolBand = "고등"
-): HardWord[] {
+export function dedupeHardWords(words: HardWord[]): HardWord[] {
   const byKey = new Map<string, HardWord>();
   for (const item of words) {
     const original = String(item.word ?? "").trim();
-    if (isInvalidHardWord(original, band)) continue;
+    if (isInvalidHardWord(original)) continue;
     const word = lemmaHardWordForm(original);
     const meaning = String(item.meaning ?? "").trim();
     if (!word || !meaning) continue;
-    if (isInvalidHardWord(word, band)) continue;
+    if (isInvalidHardWord(word)) continue;
     if (word.length > 40 || meaning.length > 80) continue;
     const key = hardWordDedupeKey(word);
     if (!key) continue;
@@ -1391,18 +258,18 @@ export function dedupeHardWords(
   return sortHardWordsByPriority([...byKey.values()]);
 }
 
-/** DB vocab_items 행 중복 제거 (학습 카드용) — band 없으면 구조·초급만 검사 */
+/** DB vocab_items 행 중복 제거 (학습 카드용) */
 export function dedupeVocabItemRows<
   T extends { word: string; meaning: string; order_index?: number | null },
->(items: T[], band: SchoolBand = "중등"): T[] {
+>(items: T[]): T[] {
   const byKey = new Map<string, T>();
   for (const item of items) {
     const original = String(item.word ?? "").trim();
-    if (isInvalidHardWord(original, band)) continue;
+    if (isInvalidHardWord(original)) continue;
     const word = lemmaHardWordForm(original);
     const meaning = String(item.meaning ?? "").trim();
     if (!word || !meaning) continue;
-    if (isInvalidHardWord(word, band)) continue;
+    if (isInvalidHardWord(word)) continue;
     const key = hardWordDedupeKey(word);
     if (!key) continue;
     const prev = byKey.get(key);
@@ -1479,11 +346,10 @@ export function questionNeedsVocabGloss(input: {
 /**
  * 생성 완료 job의 문항 hard_words를 모아 exam_compact 단어장으로 동기화.
  * 기존 vocab_set_id가 있으면 단어만 갱신.
- * band: 해설지에서 선택한 중등/고등 (학년과 무관).
+ * 중3 Lexile(~1000L) 이상 단어만 포함.
  */
 export async function syncExamVocabSetFromJob(
-  jobId: string,
-  band: SchoolBand = "중등"
+  jobId: string
 ): Promise<string | null> {
   const admin = createAdminClient();
   const { data: job, error } = await admin
@@ -1518,18 +384,18 @@ export async function syncExamVocabSetFromJob(
     ) {
       continue;
     }
-    for (const w of normalizeHardWords(q.hard_words, band)) {
+    for (const w of normalizeHardWords(q.hard_words)) {
       merged.push(w);
     }
   }
 
-  const unique = dedupeHardWords(merged, band);
+  const unique = dedupeHardWords(merged);
   if (unique.length === 0) return (job.vocab_set_id as string | null) ?? null;
 
   const titleBase = (cfg.title || "변형문제").trim() || "변형문제";
-  const setTitle = `${titleBase} · ${band} 보기 단어`.slice(0, 80);
+  const setTitle = `${titleBase} · 보기 단어`.slice(0, 80);
   const description =
-    `변형문제 해설 연계 단어장 (${band}, 1·2·4단계). ${cfg.grade ?? ""}`.trim();
+    `변형문제 해설 연계 단어장 (중3·≈1000L+, 1·2·4단계). ${cfg.grade ?? ""}`.trim();
   const teacherId = job.created_by as string;
 
   let setId = (job.vocab_set_id as string | null) ?? null;
@@ -1543,7 +409,7 @@ export async function syncExamVocabSetFromJob(
         exam_compact: true,
         source_job_id: jobId,
         is_published: true,
-        school_band: band,
+        school_band: null,
       })
       .eq("id", setId);
   } else {
@@ -1557,7 +423,7 @@ export async function syncExamVocabSetFromJob(
         is_published: true,
         exam_compact: true,
         source_job_id: jobId,
-        school_band: band,
+        school_band: null,
         folder_id: null,
         order_index: 0,
       })
@@ -1661,8 +527,6 @@ export async function ensureExamCompactStageSkip(
  */
 export async function diversifyJobHardWords(jobId: string): Promise<void> {
   const admin = createAdminClient();
-  // 저장은 중등(넓은) 기준 — 고등 필터는 해설지·동기화 시 적용
-  const band: SchoolBand = "중등";
 
   const { data: questions } = await admin
     .from("generated_english_questions")
@@ -1694,7 +558,7 @@ export async function diversifyJobHardWords(jobId: string): Promise<void> {
     if (eligible.length <= 1) {
       // 단일 문항도 수준 필터·난이도 정렬 적용
       for (const q of eligible) {
-        const words = normalizeHardWords(q.hard_words, band, 8);
+        const words = normalizeHardWords(q.hard_words, 8);
         await admin
           .from("generated_english_questions")
           .update({ hard_words: words, updated_at: new Date().toISOString() })
@@ -1706,7 +570,7 @@ export async function diversifyJobHardWords(jobId: string): Promise<void> {
     type Row = { id: string; words: HardWord[] };
     const perQ: Row[] = eligible.map((q) => ({
       id: q.id as string,
-      words: normalizeHardWords(q.hard_words, band, 12),
+      words: normalizeHardWords(q.hard_words, 12),
     }));
 
     const assigned = new Map<string, HardWord[]>();
@@ -1755,7 +619,7 @@ export async function diversifyJobHardWords(jobId: string): Promise<void> {
     }
 
     for (const [id, words] of assigned) {
-      const unique = dedupeHardWords(words, band).slice(0, 8);
+      const unique = dedupeHardWords(words).slice(0, 8);
       await admin
         .from("generated_english_questions")
         .update({ hard_words: unique, updated_at: new Date().toISOString() })

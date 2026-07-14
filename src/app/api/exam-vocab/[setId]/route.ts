@@ -17,7 +17,7 @@ export async function GET(
     const admin = createAdminClient();
     const { data: set, error } = await admin
       .from("vocab_sets")
-      .select("id, title, exam_compact, school_band")
+      .select("id, title, exam_compact")
       .eq("id", setId)
       .maybeSingle();
 
@@ -35,12 +35,8 @@ export async function GET(
       .order("order_index")
       .order("created_at");
 
-    const band =
-      set.school_band === "중등" || set.school_band === "고등"
-        ? set.school_band
-        : "중등";
     const raw = items ?? [];
-    const unique = dedupeVocabItemRows(raw, band);
+    const unique = dedupeVocabItemRows(raw);
 
     // 이미 쌓인 중복이 있으면 DB도 정리 (다음 학습부터 카드 수 일치)
     if (unique.length < raw.length) {

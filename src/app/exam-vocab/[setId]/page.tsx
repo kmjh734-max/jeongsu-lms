@@ -16,7 +16,7 @@ export default async function ExamVocabHubPage({ params }: PageProps) {
   const admin = createAdminClient();
   const { data: set } = await admin
     .from("vocab_sets")
-    .select("id, title, exam_compact, school_band")
+    .select("id, title, exam_compact")
     .eq("id", setId)
     .maybeSingle();
 
@@ -28,11 +28,7 @@ export default async function ExamVocabHubPage({ params }: PageProps) {
     .eq("set_id", setId)
     .order("order_index");
 
-  const band =
-    set.school_band === "중등" || set.school_band === "고등"
-      ? set.school_band
-      : "중등";
-  const uniqueCount = dedupeVocabItemRows(items ?? [], band).length;
+  const uniqueCount = dedupeVocabItemRows(items ?? []).length;
 
   return (
     <Suspense

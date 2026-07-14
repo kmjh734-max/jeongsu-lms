@@ -822,7 +822,7 @@ function normalizePayload(
       questionText: String(raw.questionText ?? ""),
       choiceLanguage: option.choiceLanguage,
     })
-      ? normalizeHardWordsFromRaw(raw.hardWords, "중등")
+      ? normalizeHardWordsFromRaw(raw.hardWords)
       : [],
     evidence: [],
     scoringGuide:
@@ -1343,7 +1343,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. Prefer the HARDER lemmas that actually appear in THIS item's English — never pad with easy fillers (people/important/money/make/need/progress/information/viewer/financial/national/develop/compare/consumer). Include short non-basic lemmas when apt (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Single dictionary token only (never phrases like "national monies"). Fake plurals (monies/datas) forbidden. meaning = short Korean gloss. Rotate lemmas across same-passage slots. (Band filter 중등/고등 is applied later on the answer sheet — store a broad hard set here.) If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
+- hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. Target ≈ 중3+ / Lexile ≥~1000L (US Grade 8 CCSS text ~1010L–1185L). Prefer the HARDER lemmas that appear in THIS item's English — skip ultra-basics (people/important/money/make/need). Include short non-basic lemmas when apt (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Single dictionary token only (never phrases like "national monies"). Fake plurals (monies/datas) forbidden. meaning = short Korean gloss. Rotate lemmas across same-passage slots. If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
 ${englishOnlyHint}
 ${
   allowSkip

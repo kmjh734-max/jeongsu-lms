@@ -11,7 +11,7 @@ alter table public.vocab_sets
   check (school_band is null or school_band in ('중등', '고등'));
 
 comment on column public.vocab_sets.school_band is
-  '변형문제 보기 단어 수준: 중등 | 고등 (해설지에서 선택)';
+  '레거시. 보기 단어는 중3·≈1000L+ 단일 기준으로 정리';
 
 create index if not exists vocab_sets_school_band_idx
   on public.vocab_sets(school_band)
