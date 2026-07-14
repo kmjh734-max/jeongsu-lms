@@ -395,7 +395,7 @@ export async function syncExamVocabSetFromJob(
   const titleBase = (cfg.title || "변형문제").trim() || "변형문제";
   const setTitle = `${titleBase} · 보기 단어`.slice(0, 80);
   const description =
-    `변형문제 해설 연계 단어장 (중3·≈1000L+, 1·2·4단계). ${cfg.grade ?? ""}`.trim();
+    `변형문제 해설 연계 단어장 (1·2·4단계). ${cfg.grade ?? ""}`.trim();
   const teacherId = job.created_by as string;
 
   let setId = (job.vocab_set_id as string | null) ?? null;
