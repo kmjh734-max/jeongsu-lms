@@ -134,6 +134,8 @@ export interface VocabSet {
   is_published: boolean;
   exam_compact?: boolean;
   source_job_id?: string | null;
+  /** 변형문제 보기 단어 수준 */
+  school_band?: "중등" | "고등" | null;
   created_at: string;
   teacher?: Profile | null;
   folder?: VocabFolder | null;

@@ -13,6 +13,8 @@ import {
   buildExamVocabUrl,
   questionNeedsVocabGloss,
   parseHardWordsColumn,
+  resolveSchoolBand,
+  type SchoolBand,
 } from "@/lib/question-generator/exam-vocab";
 import { groupQuestionsByPrintType } from "@/lib/question-generator/print-type-groups";
 import {
@@ -394,9 +396,11 @@ function QuestionBlock({
 function AnswerBlock({
   q,
   index,
+  schoolBand,
 }: {
   q: QuestionRow;
   index: number;
+  schoolBand: SchoolBand;
 }) {
   const hardWords = questionNeedsVocabGloss({
     choices: q.choices,
@@ -405,7 +409,7 @@ function AnswerBlock({
     questionText: q.question_text,
     choiceLanguage: q.choice_language,
   })
-    ? parseHardWordsColumn(q.hard_words)
+    ? parseHardWordsColumn(q.hard_words, schoolBand)
     : [];
   return (
     <section className="qg-print-card qg-print-answer-card">
@@ -418,7 +422,7 @@ function AnswerBlock({
       <p className="qg-print-answer-body">{q.explanation}</p>
       {hardWords.length > 0 ? (
         <div className="qg-print-hard-words">
-          <p className="qg-print-hard-words-label">보기 단어</p>
+          <p className="qg-print-hard-words-label">보기 단어 ({schoolBand})</p>
           <ul className="qg-print-hard-words-list">
             {hardWords.map((w) => (
               <li key={`${w.word}-${w.meaning}`}>
@@ -791,10 +795,11 @@ export function QuestionPrintView({
 
   function renderDisplayItem(item: DisplayItem | undefined) {
     if (!item) return null;
+    const schoolBand = resolveSchoolBand(grade);
     return mode === "exam" ? (
       <QuestionBlock q={item.q} index={item.num} />
     ) : (
-      <AnswerBlock q={item.q} index={item.num} />
+      <AnswerBlock q={item.q} index={item.num} schoolBand={schoolBand} />
     );
   }
 

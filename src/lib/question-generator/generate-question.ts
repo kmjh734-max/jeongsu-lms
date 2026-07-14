@@ -29,6 +29,7 @@ import { MIN_SENTENCES_FOR_INSERTION_IRRELEVANT } from "@/lib/question-generator
 import {
   questionNeedsVocabGloss,
   normalizeHardWordsFromRaw,
+  resolveSchoolBand,
 } from "@/lib/question-generator/exam-vocab";
 import type { QuestionTypeOption } from "@/lib/question-generator/types";
 import type {
@@ -641,7 +642,8 @@ function normalizePayload(
   raw: Record<string, unknown>,
   option: QuestionTypeOption,
   passage: string,
-  forcedInstruction: string
+  forcedInstruction: string,
+  grade: string
 ): GeneratedQuestionPayload {
   let choices = Array.isArray(raw.choices)
     ? raw.choices
@@ -819,7 +821,10 @@ function normalizePayload(
       questionText: String(raw.questionText ?? ""),
       choiceLanguage: option.choiceLanguage,
     })
-      ? normalizeHardWordsFromRaw(raw.hardWords)
+      ? normalizeHardWordsFromRaw(
+          raw.hardWords,
+          resolveSchoolBand(grade)
+        )
       : [],
     evidence: [],
     scoringGuide:
@@ -1327,7 +1332,7 @@ export async function generateOneQuestion(opts: {
           : "1-2 Korean sentences."
     }
 - For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. Target grade ≈ ${opts.grade || "고1"} (중3~고1): pick words Korean students at this level often miss — including short but non-basic lemmas (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Prefer the hardest real lemmas that appear in THIS item's English wording. Single dictionary token only (never phrases like "national monies"). Skip ultra-basics (consumer/people/important/money/make/need/progress/information/viewer/financial/national) and fake plurals (monies/datas). meaning = short Korean gloss. Rotate lemmas across same-passage slots. If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
+- hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. School band = ${resolveSchoolBand(opts.grade)} (grade ${opts.grade || "고1"}). Prefer the HARDER lemmas that actually appear in THIS item's English — never pad with easy fillers (people/important/money/make/need/progress/information/viewer/financial/national/develop/compare/consumer). Include short non-basic lemmas when apt (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Single dictionary token only (never phrases like "national monies"). Fake plurals (monies/datas) forbidden. meaning = short Korean gloss. Rotate lemmas across same-passage slots. If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
 ${englishOnlyHint}
 ${
   allowSkip
@@ -1456,7 +1461,13 @@ ${typeRules(option)}`,
     );
   }
 
-  const payload = normalizePayload(raw, option, passage, forcedInstruction);
+  const payload = normalizePayload(
+    raw,
+    option,
+    passage,
+    forcedInstruction,
+    opts.grade || "고1"
+  );
   const shapeError = assertBasicQuestionShape(payload, option);
   if (shapeError) throw new Error(shapeError);
   return payload;

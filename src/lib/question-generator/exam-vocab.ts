@@ -5,6 +5,15 @@ import { lemmaEnglishToken } from "@/lib/question-generator/word-order-normalize
 
 export type HardWord = { word: string; meaning: string };
 
+/** 어휘 정리 수준 — 중1~중3 → 중등, 고1~고3 → 고등 */
+export type SchoolBand = "중등" | "고등";
+
+export function resolveSchoolBand(grade: string | null | undefined): SchoolBand {
+  const g = String(grade ?? "").trim();
+  if (/^중[123]$/.test(g) || g === "중등") return "중등";
+  return "고등";
+}
+
 function siteBase(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL).replace(/\/$/, "");
 }
@@ -28,7 +37,50 @@ export function lemmaHardWordForm(raw: string): string {
     .join(" ");
 }
 
-/** 보기 단어·QR 학습에서 제외할 쉬운 고빈도어 (중고등 기본 어휘) */
+/**
+ * 중등·고등 공통 — 초급·기능어만 (중등에서는 이 목록만 제외해 중급 학습 단어를 남김)
+ */
+const EASY_HARD_WORD_SKIP_CORE = new Set(
+  [
+    "a", "an", "the", "to", "of", "in", "on", "at", "for", "from", "with", "by",
+    "as", "if", "or", "and", "but", "not", "no", "so", "than", "that", "this",
+    "these", "those", "it", "its", "they", "them", "their", "he", "she", "him",
+    "her", "we", "us", "our", "you", "your", "i", "me", "my", "who", "which",
+    "what", "when", "where", "why", "how", "will", "would", "can", "could",
+    "shall", "should", "may", "might", "must", "do", "does", "did", "be", "am",
+    "is", "are", "was", "were", "been", "being", "have", "has", "had", "having",
+    "get", "got", "go", "went", "come", "came", "make", "made", "take", "took",
+    "give", "gave", "given", "say", "said", "tell", "told", "see", "saw", "seen",
+    "know", "knew", "known", "think", "thought", "want", "wanted", "like", "liked",
+    "need", "needed", "use", "used", "help", "helped", "work", "worked", "play",
+    "played", "live", "lived", "look", "looked", "find", "found", "put", "keep",
+    "kept", "let", "begin", "began", "begun", "seem", "seemed", "feel", "felt",
+    "try", "tried", "leave", "left", "call", "called", "ask", "asked", "show",
+    "showed", "shown", "hear", "heard", "move", "moved", "run", "ran", "walk",
+    "walked", "sit", "sat", "stand", "stood", "read", "write", "wrote", "written",
+    "speak", "spoke", "spoken", "talk", "talked", "listen", "listened", "learn",
+    "learned", "learnt", "teach", "taught", "study", "studied", "eat", "ate",
+    "eaten", "drink", "drank", "buy", "bought", "sell", "sold", "pay", "paid",
+    "open", "opened", "close", "closed", "start", "started", "stop", "stopped",
+    "people", "person", "man", "men", "woman", "women", "child", "children",
+    "boy", "girl", "friend", "family", "home", "house", "school", "student",
+    "teacher", "class", "day", "days", "time", "year", "years", "week", "month",
+    "today", "tomorrow", "yesterday", "morning", "night", "thing", "things",
+    "way", "ways", "place", "places", "world", "life", "lives", "work", "job",
+    "money", "food", "water", "book", "books", "word", "words", "name", "names",
+    "number", "numbers", "good", "bad", "big", "small", "long", "short", "new",
+    "old", "young", "high", "low", "many", "much", "more", "most", "some", "any",
+    "all", "each", "every", "other", "another", "same", "different", "first",
+    "last", "next", "important", "easy", "hard", "happy", "sad", "right", "wrong",
+    "true", "false", "yes", "very", "also", "just", "only", "even", "still",
+    "already", "always", "never", "often", "sometimes", "here", "there", "now",
+    "then", "too", "well", "back", "up", "down", "out", "over", "after", "before",
+    "about", "into", "through", "during", "without", "because", "while", "until",
+    "about", "really", "please", "thanks", "hello", "ok", "okay",
+  ].map((w) => w.toLowerCase())
+);
+
+/** 고등 — 중등에서 배우지만 고등 해설·QR에서는 제외할 중급 고빈도어 포함 */
 const EASY_HARD_WORD_SKIP = new Set(
   [
     // 기능어·대명사·조동사
@@ -1152,8 +1204,50 @@ const EASY_HARD_WORD_SKIP = new Set(
   ].map((w) => w.toLowerCase())
 );
 
-/** 중고등 기본 수준이라 보기 단어·QR에서 제외 */
-export function isTooEasyHardWord(word: string): boolean {
+/** 수준별 쉬운 단어 제외 집합 */
+function easySkipSetForBand(band: SchoolBand): Set<string> {
+  return band === "중등" ? EASY_HARD_WORD_SKIP_CORE : EASY_HARD_WORD_SKIP;
+}
+
+/**
+ * 해설지·QR에 남길 난이도 점수 (높을수록 우선).
+ * 쉬운 단어가 살아남고 어려운 단어가 잘리는 문제를 줄이기 위함.
+ */
+export function hardWordPriorityScore(word: string): number {
+  const w = lemmaHardWordForm(word).toLowerCase().replace(/[^a-z']/g, "");
+  if (!w) return 0;
+  let score = Math.min(w.length, 14) * 4;
+  if (
+    /(?:ize|ise|ous|ive|tion|sion|ance|ence|ment|ship|ology|graphy|phobia|esque|ible|able)$/.test(
+      w
+    )
+  ) {
+    score += 12;
+  }
+  if (/^(un|in|im|ir|dis|mis|over|under|re|pre|non|anti)/.test(w) && w.length >= 6) {
+    score += 6;
+  }
+  if (/[jqxz]/.test(w)) score += 3;
+  // 짧은 어간도 기본어가 아니면 가점 (swap, skim…)
+  if (w.length <= 5 && !EASY_HARD_WORD_SKIP_CORE.has(w)) score += 5;
+  // 고등 제외 목록에 있으면 (남아 있어도) 감점 — 우선순위 낮춤
+  if (EASY_HARD_WORD_SKIP.has(w) && !EASY_HARD_WORD_SKIP_CORE.has(w)) score -= 8;
+  return score;
+}
+
+function sortHardWordsByPriority(words: HardWord[]): HardWord[] {
+  return [...words].sort(
+    (a, b) =>
+      hardWordPriorityScore(b.word) - hardWordPriorityScore(a.word) ||
+      a.word.localeCompare(b.word)
+  );
+}
+
+/** 수준별: 초급(또는 고등 기준 중급까지)이라 보기 단어·QR에서 제외 */
+export function isTooEasyHardWord(
+  word: string,
+  band: SchoolBand = "고등"
+): boolean {
   const raw = lemmaHardWordForm(String(word ?? "").trim());
   if (!raw) return true;
   const parts = raw
@@ -1163,8 +1257,9 @@ export function isTooEasyHardWord(word: string): boolean {
     .filter(Boolean);
   if (parts.length === 0) return true;
   // 1~2글자 기능어만 무조건 제외. 3글자라도 목록에 없으면 유지(swap급 짧은 난단어 허용)
-  if (parts.length === 1 && parts[0].length <= 2) return true;
-  return parts.every((p) => EASY_HARD_WORD_SKIP.has(p) || p.length <= 2);
+  if (parts.length === 1 && parts[0]!.length <= 2) return true;
+  const skip = easySkipSetForBand(band);
+  return parts.every((p) => skip.has(p) || p.length <= 2);
 }
 
 /** 비정상·합성 괴물 어휘 (national monies 등) */
@@ -1192,9 +1287,12 @@ const WEIRD_HARD_WORD_SKIP = new Set(
  * 보기 단어로 쓸 수 없는 항목:
  * - 두 단어 이상 구 (national monies 등)
  * - 비정상 복수·괴물형
- * - 쉬운 단어
+ * - 해당 수준에서 쉬운 단어
  */
-export function isInvalidHardWord(word: string): boolean {
+export function isInvalidHardWord(
+  word: string,
+  band: SchoolBand = "고등"
+): boolean {
   const original = String(word ?? "").trim();
   if (!original) return true;
   // 단일어만 허용 (공백·하이픈 구 금지)
@@ -1208,11 +1306,15 @@ export function isInvalidHardWord(word: string): boolean {
   if (WEIRD_HARD_WORD_SKIP.has(token)) return true;
   // money류 오복수·어색한 -ies 잔존
   if (/^(monies|moneys)$/.test(token)) return true;
-  if (isTooEasyHardWord(token)) return true;
+  if (isTooEasyHardWord(token, band)) return true;
   return false;
 }
 
-function normalizeHardWords(raw: unknown): HardWord[] {
+function normalizeHardWords(
+  raw: unknown,
+  band: SchoolBand = "고등",
+  limit = 12
+): HardWord[] {
   if (!Array.isArray(raw)) return [];
   const out: HardWord[] = [];
   const seen = new Set<string>();
@@ -1221,7 +1323,7 @@ function normalizeHardWords(raw: unknown): HardWord[] {
     const original = String(
       (item as { word?: unknown }).word ?? ""
     ).trim();
-    if (isInvalidHardWord(original)) continue;
+    if (isInvalidHardWord(original, band)) continue;
     const word = lemmaHardWordForm(original);
     const meaning = String(
       (item as { meaning?: unknown }).meaning ??
@@ -1229,20 +1331,29 @@ function normalizeHardWords(raw: unknown): HardWord[] {
         ""
     ).trim();
     if (!word || !meaning) continue;
-    if (isInvalidHardWord(word)) continue;
+    if (isInvalidHardWord(word, band)) continue;
     if (word.length > 40 || meaning.length > 80) continue;
     const key = word.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
     out.push({ word, meaning });
   }
-  return out.slice(0, 12);
+  // 어려운 단어 우선 보존 (쉬운 것만 남는 현상 완화)
+  return sortHardWordsByPriority(out).slice(0, limit);
 }
 
-export const normalizeHardWordsFromRaw = normalizeHardWords;
+export function normalizeHardWordsFromRaw(
+  raw: unknown,
+  band: SchoolBand = "고등"
+): HardWord[] {
+  return normalizeHardWords(raw, band);
+}
 
-export function parseHardWordsColumn(raw: unknown): HardWord[] {
-  return normalizeHardWords(raw);
+export function parseHardWordsColumn(
+  raw: unknown,
+  band: SchoolBand = "고등"
+): HardWord[] {
+  return normalizeHardWords(raw, band);
 }
 
 /** QR·단어장용: 원형 기준 중복 제거 (progress/Progress, allows/allow 등) */
@@ -1252,15 +1363,18 @@ export function hardWordDedupeKey(word: string): string {
     .replace(/[^a-z0-9]+/g, "");
 }
 
-export function dedupeHardWords(words: HardWord[]): HardWord[] {
+export function dedupeHardWords(
+  words: HardWord[],
+  band: SchoolBand = "고등"
+): HardWord[] {
   const byKey = new Map<string, HardWord>();
   for (const item of words) {
     const original = String(item.word ?? "").trim();
-    if (isInvalidHardWord(original)) continue;
+    if (isInvalidHardWord(original, band)) continue;
     const word = lemmaHardWordForm(original);
     const meaning = String(item.meaning ?? "").trim();
     if (!word || !meaning) continue;
-    if (isInvalidHardWord(word)) continue;
+    if (isInvalidHardWord(word, band)) continue;
     if (word.length > 40 || meaning.length > 80) continue;
     const key = hardWordDedupeKey(word);
     if (!key) continue;
@@ -1273,21 +1387,21 @@ export function dedupeHardWords(words: HardWord[]): HardWord[] {
       byKey.set(key, { word: prev.word, meaning });
     }
   }
-  return [...byKey.values()];
+  return sortHardWordsByPriority([...byKey.values()]);
 }
 
-/** DB vocab_items 행 중복 제거 (학습 카드용) */
+/** DB vocab_items 행 중복 제거 (학습 카드용) — band 없으면 구조·초급만 검사 */
 export function dedupeVocabItemRows<
   T extends { word: string; meaning: string; order_index?: number | null },
->(items: T[]): T[] {
+>(items: T[], band: SchoolBand = "중등"): T[] {
   const byKey = new Map<string, T>();
   for (const item of items) {
     const original = String(item.word ?? "").trim();
-    if (isInvalidHardWord(original)) continue;
+    if (isInvalidHardWord(original, band)) continue;
     const word = lemmaHardWordForm(original);
     const meaning = String(item.meaning ?? "").trim();
     if (!word || !meaning) continue;
-    if (isInvalidHardWord(word)) continue;
+    if (isInvalidHardWord(word, band)) continue;
     const key = hardWordDedupeKey(word);
     if (!key) continue;
     const prev = byKey.get(key);
@@ -1384,6 +1498,9 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
     .eq("generation_job_id", jobId)
     .order("created_at", { ascending: true });
 
+  const cfg = (job.request_config ?? {}) as { title?: string; grade?: string };
+  const band = resolveSchoolBand(cfg.grade);
+
   const merged: HardWord[] = [];
   for (const q of questions ?? []) {
     if (
@@ -1397,18 +1514,18 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
     ) {
       continue;
     }
-    for (const w of normalizeHardWords(q.hard_words)) {
+    for (const w of normalizeHardWords(q.hard_words, band)) {
       merged.push(w);
     }
   }
 
-  const unique = dedupeHardWords(merged);
+  const unique = dedupeHardWords(merged, band);
   if (unique.length === 0) return (job.vocab_set_id as string | null) ?? null;
 
-  const cfg = (job.request_config ?? {}) as { title?: string; grade?: string };
   const titleBase = (cfg.title || "변형문제").trim() || "변형문제";
-  const setTitle = `${titleBase} · 보기 단어`.slice(0, 80);
-  const description = `변형문제 해설 연계 단어장 (1·2·4단계). ${cfg.grade ?? ""}`.trim();
+  const setTitle = `${titleBase} · ${band} 보기 단어`.slice(0, 80);
+  const description =
+    `변형문제 해설 연계 단어장 (${band}, 1·2·4단계). ${cfg.grade ?? ""}`.trim();
   const teacherId = job.created_by as string;
 
   let setId = (job.vocab_set_id as string | null) ?? null;
@@ -1422,6 +1539,7 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
         exam_compact: true,
         source_job_id: jobId,
         is_published: true,
+        school_band: band,
       })
       .eq("id", setId);
   } else {
@@ -1435,6 +1553,7 @@ export async function syncExamVocabSetFromJob(jobId: string): Promise<string | n
         is_published: true,
         exam_compact: true,
         source_job_id: jobId,
+        school_band: band,
         folder_id: null,
         order_index: 0,
       })
@@ -1538,6 +1657,15 @@ export async function ensureExamCompactStageSkip(
  */
 export async function diversifyJobHardWords(jobId: string): Promise<void> {
   const admin = createAdminClient();
+  const { data: job } = await admin
+    .from("question_generation_jobs")
+    .select("request_config")
+    .eq("id", jobId)
+    .maybeSingle();
+  const band = resolveSchoolBand(
+    (job?.request_config as { grade?: string } | null)?.grade
+  );
+
   const { data: questions } = await admin
     .from("generated_english_questions")
     .select(
@@ -1565,12 +1693,22 @@ export async function diversifyJobHardWords(jobId: string): Promise<void> {
         choiceLanguage: q.choice_language as string | null,
       })
     );
-    if (eligible.length <= 1) continue;
+    if (eligible.length <= 1) {
+      // 단일 문항도 수준 필터·난이도 정렬 적용
+      for (const q of eligible) {
+        const words = normalizeHardWords(q.hard_words, band, 8);
+        await admin
+          .from("generated_english_questions")
+          .update({ hard_words: words, updated_at: new Date().toISOString() })
+          .eq("id", q.id);
+      }
+      continue;
+    }
 
     type Row = { id: string; words: HardWord[] };
     const perQ: Row[] = eligible.map((q) => ({
       id: q.id as string,
-      words: normalizeHardWords(q.hard_words),
+      words: normalizeHardWords(q.hard_words, band, 12),
     }));
 
     const assigned = new Map<string, HardWord[]>();
@@ -1589,8 +1727,15 @@ export async function diversifyJobHardWords(jobId: string): Promise<void> {
 
     const claimed = new Set<string>();
 
+    // 어려운 고유·공유 단어부터 배치
+    const ownerEntries = [...owners.entries()].sort(
+      (a, b) =>
+        hardWordPriorityScore(b[1].word.word) -
+        hardWordPriorityScore(a[1].word.word)
+    );
+
     // 1) 한 문항에만 있는 단어 → 그 문항
-    for (const [k, info] of owners) {
+    for (const [k, info] of ownerEntries) {
       if (info.ids.length !== 1) continue;
       const id = info.ids[0]!;
       const list = assigned.get(id)!;
@@ -1600,7 +1745,7 @@ export async function diversifyJobHardWords(jobId: string): Promise<void> {
     }
 
     // 2) 여러 문항 공유 단어 → 현재 개수가 적은 문항 우선
-    for (const [k, info] of owners) {
+    for (const [k, info] of ownerEntries) {
       if (claimed.has(k)) continue;
       const pick = [...info.ids]
         .map((id) => ({ id, n: assigned.get(id)!.length }))
@@ -1612,7 +1757,7 @@ export async function diversifyJobHardWords(jobId: string): Promise<void> {
     }
 
     for (const [id, words] of assigned) {
-      const unique = dedupeHardWords(words).slice(0, 8);
+      const unique = dedupeHardWords(words, band).slice(0, 8);
       await admin
         .from("generated_english_questions")
         .update({ hard_words: unique, updated_at: new Date().toISOString() })
