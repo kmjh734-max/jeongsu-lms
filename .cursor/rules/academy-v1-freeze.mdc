@@ -1,0 +1,27 @@
+---
+description: Freeze allbarreun/iroom until user asks; 변형문제 V1 baseline
+alwaysApply: true
+---
+
+# 학원 배포·변형문제 V1
+
+## allbarreun / iroom — 배포 금지
+
+사용자가 **명시적으로 지시하기 전까지** 다음 저장소·사이트에 코드 변경·커밋·푸시·마이그레이션을 하지 않는다.
+
+- `C:\allbarreun-edu-app` → https://allbarreun-edu.vercel.app/
+- `C:\iroom-edu-app` → https://iroom-edu-app.vercel.app/
+
+작업 기본 대상은 **jeongsu** (`C:\video-app` / https://jeongsu-lms.vercel.app/).
+
+## 변형문제 V1 (스냅샷)
+
+현재까지 이식·배포된 영어 변형문제 + QR 단어학습을 **V1**으로 둔다. 이후 jeongsu에서 기능을 발전시켜도, allbarreun/iroom에는 사용자 지시 전까지 V1을 유지한다.
+
+| 사이트 | 리포 | V1 기준 커밋 |
+|--------|------|----------------|
+| jeongsu | `C:\video-app` | `17bf1d1` (`question-generator-v1` 태그) |
+| allbarreun | `C:\allbarreun-edu-app` | `34c3dfb` |
+| iroom | `C:\iroom-edu-app` | `1bb069f` |
+
+V1 범위: 변형문제 생성·인쇄, 단어학습 단계, exam QR (`/exam-vocab`), migrations ~`071` (이식본 `015`–`034`).
