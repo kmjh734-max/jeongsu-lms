@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { StudentListeningExamHub } from "@/components/listening/StudentListeningExamHub";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export default async function ListenHubPage({
   params,
@@ -20,9 +19,10 @@ export default async function ListenHubPage({
     redirect("/login?inactive=1");
   }
 
-  const supabase = await createClient();
+  // QR OMR must load the full published set (not schedule daily-task subsets via RLS).
+  const admin = createAdminClient();
 
-  const { data: set } = await supabase
+  const { data: set } = await admin
     .from("listening_sets")
     .select("id, title")
     .eq("id", setId)
@@ -31,7 +31,7 @@ export default async function ListenHubPage({
 
   if (!set) notFound();
 
-  const { data: questions } = await supabase
+  const { data: questions } = await admin
     .from("listening_questions")
     .select("id, order_index, audio_url")
     .eq("set_id", setId)
@@ -41,7 +41,6 @@ export default async function ListenHubPage({
   let initialAttempt = null;
 
   if (canSubmitOmr) {
-    const admin = createAdminClient();
     const { data: latest } = await admin
       .from("listening_exam_attempts")
       .select("id, score, correct_count, total_count, submitted_at")

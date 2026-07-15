@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { StudentListeningAudioOnly } from "@/components/listening/StudentListeningAudioOnly";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function ListenAudioPage({
   params,
@@ -23,9 +23,10 @@ export default async function ListenAudioPage({
     redirect("/login?inactive=1");
   }
 
-  const supabase = await createClient();
+  // Same as QR hub: full published set, not schedule subset RLS.
+  const admin = createAdminClient();
 
-  const { data: set } = await supabase
+  const { data: set } = await admin
     .from("listening_sets")
     .select("id, title")
     .eq("id", setId)
@@ -34,7 +35,7 @@ export default async function ListenAudioPage({
 
   if (!set) notFound();
 
-  const { data: question } = await supabase
+  const { data: question } = await admin
     .from("listening_questions")
     .select("order_index, audio_url")
     .eq("set_id", setId)
