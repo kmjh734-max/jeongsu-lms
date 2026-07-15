@@ -13,7 +13,7 @@ import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 const ROLE = "admin" as const;
 
 export async function reorderVocabSetsInFolder(
-  folderId: string,
+  folderId: string | null,
   orderedSetIds: string[]
 ): Promise<ActionResult> {
   const profile = await getCurrentProfile();
@@ -26,6 +26,6 @@ export async function reorderVocabSetsInFolder(
 
   if (!result.ok) return actionError(result.message);
 
-  revalidateVocabPaths(ROLE, { folderId });
+  revalidateVocabPaths(ROLE, { folderId: folderId ?? undefined });
   return actionSuccess("순서가 저장되었습니다.");
 }

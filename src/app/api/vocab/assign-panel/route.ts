@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   loadFolderAssignPanelData,
   loadSetAssignPanelData,
+  loadUnfiledAssignPanelData,
 } from "@/lib/vocab/load-assign-panel";
 
 export async function GET(request: Request) {
@@ -15,11 +16,17 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const folderId = searchParams.get("folderId");
   const setId = searchParams.get("setId");
+  const unfiled = searchParams.get("unfiled") === "1";
 
   const supabase = await createClient();
   const role = profile.role as "admin" | "teacher";
 
   try {
+    if (unfiled) {
+      const data = await loadUnfiledAssignPanelData(supabase, role, profile.id);
+      return NextResponse.json(data);
+    }
+
     if (folderId) {
       const data = await loadFolderAssignPanelData(
         supabase,
@@ -40,8 +47,14 @@ export async function GET(request: Request) {
       return NextResponse.json(data);
     }
 
-    return NextResponse.json({ error: "folderId or setId required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "folderId, setId, or unfiled required" },
+      { status: 400 }
+    );
   } catch {
-    return NextResponse.json({ error: "Failed to load assign panel" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load assign panel" },
+      { status: 500 }
+    );
   }
 }

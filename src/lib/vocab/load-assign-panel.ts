@@ -152,9 +152,76 @@ export async function loadFolderAssignPanelData(
     loadAssignableStudents(supabase, role, userId),
   ]);
 
-  const setList = setsRes.data ?? [];
-  const setIds = setList.map((s) => s.id as string);
-  const setTitles = setList.map((s) => s.title as string);
+  return finishFolderAssignPanel(
+    supabase,
+    (classesRes.data ?? []) as { id: string; name: string }[],
+    (setsRes.data ?? []) as { id: string; title: string }[],
+    allStudents
+  );
+}
+
+export async function loadUnfiledAssignPanelData(
+  supabase: SupabaseClient,
+  role: "admin" | "teacher",
+  userId: string
+): Promise<{
+  classes: ClassWithStudents[];
+  allStudents: AssignableStudent[];
+  assignments: FolderAssignmentRow[];
+  setCount: number;
+  setTitles: string[];
+}> {
+  const [classesRes, setsRes, allStudents] = await Promise.all([
+    role === "admin"
+      ? supabase
+          .from("classes")
+          .select("id, name")
+          .eq("is_active", true)
+          .order("name")
+      : supabase
+          .from("classes")
+          .select("id, name")
+          .eq("teacher_id", userId)
+          .eq("is_active", true)
+          .order("name"),
+    (() => {
+      let q = supabase
+        .from("vocab_sets")
+        .select("id, title")
+        .is("folder_id", null)
+        .order("order_index", { ascending: true })
+        .order("created_at", { ascending: true });
+      if (role === "teacher") {
+        q = q.or(`teacher_id.eq.${userId},created_by.eq.${userId}`);
+      }
+      return q;
+    })(),
+    loadAssignableStudents(supabase, role, userId),
+  ]);
+
+  return finishFolderAssignPanel(
+    supabase,
+    (classesRes.data ?? []) as { id: string; name: string }[],
+    (setsRes.data ?? []) as { id: string; title: string }[],
+    allStudents
+  );
+}
+
+async function finishFolderAssignPanel(
+  supabase: SupabaseClient,
+  classRows: { id: string; name: string }[],
+  setRows: { id: string; title: string }[],
+  allStudents: AssignableStudent[]
+): Promise<{
+  classes: ClassWithStudents[];
+  allStudents: AssignableStudent[];
+  assignments: FolderAssignmentRow[];
+  setCount: number;
+  setTitles: string[];
+}> {
+  const setList = setRows;
+  const setIds = setList.map((s) => s.id);
+  const setTitles = setList.map((s) => s.title);
 
   const assignmentsRes =
     setIds.length > 0
@@ -168,7 +235,7 @@ export async function loadFolderAssignPanelData(
           .order("created_at", { ascending: false })
       : { data: [] };
 
-  const classList = (classesRes.data ?? []) as { id: string; name: string }[];
+  const classList = classRows as { id: string; name: string }[];
   const classIds = classList.map((c) => c.id);
 
   const { data: memberRows } =

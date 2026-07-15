@@ -33,7 +33,7 @@ function isSetsSectionActive(pathname: string, base: string): boolean {
   const rest = pathname.slice(base.length + 1);
   const segment = rest.split("/")[0] ?? "";
   if (!segment || RESERVED.has(segment)) return false;
-  return segment === "folder" || segment === "set";
+  return segment === "folder" || segment === "set" || segment === "unfiled";
 }
 
 export function VocabCombinedSidebar({
@@ -260,11 +260,31 @@ function VocabFolderPanel({
             );
           })}
 
-          {unfiledCount > 0 && (
-            <p className="px-2 pt-1 text-xs text-slate-400">
-              미분류 세트 {unfiledCount}개
-            </p>
-          )}
+          {(() => {
+            const unfiledHref = `${base}/unfiled`;
+            const href =
+              mode === "assign" ? `${unfiledHref}?openAssign=1` : unfiledHref;
+            const active =
+              mode === "sets" &&
+              (pathname === unfiledHref ||
+                pathname.startsWith(`${unfiledHref}/`));
+            return (
+              <Link
+                href={href}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                  active
+                    ? activeNav
+                    : "text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                <span aria-hidden>📂</span>
+                <span className="truncate font-medium">미분류</span>
+                <span className="ml-auto shrink-0 text-xs text-slate-400">
+                  {unfiledCount}
+                </span>
+              </Link>
+            );
+          })()}
         </div>
 
         <div className="mt-5 border-t border-slate-100 pt-4">

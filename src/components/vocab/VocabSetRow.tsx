@@ -21,7 +21,7 @@ interface FolderOption {
 interface VocabSetRowProps {
   role: "admin" | "teacher";
   set: VocabSetRowData;
-  folderId: string;
+  folderId: string | null;
   basePath: string;
   folders: FolderOption[];
   checked: boolean;
@@ -49,7 +49,9 @@ export function VocabSetRow({
   const actions = role === "admin" ? adminActions : teacherActions;
   const [menuOpen, setMenuOpen] = useState(false);
   const [dialog, setDialog] = useState<"move" | "copy" | null>(null);
-  const [targetFolder, setTargetFolder] = useState(folderId);
+  const [targetFolder, setTargetFolder] = useState(
+    folderId ?? folders[0]?.id ?? ""
+  );
   const [loading, setLoading] = useState(false);
 
   async function handleDelete() {
@@ -178,7 +180,7 @@ export function VocabSetRow({
                   onClick={() => {
                     setMenuOpen(false);
                     setDialog("move");
-                    setTargetFolder(folderId);
+                    setTargetFolder(folderId ?? folders[0]?.id ?? "");
                   }}
                 >
                   폴더 이동
@@ -191,7 +193,7 @@ export function VocabSetRow({
                   onClick={() => {
                     setMenuOpen(false);
                     setDialog("copy");
-                    setTargetFolder(folders[0]?.id ?? folderId);
+                    setTargetFolder(folders[0]?.id ?? "");
                   }}
                 >
                   복사

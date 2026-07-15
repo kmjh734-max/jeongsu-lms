@@ -22,7 +22,8 @@ interface FolderOption {
 interface VocabFolderViewProps {
   role: "admin" | "teacher";
   initialAssignOpen?: boolean;
-  folderId: string;
+  /** null = 미분류 */
+  folderId: string | null;
   folderName: string;
   academyName: string;
   ownerName: string;
@@ -45,8 +46,13 @@ export function VocabFolderView({
   teachers,
 }: VocabFolderViewProps) {
   const router = useRouter();
-  const basePath = role === "admin" ? "/admin/vocab" : "/teacher/vocab";
+  const basePath = (role === "admin" ? "/admin/vocab" : "/teacher/vocab") as
+    | "/admin/vocab"
+    | "/teacher/vocab";
+  const listHref = folderId ? `${basePath}/folder/${folderId}` : `${basePath}/unfiled`;
+  const isUnfiled = folderId == null;
   const actions = role === "admin" ? adminActions : teacherActions;
+  const defaultMoveTarget = folderId ?? folders[0]?.id ?? "";
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [assignOpen, setAssignOpen] = useState(false);
@@ -55,7 +61,7 @@ export function VocabFolderView({
   );
   const [singleSetId, setSingleSetId] = useState<string | null>(null);
   const [bulkDialog, setBulkDialog] = useState<"move" | "copy" | null>(null);
-  const [targetFolder, setTargetFolder] = useState(folderId);
+  const [targetFolder, setTargetFolder] = useState(defaultMoveTarget);
   const [loading, setLoading] = useState(false);
   const [assignPanel, setAssignPanel] = useState<VocabAssignPanelData | null>(
     null
@@ -65,6 +71,7 @@ export function VocabFolderView({
 
   const selectedIds = useMemo(() => [...selected], [selected]);
   const allSelected = sets.length > 0 && selected.size === sets.length;
+  const allSetIds = useMemo(() => sets.map((s) => s.id), [sets]);
 
   const singleSet = singleSetId
     ? sets.find((s) => s.id === singleSetId)
@@ -75,7 +82,12 @@ export function VocabFolderView({
     .map((s) => s.title);
 
   function openFolderAssign() {
-    setAssignMode("folder");
+    if (isUnfiled) {
+      setAssignMode("bulk");
+      setSelected(new Set(allSetIds));
+    } else {
+      setAssignMode("folder");
+    }
     setSingleSetId(null);
     setAssignOpen(true);
   }
@@ -93,7 +105,9 @@ export function VocabFolderView({
     const url =
       assignMode === "set" && singleSetId
         ? `/api/vocab/assign-panel?setId=${encodeURIComponent(singleSetId)}`
-        : `/api/vocab/assign-panel?folderId=${encodeURIComponent(folderId)}`;
+        : isUnfiled
+          ? `/api/vocab/assign-panel?unfiled=1`
+          : `/api/vocab/assign-panel?folderId=${encodeURIComponent(folderId!)}`;
 
     let cancelled = false;
     setAssignPanelLoading(true);
@@ -120,7 +134,7 @@ export function VocabFolderView({
     return () => {
       cancelled = true;
     };
-  }, [assignOpen, assignMode, singleSetId, folderId]);
+  }, [assignOpen, assignMode, singleSetId, folderId, isUnfiled]);
 
   function openSetAssign(setId: string) {
     setAssignMode("set");
@@ -153,7 +167,10 @@ export function VocabFolderView({
       return;
     }
     setLoading(true);
-    const result = await actions.bulkDeleteVocabSets(selectedIds, folderId);
+    const result = await actions.bulkDeleteVocabSets(
+      selectedIds,
+      folderId ?? undefined
+    );
     setLoading(false);
     window.alert(result.message);
     if (result.ok) {
@@ -181,9 +198,13 @@ export function VocabFolderView({
     if (selected.size === 0) return;
     const params = new URLSearchParams({
       sets: selectedIds.join(","),
-      back: `${basePath}/folder/${folderId}`,
+      back: listHref,
     });
-    window.open(`${basePath}/print?${params.toString()}`, "_blank", "noopener,noreferrer");
+    window.open(
+      `${basePath}/print?${params.toString()}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
   }
 
   async function handleBulkCopy() {
@@ -207,7 +228,7 @@ export function VocabFolderView({
   }
 
   const assignmentProps: VocabAssignmentSectionProps | null = assignPanel
-    ? assignMode === "folder"
+    ? assignMode === "folder" && folderId
       ? {
           role,
           variant: "folder",
@@ -219,14 +240,24 @@ export function VocabFolderView({
           allStudents: assignPanel.allStudents,
           assignments: assignPanel.assignments,
         }
-      : assignMode === "bulk"
+      : assignMode === "bulk" || (assignMode === "folder" && isUnfiled)
         ? {
             role,
             variant: "bulk",
-            setIds: selectedIds,
-            scopeLabel: `${selected.size}개 단어세트`,
-            setCount: selected.size,
-            setTitles: bulkTitles,
+            setIds:
+              assignMode === "folder" && isUnfiled ? allSetIds : selectedIds,
+            scopeLabel:
+              assignMode === "folder" && isUnfiled
+                ? `미분류 (${allSetIds.length}개)`
+                : `${selected.size}개 단어세트`,
+            setCount:
+              assignMode === "folder" && isUnfiled
+                ? allSetIds.length
+                : selected.size,
+            setTitles:
+              assignMode === "folder" && isUnfiled
+                ? sets.map((s) => s.title)
+                : bulkTitles,
             classes: assignPanel.classes,
             allStudents: assignPanel.allStudents,
             assignments: [],
@@ -247,8 +278,8 @@ export function VocabFolderView({
     : null;
 
   const assignModalTitle =
-    assignMode === "folder"
-      ? `폴더 배정 — ${folderName}`
+    assignMode === "folder" || (assignMode === "bulk" && isUnfiled && selected.size === sets.length)
+      ? `배정 — ${folderName}`
       : assignMode === "bulk"
         ? `선택 세트 배정 (${selected.size}개)`
         : `단어장 배정 — ${singleSet?.title ?? ""}`;
@@ -264,11 +295,13 @@ export function VocabFolderView({
         ownerName={ownerName}
         ownerUsername={ownerUsername}
         setCount={sets.length}
+        nameEditable={!isUnfiled}
         onAssignClick={openFolderAssign}
         createSetButton={
           <VocabSetCreateLauncher
             role={role}
             folderId={folderId}
+            folders={isUnfiled ? folders : undefined}
             teachers={teachers}
             basePath={basePath}
             onCreate={actions.createVocabSet}
@@ -283,12 +316,20 @@ export function VocabFolderView({
           allSelected={allSelected}
           onToggleAll={toggleAll}
           onMove={() => {
-            setTargetFolder(folderId);
+            if (folders.length === 0) {
+              window.alert("이동할 폴더가 없습니다. 먼저 폴더를 만드세요.");
+              return;
+            }
+            setTargetFolder(folderId ?? folders[0]!.id);
             setBulkDialog("move");
           }}
           onAssign={openBulkAssign}
           onCopy={() => {
-            setTargetFolder(folders[0]?.id ?? folderId);
+            if (folders.length === 0) {
+              window.alert("복사할 폴더가 없습니다. 먼저 폴더를 만드세요.");
+              return;
+            }
+            setTargetFolder(folders[0]!.id);
             setBulkDialog("copy");
           }}
           onDelete={handleBulkDelete}
@@ -298,7 +339,11 @@ export function VocabFolderView({
 
         {sets.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <p className="text-slate-600">이 폴더에 단어세트가 없습니다.</p>
+            <p className="text-slate-600">
+              {isUnfiled
+                ? "미분류 단어세트가 없습니다."
+                : "이 폴더에 단어세트가 없습니다."}
+            </p>
             <p className="mt-2 text-sm text-slate-500">
               아래 버튼으로 첫 단어세트를 만들어 보세요.
             </p>
@@ -328,6 +373,7 @@ export function VocabFolderView({
         <VocabSetCreateLauncher
           role={role}
           folderId={folderId}
+          folders={isUnfiled ? folders : undefined}
           teachers={teachers}
           basePath={basePath}
           onCreate={actions.createVocabSet}
@@ -365,7 +411,7 @@ export function VocabFolderView({
             <div className="mt-4 flex gap-2">
               <button
                 type="button"
-                disabled={loading}
+                disabled={loading || !targetFolder}
                 onClick={
                   bulkDialog === "move" ? handleBulkMove : handleBulkCopy
                 }

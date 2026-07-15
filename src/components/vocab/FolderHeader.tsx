@@ -7,7 +7,7 @@ import * as teacherActions from "@/app/teacher/vocab/actions";
 
 interface FolderHeaderProps {
   role: "admin" | "teacher";
-  folderId: string;
+  folderId: string | null;
   folderName: string;
   basePath: string;
   academyName: string;
@@ -16,6 +16,8 @@ interface FolderHeaderProps {
   setCount: number;
   onAssignClick: () => void;
   createSetButton: React.ReactNode;
+  /** false면 이름 수정 불가 (미분류) */
+  nameEditable?: boolean;
 }
 
 export function FolderHeader({
@@ -29,20 +31,23 @@ export function FolderHeader({
   setCount,
   onAssignClick,
   createSetButton,
+  nameEditable = true,
 }: FolderHeaderProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(folderName);
   const [saving, setSaving] = useState(false);
+  const canEditName = nameEditable && Boolean(folderId);
   const ownerLabel = ownerUsername
-    ? `${academyName}, ${ownerUsername} 님의 폴더입니다`
-    : `${academyName}, ${ownerName} 님의 폴더입니다`;
+    ? `${academyName}, ${ownerUsername} 님의 ${canEditName ? "폴더" : "세트"}입니다`
+    : `${academyName}, ${ownerName} 님의 ${canEditName ? "폴더" : "세트"}입니다`;
 
   useEffect(() => {
     setName(folderName);
   }, [folderName]);
 
   async function saveName() {
+    if (!folderId) return;
     const trimmed = name.trim();
     if (!trimmed || trimmed === folderName) {
       setEditing(false);
@@ -91,7 +96,7 @@ export function FolderHeader({
               </span>
             </div>
             <div className="min-w-0 text-white">
-              {editing ? (
+              {editing && canEditName ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <input
                     className="min-w-[12rem] rounded-lg border-0 px-3 py-2 text-lg font-bold text-slate-900 shadow-sm"
@@ -130,20 +135,23 @@ export function FolderHeader({
                   <h1 className="text-xl font-bold leading-tight sm:text-2xl">
                     {folderName}
                   </h1>
-                  <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    title="폴더명 수정"
-                    className="rounded-lg bg-white/20 p-1.5 text-white hover:bg-white/30"
-                    aria-label="폴더명 수정"
-                  >
-                    <PencilIcon />
-                  </button>
+                  {canEditName ? (
+                    <button
+                      type="button"
+                      onClick={() => setEditing(true)}
+                      title="폴더명 수정"
+                      className="rounded-lg bg-white/20 p-1.5 text-white hover:bg-white/30"
+                      aria-label="폴더명 수정"
+                    >
+                      <PencilIcon />
+                    </button>
+                  ) : null}
                 </div>
               )}
               <p className="mt-1 text-sm text-white/90">{ownerLabel}</p>
               <p className="mt-2 text-sm font-medium text-white/80">
-                단어세트 {setCount}개 · 드래그로 순서 변경
+                단어세트 {setCount}개
+                {canEditName ? " · 드래그로 순서 변경" : " · 드래그로 순서 변경"}
               </p>
             </div>
           </div>

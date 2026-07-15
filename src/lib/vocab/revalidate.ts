@@ -10,6 +10,7 @@ export function revalidateVocabPaths(
   revalidatePath(`${base}/sets`);
   revalidatePath(`${base}/assign`);
   revalidatePath(`${base}/status`);
+  revalidatePath(`${base}/unfiled`);
   revalidatePath("/student/vocab");
   if (opts?.folderId) revalidatePath(`${base}/folder/${opts.folderId}`);
   if (opts?.setId) revalidatePath(`${base}/set/${opts.setId}`);

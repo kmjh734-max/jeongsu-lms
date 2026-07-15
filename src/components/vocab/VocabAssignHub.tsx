@@ -62,25 +62,30 @@ export function VocabAssignHub({
 
       {unfiledSets.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-slate-900">미분류 단어세트</h2>
+          <h2 className="text-lg font-bold text-slate-900">미분류</h2>
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
-            {unfiledSets.map((set) => (
-              <li
-                key={set.id}
-                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-              >
-                <div>
-                  <p className="font-medium text-slate-900">{set.title}</p>
-                  <p className="text-sm text-slate-500">{set.itemCount} 카드</p>
-                </div>
+            <li className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+              <div>
+                <p className="font-medium text-slate-900">미분류</p>
+                <p className="text-sm text-slate-500">
+                  단어세트 {unfiledSets.length}개
+                </p>
+              </div>
+              <div className="flex gap-2">
                 <Link
-                  href={`${base}/set/${set.id}`}
+                  href={`${base}/unfiled`}
+                  className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  세트 보기
+                </Link>
+                <Link
+                  href={`${base}/unfiled?openAssign=1`}
                   className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
                 >
-                  열어서 배정
+                  배정하기
                 </Link>
-              </li>
-            ))}
+              </div>
+            </li>
           </ul>
         </section>
       )}

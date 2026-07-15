@@ -110,3 +110,78 @@ export async function loadVocabFolderPageData(
       role === "admin" ? ((teachersRes.data ?? []) as Profile[]) : undefined,
   };
 }
+
+/** 폴더 없는(미분류) 단어세트 목록 — 폴더 보기와 동일 UI */
+export async function loadVocabUnfiledPageData(
+  supabase: SupabaseClient,
+  role: "admin" | "teacher",
+  userId: string
+): Promise<Omit<VocabFolderPageData, "folder"> & { setCount: number }> {
+  const setsQuery = supabase
+    .from("vocab_sets")
+    .select("*, teacher:profiles!vocab_sets_teacher_id_fkey(id, name)")
+    .is("folder_id", null)
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  const foldersQuery =
+    role === "admin"
+      ? supabase.from("vocab_folders").select("id, name").order("name")
+      : supabase
+          .from("vocab_folders")
+          .select("id, name")
+          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
+          .order("name");
+
+  const [setsRes, foldersRes, ownerRes, teachersRes] = await Promise.all([
+    role === "admin"
+      ? setsQuery
+      : setsQuery.or(`teacher_id.eq.${userId},created_by.eq.${userId}`),
+    foldersQuery,
+    supabase
+      .from("profiles")
+      .select("name, username")
+      .eq("id", userId)
+      .maybeSingle(),
+    role === "admin"
+      ? supabase
+          .from("profiles")
+          .select("*")
+          .eq("role", "teacher")
+          .eq("is_active", true)
+          .order("name")
+      : Promise.resolve({ data: [] as Profile[] }),
+  ]);
+
+  const setList = (setsRes.data ?? []) as (VocabSet & {
+    teacher: { id: string; name: string } | null;
+  })[];
+
+  const itemCountBySet = await fetchVocabItemCountsBySetIds(
+    supabase,
+    setList.map((s) => s.id)
+  );
+
+  const sets: VocabFolderSetRow[] = setList.map((s) => ({
+    id: s.id,
+    title: s.title,
+    itemCount: itemCountBySet.get(s.id) ?? 0,
+    teacherName: s.teacher?.name ?? null,
+  }));
+
+  const owner = ownerRes.data as { name: string; username: string | null } | null;
+
+  return {
+    academyName: SITE_NAME.replace(/\s*LMS\s*$/i, "").trim() || SITE_NAME,
+    ownerName: owner?.name ?? "—",
+    ownerUsername: owner?.username ?? null,
+    sets,
+    folderOptions: (foldersRes.data ?? []).map((f) => ({
+      id: f.id as string,
+      name: f.name as string,
+    })),
+    teachers:
+      role === "admin" ? ((teachersRes.data ?? []) as Profile[]) : undefined,
+    setCount: sets.length,
+  };
+}

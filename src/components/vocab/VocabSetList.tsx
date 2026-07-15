@@ -13,7 +13,7 @@ interface FolderOption {
 
 interface VocabSetListProps {
   role: "admin" | "teacher";
-  folderId: string;
+  folderId: string | null;
   basePath: string;
   folders: FolderOption[];
   sets: VocabSetRowData[];

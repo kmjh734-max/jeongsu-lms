@@ -13,7 +13,7 @@ import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 const ROLE = "teacher" as const;
 
 export async function reorderVocabSetsInFolder(
-  folderId: string,
+  folderId: string | null,
   orderedSetIds: string[]
 ): Promise<ActionResult> {
   const profile = await getCurrentProfile();
@@ -25,21 +25,24 @@ export async function reorderVocabSetsInFolder(
   }
 
   const supabase = await createClient();
-  const { data: folder } = await supabase
-    .from("vocab_folders")
-    .select("id")
-    .eq("id", folderId)
-    .or(`teacher_id.eq.${profile.id},created_by.eq.${profile.id}`)
-    .maybeSingle();
 
-  if (!folder) {
-    return actionError("이 폴더를 관리할 권한이 없습니다.");
+  if (folderId) {
+    const { data: folder } = await supabase
+      .from("vocab_folders")
+      .select("id")
+      .eq("id", folderId)
+      .or(`teacher_id.eq.${profile.id},created_by.eq.${profile.id}`)
+      .maybeSingle();
+
+    if (!folder) {
+      return actionError("이 폴더를 관리할 권한이 없습니다.");
+    }
   }
 
   const result = await persistVocabSetOrder(supabase, folderId, orderedSetIds);
 
   if (!result.ok) return actionError(result.message);
 
-  revalidateVocabPaths(ROLE, { folderId });
+  revalidateVocabPaths(ROLE, { folderId: folderId ?? undefined });
   return actionSuccess("순서가 저장되었습니다.");
 }

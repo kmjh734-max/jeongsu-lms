@@ -144,22 +144,31 @@ export function VocabSetsOverview({
       </section>
 
       {unfiled.length > 0 && (
-        <section className="rounded-xl border border-amber-200 bg-amber-50/50 p-5">
-          <h2 className="font-semibold text-amber-900">
-            폴더 없는 단어세트 ({unfiled.length})
-          </h2>
-          <ul className="mt-3 space-y-2">
-            {unfiled.map((s) => (
-              <li key={s.id}>
-                <Link
-                  href={`${base}/set/${s.id}`}
-                  className="text-sm font-medium text-brand-600 hover:underline"
-                >
-                  {s.title} ({s.item_count} 카드)
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <section>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900">미분류</h2>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Link
+              href={`${base}/unfiled`}
+              className="group overflow-hidden rounded-xl border border-amber-200 bg-white shadow-sm transition hover:border-amber-300 hover:shadow-md"
+            >
+              <div className="bg-gradient-to-r from-amber-300 to-amber-400 px-4 py-3">
+                <span className="text-2xl" aria-hidden>
+                  📂
+                </span>
+              </div>
+              <div className="p-4">
+                <p className="font-semibold text-slate-900 group-hover:text-brand-600">
+                  미분류
+                </p>
+                <p className="mt-1 text-sm text-slate-500">
+                  세트 {unfiled.length}개 ·{" "}
+                  {unfiled.reduce((sum, s) => sum + s.item_count, 0)} 카드
+                </p>
+              </div>
+            </Link>
+          </div>
         </section>
       )}
 

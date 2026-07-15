@@ -2,20 +2,21 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function persistVocabSetOrder(
   supabase: SupabaseClient,
-  folderId: string,
+  folderId: string | null,
   orderedSetIds: string[]
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (orderedSetIds.length === 0) {
     return { ok: false, message: "정렬할 단어장이 없습니다." };
   }
 
-  const updates = orderedSetIds.map((setId, index) =>
-    supabase
+  const updates = orderedSetIds.map((setId, index) => {
+    let q = supabase
       .from("vocab_sets")
       .update({ order_index: index })
-      .eq("id", setId)
-      .eq("folder_id", folderId)
-  );
+      .eq("id", setId);
+    q = folderId ? q.eq("folder_id", folderId) : q.is("folder_id", null);
+    return q;
+  });
 
   const results = await Promise.all(updates);
   const failed = results.find((r) => r.error);
