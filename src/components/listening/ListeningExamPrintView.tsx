@@ -9,6 +9,8 @@ import { buildStudentListeningHubUrl } from "@/lib/listening/listen-url";
 import {
   moveLastOverflowItem,
   paginateExamQuestions,
+  paginateStandardTwentyExam,
+  isStandardTwentyQuestionExam,
   type ExamPageLayout,
 } from "@/lib/listening/paginate-exam-questions";
 import { normalizeTableData } from "@/lib/listening/table-data";
@@ -17,10 +19,11 @@ import type { ListeningTableData } from "@/lib/listening/types";
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 /** 우열(구분선 패딩) 기준 최소 열 너비 — 이보다 넓게 측정하면 줄바꿈이 달라져 잘림 발생 */
 const COLUMN_WIDTH_CLASS = "w-[89mm]";
-const QUESTION_GAP_MM = 12;
-const QUESTION_GAP_MM_WITH_SCRIPT = 4;
-const COLUMN_SAFETY_PX = 28;
-const COLUMN_SAFETY_PX_WITH_SCRIPT = 56;
+/** 문항 간격 — 과하면 페이지당 문항이 급감 */
+const QUESTION_GAP_MM = 5;
+const QUESTION_GAP_MM_WITH_SCRIPT = 3;
+const COLUMN_SAFETY_PX = 10;
+const COLUMN_SAFETY_PX_WITH_SCRIPT = 20;
 const MAX_OVERFLOW_FIXES = 200;
 
 function getExamLayoutConfig(showScript: boolean) {
@@ -31,6 +34,40 @@ function getExamLayoutConfig(showScript: boolean) {
     gapStyle: { gap: `${gapMm}mm` } as const,
     columnSafetyPx: showScript ? COLUMN_SAFETY_PX_WITH_SCRIPT : COLUMN_SAFETY_PX,
   };
+}
+
+function columnUsedHeight(indices: number[], heights: number[], gapPx: number) {
+  let used = 0;
+  for (let i = 0; i < indices.length; i++) {
+    used += heights[indices[i]!]! + (i > 0 ? gapPx : 0);
+  }
+  return used;
+}
+
+function canFitStandardLayout(
+  heights: number[],
+  opts: {
+    firstColumnMaxPx: number;
+    nextColumnMaxPx: number;
+    questionGapPx: number;
+    columnSafetyPx?: number;
+  }
+): boolean {
+  if (!isStandardTwentyQuestionExam(heights.length)) return false;
+  const safety = opts.columnSafetyPx ?? 0;
+  const pages = paginateStandardTwentyExam();
+  for (let pi = 0; pi < pages.length; pi++) {
+    const maxH =
+      (pi === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx) - safety;
+    const page = pages[pi]!;
+    if (
+      columnUsedHeight(page.left, heights, opts.questionGapPx) > maxH ||
+      columnUsedHeight(page.right, heights, opts.questionGapPx) > maxH
+    ) {
+      return false;
+    }
+  }
+  return true;
 }
 
 type PrintScope = "exam" | "answers" | "all";
@@ -128,6 +165,9 @@ export function ListeningExamPrintView({
   const [studentName, setStudentName] = useState("");
   const [includeAnswerKey, setIncludeAnswerKey] = useState(true);
   const [pages, setPages] = useState<ExamPageLayout[] | null>(null);
+  const [answerPages, setAnswerPages] = useState<ExamPageLayout[] | null>(
+    null
+  );
   const [pagesVerified, setPagesVerified] = useState(false);
 
   const measureRef = useRef<HTMLDivElement>(null);
@@ -148,6 +188,7 @@ export function ListeningExamPrintView({
   useLayoutEffect(() => {
     if (questions.length === 0) {
       setPages([]);
+      setAnswerPages([]);
       setPagesVerified(true);
       return;
     }
@@ -162,7 +203,9 @@ export function ListeningExamPrintView({
       const nextBody = probeNext.querySelector<HTMLElement>("[data-body-zone]");
       if (!firstBody || !nextBody) return;
 
-      const questionHeights = questions.map((q) => {
+      const examHeights: number[] = [];
+      const answerHeights: number[] = [];
+      for (const q of questions) {
         const examEl = measureRoot.querySelector<HTMLElement>(
           `[data-measure-q="${q.id}"]`
         );
@@ -170,20 +213,32 @@ export function ListeningExamPrintView({
           `[data-measure-answer-q="${q.id}"]`
         );
         const examH = Math.ceil(examEl?.offsetHeight ?? 96);
-        const answerH = answerEl ? Math.ceil(answerEl.offsetHeight) : 0;
-        return Math.max(examH, answerH);
-      });
+        const answerH = Math.ceil(answerEl?.offsetHeight ?? examH);
+        examHeights.push(examH);
+        answerHeights.push(answerH);
+      }
+
+      const packOpts = {
+        firstColumnMaxPx: firstBody.clientHeight,
+        nextColumnMaxPx: nextBody.clientHeight,
+        questionGapPx: layoutConfig.gapPx,
+        columnSafetyPx: layoutConfig.columnSafetyPx,
+      };
+
+      // 시험지는 문제 높이만으로 채움 (정답 스크립트가 더 길어도 여백 과다 방지)
+      let examLayouts = paginateExamQuestions(examHeights, packOpts);
+      if (
+        !showScript &&
+        isStandardTwentyQuestionExam(questions.length) &&
+        canFitStandardLayout(examHeights, packOpts)
+      ) {
+        examLayouts = paginateStandardTwentyExam();
+      }
 
       overflowFixAttempts.current = 0;
       setPagesVerified(false);
-      setPages(
-        paginateExamQuestions(questionHeights, {
-          firstColumnMaxPx: firstBody.clientHeight,
-          nextColumnMaxPx: nextBody.clientHeight,
-          questionGapPx: layoutConfig.gapPx,
-          columnSafetyPx: layoutConfig.columnSafetyPx,
-        })
-      );
+      setPages(examLayouts);
+      setAnswerPages(paginateExamQuestions(answerHeights, packOpts));
     };
 
     measureAndPaginate();
@@ -206,48 +261,81 @@ export function ListeningExamPrintView({
     const root = document.getElementById("listening-print-root");
     if (!root) return;
 
-    let overflow: { page: number; side: "left" | "right" } | null = null;
-    root.querySelectorAll<HTMLElement>("[data-exam-column]").forEach((col) => {
-      if (overflow) return;
-      const bodyZone = col.closest<HTMLElement>("[data-body-zone]");
-      const maxH = bodyZone?.clientHeight ?? 0;
-      if (!bodyZone || maxH <= 0) return;
+    // 시험지·정답지 각각 검사 (합치면 정답 오버플로가 시험지 배치를 깨뜨림)
+    const scopes: Array<{
+      sel: string;
+      layouts: ExamPageLayout[] | null;
+      setLayouts: typeof setPages;
+    }> = [
+      { sel: ".exam-print-exam", layouts: pages, setLayouts: setPages },
+      {
+        sel: ".exam-print-answers",
+        layouts: answerPages,
+        setLayouts: setAnswerPages,
+      },
+    ];
 
-      const columnOverflow = col.scrollHeight > maxH + 2;
-      const bodyBottom = bodyZone.getBoundingClientRect().bottom;
-      const questionOverflow = Array.from(
-        col.querySelectorAll<HTMLElement>("[data-exam-question]")
-      ).some((qEl) => qEl.getBoundingClientRect().bottom > bodyBottom + 1);
+    let fixed = false;
+    for (const scope of scopes) {
+      if (fixed || !scope.layouts) continue;
+      const scopeRoot = root.querySelector(scope.sel);
+      if (!scopeRoot) continue;
 
-      if (!columnOverflow && !questionOverflow) return;
-      const page = Number(col.dataset.page);
-      const side = col.dataset.side;
-      if (!Number.isFinite(page) || (side !== "left" && side !== "right")) {
+      let overflow: { page: number; side: "left" | "right" } | null = null;
+      for (const col of scopeRoot.querySelectorAll<HTMLElement>(
+        "[data-exam-column]"
+      )) {
+        const bodyZone = col.closest<HTMLElement>("[data-body-zone]");
+        const maxH = bodyZone?.clientHeight ?? 0;
+        if (!bodyZone || maxH <= 0) continue;
+
+        const columnOverflow = col.scrollHeight > maxH + 2;
+        const bodyBottom = bodyZone.getBoundingClientRect().bottom;
+        const questionOverflow = Array.from(
+          col.querySelectorAll<HTMLElement>("[data-exam-question]")
+        ).some((qEl) => qEl.getBoundingClientRect().bottom > bodyBottom + 1);
+
+        if (!columnOverflow && !questionOverflow) continue;
+        const page = Number(col.dataset.page);
+        const side = col.dataset.side;
+        if (!Number.isFinite(page) || (side !== "left" && side !== "right")) {
+          continue;
+        }
+        overflow = { page, side };
+        break;
+      }
+
+      if (!overflow) continue;
+
+      if (overflowFixAttempts.current >= MAX_OVERFLOW_FIXES) {
+        setPagesVerified(true);
         return;
       }
-      overflow = { page, side };
-    });
 
-    if (!overflow) {
+      overflowFixAttempts.current += 1;
+      setPagesVerified(false);
+      const hit = overflow;
+      const nextLayouts =
+        moveLastOverflowItem(scope.layouts, hit.page, hit.side) ??
+        scope.layouts;
+      scope.setLayouts(nextLayouts);
+      fixed = true;
+    }
+
+    if (!fixed) {
       overflowFixAttempts.current = 0;
       setPagesVerified(true);
-      return;
     }
-
-    if (overflowFixAttempts.current >= MAX_OVERFLOW_FIXES) {
-      setPagesVerified(true);
-      return;
-    }
-
-    overflowFixAttempts.current += 1;
-    setPagesVerified(false);
-    setPages((prev) => {
-      if (!prev) return prev;
-      return (
-        moveLastOverflowItem(prev, overflow!.page, overflow!.side) ?? prev
-      );
-    });
-  }, [pages, questions, showScript, examTitle, gradeLabel, studentName]);
+  }, [
+    pages,
+    answerPages,
+    questions,
+    showScript,
+    examTitle,
+    gradeLabel,
+    studentName,
+    includeAnswerKey,
+  ]);
 
   function runPrint(scope: PrintScope) {
     const prevTitle = document.title;
@@ -277,7 +365,10 @@ export function ListeningExamPrintView({
   }
 
   const totalPages = resolvedPages?.length ?? 0;
-  const layoutReady = pages !== null && pagesVerified;
+  const layoutReady =
+    pages !== null &&
+    pagesVerified &&
+    (!includeAnswerKey || answerPages !== null);
 
   return (
     <div className="min-h-screen bg-slate-200 print:bg-white">
@@ -470,7 +561,7 @@ export function ListeningExamPrintView({
             )}
           </div>
 
-          {questions.length > 0 && layoutReady && (
+          {questions.length > 0 && layoutReady && answerPages && (
             <div
               className={
                 includeAnswerKey
@@ -481,7 +572,7 @@ export function ListeningExamPrintView({
               <ExamAnswerKeyPages
                 meta={meta}
                 questions={questions}
-                pageLayouts={resolvedPages!}
+                pageLayouts={answerPages}
                 questionGapStyle={layoutConfig.gapStyle}
               />
             </div>

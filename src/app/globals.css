@@ -205,7 +205,7 @@
 
   .listening-exam-q-block {
     font-size: 10.5pt;
-    line-height: 1.48;
+    line-height: 1.42;
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -225,7 +225,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 1.5mm;
-    margin-bottom: 1.2mm;
+    margin-bottom: 0.8mm;
   }
 
   .listening-exam-type-label {
