@@ -549,6 +549,12 @@ export function ListeningSetManageClient({
           </button>
         </div>
       </div>
+      {!isPublished ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+          세트가 비공개면 학생 QR(`/listen/...`)은 404입니다. 시험지 출력 전에
+          「학생에게 공개」를 눌러 주세요.
+        </p>
+      ) : null}
 
       <ListeningVoiceSettings
         setId={setId}

@@ -19,17 +19,20 @@ export default async function ListenHubPage({
     redirect("/login?inactive=1");
   }
 
-  // QR OMR must load the full published set (not schedule daily-task subsets via RLS).
+  // QR OMR must load the full set (not schedule daily-task subsets via RLS).
+  // Students need published sets; admin/teacher can preview before 공개.
   const admin = createAdminClient();
+  const staffPreview =
+    profile.role === "admin" || profile.role === "teacher";
 
   const { data: set } = await admin
     .from("listening_sets")
-    .select("id, title")
+    .select("id, title, is_published")
     .eq("id", setId)
-    .eq("is_published", true)
     .maybeSingle();
 
   if (!set) notFound();
+  if (!set.is_published && !staffPreview) notFound();
 
   const { data: questions } = await admin
     .from("listening_questions")
