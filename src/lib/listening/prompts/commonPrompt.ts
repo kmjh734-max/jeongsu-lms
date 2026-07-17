@@ -14,6 +14,12 @@ import {
   LISTENING_SYSTEM_PROMPT_HIGH2,
 } from "@/lib/listening/prompts/commonPromptHigh2";
 import {
+  COMMON_PROMPT_HIGH3,
+  HIGH3_COPYRIGHT_BLOCK,
+  HIGH3_JSON_OUTPUT_SCHEMA,
+  LISTENING_SYSTEM_PROMPT_HIGH3,
+} from "@/lib/listening/prompts/commonPromptHigh3";
+import {
   COMMON_PROMPT_MIDDLE2,
   LISTENING_SYSTEM_PROMPT_MIDDLE2,
   MIDDLE2_COPYRIGHT_BLOCK,
@@ -92,6 +98,7 @@ export const LISTENING_SYSTEM_PROMPT =
   "You are an expert writer for the Korean national middle school Grade 1 English listening exam (전국 중1 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Follow per-type rules and word-count targets strictly. Write natural, slightly longer sentences (6~13 words) at grade-1 level.";
 
 export function getListeningSystemPrompt(grade: ListeningGradeLevel): string {
+  if (grade === "high3") return LISTENING_SYSTEM_PROMPT_HIGH3;
   if (grade === "high2") return LISTENING_SYSTEM_PROMPT_HIGH2;
   if (grade === "high1") return LISTENING_SYSTEM_PROMPT_HIGH1;
   if (grade === "middle3") return LISTENING_SYSTEM_PROMPT_MIDDLE3;
@@ -100,6 +107,7 @@ export function getListeningSystemPrompt(grade: ListeningGradeLevel): string {
 }
 
 export function getCommonPrompt(grade: ListeningGradeLevel): string {
+  if (grade === "high3") return COMMON_PROMPT_HIGH3;
   if (grade === "high2") return COMMON_PROMPT_HIGH2;
   if (grade === "high1") return COMMON_PROMPT_HIGH1;
   if (grade === "middle3") return COMMON_PROMPT_MIDDLE3;
@@ -108,6 +116,7 @@ export function getCommonPrompt(grade: ListeningGradeLevel): string {
 }
 
 export function getCopyrightBlock(grade: ListeningGradeLevel): string {
+  if (grade === "high3") return HIGH3_COPYRIGHT_BLOCK;
   if (grade === "high2") return HIGH2_COPYRIGHT_BLOCK;
   if (grade === "high1") return HIGH1_COPYRIGHT_BLOCK;
   if (grade === "middle3") return MIDDLE3_COPYRIGHT_BLOCK;
@@ -116,6 +125,7 @@ export function getCopyrightBlock(grade: ListeningGradeLevel): string {
 }
 
 export function getJsonOutputSchema(grade: ListeningGradeLevel): string {
+  if (grade === "high3") return HIGH3_JSON_OUTPUT_SCHEMA;
   if (grade === "high2") return HIGH2_JSON_OUTPUT_SCHEMA;
   if (grade === "high1") return HIGH1_JSON_OUTPUT_SCHEMA;
   if (grade === "middle3") return MIDDLE3_JSON_OUTPUT_SCHEMA;

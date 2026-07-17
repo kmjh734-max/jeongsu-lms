@@ -3,6 +3,7 @@ import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
 import { HIGH1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high1";
 import { HIGH2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high2";
+import { HIGH3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high3";
 import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle1";
 import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
 import { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
@@ -10,11 +11,13 @@ import { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3
 export type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
 export { HIGH1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high1";
 export { HIGH2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high2";
+export { HIGH3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high3";
 export { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle1";
 export { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
 export { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
 
 export function getExamTypesForGrade(grade: ListeningGradeLevel): ExamTypeTemplate[] {
+  if (grade === "high3") return HIGH3_LISTENING_EXAM_TYPES;
   if (grade === "high2") return HIGH2_LISTENING_EXAM_TYPES;
   if (grade === "high1") return HIGH1_LISTENING_EXAM_TYPES;
   if (grade === "middle3") return MIDDLE3_LISTENING_EXAM_TYPES;

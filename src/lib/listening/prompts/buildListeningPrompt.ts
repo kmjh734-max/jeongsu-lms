@@ -26,6 +26,10 @@ import {
   buildHigh2TypeOnlyGenerationPrompt,
   getAllHigh2TypePromptBlocks,
 } from "@/lib/listening/prompts/high2TypePrompts";
+import {
+  buildHigh3TypeOnlyGenerationPrompt,
+  getAllHigh3TypePromptBlocks,
+} from "@/lib/listening/prompts/high3TypePrompts";
 import { buildType1OnlyGenerationPrompt } from "@/lib/listening/prompts/type1DescribePrompt";
 import { buildType2OnlyGenerationPrompt } from "@/lib/listening/prompts/type2PurchasePrompt";
 import { buildType3OnlyGenerationPrompt } from "@/lib/listening/prompts/type3WeatherPrompt";
@@ -57,16 +61,20 @@ export function buildListeningExamPrompt(
   difficultyMode: ListeningDifficultyMode,
   grade: ListeningGradeLevel = "middle1"
 ): string {
-  if (grade === "high1" || grade === "high2") {
+  if (grade === "high1" || grade === "high2" || grade === "high3") {
     const gradeLabel = gradeLevelShort(grade);
     const buildTypeOnly =
-      grade === "high2"
-        ? buildHigh2TypeOnlyGenerationPrompt
-        : buildHigh1TypeOnlyGenerationPrompt;
+      grade === "high3"
+        ? buildHigh3TypeOnlyGenerationPrompt
+        : grade === "high2"
+          ? buildHigh2TypeOnlyGenerationPrompt
+          : buildHigh1TypeOnlyGenerationPrompt;
     const getTypeBlocks =
-      grade === "high2"
-        ? getAllHigh2TypePromptBlocks
-        : getAllHigh1TypePromptBlocks;
+      grade === "high3"
+        ? getAllHigh3TypePromptBlocks
+        : grade === "high2"
+          ? getAllHigh2TypePromptBlocks
+          : getAllHigh1TypePromptBlocks;
 
     if (types.length === 1) {
       return buildTypeOnly(types[0]!.id);
@@ -228,7 +236,9 @@ export function buildListeningSingleTypePrompt(
   );
 
   let core: string;
-  if (grade === "high2") {
+  if (grade === "high3") {
+    core = buildHigh3TypeOnlyGenerationPrompt(type.id, previousProblems);
+  } else if (grade === "high2") {
     core = buildHigh2TypeOnlyGenerationPrompt(type.id, previousProblems);
   } else if (grade === "high1") {
     core = buildHigh1TypeOnlyGenerationPrompt(type.id, previousProblems);

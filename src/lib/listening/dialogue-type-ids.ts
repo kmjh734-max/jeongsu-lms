@@ -2,6 +2,7 @@ import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { isHighSchoolListeningGrade } from "@/lib/listening/grade-level";
 import { HIGH1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high1";
 import { HIGH2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high2";
+import { HIGH3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high3";
 import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types";
 import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
 import { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
@@ -29,22 +30,25 @@ export function isDialogueExamType(
   if (getMonologueTypeIds(gradeLevel).has(typeId)) return false;
 
   const types =
-    gradeLevel === "high2"
-      ? HIGH2_LISTENING_EXAM_TYPES
-      : gradeLevel === "high1"
-        ? HIGH1_LISTENING_EXAM_TYPES
-        : gradeLevel === "middle2"
-          ? MIDDLE2_LISTENING_EXAM_TYPES
-          : gradeLevel === "middle3"
-            ? MIDDLE3_LISTENING_EXAM_TYPES
-            : gradeLevel === "middle1"
-              ? MIDDLE1_LISTENING_EXAM_TYPES
-              : [
-                  ...HIGH2_LISTENING_EXAM_TYPES,
-                  ...HIGH1_LISTENING_EXAM_TYPES,
-                  ...MIDDLE2_LISTENING_EXAM_TYPES,
-                  ...MIDDLE1_LISTENING_EXAM_TYPES,
-                ];
+    gradeLevel === "high3"
+      ? HIGH3_LISTENING_EXAM_TYPES
+      : gradeLevel === "high2"
+        ? HIGH2_LISTENING_EXAM_TYPES
+        : gradeLevel === "high1"
+          ? HIGH1_LISTENING_EXAM_TYPES
+          : gradeLevel === "middle2"
+            ? MIDDLE2_LISTENING_EXAM_TYPES
+            : gradeLevel === "middle3"
+              ? MIDDLE3_LISTENING_EXAM_TYPES
+              : gradeLevel === "middle1"
+                ? MIDDLE1_LISTENING_EXAM_TYPES
+                : [
+                    ...HIGH3_LISTENING_EXAM_TYPES,
+                    ...HIGH2_LISTENING_EXAM_TYPES,
+                    ...HIGH1_LISTENING_EXAM_TYPES,
+                    ...MIDDLE2_LISTENING_EXAM_TYPES,
+                    ...MIDDLE1_LISTENING_EXAM_TYPES,
+                  ];
 
   const t = types.find((x) => x.id === typeId);
   if (t?.segment_guide?.includes("M/W")) return true;

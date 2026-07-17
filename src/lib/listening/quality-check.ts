@@ -236,13 +236,15 @@ export function checkListeningQuestionQuality(
   const isMonologue = getMonologueTypeIds(gradeLevel).has(typeId);
   const skipWordCountRules = gradeLevel === "middle1";
   const wordCountRange =
-    gradeLevel === "high2"
-      ? { min: 80, max: 190, label: "80~190" }
-      : gradeLevel === "high1"
-        ? { min: 70, max: 170, label: "70~170" }
-        : gradeLevel === "middle3"
-          ? { min: 70, max: 125, label: "70~125" }
-          : { min: 50, max: 95, label: "55~90" };
+    gradeLevel === "high3"
+      ? { min: 85, max: 205, label: "85~205" }
+      : gradeLevel === "high2"
+        ? { min: 80, max: 190, label: "80~190" }
+        : gradeLevel === "high1"
+          ? { min: 70, max: 170, label: "70~170" }
+          : gradeLevel === "middle3"
+            ? { min: 70, max: 125, label: "70~125" }
+            : { min: 50, max: 95, label: "55~90" };
   const dialogueTurnRange =
     isHighSchoolListeningGrade(gradeLevel)
       ? { min: 4, max: 12 }
@@ -256,7 +258,15 @@ export function checkListeningQuestionQuality(
         ? { min: 6, max: 8 }
         : { min: 5, max: 7 };
   const maxWordsPerSentence =
-    gradeLevel === "high2" ? 22 : gradeLevel === "high1" ? 20 : gradeLevel === "middle3" ? 17 : 13;
+    gradeLevel === "high3"
+      ? 24
+      : gradeLevel === "high2"
+        ? 22
+        : gradeLevel === "high1"
+          ? 20
+          : gradeLevel === "middle3"
+            ? 17
+            : 13;
   const minWordsPerSentence =
     isHighSchoolListeningGrade(gradeLevel) ? 7 : gradeLevel === "middle3" ? 8 : 5;
 

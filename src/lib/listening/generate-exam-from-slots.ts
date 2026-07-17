@@ -36,6 +36,7 @@ import { getAllMiddle2TypePromptBlocks } from "@/lib/listening/prompts/middle2Ty
 import { getAllMiddle3TypePromptBlocks } from "@/lib/listening/prompts/middle3TypePrompts";
 import { getAllHigh1TypePromptBlocks } from "@/lib/listening/prompts/high1TypePrompts";
 import { getAllHigh2TypePromptBlocks } from "@/lib/listening/prompts/high2TypePrompts";
+import { getAllHigh3TypePromptBlocks } from "@/lib/listening/prompts/high3TypePrompts";
 import { getAllTypePromptBlocks } from "@/lib/listening/prompts/typePrompts";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
@@ -75,15 +76,17 @@ function buildSlotsBatchPrompt(
     gradeLevel
   );
   const typeBlocks =
-    gradeLevel === "high2"
-      ? getAllHigh2TypePromptBlocks(uniqueTypeIds)
-      : gradeLevel === "high1"
-        ? getAllHigh1TypePromptBlocks(uniqueTypeIds)
-        : gradeLevel === "middle3"
-          ? getAllMiddle3TypePromptBlocks(uniqueTypeIds)
-          : gradeLevel === "middle2"
-            ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
-            : getAllTypePromptBlocks(uniqueTypeIds);
+    gradeLevel === "high3"
+      ? getAllHigh3TypePromptBlocks(uniqueTypeIds)
+      : gradeLevel === "high2"
+        ? getAllHigh2TypePromptBlocks(uniqueTypeIds)
+        : gradeLevel === "high1"
+          ? getAllHigh1TypePromptBlocks(uniqueTypeIds)
+          : gradeLevel === "middle3"
+            ? getAllMiddle3TypePromptBlocks(uniqueTypeIds)
+            : gradeLevel === "middle2"
+              ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
+              : getAllTypePromptBlocks(uniqueTypeIds);
 
   const slotSpec = slots
     .map(

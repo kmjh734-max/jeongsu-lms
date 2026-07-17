@@ -63,7 +63,8 @@ export async function PATCH(
       body.grade_level === "middle2" ||
       body.grade_level === "middle3" ||
       body.grade_level === "high1" ||
-      body.grade_level === "high2"
+      body.grade_level === "high2" ||
+      body.grade_level === "high3"
     ) {
       patch.grade_level = body.grade_level;
     }
