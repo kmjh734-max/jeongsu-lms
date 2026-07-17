@@ -42,7 +42,10 @@ import {
   buildListeningSingleTypePrompt,
 } from "@/lib/listening/prompts/buildListeningPrompt";
 import { getListeningSystemPrompt } from "@/lib/listening/prompts/commonPrompt";
-import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import {
+  isHighSchoolListeningGrade,
+  type ListeningGradeLevel,
+} from "@/lib/listening/grade-level";
 import {
   formatAssignedScenarioBlock,
   pickContinuationScenario,
@@ -434,7 +437,7 @@ export async function generateSingleExamQuestion(
       gradeLevel
     );
     let type1Assignment: Type1SubjectAssignment | null = null;
-    if (typeId === 1 && gradeLevel !== "high1") {
+    if (typeId === 1 && !isHighSchoolListeningGrade(gradeLevel)) {
       type1Assignment = pickType1Subject(
         problems,
         type1Regeneration?.excludeSubjectIds ?? []
@@ -449,7 +452,10 @@ export async function generateSingleExamQuestion(
           : "";
       prompt = `${regenBlock}${formatAssignedType1SubjectBlock(type1Assignment)}\n\n${prompt}`;
     }
-    if ((typeId === 19 || typeId === 20) && gradeLevel !== "high1") {
+    if (
+      (typeId === 19 || typeId === 20) &&
+      !isHighSchoolListeningGrade(gradeLevel)
+    ) {
       const assignment = pickContinuationScenario(typeId, problems);
       const scenarioBlock = formatAssignedScenarioBlock(assignment);
       prompt = `${scenarioBlock}\n\n${prompt}`;

@@ -1,6 +1,9 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
 import { getMonologueTypeIds } from "@/lib/listening/dialogue-type-ids";
-import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import {
+  isHighSchoolListeningGrade,
+  type ListeningGradeLevel,
+} from "@/lib/listening/grade-level";
 import { QUALITY_PASS_THRESHOLD } from "@/lib/listening/prompts/qualityCheckPrompt";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { normalizeTableData } from "@/lib/listening/table-data";
@@ -233,25 +236,29 @@ export function checkListeningQuestionQuality(
   const isMonologue = getMonologueTypeIds(gradeLevel).has(typeId);
   const skipWordCountRules = gradeLevel === "middle1";
   const wordCountRange =
-    gradeLevel === "high1"
-      ? { min: 70, max: 170, label: "70~170" }
-      : gradeLevel === "middle3"
-        ? { min: 70, max: 125, label: "70~125" }
-        : { min: 50, max: 95, label: "55~90" };
+    gradeLevel === "high2"
+      ? { min: 80, max: 190, label: "80~190" }
+      : gradeLevel === "high1"
+        ? { min: 70, max: 170, label: "70~170" }
+        : gradeLevel === "middle3"
+          ? { min: 70, max: 125, label: "70~125" }
+          : { min: 50, max: 95, label: "55~90" };
   const dialogueTurnRange =
-    gradeLevel === "high1"
+    isHighSchoolListeningGrade(gradeLevel)
       ? { min: 4, max: 12 }
       : gradeLevel === "middle3"
         ? { min: 7, max: 11 }
         : { min: 6, max: 8 };
   const monologueSentenceRange =
-    gradeLevel === "high1"
-      ? { min: 5, max: 9 }
+    isHighSchoolListeningGrade(gradeLevel)
+      ? { min: 5, max: 10 }
       : gradeLevel === "middle3"
         ? { min: 6, max: 8 }
         : { min: 5, max: 7 };
-  const maxWordsPerSentence = gradeLevel === "high1" ? 20 : gradeLevel === "middle3" ? 17 : 13;
-  const minWordsPerSentence = gradeLevel === "high1" ? 7 : gradeLevel === "middle3" ? 8 : 5;
+  const maxWordsPerSentence =
+    gradeLevel === "high2" ? 22 : gradeLevel === "high1" ? 20 : gradeLevel === "middle3" ? 17 : 13;
+  const minWordsPerSentence =
+    isHighSchoolListeningGrade(gradeLevel) ? 7 : gradeLevel === "middle3" ? 8 : 5;
 
   if (!skipWordCountRules) {
     const totalWords = totalScriptWords(q);
@@ -315,7 +322,7 @@ export function checkListeningQuestionQuality(
   }
 
   for (const seg of q.segments) {
-    if (gradeLevel !== "high1" && FORBIDDEN_GRAMMAR.test(seg.text)) {
+    if (!isHighSchoolListeningGrade(gradeLevel) && FORBIDDEN_GRAMMAR.test(seg.text)) {
       issues.push({
         code: "grammar",
         message: "중1 수준을 넘는 문법이 포함되어 있습니다.",
@@ -324,8 +331,8 @@ export function checkListeningQuestionQuality(
     }
   }
 
-  // 고1은 중등 1~20 유형 검수 규칙을 적용하지 않음 (번호 의미가 다름)
-  if (gradeLevel === "high1") {
+  // 고1·고2는 중등 1~20 유형 검수 규칙을 적용하지 않음 (번호 의미가 다름)
+  if (isHighSchoolListeningGrade(gradeLevel)) {
     const quality_score = computeQualityScore(issues);
     const ok = issues.length === 0 && quality_score >= QUALITY_PASS_THRESHOLD;
     return { ok, issues, quality_score };

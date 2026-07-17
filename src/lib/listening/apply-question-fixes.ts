@@ -1,6 +1,9 @@
 import { ensureMwDialogueSegments } from "@/lib/listening/ensure-mw-dialogue";
 import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
-import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import {
+  isHighSchoolListeningGrade,
+  type ListeningGradeLevel,
+} from "@/lib/listening/grade-level";
 import { fixSwappedScriptLanguage } from "@/lib/listening/fix-script-language";
 import { fixContinuationQuestion } from "@/lib/listening/fix-continuation-question";
 import { fixType14Question } from "@/lib/listening/fix-type14-question";
@@ -32,8 +35,8 @@ export function applyQuestionFixes(
   gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   const slotOrder = q.order_index;
-  // 고1은 중등 1~20 유형 fix와 번호 의미가 다름 — 스크립트 언어 보정만
-  if (gradeLevel === "high1") {
+  // 고1·고2는 중등 1~20 유형 fix와 번호 의미가 다름 — 스크립트 언어 보정만
+  if (isHighSchoolListeningGrade(gradeLevel)) {
     const out = fixSwappedScriptLanguage(q);
     return { ...out, order_index: slotOrder };
   }

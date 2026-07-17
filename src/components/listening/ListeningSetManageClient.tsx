@@ -26,6 +26,7 @@ import {
 } from "@/lib/listening/exam-types";
 import {
   gradeLevelShort,
+  isHighSchoolListeningGrade,
   LISTENING_GRADE_OPTIONS,
   questionCountOptionsForGrade,
   type ListeningGradeLevel,
@@ -78,7 +79,7 @@ export function ListeningSetManageClient({
   const [generationPlanMode, setGenerationPlanMode] =
     useState<ListeningGenerationPlanMode>("random");
   const [questionCount, setQuestionCount] = useState<number>(
-    initialGradeLevel === "high1" ? 17 : 5
+    isHighSchoolListeningGrade(initialGradeLevel) ? 17 : 5
   );
   const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
   const [difficultyMode, setDifficultyMode] =
@@ -209,7 +210,7 @@ export function ListeningSetManageClient({
     setSelectedTypeIds([]);
     const options = questionCountOptionsForGrade(level);
     if (!options.includes(questionCount)) {
-      setQuestionCount(level === "high1" ? 17 : 20);
+      setQuestionCount(isHighSchoolListeningGrade(level) ? 17 : 20);
     }
     const res = await fetch(`/api/listening/sets/${setId}`, {
       method: "PATCH",

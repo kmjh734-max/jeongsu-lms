@@ -220,9 +220,66 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   },
 };
 
+/**
+ * 고2 — 2025 전국연합 듣기 대본 수준 (고1과 동일 슬롯, 밀도↑)
+ */
+export const HIGH2_DIFFICULTY_RULES: Record<
+  ListeningDifficultyTier,
+  DifficultyRules
+> = {
+  foundation: {
+    tier: "foundation",
+    label: "기초",
+    questionRange: "1~5번",
+    monologueSentences: "5~8 sentences",
+    dialogueTurns: "7~11 turns",
+    wordsPerSentence: "11~18 English words per sentence",
+    vocabulary:
+      "high school grade 2; school/community plus light science-of-daily-life wording",
+    extra:
+      "Total script 95~145 words. Match 고2 전국연합: clearer cause/effect than 고1 (e.g. schedule change reasons, safety tips).",
+  },
+  standard: {
+    tier: "standard",
+    label: "보통",
+    questionRange: "6~10번",
+    monologueSentences: "6~9 sentences",
+    dialogueTurns: "8~12 turns",
+    wordsPerSentence: "12~18 English words per sentence",
+    vocabulary:
+      "grade 2; prices, event rules, multi-step table filters; denser detail than 고1",
+    extra:
+      "Total script 110~165 words. Payment with options/discount, false-guess reasons, unmentioned item, announcement mismatch, table choice.",
+  },
+  applied: {
+    tier: "applied",
+    label: "심화",
+    questionRange: "11~15번",
+    monologueSentences: "5~8 sentences (type 15 narration)",
+    dialogueTurns: "4~7 turns (short reply) or 8~12 turns (long reply)",
+    wordsPerSentence: "11~19 English words per sentence; reply choices 9~17 words",
+    vocabulary: "grade 2; pragmatic replies with specific contextual detail",
+    extra:
+      "Do NOT put blank replies in segments. Situation speech denser than 고1. Total 80~175 words.",
+  },
+  advanced: {
+    tier: "advanced",
+    label: "고난도",
+    questionRange: "16~17번",
+    monologueSentences: "7~10 sentences",
+    dialogueTurns: "N/A (shared monologue)",
+    wordsPerSentence: "12~19 English words per sentence",
+    vocabulary:
+      "grade 2; topical list monologue (nature, food, science) with clear functions/examples",
+    extra:
+      "Types 16–17 share identical segments. Total 120~180 words. Denser examples than 고1.",
+  },
+};
+
 export function getDifficultyRulesForGrade(
   grade: ListeningGradeLevel
 ): Record<ListeningDifficultyTier, DifficultyRules> {
+  if (grade === "high2") return HIGH2_DIFFICULTY_RULES;
   if (grade === "high1") return HIGH1_DIFFICULTY_RULES;
   if (grade === "middle3") return MIDDLE3_DIFFICULTY_RULES;
   if (grade === "middle2") return MIDDLE2_DIFFICULTY_RULES;
@@ -281,13 +338,15 @@ export function buildDifficultyRequirementBlock(
 ): string {
   const rules = resolveDifficultyForType(type, mode, grade);
   const harderNote =
-    grade === "high1"
-      ? " (고1: 전국연합 수능형 듣기 대본 수준)"
-      : grade === "middle3"
-        ? " (중3: 2024~2026 전국 기출 대본 수준)"
-        : grade === "middle2"
-          ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
-          : "";
+    grade === "high2"
+      ? " (고2: 전국연합 듣기 대본 — 고1보다 밀도↑)"
+      : grade === "high1"
+        ? " (고1: 전국연합 수능형 듣기 대본 수준)"
+        : grade === "middle3"
+          ? " (중3: 2024~2026 전국 기출 대본 수준)"
+          : grade === "middle2"
+            ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
+            : "";
   if (grade === "middle1") {
     return `
 ## 난이도 (참고 — 중1은 문장·대화 **단어 수**로 저장을 막지 않음)
@@ -317,13 +376,15 @@ export function buildDifficultyPromptBlock(
   grade: ListeningGradeLevel = "middle1"
 ): string {
   const harderNote =
-    grade === "high1"
-      ? " (고1: 전국연합 수능형 듣기 대본 수준)"
-      : grade === "middle3"
-        ? " (중3: 2024~2026 전국 기출 대본 수준)"
-        : grade === "middle2"
-          ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
-          : "";
+    grade === "high2"
+      ? " (고2: 전국연합 듣기 대본 — 고1보다 밀도↑)"
+      : grade === "high1"
+        ? " (고1: 전국연합 수능형 듣기 대본 수준)"
+        : grade === "middle3"
+          ? " (중3: 2024~2026 전국 기출 대본 수준)"
+          : grade === "middle2"
+            ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
+            : "";
   return types
     .map((t, i) => {
       const rules = resolveDifficultyForType(t, mode, grade);

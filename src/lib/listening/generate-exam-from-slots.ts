@@ -21,7 +21,10 @@ import {
 } from "@/lib/listening/generate-questions";
 import { buildListeningFreePrompt } from "@/lib/listening/prompts/buildListeningPrompt";
 import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
-import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import {
+  isHighSchoolListeningGrade,
+  type ListeningGradeLevel,
+} from "@/lib/listening/grade-level";
 import { listeningMaxCompletionTokensForCount } from "@/lib/listening/openai-listening-model";
 import {
   getCopyrightBlock,
@@ -32,6 +35,7 @@ import { getCommonPrompt } from "@/lib/listening/prompts/commonPrompt";
 import { getAllMiddle2TypePromptBlocks } from "@/lib/listening/prompts/middle2TypePrompts";
 import { getAllMiddle3TypePromptBlocks } from "@/lib/listening/prompts/middle3TypePrompts";
 import { getAllHigh1TypePromptBlocks } from "@/lib/listening/prompts/high1TypePrompts";
+import { getAllHigh2TypePromptBlocks } from "@/lib/listening/prompts/high2TypePrompts";
 import { getAllTypePromptBlocks } from "@/lib/listening/prompts/typePrompts";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
@@ -39,8 +43,8 @@ import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 const SLOT_CHUNK_SIZE = 5;
 const CHUNK_PARALLEL = 2;
 
-/** 고1 16·17은 동일 음원 — 16 대본을 17에 복사 */
-function syncHigh1PairedScripts(
+/** 고등 16·17은 동일 음원 — 16 대본을 17에 복사 */
+function syncHighSchoolPairedScripts(
   questions: GeneratedListeningQuestion[],
   slots: ListeningGenerationSlot[]
 ): GeneratedListeningQuestion[] {
@@ -71,13 +75,15 @@ function buildSlotsBatchPrompt(
     gradeLevel
   );
   const typeBlocks =
-    gradeLevel === "high1"
-      ? getAllHigh1TypePromptBlocks(uniqueTypeIds)
-      : gradeLevel === "middle3"
-        ? getAllMiddle3TypePromptBlocks(uniqueTypeIds)
-        : gradeLevel === "middle2"
-          ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
-          : getAllTypePromptBlocks(uniqueTypeIds);
+    gradeLevel === "high2"
+      ? getAllHigh2TypePromptBlocks(uniqueTypeIds)
+      : gradeLevel === "high1"
+        ? getAllHigh1TypePromptBlocks(uniqueTypeIds)
+        : gradeLevel === "middle3"
+          ? getAllMiddle3TypePromptBlocks(uniqueTypeIds)
+          : gradeLevel === "middle2"
+            ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
+            : getAllTypePromptBlocks(uniqueTypeIds);
 
   const slotSpec = slots
     .map(
@@ -87,7 +93,7 @@ function buildSlotsBatchPrompt(
     .join("\n");
 
   let scenarioBlocks = "";
-  if (gradeLevel !== "high1") {
+  if (!isHighSchoolListeningGrade(gradeLevel)) {
     const usedType1Problems: string[] = [];
     for (const slot of slots) {
       if (slot.typeId === 1) {
@@ -104,7 +110,7 @@ function buildSlotsBatchPrompt(
   }
 
   const pairNote =
-    gradeLevel === "high1" &&
+    isHighSchoolListeningGrade(gradeLevel) &&
     uniqueTypeIds.includes(16) &&
     uniqueTypeIds.includes(17)
       ? "\n중요: 유형 16과 17은 동일한 segments·script_text를 써야 한다.\n"
@@ -272,8 +278,9 @@ export async function generateExamQuestionsFromSlots(
     if (!q) throw new Error(`${slot.slotIndex}번 문항 생성 실패`);
     return q;
   });
-  const synced =
-    gradeLevel === "high1" ? syncHigh1PairedScripts(ordered, slots) : ordered;
+  const synced = isHighSchoolListeningGrade(gradeLevel)
+    ? syncHighSchoolPairedScripts(ordered, slots)
+    : ordered;
   return applyBalancedChoicePositions(synced);
 }
 
