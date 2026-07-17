@@ -21,7 +21,6 @@ export async function PATCH(
 
     const { setId } = await context.params;
     const body = (await request.json()) as {
-      is_published?: boolean;
       title?: string;
       speech_speed?: number;
       grade_level?: string;
@@ -51,7 +50,6 @@ export async function PATCH(
     }
 
     const patch: Record<string, unknown> = {};
-    if (typeof body.is_published === "boolean") patch.is_published = body.is_published;
     if (typeof body.title === "string" && body.title.trim()) {
       patch.title = body.title.trim();
     }

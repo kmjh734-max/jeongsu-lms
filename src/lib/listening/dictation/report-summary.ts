@@ -55,8 +55,7 @@ export async function buildListeningDictationReport(
   const { data: sets } = await supabase
     .from("listening_sets")
     .select("id, title, dictation_enabled")
-    .in("id", setIds)
-    .eq("is_published", true);
+    .in("id", setIds);
 
   const { data: attempts } = await supabase
     .from("listening_dictation_attempts")

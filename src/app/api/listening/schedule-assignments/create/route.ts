@@ -123,11 +123,6 @@ export async function POST(request: Request) {
       return jsonError(setErr.message);
     }
 
-    await admin
-      .from("listening_sets")
-      .update({ is_published: true })
-      .in("id", setIds);
-
     const { data: assignment } = await admin
       .from("listening_schedule_assignments")
       .select("*")

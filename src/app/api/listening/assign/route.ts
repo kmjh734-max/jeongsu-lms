@@ -6,16 +6,6 @@ function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
 }
 
-async function publishSetForStudents(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  setId: string
-) {
-  await supabase
-    .from("listening_sets")
-    .update({ is_published: true })
-    .eq("id", setId);
-}
-
 export async function POST(request: Request) {
   try {
     const profile = await getCurrentProfile();
@@ -52,19 +42,17 @@ export async function POST(request: Request) {
 
       if (error) {
         if (error.code === "23505") {
-          await publishSetForStudents(supabase, setId);
           return NextResponse.json({
             ok: true,
-            message: "이미 배정된 학생입니다. 공개 상태로 맞춰 두었습니다.",
+            message: "이미 배정된 학생입니다.",
           });
         }
         return jsonError(error.message);
       }
 
-      await publishSetForStudents(supabase, setId);
       return NextResponse.json({
         ok: true,
-        message: "학생에게 배정했고 공개했습니다.",
+        message: "학생에게 배정했습니다.",
       });
     }
 
@@ -77,20 +65,17 @@ export async function POST(request: Request) {
 
     if (error) {
       if (error.code === "23505") {
-        await publishSetForStudents(supabase, setId);
         return NextResponse.json({
           ok: true,
-          message: "이미 배정된 반입니다. 학생에게 보이도록 공개 상태로 맞춰 두었습니다.",
+          message: "이미 배정된 반입니다.",
         });
       }
       return jsonError(error.message);
     }
 
-    await publishSetForStudents(supabase, setId);
-
     return NextResponse.json({
       ok: true,
-      message: "반에 배정했고 학생에게 공개했습니다.",
+      message: "반에 배정했습니다.",
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "배정 실패";

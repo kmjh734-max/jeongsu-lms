@@ -36,12 +36,12 @@ export async function POST(request: Request) {
 
     const { data: setRow } = await admin
       .from("listening_sets")
-      .select("id, title, is_published")
+      .select("id, title")
       .eq("id", setId)
       .maybeSingle();
 
-    if (!setRow?.is_published) {
-      return jsonError("공개된 듣기 세트가 아닙니다.");
+    if (!setRow) {
+      return jsonError("듣기 세트를 찾을 수 없습니다.");
     }
 
     const { data: questions, error: qErr } = await admin

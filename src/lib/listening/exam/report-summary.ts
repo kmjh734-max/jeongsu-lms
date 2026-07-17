@@ -66,8 +66,7 @@ export async function buildListeningExamReport(
   const { data: sets } = await supabase
     .from("listening_sets")
     .select("id, title")
-    .in("id", setIds)
-    .eq("is_published", true);
+    .in("id", setIds);
 
   const { data: questions } = await supabase
     .from("listening_questions")

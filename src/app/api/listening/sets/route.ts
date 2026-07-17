@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         grade_level: "middle1",
         teacher_id: profile.role === "teacher" ? profile.id : profile.id,
         created_by: profile.id,
-        is_published: false,
+        is_published: true,
       })
       .select("id, title")
       .single();

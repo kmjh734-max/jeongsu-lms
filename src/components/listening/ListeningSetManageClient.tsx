@@ -50,7 +50,6 @@ interface ListeningSetManageClientProps {
   setId: string;
   title: string;
   gradeLevel: ListeningGradeLevel;
-  isPublished: boolean;
   speechSpeed: number | null;
   voiceAnnId: string | null;
   voiceMId: string | null;
@@ -64,7 +63,6 @@ export function ListeningSetManageClient({
   setId,
   title,
   gradeLevel: initialGradeLevel,
-  isPublished: initialPublished,
   speechSpeed: initialSpeechSpeed,
   voiceAnnId,
   voiceMId,
@@ -75,7 +73,6 @@ export function ListeningSetManageClient({
 }: ListeningSetManageClientProps) {
   const router = useRouter();
   const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
-  const [isPublished, setIsPublished] = useState(initialPublished);
   const [generationPlanMode, setGenerationPlanMode] =
     useState<ListeningGenerationPlanMode>("random");
   const [questionCount, setQuestionCount] = useState<number>(
@@ -480,24 +477,6 @@ export function ListeningSetManageClient({
     router.refresh();
   }
 
-  async function togglePublish() {
-    setBusy("publish");
-    const res = await fetch(`/api/listening/sets/${setId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ is_published: !isPublished }),
-    });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
-    setBusy(null);
-    if (!data.ok) {
-      setMessage(data.message ?? "게시 설정 실패");
-      return;
-    }
-    setIsPublished(!isPublished);
-    setMessage(!isPublished ? "학생에게 공개되었습니다." : "비공개로 변경되었습니다.");
-    router.refresh();
-  }
-
   function toggleTypeId(id: number) {
     setSelectedTypeIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
@@ -530,18 +509,6 @@ export function ListeningSetManageClient({
           <button
             type="button"
             disabled={!!busy}
-            onClick={togglePublish}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 disabled:opacity-50"
-          >
-            {busy === "publish"
-              ? "처리 중…"
-              : isPublished
-                ? "비공개로"
-                : "학생에게 공개"}
-          </button>
-          <button
-            type="button"
-            disabled={!!busy}
             onClick={deleteSet}
             className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 disabled:opacity-50"
           >
@@ -549,12 +516,6 @@ export function ListeningSetManageClient({
           </button>
         </div>
       </div>
-      {!isPublished ? (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          세트가 비공개면 학생 QR(`/listen/...`)은 404입니다. 시험지 출력 전에
-          「학생에게 공개」를 눌러 주세요.
-        </p>
-      ) : null}
 
       <ListeningVoiceSettings
         setId={setId}

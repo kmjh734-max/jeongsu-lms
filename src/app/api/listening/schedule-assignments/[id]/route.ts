@@ -77,11 +77,6 @@ export async function PATCH(
       if (insertErr) return jsonError(insertErr.message);
 
       await access.admin
-        .from("listening_sets")
-        .update({ is_published: true })
-        .in("id", newSetIds);
-
-      await access.admin
         .from("listening_schedule_assignments")
         .update({ updated_at: new Date().toISOString() })
         .eq("id", id);

@@ -4,7 +4,6 @@ export interface StudentListeningSetItem {
   id: string;
   title: string;
   description: string | null;
-  is_published: boolean;
 }
 
 /** 학생에게 배정된 듣기 세트 (반 배정 + 개별 배정) */
@@ -45,9 +44,8 @@ export async function fetchStudentListeningSets(
 
   const { data: sets, error } = await supabase
     .from("listening_sets")
-    .select("id, title, description, is_published")
+    .select("id, title, description")
     .in("id", setIds)
-    .eq("is_published", true)
     .order("created_at", { ascending: false });
 
   if (error) return [];

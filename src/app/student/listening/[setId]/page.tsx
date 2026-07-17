@@ -17,7 +17,6 @@ export default async function StudentListeningSetPage({
       "id, title, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass"
     )
     .eq("id", setId)
-    .eq("is_published", true)
     .maybeSingle();
 
   if (!set) notFound();

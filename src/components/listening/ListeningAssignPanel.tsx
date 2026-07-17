@@ -18,7 +18,6 @@ interface ListeningAssignPanelProps {
   classes: ClassOption[];
   assignedClassNames: string[];
   assignedStudentNames: string[];
-  isPublished: boolean;
 }
 
 export function ListeningAssignPanel({
@@ -26,7 +25,6 @@ export function ListeningAssignPanel({
   classes,
   assignedClassNames,
   assignedStudentNames,
-  isPublished,
 }: ListeningAssignPanelProps) {
   const router = useRouter();
   const [classId, setClassId] = useState(classes[0]?.id ?? "");
@@ -108,13 +106,8 @@ export function ListeningAssignPanel({
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="font-semibold text-slate-900">반 배정</h2>
         <p className="mt-1 text-xs text-slate-600">
-          반에 배정하면 자동 공개됩니다. 해당 반 소속 학생만 목록에 보입니다.
+          해당 반 소속 학생만 목록에 보입니다.
         </p>
-        {!isPublished && (
-          <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-800">
-            비공개 상태입니다. 배정 시 자동으로 공개됩니다.
-          </p>
-        )}
         {assignedClassNames.length > 0 && (
           <p className="mt-2 text-xs text-slate-600">
             배정된 반: {assignedClassNames.join(", ")}

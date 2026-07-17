@@ -401,9 +401,6 @@ export function ListeningSetsListClient({
                   className="min-w-0 flex-1 hover:text-indigo-700"
                 >
                   <span className="font-medium text-slate-900">{set.title}</span>
-                  <span className="ml-2 text-xs text-slate-500">
-                    {set.is_published ? "공개" : "비공개"}
-                  </span>
                   {set.folder_id && folderFilter === "all" && (
                     <span className="ml-2 text-xs text-indigo-600">
                       {folderNameById.get(set.folder_id) ?? "폴더"}
@@ -467,7 +464,6 @@ export function ListeningSetsListClient({
           assignedStudentNames={
             assignmentBySetId[assignTarget.id]?.studentNames ?? []
           }
-          isPublished={assignTarget.is_published}
           onClose={() => setAssignSetId(null)}
         />
       )}

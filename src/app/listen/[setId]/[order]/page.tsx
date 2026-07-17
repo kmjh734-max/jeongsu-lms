@@ -24,19 +24,15 @@ export default async function ListenAudioPage({
   }
 
   // Same as QR hub: full set, not schedule subset RLS.
-  // Students need published; admin/teacher may preview unpublished.
   const admin = createAdminClient();
-  const staffPreview =
-    profile.role === "admin" || profile.role === "teacher";
 
   const { data: set } = await admin
     .from("listening_sets")
-    .select("id, title, is_published")
+    .select("id, title")
     .eq("id", setId)
     .maybeSingle();
 
   if (!set) notFound();
-  if (!set.is_published && !staffPreview) notFound();
 
   const { data: question } = await admin
     .from("listening_questions")

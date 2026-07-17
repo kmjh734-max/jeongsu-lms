@@ -13,7 +13,6 @@ interface ListeningSetAssignModalProps {
   classes: ClassOption[];
   assignedClassNames: string[];
   assignedStudentNames: string[];
-  isPublished: boolean;
   onClose: () => void;
 }
 
@@ -23,7 +22,6 @@ export function ListeningSetAssignModal({
   classes,
   assignedClassNames,
   assignedStudentNames,
-  isPublished,
   onClose,
 }: ListeningSetAssignModalProps) {
   return (
@@ -57,7 +55,6 @@ export function ListeningSetAssignModal({
           classes={classes}
           assignedClassNames={assignedClassNames}
           assignedStudentNames={assignedStudentNames}
-          isPublished={isPublished}
         />
       </div>
     </div>

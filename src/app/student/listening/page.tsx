@@ -26,7 +26,6 @@ export default async function StudentListeningPage() {
             <p>배정된 듣기 세트가 없습니다.</p>
             <ul className="mt-2 list-inside list-disc text-xs text-slate-500">
               <li>선생님이 반에 배정했는지 확인해 주세요.</li>
-              <li>배정 후 「학생에게 공개」가 되어 있어야 목록에 보입니다.</li>
               <li>내가 반에 등록되어 있는지도 확인이 필요합니다.</li>
             </ul>
           </div>

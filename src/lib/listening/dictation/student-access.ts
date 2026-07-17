@@ -36,13 +36,13 @@ export async function assertStudentListeningQuestionAccess(
   const { data: setRow } = await admin
     .from("listening_sets")
     .select(
-      "id, is_published, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass"
+      "id, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass"
     )
     .eq("id", setId)
     .maybeSingle();
 
-  if (!setRow?.is_published) {
-    return { ok: false as const, message: "공개된 세트가 아닙니다.", status: 403 };
+  if (!setRow) {
+    return { ok: false as const, message: "세트를 찾을 수 없습니다.", status: 404 };
   }
 
   const assigned = await isStudentAssignedListeningSet(admin, profile.id, setId);
