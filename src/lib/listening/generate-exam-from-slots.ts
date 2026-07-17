@@ -31,12 +31,32 @@ import {
 import { getCommonPrompt } from "@/lib/listening/prompts/commonPrompt";
 import { getAllMiddle2TypePromptBlocks } from "@/lib/listening/prompts/middle2TypePrompts";
 import { getAllMiddle3TypePromptBlocks } from "@/lib/listening/prompts/middle3TypePrompts";
+import { getAllHigh1TypePromptBlocks } from "@/lib/listening/prompts/high1TypePrompts";
 import { getAllTypePromptBlocks } from "@/lib/listening/prompts/typePrompts";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 const SLOT_CHUNK_SIZE = 5;
 const CHUNK_PARALLEL = 2;
+
+/** 고1 16·17은 동일 음원 — 16 대본을 17에 복사 */
+function syncHigh1PairedScripts(
+  questions: GeneratedListeningQuestion[],
+  slots: ListeningGenerationSlot[]
+): GeneratedListeningQuestion[] {
+  const typeBySlot = new Map(slots.map((s) => [s.slotIndex, s.typeId]));
+  const q16 = questions.find((q) => typeBySlot.get(q.order_index) === 16);
+  if (!q16) return questions;
+  return questions.map((q) => {
+    if (typeBySlot.get(q.order_index) !== 17) return q;
+    return {
+      ...q,
+      segments: q16.segments.map((s) => ({ ...s })),
+      script_text: q16.script_text,
+      script_translation: q16.script_translation,
+    };
+  });
+}
 
 function buildSlotsBatchPrompt(
   slots: ListeningGenerationSlot[],
@@ -51,11 +71,13 @@ function buildSlotsBatchPrompt(
     gradeLevel
   );
   const typeBlocks =
-    gradeLevel === "middle3"
-      ? getAllMiddle3TypePromptBlocks(uniqueTypeIds)
-      : gradeLevel === "middle2"
-        ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
-        : getAllTypePromptBlocks(uniqueTypeIds);
+    gradeLevel === "high1"
+      ? getAllHigh1TypePromptBlocks(uniqueTypeIds)
+      : gradeLevel === "middle3"
+        ? getAllMiddle3TypePromptBlocks(uniqueTypeIds)
+        : gradeLevel === "middle2"
+          ? getAllMiddle2TypePromptBlocks(uniqueTypeIds)
+          : getAllTypePromptBlocks(uniqueTypeIds);
 
   const slotSpec = slots
     .map(
@@ -65,19 +87,28 @@ function buildSlotsBatchPrompt(
     .join("\n");
 
   let scenarioBlocks = "";
-  const usedType1Problems: string[] = [];
-  for (const slot of slots) {
-    if (slot.typeId === 1) {
-      const assignment = pickType1Subject(usedType1Problems);
-      usedType1Problems.push(`subject_id:${assignment.id}`);
-      scenarioBlocks += `${formatAssignedType1SubjectBlock(assignment)}\n\n`;
-    }
-    if (slot.typeId === 19 || slot.typeId === 20) {
-      scenarioBlocks += `${formatAssignedScenarioBlock(
-        pickContinuationScenario(slot.typeId)
-      )}\n\n`;
+  if (gradeLevel !== "high1") {
+    const usedType1Problems: string[] = [];
+    for (const slot of slots) {
+      if (slot.typeId === 1) {
+        const assignment = pickType1Subject(usedType1Problems);
+        usedType1Problems.push(`subject_id:${assignment.id}`);
+        scenarioBlocks += `${formatAssignedType1SubjectBlock(assignment)}\n\n`;
+      }
+      if (slot.typeId === 19 || slot.typeId === 20) {
+        scenarioBlocks += `${formatAssignedScenarioBlock(
+          pickContinuationScenario(slot.typeId)
+        )}\n\n`;
+      }
     }
   }
+
+  const pairNote =
+    gradeLevel === "high1" &&
+    uniqueTypeIds.includes(16) &&
+    uniqueTypeIds.includes(17)
+      ? "\n중요: 유형 16과 17은 동일한 segments·script_text를 써야 한다.\n"
+      : "";
 
   return `
 ${getCommonPrompt(gradeLevel)}
@@ -85,7 +116,7 @@ ${getCommonPrompt(gradeLevel)}
 ${getCopyrightBlock(gradeLevel)}
 
 ${scenarioBlocks}이번 요청: questions 배열에 정확히 ${slots.length}개 문항을 생성한다 (한 번에 출력).
-
+${pairNote}
 [문항 번호 — order_index]
 ${slotSpec}
 order_index는 반드시 위 문항 번호와 일치한다 (유형 ID와 다를 수 있음).
@@ -241,7 +272,9 @@ export async function generateExamQuestionsFromSlots(
     if (!q) throw new Error(`${slot.slotIndex}번 문항 생성 실패`);
     return q;
   });
-  return applyBalancedChoicePositions(ordered);
+  const synced =
+    gradeLevel === "high1" ? syncHigh1PairedScripts(ordered, slots) : ordered;
+  return applyBalancedChoicePositions(synced);
 }
 
 /** 자유 모드: 문항 수만큼 1회 API 호출 */

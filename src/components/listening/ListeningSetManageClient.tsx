@@ -27,6 +27,7 @@ import {
 import {
   gradeLevelShort,
   LISTENING_GRADE_OPTIONS,
+  questionCountOptionsForGrade,
   type ListeningGradeLevel,
 } from "@/lib/listening/grade-level";
 import {
@@ -76,7 +77,9 @@ export function ListeningSetManageClient({
   const [isPublished, setIsPublished] = useState(initialPublished);
   const [generationPlanMode, setGenerationPlanMode] =
     useState<ListeningGenerationPlanMode>("random");
-  const [questionCount, setQuestionCount] = useState<5 | 10 | 15 | 20>(5);
+  const [questionCount, setQuestionCount] = useState<number>(
+    initialGradeLevel === "high1" ? 17 : 5
+  );
   const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
   const [difficultyMode, setDifficultyMode] =
     useState<ListeningDifficultyMode>("auto");
@@ -204,6 +207,10 @@ export function ListeningSetManageClient({
     const previous = gradeLevel;
     setGradeLevel(level);
     setSelectedTypeIds([]);
+    const options = questionCountOptionsForGrade(level);
+    if (!options.includes(questionCount)) {
+      setQuestionCount(level === "high1" ? 17 : 20);
+    }
     const res = await fetch(`/api/listening/sets/${setId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -216,7 +223,7 @@ export function ListeningSetManageClient({
     }
   }
 
-  function selectQuestionCount(n: 5 | 10 | 15 | 20) {
+  function selectQuestionCount(n: number) {
     setQuestionCount(n);
     if (selectedTypeIds.length > n) {
       setSelectedTypeIds((prev) => prev.slice(0, n));
@@ -779,7 +786,7 @@ export function ListeningSetManageClient({
           <div className="text-sm">
             <span className="font-medium text-slate-700">문항 수</span>
             <div className="mt-1 flex flex-wrap gap-1">
-              {([5, 10, 15, 20] as const).map((n) => (
+              {questionCountOptionsForGrade(gradeLevel).map((n) => (
                 <button
                   key={n}
                   type="button"

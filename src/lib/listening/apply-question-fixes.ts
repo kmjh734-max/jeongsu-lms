@@ -32,6 +32,11 @@ export function applyQuestionFixes(
   gradeLevel?: ListeningGradeLevel
 ): GeneratedListeningQuestion {
   const slotOrder = q.order_index;
+  // 고1은 중등 1~20 유형 fix와 번호 의미가 다름 — 스크립트 언어 보정만
+  if (gradeLevel === "high1") {
+    const out = fixSwappedScriptLanguage(q);
+    return { ...out, order_index: slotOrder };
+  }
   const id = typeId ?? inferExamTypeIdForFixes(q, gradeLevel);
   let out = fixSwappedScriptLanguage(q);
   out = fixContinuationQuestion(out, id);

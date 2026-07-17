@@ -18,6 +18,10 @@ import {
   buildMiddle3TypeOnlyGenerationPrompt,
   getAllMiddle3TypePromptBlocks,
 } from "@/lib/listening/prompts/middle3TypePrompts";
+import {
+  buildHigh1TypeOnlyGenerationPrompt,
+  getAllHigh1TypePromptBlocks,
+} from "@/lib/listening/prompts/high1TypePrompts";
 import { buildType1OnlyGenerationPrompt } from "@/lib/listening/prompts/type1DescribePrompt";
 import { buildType2OnlyGenerationPrompt } from "@/lib/listening/prompts/type2PurchasePrompt";
 import { buildType3OnlyGenerationPrompt } from "@/lib/listening/prompts/type3WeatherPrompt";
@@ -49,6 +53,33 @@ export function buildListeningExamPrompt(
   difficultyMode: ListeningDifficultyMode,
   grade: ListeningGradeLevel = "middle1"
 ): string {
+  if (grade === "high1") {
+    if (types.length === 1) {
+      return buildHigh1TypeOnlyGenerationPrompt(types[0]!.id);
+    }
+    const typeIds = types.map((t) => t.id);
+    const difficultyBlock = buildDifficultyPromptBlock(types, difficultyMode, grade);
+    return `
+${getCommonPrompt(grade)}
+
+${getCopyrightBlock(grade)}
+
+이번 요청: 고1 영어듣기 ${types.length}개 유형을 순서대로 각 1문항씩 생성한다.
+수능형 1~17 슬롯만 사용한다(중등 유형 금지). order_index는 유형 번호와 반드시 일치.
+16번과 17번이 함께면 segments·script_text를 동일하게 맞춘다.
+
+난이도 (유형별):
+${difficultyBlock}
+
+${getAllHigh1TypePromptBlocks(typeIds)}
+
+생성 후 스스로 검수:
+${QUALITY_CHECK_CRITERIA}
+
+${getJsonOutputSchema(grade)}
+`.trim();
+  }
+
   if (grade === "middle2" || grade === "middle3") {
     const gradeLabel = gradeLevelShort(grade);
     const buildTypeOnly =
@@ -183,7 +214,9 @@ export function buildListeningSingleTypePrompt(
   );
 
   let core: string;
-  if (grade === "middle3") {
+  if (grade === "high1") {
+    core = buildHigh1TypeOnlyGenerationPrompt(type.id, previousProblems);
+  } else if (grade === "middle3") {
     core = buildMiddle3TypeOnlyGenerationPrompt(type.id, previousProblems);
   } else if (grade === "middle2") {
     core = buildMiddle2TypeOnlyGenerationPrompt(type.id, previousProblems);

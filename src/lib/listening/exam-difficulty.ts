@@ -117,6 +117,61 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   },
 };
 
+/**
+ * 고1 — 2025·2026 전국연합 듣기 대본 수준
+ * (목적~요지 짧~중 / 금액·표 정보량 / 응답·상황 화용 / 16–17 열거 독백)
+ */
+export const HIGH1_DIFFICULTY_RULES: Record<
+  ListeningDifficultyTier,
+  DifficultyRules
+> = {
+  foundation: {
+    tier: "foundation",
+    label: "기초",
+    questionRange: "1~5번",
+    monologueSentences: "5~8 sentences",
+    dialogueTurns: "7~10 turns",
+    wordsPerSentence: "10~16 English words per sentence",
+    vocabulary: "high school grade 1; school/community announcement and daily opinion language",
+    extra:
+      "Total script 85~130 words. Match 고1 전국연합 purpose/opinion/gist/picture/next-action scripts.",
+  },
+  standard: {
+    tier: "standard",
+    label: "보통",
+    questionRange: "6~10번",
+    monologueSentences: "6~9 sentences",
+    dialogueTurns: "8~12 turns",
+    wordsPerSentence: "11~17 English words per sentence",
+    vocabulary:
+      "grade 1; prices, schedules, event details; clear numbers; light relative clauses OK",
+    extra:
+      "Total script 100~150 words. Payment math, reason with false guesses, unmentioned item, announcement mismatch, or table filters.",
+  },
+  applied: {
+    tier: "applied",
+    label: "심화",
+    questionRange: "11~15번",
+    monologueSentences: "5~8 sentences (type 15 narration)",
+    dialogueTurns: "4~7 turns (short reply) or 8~12 turns (long reply)",
+    wordsPerSentence: "10~18 English words per sentence; reply choices 8~16 words",
+    vocabulary: "grade 1; pragmatic replies and situation speech acts",
+    extra:
+      "Short/long response: do NOT put the blank reply in segments. Situation speech: third-person narration ending with what A would say to B. Total 70~160 words.",
+  },
+  advanced: {
+    tier: "advanced",
+    label: "고난도",
+    questionRange: "16~17번",
+    monologueSentences: "6~9 sentences",
+    dialogueTurns: "N/A (shared monologue)",
+    wordsPerSentence: "11~18 English words per sentence",
+    vocabulary: "grade 1; list/tips monologue with clear topic + enumerated items",
+    extra:
+      "Types 16 and 17 MUST share identical segments/script. Played twice in real exam. Total 110~160 words. 16=topic (English choices), 17=unmentioned item.",
+  },
+};
+
 /** 중2 — 첨부 기출(2025·2026)보다 약간 긴 문장·어휘 */
 export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, DifficultyRules> = {
   foundation: {
@@ -168,6 +223,7 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
 export function getDifficultyRulesForGrade(
   grade: ListeningGradeLevel
 ): Record<ListeningDifficultyTier, DifficultyRules> {
+  if (grade === "high1") return HIGH1_DIFFICULTY_RULES;
   if (grade === "middle3") return MIDDLE3_DIFFICULTY_RULES;
   if (grade === "middle2") return MIDDLE2_DIFFICULTY_RULES;
   return DIFFICULTY_RULES;
@@ -181,7 +237,7 @@ export const DIFFICULTY_MODE_OPTIONS: Array<{
   {
     value: "auto",
     label: "유형·번호별 자동",
-    description: "기출처럼 1~6 기초, 7~13 보통, 14~18 심화, 19~20 고난도",
+    description: "기출처럼 번호대별 자동 (중등 1~20 / 고1 1~17)",
   },
   {
     value: "foundation",
@@ -225,11 +281,13 @@ export function buildDifficultyRequirementBlock(
 ): string {
   const rules = resolveDifficultyForType(type, mode, grade);
   const harderNote =
-    grade === "middle3"
-      ? " (중3: 2024~2026 전국 기출 대본 수준)"
-      : grade === "middle2"
-        ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
-        : "";
+    grade === "high1"
+      ? " (고1: 전국연합 수능형 듣기 대본 수준)"
+      : grade === "middle3"
+        ? " (중3: 2024~2026 전국 기출 대본 수준)"
+        : grade === "middle2"
+          ? " (중2: 전국 기출 수준보다 문장·정보를 약간 더 길게)"
+          : "";
   if (grade === "middle1") {
     return `
 ## 난이도 (참고 — 중1은 문장·대화 **단어 수**로 저장을 막지 않음)
@@ -259,11 +317,13 @@ export function buildDifficultyPromptBlock(
   grade: ListeningGradeLevel = "middle1"
 ): string {
   const harderNote =
-    grade === "middle3"
-      ? " (중3: 2024~2026 전국 기출 대본 수준)"
-      : grade === "middle2"
-        ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
-        : "";
+    grade === "high1"
+      ? " (고1: 전국연합 수능형 듣기 대본 수준)"
+      : grade === "middle3"
+        ? " (중3: 2024~2026 전국 기출 대본 수준)"
+        : grade === "middle2"
+          ? " (중2: 2025·2026 전국 기출 대본보다 문장을 약간 더 길고 정보 밀도 있게)"
+          : "";
   return types
     .map((t, i) => {
       const rules = resolveDifficultyForType(t, mode, grade);

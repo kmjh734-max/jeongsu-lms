@@ -2,6 +2,12 @@
 
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import {
+  COMMON_PROMPT_HIGH1,
+  HIGH1_COPYRIGHT_BLOCK,
+  HIGH1_JSON_OUTPUT_SCHEMA,
+  LISTENING_SYSTEM_PROMPT_HIGH1,
+} from "@/lib/listening/prompts/commonPromptHigh1";
+import {
   COMMON_PROMPT_MIDDLE2,
   LISTENING_SYSTEM_PROMPT_MIDDLE2,
   MIDDLE2_COPYRIGHT_BLOCK,
@@ -80,24 +86,28 @@ export const LISTENING_SYSTEM_PROMPT =
   "You are an expert writer for the Korean national middle school Grade 1 English listening exam (전국 중1 영어듣기능력평가). Output only valid JSON. Never copy copyrighted past exam content. Follow per-type rules and word-count targets strictly. Write natural, slightly longer sentences (6~13 words) at grade-1 level.";
 
 export function getListeningSystemPrompt(grade: ListeningGradeLevel): string {
+  if (grade === "high1") return LISTENING_SYSTEM_PROMPT_HIGH1;
   if (grade === "middle3") return LISTENING_SYSTEM_PROMPT_MIDDLE3;
   if (grade === "middle2") return LISTENING_SYSTEM_PROMPT_MIDDLE2;
   return LISTENING_SYSTEM_PROMPT;
 }
 
 export function getCommonPrompt(grade: ListeningGradeLevel): string {
+  if (grade === "high1") return COMMON_PROMPT_HIGH1;
   if (grade === "middle3") return COMMON_PROMPT_MIDDLE3;
   if (grade === "middle2") return COMMON_PROMPT_MIDDLE2;
   return COMMON_PROMPT;
 }
 
 export function getCopyrightBlock(grade: ListeningGradeLevel): string {
+  if (grade === "high1") return HIGH1_COPYRIGHT_BLOCK;
   if (grade === "middle3") return MIDDLE3_COPYRIGHT_BLOCK;
   if (grade === "middle2") return MIDDLE2_COPYRIGHT_BLOCK;
   return COPYRIGHT_BLOCK;
 }
 
 export function getJsonOutputSchema(grade: ListeningGradeLevel): string {
+  if (grade === "high1") return HIGH1_JSON_OUTPUT_SCHEMA;
   if (grade === "middle3") return MIDDLE3_JSON_OUTPUT_SCHEMA;
   if (grade === "middle2") return MIDDLE2_JSON_OUTPUT_SCHEMA;
   return JSON_OUTPUT_SCHEMA;

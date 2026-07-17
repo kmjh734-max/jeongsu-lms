@@ -434,7 +434,7 @@ export async function generateSingleExamQuestion(
       gradeLevel
     );
     let type1Assignment: Type1SubjectAssignment | null = null;
-    if (typeId === 1) {
+    if (typeId === 1 && gradeLevel !== "high1") {
       type1Assignment = pickType1Subject(
         problems,
         type1Regeneration?.excludeSubjectIds ?? []
@@ -449,7 +449,7 @@ export async function generateSingleExamQuestion(
           : "";
       prompt = `${regenBlock}${formatAssignedType1SubjectBlock(type1Assignment)}\n\n${prompt}`;
     }
-    if (typeId === 19 || typeId === 20) {
+    if ((typeId === 19 || typeId === 20) && gradeLevel !== "high1") {
       const assignment = pickContinuationScenario(typeId, problems);
       const scenarioBlock = formatAssignedScenarioBlock(assignment);
       prompt = `${scenarioBlock}\n\n${prompt}`;

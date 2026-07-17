@@ -1,10 +1,15 @@
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import { HIGH1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high1";
 import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types";
 import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
 import { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
 
 /** 담화·단독 화자 유형 (M/W 교대 불필요) */
 export function getMonologueTypeIds(gradeLevel?: ListeningGradeLevel): Set<number> {
+  if (gradeLevel === "high1") {
+    // 1목적 3요지 9내용불일치 15상황나레이션 16·17공유독백
+    return new Set([1, 3, 9, 15, 16, 17]);
+  }
   if (
     gradeLevel === "middle3" ||
     gradeLevel === "middle2" ||
@@ -23,13 +28,19 @@ export function isDialogueExamType(
   if (getMonologueTypeIds(gradeLevel).has(typeId)) return false;
 
   const types =
-    gradeLevel === "middle2"
-      ? MIDDLE2_LISTENING_EXAM_TYPES
-      : gradeLevel === "middle3"
-        ? MIDDLE3_LISTENING_EXAM_TYPES
-        : gradeLevel === "middle1"
-          ? MIDDLE1_LISTENING_EXAM_TYPES
-          : [...MIDDLE2_LISTENING_EXAM_TYPES, ...MIDDLE1_LISTENING_EXAM_TYPES];
+    gradeLevel === "high1"
+      ? HIGH1_LISTENING_EXAM_TYPES
+      : gradeLevel === "middle2"
+        ? MIDDLE2_LISTENING_EXAM_TYPES
+        : gradeLevel === "middle3"
+          ? MIDDLE3_LISTENING_EXAM_TYPES
+          : gradeLevel === "middle1"
+            ? MIDDLE1_LISTENING_EXAM_TYPES
+            : [
+                ...HIGH1_LISTENING_EXAM_TYPES,
+                ...MIDDLE2_LISTENING_EXAM_TYPES,
+                ...MIDDLE1_LISTENING_EXAM_TYPES,
+              ];
 
   const t = types.find((x) => x.id === typeId);
   if (t?.segment_guide?.includes("M/W")) return true;
