@@ -13,6 +13,7 @@ export interface ListeningSetListItem {
   is_published: boolean;
   created_at: string;
   folder_id: string | null;
+  order_index: number;
 }
 
 export type ListeningSetFolderItem = ListeningSetFolderRow;
@@ -24,7 +25,8 @@ export async function loadListeningPageData(
 ) {
   let setsQuery = supabase
     .from("listening_sets")
-    .select("id, title, is_published, created_at, folder_id")
+    .select("id, title, is_published, created_at, folder_id, order_index")
+    .order("order_index", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(100);
 

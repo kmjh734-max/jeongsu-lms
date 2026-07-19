@@ -38,6 +38,16 @@ export async function POST(request: Request) {
       }
     }
 
+    // 새 세트는 목록 맨 위(가장 작은 order_index)로
+    const { data: topRow } = await supabase
+      .from("listening_sets")
+      .select("order_index")
+      .order("order_index", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    const nextOrder =
+      typeof topRow?.order_index === "number" ? topRow.order_index - 1 : 0;
+
     const { data, error } = await supabase
       .from("listening_sets")
       .insert({
@@ -48,6 +58,7 @@ export async function POST(request: Request) {
         teacher_id: profile.role === "teacher" ? profile.id : profile.id,
         created_by: profile.id,
         is_published: true,
+        order_index: nextOrder,
       })
       .select("id, title")
       .single();

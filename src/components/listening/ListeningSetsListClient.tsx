@@ -14,6 +14,7 @@ export interface ListeningSetListItem {
   is_published: boolean;
   created_at: string;
   folder_id: string | null;
+  order_index: number;
 }
 
 interface ClassOption {
@@ -54,10 +55,18 @@ export function ListeningSetsListClient({
   const [assignSetId, setAssignSetId] = useState<string | null>(null);
   const [folderFilter, setFolderFilter] = useState<FolderFilter>("all");
   const [folderList, setFolderList] = useState(folders);
+  const [localSets, setLocalSets] = useState<ListeningSetListItem[]>(sets);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dropFolder, setDropFolder] = useState<FolderFilter | null>(null);
 
   useEffect(() => {
     setFolderList(folders);
   }, [folders]);
+
+  useEffect(() => {
+    setLocalSets(sets);
+  }, [sets]);
 
   const setTitles = useMemo(() => {
     const m: Record<string, string> = {};
@@ -75,7 +84,7 @@ export function ListeningSetsListClient({
     const counts = new Map<string | "uncategorized", number>();
     counts.set("uncategorized", 0);
     for (const f of folderList) counts.set(f.id, 0);
-    for (const set of sets) {
+    for (const set of localSets) {
       if (!set.folder_id) {
         counts.set("uncategorized", (counts.get("uncategorized") ?? 0) + 1);
       } else {
@@ -83,15 +92,20 @@ export function ListeningSetsListClient({
       }
     }
     return counts;
-  }, [sets, folderList]);
+  }, [localSets, folderList]);
+
+  const sortedSets = useMemo(
+    () => [...localSets].sort((a, b) => a.order_index - b.order_index),
+    [localSets]
+  );
 
   const filteredSets = useMemo(() => {
-    if (folderFilter === "all") return sets;
+    if (folderFilter === "all") return sortedSets;
     if (folderFilter === "uncategorized") {
-      return sets.filter((s) => !s.folder_id);
+      return sortedSets.filter((s) => !s.folder_id);
     }
-    return sets.filter((s) => s.folder_id === folderFilter);
-  }, [sets, folderFilter]);
+    return sortedSets.filter((s) => s.folder_id === folderFilter);
+  }, [sortedSets, folderFilter]);
 
   const activeFolderId =
     folderFilter !== "all" && folderFilter !== "uncategorized"
@@ -170,8 +184,13 @@ export function ListeningSetsListClient({
   }
 
   async function moveSetToFolder(setId: string, folderId: string | null) {
+    const target = localSets.find((s) => s.id === setId);
+    if (target && (target.folder_id ?? null) === folderId) return;
     setMovingSetId(setId);
     setError(null);
+    setLocalSets((prev) =>
+      prev.map((s) => (s.id === setId ? { ...s, folder_id: folderId } : s))
+    );
     const res = await fetch(`/api/listening/sets/${setId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -181,9 +200,67 @@ export function ListeningSetsListClient({
     setMovingSetId(null);
     if (!data.ok) {
       setError(data.message ?? "폴더 이동 실패");
-      return;
     }
     router.refresh();
+  }
+
+  async function persistOrder(nextVisible: ListeningSetListItem[]) {
+    // 보이는 목록이 이미 가진 order_index 슬롯을 정렬해 새 순서에 재배정한다.
+    // (다른 폴더/숨겨진 세트의 순서는 건드리지 않음)
+    const slots = nextVisible
+      .map((s) => s.order_index)
+      .sort((a, b) => a - b);
+    const items = nextVisible.map((s, i) => ({
+      id: s.id,
+      orderIndex: slots[i] ?? i,
+    }));
+    const orderById = new Map(items.map((it) => [it.id, it.orderIndex]));
+    setLocalSets((prev) =>
+      prev.map((s) =>
+        orderById.has(s.id)
+          ? { ...s, order_index: orderById.get(s.id)! }
+          : s
+      )
+    );
+    setError(null);
+    const res = await fetch("/api/listening/sets/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (!data.ok) {
+      setError(data.message ?? "순서 저장 실패");
+      router.refresh();
+    }
+  }
+
+  function handleRowDrop(targetId: string) {
+    const sourceId = dragId;
+    setDragId(null);
+    setDragOverId(null);
+    if (!sourceId || sourceId === targetId) return;
+    const current = filteredSets;
+    const from = current.findIndex((s) => s.id === sourceId);
+    const to = current.findIndex((s) => s.id === targetId);
+    if (from === -1 || to === -1) return;
+    const next = [...current];
+    const [moved] = next.splice(from, 1);
+    if (!moved) return;
+    next.splice(to, 0, moved);
+    void persistOrder(next);
+  }
+
+  function handleFolderDrop(target: FolderFilter) {
+    const sourceId = dragId;
+    setDragId(null);
+    setDragOverId(null);
+    setDropFolder(null);
+    if (!sourceId || target === "all") return;
+    void moveSetToFolder(
+      sourceId,
+      target === "uncategorized" ? null : target
+    );
   }
 
   async function createSet(e: React.FormEvent) {
@@ -291,12 +368,26 @@ export function ListeningSetsListClient({
                 : "border border-slate-200 text-slate-700 hover:bg-slate-50"
             }`}
           >
-            전체 ({sets.length})
+            전체 ({localSets.length})
           </button>
           <button
             type="button"
             onClick={() => setFolderFilter("uncategorized")}
+            onDragOver={(e) => {
+              if (!dragId) return;
+              e.preventDefault();
+              setDropFolder("uncategorized");
+            }}
+            onDragLeave={() => setDropFolder((p) => (p === "uncategorized" ? null : p))}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleFolderDrop("uncategorized");
+            }}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+              dropFolder === "uncategorized"
+                ? "ring-2 ring-indigo-400 ring-offset-1"
+                : ""
+            } ${
               folderFilter === "uncategorized"
                 ? "bg-indigo-600 text-white"
                 : "border border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -309,7 +400,23 @@ export function ListeningSetsListClient({
               key={folder.id}
               type="button"
               onClick={() => setFolderFilter(folder.id)}
+              onDragOver={(e) => {
+                if (!dragId) return;
+                e.preventDefault();
+                setDropFolder(folder.id);
+              }}
+              onDragLeave={() =>
+                setDropFolder((p) => (p === folder.id ? null : p))
+              }
+              onDrop={(e) => {
+                e.preventDefault();
+                handleFolderDrop(folder.id);
+              }}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                dropFolder === folder.id
+                  ? "ring-2 ring-indigo-400 ring-offset-1"
+                  : ""
+              } ${
                 folderFilter === folder.id
                   ? "bg-indigo-600 text-white"
                   : "border border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -384,9 +491,49 @@ export function ListeningSetsListClient({
             </div>
           )}
 
+          <p className="text-xs text-slate-500">
+            ⠿ 손잡이를 잡고 끌어 순서를 바꾸거나, 위 폴더 탭 위로 놓아 폴더를
+            이동할 수 있어요.
+          </p>
+
           <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
             {filteredSets.map((set) => (
-              <li key={set.id} className="flex flex-wrap items-center gap-2 px-4 py-3">
+              <li
+                key={set.id}
+                onDragOver={(e) => {
+                  if (!dragId || dragId === set.id) return;
+                  e.preventDefault();
+                  setDragOverId(set.id);
+                }}
+                onDragLeave={() =>
+                  setDragOverId((p) => (p === set.id ? null : p))
+                }
+                onDrop={(e) => {
+                  e.preventDefault();
+                  handleRowDrop(set.id);
+                }}
+                className={`flex flex-wrap items-center gap-2 px-4 py-3 ${
+                  dragId === set.id ? "opacity-50" : ""
+                } ${
+                  dragOverId === set.id
+                    ? "border-t-2 border-t-indigo-500 bg-indigo-50/40"
+                    : ""
+                }`}
+              >
+                <span
+                  draggable
+                  onDragStart={() => setDragId(set.id)}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setDragOverId(null);
+                    setDropFolder(null);
+                  }}
+                  className="shrink-0 cursor-grab select-none px-1 text-slate-400 hover:text-slate-600 active:cursor-grabbing"
+                  title="드래그하여 순서 변경 / 폴더 탭에 놓아 이동"
+                  aria-label={`${set.title} 순서 이동 손잡이`}
+                >
+                  ⠿
+                </span>
                 {!createOnly && canBatchAssign && (
                   <input
                     type="checkbox"
