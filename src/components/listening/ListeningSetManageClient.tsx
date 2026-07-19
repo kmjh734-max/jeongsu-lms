@@ -16,10 +16,7 @@ import { ListeningQuestionCompact } from "@/components/listening/ListeningQuesti
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
 import { ListeningQuestionEditor } from "@/components/listening/ListeningQuestionEditor";
 import { ListeningQuestionPreview } from "@/components/listening/ListeningQuestionPreview";
-import {
-  DIFFICULTY_MODE_OPTIONS,
-  type ListeningDifficultyMode,
-} from "@/lib/listening/exam-difficulty";
+import { type ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import {
   getExamTypesForGrade,
   tierLabel,
@@ -79,8 +76,7 @@ export function ListeningSetManageClient({
     isHighSchoolListeningGrade(initialGradeLevel) ? 17 : 5
   );
   const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
-  const [difficultyMode, setDifficultyMode] =
-    useState<ListeningDifficultyMode>("auto");
+  const [difficultyMode] = useState<ListeningDifficultyMode>("auto");
   const [speechPreset, setSpeechPreset] = useState<SpeechSpeedPreset>(
     presetFromSpeed(initialSpeechSpeed)
   );
@@ -684,32 +680,6 @@ export function ListeningSetManageClient({
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="mt-3">
-            <p className="text-xs font-medium text-slate-600">난이도 (문장 길이·대화 길이)</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {DIFFICULTY_MODE_OPTIONS.map((opt) => (
-                <label
-                  key={opt.value}
-                  className={`cursor-pointer rounded-lg border px-3 py-2 text-xs ${
-                    difficultyMode === opt.value
-                      ? "border-indigo-400 bg-indigo-50 text-indigo-900"
-                      : "border-slate-200 bg-white text-slate-700"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="difficultyMode"
-                    className="sr-only"
-                    checked={difficultyMode === opt.value}
-                    onChange={() => setDifficultyMode(opt.value)}
-                  />
-                  <span className="font-medium">{opt.label}</span>
-                  <span className="mt-0.5 block text-slate-500">{opt.description}</span>
-                </label>
-              ))}
-            </div>
         </div>
 
         <div className="mt-3">
