@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ListeningSetFolderPicker } from "@/components/listening/ListeningSetFolderPicker";
 import {
   DAY_LABELS,
   WEEKDAY_PRESETS,
@@ -19,12 +20,19 @@ interface StudentOption {
 interface SetOption {
   id: string;
   title: string;
+  folder_id?: string | null;
+}
+
+interface FolderOption {
+  id: string;
+  name: string;
 }
 
 interface ListeningScheduleAssignModalProps {
   setIds?: string[];
   setTitles?: Record<string, string>;
   availableSets?: SetOption[];
+  folders?: FolderOption[];
   classes: ClassOption[];
   initialTargetType?: "class" | "student";
   initialTargetClassId?: string;
@@ -37,6 +45,7 @@ export function ListeningScheduleAssignModal({
   setIds: initialSetIds = [],
   setTitles = {},
   availableSets = [],
+  folders = [],
   classes,
   initialTargetType,
   initialTargetClassId,
@@ -99,12 +108,6 @@ export function ListeningScheduleAssignModal({
     setDaysOfWeek([...preset]);
   }
 
-  function toggleSet(id: string) {
-    setSelectedSetIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  }
-
   const resolvedSetTitles = { ...setTitles };
   for (const s of availableSets) {
     resolvedSetTitles[s.id] = s.title;
@@ -158,22 +161,20 @@ export function ListeningScheduleAssignModal({
         </p>
 
         {availableSets.length > 0 ? (
-          <div className="mt-3 max-h-40 overflow-y-auto rounded-lg border border-slate-200 p-2">
-            <p className="mb-2 text-xs font-medium text-slate-700">듣기 세트 선택</p>
-            <ul className="space-y-1">
-              {availableSets.map((s) => (
-                <li key={s.id}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 hover:bg-slate-50">
-                    <input
-                      type="checkbox"
-                      checked={selectedSetIds.includes(s.id)}
-                      onChange={() => toggleSet(s.id)}
-                    />
-                    <span className="text-sm text-slate-800">{s.title}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
+          <div className="mt-3 max-h-56 overflow-y-auto rounded-lg border border-slate-200 p-2">
+            <p className="mb-2 text-xs font-medium text-slate-700">
+              듣기 세트 선택 (폴더 제목을 체크하면 폴더 전체가 선택됩니다)
+            </p>
+            <ListeningSetFolderPicker
+              sets={availableSets.map((s) => ({
+                id: s.id,
+                title: s.title,
+                folder_id: s.folder_id ?? null,
+              }))}
+              folders={folders}
+              selectedIds={selectedSetIds}
+              onChange={setSelectedSetIds}
+            />
           </div>
         ) : (
           <ul className="mt-2 max-h-24 overflow-y-auto text-xs text-slate-500">

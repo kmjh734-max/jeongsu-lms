@@ -14,6 +14,12 @@ interface ClassOption {
 interface SetOption {
   id: string;
   title: string;
+  folder_id?: string | null;
+}
+
+interface FolderOption {
+  id: string;
+  name: string;
 }
 
 interface StudentOption {
@@ -27,6 +33,7 @@ interface ListeningScheduleManageClientProps {
   basePath: "/admin/listening" | "/teacher/listening";
   classes: ClassOption[];
   sets: SetOption[];
+  folders?: FolderOption[];
   initialAssignments?: ScheduleAssignmentListItem[];
   initialStudents?: StudentOption[];
 }
@@ -35,6 +42,7 @@ export function ListeningScheduleManageClient({
   basePath,
   classes,
   sets,
+  folders = [],
   initialAssignments = [],
   initialStudents = [],
 }: ListeningScheduleManageClientProps) {
@@ -446,6 +454,7 @@ export function ListeningScheduleManageClient({
       {showAssignModal && (
         <ListeningScheduleAssignModal
           availableSets={sets}
+          folders={folders}
           classes={classes}
           initialTargetType={assignPreset.targetType}
           initialTargetClassId={assignPreset.targetClassId}
@@ -463,6 +472,7 @@ export function ListeningScheduleManageClient({
           assignmentTitle={addSetsTarget.title}
           existingSetIds={addSetsTarget.setIds}
           availableSets={sets}
+          folders={folders}
           onClose={() => setAddSetsTarget(null)}
           onSubmit={(setIds) => addSetsToAssignment(addSetsTarget.id, setIds)}
         />

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { listListeningSetFolders } from "@/lib/listening/folder-access";
 import { listScheduleAssignments } from "@/lib/listening/schedule/list-assignments";
 import type { ScheduleAssignmentListItem } from "@/lib/listening/schedule/list-assignments";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -12,7 +13,8 @@ export interface ScheduleStudentOption {
 export interface ScheduleAssignPageData {
   assignments: ScheduleAssignmentListItem[];
   classes: { id: string; name: string }[];
-  sets: { id: string; title: string }[];
+  sets: { id: string; title: string; folder_id: string | null }[];
+  folders: { id: string; name: string }[];
   students: ScheduleStudentOption[];
 }
 
@@ -78,7 +80,8 @@ export async function loadScheduleAssignPageData(
 
   let setsQuery = supabase
     .from("listening_sets")
-    .select("id, title")
+    .select("id, title, folder_id, order_index")
+    .order("order_index", { ascending: true })
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -93,6 +96,14 @@ export async function loadScheduleAssignPageData(
     classesQuery = classesQuery.eq("teacher_id", viewerId);
   }
 
+  let folders: { id: string; name: string }[] = [];
+  try {
+    const rows = await listListeningSetFolders(supabase, role, viewerId);
+    folders = rows.map((f) => ({ id: f.id, name: f.name }));
+  } catch {
+    folders = [];
+  }
+
   const [assignments, { data: classes }, { data: sets }, students] =
     await Promise.all([
       listScheduleAssignments(admin, role, viewerId),
@@ -104,7 +115,12 @@ export async function loadScheduleAssignPageData(
   return {
     assignments,
     classes: classes ?? [],
-    sets: sets ?? [],
+    sets: (sets ?? []).map((s) => ({
+      id: s.id as string,
+      title: s.title as string,
+      folder_id: (s.folder_id as string | null) ?? null,
+    })),
+    folders,
     students,
   };
 }

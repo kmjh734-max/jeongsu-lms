@@ -1,16 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import { ListeningSetFolderPicker } from "@/components/listening/ListeningSetFolderPicker";
 
 interface SetOption {
   id: string;
   title: string;
+  folder_id?: string | null;
+}
+
+interface FolderOption {
+  id: string;
+  name: string;
 }
 
 interface ListeningScheduleAddSetsModalProps {
   assignmentTitle: string;
   existingSetIds: string[];
   availableSets: SetOption[];
+  folders?: FolderOption[];
   onClose: () => void;
   onSubmit: (setIds: string[]) => Promise<void>;
 }
@@ -19,6 +27,7 @@ export function ListeningScheduleAddSetsModal({
   assignmentTitle,
   existingSetIds,
   availableSets,
+  folders = [],
   onClose,
   onSubmit,
 }: ListeningScheduleAddSetsModalProps) {
@@ -27,12 +36,6 @@ export function ListeningScheduleAddSetsModal({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  function toggleSet(id: string) {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  }
 
   async function handleSubmit() {
     if (selectedIds.length === 0) {
@@ -65,20 +68,21 @@ export function ListeningScheduleAddSetsModal({
             추가할 수 있는 세트가 없습니다.
           </p>
         ) : (
-          <ul className="mt-4 max-h-56 space-y-1 overflow-y-auto rounded-lg border border-slate-200 p-2">
-            {addableSets.map((s) => (
-              <li key={s.id}>
-                <label className="flex cursor-pointer items-center gap-2 rounded px-1 py-1.5 hover:bg-slate-50">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(s.id)}
-                    onChange={() => toggleSet(s.id)}
-                  />
-                  <span className="text-sm text-slate-800">{s.title}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
+          <div className="mt-4 max-h-64 overflow-y-auto rounded-lg border border-slate-200 p-2">
+            <p className="mb-2 text-xs text-slate-500">
+              폴더 제목을 체크하면 폴더 전체가 선택됩니다.
+            </p>
+            <ListeningSetFolderPicker
+              sets={addableSets.map((s) => ({
+                id: s.id,
+                title: s.title,
+                folder_id: s.folder_id ?? null,
+              }))}
+              folders={folders}
+              selectedIds={selectedIds}
+              onChange={setSelectedIds}
+            />
+          </div>
         )}
 
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

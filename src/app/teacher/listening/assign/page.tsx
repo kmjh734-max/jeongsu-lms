@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function TeacherListeningAssignPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const { assignments, classes, sets, students } =
+  const { assignments, classes, sets, folders, students } =
     await loadScheduleAssignPageData(supabase, "teacher", profile!.id);
 
   return (
@@ -20,6 +20,7 @@ export default async function TeacherListeningAssignPage() {
         basePath="/teacher/listening"
         classes={classes}
         sets={sets}
+        folders={folders}
         initialAssignments={assignments}
         initialStudents={students}
       />
