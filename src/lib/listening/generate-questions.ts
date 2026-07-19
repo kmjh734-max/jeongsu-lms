@@ -155,10 +155,13 @@ function normalizeQuestion(
       ? raw.instruction.trim()
       : typeHint?.instruction ?? "";
 
+  // 고정 유형 슬롯이면 템플릿의 한글 라벨을 강제한다
+  // (모델이 short_response 등 영어 키를 뱉어도 한글로 통일).
   const question_type =
-    typeof raw.question_type === "string" && raw.question_type.trim()
+    typeHint?.question_type?.trim() ||
+    (typeof raw.question_type === "string" && raw.question_type.trim()
       ? raw.question_type.trim()
-      : typeHint?.question_type ?? "듣기";
+      : "듣기");
 
   const order_index =
     typeof raw.order_index === "number" && raw.order_index > 0
