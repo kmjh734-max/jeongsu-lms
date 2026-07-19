@@ -263,6 +263,31 @@ export function ListeningSetsListClient({
     );
   }
 
+  async function moveFolder(folderId: string, dir: -1 | 1) {
+    const idx = folderList.findIndex((f) => f.id === folderId);
+    const swapWith = idx + dir;
+    if (idx === -1 || swapWith < 0 || swapWith >= folderList.length) return;
+    const next = [...folderList];
+    const tmp = next[idx]!;
+    next[idx] = next[swapWith]!;
+    next[swapWith] = tmp;
+    const reindexed = next.map((f, i) => ({ ...f, order_index: i }));
+    setFolderList(reindexed);
+    setError(null);
+    const res = await fetch("/api/listening/folders/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: reindexed.map((f) => ({ id: f.id, orderIndex: f.order_index })),
+      }),
+    });
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (!data.ok) {
+      setError(data.message ?? "폴더 순서 저장 실패");
+      router.refresh();
+    }
+  }
+
   async function createSet(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
@@ -320,142 +345,174 @@ export function ListeningSetsListClient({
     : null;
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <aside className="w-full shrink-0 space-y-3 rounded-xl border border-slate-200 bg-white p-4 lg:w-60">
           <h3 className="text-sm font-semibold text-slate-900">폴더</h3>
-          {activeFolderId && (
-            <button
-              type="button"
-              disabled={folderBusy}
-              onClick={() => void deleteFolder(activeFolderId)}
-              className="text-xs text-red-600 hover:underline disabled:opacity-50"
-            >
-              이 폴더 삭제
-            </button>
-          )}
-        </div>
 
-        <form
-          onSubmit={createFolder}
-          className="flex flex-wrap items-end gap-2"
-        >
-          <label className="min-w-[180px] flex-1 text-sm font-medium text-slate-700">
-            새 폴더
+          <form onSubmit={createFolder} className="space-y-2">
             <input
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
               placeholder="예: 0605 시리즈"
-              className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className="block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
             />
-          </label>
-          <button
-            type="submit"
-            disabled={folderBusy}
-            className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-800 disabled:opacity-50"
-          >
-            {folderBusy ? "만드는 중…" : "폴더 만들기"}
-          </button>
-        </form>
-
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setFolderFilter("all")}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
-              folderFilter === "all"
-                ? "bg-indigo-600 text-white"
-                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
-            }`}
-          >
-            전체 ({localSets.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setFolderFilter("uncategorized")}
-            onDragOver={(e) => {
-              if (!dragId) return;
-              e.preventDefault();
-              setDropFolder("uncategorized");
-            }}
-            onDragLeave={() => setDropFolder((p) => (p === "uncategorized" ? null : p))}
-            onDrop={(e) => {
-              e.preventDefault();
-              handleFolderDrop("uncategorized");
-            }}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
-              dropFolder === "uncategorized"
-                ? "ring-2 ring-indigo-400 ring-offset-1"
-                : ""
-            } ${
-              folderFilter === "uncategorized"
-                ? "bg-indigo-600 text-white"
-                : "border border-slate-200 text-slate-700 hover:bg-slate-50"
-            }`}
-          >
-            미분류 ({countsByFolder.get("uncategorized") ?? 0})
-          </button>
-          {folderList.map((folder) => (
             <button
-              key={folder.id}
+              type="submit"
+              disabled={folderBusy}
+              className="w-full rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-800 disabled:opacity-50"
+            >
+              {folderBusy ? "만드는 중…" : "폴더 만들기"}
+            </button>
+          </form>
+
+          <div className="space-y-1">
+            <button
               type="button"
-              onClick={() => setFolderFilter(folder.id)}
+              onClick={() => setFolderFilter("all")}
+              className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-medium ${
+                folderFilter === "all"
+                  ? "bg-indigo-600 text-white"
+                  : "text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              전체 ({localSets.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFolderFilter("uncategorized")}
               onDragOver={(e) => {
                 if (!dragId) return;
                 e.preventDefault();
-                setDropFolder(folder.id);
+                setDropFolder("uncategorized");
               }}
               onDragLeave={() =>
-                setDropFolder((p) => (p === folder.id ? null : p))
+                setDropFolder((p) => (p === "uncategorized" ? null : p))
               }
               onDrop={(e) => {
                 e.preventDefault();
-                handleFolderDrop(folder.id);
+                handleFolderDrop("uncategorized");
               }}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
-                dropFolder === folder.id
-                  ? "ring-2 ring-indigo-400 ring-offset-1"
+              className={`block w-full rounded-lg px-3 py-2 text-left text-sm font-medium ${
+                dropFolder === "uncategorized"
+                  ? "ring-2 ring-indigo-400 ring-inset"
                   : ""
               } ${
-                folderFilter === folder.id
+                folderFilter === "uncategorized"
                   ? "bg-indigo-600 text-white"
-                  : "border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  : "text-slate-700 hover:bg-slate-50"
               }`}
             >
-              {folder.name} ({countsByFolder.get(folder.id) ?? 0})
+              미분류 ({countsByFolder.get("uncategorized") ?? 0})
             </button>
-          ))}
-        </div>
-      </section>
 
-      <form
-        onSubmit={createSet}
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4"
-      >
-        <label className="flex-1 text-sm font-medium text-slate-700">
-          새 듣기 세트 제목
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2"
-            placeholder="예: 13회 듣기 연습"
-          />
-        </label>
-        {activeFolderId && (
-          <p className="text-xs text-slate-500">
-            「{folderNameById.get(activeFolderId)}」 폴더에 생성됩니다
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {busy ? "만드는 중…" : "세트 만들기"}
-        </button>
-      </form>
+            {folderList.map((folder, i) => {
+              const active = folderFilter === folder.id;
+              return (
+                <div
+                  key={folder.id}
+                  onDragOver={(e) => {
+                    if (!dragId) return;
+                    e.preventDefault();
+                    setDropFolder(folder.id);
+                  }}
+                  onDragLeave={() =>
+                    setDropFolder((p) => (p === folder.id ? null : p))
+                  }
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleFolderDrop(folder.id);
+                  }}
+                  className={`flex items-center gap-0.5 rounded-lg pr-1 ${
+                    dropFolder === folder.id
+                      ? "ring-2 ring-indigo-400 ring-inset"
+                      : ""
+                  } ${active ? "bg-indigo-600" : "hover:bg-slate-50"}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setFolderFilter(folder.id)}
+                    className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2 text-left text-sm font-medium ${
+                      active ? "text-white" : "text-slate-700"
+                    }`}
+                  >
+                    {folder.name} ({countsByFolder.get(folder.id) ?? 0})
+                  </button>
+                  <button
+                    type="button"
+                    disabled={i === 0}
+                    onClick={() => void moveFolder(folder.id, -1)}
+                    aria-label={`${folder.name} 위로`}
+                    className={`shrink-0 rounded px-1 text-xs leading-none disabled:opacity-30 ${
+                      active
+                        ? "text-white hover:bg-white/20"
+                        : "text-slate-400 hover:bg-slate-200"
+                    }`}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    disabled={i === folderList.length - 1}
+                    onClick={() => void moveFolder(folder.id, 1)}
+                    aria-label={`${folder.name} 아래로`}
+                    className={`shrink-0 rounded px-1 text-xs leading-none disabled:opacity-30 ${
+                      active
+                        ? "text-white hover:bg-white/20"
+                        : "text-slate-400 hover:bg-slate-200"
+                    }`}
+                  >
+                    ▼
+                  </button>
+                  <button
+                    type="button"
+                    disabled={folderBusy}
+                    onClick={() => void deleteFolder(folder.id)}
+                    aria-label={`${folder.name} 삭제`}
+                    className={`shrink-0 rounded px-1 text-xs leading-none disabled:opacity-30 ${
+                      active
+                        ? "text-white hover:bg-white/20"
+                        : "text-slate-400 hover:bg-red-100 hover:text-red-600"
+                    }`}
+                  >
+                    ✕
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </aside>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+        <div className="min-w-0 flex-1 space-y-4">
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <form
+            onSubmit={createSet}
+            className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-4"
+          >
+            <label className="flex-1 text-sm font-medium text-slate-700">
+              새 듣기 세트 제목
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2"
+                placeholder="예: 13회 듣기 연습"
+              />
+            </label>
+            {activeFolderId && (
+              <p className="text-xs text-slate-500">
+                「{folderNameById.get(activeFolderId)}」 폴더에 생성됩니다
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              {busy ? "만드는 중…" : "세트 만들기"}
+            </button>
+          </form>
 
       {filteredSets.length === 0 ? (
         <p className="text-sm text-slate-600">
@@ -492,7 +549,7 @@ export function ListeningSetsListClient({
           )}
 
           <p className="text-xs text-slate-500">
-            ⠿ 손잡이를 잡고 끌어 순서를 바꾸거나, 위 폴더 탭 위로 놓아 폴더를
+            ⠿ 손잡이를 잡고 끌어 순서를 바꾸거나, 왼쪽 폴더 위로 놓아 폴더를
             이동할 수 있어요.
           </p>
 
@@ -601,6 +658,8 @@ export function ListeningSetsListClient({
           </ul>
         </>
       )}
+        </div>
+      </div>
 
       {assignTarget && (
         <ListeningSetAssignModal
