@@ -66,8 +66,6 @@ export async function POST(
             error_message: null,
             progress_message: "재시도 대기",
             completed_at: null,
-            total_completed: 0,
-            total_failed: 0,
           })
           .eq("id", id)
           .in("status", ["failed", "partially_completed", "completed"]);

@@ -476,7 +476,14 @@ export function QuestionGeneratorClient({
             /* ignore */
           }
           if (job.status === "failed") {
-            setError(job.error_message || "생성에 실패했습니다.");
+            if ((job.total_completed ?? 0) > 0) {
+              setMessage(
+                `일부 문항만 생성되었습니다 (${job.total_completed}/${job.total_requested}). 성공한 문항으로 PDF를 엽니다.`
+              );
+              openPdfs(jobProgress.jobId);
+            } else {
+              setError(job.error_message || "생성에 실패했습니다.");
+            }
           } else if ((job.total_completed ?? 0) > 0) {
             openPdfs(jobProgress.jobId);
           } else {

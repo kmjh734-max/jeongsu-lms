@@ -195,7 +195,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
     }
     if (
       !window.confirm(
-        `선택한 ${ids.length}개 자료를 다시 생성할까요? 기존 문항은 지워지고 새로 만들어집니다.`
+        `선택한 ${ids.length}개 자료의 실패 유형만 다시 생성할까요? 이미 만들어진 문항은 유지됩니다.`
       )
     ) {
       return;
@@ -440,9 +440,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                         >
                           재생성
                         </button>
-                        {(j.status === "completed" ||
-                          j.status === "partially_completed") &&
-                          j.total_completed > 0 && (
+                        {j.total_completed > 0 && (
                             <>
                               <Link
                                 href={`${basePath}/generations/${j.id}/print?mode=exam`}

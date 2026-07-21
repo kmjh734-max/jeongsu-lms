@@ -389,7 +389,16 @@ export async function syncExamVocabSetFromJob(
     }
   }
 
-  const unique = dedupeHardWords(merged);
+  let unique = dedupeHardWords(merged);
+  // 보기 단어 유형이 없어도 저장된 hard_words로 QR 단어장 구성
+  if (unique.length === 0) {
+    for (const q of questions ?? []) {
+      for (const w of normalizeHardWords(q.hard_words)) {
+        merged.push(w);
+      }
+    }
+    unique = dedupeHardWords(merged);
+  }
   if (unique.length === 0) return (job.vocab_set_id as string | null) ?? null;
 
   const titleBase = (cfg.title || "변형문제").trim() || "변형문제";

@@ -164,6 +164,71 @@ type WorkItem = {
   diversitySlot: { index: number; total: number; label: string };
 };
 
+function slotKey(passageId: string, optionKey: string): string {
+  return `${passageId}:${optionKey}`;
+}
+
+async function countSavedQuestions(jobId: string): Promise<number> {
+  const admin = createAdminClient();
+  const { count } = await admin
+    .from("generated_english_questions")
+    .select("id", { count: "exact", head: true })
+    .eq("generation_job_id", jobId);
+  return count ?? 0;
+}
+
+async function finalizeGenerationJob(
+  jobId: string,
+  opts: {
+    totalRequested: number;
+    skipped: number;
+    errorMessage?: string | null;
+  }
+): Promise<void> {
+  const completed = await countSavedQuestions(jobId);
+  const failed = Math.max(0, opts.totalRequested - completed - opts.skipped);
+  const finalStatus =
+    failed > 0 && completed > 0
+      ? "partially_completed"
+      : failed > 0 && completed === 0
+        ? "failed"
+        : "completed";
+
+  await updateJob(jobId, {
+    status: finalStatus,
+    progress_message:
+      finalStatus === "completed"
+        ? opts.skipped > 0
+          ? `생성 완료 (생략 ${opts.skipped})`
+          : "생성 완료"
+        : finalStatus === "partially_completed"
+          ? `일부 문항 생성 완료 (${completed}/${opts.totalRequested})`
+          : "생성 실패",
+    error_message:
+      finalStatus === "failed"
+        ? opts.errorMessage ?? "선택한 유형 생성에 실패했습니다."
+        : finalStatus === "partially_completed" && opts.errorMessage
+          ? opts.errorMessage
+          : null,
+    completed_at: new Date().toISOString(),
+    total_completed: completed,
+    total_failed: failed,
+  });
+
+  if (completed > 0) {
+    try {
+      await diversifyJobHardWords(jobId);
+    } catch (e) {
+      console.error("hard words diversify failed", e);
+    }
+    try {
+      await syncExamVocabSetFromJob(jobId);
+    } catch (e) {
+      console.error("exam vocab sync failed", e);
+    }
+  }
+}
+
 /**
  * Long-running job processor. Safe to call once; ignores if already running/done.
  */
@@ -181,11 +246,24 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     return;
   }
 
-  // 재시도 시 이전 문항 제거 후 다시 생성 (중복 방지)
-  await admin
+  const { data: existingRows } = await admin
     .from("generated_english_questions")
-    .delete()
+    .select("passage_id, option_key")
     .eq("generation_job_id", jobId);
+  const existingSlots = new Set(
+    (existingRows ?? []).map((r) =>
+      slotKey(String(r.passage_id), String(r.option_key ?? ""))
+    )
+  );
+  const isResume = existingSlots.size > 0;
+
+  // 신규 생성만 기존 문항 삭제. 재시도는 성공 문항 유지.
+  if (!isResume) {
+    await admin
+      .from("generated_english_questions")
+      .delete()
+      .eq("generation_job_id", jobId);
+  }
 
   const config = job.request_config as GenerationRequestConfig;
   config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
@@ -254,6 +332,8 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         undefined;
 
       for (const option of options) {
+        const key = slotKey(passageId, option.key);
+        if (existingSlots.has(key)) continue;
         work.push({
           passageId,
           passageText: passageRow.passage,
@@ -272,6 +352,8 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         });
       }
     }
+
+    const totalRequested = existingSlots.size + work.length;
 
     // 지문별로 슬롯 번호 부여 (동의어·보기단어 다양화 힌트)
     const slotByPassage = new Map<string, number>();
@@ -292,21 +374,34 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       };
     }
 
+    // 재시도 시 남은 슬롯이 없으면 바로 완료 처리
+    if (work.length === 0) {
+      await finalizeGenerationJob(jobId, {
+        totalRequested,
+        skipped: 0,
+      });
+      return;
+    }
+
+    const initialCompleted = existingSlots.size;
+
     await updateJob(jobId, {
       status: "generating",
-      progress_message: `문제 생성 중 (0/${work.length})`,
-      total_requested: work.length,
-      total_completed: 0,
+      progress_message: isResume
+        ? `실패 유형 재생성 중 (0/${work.length})`
+        : `문제 생성 중 (0/${work.length})`,
+      total_requested: totalRequested,
+      total_completed: initialCompleted,
       total_failed: 0,
     });
 
-    let completed = 0;
+    let completed = initialCompleted;
     let failed = 0;
     let skipped = 0;
 
     await mapPool(work, GENERATION_CONCURRENCY, async (item) => {
       await updateJob(jobId, {
-        progress_message: `${item.label} 생성 중 (${completed + failed + skipped}/${work.length})`,
+        progress_message: `${item.label} 생성 중 (${completed + failed + skipped - initialCompleted}/${work.length})`,
         status: "generating",
       });
 
@@ -321,7 +416,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         await updateJob(jobId, {
           total_completed: completed,
           total_failed: failed,
-          progress_message: `${completed + failed + skipped}/${work.length} 완료${
+          progress_message: `${completed + failed + skipped}/${totalRequested} 완료${
             skipped > 0 ? ` (생략 ${skipped})` : ""
           }`,
         });
@@ -361,54 +456,51 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       await updateJob(jobId, {
         total_completed: completed,
         total_failed: failed,
-        progress_message: `${completed + failed + skipped}/${work.length} 완료${
+        progress_message: `${completed + failed + skipped}/${totalRequested} 완료${
           skipped > 0 ? ` (생략 ${skipped})` : ""
         }`,
       });
     });
 
-    const finalStatus =
-      failed > 0 && completed > 0
-        ? "partially_completed"
-        : failed > 0 && completed === 0
-          ? "failed"
-          : "completed";
-
-    await updateJob(jobId, {
-      status: finalStatus,
-      progress_message:
-        finalStatus === "completed"
-          ? skipped > 0
-            ? `생성 완료 (생략 ${skipped})`
-            : "생성 완료"
-          : finalStatus === "partially_completed"
-            ? "일부 문항 생성 완료"
-            : "생성 실패",
-      error_message:
-        finalStatus === "failed" ? "선택한 유형 생성에 실패했습니다." : null,
-      completed_at: new Date().toISOString(),
-      total_completed: completed,
-      total_failed: failed,
+    await finalizeGenerationJob(jobId, {
+      totalRequested,
+      skipped,
     });
-
-    if (completed > 0) {
-      try {
-        await diversifyJobHardWords(jobId);
-      } catch (e) {
-        console.error("hard words diversify failed", e);
-      }
-      try {
-        await syncExamVocabSetFromJob(jobId);
-      } catch (e) {
-        console.error("exam vocab sync failed", e);
-      }
-    }
   } catch (e) {
-    await updateJob(jobId, {
-      status: "failed",
-      error_message: e instanceof Error ? e.message : "생성 작업 실패",
-      completed_at: new Date().toISOString(),
-    });
+    const saved = await countSavedQuestions(jobId);
+    const totalRequested = (job.request_config as GenerationRequestConfig)
+      ?.counts
+      ? expandCountRequests(
+          sanitizeCounts(
+            (job.request_config as GenerationRequestConfig).counts ?? {},
+            MAX_SETS_PER_TYPE
+          )
+        ).length *
+        (Array.isArray(
+          (job.request_config as GenerationRequestConfig).passageIds
+        ) &&
+        ((job.request_config as GenerationRequestConfig).passageIds?.length ??
+          0) > 0
+          ? (job.request_config as GenerationRequestConfig).passageIds!.length
+          : 1)
+      : saved;
+
+    if (saved > 0) {
+      await finalizeGenerationJob(jobId, {
+        totalRequested: Math.max(totalRequested, saved),
+        skipped: 0,
+        errorMessage:
+          e instanceof Error
+            ? `일부 문항만 저장됨: ${e.message}`
+            : "일부 문항만 저장됨",
+      });
+    } else {
+      await updateJob(jobId, {
+        status: "failed",
+        error_message: e instanceof Error ? e.message : "생성 작업 실패",
+        completed_at: new Date().toISOString(),
+      });
+    }
   }
 }
 
