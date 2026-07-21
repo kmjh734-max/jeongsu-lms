@@ -7,6 +7,14 @@ export async function assertScheduleManager() {
   if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
     return { ok: false as const, message: "권한이 없습니다.", status: 403 };
   }
+  if (!profile.academy_id) {
+    return {
+      ok: false as const,
+      message:
+        "소속 학원 정보가 없습니다. EngCore Admin에서 학원에 연결해 주세요.",
+      status: 403,
+    };
+  }
   return { ok: true as const, profile, admin: createAdminClient() };
 }
 

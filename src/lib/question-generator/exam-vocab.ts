@@ -505,6 +505,16 @@ export async function syncExamVocabSetFromJob(
       })
       .eq("id", setId);
   } else {
+    const { data: creator } = await admin
+      .from("profiles")
+      .select("academy_id")
+      .eq("id", teacherId)
+      .maybeSingle();
+    const academyId = (creator?.academy_id as string | null) ?? null;
+    if (!academyId) {
+      console.error("exam vocab set create failed: missing academy_id", teacherId);
+      return null;
+    }
     const { data: created, error: cErr } = await admin
       .from("vocab_sets")
       .insert({
@@ -517,6 +527,7 @@ export async function syncExamVocabSetFromJob(
         source_job_id: jobId,
         folder_id: null,
         order_index: 0,
+        academy_id: academyId,
       })
       .select("id")
       .single();

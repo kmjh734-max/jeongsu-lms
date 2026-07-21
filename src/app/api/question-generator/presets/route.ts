@@ -41,6 +41,7 @@ export async function POST(req: Request) {
         config,
         is_system: isSystem,
         created_by: profile.id,
+        academy_id: profile.academy_id,
         slug: isSystem
           ? String(body.slug || name)
               .toLowerCase()

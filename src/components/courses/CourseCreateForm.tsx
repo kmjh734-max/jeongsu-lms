@@ -59,6 +59,28 @@ export function CourseCreateForm({
     setLoading(true);
     const supabase = createClient();
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setMessage({ type: "error", text: "로그인이 필요합니다." });
+      setLoading(false);
+      return;
+    }
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("academy_id")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!me?.academy_id) {
+      setMessage({
+        type: "error",
+        text: "소속 학원 정보가 없습니다. EngCore Admin에서 학원에 연결해 주세요.",
+      });
+      setLoading(false);
+      return;
+    }
+
     const assignedTeacherId =
       variant === "teacher" ? currentUserId : teacherId || null;
 
@@ -69,6 +91,7 @@ export function CourseCreateForm({
         description: description.trim() || null,
         teacher_id: assignedTeacherId,
         is_published: isPublished,
+        academy_id: me.academy_id,
       })
       .select("id, teacher_id")
       .single();

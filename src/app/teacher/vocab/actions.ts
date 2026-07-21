@@ -100,6 +100,11 @@ export async function createVocabSet(input: {
   if (!title) return actionError("단어장 제목을 입력해 주세요.");
 
   const folderId = input.folderId?.trim() || null;
+  if (!profile!.academy_id) {
+    return actionError(
+      "소속 학원 정보가 없습니다. 관리자에게 학원 연결을 요청해 주세요."
+    );
+  }
   const supabase = await createClient();
   const orderIndex = await nextVocabSetOrderIndex(supabase, folderId);
   const { data, error: insertError } = await supabase
@@ -112,6 +117,7 @@ export async function createVocabSet(input: {
       teacher_id: profile!.id,
       created_by: profile!.id,
       is_published: true,
+      academy_id: profile!.academy_id,
     })
     .select("id")
     .single();

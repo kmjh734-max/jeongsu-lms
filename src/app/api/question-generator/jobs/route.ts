@@ -113,7 +113,12 @@ export async function POST(req: Request) {
           counts: sanitizeCounts(raw.counts, MAX_SETS_PER_TYPE),
         };
 
-        const result = await createJobFromConfig(supabase, profile.id, config);
+        const result = await createJobFromConfig(
+          supabase,
+          profile.id,
+          profile.academy_id!,
+          config
+        );
         if ("error" in result) {
           return jsonError(result.error, result.status ?? 400);
         }
@@ -142,6 +147,7 @@ export async function POST(req: Request) {
     const result = await createJobFromConfig(
       supabase,
       profile.id,
+      profile.academy_id!,
       config,
       reuseJobId
         ? { reuseJobId, role: profile.role }
@@ -176,6 +182,7 @@ type CreateJobErr = { error: string; status?: number };
 async function createJobFromConfig(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
+  academyId: string,
   config: GenerationRequestConfig,
   reuse?: { reuseJobId: string; role: string }
 ): Promise<CreateJobOk | CreateJobErr> {
@@ -264,6 +271,7 @@ async function createJobFromConfig(
         overall_difficulty: config.overallDifficulty || "기본",
         draft_config: config,
         created_by: userId,
+        academy_id: academyId,
       })
       .select("id")
       .single();

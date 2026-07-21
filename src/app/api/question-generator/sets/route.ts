@@ -38,6 +38,7 @@ export async function POST(req: Request) {
         description: body.description?.trim() || null,
         items,
         created_by: profile.id,
+        academy_id: profile.academy_id,
       })
       .select("*")
       .single();

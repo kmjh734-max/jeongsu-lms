@@ -23,6 +23,12 @@ export async function POST(request: Request) {
     if (!title) {
       return jsonError("제목을 입력해 주세요.");
     }
+    if (!profile.academy_id) {
+      return jsonError(
+        "소속 학원 정보가 없습니다. EngCore Admin에서 학원에 연결해 주세요.",
+        403
+      );
+    }
 
     const supabase = await createClient();
 
@@ -59,6 +65,7 @@ export async function POST(request: Request) {
         created_by: profile.id,
         is_published: true,
         order_index: nextOrder,
+        academy_id: profile.academy_id,
       })
       .select("id, title")
       .single();

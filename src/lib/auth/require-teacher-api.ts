@@ -18,7 +18,7 @@ export async function requireTeacherApi() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, is_active")
+    .select("id, role, is_active, academy_id")
     .eq("id", user.id)
     .single();
 
@@ -35,6 +35,19 @@ export async function requireTeacherApi() {
     return {
       error: NextResponse.json(
         { ok: false, message: "비활성화된 계정입니다." },
+        { status: 403 }
+      ),
+    };
+  }
+
+  if (!profile.academy_id) {
+    return {
+      error: NextResponse.json(
+        {
+          ok: false,
+          message:
+            "소속 학원 정보가 없습니다. 관리자에게 학원 연결을 요청해 주세요.",
+        },
         { status: 403 }
       ),
     };

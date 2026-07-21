@@ -33,6 +33,13 @@ export async function createVocabFolder(
   const name = input.name.trim();
   if (!name) return actionError("폴더 이름을 입력해 주세요.");
 
+  const academyId = profile!.academy_id;
+  if (!academyId) {
+    return actionError(
+      "소속 학원 정보가 없습니다. EngCore Admin에서 학원에 연결해 주세요."
+    );
+  }
+
   const supabase = await createClient();
   const { data, error: insertError } = await supabase
     .from("vocab_folders")
@@ -41,6 +48,7 @@ export async function createVocabFolder(
       teacher_id:
         role === "teacher" ? profile!.id : input.teacherId || null,
       created_by: profile!.id,
+      academy_id: academyId,
     })
     .select("id")
     .single();

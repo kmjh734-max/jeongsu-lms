@@ -97,6 +97,7 @@ export async function POST(request: Request) {
         lock_next_until_today_complete:
           body.lockNextUntilTodayComplete !== false,
         is_active: true,
+        academy_id: access.profile.academy_id,
       })
       .select("id")
       .single();

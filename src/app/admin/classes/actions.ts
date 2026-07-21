@@ -18,14 +18,21 @@ import {
 import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 
 async function requireAdmin(): Promise<
-  | { ok: true; profileId: string }
+  | { ok: true; profileId: string; academyId: string }
   | { ok: false; message: string }
 > {
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "admin") {
     return { ok: false, message: "관리자 권한이 필요합니다." };
   }
-  return { ok: true, profileId: profile.id };
+  if (!profile.academy_id) {
+    return {
+      ok: false,
+      message:
+        "소속 학원 정보가 없습니다. EngCore Admin에서 학원 관리자로 연결해 주세요.",
+    };
+  }
+  return { ok: true, profileId: profile.id, academyId: profile.academy_id };
 }
 
 function revalidateClassPaths(classId?: string) {
@@ -60,6 +67,7 @@ export async function createClass(input: {
       teacher_id: input.teacherId || null,
       created_by: auth.profileId,
       is_active: input.isActive ?? true,
+      academy_id: auth.academyId,
     })
     .select("id")
     .single();

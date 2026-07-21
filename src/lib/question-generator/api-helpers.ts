@@ -15,6 +15,16 @@ export async function requireStaffProfile(): Promise<Profile> {
       { status: 403, headers: { "Content-Type": "application/json" } }
     );
   }
+  if (!profile.academy_id) {
+    throw new Response(
+      JSON.stringify({
+        ok: false,
+        message:
+          "소속 학원 정보가 없습니다. EngCore Admin에서 학원에 연결해 주세요.",
+      }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
+  }
   return profile;
 }
 

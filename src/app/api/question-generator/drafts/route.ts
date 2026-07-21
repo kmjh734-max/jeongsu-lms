@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       draft_config: config,
       updated_at: new Date().toISOString(),
       created_by: profile.id,
+      academy_id: profile.academy_id,
     };
 
     if (body.passageId) {

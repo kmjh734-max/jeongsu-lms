@@ -57,6 +57,7 @@ export async function copyVocabSetToFolder(
       teacher_id: teacherId ?? source.teacher_id,
       created_by: createdBy,
       is_published: true,
+      academy_id: source.academy_id,
     })
     .select("id")
     .single();
