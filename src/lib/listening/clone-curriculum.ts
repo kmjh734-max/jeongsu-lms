@@ -146,7 +146,38 @@ export async function cloneListeningCurriculumToAcademy(opts: {
 
     const { data: existingSet } = await existingQuery.maybeSingle();
     if (existingSet?.id) {
-      setsSkipped += 1;
+      const [{ count: srcCount }, { count: dstCount }] = await Promise.all([
+        admin
+          .from("listening_questions")
+          .select("*", { count: "exact", head: true })
+          .eq("set_id", src.id),
+        admin
+          .from("listening_questions")
+          .select("*", { count: "exact", head: true })
+          .eq("set_id", existingSet.id),
+      ]);
+      const srcN = srcCount ?? 0;
+      const dstN = dstCount ?? 0;
+      if (dstN >= srcN && srcN > 0) {
+        setsSkipped += 1;
+        continue;
+      }
+      if (srcN === 0) {
+        setsSkipped += 1;
+        continue;
+      }
+      // Target incomplete — wipe and re-copy questions/segments
+      await admin
+        .from("listening_questions")
+        .delete()
+        .eq("set_id", existingSet.id);
+      const copied = await copyQuestionsAndSegments(
+        admin,
+        src.id as string,
+        existingSet.id as string
+      );
+      questionsCloned += copied;
+      setsCloned += 1;
       continue;
     }
 
@@ -188,62 +219,11 @@ export async function cloneListeningCurriculumToAcademy(opts: {
 
     const newSetId = newSet.id as string;
     setsCloned += 1;
-
-    const { data: questions, error: qErr } = await admin
-      .from("listening_questions")
-      .select("*")
-      .eq("set_id", src.id)
-      .order("order_index", { ascending: true });
-    if (qErr) throw new Error(qErr.message);
-
-    for (const q of questions ?? []) {
-      const {
-        id: oldQid,
-        created_at: _qca,
-        updated_at: _qua,
-        set_id: _sid,
-        ...qRest
-      } = q as Record<string, unknown>;
-
-      const { data: newQ, error: qInsertErr } = await admin
-        .from("listening_questions")
-        .insert({
-          ...qRest,
-          set_id: newSetId,
-        })
-        .select("id")
-        .single();
-      if (qInsertErr || !newQ) {
-        throw new Error(qInsertErr?.message ?? "question clone failed");
-      }
-      questionsCloned += 1;
-
-      const { data: segments, error: segErr } = await admin
-        .from("listening_question_segments")
-        .select("*")
-        .eq("question_id", oldQid as string)
-        .order("order_index", { ascending: true });
-      if (segErr) throw new Error(segErr.message);
-
-      if (segments?.length) {
-        const segRows = segments.map((seg) => {
-          const {
-            id: _segId,
-            created_at: _sca,
-            question_id: _qid,
-            ...segRest
-          } = seg as Record<string, unknown>;
-          return {
-            ...segRest,
-            question_id: newQ.id,
-          };
-        });
-        const { error: segInsertErr } = await admin
-          .from("listening_question_segments")
-          .insert(segRows);
-        if (segInsertErr) throw new Error(segInsertErr.message);
-      }
-    }
+    questionsCloned += await copyQuestionsAndSegments(
+      admin,
+      src.id as string,
+      newSetId
+    );
   }
 
   return {
@@ -253,6 +233,70 @@ export async function cloneListeningCurriculumToAcademy(opts: {
     setsSkipped,
     questionsCloned,
   };
+}
+
+async function copyQuestionsAndSegments(
+  admin: ReturnType<typeof createAdminClient>,
+  sourceSetId: string,
+  targetSetId: string
+): Promise<number> {
+  const { data: questions, error: qErr } = await admin
+    .from("listening_questions")
+    .select("*")
+    .eq("set_id", sourceSetId)
+    .order("order_index", { ascending: true });
+  if (qErr) throw new Error(qErr.message);
+
+  let questionsCloned = 0;
+  for (const q of questions ?? []) {
+    const {
+      id: oldQid,
+      created_at: _qca,
+      updated_at: _qua,
+      set_id: _sid,
+      ...qRest
+    } = q as Record<string, unknown>;
+
+    const { data: newQ, error: qInsertErr } = await admin
+      .from("listening_questions")
+      .insert({
+        ...qRest,
+        set_id: targetSetId,
+      })
+      .select("id")
+      .single();
+    if (qInsertErr || !newQ) {
+      throw new Error(qInsertErr?.message ?? "question clone failed");
+    }
+    questionsCloned += 1;
+
+    const { data: segments, error: segErr } = await admin
+      .from("listening_question_segments")
+      .select("*")
+      .eq("question_id", oldQid as string)
+      .order("order_index", { ascending: true });
+    if (segErr) throw new Error(segErr.message);
+
+    if (segments?.length) {
+      const segRows = segments.map((seg) => {
+        const {
+          id: _segId,
+          created_at: _sca,
+          question_id: _qid,
+          ...segRest
+        } = seg as Record<string, unknown>;
+        return {
+          ...segRest,
+          question_id: newQ.id,
+        };
+      });
+      const { error: segInsertErr } = await admin
+        .from("listening_question_segments")
+        .insert(segRows);
+      if (segInsertErr) throw new Error(segInsertErr.message);
+    }
+  }
+  return questionsCloned;
 }
 
 /** Clone template curriculum into every academy except the template itself. */
