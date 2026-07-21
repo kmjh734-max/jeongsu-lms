@@ -706,7 +706,7 @@ export function QuestionPrintView({
       <header
         className={`qg-print-header ${compact ? "qg-print-header-compact" : ""} ${
           mode === "answers" ? "qg-print-header-answer-sheet" : ""
-        }`}
+        } ${showVocabQr ? "qg-print-header-with-qr" : ""}`}
       >
         <div className="qg-print-header-main">
           {branding.showLogo && (

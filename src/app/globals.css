@@ -1418,6 +1418,40 @@
   color: #0f172a;
 }
 
+/* 첫 장 보기단어 QR(88px)에 맞춰 왼쪽 로고·제목 스케일 */
+.qg-print-header-with-qr {
+  align-items: center;
+  min-height: 26mm;
+  padding-bottom: 2mm;
+}
+
+.qg-print-header-with-qr .qg-print-logo-box {
+  width: 20mm;
+  height: 20mm;
+  border-radius: 2.2mm;
+}
+
+.qg-print-header-with-qr .qg-print-kicker {
+  font-size: 12pt;
+  line-height: 1.2;
+}
+
+.qg-print-header-with-qr .qg-print-title {
+  font-size: 17pt;
+  line-height: 1.15;
+  margin-top: 1mm;
+}
+
+.qg-print-header-with-qr .qg-print-sub {
+  font-size: 10pt;
+  margin-top: 0.8mm;
+}
+
+.qg-print-header-with-qr .qg-print-banner {
+  font-size: 11pt;
+  margin-top: 1.2mm;
+}
+
 .qg-print-u {
   text-decoration: underline;
   text-underline-offset: 1.5px;
