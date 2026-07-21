@@ -21,6 +21,8 @@ import {
   sanitizeCounts,
   sumCounts,
 } from "@/lib/question-generator/question-types";
+import { QgJobProgressBar } from "@/components/question-generator/QgJobProgressBar";
+import { useQgJobProgress } from "@/components/question-generator/useQgJobProgress";
 import type {
   GenerationRequestConfig,
   PassageInput,
@@ -80,20 +82,37 @@ export function QuestionGeneratorClient({
   const [presetName, setPresetName] = useState("");
   const [presetDesc, setPresetDesc] = useState("");
   const [showPresetForm, setShowPresetForm] = useState(false);
-  const [jobProgress, setJobProgress] = useState<{
-    jobId: string;
-    status: string;
-    message: string;
-    completed: number;
-    total: number;
-    failed: number;
-    done?: boolean;
-  } | null>(null);
   const pdfOpenedForJob = useRef<string | null>(null);
   const searchParams = useSearchParams();
   const fromJobId = searchParams.get("fromJob");
   const fromJobLoaded = useRef(false);
   const skipDirtyOnce = useRef(false);
+
+  function openPdfs(jobId: string) {
+    window.location.assign(`${basePath}/generations/${jobId}/print?mode=exam`);
+  }
+
+  const { jobProgress, generating, pct, startTracking, dismiss } =
+    useQgJobProgress({
+      onTerminal: (job) => {
+        if (pdfOpenedForJob.current === job.jobId) return;
+        pdfOpenedForJob.current = job.jobId;
+        if (job.status === "failed") {
+          if (job.completed > 0) {
+            setMessage(
+              `일부 문항만 생성되었습니다 (${job.completed}/${job.total}). 성공한 문항으로 PDF를 엽니다.`
+            );
+            openPdfs(job.jobId);
+          } else {
+            setError("생성에 실패했습니다.");
+          }
+        } else if (job.completed > 0) {
+          openPdfs(job.jobId);
+        } else {
+          setError("생성된 문항이 없습니다.");
+        }
+      },
+    });
 
   const filledPassages = useMemo(
     () => passages.filter((p) => p.text.trim()),
@@ -212,29 +231,6 @@ export function QuestionGeneratorClient({
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [dirty, jobProgress]);
-
-  const JOB_STORAGE_KEY = "qg-active-job";
-
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(JOB_STORAGE_KEY);
-      if (!raw || jobProgress) return;
-      const saved = JSON.parse(raw) as { jobId: string; total: number };
-      if (saved?.jobId) {
-        setJobProgress({
-          jobId: saved.jobId,
-          status: "generating",
-          message: "이어서 진행 상황 확인 중…",
-          completed: 0,
-          total: saved.total || 1,
-          failed: 0,
-        });
-      }
-    } catch {
-      /* ignore */
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const saveDraft = useCallback(async () => {
     setMessage(null);
@@ -393,24 +389,11 @@ export function QuestionGeneratorClient({
       }
       setDirty(false);
       pdfOpenedForJob.current = null;
-      setJobProgress({
-        jobId: data.jobId,
-        status: "pending",
-        message: data.reused
-          ? "복사한 자료에서 생성 중…"
-          : "생성 준비 중…",
-        completed: 0,
-        total: grandTotal,
-        failed: 0,
-      });
-      try {
-        sessionStorage.setItem(
-          "qg-active-job",
-          JSON.stringify({ jobId: data.jobId, total: grandTotal })
-        );
-      } catch {
-        /* ignore */
-      }
+      startTracking(
+        data.jobId,
+        grandTotal,
+        title.trim() || "영어 변형문제"
+      );
       void fetch(`/api/question-generator/jobs/${data.jobId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -426,97 +409,7 @@ export function QuestionGeneratorClient({
     }
   }
 
-  function openPdfs(jobId: string) {
-    // 같은 탭에서 문제 PDF로 이동 (새 창 금지). 해설지는 인쇄 화면 왼쪽에서 전환.
-    window.location.assign(`${basePath}/generations/${jobId}/print?mode=exam`);
-  }
-
-  useEffect(() => {
-    if (!jobProgress?.jobId || jobProgress.done) return;
-
-    let cancelled = false;
-
-    const poll = async () => {
-      try {
-        const res = await fetch(
-          `/api/question-generator/jobs/${jobProgress.jobId}`
-        );
-        const data = await res.json();
-        if (!data.ok || !data.job || cancelled) return;
-        const job = data.job as {
-          status: string;
-          progress_message: string | null;
-          total_completed: number;
-          total_requested: number;
-          total_failed: number;
-          error_message: string | null;
-        };
-        const terminal = [
-          "completed",
-          "partially_completed",
-          "failed",
-        ].includes(job.status);
-
-        setJobProgress({
-          jobId: jobProgress.jobId,
-          status: job.status,
-          message:
-            job.progress_message || (terminal ? "생성 완료" : "생성 중…"),
-          completed: job.total_completed ?? 0,
-          total: job.total_requested || jobProgress.total,
-          failed: job.total_failed ?? 0,
-          done: terminal,
-        });
-
-        if (terminal && pdfOpenedForJob.current !== jobProgress.jobId) {
-          pdfOpenedForJob.current = jobProgress.jobId;
-          try {
-            sessionStorage.removeItem("qg-active-job");
-          } catch {
-            /* ignore */
-          }
-          if (job.status === "failed") {
-            if ((job.total_completed ?? 0) > 0) {
-              setMessage(
-                `일부 문항만 생성되었습니다 (${job.total_completed}/${job.total_requested}). 성공한 문항으로 PDF를 엽니다.`
-              );
-              openPdfs(jobProgress.jobId);
-            } else {
-              setError(job.error_message || "생성에 실패했습니다.");
-            }
-          } else if ((job.total_completed ?? 0) > 0) {
-            openPdfs(jobProgress.jobId);
-          } else {
-            setError("생성된 문항이 없습니다.");
-          }
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-
-    void poll();
-    const t = window.setInterval(() => void poll(), 1800);
-    return () => {
-      cancelled = true;
-      window.clearInterval(t);
-    };
-  }, [jobProgress?.jobId, jobProgress?.done, jobProgress?.total, basePath]);
-
   const personalPresets = presets.filter((p) => !p.is_system);
-  const generating = Boolean(jobProgress && !jobProgress.done);
-  const pct =
-    jobProgress && jobProgress.total > 0
-      ? Math.min(
-          100,
-          Math.round(
-            ((jobProgress.completed + jobProgress.failed) / jobProgress.total) *
-              100
-          )
-        )
-      : jobProgress && !jobProgress.done
-        ? 5
-        : 0;
 
   const sortedGroups = useMemo(
     () =>
@@ -544,57 +437,17 @@ export function QuestionGeneratorClient({
       />
 
       {jobProgress && (
-        <div className="sticky top-0 z-30 mb-4 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 shadow-sm">
-          {generating ? (
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-brand-900">
-                  문제 생성 중 · {jobProgress.completed + jobProgress.failed}/
-                  {jobProgress.total}
-                </p>
-                <p className="truncate text-xs text-brand-800">
-                  {jobProgress.message} · 이 페이지를 나가도 생성은 계속됩니다
-                </p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/80">
-                  <div
-                    className="h-full rounded-full bg-brand-700 transition-all duration-500"
-                    style={{ width: `${Math.max(pct, 4)}%` }}
-                  />
-                </div>
-              </div>
-              <Link
-                href={basePath}
-                className="shrink-0 rounded-lg border border-brand-300 bg-white px-3 py-2 text-xs font-medium text-brand-800"
-              >
-                내 자료로
-              </Link>
-            </div>
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-brand-900">
-                생성 완료 · PDF 탭을 확인하세요
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  onClick={() => openPdfs(jobProgress.jobId)}
-                >
-                  문제·해설 PDF 열기
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    setJobProgress(null);
-                    setError(null);
-                  }}
-                >
-                  닫기
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        <QgJobProgressBar
+          jobProgress={jobProgress}
+          generating={generating}
+          pct={pct}
+          basePath={basePath}
+          onOpenPdf={openPdfs}
+          onDismiss={() => {
+            dismiss();
+            setError(null);
+          }}
+        />
       )}
 
       {error && !generating && (

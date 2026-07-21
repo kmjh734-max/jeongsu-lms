@@ -34,6 +34,20 @@ async function updateJob(
   await admin.from("question_generation_jobs").update(patch).eq("id", jobId);
 }
 
+function createProgressThrottler(minIntervalMs = 350) {
+  let lastAt = 0;
+  return async (
+    jobId: string,
+    patch: Record<string, unknown>,
+    force = false
+  ) => {
+    const now = Date.now();
+    if (!force && now - lastAt < minIntervalMs) return;
+    lastAt = now;
+    await updateJob(jobId, patch);
+  };
+}
+
 async function mapPool<T, R>(
   items: T[],
   concurrency: number,
@@ -296,23 +310,34 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       : [job.passage_id as string];
 
   const resolved = resolvePassages(config);
+  const updateProgress = createProgressThrottler();
 
   try {
-    await updateJob(jobId, {
-      progress_message: `지문 분석 중 (0/${passageIds.length})`,
-    });
+    if (!isResume) {
+      await updateProgress(
+        jobId,
+        {
+          progress_message: `지문 분석 중 (0/${passageIds.length})`,
+        },
+        true
+      );
+    }
 
     const options = expandCountRequests(config.counts ?? {});
     const work: WorkItem[] = [];
 
-    for (let pi = 0; pi < passageIds.length; pi++) {
-      const passageId = passageIds[pi]!;
-      const { data: passageRow } = await admin
-        .from("english_source_passages")
-        .select("*")
-        .eq("id", passageId)
-        .single();
+    const passageRows = await Promise.all(
+      passageIds.map(async (passageId, pi) => {
+        const { data: passageRow } = await admin
+          .from("english_source_passages")
+          .select("*")
+          .eq("id", passageId)
+          .single();
+        return { passageId, passageRow, pi };
+      })
+    );
 
+    for (const { passageId, passageRow, pi } of passageRows) {
       if (!passageRow) {
         await updateJob(jobId, {
           status: "failed",
@@ -321,28 +346,42 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         });
         return;
       }
+    }
 
-      await updateJob(jobId, {
-        status: "analyzing",
-        progress_message: `지문 분석 중 (${pi + 1}/${passageIds.length})`,
-      });
+    const analyzed = await Promise.all(
+      passageRows.map(async ({ passageId, passageRow, pi }) => {
+        if (!passageRow) return null;
 
-      let analysis = passageRow.analysis as PassageAnalysis | null;
-      if (!analysis) {
-        analysis = await analyzePassage({
-          passage: passageRow.passage,
-          grade: passageRow.grade,
-          overallDifficulty: passageRow.overall_difficulty,
-        });
-        await admin
-          .from("english_source_passages")
-          .update({
-            analysis,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", passageId);
-      }
+        if (!isResume) {
+          await updateProgress(jobId, {
+            status: "analyzing",
+            progress_message: `지문 분석 중 (${pi + 1}/${passageIds.length})`,
+          });
+        }
 
+        let analysis = passageRow.analysis as PassageAnalysis | null;
+        if (!analysis) {
+          analysis = await analyzePassage({
+            passage: passageRow.passage,
+            grade: passageRow.grade,
+            overallDifficulty: passageRow.overall_difficulty,
+          });
+          await admin
+            .from("english_source_passages")
+            .update({
+              analysis,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", passageId);
+        }
+
+        return { passageId, passageRow, analysis, pi };
+      })
+    );
+
+    for (const row of analyzed) {
+      if (!row) continue;
+      const { passageId, passageRow, analysis, pi } = row;
       const meta = resolved[pi];
       const sourceDetail =
         meta?.sourceDetail ||
@@ -404,26 +443,25 @@ export async function runGenerationJob(jobId: string): Promise<void> {
 
     const initialCompleted = existingSlots.size;
 
-    await updateJob(jobId, {
-      status: "generating",
-      progress_message: isResume
-        ? `실패 유형 재생성 중 (0/${work.length})`
-        : `문제 생성 중 (0/${work.length})`,
-      total_requested: totalRequested,
-      total_completed: initialCompleted,
-      total_failed: 0,
-    });
+    await updateProgress(
+      jobId,
+      {
+        status: "generating",
+        progress_message: isResume
+          ? `실패 유형 재생성 중 (0/${work.length})`
+          : `문제 생성 중 (0/${work.length})`,
+        total_requested: totalRequested,
+        total_completed: initialCompleted,
+        total_failed: 0,
+      },
+      true
+    );
 
     let completed = initialCompleted;
     let failed = 0;
     let skipped = 0;
 
     await mapPool(work, GENERATION_CONCURRENCY, async (item) => {
-      await updateJob(jobId, {
-        progress_message: `${item.label} 생성 중 (${completed + failed + skipped - initialCompleted}/${work.length})`,
-        status: "generating",
-      });
-
       // 문장삽입·무관한문장: 문장 5개 이하면 AI 호출 없이 생략
       if (
         (item.option.type === "sentence_insertion" ||
@@ -432,7 +470,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
           MIN_SENTENCES_FOR_INSERTION_IRRELEVANT
       ) {
         skipped += 1;
-        await updateJob(jobId, {
+        await updateProgress(jobId, {
           total_completed: completed,
           total_failed: failed,
           progress_message: `${completed + failed + skipped}/${totalRequested} 완료${
@@ -472,7 +510,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         );
       }
 
-      await updateJob(jobId, {
+      await updateProgress(jobId, {
         total_completed: completed,
         total_failed: failed,
         progress_message: `${completed + failed + skipped}/${totalRequested} 완료${

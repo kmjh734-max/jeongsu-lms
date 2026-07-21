@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { QgJobProgressBar } from "@/components/question-generator/QgJobProgressBar";
+import { useQgJobProgress } from "@/components/question-generator/useQgJobProgress";
+import { readTrackedQgJob } from "@/lib/question-generator/client-job-progress";
 
 type JobRow = {
   id: string;
@@ -100,6 +103,9 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
   const [copying, setCopying] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
+  const { jobProgress, generating, pct, startTracking, dismiss } =
+    useQgJobProgress();
+
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     if (!opts?.silent) setLoading(true);
     try {
@@ -127,9 +133,24 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
 
   useEffect(() => {
     if (!hasRunningJob) return;
-    const t = window.setInterval(() => void load({ silent: true }), 2500);
+    const t = window.setInterval(() => void load({ silent: true }), 1000);
     return () => window.clearInterval(t);
   }, [hasRunningJob, load]);
+
+  useEffect(() => {
+    if (jobProgress || readTrackedQgJob() || jobs.length === 0) return;
+    const running = jobs.find((j) =>
+      ["pending", "analyzing", "generating", "validating"].includes(j.status)
+    );
+    if (!running) return;
+    startTracking(
+      running.id,
+      running.total_requested,
+      running.request_config?.title ||
+        running.english_source_passages?.title ||
+        "변형문제"
+    );
+  }, [jobs, jobProgress, startTracking]);
 
   const allSelected =
     jobs.length > 0 && jobs.every((j) => selected.has(j.id));
@@ -214,19 +235,26 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
     setError(null);
     setMessage(null);
     try {
-      for (const id of ids) {
-        const res = await fetch(`/api/question-generator/jobs/${id}`, {
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i]!;
+        const row = jobs.find((j) => j.id === id);
+        const rowTitle =
+          row?.request_config?.title ||
+          row?.english_source_passages?.title ||
+          "변형문제";
+        if (i === 0) {
+          startTracking(id, row?.total_requested ?? 1, rowTitle);
+        }
+        void fetch(`/api/question-generator/jobs/${id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "retry" }),
         });
-        const data = (await res.json()) as { ok?: boolean; message?: string };
-        if (!data.ok) {
-          throw new Error(data.message ?? "재생성 실패");
-        }
       }
       setMessage(
-        `${ids.length}개 자료 재생성을 시작했습니다. 목록에서 진행 상태를 확인하세요.`
+        ids.length === 1
+          ? "재생성을 시작했습니다."
+          : `${ids.length}개 자료 재생성을 시작했습니다.`
       );
       await load({ silent: true });
     } catch {
@@ -317,6 +345,16 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
           </div>
         }
       />
+
+      {jobProgress && (
+        <QgJobProgressBar
+          jobProgress={jobProgress}
+          generating={generating}
+          pct={pct}
+          basePath={basePath}
+          onDismiss={dismiss}
+        />
+      )}
 
       <div className="mb-4 flex gap-1 border-b border-slate-200">
         <span className="border-b-2 border-brand-700 px-3 py-2 text-sm font-semibold text-brand-800">

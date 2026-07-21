@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { QgJobProgressBar } from "@/components/question-generator/QgJobProgressBar";
+import { useQgJobProgress } from "@/components/question-generator/useQgJobProgress";
+import { readTrackedQgJob } from "@/lib/question-generator/client-job-progress";
 import {
   cleanQuestionText,
   parseGrammarCorrectionBlocks,
@@ -82,6 +85,18 @@ export function GenerationDetailClient({
   const [busyId, setBusyId] = useState<string | null>(null);
   const router = useRouter();
 
+  const jobTitle =
+    job?.request_config?.title ||
+    job?.english_source_passages?.title ||
+    "변형문제";
+
+  const { jobProgress, generating, pct, startTracking, dismiss } =
+    useQgJobProgress({
+      onTerminal: () => {
+        void load();
+      },
+    });
+
   const load = useCallback(async () => {
     const res = await fetch(`/api/question-generator/jobs/${jobId}`);
     const data = await res.json();
@@ -96,6 +111,18 @@ export function GenerationDetailClient({
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!job || jobProgress || readTrackedQgJob()) return;
+    if (
+      !["pending", "analyzing", "generating", "validating"].includes(
+        job.status
+      )
+    ) {
+      return;
+    }
+    startTracking(jobId, job.total_requested, jobTitle);
+  }, [job, jobId, jobProgress, jobTitle, startTracking]);
 
   // 대기·실패 + 문항 0 → 생성 화면(지문·유형)으로
   useEffect(() => {
@@ -116,7 +143,7 @@ export function GenerationDetailClient({
       job.status
     );
     if (!running) return;
-    const t = window.setInterval(() => void load(), 2000);
+    const t = window.setInterval(() => void load(), 1000);
     return () => window.clearInterval(t);
   }, [job, load]);
 
@@ -179,19 +206,15 @@ export function GenerationDetailClient({
     await load();
   }
 
-  async function retryJob() {
+  function retryJob() {
     setError(null);
-    const res = await fetch(`/api/question-generator/jobs/${jobId}`, {
+    startTracking(jobId, job?.total_requested ?? 1, jobTitle);
+    void fetch(`/api/question-generator/jobs/${jobId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "retry" }),
     });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
-    if (!data.ok) {
-      setError(data.message ?? "재생성 요청 실패");
-      return;
-    }
-    await load();
+    void load();
   }
 
   const running =
@@ -228,6 +251,19 @@ export function GenerationDetailClient({
           </div>
         }
       />
+
+      {jobProgress && (
+        <QgJobProgressBar
+          jobProgress={jobProgress}
+          generating={generating}
+          pct={pct}
+          basePath={basePath}
+          onDismiss={() => {
+            dismiss();
+            void load();
+          }}
+        />
+      )}
 
       {questions.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-3">

@@ -14,7 +14,7 @@ export const VALIDATION_PASS_SCORE = 70;
 export const MAX_REGENERATION_ATTEMPTS = 1;
 
 /** AI 동시 요청 수 */
-export const GENERATION_CONCURRENCY = 6;
+export const GENERATION_CONCURRENCY = 8;
 
 /** 지문 최소 단어 수 (경고) */
 export const MIN_PASSAGE_WORDS = 40;
