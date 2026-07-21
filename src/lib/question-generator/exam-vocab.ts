@@ -23,6 +23,11 @@ export function buildExamVocabUrl(setId: string): string {
   return `${siteBase()}/exam-vocab/${setId}`;
 }
 
+/** vocab_set_id 없을 때 — job 기준 URL (접속 시 단어장 자동 생성) */
+export function buildExamVocabUrlForJob(jobId: string): string {
+  return `${siteBase()}/exam-vocab/job/${jobId}`;
+}
+
 /** 보기·중요 단어 → 동사/명사 원형 (복수·과거·3인칭 등 제거) */
 export function lemmaHardWordForm(raw: string): string {
   return raw
@@ -497,7 +502,6 @@ export async function syncExamVocabSetFromJob(
         exam_compact: true,
         source_job_id: jobId,
         is_published: true,
-        school_band: null,
       })
       .eq("id", setId);
   } else {
@@ -511,7 +515,6 @@ export async function syncExamVocabSetFromJob(
         is_published: true,
         exam_compact: true,
         source_job_id: jobId,
-        school_band: null,
         folder_id: null,
         order_index: 0,
       })

@@ -11,6 +11,7 @@ import {
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
   buildExamVocabUrl,
+  buildExamVocabUrlForJob,
   questionNeedsVocabGloss,
   parseHardWordsColumn,
 } from "@/lib/question-generator/exam-vocab";
@@ -692,7 +693,10 @@ export function QuestionPrintView({
 
   function renderHeader(compact: boolean, pageIdx: number, totalPages: number) {
     const showVocabQr =
-      mode === "exam" && !compact && pageIdx === 0 && Boolean(vocabSetId);
+      mode === "exam" &&
+      !compact &&
+      pageIdx === 0 &&
+      questions.length > 0;
     return (
       <header
         className={`qg-print-header ${compact ? "qg-print-header-compact" : ""} ${
@@ -743,7 +747,11 @@ export function QuestionPrintView({
             {showVocabQr ? (
               <div className="qg-print-vocab-qr">
                 <ListeningPrintQrCode
-                  url={buildExamVocabUrl(vocabSetId!)}
+                  url={
+                    vocabSetId
+                      ? buildExamVocabUrl(vocabSetId)
+                      : buildExamVocabUrlForJob(jobId)
+                  }
                   sizePx={52}
                 />
                 <p className="qg-print-vocab-qr-label">
