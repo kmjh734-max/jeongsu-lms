@@ -187,29 +187,28 @@ async function finalizeGenerationJob(
 ): Promise<void> {
   const completed = await countSavedQuestions(jobId);
   const failed = Math.max(0, opts.totalRequested - completed - opts.skipped);
-  const finalStatus =
-    failed > 0 && completed > 0
-      ? "partially_completed"
-      : failed > 0 && completed === 0
-        ? "failed"
-        : "completed";
+  const finalStatus = completed > 0 ? "completed" : "failed";
+
+  let progressMessage = "생성 완료";
+  if (finalStatus === "completed") {
+    if (failed > 0 && opts.skipped > 0) {
+      progressMessage = `생성 완료 (${completed}/${opts.totalRequested}, 미생성 ${failed} · 생략 ${opts.skipped})`;
+    } else if (failed > 0) {
+      progressMessage = `생성 완료 (${completed}/${opts.totalRequested}, 미생성 ${failed})`;
+    } else if (opts.skipped > 0) {
+      progressMessage = `생성 완료 (생략 ${opts.skipped})`;
+    }
+  } else {
+    progressMessage = "생성 실패";
+  }
 
   await updateJob(jobId, {
     status: finalStatus,
-    progress_message:
-      finalStatus === "completed"
-        ? opts.skipped > 0
-          ? `생성 완료 (생략 ${opts.skipped})`
-          : "생성 완료"
-        : finalStatus === "partially_completed"
-          ? `일부 문항 생성 완료 (${completed}/${opts.totalRequested})`
-          : "생성 실패",
+    progress_message: progressMessage,
     error_message:
       finalStatus === "failed"
         ? opts.errorMessage ?? "선택한 유형 생성에 실패했습니다."
-        : finalStatus === "partially_completed" && opts.errorMessage
-          ? opts.errorMessage
-          : null,
+        : null,
     completed_at: new Date().toISOString(),
     total_completed: completed,
     total_failed: failed,
