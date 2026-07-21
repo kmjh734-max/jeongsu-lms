@@ -273,6 +273,7 @@ export function SuperAdminCreditsClient() {
                 defaultValue={p.credit_cost}
                 id={`price-${p.feature_key}`}
               />
+              <span className="text-xs text-slate-500">크레딧</span>
               <Button
                 type="button"
                 variant="secondary"
