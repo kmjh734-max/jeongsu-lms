@@ -15,7 +15,7 @@ export default async function TeacherNewCoursePage() {
         href="/teacher"
         className="mb-4 inline-block text-sm text-brand-600 hover:underline"
       >
-        ← 강좌 관리
+        ← 동영상강좌 관리
       </Link>
       <h2 className="mb-2 text-xl font-semibold">새 강좌</h2>
       <p className="mb-6 text-sm text-slate-600">

@@ -31,7 +31,7 @@ export default async function AdminCoursesPage() {
   return (
     <div>
       <PageHeader
-        title="강좌 관리"
+        title="동영상강좌 관리"
         description="강좌·영상·담당 강사·공개 상태를 관리합니다."
         action={
           <ButtonLink href="/admin/courses/new" variant="primary" size="sm">

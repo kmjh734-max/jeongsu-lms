@@ -71,7 +71,7 @@ export default async function AdminCourseDetailPage({ params }: PageProps) {
         >
           ← 강좌 목록
         </Link>
-        <h2 className="mt-2 text-xl font-semibold">강좌 관리</h2>
+        <h2 className="mt-2 text-xl font-semibold">동영상강좌 관리</h2>
         <p className="text-sm text-slate-600">강좌명: {typedCourse.title}</p>
       </div>
 

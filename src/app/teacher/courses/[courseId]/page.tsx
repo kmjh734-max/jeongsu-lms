@@ -60,7 +60,7 @@ export default async function TeacherCoursePage({ params }: PageProps) {
     <div className="space-y-8">
       <div>
         <Link href="/teacher" className="text-sm text-brand-600 hover:underline">
-          ← 강좌 관리
+          ← 동영상강좌 관리
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h2 className="text-xl font-semibold">{typedCourse.title}</h2>

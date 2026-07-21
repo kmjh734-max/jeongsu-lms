@@ -48,7 +48,7 @@ export function TeacherCourseList({
                 영상 <span className="font-semibold text-brand-700">{lessonCount}</span>개
               </p>
               <span className="mt-4 text-sm font-medium text-brand-600 group-hover:underline">
-                강좌 관리 →
+                동영상강좌 관리 →
               </span>
             </Link>
           </li>
