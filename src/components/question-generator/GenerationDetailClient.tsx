@@ -302,9 +302,6 @@ export function GenerationDetailClient({
             </span>
             <span className="text-slate-500">
               완료 {job.total_completed}/{job.total_requested}
-              {job.total_failed > 0
-                ? ` · 폐기 ${job.total_failed}`
-                : ""}
             </span>
             {running && (
               <span className="animate-pulse text-brand-700">진행 중…</span>

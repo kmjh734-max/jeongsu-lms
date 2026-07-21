@@ -67,7 +67,7 @@ export async function POST(
 
       const { data: jobRow } = await admin
         .from("question_generation_jobs")
-        .select("id, academy_id, created_by")
+        .select("id, academy_id, created_by, total_requested, total_failed, total_completed")
         .eq("id", id)
         .maybeSingle();
       if (!jobRow) return jsonError("작업을 찾을 수 없습니다.", 404);
@@ -82,12 +82,26 @@ export async function POST(
         return jsonError("권한이 없습니다.", 403);
       }
 
+      const requested = Math.max(1, Number(jobRow.total_requested) || 1);
+      const failed = Math.max(0, Number(jobRow.total_failed) || 0);
+      const quantity =
+        body.action === "retry" && failed > 0 ? failed : requested;
+
       const chargeErr = await chargeFeatureOrError({
         academyId: (jobRow.academy_id as string) || profile.academy_id,
         featureKey: CREDIT_FEATURES.qg_generate_job,
         actorId: profile.id,
         idempotencyKey: `qg_generate_job:${id}:${body.action === "retry" ? `retry-${Date.now()}` : "run"}`,
-        metadata: { job_id: id, action: body.action },
+        quantity,
+        note:
+          body.action === "retry"
+            ? `변형문제 재시도 ${quantity}문항`
+            : `변형문제 생성 ${quantity}문항`,
+        metadata: {
+          job_id: id,
+          action: body.action,
+          quantity,
+        },
       });
       if (chargeErr) return chargeErr;
 

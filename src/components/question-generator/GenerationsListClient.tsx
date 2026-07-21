@@ -447,11 +447,6 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                     <td className="tabular-nums">{passageCount(j)}</td>
                     <td className="tabular-nums text-slate-700">
                       {j.total_completed}/{j.total_requested}
-                      {j.total_failed > 0 ? (
-                        <span className="ml-1 text-xs text-red-600">
-                          실패 {j.total_failed}
-                        </span>
-                      ) : null}
                     </td>
                     <td>
                       <span

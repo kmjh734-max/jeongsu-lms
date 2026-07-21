@@ -99,6 +99,7 @@ export function CreditsDashboard({ title }: { title?: string }) {
                   </td>
                   <td className="tabular-nums font-medium">
                     {p.credit_cost.toLocaleString("ko-KR")} 크레딧
+                    {p.feature_key === "qg_generate_job" ? "/문항" : ""}
                   </td>
                 </tr>
               ))}

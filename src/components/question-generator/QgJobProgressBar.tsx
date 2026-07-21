@@ -29,8 +29,7 @@ export function QgJobProgressBar({
         <div className="flex flex-wrap items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-brand-900">
-              {label} 생성 중 · {jobProgress.completed + jobProgress.failed}/
-              {jobProgress.total}
+              {label} 생성 중 · {jobProgress.completed}/{jobProgress.total}
             </p>
             <p className="truncate text-xs text-brand-800">
               {jobProgress.message} · 이 페이지를 나가도 생성은 계속됩니다
@@ -57,10 +56,7 @@ export function QgJobProgressBar({
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm font-semibold text-brand-900">
-            {label} 생성 완료
-            {jobProgress.failed > 0
-              ? ` · ${jobProgress.completed}/${jobProgress.total} (미생성 ${jobProgress.failed})`
-              : ` · ${jobProgress.completed}문항`}
+            {label} 생성 완료 · {jobProgress.completed}/{jobProgress.total}문항
           </p>
           <div className="flex flex-wrap gap-2">
             {onOpenPdf && jobProgress.completed > 0 ? (

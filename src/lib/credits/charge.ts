@@ -18,6 +18,8 @@ export async function chargeFeatureOrError(params: {
   idempotencyKey: string;
   metadata?: Record<string, unknown>;
   note?: string;
+  /** 단가 × quantity (변형문제 문항 수 등) */
+  quantity?: number;
 }): Promise<NextResponse | null> {
   if (!params.academyId) {
     return NextResponse.json(
@@ -34,6 +36,7 @@ export async function chargeFeatureOrError(params: {
       idempotencyKey: params.idempotencyKey,
       metadata: params.metadata,
       note: params.note,
+      quantity: params.quantity,
     });
     return null;
   } catch (err) {

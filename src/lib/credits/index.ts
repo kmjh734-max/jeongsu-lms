@@ -114,6 +114,7 @@ export async function getFeatureCost(
 
 /**
  * 기능 단가로 차감. cost=0 또는 비활성(0)이면 스킵.
+ * quantity>1 이면 단가×수 (변형문제 문항 수 등).
  * idempotency_key로 중복 차감 방지.
  */
 export async function debitFeatureCredits(
@@ -125,6 +126,8 @@ export async function debitFeatureCredits(
     idempotencyKey: string;
     metadata?: Record<string, unknown>;
     note?: string;
+    /** 기본 1. 단가 × quantity 차감 */
+    quantity?: number;
   }
 ): Promise<{ skipped: boolean; transaction: CreditTransaction | null }> {
   const pricing = await getFeatureCost(admin, params.featureKey);
@@ -138,13 +141,19 @@ export async function debitFeatureCredits(
     return { skipped: true, transaction: null };
   }
 
+  const quantity = Math.max(1, Math.floor(params.quantity ?? 1));
   const { data, error } = await admin.rpc("debit_academy_credits", {
     p_academy_id: params.academyId,
     p_feature_key: params.featureKey,
     p_actor_id: params.actorId,
     p_idempotency_key: params.idempotencyKey,
-    p_metadata: params.metadata ?? {},
+    p_metadata: {
+      ...(params.metadata ?? {}),
+      quantity,
+      unit_cost: pricing.cost,
+    },
     p_note: params.note ?? null,
+    p_quantity: quantity,
   });
 
   if (error) mapRpcError(error.message);
