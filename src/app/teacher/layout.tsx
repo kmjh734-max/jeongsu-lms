@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: "/teacher/courses", label: "강좌 관리" },
   { href: "/teacher/vocab", label: "Words" },
   { href: "/teacher/listening", label: "Listening" },
-  { href: "/teacher/question-generator", label: "AI" },
+  { href: "/teacher/question-generator", label: "AI 변형문제" },
   { href: "/teacher/classes", label: "반 관리" },
   { href: "/teacher/students", label: "학생 관리" },
   { href: "/teacher/progress", label: "수강 현황" },

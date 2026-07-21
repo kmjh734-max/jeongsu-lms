@@ -7,11 +7,12 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    await requireStaffProfile();
+    const profile = await requireStaffProfile();
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("question_generation_presets")
       .select("*")
+      .eq("academy_id", profile.academy_id!)
       .order("is_system", { ascending: false })
       .order("name");
     if (error) return jsonError(error.message, 500);

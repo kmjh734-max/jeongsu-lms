@@ -12,6 +12,7 @@ export async function GET() {
     let q = supabase
       .from("english_question_sets")
       .select("*")
+      .eq("academy_id", profile.academy_id!)
       .order("updated_at", { ascending: false });
     if (profile.role === "teacher") q = q.eq("created_by", profile.id);
     const { data, error } = await q;

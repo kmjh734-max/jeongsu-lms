@@ -29,6 +29,7 @@ export async function GET() {
       .select(
         "id, status, progress_message, total_requested, total_completed, total_failed, error_message, created_at, completed_at, passage_id, request_config, english_source_passages(title)"
       )
+      .eq("academy_id", profile.academy_id!)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -351,6 +352,7 @@ async function createJobFromConfig(
       status: "pending",
       total_requested: total,
       created_by: userId,
+      academy_id: academyId,
       progress_message: "대기 중",
     })
     .select("id")

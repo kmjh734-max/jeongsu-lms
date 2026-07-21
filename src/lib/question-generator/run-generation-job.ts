@@ -76,6 +76,7 @@ function toRow(
     jobId: string;
     option: QuestionTypeOption;
     userId: string;
+    academyId: string;
     attempt: number;
     status: string;
     validationScore: number | null;
@@ -108,6 +109,7 @@ function toRow(
     generation_attempt: opts.attempt,
     error_message: opts.errorMessage ?? null,
     created_by: opts.userId,
+    academy_id: opts.academyId,
     approved_by: approved ? opts.userId : null,
     approved_at: approved ? new Date().toISOString() : null,
     updated_at: new Date().toISOString(),
@@ -254,6 +256,19 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     .single();
 
   if (error || !job) throw new Error("생성 작업을 찾을 수 없습니다.");
+
+  let academyId = (job.academy_id as string | null) ?? null;
+  if (!academyId && job.created_by) {
+    const { data: creator } = await admin
+      .from("profiles")
+      .select("academy_id")
+      .eq("id", job.created_by as string)
+      .maybeSingle();
+    academyId = (creator?.academy_id as string | null) ?? null;
+  }
+  if (!academyId) {
+    throw new Error("생성 작업에 학원 정보가 없습니다.");
+  }
 
   const startable = new Set([
     "pending",
@@ -502,6 +517,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
             jobId,
             option: item.option,
             userId,
+            academyId,
             attempt: result.attempt,
             status: "approved",
             validationScore: result.payload.validation?.overallScore ?? null,

@@ -17,6 +17,7 @@ export async function GET(req: Request) {
       .select(
         "id, category, question_type, difficulty, choice_language, instruction, question_text, status, validation_score, created_at, passage_id, option_key"
       )
+      .eq("academy_id", profile.academy_id!)
       .order("created_at", { ascending: false })
       .limit(100);
 
