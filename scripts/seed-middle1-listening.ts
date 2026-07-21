@@ -36,6 +36,7 @@ import { planRandomGenerationSlots } from "../src/lib/listening/generation-slots
 import { getExamTypesForGrade } from "../src/lib/listening/exam-types";
 import { persistGeneratedQuestions } from "../src/lib/listening/persist-questions";
 import { CURRICULUM_LOCK_MARKER } from "../src/lib/listening/listening-api-auth";
+import { syncListeningCurriculumToAllAcademies } from "../src/lib/listening/clone-curriculum";
 
 const ACADEMY_ID = "79ea0a71-d148-46ac-8c8f-a3a3e4961838"; // 정수학원
 const OWNER_ID = "a20cf497-b12e-471d-b826-64e38cf42b3b"; // admin@gmail.com
@@ -226,6 +227,20 @@ async function main() {
 
     if (!questionsOnly) {
       await generateAudio(setId, round);
+    }
+
+    // Push newly completed rounds to other academies (Born English, …)
+    try {
+      const synced = await syncListeningCurriculumToAllAcademies(OWNER_ID);
+      for (const row of synced) {
+        if (row.result.setsCloned > 0) {
+          console.log(
+            `synced → ${row.slug}: +${row.result.setsCloned} sets, +${row.result.questionsCloned} Qs`
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("curriculum sync warn:", e instanceof Error ? e.message : e);
     }
   }
   console.log("\nDONE");

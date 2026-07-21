@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireSuperAdminApi } from "@/lib/auth/require-super-admin-api";
+import { cloneListeningCurriculumToAcademy } from "@/lib/listening/clone-curriculum";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -87,7 +88,30 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true, academy: data });
+    let curriculum = null as Awaited<
+      ReturnType<typeof cloneListeningCurriculumToAcademy>
+    > | null;
+    let curriculumError: string | null = null;
+    try {
+      const ownerId =
+        "profile" in auth && auth.profile ? auth.profile.id : null;
+      if (ownerId && data?.id) {
+        curriculum = await cloneListeningCurriculumToAcademy({
+          targetAcademyId: data.id as string,
+          ownerProfileId: ownerId,
+        });
+      }
+    } catch (e) {
+      curriculumError = e instanceof Error ? e.message : "커리큘럼 복제 실패";
+      console.error("[academies] curriculum clone failed", e);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      academy: data,
+      curriculum,
+      curriculumError,
+    });
   } catch (e) {
     return NextResponse.json(
       {
