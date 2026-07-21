@@ -181,12 +181,17 @@ export function GenerationDetailClient({
 
   async function retryJob() {
     setError(null);
-    void fetch(`/api/question-generator/jobs/${jobId}`, {
+    const res = await fetch(`/api/question-generator/jobs/${jobId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "retry" }),
     });
-    window.setTimeout(() => void load(), 800);
+    const data = (await res.json()) as { ok?: boolean; message?: string };
+    if (!data.ok) {
+      setError(data.message ?? "재생성 요청 실패");
+      return;
+    }
+    await load();
   }
 
   const running =

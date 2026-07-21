@@ -100,26 +100,36 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
   const [copying, setCopying] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
     try {
       const res = await fetch("/api/question-generator/jobs");
       const d = await res.json();
       if (!d.ok) setError(d.message);
       else {
         setJobs(d.jobs ?? []);
-        setSelected(new Set());
+        if (!opts?.silent) setSelected(new Set());
       }
     } catch {
       setError("목록을 불러오지 못했습니다.");
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const hasRunningJob = jobs.some((j) =>
+    ["pending", "analyzing", "generating", "validating"].includes(j.status)
+  );
+
+  useEffect(() => {
+    if (!hasRunningJob) return;
+    const t = window.setInterval(() => void load({ silent: true }), 2500);
+    return () => window.clearInterval(t);
+  }, [hasRunningJob, load]);
 
   const allSelected =
     jobs.length > 0 && jobs.every((j) => selected.has(j.id));
@@ -205,16 +215,20 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
     setMessage(null);
     try {
       for (const id of ids) {
-        void fetch(`/api/question-generator/jobs/${id}`, {
+        const res = await fetch(`/api/question-generator/jobs/${id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "retry" }),
         });
+        const data = (await res.json()) as { ok?: boolean; message?: string };
+        if (!data.ok) {
+          throw new Error(data.message ?? "재생성 실패");
+        }
       }
       setMessage(
         `${ids.length}개 자료 재생성을 시작했습니다. 목록에서 진행 상태를 확인하세요.`
       );
-      window.setTimeout(() => void load(), 1000);
+      await load({ silent: true });
     } catch {
       setError("재생성 요청에 실패했습니다.");
     } finally {

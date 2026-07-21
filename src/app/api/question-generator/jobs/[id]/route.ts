@@ -4,6 +4,7 @@ import {
   requireStaffProfile,
 } from "@/lib/question-generator/api-helpers";
 import { runGenerationJob } from "@/lib/question-generator/run-generation-job";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 300;
@@ -59,7 +60,8 @@ export async function POST(
     if (body.action === "process" || body.action === "retry") {
       const supabase = await createClient();
       if (body.action === "retry") {
-        await supabase
+        const admin = createAdminClient();
+        const { data: updated, error: updErr } = await admin
           .from("question_generation_jobs")
           .update({
             status: "pending",
@@ -68,7 +70,21 @@ export async function POST(
             completed_at: null,
           })
           .eq("id", id)
-          .in("status", ["failed", "partially_completed", "completed"]);
+          .in("status", [
+            "failed",
+            "partially_completed",
+            "completed",
+            "analyzing",
+            "generating",
+            "validating",
+            "pending",
+          ])
+          .select("id")
+          .maybeSingle();
+        if (updErr) return jsonError(updErr.message, 500);
+        if (!updated) {
+          return jsonError("재시도할 수 없는 상태입니다.", 400);
+        }
       }
       // Await so Vercel keeps the function alive for long jobs
       await runGenerationJob(id);

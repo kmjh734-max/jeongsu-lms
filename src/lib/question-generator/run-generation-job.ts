@@ -241,10 +241,32 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     .single();
 
   if (error || !job) throw new Error("생성 작업을 찾을 수 없습니다.");
-  // pending / failed 만 시작. 진행 중·완료는 중복 실행 방지.
-  if (job.status !== "pending" && job.status !== "failed") {
+
+  const startable = new Set([
+    "pending",
+    "failed",
+    "partially_completed",
+    "analyzing",
+    "generating",
+    "validating",
+  ]);
+  if (!startable.has(job.status)) {
     return;
   }
+
+  // 동시 실행 방지: 한 번에 하나만 claim
+  const { data: claimed, error: claimErr } = await admin
+    .from("question_generation_jobs")
+    .update({
+      status: "analyzing",
+      progress_message: "준비 중…",
+      error_message: null,
+    })
+    .eq("id", jobId)
+    .in("status", [...startable])
+    .select("id")
+    .maybeSingle();
+  if (claimErr || !claimed) return;
 
   const { data: existingRows } = await admin
     .from("generated_english_questions")
@@ -278,9 +300,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
 
   try {
     await updateJob(jobId, {
-      status: "analyzing",
       progress_message: `지문 분석 중 (0/${passageIds.length})`,
-      error_message: null,
     });
 
     const options = expandCountRequests(config.counts ?? {});
