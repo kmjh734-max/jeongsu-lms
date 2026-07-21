@@ -12,7 +12,7 @@ alwaysApply: true
 - `C:\allbarreun-edu-app` → https://allbarreun-edu.vercel.app/
 - `C:\iroom-edu-app` → https://iroom-edu-app.vercel.app/
 
-작업 기본 대상은 **jeongsu** (`C:\video-app` / https://jeongsu-lms.vercel.app/).
+작업 기본 대상은 **jeongsu / EngCore** (`C:\video-app` / https://engcore.vercel.app/).
 
 ## 변형문제 V1 (스냅샷)
 

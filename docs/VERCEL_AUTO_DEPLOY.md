@@ -1,10 +1,11 @@
-# Vercel 자동 배포 설정 (main 푸시 → jeongsu-lms.vercel.app)
+# Vercel 자동 배포 설정 (main 푸시 → engcore.vercel.app)
 
-GitHub: `https://github.com/kmjh734-max/jeongsu-lms`
+GitHub: `https://github.com/kmjh734-max/jeongsu-lms`  
+프로덕션 URL: `https://engcore.vercel.app` (Vercel 프로젝트명 `engcore`)
 
 ## 방법 A — 추천: Vercel ↔ GitHub 연결 (설정 한 번)
 
-1. [Vercel Dashboard](https://vercel.com/dashboard) → 프로젝트 **jeongsu-lms** (또는 Import)
+1. [Vercel Dashboard](https://vercel.com/dashboard) → 프로젝트 **engcore** (구 `jeongsu-lms`)
 2. **Settings** → **Git**
 3. **Connect Git Repository** → `kmjh734-max/jeongsu-lms` 선택
 4. **Production Branch**: `main`
@@ -22,9 +23,10 @@ Vercel → **Settings** → **Environment Variables**:
 | `NEXT_PUBLIC_SUPABASE_URL` | Production |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production |
 | `SUPABASE_SERVICE_ROLE_KEY` | Production |
+| `NEXT_PUBLIC_SITE_URL` | Production → `https://engcore.vercel.app` |
 
 Supabase → **Authentication** → URL Configuration에  
-`https://jeongsu-lms.vercel.app` 추가.
+`https://engcore.vercel.app` 추가 (기존 `jeongsu-lms.vercel.app`는 당분간 유지 가능).
 
 ---
 
@@ -36,7 +38,7 @@ Supabase → **Authentication** → URL Configuration에
 
 **해결:**
 
-1. [Vercel Deployments](https://vercel.com/dashboard) → **jeongsu-lms** → `Queued` / `Canceled` 가능한 오래된 배포는 **Cancel** (최신 1개만 남기기)
+1. [Vercel Deployments](https://vercel.com/dashboard) → **engcore** → `Queued` / `Canceled` 가능한 오래된 배포는 **Cancel** (최신 1개만 남기기)
 2. **둘 중 하나만** 사용
    - **추천:** Vercel Git 연동만 (Actions 워크플로는 `workflow_dispatch` 수동만)
    - 또는 Git 연동 끄고 Deploy Hook + Actions만
@@ -63,4 +65,4 @@ Supabase → **Authentication** → URL Configuration에
 ## 배포 확인
 
 - Vercel → **Deployments** 탭에서 최신 커밋·상태 확인
-- 성공 후 https://jeongsu-lms.vercel.app 접속
+- 성공 후 https://engcore.vercel.app 접속
