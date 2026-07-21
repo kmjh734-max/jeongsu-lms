@@ -167,6 +167,11 @@ export function SuperAdminAcademiesClient({
 
   async function createAdmin() {
     if (!manageId) return;
+    const username = createUsername.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (username.length < 3) {
+      setError("아이디는 영문 소문자·숫자 3자 이상으로 입력해 주세요.");
+      return;
+    }
     setBusy(true);
     setError(null);
     setMessage(null);
@@ -177,7 +182,7 @@ export function SuperAdminAcademiesClient({
         body: JSON.stringify({
           action: "create",
           name: createName.trim(),
-          username: createUsername.trim(),
+          username,
           password: createPassword,
         }),
       });
@@ -461,20 +466,30 @@ export function SuperAdminAcademiesClient({
                   value={createName}
                   onChange={(e) => setCreateName(e.target.value)}
                 />
-                <input
-                  className="ui-input font-mono"
-                  placeholder="아이디 (영문·숫자)"
-                  value={createUsername}
-                  onChange={(e) =>
-                    setCreateUsername(
-                      e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "")
-                    )
-                  }
-                />
+                <div>
+                  <input
+                    className="ui-input font-mono"
+                    placeholder="예: jeongmin (영문·숫자)"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={createUsername}
+                    onChange={(e) => setCreateUsername(e.target.value)}
+                    onBlur={() =>
+                      setCreateUsername((v) =>
+                        v.toLowerCase().replace(/[^a-z0-9]/g, "")
+                      )
+                    }
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    영문 소문자·숫자만 사용 (한글·특수문자 불가). 예:{" "}
+                    <span className="font-mono">choijm</span>
+                  </p>
+                </div>
                 <input
                   className="ui-input"
                   type="password"
                   placeholder="비밀번호 (6자 이상)"
+                  autoComplete="new-password"
                   value={createPassword}
                   onChange={(e) => setCreatePassword(e.target.value)}
                 />
@@ -485,7 +500,7 @@ export function SuperAdminAcademiesClient({
                 disabled={
                   busy ||
                   !createName.trim() ||
-                  createUsername.length < 3 ||
+                  createUsername.replace(/[^a-zA-Z0-9]/g, "").length < 3 ||
                   createPassword.length < 6
                 }
                 onClick={() => void createAdmin()}
