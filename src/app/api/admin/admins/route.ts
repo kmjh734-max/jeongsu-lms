@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       username: body.username ?? "",
       password: body.password ?? "",
       role: "admin",
+      academyId: auth.profile.academy_id,
     });
 
     if (!result.ok) {

@@ -52,6 +52,8 @@ export interface CreateAccountInput {
   password: string;
   role: ManagedAccountRole;
   createdBy?: string | null;
+  /** 멀티테넌트: 소속 학원 (학원 관리자·강사·학생 생성 시 필수에 가깝게 사용) */
+  academyId?: string | null;
 }
 
 export interface UpdateAccountInput {
@@ -80,15 +82,19 @@ async function syncProfileAfterAuthCreate(
     role: ManagedAccountRole;
     username: string;
     createdBy: string | null;
+    academyId?: string | null;
   }
 ): Promise<Result<Record<string, unknown>>> {
-  const basePayload = {
+  const basePayload: Record<string, unknown> = {
     name: payload.name,
     email: payload.email,
     role: payload.role,
     username: payload.username,
     is_active: true,
   };
+  if (payload.academyId) {
+    basePayload.academy_id = payload.academyId;
+  }
 
   let useCreatedBy =
     payload.createdBy != null && payload.role === "student";
@@ -335,6 +341,7 @@ export async function createManagedAccount(
     role: input.role,
     username,
     createdBy: input.role === "student" ? input.createdBy ?? null : null,
+    academyId: input.academyId ?? null,
   });
 
   if (!syncResult.ok) {

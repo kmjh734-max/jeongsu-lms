@@ -30,6 +30,7 @@ export async function POST(request: Request) {
       password: body.password ?? "",
       role: "student",
       createdBy: auth.profile.id,
+      academyId: auth.profile.academy_id,
     });
 
     if (!result.ok) {

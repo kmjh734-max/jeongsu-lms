@@ -18,7 +18,7 @@ export async function requireAdminApi() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role")
+    .select("id, role, academy_id")
     .eq("id", user.id)
     .single();
 
@@ -26,6 +26,20 @@ export async function requireAdminApi() {
     return {
       error: NextResponse.json(
         { ok: false, message: "관리자 권한이 필요합니다." },
+        { status: 403 }
+      ),
+    };
+  }
+
+  // 학원 관리자는 반드시 academy_id가 있어야 함
+  if (profile.role === "admin" && !profile.academy_id) {
+    return {
+      error: NextResponse.json(
+        {
+          ok: false,
+          message:
+            "학원 정보가 없는 관리자 계정입니다. EngCore Admin에서 학원 관리자로 연결해 주세요.",
+        },
         { status: 403 }
       ),
     };
