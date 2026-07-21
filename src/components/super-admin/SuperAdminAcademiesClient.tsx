@@ -74,6 +74,8 @@ export function SuperAdminAcademiesClient({
   const [editDescription, setEditDescription] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [editAddress, setEditAddress] = useState("");
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [showLogoUrl, setShowLogoUrl] = useState(false);
 
   const managed = rows.find((r) => r.id === manageId) ?? null;
 
@@ -163,6 +165,64 @@ export function SuperAdminAcademiesClient({
     }
   }
 
+  function applyAcademyRow(a: AcademyListRow) {
+    if (!manageId) return;
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === manageId
+          ? {
+              ...r,
+              name: a.name,
+              logo_url: a.logo_url,
+              primary_color: a.primary_color,
+              secondary_color: a.secondary_color,
+              description: a.description,
+              phone: a.phone,
+              address: a.address,
+            }
+          : r
+      )
+    );
+    setEditLogo(a.logo_url ?? "");
+  }
+
+  async function uploadLogo(file: File) {
+    if (!manageId) return;
+    setLogoUploading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(
+        `/api/super-admin/academies/${manageId}/logo`,
+        { method: "POST", body: form }
+      );
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.message ?? "로고 업로드 실패");
+        return;
+      }
+      const url = (data.logo_url as string) || "";
+      setEditLogo(url);
+      if (data.academy) {
+        applyAcademyRow(data.academy as AcademyListRow);
+      } else {
+        setRows((prev) =>
+          prev.map((r) =>
+            r.id === manageId ? { ...r, logo_url: url || null } : r
+          )
+        );
+      }
+      setMessage("로고를 업로드했습니다.");
+      router.refresh();
+    } catch {
+      setError("로고 업로드에 실패했습니다.");
+    } finally {
+      setLogoUploading(false);
+    }
+  }
+
   async function saveAcademyProfile() {
     if (!manageId) return;
     setBusy(true);
@@ -187,23 +247,7 @@ export function SuperAdminAcademiesClient({
         setError(data.message ?? "저장 실패");
         return;
       }
-      const a = data.academy as AcademyListRow;
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === manageId
-            ? {
-                ...r,
-                name: a.name,
-                logo_url: a.logo_url,
-                primary_color: a.primary_color,
-                secondary_color: a.secondary_color,
-                description: a.description,
-                phone: a.phone,
-                address: a.address,
-              }
-            : r
-        )
-      );
+      applyAcademyRow(data.academy as AcademyListRow);
       setMessage("학원 정보를 저장했습니다. 인쇄·리포트에 반영됩니다.");
       router.refresh();
     } catch {
@@ -547,10 +591,8 @@ export function SuperAdminAcademiesClient({
           {manageTab === "profile" && (
             <div className="mt-4 space-y-4">
               <p className="text-xs text-slate-500">
-                학원명·로고는 인쇄물·학부모 리포트에 사용됩니다. 로고는 공개
-                URL(예:{" "}
-                <span className="font-mono">/image/logo-xxx.png</span> 또는
-                https://…)을 넣으세요.
+                학원명·로고는 인쇄물·학부모 리포트에 사용됩니다. 로고는 이미지
+                파일을 업로드하세요 (PNG/JPG/WEBP, 2MB 이하).
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-xs text-slate-600 sm:col-span-2">
@@ -561,25 +603,66 @@ export function SuperAdminAcademiesClient({
                     onChange={(e) => setEditName(e.target.value)}
                   />
                 </label>
-                <label className="block text-xs text-slate-600 sm:col-span-2">
-                  로고 URL
-                  <input
-                    className="ui-input mt-1 font-mono text-xs"
-                    value={editLogo}
-                    onChange={(e) => setEditLogo(e.target.value)}
-                    placeholder="/image/logo-jeongsu.png"
-                  />
-                </label>
-                {editLogo.trim() ? (
-                  <div className="sm:col-span-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={editLogo.trim()}
-                      alt="로고 미리보기"
-                      className="h-12 w-auto rounded border border-slate-200 bg-white p-1 object-contain"
-                    />
+                <div className="sm:col-span-2 space-y-2">
+                  <p className="text-xs text-slate-600">로고</p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {editLogo.trim() ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={editLogo.trim()}
+                        alt="로고 미리보기"
+                        className="h-14 w-auto max-w-[180px] rounded border border-slate-200 bg-white p-1 object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-28 items-center justify-center rounded border border-dashed border-slate-300 bg-slate-50 text-[11px] text-slate-400">
+                        없음
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 hover:bg-slate-50">
+                        {logoUploading ? "업로드 중…" : "이미지 선택"}
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                          className="hidden"
+                          disabled={logoUploading || busy}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            e.target.value = "";
+                            if (f) void uploadLogo(f);
+                          }}
+                        />
+                      </label>
+                      {editLogo.trim() ? (
+                        <button
+                          type="button"
+                          className="text-left text-[11px] text-slate-500 hover:text-red-700 hover:underline"
+                          disabled={busy || logoUploading}
+                          onClick={() => setEditLogo("")}
+                        >
+                          로고 제거 (저장 시 반영)
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
-                ) : null}
+                  <button
+                    type="button"
+                    className="text-[11px] text-slate-500 hover:underline"
+                    onClick={() => setShowLogoUrl((v) => !v)}
+                  >
+                    {showLogoUrl
+                      ? "URL 직접 입력 숨기기"
+                      : "또는 URL 직접 입력"}
+                  </button>
+                  {showLogoUrl ? (
+                    <input
+                      className="ui-input font-mono text-xs"
+                      value={editLogo}
+                      onChange={(e) => setEditLogo(e.target.value)}
+                      placeholder="/image/logo-xxx.png 또는 https://…"
+                    />
+                  ) : null}
+                </div>
                 <label className="block text-xs text-slate-600">
                   대표 색상
                   <input
