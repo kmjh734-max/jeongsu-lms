@@ -6,9 +6,9 @@ export default function AdminCreditsPage() {
     <div>
       <PageHeader
         title="크레딧"
-        description="학원 잔액과 AI·학습 이용 내역을 확인합니다."
+        description="학원 잔액 확인, 카드 충전, 이용·결제 내역을 관리합니다."
       />
-      <CreditsDashboard />
+      <CreditsDashboard canCharge />
     </div>
   );
 }

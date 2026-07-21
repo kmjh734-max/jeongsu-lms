@@ -26,7 +26,7 @@ export type CreditFeatureKey =
 export type CreditTransaction = {
   id: string;
   academy_id: string;
-  type: "grant" | "debit" | "adjust" | "refund";
+  type: "grant" | "debit" | "adjust" | "refund" | "charge";
   amount: number;
   balance_after: number;
   feature_key: string | null;

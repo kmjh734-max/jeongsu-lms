@@ -4,11 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import {
-  CREDIT_PACKS,
   CREDIT_WON_PER_UNIT,
   creditsToWon,
   formatWon,
 } from "@/lib/credits/pricing-guide";
+import { SuperAdminPaymentsPanel } from "@/components/super-admin/SuperAdminPaymentsPanel";
 
 type AcademyRow = {
   id: string;
@@ -163,6 +163,8 @@ export function SuperAdminCreditsClient() {
       {error && <Alert variant="error">{error}</Alert>}
       {message && <Alert variant="success">{message}</Alert>}
 
+      <SuperAdminPaymentsPanel />
+
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-slate-900">학원별 잔액</h2>
         <div className="mt-3 overflow-x-auto">
@@ -258,50 +260,11 @@ export function SuperAdminCreditsClient() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-slate-900">판매·마진 기준</h2>
-        <p className="mt-2 text-sm text-slate-700">
-          기준 단가{" "}
-          <span className="font-semibold tabular-nums">
-            1 크레딧 = {CREDIT_WON_PER_UNIT.toLocaleString("ko-KR")}원
-          </span>
-          {" "}
-          (무거운 AI 기준 총이익률 약 65~75% 목표)
-        </p>
-        <div className="mt-3 overflow-x-auto">
-          <table className="ui-table w-full text-sm">
-            <thead>
-              <tr>
-                <th>패키지</th>
-                <th>크레딧</th>
-                <th>학원 결제</th>
-                <th>할인</th>
-              </tr>
-            </thead>
-            <tbody>
-              {CREDIT_PACKS.map((pack) => (
-                <tr key={pack.label}>
-                  <td className="font-medium">{pack.label}</td>
-                  <td className="tabular-nums">
-                    {pack.credits.toLocaleString("ko-KR")}
-                  </td>
-                  <td className="tabular-nums font-semibold">
-                    {formatWon(pack.priceWon)}
-                  </td>
-                  <td className="text-xs text-slate-500">
-                    {pack.discountPct > 0 ? `${pack.discountPct}%` : "정가"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-[11px] text-slate-400">
-          지급 시 위 패키지 크레딧을 넣고, 메모에 결제액을 남겨 두면 추적이 쉽습니다.
-        </p>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-slate-900">기능 단가</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          기준 환산 1크레딧 ≈ {CREDIT_WON_PER_UNIT.toLocaleString("ko-KR")}원
+          (원가 가이드용). 실제 판매 상품은 위 충전 상품(DB)을 사용합니다.
+        </p>
         <p className="mt-1 text-xs text-slate-500">
           저장 후 학원·교사 화면에 바로 반영됩니다. 괄호는 기준 단가 환산 매출입니다.
         </p>
