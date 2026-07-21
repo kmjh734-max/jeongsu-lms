@@ -1,4 +1,4 @@
-import { ACADEMY_NAME, LOGO_SRC, SITE_URL } from "@/lib/branding";
+import { ACADEMY_NAME, SITE_URL } from "@/lib/branding";
 import type { AcademyBranding } from "@/lib/tenant/academy-branding";
 import { fallbackAcademyBranding } from "@/lib/tenant/academy-branding";
 
