@@ -3,7 +3,7 @@ description: 배포는 main 푸시로 자동 처리. 작업 후 사용자에게 
 alwaysApply: true
 ---
 
-# 배포 (EngCore / engcore.vercel.app)
+# 배포 (EngCore / engcore-lms.vercel.app)
 
 - 코드 변경을 마치면 **사용자에게 묻지 않고** `git push origin main`까지 완료한다 (커밋은 사용자가 요청했거나 변경이 명확할 때).
 - 프로덕션 배포는 **Vercel ↔ GitHub `main` 연동**으로 자동된다. 별도 Vercel Run/Deploy 버튼을 누르라고 안내하지 않는다.

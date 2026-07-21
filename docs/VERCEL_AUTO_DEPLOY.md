@@ -1,4 +1,4 @@
-# Vercel 자동 배포 설정 (main 푸시 → engcore.vercel.app)
+# Vercel 자동 배포 설정 (main 푸시 → engcore-lms.vercel.app)
 
 GitHub: `https://github.com/kmjh734-max/jeongsu-lms`  
 프로덕션 URL: `https://engcore-lms.vercel.app` (Vercel 프로젝트명 `engcore-lms`)
