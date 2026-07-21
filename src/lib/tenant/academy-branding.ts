@@ -92,21 +92,30 @@ export async function getAcademyBrandingForCurrentUser(): Promise<AcademyBrandin
   }
 }
 
-/** slug로 조회 */
-export async function getAcademyBrandingBySlug(
+/** slug로 조회 (활성 학원만). 없으면 null */
+export async function getActiveAcademyBySlug(
   slug: string | null | undefined
-): Promise<AcademyBranding> {
-  if (!slug) return fallbackAcademyBranding();
+): Promise<AcademyBranding | null> {
+  const normalized = slug?.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+  if (!normalized) return null;
   try {
     const admin = createAdminClient();
     const { data } = await admin
       .from("academies")
-      .select("id, name, slug, logo_url, primary_color")
-      .eq("slug", slug)
+      .select("id, name, slug, logo_url, primary_color, status")
+      .eq("slug", normalized)
       .maybeSingle();
-    if (!data) return fallbackAcademyBranding();
+    if (!data || data.status !== "active") return null;
     return mapAcademyRow(data);
   } catch {
-    return fallbackAcademyBranding();
+    return null;
   }
+}
+
+/** slug로 조회 (폴백 포함 — 인쇄 등) */
+export async function getAcademyBrandingBySlug(
+  slug: string | null | undefined
+): Promise<AcademyBranding> {
+  const found = await getActiveAcademyBySlug(slug);
+  return found ?? fallbackAcademyBranding();
 }

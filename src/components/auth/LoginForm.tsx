@@ -25,6 +25,9 @@ function translateAuthError(message: string): string {
 
 interface LoginFormProps {
   initialError?: string;
+  /** 학원 전용 랜딩일 때 — 다른 학원 계정 로그인 차단 */
+  expectedAcademyId?: string | null;
+  expectedAcademyName?: string | null;
 }
 
 function safeRedirectPath(raw: string | null): string | null {
@@ -32,7 +35,11 @@ function safeRedirectPath(raw: string | null): string | null {
   return raw;
 }
 
-export function LoginForm({ initialError }: LoginFormProps) {
+export function LoginForm({
+  initialError,
+  expectedAcademyId = null,
+  expectedAcademyName = null,
+}: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectAfterLogin = safeRedirectPath(
@@ -69,7 +76,7 @@ export function LoginForm({ initialError }: LoginFormProps) {
     if (data.user) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role, is_active")
+        .select("role, is_active, academy_id")
         .eq("id", data.user.id)
         .single();
 
@@ -79,6 +86,22 @@ export function LoginForm({ initialError }: LoginFormProps) {
           profile.role === "teacher"
             ? "비활성화된 계정입니다. 관리자에게 문의해 주세요."
             : "비활성화된 계정입니다. 학원에 문의해 주세요."
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (
+        expectedAcademyId &&
+        profile &&
+        profile.role !== "super_admin" &&
+        profile.academy_id !== expectedAcademyId
+      ) {
+        await supabase.auth.signOut();
+        setError(
+          expectedAcademyName
+            ? `이 계정은 ${expectedAcademyName} 소속이 아닙니다. 학원 전용 로그인 주소를 확인해 주세요.`
+            : "이 학원에 소속된 계정이 아닙니다. 학원 전용 로그인 주소를 확인해 주세요."
         );
         setLoading(false);
         return;

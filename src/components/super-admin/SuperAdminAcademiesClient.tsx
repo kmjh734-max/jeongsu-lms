@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
+import { academyLoginAbsoluteUrl } from "@/lib/tenant/resolve-login-academy";
 
 export type AcademyListRow = {
   id: string;
@@ -32,12 +33,12 @@ type AdminRow = {
   created_at: string;
 };
 
-type ManageTab = "profile" | "admins";
-
-const LOGIN_URL =
+const SITE_URL =
   (typeof process !== "undefined" &&
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")) ||
   "https://engcore.co.kr";
+
+type ManageTab = "profile" | "admins";
 
 export function SuperAdminAcademiesClient({
   initialRows,
@@ -306,7 +307,7 @@ export function SuperAdminAcademiesClient({
       }
       setMessage(data.message ?? "연결했습니다.");
       setInviteHint(
-        `로그인: ${LOGIN_URL}/login\n이메일: ${linkEmail.trim()}\n→ 로그인 후 /admin 으로 이동합니다.`
+        `로그인: ${academyLoginAbsoluteUrl(managed?.slug ?? "", SITE_URL)}\n이메일: ${linkEmail.trim()}\n→ 로그인 후 /admin 으로 이동합니다.`
       );
       setLinkEmail("");
       await loadAdmins(manageId);
@@ -348,7 +349,7 @@ export function SuperAdminAcademiesClient({
       setMessage(data.message ?? "관리자를 만들었습니다.");
       setInviteHint(
         [
-          `로그인: ${LOGIN_URL}/login`,
+          `로그인: ${academyLoginAbsoluteUrl(managed?.slug ?? "", SITE_URL)}`,
           `아이디: ${username}`,
           `비밀번호: (방금 설정한 값)`,
           `학원: ${managed?.name ?? ""}`,
@@ -724,7 +725,47 @@ export function SuperAdminAcademiesClient({
                 >
                   다음: 관리자 연결 →
                 </Button>
+                {managed.slug ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={async () => {
+                      const url = academyLoginAbsoluteUrl(
+                        managed.slug,
+                        SITE_URL
+                      );
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        setMessage(
+                          `학원 로그인 링크를 복사했습니다: ${url}`
+                        );
+                      } catch {
+                        setInviteHint(`로그인: ${url}`);
+                        setMessage("아래 로그인 링크를 복사해 전달하세요.");
+                      }
+                    }}
+                  >
+                    로그인 링크 복사
+                  </Button>
+                ) : null}
               </div>
+              {managed.slug ? (
+                <p className="text-[11px] text-slate-500">
+                  학원 전용 로그인:{" "}
+                  <span className="font-mono text-slate-700">
+                    {academyLoginAbsoluteUrl(managed.slug, SITE_URL)}
+                  </span>
+                  {managed.slug ? (
+                    <>
+                      {" "}
+                      · 서브도메인(선택):{" "}
+                      <span className="font-mono">
+                        https://{managed.slug}.engcore.co.kr/login
+                      </span>
+                    </>
+                  ) : null}
+                </p>
+              ) : null}
             </div>
           )}
 

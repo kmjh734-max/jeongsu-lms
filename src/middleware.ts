@@ -5,6 +5,11 @@ import {
   getDashboardPathForRole,
   isRolePathAllowed,
 } from "@/lib/auth/roles";
+import {
+  ACADEMY_COOKIE,
+  ACADEMY_COOKIE_MAX_AGE,
+  resolveAcademySlug,
+} from "@/lib/tenant/resolve-login-academy";
 import type { UserRole } from "@/types/database";
 
 const PUBLIC_PREFIXES = [
@@ -31,8 +36,27 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
+function applyAcademyCookie(res: NextResponse, slug: string | null) {
+  if (!slug) return;
+  res.cookies.set(ACADEMY_COOKIE, slug, {
+    path: "/",
+    maxAge: ACADEMY_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
+function readAcademySlug(request: NextRequest): string | null {
+  return resolveAcademySlug({
+    queryAcademy: request.nextUrl.searchParams.get("academy"),
+    host: request.headers.get("host"),
+    cookieAcademy: request.cookies.get(ACADEMY_COOKIE)?.value,
+  });
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const academySlug = readAcademySlug(request);
 
   // 학생 QR 경로 → 공개 학습 (로그인 전 리다이렉트)
   if (pathname.startsWith("/student/vocab/exam/")) {
@@ -40,13 +64,34 @@ export async function middleware(request: NextRequest) {
     if (setId) {
       const url = request.nextUrl.clone();
       url.pathname = `/exam-vocab/${setId}`;
-      return NextResponse.redirect(url);
+      const res = NextResponse.redirect(url);
+      applyAcademyCookie(res, academySlug);
+      return res;
     }
   }
 
   // 공개 경로는 세션/역할 검사 없이 통과 (학부모 리포트 링크 등)
   if (isPublicPath(pathname)) {
-    return NextResponse.next();
+    // 서브도메인으로 /login 진입 시 ?academy= 맞춰 URL 정규화
+    if (
+      pathname === "/login" &&
+      academySlug &&
+      !request.nextUrl.searchParams.get("academy")
+    ) {
+      const fromHost = resolveAcademySlug({
+        host: request.headers.get("host"),
+      });
+      if (fromHost) {
+        const url = request.nextUrl.clone();
+        url.searchParams.set("academy", fromHost);
+        const res = NextResponse.redirect(url);
+        applyAcademyCookie(res, fromHost);
+        return res;
+      }
+    }
+    const res = NextResponse.next();
+    applyAcademyCookie(res, academySlug);
+    return res;
   }
 
   if (!isVocabEnabled() && pathname.startsWith("/api/vocab")) {
@@ -57,13 +102,18 @@ export async function middleware(request: NextRequest) {
   }
 
   const { supabase, user, supabaseResponse } = await updateSession(request);
+  applyAcademyCookie(supabaseResponse, academySlug);
 
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.search = "";
     const returnPath = `${pathname}${request.nextUrl.search}`;
     url.searchParams.set("redirect", returnPath);
-    return NextResponse.redirect(url);
+    if (academySlug) url.searchParams.set("academy", academySlug);
+    const res = NextResponse.redirect(url);
+    applyAcademyCookie(res, academySlug);
+    return res;
   }
 
   const { data: profile } = await supabase
@@ -77,7 +127,11 @@ export async function middleware(request: NextRequest) {
   if (!role) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
+    url.search = "";
+    if (academySlug) url.searchParams.set("academy", academySlug);
+    const res = NextResponse.redirect(url);
+    applyAcademyCookie(res, academySlug);
+    return res;
   }
 
   const dashboardPath = getDashboardPathForRole(role);
@@ -105,16 +159,18 @@ export async function middleware(request: NextRequest) {
     }
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
   if (pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
-  const rolePrefixes = ["/admin", "/teacher", "/student"];
+  const rolePrefixes = ["/admin", "/teacher", "/student", "/super-admin"];
   const hitsRolePrefix = rolePrefixes.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`)
   );
@@ -122,6 +178,7 @@ export async function middleware(request: NextRequest) {
   if (hitsRolePrefix && !isRolePathAllowed(role, pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
