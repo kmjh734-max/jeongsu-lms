@@ -503,18 +503,23 @@ export function QuestionPrintView({
       typeof job?.vocab_set_id === "string" ? job.vocab_set_id : null
     );
 
-    // 보기 단어장 동기화
-    try {
-      const vr = await fetch(
-        `/api/question-generator/jobs/${jobId}/exam-vocab`,
-        { method: "POST" }
-      );
-      const vd = await vr.json();
-      if (vd.ok && vd.vocabSetId) {
-        setVocabSetId(vd.vocabSetId as string);
+    // 보기 단어장 동기화 (QR용 vocab_set_id 확보)
+    if ((data.questions ?? []).length > 0) {
+      try {
+        const vr = await fetch(
+          `/api/question-generator/jobs/${jobId}/exam-vocab`,
+          { method: "POST" }
+        );
+        const vd = (await vr.json()) as {
+          ok?: boolean;
+          vocabSetId?: string | null;
+        };
+        if (vd.ok && vd.vocabSetId) {
+          setVocabSetId(vd.vocabSetId);
+        }
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
     }
 
     setBranding((prev) => {

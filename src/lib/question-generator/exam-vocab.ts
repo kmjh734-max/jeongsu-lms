@@ -191,6 +191,19 @@ export function isInvalidHardWord(word: string): boolean {
 }
 
 
+function isMalformedHardWord(word: string): boolean {
+  const original = String(word ?? "").trim();
+  if (!original) return true;
+  if (/[\s/]/.test(original) || (original.match(/-/g) ?? []).length > 1) {
+    return true;
+  }
+  const token = lemmaHardWordForm(original).toLowerCase().replace(/[^a-z']/g, "");
+  if (!token || token.length <= 2) return true;
+  if (WEIRD_HARD_WORD_SKIP.has(token)) return true;
+  if (/^(monies|moneys)$/.test(token)) return true;
+  return false;
+}
+
 function normalizeHardWords(raw: unknown, limit = 12): HardWord[] {
   if (!Array.isArray(raw)) return [];
   const out: HardWord[] = [];
@@ -217,6 +230,98 @@ function normalizeHardWords(raw: unknown, limit = 12): HardWord[] {
   }
   // 어려운 단어 우선 보존 (쉬운 것만 남는 현상 완화)
   return sortHardWordsByPriority(out).slice(0, limit);
+}
+
+/** QR 단어장용: Lexile 하한 없이 형태만 검사 */
+function normalizeHardWordsRelaxed(raw: unknown, limit = 24): HardWord[] {
+  if (!Array.isArray(raw)) return [];
+  const out: HardWord[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const original = String(
+      (item as { word?: unknown }).word ?? ""
+    ).trim();
+    if (isMalformedHardWord(original)) continue;
+    const word = lemmaHardWordForm(original);
+    const meaning = String(
+      (item as { meaning?: unknown }).meaning ??
+        (item as { meaningKo?: unknown }).meaningKo ??
+        ""
+    ).trim();
+    if (!word || !meaning) continue;
+    if (isMalformedHardWord(word)) continue;
+    if (word.length > 40 || meaning.length > 80) continue;
+    const key = word.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ word, meaning });
+  }
+  return sortHardWordsByPriority(out).slice(0, limit);
+}
+
+function dedupeHardWordsRelaxed(words: HardWord[]): HardWord[] {
+  const byKey = new Map<string, HardWord>();
+  for (const item of words) {
+    const original = String(item.word ?? "").trim();
+    if (isMalformedHardWord(original)) continue;
+    const word = lemmaHardWordForm(original);
+    const meaning = String(item.meaning ?? "").trim();
+    if (!word || !meaning) continue;
+    if (isMalformedHardWord(word)) continue;
+    if (word.length > 40 || meaning.length > 80) continue;
+    const key = hardWordDedupeKey(word);
+    if (!key) continue;
+    const prev = byKey.get(key);
+    if (!prev) {
+      byKey.set(key, { word, meaning });
+      continue;
+    }
+    if (meaning.length > prev.meaning.length) {
+      byKey.set(key, { word: prev.word, meaning });
+    }
+  }
+  return sortHardWordsByPriority([...byKey.values()]);
+}
+
+function collectVocabWordsFromQuestions(
+  questions: Array<{
+    hard_words: unknown;
+    choices: unknown;
+    instruction: unknown;
+    question_type: unknown;
+    option_key: unknown;
+    question_text: unknown;
+    choice_language: unknown;
+  }>
+): HardWord[] {
+  const merged: HardWord[] = [];
+  for (const q of questions) {
+    if (
+      questionNeedsVocabGloss({
+        choices: q.choices as Array<{ text?: string }> | null,
+        questionType: q.question_type as string | null,
+        optionKey: q.option_key as string | null,
+        questionText: q.question_text as string | null,
+        choiceLanguage: q.choice_language as string | null,
+      })
+    ) {
+      for (const w of normalizeHardWords(q.hard_words, 24)) {
+        merged.push(w);
+      }
+    }
+  }
+  let unique = dedupeHardWords(merged);
+  if (unique.length > 0) return unique;
+
+  const relaxed: HardWord[] = [];
+  for (const q of questions) {
+    for (const w of normalizeHardWordsRelaxed(q.hard_words, 24)) {
+      relaxed.push(w);
+    }
+  }
+  unique = dedupeHardWordsRelaxed(relaxed);
+  return unique;
 }
 
 export function normalizeHardWordsFromRaw(raw: unknown): HardWord[] {
@@ -359,7 +464,6 @@ export async function syncExamVocabSetFromJob(
     .single();
 
   if (error || !job) return null;
-  if ((job.total_completed ?? 0) < 1) return null;
 
   const { data: questions } = await admin
     .from("generated_english_questions")
@@ -369,37 +473,12 @@ export async function syncExamVocabSetFromJob(
     .eq("generation_job_id", jobId)
     .order("created_at", { ascending: true });
 
+  if (!questions?.length) {
+    return (job.vocab_set_id as string | null) ?? null;
+  }
+
+  const unique = collectVocabWordsFromQuestions(questions);
   const cfg = (job.request_config ?? {}) as { title?: string; grade?: string };
-
-  const merged: HardWord[] = [];
-  for (const q of questions ?? []) {
-    if (
-      !questionNeedsVocabGloss({
-        choices: q.choices as Array<{ text?: string }> | null,
-        questionType: q.question_type as string | null,
-        optionKey: q.option_key as string | null,
-        questionText: q.question_text as string | null,
-        choiceLanguage: q.choice_language as string | null,
-      })
-    ) {
-      continue;
-    }
-    for (const w of normalizeHardWords(q.hard_words)) {
-      merged.push(w);
-    }
-  }
-
-  let unique = dedupeHardWords(merged);
-  // 보기 단어 유형이 없어도 저장된 hard_words로 QR 단어장 구성
-  if (unique.length === 0) {
-    for (const q of questions ?? []) {
-      for (const w of normalizeHardWords(q.hard_words)) {
-        merged.push(w);
-      }
-    }
-    unique = dedupeHardWords(merged);
-  }
-  if (unique.length === 0) return (job.vocab_set_id as string | null) ?? null;
 
   const titleBase = (cfg.title || "변형문제").trim() || "변형문제";
   const setTitle = `${titleBase} · 보기 단어`.slice(0, 80);
