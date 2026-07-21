@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export {
+  CREDIT_WON_PER_UNIT,
+  CREDIT_PACKS,
+  creditsToWon,
+  formatWon,
+} from "./pricing-guide";
+
 export const CREDIT_FEATURES = {
   qg_generate_job: "qg_generate_job",
   listening_generate_questions: "listening_generate_questions",
