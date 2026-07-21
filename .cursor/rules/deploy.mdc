@@ -1,12 +1,12 @@
 ---
-description: 배포는 main 푸시로 자동 처리. 작업 후 사용자에게 Run/배포 버튼을 요구하지 않음.
+description: 배포??main ?�시�??�동 처리. ?�업 ???�용?�에�?Run/배포 버튼???�구?��? ?�음.
 alwaysApply: true
 ---
 
-# 배포 (EngCore / engcore.vercel.app)
+# 배포 (EngCore / engcore-lms.vercel.app)
 
-- 코드 변경을 마치면 **사용자에게 묻지 않고** `git push origin main`까지 완료한다 (커밋은 사용자가 요청했거나 변경이 명확할 때).
-- 프로덕션 배포는 **Vercel ↔ GitHub `main` 연동**으로 자동된다. 별도 Vercel Run/Deploy 버튼을 누르라고 안내하지 않는다.
-- 프로덕션 URL: `https://engcore.vercel.app` (Vercel 프로젝트명 `engcore`).
-- 푸시 후: "이미 최신이면 up-to-date", 푸시했으면 커밋 해시만 짧게 알린다.
-- Vercel 대기열 문제는 `docs/VERCEL_AUTO_DEPLOY.md` 참고.
+- 코드 변경을 마치�?**?�용?�에�?묻�? ?�고** `git push origin main`까�? ?�료?�다 (커밋?� ?�용?��? ?�청?�거??변경이 명확????.
+- ?�로?�션 배포??**Vercel ??GitHub `main` ?�동**?�로 ?�동?�다. 별도 Vercel Run/Deploy 버튼???�르?�고 ?�내?��? ?�는??
+- ?�로?�션 URL: `https://engcore-lms.vercel.app` (Vercel ?�로?�트�?`engcore`).
+- ?�시 ?? "?��? 최신?�면 up-to-date", ?�시?�으�?커밋 ?�시�?짧게 ?�린??
+- Vercel ?�기열 문제??`docs/VERCEL_AUTO_DEPLOY.md` 참고.

@@ -1,68 +1,68 @@
-# Vercel 자동 배포 설정 (main 푸시 → engcore.vercel.app)
+# Vercel ?�동 배포 ?�정 (main ?�시 ??engcore-lms.vercel.app)
 
 GitHub: `https://github.com/kmjh734-max/jeongsu-lms`  
-프로덕션 URL: `https://engcore.vercel.app` (Vercel 프로젝트명 `engcore`)
+?�로?�션 URL: `https://engcore-lms.vercel.app` (Vercel ?�로?�트�?`engcore`)
 
-## 방법 A — 추천: Vercel ↔ GitHub 연결 (설정 한 번)
+## 방법 A ??추천: Vercel ??GitHub ?�결 (?�정 ??�?
 
-1. [Vercel Dashboard](https://vercel.com/dashboard) → 프로젝트 **engcore** (구 `jeongsu-lms`)
-2. **Settings** → **Git**
-3. **Connect Git Repository** → `kmjh734-max/jeongsu-lms` 선택
+1. [Vercel Dashboard](https://vercel.com/dashboard) ???�로?�트 **engcore** (�?`jeongsu-lms`)
+2. **Settings** ??**Git**
+3. **Connect Git Repository** ??`kmjh734-max/jeongsu-lms` ?�택
 4. **Production Branch**: `main`
-5. **Deploy Hooks** / 자동 배포: 기본 ON
+5. **Deploy Hooks** / ?�동 배포: 기본 ON
 
-이후 `main`에 `git push` 할 때마다 Vercel이 자동으로 빌드·배포합니다.  
-(GitHub Actions 없이도 동작합니다.)
+?�후 `main`??`git push` ???�마??Vercel???�동?�로 빌드·배포?�니??  
+(GitHub Actions ?�이???�작?�니??)
 
-### 환경 변수 (프로덕션)
+### ?�경 변??(?�로?�션)
 
-Vercel → **Settings** → **Environment Variables**:
+Vercel ??**Settings** ??**Environment Variables**:
 
-| 이름 | 환경 |
+| ?�름 | ?�경 |
 |------|------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Production |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production |
 | `SUPABASE_SERVICE_ROLE_KEY` | Production |
-| `NEXT_PUBLIC_SITE_URL` | Production → `https://engcore.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | Production ??`https://engcore-lms.vercel.app` |
 
-Supabase → **Authentication** → URL Configuration에  
-`https://engcore.vercel.app` 추가 (기존 `jeongsu-lms.vercel.app`는 당분간 유지 가능).
-
----
-
-## Queue에 배포가 쌓일 때 (자주 발생)
-
-**증상:** Vercel Deployments에 `Queued`만 여러 개 쌓이고 프로덕션이 안 바뀜.
-
-**원인:** `main` 푸시마다 **Vercel Git 자동 배포**와 **GitHub Actions Deploy Hook**이 **둘 다** 돌아가면, 무료 플랜에서 빌드 대기열이 꽉 찹니다.
-
-**해결:**
-
-1. [Vercel Deployments](https://vercel.com/dashboard) → **engcore** → `Queued` / `Canceled` 가능한 오래된 배포는 **Cancel** (최신 1개만 남기기)
-2. **둘 중 하나만** 사용
-   - **추천:** Vercel Git 연동만 (Actions 워크플로는 `workflow_dispatch` 수동만)
-   - 또는 Git 연동 끄고 Deploy Hook + Actions만
-3. 최신 커밋으로 **Redeploy** 한 번 (Deployments → ⋯ → Redeploy)
-
-이 저장소는 Actions가 `push`마다 훅을 호출하지 않도록 수정되어 있습니다. (`workflow_dispatch`만)
+Supabase ??**Authentication** ??URL Configuration?? 
+`https://engcore-lms.vercel.app` 추�? (기존 `jeongsu-lms.vercel.app`???�분�??��? 가??.
 
 ---
 
-## 방법 B: GitHub Actions + Deploy Hook (A가 안 될 때)
+## Queue??배포가 ?�일 ??(?�주 발생)
 
-1. Vercel → 프로젝트 → **Settings** → **Git** → **Deploy Hooks**
-2. Name: `github-main`, Branch: `main` → URL 복사
-3. GitHub → `jeongsu-lms` → **Settings** → **Secrets and variables** → **Actions**
+**증상:** Vercel Deployments??`Queued`�??�러 �??�이�??�로?�션????바�?
+
+**?�인:** `main` ?�시마다 **Vercel Git ?�동 배포**?� **GitHub Actions Deploy Hook**??**????* ?�아가�? 무료 ?�랜?�서 빌드 ?�기열??�?찹니??
+
+**?�결:**
+
+1. [Vercel Deployments](https://vercel.com/dashboard) ??**engcore** ??`Queued` / `Canceled` 가?�한 ?�래??배포??**Cancel** (최신 1개만 ?�기�?
+2. **??�??�나�?* ?�용
+   - **추천:** Vercel Git ?�동�?(Actions ?�크?�로??`workflow_dispatch` ?�동�?
+   - ?�는 Git ?�동 ?�고 Deploy Hook + Actions�?
+3. 최신 커밋?�로 **Redeploy** ??�?(Deployments ??????Redeploy)
+
+???�?�소??Actions가 `push`마다 ?�을 ?�출?��? ?�도�??�정?�어 ?�습?�다. (`workflow_dispatch`�?
+
+---
+
+## 방법 B: GitHub Actions + Deploy Hook (A가 ??????
+
+1. Vercel ???�로?�트 ??**Settings** ??**Git** ??**Deploy Hooks**
+2. Name: `github-main`, Branch: `main` ??URL 복사
+3. GitHub ??`jeongsu-lms` ??**Settings** ??**Secrets and variables** ??**Actions**
 4. **New repository secret**
    - Name: `VERCEL_DEPLOY_HOOK`
-   - Value: (복사한 Deploy Hook URL)
-5. `main`에 푸시 → Actions 워크플로 `Deploy to Vercel (Production)` 실행
+   - Value: (복사??Deploy Hook URL)
+5. `main`???�시 ??Actions ?�크?�로 `Deploy to Vercel (Production)` ?�행
 
-워크플로 파일: `.github/workflows/deploy-production.yml`
+?�크?�로 ?�일: `.github/workflows/deploy-production.yml`
 
 ---
 
-## 배포 확인
+## 배포 ?�인
 
-- Vercel → **Deployments** 탭에서 최신 커밋·상태 확인
-- 성공 후 https://engcore.vercel.app 접속
+- Vercel ??**Deployments** ??��??최신 커밋·?�태 ?�인
+- ?�공 ??https://engcore-lms.vercel.app ?�속
