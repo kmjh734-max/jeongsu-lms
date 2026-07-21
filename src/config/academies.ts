@@ -20,7 +20,7 @@ export const ACADEMY_PRESETS: Record<AcademyId, AcademyPreset> = {
     loginSubtitle: "정수학원 온라인 학습관에 오신 것을 환영합니다.",
     internalEmailDomain: "jslms.local",
     logoPath: "/image/logo-jeongsu.png",
-    productionSiteUrl: "https://engcore-lms.vercel.app",
+    productionSiteUrl: "https://engcore.co.kr",
     primaryColor: "#2563EB",
     motto: "정확하게, 깊이 있게 배웁니다.",
   },

@@ -170,17 +170,17 @@ ANN/M/W **voice_id를 직접 설정하지 않아도 됩니다.**
 1. [Kakao Developers](https://developers.kakao.com/) 접속 후 애플리케이션 생성
 2. **앱 키** → **JavaScript 키** 복사
 3. **플랫폼** → **Web** 플랫폼 등록 → **사이트 도메인** (SDK 공유창용)
-   - `https://engcore-lms.vercel.app` (배포 URL)
+   - `https://engcore.co.kr` (배포 URL)
    - 로컬: `http://localhost:3000`, `http://localhost:3001`
 4. **제품 링크 관리** → **웹** 도메인 등록 (**필수**, 플랫폼과 별도)
    - 카드·버튼 링크가 채팅에서 눌리려면 여기에 배포 도메인이 있어야 합니다.
-   - 예: `https://engcore-lms.vercel.app` (경로 없이 도메인만)
+   - 예: `https://engcore.co.kr` (경로 없이 도메인만)
    - 미등록 시: 카드는 도착하지만 **클릭해도 반응 없음** (일반 외부 링크와 다름)
 5. Vercel·로컬 `.env.local`에 환경변수 추가:
 
 ```env
 NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY=카카오_JavaScript_키
-NEXT_PUBLIC_SITE_URL=https://engcore-lms.vercel.app
+NEXT_PUBLIC_SITE_URL=https://engcore.co.kr
 ```
 
 ### Supabase migration

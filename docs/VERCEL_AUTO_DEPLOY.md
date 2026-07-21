@@ -1,7 +1,7 @@
-# Vercel 자동 배포 설정 (main 푸시 → engcore-lms.vercel.app)
+# Vercel 자동 배포 설정 (main 푸시 → engcore.co.kr)
 
 GitHub: `https://github.com/kmjh734-max/jeongsu-lms`  
-프로덕션 URL: `https://engcore-lms.vercel.app` (Vercel 프로젝트명 `engcore-lms`)
+프로덕션 URL: `https://engcore.co.kr` (Vercel 프로젝트명 `engcore-lms`)
 
 ## 방법 A — 추천: Vercel ↔ GitHub 연결 (설정 한 번)
 
@@ -23,10 +23,10 @@ Vercel → **Settings** → **Environment Variables**:
 | `NEXT_PUBLIC_SUPABASE_URL` | Production |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production |
 | `SUPABASE_SERVICE_ROLE_KEY` | Production |
-| `NEXT_PUBLIC_SITE_URL` | Production → `https://engcore-lms.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | Production → `https://engcore.co.kr` |
 
 Supabase → **Authentication** → URL Configuration에  
-`https://engcore-lms.vercel.app` 추가 (기존 `jeongsu-lms.vercel.app`는 당분간 유지 가능).
+`https://engcore.co.kr` 추가 (기존 `jeongsu-lms.vercel.app`는 당분간 유지 가능).
 
 ---
 
@@ -65,4 +65,4 @@ Supabase → **Authentication** → URL Configuration에
 ## 배포 확인
 
 - Vercel → **Deployments** 탭에서 최신 커밋·상태 확인
-- 성공 후 https://engcore-lms.vercel.app 접속
+- 성공 후 https://engcore.co.kr 접속
