@@ -6,6 +6,11 @@ import {
   isRolePathAllowed,
 } from "@/lib/auth/roles";
 import {
+  parseRoleCookie,
+  ROLE_COOKIE,
+  ROLE_COOKIE_MAX_AGE,
+} from "@/lib/auth/role-cookie";
+import {
   ACADEMY_COOKIE,
   ACADEMY_COOKIE_MAX_AGE,
   resolveAcademySlug,
@@ -41,6 +46,24 @@ function applyAcademyCookie(res: NextResponse, slug: string | null) {
   res.cookies.set(ACADEMY_COOKIE, slug, {
     path: "/",
     maxAge: ACADEMY_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
+function applyRoleCookie(res: NextResponse, role: UserRole) {
+  res.cookies.set(ROLE_COOKIE, role, {
+    path: "/",
+    maxAge: ROLE_COOKIE_MAX_AGE,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
+function clearRoleCookie(res: NextResponse) {
+  res.cookies.set(ROLE_COOKIE, "", {
+    path: "/",
+    maxAge: 0,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   });
@@ -113,16 +136,23 @@ export async function middleware(request: NextRequest) {
     if (academySlug) url.searchParams.set("academy", academySlug);
     const res = NextResponse.redirect(url);
     applyAcademyCookie(res, academySlug);
+    clearRoleCookie(res);
     return res;
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  const role = profile?.role as UserRole | undefined;
+  // 역할 쿠키가 있으면 profiles 조회 생략 (레이아웃에서 최종 권한 검증)
+  let role: UserRole | null = parseRoleCookie(
+    request.cookies.get(ROLE_COOKIE)?.value
+  );
+  if (!role) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    role = parseRoleCookie(profile?.role ?? null);
+    if (role) applyRoleCookie(supabaseResponse, role);
+  }
 
   if (!role) {
     const url = request.nextUrl.clone();
@@ -131,6 +161,7 @@ export async function middleware(request: NextRequest) {
     if (academySlug) url.searchParams.set("academy", academySlug);
     const res = NextResponse.redirect(url);
     applyAcademyCookie(res, academySlug);
+    clearRoleCookie(res);
     return res;
   }
 
@@ -140,7 +171,9 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
     url.search = "";
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    applyRoleCookie(res, role);
+    return res;
   }
 
   if (pathname === "/login") {
@@ -155,19 +188,25 @@ export async function middleware(request: NextRequest) {
       const q = rawRedirect.indexOf("?");
       url.pathname = q === -1 ? rawRedirect : rawRedirect.slice(0, q);
       url.search = q === -1 ? "" : rawRedirect.slice(q);
-      return NextResponse.redirect(url);
+      const res = NextResponse.redirect(url);
+      applyRoleCookie(res, role);
+      return res;
     }
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
     url.search = "";
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    applyRoleCookie(res, role);
+    return res;
   }
 
   if (pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
     url.search = "";
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    applyRoleCookie(res, role);
+    return res;
   }
 
   const rolePrefixes = ["/admin", "/teacher", "/student", "/super-admin"];
@@ -179,9 +218,12 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
     url.search = "";
-    return NextResponse.redirect(url);
+    const res = NextResponse.redirect(url);
+    applyRoleCookie(res, role);
+    return res;
   }
 
+  applyRoleCookie(supabaseResponse, role);
   return supabaseResponse;
 }
 

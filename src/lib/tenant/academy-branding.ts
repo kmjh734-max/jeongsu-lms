@@ -1,3 +1,4 @@
+import { cache } from "react";
 import {
   ACADEMY_NAME,
   LOGO_SRC,
@@ -92,8 +93,8 @@ export async function getAcademyBrandingForCurrentUser(): Promise<AcademyBrandin
   }
 }
 
-/** slug로 조회 (활성 학원만). 없으면 null */
-export async function getActiveAcademyBySlug(
+/** slug로 조회 (활성 학원만). 없으면 null — 요청당 1회 캐시 */
+export const getActiveAcademyBySlug = cache(async function getActiveAcademyBySlug(
   slug: string | null | undefined
 ): Promise<AcademyBranding | null> {
   const normalized = slug?.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
@@ -110,7 +111,7 @@ export async function getActiveAcademyBySlug(
   } catch {
     return null;
   }
-}
+});
 
 /** slug로 조회 (폴백 포함 — 인쇄 등) */
 export async function getAcademyBrandingBySlug(

@@ -14,28 +14,32 @@ export async function DashboardLayout({
   navItems,
   children,
 }: DashboardLayoutProps) {
-  const branding =
-    profile.role === "super_admin" || !profile.academy_id
-      ? null
-      : await getAcademyBranding(profile.academy_id);
-
-  let creditBalance: number | null = null;
-  if (
+  const needsBranding =
+    profile.role !== "super_admin" && !!profile.academy_id;
+  const needsWallet =
     (profile.role === "admin" || profile.role === "teacher") &&
-    profile.academy_id
-  ) {
-    try {
-      const supabase = await createClient();
-      const { data: wallet } = await supabase
-        .from("academy_wallets")
-        .select("balance")
-        .eq("academy_id", profile.academy_id)
-        .maybeSingle();
-      creditBalance = typeof wallet?.balance === "number" ? wallet.balance : 0;
-    } catch {
-      creditBalance = null;
-    }
-  }
+    !!profile.academy_id;
+
+  const [branding, creditBalance] = await Promise.all([
+    needsBranding
+      ? getAcademyBranding(profile.academy_id!)
+      : Promise.resolve(null),
+    needsWallet
+      ? (async () => {
+          try {
+            const supabase = await createClient();
+            const { data: wallet } = await supabase
+              .from("academy_wallets")
+              .select("balance")
+              .eq("academy_id", profile.academy_id!)
+              .maybeSingle();
+            return typeof wallet?.balance === "number" ? wallet.balance : 0;
+          } catch {
+            return null;
+          }
+        })()
+      : Promise.resolve(null),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50">

@@ -1,17 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { clearRoleCookieClient } from "@/lib/auth/role-cookie";
 import { Button } from "@/components/ui/Button";
 
 export function SignOutButton() {
-  const router = useRouter();
-
   async function handleSignOut() {
+    clearRoleCookieClient();
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    window.location.assign("/login");
   }
 
   return (

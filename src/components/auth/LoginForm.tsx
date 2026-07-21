@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { resolveLoginEmail } from "@/lib/auth/username";
 import { getDashboardPathForRole } from "@/lib/auth/roles";
+import {
+  clearRoleCookieClient,
+  setRoleCookieClient,
+} from "@/lib/auth/role-cookie";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import type { UserRole } from "@/types/database";
@@ -40,7 +44,6 @@ export function LoginForm({
   expectedAcademyId = null,
   expectedAcademyName = null,
 }: LoginFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectAfterLogin = safeRedirectPath(
     searchParams.get("redirect") ?? searchParams.get("redirectTo")
@@ -81,6 +84,7 @@ export function LoginForm({
         .single();
 
       if (profile && profile.is_active === false) {
+        clearRoleCookieClient();
         await supabase.auth.signOut();
         setError(
           profile.role === "teacher"
@@ -97,6 +101,7 @@ export function LoginForm({
         profile.role !== "super_admin" &&
         profile.academy_id !== expectedAcademyId
       ) {
+        clearRoleCookieClient();
         await supabase.auth.signOut();
         setError(
           expectedAcademyName
@@ -109,10 +114,11 @@ export function LoginForm({
 
       const role = profile?.role as UserRole | undefined;
       if (role) {
-        router.push(
+        setRoleCookieClient(role);
+        // Soft navigation + refresh는 RSC 재요청이 겹쳐 체감이 느림 → 한 번만 이동
+        window.location.assign(
           redirectAfterLogin ?? getDashboardPathForRole(role)
         );
-        router.refresh();
         return;
       }
     }
