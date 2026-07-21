@@ -142,19 +142,39 @@ export async function debitFeatureCredits(
   }
 
   const quantity = Math.max(1, Math.floor(params.quantity ?? 1));
-  const { data, error } = await admin.rpc("debit_academy_credits", {
+  const meta = {
+    ...(params.metadata ?? {}),
+    quantity,
+    unit_cost: pricing.cost,
+  };
+  let { data, error } = await admin.rpc("debit_academy_credits", {
     p_academy_id: params.academyId,
     p_feature_key: params.featureKey,
     p_actor_id: params.actorId,
     p_idempotency_key: params.idempotencyKey,
-    p_metadata: {
-      ...(params.metadata ?? {}),
-      quantity,
-      unit_cost: pricing.cost,
-    },
+    p_metadata: meta,
     p_note: params.note ?? null,
     p_quantity: quantity,
   });
+
+  // 093 미적용 환경: quantity>1이면 단가×수로 adjust 차감
+  if (
+    error &&
+    quantity > 1 &&
+    /p_quantity|Could not find the function/i.test(error.message)
+  ) {
+    const total = pricing.cost * quantity;
+    ({ data, error } = await admin.rpc("adjust_academy_credits", {
+      p_academy_id: params.academyId,
+      p_amount: total,
+      p_direction: "debit",
+      p_actor_id: params.actorId,
+      p_note:
+        params.note ??
+        `${pricing.label} × ${quantity} (=${total}크레딧)`,
+      p_idempotency_key: params.idempotencyKey,
+    }));
+  }
 
   if (error) mapRpcError(error.message);
 
