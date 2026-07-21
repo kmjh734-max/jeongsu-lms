@@ -186,7 +186,7 @@ function normalizeRegeneratedQuestion(
 export function ListeningQuestionEditor({
   setId,
   question,
-  speechSpeed = 0.9,
+  speechSpeed = 0.75,
   onUpdated,
 }: ListeningQuestionEditorProps) {
   const applyQuestionToEditor = (q: ListeningQuestionData) => {

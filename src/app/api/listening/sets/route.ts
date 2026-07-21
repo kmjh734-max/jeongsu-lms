@@ -61,6 +61,7 @@ export async function POST(request: Request) {
         description: body.description?.trim() || null,
         folder_id: body.folderId ?? null,
         grade_level: "middle1",
+        speech_speed: 0.75,
         teacher_id: profile.role === "teacher" ? profile.id : profile.id,
         created_by: profile.id,
         is_published: true,

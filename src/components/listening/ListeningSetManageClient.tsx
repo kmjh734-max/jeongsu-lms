@@ -22,7 +22,6 @@ import {
   tierLabel,
 } from "@/lib/listening/exam-types";
 import {
-  gradeLevelShort,
   isHighSchoolListeningGrade,
   LISTENING_GRADE_OPTIONS,
   questionCountOptionsForGrade,
@@ -37,6 +36,7 @@ import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 import { ListeningVoiceSettings } from "@/components/listening/ListeningVoiceSettings";
 import {
   SPEECH_SPEED_MAP,
+  SPEECH_SPEED_OPTIONS,
   presetFromSpeed,
   type SpeechSpeedPreset,
 } from "@/lib/listening/speech-speed";
@@ -618,19 +618,12 @@ export function ListeningSetManageClient({
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">음성 속도</h2>
         <p className="mt-1 text-xs text-slate-500">
-          {gradeLevelShort(gradeLevel)} 영어듣기평가형 권장: 느리게(0.85). 저장 후
-          「전체 음원 생성」으로 다시 만들어야 들리는 속도가 바뀝니다. 「최종 mp3만
-          병합」은 기존 줄 음원을 이어붙이므로 속도가 변하지 않습니다.
+          기본: 보통(0.75). 저장 후 「전체 음원 생성」으로 다시 만들어야 들리는
+          속도가 바뀝니다. 「최종 mp3만 병합」은 기존 줄 음원을 이어붙이므로
+          속도가 변하지 않습니다.
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {(
-            [
-              ["very_slow", "아주 천천히 (0.75)"],
-              ["slow", "느리게 (0.85)"],
-              ["normal", "보통 (0.9)"],
-              ["fast", "실전 (1.0)"],
-            ] as const
-          ).map(([key, label]) => (
+          {SPEECH_SPEED_OPTIONS.map(({ key, label }) => (
             <button
               key={key}
               type="button"

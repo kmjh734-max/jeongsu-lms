@@ -43,7 +43,7 @@ export default async function TeacherListeningSetPage({
         setId={loaded.set.id}
         title={loaded.set.title}
         gradeLevel={parseListeningGradeLevel(loaded.set.grade_level)}
-        speechSpeed={loaded.set.speech_speed ?? 0.9}
+        speechSpeed={loaded.set.speech_speed ?? 0.75}
         voiceAnnId={loaded.set.voice_ann_id ?? null}
         voiceMId={loaded.set.voice_m_id ?? null}
         voiceWId={loaded.set.voice_w_id ?? null}
