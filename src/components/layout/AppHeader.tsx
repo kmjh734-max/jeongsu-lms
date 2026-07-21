@@ -20,9 +20,10 @@ interface AppHeaderProps {
 }
 
 const ROLE_LABELS: Record<Profile["role"], string> = {
-  admin: "관리자",
-  teacher: "강사",
-  student: "학생",
+  super_admin: "EngCore Admin",
+  admin: "EngCore Admin",
+  teacher: "EngCore Teacher",
+  student: "EngCore Learn",
 };
 
 function isNavActive(pathname: string, href: string): boolean {
