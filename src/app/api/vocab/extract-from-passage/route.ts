@@ -5,6 +5,10 @@ import {
   normalizePassageVocabItems,
 } from "@/lib/vocab/extract-passage-vocabulary";
 import { openAiErrorMessage } from "@/lib/vocab/openai-error-message";
+import {
+  chargeFeatureOrError,
+  CREDIT_FEATURES,
+} from "@/lib/credits/charge";
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -16,6 +20,14 @@ export async function POST(request: Request) {
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return jsonError("권한이 없습니다.", 403);
     }
+
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.vocab_extract_passage,
+      actorId: profile.id,
+      idempotencyKey: `vocab_extract_passage:${profile.id}:${Date.now()}`,
+    });
+    if (chargeErr) return chargeErr;
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) {

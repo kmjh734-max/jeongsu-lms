@@ -229,7 +229,8 @@ export async function adminAssignVocabSetToStudent(
     setId,
     studentId,
     classId,
-    auth.profileId
+    auth.profileId,
+    auth.academyId
   );
 
   if (result.ok) {

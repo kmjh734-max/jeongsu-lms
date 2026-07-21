@@ -5,6 +5,10 @@ import { generateStudentRecordReport } from "@/lib/student-records/generate-repo
 import { parseStudentRecordUpload } from "@/lib/student-records/parse-upload";
 import { resolveStudentRecordTarget } from "@/lib/student-records/resolve-student";
 import { getAcademyBranding } from "@/lib/tenant/academy-branding";
+import {
+  chargeFeatureOrError,
+  CREDIT_FEATURES,
+} from "@/lib/credits/charge";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -54,6 +58,14 @@ export async function POST(request: Request) {
         "학생부 텍스트를 붙여넣거나, PDF/이미지 파일을 업로드해 주세요."
       );
     }
+
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.student_record_analyze,
+      actorId: profile.id,
+      idempotencyKey: `student_record_analyze:${profile.id}:${Date.now()}`,
+    });
+    if (chargeErr) return chargeErr;
 
     const extracted = await extractStudentRecordContent({
       studentId: target.studentId,

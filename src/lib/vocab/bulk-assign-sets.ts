@@ -1,4 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  InsufficientCreditsError,
+  debitMonthlyStudentSeat,
+} from "@/lib/credits";
 
 export interface BulkAssignResult {
   ok: true;
@@ -15,6 +20,7 @@ export async function bulkAssignSets(
   options: {
     classId?: string;
     studentIds?: string[];
+    academyId?: string | null;
   }
 ): Promise<BulkAssignResult | { ok: false; message: string }> {
   if (setIds.length === 0) {
@@ -104,6 +110,41 @@ export async function bulkAssignSets(
     };
   }
 
+  let academyId = options.academyId ?? null;
+  if (!academyId) {
+    const { data: actor } = await supabase
+      .from("profiles")
+      .select("academy_id")
+      .eq("id", assignedBy)
+      .maybeSingle();
+    academyId = (actor?.academy_id as string | null) ?? null;
+  }
+
+  if (academyId) {
+    const studentsToCharge = [
+      ...new Set(toInsert.map((r) => r.student_id)),
+    ];
+    const admin = createAdminClient();
+    for (const studentId of studentsToCharge) {
+      try {
+        await debitMonthlyStudentSeat(admin, {
+          academyId,
+          studentId,
+          kind: "vocab",
+          actorId: assignedBy,
+        });
+      } catch (e) {
+        if (e instanceof InsufficientCreditsError) {
+          return { ok: false, message: e.message };
+        }
+        return {
+          ok: false,
+          message: e instanceof Error ? e.message : "크레딧 차감 실패",
+        };
+      }
+    }
+  }
+
   const chunkSize = 100;
   let assigned = 0;
   for (let i = 0; i < toInsert.length; i += chunkSize) {
@@ -127,7 +168,6 @@ export async function bulkAssignSets(
     studentCount: targetIds.length,
   };
 }
-
 
 export function formatBulkAssignSuccess(result: BulkAssignResult): string {
   const base = `단어장 ${result.setCount}개가 배정되었습니다. (신규 ${result.assigned}건`;

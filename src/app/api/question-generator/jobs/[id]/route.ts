@@ -4,6 +4,10 @@ import {
   requireStaffProfile,
 } from "@/lib/question-generator/api-helpers";
 import { runGenerationJob } from "@/lib/question-generator/run-generation-job";
+import {
+  chargeFeatureOrError,
+  CREDIT_FEATURES,
+} from "@/lib/credits/charge";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -53,14 +57,41 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireStaffProfile();
+    const profile = await requireStaffProfile();
     const { id } = await ctx.params;
     const body = (await req.json().catch(() => ({}))) as { action?: string };
 
     if (body.action === "process" || body.action === "retry") {
       const supabase = await createClient();
+      const admin = createAdminClient();
+
+      const { data: jobRow } = await admin
+        .from("question_generation_jobs")
+        .select("id, academy_id, created_by")
+        .eq("id", id)
+        .maybeSingle();
+      if (!jobRow) return jsonError("작업을 찾을 수 없습니다.", 404);
+      if (
+        jobRow.academy_id &&
+        profile.academy_id &&
+        jobRow.academy_id !== profile.academy_id
+      ) {
+        return jsonError("다른 학원 작업입니다.", 403);
+      }
+      if (profile.role === "teacher" && jobRow.created_by !== profile.id) {
+        return jsonError("권한이 없습니다.", 403);
+      }
+
+      const chargeErr = await chargeFeatureOrError({
+        academyId: (jobRow.academy_id as string) || profile.academy_id,
+        featureKey: CREDIT_FEATURES.qg_generate_job,
+        actorId: profile.id,
+        idempotencyKey: `qg_generate_job:${id}:${body.action === "retry" ? `retry-${Date.now()}` : "run"}`,
+        metadata: { job_id: id, action: body.action },
+      });
+      if (chargeErr) return chargeErr;
+
       if (body.action === "retry") {
-        const admin = createAdminClient();
         const { data: updated, error: updErr } = await admin
           .from("question_generation_jobs")
           .update({

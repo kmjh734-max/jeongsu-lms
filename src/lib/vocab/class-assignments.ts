@@ -1,4 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  InsufficientCreditsError,
+  debitMonthlyStudentSeat,
+} from "@/lib/credits";
 
 export async function assertStudentInClass(
   supabase: SupabaseClient,
@@ -24,12 +29,20 @@ export async function assignVocabSetToStudent(
   setId: string,
   studentId: string,
   classId: string,
-  assignedBy: string
+  assignedBy: string,
+  academyId?: string | null
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const memberCheck = await assertStudentInClass(supabase, classId, studentId);
   if (!memberCheck.ok) return memberCheck;
 
-  return assignVocabSetDirect(supabase, setId, studentId, assignedBy, classId);
+  return assignVocabSetDirect(
+    supabase,
+    setId,
+    studentId,
+    assignedBy,
+    classId,
+    academyId
+  );
 }
 
 /** 반 없이 학생에게 직접 배정 (class_id null) 또는 반 소속 기록 */
@@ -38,7 +51,8 @@ export async function assignVocabSetDirect(
   setId: string,
   studentId: string,
   assignedBy: string,
-  classId?: string | null
+  classId?: string | null,
+  academyId?: string | null
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   if (classId) {
     const memberCheck = await assertStudentInClass(
@@ -58,6 +72,26 @@ export async function assignVocabSetDirect(
 
   if (existing) {
     return { ok: false, message: "이 학생에게 이미 배정된 단어장입니다." };
+  }
+
+  if (academyId) {
+    try {
+      const admin = createAdminClient();
+      await debitMonthlyStudentSeat(admin, {
+        academyId,
+        studentId,
+        kind: "vocab",
+        actorId: assignedBy,
+      });
+    } catch (e) {
+      if (e instanceof InsufficientCreditsError) {
+        return { ok: false, message: e.message };
+      }
+      return {
+        ok: false,
+        message: e instanceof Error ? e.message : "크레딧 차감 실패",
+      };
+    }
   }
 
   const { error } = await supabase.from("vocab_assignments").insert({

@@ -7,6 +7,10 @@ import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-quest
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
+import {
+  chargeFeatureOrError,
+  CREDIT_FEATURES,
+} from "@/lib/credits/charge";
 
 export const maxDuration = 300;
 
@@ -43,6 +47,15 @@ export async function POST(request: Request) {
     if (!setId) {
       return jsonError("setId가 필요합니다.");
     }
+
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.listening_generate_questions,
+      actorId: profile.id,
+      idempotencyKey: `listening_generate_questions:${setId}:${Date.now()}`,
+      metadata: { set_id: setId },
+    });
+    if (chargeErr) return chargeErr;
 
     const admin = createAdminClient();
     const { data: setRow, error: setErr } = await admin

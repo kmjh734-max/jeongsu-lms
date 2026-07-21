@@ -4,6 +4,10 @@ import { getElevenLabsApiKey } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateQuestionAudio } from "@/lib/listening/generate-audio";
 import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
+import {
+  chargeFeatureOrError,
+  CREDIT_FEATURES,
+} from "@/lib/credits/charge";
 
 export const maxDuration = 180;
 
@@ -37,6 +41,15 @@ export async function POST(request: Request) {
     if (!setId || !questionId) {
       return jsonError("setId와 questionId가 필요합니다.");
     }
+
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.listening_generate_audio,
+      actorId: profile.id,
+      idempotencyKey: `listening_generate_audio:${questionId}:${Date.now()}`,
+      metadata: { set_id: setId, question_id: questionId },
+    });
+    if (chargeErr) return chargeErr;
 
     const admin = createAdminClient();
     const { data: question, error: qErr } = await admin

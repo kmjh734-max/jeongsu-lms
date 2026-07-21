@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import {
+  chargeFeatureOrError,
+  CREDIT_FEATURES,
+} from "@/lib/credits/charge";
 import { openAiErrorMessage } from "@/lib/vocab/openai-error-message";
 
 interface RequestItem {
@@ -22,6 +26,14 @@ export async function POST(request: Request) {
     if (!profile || (profile.role !== "admin" && profile.role !== "teacher")) {
       return jsonError("권한이 없습니다.", 403);
     }
+
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.vocab_generate_examples,
+      actorId: profile.id,
+      idempotencyKey: `vocab_generate_examples:${profile.academy_id}:${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+    });
+    if (chargeErr) return chargeErr;
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) {

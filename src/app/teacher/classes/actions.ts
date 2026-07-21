@@ -18,7 +18,7 @@ import {
 import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
 
 async function requireTeacher(): Promise<
-  | { ok: true; profileId: string }
+  | { ok: true; profileId: string; academyId: string | null }
   | { ok: false; message: string }
 > {
   const profile = await getCurrentProfile();
@@ -28,7 +28,11 @@ async function requireTeacher(): Promise<
   if (profile.is_active === false) {
     return { ok: false, message: "비활성화된 계정입니다." };
   }
-  return { ok: true, profileId: profile.id };
+  return {
+    ok: true,
+    profileId: profile.id,
+    academyId: profile.academy_id,
+  };
 }
 
 async function assertTeacherOwnsClass(
@@ -170,7 +174,8 @@ export async function teacherAssignVocabSetToStudent(
     setId,
     studentId,
     classId,
-    auth.profileId
+    auth.profileId,
+    auth.academyId
   );
 
   if (result.ok) {

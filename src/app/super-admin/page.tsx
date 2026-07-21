@@ -64,12 +64,20 @@ export default async function SuperAdminHomePage() {
         title="EngCore Admin"
         description="전체 학원을 관리합니다. 영어교육의 중심, EngCore"
         action={
-          <Link
-            href="/login"
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-          >
-            로그인 화면
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/super-admin/credits"
+              className="rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-sm font-medium text-brand-900 hover:bg-brand-100"
+            >
+              크레딧 관리
+            </Link>
+            <Link
+              href="/login"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+            >
+              로그인 화면
+            </Link>
+          </div>
         }
       />
       <p className="mb-4 text-sm text-slate-600">

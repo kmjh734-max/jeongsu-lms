@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateReportDraft } from "@/lib/reports/generate-report-draft";
 import type { StudentReport } from "@/lib/reports/types";
+import {
+  chargeFeatureOrError,
+  CREDIT_FEATURES,
+} from "@/lib/credits/charge";
 
 export const runtime = "nodejs";
 
@@ -38,6 +42,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.report_ai_draft,
+      actorId: profile.id,
+      idempotencyKey: `report_ai_draft:${profile.id}:${Date.now()}`,
+    });
+    if (chargeErr) return chargeErr;
 
     const result = await generateReportDraft(body.report);
 
