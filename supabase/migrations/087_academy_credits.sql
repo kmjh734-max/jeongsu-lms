@@ -84,7 +84,7 @@ values
   ('listening_generate_audio', '듣기 음성(TTS) 생성', 15, 'per_use', true),
   ('vocab_generate_examples', '단어 예문 AI 생성', 5, 'per_use', true),
   ('vocab_extract_passage', '지문→단어 추출', 8, 'per_use', true),
-  ('vocab_grade_meaning', '단어 뜻 AI 채점', 1, 'per_use', true),
+  ('vocab_grade_meaning', '단어 뜻 AI 채점', 0, 'per_use', false),
   ('student_record_analyze', '학생부 AI 분석', 40, 'per_use', true),
   ('report_ai_draft', '학습 리포트 AI 초안', 10, 'per_use', true),
   ('vocab_student_monthly', '단어학습 학생 월간 이용', 50, 'monthly_seat', true),

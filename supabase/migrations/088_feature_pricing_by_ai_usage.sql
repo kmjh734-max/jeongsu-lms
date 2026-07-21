@@ -2,7 +2,8 @@
 -- (cheap classify → heavy vision+report)
 
 update public.feature_pricing set
-  credit_cost = 1,
+  credit_cost = 0,
+  is_active = false,
   label = '단어 뜻 AI 채점',
   updated_at = now()
 where feature_key = 'vocab_grade_meaning';
