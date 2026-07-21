@@ -14,6 +14,8 @@ interface SharedReportHtmlViewProps {
   studentName: string;
   expiresAt: string;
   shareToken: string;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 function formatExpiresLabel(iso: string): string {
@@ -56,6 +58,8 @@ export function SharedReportHtmlView({
   studentName,
   expiresAt,
   shareToken,
+  academyName = ACADEMY_NAME,
+  logoSrc = LOGO_SRC,
 }: SharedReportHtmlViewProps) {
   const metrics = computeReportMetrics(report);
   const learningReport = resolveLearningReportText(
@@ -72,15 +76,15 @@ export function SharedReportHtmlView({
         <div className="mx-auto max-w-lg px-4 py-5 sm:max-w-2xl sm:px-6">
           <div className="flex items-center gap-3">
             <Image
-              src={LOGO_SRC}
-              alt={ACADEMY_NAME}
+              src={logoSrc}
+              alt={academyName}
               width={44}
               height={44}
               className="h-11 w-11 shrink-0 rounded-xl object-contain"
             />
             <div className="min-w-0">
               <p className="text-xs font-medium tracking-wide text-slate-500">
-                {ACADEMY_NAME}
+                {academyName}
               </p>
               <h1 className="text-lg font-bold leading-snug text-slate-900 sm:text-xl">
                 학습 리포트
@@ -271,7 +275,7 @@ export function SharedReportHtmlView({
         </SectionCard>
 
         <footer className="pb-6 text-center text-xs text-slate-500">
-          <p>{ACADEMY_NAME}</p>
+          <p>{academyName}</p>
           <p className="mt-1">온라인 학습 현황 안내</p>
         </footer>
       </main>

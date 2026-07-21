@@ -52,11 +52,15 @@ type HistoryRecord = {
 interface StudentRecordWorkspaceProps {
   initialClasses?: ReportClassOption[];
   initialStudents?: ReportStudentOption[];
+  academyName?: string;
+  logoSrc?: string;
 }
 
 export function StudentRecordWorkspace({
   initialClasses = [],
   initialStudents = [],
+  academyName,
+  logoSrc,
 }: StudentRecordWorkspaceProps) {
   const [classes, setClasses] = useState<ReportClassOption[]>(initialClasses);
   const [students, setStudents] = useState<ReportStudentOption[]>(initialStudents);
@@ -445,6 +449,8 @@ export function StudentRecordWorkspace({
     return (
       <StudentRecordReportView
         result={result}
+        academyName={academyName}
+        logoSrc={logoSrc}
         onReset={() => {
           setResult(null);
           setError(null);

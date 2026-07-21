@@ -13,6 +13,8 @@ interface ReportPrintPreviewProps {
   report: StudentReport;
   parentMessage: string;
   learningReportText?: string;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 /** A4 출력 미리보기 모달 — 확인 후 PDF 저장/인쇄 */
@@ -22,6 +24,8 @@ export function ReportPrintPreview({
   report,
   parentMessage,
   learningReportText,
+  academyName,
+  logoSrc,
 }: ReportPrintPreviewProps) {
   const pdfFileName = buildReportPdfFileName(
     report.student.name,
@@ -84,6 +88,8 @@ export function ReportPrintPreview({
             report={report}
             parentMessage={parentMessage}
             learningReportText={learningReportText}
+            academyName={academyName}
+            logoSrc={logoSrc}
           />
         </div>
       </div>

@@ -11,6 +11,8 @@ interface SharedReportPrintViewProps {
   parentMessage: string;
   aiReportText: string;
   shareToken: string;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 /** 공유 링크 — A4 출력·PDF 저장 전용 */
@@ -19,6 +21,8 @@ export function SharedReportPrintView({
   parentMessage,
   aiReportText,
   shareToken,
+  academyName,
+  logoSrc,
 }: SharedReportPrintViewProps) {
   const pdfFileName = buildReportPdfFileName(
     report.student.name,
@@ -66,6 +70,8 @@ export function SharedReportPrintView({
             parentMessage={parentMessage}
             learningReportText={aiReportText}
             showLogo
+            academyName={academyName}
+            logoSrc={logoSrc}
           />
         </div>
       </div>

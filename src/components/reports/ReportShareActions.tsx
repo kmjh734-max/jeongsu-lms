@@ -18,6 +18,8 @@ interface ReportShareActionsProps {
   parentMessage: string;
   aiReportDraft: string;
   onOpenPrint: () => void;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 function formatExpiresLabel(iso: string): string {
@@ -38,6 +40,8 @@ export function ReportShareActions({
   parentMessage,
   aiReportDraft,
   onOpenPrint,
+  academyName,
+  logoSrc,
 }: ReportShareActionsProps) {
   const kakaoConfigured = isKakaoShareConfigured();
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -152,6 +156,8 @@ export function ReportShareActions({
         studentName: report.student.name,
         periodLabel: report.rangeLabel,
         shareUrl: url,
+        academyName,
+        logoSrc,
       });
 
       if (result.ok) {
@@ -183,6 +189,8 @@ export function ReportShareActions({
         studentName: report.student.name,
         periodLabel: report.rangeLabel,
         shareUrl: url,
+        academyName,
+        logoSrc,
       });
       if (result.ok) {
         showStatus(result.message);

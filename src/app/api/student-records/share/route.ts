@@ -59,15 +59,29 @@ export async function POST(request: Request) {
     const expiresAt = shareExpiresAt(30);
     const baseUrl = resolveShareBaseUrl();
 
+    let academyId = (profile.academy_id as string | null) ?? null;
+    const studentId = body.studentId?.trim() || null;
+    if (studentId) {
+      const adminPeek = createAdminClient();
+      const { data: studentProfile } = await adminPeek
+        .from("profiles")
+        .select("academy_id")
+        .eq("id", studentId)
+        .maybeSingle();
+      academyId =
+        (studentProfile?.academy_id as string | null) ?? academyId;
+    }
+
     const admin = createAdminClient();
     const { error } = await admin.from("shared_student_records").insert({
       token,
-      student_id: body.studentId?.trim() || null,
+      student_id: studentId,
       student_name: studentName,
       html,
       generated_at: generatedAt,
       created_by: profile.id,
       expires_at: expiresAt,
+      academy_id: academyId,
     });
 
     if (error) {

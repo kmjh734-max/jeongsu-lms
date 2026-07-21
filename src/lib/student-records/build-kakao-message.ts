@@ -1,4 +1,4 @@
-import { academyConfig } from "@/config/academy";
+import { ACADEMY_NAME } from "@/lib/branding";
 
 /** 카카오·붙여넣기용 — placeholder「학생」일 때 「학생 학생」 중복 방지 */
 export function formatStudentRecordReportSubject(studentName: string): string {
@@ -15,10 +15,12 @@ export function formatStudentRecordReportSubject(studentName: string): string {
 export function buildStudentRecordKakaoMessage(params: {
   studentName: string;
   shareUrl?: string;
+  academyName?: string;
 }): string {
+  const academyName = params.academyName?.trim() || ACADEMY_NAME;
   const date = new Date().toLocaleDateString("ko-KR");
   const lines = [
-    `[${academyConfig.academyName}] 학생부 분석 리포트`,
+    `[${academyName}] 학생부 분석 리포트`,
     "",
     formatStudentRecordReportSubject(params.studentName),
     `${date} 기준 입학사정관 관점 종합 분석입니다.`,

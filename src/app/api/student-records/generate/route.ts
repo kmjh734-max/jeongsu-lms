@@ -6,6 +6,7 @@ import {
 } from "@/lib/student-records/extract-identity";
 import { generateStudentRecordReport } from "@/lib/student-records/generate-report";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAcademyBranding } from "@/lib/tenant/academy-branding";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -37,8 +38,22 @@ export async function POST(request: Request) {
       return jsonError("분석할 학생부 내용이 없습니다.");
     }
 
+    let academyId = (profile.academy_id as string | null) ?? null;
+    if (studentId) {
+      const admin = createAdminClient();
+      const { data: studentProfile } = await admin
+        .from("profiles")
+        .select("academy_id")
+        .eq("id", studentId)
+        .maybeSingle();
+      academyId =
+        (studentProfile?.academy_id as string | null) ?? academyId;
+    }
+    const branding = await getAcademyBranding(academyId);
+
     const result = await generateStudentRecordReport(studentName, text, {
       analysisInstructions,
+      branding,
     });
     if (!result.ok) {
       return jsonError(result.message);
@@ -66,6 +81,7 @@ export async function POST(request: Request) {
         html: result.html,
         generated_at: generatedAt,
         created_by: profile.id,
+        academy_id: academyId,
       };
       const { data, error } = await admin
         .from("student_record_analyses")

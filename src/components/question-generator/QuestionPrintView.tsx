@@ -450,6 +450,8 @@ export function QuestionPrintView({
   printBaseHref,
   mode = "exam",
   layout: layoutProp = "mixed",
+  academyName = ACADEMY_NAME,
+  logoSrc = LOGO_SRC,
 }: {
   jobId: string;
   /** ← 뒤로: 내 자료 목록 */
@@ -458,6 +460,9 @@ export function QuestionPrintView({
   printBaseHref: string;
   mode?: "exam" | "answers";
   layout?: PrintLayoutMode;
+  /** 학원별 인쇄 브랜딩 */
+  academyName?: string;
+  logoSrc?: string;
 }) {
   const [title, setTitle] = useState("영어 변형문제");
   const [grade, setGrade] = useState("");
@@ -468,10 +473,10 @@ export function QuestionPrintView({
   const [error, setError] = useState<string | null>(null);
   const [pages, setPages] = useState<SheetPage[]>([]);
   const [branding, setBranding] = useState<PrintBranding>({
-    headerKicker: ACADEMY_NAME,
+    headerKicker: academyName,
     headerTitle: "",
     headerSub: "",
-    footerLeft: ACADEMY_NAME,
+    footerLeft: academyName,
     footerRight: "영어 변형문제",
     showLogo: true,
   });
@@ -530,16 +535,16 @@ export function QuestionPrintView({
         headerKicker:
           stored?.headerKicker ??
           prev.headerKicker ??
-          `${ACADEMY_NAME}${nextGrade ? ` · ${nextGrade}` : ""}`,
+          `${academyName}${nextGrade ? ` · ${nextGrade}` : ""}`,
         headerTitle: stored?.headerTitle || nextTitle,
         headerSub: stored?.headerSub ?? nextDetail,
-        footerLeft: stored?.footerLeft ?? ACADEMY_NAME,
+        footerLeft: stored?.footerLeft ?? academyName,
         footerRight: stored?.footerRight ?? `영어 ${kind}`,
         showLogo: stored?.showLogo ?? true,
       };
     });
     setBrandingReady(true);
-  }, [jobId, mode]);
+  }, [jobId, mode, academyName]);
 
   useEffect(() => {
     void load();
@@ -682,10 +687,10 @@ export function QuestionPrintView({
   function resetBranding() {
     const kind = mode === "answers" ? "해설지" : "변형문제";
     setBranding({
-      headerKicker: `${ACADEMY_NAME}${grade ? ` · ${grade}` : ""}`,
+      headerKicker: `${academyName}${grade ? ` · ${grade}` : ""}`,
       headerTitle: title,
       headerSub: sourceDetail,
-      footerLeft: ACADEMY_NAME,
+      footerLeft: academyName,
       footerRight: `영어 ${kind}`,
       showLogo: true,
     });
@@ -708,8 +713,8 @@ export function QuestionPrintView({
             <div className="qg-print-logo-box">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={LOGO_SRC}
-                alt={ACADEMY_NAME}
+                src={logoSrc}
+                alt={academyName}
                 className="qg-print-logo-img"
               />
             </div>
@@ -774,12 +779,12 @@ export function QuestionPrintView({
           {branding.showLogo && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={LOGO_SRC}
+              src={logoSrc}
               alt=""
               className="qg-print-footer-logo"
             />
           )}
-          <span>{branding.footerLeft || ACADEMY_NAME}</span>
+          <span>{branding.footerLeft || academyName}</span>
         </div>
         <span className="qg-print-footer-right">
           {branding.footerRight || "영어 변형문제"}
@@ -905,7 +910,7 @@ export function QuestionPrintView({
                   onChange={(e) =>
                     patchBranding({ headerKicker: e.target.value })
                   }
-                  placeholder={ACADEMY_NAME}
+                  placeholder={academyName}
                 />
               </label>
               <label className="block text-xs text-slate-600">
@@ -936,7 +941,7 @@ export function QuestionPrintView({
                   onChange={(e) =>
                     patchBranding({ footerLeft: e.target.value })
                   }
-                  placeholder={ACADEMY_NAME}
+                  placeholder={academyName}
                 />
               </label>
               <label className="block text-xs text-slate-600">

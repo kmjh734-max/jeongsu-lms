@@ -46,6 +46,8 @@ interface VocabSetPrintViewProps {
   sections: VocabPrintSection[];
   backHref: string;
   documentTitle?: string;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
@@ -56,8 +58,12 @@ function formatNo(globalIndex: number) {
 
 function PrintPageHeader({
   sectionTitle,
+  academyName,
+  logoSrc,
 }: {
   sectionTitle: string;
+  academyName: string;
+  logoSrc: string;
 }) {
   return (
     <>
@@ -66,10 +72,10 @@ function PrintPageHeader({
         <div className="vocab-print-header-left">
           <div className="vocab-print-logo-box">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={LOGO_SRC} alt={ACADEMY_NAME} className="vocab-print-logo-img" />
+            <img src={logoSrc} alt={academyName} className="vocab-print-logo-img" />
           </div>
           <div className="vocab-print-book-meta">
-            <p className="vocab-print-series">{ACADEMY_NAME}</p>
+            <p className="vocab-print-series">{academyName}</p>
             <h2 className="vocab-print-book-title">{sectionTitle}</h2>
           </div>
         </div>
@@ -92,6 +98,8 @@ export function VocabSetPrintView({
   sections,
   backHref,
   documentTitle,
+  academyName = ACADEMY_NAME,
+  logoSrc = LOGO_SRC,
 }: VocabSetPrintViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -311,7 +319,11 @@ export function VocabSetPrintView({
           data-size={size}
           style={examPageStyle}
         >
-          <PrintPageHeader sectionTitle={headerTitle} />
+          <PrintPageHeader
+            sectionTitle={headerTitle}
+            academyName={academyName}
+            logoSrc={logoSrc}
+          />
 
           <div className="vocab-exam-body">
             {pageSlice.basic.length > 0 ? (
@@ -337,7 +349,7 @@ export function VocabSetPrintView({
           </div>
 
           <footer className="vocab-print-footer">
-            <span>{ACADEMY_NAME}</span>
+            <span>{academyName}</span>
             <span>
               {pageIndex + 1} / {resolvedExamPages.length}
             </span>
@@ -369,7 +381,11 @@ export function VocabSetPrintView({
               } as React.CSSProperties
             }
           >
-            <PrintPageHeader sectionTitle={section.title} />
+            <PrintPageHeader
+              sectionTitle={section.title}
+              academyName={academyName}
+              logoSrc={logoSrc}
+            />
 
             <div className="vocab-print-table-head">
               <div>NO.</div>
@@ -400,7 +416,7 @@ export function VocabSetPrintView({
             </div>
 
             <footer className="vocab-print-footer">
-              <span>{ACADEMY_NAME}</span>
+              <span>{academyName}</span>
               <span>
                 {pageIndex + 1} / {sectionPageTotal}
                 {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
@@ -451,10 +467,14 @@ export function VocabSetPrintView({
               className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam`}
               style={examPageStyle}
             >
-              <PrintPageHeader sectionTitle={headerTitle} />
+              <PrintPageHeader
+                sectionTitle={headerTitle}
+                academyName={academyName}
+                logoSrc={logoSrc}
+              />
               <div data-exam-body-zone className="min-h-0 flex-1" />
               <footer className="vocab-print-footer">
-                <span>{ACADEMY_NAME}</span>
+                <span>{academyName}</span>
                 <span>1 / 1</span>
               </footer>
             </article>

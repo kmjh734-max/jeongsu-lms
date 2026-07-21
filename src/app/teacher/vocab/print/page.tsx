@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 import { loadVocabSetsPrintData } from "@/lib/vocab/load-vocab-set-print";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,11 +25,10 @@ export default async function TeacherVocabBulkPrintPage({
 
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const sections = await loadVocabSetsPrintData(
-    supabase,
-    setIds,
-    profile!.id
-  );
+  const [sections, branding] = await Promise.all([
+    loadVocabSetsPrintData(supabase, setIds, profile!.id),
+    getAcademyBrandingForCurrentUser(),
+  ]);
   if (sections.length === 0) notFound();
 
   const backHref = back?.startsWith("/teacher/") ? back : "/teacher/vocab/sets";
@@ -47,6 +47,8 @@ export default async function TeacherVocabBulkPrintPage({
             ? sections[0]!.title
             : `${sections.length}개 단어세트`
         }
+        academyName={branding.name}
+        logoSrc={branding.logoUrl}
       />
     </Suspense>
   );

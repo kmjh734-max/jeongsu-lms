@@ -6,17 +6,20 @@ export interface ParentMessageInput {
   report: StudentReport;
   /** 반영 버튼으로 확정된 학습 리포트 본문 (비어 있으면 시스템 요약 placeholder) */
   learningReportText?: string;
+  /** 학원명 (학원별 브랜딩) */
+  academyName?: string;
 }
 
 export function buildParentReportMessage({
   report,
   learningReportText,
+  academyName = ACADEMY_NAME,
 }: ParentMessageInput): string {
   const studentName = report.student.name;
   const lines: string[] = [
     `[${studentName} 학생 학습 리포트]`,
     "",
-    `안녕하세요. ${ACADEMY_NAME}입니다.`,
+    `안녕하세요. ${academyName}입니다.`,
     `${report.rangeLabel} 기준 ${studentName} 학생의 온라인 학습 현황을 안내드립니다.`,
     "",
     "1. 학습 리포트",

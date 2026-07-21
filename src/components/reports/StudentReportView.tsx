@@ -18,6 +18,8 @@ interface StudentReportViewProps {
   report: StudentReport;
   aiReportDraft: string;
   onAiReportDraftChange: (value: string) => void;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 function boolBadge(done: boolean, doneLabel = "완료", todoLabel = "미완료") {
@@ -32,6 +34,8 @@ export function StudentReportView({
   report,
   aiReportDraft,
   onAiReportDraftChange,
+  academyName,
+  logoSrc,
 }: StudentReportViewProps) {
   const generatedLabel = formatLastStudiedDate(report.generatedAt);
   const [parentMessage, setParentMessage] = useState("");
@@ -43,12 +47,12 @@ export function StudentReportView({
   const [draftError, setDraftError] = useState<string | null>(null);
 
   useEffect(() => {
-    setParentMessage(buildParentReportMessage({ report }));
+    setParentMessage(buildParentReportMessage({ report, academyName }));
     setIsParentMessageEditing(false);
     setPrintPreviewOpen(false);
     setPcKakaoModalOpen(false);
     setPcKakaoCopyOk(false);
-  }, [report]);
+  }, [report, academyName]);
 
   async function handlePcKakaoPrepare() {
     let copied = false;
@@ -94,7 +98,9 @@ export function StudentReportView({
     if (!draft) {
       return "먼저 AI 리포트 초안을 생성하거나 내용을 입력해주세요.";
     }
-    setParentMessage(replaceLearningReportSection(parentMessage, draft, report));
+    setParentMessage(
+      replaceLearningReportSection(parentMessage, draft, report, academyName)
+    );
     return "AI 학습리포트 내용이 학부모 발송용 문구에 반영되었습니다.";
   }
 
@@ -356,6 +362,8 @@ export function StudentReportView({
           parentMessage={parentMessage}
           aiReportDraft={aiReportDraft}
           onOpenPrint={() => setPrintPreviewOpen(true)}
+          academyName={academyName}
+          logoSrc={logoSrc}
         />
       </div>
 
@@ -365,6 +373,8 @@ export function StudentReportView({
         report={report}
         parentMessage={parentMessage}
         learningReportText={extractLearningReportSection(parentMessage)}
+        academyName={academyName}
+        logoSrc={logoSrc}
       />
 
       <PcKakaoSendModal

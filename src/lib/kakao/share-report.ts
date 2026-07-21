@@ -16,13 +16,22 @@ export {
   loadKakaoSdk as loadKakaoSdkForReports,
 } from "@/lib/kakao/kakao-init";
 
-export function getAbsoluteLogoUrl(shareUrl: string): string {
+export function getAbsoluteLogoUrl(
+  shareUrl: string,
+  logoSrc: string = LOGO_SRC
+): string {
   try {
     const origin = new URL(shareUrl).origin;
-    return `${origin}${LOGO_SRC}`;
+    if (logoSrc.startsWith("http://") || logoSrc.startsWith("https://")) {
+      return logoSrc;
+    }
+    return `${origin}${logoSrc}`;
   } catch {
     if (typeof window !== "undefined") {
-      return `${window.location.origin}${LOGO_SRC}`;
+      if (logoSrc.startsWith("http://") || logoSrc.startsWith("https://")) {
+        return logoSrc;
+      }
+      return `${window.location.origin}${logoSrc}`;
     }
     return "";
   }
@@ -36,6 +45,8 @@ export interface KakaoShareParams {
   feedDescription?: string;
   buttonTitle?: string;
   pasteMessage?: string;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 export type KakaoShareResult =
@@ -98,7 +109,7 @@ function buildFeedPayload(
   };
 
   if (includeImage) {
-    const imageUrl = getAbsoluteLogoUrl(shareUrl);
+    const imageUrl = getAbsoluteLogoUrl(shareUrl, params.logoSrc);
     if (imageUrl) {
       content.imageUrl = imageUrl;
     }

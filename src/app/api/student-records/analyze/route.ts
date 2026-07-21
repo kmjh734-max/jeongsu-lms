@@ -4,6 +4,7 @@ import { extractStudentRecordContent } from "@/lib/student-records/extract-conte
 import { generateStudentRecordReport } from "@/lib/student-records/generate-report";
 import { parseStudentRecordUpload } from "@/lib/student-records/parse-upload";
 import { resolveStudentRecordTarget } from "@/lib/student-records/resolve-student";
+import { getAcademyBranding } from "@/lib/tenant/academy-branding";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -70,10 +71,14 @@ export async function POST(request: Request) {
       formData.get("analysisInstructions") ?? ""
     ).trim();
 
+    const branding = await getAcademyBranding(
+      (profile.academy_id as string | null) ?? null
+    );
+
     const generated = await generateStudentRecordReport(
       target.studentName,
       extracted.text,
-      { analysisInstructions }
+      { analysisInstructions, branding }
     );
 
     if (!generated.ok) {

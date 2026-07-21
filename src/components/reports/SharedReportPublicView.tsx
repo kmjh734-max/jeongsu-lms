@@ -8,6 +8,8 @@ interface SharedReportPublicViewProps {
   expiresAt: string;
   studentName: string;
   shareToken: string;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 /** 학부모 공개 — 모바일 HTML 리포트 */

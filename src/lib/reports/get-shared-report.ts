@@ -1,5 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { StudentReport } from "@/lib/reports/types";
+import {
+  getAcademyBranding,
+  type AcademyBranding,
+} from "@/lib/tenant/academy-branding";
 
 export interface SharedReportPayload {
   report: StudentReport;
@@ -7,6 +11,7 @@ export interface SharedReportPayload {
   aiReportText: string;
   expiresAt: string;
   studentName: string;
+  academy: AcademyBranding;
 }
 
 export type SharedReportLookup =
@@ -22,7 +27,7 @@ export async function lookupSharedReport(
     const { data, error } = await admin
       .from("shared_reports")
       .select(
-        "report_data, parent_message, ai_report_text, expires_at, student_id"
+        "report_data, parent_message, ai_report_text, expires_at, student_id, academy_id"
       )
       .eq("token", token)
       .maybeSingle();
@@ -38,9 +43,15 @@ export async function lookupSharedReport(
 
     const { data: student } = await admin
       .from("profiles")
-      .select("name")
+      .select("name, academy_id")
       .eq("id", data.student_id as string)
       .maybeSingle();
+
+    const academyId =
+      (data.academy_id as string | null) ??
+      (student?.academy_id as string | null) ??
+      null;
+    const academy = await getAcademyBranding(academyId);
 
     return {
       status: "ok",
@@ -50,6 +61,7 @@ export async function lookupSharedReport(
         aiReportText: (data.ai_report_text as string) ?? "",
         expiresAt,
         studentName: (student?.name as string) ?? "학생",
+        academy,
       },
     };
   } catch {

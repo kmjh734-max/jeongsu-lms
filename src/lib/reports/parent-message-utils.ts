@@ -26,7 +26,8 @@ export function extractLearningReportSection(message: string): string {
 export function replaceLearningReportSection(
   message: string,
   learningReportText: string,
-  report: StudentReport
+  report: StudentReport,
+  academyName?: string
 ): string {
   const lines = message.split("\n");
   const startIdx = lines.findIndex((l) => l.trim() === SECTION1_HEADER);
@@ -36,7 +37,11 @@ export function replaceLearningReportSection(
     learningReportText.trim() || defaultLearningReportText(report);
 
   if (startIdx === -1 || endIdx === -1) {
-    return buildParentReportMessage({ report, learningReportText: body });
+    return buildParentReportMessage({
+      report,
+      learningReportText: body,
+      academyName,
+    });
   }
 
   return [

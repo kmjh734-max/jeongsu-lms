@@ -15,6 +15,8 @@ interface StudentRecordShareActionsProps {
   result: StudentRecordAnalysisResult;
   onOpenPrint: () => void;
   onPcKakaoPrepare: () => void | Promise<void>;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 function formatExpiresLabel(iso: string): string {
@@ -33,6 +35,8 @@ export function StudentRecordShareActions({
   result,
   onOpenPrint,
   onPcKakaoPrepare,
+  academyName,
+  logoSrc,
 }: StudentRecordShareActionsProps) {
   const { studentName } = result;
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -106,7 +110,11 @@ export function StudentRecordShareActions({
       const url = shareUrl ?? (await createShareLink());
       if (!url) return;
 
-      const text = buildStudentRecordKakaoMessage({ studentName, shareUrl: url });
+      const text = buildStudentRecordKakaoMessage({
+        studentName,
+        shareUrl: url,
+        academyName,
+      });
       const copied = await navigator.clipboard.writeText(text).then(
         () => true,
         () => false
@@ -136,6 +144,7 @@ export function StudentRecordShareActions({
       const pasteMessage = buildStudentRecordKakaoMessage({
         studentName,
         shareUrl: url,
+        academyName,
       });
       const shareResult = await shareReportViaKakao({
         studentName,
@@ -145,6 +154,8 @@ export function StudentRecordShareActions({
         feedDescription: `${formatStudentRecordReportSubject(studentName)} 아래 링크에서 확인해 주세요.`,
         buttonTitle: "자세히 보기",
         pasteMessage,
+        academyName,
+        logoSrc,
       });
       if (shareResult.ok) {
         const hint =

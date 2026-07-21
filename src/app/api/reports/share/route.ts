@@ -74,10 +74,23 @@ export async function POST(request: Request) {
     const baseUrl = resolveShareBaseUrl();
 
     const admin = createAdminClient();
+
+    const { data: studentProfile } = await admin
+      .from("profiles")
+      .select("academy_id")
+      .eq("id", studentId)
+      .maybeSingle();
+
+    const academyId =
+      (studentProfile?.academy_id as string | null) ??
+      (profile.academy_id as string | null) ??
+      null;
+
     const { error } = await admin.from("shared_reports").insert({
       token,
       student_id: studentId,
       created_by: profile.id,
+      academy_id: academyId,
       report_data: reportData,
       parent_message: parentMessage ?? "",
       ai_report_text: aiReportText ?? "",

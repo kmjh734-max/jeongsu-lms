@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ACADEMY_NAME, LOGO_SRC, SITE_URL } from "@/lib/branding";
+import { ACADEMY_NAME, SITE_URL } from "@/lib/branding";
 import { lookupSharedReport } from "@/lib/reports/get-shared-report";
 import { buildShareUrl } from "@/lib/reports/share-token";
 import { SharedReportPrintView } from "@/components/reports/SharedReportPrintView";
@@ -26,22 +26,25 @@ export async function generateMetadata({
     };
   }
 
-  const { studentName, report } = lookup.payload;
+  const { studentName, report, academy } = lookup.payload;
   const title = `${studentName} 학생 학습 리포트`;
   const description = `${report.rangeLabel} 온라인 학습 현황 리포트입니다.`;
+  const logoAbs = academy.logoUrl.startsWith("http")
+    ? academy.logoUrl
+    : `${SITE_URL}${academy.logoUrl}`;
 
   return {
-    title: `${title} | ${ACADEMY_NAME}`,
+    title: `${title} | ${academy.name}`,
     description,
     robots: { index: false, follow: false },
     openGraph: {
       type: "website",
       locale: "ko_KR",
       url: pageUrl,
-      siteName: ACADEMY_NAME,
+      siteName: academy.name,
       title,
       description,
-      images: [{ url: `${SITE_URL}${LOGO_SRC}`, width: 800, height: 800 }],
+      images: [{ url: logoAbs, width: 800, height: 800 }],
     },
   };
 }
@@ -76,6 +79,8 @@ export default async function SharedReportPage({
   }
 
   const { payload } = lookup;
+  const academyName = payload.academy.name;
+  const logoSrc = payload.academy.logoUrl;
 
   if (view === "print") {
     return (
@@ -84,6 +89,8 @@ export default async function SharedReportPage({
         parentMessage={payload.parentMessage}
         aiReportText={payload.aiReportText}
         shareToken={token}
+        academyName={academyName}
+        logoSrc={logoSrc}
       />
     );
   }
@@ -96,6 +103,8 @@ export default async function SharedReportPage({
       expiresAt={payload.expiresAt}
       studentName={payload.studentName}
       shareToken={token}
+      academyName={academyName}
+      logoSrc={logoSrc}
     />
   );
 }

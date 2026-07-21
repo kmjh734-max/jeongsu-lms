@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ACADEMY_NAME, LOGO_SRC, SITE_NAME } from "@/lib/branding";
+import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { formatLastStudiedDate } from "@/lib/progress/enrollment-progress";
 import { parseReviewWordDisplay } from "@/lib/reports/review-word-display";
 import { resolveLearningReportText } from "@/lib/reports/resolve-learning-report-text";
@@ -13,6 +13,8 @@ interface A4ReportDocumentProps {
   learningReportText?: string;
   /** 공개 보기 화면에서는 로고 이미지 생략 가능 */
   showLogo?: boolean;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 function stagePill(completed: boolean) {
@@ -56,6 +58,8 @@ export function A4ReportDocument({
   parentMessage,
   learningReportText,
   showLogo = true,
+  academyName = ACADEMY_NAME,
+  logoSrc = LOGO_SRC,
 }: A4ReportDocumentProps) {
   const generatedLabel = formatLastStudiedDate(report.generatedAt);
   const printDate = new Date().toLocaleDateString("ko-KR", {
@@ -81,14 +85,14 @@ export function A4ReportDocument({
             {showLogo && (
               <div className="mb-2 flex items-center gap-2">
                 <Image
-                  src={LOGO_SRC}
-                  alt={ACADEMY_NAME}
+                  src={logoSrc}
+                  alt={academyName}
                   width={36}
                   height={36}
                   className="h-9 w-9 object-contain"
                 />
                 <span className="text-[9pt] font-medium tracking-wide text-slate-500">
-                  {SITE_NAME}
+                  {academyName}
                 </span>
               </div>
             )}
@@ -96,7 +100,7 @@ export function A4ReportDocument({
               Learning Report
             </p>
             <h1 className="mt-0.5 text-[17pt] font-bold tracking-tight text-[#1e3a5f]">
-              {ACADEMY_NAME} 학습 리포트
+              {academyName} 학습 리포트
             </h1>
             <p className="mt-1 text-[11pt] font-semibold text-slate-900">
               {report.student.name}
@@ -295,7 +299,7 @@ export function A4ReportDocument({
 
       <footer className="mt-8 border-t border-slate-200 pt-4 text-[9.5pt] text-slate-600">
         <p>앞으로도 꾸준히 학습할 수 있도록 지도하겠습니다.</p>
-        <p className="mt-2 font-semibold text-[#1e3a5f]">{ACADEMY_NAME}</p>
+        <p className="mt-2 font-semibold text-[#1e3a5f]">{academyName}</p>
         <p className="mt-1 text-slate-500">출력일: {printDate}</p>
       </footer>
     </article>

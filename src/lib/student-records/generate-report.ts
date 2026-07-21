@@ -15,10 +15,13 @@ import {
   STUDENT_RECORD_SIMPLE_SYSTEM_PROMPT,
 } from "@/lib/student-records/simple-analysis-prompt";
 import { STUDENT_RECORD_ANALYSIS_SYSTEM_PROMPT } from "@/lib/student-records/system-prompt";
+import type { AcademyBranding } from "@/lib/tenant/academy-branding";
 
 export type GenerateStudentRecordOptions = {
   /** 기본 종합 분석 문구·빈 값이면 성적 포함 상세 모드. 그 외는 맞춤(간단) 분석 */
   analysisInstructions?: string;
+  /** 학원별 보고서 머리말·꼬리말 */
+  branding?: Pick<AcademyBranding, "name" | "logoUrl"> | null;
 };
 
 type RequestProfile = {
@@ -190,7 +193,10 @@ export async function generateStudentRecordReport(
           break;
         }
 
-        return { ok: true, html: applyAcademyBrandingToReportHtml(html) };
+        return {
+          ok: true,
+          html: applyAcademyBrandingToReportHtml(html, options.branding),
+        };
       }
     }
 

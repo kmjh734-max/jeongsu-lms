@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 import { loadVocabSetsPrintData } from "@/lib/vocab/load-vocab-set-print";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,7 +23,10 @@ export default async function AdminVocabBulkPrintPage({
   }
 
   const supabase = await createClient();
-  const sections = await loadVocabSetsPrintData(supabase, setIds);
+  const [sections, branding] = await Promise.all([
+    loadVocabSetsPrintData(supabase, setIds),
+    getAcademyBrandingForCurrentUser(),
+  ]);
   if (sections.length === 0) notFound();
 
   const backHref = back?.startsWith("/admin/") ? back : "/admin/vocab/sets";
@@ -41,6 +45,8 @@ export default async function AdminVocabBulkPrintPage({
             ? sections[0]!.title
             : `${sections.length}개 단어세트`
         }
+        academyName={branding.name}
+        logoSrc={branding.logoUrl}
       />
     </Suspense>
   );

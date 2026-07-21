@@ -13,12 +13,16 @@ interface StudentRecordReportViewProps {
   onReset: () => void;
   /** 본문 수정 저장 후 상위 상태 동기화 */
   onHtmlSaved?: (html: string) => void;
+  academyName?: string;
+  logoSrc?: string;
 }
 
 export function StudentRecordReportView({
   result,
   onReset,
   onHtmlSaved,
+  academyName,
+  logoSrc,
 }: StudentRecordReportViewProps) {
   const [printOpen, setPrintOpen] = useState(false);
   const [pcKakaoOpen, setPcKakaoOpen] = useState(false);
@@ -78,6 +82,7 @@ export function StudentRecordReportView({
 
   const parentMessage = buildStudentRecordKakaoMessage({
     studentName: result.studentName,
+    academyName,
   });
 
   async function handlePcKakaoPrepare() {
@@ -160,6 +165,8 @@ export function StudentRecordReportView({
         result={result}
         onOpenPrint={() => setPrintOpen(true)}
         onPcKakaoPrepare={handlePcKakaoPrepare}
+        academyName={academyName}
+        logoSrc={logoSrc}
       />
 
       <div

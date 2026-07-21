@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { applyAcademyBrandingToReportHtml } from "@/lib/student-records/report-branding";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAcademyBranding } from "@/lib/tenant/academy-branding";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ async function loadAccessibleRecord(id: string) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("student_record_analyses")
-    .select("id, student_id, student_name, html, generated_at, created_by")
+    .select("id, student_id, student_name, html, generated_at, created_by, academy_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -28,7 +29,7 @@ async function loadAccessibleRecord(id: string) {
     return { error: NextResponse.json({ ok: false, message: "본인 기록만 접근할 수 있습니다." }, { status: 403 }) };
   }
 
-  return { admin, data };
+  return { admin, data, profile };
 }
 
 /** 분석 기록 열람 (HTML 포함) */
@@ -38,14 +39,19 @@ export async function GET(_request: Request, context: RouteContext) {
     const result = await loadAccessibleRecord(id);
     if (result.error) return result.error;
 
-    const { data } = result;
+    const { data, profile } = result;
+    const branding = await getAcademyBranding(
+      (data.academy_id as string | null) ??
+        (profile.academy_id as string | null) ??
+        null
+    );
     return NextResponse.json({
       ok: true,
       record: {
         id: data.id as string,
         studentId: (data.student_id as string | null) ?? null,
         studentName: (data.student_name as string) ?? "학생",
-        html: applyAcademyBrandingToReportHtml(data.html as string),
+        html: applyAcademyBrandingToReportHtml(data.html as string, branding),
         generatedAt: data.generated_at as string,
       },
     });

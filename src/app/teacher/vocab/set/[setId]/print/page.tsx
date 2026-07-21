@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 import { loadVocabSetPrintData } from "@/lib/vocab/load-vocab-set-print";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,7 +14,10 @@ export default async function TeacherVocabSetPrintPage({ params }: PageProps) {
   const { setId } = await params;
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const loaded = await loadVocabSetPrintData(supabase, setId, profile!.id);
+  const [loaded, branding] = await Promise.all([
+    loadVocabSetPrintData(supabase, setId, profile!.id),
+    getAcademyBrandingForCurrentUser(),
+  ]);
   if (!loaded) notFound();
 
   const backHref = `/teacher/vocab/set/${setId}`;
@@ -34,6 +38,8 @@ export default async function TeacherVocabSetPrintPage({ params }: PageProps) {
           },
         ]}
         backHref={backHref}
+        academyName={branding.name}
+        logoSrc={branding.logoUrl}
       />
     </Suspense>
   );

@@ -23,12 +23,16 @@ interface ReportWorkspaceProps {
   role: "admin" | "teacher";
   initialClasses?: ReportClassOption[];
   initialStudents?: ReportStudentOption[];
+  academyName?: string;
+  logoSrc?: string;
 }
 
 export function ReportWorkspace({
   role,
   initialClasses = [],
   initialStudents = [],
+  academyName,
+  logoSrc,
 }: ReportWorkspaceProps) {
   const [classes, setClasses] = useState<ReportClassOption[]>(initialClasses);
   const [students, setStudents] = useState<ReportStudentOption[]>(initialStudents);
@@ -245,6 +249,8 @@ export function ReportWorkspace({
           report={report}
           aiReportDraft={aiReportDraft}
           onAiReportDraftChange={setAiReportDraft}
+          academyName={academyName}
+          logoSrc={logoSrc}
         />
       )}
     </div>
