@@ -114,11 +114,8 @@ export function GenerationDetailClient({
 
   useEffect(() => {
     if (!job || jobProgress || readTrackedQgJob()) return;
-    if (
-      !["pending", "analyzing", "generating", "validating"].includes(
-        job.status
-      )
-    ) {
+    // pending(복사만 한 상태)은 생성 중으로 보지 않음
+    if (!["analyzing", "generating", "validating"].includes(job.status)) {
       return;
     }
     startTracking(jobId, job.total_requested, jobTitle);

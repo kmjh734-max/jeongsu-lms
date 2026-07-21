@@ -42,12 +42,17 @@ export function QgJobProgressBar({
               />
             </div>
           </div>
-          <Link
-            href={`${basePath}/generations/${jobProgress.jobId}`}
-            className="shrink-0 rounded-lg border border-brand-300 bg-white px-3 py-2 text-xs font-medium text-brand-800"
-          >
-            상세 보기
-          </Link>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Link
+              href={`${basePath}/generations/${jobProgress.jobId}`}
+              className="rounded-lg border border-brand-300 bg-white px-3 py-2 text-xs font-medium text-brand-800"
+            >
+              상세 보기
+            </Link>
+            <Button type="button" variant="secondary" onClick={onDismiss}>
+              닫기
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3">

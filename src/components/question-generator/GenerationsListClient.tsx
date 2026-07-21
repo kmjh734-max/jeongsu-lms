@@ -127,8 +127,9 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
     void load();
   }, [load]);
 
+  /** pending(복사만 한 상태)은 생성 중이 아님 — analyzing 이후만 추적 */
   const hasRunningJob = jobs.some((j) =>
-    ["pending", "analyzing", "generating", "validating"].includes(j.status)
+    ["analyzing", "generating", "validating"].includes(j.status)
   );
 
   useEffect(() => {
@@ -140,7 +141,7 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
   useEffect(() => {
     if (jobProgress || readTrackedQgJob() || jobs.length === 0) return;
     const running = jobs.find((j) =>
-      ["pending", "analyzing", "generating", "validating"].includes(j.status)
+      ["analyzing", "generating", "validating"].includes(j.status)
     );
     if (!running) return;
     startTracking(

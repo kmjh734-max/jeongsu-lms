@@ -10,7 +10,11 @@ import {
 } from "@/lib/question-generator/client-job-progress";
 
 const TERMINAL = new Set(["completed", "partially_completed", "failed"]);
+/** 실제 생성 워커가 돌고 있는 상태 */
+const ACTIVE = new Set(["analyzing", "generating", "validating"]);
 const POLL_MS = 750;
+/** 생성 직후 pending 허용 시간 (그 이후 pending+0문항이면 배너 제거) */
+const PENDING_GRACE_MS = 15_000;
 
 type Options = {
   onTerminal?: (job: QgJobProgressState) => void;
@@ -23,12 +27,16 @@ export function useQgJobProgress(options: Options = {}) {
     null
   );
   const pdfOpenedForJob = useRef<string | null>(null);
+  const pendingGraceUntil = useRef(0);
   const onTerminalRef = useRef(options.onTerminal);
   onTerminalRef.current = options.onTerminal;
 
   const restoreFromStorage = useCallback(() => {
     const saved = readTrackedQgJob();
-    if (!saved) return;
+    if (!saved) {
+      setJobProgress((prev) => (prev && !prev.done ? null : prev));
+      return;
+    }
     setJobProgress((prev) => {
       if (prev?.jobId === saved.jobId && !prev.done) return prev;
       return {
@@ -65,7 +73,13 @@ export function useQgJobProgress(options: Options = {}) {
           `/api/question-generator/jobs/${jobProgress.jobId}`
         );
         const data = await res.json();
-        if (!data.ok || !data.job || cancelled) return;
+        if (cancelled) return;
+
+        if (!data.ok || !data.job) {
+          clearQgJob();
+          setJobProgress(null);
+          return;
+        }
 
         const job = data.job as {
           status: string;
@@ -77,6 +91,17 @@ export function useQgJobProgress(options: Options = {}) {
           request_config?: { title?: string };
           english_source_passages?: { title?: string };
         };
+
+        // 복사만 되고 생성을 안 한 pending — 배너·버튼 잠금 해제
+        if (
+          job.status === "pending" &&
+          (job.total_completed ?? 0) === 0 &&
+          Date.now() > pendingGraceUntil.current
+        ) {
+          clearQgJob();
+          setJobProgress(null);
+          return;
+        }
 
         const terminal = TERMINAL.has(job.status);
         const title =
@@ -143,6 +168,7 @@ export function useQgJobProgress(options: Options = {}) {
 
   const startTracking = useCallback(
     (jobId: string, total: number, title?: string) => {
+      pendingGraceUntil.current = Date.now() + PENDING_GRACE_MS;
       trackQgJob(jobId, total, title);
       setJobProgress({
         jobId,
@@ -162,7 +188,14 @@ export function useQgJobProgress(options: Options = {}) {
     setJobProgress(null);
   }, []);
 
-  const generating = Boolean(jobProgress && !jobProgress.done);
+  const generating = Boolean(
+    jobProgress &&
+      !jobProgress.done &&
+      (ACTIVE.has(jobProgress.status) ||
+        jobProgress.status === "generating" ||
+        (jobProgress.status === "pending" &&
+          Date.now() <= pendingGraceUntil.current))
+  );
 
   const pct =
     jobProgress && jobProgress.total > 0
