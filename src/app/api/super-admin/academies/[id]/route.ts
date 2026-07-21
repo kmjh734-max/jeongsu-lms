@@ -16,10 +16,12 @@ export async function PATCH(
     let body: {
       name?: string;
       status?: "active" | "suspended" | "inactive";
-      primary_color?: string;
-      secondary_color?: string;
-      description?: string;
-      logo_url?: string;
+      primary_color?: string | null;
+      secondary_color?: string | null;
+      description?: string | null;
+      logo_url?: string | null;
+      phone?: string | null;
+      address?: string | null;
     };
     try {
       body = await request.json();
@@ -37,17 +39,34 @@ export async function PATCH(
       patch.name = body.name.trim();
     }
     if (body.status) patch.status = body.status;
-    if (typeof body.primary_color === "string") {
-      patch.primary_color = body.primary_color;
+    if (body.primary_color !== undefined) {
+      patch.primary_color =
+        typeof body.primary_color === "string" && body.primary_color.trim()
+          ? body.primary_color.trim()
+          : null;
     }
-    if (typeof body.secondary_color === "string") {
-      patch.secondary_color = body.secondary_color;
+    if (body.secondary_color !== undefined) {
+      patch.secondary_color =
+        typeof body.secondary_color === "string" && body.secondary_color.trim()
+          ? body.secondary_color.trim()
+          : null;
     }
-    if (typeof body.description === "string") {
-      patch.description = body.description;
+    if (body.description !== undefined) {
+      patch.description =
+        typeof body.description === "string" ? body.description.trim() || null : null;
     }
-    if (typeof body.logo_url === "string") {
-      patch.logo_url = body.logo_url;
+    if (body.logo_url !== undefined) {
+      const logo =
+        typeof body.logo_url === "string" ? body.logo_url.trim() : "";
+      patch.logo_url = logo || null;
+    }
+    if (body.phone !== undefined) {
+      patch.phone =
+        typeof body.phone === "string" ? body.phone.trim() || null : null;
+    }
+    if (body.address !== undefined) {
+      patch.address =
+        typeof body.address === "string" ? body.address.trim() || null : null;
     }
 
     const supabase = await createClient();

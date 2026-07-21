@@ -11,7 +11,11 @@ export type AcademyListRow = {
   slug: string;
   status: string;
   primary_color: string | null;
+  secondary_color?: string | null;
   logo_url: string | null;
+  description?: string | null;
+  phone?: string | null;
+  address?: string | null;
   created_at: string;
   updated_at: string;
   students: number;
@@ -28,6 +32,13 @@ type AdminRow = {
   created_at: string;
 };
 
+type ManageTab = "profile" | "admins";
+
+const LOGIN_URL =
+  (typeof process !== "undefined" &&
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "")) ||
+  "https://engcore.co.kr";
+
 export function SuperAdminAcademiesClient({
   initialRows,
 }: {
@@ -35,6 +46,9 @@ export function SuperAdminAcademiesClient({
 }) {
   const router = useRouter();
   const [rows, setRows] = useState(initialRows);
+  useEffect(() => {
+    setRows(initialRows);
+  }, [initialRows]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,14 +58,37 @@ export function SuperAdminAcademiesClient({
   const [primaryColor, setPrimaryColor] = useState("#2563EB");
 
   const [manageId, setManageId] = useState<string | null>(null);
+  const [manageTab, setManageTab] = useState<ManageTab>("profile");
   const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [adminsLoading, setAdminsLoading] = useState(false);
   const [linkEmail, setLinkEmail] = useState("");
   const [createName, setCreateName] = useState("");
   const [createUsername, setCreateUsername] = useState("");
   const [createPassword, setCreatePassword] = useState("");
+  const [inviteHint, setInviteHint] = useState<string | null>(null);
+
+  const [editName, setEditName] = useState("");
+  const [editLogo, setEditLogo] = useState("");
+  const [editPrimary, setEditPrimary] = useState("#2563EB");
+  const [editSecondary, setEditSecondary] = useState("#2563EB");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editAddress, setEditAddress] = useState("");
 
   const managed = rows.find((r) => r.id === manageId) ?? null;
+
+  useEffect(() => {
+    if (!managed) return;
+    setEditName(managed.name);
+    setEditLogo(managed.logo_url ?? "");
+    setEditPrimary(managed.primary_color || "#2563EB");
+    setEditSecondary(
+      managed.secondary_color || managed.primary_color || "#2563EB"
+    );
+    setEditDescription(managed.description ?? "");
+    setEditPhone(managed.phone ?? "");
+    setEditAddress(managed.address ?? "");
+  }, [managed]);
 
   const loadAdmins = useCallback(async (academyId: string) => {
     setAdminsLoading(true);
@@ -74,8 +111,20 @@ export function SuperAdminAcademiesClient({
   }, []);
 
   useEffect(() => {
-    if (manageId) void loadAdmins(manageId);
-  }, [manageId, loadAdmins]);
+    if (manageId && manageTab === "admins") void loadAdmins(manageId);
+  }, [manageId, manageTab, loadAdmins]);
+
+  function openManage(id: string, tab: ManageTab = "profile") {
+    if (manageId === id && manageTab === tab) {
+      setManageId(null);
+    } else {
+      setManageId(id);
+      setManageTab(tab);
+    }
+    setInviteHint(null);
+    setError(null);
+    setMessage(null);
+  }
 
   async function createAcademy() {
     setBusy(true);
@@ -96,10 +145,66 @@ export function SuperAdminAcademiesClient({
         setError(data.message ?? "학원 생성 실패");
         return;
       }
-      setMessage("학원을 추가했습니다.");
+      setMessage(
+        "학원을 추가했습니다. 「설정」에서 로고·연락처를 넣고 「관리자」를 연결하세요."
+      );
       setShowForm(false);
       setName("");
       setSlug("");
+      if (data.academy?.id) {
+        setManageId(data.academy.id as string);
+        setManageTab("profile");
+      }
+      router.refresh();
+    } catch {
+      setError("요청에 실패했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveAcademyProfile() {
+    if (!manageId) return;
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/super-admin/academies/${manageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          logo_url: editLogo.trim(),
+          primary_color: editPrimary,
+          secondary_color: editSecondary,
+          description: editDescription,
+          phone: editPhone,
+          address: editAddress,
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.message ?? "저장 실패");
+        return;
+      }
+      const a = data.academy as AcademyListRow;
+      setRows((prev) =>
+        prev.map((r) =>
+          r.id === manageId
+            ? {
+                ...r,
+                name: a.name,
+                logo_url: a.logo_url,
+                primary_color: a.primary_color,
+                secondary_color: a.secondary_color,
+                description: a.description,
+                phone: a.phone,
+                address: a.address,
+              }
+            : r
+        )
+      );
+      setMessage("학원 정보를 저장했습니다. 인쇄·리포트에 반영됩니다.");
       router.refresh();
     } catch {
       setError("요청에 실패했습니다.");
@@ -143,6 +248,7 @@ export function SuperAdminAcademiesClient({
     setBusy(true);
     setError(null);
     setMessage(null);
+    setInviteHint(null);
     try {
       const res = await fetch(`/api/super-admin/academies/${manageId}/admins`, {
         method: "POST",
@@ -155,6 +261,9 @@ export function SuperAdminAcademiesClient({
         return;
       }
       setMessage(data.message ?? "연결했습니다.");
+      setInviteHint(
+        `로그인: ${LOGIN_URL}/login\n이메일: ${linkEmail.trim()}\n→ 로그인 후 /admin 으로 이동합니다.`
+      );
       setLinkEmail("");
       await loadAdmins(manageId);
       router.refresh();
@@ -175,6 +284,7 @@ export function SuperAdminAcademiesClient({
     setBusy(true);
     setError(null);
     setMessage(null);
+    setInviteHint(null);
     try {
       const res = await fetch(`/api/super-admin/academies/${manageId}/admins`, {
         method: "POST",
@@ -192,6 +302,15 @@ export function SuperAdminAcademiesClient({
         return;
       }
       setMessage(data.message ?? "관리자를 만들었습니다.");
+      setInviteHint(
+        [
+          `로그인: ${LOGIN_URL}/login`,
+          `아이디: ${username}`,
+          `비밀번호: (방금 설정한 값)`,
+          `학원: ${managed?.name ?? ""}`,
+          `→ 로그인 후 EngCore Admin(/admin)으로 들어갑니다.`,
+        ].join("\n")
+      );
       setCreateName("");
       setCreateUsername("");
       setCreatePassword("");
@@ -201,6 +320,16 @@ export function SuperAdminAcademiesClient({
       setError("요청에 실패했습니다.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function copyInvite() {
+    if (!inviteHint) return;
+    try {
+      await navigator.clipboard.writeText(inviteHint);
+      setMessage("안내 문구를 복사했습니다. 학원 관리자에게 전달하세요.");
+    } catch {
+      setError("복사에 실패했습니다. 아래 문구를 직접 복사해 주세요.");
     }
   }
 
@@ -222,6 +351,9 @@ export function SuperAdminAcademiesClient({
 
       {showForm && (
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="mb-3 text-xs text-slate-500">
+            학원 추가 → 설정(로고·색) → 관리자 연결 순서로 온보딩하세요.
+          </p>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="block text-xs text-slate-600">
               학원명
@@ -289,10 +421,19 @@ export function SuperAdminAcademiesClient({
               >
                 <td>
                   <div className="flex items-center gap-2">
-                    <span
-                      className="inline-block h-3 w-3 rounded-full"
-                      style={{ background: r.primary_color || "#2563EB" }}
-                    />
+                    {r.logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={r.logo_url}
+                        alt=""
+                        className="h-6 w-6 rounded object-contain"
+                      />
+                    ) : (
+                      <span
+                        className="inline-block h-3 w-3 rounded-full"
+                        style={{ background: r.primary_color || "#2563EB" }}
+                      />
+                    )}
                     <span className="font-medium">{r.name}</span>
                   </div>
                 </td>
@@ -321,11 +462,20 @@ export function SuperAdminAcademiesClient({
                     <button
                       type="button"
                       className="text-xs font-medium text-brand-800 hover:underline"
-                      onClick={() =>
-                        setManageId((cur) => (cur === r.id ? null : r.id))
-                      }
+                      onClick={() => openManage(r.id, "profile")}
                     >
-                      {manageId === r.id ? "닫기" : "관리자"}
+                      {manageId === r.id && manageTab === "profile"
+                        ? "닫기"
+                        : "설정"}
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-brand-800 hover:underline"
+                      onClick={() => openManage(r.id, "admins")}
+                    >
+                      {manageId === r.id && manageTab === "admins"
+                        ? "닫기"
+                        : "관리자"}
                     </button>
                     {r.status !== "active" && (
                       <button
@@ -364,151 +514,310 @@ export function SuperAdminAcademiesClient({
 
       {managed && (
         <div className="rounded-2xl border border-brand-200 bg-white p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-900">
-            {managed.name} · 학원 관리자
-          </h3>
-          <p className="mt-1 text-xs text-slate-500">
-            이 학원의 EngCore Admin(`/admin`)으로 들어갈 계정을 연결하거나
-            새로 만듭니다.
-          </p>
-
-          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-200">
-            <table className="ui-table w-full text-sm">
-              <thead>
-                <tr>
-                  <th>이름</th>
-                  <th>이메일 / 아이디</th>
-                  <th>상태</th>
-                </tr>
-              </thead>
-              <tbody>
-                {adminsLoading && (
-                  <tr>
-                    <td colSpan={3} className="py-6 text-center text-slate-500">
-                      불러오는 중…
-                    </td>
-                  </tr>
-                )}
-                {!adminsLoading &&
-                  admins.map((a) => (
-                    <tr key={a.id}>
-                      <td className="font-medium">{a.name}</td>
-                      <td className="text-xs text-slate-600">
-                        {a.email}
-                        {a.username ? (
-                          <span className="ml-2 font-mono text-slate-400">
-                            ({a.username})
-                          </span>
-                        ) : null}
-                      </td>
-                      <td>
-                        {a.is_active ? (
-                          <span className="text-xs text-emerald-700">활성</span>
-                        ) : (
-                          <span className="text-xs text-slate-400">비활성</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                {!adminsLoading && admins.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="py-6 text-center text-slate-500"
-                    >
-                      아직 연결된 학원 관리자가 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-900">
+              {managed.name} · 온보딩
+            </h3>
+            <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+              <button
+                type="button"
+                className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                  manageTab === "profile"
+                    ? "bg-white text-brand-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                onClick={() => setManageTab("profile")}
+              >
+                1. 학원 정보
+              </button>
+              <button
+                type="button"
+                className={`rounded-md px-3 py-1.5 text-xs font-medium ${
+                  manageTab === "admins"
+                    ? "bg-white text-brand-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                onClick={() => setManageTab("admins")}
+              >
+                2. 관리자
+              </button>
+            </div>
           </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-              <p className="text-xs font-semibold text-slate-800">
-                기존 계정 연결
+          {manageTab === "profile" && (
+            <div className="mt-4 space-y-4">
+              <p className="text-xs text-slate-500">
+                학원명·로고는 인쇄물·학부모 리포트에 사용됩니다. 로고는 공개
+                URL(예:{" "}
+                <span className="font-mono">/image/logo-xxx.png</span> 또는
+                https://…)을 넣으세요.
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">
-                이미 있는 이메일을 이 학원 admin으로 지정합니다.
-              </p>
-              <label className="mt-3 block text-xs text-slate-600">
-                이메일
-                <input
-                  className="ui-input mt-1"
-                  value={linkEmail}
-                  onChange={(e) => setLinkEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                />
-              </label>
-              <Button
-                type="button"
-                className="mt-3"
-                disabled={busy || !linkEmail.includes("@")}
-                onClick={() => void linkAdmin()}
-              >
-                학원 관리자로 연결
-              </Button>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-              <p className="text-xs font-semibold text-slate-800">
-                새 관리자 생성
-              </p>
-              <p className="mt-1 text-[11px] text-slate-500">
-                아이디는 영문·숫자만. 로그인 시 아이디 또는 내부 이메일을
-                사용합니다.
-              </p>
-              <div className="mt-3 grid gap-2">
-                <input
-                  className="ui-input"
-                  placeholder="이름"
-                  value={createName}
-                  onChange={(e) => setCreateName(e.target.value)}
-                />
-                <div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-xs text-slate-600 sm:col-span-2">
+                  학원명
                   <input
-                    className="ui-input font-mono"
-                    placeholder="예: jeongmin (영문·숫자)"
-                    autoComplete="off"
-                    spellCheck={false}
-                    value={createUsername}
-                    onChange={(e) => setCreateUsername(e.target.value)}
-                    onBlur={() =>
-                      setCreateUsername((v) =>
-                        v.toLowerCase().replace(/[^a-z0-9]/g, "")
-                      )
-                    }
+                    className="ui-input mt-1"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
                   />
-                  <p className="mt-1 text-[11px] text-slate-500">
-                    영문 소문자·숫자만 사용 (한글·특수문자 불가). 예:{" "}
-                    <span className="font-mono">choijm</span>
-                  </p>
-                </div>
-                <input
-                  className="ui-input"
-                  type="password"
-                  placeholder="비밀번호 (6자 이상)"
-                  autoComplete="new-password"
-                  value={createPassword}
-                  onChange={(e) => setCreatePassword(e.target.value)}
-                />
+                </label>
+                <label className="block text-xs text-slate-600 sm:col-span-2">
+                  로고 URL
+                  <input
+                    className="ui-input mt-1 font-mono text-xs"
+                    value={editLogo}
+                    onChange={(e) => setEditLogo(e.target.value)}
+                    placeholder="/image/logo-jeongsu.png"
+                  />
+                </label>
+                {editLogo.trim() ? (
+                  <div className="sm:col-span-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={editLogo.trim()}
+                      alt="로고 미리보기"
+                      className="h-12 w-auto rounded border border-slate-200 bg-white p-1 object-contain"
+                    />
+                  </div>
+                ) : null}
+                <label className="block text-xs text-slate-600">
+                  대표 색상
+                  <input
+                    type="color"
+                    className="mt-1 h-10 w-full cursor-pointer rounded border border-slate-200"
+                    value={editPrimary}
+                    onChange={(e) => setEditPrimary(e.target.value)}
+                  />
+                </label>
+                <label className="block text-xs text-slate-600">
+                  보조 색상
+                  <input
+                    type="color"
+                    className="mt-1 h-10 w-full cursor-pointer rounded border border-slate-200"
+                    value={editSecondary}
+                    onChange={(e) => setEditSecondary(e.target.value)}
+                  />
+                </label>
+                <label className="block text-xs text-slate-600 sm:col-span-2">
+                  소개
+                  <textarea
+                    className="ui-input mt-1 min-h-[72px]"
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    placeholder="학원 한 줄 소개"
+                  />
+                </label>
+                <label className="block text-xs text-slate-600">
+                  전화
+                  <input
+                    className="ui-input mt-1"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="02-0000-0000"
+                  />
+                </label>
+                <label className="block text-xs text-slate-600">
+                  주소
+                  <input
+                    className="ui-input mt-1"
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                    placeholder="서울시 …"
+                  />
+                </label>
               </div>
-              <Button
-                type="button"
-                className="mt-3"
-                disabled={
-                  busy ||
-                  !createName.trim() ||
-                  createUsername.replace(/[^a-zA-Z0-9]/g, "").length < 3 ||
-                  createPassword.length < 6
-                }
-                onClick={() => void createAdmin()}
-              >
-                관리자 만들기
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  disabled={busy || !editName.trim()}
+                  onClick={() => void saveAcademyProfile()}
+                >
+                  {busy ? "저장 중…" : "학원 정보 저장"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setManageTab("admins")}
+                >
+                  다음: 관리자 연결 →
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {manageTab === "admins" && (
+            <div className="mt-4 space-y-4">
+              <p className="text-xs text-slate-500">
+                이 학원의 EngCore Admin(
+                <span className="font-mono">/admin</span>)으로 들어갈 계정을
+                연결하거나 새로 만듭니다.
+              </p>
+
+              {inviteHint && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-emerald-900">
+                      관리자 전달용 안내
+                    </p>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => void copyInvite()}
+                    >
+                      복사
+                    </Button>
+                  </div>
+                  <pre className="mt-2 whitespace-pre-wrap text-xs text-emerald-950">
+                    {inviteHint}
+                  </pre>
+                </div>
+              )}
+
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="ui-table w-full text-sm">
+                  <thead>
+                    <tr>
+                      <th>이름</th>
+                      <th>이메일 / 아이디</th>
+                      <th>상태</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminsLoading && (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="py-6 text-center text-slate-500"
+                        >
+                          불러오는 중…
+                        </td>
+                      </tr>
+                    )}
+                    {!adminsLoading &&
+                      admins.map((a) => (
+                        <tr key={a.id}>
+                          <td className="font-medium">{a.name}</td>
+                          <td className="text-xs text-slate-600">
+                            {a.email}
+                            {a.username ? (
+                              <span className="ml-2 font-mono text-slate-400">
+                                ({a.username})
+                              </span>
+                            ) : null}
+                          </td>
+                          <td>
+                            {a.is_active ? (
+                              <span className="text-xs text-emerald-700">
+                                활성
+                              </span>
+                            ) : (
+                              <span className="text-xs text-slate-400">
+                                비활성
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    {!adminsLoading && admins.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="py-6 text-center text-slate-500"
+                        >
+                          아직 연결된 학원 관리자가 없습니다.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+                  <p className="text-xs font-semibold text-slate-800">
+                    기존 계정 연결
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    이미 있는 이메일을 이 학원 admin으로 지정합니다.
+                  </p>
+                  <label className="mt-3 block text-xs text-slate-600">
+                    이메일
+                    <input
+                      className="ui-input mt-1"
+                      value={linkEmail}
+                      onChange={(e) => setLinkEmail(e.target.value)}
+                      placeholder="admin@example.com"
+                    />
+                  </label>
+                  <Button
+                    type="button"
+                    className="mt-3"
+                    disabled={busy || !linkEmail.includes("@")}
+                    onClick={() => void linkAdmin()}
+                  >
+                    학원 관리자로 연결
+                  </Button>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+                  <p className="text-xs font-semibold text-slate-800">
+                    새 관리자 생성
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    아이디는 영문·숫자만. 생성 후 아래 안내를 복사해 전달하세요.
+                  </p>
+                  <div className="mt-3 grid gap-2">
+                    <input
+                      className="ui-input"
+                      placeholder="이름"
+                      value={createName}
+                      onChange={(e) => setCreateName(e.target.value)}
+                    />
+                    <div>
+                      <input
+                        className="ui-input font-mono"
+                        placeholder="예: jeongmin (영문·숫자)"
+                        autoComplete="off"
+                        spellCheck={false}
+                        value={createUsername}
+                        onChange={(e) => setCreateUsername(e.target.value)}
+                        onBlur={() =>
+                          setCreateUsername((v) =>
+                            v.toLowerCase().replace(/[^a-z0-9]/g, "")
+                          )
+                        }
+                      />
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        영문 소문자·숫자만 (한글·특수문자 불가)
+                      </p>
+                    </div>
+                    <input
+                      className="ui-input"
+                      type="password"
+                      placeholder="비밀번호 (6자 이상)"
+                      autoComplete="new-password"
+                      value={createPassword}
+                      onChange={(e) => setCreatePassword(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    className="mt-3"
+                    disabled={
+                      busy ||
+                      !createName.trim() ||
+                      createUsername.replace(/[^a-zA-Z0-9]/g, "").length <
+                        3 ||
+                      createPassword.length < 6
+                    }
+                    onClick={() => void createAdmin()}
+                  >
+                    관리자 만들기
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

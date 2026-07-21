@@ -15,7 +15,7 @@ export default async function SuperAdminHomePage() {
   const { data: academies } = await supabase
     .from("academies")
     .select(
-      "id, name, slug, status, primary_color, logo_url, created_at, updated_at"
+      "id, name, slug, status, primary_color, secondary_color, logo_url, description, phone, address, created_at, updated_at"
     )
     .order("created_at", { ascending: true });
 
