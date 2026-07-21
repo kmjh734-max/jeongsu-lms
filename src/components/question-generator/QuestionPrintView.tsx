@@ -757,7 +757,7 @@ export function QuestionPrintView({
                       ? buildExamVocabUrl(vocabSetId)
                       : buildExamVocabUrlForJob(jobId)
                   }
-                  sizePx={52}
+                  sizePx={88}
                 />
                 <p className="qg-print-vocab-qr-label">
                   보기 단어

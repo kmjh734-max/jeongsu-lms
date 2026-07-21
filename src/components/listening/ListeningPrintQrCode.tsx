@@ -18,8 +18,9 @@ export function ListeningPrintQrCode({
     let cancelled = false;
     QRCode.toDataURL(url, {
       width: sizePx,
-      margin: 1,
-      color: { dark: "#0c4a6e", light: "#ffffff" },
+      margin: 2,
+      errorCorrectionLevel: "M",
+      color: { dark: "#000000", light: "#ffffff" },
     })
       .then((result) => {
         if (!cancelled) setDataUrl(result);
@@ -35,7 +36,7 @@ export function ListeningPrintQrCode({
   if (!dataUrl) {
     return (
       <div
-        className="rounded-md bg-white ring-1 ring-blue-200/80"
+        className="rounded-md bg-white ring-1 ring-slate-300"
         style={{ width: sizePx, height: sizePx }}
         aria-hidden
       />
@@ -49,7 +50,7 @@ export function ListeningPrintQrCode({
       alt="듣기 QR 코드"
       width={sizePx}
       height={sizePx}
-      className="rounded-md bg-white p-[2px] ring-1 ring-blue-200/80"
+      className="rounded-md bg-white p-[2px] ring-1 ring-slate-300"
     />
   );
 }
