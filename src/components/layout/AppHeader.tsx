@@ -14,9 +14,16 @@ export interface AppNavItem {
   label: string;
 }
 
+export type HeaderBranding = {
+  name: string;
+  logoUrl: string;
+};
+
 interface AppHeaderProps {
   profile: Profile;
   items: AppNavItem[];
+  /** 로그인 학원 브랜딩 (super_admin은 null → EngCore) */
+  branding?: HeaderBranding | null;
 }
 
 const ROLE_LABELS: Record<Profile["role"], string> = {
@@ -45,7 +52,7 @@ function isNavActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AppHeader({ profile, items }: AppHeaderProps) {
+export function AppHeader({ profile, items, branding = null }: AppHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -59,6 +66,8 @@ export function AppHeader({ profile, items }: AppHeaderProps) {
     profile.email?.split("@")[0] ||
     profile.name;
 
+  const useAcademy = Boolean(branding?.name) && profile.role !== "super_admin";
+
   return (
     <header className="no-print sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
@@ -66,7 +75,17 @@ export function AppHeader({ profile, items }: AppHeaderProps) {
           href={homeHref(profile.role)}
           className="flex min-w-0 items-center gap-3"
         >
-          <BrandLogo variant="header" showSiteName />
+          {useAcademy && branding ? (
+            <BrandLogo
+              variant="header"
+              showSiteName
+              showAcademyLogo={Boolean(branding.logoUrl)}
+              logoSrc={branding.logoUrl || null}
+              displayName={branding.name}
+            />
+          ) : (
+            <BrandLogo variant="header" showSiteName showAcademyLogo={false} />
+          )}
         </Link>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -83,7 +102,7 @@ export function AppHeader({ profile, items }: AppHeaderProps) {
 
       <nav
         className="mx-auto flex max-w-6xl gap-1 overflow-x-auto border-t border-slate-100 px-4 py-2"
-        aria-label={`${SITE_NAME} 메뉴`}
+        aria-label={`${useAcademy && branding ? branding.name : SITE_NAME} 메뉴`}
       >
         {items.map((item) => {
           const active = isNavActive(pathname, item.href);

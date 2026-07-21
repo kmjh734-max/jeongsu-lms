@@ -8,8 +8,12 @@ interface BrandLogoProps {
   showSiteName?: boolean;
   /** 어두운 배경: 흰 카드 안에 컬러 로고 표시 */
   onDark?: boolean;
-  /** 학원 로고 이미지 표시 (기본: 로그인만 숨기고 EngCore 워드마크 우선) */
+  /** 학원 로고 이미지 표시 (기본: 헤더만) */
   showAcademyLogo?: boolean;
+  /** 학원(테넌트) 로고 — 없으면 플랫폼 기본 로고 */
+  logoSrc?: string | null;
+  /** 표시 이름 — 학원명이면 학원명, 없으면 EngCore */
+  displayName?: string | null;
   className?: string;
 }
 
@@ -37,34 +41,46 @@ export function BrandLogo({
   showSiteName = true,
   onDark = false,
   showAcademyLogo = variant === "header",
+  logoSrc,
+  displayName,
   className = "",
 }: BrandLogoProps) {
   const styles = variantStyles[variant];
+  const title = (displayName?.trim() || SITE_NAME).trim();
+  const resolvedLogo =
+    logoSrc === undefined
+      ? LOGO_SRC
+      : logoSrc?.trim() || "";
+  const isRemote =
+    resolvedLogo.startsWith("http://") || resolvedLogo.startsWith("https://");
 
   const wordmark = showSiteName ? (
     <span
       className={
         onDark
           ? "text-2xl font-black tracking-tight text-brand-900 sm:text-3xl"
-          : styles.wordmark
+          : displayName?.trim()
+            ? styles.name
+            : styles.wordmark
       }
     >
-      {SITE_NAME}
+      {title}
     </span>
   ) : null;
 
-  const academyLogo = showAcademyLogo ? (
-    <Image
-      src={LOGO_SRC}
-      alt={SITE_NAME_FULL}
-      width={200}
-      height={56}
-      priority={variant === "login"}
-      unoptimized={variant === "login"}
-      className={`object-contain object-left ${styles.image}`}
-      sizes="200px"
-    />
-  ) : null;
+  const academyLogo =
+    showAcademyLogo && resolvedLogo ? (
+      <Image
+        src={resolvedLogo}
+        alt={title || SITE_NAME_FULL}
+        width={200}
+        height={56}
+        priority={variant === "login"}
+        unoptimized={variant === "login" || isRemote}
+        className={`object-contain object-left ${styles.image}`}
+        sizes="200px"
+      />
+    ) : null;
 
   const content =
     variant === "login" ? (

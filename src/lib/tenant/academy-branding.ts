@@ -37,7 +37,8 @@ function mapAcademyRow(row: {
     id: row.id,
     name: row.name,
     slug: row.slug,
-    logoUrl: row.logo_url?.trim() || LOGO_SRC,
+    // 다른 학원에 정수학원 로고가 붙지 않도록 — 없으면 빈 값(이름만 표시)
+    logoUrl: row.logo_url?.trim() || "",
     primaryColor: row.primary_color?.trim() || PRIMARY_COLOR,
   };
 }

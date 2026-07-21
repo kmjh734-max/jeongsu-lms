@@ -19,27 +19,36 @@ export function applyAcademyBrandingToReportHtml(
 ): string {
   const b = branding ?? fallbackAcademyBranding();
   const academyName = b.name || ACADEMY_NAME;
-  const logoUrl = resolveLogoUrl(b.logoUrl || LOGO_SRC);
+  const hasLogo = Boolean(b.logoUrl?.trim());
+  const logoUrl = hasLogo ? resolveLogoUrl(b.logoUrl) : "";
 
   const titleBranding = [
     `<span data-academy-branding="header" style="display:inline-flex;align-items:center;gap:10px;flex-shrink:0;">`,
-    `<span style="display:inline-flex;background:#ffffff;border-radius:12px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18);">`,
-    `<img src="${logoUrl}" alt="${academyName}" style="height:30px;width:auto;display:block;"/>`,
-    `</span>`,
+    hasLogo
+      ? [
+          `<span style="display:inline-flex;background:#ffffff;border-radius:12px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.18);">`,
+          `<img src="${logoUrl}" alt="${academyName}" style="height:30px;width:auto;display:block;"/>`,
+          `</span>`,
+        ].join("")
+      : "",
     `<span style="font-size:1.15rem;font-weight:900;color:#ffffff;letter-spacing:-0.02em;text-shadow:0 2px 8px rgba(0,0,0,.25);">${academyName}</span>`,
     `</span>`,
   ].join("");
 
   const fallbackHeader = [
     `<div data-academy-branding="header" style="max-width:1180px;margin:0 auto;padding:22px 18px 0;display:flex;align-items:center;justify-content:center;gap:12px;">`,
-    `<img src="${logoUrl}" alt="${academyName}" style="height:40px;width:auto;display:block;"/>`,
+    hasLogo
+      ? `<img src="${logoUrl}" alt="${academyName}" style="height:40px;width:auto;display:block;"/>`
+      : "",
     `<span style="font-size:1.25rem;font-weight:900;color:#1a237e;letter-spacing:-0.02em;">${academyName}</span>`,
     `</div>`,
   ].join("");
 
   const footer = [
     `<div data-academy-branding="footer" style="max-width:1180px;margin:30px auto 0;padding:18px;border-top:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;gap:8px;color:#64748b;font-size:12px;">`,
-    `<img src="${logoUrl}" alt="" style="height:18px;width:auto;display:block;opacity:.9;"/>`,
+    hasLogo
+      ? `<img src="${logoUrl}" alt="" style="height:18px;width:auto;display:block;opacity:.9;"/>`
+      : "",
     `<span style="font-weight:700;color:#475569;">${academyName}</span>`,
     `<span>· 본 보고서는 ${academyName}에서 제작했습니다.</span>`,
     `</div>`,
