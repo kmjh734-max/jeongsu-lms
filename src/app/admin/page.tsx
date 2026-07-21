@@ -6,12 +6,15 @@ import { Card } from "@/components/ui/Card";
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
+  const { data: academyCourses } = await supabase.from("courses").select("id");
+  const academyCourseIds = (academyCourses ?? []).map((c) => c.id);
+
   const [
     { count: courseCount },
     { count: classCount },
     { count: studentCount },
     { count: teacherCount },
-    { count: enrollmentCount },
+    enrollmentCountResult,
   ] = await Promise.all([
     supabase.from("courses").select("*", { count: "exact", head: true }),
     supabase.from("classes").select("*", { count: "exact", head: true }),
@@ -23,8 +26,14 @@ export default async function AdminDashboardPage() {
       .from("profiles")
       .select("*", { count: "exact", head: true })
       .eq("role", "teacher"),
-    supabase.from("enrollments").select("*", { count: "exact", head: true }),
+    academyCourseIds.length > 0
+      ? supabase
+          .from("enrollments")
+          .select("*", { count: "exact", head: true })
+          .in("course_id", academyCourseIds)
+      : Promise.resolve({ count: 0 }),
   ]);
+  const enrollmentCount = enrollmentCountResult.count;
 
   const menuItems = [
     {

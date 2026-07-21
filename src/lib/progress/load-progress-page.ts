@@ -14,26 +14,24 @@ export async function loadProgressPageRows(
 ): Promise<EnrollmentProgressRow[]> {
   const limit = options?.enrollmentLimit ?? DEFAULT_ENROLLMENT_LIMIT;
 
-  let enrollmentQuery = supabase
+  // enrollments는 academy_id가 없어, RLS가 적용된 courses로 먼저 범위를 좁힌다
+  let courseQuery = supabase.from("courses").select("id");
+  if (options?.teacherId) {
+    courseQuery = courseQuery.eq("teacher_id", options.teacherId);
+  }
+  const { data: scopedCourses } = await courseQuery;
+  const scopedCourseIds = (scopedCourses ?? []).map((c) => c.id as string);
+  if (scopedCourseIds.length === 0) return [];
+
+  const { data: enrollments } = await supabase
     .from("enrollments")
     .select(
       "student_id, course_id, student:profiles!enrollments_student_id_fkey(name, email), course:courses(title)"
     )
+    .in("course_id", scopedCourseIds)
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  if (options?.teacherId) {
-    const { data: courses } = await supabase
-      .from("courses")
-      .select("id")
-      .eq("teacher_id", options.teacherId);
-
-    const courseIds = (courses ?? []).map((c) => c.id);
-    if (courseIds.length === 0) return [];
-    enrollmentQuery = enrollmentQuery.in("course_id", courseIds);
-  }
-
-  const { data: enrollments } = await enrollmentQuery;
   const enrollmentList = enrollments ?? [];
   if (enrollmentList.length === 0) return [];
 
