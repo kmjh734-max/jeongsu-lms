@@ -129,7 +129,7 @@ export function AppHeader({
       </div>
 
       <nav
-        className="mx-auto flex max-w-6xl gap-1 overflow-x-auto border-t border-slate-100 px-4 py-2"
+        className="mx-auto flex max-w-6xl flex-wrap gap-1 border-t border-slate-100 px-4 py-2"
         aria-label={`${useAcademy && branding ? branding.name : SITE_NAME} 메뉴`}
       >
         {items.map((item) => {
