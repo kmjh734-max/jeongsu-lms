@@ -7,7 +7,23 @@ export async function canViewStudentReport(
   viewerId: string,
   studentId: string
 ): Promise<boolean> {
-  if (viewerRole === "admin") return true;
+  if (viewerRole === "admin") {
+    const [{ data: viewer }, { data: student }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("academy_id")
+        .eq("id", viewerId)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("id, role, academy_id")
+        .eq("id", studentId)
+        .eq("role", "student")
+        .maybeSingle(),
+    ]);
+    if (!viewer?.academy_id || !student) return false;
+    return student.academy_id === viewer.academy_id;
+  }
   if (viewerRole !== "teacher") return false;
 
   const { data: student } = await supabase

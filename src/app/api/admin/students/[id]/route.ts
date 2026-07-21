@@ -5,6 +5,7 @@ import {
   updateManagedAccount,
 } from "@/lib/admin/manage-user";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
+import { staffAcademyScope } from "@/lib/tenant/academy-scope";
 
 export const runtime = "nodejs";
 
@@ -47,6 +48,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         username: body.username,
         is_active: body.is_active,
         allowUsernameChange: true,
+        restrictToAcademyId: staffAcademyScope(auth.profile),
       }
     );
 
@@ -84,7 +86,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
     const result = await deleteManagedAccount(
       clientResult.admin,
       id,
-      "student"
+      "student",
+      { restrictToAcademyId: staffAcademyScope(auth.profile) }
     );
 
     if (!result.ok) {

@@ -160,6 +160,7 @@ export async function adminAddStudentToClass(
     classId,
     studentId,
     assignedBy: auth.profileId,
+    academyId: auth.academyId,
   });
 
   if (result.ok) revalidateClassPaths(classId);
@@ -193,6 +194,7 @@ export async function adminAssignCourseToClass(
     courseId,
     assignedBy: auth.profileId,
     allowAnyCourse: true,
+    academyId: auth.academyId,
   });
 
   if (result.ok) revalidateClassPaths(classId);

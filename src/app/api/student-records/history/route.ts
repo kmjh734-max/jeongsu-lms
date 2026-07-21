@@ -26,6 +26,9 @@ export async function GET() {
       if (profile.role === "teacher") {
         query = query.eq("created_by", profile.id);
       }
+      if (profile.academy_id) {
+        query = query.eq("academy_id", profile.academy_id);
+      }
       return query;
     };
 

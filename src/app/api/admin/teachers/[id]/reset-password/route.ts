@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminJsonError, getAdminClientSafe } from "@/lib/admin/api-json";
 import { resetManagedAccountPassword } from "@/lib/admin/manage-user";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
+import { staffAcademyScope } from "@/lib/tenant/academy-scope";
 
 export const runtime = "nodejs";
 
@@ -34,7 +35,8 @@ export async function POST(request: Request, context: RouteContext) {
       clientResult.admin,
       id,
       "teacher",
-      body.password ?? ""
+      body.password ?? "",
+      { restrictToAcademyId: staffAcademyScope(auth.profile) }
     );
 
     if (!result.ok) {

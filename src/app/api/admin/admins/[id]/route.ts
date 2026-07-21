@@ -5,6 +5,7 @@ import {
   updateManagedAccount,
 } from "@/lib/admin/manage-user";
 import { requireAdminApi } from "@/lib/auth/require-admin-api";
+import { staffAcademyScope } from "@/lib/tenant/academy-scope";
 
 export const runtime = "nodejs";
 
@@ -47,6 +48,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         username: body.username,
         is_active: body.is_active,
         allowUsernameChange: true,
+        restrictToAcademyId: staffAcademyScope(auth.profile),
       }
     );
 
@@ -85,10 +87,15 @@ export async function DELETE(_request: Request, context: RouteContext) {
       return adminJsonError("로그인 중인 관리자 계정은 삭제할 수 없습니다.", 400);
     }
 
-    const { data: admins } = await clientResult.admin
+    const academyId = staffAcademyScope(auth.profile);
+    let adminsQuery = clientResult.admin
       .from("profiles")
       .select("id")
       .eq("role", "admin");
+    if (academyId) {
+      adminsQuery = adminsQuery.eq("academy_id", academyId);
+    }
+    const { data: admins } = await adminsQuery;
 
     if ((admins ?? []).length <= 1) {
       return adminJsonError(
@@ -100,7 +107,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
     const result = await deleteManagedAccount(
       clientResult.admin,
       id,
-      "admin"
+      "admin",
+      { restrictToAcademyId: academyId }
     );
 
     if (!result.ok) {

@@ -125,18 +125,30 @@ export async function assignCourseToClass(
     assignedBy: string;
     /** When false, course.teacher_id must match class.teacher_id (teacher flow). */
     allowAnyCourse?: boolean;
+    /** When set, class and course must belong to this academy. */
+    academyId?: string;
   }
 ): Promise<ClassActionResult> {
-  const { classId, courseId, assignedBy, allowAnyCourse = false } = params;
+  const {
+    classId,
+    courseId,
+    assignedBy,
+    allowAnyCourse = false,
+    academyId,
+  } = params;
 
   const { data: classRow, error: classError } = await supabase
     .from("classes")
-    .select("id, teacher_id, name, is_active")
+    .select("id, teacher_id, name, is_active, academy_id")
     .eq("id", classId)
     .single();
 
   if (classError || !classRow) {
     return { ok: false, message: "반 정보를 찾을 수 없습니다." };
+  }
+
+  if (academyId && classRow.academy_id !== academyId) {
+    return { ok: false, message: "다른 학원 반에는 배정할 수 없습니다." };
   }
 
   if (!classRow.is_active) {
@@ -145,12 +157,16 @@ export async function assignCourseToClass(
 
   const { data: course, error: courseError } = await supabase
     .from("courses")
-    .select("id, title, teacher_id")
+    .select("id, title, teacher_id, academy_id")
     .eq("id", courseId)
     .single();
 
   if (courseError || !course) {
     return { ok: false, message: "강좌를 찾을 수 없습니다." };
+  }
+
+  if (academyId && course.academy_id !== academyId) {
+    return { ok: false, message: "다른 학원 강좌는 배정할 수 없습니다." };
   }
 
   if (!allowAnyCourse) {
@@ -222,18 +238,24 @@ export async function addStudentToClass(
     classId: string;
     studentId: string;
     assignedBy: string;
+    /** When set, class and student must belong to this academy. */
+    academyId?: string;
   }
 ): Promise<ClassActionResult> {
-  const { classId, studentId, assignedBy } = params;
+  const { classId, studentId, assignedBy, academyId } = params;
 
   const { data: classRow, error: classError } = await supabase
     .from("classes")
-    .select("id, is_active")
+    .select("id, is_active, academy_id")
     .eq("id", classId)
     .single();
 
   if (classError || !classRow) {
     return { ok: false, message: "반 정보를 찾을 수 없습니다." };
+  }
+
+  if (academyId && classRow.academy_id !== academyId) {
+    return { ok: false, message: "다른 학원 반에는 추가할 수 없습니다." };
   }
 
   if (!classRow.is_active) {
@@ -242,12 +264,16 @@ export async function addStudentToClass(
 
   const { data: student, error: studentError } = await supabase
     .from("profiles")
-    .select("id, role, is_active, name")
+    .select("id, role, is_active, name, academy_id")
     .eq("id", studentId)
     .single();
 
   if (studentError || !student) {
     return { ok: false, message: "학생을 찾을 수 없습니다." };
+  }
+
+  if (academyId && student.academy_id !== academyId) {
+    return { ok: false, message: "다른 학원 학생은 추가할 수 없습니다." };
   }
 
   if (student.role !== "student") {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminJsonError, getAdminClientSafe } from "@/lib/admin/api-json";
 import { updateManagedAccount } from "@/lib/admin/manage-user";
 import { requireTeacherApi } from "@/lib/auth/require-teacher-api";
+import { staffAcademyScope } from "@/lib/tenant/academy-scope";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         is_active: body.is_active,
         allowUsernameChange: false,
         restrictToCreatorId: auth.profile.id,
+        restrictToAcademyId: staffAcademyScope(auth.profile),
       }
     );
 

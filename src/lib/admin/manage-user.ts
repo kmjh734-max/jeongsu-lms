@@ -7,7 +7,7 @@ import {
 import type { UserRole } from "@/types/database";
 
 const PROFILE_SELECT_BASE =
-  "id, name, email, role, username, is_active, created_at";
+  "id, name, email, role, username, is_active, created_at, academy_id";
 const PROFILE_SELECT_WITH_CREATED_BY = `${PROFILE_SELECT_BASE}, created_by`;
 
 const MIGRATION_HINT =
@@ -63,10 +63,13 @@ export interface UpdateAccountInput {
   allowUsernameChange: boolean;
   /** 설정 시 해당 생성자의 학생만 수정 가능 (강사용) */
   restrictToCreatorId?: string;
+  /** 설정 시 같은 학원 계정만 수정 가능 (학원 관리자용) */
+  restrictToAcademyId?: string;
 }
 
 export interface ResetPasswordOptions {
   restrictToCreatorId?: string;
+  restrictToAcademyId?: string;
 }
 
 type Result<T> =
@@ -379,6 +382,9 @@ export async function updateManagedAccount(
   if (input.restrictToCreatorId) {
     fetchQuery = fetchQuery.eq("created_by", input.restrictToCreatorId);
   }
+  if (input.restrictToAcademyId) {
+    fetchQuery = fetchQuery.eq("academy_id", input.restrictToAcademyId);
+  }
 
   let { data: current, error: fetchError } = await fetchQuery.single();
 
@@ -387,12 +393,15 @@ export async function updateManagedAccount(
     input.restrictToCreatorId &&
     isMissingColumnError(fetchError.message, "created_by")
   ) {
-    const fallback = await admin
+    let fallbackQuery = admin
       .from("profiles")
       .select(PROFILE_SELECT_BASE)
       .eq("id", id)
-      .eq("role", role)
-      .single();
+      .eq("role", role);
+    if (input.restrictToAcademyId) {
+      fallbackQuery = fallbackQuery.eq("academy_id", input.restrictToAcademyId);
+    }
+    const fallback = await fallbackQuery.single();
     current = fallback.data;
     fetchError = fallback.error;
   }
@@ -537,12 +546,15 @@ export async function resetManagedAccountPassword(
 
   let accountQuery = admin
     .from("profiles")
-    .select("id, role")
+    .select("id, role, academy_id")
     .eq("id", id)
     .eq("role", role);
 
   if (options?.restrictToCreatorId) {
     accountQuery = accountQuery.eq("created_by", options.restrictToCreatorId);
+  }
+  if (options?.restrictToAcademyId) {
+    accountQuery = accountQuery.eq("academy_id", options.restrictToAcademyId);
   }
 
   let { data: account, error: accountError } = await accountQuery.single();
@@ -552,12 +564,18 @@ export async function resetManagedAccountPassword(
     options?.restrictToCreatorId &&
     isMissingColumnError(accountError.message, "created_by")
   ) {
-    const fallback = await admin
+    let fallbackQuery = admin
       .from("profiles")
-      .select("id, role")
+      .select("id, role, academy_id")
       .eq("id", id)
-      .eq("role", role)
-      .single();
+      .eq("role", role);
+    if (options?.restrictToAcademyId) {
+      fallbackQuery = fallbackQuery.eq(
+        "academy_id",
+        options.restrictToAcademyId
+      );
+    }
+    const fallback = await fallbackQuery.single();
     account = fallback.data;
     accountError = fallback.error;
   }
@@ -593,12 +611,15 @@ export async function deleteManagedAccount(
 
   let accountQuery = admin
     .from("profiles")
-    .select("id, role, name")
+    .select("id, role, name, academy_id")
     .eq("id", id)
     .eq("role", role);
 
   if (options?.restrictToCreatorId) {
     accountQuery = accountQuery.eq("created_by", options.restrictToCreatorId);
+  }
+  if (options?.restrictToAcademyId) {
+    accountQuery = accountQuery.eq("academy_id", options.restrictToAcademyId);
   }
 
   let { data: account, error: accountError } = await accountQuery.single();
@@ -608,12 +629,18 @@ export async function deleteManagedAccount(
     options?.restrictToCreatorId &&
     isMissingColumnError(accountError.message, "created_by")
   ) {
-    const fallback = await admin
+    let fallbackQuery = admin
       .from("profiles")
-      .select("id, role, name")
+      .select("id, role, name, academy_id")
       .eq("id", id)
-      .eq("role", role)
-      .single();
+      .eq("role", role);
+    if (options?.restrictToAcademyId) {
+      fallbackQuery = fallbackQuery.eq(
+        "academy_id",
+        options.restrictToAcademyId
+      );
+    }
+    const fallback = await fallbackQuery.single();
     account = fallback.data;
     accountError = fallback.error;
   }
