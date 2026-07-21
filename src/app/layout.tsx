@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import {
   LOGO_SRC,
+  PRIMARY_COLOR,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
@@ -9,7 +11,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: SITE_NAME,
+  title: {
+    default: SITE_NAME,
+    template: `%s · ${SITE_NAME}`,
+  },
   description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
@@ -40,9 +45,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const themeStyle = {
+    "--academy-primary": PRIMARY_COLOR,
+    "--academy-secondary": PRIMARY_COLOR,
+  } as CSSProperties;
+
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body style={themeStyle}>{children}</body>
     </html>
   );
 }

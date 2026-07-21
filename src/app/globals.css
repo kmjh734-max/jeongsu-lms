@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --academy-primary: #2563eb;
+    --academy-secondary: #2563eb;
+  }
+
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
   }

@@ -22,9 +22,17 @@ export default async function LoginPage({ searchParams }: PageProps) {
         <div className="w-full max-w-[420px]">
           <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_8px_30px_rgb(15_23_42/0.08)] sm:p-9">
             <div className="mb-8 text-center">
-              <BrandLogo variant="login" className="mx-auto" />
-              <p className="mt-4 text-sm leading-relaxed text-slate-600">
+              <BrandLogo
+                variant="login"
+                showSiteName
+                showAcademyLogo={false}
+                className="mx-auto"
+              />
+              <p className="mt-4 text-sm font-medium text-brand-800">
                 {LOGIN_TAGLINE}
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                영어학원의 모든 것을 하나로
               </p>
             </div>
             <Suspense fallback={<p className="text-center text-sm text-slate-500">로딩 중…</p>}>

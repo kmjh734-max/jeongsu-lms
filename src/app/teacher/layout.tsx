@@ -7,9 +7,9 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 const NAV_ITEMS = [
   { href: "/teacher", label: "강사 홈" },
   { href: "/teacher/courses", label: "강좌 관리" },
-  { href: "/teacher/vocab", label: "단어학습" },
-  { href: "/teacher/listening", label: "듣기학습" },
-  { href: "/teacher/question-generator", label: "변형문제" },
+  { href: "/teacher/vocab", label: "Words" },
+  { href: "/teacher/listening", label: "Listening" },
+  { href: "/teacher/question-generator", label: "AI" },
   { href: "/teacher/classes", label: "반 관리" },
   { href: "/teacher/students", label: "학생 관리" },
   { href: "/teacher/progress", label: "수강 현황" },
