@@ -18,20 +18,28 @@ export function scheduleDictationPrebuild(
   questionId: string,
   opts?: { force?: boolean }
 ) {
-  after(() => {
+  const run = () =>
     void prebuildDictationForQuestion(questionId, {
       includeVariants: false,
       force: opts?.force,
     }).catch(() => undefined);
-  });
+  try {
+    after(run);
+  } catch {
+    run();
+  }
 }
 
 export function scheduleDictationEnsureForSet(setId: string) {
-  after(() => {
+  const run = () =>
     void ensureDictationPreparedForSet(setId, { includeVariants: false }).catch(
       () => undefined
     );
-  });
+  try {
+    after(run);
+  } catch {
+    run();
+  }
 }
 
 const MIGRATION_HINT =

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 import { replaceQuestionSegments } from "@/lib/listening/persist-questions";
 import { isListeningSpeaker } from "@/lib/listening/speaker-voices";
 
@@ -40,20 +41,8 @@ export async function PATCH(
       return jsonError("문항을 찾을 수 없습니다.");
     }
 
-    const { data: setRow } = await admin
-      .from("listening_sets")
-      .select("teacher_id, created_by")
-      .eq("id", question.set_id)
-      .maybeSingle();
-
-    if (
-      profile.role === "teacher" &&
-      setRow &&
-      setRow.teacher_id !== profile.id &&
-      setRow.created_by !== profile.id
-    ) {
-      return jsonError("권한이 없습니다.", 403);
-    }
+    const writable = await assertListeningSetWritable(question.set_id);
+    if (!writable.ok) return jsonError(writable.message, writable.status);
 
     if (body.segments) {
       const segments = body.segments

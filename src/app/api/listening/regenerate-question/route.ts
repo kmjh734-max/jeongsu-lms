@@ -10,7 +10,7 @@ import {
   buildType1AvoidList,
   findType1SubjectFromAnswer,
 } from "@/lib/listening/type1-subject-pool";
-import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
+import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
 import { getExamTypeById, getExamTypesForGrade } from "@/lib/listening/exam-types";
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
       return jsonError("setId와 questionId가 필요합니다.");
     }
 
-    const access = await assertListeningSetAccess(setId);
+    const access = await assertListeningSetWritable(setId);
     if (!access.ok) return jsonError(access.message, access.status);
 
     const { data: existing } = await access.admin

@@ -11,7 +11,7 @@ import {
   findType1SubjectFromAnswer,
 } from "@/lib/listening/type1-subject-pool";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
-import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
+import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningGenerationMode } from "@/lib/listening/types";
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const setId = body.setId?.trim();
     if (!setId) return jsonError("setId가 필요합니다.");
 
-    const access = await assertListeningSetAccess(setId);
+    const access = await assertListeningSetWritable(setId);
     if (!access.ok) return jsonError(access.message, access.status);
 
     const mode: ListeningGenerationMode = body.mode === "free" ? "free" : "exam";

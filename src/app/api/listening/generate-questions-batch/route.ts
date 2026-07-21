@@ -6,7 +6,7 @@ import {
   generateFreeQuestionsFromSlots,
 } from "@/lib/listening/generate-exam-from-slots";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
-import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
+import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningGenerationSlot } from "@/lib/listening/generation-slots";
 import type {
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const slots = body.slots ?? [];
     if (slots.length === 0) return jsonError("생성할 문항 슬롯이 없습니다.");
 
-    const access = await assertListeningSetAccess(setId);
+    const access = await assertListeningSetWritable(setId);
     if (!access.ok) return jsonError(access.message, access.status);
 
     const mode: ListeningGenerationMode = body.mode === "free" ? "free" : "exam";

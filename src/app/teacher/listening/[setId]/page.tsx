@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { ListeningSetManageClient } from "@/components/listening/ListeningSetManageClient";
+import { listeningSetIsLocked } from "@/lib/listening/listening-api-auth";
 import { parseListeningGradeLevel } from "@/lib/listening/grade-level";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
 
@@ -17,10 +18,12 @@ export default async function TeacherListeningSetPage({
   const loaded = await loadListeningSetForEditor(supabase, setId);
   if (!loaded) notFound();
 
-  if (
-    loaded.set.teacher_id !== profile!.id &&
-    loaded.set.created_by !== profile!.id
-  ) {
+  const isLocked = listeningSetIsLocked(loaded.set);
+  const owns =
+    loaded.set.teacher_id === profile!.id ||
+    loaded.set.created_by === profile!.id;
+
+  if (!owns && !isLocked) {
     notFound();
   }
 
@@ -59,6 +62,7 @@ export default async function TeacherListeningSetPage({
         }}
         questions={loaded.questions}
         role="teacher"
+        isLocked={isLocked}
       />
     </div>
   );

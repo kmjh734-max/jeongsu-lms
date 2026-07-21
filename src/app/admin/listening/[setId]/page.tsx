@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ListeningSetManageClient } from "@/components/listening/ListeningSetManageClient";
+import { listeningSetIsLocked } from "@/lib/listening/listening-api-auth";
 import { parseListeningGradeLevel } from "@/lib/listening/grade-level";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
 
@@ -14,6 +15,7 @@ export default async function AdminListeningSetPage({
   const supabase = await createClient();
   const loaded = await loadListeningSetForEditor(supabase, setId);
   if (!loaded) notFound();
+  const isLocked = listeningSetIsLocked(loaded.set);
 
   return (
     <div className="space-y-6">
@@ -50,6 +52,7 @@ export default async function AdminListeningSetPage({
         }}
         questions={loaded.questions}
         role="admin"
+        isLocked={isLocked}
       />
     </div>
   );

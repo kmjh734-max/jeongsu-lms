@@ -8,6 +8,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 
 export const maxDuration = 180;
 
@@ -41,6 +42,9 @@ export async function POST(request: Request) {
     if (!setId || !questionId) {
       return jsonError("setId와 questionId가 필요합니다.");
     }
+
+    const writable = await assertListeningSetWritable(setId);
+    if (!writable.ok) return jsonError(writable.message, writable.status);
 
     const chargeErr = await chargeFeatureOrError({
       academyId: profile.academy_id,

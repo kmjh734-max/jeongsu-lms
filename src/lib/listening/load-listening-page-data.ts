@@ -14,6 +14,8 @@ export interface ListeningSetListItem {
   created_at: string;
   folder_id: string | null;
   order_index: number;
+  is_locked?: boolean;
+  description?: string | null;
 }
 
 export type ListeningSetFolderItem = ListeningSetFolderRow;
@@ -25,10 +27,12 @@ export async function loadListeningPageData(
 ) {
   let setsQuery = supabase
     .from("listening_sets")
-    .select("id, title, is_published, created_at, folder_id, order_index")
+    .select(
+      "id, title, is_published, created_at, folder_id, order_index, description"
+    )
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(200);
 
   let classesQuery = supabase
     .from("classes")
@@ -37,7 +41,10 @@ export async function loadListeningPageData(
     .order("name");
 
   if (role === "teacher") {
-    setsQuery = setsQuery.eq("teacher_id", viewerId);
+    // 본인 세트 + 커리큘럼 잠금 세트(description 마커; is_locked 컬럼 있으면 RLS로도 허용)
+    setsQuery = setsQuery.or(
+      `teacher_id.eq.${viewerId},description.ilike.%curriculum_locked%`
+    );
     classesQuery = classesQuery.eq("teacher_id", viewerId);
   }
 
@@ -54,7 +61,12 @@ export async function loadListeningPageData(
     listReportClasses(supabase, role, viewerId),
   ]);
 
-  const setList = (sets ?? []) as ListeningSetListItem[];
+  const setList = ((sets ?? []) as ListeningSetListItem[]).map((s) => ({
+    ...s,
+    is_locked:
+      s.is_locked === true ||
+      (s.description ?? "").includes("curriculum_locked"),
+  }));
   const assignmentBySetId = await loadListeningAssignmentSummaries(
     supabase,
     setList.map((s) => s.id)

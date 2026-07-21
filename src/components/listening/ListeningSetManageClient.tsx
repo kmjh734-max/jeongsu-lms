@@ -54,6 +54,8 @@ interface ListeningSetManageClientProps {
   dictationSettings?: Partial<DictationSetSettings>;
   questions: ListeningQuestionData[];
   role: "admin" | "teacher";
+  /** 커리큘럼 잠금 — 교사는 수정 불가 */
+  isLocked?: boolean;
 }
 
 export function ListeningSetManageClient({
@@ -67,7 +69,9 @@ export function ListeningSetManageClient({
   dictationSettings: initialDictation,
   questions: initialQuestions,
   role,
+  isLocked = false,
 }: ListeningSetManageClientProps) {
+  const readOnly = role === "teacher" && isLocked;
   const router = useRouter();
   const [gradeLevel, setGradeLevel] = useState<ListeningGradeLevel>(initialGradeLevel);
   const [generationPlanMode, setGenerationPlanMode] =
@@ -485,6 +489,18 @@ export function ListeningSetManageClient({
 
   return (
     <div className="space-y-6">
+      {readOnly ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          이 세트는 <strong>커리큘럼 잠금</strong> 상태입니다. 교사 계정에서는
+          수정·삭제·재생성할 수 없고, 배정·출력만 가능합니다.
+        </div>
+      ) : null}
+      {isLocked && role === "admin" ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          커리큘럼 잠금 세트입니다. 관리자만 편집할 수 있으며, 교사는 수정할 수
+          없습니다.
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900">{title}</h1>
@@ -504,7 +520,7 @@ export function ListeningSetManageClient({
           </Link>
           <button
             type="button"
-            disabled={!!busy}
+            disabled={!!busy || readOnly}
             onClick={deleteSet}
             className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 disabled:opacity-50"
           >

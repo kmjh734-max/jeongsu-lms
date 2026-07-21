@@ -4,6 +4,7 @@ import { getElevenLabsApiKey } from "@/lib/listening/elevenlabs/resolve-voices";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ensureDictationPreparedForSet } from "@/lib/listening/dictation/prebuild-question";
 import { generateSetQuestionAudio } from "@/lib/listening/generate-audio";
+import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
 import { EXAM_DEFAULT_SPEECH_SPEED } from "@/lib/listening/speech-speed";
 
 export const maxDuration = 300;
@@ -37,23 +38,18 @@ export async function POST(request: Request) {
       return jsonError("setId가 필요합니다.");
     }
 
+    const writable = await assertListeningSetWritable(setId);
+    if (!writable.ok) return jsonError(writable.message, writable.status);
+
     const admin = createAdminClient();
     const { data: setRow } = await admin
       .from("listening_sets")
-      .select("teacher_id, created_by, speech_speed")
+      .select("speech_speed")
       .eq("id", setId)
       .maybeSingle();
 
     if (!setRow) {
       return jsonError("세트를 찾을 수 없습니다.");
-    }
-
-    if (
-      profile.role === "teacher" &&
-      setRow.teacher_id !== profile.id &&
-      setRow.created_by !== profile.id
-    ) {
-      return jsonError("권한이 없습니다.", 403);
     }
 
     const speechSpeed =

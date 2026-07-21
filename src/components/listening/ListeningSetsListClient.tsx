@@ -15,6 +15,7 @@ export interface ListeningSetListItem {
   created_at: string;
   folder_id: string | null;
   order_index: number;
+  is_locked?: boolean;
 }
 
 interface ClassOption {
@@ -605,6 +606,11 @@ export function ListeningSetsListClient({
                   className="min-w-0 flex-1 hover:text-indigo-700"
                 >
                   <span className="font-medium text-slate-900">{set.title}</span>
+                  {set.is_locked ? (
+                    <span className="ml-2 inline-flex rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 ring-1 ring-amber-200">
+                      커리큘럼 · 잠금
+                    </span>
+                  ) : null}
                   {set.folder_id && folderFilter === "all" && (
                     <span className="ml-2 text-xs text-indigo-600">
                       {folderNameById.get(set.folder_id) ?? "폴더"}
@@ -647,9 +653,17 @@ export function ListeningSetsListClient({
                 </Link>
                 <button
                   type="button"
-                  disabled={deletingId === set.id}
+                  disabled={
+                    deletingId === set.id ||
+                    (basePath.startsWith("/teacher") && !!set.is_locked)
+                  }
                   onClick={() => deleteSet(set.id, set.title)}
                   className="shrink-0 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  title={
+                    basePath.startsWith("/teacher") && set.is_locked
+                      ? "잠긴 커리큘럼 세트는 삭제할 수 없습니다"
+                      : undefined
+                  }
                 >
                   {deletingId === set.id ? "삭제 중…" : "삭제"}
                 </button>

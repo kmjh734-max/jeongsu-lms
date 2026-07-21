@@ -5,13 +5,25 @@ export async function loadListeningSetForEditor(
   supabase: SupabaseClient,
   setId: string
 ) {
-  const { data: set, error: setErr } = await supabase
+  let { data: set, error: setErr } = await supabase
     .from("listening_sets")
     .select(
-      "id, title, is_published, teacher_id, created_by, speech_speed, voice_ann_id, voice_m_id, voice_w_id, grade_level, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass"
+      "id, title, is_published, teacher_id, created_by, speech_speed, voice_ann_id, voice_m_id, voice_w_id, grade_level, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass, description, is_locked"
     )
     .eq("id", setId)
     .maybeSingle();
+
+  if (setErr) {
+    const fallback = await supabase
+      .from("listening_sets")
+      .select(
+        "id, title, is_published, teacher_id, created_by, speech_speed, voice_ann_id, voice_m_id, voice_w_id, grade_level, dictation_enabled, dictation_pass_score, dictation_blank_level, dictation_randomize_on_retry, dictation_lock_next_until_pass, description"
+      )
+      .eq("id", setId)
+      .maybeSingle();
+    set = fallback.data as typeof set;
+    setErr = fallback.error;
+  }
 
   if (setErr || !set) return null;
 
