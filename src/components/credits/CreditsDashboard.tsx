@@ -98,7 +98,7 @@ export function CreditsDashboard({ title }: { title?: string }) {
                       : "사용 시"}
                   </td>
                   <td className="tabular-nums font-medium">
-                    {p.credit_cost}
+                    {p.credit_cost.toLocaleString("ko-KR")} 크레딧
                   </td>
                 </tr>
               ))}
