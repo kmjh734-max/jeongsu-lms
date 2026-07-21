@@ -6,8 +6,8 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 const NAV_ITEMS = [
   { href: "/admin", label: "관리 홈" },
   { href: "/admin/courses", label: "강좌 관리" },
-  { href: "/admin/vocab", label: "Words" },
-  { href: "/admin/listening", label: "Listening" },
+  { href: "/admin/vocab", label: "단어학습" },
+  { href: "/admin/listening", label: "듣기학습" },
   { href: "/admin/question-generator", label: "AI 변형문제" },
   { href: "/admin/classes", label: "반 관리" },
   { href: "/admin/students", label: "학생·수강" },
