@@ -1,4 +1,20 @@
-export type UserRole = "admin" | "teacher" | "student";
+export type UserRole = "super_admin" | "admin" | "teacher" | "student";
+
+export interface Academy {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  phone: string | null;
+  address: string | null;
+  description: string | null;
+  status: "active" | "suspended" | "inactive";
+  settings: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Profile {
   id: string;
@@ -8,7 +24,9 @@ export interface Profile {
   username: string | null;
   is_active: boolean;
   created_by: string | null;
+  academy_id: string | null;
   created_at: string;
+  academy?: Academy | null;
 }
 
 export interface Course {

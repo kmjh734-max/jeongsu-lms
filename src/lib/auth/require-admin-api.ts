@@ -22,7 +22,7 @@ export async function requireAdminApi() {
     .eq("id", user.id)
     .single();
 
-  if (!profile || profile.role !== "admin") {
+  if (!profile || (profile.role !== "admin" && profile.role !== "super_admin")) {
     return {
       error: NextResponse.json(
         { ok: false, message: "관리자 권한이 필요합니다." },
