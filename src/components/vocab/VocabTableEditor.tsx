@@ -289,57 +289,6 @@ export function VocabTableEditor({
     [exampleLevel, applyGeneratedExamples]
   );
 
-  const generateRelatedForRow = useCallback(
-    async (rowKey: string) => {
-      const row = rowsRef.current.find((r) => r.rowKey === rowKey);
-      if (!row?.word.trim() || !row.meaning.trim()) {
-        setStatus("동의어·반의어를 만들려면 단어와 뜻을 먼저 입력해 주세요.");
-        return;
-      }
-
-      setStatus("AI 동의어·반의어 생성 중…");
-      setAiLoadingKey(`${rowKey}-related`);
-      try {
-        const result = await fetchGeneratedRelatedWords(
-          [{ word: row.word.trim(), meaning: row.meaning.trim() }],
-          "both"
-        );
-
-        if (!result.ok) {
-          setStatus(result.message);
-          return;
-        }
-
-        const gen = result.items[0];
-        if (!gen || (!gen.synonyms?.trim() && !gen.antonyms?.trim())) {
-          setStatus(
-            "적합한 동의어·반의어가 없어 비워 두었습니다. (정상일 수 있습니다)"
-          );
-          return;
-        }
-
-        applyGeneratedRelated(
-          [
-            {
-              rowKey,
-              synonyms: gen.synonyms,
-              antonyms: gen.antonyms,
-            },
-          ],
-          "both"
-        );
-        setStatus("동의어·반의어가 생성되었습니다. 확인 후 저장해 주세요.");
-      } catch (e) {
-        setStatus(
-          e instanceof Error ? e.message : "AI 생성에 실패했습니다."
-        );
-      } finally {
-        setAiLoadingKey(null);
-      }
-    },
-    [applyGeneratedRelated]
-  );
-
   const generateAllSynonymsAntonyms = useCallback(async () => {
     const targets = rows.filter(
       (r) =>
