@@ -184,18 +184,12 @@ export async function loadUnfiledAssignPanelData(
           .eq("teacher_id", userId)
           .eq("is_active", true)
           .order("name"),
-    (() => {
-      let q = supabase
-        .from("vocab_sets")
-        .select("id, title")
-        .is("folder_id", null)
-        .order("order_index", { ascending: true })
-        .order("created_at", { ascending: true });
-      if (role === "teacher") {
-        q = q.or(`teacher_id.eq.${userId},created_by.eq.${userId}`);
-      }
-      return q;
-    })(),
+    supabase
+      .from("vocab_sets")
+      .select("id, title")
+      .is("folder_id", null)
+      .order("order_index", { ascending: true })
+      .order("created_at", { ascending: true }),
     loadAssignableStudents(supabase, role, userId),
   ]);
 

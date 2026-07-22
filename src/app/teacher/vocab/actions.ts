@@ -165,6 +165,15 @@ export async function deleteVocabSet(
   if (error) return error;
 
   const supabase = await createClient();
+  const { data: setRow } = await supabase
+    .from("vocab_sets")
+    .select("is_locked")
+    .eq("id", setId)
+    .maybeSingle();
+  if (setRow?.is_locked) {
+    return actionError("잠긴 커리큘럼 단어장은 삭제할 수 없습니다.");
+  }
+
   const { error: deleteError } = await supabase
     .from("vocab_sets")
     .delete()

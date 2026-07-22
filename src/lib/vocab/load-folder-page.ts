@@ -8,6 +8,7 @@ export interface VocabFolderSetRow {
   title: string;
   itemCount: number;
   teacherName: string | null;
+  isLocked?: boolean;
 }
 
 export interface VocabFolderPageData {
@@ -26,17 +27,11 @@ export async function loadVocabFolderPageData(
   userId: string,
   folderId: string
 ): Promise<VocabFolderPageData | null> {
-  const folderQuery = supabase
+  const folderRes = await supabase
     .from("vocab_folders")
     .select("*")
-    .eq("id", folderId);
-
-  const folderRes =
-    role === "admin"
-      ? await folderQuery.single()
-      : await folderQuery
-          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .single();
+    .eq("id", folderId)
+    .maybeSingle();
 
   if (!folderRes.data) return null;
 
@@ -49,19 +44,13 @@ export async function loadVocabFolderPageData(
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: true });
 
-  const foldersQuery =
-    role === "admin"
-      ? supabase.from("vocab_folders").select("id, name").order("name")
-      : supabase
-          .from("vocab_folders")
-          .select("id, name")
-          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("name");
+  const foldersQuery = supabase
+    .from("vocab_folders")
+    .select("id, name")
+    .order("name");
 
   const [setsRes, foldersRes, ownerRes, teachersRes] = await Promise.all([
-    role === "admin"
-      ? setsQuery
-      : setsQuery.or(`teacher_id.eq.${userId},created_by.eq.${userId}`),
+    setsQuery,
     foldersQuery,
     supabase
       .from("profiles")
@@ -92,6 +81,7 @@ export async function loadVocabFolderPageData(
     title: s.title,
     itemCount: itemCountBySet.get(s.id) ?? 0,
     teacherName: s.teacher?.name ?? null,
+    isLocked: !!s.is_locked,
   }));
 
   const owner = ownerRes.data as { name: string; username: string | null } | null;
@@ -124,19 +114,13 @@ export async function loadVocabUnfiledPageData(
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: true });
 
-  const foldersQuery =
-    role === "admin"
-      ? supabase.from("vocab_folders").select("id, name").order("name")
-      : supabase
-          .from("vocab_folders")
-          .select("id, name")
-          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("name");
+  const foldersQuery = supabase
+    .from("vocab_folders")
+    .select("id, name")
+    .order("name");
 
   const [setsRes, foldersRes, ownerRes, teachersRes] = await Promise.all([
-    role === "admin"
-      ? setsQuery
-      : setsQuery.or(`teacher_id.eq.${userId},created_by.eq.${userId}`),
+    setsQuery,
     foldersQuery,
     supabase
       .from("profiles")
@@ -167,6 +151,7 @@ export async function loadVocabUnfiledPageData(
     title: s.title,
     itemCount: itemCountBySet.get(s.id) ?? 0,
     teacherName: s.teacher?.name ?? null,
+    isLocked: !!s.is_locked,
   }));
 
   const owner = ownerRes.data as { name: string; username: string | null } | null;

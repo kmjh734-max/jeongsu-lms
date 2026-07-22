@@ -11,6 +11,7 @@ export interface VocabSetRowData {
   title: string;
   itemCount: number;
   teacherName: string | null;
+  isLocked?: boolean;
 }
 
 interface FolderOption {
@@ -123,12 +124,19 @@ export function VocabSetRow({
       </span>
 
       <div className="min-w-0 flex-1">
-        <Link
-          href={`${basePath}/set/${set.id}`}
-          className="text-base font-semibold text-slate-900 hover:text-brand-600 hover:underline"
-        >
-          {set.title}
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`${basePath}/set/${set.id}`}
+            className="text-base font-semibold text-slate-900 hover:text-brand-600 hover:underline"
+          >
+            {set.title}
+          </Link>
+          {set.isLocked ? (
+            <span className="inline-flex rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 ring-1 ring-amber-200">
+              커리큘럼 · 잠금
+            </span>
+          ) : null}
+        </div>
         <p className="mt-0.5 text-sm text-slate-500">
           {set.itemCount} 카드
           {set.teacherName ? ` · ${set.teacherName}` : ""}
@@ -199,19 +207,27 @@ export function VocabSetRow({
                   복사
                 </button>
               </li>
-              <li>
-                <button
-                  type="button"
-                  disabled={loading}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    handleDelete();
-                  }}
-                >
-                  삭제
-                </button>
-              </li>
+              {!set.isLocked ? (
+                <li>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleDelete();
+                    }}
+                  >
+                    삭제
+                  </button>
+                </li>
+              ) : (
+                <li>
+                  <span className="block px-4 py-2 text-sm text-slate-400">
+                    잠금 · 삭제 불가
+                  </span>
+                </li>
+              )}
             </ul>
           </>
         )}

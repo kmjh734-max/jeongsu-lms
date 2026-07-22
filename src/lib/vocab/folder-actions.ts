@@ -104,6 +104,15 @@ export async function deleteVocabFolder(
     }
   }
 
+  const { count: lockedCount } = await supabase
+    .from("vocab_sets")
+    .select("id", { count: "exact", head: true })
+    .eq("folder_id", folderId)
+    .eq("is_locked", true);
+  if ((lockedCount ?? 0) > 0) {
+    return actionError("잠긴 커리큘럼 단어장이 있는 폴더는 삭제할 수 없습니다.");
+  }
+
   const { error: deleteError } = await supabase
     .from("vocab_folders")
     .delete()

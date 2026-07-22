@@ -27,26 +27,16 @@ export const loadVocabSidebarData = cache(async function loadVocabSidebarData(
           .eq("is_active", true)
           .order("name");
 
-  const foldersQuery =
-    role === "admin"
-      ? supabase.from("vocab_folders").select("id, name, created_at").order("name")
-      : supabase
-          .from("vocab_folders")
-          .select("id, name, created_at")
-          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("name");
+  // Teachers: RLS allows own sets + locked curriculum in academy
+  const foldersQuery = supabase
+    .from("vocab_folders")
+    .select("id, name, created_at")
+    .order("name");
 
-  const setsQuery =
-    role === "admin"
-      ? supabase
-          .from("vocab_sets")
-          .select("id, title, folder_id")
-          .order("created_at", { ascending: false })
-      : supabase
-          .from("vocab_sets")
-          .select("id, title, folder_id")
-          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("created_at", { ascending: false });
+  const setsQuery = supabase
+    .from("vocab_sets")
+    .select("id, title, folder_id, is_locked")
+    .order("created_at", { ascending: false });
 
   const [classesRes, foldersRes, setsRes] = await Promise.all([
     classesQuery,

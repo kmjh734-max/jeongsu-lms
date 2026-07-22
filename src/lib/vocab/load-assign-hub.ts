@@ -23,26 +23,16 @@ export async function loadVocabAssignHubData(
   folders: VocabAssignFolderItem[];
   unfiledSets: VocabAssignSetItem[];
 }> {
-  const foldersQuery =
-    role === "admin"
-      ? supabase.from("vocab_folders").select("id, name").order("name")
-      : supabase
-          .from("vocab_folders")
-          .select("id, name")
-          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("name");
+  // Teachers: RLS allows own + locked curriculum
+  const foldersQuery = supabase
+    .from("vocab_folders")
+    .select("id, name")
+    .order("name");
 
-  const setsQuery =
-    role === "admin"
-      ? supabase
-          .from("vocab_sets")
-          .select("id, title, folder_id, folder:vocab_folders(name)")
-          .order("created_at", { ascending: false })
-      : supabase
-          .from("vocab_sets")
-          .select("id, title, folder_id, folder:vocab_folders(name)")
-          .or(`teacher_id.eq.${userId},created_by.eq.${userId}`)
-          .order("created_at", { ascending: false });
+  const setsQuery = supabase
+    .from("vocab_sets")
+    .select("id, title, folder_id, folder:vocab_folders(name)")
+    .order("created_at", { ascending: false });
 
   const [{ data: folders }, { data: sets }] = await Promise.all([
     foldersQuery,

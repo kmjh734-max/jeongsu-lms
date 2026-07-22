@@ -150,6 +150,8 @@ export interface VocabSet {
   teacher_id: string | null;
   created_by: string | null;
   is_published: boolean;
+  /** 커리큘럼 잠금: 교사 수정·삭제 불가, 관리자 삭제도 불가 */
+  is_locked?: boolean;
   exam_compact?: boolean;
   source_job_id?: string | null;
   /** 변형문제 보기 단어 난이도 메타(레거시). 현재는 중3·≈1000L+ 단일 기준 */
