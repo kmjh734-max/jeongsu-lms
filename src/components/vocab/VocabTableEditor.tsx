@@ -131,7 +131,8 @@ export function VocabTableEditor({
     initialItems.length > 0 ? itemsToRows(initialItems) : [emptyRow(), emptyRow(), emptyRow()]
   );
   const [pasteOpen, setPasteOpen] = useState(initialImportOpen);
-  const [autoAi, setAutoAi] = useState(true);
+  /** 기본 OFF — 뜻 입력만으로 예문/동의어가 마음대로 채워지지 않게 함 */
+  const [autoAi, setAutoAi] = useState(false);
   const [exampleLevel, setExampleLevel] = useState<ExampleLevel>("middle");
   const [saving, setSaving] = useState(false);
   const [aiLoadingKey, setAiLoadingKey] = useState<string | null>(null);
@@ -258,12 +259,21 @@ export function VocabTableEditor({
         prev.map((r) => {
           const u = updates.find((x) => x.rowKey === r.rowKey);
           if (!u) return r;
+          // 빈 문자열로 기존 값을 덮어쓰지 않음 (필요 없으면 AI가 비워 둘 수 있음)
           return {
             ...r,
             synonyms:
-              kind === "antonyms" ? r.synonyms : (u.synonyms ?? r.synonyms),
+              kind === "antonyms"
+                ? r.synonyms
+                : u.synonyms?.trim()
+                  ? u.synonyms
+                  : r.synonyms,
             antonyms:
-              kind === "synonyms" ? r.antonyms : (u.antonyms ?? r.antonyms),
+              kind === "synonyms"
+                ? r.antonyms
+                : u.antonyms?.trim()
+                  ? u.antonyms
+                  : r.antonyms,
           };
         })
       );
@@ -516,8 +526,11 @@ export function VocabTableEditor({
             onChange={(e) => setAutoAi(e.target.checked)}
             className="rounded border-slate-300 text-emerald-600"
           />
-          예문 자동입력 (AI)
+          예문 자동입력 (AI·기본 끔)
         </label>
+        <span className="hidden text-[11px] text-slate-400 sm:inline">
+          체크 시에만 뜻 입력 후 예문 자동 생성 · 동의어는 버튼으로만
+        </span>
         <span className="hidden h-4 w-px bg-slate-300 sm:inline" />
         <button
           type="button"
@@ -624,16 +637,17 @@ export function VocabTableEditor({
                 </td>
                 <td className="px-1.5 py-1 align-top">
                   <div className="relative">
-                    <input
-                      className={`${inputClass} pr-8`}
+                    <textarea
+                      className={`${inputClass} min-h-[4.5rem] resize-y pr-8`}
+                      rows={3}
                       value={row.example_sentence}
                       onChange={(e) =>
                         updateRow(row.rowKey, "example_sentence", e.target.value)
                       }
-                      placeholder="The school provides lunch."
+                      placeholder={"1. The school provides lunch.\n2. The law provides that…"}
                     />
                     <AiSparkleButton
-                      title="AI 예문 생성"
+                      title="AI 예문 생성 (뜻별 2~3개)"
                       disabled={!row.word.trim() || !row.meaning.trim()}
                       loading={aiLoadingKey === `${row.rowKey}-example`}
                       onClick={() => generateForRow(row.rowKey, true)}
@@ -641,13 +655,14 @@ export function VocabTableEditor({
                   </div>
                 </td>
                 <td className="px-1.5 py-1 align-top">
-                  <input
-                    className={inputClass}
+                  <textarea
+                    className={`${inputClass} min-h-[4.5rem] resize-y`}
+                    rows={3}
                     value={row.example_meaning}
                     onChange={(e) =>
                       updateRow(row.rowKey, "example_meaning", e.target.value)
                     }
-                    placeholder="학교는 점심을 제공한다."
+                    placeholder={"1. 학교는 점심을 제공한다.\n2. 그 법은 …을 규정한다."}
                   />
                 </td>
                 <td className="px-1.5 py-1 align-top">

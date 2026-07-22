@@ -4,6 +4,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { joinExamplePairs } from "@/lib/vocab/multi-example";
 import { openAiErrorMessage } from "@/lib/vocab/openai-error-message";
 
 interface RequestItem {
@@ -15,6 +16,20 @@ interface GeneratedItem extends RequestItem {
   example_sentence: string;
   example_meaning: string;
 }
+
+type AiExamplePair = {
+  sense?: string;
+  example_sentence?: string;
+  example_meaning?: string;
+};
+
+type AiGeneratedItem = {
+  word?: string;
+  meaning?: string;
+  examples?: AiExamplePair[];
+  example_sentence?: string;
+  example_meaning?: string;
+};
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -62,9 +77,14 @@ export async function POST(request: Request) {
 
     const prompt = `You are an English teacher creating vocabulary examples for Korean students.
 
-For each word below, create ONE natural example sentence (${levelGuide}) and its Korean translation.
-The sentence must clearly show the meaning of the word. Word form may change naturally (e.g. provide → provides).
-Do not include inappropriate or sensitive content.
+For each word below:
+1. Look at the Korean meaning field. It may list 1–several senses (e.g. "제공하다; 규정하다" or "제공하다 / 마련하다").
+2. Pick 2–3 representative senses that are useful for learners (if only one clear sense exists, still make 2 different natural examples for that sense when helpful; if the meaning truly has 2–3 distinct senses, make one example per sense, up to 3).
+3. Do NOT make only a single example unless the word truly has one trivial sense AND a second example would be redundant — prefer 2 examples in normal cases, max 3.
+4. Each example must be a natural English sentence (${levelGuide}) that clearly shows that sense. Word form may change (provide → provides).
+5. Provide an accurate Korean translation for each example.
+6. Do not invent unrelated senses that are not implied by the given meaning.
+7. Do not include inappropriate or sensitive content.
 
 Return ONLY valid JSON in this exact shape (no markdown):
 {
@@ -72,8 +92,18 @@ Return ONLY valid JSON in this exact shape (no markdown):
     {
       "word": "exact word from input",
       "meaning": "exact meaning from input",
-      "example_sentence": "English sentence",
-      "example_meaning": "Korean translation"
+      "examples": [
+        {
+          "sense": "대표 뜻 조각 (한글)",
+          "example_sentence": "English sentence 1",
+          "example_meaning": "한국어 해석 1"
+        },
+        {
+          "sense": "다른 대표 뜻 (있으면)",
+          "example_sentence": "English sentence 2",
+          "example_meaning": "한국어 해석 2"
+        }
+      ]
     }
   ]
 }
@@ -117,9 +147,9 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
       return jsonError("AI 예문 생성에 실패했습니다.");
     }
 
-    let parsed: { items?: GeneratedItem[] };
+    let parsed: { items?: AiGeneratedItem[] };
     try {
-      parsed = JSON.parse(content) as { items?: GeneratedItem[] };
+      parsed = JSON.parse(content) as { items?: AiGeneratedItem[] };
     } catch {
       return jsonError("AI 응답을 해석하지 못했습니다.");
     }
@@ -130,16 +160,39 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
     }
 
     const byWord = new Map(
-      generated.map((g) => [g.word.trim().toLowerCase(), g])
+      generated.map((g) => [
+        String(g.word ?? "")
+          .trim()
+          .toLowerCase(),
+        g,
+      ])
     );
 
     const result: GeneratedItem[] = items.map((item) => {
       const match = byWord.get(item.word.trim().toLowerCase());
+      const fromList = (match?.examples ?? [])
+        .map((ex) => ({
+          example_sentence: String(ex.example_sentence ?? "").trim(),
+          example_meaning: String(ex.example_meaning ?? "").trim(),
+        }))
+        .filter((ex) => ex.example_sentence)
+        .slice(0, 3);
+
+      const joined =
+        fromList.length > 0
+          ? joinExamplePairs(fromList)
+          : joinExamplePairs([
+              {
+                example_sentence: String(match?.example_sentence ?? "").trim(),
+                example_meaning: String(match?.example_meaning ?? "").trim(),
+              },
+            ]);
+
       return {
         word: item.word.trim(),
         meaning: item.meaning.trim(),
-        example_sentence: match?.example_sentence?.trim() ?? "",
-        example_meaning: match?.example_meaning?.trim() ?? "",
+        example_sentence: joined.example_sentence,
+        example_meaning: joined.example_meaning,
       };
     });
 

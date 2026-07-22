@@ -11,6 +11,7 @@ import {
   speakEnglish,
   stopSpeaking,
 } from "@/lib/vocab/speak-client";
+import { pickPrimaryExampleSentence } from "@/lib/vocab/multi-example";
 import type { VocabItem, VocabProgressStatus } from "@/types/database";
 
 export interface VocabStudyItem extends VocabItem {
@@ -193,11 +194,11 @@ export function VocabCardStudy({
             </p>
             {current.example_sentence && (
               <div className="mt-6 flex-1 overflow-y-auto rounded-2xl bg-slate-50 p-5 text-base sm:p-6 sm:text-lg">
-                <p className="leading-relaxed text-slate-800">
+                <p className="whitespace-pre-line leading-relaxed text-slate-800">
                   {current.example_sentence}
                 </p>
                 {current.example_meaning && (
-                  <p className="mt-3 leading-relaxed text-slate-600">
+                  <p className="mt-3 whitespace-pre-line leading-relaxed text-slate-600">
                     {current.example_meaning}
                   </p>
                 )}
@@ -206,7 +207,9 @@ export function VocabCardStudy({
                     <SpeakButton
                       label="예문 듣기"
                       onClick={() =>
-                        speakEnglish(current.example_sentence ?? "")
+                        speakEnglish(
+                          pickPrimaryExampleSentence(current.example_sentence)
+                        )
                       }
                     />
                   </div>

@@ -179,9 +179,13 @@ export function VocabStage1Study({
             </p>
             {current.example_sentence && (
               <div className="mt-2 flex-1 overflow-y-auto rounded-lg bg-slate-50 p-3 text-sm">
-                <p className="text-slate-800">{current.example_sentence}</p>
+                <p className="whitespace-pre-line text-slate-800">
+                  {current.example_sentence}
+                </p>
                 {current.example_meaning && (
-                  <p className="mt-1 text-slate-600">{current.example_meaning}</p>
+                  <p className="mt-1 whitespace-pre-line text-slate-600">
+                    {current.example_meaning}
+                  </p>
                 )}
               </div>
             )}

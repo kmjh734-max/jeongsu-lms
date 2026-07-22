@@ -169,7 +169,7 @@ export function VocabSetCreateModal({
                 defaultValue="en"
                 disabled
               >
-                <option value="en">English (예문 AI 자동생성)</option>
+                <option value="en">English</option>
               </select>
             </div>
             <p className="mt-2 text-xs text-slate-500">

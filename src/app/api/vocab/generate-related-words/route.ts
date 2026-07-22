@@ -45,10 +45,14 @@ export async function POST(request: Request) {
 
     const fieldGuide =
       kind === "synonyms"
-        ? `For each word, provide 2–4 English synonyms (comma-separated). Leave antonyms as empty string.`
+        ? `For each word, provide English synonyms ONLY when they are natural and useful for learners. Use 1–4 synonyms as needed (comma-separated). If there is no good synonym, return an empty string "". Do NOT invent weak/forced synonyms. Leave antonyms as "".`
         : kind === "antonyms"
-          ? `For each word, provide 2–4 English antonyms (comma-separated). Leave synonyms as empty string.`
-          : `For each word, provide 2–4 English synonyms and 2–4 English antonyms (each comma-separated).`;
+          ? `For each word, provide English antonyms ONLY when they are clear and useful. Use 1–4 antonyms as needed (comma-separated). If there is no natural antonym, return "". Do NOT invent forced antonyms. Leave synonyms as "".`
+          : `For each word, provide synonyms and/or antonyms ONLY when natural and useful for middle/high school learners.
+- Synonyms: 0–4 words (comma-separated). Empty string if none fit well.
+- Antonyms: 0–4 words (comma-separated). Empty string if none fit well.
+- Do NOT force a fixed count of 2. Prefer quality over quantity.
+- Do NOT invent weak near-synonyms or forced antonyms just to fill fields.`;
 
     const prompt = `You are an English vocabulary teacher for Korean students.
 
@@ -61,8 +65,8 @@ Return ONLY valid JSON in this exact shape (no markdown):
     {
       "word": "exact word from input",
       "meaning": "exact meaning from input",
-      "synonyms": "synonym1, synonym2",
-      "antonyms": "antonym1, antonym2"
+      "synonyms": "optional comma-separated list, or empty string",
+      "antonyms": "optional comma-separated list, or empty string"
     }
   ]
 }

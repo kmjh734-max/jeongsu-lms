@@ -1,4 +1,8 @@
 import { gradeSpellingAnswer, normalizeSpellingAnswer } from "@/lib/vocab/grade-spelling";
+import {
+  pickPrimaryExampleMeaning,
+  pickPrimaryExampleSentence,
+} from "@/lib/vocab/multi-example";
 import type { VocabItem } from "@/types/database";
 
 export interface ExampleBlankQuestion {
@@ -45,7 +49,7 @@ export function extractAcceptedAnswers(
 export function buildExampleBlankQuestion(
   item: VocabItem
 ): ExampleBlankQuestion | null {
-  const sentence = item.example_sentence?.trim();
+  const sentence = pickPrimaryExampleSentence(item.example_sentence);
   const word = item.word?.trim();
   if (!sentence || !word) return null;
 
@@ -59,7 +63,8 @@ export function buildExampleBlankQuestion(
     const blankSentence =
       sentence.slice(0, start) + "______" + sentence.slice(end);
 
-    const exampleMeaning = item.example_meaning?.trim() || null;
+    const exampleMeaning =
+      pickPrimaryExampleMeaning(item.example_meaning) || null;
 
     return {
       itemId: item.id,

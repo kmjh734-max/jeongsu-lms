@@ -1,4 +1,5 @@
 import type { VocabItem } from "@/types/database";
+import { pickPrimaryExampleSentence } from "@/lib/vocab/multi-example";
 import type { VocabTestType } from "@/lib/vocab/test-types";
 
 export interface SerializedTestQuestion {
@@ -32,8 +33,9 @@ function pickDistractors(
 }
 
 export function buildSpellingPrompt(item: VocabItem): string {
-  if (item.example_sentence?.trim()) {
-    const blanked = item.example_sentence.replace(
+  const sentence = pickPrimaryExampleSentence(item.example_sentence);
+  if (sentence) {
+    const blanked = sentence.replace(
       new RegExp(`\\b${escapeRegExp(item.word)}\\b`, "gi"),
       "______"
     );
