@@ -449,19 +449,19 @@
   --vocab-line: #dbe2ea;
   --vocab-soft-line: #edf2f7;
 
-  --vocab-pad-x: 16mm;
-  --vocab-pad-top: 16mm;
-  --vocab-pad-bottom: 10mm;
-  --vocab-title-size: 28px;
-  --vocab-day-size: 34px;
-  --vocab-body-size: 14px;
-  --vocab-small-size: 11px;
-  --vocab-row-index-width: 54px;
-  --vocab-row-word-width: 185px;
-  --vocab-row-gap: 18px;
-  --vocab-row-pad-y: 14px;
-  --vocab-main-word-size: 28px;
-  --vocab-meaning-size: 16px;
+  --vocab-pad-x: 14mm;
+  --vocab-pad-top: 14mm;
+  --vocab-pad-bottom: 9mm;
+  --vocab-title-size: 24px;
+  --vocab-day-size: 30px;
+  --vocab-body-size: 12px;
+  --vocab-small-size: 10px;
+  --vocab-row-index-width: 48px;
+  --vocab-row-word-width: 150px;
+  --vocab-row-gap: 14px;
+  --vocab-row-pad-y: 10px;
+  --vocab-main-word-size: 20px;
+  --vocab-meaning-size: 13px;
 
   position: relative;
   display: flex;
@@ -479,19 +479,19 @@
 }
 
 .vocab-print-page--b5 {
-  --vocab-pad-x: 12mm;
-  --vocab-pad-top: 14mm;
-  --vocab-pad-bottom: 8mm;
-  --vocab-title-size: 24px;
-  --vocab-day-size: 28px;
-  --vocab-body-size: 12px;
-  --vocab-small-size: 10px;
-  --vocab-row-index-width: 46px;
-  --vocab-row-word-width: 145px;
-  --vocab-row-gap: 14px;
-  --vocab-row-pad-y: 11px;
-  --vocab-main-word-size: 23px;
-  --vocab-meaning-size: 14px;
+  --vocab-pad-x: 11mm;
+  --vocab-pad-top: 12mm;
+  --vocab-pad-bottom: 7mm;
+  --vocab-title-size: 21px;
+  --vocab-day-size: 24px;
+  --vocab-body-size: 11px;
+  --vocab-small-size: 9px;
+  --vocab-row-index-width: 42px;
+  --vocab-row-word-width: 128px;
+  --vocab-row-gap: 11px;
+  --vocab-row-pad-y: 8px;
+  --vocab-main-word-size: 17px;
+  --vocab-meaning-size: 12px;
 }
 
 .vocab-print-top-line {
@@ -674,31 +674,37 @@
 }
 
 .vocab-print-word {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-size: var(--vocab-main-word-size);
-  line-height: 1.05;
+  line-height: 1.15;
   font-weight: 900;
   letter-spacing: -0.03em;
   color: #111827;
+  overflow-wrap: anywhere;
   word-break: break-word;
+  hyphens: auto;
 }
 
 .vocab-print-content {
   min-width: 0;
+  overflow: hidden;
 }
 
 .vocab-print-meaning-line {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .vocab-print-meaning {
   font-size: var(--vocab-meaning-size);
+  line-height: 1.35;
   color: var(--vocab-red);
   font-weight: 800;
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 .vocab-print-pos {
@@ -712,20 +718,24 @@
 }
 
 .vocab-print-example {
-  margin: 0 0 3px;
+  margin: 0 0 2px;
   font-size: var(--vocab-body-size);
-  line-height: 1.65;
+  line-height: 1.45;
   color: #1f2937;
   font-weight: 500;
   white-space: pre-line;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .vocab-print-translation {
-  margin: 0 0 7px;
+  margin: 0 0 5px;
   font-size: calc(var(--vocab-body-size) - 1px);
-  line-height: 1.6;
+  line-height: 1.4;
   color: var(--vocab-muted);
   white-space: pre-line;
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 .vocab-print-highlight,
