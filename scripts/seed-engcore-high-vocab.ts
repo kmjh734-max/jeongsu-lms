@@ -179,7 +179,6 @@ async function ensureSet(
     academy_id: ACADEMY_ID,
     is_published: true,
     is_locked: true,
-    school_band: "고등",
     order_index: day,
   };
 
