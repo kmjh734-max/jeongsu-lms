@@ -647,6 +647,32 @@ const PrintExamEntry = memo(function PrintExamEntry({
   );
 });
 
+/** 긴 단어·예문만 해당 칸 폰트를 살짝 줄임 (기본 크기는 유지) */
+function printDensityClass(
+  kind: "word" | "meaning" | "body",
+  text: string
+): string {
+  const t = text.trim();
+  if (!t) return "";
+  const lines = t.split(/\r?\n/).filter((l) => l.trim()).length;
+  const len = t.length;
+
+  if (kind === "word") {
+    if (len >= 14) return "vocab-print-density--xs";
+    if (len >= 11) return "vocab-print-density--sm";
+    return "";
+  }
+  if (kind === "meaning") {
+    if (len >= 36) return "vocab-print-density--xs";
+    if (len >= 22) return "vocab-print-density--sm";
+    return "";
+  }
+  // example / translation
+  if (len >= 200 || lines >= 3) return "vocab-print-density--xs";
+  if (len >= 110 || lines >= 2) return "vocab-print-density--sm";
+  return "";
+}
+
 function PrintEntry({
   item,
   globalIndex,
@@ -662,6 +688,13 @@ function PrintEntry({
   const antonyms = item.antonyms?.trim() ?? "";
   const showFull = mode === "full";
   const pos = item.part_of_speech?.trim();
+  const wordDensity = printDensityClass("word", item.word);
+  const meaningDensity = printDensityClass("meaning", item.meaning);
+  const exampleDensity = printDensityClass("body", exampleSentence);
+  const translationDensity = printDensityClass(
+    "body",
+    exampleMeaning || exampleSentence
+  );
 
   return (
     <section className="vocab-print-row">
@@ -674,23 +707,29 @@ function PrintEntry({
       </div>
 
       <div className="vocab-print-word-box">
-        <h2 className="vocab-print-word">{item.word}</h2>
+        <h2 className={`vocab-print-word ${wordDensity}`.trim()}>
+          {item.word}
+        </h2>
       </div>
 
       <div className="vocab-print-content">
         <div className="vocab-print-meaning-line">
-          <span className="vocab-print-meaning">{item.meaning}</span>
+          <span className={`vocab-print-meaning ${meaningDensity}`.trim()}>
+            {item.meaning}
+          </span>
           {pos ? <span className="vocab-print-pos">{pos}</span> : null}
         </div>
 
         {showFull && exampleSentence ? (
-          <p className="vocab-print-example">
+          <p className={`vocab-print-example ${exampleDensity}`.trim()}>
             {highlightWordInSentence(exampleSentence, item.word)}
           </p>
         ) : null}
 
         {showFull && exampleMeaning ? (
-          <p className="vocab-print-translation">{exampleMeaning}</p>
+          <p className={`vocab-print-translation ${translationDensity}`.trim()}>
+            {exampleMeaning}
+          </p>
         ) : null}
 
         {showFull && (synonyms || antonyms) ? (
