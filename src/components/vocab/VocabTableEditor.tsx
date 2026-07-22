@@ -61,36 +61,6 @@ function rowNumber(index: number) {
   return String(index + 1).padStart(3, "0");
 }
 
-function AiActionButton({
-  label,
-  title,
-  disabled,
-  loading,
-  onClick,
-}: {
-  label: string;
-  title: string;
-  disabled?: boolean;
-  loading?: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      title={title}
-      disabled={disabled || loading}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onClick();
-      }}
-      className="shrink-0 rounded-md bg-violet-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      {loading ? "생성 중…" : label}
-    </button>
-  );
-}
-
 interface VocabTableEditorProps {
   setId: string;
   initialItems: VocabItem[];
@@ -571,26 +541,9 @@ export function VocabTableEditor({
           />
           예문 자동입력 (AI·기본 끔)
         </label>
-        <span className="hidden text-[11px] text-slate-400 sm:inline">
-          체크 시에만 뜻 입력 후 예문 자동 생성 · 동의어는 버튼으로만
+        <span className="text-[11px] text-slate-400">
+          체크 시에만 뜻 입력 후 예문 자동 생성 · AI 일괄은 아래 버튼
         </span>
-        <span className="hidden h-4 w-px bg-slate-300 sm:inline" />
-        <button
-          type="button"
-          disabled={bulkAiLoading || saving}
-          onClick={generateAllEmptyExamples}
-          className="rounded bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800 hover:bg-violet-200 disabled:opacity-50"
-        >
-          {bulkAiLoading ? "생성 중..." : "AI 예문 일괄"}
-        </button>
-        <button
-          type="button"
-          disabled={bulkRelatedLoading || saving}
-          onClick={generateAllSynonymsAntonyms}
-          className="rounded bg-teal-100 px-2.5 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-200 disabled:opacity-50"
-        >
-          {bulkRelatedLoading ? "생성 중..." : "AI 동의어·반의어 일괄"}
-        </button>
       </div>
 
       <div
@@ -679,30 +632,19 @@ export function VocabTableEditor({
                   />
                 </td>
                 <td className="px-1.5 py-1 align-top">
-                  <div className="space-y-1">
-                    <div className="flex justify-end">
-                      <AiActionButton
-                        label="AI 예문"
-                        title="AI 예문 생성 (뜻별 2~3개)"
-                        disabled={!row.word.trim() || !row.meaning.trim()}
-                        loading={aiLoadingKey === `${row.rowKey}-example`}
-                        onClick={() => void generateForRow(row.rowKey, true)}
-                      />
-                    </div>
-                    <textarea
-                      className={`${inputClass} min-h-[4.5rem] resize-y`}
-                      rows={3}
-                      value={row.example_sentence}
-                      onChange={(e) =>
-                        updateRow(row.rowKey, "example_sentence", e.target.value)
-                      }
-                      placeholder={"1. The school provides lunch.\n2. The law provides that…"}
-                    />
-                  </div>
+                  <textarea
+                    className={`${inputClass} min-h-[4.5rem] resize-y`}
+                    rows={3}
+                    value={row.example_sentence}
+                    onChange={(e) =>
+                      updateRow(row.rowKey, "example_sentence", e.target.value)
+                    }
+                    placeholder={"1. The school provides lunch.\n2. The law provides that…"}
+                  />
                 </td>
                 <td className="px-1.5 py-1 align-top">
                   <textarea
-                    className={`${inputClass} mt-6 min-h-[4.5rem] resize-y`}
+                    className={`${inputClass} min-h-[4.5rem] resize-y`}
                     rows={3}
                     value={row.example_meaning}
                     onChange={(e) =>
@@ -712,33 +654,22 @@ export function VocabTableEditor({
                   />
                 </td>
                 <td className="px-1.5 py-1 align-top">
-                  <div className="space-y-1">
-                    <div className="flex justify-end">
-                      <AiActionButton
-                        label="AI 유의어"
-                        title="AI 동의어·반의어 생성"
-                        disabled={!row.word.trim() || !row.meaning.trim()}
-                        loading={aiLoadingKey === `${row.rowKey}-related`}
-                        onClick={() => void generateRelatedForRow(row.rowKey)}
-                      />
-                    </div>
-                    <input
-                      className={`${inputClass} mb-1`}
-                      value={row.synonyms}
-                      onChange={(e) =>
-                        updateRow(row.rowKey, "synonyms", e.target.value)
-                      }
-                      placeholder="동의어"
-                    />
-                    <input
-                      className={inputClass}
-                      value={row.antonyms}
-                      onChange={(e) =>
-                        updateRow(row.rowKey, "antonyms", e.target.value)
-                      }
-                      placeholder="반의어"
-                    />
-                  </div>
+                  <input
+                    className={`${inputClass} mb-1`}
+                    value={row.synonyms}
+                    onChange={(e) =>
+                      updateRow(row.rowKey, "synonyms", e.target.value)
+                    }
+                    placeholder="동의어"
+                  />
+                  <input
+                    className={inputClass}
+                    value={row.antonyms}
+                    onChange={(e) =>
+                      updateRow(row.rowKey, "antonyms", e.target.value)
+                    }
+                    placeholder="반의어"
+                  />
                 </td>
               </tr>
             ))}
@@ -746,35 +677,58 @@ export function VocabTableEditor({
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-2">
-        <div className="flex flex-wrap gap-2">
+      <div className="space-y-2 border-t border-slate-200 bg-slate-50 px-3 py-3">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setRows((prev) => [...prev, emptyRow()])}
-            className="rounded-lg border border-emerald-600 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+            disabled={bulkAiLoading || saving}
+            onClick={() => void generateAllEmptyExamples()}
+            className="rounded-lg bg-violet-600 px-3 py-2 text-xs font-bold text-white hover:bg-violet-700 disabled:opacity-50"
           >
-            행 추가
+            {bulkAiLoading ? "예문 생성 중…" : "AI 예문 일괄"}
           </button>
           <button
             type="button"
-            onClick={() => setPasteOpen(true)}
-            className="rounded-lg bg-[#7cb518] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#6aa014]"
+            disabled={bulkRelatedLoading || saving}
+            onClick={() => void generateAllSynonymsAntonyms()}
+            className="rounded-lg bg-teal-600 px-3 py-2 text-xs font-bold text-white hover:bg-teal-700 disabled:opacity-50"
           >
-            자료 가져오기
+            {bulkRelatedLoading ? "생성 중…" : "AI 동의어·반의어 일괄"}
           </button>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-slate-500">
-            입력된 단어 {filledCount}개
+          <span className="text-[11px] text-slate-500">
+            예문이 비어 있는 단어만 생성합니다
           </span>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={handleSave}
-            className="rounded-lg bg-brand-600 px-5 py-1.5 text-xs font-bold text-white hover:bg-brand-700 disabled:opacity-50"
-          >
-            {saving ? "저장 중..." : "저장"}
-          </button>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setRows((prev) => [...prev, emptyRow()])}
+              className="rounded-lg border border-emerald-600 bg-white px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+            >
+              행 추가
+            </button>
+            <button
+              type="button"
+              onClick={() => setPasteOpen(true)}
+              className="rounded-lg bg-[#7cb518] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#6aa014]"
+            >
+              자료 가져오기
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-500">
+              입력된 단어 {filledCount}개
+            </span>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={handleSave}
+              className="rounded-lg bg-brand-600 px-5 py-1.5 text-xs font-bold text-white hover:bg-brand-700 disabled:opacity-50"
+            >
+              {saving ? "저장 중..." : "저장"}
+            </button>
+          </div>
         </div>
       </div>
 

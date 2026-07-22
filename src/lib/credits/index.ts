@@ -157,23 +157,30 @@ export async function debitFeatureCredits(
     p_quantity: quantity,
   });
 
-  // 093 미적용 환경: quantity>1이면 단가×수로 adjust 차감
-  if (
-    error &&
-    quantity > 1 &&
-    /p_quantity|Could not find the function/i.test(error.message)
-  ) {
-    const total = pricing.cost * quantity;
-    ({ data, error } = await admin.rpc("adjust_academy_credits", {
-      p_academy_id: params.academyId,
-      p_amount: total,
-      p_direction: "debit",
-      p_actor_id: params.actorId,
-      p_note:
-        params.note ??
-        `${pricing.label} × ${quantity} (=${total}크레딧)`,
-      p_idempotency_key: params.idempotencyKey,
-    }));
+  // 093 미적용: p_quantity 시그니처가 스키마 캐시에 없을 때
+  if (error && /p_quantity|Could not find the function/i.test(error.message)) {
+    if (quantity <= 1) {
+      ({ data, error } = await admin.rpc("debit_academy_credits", {
+        p_academy_id: params.academyId,
+        p_feature_key: params.featureKey,
+        p_actor_id: params.actorId,
+        p_idempotency_key: params.idempotencyKey,
+        p_metadata: meta,
+        p_note: params.note ?? null,
+      }));
+    } else {
+      const total = pricing.cost * quantity;
+      ({ data, error } = await admin.rpc("adjust_academy_credits", {
+        p_academy_id: params.academyId,
+        p_amount: total,
+        p_direction: "debit",
+        p_actor_id: params.actorId,
+        p_note:
+          params.note ??
+          `${pricing.label} × ${quantity} (=${total}크레딧)`,
+        p_idempotency_key: params.idempotencyKey,
+      }));
+    }
   }
 
   if (error) mapRpcError(error.message);
