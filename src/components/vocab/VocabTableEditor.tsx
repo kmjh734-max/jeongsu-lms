@@ -61,12 +61,14 @@ function rowNumber(index: number) {
   return String(index + 1).padStart(3, "0");
 }
 
-function AiSparkleButton({
+function AiActionButton({
+  label,
   title,
   disabled,
   loading,
   onClick,
 }: {
+  label: string;
   title: string;
   disabled?: boolean;
   loading?: boolean;
@@ -77,26 +79,14 @@ function AiSparkleButton({
       type="button"
       title={title}
       disabled={disabled || loading}
-      onClick={onClick}
-      className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-40"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      className="shrink-0 rounded-md bg-violet-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
     >
-      {loading ? (
-        <span className="text-xs">…</span>
-      ) : (
-        <svg
-          className="h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-          />
-        </svg>
-      )}
+      {loading ? "생성 중…" : label}
     </button>
   );
 }
@@ -142,6 +132,8 @@ export function VocabTableEditor({
   const tableScrollRef = useRef<HTMLDivElement>(null);
   const topScrollRef = useRef<HTMLDivElement>(null);
   const [tableScrollWidth, setTableScrollWidth] = useState(0);
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
 
   useLayoutEffect(() => {
     const el = tableScrollRef.current;
@@ -283,68 +275,99 @@ export function VocabTableEditor({
 
   const generateForRow = useCallback(
     async (rowKey: string, force = false) => {
-      const row = rows.find((r) => r.rowKey === rowKey);
-      if (!row?.word.trim() || !row.meaning.trim()) return;
-      if (!force && row.example_sentence.trim()) return;
-
-      setAiLoadingKey(`${rowKey}-example`);
-      const result = await fetchGeneratedExamples(
-        [{ word: row.word.trim(), meaning: row.meaning.trim() }],
-        exampleLevel
-      );
-      setAiLoadingKey(null);
-
-      if (!result.ok) {
-        setStatus(result.message);
+      const row = rowsRef.current.find((r) => r.rowKey === rowKey);
+      if (!row?.word.trim() || !row.meaning.trim()) {
+        setStatus("예문을 만들려면 단어와 뜻을 먼저 입력해 주세요.");
         return;
       }
+      if (!force && row.example_sentence.trim()) return;
 
-      const gen = result.items[0];
-      if (gen?.example_sentence) {
-        applyGeneratedExamples([
-          {
-            rowKey,
-            example_sentence: gen.example_sentence,
-            example_meaning: gen.example_meaning ?? "",
-          },
-        ]);
+      setStatus("AI 예문 생성 중…");
+      setAiLoadingKey(`${rowKey}-example`);
+      try {
+        const result = await fetchGeneratedExamples(
+          [{ word: row.word.trim(), meaning: row.meaning.trim() }],
+          exampleLevel
+        );
+
+        if (!result.ok) {
+          setStatus(result.message);
+          return;
+        }
+
+        const gen = result.items[0];
+        if (gen?.example_sentence?.trim()) {
+          applyGeneratedExamples([
+            {
+              rowKey,
+              example_sentence: gen.example_sentence,
+              example_meaning: gen.example_meaning ?? "",
+            },
+          ]);
+          setStatus("예문이 생성되었습니다. 확인 후 저장해 주세요.");
+        } else {
+          setStatus("AI가 예문을 비워 반환했습니다. 다시 시도해 주세요.");
+        }
+      } catch (e) {
+        setStatus(
+          e instanceof Error ? e.message : "AI 예문 생성에 실패했습니다."
+        );
+      } finally {
+        setAiLoadingKey(null);
       }
     },
-    [rows, exampleLevel, applyGeneratedExamples]
+    [exampleLevel, applyGeneratedExamples]
   );
 
   const generateRelatedForRow = useCallback(
     async (rowKey: string) => {
-      const row = rows.find((r) => r.rowKey === rowKey);
-      if (!row?.word.trim() || !row.meaning.trim()) return;
-
-      setAiLoadingKey(`${rowKey}-related`);
-      const result = await fetchGeneratedRelatedWords(
-        [{ word: row.word.trim(), meaning: row.meaning.trim() }],
-        "both"
-      );
-      setAiLoadingKey(null);
-
-      if (!result.ok) {
-        setStatus(result.message);
+      const row = rowsRef.current.find((r) => r.rowKey === rowKey);
+      if (!row?.word.trim() || !row.meaning.trim()) {
+        setStatus("동의어·반의어를 만들려면 단어와 뜻을 먼저 입력해 주세요.");
         return;
       }
 
-      const gen = result.items[0];
-      if (!gen) return;
+      setStatus("AI 동의어·반의어 생성 중…");
+      setAiLoadingKey(`${rowKey}-related`);
+      try {
+        const result = await fetchGeneratedRelatedWords(
+          [{ word: row.word.trim(), meaning: row.meaning.trim() }],
+          "both"
+        );
 
-      applyGeneratedRelated(
-        [
-          {
-            rowKey,
-            synonyms: gen.synonyms,
-            antonyms: gen.antonyms,
-          },
-        ],
-        "both"
-      );
+        if (!result.ok) {
+          setStatus(result.message);
+          return;
+        }
+
+        const gen = result.items[0];
+        if (!gen || (!gen.synonyms?.trim() && !gen.antonyms?.trim())) {
+          setStatus(
+            "적합한 동의어·반의어가 없어 비워 두었습니다. (정상일 수 있습니다)"
+          );
+          return;
+        }
+
+        applyGeneratedRelated(
+          [
+            {
+              rowKey,
+              synonyms: gen.synonyms,
+              antonyms: gen.antonyms,
+            },
+          ],
+          "both"
+        );
+        setStatus("동의어·반의어가 생성되었습니다. 확인 후 저장해 주세요.");
+      } catch (e) {
+        setStatus(
+          e instanceof Error ? e.message : "AI 생성에 실패했습니다."
+        );
+      } finally {
+        setAiLoadingKey(null);
+      }
     },
-    [rows, applyGeneratedRelated]
+    [applyGeneratedRelated]
   );
 
   const generateAllSynonymsAntonyms = useCallback(async () => {
@@ -506,8 +529,28 @@ export function VocabTableEditor({
   const inputClass =
     "w-full rounded border border-slate-200 px-2 py-1.5 text-sm text-slate-900 focus:border-violet-400 focus:outline-none focus:ring-1 focus:ring-violet-200";
 
+  const statusClass =
+    !status
+      ? ""
+      : status.includes("중…") || status.includes("중...")
+        ? "bg-slate-50 text-slate-700"
+        : status.includes("실패") ||
+            status.includes("부족") ||
+            status.includes("오류") ||
+            status.includes("없습") ||
+            status.includes("권한") ||
+            status.includes("먼저") ||
+            status.includes("비워")
+          ? "bg-red-50 text-red-700"
+          : "bg-emerald-50 text-emerald-800";
+
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+      {status ? (
+        <p className={`border-b px-3 py-2 text-sm ${statusClass}`} role="status">
+          {status}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-200 bg-slate-50 px-3 py-2">
         <label className="text-xs font-medium text-slate-600">예문 수준</label>
         <select
@@ -636,9 +679,18 @@ export function VocabTableEditor({
                   />
                 </td>
                 <td className="px-1.5 py-1 align-top">
-                  <div className="relative">
+                  <div className="space-y-1">
+                    <div className="flex justify-end">
+                      <AiActionButton
+                        label="AI 예문"
+                        title="AI 예문 생성 (뜻별 2~3개)"
+                        disabled={!row.word.trim() || !row.meaning.trim()}
+                        loading={aiLoadingKey === `${row.rowKey}-example`}
+                        onClick={() => void generateForRow(row.rowKey, true)}
+                      />
+                    </div>
                     <textarea
-                      className={`${inputClass} min-h-[4.5rem] resize-y pr-8`}
+                      className={`${inputClass} min-h-[4.5rem] resize-y`}
                       rows={3}
                       value={row.example_sentence}
                       onChange={(e) =>
@@ -646,17 +698,11 @@ export function VocabTableEditor({
                       }
                       placeholder={"1. The school provides lunch.\n2. The law provides that…"}
                     />
-                    <AiSparkleButton
-                      title="AI 예문 생성 (뜻별 2~3개)"
-                      disabled={!row.word.trim() || !row.meaning.trim()}
-                      loading={aiLoadingKey === `${row.rowKey}-example`}
-                      onClick={() => generateForRow(row.rowKey, true)}
-                    />
                   </div>
                 </td>
                 <td className="px-1.5 py-1 align-top">
                   <textarea
-                    className={`${inputClass} min-h-[4.5rem] resize-y`}
+                    className={`${inputClass} mt-6 min-h-[4.5rem] resize-y`}
                     rows={3}
                     value={row.example_meaning}
                     onChange={(e) =>
@@ -666,7 +712,16 @@ export function VocabTableEditor({
                   />
                 </td>
                 <td className="px-1.5 py-1 align-top">
-                  <div className="relative pr-8">
+                  <div className="space-y-1">
+                    <div className="flex justify-end">
+                      <AiActionButton
+                        label="AI 유의어"
+                        title="AI 동의어·반의어 생성"
+                        disabled={!row.word.trim() || !row.meaning.trim()}
+                        loading={aiLoadingKey === `${row.rowKey}-related`}
+                        onClick={() => void generateRelatedForRow(row.rowKey)}
+                      />
+                    </div>
                     <input
                       className={`${inputClass} mb-1`}
                       value={row.synonyms}
@@ -682,12 +737,6 @@ export function VocabTableEditor({
                         updateRow(row.rowKey, "antonyms", e.target.value)
                       }
                       placeholder="반의어"
-                    />
-                    <AiSparkleButton
-                      title="AI 동의어·반의어 생성"
-                      disabled={!row.word.trim() || !row.meaning.trim()}
-                      loading={aiLoadingKey === `${row.rowKey}-related`}
-                      onClick={() => generateRelatedForRow(row.rowKey)}
                     />
                   </div>
                 </td>
@@ -728,19 +777,6 @@ export function VocabTableEditor({
           </button>
         </div>
       </div>
-
-      {status && (
-        <p
-          className={`border-t px-3 py-1.5 text-xs ${
-            status.includes("되었") || status.includes("생성")
-              ? "text-green-700"
-              : "text-red-600"
-          }`}
-          role="status"
-        >
-          {status}
-        </p>
-      )}
 
       <BulkPasteModal
         open={pasteOpen}
