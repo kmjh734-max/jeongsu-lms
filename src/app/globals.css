@@ -746,6 +746,33 @@
   padding: 0;
 }
 
+/* 긴 단어·예문만 해당 요소 폰트 축소 (기본 크기는 그대로) */
+.vocab-print-word.vocab-print-density--sm {
+  font-size: calc(var(--vocab-main-word-size) * 0.88);
+}
+.vocab-print-word.vocab-print-density--xs {
+  font-size: calc(var(--vocab-main-word-size) * 0.76);
+  letter-spacing: -0.04em;
+}
+
+.vocab-print-meaning.vocab-print-density--sm {
+  font-size: calc(var(--vocab-meaning-size) * 0.9);
+}
+.vocab-print-meaning.vocab-print-density--xs {
+  font-size: calc(var(--vocab-meaning-size) * 0.82);
+}
+
+.vocab-print-example.vocab-print-density--sm,
+.vocab-print-translation.vocab-print-density--sm {
+  font-size: calc(var(--vocab-body-size) * 0.92);
+  line-height: 1.35;
+}
+.vocab-print-example.vocab-print-density--xs,
+.vocab-print-translation.vocab-print-density--xs {
+  font-size: calc(var(--vocab-body-size) * 0.84);
+  line-height: 1.3;
+}
+
 .vocab-print-meta-tags {
   display: flex;
   flex-wrap: wrap;
