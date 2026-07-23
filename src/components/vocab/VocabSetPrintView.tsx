@@ -306,8 +306,8 @@ export function VocabSetPrintView({
     // Explicit mm sizes avoid A4 fallback when B5 keyword is ignored.
     el.textContent =
       size === "b5"
-        ? "@media print { @page { size: JIS-B5; margin: 0; } }"
-        : "@media print { @page { size: A4; margin: 0; } }";
+        ? "@media print { @page { size: 182mm 257mm; margin: 0; } }"
+        : "@media print { @page { size: 210mm 297mm; margin: 0; } }";
     document.body.dataset.vocabPrintSize = size;
     return () => {
       el?.remove();
@@ -973,6 +973,10 @@ export function VocabSetPrintView({
               >
                 {printPreparing ? "인쇄 준비 중…" : "인쇄 / PDF 저장"}
               </button>
+              <p className="text-[10px] leading-snug text-slate-500">
+                Chrome 인쇄창 → 여백 <strong className="font-semibold text-slate-700">없음</strong>
+                {size === "b5" ? " · 용지 B5 (JIS)" : " · 용지 A4"}
+              </p>
               <Link
                 href={backHref}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50"

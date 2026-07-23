@@ -449,9 +449,9 @@
   --vocab-line: #dbe2ea;
   --vocab-soft-line: #edf2f7;
 
-  --vocab-pad-x: 14mm;
-  --vocab-pad-top: 14mm;
-  --vocab-pad-bottom: 9mm;
+  --vocab-pad-x: 6mm;
+  --vocab-pad-top: 6mm;
+  --vocab-pad-bottom: 5mm;
   --vocab-title-size: 24px;
   --vocab-day-size: 30px;
   --vocab-body-size: 12px;
@@ -488,9 +488,9 @@
 }
 
 .vocab-print-page--b5 {
-  --vocab-pad-x: 11mm;
-  --vocab-pad-top: 12mm;
-  --vocab-pad-bottom: 7mm;
+  --vocab-pad-x: 5mm;
+  --vocab-pad-top: 5mm;
+  --vocab-pad-bottom: 4mm;
   --vocab-title-size: 21px;
   --vocab-day-size: 24px;
   --vocab-body-size: 11px;
@@ -1012,12 +1012,12 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 14mm 16mm 12mm;
+  padding: 8mm 9mm 7mm;
   z-index: 1;
 }
 
 .vocab-print-page--b5 .vocab-cover-stage {
-  padding: 11mm 12mm 9mm;
+  padding: 7mm 7mm 6mm;
 }
 
 .vocab-cover-bg {
@@ -1969,7 +1969,7 @@
   }
 
   @page vocab-print-b5 {
-    size: JIS-B5;
+    size: 182mm 257mm;
     margin: 0;
   }
 
@@ -1979,6 +1979,17 @@
 
   .vocab-print-page--b5 {
     page: vocab-print-b5;
+  }
+
+  /* 단어장 인쇄: 용지 여백 0 + 페이지 박스 채우기 */
+  body[data-vocab-print-size] {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body[data-vocab-print-size] html {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .no-print {
@@ -2052,15 +2063,44 @@
     margin: 0 auto !important;
   }
 
-  /* B5: root should match page width so it doesn't stretch to A4 */
-  body[data-vocab-print-size="b5"] #vocab-print-root {
-    width: 176mm !important;
-    max-width: 176mm !important;
+  /* B5/A4: fill the page box edge-to-edge (no letterboxing) */
+  body[data-vocab-print-size="b5"] #vocab-print-root,
+  body[data-vocab-print-size="a4"] #vocab-print-root {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  body[data-vocab-print-size="a4"] #vocab-print-root {
-    width: 210mm !important;
-    max-width: 210mm !important;
+  body[data-vocab-print-size] .vocab-print-page {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body[data-vocab-print-size] .vocab-print-cover {
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body[data-vocab-print-size] .vocab-cover-stage {
+    padding: 6mm 7mm 5mm !important;
+  }
+
+  body[data-vocab-print-size="b5"] .vocab-cover-stage {
+    padding: 5mm 6mm 4mm !important;
   }
 
   .vocab-print-page {
