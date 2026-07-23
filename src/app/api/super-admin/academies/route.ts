@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireSuperAdminApi } from "@/lib/auth/require-super-admin-api";
 import { cloneListeningCurriculumToAcademy } from "@/lib/listening/clone-curriculum";
+import { cloneVocabCurriculumToAcademy } from "@/lib/vocab/clone-curriculum";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -91,12 +92,19 @@ export async function POST(request: Request) {
     let curriculum = null as Awaited<
       ReturnType<typeof cloneListeningCurriculumToAcademy>
     > | null;
+    let vocabCurriculum = null as Awaited<
+      ReturnType<typeof cloneVocabCurriculumToAcademy>
+    > | null;
     let curriculumError: string | null = null;
     try {
       const ownerId =
         "profile" in auth && auth.profile ? auth.profile.id : null;
       if (ownerId && data?.id) {
         curriculum = await cloneListeningCurriculumToAcademy({
+          targetAcademyId: data.id as string,
+          ownerProfileId: ownerId,
+        });
+        vocabCurriculum = await cloneVocabCurriculumToAcademy({
           targetAcademyId: data.id as string,
           ownerProfileId: ownerId,
         });
@@ -110,6 +118,7 @@ export async function POST(request: Request) {
       ok: true,
       academy: data,
       curriculum,
+      vocabCurriculum,
       curriculumError,
     });
   } catch (e) {

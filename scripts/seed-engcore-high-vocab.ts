@@ -29,6 +29,7 @@ function loadEnvLocal() {
 loadEnvLocal();
 
 import { createClient } from "@supabase/supabase-js";
+import { syncVocabCurriculumToAllAcademies } from "../src/lib/vocab/clone-curriculum";
 import { joinExamplePairs } from "../src/lib/vocab/multi-example";
 
 const ACADEMY_ID = "79ea0a71-d148-46ac-8c8f-a3a3e4961838"; // 정수학원
@@ -572,6 +573,17 @@ async function main() {
     console.log(
       `Day ${day}: ${title} (${words.length} words, examples ${withEx})`
     );
+  }
+
+  if (!enrichOnly) {
+    console.log("syncing locked vocab curriculum → all academies…");
+    const synced = await syncVocabCurriculumToAllAcademies(OWNER_ID);
+    for (const row of synced) {
+      console.log(
+        row.slug,
+        `cloned=${row.result.setsCloned} skipped=${row.result.setsSkipped} items=${row.result.itemsCloned}`
+      );
+    }
   }
 
   console.log("done");
