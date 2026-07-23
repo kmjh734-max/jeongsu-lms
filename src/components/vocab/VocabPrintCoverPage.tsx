@@ -15,63 +15,51 @@ type VocabPrintCoverPageProps = {
   pageBreakAfter?: boolean;
 };
 
-/** Geometry only — no text boxes / seals */
-function CoverBackdrop({ theme }: { theme: VocabCoverTheme }) {
-  if (theme === "poster") {
-    return (
-      <svg
-        className="vocab-cover-bg"
-        viewBox="0 0 400 560"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden
-        focusable="false"
-      >
-        <defs>
-          <linearGradient id="vc-p-bg" x1="0" y1="0" x2="0.35" y2="1">
-            <stop offset="0%" stopColor="#06201c" />
-            <stop offset="55%" stopColor="#0b1220" />
-            <stop offset="100%" stopColor="#111827" />
-          </linearGradient>
-          <linearGradient id="vc-p-slash" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.55" />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="560" fill="url(#vc-p-bg)" />
-        <circle cx="355" cy="70" r="150" fill="#2dd4bf" opacity="0.14" />
-        <circle cx="-20" cy="500" r="160" fill="#6366f1" opacity="0.16" />
-        <polygon
-          points="400,0 400,210 210,0"
-          fill="url(#vc-p-slash)"
-          opacity="0.9"
-        />
-      </svg>
-    );
+/** Same poster geometry; only palette changes per theme */
+const THEME_PALETTE: Record<
+  VocabCoverTheme,
+  {
+    bg0: string;
+    bg1: string;
+    bg2: string;
+    slash0: string;
+    slash1: string;
+    glowA: string;
+    glowB: string;
   }
+> = {
+  poster: {
+    bg0: "#06201c",
+    bg1: "#0b1220",
+    bg2: "#111827",
+    slash0: "#2dd4bf",
+    slash1: "#22d3ee",
+    glowA: "#2dd4bf",
+    glowB: "#6366f1",
+  },
+  master: {
+    bg0: "#2a1208",
+    bg1: "#1a0f0a",
+    bg2: "#1c1410",
+    slash0: "#f97316",
+    slash1: "#fbbf24",
+    glowA: "#fb923c",
+    glowB: "#a16207",
+  },
+  pop: {
+    bg0: "#1e1b4b",
+    bg1: "#0f172a",
+    bg2: "#172554",
+    slash0: "#a78bfa",
+    slash1: "#f472b6",
+    glowA: "#c084fc",
+    glowB: "#38bdf8",
+  },
+};
 
-  if (theme === "master") {
-    return (
-      <svg
-        className="vocab-cover-bg"
-        viewBox="0 0 400 560"
-        preserveAspectRatio="xMidYMid slice"
-        aria-hidden
-        focusable="false"
-      >
-        <rect width="400" height="560" fill="#f7f2ea" />
-        <rect x="0" y="0" width="400" height="8" fill="#ea580c" />
-        <rect x="0" y="552" width="400" height="8" fill="#166534" />
-        <line
-          x1="36"
-          y1="120"
-          x2="36"
-          y2="440"
-          stroke="#ea580c"
-          strokeWidth="3"
-        />
-      </svg>
-    );
-  }
+function CoverBackdrop({ theme }: { theme: VocabCoverTheme }) {
+  const p = THEME_PALETTE[theme];
+  const uid = `vc-${theme}`;
 
   return (
     <svg
@@ -81,10 +69,25 @@ function CoverBackdrop({ theme }: { theme: VocabCoverTheme }) {
       aria-hidden
       focusable="false"
     >
-      <rect width="400" height="560" fill="#ffffff" />
-      <rect x="0" y="0" width="400" height="168" fill="#1d4ed8" />
-      <rect x="0" y="168" width="400" height="10" fill="#f59e0b" />
-      <circle cx="360" cy="70" r="90" fill="#fff" opacity="0.12" />
+      <defs>
+        <linearGradient id={`${uid}-bg`} x1="0" y1="0" x2="0.35" y2="1">
+          <stop offset="0%" stopColor={p.bg0} />
+          <stop offset="55%" stopColor={p.bg1} />
+          <stop offset="100%" stopColor={p.bg2} />
+        </linearGradient>
+        <linearGradient id={`${uid}-slash`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={p.slash0} stopOpacity="0.95" />
+          <stop offset="100%" stopColor={p.slash1} stopOpacity="0.55" />
+        </linearGradient>
+      </defs>
+      <rect width="400" height="560" fill={`url(#${uid}-bg)`} />
+      <circle cx="355" cy="70" r="150" fill={p.glowA} opacity="0.14" />
+      <circle cx="-20" cy="500" r="160" fill={p.glowB} opacity="0.16" />
+      <polygon
+        points="400,0 400,210 210,0"
+        fill={`url(#${uid}-slash)`}
+        opacity="0.9"
+      />
     </svg>
   );
 }

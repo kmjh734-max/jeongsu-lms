@@ -764,7 +764,7 @@ export function VocabSetPrintView({
                       )}
                     </div>
                     <p className="mt-1 text-[10px] leading-snug text-slate-500">
-                      포스터=다크 · 마스터=크림교재 · 컬러팝=상단컬러
+                      같은 포스터 양식 · 포스터=민트 · 마스터=오렌지 · 컬러팝=핑크
                     </p>
                   </div>
 

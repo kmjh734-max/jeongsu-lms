@@ -955,19 +955,19 @@
 }
 
 .vocab-print-cover--master {
-  --cover-bg: #f7f2ea;
-  --cover-ink: #1c1917;
-  --cover-muted: #57534e;
-  --cover-accent: #ea580c;
-  --cover-line: rgba(28, 25, 23, 0.18);
+  --cover-bg: #1a0f0a;
+  --cover-ink: #f8fafc;
+  --cover-muted: #d6b8a0;
+  --cover-accent: #fb923c;
+  --cover-line: rgba(248, 250, 252, 0.2);
 }
 
 .vocab-print-cover--pop {
-  --cover-bg: #ffffff;
-  --cover-ink: #0f172a;
-  --cover-muted: #475569;
-  --cover-accent: #1d4ed8;
-  --cover-line: rgba(15, 23, 42, 0.16);
+  --cover-bg: #0f172a;
+  --cover-ink: #f8fafc;
+  --cover-muted: #c4b5fd;
+  --cover-accent: #e879f9;
+  --cover-line: rgba(248, 250, 252, 0.2);
 }
 
 .vocab-print-cover-font--sans {
@@ -1020,18 +1020,6 @@
   padding: 11mm 12mm 9mm;
 }
 
-.vocab-print-cover--master .vocab-cover-stage {
-  padding-left: 20mm;
-}
-
-.vocab-print-page--b5.vocab-print-cover--master .vocab-cover-stage {
-  padding-left: 15mm;
-}
-
-.vocab-print-cover--pop .vocab-cover-stage {
-  padding-top: 12mm;
-}
-
 .vocab-cover-bg {
   position: absolute;
   inset: 0;
@@ -1075,17 +1063,9 @@
   line-height: 1.2;
 }
 
-.vocab-print-cover--pop .vocab-cover-academy {
-  color: #fff;
-}
-
 .vocab-cover-hero {
   margin-top: 18mm;
   max-width: 100%;
-}
-
-.vocab-print-cover--pop .vocab-cover-hero {
-  margin-top: 22mm;
 }
 
 .vocab-print-page--b5 .vocab-cover-hero {
@@ -1107,21 +1087,9 @@
   line-height: 1.12;
   font-weight: 900;
   letter-spacing: -0.045em;
-  color: var(--cover-ink);
+  color: var(--cover-accent);
   overflow-wrap: anywhere;
   max-width: 12em;
-}
-
-.vocab-print-cover--poster .vocab-cover-title {
-  color: #5eead4;
-}
-
-.vocab-print-cover--master .vocab-cover-title {
-  color: #1c1917;
-}
-
-.vocab-print-cover--pop .vocab-cover-title {
-  color: #0f172a;
 }
 
 .vocab-print-cover-font--serif .vocab-cover-title {
@@ -1162,10 +1130,6 @@
   letter-spacing: -0.02em;
   border-left: 3px solid var(--cover-accent);
   padding-left: 12px;
-}
-
-.vocab-print-cover--pop .vocab-cover-slogan {
-  border-left-color: #f59e0b;
 }
 
 .vocab-cover-spacer {
