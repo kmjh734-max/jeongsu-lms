@@ -1,6 +1,5 @@
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { listeningSetIsLocked } from "@/lib/listening/listening-api-auth";
 
 export async function assertScheduleManager() {
@@ -16,7 +15,11 @@ export async function assertScheduleManager() {
       status: 403,
     };
   }
-  return { ok: true as const, profile, admin: createAdminClient() };
+  return {
+    ok: true as const,
+    profile: { ...profile, academy_id: profile.academy_id as string },
+    admin: createAdminClient(),
+  };
 }
 
 export async function assertStudentProfile() {
