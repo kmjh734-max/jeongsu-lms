@@ -1957,10 +1957,28 @@
 }
 
 @media print {
-/* 영어 변형문제 인쇄 (A4 2단 페이지) */
+/* 영어 변형문제 인쇄 (A4 2단 페이지) — 단어장은 아래 named page / JS 주입이 덮어씀 */
   @page {
     size: A4;
     margin: 0;
+  }
+
+  @page vocab-print-a4 {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+
+  @page vocab-print-b5 {
+    size: 176mm 250mm;
+    margin: 0;
+  }
+
+  .vocab-print-page--a4 {
+    page: vocab-print-a4;
+  }
+
+  .vocab-print-page--b5 {
+    page: vocab-print-b5;
   }
 
   .no-print {
@@ -2034,14 +2052,30 @@
     margin: 0 auto !important;
   }
 
+  /* B5: root should match page width so it doesn't stretch to A4 */
+  body[data-vocab-print-size="b5"] #vocab-print-root {
+    width: 176mm !important;
+    max-width: 176mm !important;
+  }
+
+  body[data-vocab-print-size="a4"] #vocab-print-root {
+    width: 210mm !important;
+    max-width: 210mm !important;
+  }
+
   .vocab-print-page {
     box-shadow: none !important;
-    margin: 0 auto !important;
+    margin: 0 !important;
     width: var(--vocab-page-width, 210mm) !important;
     min-height: var(--vocab-page-height, 297mm) !important;
     max-height: var(--vocab-page-height, 297mm) !important;
     overflow: hidden !important;
     background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .vocab-print-cover {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

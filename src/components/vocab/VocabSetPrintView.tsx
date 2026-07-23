@@ -302,12 +302,16 @@ export function VocabSetPrintView({
       el.id = id;
       document.head.appendChild(el);
     }
+    // Printer margins default to 0 so the designed page fills the sheet.
+    // Explicit mm sizes avoid A4 fallback when B5 keyword is ignored.
     el.textContent =
       size === "b5"
-        ? "@page { size: B5 portrait; margin: 8mm; }"
-        : "@page { size: A4 portrait; margin: 10mm; }";
+        ? "@media print { @page { size: 176mm 250mm; margin: 0; } }"
+        : "@media print { @page { size: 210mm 297mm; margin: 0; } }";
+    document.body.dataset.vocabPrintSize = size;
     return () => {
       el?.remove();
+      delete document.body.dataset.vocabPrintSize;
     };
   }, [size]);
 
