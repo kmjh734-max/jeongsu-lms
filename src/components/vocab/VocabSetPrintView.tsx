@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   memo,
+  startTransition,
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
+import { VocabWorkbookPrintPages } from "@/components/vocab/VocabWorkbookPrintPages";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { generatePrintExamQuestions } from "@/lib/vocab/generate-print-test-questions";
 import { highlightWordInSentence } from "@/lib/vocab/highlight-word-in-sentence";
@@ -18,7 +21,6 @@ import {
   itemsPerVocabPrintPage,
   paginateVocabItems,
   parseVocabPrintMode,
-  tableHeadLabel,
   VOCAB_PRINT_MODE_LABELS,
   type VocabPrintMode,
 } from "@/lib/vocab/paginate-vocab-print";
@@ -111,16 +113,28 @@ export function VocabSetPrintView({
 }: VocabSetPrintViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const mode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
-  const size = parseVocabPrintSize(searchParams.get("size") ?? undefined);
-  const fontScale = parseVocabPrintFontScale(searchParams.get("font"));
-  const lineSpacing = parseVocabPrintLineSpacing(searchParams.get("spacing"));
+  const [mode, setMode] = useState(() =>
+    parseVocabPrintMode(searchParams.get("mode") ?? undefined)
+  );
+  const [size, setSize] = useState(() =>
+    parseVocabPrintSize(searchParams.get("size") ?? undefined)
+  );
+  const [fontScale, setFontScale] = useState(() =>
+    parseVocabPrintFontScale(searchParams.get("font"))
+  );
+  const [lineSpacing, setLineSpacing] = useState(() =>
+    parseVocabPrintLineSpacing(searchParams.get("spacing"))
+  );
   const [examSettings, setExamSettings] = useState<ExamPrintSettings>(() =>
     parseExamPrintSettings(searchParams)
   );
+  const [printing, setPrinting] = useState(false);
+  const [printPreparing, setPrintPreparing] = useState(false);
 
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const perPage = itemsPerVocabPrintPage(mode, size, fontScale, lineSpacing);
+  const deferredPerPage = useDeferredValue(perPage);
+  const deferredMode = useDeferredValue(mode);
   const examCols = examSettings.layout.columns;
   const examRowGapPx = EXAM_ROW_GAP_PX[examSettings.layout.lineSpacing];
   const layoutClass = `vocab-print-page--font-${fontScale} vocab-print-page--spacing-${lineSpacing}`;
@@ -147,7 +161,7 @@ export function VocabSetPrintView({
   ]);
 
   const flatPages = useMemo(() => {
-    if (mode === "exam") return [];
+    if (deferredMode === "exam") return [];
     const rows: {
       section: VocabPrintSection;
       pageItems: (VocabPrintRow | null)[];
@@ -158,7 +172,7 @@ export function VocabSetPrintView({
     }[] = [];
     let globalPageNum = 0;
     for (const section of sections) {
-      const pages = paginateVocabItems(section.items, perPage);
+      const pages = paginateVocabItems(section.items, deferredPerPage);
       pages.forEach((pageItems, pageIndex) => {
         globalPageNum += 1;
         rows.push({
@@ -167,12 +181,12 @@ export function VocabSetPrintView({
           pageIndex,
           sectionPageTotal: pages.length,
           globalPageNum,
-          sectionStartIndex: pageIndex * perPage,
+          sectionStartIndex: pageIndex * deferredPerPage,
         });
       });
     }
     return rows;
-  }, [sections, perPage, mode]);
+  }, [sections, deferredPerPage, deferredMode]);
 
   const title =
     documentTitle ??
@@ -184,8 +198,12 @@ export function VocabSetPrintView({
 
   const measureRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
-  const urlSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previewScrollRef = useRef<HTMLElement | null>(null);
+  const layoutUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const examUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipUrlEchoRef = useRef(false);
+  const layoutRef = useRef({ mode, size, fontScale, lineSpacing });
+  layoutRef.current = { mode, size, fontScale, lineSpacing };
 
   const examPagination = useVocabExamPagination({
     enabled: mode === "exam",
@@ -207,7 +225,8 @@ export function VocabSetPrintView({
 
   useEffect(() => {
     return () => {
-      if (urlSyncTimerRef.current) clearTimeout(urlSyncTimerRef.current);
+      if (layoutUrlTimerRef.current) clearTimeout(layoutUrlTimerRef.current);
+      if (examUrlTimerRef.current) clearTimeout(examUrlTimerRef.current);
     };
   }, []);
 
@@ -216,6 +235,10 @@ export function VocabSetPrintView({
       skipUrlEchoRef.current = false;
       return;
     }
+    setMode(parseVocabPrintMode(searchParams.get("mode") ?? undefined));
+    setSize(parseVocabPrintSize(searchParams.get("size") ?? undefined));
+    setFontScale(parseVocabPrintFontScale(searchParams.get("font")));
+    setLineSpacing(parseVocabPrintLineSpacing(searchParams.get("spacing")));
     setExamSettings(parseExamPrintSettings(searchParams));
   }, [searchParams]);
 
@@ -236,20 +259,43 @@ export function VocabSetPrintView({
     };
   }, [size]);
 
+  const syncLayoutToUrl = useCallback(() => {
+    const cur = layoutRef.current;
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("mode", cur.mode);
+    params.set("size", cur.size);
+    if (cur.fontScale === "md") params.delete("font");
+    else params.set("font", cur.fontScale);
+    if (cur.lineSpacing === "normal") params.delete("spacing");
+    else params.set("spacing", cur.lineSpacing);
+    skipUrlEchoRef.current = true;
+    router.replace(`?${params.toString()}`);
+  }, [router, searchParams]);
+
+  const queueLayoutUrlSync = useCallback(() => {
+    if (layoutUrlTimerRef.current) clearTimeout(layoutUrlTimerRef.current);
+    layoutUrlTimerRef.current = setTimeout(() => {
+      syncLayoutToUrl();
+    }, 400);
+  }, [syncLayoutToUrl]);
+
   const setQuery = useCallback(
     (key: "mode" | "size" | "font" | "spacing", value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (
-        (key === "font" && value === "md") ||
-        (key === "spacing" && value === "normal")
-      ) {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-      router.replace(`?${params.toString()}`);
+      const next = { ...layoutRef.current };
+      if (key === "mode") next.mode = parseVocabPrintMode(value);
+      else if (key === "size") next.size = parseVocabPrintSize(value);
+      else if (key === "font") next.fontScale = parseVocabPrintFontScale(value);
+      else next.lineSpacing = parseVocabPrintLineSpacing(value);
+      layoutRef.current = next;
+      startTransition(() => {
+        setMode(next.mode);
+        setSize(next.size);
+        setFontScale(next.fontScale);
+        setLineSpacing(next.lineSpacing);
+      });
+      queueLayoutUrlSync();
     },
-    [router, searchParams]
+    [queueLayoutUrlSync]
   );
 
   const syncExamSettingsToUrl = useCallback(
@@ -281,8 +327,8 @@ export function VocabSetPrintView({
 
   const queueExamSettingsUrlSync = useCallback(
     (next: ExamPrintSettings) => {
-      if (urlSyncTimerRef.current) clearTimeout(urlSyncTimerRef.current);
-      urlSyncTimerRef.current = setTimeout(() => {
+      if (examUrlTimerRef.current) clearTimeout(examUrlTimerRef.current);
+      examUrlTimerRef.current = setTimeout(() => {
         syncExamSettingsToUrl(next);
       }, 350);
     },
@@ -300,13 +346,46 @@ export function VocabSetPrintView({
   const reshuffleExam = useCallback(() => {
     const next = { ...examSettings, shuffleSeed: Date.now() };
     setExamSettings(next);
-    if (urlSyncTimerRef.current) clearTimeout(urlSyncTimerRef.current);
+    if (examUrlTimerRef.current) clearTimeout(examUrlTimerRef.current);
     syncExamSettingsToUrl(next);
   }, [examSettings, syncExamSettingsToUrl]);
 
   const handlePrint = useCallback(() => {
-    window.print();
-  }, []);
+    if (mode === "exam") {
+      window.print();
+      return;
+    }
+    setPrintPreparing(true);
+    setPrinting(true);
+  }, [mode]);
+
+  useEffect(() => {
+    if (!printing) return;
+    let cancelled = false;
+    const finish = () => {
+      setPrinting(false);
+      setPrintPreparing(false);
+    };
+    const run = () => {
+      if (cancelled) return;
+      setPrintPreparing(false);
+      window.print();
+    };
+    // Wait for all pages to mount before opening the print dialog
+    const t = window.setTimeout(() => {
+      requestAnimationFrame(() => requestAnimationFrame(run));
+    }, flatPages.length > 80 ? 120 : 16);
+
+    window.addEventListener("afterprint", finish);
+    // Some browsers skip afterprint
+    const fallback = window.setTimeout(finish, 120_000);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+      window.clearTimeout(fallback);
+      window.removeEventListener("afterprint", finish);
+    };
+  }, [printing, flatPages.length]);
 
   const examPageStyle = {
     ["--vocab-exam-cols" as string]: examCols,
@@ -327,6 +406,28 @@ export function VocabSetPrintView({
   }
 
   const examTotal = examConfigTotal(examSettings.counts);
+
+  const workbookPageStyle = useMemo(
+    () =>
+      ({
+        ["--vocab-rows-per-page" as string]: deferredPerPage,
+        ["--vocab-page-width" as string]: pageDims.width,
+        ["--vocab-page-height" as string]: pageDims.height,
+      }) as React.CSSProperties,
+    [deferredPerPage, pageDims.width, pageDims.height]
+  );
+
+  const renderWorkbookEntry = useCallback(
+    (item: VocabPrintRow, globalIndex: number, entryMode: VocabPrintMode) => (
+      <PrintEntry
+        key={item.id}
+        item={item}
+        globalIndex={globalIndex}
+        mode={entryMode}
+      />
+    ),
+    []
+  );
 
   const previewPages =
     mode === "exam" ? (
@@ -375,74 +476,19 @@ export function VocabSetPrintView({
         </article>
       ))
     ) : (
-      flatPages.map(
-        (
-          {
-            section,
-            pageItems,
-            pageIndex,
-            sectionPageTotal,
-            globalPageNum,
-            sectionStartIndex,
-          },
-          flatIndex
-        ) => (
-          <article
-            key={`${section.setId}-${pageIndex}`}
-            className={`vocab-print-page vocab-print-page--${size} ${layoutClass} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
-            data-size={size}
-            style={
-              {
-                ["--vocab-rows-per-page" as string]: perPage,
-                ["--vocab-page-width" as string]: pageDims.width,
-                ["--vocab-page-height" as string]: pageDims.height,
-              } as React.CSSProperties
-            }
-          >
-            <PrintPageHeader
-              sectionTitle={section.title}
-              academyName={academyName}
-              logoSrc={logoSrc}
-            />
-
-            <div className="vocab-print-table-head">
-              <div>NO.</div>
-              <div>WORD</div>
-              <div>{tableHeadLabel(mode)}</div>
-            </div>
-
-            <div className="vocab-print-list">
-              {pageItems.map((item, rowIndex) => {
-                const globalIndex = sectionStartIndex + rowIndex;
-                if (!item) {
-                  return (
-                    <div
-                      key={`empty-${rowIndex}`}
-                      className="vocab-print-row empty"
-                    />
-                  );
-                }
-                return (
-                  <PrintEntry
-                    key={item.id}
-                    item={item}
-                    globalIndex={globalIndex}
-                    mode={mode}
-                  />
-                );
-              })}
-            </div>
-
-            <footer className="vocab-print-footer">
-              <span>{academyName}</span>
-              <span>
-                {pageIndex + 1} / {sectionPageTotal}
-                {sections.length > 1 ? ` · 전체 p.${globalPageNum}` : ""}
-              </span>
-            </footer>
-          </article>
-        )
-      )
+      <VocabWorkbookPrintPages
+        pages={flatPages}
+        mode={deferredMode === "exam" ? "workbook" : deferredMode}
+        size={size}
+        layoutClass={layoutClass}
+        pageStyle={workbookPageStyle}
+        academyName={academyName}
+        logoSrc={logoSrc}
+        multiSection={sections.length > 1}
+        printing={printing}
+        scrollParentRef={previewScrollRef}
+        renderEntry={renderWorkbookEntry}
+      />
     );
 
   return (
@@ -639,10 +685,13 @@ export function VocabSetPrintView({
               <button
                 type="button"
                 onClick={handlePrint}
-                disabled={mode === "exam" && examGenerated.questions.length === 0}
+                disabled={
+                  printPreparing ||
+                  (mode === "exam" && examGenerated.questions.length === 0)
+                }
                 className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
               >
-                인쇄 / PDF 저장
+                {printPreparing ? "인쇄 준비 중…" : "인쇄 / PDF 저장"}
               </button>
               <Link
                 href={backHref}
@@ -654,11 +703,19 @@ export function VocabSetPrintView({
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-auto bg-slate-300/40 print:overflow-visible print:bg-white">
+        <main
+          ref={(node) => {
+            previewScrollRef.current = node;
+          }}
+          className="min-w-0 flex-1 overflow-auto bg-slate-300/40 print:overflow-visible print:bg-white"
+        >
           <div className="no-print border-b border-slate-300/60 bg-slate-200/80 px-5 py-2.5 backdrop-blur-sm">
             <p className="text-sm font-semibold text-slate-700">미리보기</p>
             <p className="text-xs text-slate-500">
               {pageCount}페이지 · 스크롤하여 전체 확인
+              {pageCount > 16 && mode !== "exam"
+                ? " · 화면에 보이는 페이지만 불러와 빠르게 표시"
+                : ""}
             </p>
           </div>
 
@@ -666,7 +723,11 @@ export function VocabSetPrintView({
             <div
               id="vocab-print-root"
               data-size={size}
-              className="flex w-full max-w-[920px] flex-col items-center gap-8 print:max-w-none print:gap-0"
+              className={
+                mode === "exam"
+                  ? "flex w-full max-w-[920px] flex-col items-center gap-8 print:max-w-none print:gap-0"
+                  : "w-full max-w-[920px] print:max-w-none"
+              }
             >
               {previewPages}
             </div>
@@ -738,7 +799,7 @@ function printDensityClass(
   return "";
 }
 
-function PrintEntry({
+const PrintEntry = memo(function PrintEntry({
   item,
   globalIndex,
   mode,
@@ -816,4 +877,4 @@ function PrintEntry({
       </div>
     </section>
   );
-}
+});

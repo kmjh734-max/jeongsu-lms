@@ -476,6 +476,15 @@
   color: #111827;
   box-shadow: 0 8px 30px rgb(15 23 42 / 0.12);
   font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--vocab-page-height, 297mm);
+}
+
+@media print {
+  .vocab-print-page {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+  }
 }
 
 .vocab-print-page--b5 {
