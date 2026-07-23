@@ -394,19 +394,6 @@ export function VocabSetPrintView({
     ["--vocab-page-height" as string]: pageDims.height,
   } as React.CSSProperties;
 
-  if (totalItems === 0) {
-    return (
-      <div className="mx-auto max-w-lg p-8 text-center">
-        <p className="text-slate-600">인쇄할 단어가 없습니다.</p>
-        <Link href={backHref} className="mt-4 inline-block text-brand-600 hover:underline">
-          돌아가기
-        </Link>
-      </div>
-    );
-  }
-
-  const examTotal = examConfigTotal(examSettings.counts);
-
   const workbookPageStyle = useMemo(
     () =>
       ({
@@ -428,6 +415,19 @@ export function VocabSetPrintView({
     ),
     []
   );
+
+  if (totalItems === 0) {
+    return (
+      <div className="mx-auto max-w-lg p-8 text-center">
+        <p className="text-slate-600">인쇄할 단어가 없습니다.</p>
+        <Link href={backHref} className="mt-4 inline-block text-brand-600 hover:underline">
+          돌아가기
+        </Link>
+      </div>
+    );
+  }
+
+  const examTotal = examConfigTotal(examSettings.counts);
 
   const previewPages =
     mode === "exam" ? (
