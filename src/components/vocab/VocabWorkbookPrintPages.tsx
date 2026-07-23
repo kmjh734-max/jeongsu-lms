@@ -3,9 +3,7 @@
 import {
   memo,
   useEffect,
-  useLayoutEffect,
   useMemo,
-  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -142,7 +140,7 @@ const WorkbookPage = memo(function WorkbookPage({
         <span>{academyName}</span>
         <span>
           {pageIndex + 1} / {sectionPageTotal}
-          {multiSection ? ` · 전체 p.${globalPageNum}` : ""}
+          {multiSection ? ` · p.${globalPageNum}` : ""}
         </span>
       </footer>
     </article>
@@ -182,25 +180,28 @@ export function VocabWorkbookPrintPages({
 }: VocabWorkbookPrintPagesProps) {
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportH, setViewportH] = useState(900);
-  const [stride, setStride] = useState(() => estimatePageStridePx(size));
-  const measureHostRef = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const host = measureHostRef.current;
-    const el = host?.querySelector(".vocab-print-page");
-    if (el instanceof HTMLElement) {
-      setStride(el.offsetHeight + 32);
-    } else {
-      setStride(estimatePageStridePx(size));
-    }
-  }, [size, layoutClass, pageStyle, mode]);
+  // Fixed stride only — measuring live page height caused update loops
+  // when different pages (or content-visibility) reported different heights.
+  const stride = estimatePageStridePx(size);
 
   useEffect(() => {
     const el = scrollParentRef.current;
     if (!el || printing) return;
 
-    const onScroll = () => setScrollTop(el.scrollTop);
-    const ro = new ResizeObserver(() => setViewportH(el.clientHeight));
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        setScrollTop(el.scrollTop);
+      });
+    };
+    const ro = new ResizeObserver((entries) => {
+      const h = entries[0]?.contentRect.height;
+      if (typeof h === "number" && h > 0) {
+        setViewportH((prev) => (Math.abs(prev - h) > 1 ? h : prev));
+      }
+    });
     ro.observe(el);
     setViewportH(el.clientHeight);
     setScrollTop(el.scrollTop);
@@ -208,6 +209,7 @@ export function VocabWorkbookPrintPages({
     return () => {
       el.removeEventListener("scroll", onScroll);
       ro.disconnect();
+      if (raf) window.cancelAnimationFrame(raf);
     };
   }, [scrollParentRef, printing, pages.length]);
 
@@ -228,7 +230,7 @@ export function VocabWorkbookPrintPages({
 
   if (!useVirtual) {
     return (
-      <div ref={measureHostRef} className="flex w-full flex-col items-center gap-8 print:gap-0">
+      <div className="flex w-full flex-col items-center gap-8 print:gap-0">
         {pages.map((page, flatIndex) => (
           <WorkbookPage
             key={`${page.section.setId}-${page.pageIndex}`}
@@ -250,18 +252,14 @@ export function VocabWorkbookPrintPages({
   }
 
   return (
-    <div
-      ref={measureHostRef}
-      className="relative w-full"
-      style={{ height: pages.length * stride }}
-    >
+    <div className="relative w-full" style={{ height: pages.length * stride }}>
       {slice.map((page, i) => {
         const flatIndex = start + i;
         return (
           <div
             key={`${page.section.setId}-${page.pageIndex}`}
-            className="absolute left-1/2 w-full max-w-[920px] -translate-x-1/2 print:static print:translate-x-0 print:max-w-none"
-            style={{ top: flatIndex * stride }}
+            className="absolute left-1/2 flex w-full max-w-[920px] -translate-x-1/2 justify-center"
+            style={{ top: flatIndex * stride, height: stride }}
           >
             <WorkbookPage
               page={page}
