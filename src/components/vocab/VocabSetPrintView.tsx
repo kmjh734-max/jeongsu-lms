@@ -974,8 +974,12 @@ export function VocabSetPrintView({
                 {printPreparing ? "인쇄 준비 중…" : "인쇄 / PDF 저장"}
               </button>
               <p className="text-[10px] leading-snug text-slate-500">
-                Chrome 인쇄창 → 여백 <strong className="font-semibold text-slate-700">없음</strong>
-                {size === "b5" ? " · 용지 B5 (JIS)" : " · 용지 A4"}
+                PDF 저장 시: 용지{" "}
+                <strong className="font-semibold text-slate-700">
+                  {size === "b5" ? "B5 (JIS)" : "A4"}
+                </strong>
+                · 여백 <strong className="font-semibold text-slate-700">없음</strong>
+                · 배율 <strong className="font-semibold text-slate-700">100%</strong>
               </p>
               <Link
                 href={backHref}
