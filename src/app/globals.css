@@ -631,7 +631,8 @@
 .vocab-print-top-line {
   height: 6px;
   background: var(--vocab-navy);
-  margin: calc(var(--vocab-pad-top) * -1) calc(var(--vocab-pad-x) * -1) 14px;
+  margin: calc(var(--vocab-pad-top) * -1) calc(var(--vocab-pad-right) * -1)
+    14px calc(var(--vocab-pad-left) * -1);
 }
 
 .vocab-print-header {
