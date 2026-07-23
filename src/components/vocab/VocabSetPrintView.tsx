@@ -31,6 +31,14 @@ import {
   type ExamPrintSettings,
 } from "@/lib/vocab/vocab-print-exam-config";
 import {
+  parseVocabPrintFontScale,
+  parseVocabPrintLineSpacing,
+  VOCAB_PRINT_FONT_LABELS,
+  VOCAB_PRINT_SPACING_LABELS,
+  type VocabPrintFontScale,
+  type VocabPrintLineSpacing,
+} from "@/lib/vocab/vocab-print-layout";
+import {
   parseVocabPrintSize,
   VOCAB_PRINT_PAGE_DIMENSIONS,
   VOCAB_PRINT_SIZE_LABELS,
@@ -105,14 +113,17 @@ export function VocabSetPrintView({
   const searchParams = useSearchParams();
   const mode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
   const size = parseVocabPrintSize(searchParams.get("size") ?? undefined);
+  const fontScale = parseVocabPrintFontScale(searchParams.get("font"));
+  const lineSpacing = parseVocabPrintLineSpacing(searchParams.get("spacing"));
   const [examSettings, setExamSettings] = useState<ExamPrintSettings>(() =>
     parseExamPrintSettings(searchParams)
   );
 
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
-  const perPage = itemsPerVocabPrintPage(mode, size);
+  const perPage = itemsPerVocabPrintPage(mode, size, fontScale, lineSpacing);
   const examCols = examSettings.layout.columns;
   const examRowGapPx = EXAM_ROW_GAP_PX[examSettings.layout.lineSpacing];
+  const layoutClass = `vocab-print-page--font-${fontScale} vocab-print-page--spacing-${lineSpacing}`;
 
   const allItems = useMemo(
     () => sections.flatMap((s) => s.items),
@@ -226,9 +237,16 @@ export function VocabSetPrintView({
   }, [size]);
 
   const setQuery = useCallback(
-    (key: "mode" | "size", value: string) => {
+    (key: "mode" | "size" | "font" | "spacing", value: string) => {
       const params = new URLSearchParams(searchParams.toString());
-      params.set(key, value);
+      if (
+        (key === "font" && value === "md") ||
+        (key === "spacing" && value === "normal")
+      ) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
       router.replace(`?${params.toString()}`);
     },
     [router, searchParams]
@@ -315,7 +333,7 @@ export function VocabSetPrintView({
       resolvedExamPages.map((pageSlice, pageIndex) => (
         <article
           key={`exam-${pageIndex}`}
-          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} ${pageIndex < resolvedExamPages.length - 1 ? "vocab-print-page-break" : ""}`}
+          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${pageIndex < resolvedExamPages.length - 1 ? "vocab-print-page-break" : ""}`}
           data-size={size}
           style={examPageStyle}
         >
@@ -371,7 +389,7 @@ export function VocabSetPrintView({
         ) => (
           <article
             key={`${section.setId}-${pageIndex}`}
-            className={`vocab-print-page vocab-print-page--${size} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
+            className={`vocab-print-page vocab-print-page--${size} ${layoutClass} ${flatIndex < flatPages.length - 1 ? "vocab-print-page-break" : ""}`}
             data-size={size}
             style={
               {
@@ -437,7 +455,7 @@ export function VocabSetPrintView({
             aria-hidden
           >
             <article
-              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing}`}
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale}`}
               style={examPageStyle}
             >
               <div
@@ -464,7 +482,7 @@ export function VocabSetPrintView({
             aria-hidden
           >
             <article
-              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam`}
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--font-${fontScale}`}
               style={examPageStyle}
             >
               <PrintPageHeader
@@ -491,6 +509,9 @@ export function VocabSetPrintView({
               </h1>
               <p className="mt-1 text-xs text-slate-500">
                 {totalItems}단어 · {pageCount}페이지 · {VOCAB_PRINT_SIZE_LABELS[size]}
+                {mode !== "exam"
+                  ? ` · ${VOCAB_PRINT_FONT_LABELS[fontScale]} · ${VOCAB_PRINT_SPACING_LABELS[lineSpacing]}`
+                  : ""}
                 {mode === "exam" && examGenerated.questions.length > 0
                   ? ` · 문항 ${examGenerated.questions.length}개`
                   : ""}
@@ -516,6 +537,54 @@ export function VocabSetPrintView({
                 ))}
               </div>
             </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-600">글자 크기</p>
+              <div className="flex gap-1.5">
+                {(["sm", "md", "lg"] as VocabPrintFontScale[]).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setQuery("font", key)}
+                    className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition ${
+                      fontScale === key
+                        ? "bg-slate-800 text-white"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    {VOCAB_PRINT_FONT_LABELS[key]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {mode !== "exam" ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-slate-600">줄간격</p>
+                <div className="flex gap-1.5">
+                  {(["tight", "normal", "relaxed"] as VocabPrintLineSpacing[]).map(
+                    (key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setQuery("spacing", key)}
+                        className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold transition ${
+                          lineSpacing === key
+                            ? "bg-slate-800 text-white"
+                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        {VOCAB_PRINT_SPACING_LABELS[key]}
+                      </button>
+                    )
+                  )}
+                </div>
+                <p className="text-[11px] leading-snug text-slate-500">
+                  작게·좁게 할수록 페이지당 단어가 늘어 총 페이지가 줄어듭니다.
+                  (현재 페이지당 {perPage}개)
+                </p>
+              </div>
+            ) : null}
 
             <div className="space-y-2">
               <p className="text-xs font-semibold text-slate-600">인쇄 종류</p>
@@ -564,11 +633,7 @@ export function VocabSetPrintView({
                   </p>
                 ) : null}
               </div>
-            ) : (
-              <p className="text-xs text-slate-500">
-                용지 크기({VOCAB_PRINT_SIZE_LABELS[size]})를 선택한 뒤 인쇄하세요.
-              </p>
-            )}
+            ) : null}
 
             <div className="mt-auto flex flex-col gap-2 border-t border-slate-100 pt-4">
               <button

@@ -1,4 +1,9 @@
 import type { VocabPrintSize } from "@/lib/vocab/vocab-print-size";
+import {
+  vocabPrintRowsDelta,
+  type VocabPrintFontScale,
+  type VocabPrintLineSpacing,
+} from "@/lib/vocab/vocab-print-layout";
 
 export type VocabPrintMode = "workbook" | "exam" | "full";
 
@@ -38,16 +43,22 @@ export function parseVocabPrintMode(raw: string | undefined): VocabPrintMode {
 
 export function itemsPerVocabPrintPage(
   mode: VocabPrintMode,
-  size: VocabPrintSize = "a4"
+  size: VocabPrintSize = "a4",
+  font: VocabPrintFontScale = "md",
+  spacing: VocabPrintLineSpacing = "normal"
 ): number {
-  if (size === "b5") return 5;
-
-  switch (mode) {
-    case "full":
-      return 5;
-    default:
-      return 8;
+  let base: number;
+  if (size === "b5") {
+    base = mode === "full" ? 4 : 5;
+  } else if (mode === "full") {
+    base = 5;
+  } else {
+    base = 8;
   }
+
+  const min = mode === "full" ? 3 : 4;
+  const max = mode === "full" ? (size === "b5" ? 8 : 10) : size === "b5" ? 10 : 14;
+  return Math.min(max, Math.max(min, base + vocabPrintRowsDelta(font, spacing)));
 }
 
 export function tableHeadLabel(mode: VocabPrintMode): string {
