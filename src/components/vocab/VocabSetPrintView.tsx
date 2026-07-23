@@ -37,8 +37,12 @@ import {
   applyVocabPrintCoverToSearchParams,
   buildDefaultVocabPrintCover,
   mergeVocabPrintCoverFromSearchParams,
+  VOCAB_COVER_FONT_LABELS,
   VOCAB_COVER_THEME_LABELS,
+  VOCAB_COVER_TITLE_SIZE_LABELS,
+  type VocabCoverFont,
   type VocabCoverTheme,
+  type VocabCoverTitleSize,
   type VocabPrintCoverSettings,
 } from "@/lib/vocab/vocab-print-cover";
 import {
@@ -760,8 +764,58 @@ export function VocabSetPrintView({
                       )}
                     </div>
                     <p className="mt-1 text-[10px] leading-snug text-slate-500">
-                      포스터=다크교재 · 마스터=크림교재 · 컬러팝=비비드
+                      포스터=다크 · 마스터=크림교재 · 컬러팝=상단컬러
                     </p>
+                  </div>
+
+                  <div>
+                    <p className="mb-1 text-[11px] font-medium text-slate-500">
+                      글꼴
+                    </p>
+                    <div className="flex gap-1.5">
+                      {(Object.keys(VOCAB_COVER_FONT_LABELS) as VocabCoverFont[]).map(
+                        (key) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => updateCover({ fontFamily: key })}
+                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                              cover.fontFamily === key
+                                ? "bg-slate-800 text-white"
+                                : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {VOCAB_COVER_FONT_LABELS[key]}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-1 text-[11px] font-medium text-slate-500">
+                      제목 크기
+                    </p>
+                    <div className="flex gap-1.5">
+                      {(
+                        Object.keys(
+                          VOCAB_COVER_TITLE_SIZE_LABELS
+                        ) as VocabCoverTitleSize[]
+                      ).map((key) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => updateCover({ titleSize: key })}
+                          className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                            cover.titleSize === key
+                              ? "bg-slate-800 text-white"
+                              : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
+                          }`}
+                        >
+                          {VOCAB_COVER_TITLE_SIZE_LABELS[key]}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <label className="block space-y-1">
@@ -798,35 +852,6 @@ export function VocabSetPrintView({
                       className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
                     />
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className="block space-y-1">
-                      <span className="text-[11px] font-medium text-slate-500">
-                        작은 라벨 (선택)
-                      </span>
-                      <input
-                        type="text"
-                        value={cover.heroMark}
-                        onChange={(e) =>
-                          updateCover({ heroMark: e.target.value })
-                        }
-                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
-                        placeholder="비워도 됨"
-                        maxLength={12}
-                      />
-                    </label>
-                    <label className="block space-y-1">
-                      <span className="text-[11px] font-medium text-slate-500">
-                        칩 배지 (선택)
-                      </span>
-                      <input
-                        type="text"
-                        value={cover.badge}
-                        onChange={(e) => updateCover({ badge: e.target.value })}
-                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
-                        placeholder="비워도 됨"
-                      />
-                    </label>
-                  </div>
                   <label className="block space-y-1">
                     <span className="text-[11px] font-medium text-slate-500">
                       시리즈 / 단계
@@ -856,13 +881,27 @@ export function VocabSetPrintView({
                   </label>
                   <label className="block space-y-1">
                     <span className="text-[11px] font-medium text-slate-500">
-                      부가 문구 (· 로 구분)
+                      부가 문구
                     </span>
                     <input
                       type="text"
                       value={cover.metaLine}
                       onChange={(e) => updateCover({ metaLine: e.target.value })}
                       className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      꼬릿말
+                    </span>
+                    <input
+                      type="text"
+                      value={cover.footerText}
+                      onChange={(e) =>
+                        updateCover({ footerText: e.target.value })
+                      }
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      placeholder="학원 · Vocabulary Workbook"
                     />
                   </label>
                   <label className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-700">
