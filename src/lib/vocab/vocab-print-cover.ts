@@ -2,7 +2,8 @@ import type { VocabPrintMode } from "@/lib/vocab/paginate-vocab-print";
 import { VOCAB_PRINT_MODE_LABELS } from "@/lib/vocab/paginate-vocab-print";
 import type { VocabPrintSection } from "@/lib/vocab/vocab-print-types";
 
-export type VocabCoverTheme = "classic" | "fresh" | "minimal";
+/** poster=시나공형 다크 / master=워드마스터형 크림 / pop=컬러블록 */
+export type VocabCoverTheme = "poster" | "master" | "pop";
 
 export type VocabPrintCoverSettings = {
   enabled: boolean;
@@ -12,13 +13,17 @@ export type VocabPrintCoverSettings = {
   seriesLabel: string;
   academyName: string;
   metaLine: string;
+  slogan: string;
+  badge: string;
+  /** 큰 숫자/글자 마크 (예: 85, A, W) */
+  heroMark: string;
   showNameFields: boolean;
 };
 
 export const VOCAB_COVER_THEME_LABELS: Record<VocabCoverTheme, string> = {
-  classic: "클래식",
-  fresh: "프레시",
-  minimal: "미니멀",
+  poster: "포스터",
+  master: "마스터",
+  pop: "컬러팝",
 };
 
 const COVER_URL_KEYS = [
@@ -29,28 +34,48 @@ const COVER_URL_KEYS = [
   "cover_series",
   "cover_academy",
   "cover_meta",
+  "cover_slogan",
+  "cover_badge",
+  "cover_mark",
   "cover_name",
 ] as const;
 
-function inferSeriesLabel(sections: VocabPrintSection[]): string {
-  if (sections.length === 0) return "";
+function inferDayRange(sections: VocabPrintSection[]): {
+  min: number;
+  max: number;
+} | null {
   const days: number[] = [];
   for (const s of sections) {
     const m = s.title.match(/Day\s*(\d+)/i);
     if (m) days.push(Number(m[1]));
   }
-  if (days.length === 0) {
+  if (days.length === 0) return null;
+  return { min: Math.min(...days), max: Math.max(...days) };
+}
+
+function inferSeriesLabel(sections: VocabPrintSection[]): string {
+  if (sections.length === 0) return "";
+  const range = inferDayRange(sections);
+  if (!range) {
     if (sections.length === 1) return sections[0]!.title.slice(0, 48);
     return `${sections.length}세트`;
   }
-  const min = Math.min(...days);
-  const max = Math.max(...days);
   const band = sections[0]!.title.includes("고교")
     ? "고교기본"
     : sections[0]!.title.includes("중등")
       ? "중등"
       : "단어학습";
-  return min === max ? `${band} · Day ${min}` : `${band} · Day ${min}–${max}`;
+  return range.min === range.max
+    ? `${band} · Day ${range.min}`
+    : `${band} · Day ${range.min}–${range.max}`;
+}
+
+function inferHeroMark(sections: VocabPrintSection[], totalItems: number): string {
+  const range = inferDayRange(sections);
+  if (range) return String(range.max);
+  if (sections.length > 1) return String(sections.length);
+  if (totalItems >= 1000) return String(Math.round(totalItems / 1000) * 1000);
+  return "V";
 }
 
 function defaultSubtitle(mode: VocabPrintMode): string {
@@ -59,12 +84,16 @@ function defaultSubtitle(mode: VocabPrintMode): string {
   return "빈도별 필수 어휘";
 }
 
+function defaultSlogan(mode: VocabPrintMode): string {
+  if (mode === "exam") return "시험에 나오는 것만 공부한다!";
+  return "반드시 알아야 할 빈출 · 핵심 어휘";
+}
+
 function defaultCoverTitle(
   documentTitle: string | undefined,
   sections: VocabPrintSection[]
 ): string {
   if (documentTitle?.trim()) {
-    // "85개 단어세트" 같은 집계 제목이면 첫 세트 계열명 우선
     if (/개\s*단어세트/.test(documentTitle) && sections[0]) {
       const base = sections[0].title
         .replace(/\s*Day\s*\d+.*$/i, "")
@@ -91,18 +120,20 @@ export function buildDefaultVocabPrintCover(input: {
   academyName: string;
   documentTitle?: string;
   totalItems: number;
-  searchParams?: URLSearchParams | { get(name: string): string | null };
 }): VocabPrintCoverSettings {
   const { sections, mode, academyName, documentTitle, totalItems } = input;
   const multi = sections.length > 1;
   return {
     enabled: multi,
-    theme: "classic",
+    theme: "poster",
     title: defaultCoverTitle(documentTitle, sections),
     subtitle: defaultSubtitle(mode),
     seriesLabel: inferSeriesLabel(sections),
     academyName: academyName.trim() || "학원",
     metaLine: `${sections.length}세트 · ${totalItems}단어 · ${VOCAB_PRINT_MODE_LABELS[mode]}`,
+    slogan: defaultSlogan(mode),
+    badge: "학습용 교재",
+    heroMark: inferHeroMark(sections, totalItems),
     showNameFields: true,
   };
 }
@@ -110,11 +141,14 @@ export function buildDefaultVocabPrintCover(input: {
 export function parseVocabCoverTheme(
   raw: string | null | undefined
 ): VocabCoverTheme {
-  if (raw === "fresh" || raw === "minimal") return raw;
-  return "classic";
+  if (raw === "master" || raw === "pop") return raw;
+  // legacy
+  if (raw === "fresh") return "master";
+  if (raw === "minimal") return "pop";
+  if (raw === "classic") return "poster";
+  return "poster";
 }
 
-/** URL에 있는 표지 설정만 덮어씀. 없으면 defaults 유지. */
 export function mergeVocabPrintCoverFromSearchParams(
   defaults: VocabPrintCoverSettings,
   searchParams: URLSearchParams | { get(name: string): string | null }
@@ -130,6 +164,9 @@ export function mergeVocabPrintCoverFromSearchParams(
   const series = searchParams.get("cover_series");
   const academy = searchParams.get("cover_academy");
   const meta = searchParams.get("cover_meta");
+  const slogan = searchParams.get("cover_slogan");
+  const badge = searchParams.get("cover_badge");
+  const mark = searchParams.get("cover_mark");
   const nameFlag = searchParams.get("cover_name");
 
   return {
@@ -140,12 +177,16 @@ export function mergeVocabPrintCoverFromSearchParams(
     seriesLabel: series != null ? series : defaults.seriesLabel,
     academyName: academy != null ? academy : defaults.academyName,
     metaLine: meta != null ? meta : defaults.metaLine,
+    slogan: slogan != null ? slogan : defaults.slogan,
+    badge: badge != null ? badge : defaults.badge,
+    heroMark: mark != null ? mark : defaults.heroMark,
     showNameFields:
-      nameFlag != null ? nameFlag === "1" || nameFlag === "true" : defaults.showNameFields,
+      nameFlag != null
+        ? nameFlag === "1" || nameFlag === "true"
+        : defaults.showNameFields,
   };
 }
 
-/** 짧은 필드·토글만 URL에 기록 (긴 문구도 넣되 과도하면 생략하지 않음 — 교재 제목 수준) */
 export function applyVocabPrintCoverToSearchParams(
   params: URLSearchParams,
   cover: VocabPrintCoverSettings,
@@ -156,7 +197,7 @@ export function applyVocabPrintCoverToSearchParams(
   if (cover.enabled) params.set("cover", "1");
   else params.set("cover", "0");
 
-  if (cover.theme !== "classic") params.set("cover_theme", cover.theme);
+  if (cover.theme !== "poster") params.set("cover_theme", cover.theme);
   if (cover.title !== defaults.title) params.set("cover_title", cover.title);
   if (cover.subtitle !== defaults.subtitle) params.set("cover_sub", cover.subtitle);
   if (cover.seriesLabel !== defaults.seriesLabel) {
@@ -166,5 +207,8 @@ export function applyVocabPrintCoverToSearchParams(
     params.set("cover_academy", cover.academyName);
   }
   if (cover.metaLine !== defaults.metaLine) params.set("cover_meta", cover.metaLine);
+  if (cover.slogan !== defaults.slogan) params.set("cover_slogan", cover.slogan);
+  if (cover.badge !== defaults.badge) params.set("cover_badge", cover.badge);
+  if (cover.heroMark !== defaults.heroMark) params.set("cover_mark", cover.heroMark);
   if (!cover.showNameFields) params.set("cover_name", "0");
 }

@@ -759,8 +759,23 @@ export function VocabSetPrintView({
                         )
                       )}
                     </div>
+                    <p className="mt-1 text-[10px] leading-snug text-slate-500">
+                      포스터=다크교재 · 마스터=크림교재 · 컬러팝=비비드
+                    </p>
                   </div>
 
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      슬로건
+                    </span>
+                    <input
+                      type="text"
+                      value={cover.slogan}
+                      onChange={(e) => updateCover({ slogan: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      placeholder="시험에 나오는 것만 공부한다!"
+                    />
+                  </label>
                   <label className="block space-y-1">
                     <span className="text-[11px] font-medium text-slate-500">
                       메인 제목
@@ -783,6 +798,35 @@ export function VocabSetPrintView({
                       className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
                     />
                   </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block space-y-1">
+                      <span className="text-[11px] font-medium text-slate-500">
+                        큰 마크
+                      </span>
+                      <input
+                        type="text"
+                        value={cover.heroMark}
+                        onChange={(e) =>
+                          updateCover({ heroMark: e.target.value })
+                        }
+                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                        placeholder="85"
+                        maxLength={4}
+                      />
+                    </label>
+                    <label className="block space-y-1">
+                      <span className="text-[11px] font-medium text-slate-500">
+                        배지
+                      </span>
+                      <input
+                        type="text"
+                        value={cover.badge}
+                        onChange={(e) => updateCover({ badge: e.target.value })}
+                        className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                        placeholder="학습용 교재"
+                      />
+                    </label>
+                  </div>
                   <label className="block space-y-1">
                     <span className="text-[11px] font-medium text-slate-500">
                       시리즈 / 단계
@@ -812,7 +856,7 @@ export function VocabSetPrintView({
                   </label>
                   <label className="block space-y-1">
                     <span className="text-[11px] font-medium text-slate-500">
-                      부가 문구
+                      부가 문구 (· 로 구분)
                     </span>
                     <input
                       type="text"
