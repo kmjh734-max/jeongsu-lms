@@ -329,7 +329,7 @@ export function VocabSetPrintView({
     else params.set("font", cur.fontScale);
     if (cur.lineSpacing === "normal") params.delete("spacing");
     else params.set("spacing", cur.lineSpacing);
-    if (cur.bindingMargin) params.delete("bind");
+    if (cur.bindingMargin) params.set("bind", "1");
     else params.set("bind", "0");
     applyVocabPrintCoverToSearchParams(
       params,
@@ -367,15 +367,19 @@ export function VocabSetPrintView({
       else if (key === "font") next.fontScale = parseVocabPrintFontScale(value);
       else if (key === "spacing")
         next.lineSpacing = parseVocabPrintLineSpacing(value);
-      else next.bindingMargin = value === "1" || value === "true";
+      else next.bindingMargin = value !== "0" && value !== "false";
       layoutRef.current = next;
-      startTransition(() => {
-        setMode(next.mode);
-        setSize(next.size);
-        setFontScale(next.fontScale);
-        setLineSpacing(next.lineSpacing);
+      // bind는 URL echo와 경쟁하지 않도록 즉시 반영 (startTransition 제외)
+      if (key === "bind") {
         setBindingMargin(next.bindingMargin);
-      });
+      } else {
+        startTransition(() => {
+          setMode(next.mode);
+          setSize(next.size);
+          setFontScale(next.fontScale);
+          setLineSpacing(next.lineSpacing);
+        });
+      }
       queueLayoutUrlSync();
     },
     [queueLayoutUrlSync]
@@ -693,9 +697,15 @@ export function VocabSetPrintView({
               <input
                 type="checkbox"
                 checked={bindingMargin}
-                onChange={(e) =>
-                  setQuery("bind", e.target.checked ? "1" : "0")
-                }
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  layoutRef.current = {
+                    ...layoutRef.current,
+                    bindingMargin: on,
+                  };
+                  setBindingMargin(on);
+                  queueLayoutUrlSync();
+                }}
                 className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
               />
             </label>

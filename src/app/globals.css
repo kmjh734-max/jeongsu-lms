@@ -505,7 +505,17 @@
   --vocab-meaning-size: 12px;
 }
 
-/* 제본 여백 OFF: 좌우 동일 */
+/* 제본 여백 ON/OFF — 둘 다 명시해 토글 시 변수 잔존 방지 */
+.vocab-print-page--bind {
+  --vocab-pad-left: 16mm;
+  --vocab-pad-right: 6mm;
+}
+
+.vocab-print-page--b5.vocab-print-page--bind {
+  --vocab-pad-left: 14mm;
+  --vocab-pad-right: 5mm;
+}
+
 .vocab-print-page--nobind {
   --vocab-pad-left: 6mm;
   --vocab-pad-right: 6mm;
@@ -1031,6 +1041,14 @@
 }
 
 .vocab-print-page--b5 .vocab-cover-stage {
+  padding: 10mm 10mm 9mm 14mm;
+}
+
+.vocab-print-page--bind .vocab-cover-stage {
+  padding: 11mm 12mm 10mm 16mm;
+}
+
+.vocab-print-page--b5.vocab-print-page--bind .vocab-cover-stage {
   padding: 10mm 10mm 9mm 14mm;
 }
 

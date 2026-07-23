@@ -29,12 +29,13 @@ export function parseVocabPrintLineSpacing(
   return "normal";
 }
 
-/** 제본용 왼쪽 여백 — 기본 ON (bind=0 이면 OFF) */
+/** 제본용 왼쪽 여백 — 기본 ON. bind=0/false 만 OFF */
 export function parseVocabPrintBinding(
   raw: string | undefined | null
 ): boolean {
   if (raw == null || raw === "") return true;
-  return raw === "1" || raw === "true";
+  if (raw === "0" || raw === "false" || raw === "off") return false;
+  return true;
 }
 
 /** 글자·줄간격에 따른 페이지당 행 수 보정 */
