@@ -306,8 +306,8 @@ export function VocabSetPrintView({
     // Explicit mm sizes avoid A4 fallback when B5 keyword is ignored.
     el.textContent =
       size === "b5"
-        ? "@media print { @page { size: 176mm 250mm; margin: 0; } }"
-        : "@media print { @page { size: 210mm 297mm; margin: 0; } }";
+        ? "@media print { @page { size: JIS-B5; margin: 0; } }"
+        : "@media print { @page { size: A4; margin: 0; } }";
     document.body.dataset.vocabPrintSize = size;
     return () => {
       el?.remove();
