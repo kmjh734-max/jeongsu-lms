@@ -15,7 +15,7 @@ export type VocabPrintCoverSettings = {
   metaLine: string;
   slogan: string;
   badge: string;
-  /** 큰 숫자/글자 마크 (예: 85, A, W) */
+  /** 선택용 작은 라벨 (비우면 미표시) */
   heroMark: string;
   showNameFields: boolean;
 };
@@ -68,14 +68,6 @@ function inferSeriesLabel(sections: VocabPrintSection[]): string {
   return range.min === range.max
     ? `${band} · Day ${range.min}`
     : `${band} · Day ${range.min}–${range.max}`;
-}
-
-function inferHeroMark(sections: VocabPrintSection[], totalItems: number): string {
-  const range = inferDayRange(sections);
-  if (range) return String(range.max);
-  if (sections.length > 1) return String(sections.length);
-  if (totalItems >= 1000) return String(Math.round(totalItems / 1000) * 1000);
-  return "V";
 }
 
 function defaultSubtitle(mode: VocabPrintMode): string {
@@ -132,8 +124,8 @@ export function buildDefaultVocabPrintCover(input: {
     academyName: academyName.trim() || "학원",
     metaLine: `${sections.length}세트 · ${totalItems}단어 · ${VOCAB_PRINT_MODE_LABELS[mode]}`,
     slogan: defaultSlogan(mode),
-    badge: "학습용 교재",
-    heroMark: inferHeroMark(sections, totalItems),
+    badge: "",
+    heroMark: "",
     showNameFields: true,
   };
 }

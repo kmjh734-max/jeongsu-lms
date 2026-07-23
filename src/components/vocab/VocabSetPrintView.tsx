@@ -801,7 +801,7 @@ export function VocabSetPrintView({
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block space-y-1">
                       <span className="text-[11px] font-medium text-slate-500">
-                        큰 마크
+                        작은 라벨 (선택)
                       </span>
                       <input
                         type="text"
@@ -810,20 +810,20 @@ export function VocabSetPrintView({
                           updateCover({ heroMark: e.target.value })
                         }
                         className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
-                        placeholder="85"
-                        maxLength={4}
+                        placeholder="비워도 됨"
+                        maxLength={12}
                       />
                     </label>
                     <label className="block space-y-1">
                       <span className="text-[11px] font-medium text-slate-500">
-                        배지
+                        칩 배지 (선택)
                       </span>
                       <input
                         type="text"
                         value={cover.badge}
                         onChange={(e) => updateCover({ badge: e.target.value })}
                         className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
-                        placeholder="학습용 교재"
+                        placeholder="비워도 됨"
                       />
                     </label>
                   </div>
