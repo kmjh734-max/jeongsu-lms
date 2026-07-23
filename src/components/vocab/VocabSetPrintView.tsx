@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { VocabPrintCoverPage } from "@/components/vocab/VocabPrintCoverPage";
 import { VocabPrintExamConfig } from "@/components/vocab/VocabPrintExamConfig";
 import { VocabWorkbookPrintPages } from "@/components/vocab/VocabWorkbookPrintPages";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
@@ -32,6 +33,14 @@ import {
   parseExamPrintSettings,
   type ExamPrintSettings,
 } from "@/lib/vocab/vocab-print-exam-config";
+import {
+  applyVocabPrintCoverToSearchParams,
+  buildDefaultVocabPrintCover,
+  mergeVocabPrintCoverFromSearchParams,
+  VOCAB_COVER_THEME_LABELS,
+  type VocabCoverTheme,
+  type VocabPrintCoverSettings,
+} from "@/lib/vocab/vocab-print-cover";
 import {
   parseVocabPrintFontScale,
   parseVocabPrintLineSpacing,
@@ -196,6 +205,31 @@ export function VocabSetPrintView({
   const headerTitle =
     sections.length === 1 ? sections[0]!.title : title;
 
+  const coverDefaults = useMemo(
+    () =>
+      buildDefaultVocabPrintCover({
+        sections,
+        mode,
+        academyName,
+        documentTitle,
+        totalItems,
+      }),
+    [sections, mode, academyName, documentTitle, totalItems]
+  );
+
+  const [cover, setCover] = useState<VocabPrintCoverSettings>(() =>
+    mergeVocabPrintCoverFromSearchParams(
+      buildDefaultVocabPrintCover({
+        sections,
+        mode: parseVocabPrintMode(searchParams.get("mode") ?? undefined),
+        academyName,
+        documentTitle,
+        totalItems: sections.reduce((n, s) => n + s.items.length, 0),
+      }),
+      searchParams
+    )
+  );
+
   const measureRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const previewScrollRef = useRef<HTMLElement | null>(null);
@@ -204,6 +238,10 @@ export function VocabSetPrintView({
   const skipUrlEchoRef = useRef(false);
   const layoutRef = useRef({ mode, size, fontScale, lineSpacing });
   layoutRef.current = { mode, size, fontScale, lineSpacing };
+  const coverRef = useRef(cover);
+  coverRef.current = cover;
+  const coverDefaultsRef = useRef(coverDefaults);
+  coverDefaultsRef.current = coverDefaults;
 
   const examPagination = useVocabExamPagination({
     enabled: mode === "exam",
@@ -220,8 +258,9 @@ export function VocabSetPrintView({
   const examBasicQuestions = examPagination.basic;
   const examExampleQuestions = examPagination.examples;
 
-  const pageCount =
+  const bodyPageCount =
     mode === "exam" ? resolvedExamPages.length : flatPages.length;
+  const pageCount = bodyPageCount + (cover.enabled ? 1 : 0);
 
   useEffect(() => {
     return () => {
@@ -235,12 +274,21 @@ export function VocabSetPrintView({
       skipUrlEchoRef.current = false;
       return;
     }
-    setMode(parseVocabPrintMode(searchParams.get("mode") ?? undefined));
+    const nextMode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
+    setMode(nextMode);
     setSize(parseVocabPrintSize(searchParams.get("size") ?? undefined));
     setFontScale(parseVocabPrintFontScale(searchParams.get("font")));
     setLineSpacing(parseVocabPrintLineSpacing(searchParams.get("spacing")));
     setExamSettings(parseExamPrintSettings(searchParams));
-  }, [searchParams]);
+    const defaults = buildDefaultVocabPrintCover({
+      sections,
+      mode: nextMode,
+      academyName,
+      documentTitle,
+      totalItems,
+    });
+    setCover(mergeVocabPrintCoverFromSearchParams(defaults, searchParams));
+  }, [searchParams, sections, academyName, documentTitle, totalItems]);
 
   useEffect(() => {
     const id = "vocab-print-page-size-style";
@@ -268,6 +316,11 @@ export function VocabSetPrintView({
     else params.set("font", cur.fontScale);
     if (cur.lineSpacing === "normal") params.delete("spacing");
     else params.set("spacing", cur.lineSpacing);
+    applyVocabPrintCoverToSearchParams(
+      params,
+      coverRef.current,
+      coverDefaultsRef.current
+    );
     skipUrlEchoRef.current = true;
     router.replace(`?${params.toString()}`);
   }, [router, searchParams]);
@@ -278,6 +331,18 @@ export function VocabSetPrintView({
       syncLayoutToUrl();
     }, 400);
   }, [syncLayoutToUrl]);
+
+  const updateCover = useCallback(
+    (patch: Partial<VocabPrintCoverSettings>) => {
+      setCover((prev) => {
+        const next = { ...prev, ...patch };
+        coverRef.current = next;
+        return next;
+      });
+      queueLayoutUrlSync();
+    },
+    [queueLayoutUrlSync]
+  );
 
   const setQuery = useCallback(
     (key: "mode" | "size" | "font" | "spacing", value: string) => {
@@ -554,7 +619,9 @@ export function VocabSetPrintView({
                 {title}
               </h1>
               <p className="mt-1 text-xs text-slate-500">
-                {totalItems}단어 · {pageCount}페이지 · {VOCAB_PRINT_SIZE_LABELS[size]}
+                {totalItems}단어 · {pageCount}페이지
+                {cover.enabled ? " (표지 포함)" : ""} ·{" "}
+                {VOCAB_PRINT_SIZE_LABELS[size]}
                 {mode !== "exam"
                   ? ` · ${VOCAB_PRINT_FONT_LABELS[fontScale]} · ${VOCAB_PRINT_SPACING_LABELS[lineSpacing]}`
                   : ""}
@@ -654,6 +721,132 @@ export function VocabSetPrintView({
               </div>
             </div>
 
+            <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-slate-600">표지</p>
+                <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={cover.enabled}
+                    onChange={(e) => updateCover({ enabled: e.target.checked })}
+                    className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
+                  />
+                  포함
+                </label>
+              </div>
+
+              {cover.enabled ? (
+                <div className="space-y-2.5">
+                  <div>
+                    <p className="mb-1 text-[11px] font-medium text-slate-500">
+                      디자인
+                    </p>
+                    <div className="flex gap-1.5">
+                      {(Object.keys(VOCAB_COVER_THEME_LABELS) as VocabCoverTheme[]).map(
+                        (key) => (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => updateCover({ theme: key })}
+                            className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                              cover.theme === key
+                                ? "bg-slate-800 text-white"
+                                : "bg-white text-slate-700 ring-1 ring-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {VOCAB_COVER_THEME_LABELS[key]}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      메인 제목
+                    </span>
+                    <input
+                      type="text"
+                      value={cover.title}
+                      onChange={(e) => updateCover({ title: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      부제
+                    </span>
+                    <input
+                      type="text"
+                      value={cover.subtitle}
+                      onChange={(e) => updateCover({ subtitle: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      시리즈 / 단계
+                    </span>
+                    <input
+                      type="text"
+                      value={cover.seriesLabel}
+                      onChange={(e) =>
+                        updateCover({ seriesLabel: e.target.value })
+                      }
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                      placeholder="비우면 숨김"
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      학원명
+                    </span>
+                    <input
+                      type="text"
+                      value={cover.academyName}
+                      onChange={(e) =>
+                        updateCover({ academyName: e.target.value })
+                      }
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-medium text-slate-500">
+                      부가 문구
+                    </span>
+                    <input
+                      type="text"
+                      value={cover.metaLine}
+                      onChange={(e) => updateCover({ metaLine: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-xs text-slate-900"
+                    />
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={cover.showNameFields}
+                      onChange={(e) =>
+                        updateCover({ showNameFields: e.target.checked })
+                      }
+                      className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
+                    />
+                    이름 / 반 기입란
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      coverRef.current = coverDefaults;
+                      setCover(coverDefaults);
+                      queueLayoutUrlSync();
+                    }}
+                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100"
+                  >
+                    기본값으로 되돌리기
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
             {mode === "exam" ? (
               <div className="space-y-2">
                 <VocabPrintExamConfig
@@ -723,12 +916,16 @@ export function VocabSetPrintView({
             <div
               id="vocab-print-root"
               data-size={size}
-              className={
-                mode === "exam"
-                  ? "flex w-full max-w-[920px] flex-col items-center gap-8 print:max-w-none print:gap-0"
-                  : "w-full max-w-[920px] print:max-w-none"
-              }
+              className="flex w-full max-w-[920px] flex-col items-center gap-8 print:max-w-none print:gap-0"
             >
+              {cover.enabled ? (
+                <VocabPrintCoverPage
+                  cover={cover}
+                  size={size}
+                  logoSrc={logoSrc}
+                  pageBreakAfter={bodyPageCount > 0}
+                />
+              ) : null}
               {previewPages}
             </div>
           </div>
