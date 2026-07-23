@@ -15,60 +15,92 @@ type VocabPrintCoverPageProps = {
   pageBreakAfter?: boolean;
 };
 
-/** Quiet geometric backdrop — no 3D numbers / gold seals */
 function CoverBackdrop({ theme }: { theme: VocabCoverTheme }) {
   if (theme === "poster") {
     return (
-      <svg className="vocab-cover-bg" viewBox="0 0 400 560" aria-hidden focusable="false">
+      <svg
+        className="vocab-cover-bg"
+        viewBox="0 0 400 560"
+        preserveAspectRatio="xMidYMid slice"
+        aria-hidden
+        focusable="false"
+      >
         <defs>
-          <linearGradient id="vc-bg-p" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0.12" />
+          <linearGradient id="vc-p-bg" x1="0" y1="0" x2="0.35" y2="1">
+            <stop offset="0%" stopColor="#06201c" />
+            <stop offset="55%" stopColor="#0b1220" />
+            <stop offset="100%" stopColor="#111827" />
+          </linearGradient>
+          <linearGradient id="vc-p-slash" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.55" />
           </linearGradient>
         </defs>
-        <rect width="400" height="560" fill="url(#vc-bg-p)" />
-        <circle cx="340" cy="120" r="110" fill="#14b8a6" opacity="0.08" />
-        <circle cx="60" cy="480" r="90" fill="#818cf8" opacity="0.1" />
-        <path
-          d="M0 420 C120 360 200 500 400 380"
-          fill="none"
-          stroke="#14b8a6"
-          strokeWidth="1.5"
-          opacity="0.35"
-        />
+        <rect width="400" height="560" fill="url(#vc-p-bg)" />
+        <circle cx="355" cy="70" r="150" fill="#2dd4bf" opacity="0.14" />
+        <circle cx="-20" cy="500" r="160" fill="#6366f1" opacity="0.16" />
+        <polygon points="400,0 400,210 210,0" fill="url(#vc-p-slash)" opacity="0.9" />
+        <rect x="0" y="470" width="400" height="90" fill="#2dd4bf" opacity="0.12" />
       </svg>
     );
   }
 
   if (theme === "master") {
     return (
-      <svg className="vocab-cover-bg" viewBox="0 0 400 560" aria-hidden focusable="false">
-        <defs>
-          <linearGradient id="vc-bg-m" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ea580c" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#15803d" stopOpacity="0.06" />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="560" fill="url(#vc-bg-m)" />
-        <rect x="280" y="0" width="8" height="560" fill="#c2410c" opacity="0.12" />
-        <rect x="296" y="0" width="3" height="560" fill="#15803d" opacity="0.18" />
-        <path
-          d="M40 80 H360 M40 92 H280"
-          stroke="#3f2a1d"
-          strokeWidth="1"
-          opacity="0.12"
-        />
+      <svg
+        className="vocab-cover-bg"
+        viewBox="0 0 400 560"
+        preserveAspectRatio="xMidYMid slice"
+        aria-hidden
+        focusable="false"
+      >
+        <rect width="400" height="560" fill="#f3ebe2" />
+        <rect x="0" y="0" width="400" height="92" fill="#1c1917" />
+        <rect x="0" y="92" width="400" height="10" fill="#ea580c" />
+        <rect x="0" y="480" width="400" height="80" fill="#166534" opacity="0.12" />
+        <rect x="318" y="120" width="18" height="320" fill="#ea580c" opacity="0.85" />
+        <rect x="344" y="120" width="6" height="320" fill="#166534" opacity="0.7" />
       </svg>
     );
   }
 
   return (
-    <svg className="vocab-cover-bg" viewBox="0 0 400 560" aria-hidden focusable="false">
-      <circle cx="320" cy="160" r="140" fill="#fff" opacity="0.08" />
-      <circle cx="40" cy="420" r="100" fill="#000" opacity="0.1" />
-      <rect x="0" y="500" width="400" height="60" fill="#000" opacity="0.12" />
+    <svg
+      className="vocab-cover-bg"
+      viewBox="0 0 400 560"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id="vc-pop-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#1e3a8a" />
+          <stop offset="100%" stopColor="#2563eb" />
+        </linearGradient>
+      </defs>
+      <rect width="400" height="560" fill="url(#vc-pop-bg)" />
+      <circle cx="340" cy="130" r="170" fill="#fde047" opacity="0.22" />
+      <circle cx="40" cy="460" r="130" fill="#000" opacity="0.18" />
+      <rect x="0" y="0" width="22" height="560" fill="#fde047" />
+      <rect x="0" y="500" width="400" height="60" fill="#0f172a" opacity="0.35" />
     </svg>
   );
+}
+
+function splitMeta(metaLine: string): string[] {
+  return metaLine
+    .split(/[·|]/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function splitStat(part: string): { value: string; label: string } {
+  const m = part.match(/^(\d+(?:[.,]\d+)?)\s*(.*)$/);
+  if (m && m[1] && m[2]) {
+    return { value: m[1], label: m[2].trim() || part };
+  }
+  return { value: part.slice(0, 6), label: "" };
 }
 
 export function VocabPrintCoverPage({
@@ -79,11 +111,8 @@ export function VocabPrintCoverPage({
 }: VocabPrintCoverPageProps) {
   const dims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const theme = cover.theme;
-  const metaParts = cover.metaLine
-    .split(/[·|]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 4);
+  const metaParts = splitMeta(cover.metaLine);
+  const stats = metaParts.map(splitStat);
 
   return (
     <article
@@ -99,21 +128,20 @@ export function VocabPrintCoverPage({
       <div className="vocab-cover-stage">
         <CoverBackdrop theme={theme} />
 
-        <div className="vocab-cover-bar" aria-hidden />
-
         <header className="vocab-cover-top">
           <div className="vocab-cover-brand">
             <div className="vocab-cover-logo-box">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={logoSrc} alt="" className="vocab-cover-logo-img" />
             </div>
-            <div>
+            <div className="vocab-cover-brand-text">
               <p className="vocab-cover-academy">{cover.academyName}</p>
-              {cover.slogan.trim() ? (
-                <p className="vocab-cover-slogan">{cover.slogan}</p>
-              ) : null}
+              <p className="vocab-cover-kicker">Vocabulary Workbook</p>
             </div>
           </div>
+          {cover.heroMark.trim() ? (
+            <span className="vocab-cover-mark-soft">{cover.heroMark}</span>
+          ) : null}
         </header>
 
         <div className="vocab-cover-hero">
@@ -131,14 +159,24 @@ export function VocabPrintCoverPage({
           {cover.subtitle.trim() ? (
             <p className="vocab-cover-subtitle">{cover.subtitle}</p>
           ) : null}
-          {cover.heroMark.trim() ? (
-            <p className="vocab-cover-mark-soft">{cover.heroMark}</p>
-          ) : null}
         </div>
 
-        {metaParts.length > 0 ? (
-          <p className="vocab-cover-meta-line">{metaParts.join("  ·  ")}</p>
+        {stats.length > 0 ? (
+          <div className="vocab-cover-stats" aria-label={cover.metaLine}>
+            {stats.map((s, i) => (
+              <div key={`${s.value}-${i}`} className="vocab-cover-stat">
+                <strong>{s.value}</strong>
+                {s.label ? <span>{s.label}</span> : null}
+              </div>
+            ))}
+          </div>
         ) : null}
+
+        <div className="vocab-cover-band">
+          <span className="vocab-cover-band-text">
+            {cover.slogan.trim() || "Vocabulary Workbook"}
+          </span>
+        </div>
 
         <div className="vocab-cover-spacer" />
 
