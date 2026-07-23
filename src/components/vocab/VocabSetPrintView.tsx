@@ -300,14 +300,14 @@ export function VocabSetPrintView({
     if (!el) {
       el = document.createElement("style");
       el.id = id;
-      document.head.appendChild(el);
     }
-    // Printer margins default to 0 so the designed page fills the sheet.
-    // Explicit mm sizes avoid A4 fallback when B5 keyword is ignored.
+    // Save as PDF has no paper picker — CSS @page size alone defines the PDF page.
+    // Keep this stylesheet last in <body> so it wins over other @page rules.
     el.textContent =
       size === "b5"
-        ? "@media print { @page { size: 182mm 257mm; margin: 0; } }"
-        : "@media print { @page { size: 210mm 297mm; margin: 0; } }";
+        ? "@media print { @page { size: 182mm 257mm; margin: 0; } @page vocab-print-b5 { size: 182mm 257mm; margin: 0; } }"
+        : "@media print { @page { size: 210mm 297mm; margin: 0; } @page vocab-print-a4 { size: 210mm 297mm; margin: 0; } }";
+    document.body.appendChild(el);
     document.body.dataset.vocabPrintSize = size;
     return () => {
       el?.remove();
@@ -423,14 +423,30 @@ export function VocabSetPrintView({
     syncExamSettingsToUrl(next);
   }, [examSettings, syncExamSettingsToUrl]);
 
+  const ensurePrintPageStyle = useCallback(() => {
+    const id = "vocab-print-page-size-style";
+    let el = document.getElementById(id) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement("style");
+      el.id = id;
+    }
+    el.textContent =
+      size === "b5"
+        ? "@media print { @page { size: 182mm 257mm; margin: 0; } @page vocab-print-b5 { size: 182mm 257mm; margin: 0; } }"
+        : "@media print { @page { size: 210mm 297mm; margin: 0; } @page vocab-print-a4 { size: 210mm 297mm; margin: 0; } }";
+    document.body.appendChild(el);
+    document.body.dataset.vocabPrintSize = size;
+  }, [size]);
+
   const handlePrint = useCallback(() => {
+    ensurePrintPageStyle();
     if (mode === "exam") {
       window.print();
       return;
     }
     setPrintPreparing(true);
     setPrinting(true);
-  }, [mode]);
+  }, [mode, ensurePrintPageStyle]);
 
   useEffect(() => {
     if (!printing) return;
@@ -441,6 +457,7 @@ export function VocabSetPrintView({
     };
     const run = () => {
       if (cancelled) return;
+      ensurePrintPageStyle();
       setPrintPreparing(false);
       window.print();
     };
@@ -458,7 +475,7 @@ export function VocabSetPrintView({
       window.clearTimeout(fallback);
       window.removeEventListener("afterprint", finish);
     };
-  }, [printing, flatPages.length]);
+  }, [printing, flatPages.length, ensurePrintPageStyle]);
 
   const examPageStyle = {
     ["--vocab-exam-cols" as string]: examCols,
@@ -974,12 +991,15 @@ export function VocabSetPrintView({
                 {printPreparing ? "인쇄 준비 중…" : "인쇄 / PDF 저장"}
               </button>
               <p className="text-[10px] leading-snug text-slate-500">
-                PDF 저장 시: 용지{" "}
+                PDF 저장은 용지 선택이 없습니다. 위에서 고른{" "}
                 <strong className="font-semibold text-slate-700">
-                  {size === "b5" ? "B5 (JIS)" : "A4"}
+                  {size === "b5" ? "B5 (JIS) 182×257mm" : "A4 210×297mm"}
                 </strong>
-                · 여백 <strong className="font-semibold text-slate-700">없음</strong>
-                · 배율 <strong className="font-semibold text-slate-700">100%</strong>
+                크기로 저장됩니다. 여백은{" "}
+                <strong className="font-semibold text-slate-700">없음</strong>,
+                배율은{" "}
+                <strong className="font-semibold text-slate-700">기본/100%</strong>
+                으로 두세요.
               </p>
               <Link
                 href={backHref}

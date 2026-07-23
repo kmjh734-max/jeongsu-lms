@@ -1957,9 +1957,8 @@
 }
 
 @media print {
-/* 영어 변형문제 인쇄 (A4 2단 페이지) — 단어장은 아래 named page / JS 주입이 덮어씀 */
+/* 기본은 여백만 0. 용지 크기는 화면별 주입(@page size)이 결정 — PDF 저장에 용지 옵션 없어도 동작 */
   @page {
-    size: A4;
     margin: 0;
   }
 
@@ -1971,6 +1970,20 @@
   @page vocab-print-b5 {
     size: 182mm 257mm;
     margin: 0;
+  }
+
+  /* 변형문제·듣기 등 기존 A4 인쇄 */
+  @page app-print-a4 {
+    size: 210mm 297mm;
+    margin: 0;
+  }
+
+  #qg-print-root,
+  #listening-print-root,
+  #a4-print-root,
+  #shared-report-print-root,
+  #student-record-print-root {
+    page: app-print-a4;
   }
 
   .vocab-print-page--a4 {
