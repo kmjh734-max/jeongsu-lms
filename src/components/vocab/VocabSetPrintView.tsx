@@ -46,6 +46,7 @@ import {
   type VocabPrintCoverSettings,
 } from "@/lib/vocab/vocab-print-cover";
 import {
+  parseVocabPrintBinding,
   parseVocabPrintFontScale,
   parseVocabPrintLineSpacing,
   VOCAB_PRINT_FONT_LABELS,
@@ -138,6 +139,9 @@ export function VocabSetPrintView({
   const [lineSpacing, setLineSpacing] = useState(() =>
     parseVocabPrintLineSpacing(searchParams.get("spacing"))
   );
+  const [bindingMargin, setBindingMargin] = useState(() =>
+    parseVocabPrintBinding(searchParams.get("bind"))
+  );
   const [examSettings, setExamSettings] = useState<ExamPrintSettings>(() =>
     parseExamPrintSettings(searchParams)
   );
@@ -150,7 +154,7 @@ export function VocabSetPrintView({
   const deferredMode = useDeferredValue(mode);
   const examCols = examSettings.layout.columns;
   const examRowGapPx = EXAM_ROW_GAP_PX[examSettings.layout.lineSpacing];
-  const layoutClass = `vocab-print-page--font-${fontScale} vocab-print-page--spacing-${lineSpacing}`;
+  const layoutClass = `vocab-print-page--font-${fontScale} vocab-print-page--spacing-${lineSpacing} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"}`;
 
   const allItems = useMemo(
     () => sections.flatMap((s) => s.items),
@@ -240,8 +244,8 @@ export function VocabSetPrintView({
   const layoutUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const examUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const skipUrlEchoRef = useRef(false);
-  const layoutRef = useRef({ mode, size, fontScale, lineSpacing });
-  layoutRef.current = { mode, size, fontScale, lineSpacing };
+  const layoutRef = useRef({ mode, size, fontScale, lineSpacing, bindingMargin });
+  layoutRef.current = { mode, size, fontScale, lineSpacing, bindingMargin };
   const coverRef = useRef(cover);
   coverRef.current = cover;
   const coverDefaultsRef = useRef(coverDefaults);
@@ -283,6 +287,7 @@ export function VocabSetPrintView({
     setSize(parseVocabPrintSize(searchParams.get("size") ?? undefined));
     setFontScale(parseVocabPrintFontScale(searchParams.get("font")));
     setLineSpacing(parseVocabPrintLineSpacing(searchParams.get("spacing")));
+    setBindingMargin(parseVocabPrintBinding(searchParams.get("bind")));
     setExamSettings(parseExamPrintSettings(searchParams));
     const defaults = buildDefaultVocabPrintCover({
       sections,
@@ -324,6 +329,8 @@ export function VocabSetPrintView({
     else params.set("font", cur.fontScale);
     if (cur.lineSpacing === "normal") params.delete("spacing");
     else params.set("spacing", cur.lineSpacing);
+    if (cur.bindingMargin) params.delete("bind");
+    else params.set("bind", "0");
     applyVocabPrintCoverToSearchParams(
       params,
       coverRef.current,
@@ -353,18 +360,21 @@ export function VocabSetPrintView({
   );
 
   const setQuery = useCallback(
-    (key: "mode" | "size" | "font" | "spacing", value: string) => {
+    (key: "mode" | "size" | "font" | "spacing" | "bind", value: string) => {
       const next = { ...layoutRef.current };
       if (key === "mode") next.mode = parseVocabPrintMode(value);
       else if (key === "size") next.size = parseVocabPrintSize(value);
       else if (key === "font") next.fontScale = parseVocabPrintFontScale(value);
-      else next.lineSpacing = parseVocabPrintLineSpacing(value);
+      else if (key === "spacing")
+        next.lineSpacing = parseVocabPrintLineSpacing(value);
+      else next.bindingMargin = value === "1" || value === "true";
       layoutRef.current = next;
       startTransition(() => {
         setMode(next.mode);
         setSize(next.size);
         setFontScale(next.fontScale);
         setLineSpacing(next.lineSpacing);
+        setBindingMargin(next.bindingMargin);
       });
       queueLayoutUrlSync();
     },
@@ -524,7 +534,7 @@ export function VocabSetPrintView({
       resolvedExamPages.map((pageSlice, pageIndex) => (
         <article
           key={`exam-${pageIndex}`}
-          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${pageIndex < resolvedExamPages.length - 1 ? "vocab-print-page-break" : ""}`}
+          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} ${pageIndex < resolvedExamPages.length - 1 ? "vocab-print-page-break" : ""}`}
           data-size={size}
           style={examPageStyle}
         >
@@ -591,7 +601,7 @@ export function VocabSetPrintView({
             aria-hidden
           >
             <article
-              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale}`}
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"}`}
               style={examPageStyle}
             >
               <div
@@ -618,7 +628,7 @@ export function VocabSetPrintView({
             aria-hidden
           >
             <article
-              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--font-${fontScale}`}
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"}`}
               style={examPageStyle}
             >
               <PrintPageHeader
@@ -675,6 +685,20 @@ export function VocabSetPrintView({
                 ))}
               </div>
             </div>
+
+            <label className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <span className="text-xs font-semibold text-slate-700">
+                제본 여백 (왼쪽 넓게)
+              </span>
+              <input
+                type="checkbox"
+                checked={bindingMargin}
+                onChange={(e) =>
+                  setQuery("bind", e.target.checked ? "1" : "0")
+                }
+                className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
+              />
+            </label>
 
             <div className="space-y-2">
               <p className="text-xs font-semibold text-slate-600">글자 크기</p>
@@ -1038,6 +1062,7 @@ export function VocabSetPrintView({
                   cover={cover}
                   size={size}
                   logoSrc={logoSrc}
+                  bindingMargin={bindingMargin}
                   pageBreakAfter={bodyPageCount > 0}
                 />
               ) : null}

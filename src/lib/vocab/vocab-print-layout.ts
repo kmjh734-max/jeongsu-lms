@@ -29,6 +29,14 @@ export function parseVocabPrintLineSpacing(
   return "normal";
 }
 
+/** 제본용 왼쪽 여백 — 기본 ON (bind=0 이면 OFF) */
+export function parseVocabPrintBinding(
+  raw: string | undefined | null
+): boolean {
+  if (raw == null || raw === "") return true;
+  return raw === "1" || raw === "true";
+}
+
 /** 글자·줄간격에 따른 페이지당 행 수 보정 */
 export function vocabPrintRowsDelta(
   font: VocabPrintFontScale,

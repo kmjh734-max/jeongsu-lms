@@ -449,7 +449,8 @@
   --vocab-line: #dbe2ea;
   --vocab-soft-line: #edf2f7;
 
-  --vocab-pad-x: 6mm;
+  --vocab-pad-left: 16mm;
+  --vocab-pad-right: 6mm;
   --vocab-pad-top: 6mm;
   --vocab-pad-bottom: 5mm;
   --vocab-title-size: 24px;
@@ -471,7 +472,7 @@
   max-height: var(--vocab-page-height, 297mm);
   margin: 0 auto;
   overflow: hidden;
-  padding: var(--vocab-pad-top) var(--vocab-pad-x) var(--vocab-pad-bottom);
+  padding: var(--vocab-pad-top) var(--vocab-pad-right) var(--vocab-pad-bottom) var(--vocab-pad-left);
   background: #fff;
   color: #111827;
   box-shadow: 0 8px 30px rgb(15 23 42 / 0.12);
@@ -488,7 +489,8 @@
 }
 
 .vocab-print-page--b5 {
-  --vocab-pad-x: 5mm;
+  --vocab-pad-left: 14mm;
+  --vocab-pad-right: 5mm;
   --vocab-pad-top: 5mm;
   --vocab-pad-bottom: 4mm;
   --vocab-title-size: 21px;
@@ -501,6 +503,17 @@
   --vocab-row-pad-y: 8px;
   --vocab-main-word-size: 17px;
   --vocab-meaning-size: 12px;
+}
+
+/* 제본 여백 OFF: 좌우 동일 */
+.vocab-print-page--nobind {
+  --vocab-pad-left: 6mm;
+  --vocab-pad-right: 6mm;
+}
+
+.vocab-print-page--b5.vocab-print-page--nobind {
+  --vocab-pad-left: 5mm;
+  --vocab-pad-right: 5mm;
 }
 
 /* 글자 크기 (사이드바 조절) */
@@ -1012,11 +1025,19 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 11mm 12mm 10mm;
+  padding: 11mm 12mm 10mm 16mm;
   z-index: 1;
 }
 
 .vocab-print-page--b5 .vocab-cover-stage {
+  padding: 10mm 10mm 9mm 14mm;
+}
+
+.vocab-print-page--nobind .vocab-cover-stage {
+  padding: 11mm 12mm 10mm;
+}
+
+.vocab-print-page--b5.vocab-print-page--nobind .vocab-cover-stage {
   padding: 10mm 10mm 9mm;
 }
 
@@ -2121,11 +2142,19 @@
   }
 
   body[data-vocab-print-size="a4"] .vocab-cover-stage {
-    padding: 8mm 9mm 7mm !important;
+    padding: 11mm 12mm 10mm 16mm !important;
   }
 
   body[data-vocab-print-size="b5"] .vocab-cover-stage {
-    padding: 7mm 8mm 6mm !important;
+    padding: 10mm 11mm 9mm 14mm !important;
+  }
+
+  body[data-vocab-print-size] .vocab-print-page--nobind .vocab-cover-stage {
+    padding: 11mm 12mm 10mm !important;
+  }
+
+  body[data-vocab-print-size="b5"] .vocab-print-page--nobind .vocab-cover-stage {
+    padding: 10mm 10mm 9mm !important;
   }
 
   .vocab-print-page-break {

@@ -13,6 +13,8 @@ type VocabPrintCoverPageProps = {
   size: VocabPrintSize;
   logoSrc: string;
   pageBreakAfter?: boolean;
+  /** 제본용 왼쪽 여백 (기본 true) */
+  bindingMargin?: boolean;
 };
 
 /** Same poster geometry; only palette changes per theme */
@@ -97,6 +99,7 @@ export function VocabPrintCoverPage({
   size,
   logoSrc,
   pageBreakAfter = true,
+  bindingMargin = true,
 }: VocabPrintCoverPageProps) {
   const dims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const theme = cover.theme;
@@ -106,7 +109,7 @@ export function VocabPrintCoverPage({
 
   return (
     <article
-      className={`vocab-print-page vocab-print-page--${size} vocab-print-cover vocab-print-cover--${theme} vocab-print-cover-font--${cover.fontFamily} vocab-print-cover-size--${cover.titleSize} ${pageBreakAfter ? "vocab-print-page-break" : ""}`}
+      className={`vocab-print-page vocab-print-page--${size} vocab-print-cover vocab-print-cover--${theme} vocab-print-cover-font--${cover.fontFamily} vocab-print-cover-size--${cover.titleSize} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} ${pageBreakAfter ? "vocab-print-page-break" : ""}`}
       data-size={size}
       style={
         {
