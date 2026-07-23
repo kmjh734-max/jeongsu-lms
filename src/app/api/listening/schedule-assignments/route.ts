@@ -14,7 +14,8 @@ export async function GET() {
     const assignments = await listScheduleAssignments(
       access.admin,
       access.profile.role,
-      access.profile.id
+      access.profile.id,
+      access.profile.academy_id
     );
 
     return NextResponse.json({ ok: true, assignments });

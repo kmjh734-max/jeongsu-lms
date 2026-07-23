@@ -16,9 +16,11 @@ export interface ListeningSetFolderRow {
 export async function listListeningSetFolders(
   supabase: SupabaseClient,
   role: UserRole,
-  viewerId: string
+  _viewerId: string
 ): Promise<ListeningSetFolderRow[]> {
-  let query = supabase
+  // Teachers: RLS returns owned folders + curriculum folders in academy (098).
+  // Admins: academy-scoped RLS.
+  const { data, error } = await supabase
     .from("listening_set_folders")
     .select(
       "id, name, description, parent_id, teacher_id, created_by, order_index, created_at, updated_at"
@@ -26,11 +28,6 @@ export async function listListeningSetFolders(
     .order("order_index", { ascending: true })
     .order("name", { ascending: true });
 
-  if (role === "teacher") {
-    query = query.or(`teacher_id.eq.${viewerId},created_by.eq.${viewerId}`);
-  }
-
-  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []) as ListeningSetFolderRow[];
 }
@@ -47,7 +44,6 @@ export async function assertFolderAccessible(
     .from("listening_set_folders")
     .select("id")
     .eq("id", folderId)
-    .or(`teacher_id.eq.${viewerId},created_by.eq.${viewerId}`)
     .maybeSingle();
 
   return Boolean(data?.id);

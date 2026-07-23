@@ -6,6 +6,7 @@ import {
   chargeMonthlySeatOrError,
   chargeMonthlySeatsForStudents,
 } from "@/lib/credits/charge";
+import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -38,9 +39,25 @@ export async function POST(request: Request) {
       return jsonError("반 배정과 학생 배정은 한 번에 하나만 가능합니다.");
     }
 
+    const setAccess = await assertListeningSetAccess(setId);
+    if (!setAccess.ok) {
+      return jsonError(setAccess.message, setAccess.status);
+    }
+
     const supabase = await createClient();
+    const admin = createAdminClient();
 
     if (studentId) {
+      const { data: student } = await admin
+        .from("profiles")
+        .select("id, academy_id")
+        .eq("id", studentId)
+        .eq("role", "student")
+        .maybeSingle();
+      if (!student || student.academy_id !== profile.academy_id) {
+        return jsonError("같은 학원 학생만 배정할 수 있습니다.", 403);
+      }
+
       const seatErr = await chargeMonthlySeatOrError({
         academyId: profile.academy_id,
         studentId,
@@ -72,7 +89,18 @@ export async function POST(request: Request) {
       });
     }
 
-    const admin = createAdminClient();
+    const { data: cls } = await admin
+      .from("classes")
+      .select("id, academy_id, teacher_id")
+      .eq("id", classId!)
+      .maybeSingle();
+    if (!cls || cls.academy_id !== profile.academy_id) {
+      return jsonError("같은 학원 반만 배정할 수 있습니다.", 403);
+    }
+    if (profile.role === "teacher" && cls.teacher_id !== profile.id) {
+      return jsonError("담당 반만 배정할 수 있습니다.", 403);
+    }
+
     const { data: members } = await admin
       .from("class_students")
       .select("student_id")

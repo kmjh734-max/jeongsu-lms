@@ -59,11 +59,24 @@ export async function POST(request: Request) {
       return jsonError("학생을 선택하세요.");
     }
 
+    if (targetStudentId) {
+      const { data: student } = await access.admin
+        .from("profiles")
+        .select("id, academy_id")
+        .eq("id", targetStudentId)
+        .eq("role", "student")
+        .maybeSingle();
+      if (!student || student.academy_id !== access.profile.academy_id) {
+        return jsonError("같은 학원 학생만 배정할 수 있습니다.", 403);
+      }
+    }
+
     for (const setId of setIds) {
       const allowed = await teacherCanAccessSet(
         access.profile.id,
         access.profile.role,
-        setId
+        setId,
+        access.profile.academy_id
       );
       if (!allowed) return jsonError("접근할 수 없는 듣기 세트가 포함되어 있습니다.", 403);
     }
@@ -72,7 +85,8 @@ export async function POST(request: Request) {
       const allowed = await teacherCanAccessClass(
         access.profile.id,
         access.profile.role,
-        targetClassId
+        targetClassId,
+        access.profile.academy_id
       );
       if (!allowed) return jsonError("담당 반만 배정할 수 있습니다.", 403);
     }

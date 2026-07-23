@@ -22,12 +22,14 @@ export interface ScheduleAssignmentListItem {
 
 async function teacherClassIds(
   admin: SupabaseClient,
-  teacherId: string
+  teacherId: string,
+  academyId: string
 ): Promise<string[]> {
   const { data } = await admin
     .from("classes")
     .select("id")
     .eq("teacher_id", teacherId)
+    .eq("academy_id", academyId)
     .eq("is_active", true);
   return (data ?? []).map((r) => r.id as string);
 }
@@ -35,18 +37,20 @@ async function teacherClassIds(
 export async function listScheduleAssignments(
   admin: SupabaseClient,
   role: UserRole,
-  viewerId: string
+  viewerId: string,
+  academyId: string
 ): Promise<ScheduleAssignmentListItem[]> {
   let query = admin
     .from("listening_schedule_assignments")
     .select(
-      "id, title, target_type, target_class_id, target_student_id, start_date, end_date, days_of_week, questions_per_day, is_active, created_at, assigned_by"
+      "id, title, target_type, target_class_id, target_student_id, start_date, end_date, days_of_week, questions_per_day, is_active, created_at, assigned_by, academy_id"
     )
+    .eq("academy_id", academyId)
     .order("created_at", { ascending: false })
     .limit(200);
 
   if (role === "teacher") {
-    const classIds = await teacherClassIds(admin, viewerId);
+    const classIds = await teacherClassIds(admin, viewerId, academyId);
     if (classIds.length === 0) {
       query = query.eq("assigned_by", viewerId);
     } else {
@@ -151,21 +155,23 @@ export async function teacherCanManageAssignment(
   admin: SupabaseClient,
   role: UserRole,
   viewerId: string,
-  assignmentId: string
+  assignmentId: string,
+  academyId: string
 ): Promise<boolean> {
-  if (role === "admin") return true;
-
   const { data } = await admin
     .from("listening_schedule_assignments")
-    .select("assigned_by, target_class_id")
+    .select("assigned_by, target_class_id, academy_id")
     .eq("id", assignmentId)
     .maybeSingle();
 
   if (!data) return false;
+  if (!data.academy_id || data.academy_id !== academyId) return false;
+
+  if (role === "admin") return true;
   if (data.assigned_by === viewerId) return true;
 
   if (data.target_class_id) {
-    const classIds = await teacherClassIds(admin, viewerId);
+    const classIds = await teacherClassIds(admin, viewerId, academyId);
     return classIds.includes(data.target_class_id as string);
   }
 

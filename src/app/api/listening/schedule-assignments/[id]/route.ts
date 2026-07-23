@@ -24,7 +24,8 @@ export async function PATCH(
       access.admin,
       access.profile.role,
       access.profile.id,
-      id
+      id,
+      access.profile.academy_id
     );
     if (!allowed) return jsonError("이 과제를 수정할 권한이 없습니다.", 403);
 
@@ -39,7 +40,8 @@ export async function PATCH(
         const allowed = await teacherCanAccessSet(
           access.profile.id,
           access.profile.role,
-          setId
+          setId,
+          access.profile.academy_id
         );
         if (!allowed) {
           return jsonError("접근할 수 없는 듣기 세트가 포함되어 있습니다.", 403);
@@ -137,7 +139,8 @@ export async function DELETE(
       access.admin,
       access.profile.role,
       access.profile.id,
-      id
+      id,
+      access.profile.academy_id
     );
     if (!allowed) return jsonError("이 과제를 삭제할 권한이 없습니다.", 403);
 

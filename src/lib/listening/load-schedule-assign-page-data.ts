@@ -21,7 +21,8 @@ export interface ScheduleAssignPageData {
 async function loadScheduleStudentOptions(
   supabase: SupabaseClient,
   role: UserRole,
-  viewerId: string
+  viewerId: string,
+  academyId: string
 ): Promise<ScheduleStudentOption[]> {
   if (role === "teacher") {
     const { data: classes } = await supabase
@@ -62,6 +63,7 @@ async function loadScheduleStudentOptions(
     .select("id, name")
     .eq("role", "student")
     .eq("is_active", true)
+    .eq("academy_id", academyId)
     .order("name")
     .limit(500);
 
@@ -74,7 +76,8 @@ async function loadScheduleStudentOptions(
 export async function loadScheduleAssignPageData(
   supabase: SupabaseClient,
   role: UserRole,
-  viewerId: string
+  viewerId: string,
+  academyId: string
 ): Promise<ScheduleAssignPageData> {
   const admin = createAdminClient();
 
@@ -83,7 +86,7 @@ export async function loadScheduleAssignPageData(
     .select("id, title, folder_id, order_index")
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: false })
-    .limit(200);
+    .limit(300);
 
   let classesQuery = supabase
     .from("classes")
@@ -92,7 +95,10 @@ export async function loadScheduleAssignPageData(
     .order("name");
 
   if (role === "teacher") {
-    setsQuery = setsQuery.eq("teacher_id", viewerId);
+    // 본인 세트 + 학원 커리큘럼 잠금 세트 (RLS가 academy 격리)
+    setsQuery = setsQuery.or(
+      `teacher_id.eq.${viewerId},description.ilike.%curriculum_locked%`
+    );
     classesQuery = classesQuery.eq("teacher_id", viewerId);
   }
 
@@ -101,15 +107,39 @@ export async function loadScheduleAssignPageData(
     const rows = await listListeningSetFolders(supabase, role, viewerId);
     folders = rows.map((f) => ({ id: f.id, name: f.name }));
   } catch {
-    folders = [];
+    // RLS 미적용 환경 폴백: academy 폴더를 admin으로 조회
+    const { data } = await admin
+      .from("listening_set_folders")
+      .select("id, name")
+      .eq("academy_id", academyId)
+      .order("name");
+    folders = (data ?? []).map((f) => ({
+      id: f.id as string,
+      name: f.name as string,
+    }));
+  }
+
+  // 교사에게 커리큘럼 폴더가 안 보이면 academy 폴더를 합침
+  if (role === "teacher") {
+    const { data: academyFolders } = await admin
+      .from("listening_set_folders")
+      .select("id, name")
+      .eq("academy_id", academyId)
+      .order("name");
+    const seen = new Set(folders.map((f) => f.id));
+    for (const f of academyFolders ?? []) {
+      if (!seen.has(f.id as string)) {
+        folders.push({ id: f.id as string, name: f.name as string });
+      }
+    }
   }
 
   const [assignments, { data: classes }, { data: sets }, students] =
     await Promise.all([
-      listScheduleAssignments(admin, role, viewerId),
+      listScheduleAssignments(admin, role, viewerId, academyId),
       classesQuery,
       setsQuery,
-      loadScheduleStudentOptions(supabase, role, viewerId),
+      loadScheduleStudentOptions(supabase, role, viewerId, academyId),
     ]);
 
   return {

@@ -7,8 +7,16 @@ import { createClient } from "@/lib/supabase/server";
 export default async function TeacherListeningAssignPage() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
+  const academyId = profile!.academy_id;
+  if (!academyId) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        소속 학원 정보가 없습니다. EngCore Admin에서 학원에 연결해 주세요.
+      </div>
+    );
+  }
   const { assignments, classes, sets, folders, students } =
-    await loadScheduleAssignPageData(supabase, "teacher", profile!.id);
+    await loadScheduleAssignPageData(supabase, "teacher", profile!.id, academyId);
 
   return (
     <div className="space-y-6">

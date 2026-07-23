@@ -1,6 +1,7 @@
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { listeningSetIsLocked } from "@/lib/listening/listening-api-auth";
 
 export async function assertScheduleManager() {
   const profile = await getCurrentProfile();
@@ -26,33 +27,43 @@ export async function assertStudentProfile() {
   return { ok: true as const, profile, admin: createAdminClient() };
 }
 
+/** Own set, or locked curriculum in the same academy. Always academy-scoped. */
 export async function teacherCanAccessSet(
   profileId: string,
   role: string,
-  setId: string
+  setId: string,
+  academyId: string
 ): Promise<boolean> {
-  if (role === "admin") return true;
-  const supabase = await createClient();
-  const { data } = await supabase
+  const admin = createAdminClient();
+  const { data } = await admin
     .from("listening_sets")
-    .select("id, teacher_id, created_by")
+    .select("id, teacher_id, created_by, academy_id, is_locked, description")
     .eq("id", setId)
     .maybeSingle();
   if (!data) return false;
-  return data.teacher_id === profileId || data.created_by === profileId;
+  if (!data.academy_id || data.academy_id !== academyId) return false;
+
+  if (role === "admin") return true;
+
+  const owns =
+    data.teacher_id === profileId || data.created_by === profileId;
+  return owns || listeningSetIsLocked(data);
 }
 
 export async function teacherCanAccessClass(
   profileId: string,
   role: string,
-  classId: string
+  classId: string,
+  academyId: string
 ): Promise<boolean> {
-  if (role === "admin") return true;
-  const supabase = await createClient();
-  const { data } = await supabase
+  const admin = createAdminClient();
+  const { data } = await admin
     .from("classes")
-    .select("id, teacher_id")
+    .select("id, teacher_id, academy_id")
     .eq("id", classId)
     .maybeSingle();
-  return data?.teacher_id === profileId;
+  if (!data) return false;
+  if (!data.academy_id || data.academy_id !== academyId) return false;
+  if (role === "admin") return true;
+  return data.teacher_id === profileId;
 }
