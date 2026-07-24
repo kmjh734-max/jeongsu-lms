@@ -263,7 +263,7 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
   const points = analysis.trendPoints;
   const w = 520;
   const h = 232;
-  const pad = { t: 30, r: 16, b: 40, l: 40 };
+  const pad = { t: 30, r: 44, b: 40, l: 44 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const n = points.length;
@@ -321,9 +321,9 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
               <g key={`${domain}-${p.attemptNumber}`}>
                 <text
                   x={xAt(i)}
-                  y={yAt(p.domains[domain].levelOrder) - 10}
+                  y={yAt(p.domains[domain].levelOrder) - 9}
                   textAnchor="middle"
-                  fontSize={11}
+                  fontSize={8.5}
                   fontWeight={700}
                   fill={DOMAIN_COLORS[domain]}
                 >
