@@ -56,26 +56,50 @@ export async function POST(request: Request) {
     );
   }
 
+  // 미리보기 local-* id는 DB에 넣을 수 없음 → 항상 저장된 회차로 재구성
   const attempts = await loadStudentNeltAttempts(
     auth.supabase,
     auth.academyId,
     studentName
   );
-  const analysis =
-    body.analysis ?? buildNeltGrowthAnalysis(studentName, attempts);
+  const analysis = buildNeltGrowthAnalysis(studentName, attempts);
   if (!analysis || analysis.attemptCount < 2) {
     return NextResponse.json(
-      { ok: false, message: "회차가 2개 이상이어야 공유할 수 있습니다." },
+      {
+        ok: false,
+        message:
+          "저장된 회차가 2개 이상이어야 공유할 수 있습니다. 링크를 저장한 뒤 다시 시도해 주세요.",
+      },
       { status: 400 }
     );
+  }
+
+  // 클라이언트가 이미 AI 서술을 갖고 있으면 스냅샷에만 유지(회차 지문 일치 시)
+  if (
+    body.analysis?.aiNarratives &&
+    body.analysis.attemptCount === analysis.attemptCount &&
+    body.analysis.start.attemptNumber === analysis.start.attemptNumber &&
+    body.analysis.end.attemptNumber === analysis.end.attemptNumber
+  ) {
+    analysis.aiNarratives = body.analysis.aiNarratives;
+    Object.assign(analysis, {
+      overallNarrative:
+        body.analysis.overallNarrative || analysis.overallNarrative,
+      strengthsNarrative:
+        body.analysis.strengthsNarrative || analysis.strengthsNarrative,
+      stableNarrative:
+        body.analysis.stableNarrative || analysis.stableNarrative,
+      nextGoalsNarrative:
+        body.analysis.nextGoalsNarrative || analysis.nextGoalsNarrative,
+    });
   }
 
   const growth = await upsertNeltGrowthReport(auth.supabase, {
     academyId: auth.academyId,
     studentName,
     createdBy: auth.profile.id,
-    attempts: analysis.attempts,
-    reportIds: analysis.attempts.map((a) => a.id),
+    attempts,
+    reportIds: attempts.map((a) => a.id),
   });
   if (!growth.ok) {
     return NextResponse.json(
