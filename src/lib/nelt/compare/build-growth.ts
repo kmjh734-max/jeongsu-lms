@@ -167,22 +167,20 @@ function domainNarrative(
     parts.push(
       `${before.difficultyCode ?? "이전"}에서 ${
         after.difficultyCode ?? "최근"
-      } 단계로 더 높은 시험 난이도에 도전했습니다.`
+      } 범위에 도전하며 다음 단계에서 보완할 항목이 구체적으로 확인되었습니다.`
     );
     if (after.evaluatedLevel) {
       parts.push(
-        `높아진 난이도에서도 ${after.evaluatedLevel} 수준을 ${
-          c.levelDelta != null && c.levelDelta >= 0 ? "유지·성장" : "확인"
-        }했습니다.`
+        `현재 ${after.evaluatedLevel} 수준을 기준으로 학습을 이어가고 있습니다.`
       );
     }
   } else if (c.scoreComparable && c.scoreDelta != null && c.scoreDelta > 0) {
     parts.push(
-      `동일 난이도(${after.difficultyCode})에서 점수가 ${before.rawScore}점에서 ${after.rawScore}점으로 ${c.scoreDelta}점 상승했습니다.`
+      `${after.difficultyCode ?? label} 범위에서 점수가 ${before.rawScore}점에서 ${after.rawScore}점으로 올랐습니다.`
     );
   } else if (c.status === "maintained") {
     parts.push(
-      `${label}은(는) ${after.evaluatedLevel ?? "현재 수준"}을 안정적으로 유지하고 있습니다.`
+      `${label}은(는) ${after.evaluatedLevel ?? "현재 수준"}에 도달한 뒤 안정적으로 유지하고 있습니다.`
     );
   } else {
     parts.push(
@@ -593,7 +591,7 @@ function buildCopy(analysis: Omit<
     stable.length > 0
       ? `${stable
           .map((d) => d.label)
-          .join("·")} 영역은 높아진 난이도나 최근 수준을 안정적으로 유지하고 있습니다.`
+          .join("·")} 영역은 최근 확보한 수준을 안정적으로 유지하고 있습니다.`
       : "현재 확보한 수준을 바탕으로 다음 목표를 설정합니다.";
 
   const focusLines = focus.map((d) => analysis.learningPlan[d.domain].nextGoal);

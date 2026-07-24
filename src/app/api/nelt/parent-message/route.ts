@@ -3,6 +3,7 @@ import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
 import {
   buildNeltParentMessageFallback,
   generateNeltParentMessageAi,
+  type NeltParentMessageTone,
 } from "@/lib/nelt/generate-parent-message";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
@@ -12,11 +13,22 @@ import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+function normalizeTone(value: unknown): NeltParentMessageTone {
+  if (value === "short" || value === "detail" || value === "standard") {
+    return value;
+  }
+  return "standard";
+}
+
 export async function POST(request: Request) {
   const auth = await requireNeltStaff();
   if (!auth.ok) return auth.error;
 
-  let body: { studentName?: string; analysis?: NeltGrowthAnalysis };
+  let body: {
+    studentName?: string;
+    analysis?: NeltGrowthAnalysis;
+    tone?: NeltParentMessageTone;
+  };
   try {
     body = await request.json();
   } catch {
@@ -28,6 +40,7 @@ export async function POST(request: Request) {
 
   let analysis = body.analysis ?? null;
   const studentName = body.studentName?.trim() || analysis?.studentName?.trim();
+  const tone = normalizeTone(body.tone);
 
   if (!analysis && studentName) {
     const attempts = await loadStudentNeltAttempts(
@@ -45,10 +58,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const ai = await generateNeltParentMessageAi(analysis, ACADEMY_NAME);
+  const ai = await generateNeltParentMessageAi(analysis, ACADEMY_NAME, tone);
   const message = ai.ok
     ? ai.message
-    : buildNeltParentMessageFallback(analysis, ACADEMY_NAME);
+    : buildNeltParentMessageFallback(analysis, ACADEMY_NAME, tone);
 
   // 성장 리포트에 저장 (있으면)
   await auth.supabase

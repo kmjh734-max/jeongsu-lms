@@ -1,6 +1,7 @@
 "use client";
 
 import { DOMAIN_LABEL } from "@/lib/nelt/compare/build-growth";
+import type { NeltDomainSection } from "@/lib/nelt/compare/domain-sections";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 import type { NeltDomain } from "@/types/nelt";
 
@@ -11,7 +12,9 @@ const DOMAIN_COLORS: Record<NeltDomain, string> = {
   reading: "#7c3aed",
 };
 
-/** 1·2·3차 판정 수준 / 어휘량 추이 (SVG, 의존성 없음) */
+const SERIES_COLORS = ["#f28c28", "#244a78", "#168f62", "#7c3aed", "#0ea5e9"];
+
+/** 전체 영역 수준 선그래프 + 회차 간 타임라인 */
 export function NeltTrendCharts({ analysis }: { analysis: NeltGrowthAnalysis }) {
   const points = analysis.trendPoints ?? [];
   if (points.length < 2) return null;
@@ -20,11 +23,10 @@ export function NeltTrendCharts({ analysis }: { analysis: NeltGrowthAnalysis }) 
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#dce3ed] p-4">
         <h4 className="m-0 text-base font-bold text-[#172033]">
-          회차별 영역 수준 추이
+          전체 영역 수준 변화
         </h4>
         <p className="mb-3 mt-1 text-xs text-[#68748a]">
-          1차 → {points.length}차까지 판정 수준(정규화)이 어떻게 변했는지
-          보여 줍니다.
+          1차부터 {points.length}차까지 어휘·문법·듣기·독해의 수준 흐름입니다.
         </p>
         <LevelLineChart analysis={analysis} />
         <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-[#68748a]">
@@ -40,58 +42,152 @@ export function NeltTrendCharts({ analysis }: { analysis: NeltGrowthAnalysis }) 
         </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-2xl border border-[#dce3ed] p-4">
-          <h4 className="m-0 text-base font-bold text-[#172033]">
-            어휘량 회차 추이
-          </h4>
-          <p className="mb-3 mt-1 text-xs text-[#68748a]">
-            Vocabulary Size가 회차마다 어떻게 늘었는지 확인합니다.
-          </p>
-          <VocabTrendBars analysis={analysis} />
+      {(analysis.attemptSteps?.length ?? 0) > 0 && (
+        <section className="grid gap-3 md:grid-cols-3">
+          {(analysis.attemptSteps ?? []).map((step) => (
+            <div
+              key={`${step.fromAttempt}-${step.toAttempt}`}
+              className="rounded-2xl border border-[#dce3ed] bg-[#f8fbff] px-3.5 py-3"
+            >
+              <p className="text-sm font-bold text-[#152d4f]">
+                {step.fromAttempt}차 → {step.toAttempt}차
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#172033]">
+                {step.summary}
+              </p>
+              <span className="mt-2 inline-block rounded-full bg-[#edf4ff] px-2 py-0.5 text-[11px] font-bold text-[#244a78]">
+                {step.domainLines.some(
+                  (d) =>
+                    d.status === "major_growth" || d.status === "growth"
+                )
+                  ? "성장 구간"
+                  : "다음 목표 확인"}
+              </span>
+            </div>
+          ))}
+          {analysis.attemptCount >= 3 && (
+            <div className="rounded-2xl border border-[#f3dcc0] bg-[#fff8ef] px-3.5 py-3 md:col-span-1">
+              <p className="text-sm font-bold text-[#152d4f]">
+                1차 → {analysis.attemptCount}차 누적
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#172033]">
+                {analysis.strengthsNarrative}
+              </p>
+              <span className="mt-2 inline-block rounded-full bg-[#fff3e5] px-2 py-0.5 text-[11px] font-bold text-[#b86a12]">
+                누적 성장 확인
+              </span>
+            </div>
+          )}
         </section>
+      )}
+    </div>
+  );
+}
 
-        {(analysis.attemptSteps?.length ?? 0) > 0 && (
-          <section className="rounded-2xl border border-[#dce3ed] p-4">
-            <h4 className="m-0 text-base font-bold text-[#172033]">
-              회차 간 변화 요약
-            </h4>
-            <p className="mb-3 mt-1 text-xs text-[#68748a]">
-              바로 이전 회차와 비교한 성장입니다.
-            </p>
-            <ol className="space-y-3">
-              {(analysis.attemptSteps ?? []).map((step) => (
-                <li
-                  key={`${step.fromAttempt}-${step.toAttempt}`}
-                  className="rounded-xl bg-[#f8fbff] px-3 py-2.5"
+export function DomainMetricsChart({
+  section,
+}: {
+  section: NeltDomainSection;
+}) {
+  const labels = section.stages.map((s) => `${s.attempt}차`);
+  const series = section.chart.series;
+  if (series.length === 0 || labels.length < 2) {
+    return (
+      <p className="py-8 text-center text-xs text-[#68748a]">
+        그래프를 그릴 데이터가 부족합니다.
+      </p>
+    );
+  }
+
+  const w = 420;
+  const h = 200;
+  const pad = { t: 18, r: 14, b: 34, l: 34 };
+  const innerW = w - pad.l - pad.r;
+  const innerH = h - pad.t - pad.b;
+  const maxY = Math.max(1, section.chart.maxY);
+  const n = labels.length;
+
+  function xAt(i: number) {
+    if (n === 1) return pad.l + innerW / 2;
+    return pad.l + (i / (n - 1)) * innerW;
+  }
+  function yAt(v: number) {
+    const clamped = Math.max(0, Math.min(maxY, v));
+    return pad.t + innerH - (clamped / maxY) * innerH;
+  }
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full max-w-full">
+        {[0, 0.25, 0.5, 0.75, 1].map((t) => {
+          const y = pad.t + innerH * (1 - t);
+          return (
+            <line
+              key={t}
+              x1={pad.l}
+              x2={w - pad.r}
+              y1={y}
+              y2={y}
+              stroke="#edf0f5"
+              strokeWidth={1}
+            />
+          );
+        })}
+        {series.map((s, si) => {
+          const color = SERIES_COLORS[si % SERIES_COLORS.length];
+          const path = s.values
+            .map((v, i) => `${i === 0 ? "M" : "L"}${xAt(i)},${yAt(v)}`)
+            .join(" ");
+          return (
+            <g key={s.name}>
+              <path
+                d={path}
+                fill="none"
+                stroke={color}
+                strokeWidth={2.4}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+              {s.values.map((v, i) => (
+                <circle
+                  key={`${s.name}-${i}`}
+                  cx={xAt(i)}
+                  cy={yAt(v)}
+                  r={3.5}
+                  fill={color}
                 >
-                  <p className="text-sm font-bold text-[#152d4f]">
-                    {step.fromAttempt}차 → {step.toAttempt}차
-                    {step.fromDate || step.toDate
-                      ? ` · ${(step.fromDate ?? "").replaceAll("-", ".")} → ${(
-                          step.toDate ?? ""
-                        ).replaceAll("-", ".")}`
-                      : ""}
-                  </p>
-                  <p className="mt-1 text-sm text-[#172033]">{step.summary}</p>
-                  <ul className="mt-2 space-y-0.5 text-xs text-[#68748a]">
-                    {step.domainLines
-                      .filter(
-                        (d) =>
-                          d.status === "major_growth" ||
-                          d.status === "growth" ||
-                          d.status === "advanced_challenge"
-                      )
-                      .slice(0, 3)
-                      .map((d) => (
-                        <li key={d.domain}>· {d.line}</li>
-                      ))}
-                  </ul>
-                </li>
+                  <title>
+                    {labels[i]} · {s.name}: {s.display[i]}
+                  </title>
+                </circle>
               ))}
-            </ol>
-          </section>
-        )}
+            </g>
+          );
+        })}
+        {labels.map((label, i) => (
+          <text
+            key={label}
+            x={xAt(i)}
+            y={h - 10}
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight={700}
+            fill="#68748a"
+          >
+            {label}
+          </text>
+        ))}
+      </svg>
+      <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#68748a]">
+        {series.map((s, si) => (
+          <span key={s.name} className="inline-flex items-center gap-1.5">
+            <i
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ background: SERIES_COLORS[si % SERIES_COLORS.length] }}
+            />
+            {s.name}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -157,7 +253,15 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
                 cy={yAt(p.domains[domain].levelOrder)}
                 r={4}
                 fill={DOMAIN_COLORS[domain]}
-              />
+              >
+                <title>
+                  {p.label} · {DOMAIN_LABEL[domain]}:{" "}
+                  {p.domains[domain].level ?? "—"}
+                  {p.domains[domain].difficulty
+                    ? ` (${p.domains[domain].difficulty})`
+                    : ""}
+                </title>
+              </circle>
             ))}
           </g>
         );
@@ -173,7 +277,6 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
           fill="#68748a"
         >
           {p.label}
-          {p.testDate ? `\n` : ""}
         </text>
       ))}
       {points.map((p, i) =>
@@ -191,45 +294,5 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
         ) : null
       )}
     </svg>
-  );
-}
-
-function VocabTrendBars({ analysis }: { analysis: NeltGrowthAnalysis }) {
-  const sizes = analysis.trendPoints.map((p) => p.vocabularySize ?? 0);
-  const max = Math.max(1, ...sizes);
-  return (
-    <div className="flex h-[200px] items-end justify-center gap-4 border-b border-[#dce3ed] px-2 pt-2">
-      {analysis.trendPoints.map((p, i) => {
-        const size = p.vocabularySize ?? 0;
-        const h = Math.max(12, (size / max) * 150);
-        const isLast = i === analysis.trendPoints.length - 1;
-        const prev = i > 0 ? sizes[i - 1] : null;
-        const delta = prev != null && size > 0 ? size - prev : null;
-        return (
-          <div
-            key={p.attemptNumber}
-            className="flex h-full flex-1 flex-col justify-end text-center"
-          >
-            <div className="mb-1 text-xs font-black text-[#152d4f]">
-              {size ? size.toLocaleString() : "—"}
-            </div>
-            {delta != null && delta > 0 && (
-              <div className="mb-0.5 text-[10px] font-bold text-[#168f62]">
-                +{delta.toLocaleString()}
-              </div>
-            )}
-            <div
-              className={`mx-auto w-[70%] max-w-[72px] rounded-t-xl ${
-                isLast
-                  ? "bg-gradient-to-b from-[#ffad52] to-[#f28c28]"
-                  : "bg-[#bdc8d8]"
-              }`}
-              style={{ height: h }}
-            />
-            <div className="mt-1.5 text-xs font-extrabold">{p.label}</div>
-          </div>
-        );
-      })}
-    </div>
   );
 }
