@@ -13,9 +13,14 @@ import { resolveLevelOrder } from "@/lib/nelt/level-order";
 
 interface NeltImportPanelProps {
   role: "admin" | "teacher";
+  /** 메인(/nelt)에 바로 붙일 때 true — 이름 입력·페이지헤더 생략 */
+  embedded?: boolean;
+  /** 기존 학생에 회차 추가할 때 미리 채울 이름 */
+  initialStudentName?: string;
 }
 
 type SlotState = {
+  id: string;
   url: string;
   status: "idle" | "loading" | "ok" | "error";
   message: string;
@@ -23,8 +28,11 @@ type SlotState = {
   duplicates: Array<{ id: string; testDate: string | null }>;
 };
 
+let slotSeq = 0;
 function emptySlot(): SlotState {
+  slotSeq += 1;
   return {
+    id: `slot-${slotSeq}`,
     url: "",
     status: "idle",
     message: "입력 대기",
@@ -88,59 +96,96 @@ function draftToAttempt(
   };
 }
 
-/** 프로토타입: 1차·2차 링크를 각각 입력 → 분석 → 성장 리포트 */
-export function NeltImportPanel({ role }: NeltImportPanelProps) {
+function statusClass(s: SlotState["status"]) {
+  if (s === "ok") return "text-emerald-700 font-bold";
+  if (s === "loading") return "text-orange-600 font-bold";
+  if (s === "error") return "text-red-700 font-bold";
+  return "text-slate-500";
+}
+
+/** 1·2차(+추가 회차) 링크 입력 → 분석 → 성장 리포트. 이름은 링크에서 추출 */
+export function NeltImportPanel({
+  role,
+  embedded = false,
+  initialStudentName = "",
+}: NeltImportPanelProps) {
   const base = role === "admin" ? "/admin/nelt" : "/teacher/nelt";
   const router = useRouter();
-  const [studentName, setStudentName] = useState("");
-  const [slot1, setSlot1] = useState<SlotState>(emptySlot);
-  const [slot2, setSlot2] = useState<SlotState>(emptySlot);
+  const [slots, setSlots] = useState<SlotState[]>(() => [
+    emptySlot(),
+    emptySlot(),
+  ]);
+  const [nameOverride, setNameOverride] = useState(initialStudentName);
   const [showEditor, setShowEditor] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [analyzingAll, setAnalyzingAll] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
 
-  const analysis = useMemo(() => {
-    if (!slot1.draft || !slot2.draft) return null;
-    const name =
-      studentName.trim() ||
-      slot2.draft.studentName ||
-      slot1.draft.studentName ||
-      "학생";
-    const a1 = draftToAttempt(slot1.draft, 1, slot1.url);
-    const a2 = draftToAttempt(slot2.draft, 2, slot2.url);
-    return buildNeltGrowthAnalysis(name, [a1, a2]);
-  }, [slot1, slot2, studentName]);
+  const okSlots = useMemo(
+    () => slots.filter((s) => s.status === "ok" && s.draft),
+    [slots]
+  );
 
-  async function analyzeSlot(
-    attempt: 1 | 2,
-    setter: typeof setSlot1,
-    current: SlotState
-  ) {
-    const url = current.url.trim();
+  const extractedName = useMemo(() => {
+    for (const s of okSlots) {
+      const n = s.draft?.studentName?.trim();
+      if (n) return n;
+    }
+    return "";
+  }, [okSlots]);
+
+  const studentName = nameOverride.trim() || extractedName;
+
+  const analysis = useMemo(() => {
+    if (okSlots.length < 2) return null;
+    const name = studentName || "학생";
+    const sorted = [...okSlots].sort((a, b) =>
+      (a.draft?.testDate ?? "").localeCompare(b.draft?.testDate ?? "")
+    );
+    const attempts = sorted.map((s, i) =>
+      draftToAttempt(s.draft!, i + 1, s.url)
+    );
+    return buildNeltGrowthAnalysis(name, attempts);
+  }, [okSlots, studentName]);
+
+  function updateSlot(id: string, patch: Partial<SlotState>) {
+    setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }
+
+  function addSlot() {
+    if (slots.length >= 6) return;
+    setSlots((prev) => [...prev, emptySlot()]);
+    setPreview(false);
+  }
+
+  function removeSlot(id: string) {
+    if (slots.length <= 2) return;
+    setSlots((prev) => prev.filter((s) => s.id !== id));
+    setPreview(false);
+  }
+
+  async function analyzeOne(slot: SlotState, attemptNumber: number) {
+    const url = slot.url.trim();
     if (!url) {
-      setter((s) => ({
-        ...s,
+      updateSlot(slot.id, {
         status: "error",
         message: "링크를 입력해 주세요",
-      }));
-      return;
+      });
+      return false;
     }
-    setter((s) => ({
-      ...s,
+    updateSlot(slot.id, {
       status: "loading",
       message: "서버 분석 중…",
       draft: null,
-    }));
-    setError(null);
+    });
     try {
       const res = await fetch("/api/nelt/import-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url,
-          attemptNumber: attempt,
-          studentName: studentName.trim() || undefined,
+          attemptNumber,
         }),
       });
       const json = await res.json();
@@ -156,44 +201,48 @@ export function NeltImportPanel({ role }: NeltImportPanelProps) {
         );
       }
       const draft = result.draft as NeltExtractedDraft;
-      if (!studentName.trim() && draft.studentName) {
-        setStudentName(draft.studentName);
+      if (!nameOverride.trim() && draft.studentName) {
+        setNameOverride(draft.studentName);
       }
-      setter({
+      updateSlot(slot.id, {
         url,
         status: "ok",
         message: "분석 완료",
         draft,
         duplicates: result.duplicates ?? [],
       });
+      return true;
     } catch (e) {
-      setter((s) => ({
-        ...s,
+      updateSlot(slot.id, {
         status: "error",
         message: e instanceof Error ? e.message : "분석 오류",
         draft: null,
-      }));
+      });
+      return false;
     }
   }
 
-  async function analyzeBothSequential() {
+  async function analyzeAll() {
     setError(null);
-    const url1 = slot1.url.trim();
-    const url2 = slot2.url.trim();
-    if (!url1 || !url2) {
-      setError("1차·2차 링크를 모두 입력해 주세요.");
+    const filled = slots.filter((s) => s.url.trim());
+    if (filled.length < 2) {
+      setError("최소 1차·2차 링크를 입력해 주세요.");
       return;
     }
-    setSlot1((s) => ({ ...s, status: "loading", message: "서버 분석 중…" }));
-    setSlot2((s) => ({ ...s, status: "loading", message: "대기 중…" }));
+    setAnalyzingAll(true);
     try {
+      const urls = filled.map((s) => s.url.trim());
+      setSlots((prev) =>
+        prev.map((s) =>
+          s.url.trim()
+            ? { ...s, status: "loading", message: "서버 분석 중…", draft: null }
+            : s
+        )
+      );
       const res = await fetch("/api/nelt/import-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          urls: [url1, url2],
-          studentName: studentName.trim() || undefined,
-        }),
+        body: JSON.stringify({ urls }),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
@@ -207,101 +256,82 @@ export function NeltImportPanel({ role }: NeltImportPanelProps) {
         duplicates?: Array<{ id: string; testDate: string | null }>;
       }>;
 
-      const r1 = results.find((r) => r.url === url1) ?? results[0];
-      const r2 = results.find((r) => r.url === url2) ?? results[1];
+      let firstName = "";
+      setSlots((prev) =>
+        prev.map((s) => {
+          const url = s.url.trim();
+          if (!url) return s;
+          const r = results.find((x) => x.url === url);
+          if (r?.ok && r.draft) {
+            if (!firstName && r.draft.studentName) firstName = r.draft.studentName;
+            return {
+              ...s,
+              status: "ok" as const,
+              message: "분석 완료",
+              draft: r.draft,
+              duplicates: r.duplicates ?? [],
+            };
+          }
+          return {
+            ...s,
+            status: "error" as const,
+            message: r?.message ?? "분석 실패",
+            draft: null,
+            duplicates: [],
+          };
+        })
+      );
+      if (!nameOverride.trim() && firstName) setNameOverride(firstName);
 
-      if (r1?.ok && r1.draft) {
-        if (!studentName.trim() && r1.draft.studentName) {
-          setStudentName(r1.draft.studentName);
-        }
-        setSlot1({
-          url: url1,
-          status: "ok",
-          message: "분석 완료",
-          draft: r1.draft,
-          duplicates: r1.duplicates ?? [],
-        });
-      } else {
-        setSlot1({
-          url: url1,
-          status: "error",
-          message: r1?.message ?? "1차 분석 실패",
-          draft: null,
-          duplicates: [],
-        });
-      }
-
-      if (r2?.ok && r2.draft) {
-        if (!studentName.trim() && r2.draft.studentName) {
-          setStudentName(r2.draft.studentName);
-        }
-        setSlot2({
-          url: url2,
-          status: "ok",
-          message: "분석 완료",
-          draft: r2.draft,
-          duplicates: r2.duplicates ?? [],
-        });
-      } else {
-        setSlot2({
-          url: url2,
-          status: "error",
-          message: r2?.message ?? "2차 분석 실패",
-          draft: null,
-          duplicates: [],
-        });
-      }
-
-      if (r1?.ok && r2?.ok) setPreview(true);
+      const okCount = results.filter((r) => r.ok).length;
+      if (okCount >= 2) setPreview(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "분석 오류");
-      setSlot1((s) => ({ ...s, status: "error", message: "실패" }));
-      setSlot2((s) => ({ ...s, status: "error", message: "실패" }));
+    } finally {
+      setAnalyzingAll(false);
     }
   }
 
-  function patchDraft(
-    which: 1 | 2,
+  function patchDraftAt(
+    index: number,
     patch: (d: NeltExtractedDraft) => NeltExtractedDraft
   ) {
-    const setter = which === 1 ? setSlot1 : setSlot2;
-    setter((s) => (s.draft ? { ...s, draft: patch(s.draft) } : s));
+    setSlots((prev) =>
+      prev.map((s, i) =>
+        i === index && s.draft ? { ...s, draft: patch(s.draft) } : s
+      )
+    );
   }
 
   async function saveAndOpenReport() {
-    if (!slot1.draft || !slot2.draft) {
-      setError("1차·2차 분석이 모두 완료되어야 합니다.");
+    if (okSlots.length < 2) {
+      setError("분석 완료된 회차가 2개 이상 필요합니다.");
       return;
     }
-    const name =
-      studentName.trim() ||
-      slot2.draft.studentName ||
-      slot1.draft.studentName ||
-      "";
+    const name = studentName;
     if (!name) {
-      setError("학생 이름을 입력해 주세요.");
+      setError(
+        "링크에서 학생 이름을 찾지 못했습니다. 아래에서 이름을 확인해 주세요."
+      );
+      setShowEditor(true);
       return;
     }
     setSaving(true);
     setError(null);
     try {
+      const sorted = [...okSlots].sort((a, b) =>
+        (a.draft?.testDate ?? "").localeCompare(b.draft?.testDate ?? "")
+      );
       const res = await fetch("/api/nelt/reports/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           studentName: name,
-          items: [
-            {
-              draft: { ...slot1.draft, studentName: name },
-              sourceUrl: slot1.url,
-              overwriteId: slot1.duplicates[0]?.id ?? null,
-            },
-            {
-              draft: { ...slot2.draft, studentName: name },
-              sourceUrl: slot2.url,
-              overwriteId: slot2.duplicates[0]?.id ?? null,
-            },
-          ],
+          items: sorted.map((s) => ({
+            draft: { ...s.draft!, studentName: name },
+            sourceUrl: s.url,
+            overwriteId: s.duplicates[0]?.id ?? null,
+          })),
         }),
       });
       const json = await res.json();
@@ -318,351 +348,219 @@ export function NeltImportPanel({ role }: NeltImportPanelProps) {
   }
 
   function resetAll() {
-    setSlot1(emptySlot());
-    setSlot2(emptySlot());
+    setSlots([emptySlot(), emptySlot()]);
+    setNameOverride(initialStudentName);
     setPreview(false);
     setError(null);
+    setShowEditor(false);
   }
 
-  const statusClass = (s: SlotState["status"]) =>
-    s === "ok"
-      ? "text-emerald-700 font-bold"
-      : s === "loading"
-        ? "text-orange-600 font-bold"
-        : s === "error"
-          ? "text-red-700 font-bold"
-          : "text-slate-500";
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="NELT 성장 리포트"
-        description="1차·2차 공유 링크를 나누어 등록하고 성장 중심 리포트를 생성합니다."
-        action={
-          <div className="flex flex-wrap gap-2">
-            <ButtonLink href={base} variant="secondary" size="sm">
-              목록
-            </ButtonLink>
-            {analysis && (
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  setPreview(true);
-                  document
-                    .getElementById("nelt-growth-preview")
-                    ?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                리포트 생성
-              </Button>
-            )}
-          </div>
-        }
-      />
-
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-        <strong>안내:</strong> 링크는 브라우저에서 직접 열지 않고{" "}
-        <code className="rounded bg-white/70 px-1">/api/nelt/import-url</code>{" "}
-        서버 API로 분석합니다. 난이도가 다른 원점수는 단순 비교하지 않습니다.
+  const form = (
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold text-slate-900">
+          회차별 NELT 결과 링크
+        </h2>
+        <p className="mt-1 text-sm text-slate-500">
+          1차·2차 링크를 넣고 분석하세요. 필요하면 회차를 더 추가할 수 있습니다.
+          학생 이름은 링크 결과에서 자동으로 가져옵니다.
+        </p>
+        {studentName && (
+          <p className="mt-2 text-sm font-semibold text-[#152d4f]">
+            학생: {studentName}
+            {extractedName && nameOverride && nameOverride !== extractedName
+              ? " (수정됨)"
+              : ""}
+          </p>
+        )}
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">
-              1차·2차 NELT 결과 등록
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              회차별 링크를 구분하여 입력하면 두 결과를 비교합니다.
-            </p>
-          </div>
-          <label className="block text-sm font-medium text-slate-700">
-            학생 이름
-            <input
-              className="ui-input mt-1 w-48"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-              placeholder="분석 후 자동 채움"
-            />
-          </label>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          {(
-            [
-              [1, slot1, setSlot1] as const,
-              [2, slot2, setSlot2] as const,
-            ] as const
-          ).map(([attempt, slot, setter]) => (
-            <article
-              key={attempt}
-              className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="rounded-full bg-[#152d4f] px-3 py-1 text-xs font-extrabold text-white">
-                  {attempt}차 결과
-                </span>
+      <div className="grid gap-4 md:grid-cols-2">
+        {slots.map((slot, index) => (
+          <article
+            key={slot.id}
+            className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
+          >
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <span className="rounded-full bg-[#152d4f] px-3 py-1 text-xs font-extrabold text-white">
+                {index + 1}차 결과
+              </span>
+              <div className="flex items-center gap-2">
                 <span className={`text-xs ${statusClass(slot.status)}`}>
                   {slot.message}
                 </span>
+                {slots.length > 2 && (
+                  <button
+                    type="button"
+                    className="text-xs text-slate-400 hover:text-red-600"
+                    onClick={() => removeSlot(slot.id)}
+                  >
+                    삭제
+                  </button>
+                )}
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  type="url"
-                  value={slot.url}
-                  onChange={(e) =>
-                    setter((s) => ({ ...s, url: e.target.value }))
-                  }
-                  placeholder="https://www.netutor.co.kr/s_url/?..."
-                  className="ui-input min-w-0 flex-1 font-mono text-xs"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={slot.status === "loading"}
-                  onClick={() => void analyzeSlot(attempt, setter, slot)}
-                >
-                  분석
-                </Button>
-              </div>
-              <p className="mt-2 text-xs text-slate-500">
-                {attempt}차 결과 공유 링크
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                type="url"
+                value={slot.url}
+                onChange={(e) =>
+                  updateSlot(slot.id, {
+                    url: e.target.value,
+                    status: "idle",
+                    message: "입력 대기",
+                    draft: null,
+                  })
+                }
+                placeholder="https://www.netutor.co.kr/s_url/?..."
+                className="ui-input min-w-0 flex-1 font-mono text-xs"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={slot.status === "loading" || analyzingAll}
+                onClick={() => void analyzeOne(slot, index + 1)}
+              >
+                분석
+              </Button>
+            </div>
+            {slot.draft && (
+              <p className="mt-2 text-xs text-slate-600">
+                {slot.draft.studentName ?? "이름?"} ·{" "}
+                {slot.draft.testDate ?? "날짜?"} ·{" "}
+                {slot.draft.overallLevel ?? "레벨?"} ·{" "}
+                {slot.draft.domains
+                  .map((d) => `${d.difficultyCode ?? "?"} ${d.rawScore ?? "—"}점`)
+                  .join(" · ")}
               </p>
-              {slot.draft && (
-                <p className="mt-2 text-xs text-slate-600">
-                  {slot.draft.testDate ?? "날짜?"} ·{" "}
-                  {slot.draft.overallLevel ?? "레벨?"} ·{" "}
-                  {slot.draft.domains
-                    .map(
-                      (d) =>
-                        `${d.difficultyCode ?? "?"} ${d.rawScore ?? "—"}점`
-                    )
-                    .join(" · ")}
-                </p>
-              )}
-            </article>
-          ))}
-        </div>
+            )}
+          </article>
+        ))}
+      </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button
+          type="button"
+          variant="primary"
+          disabled={analyzingAll}
+          onClick={() => void analyzeAll()}
+        >
+          {analyzingAll ? "분석 중…" : "링크 모두 분석하기"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={slots.length >= 6}
+          onClick={addSlot}
+        >
+          회차 추가 ({slots.length}/6)
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => setShowEditor((v) => !v)}
+          disabled={okSlots.length === 0}
+        >
+          추출 결과 수정
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={!analysis}
+          onClick={() => {
+            if (analysis) {
+              setPreview(true);
+              window.setTimeout(() => {
+                document
+                  .getElementById("nelt-growth-preview")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }, 50);
+            }
+          }}
+        >
+          리포트 미리보기
+        </Button>
+        <Button type="button" variant="ghost" onClick={resetAll}>
+          초기화
+        </Button>
+      </div>
+
+      {showEditor && okSlots.length > 0 && (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-xs font-bold text-slate-500">
+            학생명 (링크에서 추출 · 필요 시만 수정)
+            <input
+              className="ui-input mt-1"
+              value={nameOverride || extractedName}
+              onChange={(e) => setNameOverride(e.target.value)}
+              placeholder="분석 후 자동"
+            />
+          </label>
+          {slots.map((slot, index) =>
+            slot.draft ? (
+              <label
+                key={slot.id}
+                className="text-xs font-bold text-slate-500"
+              >
+                {index + 1}차 시험일
+                <input
+                  type="date"
+                  className="ui-input mt-1"
+                  value={slot.draft.testDate ?? ""}
+                  onChange={(e) =>
+                    patchDraftAt(index, (d) => ({
+                      ...d,
+                      testDate: e.target.value || null,
+                    }))
+                  }
+                />
+              </label>
+            ) : null
+          )}
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4">
+          <Alert variant="error">{error}</Alert>
+        </div>
+      )}
+
+      {okSlots.length >= 2 && (
+        <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-5">
           <Button
             type="button"
             variant="primary"
-            onClick={() => void analyzeBothSequential()}
+            disabled={saving}
+            onClick={() => void saveAndOpenReport()}
           >
-            두 링크 분석하기
+            {saving
+              ? "저장 중…"
+              : `${okSlots.length}회차 저장하고 성장 리포트 열기`}
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setShowEditor((v) => !v)}
-            disabled={!slot1.draft || !slot2.draft}
-          >
-            추출 결과 직접 수정
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              if (analysis) setPreview(true);
-              else setError("먼저 1차·2차 링크를 분석해 주세요.");
-            }}
-            disabled={!analysis}
-          >
-            리포트 미리보기
-          </Button>
-          <Button type="button" variant="ghost" onClick={resetAll}>
-            초기화
-          </Button>
+          <p className="self-center text-xs text-slate-500">
+            시험일 순으로 1·2·3차가 매겨집니다.
+          </p>
         </div>
+      )}
+    </section>
+  );
 
-        {showEditor && slot1.draft && slot2.draft && (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <label className="text-xs font-bold text-slate-500">
-              학생명
-              <input
-                className="ui-input mt-1"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              1차 시험일
-              <input
-                type="date"
-                className="ui-input mt-1"
-                value={slot1.draft.testDate ?? ""}
-                onChange={(e) =>
-                  patchDraft(1, (d) => ({
-                    ...d,
-                    testDate: e.target.value || null,
-                  }))
-                }
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              2차 시험일
-              <input
-                type="date"
-                className="ui-input mt-1"
-                value={slot2.draft.testDate ?? ""}
-                onChange={(e) =>
-                  patchDraft(2, (d) => ({
-                    ...d,
-                    testDate: e.target.value || null,
-                  }))
-                }
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              종합 레벨 (표시용)
-              <input
-                className="ui-input mt-1"
-                readOnly
-                value={`${slot1.draft.overallLevel ?? "—"} → ${
-                  slot2.draft.overallLevel ?? "—"
-                }`}
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              1차 어휘량
-              <input
-                type="number"
-                className="ui-input mt-1"
-                value={slot1.draft.vocabulary.vocabularySize ?? ""}
-                onChange={(e) =>
-                  patchDraft(1, (d) => ({
-                    ...d,
-                    vocabulary: {
-                      ...d.vocabulary,
-                      vocabularySize: e.target.value
-                        ? Number(e.target.value)
-                        : null,
-                    },
-                  }))
-                }
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              2차 어휘량
-              <input
-                type="number"
-                className="ui-input mt-1"
-                value={slot2.draft.vocabulary.vocabularySize ?? ""}
-                onChange={(e) =>
-                  patchDraft(2, (d) => ({
-                    ...d,
-                    vocabulary: {
-                      ...d.vocabulary,
-                      vocabularySize: e.target.value
-                        ? Number(e.target.value)
-                        : null,
-                    },
-                  }))
-                }
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              1차 필수어휘 %
-              <input
-                type="number"
-                className="ui-input mt-1"
-                value={
-                  slot1.draft.vocabulary.elementaryRequiredPercentage ?? ""
-                }
-                onChange={(e) =>
-                  patchDraft(1, (d) => ({
-                    ...d,
-                    vocabulary: {
-                      ...d.vocabulary,
-                      elementaryRequiredPercentage: e.target.value
-                        ? Number(e.target.value)
-                        : null,
-                    },
-                  }))
-                }
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              2차 필수어휘 %
-              <input
-                type="number"
-                className="ui-input mt-1"
-                value={
-                  slot2.draft.vocabulary.elementaryRequiredPercentage ?? ""
-                }
-                onChange={(e) =>
-                  patchDraft(2, (d) => ({
-                    ...d,
-                    vocabulary: {
-                      ...d.vocabulary,
-                      elementaryRequiredPercentage: e.target.value
-                        ? Number(e.target.value)
-                        : null,
-                    },
-                  }))
-                }
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              1차 종합 상위 %
-              <input
-                type="number"
-                className="ui-input mt-1"
-                value={slot1.draft.overallPercentile ?? ""}
-                onChange={(e) =>
-                  patchDraft(1, (d) => ({
-                    ...d,
-                    overallPercentile: e.target.value
-                      ? Number(e.target.value)
-                      : null,
-                  }))
-                }
-              />
-            </label>
-            <label className="text-xs font-bold text-slate-500">
-              2차 종합 상위 %
-              <input
-                type="number"
-                className="ui-input mt-1"
-                value={slot2.draft.overallPercentile ?? ""}
-                onChange={(e) =>
-                  patchDraft(2, (d) => ({
-                    ...d,
-                    overallPercentile: e.target.value
-                      ? Number(e.target.value)
-                      : null,
-                  }))
-                }
-              />
-            </label>
-          </div>
-        )}
+  return (
+    <div className="space-y-6">
+      {!embedded && (
+        <PageHeader
+          title="NELT 성장 리포트"
+          description="회차별 공유 링크를 입력하면 성장 리포트를 만듭니다. 이름은 링크에서 자동 추출됩니다."
+          action={
+            <ButtonLink href={base} variant="secondary" size="sm">
+              목록
+            </ButtonLink>
+          }
+        />
+      )}
 
-        {error && (
-          <div className="mt-4">
-            <Alert variant="error">{error}</Alert>
-          </div>
-        )}
-
-        {slot1.draft && slot2.draft && (
-          <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-5">
-            <Button
-              type="button"
-              variant="primary"
-              disabled={saving}
-              onClick={() => void saveAndOpenReport()}
-            >
-              {saving ? "저장 중…" : "저장하고 성장 리포트 열기"}
-            </Button>
-            <p className="self-center text-xs text-slate-500">
-              검토·수정 후 저장하면 학생 상세에 1·2차로 등록됩니다.
-            </p>
-          </div>
-        )}
-      </section>
+      {form}
 
       {preview && analysis && (
         <div id="nelt-growth-preview">

@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
-import { ButtonLink } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { NeltImportPanel } from "@/components/nelt/NeltImportPanel";
 import type { NeltStudentGroup } from "@/types/nelt";
 
 interface NeltWorkspaceProps {
@@ -15,8 +14,8 @@ interface NeltWorkspaceProps {
 }
 
 /**
- * 학생부 분석과 동일: LMS 등록 학생과 무관.
- * 학생명은 PDF/링크에서 추출하거나 직접 입력한다.
+ * 메인에서 바로 1·2차(+추가) 링크 입력.
+ * 학생 이름은 링크 분석 결과에서 추출.
  */
 export function NeltWorkspace({
   role,
@@ -25,7 +24,6 @@ export function NeltWorkspace({
 }: NeltWorkspaceProps) {
   const base = role === "admin" ? "/admin/nelt" : "/teacher/nelt";
   const [query, setQuery] = useState("");
-  const [manualName, setManualName] = useState("");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -35,38 +33,14 @@ export function NeltWorkspace({
     );
   }, [initialGroups, query]);
 
-  const startHref = manualName.trim()
-    ? `${base}/import?name=${encodeURIComponent(manualName.trim())}`
-    : `${base}/import`;
-
   return (
     <div className="space-y-8">
       <PageHeader
         title="NELT 성장 리포트"
-        description={`${academyName} · 회차별 NELT 결과를 바탕으로 학생의 영어 실력 성장과 앞으로의 학습 방향을 분석합니다. (등록 학생 계정과 무관하게 이름만으로 관리)`}
+        description={`${academyName} · 1차·2차 링크를 넣고 성장 리포트를 만듭니다. 학생 이름은 링크에서 자동으로 가져옵니다.`}
       />
 
-      <Card className="space-y-4 p-5 sm:p-6">
-        <h2 className="text-sm font-semibold text-slate-800">새 결과 등록</h2>
-        <p className="text-sm text-slate-600">
-          1차·2차 NE Tutor 공유 링크를 각각 입력해 분석하면 성장 리포트가
-          만들어집니다. LMS 학생 계정은 필요 없습니다.
-        </p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <label className="block flex-1 text-sm font-medium text-slate-700">
-            학생 이름 (선택)
-            <input
-              value={manualName}
-              onChange={(e) => setManualName(e.target.value)}
-              placeholder="예: 홍길동"
-              className="ui-input mt-1"
-            />
-          </label>
-          <ButtonLink href={startHref} variant="primary">
-            1차·2차 링크 등록
-          </ButtonLink>
-        </div>
-      </Card>
+      <NeltImportPanel role={role} embedded />
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -84,7 +58,7 @@ export function NeltWorkspace({
 
         {filtered.length === 0 ? (
           <Alert variant="info">
-            아직 등록된 NELT 결과가 없습니다. 위에서 첫 회차를 등록해 주세요.
+            아직 저장된 리포트가 없습니다. 위에서 링크를 분석·저장해 주세요.
           </Alert>
         ) : (
           <ul className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -108,7 +82,7 @@ export function NeltWorkspace({
                     href={`${base}/student/${encodeURIComponent(g.studentName)}`}
                     className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
                   >
-                    NELT 성적
+                    성장 리포트
                   </Link>
                   <Link
                     href={`${base}/import?name=${encodeURIComponent(g.studentName)}`}
@@ -122,11 +96,6 @@ export function NeltWorkspace({
           </ul>
         )}
       </section>
-
-      <p className="text-xs text-slate-400">
-        링크 2개 이상이면 영역별 성장·어휘 증가·문법 O/X 변화·학부모 문구가
-        학생 상세에서 바로 보입니다.
-      </p>
     </div>
   );
 }
