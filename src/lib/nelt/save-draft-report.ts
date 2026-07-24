@@ -3,6 +3,7 @@ import {
   estimatedRequiredCount,
   resolveLevelOrder,
 } from "@/lib/nelt/level-order";
+import { renumberNeltAttempts } from "@/lib/nelt/load-student-attempts";
 import type { NeltExtractedDraft } from "@/lib/nelt/types-draft";
 
 export async function saveNeltDraftAsReport(
@@ -150,6 +151,8 @@ export async function saveNeltDraftAsReport(
       return { ok: false, message: itemsErr.message };
     }
   }
+
+  await renumberNeltAttempts(supabase, academyId, name);
 
   return { ok: true, reportId };
 }

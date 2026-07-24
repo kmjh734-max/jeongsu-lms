@@ -49,8 +49,8 @@ export function NeltWorkspace({
       <Card className="space-y-4 p-5 sm:p-6">
         <h2 className="text-sm font-semibold text-slate-800">새 결과 등록</h2>
         <p className="text-sm text-slate-600">
-          PDF 업로드, NE Tutor 공유 링크, 또는 직접 입력으로 회차를 등록합니다.
-          학생은 LMS에 없어도 됩니다. 이름을 입력하거나 분석 후 확인하세요.
+          PDF·공유 링크를 여러 개 넣으면 시험일 순으로 1·2·3차로 저장되고,
+          성장 리포트가 자동 생성됩니다. LMS 학생 계정은 필요 없습니다.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="block flex-1 text-sm font-medium text-slate-700">
@@ -124,8 +124,8 @@ export function NeltWorkspace({
       </section>
 
       <p className="text-xs text-slate-400">
-        다음 단계에서 PDF·링크 자동 분석, 성장 그래프, 학부모용 리포트가
-        이어서 연결됩니다.
+        링크 2개 이상이면 영역별 성장·어휘 증가·문법 O/X 변화·학부모 문구가
+        학생 상세에서 바로 보입니다.
       </p>
     </div>
   );
