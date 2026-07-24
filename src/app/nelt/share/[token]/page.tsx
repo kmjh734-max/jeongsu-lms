@@ -47,9 +47,7 @@ export default async function NeltSharePage({ params }: PageProps) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("nelt_shared_reports")
-    .select(
-      "expires_at, parent_message, report_snapshot, student_name_raw"
-    )
+    .select("expires_at, report_snapshot, student_name_raw")
     .eq("token", token)
     .maybeSingle();
 
@@ -78,13 +76,7 @@ export default async function NeltSharePage({ params }: PageProps) {
       <p className="mb-4 text-center text-xs font-semibold tracking-wide text-[#68748a]">
         {ACADEMY_NAME} · NELT 영어 성장 리포트
       </p>
-      {data.parent_message && (
-        <section className="mb-5 rounded-2xl border border-[#e6eaf1] bg-white px-5 py-4 shadow-sm">
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700">
-            {data.parent_message}
-          </pre>
-        </section>
-      )}
+      {/* 카톡에 이미 안내문을 보냈으므로 공개 페이지에는 리포트만 표시 */}
       <NeltGrowthReportView
         role="admin"
         analysis={analysis}
