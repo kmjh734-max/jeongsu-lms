@@ -63,27 +63,66 @@ export type SafeFetchResult = {
   body: Buffer;
 };
 
+function mergeSetCookie(
+  jar: Map<string, string>,
+  setCookieHeaders: string[]
+): void {
+  for (const raw of setCookieHeaders) {
+    const pair = raw.split(";")[0]?.trim();
+    if (!pair) continue;
+    const eq = pair.indexOf("=");
+    if (eq <= 0) continue;
+    jar.set(pair.slice(0, eq), pair.slice(eq + 1));
+  }
+}
+
+function cookieHeader(jar: Map<string, string>): string | undefined {
+  if (jar.size === 0) return undefined;
+  return [...jar.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
+}
+
+/** Browser-like UA — custom bots are sometimes blocked by NELT/Netutor CDN. */
+const BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
 export async function fetchPublicUrlSafe(
   rawUrl: string
 ): Promise<SafeFetchResult> {
   let current = assertSafePublicUrl(rawUrl).toString();
   let redirects = 0;
+  const cookieJar = new Map<string, string>();
 
   while (redirects <= NELT_URL_MAX_REDIRECTS) {
     assertSafePublicUrl(current);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), NELT_URL_TIMEOUT_MS);
     try {
+      const headers: Record<string, string> = {
+        "User-Agent": BROWSER_UA,
+        Accept:
+          "text/html,application/xhtml+xml,application/pdf;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+      };
+      const cookie = cookieHeader(cookieJar);
+      if (cookie) headers.Cookie = cookie;
+
       const res = await fetch(current, {
         method: "GET",
         redirect: "manual",
         signal: controller.signal,
-        headers: {
-          "User-Agent":
-            "EngCore-NELT/1.0 (+https://engcore.co.kr; academy report import)",
-          Accept: "text/html,application/xhtml+xml,application/pdf,*/*;q=0.8",
-        },
+        headers,
       });
+
+      const setCookies =
+        typeof res.headers.getSetCookie === "function"
+          ? res.headers.getSetCookie()
+          : [];
+      if (setCookies.length > 0) {
+        mergeSetCookie(cookieJar, setCookies);
+      } else {
+        const single = res.headers.get("set-cookie");
+        if (single) mergeSetCookie(cookieJar, [single]);
+      }
 
       if ([301, 302, 303, 307, 308].includes(res.status)) {
         const loc = res.headers.get("location");

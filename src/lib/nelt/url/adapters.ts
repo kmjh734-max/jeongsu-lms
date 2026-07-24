@@ -26,17 +26,13 @@ export async function netutorNeltUrlAdapter(
     }
 
     const html = fetched.body.toString("utf8");
-    if (!isLikelyNetutorNeltHtml(html)) {
-      return {
-        ok: false,
-        message:
-          "이 링크에서는 NELT 성적을 자동으로 불러오지 못했습니다. 결과 화면을 PDF로 저장하여 업로드하거나 직접 입력해 주세요.",
-        adapter: "netutorNeltUrlAdapter",
-      };
-    }
-
     const draft = parseNetutorNeltHtml(html, fetched.finalUrl);
-    if (!draft.studentName && draft.domains.length === 0) {
+    const usable =
+      Boolean(draft.studentName) ||
+      draft.domains.length > 0 ||
+      isLikelyNetutorNeltHtml(html);
+
+    if (!usable || (!draft.studentName && draft.domains.length === 0)) {
       return {
         ok: false,
         message:
@@ -96,6 +92,15 @@ export async function genericHtmlUrlAdapter(
   }
 }
 
+function isNetutorOrNeltHost(host: string): boolean {
+  return (
+    host === "www.netutor.co.kr" ||
+    host === "netutor.co.kr" ||
+    host === "www.nelt.co.kr" ||
+    host === "nelt.co.kr"
+  );
+}
+
 export async function resolveNeltUrl(url: string): Promise<NeltUrlAdapterResult> {
   let host = "";
   try {
@@ -104,7 +109,7 @@ export async function resolveNeltUrl(url: string): Promise<NeltUrlAdapterResult>
     return { ok: false, message: "올바른 URL 형식이 아닙니다." };
   }
 
-  if (host === "www.netutor.co.kr" || host === "netutor.co.kr") {
+  if (isNetutorOrNeltHost(host)) {
     return netutorNeltUrlAdapter(url);
   }
   return genericHtmlUrlAdapter(url);

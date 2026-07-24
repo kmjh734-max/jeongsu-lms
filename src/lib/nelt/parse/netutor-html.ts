@@ -371,12 +371,21 @@ export function parseNetutorNeltHtml(
 }
 
 export function isLikelyNetutorNeltHtml(html: string): boolean {
-  const t = html.slice(0, 50_000);
+  // Real NELT pages put JS/CSS first; markers like "응시자 정보" often appear after 50KB.
+  // Prefer stripped text lines so we don't miss body content.
+  const text = htmlToLines(html).slice(0, 400).join("\n");
+  const haystack = text.length >= 40 ? text : html;
+  const hasNelt = /NELT/i.test(haystack) || /NELT/i.test(html);
+  if (!hasNelt) return false;
   return (
-    /NELT/i.test(t) &&
-    (t.includes("netutor") ||
-      t.includes("Neungyule") ||
-      t.includes("응시자 정보") ||
-      t.includes("Vocabulary Size"))
+    /netutor|nelt\.co\.kr|Neungyule|능률/i.test(haystack) ||
+    haystack.includes("응시자 정보") ||
+    haystack.includes("Vocabulary Size") ||
+    haystack.includes("종합 레벨") ||
+    haystack.includes("성적표") ||
+    /netutor|nelt\.co\.kr|Neungyule/i.test(html) ||
+    html.includes("응시자 정보") ||
+    html.includes("Vocabulary Size") ||
+    html.includes("종합 레벨")
   );
 }
