@@ -6,17 +6,17 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 const NAV_ITEMS = [
   { href: "/teacher", label: "강사 홈" },
-  { href: "/teacher/courses", label: "동영상강좌 관리" },
-  { href: "/teacher/vocab", label: "단어학습" },
-  { href: "/teacher/listening", label: "듣기학습" },
-  { href: "/teacher/question-generator", label: "AI 변형문제" },
-  { href: "/teacher/classes", label: "반 관리" },
-  { href: "/teacher/students", label: "학생 관리" },
-  { href: "/teacher/progress", label: "수강 현황" },
-  { href: "/teacher/reports", label: "학습 리포트" },
-  { href: "/teacher/student-records", label: "학생부 분석" },
-  { href: "/teacher/nelt", label: "NELT 성장 리포트" },
-  { href: "/teacher/credits", label: "크레딧" },
+  { href: "/teacher/courses", label: "동영상강좌 관리", group: "학습" },
+  { href: "/teacher/vocab", label: "단어학습", group: "학습" },
+  { href: "/teacher/listening", label: "듣기학습", group: "학습" },
+  { href: "/teacher/question-generator", label: "AI 변형문제", group: "학습" },
+  { href: "/teacher/classes", label: "반 관리", group: "수업 운영" },
+  { href: "/teacher/students", label: "학생 관리", group: "수업 운영" },
+  { href: "/teacher/progress", label: "수강 현황", group: "수업 운영" },
+  { href: "/teacher/reports", label: "학습 리포트", group: "리포트" },
+  { href: "/teacher/student-records", label: "학생부 분석", group: "리포트" },
+  { href: "/teacher/nelt", label: "NELT 성장 리포트", group: "리포트" },
+  { href: "/teacher/credits", label: "크레딧", group: "관리" },
 ];
 
 export default async function TeacherLayout({

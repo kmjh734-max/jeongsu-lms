@@ -12,6 +12,8 @@ import type { Profile } from "@/types/database";
 export interface AppNavItem {
   href: string;
   label: string;
+  /** 메뉴 묶음 (예: "학습", "리포트", "관리"). 없으면 기본 묶음 */
+  group?: string;
 }
 
 export type HeaderBranding = {
@@ -40,6 +42,29 @@ function homeHref(role: Profile["role"]): string {
   if (role === "admin") return "/admin";
   if (role === "teacher") return "/teacher";
   return "/student";
+}
+
+type NavGroup = { key: string; label: string | null; items: AppNavItem[] };
+
+/** group 필드 기준으로 순서를 유지하며 묶는다. group이 하나뿐이면 라벨 숨김 */
+function groupNavItems(items: AppNavItem[]): NavGroup[] {
+  const groups: NavGroup[] = [];
+  const index = new Map<string, NavGroup>();
+  for (const item of items) {
+    const key = item.group ?? "";
+    let g = index.get(key);
+    if (!g) {
+      g = { key: key || "_default", label: item.group ?? null, items: [] };
+      index.set(key, g);
+      groups.push(g);
+    }
+    g.items.push(item);
+  }
+  // 실제로 나뉜 묶음이 2개 이상일 때만 라벨/구분선을 노출
+  if (groups.length < 2) {
+    return [{ key: "_all", label: null, items }];
+  }
+  return groups;
 }
 
 function isNavActive(pathname: string, href: string): boolean {
@@ -107,26 +132,41 @@ export function AppHeader({
       </div>
 
       <nav
-        className="mx-auto flex max-w-6xl flex-wrap gap-1 border-t border-slate-100 px-4 py-2"
+        className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-1.5 gap-y-2 border-t border-slate-100 px-4 py-2"
         aria-label={`${useAcademy && branding ? branding.name : SITE_NAME} 메뉴`}
       >
-        {items.map((item) => {
-          const active = isNavActive(pathname, item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              prefetch={false}
-              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${
-                active
-                  ? "bg-brand-600 text-white"
-                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-              }`}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
+        {groupNavItems(items).map((group, gi) => (
+          <div key={group.key} className="flex items-center gap-1">
+            {gi > 0 && (
+              <span
+                aria-hidden
+                className="mx-1 hidden h-4 w-px bg-slate-200 sm:inline-block"
+              />
+            )}
+            {group.label && (
+              <span className="mr-0.5 hidden select-none text-[11px] font-semibold uppercase tracking-wide text-slate-400 lg:inline">
+                {group.label}
+              </span>
+            )}
+            {group.items.map((item) => {
+              const active = isNavActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  prefetch={false}
+                  className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                    active
+                      ? "bg-brand-600 text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </header>
   );
