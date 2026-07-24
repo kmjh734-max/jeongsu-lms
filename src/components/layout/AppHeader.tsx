@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { BrandLogo } from "@/components/branding/BrandLogo";
+import { HeaderCreditsBadge } from "@/components/layout/HeaderCreditsBadge";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { Badge } from "@/components/ui/Badge";
 import { ENGCORE_PRODUCTS, SITE_NAME } from "@/lib/branding";
@@ -24,8 +24,8 @@ interface AppHeaderProps {
   items: AppNavItem[];
   /** 로그인 학원 브랜딩 (super_admin은 null → EngCore) */
   branding?: HeaderBranding | null;
-  /** admin/teacher 학원 크레딧 잔액 */
-  creditBalance?: number | null;
+  /** true면 크레딧 배지 표시(클라이언트에서 잔액 로드) */
+  showCredits?: boolean;
 }
 
 const ROLE_LABELS: Record<Profile["role"], string> = {
@@ -58,16 +58,9 @@ export function AppHeader({
   profile,
   items,
   branding = null,
-  creditBalance = null,
+  showCredits = false,
 }: AppHeaderProps) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  useEffect(() => {
-    for (const item of items) {
-      router.prefetch(item.href);
-    }
-  }, [items, router]);
   const displayId =
     profile.username?.trim() ||
     profile.email?.split("@")[0] ||
@@ -76,15 +69,13 @@ export function AppHeader({
   const useAcademy = Boolean(branding?.name) && profile.role !== "super_admin";
   const creditsHref =
     profile.role === "teacher" ? "/teacher/credits" : "/admin/credits";
-  const showCredits =
-    creditBalance !== null &&
-    (profile.role === "admin" || profile.role === "teacher");
 
   return (
     <header className="no-print sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href={homeHref(profile.role)}
+          prefetch
           className="flex min-w-0 items-center gap-3"
         >
           {useAcademy && branding ? (
@@ -102,20 +93,7 @@ export function AppHeader({
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {showCredits ? (
-            <Link
-              href={creditsHref}
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums transition sm:text-sm ${
-                creditBalance! <= 0
-                  ? "bg-amber-100 text-amber-900 ring-1 ring-amber-200 hover:bg-amber-200/80"
-                  : "bg-slate-100 text-slate-800 ring-1 ring-slate-200 hover:bg-slate-200/80"
-              }`}
-              title="크레딧 내역 보기"
-            >
-              <span className="hidden text-[11px] font-medium text-slate-500 sm:inline">
-                크레딧
-              </span>
-              {creditBalance!.toLocaleString("ko-KR")}
-            </Link>
+            <HeaderCreditsBadge href={creditsHref} />
           ) : null}
           <Badge variant="brand">{ROLE_LABELS[profile.role]}</Badge>
           <span
@@ -138,7 +116,7 @@ export function AppHeader({
             <Link
               key={item.href}
               href={item.href}
-              prefetch
+              prefetch={false}
               className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                 active
                   ? "bg-brand-600 text-white"

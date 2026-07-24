@@ -6,15 +6,12 @@ import { Card } from "@/components/ui/Card";
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  const { data: academyCourses } = await supabase.from("courses").select("id");
-  const academyCourseIds = (academyCourses ?? []).map((c) => c.id);
-
   const [
     { count: courseCount },
     { count: classCount },
     { count: studentCount },
     { count: teacherCount },
-    enrollmentCountResult,
+    { count: enrollmentCount },
   ] = await Promise.all([
     supabase.from("courses").select("*", { count: "exact", head: true }),
     supabase.from("classes").select("*", { count: "exact", head: true }),
@@ -26,14 +23,9 @@ export default async function AdminDashboardPage() {
       .from("profiles")
       .select("*", { count: "exact", head: true })
       .eq("role", "teacher"),
-    academyCourseIds.length > 0
-      ? supabase
-          .from("enrollments")
-          .select("*", { count: "exact", head: true })
-          .in("course_id", academyCourseIds)
-      : Promise.resolve({ count: 0 }),
+    // RLS로 학원 스코프 — 전체 course id 목록을 먼저 가져오지 않음
+    supabase.from("enrollments").select("*", { count: "exact", head: true }),
   ]);
-  const enrollmentCount = enrollmentCountResult.count;
 
   const menuItems = [
     {

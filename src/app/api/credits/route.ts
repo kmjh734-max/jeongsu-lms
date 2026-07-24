@@ -16,6 +16,23 @@ export async function GET(request: Request) {
     );
 
     const academyId = auth.profile.academy_id!;
+    const balanceOnly = searchParams.get("balanceOnly") === "1";
+
+    if (balanceOnly) {
+      const { data: wallet } = await auth.supabase
+        .from("academy_wallets")
+        .select("academy_id, balance, updated_at")
+        .eq("academy_id", academyId)
+        .maybeSingle();
+      return NextResponse.json({
+        ok: true,
+        wallet: wallet ?? {
+          academy_id: academyId,
+          balance: 0,
+          updated_at: null,
+        },
+      });
+    }
 
     const [{ data: wallet }, { data: txns }, { data: pricing }] =
       await Promise.all([

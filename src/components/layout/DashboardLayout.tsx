@@ -1,5 +1,4 @@
 import { AppHeader, type AppNavItem } from "@/components/layout/AppHeader";
-import { createClient } from "@/lib/supabase/server";
 import { getAcademyBranding } from "@/lib/tenant/academy-branding";
 import type { Profile } from "@/types/database";
 
@@ -16,30 +15,13 @@ export async function DashboardLayout({
 }: DashboardLayoutProps) {
   const needsBranding =
     profile.role !== "super_admin" && !!profile.academy_id;
-  const needsWallet =
+  const showCredits =
     (profile.role === "admin" || profile.role === "teacher") &&
     !!profile.academy_id;
 
-  const [branding, creditBalance] = await Promise.all([
-    needsBranding
-      ? getAcademyBranding(profile.academy_id!)
-      : Promise.resolve(null),
-    needsWallet
-      ? (async () => {
-          try {
-            const supabase = await createClient();
-            const { data: wallet } = await supabase
-              .from("academy_wallets")
-              .select("balance")
-              .eq("academy_id", profile.academy_id!)
-              .maybeSingle();
-            return typeof wallet?.balance === "number" ? wallet.balance : 0;
-          } catch {
-            return null;
-          }
-        })()
-      : Promise.resolve(null),
-  ]);
+  const branding = needsBranding
+    ? await getAcademyBranding(profile.academy_id!)
+    : null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -51,7 +33,7 @@ export async function DashboardLayout({
             ? { name: branding.name, logoUrl: branding.logoUrl }
             : null
         }
-        creditBalance={creditBalance}
+        showCredits={showCredits}
       />
       <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">{children}</main>
     </div>

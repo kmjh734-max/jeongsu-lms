@@ -44,8 +44,8 @@ function mapAcademyRow(row: {
   };
 }
 
-/** academy_id로 학원 브랜딩 조회 (service role) */
-export async function getAcademyBranding(
+/** academy_id로 학원 브랜딩 조회 (service role, 요청당 캐시) */
+export const getAcademyBranding = cache(async function getAcademyBranding(
   academyId: string | null | undefined
 ): Promise<AcademyBranding> {
   if (!academyId) return fallbackAcademyBranding();
@@ -63,7 +63,7 @@ export async function getAcademyBranding(
   } catch {
     return fallbackAcademyBranding();
   }
-}
+});
 
 /** 로그인 사용자 세션으로 조회 (RLS: 자기 학원 또는 super_admin) */
 export async function getAcademyBrandingForCurrentUser(): Promise<AcademyBranding> {
