@@ -805,7 +805,8 @@ function buildTrendPoints(attempts: NeltAttemptBundle[]): NeltTrendPoint[] {
     for (const domain of DOMAINS) {
       const d = domainOf(a, domain);
       domains[domain] = {
-        levelOrder: d?.evaluatedLevelOrder ?? null,
+        levelOrder:
+          d?.evaluatedLevelOrder ?? resolveLevelOrder(d?.evaluatedLevel),
         level: d?.evaluatedLevel ?? null,
         difficulty: d?.difficultyCode ?? null,
         score: d?.rawScore ?? null,

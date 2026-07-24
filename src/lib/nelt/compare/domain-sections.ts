@@ -3,6 +3,7 @@ import type {
   NeltAttemptBundle,
   NeltGrowthAnalysis,
 } from "@/lib/nelt/compare/types";
+import { resolveLevelOrder } from "@/lib/nelt/level-order";
 import type { NeltDomain } from "@/types/nelt";
 
 export type NeltDomainSection = {
@@ -42,10 +43,10 @@ function levelChartForDomain(
   domain: NeltDomain,
   seriesName: string
 ): NeltDomainSection["chart"] {
-  const values = attempts.map(
-    (a) =>
-      a.domains.find((d) => d.domain === domain)?.evaluatedLevelOrder ?? 0
-  );
+  const values = attempts.map((a) => {
+    const d = a.domains.find((x) => x.domain === domain);
+    return d?.evaluatedLevelOrder ?? resolveLevelOrder(d?.evaluatedLevel) ?? 0;
+  });
   return {
     kind: "level",
     maxY: 13,
