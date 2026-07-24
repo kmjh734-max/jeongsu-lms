@@ -4,6 +4,7 @@ import {
   isModelUnavailableError,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
+  studentRecordModelSupportsTemperature,
   STUDENT_RECORD_MODEL_FALLBACK,
   STUDENT_RECORD_MODEL_PRIMARY,
 } from "@/lib/student-records/model";
@@ -753,8 +754,9 @@ ${JSON.stringify(facts, null, 2)}`;
 
   for (const model of candidates) {
     try {
-      let includeTemperature = true;
-      let includeReasoningEffort = true;
+      // gpt-5.x 는 temperature 미지원 — 넣지 않음
+      let includeTemperature = studentRecordModelSupportsTemperature(model);
+      let includeReasoningEffort = isGpt5FamilyModel(model);
       for (let attempt = 0; attempt < 4; attempt++) {
         const body = buildStudentRecordChatBody(
           model,
@@ -765,16 +767,15 @@ ${JSON.stringify(facts, null, 2)}`;
             includeReasoningEffort,
           }
         );
-        if (
-          includeTemperature &&
-          "temperature" in body &&
-          !isGpt5FamilyModel(model)
-        ) {
+        if (includeTemperature) {
           body.temperature = 0.85;
+        } else {
+          delete body.temperature;
         }
         if (isGpt5FamilyModel(model)) {
           body.max_completion_tokens = 4500;
           if (includeReasoningEffort) body.reasoning_effort = "low";
+          else delete body.reasoning_effort;
         }
 
         const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -787,10 +788,6 @@ ${JSON.stringify(facts, null, 2)}`;
         });
         const text = await res.text();
         if (!res.ok) {
-          if (isModelUnavailableError(res.status, text)) {
-            lastErr = text.slice(0, 200);
-            break;
-          }
           if (includeTemperature && isUnsupportedTemperatureError(text)) {
             includeTemperature = false;
             continue;
@@ -801,6 +798,10 @@ ${JSON.stringify(facts, null, 2)}`;
           ) {
             includeReasoningEffort = false;
             continue;
+          }
+          if (isModelUnavailableError(res.status, text)) {
+            lastErr = text.slice(0, 200);
+            break;
           }
           lastErr = text.slice(0, 200);
           break;

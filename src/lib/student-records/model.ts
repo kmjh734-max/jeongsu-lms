@@ -29,12 +29,21 @@ export function isModelUnavailableError(status: number, bodyText: string): boole
   if (status === 404) return true;
   const lower = bodyText.toLowerCase();
   if (status !== 400 && status !== 403) return false;
+  // temperature/param 오류를 모델 미존재로 오인하지 않음
+  if (
+    isUnsupportedTemperatureError(bodyText) ||
+    lower.includes("unsupported value") ||
+    lower.includes("unsupported parameter")
+  ) {
+    return false;
+  }
   return (
     lower.includes("model") &&
     (lower.includes("does not exist") ||
       lower.includes("not found") ||
-      lower.includes("invalid") ||
-      lower.includes("unknown") ||
+      lower.includes("invalid model") ||
+      lower.includes("model_not_found") ||
+      lower.includes("unknown model") ||
       lower.includes("not available") ||
       lower.includes("no longer"))
   );

@@ -5,6 +5,7 @@ import {
   isModelUnavailableError,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
+  studentRecordModelSupportsTemperature,
 } from "@/lib/student-records/model";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 import type { NeltDomain } from "@/types/nelt";
