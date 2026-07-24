@@ -1,10 +1,12 @@
+import { cache } from "react";
 import {
   createServerClient,
   type CookieOptions,
 } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function createClient() {
+/** 요청당 1개 클라이언트 (cookies() + 인스턴스 재사용) */
+export const createClient = cache(async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -33,4 +35,4 @@ export async function createClient() {
       },
     }
   );
-}
+});

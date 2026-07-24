@@ -48,18 +48,17 @@ export async function loadListeningPageData(
     classesQuery = classesQuery.eq("teacher_id", viewerId);
   }
 
-  let folders: ListeningSetFolderRow[] = [];
-  try {
-    folders = await listListeningSetFolders(supabase, role, viewerId);
-  } catch {
-    folders = [];
-  }
+  const [foldersResult, { data: sets }, { data: classes }, statusClasses] =
+    await Promise.all([
+      listListeningSetFolders(supabase, role, viewerId).catch(
+        () => [] as ListeningSetFolderRow[]
+      ),
+      setsQuery,
+      classesQuery,
+      listReportClasses(supabase, role, viewerId),
+    ]);
 
-  const [{ data: sets }, { data: classes }, statusClasses] = await Promise.all([
-    setsQuery,
-    classesQuery,
-    listReportClasses(supabase, role, viewerId),
-  ]);
+  const folders = foldersResult;
 
   const setList = ((sets ?? []) as ListeningSetListItem[]).map((s) => ({
     ...s,

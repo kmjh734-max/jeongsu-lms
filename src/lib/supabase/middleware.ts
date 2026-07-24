@@ -3,6 +3,7 @@ import {
   type CookieOptions,
 } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { FORWARDED_USER_ID_HEADER } from "@/lib/auth/forwarded-user";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -38,5 +39,19 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { supabase, user, supabaseResponse };
+  // RSC가 getUser를 한 번 더 치지 않도록, 검증된 user id만 요청 헤더로 전달
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete(FORWARDED_USER_ID_HEADER);
+  if (user?.id) {
+    requestHeaders.set(FORWARDED_USER_ID_HEADER, user.id);
+  }
+
+  const withUserHeader = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    withUserHeader.cookies.set(cookie);
+  });
+
+  return { supabase, user, supabaseResponse: withUserHeader };
 }

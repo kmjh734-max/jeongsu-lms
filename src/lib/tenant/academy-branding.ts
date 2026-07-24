@@ -4,8 +4,8 @@ import {
   LOGO_SRC,
   PRIMARY_COLOR,
 } from "@/lib/branding";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export type AcademyBranding = {
   id: string | null;
@@ -65,29 +65,14 @@ export const getAcademyBranding = cache(async function getAcademyBranding(
   }
 });
 
-/** 로그인 사용자 세션으로 조회 (RLS: 자기 학원 또는 super_admin) */
+/** 로그인 사용자 세션으로 조회 (getCurrentProfile 캐시 재사용) */
 export async function getAcademyBrandingForCurrentUser(): Promise<AcademyBranding> {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return fallbackAcademyBranding();
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("academy_id, role")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (!profile) return fallbackAcademyBranding();
-
-    // super_admin은 기본(폴백) 또는 별도 지정 없음 → 폴백
-    if (profile.role === "super_admin") {
+    const profile = await getCurrentProfile();
+    if (!profile || profile.role === "super_admin") {
       return fallbackAcademyBranding();
     }
-
-    return getAcademyBranding(profile.academy_id as string | null);
+    return getAcademyBranding(profile.academy_id);
   } catch {
     return fallbackAcademyBranding();
   }

@@ -8,17 +8,23 @@ import type { Course, Profile } from "@/types/database";
 export default async function AdminCoursesPage() {
   const supabase = await createClient();
 
-  const [{ data: courses }, { data: lessonRows }] = await Promise.all([
-    supabase
-      .from("courses")
-      .select("*, teacher:profiles!courses_teacher_id_fkey(id, name, email)")
-      .order("created_at", { ascending: false }),
-    supabase.from("lessons").select("course_id"),
-  ]);
+  const { data: courses } = await supabase
+    .from("courses")
+    .select("*, teacher:profiles!courses_teacher_id_fkey(id, name, email)")
+    .order("created_at", { ascending: false });
 
   const typedCourses = (courses ?? []) as (Course & {
     teacher: Profile | null;
   })[];
+  const courseIds = typedCourses.map((c) => c.id);
+
+  const { data: lessonRows } =
+    courseIds.length > 0
+      ? await supabase
+          .from("lessons")
+          .select("course_id")
+          .in("course_id", courseIds)
+      : { data: [] as { course_id: string }[] };
 
   const lessonCountByCourse = new Map<string, number>();
   for (const row of lessonRows ?? []) {
