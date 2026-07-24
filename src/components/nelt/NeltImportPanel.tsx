@@ -381,17 +381,14 @@ export function NeltImportPanel({
       // 링크 결과만으로는 리포트를 열지 않음 → AI 서술 성공 후에만 출력
       setAnalyzeStage("ai");
       setAnalyzeProgress(52);
-      setAnalyzePhase("AI로 서술 다듬는 중… (gpt-5.5)");
+      setAnalyzePhase("AI로 서술 다듬는 중…");
       setPreview(false);
       setPolishedAnalysis(null);
 
       let narratives: NeltAiNarratives | null = null;
-      let modelLabel = "gpt-5.5";
       for (let attempt = 0; attempt < 2; attempt++) {
         setAnalyzePhase(
-          attempt === 0
-            ? "AI로 서술 다듬는 중… (gpt-5.5)"
-            : "AI 서술 재시도 중…"
+          attempt === 0 ? "AI로 서술 다듬는 중…" : "AI 서술 재시도 중…"
         );
         const aiRes = await fetch("/api/nelt/report-narratives", {
           method: "POST",
@@ -411,7 +408,6 @@ export function NeltImportPanel({
           aiJson.narratives.overallSummary
         ) {
           narratives = aiJson.narratives as NeltAiNarratives;
-          modelLabel = (aiJson.model as string) || modelLabel;
           break;
         }
         if (attempt === 1) {
@@ -431,7 +427,7 @@ export function NeltImportPanel({
       };
       setPolishedAnalysis(polished);
       setAnalyzeProgress(100);
-      setAnalyzePhase(`AI 서술 완료 (${modelLabel})`);
+      setAnalyzePhase("AI 서술 완료");
       setPreview(true);
       window.setTimeout(() => {
         document
@@ -666,7 +662,7 @@ export function NeltImportPanel({
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold">
             <span>{analyzePhase || "링크를 분석하는 중…"}</span>
             <span className="tabular-nums text-xs font-bold opacity-80">
-              {analyzeElapsed}초 · {Math.max(1, Math.round(analyzeProgress))}%
+              {Math.max(1, Math.round(analyzeProgress))}%
             </span>
           </div>
           <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-white/90">

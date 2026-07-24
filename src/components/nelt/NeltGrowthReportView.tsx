@@ -101,13 +101,9 @@ export function NeltGrowthReportView({
       setAiProgress(100);
       setAi(json.narratives as NeltAiNarratives);
       if (json.source === "ai") {
-        setAiStatus(`AI 서술을 적용했습니다. (${json.model ?? "gpt-5.5"})`);
+        setAiStatus("AI 서술을 적용했습니다.");
       } else if (json.source === "cache") {
-        setAiStatus(
-          json.model
-            ? `저장된 AI 서술을 불러왔습니다. (${json.model})`
-            : "저장된 서술을 불러왔습니다."
-        );
+        setAiStatus("저장된 서술을 불러왔습니다.");
       } else {
         setAiStatus(
           json.message
@@ -172,7 +168,7 @@ export function NeltGrowthReportView({
           >
             {aiLoading
               ? `AI 서술 작성 중… ${Math.max(1, Math.round(aiProgress))}%`
-              : "AI로 서술 다듬기 (gpt-5.5)"}
+              : "AI로 서술 다듬기"}
           </Button>
           {aiStatus && (
             <span className="text-xs text-slate-500">{aiStatus}</span>
@@ -219,7 +215,7 @@ export function NeltGrowthReportView({
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold">
                 <span>학부모용 서술을 AI로 다듬는 중입니다…</span>
                 <span className="tabular-nums text-xs font-bold opacity-80">
-                  {aiElapsed}초 · {Math.max(1, Math.round(aiProgress))}%
+                  {Math.max(1, Math.round(aiProgress))}%
                 </span>
               </div>
               <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-white/90">

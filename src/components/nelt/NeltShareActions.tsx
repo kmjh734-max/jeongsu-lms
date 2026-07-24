@@ -172,11 +172,7 @@ export function NeltShareActions({
       const verPart = verLabel
         ? ` · ${verLabel} (${(json.versionIndex ?? nextVersion) + 1}/${json.versionCount ?? NELT_MESSAGE_VERSION_COUNT})`
         : "";
-      flashOk(
-        json.source === "ai"
-          ? `다른 버전으로 만들었습니다. (${json.model ?? "AI"})${verPart}`
-          : `다른 버전으로 만들었습니다.${verPart}`
-      );
+      flashOk(`다른 버전으로 만들었습니다.${verPart}`);
     } catch (e) {
       flashErr(e instanceof Error ? e.message : "문구 생성 오류");
     } finally {
