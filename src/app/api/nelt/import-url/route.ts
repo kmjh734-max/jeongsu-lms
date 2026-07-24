@@ -9,7 +9,12 @@ export async function POST(request: Request) {
   const auth = await requireNeltStaff();
   if (!auth.ok) return auth.error;
 
-  let body: { urls?: string[] | string; studentName?: string };
+  let body: {
+    url?: string;
+    urls?: string[] | string;
+    attemptNumber?: number;
+    studentName?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -23,7 +28,9 @@ export async function POST(request: Request) {
     ? body.urls
     : typeof body.urls === "string"
       ? body.urls.split(/\r?\n/)
-      : [];
+      : typeof body.url === "string"
+        ? [body.url]
+        : [];
 
   const urls = [
     ...new Set(
@@ -35,7 +42,12 @@ export async function POST(request: Request) {
 
   if (urls.length === 0) {
     return NextResponse.json(
-      { ok: false, message: "등록할 링크를 한 줄 이상 입력해 주세요." },
+      {
+        ok: false,
+        success: false,
+        error: "NELT_RESULT_NOT_FOUND",
+        message: "등록할 링크를 입력해 주세요.",
+      },
       { status: 400 }
     );
   }
@@ -81,6 +93,7 @@ export async function POST(request: Request) {
       url,
       adapter: resolved.adapter,
       draft,
+      attemptNumber: body.attemptNumber ?? null,
       duplicates: duplicates.map((d) => ({
         id: d.id,
         testDate: d.test_date,
@@ -88,5 +101,12 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, results });
+  // 가이드 호환: 단일 url 요청 시 report 필드도 함께 반환
+  const firstOk = results.find((r) => r.ok);
+  return NextResponse.json({
+    ok: true,
+    success: true,
+    results,
+    report: firstOk && "draft" in firstOk ? firstOk.draft : null,
+  });
 }

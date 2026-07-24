@@ -68,7 +68,16 @@ export function NeltStudentPageContent({
         </>
       ) : analysis ? (
         <>
-          <NeltStudentReportActions role={role} studentName={studentName} />
+          <div className="print:hidden flex flex-wrap items-center justify-between gap-3">
+            <NeltStudentReportActions role={role} studentName={studentName} />
+            <ButtonLink
+              href={`${base}/import?name=${encodeURIComponent(studentName)}`}
+              variant="secondary"
+              size="sm"
+            >
+              1·2차 링크로 다시 만들기
+            </ButtonLink>
+          </div>
           <NeltGrowthReportView role={role} analysis={analysis} />
         </>
       ) : (

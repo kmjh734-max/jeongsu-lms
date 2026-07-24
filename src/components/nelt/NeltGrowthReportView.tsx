@@ -1,148 +1,73 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { DOMAIN_LABEL } from "@/lib/nelt/compare/build-growth";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
-import type { NeltGrowthStatus } from "@/types/nelt";
-
-type Analysis = NeltGrowthAnalysis;
-
-function statusTone(status: NeltGrowthStatus): string {
-  switch (status) {
-    case "major_growth":
-      return "bg-emerald-100 text-emerald-900 border-emerald-200";
-    case "growth":
-      return "bg-teal-50 text-teal-900 border-teal-200";
-    case "advanced_challenge":
-      return "bg-sky-50 text-sky-900 border-sky-200";
-    case "maintained":
-      return "bg-slate-50 text-slate-700 border-slate-200";
-    case "focus_needed":
-      return "bg-amber-50 text-amber-900 border-amber-200";
-  }
-}
-
-function statusText(status: NeltGrowthStatus): string {
-  switch (status) {
-    case "major_growth":
-      return "크게 성장";
-    case "growth":
-      return "꾸준한 성장";
-    case "advanced_challenge":
-      return "상위 레벨 진입";
-    case "maintained":
-      return "안정 유지";
-    case "focus_needed":
-      return "다음 성장 목표";
-  }
-}
-
-function LevelBars({ analysis }: { analysis: Analysis }) {
-  const maxOrder = Math.max(
-    13,
-    ...analysis.attempts.flatMap((a) =>
-      a.domains.map((d) => d.evaluatedLevelOrder ?? 0)
-    )
-  );
-
-  return (
-    <div className="space-y-4">
-      {(Object.keys(DOMAIN_LABEL) as Array<keyof typeof DOMAIN_LABEL>).map(
-        (domain) => (
-          <div key={domain}>
-            <p className="mb-2 text-sm font-semibold text-slate-800">
-              {DOMAIN_LABEL[domain]}
-            </p>
-            <div className="flex flex-wrap items-end gap-3">
-              {analysis.attempts.map((a) => {
-                const d = a.domains.find((x) => x.domain === domain);
-                const order = d?.evaluatedLevelOrder ?? 0;
-                const h = Math.max(8, Math.round((order / maxOrder) * 96));
-                return (
-                  <div key={a.id} className="w-16 text-center">
-                    <div className="flex h-24 items-end justify-center">
-                      <div
-                        className="w-8 rounded-t-md bg-emerald-500/80"
-                        style={{ height: h }}
-                        title={d?.evaluatedLevel ?? ""}
-                      />
-                    </div>
-                    <p className="mt-1 text-[11px] font-medium text-slate-700">
-                      {a.attemptNumber}차
-                    </p>
-                    <p className="text-[10px] leading-tight text-slate-500">
-                      {d?.evaluatedLevel?.replace("초등학교 ", "초") ?? "—"}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      {d?.difficultyCode ?? ""}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )
-      )}
-    </div>
-  );
-}
-
-function VocabBars({ analysis }: { analysis: Analysis }) {
-  const sizes = analysis.attempts.map(
-    (a) => a.vocabulary?.vocabularySize ?? 0
-  );
-  const max = Math.max(1, ...sizes);
-  return (
-    <div className="flex flex-wrap items-end gap-4">
-      {analysis.attempts.map((a, i) => {
-        const size = a.vocabulary?.vocabularySize ?? 0;
-        const h = Math.max(8, Math.round((size / max) * 120));
-        return (
-          <div key={a.id} className="w-20 text-center">
-            <div className="flex h-32 items-end justify-center">
-              <div
-                className="w-10 rounded-t-md bg-indigo-500/80"
-                style={{ height: h }}
-              />
-            </div>
-            <p className="mt-1 text-xs font-semibold text-slate-800">
-              {a.attemptNumber}차
-            </p>
-            <p className="text-xs text-slate-600">
-              {size ? `약 ${size}` : "—"}
-            </p>
-            {i > 0 && sizes[i] > sizes[i - 1] && (
-              <p className="text-[10px] text-emerald-700">
-                +{sizes[i] - sizes[i - 1]}
-              </p>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+import type { NeltDomain } from "@/types/nelt";
 
 interface NeltGrowthReportViewProps {
   analysis: NeltGrowthAnalysis;
   role: "admin" | "teacher";
 }
 
-export function NeltGrowthReportView({
-  analysis,
-  role: _role,
-}: NeltGrowthReportViewProps) {
+function formatDateDots(iso: string | null): string {
+  if (!iso) return "—";
+  return iso.replaceAll("-", ".");
+}
+
+function domainOf(analysis: NeltGrowthAnalysis, domain: NeltDomain, which: "start" | "end") {
+  const attempt = which === "start" ? analysis.start : analysis.end;
+  return attempt.domains.find((d) => d.domain === domain) ?? null;
+}
+
+export function NeltGrowthReportView({ analysis }: NeltGrowthReportViewProps) {
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
+
   const period = useMemo(() => {
-    const dates = analysis.attempts
-      .map((a) => a.testDate)
-      .filter(Boolean) as string[];
-    if (dates.length === 0) return `${analysis.attemptCount}회차`;
-    return `${dates[0]} ~ ${dates[dates.length - 1]} · ${analysis.attemptCount}회차`;
+    return `${formatDateDots(analysis.start.testDate)} — ${formatDateDots(
+      analysis.end.testDate
+    )}`;
   }, [analysis]);
+
+  const summaryHtml = useMemo(() => {
+    const name = analysis.studentName;
+    const bits: string[] = [];
+    if (
+      (analysis.end.overallLevelOrder ?? 0) >
+      (analysis.start.overallLevelOrder ?? 0)
+    ) {
+      bits.push(
+        `종합 레벨이 <strong>${analysis.start.overallLevel ?? "—"}에서 ${
+          analysis.end.overallLevel ?? "—"
+        }로 상승</strong>했습니다`
+      );
+    }
+    const vd = analysis.vocabularyGrowth.sizeDelta;
+    if (vd != null && vd > 0) {
+      bits.push(
+        `어휘량이 <strong>약 ${vd.toLocaleString()}단어 증가</strong>했습니다`
+      );
+    }
+    const reading = analysis.domainGrowth.find((d) => d.domain === "reading");
+    if (reading && (reading.levelDelta ?? 0) > 0) {
+      bits.push(
+        `독해 판정 수준이 <strong>${reading.beforeLevel ?? "—"}에서 ${
+          reading.afterLevel ?? "—"
+        }로 향상</strong>되었습니다`
+      );
+    }
+    const head =
+      bits.length > 0
+        ? `${name} 학생은 두 차례의 NELT 평가에서 ${bits.join(", ")}. `
+        : `${name} 학생의 NELT ${analysis.attemptCount}회차 결과를 비교했습니다. `;
+    return (
+      head +
+      "서로 다른 난이도의 원점수는 단순 비교하지 않고, 판정 수준·난이도 코드·절대 개수의 변화를 중심으로 해석했습니다."
+    );
+  }, [analysis]);
+
+  const maxLevelOrder = 12;
 
   async function copyParent() {
     try {
@@ -150,440 +75,408 @@ export function NeltGrowthReportView({
       setCopyMsg("학부모용 문구를 복사했습니다.");
       window.setTimeout(() => setCopyMsg(null), 2500);
     } catch {
-      setCopyMsg("복사에 실패했습니다. 아래 문구를 직접 선택해 주세요.");
+      setCopyMsg("복사에 실패했습니다.");
     }
   }
 
   return (
-    <div className="space-y-8">
-      {/* 1. 학생·시험 정보 */}
-      <Card className="space-y-2 p-5 sm:p-6">
-        <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-          NELT 영어 성장 리포트
-        </p>
-        <h2 className="text-xl font-bold text-slate-900">
-          {analysis.studentName}
-          {analysis.end.studentGradeRaw
-            ? ` · ${analysis.end.studentGradeRaw}`
-            : ""}
-        </h2>
-        <p className="text-sm text-slate-600">평가 기간 {period}</p>
-        <p className="text-sm text-slate-600">
-          종합 {analysis.start.overallLevel ?? analysis.start.overallBand ?? "—"}{" "}
-          → {analysis.end.overallLevel ?? analysis.end.overallBand ?? "—"}
-          {analysis.end.overallBand
-            ? ` (${analysis.end.overallBand} 수준)`
-            : ""}
-        </p>
-      </Card>
-
-      {/* 2. 핵심 성장 요약 */}
-      <section className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">핵심 성장 요약</h3>
-        <Card className="space-y-3 border-emerald-100 bg-emerald-50/40 p-5">
-          <p className="text-sm leading-relaxed text-slate-800">
-            {analysis.overallNarrative}
-          </p>
-          <p className="text-sm leading-relaxed text-slate-700">
-            {analysis.strengthsNarrative}
-          </p>
-          <p className="text-sm leading-relaxed text-slate-700">
-            {analysis.stableNarrative}
-          </p>
-        </Card>
-      </section>
-
-      {/* 3. 대표 성장 카드 */}
-      <section className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">대표 성장</h3>
-        {analysis.highlights.length === 0 ? (
-          <Alert variant="info">
-            아직 강조할 성장 지표가 충분하지 않습니다. 회차를 더 등록해 주세요.
-          </Alert>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {analysis.highlights.map((h) => (
-              <div
-                key={h.key}
-                className={`rounded-xl border p-4 ${statusTone(h.status)}`}
-              >
-                <p className="text-xs font-semibold opacity-80">
-                  {statusText(h.status)}
-                </p>
-                <p className="mt-1 text-sm font-bold">{h.title}</p>
-                <p className="mt-2 text-sm">
-                  {h.beforeLabel} → {h.afterLabel}
-                </p>
-                {h.deltaLabel && (
-                  <p className="mt-1 text-xs font-medium opacity-90">
-                    {h.deltaLabel}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+    <div className="nelt-proto space-y-4">
+      <div className="print:hidden flex flex-wrap gap-2">
+        <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
+          PDF·인쇄
+        </Button>
+        <Button type="button" variant="primary" size="sm" onClick={() => void copyParent()}>
+          학부모 문구 복사
+        </Button>
+        {copyMsg && (
+          <span className="self-center text-xs text-emerald-700">{copyMsg}</span>
         )}
-      </section>
+      </div>
 
-      {/* 4. 영역별 수준 변화 */}
-      <section className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">영역별 수준 변화</h3>
-        <Card className="p-5">
-          <LevelBars analysis={analysis} />
-          <p className="mt-4 text-xs text-slate-500">
-            막대는 판정 수준(정규화) 기준입니다. 난이도 코드는 막대 아래에
-            표시됩니다.
-          </p>
-        </Card>
-      </section>
-
-      {/* 5. 어휘 성장 */}
-      <section className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">어휘 성장</h3>
-        <Card className="space-y-4 p-5">
-          <VocabBars analysis={analysis} />
-          <ul className="space-y-1 text-sm text-slate-700">
-            {analysis.vocabularyGrowth.sizeDelta != null &&
-              analysis.vocabularyGrowth.sizeDelta > 0 && (
-                <li>
-                  어휘량 약 {analysis.vocabularyGrowth.beforeSize} → 약{" "}
-                  {analysis.vocabularyGrowth.afterSize}단어 (약{" "}
-                  {analysis.vocabularyGrowth.sizeDelta}단어 증가
-                  {analysis.vocabularyGrowth.sizeMultiplier != null &&
-                  analysis.vocabularyGrowth.sizeMultiplier >= 2
-                    ? ` · 약 ${
-                        Math.round(
-                          analysis.vocabularyGrowth.sizeMultiplier * 10
-                        ) / 10
-                      }배`
-                    : ""}
-                  )
-                </li>
+      <article className="overflow-hidden rounded-[22px] border border-[#dce3ed] bg-white shadow-[0_14px_38px_rgba(21,45,79,0.10)]">
+        {/* Cover */}
+        <header
+          className="px-6 py-8 text-white sm:px-9"
+          style={{
+            background:
+              "radial-gradient(circle at 87% 16%, rgba(242,140,40,.24), transparent 30%), linear-gradient(135deg, #122844, #244b79)",
+          }}
+        >
+          <div className="flex flex-col justify-between gap-5 sm:flex-row">
+            <div>
+              <small className="block text-xs font-bold tracking-[0.09em] opacity-70">
+                ENGCORE LEARNING REPORT
+              </small>
+              <h2 className="mt-2 text-[28px] font-bold leading-tight sm:text-[31px]">
+                NELT 영어 성장 리포트
+              </h2>
+              <p className="mt-1 text-sm opacity-75">
+                두 차례의 결과를 바탕으로 성장한 지점과 다음 학습 방향을
+                분석했습니다.
+              </p>
+            </div>
+            <div className="min-w-[210px] self-start rounded-[14px] border border-white/20 bg-white/10 px-4 py-3">
+              <strong className="block text-lg">{analysis.studentName}</strong>
+              <span className="text-sm opacity-75">{period}</span>
+              {analysis.end.studentGradeRaw && (
+                <span className="mt-1 block text-xs opacity-70">
+                  {analysis.end.studentGradeRaw}
+                </span>
               )}
-            {analysis.vocabularyGrowth.requiredPctDelta != null && (
-              <li>
-                초등 필수 어휘 이해도{" "}
-                {analysis.vocabularyGrowth.beforeRequiredPct}% →{" "}
-                {analysis.vocabularyGrowth.afterRequiredPct}%
-                {analysis.vocabularyGrowth.requiredCountDelta != null &&
-                  analysis.vocabularyGrowth.requiredCountDelta > 0 &&
-                  ` (약 ${analysis.vocabularyGrowth.beforeRequiredCount}개 → 약 ${analysis.vocabularyGrowth.afterRequiredCount}개)`}
-              </li>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-5 py-7 sm:px-8 sm:py-9">
+          {/* Summary */}
+          <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
+            <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
+            전체 성장 요약
+          </h3>
+          <div className="mb-7 rounded-[17px] border border-[#e6eaf1] bg-gradient-to-br from-[#f8fbff] to-[#fff8f0] px-5 py-4">
+            <p
+              className="text-[15px] leading-relaxed text-[#172033] [&_strong]:text-[#152d4f]"
+              dangerouslySetInnerHTML={{ __html: summaryHtml }}
+            />
+          </div>
+
+          {/* Growth cards */}
+          <div className="mb-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {analysis.highlights.map((h) => (
+              <article
+                key={h.key}
+                className="relative min-h-[135px] overflow-hidden rounded-2xl border border-[#dce3ed] p-4"
+              >
+                <div className="absolute -right-6 -top-7 h-20 w-20 rounded-full bg-[#fff3e5]" />
+                <div className="relative">
+                  <div className="text-xs font-extrabold text-[#68748a]">
+                    {h.title}
+                  </div>
+                  <div className="mt-2 text-2xl font-black tracking-tight text-[#152d4f]">
+                    {h.beforeLabel} → {h.afterLabel}
+                  </div>
+                  {h.deltaLabel && (
+                    <div className="mt-2 text-[13px] font-extrabold text-[#168f62]">
+                      {h.deltaLabel}
+                    </div>
+                  )}
+                  <div className="mt-1 text-xs text-[#68748a]">
+                    {h.status === "advanced_challenge"
+                      ? "상위 난이도 진입"
+                      : h.status === "major_growth"
+                        ? "크게 성장"
+                        : "성장"}
+                  </div>
+                </div>
+              </article>
+            ))}
+            {analysis.highlights.length === 0 && (
+              <p className="text-sm text-slate-500 sm:col-span-3">
+                강조할 성장 지표가 아직 충분하지 않습니다.
+              </p>
             )}
-            {analysis.vocabularyGrowth.csatPctDelta != null &&
-              analysis.vocabularyGrowth.csatPctDelta > 0 && (
-                <li>
-                  수능 기출 어휘 이해도{" "}
-                  {analysis.vocabularyGrowth.beforeCsatPct}% →{" "}
-                  {analysis.vocabularyGrowth.afterCsatPct}%
-                </li>
-              )}
-          </ul>
-        </Card>
-      </section>
+          </div>
 
-      {/* 6. 영역별 성장 분석 + NELT 총평 */}
-      <section className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">영역별 성장 분석</h3>
-        <div className="space-y-4">
-          {analysis.domainGrowth.map((d) => (
-            <Card key={d.domain} className="space-y-3 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h4 className="text-base font-bold text-slate-900">{d.label}</h4>
-                <span
-                  className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusTone(
-                    d.status
-                  )}`}
-                >
-                  {statusText(d.status)}
+          {/* Charts */}
+          <div className="mb-7 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <section className="rounded-2xl border border-[#dce3ed] p-4">
+              <h4 className="m-0 text-base font-bold text-[#172033]">
+                영역별 판정 수준 변화
+              </h4>
+              <p className="mb-4 mt-1 text-xs text-[#68748a]">
+                점수보다 시험 난이도와 판정 수준을 우선하여 비교합니다.
+              </p>
+              <div className="space-y-3.5">
+                {(
+                  ["vocabulary", "grammar", "listening", "reading"] as const
+                ).map((domain) => {
+                  const a = domainOf(analysis, domain, "start");
+                  const b = domainOf(analysis, domain, "end");
+                  const o1 = a?.evaluatedLevelOrder ?? 0;
+                  const o2 = b?.evaluatedLevelOrder ?? 0;
+                  const w1 = Math.max(3, (o1 / maxLevelOrder) * 100);
+                  const w2 = Math.max(3, (o2 / maxLevelOrder) * 100);
+                  return (
+                    <div key={domain}>
+                      <div className="mb-1.5 flex justify-between text-xs font-bold">
+                        <span>{DOMAIN_LABEL[domain]}</span>
+                        <span>
+                          {a?.evaluatedLevel ?? "—"} →{" "}
+                          {b?.evaluatedLevel ?? "—"}
+                        </span>
+                      </div>
+                      <div className="relative h-3 overflow-hidden rounded-full bg-[#edf0f5]">
+                        <div
+                          className="absolute left-0 top-0 h-full rounded-full bg-[#b8c4d7]"
+                          style={{ width: `${w1}%` }}
+                        />
+                        <div
+                          className="absolute left-0 top-[3px] h-1.5 rounded-full bg-gradient-to-r from-[#f28c28] to-[#ffad52] opacity-90"
+                          style={{ width: `${w2}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex gap-4 text-[11px] text-[#68748a]">
+                <span>
+                  <i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#b8c4d7]" />
+                  1차
+                </span>
+                <span>
+                  <i className="mr-1 inline-block h-2 w-2 rounded-full bg-[#f28c28]" />
+                  2차
                 </span>
               </div>
-              <p className="text-sm text-slate-700">{d.narrative}</p>
-              <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
-                <p>
-                  난이도: {d.beforeDifficulty ?? "—"} →{" "}
-                  {d.afterDifficulty ?? "—"}
-                </p>
-                <p>
-                  판정 수준: {d.beforeLevel ?? "—"} → {d.afterLevel ?? "—"}
-                </p>
-                {d.scoreComparable && d.scoreDelta != null ? (
-                  <p>
-                    동일 난이도 점수: {d.beforeScore} → {d.afterScore} (
-                    {d.scoreDelta > 0 ? "+" : ""}
-                    {d.scoreDelta}점)
+            </section>
+
+            <section className="rounded-2xl border border-[#dce3ed] p-4">
+              <h4 className="m-0 text-base font-bold text-[#172033]">
+                어휘량 성장
+              </h4>
+              <p className="mb-4 mt-1 text-xs text-[#68748a]">
+                Vocabulary Size의 실제 증가 개수를 강조합니다.
+              </p>
+              <VocabBars analysis={analysis} />
+            </section>
+          </div>
+
+          {/* Compare table */}
+          <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
+            <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
+            회차별 영역 비교
+          </h3>
+          <section className="mb-7 overflow-x-auto rounded-2xl border border-[#dce3ed] p-2 sm:p-4">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="text-left text-[11px] text-[#68748a]">
+                  <th className="border-b border-[#dce3ed] px-2 py-2">영역</th>
+                  <th className="border-b border-[#dce3ed] px-2 py-2">1차</th>
+                  <th className="border-b border-[#dce3ed] px-2 py-2">2차</th>
+                  <th className="border-b border-[#dce3ed] px-2 py-2">
+                    성장 해석
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {analysis.domainGrowth.map((d) => {
+                  const pill =
+                    d.scoreComparable && (d.scoreDelta ?? 0) > 0
+                      ? "up"
+                      : d.difficultyUp || (d.levelDelta ?? 0) > 0
+                        ? "challenge"
+                        : "neutral";
+                  const pillText =
+                    d.scoreComparable && (d.scoreDelta ?? 0) > 0
+                      ? "점수 향상"
+                      : d.difficultyUp && (d.levelDelta ?? 0) > 0
+                        ? "수준 성장"
+                        : d.difficultyUp
+                          ? "상위 도전"
+                          : (d.levelDelta ?? 0) > 0
+                            ? "수준 향상"
+                            : "다음 목표";
+                  return (
+                    <tr key={d.domain} className="border-b border-[#edf0f4] last:border-0">
+                      <td className="px-2 py-3 font-bold">{d.label}</td>
+                      <td className="px-2 py-3">
+                        {d.beforeDifficulty ?? "—"} · {d.beforeScore ?? "—"}점
+                        <br />
+                        <small className="text-[#68748a]">
+                          {d.beforeLevel ?? "—"}
+                        </small>
+                      </td>
+                      <td className="px-2 py-3">
+                        {d.afterDifficulty ?? "—"} · {d.afterScore ?? "—"}점
+                        <br />
+                        <small className="text-[#68748a]">
+                          {d.afterLevel ?? "—"}
+                        </small>
+                      </td>
+                      <td className="px-2 py-3">
+                        <span
+                          className={
+                            pill === "up"
+                              ? "inline-block rounded-full bg-[#eaf8f2] px-2 py-1 text-[11px] font-extrabold text-[#168f62]"
+                              : pill === "challenge"
+                                ? "inline-block rounded-full bg-[#edf4ff] px-2 py-1 text-[11px] font-extrabold text-[#244a78]"
+                                : "inline-block rounded-full bg-[#f0f2f6] px-2 py-1 text-[11px] font-extrabold text-[#647086]"
+                          }
+                        >
+                          {pillText}
+                        </span>
+                        <br />
+                        <small className="text-[#68748a]">{d.narrative}</small>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </section>
+
+          {/* Narratives */}
+          <div className="mb-7 grid gap-3.5 md:grid-cols-2">
+            <section className="rounded-2xl border border-[#cbeadc] bg-[#eaf8f2] p-4">
+              <h4 className="m-0 mb-2 font-bold text-[#152d4f]">
+                가장 크게 향상된 부분
+              </h4>
+              <p className="m-0 text-sm leading-relaxed text-[#172033]">
+                {analysis.strengthsNarrative}
+              </p>
+            </section>
+            <section className="rounded-2xl border border-[#f3dcc0] bg-[#fff8ef] p-4">
+              <h4 className="m-0 mb-2 font-bold text-[#152d4f]">
+                다음 성장 목표 및 지도 계획
+              </h4>
+              <p className="m-0 text-sm leading-relaxed text-[#172033]">
+                {analysis.nextGoalsNarrative}
+              </p>
+            </section>
+          </div>
+
+          {/* NELT summaries from source */}
+          <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
+            <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
+            NELT 역량 총평 (최근 회차)
+          </h3>
+          <div className="mb-7 space-y-3">
+            {analysis.domainGrowth
+              .filter((d) => d.afterSummary)
+              .map((d) => (
+                <div
+                  key={d.domain}
+                  className="rounded-2xl border border-[#dce3ed] bg-[#fbfcfe] p-4"
+                >
+                  <p className="text-xs font-extrabold text-[#68748a]">
+                    {d.label}
                   </p>
-                ) : (
-                  <p>
-                    점수(참고): {d.beforeScore ?? "—"} → {d.afterScore ?? "—"}
-                    {!d.scoreComparable && " · 난이도가 달라 직접 비교하지 않음"}
+                  <p className="mt-1 text-sm leading-relaxed text-[#172033]">
+                    {d.afterSummary}
                   </p>
+                </div>
+              ))}
+          </div>
+
+          {/* Grammar / subskills extras */}
+          {(analysis.newlyCorrectGrammar.length > 0 ||
+            analysis.subskillGrowth.length > 0) && (
+            <>
+              <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
+                <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
+                세부 성장 지표
+              </h3>
+              <div className="mb-7 grid gap-3 md:grid-cols-2">
+                {analysis.newlyCorrectGrammar.length > 0 && (
+                  <div className="rounded-2xl border border-[#dce3ed] p-4">
+                    <p className="text-sm font-bold text-[#152d4f]">
+                      새롭게 확인한 문법
+                    </p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                      {analysis.newlyCorrectGrammar.slice(0, 8).map((g) => (
+                        <li key={g.detail}>
+                          {g.category ? `${g.category}: ` : ""}
+                          {g.detail}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
-                {d.percentileImproved && d.percentileDelta != null && (
-                  <p>
-                    동학년 상위: {d.beforePercentile}% → {d.afterPercentile}% (
-                    {d.percentileDelta}%p 상승)
-                  </p>
+                {analysis.subskillGrowth.length > 0 && (
+                  <div className="rounded-2xl border border-[#dce3ed] p-4">
+                    <p className="text-sm font-bold text-[#152d4f]">
+                      상승한 세부 역량
+                    </p>
+                    <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                      {analysis.subskillGrowth.map((s) => (
+                        <li key={`${s.domain}-${s.name}`}>
+                          {s.name}: {s.beforeAccuracy}% → {s.afterAccuracy}% (+
+                          {s.delta}%p)
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
-              {d.afterSummary && (
-                <div className="rounded-lg bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
-                  <p className="mb-1 text-xs font-semibold text-slate-500">
-                    NELT 역량 총평 (최근 회차)
-                  </p>
-                  {d.afterSummary}
-                </div>
-              )}
-              {d.beforeSummary && d.beforeSummary !== d.afterSummary && (
-                <details className="text-sm">
-                  <summary className="cursor-pointer text-xs font-medium text-slate-500">
-                    이전 회차 총평 보기
-                  </summary>
-                  <p className="mt-2 leading-relaxed text-slate-600">
-                    {d.beforeSummary}
-                  </p>
-                </details>
-              )}
-            </Card>
-          ))}
-        </div>
-      </section>
+            </>
+          )}
 
-      {/* 7. 세부 역량 성장 */}
-      {analysis.subskillGrowth.length > 0 && (
-        <section className="space-y-3">
-          <h3 className="text-lg font-bold text-slate-900">
-            상승한 세부 역량
+          {/* Source links */}
+          <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
+            <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
+            원본 결과 링크
           </h3>
-          <Card className="p-0">
-            <ul className="divide-y divide-slate-100">
-              {analysis.subskillGrowth.map((s) => (
-                <li
-                  key={`${s.domain}-${s.name}`}
-                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+          <div className="flex flex-wrap gap-2.5">
+            {analysis.attempts.map((a) =>
+              a.sourceUrl ? (
+                <a
+                  key={a.id}
+                  href={a.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="max-w-full truncate rounded-[10px] bg-[#edf4ff] px-3 py-2 text-xs font-bold text-[#244a78] no-underline"
                 >
-                  <div>
-                    <p className="font-medium text-slate-900">{s.name}</p>
-                    <p className="text-xs text-slate-500">
-                      {DOMAIN_LABEL[s.domain]}
-                    </p>
-                  </div>
-                  <p className="font-semibold text-emerald-700">
-                    {s.beforeAccuracy}% → {s.afterAccuracy}% (+{s.delta}%p)
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </section>
-      )}
-
-      {/* 8. 문법 항목 */}
-      {(analysis.newlyCorrectGrammar.length > 0 ||
-        analysis.focusGrammar.length > 0) && (
-        <section className="space-y-3">
-          <h3 className="text-lg font-bold text-slate-900">문법 항목 변화</h3>
-          {analysis.newlyCorrectGrammar.length > 0 && (
-            <Card className="space-y-2 p-5">
-              <p className="text-sm font-semibold text-emerald-800">
-                새롭게 확인한 문법
-              </p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-                {analysis.newlyCorrectGrammar.slice(0, 10).map((g) => (
-                  <li key={`new-${g.detail}`}>
-                    {g.category ? `${g.category}: ` : ""}
-                    {g.detail}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-          {analysis.focusGrammar.length > 0 && (
-            <Card className="space-y-2 p-5">
-              <p className="text-sm font-semibold text-amber-900">
-                다음 학습 목표 문법
-              </p>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-                {analysis.focusGrammar.map((g) => (
-                  <li key={`focus-${g.detail}`}>
-                    {g.category ? `${g.category}: ` : ""}
-                    {g.detail}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-        </section>
-      )}
-
-      {/* 9. 다음 성장 목표 · 학습 계획 */}
-      <section className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">다음 성장 목표</h3>
-        <Card className="space-y-2 p-5">
-          <p className="text-sm leading-relaxed text-slate-700">
-            {analysis.nextGoalsNarrative}
-          </p>
-        </Card>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(Object.keys(DOMAIN_LABEL) as Array<keyof typeof DOMAIN_LABEL>).map(
-            (domain) => {
-              const plan = analysis.learningPlan[domain];
-              return (
-                <Card key={domain} className="space-y-2 p-4">
-                  <p className="text-sm font-bold text-slate-900">
-                    {DOMAIN_LABEL[domain]}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    <span className="font-semibold">강점</span> · {plan.strength}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    <span className="font-semibold">다음 목표</span> ·{" "}
-                    {plan.nextGoal}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    <span className="font-semibold">수업</span> · {plan.classFocus}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    <span className="font-semibold">과제</span> · {plan.homework}
-                  </p>
-                </Card>
-              );
-            }
-          )}
-        </div>
-      </section>
-
-      {/* 10. 회차별 상세 */}
-      <section className="space-y-3">
-        <h3 className="text-lg font-bold text-slate-900">회차별 상세 결과</h3>
-        {analysis.attempts.map((a) => (
-          <Card key={a.id} className="space-y-3 p-5">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="font-bold text-slate-900">
-                {a.attemptNumber}차 · {a.testDate ?? "날짜 미상"}
-              </p>
-              <p className="text-sm text-slate-600">
-                {a.overallLevel ?? "—"} · {a.overallBand ?? ""}
-                {a.overallPercentile != null
-                  ? ` · 상위 ${a.overallPercentile}%`
-                  : ""}
-              </p>
-            </div>
-            <div className="ui-table-wrap">
-              <table className="ui-table text-sm">
-                <thead>
-                  <tr>
-                    <th>영역</th>
-                    <th>난이도</th>
-                    <th>점수</th>
-                    <th>판정 수준</th>
-                    <th>상위%</th>
-                    <th>소요(초)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {a.domains.map((d) => (
-                    <tr key={d.domain}>
-                      <td>{DOMAIN_LABEL[d.domain]}</td>
-                      <td>{d.difficultyCode ?? "—"}</td>
-                      <td>{d.rawScore ?? "—"}</td>
-                      <td>{d.evaluatedLevel ?? "—"}</td>
-                      <td>{d.percentile ?? "—"}</td>
-                      <td>{d.durationSeconds ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {a.vocabulary && (
-              <p className="text-xs text-slate-600">
-                어휘량 약 {a.vocabulary.vocabularySize ?? "—"}단어 · 필수 어휘{" "}
-                {a.vocabulary.elementaryRequiredPercentage ?? "—"}% · 수능 기출{" "}
-                {a.vocabulary.csatVocabularyPercentage ?? "—"}%
-              </p>
+                  {a.attemptNumber}차 원본 열기
+                </a>
+              ) : null
             )}
-            {a.grammar && (
-              <details className="text-sm">
-                <summary className="cursor-pointer text-xs font-medium text-slate-500">
-                  문법 O/X ({a.grammar.correctItemCount ?? 0}/
-                  {a.grammar.totalItemCount ?? a.grammar.items.length})
-                </summary>
-                <ul className="mt-2 max-h-48 space-y-1 overflow-y-auto text-xs text-slate-600">
-                  {a.grammar.items.map((item, i) => (
-                    <li key={`${a.id}-g-${i}`}>
-                      <span
-                        className={
-                          item.isCorrect
-                            ? "font-semibold text-emerald-700"
-                            : "font-semibold text-slate-400"
-                        }
-                      >
-                        {item.isCorrect ? "O" : "X"}
-                      </span>{" "}
-                      {item.category ? `[${item.category}] ` : ""}
-                      {item.detail}
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
-            {a.domains.some((d) => d.subskills.length > 0) && (
-              <details className="text-sm">
-                <summary className="cursor-pointer text-xs font-medium text-slate-500">
-                  세부 역량 정답률
-                </summary>
-                <div className="mt-2 space-y-3">
-                  {a.domains.map((d) =>
-                    d.subskills.length === 0 ? null : (
-                      <div key={d.domain}>
-                        <p className="text-xs font-semibold text-slate-700">
-                          {DOMAIN_LABEL[d.domain]}
-                        </p>
-                        <ul className="mt-1 space-y-1 text-xs text-slate-600">
-                          {d.subskills.map((s) => (
-                            <li key={s.name}>
-                              {s.name}: {s.studentAccuracy ?? "—"}%
-                              {s.levelAverageAccuracy != null
-                                ? ` (레벨 평균 ${s.levelAverageAccuracy}%)`
-                                : ""}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )
-                  )}
-                </div>
-              </details>
-            )}
-            {a.sourceUrl && (
-              <a
-                href={a.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-block text-xs text-brand-600 hover:underline"
-              >
-                원본 링크 열기
-              </a>
-            )}
-          </Card>
-        ))}
-      </section>
-
-      {/* 11. 학부모 문구 */}
-      <section className="space-y-3 print:hidden">
-        <h3 className="text-lg font-bold text-slate-900">학부모 전달용 문구</h3>
-        <Card className="space-y-3 p-5">
-          <pre className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm leading-relaxed text-slate-800">
-            {analysis.parentCopy}
-          </pre>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" variant="primary" size="sm" onClick={() => void copyParent()}>
-              문구 복사
-            </Button>
-            {copyMsg && <span className="text-xs text-emerald-700">{copyMsg}</span>}
           </div>
-        </Card>
-      </section>
+
+          <p className="mt-5 text-center text-[11px] text-[#68748a]">
+            상위 비율은 이전보다 향상된 경우에만 성장 카드와 요약 문구에
+            표시합니다. 서로 다른 난이도의 원점수는 단순 증감으로 판단하지
+            않습니다.
+          </p>
+
+          {/* Parent copy (print-hidden detail) */}
+          <details className="print:hidden mt-6 rounded-2xl border border-[#dce3ed] p-4">
+            <summary className="cursor-pointer text-sm font-bold text-[#152d4f]">
+              학부모 전달용 문구 전문
+            </summary>
+            <pre className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+              {analysis.parentCopy}
+            </pre>
+          </details>
+        </div>
+      </article>
+    </div>
+  );
+}
+
+function VocabBars({ analysis }: { analysis: NeltGrowthAnalysis }) {
+  const sizes = analysis.attempts.map(
+    (a) => a.vocabulary?.vocabularySize ?? 0
+  );
+  const max = Math.max(1, ...sizes);
+  return (
+    <div className="flex h-[210px] items-end justify-center gap-8 border-b border-[#dce3ed] px-4 pt-4">
+      {analysis.attempts.map((a, i) => {
+        const size = a.vocabulary?.vocabularySize ?? 0;
+        const h = Math.max(12, (size / max) * 160);
+        const isLast = i === analysis.attempts.length - 1;
+        return (
+          <div
+            key={a.id}
+            className="flex h-full flex-1 flex-col justify-end text-center"
+          >
+            <div className="mb-1.5 font-black text-[#152d4f]">
+              {size ? `${size.toLocaleString()}단어` : "—"}
+            </div>
+            <div
+              className={`mx-auto w-[72%] max-w-[90px] rounded-t-xl ${
+                isLast
+                  ? "bg-gradient-to-b from-[#ffad52] to-[#f28c28]"
+                  : "bg-[#bdc8d8]"
+              }`}
+              style={{ height: h, minHeight: 12 }}
+            />
+            <div className="mt-2 text-xs font-extrabold">
+              {a.attemptNumber}차
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
