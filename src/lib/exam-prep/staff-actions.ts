@@ -12,7 +12,7 @@ import {
   createWorkbookSchema,
   updateSentenceSchema,
 } from "@/lib/exam-prep/schemas";
-import { getPresetSteps } from "@/lib/exam-prep/presets";
+import { getPresetSteps, buildStepsFromNumbers } from "@/lib/exam-prep/presets";
 import { generateRuleBasedQuestions } from "@/lib/exam-prep/generate-rule-questions";
 import type {
   ExamPassageSentence,
@@ -407,11 +407,17 @@ export async function createWorkbookAction(raw: unknown) {
     };
   }
 
-  const preset = (data.preset_type ?? "basic") as ExamPresetType;
+  const preset = (data.preset_type ?? "custom") as ExamPresetType;
   const steps =
-    preset === "custom"
-      ? getPresetSteps("basic")
-      : getPresetSteps(preset);
+    data.step_numbers && data.step_numbers.length > 0
+      ? buildStepsFromNumbers(data.step_numbers)
+      : preset === "custom"
+        ? buildStepsFromNumbers([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        : getPresetSteps(preset);
+
+  if (steps.length === 0) {
+    return { ok: false as const, message: "학습 단계를 한 개 이상 선택해 주세요." };
+  }
 
   const { data: wb, error } = await supabase
     .from("exam_workbooks")
@@ -420,7 +426,7 @@ export async function createWorkbookAction(raw: unknown) {
       passage_id: data.passage_id,
       title: data.title,
       description: data.description ?? null,
-      preset_type: preset,
+      preset_type: data.step_numbers?.length ? "custom" : preset,
       status: "draft",
       created_by: auth.profile.id,
     })
