@@ -30,7 +30,7 @@ export function sanitizeQuestionDataForStudent(
     delete copy.correctOrder;
     // items만 남기고 셔플은 서버/클라에서
   }
-  if (questionType === "english_blank" || questionType === "korean_blank") {
+  if (questionType === "english_blank" || questionType === "korean_blank" || questionType === "verb_form") {
     const blanks = Array.isArray(copy.blanks) ? copy.blanks : [];
     copy.blanks = blanks.map((b: unknown) => {
       if (!b || typeof b !== "object") return b;
@@ -40,6 +40,9 @@ export function sanitizeQuestionDataForStudent(
       >;
       return rest;
     });
+  }
+  if (questionType === "error_correction") {
+    delete copy.errorWord;
   }
   return copy;
 }

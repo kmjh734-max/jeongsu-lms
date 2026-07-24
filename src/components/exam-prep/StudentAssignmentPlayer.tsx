@@ -383,7 +383,7 @@ function QuestionInput({
     );
   }
 
-  if (type === "english_blank" || type === "korean_blank") {
+  if (type === "english_blank" || type === "korean_blank" || type === "verb_form") {
     const displayText = String(data.displayText ?? "");
     const blanks = (Array.isArray(data.blanks) ? data.blanks : []) as BlankMeta[];
     const blankAnswers =
@@ -394,7 +394,17 @@ function QuestionInput({
         : {};
     return (
       <div className="space-y-3">
-        {data.koreanHint ? (
+        {type === "korean_blank" && data.englishHint ? (
+          <p className="rounded-lg bg-slate-50 p-3 font-mono text-sm text-slate-800">
+            {String(data.englishHint)}
+          </p>
+        ) : null}
+        {type === "verb_form" && data.baseForm ? (
+          <p className="text-sm font-medium text-brand-800">
+            기본형: {String(data.baseForm)}
+          </p>
+        ) : null}
+        {type !== "korean_blank" && data.koreanHint ? (
           <p className="text-sm text-slate-600">{String(data.koreanHint)}</p>
         ) : null}
         <p className="font-mono text-sm text-slate-800">{displayText}</p>
@@ -414,6 +424,63 @@ function QuestionInput({
             </label>
           ))}
         </div>
+        <ResultHint result={result} />
+      </div>
+    );
+  }
+
+  if (type === "translation_practice") {
+    const text =
+      typeof value === "object" &&
+      value !== null &&
+      "text" in value
+        ? String((value as { text: unknown }).text ?? "")
+        : typeof value === "string"
+          ? value
+          : "";
+    return (
+      <div className="space-y-2">
+        {data.english ? (
+          <p className="rounded-lg bg-slate-50 p-3 font-mono text-sm text-slate-800">
+            {String(data.english)}
+          </p>
+        ) : null}
+        <textarea
+          rows={3}
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+          value={text}
+          onChange={(e) => onChange({ text: e.target.value })}
+          placeholder="우리말 해석을 입력하세요"
+        />
+        <ResultHint result={result} />
+      </div>
+    );
+  }
+
+  if (type === "error_correction") {
+    const text =
+      typeof value === "object" &&
+      value !== null &&
+      "text" in value
+        ? String((value as { text: unknown }).text ?? "")
+        : typeof value === "string"
+          ? value
+          : "";
+    return (
+      <div className="space-y-2">
+        {data.koreanHint ? (
+          <p className="text-sm text-slate-600">{String(data.koreanHint)}</p>
+        ) : null}
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 font-mono text-sm text-slate-800">
+          {String(data.corruptedText ?? "")}
+        </p>
+        <textarea
+          rows={3}
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 font-mono text-sm"
+          value={text}
+          onChange={(e) => onChange({ text: e.target.value })}
+          placeholder="올바른 영어 문장으로 고쳐 쓰세요"
+        />
         <ResultHint result={result} />
       </div>
     );

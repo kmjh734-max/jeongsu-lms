@@ -200,7 +200,7 @@ function gradeOne(
           : null;
     return gradeChoiceAnswer(optionId, q.correct_answer, points);
   }
-  if (type === "english_blank" || type === "korean_blank") {
+  if (type === "english_blank" || type === "korean_blank" || type === "verb_form") {
     const blanks =
       typeof answer === "object" &&
       answer !== null &&
@@ -208,6 +208,60 @@ function gradeOne(
         ? ((answer as { blanks: Record<string, string> }).blanks ?? {})
         : (answer as Record<string, string>) ?? {};
     return gradeBlanks(blanks, data, q.correct_answer, points);
+  }
+  if (type === "translation_practice") {
+    const text =
+      typeof answer === "object" &&
+      answer !== null &&
+      "text" in answer
+        ? String((answer as { text: unknown }).text ?? "")
+        : typeof answer === "string"
+          ? answer
+          : "";
+    // 해석이 있으면 정규화 일치, 없으면 강사 검토
+    const hasModel =
+      (typeof q.correct_answer === "object" &&
+        q.correct_answer !== null &&
+        "text" in q.correct_answer &&
+        String((q.correct_answer as { text: unknown }).text ?? "").trim()) ||
+      (Array.isArray(q.acceptable_answers) &&
+        q.acceptable_answers.some(
+          (a) => typeof a === "string" && a.trim().length > 0
+        ));
+    if (!hasModel) {
+      return {
+        isCorrect: null,
+        score: 0,
+        gradingStatus: "needs_review",
+        normalizedAnswer: { text },
+        feedback: "모범 해석이 없어 강사 확인이 필요합니다.",
+      };
+    }
+    const exact = gradeShortAnswer(
+      text,
+      q.correct_answer,
+      q.acceptable_answers,
+      points
+    );
+    if (exact.isCorrect) return exact;
+    return {
+      isCorrect: null,
+      score: 0,
+      gradingStatus: "needs_review",
+      normalizedAnswer: { text },
+      feedback: "의미 일치 여부는 강사가 확인합니다.",
+    };
+  }
+  if (type === "error_correction") {
+    const text =
+      typeof answer === "object" &&
+      answer !== null &&
+      "text" in answer
+        ? String((answer as { text: unknown }).text ?? "")
+        : typeof answer === "string"
+          ? answer
+          : "";
+    return gradeWriting(text, q.correct_answer, q.acceptable_answers, points);
   }
   if (type === "sentence_order" || type === "paragraph_order") {
     const order =

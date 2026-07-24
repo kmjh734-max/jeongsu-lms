@@ -55,12 +55,17 @@ export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
   writing: "서술형 영작",
 };
 
-/** MVP에서 풀이 UI를 제공하는 단계 */
+/** 풀이 UI가 준비된 단계 (PDF 1~10 전체) */
 export const MVP_STEP_TYPES: ExamStepType[] = [
   "comprehension",
+  "korean_blank",
   "english_blank",
+  "translation_practice",
+  "verb_form",
   "grammar_vocab_choice",
+  "error_correction",
   "sentence_order",
+  "paragraph_order",
   "writing",
 ];
 
