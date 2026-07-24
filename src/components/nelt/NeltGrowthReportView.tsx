@@ -139,8 +139,13 @@ export function NeltGrowthReportView({
       return;
     }
     void loadNarratives(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 학생 단위로 1회 로드
-  }, [analysis.studentName, analysis.attemptCount, parentView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 학생·회차·서술 변경 시
+  }, [
+    analysis.studentName,
+    analysis.attemptCount,
+    analysis.aiNarratives,
+    parentView,
+  ]);
 
   return (
     <div className="nelt-proto space-y-4">

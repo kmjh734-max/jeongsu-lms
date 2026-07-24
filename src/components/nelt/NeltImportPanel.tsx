@@ -7,7 +7,8 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { NeltGrowthReportView } from "@/components/nelt/NeltGrowthReportView";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
-import type { NeltAttemptBundle } from "@/lib/nelt/compare/types";
+import type { NeltAttemptBundle, NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
+import type { NeltAiNarratives } from "@/lib/nelt/generate-report-narratives";
 import type { NeltExtractedDraft } from "@/lib/nelt/types-draft";
 import { resolveLevelOrder } from "@/lib/nelt/level-order";
 
@@ -119,38 +120,41 @@ export function NeltImportPanel({
   const [showEditor, setShowEditor] = useState(false);
   const [saving, setSaving] = useState(false);
   const [analyzingAll, setAnalyzingAll] = useState(false);
+  /** links = URL 추출, ai = 서술 다듬기 */
+  const [analyzeStage, setAnalyzeStage] = useState<"links" | "ai" | null>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [analyzeElapsed, setAnalyzeElapsed] = useState(0);
   const [analyzePhase, setAnalyzePhase] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
+  /** AI 서술까지 끝난 리포트 (미리보기는 이걸로만 표시) */
+  const [polishedAnalysis, setPolishedAnalysis] =
+    useState<NeltGrowthAnalysis | null>(null);
 
   const okSlots = useMemo(
     () => slots.filter((s) => s.status === "ok" && s.draft),
     [slots]
   );
 
-  // AI 서술 버튼처럼: 분석 중 진행률·경과 시간 표시
+  // 분석·AI 서술 중 진행률·경과 시간
   useEffect(() => {
-    if (!analyzingAll) return;
-    setAnalyzeProgress(6);
-    setAnalyzeElapsed(0);
-    setAnalyzePhase("링크를 가져오는 중…");
+    if (!analyzingAll || !analyzeStage) return;
     const started = Date.now();
     const tick = window.setInterval(() => {
       const sec = Math.floor((Date.now() - started) / 1000);
       setAnalyzeElapsed(sec);
       setAnalyzeProgress((p) => {
-        if (p >= 90) return p;
-        const step = sec < 4 ? 4 : sec < 10 ? 2.5 : 1.2;
-        return Math.min(90, p + step);
+        if (analyzeStage === "links") {
+          if (p >= 48) return p;
+          return Math.min(48, p + (sec < 4 ? 3.5 : 1.8));
+        }
+        // AI 단계: 50~92
+        if (p >= 92) return p;
+        return Math.min(92, Math.max(50, p) + (sec < 6 ? 2.2 : 1.1));
       });
-      if (sec < 3) setAnalyzePhase("링크를 가져오는 중…");
-      else if (sec < 9) setAnalyzePhase("결과 페이지를 분석하는 중…");
-      else setAnalyzePhase("성장 리포트를 준비하는 중…");
-    }, 450);
+    }, 400);
     return () => window.clearInterval(tick);
-  }, [analyzingAll]);
+  }, [analyzingAll, analyzeStage]);
 
   const extractedName = useMemo(() => {
     for (const s of okSlots) {
@@ -174,6 +178,9 @@ export function NeltImportPanel({
     return buildNeltGrowthAnalysis(name, attempts);
   }, [okSlots, studentName]);
 
+  /** 미리보기: AI 서술 반영본 우선 */
+  const previewAnalysis = polishedAnalysis ?? analysis;
+
   function updateSlot(id: string, patch: Partial<SlotState>) {
     setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   }
@@ -182,12 +189,14 @@ export function NeltImportPanel({
     if (slots.length >= 6) return;
     setSlots((prev) => [...prev, emptySlot()]);
     setPreview(false);
+    setPolishedAnalysis(null);
   }
 
   function removeSlot(id: string) {
     if (slots.length <= 2) return;
     setSlots((prev) => prev.filter((s) => s.id !== id));
     setPreview(false);
+    setPolishedAnalysis(null);
   }
 
   async function analyzeOne(slot: SlotState, attemptNumber: number) {
@@ -255,8 +264,12 @@ export function NeltImportPanel({
       return;
     }
     setAnalyzingAll(true);
+    setAnalyzeStage("links");
+    setAnalyzeProgress(6);
+    setAnalyzeElapsed(0);
     setAnalyzePhase("링크를 가져오는 중…");
     setPreview(false);
+    setPolishedAnalysis(null);
     try {
       const urls = filled.map((s) => s.url.trim());
       setSlots((prev) =>
@@ -266,6 +279,7 @@ export function NeltImportPanel({
             : s
         )
       );
+      setAnalyzePhase("결과 페이지를 분석하는 중…");
       const res = await fetch("/api/nelt/import-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -283,62 +297,138 @@ export function NeltImportPanel({
         duplicates?: Array<{ id: string; testDate: string | null }>;
       }>;
 
-      setAnalyzePhase("분석 결과를 정리하는 중…");
-      setAnalyzeProgress(96);
-
       let firstName = "";
+      const nextSlots = filled
+        .map((s) => {
+          const r = results.find((x) => x.url === s.url.trim());
+          if (r?.ok && r.draft) {
+            if (!firstName && r.draft.studentName) {
+              firstName = r.draft.studentName;
+            }
+            return {
+              slot: s,
+              draft: r.draft,
+              duplicates: r.duplicates ?? [],
+              ok: true as const,
+            };
+          }
+          return {
+            slot: s,
+            draft: null,
+            duplicates: [] as Array<{ id: string; testDate: string | null }>,
+            ok: false as const,
+            message: r?.message ?? "분석 실패",
+          };
+        });
+
       setSlots((prev) =>
         prev.map((s) => {
           const url = s.url.trim();
           if (!url) return s;
-          const r = results.find((x) => x.url === url);
-          if (r?.ok && r.draft) {
-            if (!firstName && r.draft.studentName) firstName = r.draft.studentName;
+          const hit = nextSlots.find((x) => x.slot.id === s.id);
+          if (!hit) return s;
+          if (hit.ok && hit.draft) {
             return {
               ...s,
               status: "ok" as const,
               message: "분석 완료",
-              draft: r.draft,
-              duplicates: r.duplicates ?? [],
+              draft: hit.draft,
+              duplicates: hit.duplicates,
             };
           }
           return {
             ...s,
             status: "error" as const,
-            message: r?.message ?? "분석 실패",
+            message: "message" in hit ? hit.message : "분석 실패",
             draft: null,
             duplicates: [],
           };
         })
       );
+
+      const name = nameOverride.trim() || firstName;
       if (!nameOverride.trim() && firstName) setNameOverride(firstName);
 
-      const okCount = results.filter((r) => r.ok).length;
+      const okItems = nextSlots
+        .filter((x) => x.ok && x.draft)
+        .sort((a, b) =>
+          (a.draft!.testDate ?? "").localeCompare(b.draft!.testDate ?? "")
+        );
+
+      if (okItems.length < 2) {
+        setAnalyzeProgress(100);
+        setAnalyzePhase("분석을 마쳤습니다. (성공한 링크가 2개 미만입니다)");
+        return;
+      }
+      if (!name) {
+        setShowEditor(true);
+        throw new Error(
+          "링크에서 학생 이름을 찾지 못했습니다. 이름을 확인한 뒤 다시 분석해 주세요."
+        );
+      }
+
+      // 바로 미리보기하지 않고 → AI 서술 다듬기까지 완료한 뒤 표시
+      const built = buildNeltGrowthAnalysis(
+        name,
+        okItems.map((x, i) =>
+          draftToAttempt(x.draft!, i + 1, x.slot.url.trim())
+        )
+      );
+      if (!built) {
+        throw new Error("성장 비교를 만들 수 없습니다.");
+      }
+
+      setAnalyzeStage("ai");
+      setAnalyzeProgress(52);
+      setAnalyzePhase("AI로 서술 다듬는 중… (gpt-5.5)");
+
+      const aiRes = await fetch("/api/nelt/report-narratives", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: name,
+          analysis: built,
+          force: true,
+        }),
+      });
+      const aiJson = await aiRes.json();
+      if (!aiRes.ok || !aiJson.ok || !aiJson.narratives) {
+        throw new Error(
+          aiJson.message ?? "AI 서술 다듬기에 실패했습니다. 다시 시도해 주세요."
+        );
+      }
+
+      const narratives = aiJson.narratives as NeltAiNarratives;
+      const polished: NeltGrowthAnalysis = {
+        ...built,
+        aiNarratives: narratives,
+      };
+      setPolishedAnalysis(polished);
       setAnalyzeProgress(100);
       setAnalyzePhase(
-        okCount >= 2
-          ? "성장 리포트·AI 서술을 준비합니다…"
-          : "분석을 마쳤습니다."
+        aiJson.source === "ai"
+          ? `AI 서술 완료 (${aiJson.model ?? "gpt-5.5"})`
+          : "기본 서술로 리포트를 준비했습니다."
       );
-      if (okCount >= 2) {
-        // 리포트 미리보기 + AI 서술 자동 시작(뷰 마운트 시)
-        setPreview(true);
-        window.setTimeout(() => {
-          document
-            .getElementById("nelt-growth-preview")
-            ?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 80);
-      }
+      setPreview(true);
+      window.setTimeout(() => {
+        document
+          .getElementById("nelt-growth-preview")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
     } catch (e) {
       setError(e instanceof Error ? e.message : "분석 오류");
       setAnalyzePhase("");
+      setPreview(false);
+      setPolishedAnalysis(null);
     } finally {
       window.setTimeout(() => {
         setAnalyzingAll(false);
+        setAnalyzeStage(null);
         setAnalyzeProgress(0);
         setAnalyzeElapsed(0);
         setAnalyzePhase("");
-      }, 450);
+      }, 600);
     }
   }
 
@@ -401,6 +491,7 @@ export function NeltImportPanel({
     setSlots([emptySlot(), emptySlot()]);
     setNameOverride(initialStudentName);
     setPreview(false);
+    setPolishedAnalysis(null);
     setError(null);
     setShowEditor(false);
   }
@@ -496,7 +587,9 @@ export function NeltImportPanel({
           onClick={() => void analyzeAll()}
         >
           {analyzingAll
-            ? `링크 분석 중… ${Math.max(1, Math.round(analyzeProgress))}%`
+            ? analyzeStage === "ai"
+              ? `AI 서술 작성 중… ${Math.max(1, Math.round(analyzeProgress))}%`
+              : `링크 분석 중… ${Math.max(1, Math.round(analyzeProgress))}%`
             : "링크 모두 분석하기"}
         </Button>
         <Button
@@ -518,9 +611,9 @@ export function NeltImportPanel({
         <Button
           type="button"
           variant="secondary"
-          disabled={analyzingAll || !analysis}
+          disabled={analyzingAll || !previewAnalysis}
           onClick={() => {
-            if (analysis) {
+            if (previewAnalysis) {
               setPreview(true);
               window.setTimeout(() => {
                 document
@@ -559,8 +652,9 @@ export function NeltImportPanel({
             />
           </div>
           <p className="mt-2 text-xs font-medium opacity-75">
-            AI 서술 작성처럼 링크를 읽는 데 시간이 걸릴 수 있습니다. 잠시만 기다려
-            주세요.
+            {analyzeStage === "ai"
+              ? "학부모용 문장을 AI로 다듬고 있습니다. 완료된 뒤에 리포트가 열립니다."
+              : "링크를 읽은 뒤 AI 서술 다듬기까지 이어서 진행합니다. 잠시만 기다려 주세요."}
           </p>
         </div>
       )}
@@ -642,9 +736,9 @@ export function NeltImportPanel({
 
       {form}
 
-      {preview && analysis && (
+      {preview && previewAnalysis && (
         <div id="nelt-growth-preview">
-          <NeltGrowthReportView role={role} analysis={analysis} />
+          <NeltGrowthReportView role={role} analysis={previewAnalysis} />
         </div>
       )}
     </div>
