@@ -123,7 +123,7 @@ export function NeltImportPanel({
   const [showEditor, setShowEditor] = useState(false);
   const [saving, setSaving] = useState(false);
   const [analyzingAll, setAnalyzingAll] = useState(false);
-  /** links = URL 추출, ai = 서술 다듬기 */
+  /** links = URL 추출, ai = 서술 작성 */
   const [analyzeStage, setAnalyzeStage] = useState<"links" | "ai" | null>(null);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [analyzeElapsed, setAnalyzeElapsed] = useState(0);
@@ -367,7 +367,7 @@ export function NeltImportPanel({
         );
       }
 
-      // 바로 미리보기하지 않고 → AI 서술 다듬기까지 완료한 뒤 표시
+      // 바로 미리보기하지 않고 → AI 서술 작성까지 완료한 뒤 표시
       const built = buildNeltGrowthAnalysis(
         name,
         okItems.map((x, i) =>
@@ -378,17 +378,17 @@ export function NeltImportPanel({
         throw new Error("성장 비교를 만들 수 없습니다.");
       }
 
-      // 링크 결과만으로는 리포트를 열지 않음 → AI 서술 성공 후에만 출력
+      // 링크 결과만으로는 리포트를 열지 않음 → AI 서술 작성 성공 후에만 출력
       setAnalyzeStage("ai");
       setAnalyzeProgress(52);
-      setAnalyzePhase("AI로 서술 다듬는 중…");
+      setAnalyzePhase("AI가 서술을 작성하는 중…");
       setPreview(false);
       setPolishedAnalysis(null);
 
       let narratives: NeltAiNarratives | null = null;
       for (let attempt = 0; attempt < 2; attempt++) {
         setAnalyzePhase(
-          attempt === 0 ? "AI로 서술 다듬는 중…" : "AI 서술 재시도 중…"
+          attempt === 0 ? "AI가 서술을 작성하는 중…" : "AI 서술 재시도 중…"
         );
         const aiRes = await fetch("/api/nelt/report-narratives", {
           method: "POST",
@@ -413,12 +413,12 @@ export function NeltImportPanel({
         if (attempt === 1) {
           throw new Error(
             aiJson.message ??
-              "AI 서술 다듬기에 실패했습니다. 잠시 후 다시 시도해 주세요."
+              "AI 서술 작성에 실패했습니다. 잠시 후 다시 시도해 주세요."
           );
         }
       }
       if (!narratives) {
-        throw new Error("AI 서술 다듬기에 실패했습니다. 다시 시도해 주세요.");
+        throw new Error("AI 서술 작성에 실패했습니다. 다시 시도해 주세요.");
       }
 
       const polished: NeltGrowthAnalysis = {
@@ -675,8 +675,8 @@ export function NeltImportPanel({
           </div>
           <p className="mt-2 text-xs font-medium opacity-75">
             {analyzeStage === "ai"
-              ? "학부모용 문장을 AI로 다듬고 있습니다. 완료된 뒤에 리포트가 열립니다."
-              : "링크를 읽은 뒤 AI 서술 다듬기까지 이어서 진행합니다. 잠시만 기다려 주세요."}
+              ? "AI가 성장 서술을 작성하고 있습니다. 완료된 뒤에 리포트가 열립니다."
+              : "링크를 읽은 뒤 AI가 서술을 작성합니다. 잠시만 기다려 주세요."}
           </p>
         </div>
       )}
@@ -758,7 +758,7 @@ export function NeltImportPanel({
 
       {form}
 
-      {/* AI 서술 완료본만 표시 — 분석 중·미다듬기 결과는 절대 먼저 출력하지 않음 */}
+      {/* AI 서술 완료본만 표시 — 분석 중·미작성 결과는 절대 먼저 출력하지 않음 */}
       {preview && polishedAnalysis && !analyzingAll && (
         <div id="nelt-growth-preview">
           <NeltGrowthReportView

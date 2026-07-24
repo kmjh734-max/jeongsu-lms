@@ -168,7 +168,7 @@ export function NeltGrowthReportView({
           >
             {aiLoading
               ? `AI 서술 작성 중… ${Math.max(1, Math.round(aiProgress))}%`
-              : "AI로 서술 다듬기"}
+              : "AI로 서술 다시 작성"}
           </Button>
           {aiStatus && (
             <span className="text-xs text-slate-500">{aiStatus}</span>
@@ -213,7 +213,7 @@ export function NeltGrowthReportView({
           {aiLoading && (
             <div className="mb-5 rounded-xl border border-[#c9dbf5] bg-[#edf4ff] px-4 py-3.5 text-[#244a78]">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold">
-                <span>학부모용 서술을 AI로 다듬는 중입니다…</span>
+                <span>AI가 성장 서술을 작성하는 중입니다…</span>
                 <span className="tabular-nums text-xs font-bold opacity-80">
                   {Math.max(1, Math.round(aiProgress))}%
                 </span>
