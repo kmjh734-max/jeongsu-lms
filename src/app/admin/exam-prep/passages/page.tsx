@@ -47,7 +47,7 @@ export default async function AdminExamPrepPassagesPage() {
             href={`${BASE}/passages/new`}
             className="inline-flex h-10 items-center rounded-lg bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700"
           >
-            지문 추가
+            지문 일괄 추가
           </Link>
         }
       />

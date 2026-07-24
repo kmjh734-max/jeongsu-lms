@@ -8,6 +8,7 @@ import { splitPassageIntoSentences } from "@/lib/exam-prep/split-sentences";
 import {
   createAssignmentSchema,
   createPassageSchema,
+  createPassagesBulkSchema,
   createWorkbookSchema,
   updateSentenceSchema,
 } from "@/lib/exam-prep/schemas";
@@ -94,6 +95,89 @@ export async function createPassageAction(raw: unknown) {
 
   revalidateExamPrep();
   return { ok: true as const, id: row.id as string };
+}
+
+export async function createPassagesBulkAction(raw: unknown) {
+  const auth = await requireStaff();
+  if (!auth.ok) return auth;
+  const parsed = createPassagesBulkSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { ok: false as const, message: "입력값을 확인해 주세요. (영어 지문이 있는 행만 저장됩니다)" };
+  }
+  const { grade: sharedGrade, rows } = parsed.data;
+  const supabase = await createClient();
+  const academyId = auth.profile.academy_id!;
+  const createdIds: string[] = [];
+
+  // 배치 insert: passages 먼저, 문장은 passage별 묶어서 한 번에
+  const passageInserts = rows.map((row, i) => {
+    const source = row.source?.trim() || null;
+    const n = i + 1;
+    const title = source ? `지문 ${n} · ${source}` : `지문 ${n}`;
+    // 출처에서 번호 추정 (예: 25년 9월 18번)
+    const numMatch = source?.match(/(\d+)\s*번/);
+    return {
+      academy_id: academyId,
+      title: title.slice(0, 200),
+      original_text: row.original_text,
+      grade: row.grade?.trim() || sharedGrade || null,
+      exam_range: source,
+      passage_number: numMatch?.[1] ?? String(n),
+      status: "draft" as const,
+      created_by: auth.profile.id,
+    };
+  });
+
+  const { data: inserted, error } = await supabase
+    .from("exam_passages")
+    .insert(passageInserts)
+    .select("id, original_text");
+  if (error || !inserted?.length) {
+    return { ok: false as const, message: error?.message ?? "일괄 저장 실패" };
+  }
+
+  const sentenceRows: Array<{
+    academy_id: string;
+    passage_id: string;
+    sentence_order: number;
+    english_text: string;
+  }> = [];
+  for (const p of inserted) {
+    createdIds.push(p.id);
+    const sentences = splitPassageIntoSentences(p.original_text);
+    sentences.forEach((english_text, si) => {
+      sentenceRows.push({
+        academy_id: academyId,
+        passage_id: p.id,
+        sentence_order: si + 1,
+        english_text,
+      });
+    });
+  }
+  if (sentenceRows.length > 0) {
+    // 너무 크면 청크로
+    const chunk = 200;
+    for (let i = 0; i < sentenceRows.length; i += chunk) {
+      const { error: sErr } = await supabase
+        .from("exam_passage_sentences")
+        .insert(sentenceRows.slice(i, i + chunk));
+      if (sErr) {
+        return {
+          ok: false as const,
+          message: `지문은 저장됐으나 문장 분리 일부 실패: ${sErr.message}`,
+          ids: createdIds,
+          count: createdIds.length,
+        };
+      }
+    }
+  }
+
+  revalidateExamPrep();
+  return {
+    ok: true as const,
+    ids: createdIds,
+    count: createdIds.length,
+  };
 }
 
 export async function updatePassageAction(id: string, raw: unknown) {

@@ -18,6 +18,18 @@ export const createPassageSchema = z.object({
   status: z.enum(["draft", "ready", "archived"]).optional(),
 });
 
+/** 엑셀형 일괄 등록 행 */
+export const bulkPassageRowSchema = z.object({
+  original_text: z.string().trim().min(1),
+  source: z.string().trim().optional().nullable(),
+  grade: z.string().trim().optional().nullable(),
+});
+
+export const createPassagesBulkSchema = z.object({
+  grade: z.string().trim().optional().nullable(),
+  rows: z.array(bulkPassageRowSchema).min(1).max(100),
+});
+
 export const updateSentenceSchema = z.object({
   id: z.string().uuid(),
   english_text: z.string().trim().min(1).optional(),
