@@ -38,6 +38,8 @@ export function NeltGrowthReportView({
   );
   const [aiLoading, setAiLoading] = useState(false);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
+  const [aiProgress, setAiProgress] = useState(0);
+  const [aiElapsed, setAiElapsed] = useState(0);
 
   const displayAnalysis = useMemo(
     () => (ai ? applyAiNarratives(analysis, ai) : analysis),
@@ -77,6 +79,8 @@ export function NeltGrowthReportView({
     if (parentView) return;
     setAiLoading(true);
     setAiStatus(null);
+    setAiProgress(8);
+    setAiElapsed(0);
     try {
       const res = await fetch("/api/nelt/report-narratives", {
         method: "POST",
@@ -91,6 +95,7 @@ export function NeltGrowthReportView({
       if (!res.ok || !json.ok || !json.narratives) {
         throw new Error(json.message ?? "서술 생성 실패");
       }
+      setAiProgress(100);
       setAi(json.narratives as NeltAiNarratives);
       if (json.source === "ai") {
         setAiStatus(`AI 서술을 적용했습니다. (${json.model ?? "gpt-5.5"})`);
@@ -111,8 +116,21 @@ export function NeltGrowthReportView({
       setAiStatus(e instanceof Error ? e.message : "서술 생성 오류");
     } finally {
       setAiLoading(false);
+      setAiProgress(0);
+      setAiElapsed(0);
     }
   }
+
+  useEffect(() => {
+    if (!aiLoading) return;
+    const started = Date.now();
+    const tick = window.setInterval(() => {
+      const sec = Math.floor((Date.now() - started) / 1000);
+      setAiElapsed(sec);
+      setAiProgress((p) => (p >= 92 ? p : Math.min(92, p + (sec < 5 ? 3 : 1.5))));
+    }, 400);
+    return () => window.clearInterval(tick);
+  }, [aiLoading]);
 
   useEffect(() => {
     if (parentView) return;
@@ -143,7 +161,9 @@ export function NeltGrowthReportView({
             disabled={aiLoading}
             onClick={() => void loadNarratives(true)}
           >
-            {aiLoading ? "AI 서술 작성 중…" : "AI로 서술 다듬기 (gpt-5.5)"}
+            {aiLoading
+              ? `AI 서술 작성 중… ${Math.max(1, Math.round(aiProgress))}%`
+              : "AI로 서술 다듬기 (gpt-5.5)"}
           </Button>
           {aiStatus && (
             <span className="text-xs text-slate-500">{aiStatus}</span>
@@ -185,10 +205,23 @@ export function NeltGrowthReportView({
         </header>
 
         <div className="px-5 py-7 sm:px-8 sm:py-9">
-          {aiLoading && !ai && (
-            <p className="mb-5 rounded-xl bg-[#edf4ff] px-4 py-3 text-sm text-[#244a78]">
-              학부모용 서술을 AI로 다듬는 중입니다…
-            </p>
+          {aiLoading && (
+            <div className="mb-5 rounded-xl border border-[#c9dbf5] bg-[#edf4ff] px-4 py-3.5 text-[#244a78]">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold">
+                <span>학부모용 서술을 AI로 다듬는 중입니다…</span>
+                <span className="tabular-nums text-xs font-bold opacity-80">
+                  {aiElapsed}초 · {Math.max(1, Math.round(aiProgress))}%
+                </span>
+              </div>
+              <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-white/90">
+                <div
+                  className="h-full rounded-full bg-[#244a78] transition-[width] duration-300 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.max(4, aiProgress))}%`,
+                  }}
+                />
+              </div>
+            </div>
           )}
 
           <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">

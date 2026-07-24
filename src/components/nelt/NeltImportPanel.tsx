@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -119,6 +119,9 @@ export function NeltImportPanel({
   const [showEditor, setShowEditor] = useState(false);
   const [saving, setSaving] = useState(false);
   const [analyzingAll, setAnalyzingAll] = useState(false);
+  const [analyzeProgress, setAnalyzeProgress] = useState(0);
+  const [analyzeElapsed, setAnalyzeElapsed] = useState(0);
+  const [analyzePhase, setAnalyzePhase] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
 
@@ -126,6 +129,28 @@ export function NeltImportPanel({
     () => slots.filter((s) => s.status === "ok" && s.draft),
     [slots]
   );
+
+  // AI 서술 버튼처럼: 분석 중 진행률·경과 시간 표시
+  useEffect(() => {
+    if (!analyzingAll) return;
+    setAnalyzeProgress(6);
+    setAnalyzeElapsed(0);
+    setAnalyzePhase("링크를 가져오는 중…");
+    const started = Date.now();
+    const tick = window.setInterval(() => {
+      const sec = Math.floor((Date.now() - started) / 1000);
+      setAnalyzeElapsed(sec);
+      setAnalyzeProgress((p) => {
+        if (p >= 90) return p;
+        const step = sec < 4 ? 4 : sec < 10 ? 2.5 : 1.2;
+        return Math.min(90, p + step);
+      });
+      if (sec < 3) setAnalyzePhase("링크를 가져오는 중…");
+      else if (sec < 9) setAnalyzePhase("결과 페이지를 분석하는 중…");
+      else setAnalyzePhase("성장 리포트를 준비하는 중…");
+    }, 450);
+    return () => window.clearInterval(tick);
+  }, [analyzingAll]);
 
   const extractedName = useMemo(() => {
     for (const s of okSlots) {
@@ -230,6 +255,8 @@ export function NeltImportPanel({
       return;
     }
     setAnalyzingAll(true);
+    setAnalyzePhase("링크를 가져오는 중…");
+    setPreview(false);
     try {
       const urls = filled.map((s) => s.url.trim());
       setSlots((prev) =>
@@ -255,6 +282,9 @@ export function NeltImportPanel({
         draft?: NeltExtractedDraft;
         duplicates?: Array<{ id: string; testDate: string | null }>;
       }>;
+
+      setAnalyzePhase("분석 결과를 정리하는 중…");
+      setAnalyzeProgress(96);
 
       let firstName = "";
       setSlots((prev) =>
@@ -284,11 +314,31 @@ export function NeltImportPanel({
       if (!nameOverride.trim() && firstName) setNameOverride(firstName);
 
       const okCount = results.filter((r) => r.ok).length;
-      if (okCount >= 2) setPreview(true);
+      setAnalyzeProgress(100);
+      setAnalyzePhase(
+        okCount >= 2
+          ? "성장 리포트·AI 서술을 준비합니다…"
+          : "분석을 마쳤습니다."
+      );
+      if (okCount >= 2) {
+        // 리포트 미리보기 + AI 서술 자동 시작(뷰 마운트 시)
+        setPreview(true);
+        window.setTimeout(() => {
+          document
+            .getElementById("nelt-growth-preview")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "분석 오류");
+      setAnalyzePhase("");
     } finally {
-      setAnalyzingAll(false);
+      window.setTimeout(() => {
+        setAnalyzingAll(false);
+        setAnalyzeProgress(0);
+        setAnalyzeElapsed(0);
+        setAnalyzePhase("");
+      }, 450);
     }
   }
 
@@ -445,12 +495,14 @@ export function NeltImportPanel({
           disabled={analyzingAll}
           onClick={() => void analyzeAll()}
         >
-          {analyzingAll ? "분석 중…" : "링크 모두 분석하기"}
+          {analyzingAll
+            ? `링크 분석 중… ${Math.max(1, Math.round(analyzeProgress))}%`
+            : "링크 모두 분석하기"}
         </Button>
         <Button
           type="button"
           variant="secondary"
-          disabled={slots.length >= 6}
+          disabled={analyzingAll || slots.length >= 6}
           onClick={addSlot}
         >
           회차 추가 ({slots.length}/6)
@@ -459,14 +511,14 @@ export function NeltImportPanel({
           type="button"
           variant="secondary"
           onClick={() => setShowEditor((v) => !v)}
-          disabled={okSlots.length === 0}
+          disabled={analyzingAll || okSlots.length === 0}
         >
           추출 결과 수정
         </Button>
         <Button
           type="button"
           variant="secondary"
-          disabled={!analysis}
+          disabled={analyzingAll || !analysis}
           onClick={() => {
             if (analysis) {
               setPreview(true);
@@ -480,10 +532,38 @@ export function NeltImportPanel({
         >
           리포트 미리보기
         </Button>
-        <Button type="button" variant="ghost" onClick={resetAll}>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={analyzingAll}
+          onClick={resetAll}
+        >
           초기화
         </Button>
       </div>
+
+      {analyzingAll && (
+        <div className="mt-4 rounded-xl border border-[#c9dbf5] bg-[#edf4ff] px-4 py-3.5 text-[#244a78] shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-semibold">
+            <span>{analyzePhase || "링크를 분석하는 중…"}</span>
+            <span className="tabular-nums text-xs font-bold opacity-80">
+              {analyzeElapsed}초 · {Math.max(1, Math.round(analyzeProgress))}%
+            </span>
+          </div>
+          <div className="mt-2.5 h-2.5 overflow-hidden rounded-full bg-white/90">
+            <div
+              className="h-full rounded-full bg-[#244a78] transition-[width] duration-300 ease-out"
+              style={{
+                width: `${Math.min(100, Math.max(4, analyzeProgress))}%`,
+              }}
+            />
+          </div>
+          <p className="mt-2 text-xs font-medium opacity-75">
+            AI 서술 작성처럼 링크를 읽는 데 시간이 걸릴 수 있습니다. 잠시만 기다려
+            주세요.
+          </p>
+        </div>
+      )}
 
       {showEditor && okSlots.length > 0 && (
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
