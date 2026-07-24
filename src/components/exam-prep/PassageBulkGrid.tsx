@@ -34,16 +34,14 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
     setRowKeys((prev) => (prev.length <= 1 ? prev : prev.filter((k) => k !== key)));
   }, []);
 
-  /** 엑셀에서 복사한 표(탭/줄바꿈) 붙여넣기 → 여러 행으로 채움 */
   function handlePaste(
-    e: React.ClipboardEvent<HTMLTextAreaElement>,
+    e: React.ClipboardEvent<HTMLTextAreaElement | HTMLInputElement>,
     startIndex: number,
-    field: "text" | "source"
+    _field: "text" | "source"
   ) {
     const raw = e.clipboardData.getData("text");
     if (!raw.includes("\t") && !raw.includes("\n")) return;
 
-    // 단일 셀에 긴 문단만 붙이는 경우는 기본 동작 유지
     const lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
     // 긴 지문 여러 줄은 한 셀로 — 탭이 있을 때만 표로 처리
     if (!raw.includes("\t")) return;
@@ -53,10 +51,8 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
       .map((line) => {
         const parts = line.split("\t");
         if (parts.length >= 2) {
-          // 출처 | 지문  or 지문 | 출처
           const a = parts[0]?.trim() ?? "";
           const b = parts.slice(1).join("\t").trim();
-          // 짧은 쪽이 출처로 추정
           if (a.length < 40 && b.length > a.length) {
             return { source: a, text: b };
           }
@@ -74,8 +70,7 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
         need > 0
           ? [...prev, ...Array.from({ length: need }, () => newKey())]
           : [...prev];
-      // DOM fill after paint
-      queuePromise.resolve().then(() => {
+      queueMicrotask(() => {
         const form = formRef.current;
         if (!form) return;
         parsed.forEach((row, i) => {
