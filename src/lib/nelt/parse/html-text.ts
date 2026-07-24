@@ -89,7 +89,7 @@ export function parseVocabSize(raw: string | null | undefined): number | null {
 
 export function normalizeLevelLabel(raw: string | null): string | null {
   if (!raw) return null;
-  let s = raw
+  const s = raw
     .replace(/수준$/g, "")
     .replace(/~/g, "-")
     .replace(/～/g, "-")
