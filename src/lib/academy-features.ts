@@ -1,8 +1,9 @@
-import { ACADEMY_ID } from "@/config/academy";
-
-/** 단어학습 — 정수학원(jeongsu)만 사용 */
+/**
+ * 단어학습 — EngCore에 등록되는 모든 학원에서 사용.
+ * (기존에는 jeongsu 전용이었으나, 신규 등록 학원도 쓸 수 있게 개방)
+ */
 export function isVocabEnabled(): boolean {
-  return ACADEMY_ID === "jeongsu";
+  return true;
 }
 
 /**
