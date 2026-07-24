@@ -102,25 +102,53 @@ export async function createPassagesBulkAction(raw: unknown) {
   if (!auth.ok) return auth;
   const parsed = createPassagesBulkSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false as const, message: "입력값을 확인해 주세요. (영어 지문이 있는 행만 저장됩니다)" };
+    return {
+      ok: false as const,
+      message:
+        "입력값을 확인해 주세요. (세트 제목 + 영어 지문이 있는 행만 저장됩니다)",
+    };
   }
-  const { grade: sharedGrade, rows } = parsed.data;
+  const {
+    set_title: setTitle,
+    grade: sharedGrade,
+    school_name: schoolName,
+    rows,
+  } = parsed.data;
   const supabase = await createClient();
   const academyId = auth.profile.academy_id!;
   const createdIds: string[] = [];
 
-  // 배치 insert: passages 먼저, 문장은 passage별 묶어서 한 번에
+  const { data: setRow, error: setErr } = await supabase
+    .from("exam_passage_sets")
+    .insert({
+      academy_id: academyId,
+      title: setTitle,
+      grade: sharedGrade || null,
+      school_name: schoolName || null,
+      status: "draft",
+      created_by: auth.profile.id,
+    })
+    .select("id")
+    .single();
+  if (setErr || !setRow) {
+    return {
+      ok: false as const,
+      message: setErr?.message ?? "세트 생성 실패",
+    };
+  }
+
   const passageInserts = rows.map((row, i) => {
     const source = row.source?.trim() || null;
     const n = i + 1;
     const title = source ? `지문 ${n} · ${source}` : `지문 ${n}`;
-    // 출처에서 번호 추정 (예: 25년 9월 18번)
     const numMatch = source?.match(/(\d+)\s*번/);
     return {
       academy_id: academyId,
+      set_id: setRow.id,
       title: title.slice(0, 200),
       original_text: row.original_text,
       grade: row.grade?.trim() || sharedGrade || null,
+      school_name: schoolName || null,
       exam_range: source,
       passage_number: numMatch?.[1] ?? String(n),
       status: "draft" as const,
@@ -133,6 +161,7 @@ export async function createPassagesBulkAction(raw: unknown) {
     .insert(passageInserts)
     .select("id, original_text");
   if (error || !inserted?.length) {
+    await supabase.from("exam_passage_sets").delete().eq("id", setRow.id);
     return { ok: false as const, message: error?.message ?? "일괄 저장 실패" };
   }
 
@@ -155,7 +184,6 @@ export async function createPassagesBulkAction(raw: unknown) {
     });
   }
   if (sentenceRows.length > 0) {
-    // 너무 크면 청크로
     const chunk = 200;
     for (let i = 0; i < sentenceRows.length; i += chunk) {
       const { error: sErr } = await supabase
@@ -167,6 +195,7 @@ export async function createPassagesBulkAction(raw: unknown) {
           message: `지문은 저장됐으나 문장 분리 일부 실패: ${sErr.message}`,
           ids: createdIds,
           count: createdIds.length,
+          setId: setRow.id as string,
         };
       }
     }
@@ -177,6 +206,7 @@ export async function createPassagesBulkAction(raw: unknown) {
     ok: true as const,
     ids: createdIds,
     count: createdIds.length,
+    setId: setRow.id as string,
   };
 }
 

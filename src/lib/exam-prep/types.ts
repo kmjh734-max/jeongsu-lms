@@ -67,6 +67,7 @@ export const MVP_STEP_TYPES: ExamStepType[] = [
 export type ExamPassage = {
   id: string;
   academy_id: string;
+  set_id?: string | null;
   title: string;
   school_name: string | null;
   grade: string | null;

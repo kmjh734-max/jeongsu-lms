@@ -19,6 +19,7 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
     Array.from({ length: EMPTY_COUNT }, () => newKey())
   );
   const [sharedGrade, setSharedGrade] = useState("");
+  const [setTitle, setSetTitle] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -116,6 +117,10 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMessage(null);
+    if (!setTitle.trim()) {
+      setMessage("세트 제목을 입력해 주세요. (예: 25년 9월 모의고사)");
+      return;
+    }
     const rows = collectRows();
     if (rows.length === 0) {
       setMessage("영어 지문을 한 줄 이상 입력해 주세요.");
@@ -123,6 +128,7 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
     }
     startTransition(async () => {
       const result = await createPassagesBulkAction({
+        set_title: setTitle.trim(),
         grade: sharedGrade.trim() || null,
         rows,
       });
@@ -130,7 +136,9 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
         setMessage(result.message);
         return;
       }
-      setMessage(`${result.count}개 지문을 등록했습니다.`);
+      setMessage(
+        `「${setTitle.trim()}」에 지문 ${result.count}개를 등록했습니다.`
+      );
       router.push(`${basePath}/passages`);
       router.refresh();
     });
@@ -138,25 +146,42 @@ export function PassageBulkGrid({ basePath }: { basePath: string }) {
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">
-            영어 지문 일괄 입력
-          </h3>
-          <p className="mt-0.5 text-xs text-slate-500">
-            엑셀처럼 행을 채운 뒤 한 번에 저장합니다. 출처 열에 탭으로 붙여넣으면
-            여러 행이 채워집니다.
-          </p>
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h3 className="text-base font-semibold text-slate-900">
+          세트 제목 (한 제목 아래 여러 지문)
+        </h3>
+        <p className="mt-0.5 text-xs text-slate-500">
+          예: 25년 9월 모의고사 · 고3 중간고사 Unit 3
+        </p>
+        <div className="mt-3 flex flex-wrap items-end gap-3">
+          <label className="min-w-[220px] flex-1 text-sm font-medium text-slate-700">
+            제목
+            <input
+              required
+              value={setTitle}
+              onChange={(e) => setSetTitle(e.target.value)}
+              placeholder="세트 제목"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="text-sm font-medium text-slate-700">
+            학년
+            <input
+              value={sharedGrade}
+              onChange={(e) => setSharedGrade(e.target.value)}
+              placeholder="고3"
+              className="mt-1 w-28 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            />
+          </label>
         </div>
-        <label className="text-sm text-slate-700">
-          공통 학년
-          <input
-            value={sharedGrade}
-            onChange={(e) => setSharedGrade(e.target.value)}
-            placeholder="예: 고3"
-            className="ml-2 w-28 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
-          />
-        </label>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-slate-800">지문 목록</h3>
+        <p className="mt-0.5 text-xs text-slate-500">
+          엑셀처럼 행을 채운 뒤 한 번에 저장합니다. 탭으로 복사한 표를 붙여넣으면
+          여러 행이 채워집니다.
+        </p>
       </div>
 
       <div className="overflow-auto rounded-xl border border-slate-200 bg-white shadow-sm">

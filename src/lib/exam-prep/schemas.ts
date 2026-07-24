@@ -26,7 +26,10 @@ export const bulkPassageRowSchema = z.object({
 });
 
 export const createPassagesBulkSchema = z.object({
+  /** 세트 제목 — 한 제목 아래 여러 지문 */
+  set_title: z.string().trim().min(1).max(200),
   grade: z.string().trim().optional().nullable(),
+  school_name: z.string().trim().optional().nullable(),
   rows: z.array(bulkPassageRowSchema).min(1).max(100),
 });
 
