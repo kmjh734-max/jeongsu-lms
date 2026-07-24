@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { resolveLoginEmail } from "@/lib/auth/username";
 import { getDashboardPathForRole } from "@/lib/auth/roles";
@@ -44,7 +44,6 @@ export function LoginForm({
   expectedAcademyId = null,
   expectedAcademyName = null,
 }: LoginFormProps) {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectAfterLogin = safeRedirectPath(
     searchParams.get("redirect") ?? searchParams.get("redirectTo")
@@ -116,9 +115,10 @@ export function LoginForm({
       const role = profile?.role as UserRole | undefined;
       if (role) {
         setRoleCookieClient(role);
-        const dest = redirectAfterLogin ?? getDashboardPathForRole(role);
-        // Soft nav keeps the JS bundle warm (hard reload was slower on return visits)
-        router.replace(dest);
+        // Soft navigation + refresh는 RSC 재요청이 겹쳐 체감이 느림 → 한 번만 이동
+        window.location.assign(
+          redirectAfterLogin ?? getDashboardPathForRole(role)
+        );
         return;
       }
     }
