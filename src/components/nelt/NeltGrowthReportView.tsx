@@ -299,7 +299,9 @@ export function NeltGrowthReportView({
                 종합 성장 평가
               </h4>
               <p className="m-0 text-sm leading-relaxed text-[#172033]">
-                {analysis.strengthsNarrative} {analysis.stableNarrative}
+                {[analysis.strengthsNarrative, analysis.stableNarrative]
+                  .filter((t) => t?.trim())
+                  .join(" ")}
               </p>
             </section>
             <section className="rounded-2xl border border-[#f3dcc0] bg-[#fff8ef] p-4">

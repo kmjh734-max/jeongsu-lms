@@ -593,7 +593,7 @@ function buildCopy(analysis: Omit<
       ? `${stable
           .map((d) => d.label)
           .join("·")} 영역은 최근 확보한 수준을 안정적으로 유지하고 있습니다.`
-      : "현재 확보한 수준을 바탕으로 다음 목표를 설정합니다.";
+      : "";
 
   const focusLines = focus.map((d) => analysis.learningPlan[d.domain].nextGoal);
   if (analysis.focusGrammar.length > 0) {
