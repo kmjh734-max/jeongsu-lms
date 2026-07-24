@@ -204,10 +204,10 @@ export function DomainMetricsChart({
                 <g key={`${s.name}-${i}`}>
                   <text
                     x={xAt(i)}
-                    y={yAt(v) - 12}
+                    y={yAt(v) - 10}
                     textAnchor="middle"
-                    fontSize={13}
-                    fontWeight={800}
+                    fontSize={11}
+                    fontWeight={700}
                     fill={lineColor}
                   >
                     {s.display[i]}
@@ -321,10 +321,10 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
               <g key={`${domain}-${p.attemptNumber}`}>
                 <text
                   x={xAt(i)}
-                  y={yAt(p.domains[domain].levelOrder) - 11}
+                  y={yAt(p.domains[domain].levelOrder) - 10}
                   textAnchor="middle"
-                  fontSize={12}
-                  fontWeight={800}
+                  fontSize={11}
+                  fontWeight={700}
                   fill={DOMAIN_COLORS[domain]}
                 >
                   {shortLevelLabel(
