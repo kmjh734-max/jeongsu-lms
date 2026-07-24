@@ -1,10 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Alert } from "@/components/ui/Alert";
-import { ButtonLink } from "@/components/ui/Button";
+import { Button, ButtonLink } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { NeltGrowthReportView } from "@/components/nelt/NeltGrowthReportView";
-import { NeltStudentReportActions } from "@/components/nelt/NeltStudentReportActions";
 import { buildNeltGrowthAnalysis, DOMAIN_LABEL } from "@/lib/nelt/compare/build-growth";
 import type { NeltAttemptBundle } from "@/lib/nelt/compare/types";
 
@@ -20,16 +23,49 @@ export function NeltStudentPageContent({
   attempts,
 }: NeltStudentPageContentProps) {
   const base = role === "admin" ? "/admin/nelt" : "/teacher/nelt";
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const analysis =
     attempts.length >= 2
       ? buildNeltGrowthAnalysis(studentName, attempts)
       : null;
 
+  async function deleteAll() {
+    const ok = window.confirm(
+      `"${studentName}" 학생의 NELT 회차와 성장 리포트를 모두 삭제할까요?`
+    );
+    if (!ok) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/nelt/students", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentName }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        throw new Error(json.message ?? "삭제 실패");
+      }
+      router.push(base);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "삭제 오류");
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={`${studentName} NELT 영어 성장 리포트`}
-        description="회차별 NELT 결과를 바탕으로 학생의 영어 실력 성장과 앞으로의 학습 방향을 분석합니다."
+        description={
+          analysis
+            ? `${analysis.attemptCount}회차 결과를 비교한 성장 리포트입니다.`
+            : "회차별 NELT 결과를 등록하면 성장 리포트를 볼 수 있습니다."
+        }
         action={
           <div className="flex flex-wrap gap-2">
             <ButtonLink href={base} variant="secondary" size="sm">
@@ -37,14 +73,26 @@ export function NeltStudentPageContent({
             </ButtonLink>
             <ButtonLink
               href={`${base}/import?name=${encodeURIComponent(studentName)}`}
-              variant="primary"
+              variant="secondary"
               size="sm"
             >
               회차 추가
             </ButtonLink>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={deleting}
+              onClick={() => void deleteAll()}
+              className="!border-red-200 !text-red-700 hover:!bg-red-50"
+            >
+              {deleting ? "삭제 중…" : "전체 삭제"}
+            </Button>
           </div>
         }
       />
+
+      {error && <Alert variant="error">{error}</Alert>}
 
       {attempts.length === 0 ? (
         <Alert variant="info">
@@ -55,31 +103,25 @@ export function NeltStudentPageContent({
           >
             결과 링크를 등록
           </Link>
-          해 주세요. 링크 2~3개를 한 번에 넣으면 1·2·3차 성장 리포트가
-          만들어집니다.
+          해 주세요.
         </Alert>
       ) : attempts.length === 1 ? (
         <>
           <Alert variant="info">
-            1회차만 등록되어 있습니다. 같은 학생으로 2회차 이상 링크를 추가하면
-            성장 비교 리포트가 생성됩니다.
+            1회차만 등록되어 있습니다. 2회차 이상 링크를 추가하면 성장 비교
+            리포트가 열립니다.
           </Alert>
           <SingleAttemptDetail attempt={attempts[0]} />
+          <ButtonLink
+            href={`${base}/import?name=${encodeURIComponent(studentName)}`}
+            variant="primary"
+            size="sm"
+          >
+            2차 링크 등록하기
+          </ButtonLink>
         </>
       ) : analysis ? (
-        <>
-          <div className="print:hidden flex flex-wrap items-center justify-between gap-3">
-            <NeltStudentReportActions role={role} studentName={studentName} />
-            <ButtonLink
-              href={`${base}/import?name=${encodeURIComponent(studentName)}`}
-              variant="secondary"
-              size="sm"
-            >
-              1·2차 링크로 다시 만들기
-            </ButtonLink>
-          </div>
-          <NeltGrowthReportView role={role} analysis={analysis} />
-        </>
+        <NeltGrowthReportView role={role} analysis={analysis} />
       ) : (
         <Alert variant="error">성장 비교를 만들지 못했습니다.</Alert>
       )}
@@ -126,19 +168,6 @@ function SingleAttemptDetail({ attempt }: { attempt: NeltAttemptBundle }) {
           </tbody>
         </table>
       </div>
-      {attempt.domains.map(
-        (d) =>
-          d.evaluationSummary && (
-            <div key={d.domain} className="rounded-lg bg-slate-50 p-3">
-              <p className="text-xs font-semibold text-slate-500">
-                {DOMAIN_LABEL[d.domain]} 총평
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-slate-700">
-                {d.evaluationSummary}
-              </p>
-            </div>
-          )
-      )}
       {attempt.sourceUrl && (
         <a
           href={attempt.sourceUrl}

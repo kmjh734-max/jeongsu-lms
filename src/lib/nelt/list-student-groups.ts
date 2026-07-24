@@ -10,6 +10,7 @@ export async function listNeltStudentGroups(
     .from("nelt_reports")
     .select("student_name_raw, test_date, overall_level, created_at")
     .eq("academy_id", academyId)
+    .eq("extraction_status", "completed")
     .order("test_date", { ascending: false, nullsFirst: false });
 
   if (error || !data) return [];

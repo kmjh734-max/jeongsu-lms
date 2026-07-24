@@ -16,12 +16,25 @@ import {
 export type NeltAiNarratives = {
   version: 1;
   model: string | null;
+  /** 회차 지문 — 바뀌면 캐시 무효 */
+  attemptFingerprint?: string;
   overallSummary: string;
   strengthsNarrative: string;
   nextGoalsNarrative: string;
   domainExplanations: Partial<Record<NeltDomain, string>>;
   domainPlans: Partial<Record<NeltDomain, string>>;
 };
+
+export function buildAttemptFingerprint(
+  analysis: NeltGrowthAnalysis
+): string {
+  return analysis.attempts
+    .map(
+      (a) =>
+        `${a.id}:${a.attemptNumber}:${a.testDate ?? ""}:${a.overallLevel ?? ""}`
+    )
+    .join("|");
+}
 
 const DOMAINS: NeltDomain[] = [
   "vocabulary",
@@ -43,6 +56,7 @@ export function narrativesFromRuleBased(
   return {
     version: 1,
     model: null,
+    attemptFingerprint: buildAttemptFingerprint(analysis),
     overallSummary: buildParentOverallSummary(analysis).replace(
       /<\/?strong>/g,
       ""
@@ -205,6 +219,7 @@ function normalizeAiJson(
   return {
     version: 1,
     model,
+    attemptFingerprint: fallback.attemptFingerprint,
     overallSummary:
       typeof o.overallSummary === "string" && o.overallSummary.trim()
         ? o.overallSummary.trim()

@@ -3,10 +3,12 @@ import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
 import {
+  buildAttemptFingerprint,
   generateNeltReportNarrativesAi,
   parseStoredNarratives,
   type NeltAiNarratives,
 } from "@/lib/nelt/generate-report-narratives";
+import { upsertNeltGrowthReport } from "@/lib/nelt/upsert-growth-report";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 
 export const runtime = "nodejs";
@@ -50,6 +52,15 @@ export async function POST(request: Request) {
     );
   }
 
+  const fingerprint = buildAttemptFingerprint(analysis);
+
+  // 성장 리포트 행이 없으면 만들어 둠 (서술 저장 대상)
+  await upsertNeltGrowthReport(auth.supabase, {
+    academyId: auth.academyId,
+    studentName: analysis.studentName,
+    createdBy: auth.profile.id,
+  });
+
   if (!force) {
     const { data: existing } = await auth.supabase
       .from("nelt_growth_reports")
@@ -61,7 +72,11 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     const cached = parseStoredNarratives(existing?.generated_summary);
-    if (cached?.model) {
+    if (
+      cached?.model &&
+      cached.attemptFingerprint &&
+      cached.attemptFingerprint === fingerprint
+    ) {
       return NextResponse.json({
         ok: true,
         narratives: cached,
@@ -73,7 +88,10 @@ export async function POST(request: Request) {
   }
 
   const result = await generateNeltReportNarrativesAi(analysis);
-  const narratives: NeltAiNarratives = result.narratives;
+  const narratives: NeltAiNarratives = {
+    ...result.narratives,
+    attemptFingerprint: fingerprint,
+  };
 
   await auth.supabase
     .from("nelt_growth_reports")

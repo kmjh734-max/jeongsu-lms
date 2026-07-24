@@ -180,6 +180,7 @@ export type NeltGrowthAnalysis = {
   aiNarratives?: {
     version: 1;
     model: string | null;
+    attemptFingerprint?: string;
     overallSummary: string;
     strengthsNarrative: string;
     nextGoalsNarrative: string;
