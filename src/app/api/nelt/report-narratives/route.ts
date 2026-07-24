@@ -8,6 +8,7 @@ import {
   parseStoredNarratives,
   type NeltAiNarratives,
 } from "@/lib/nelt/generate-report-narratives";
+import { isReportUuid } from "@/lib/nelt/is-report-uuid";
 import { upsertNeltGrowthReport } from "@/lib/nelt/upsert-growth-report";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 
@@ -53,15 +54,18 @@ export async function POST(request: Request) {
   }
 
   const fingerprint = buildAttemptFingerprint(analysis);
+  const persistedIds = analysis.attempts.map((a) => a.id).filter(isReportUuid);
 
-  // 이미 분석된 회차로 성장 리포트 행 확보 (이름 재조회로 실패하지 않게)
-  await upsertNeltGrowthReport(auth.supabase, {
-    academyId: auth.academyId,
-    studentName: analysis.studentName,
-    createdBy: auth.profile.id,
-    attempts: analysis.attempts,
-    reportIds: analysis.attempts.map((a) => a.id),
-  });
+  // 저장된 UUID 회차만 DB upsert (미리보기 local-* 은 AI만 수행)
+  if (persistedIds.length >= 2) {
+    await upsertNeltGrowthReport(auth.supabase, {
+      academyId: auth.academyId,
+      studentName: analysis.studentName,
+      createdBy: auth.profile.id,
+      attempts: analysis.attempts.filter((a) => isReportUuid(a.id)),
+      reportIds: persistedIds,
+    });
+  }
 
   if (!force) {
     const { data: existing } = await auth.supabase
@@ -90,25 +94,38 @@ export async function POST(request: Request) {
   }
 
   const result = await generateNeltReportNarrativesAi(analysis);
+  if (!result.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: result.message || "AI 서술 생성에 실패했습니다.",
+        source: "fallback",
+        narratives: null,
+      },
+      { status: 502 }
+    );
+  }
+
   const narratives: NeltAiNarratives = {
     ...result.narratives,
     attemptFingerprint: fingerprint,
   };
 
-  await auth.supabase
-    .from("nelt_growth_reports")
-    .update({
-      generated_summary: JSON.stringify(narratives),
-      updated_at: new Date().toISOString(),
-    })
-    .eq("academy_id", auth.academyId)
-    .eq("student_name_raw", analysis.studentName);
+  if (persistedIds.length >= 2) {
+    await auth.supabase
+      .from("nelt_growth_reports")
+      .update({
+        generated_summary: JSON.stringify(narratives),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("academy_id", auth.academyId)
+      .eq("student_name_raw", analysis.studentName);
+  }
 
   return NextResponse.json({
     ok: true,
     narratives,
-    source: result.source,
-    model: result.ok ? result.model : null,
-    message: result.ok ? undefined : result.message,
+    source: "ai",
+    model: result.model,
   });
 }

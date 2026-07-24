@@ -8,7 +8,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { NeltGrowthReportView } from "@/components/nelt/NeltGrowthReportView";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import type { NeltAttemptBundle, NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
-import type { NeltAiNarratives } from "@/lib/nelt/generate-report-narratives";
+import {
+  applyAiNarratives,
+  type NeltAiNarratives,
+} from "@/lib/nelt/generate-report-narratives";
 import type { NeltExtractedDraft } from "@/lib/nelt/types-draft";
 import { resolveLevelOrder } from "@/lib/nelt/level-order";
 
@@ -177,9 +180,6 @@ export function NeltImportPanel({
     );
     return buildNeltGrowthAnalysis(name, attempts);
   }, [okSlots, studentName]);
-
-  /** 미리보기: AI 서술 반영본 우선 */
-  const previewAnalysis = polishedAnalysis ?? analysis;
 
   function updateSlot(id: string, patch: Partial<SlotState>) {
     setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -378,38 +378,60 @@ export function NeltImportPanel({
         throw new Error("성장 비교를 만들 수 없습니다.");
       }
 
+      // 링크 결과만으로는 리포트를 열지 않음 → AI 서술 성공 후에만 출력
       setAnalyzeStage("ai");
       setAnalyzeProgress(52);
       setAnalyzePhase("AI로 서술 다듬는 중… (gpt-5.5)");
+      setPreview(false);
+      setPolishedAnalysis(null);
 
-      const aiRes = await fetch("/api/nelt/report-narratives", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentName: name,
-          analysis: built,
-          force: true,
-        }),
-      });
-      const aiJson = await aiRes.json();
-      if (!aiRes.ok || !aiJson.ok || !aiJson.narratives) {
-        throw new Error(
-          aiJson.message ?? "AI 서술 다듬기에 실패했습니다. 다시 시도해 주세요."
+      let narratives: NeltAiNarratives | null = null;
+      let modelLabel = "gpt-5.5";
+      for (let attempt = 0; attempt < 2; attempt++) {
+        setAnalyzePhase(
+          attempt === 0
+            ? "AI로 서술 다듬는 중… (gpt-5.5)"
+            : "AI 서술 재시도 중…"
         );
+        const aiRes = await fetch("/api/nelt/report-narratives", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentName: name,
+            analysis: built,
+            force: true,
+          }),
+        });
+        const aiJson = await aiRes.json();
+        if (
+          aiRes.ok &&
+          aiJson.ok &&
+          aiJson.narratives &&
+          (aiJson.source === "ai" || aiJson.source === "cache") &&
+          aiJson.narratives.overallSummary
+        ) {
+          narratives = aiJson.narratives as NeltAiNarratives;
+          modelLabel = (aiJson.model as string) || modelLabel;
+          break;
+        }
+        if (attempt === 1) {
+          throw new Error(
+            aiJson.message ??
+              "AI 서술 다듬기에 실패했습니다. 잠시 후 다시 시도해 주세요."
+          );
+        }
+      }
+      if (!narratives) {
+        throw new Error("AI 서술 다듬기에 실패했습니다. 다시 시도해 주세요.");
       }
 
-      const narratives = aiJson.narratives as NeltAiNarratives;
       const polished: NeltGrowthAnalysis = {
-        ...built,
+        ...applyAiNarratives(built, narratives),
         aiNarratives: narratives,
       };
       setPolishedAnalysis(polished);
       setAnalyzeProgress(100);
-      setAnalyzePhase(
-        aiJson.source === "ai"
-          ? `AI 서술 완료 (${aiJson.model ?? "gpt-5.5"})`
-          : "기본 서술로 리포트를 준비했습니다."
-      );
+      setAnalyzePhase(`AI 서술 완료 (${modelLabel})`);
       setPreview(true);
       window.setTimeout(() => {
         document
@@ -611,16 +633,20 @@ export function NeltImportPanel({
         <Button
           type="button"
           variant="secondary"
-          disabled={analyzingAll || !previewAnalysis}
+          disabled={analyzingAll || !polishedAnalysis}
           onClick={() => {
-            if (previewAnalysis) {
-              setPreview(true);
-              window.setTimeout(() => {
-                document
-                  .getElementById("nelt-growth-preview")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }, 50);
+            if (!polishedAnalysis) {
+              setError(
+                "먼저 「링크 모두 분석하기」로 AI 서술까지 완료해 주세요."
+              );
+              return;
             }
+            setPreview(true);
+            window.setTimeout(() => {
+              document
+                .getElementById("nelt-growth-preview")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }, 50);
           }}
         >
           리포트 미리보기
@@ -736,9 +762,14 @@ export function NeltImportPanel({
 
       {form}
 
-      {preview && previewAnalysis && (
+      {/* AI 서술 완료본만 표시 — 분석 중·미다듬기 결과는 절대 먼저 출력하지 않음 */}
+      {preview && polishedAnalysis && !analyzingAll && (
         <div id="nelt-growth-preview">
-          <NeltGrowthReportView role={role} analysis={previewAnalysis} />
+          <NeltGrowthReportView
+            role={role}
+            analysis={polishedAnalysis}
+            narrativesReady
+          />
         </div>
       )}
     </div>

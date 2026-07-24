@@ -22,6 +22,8 @@ interface NeltGrowthReportViewProps {
   role: "admin" | "teacher";
   /** 학부모 공개 페이지 — 공유/편집 UI 숨김 */
   parentView?: boolean;
+  /** 이미 AI 서술 적용됨 — 마운트 시 자동 재생성 안 함 */
+  narrativesReady?: boolean;
 }
 
 function formatDateDots(iso: string | null): string {
@@ -32,6 +34,7 @@ function formatDateDots(iso: string | null): string {
 export function NeltGrowthReportView({
   analysis,
   parentView = false,
+  narrativesReady = false,
 }: NeltGrowthReportViewProps) {
   const [ai, setAi] = useState<NeltAiNarratives | null>(
     analysis.aiNarratives ?? null
@@ -134,8 +137,8 @@ export function NeltGrowthReportView({
 
   useEffect(() => {
     if (parentView) return;
-    if (analysis.aiNarratives) {
-      setAi(analysis.aiNarratives);
+    if (narrativesReady || analysis.aiNarratives) {
+      if (analysis.aiNarratives) setAi(analysis.aiNarratives);
       return;
     }
     void loadNarratives(false);
@@ -144,6 +147,7 @@ export function NeltGrowthReportView({
     analysis.studentName,
     analysis.attemptCount,
     analysis.aiNarratives,
+    narrativesReady,
     parentView,
   ]);
 
