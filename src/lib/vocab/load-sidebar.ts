@@ -2,8 +2,8 @@ import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Class, VocabFolder } from "@/types/database";
 import type { VocabSidebarSet } from "@/components/vocab/vocab-sidebar-types";
-import { fetchVocabItemCountsBySetIds } from "@/lib/vocab/vocab-item-counts";
 
+/** 사이드바용 — 단어 수 RPC는 생략 (폴더 클릭·세트 상세에서만 조회) */
 export const loadVocabSidebarData = cache(async function loadVocabSidebarData(
   supabase: SupabaseClient,
   role: "admin" | "teacher",
@@ -44,17 +44,11 @@ export const loadVocabSidebarData = cache(async function loadVocabSidebarData(
     setsQuery,
   ]);
 
-  const setList = setsRes.data ?? [];
-  const itemCountBySet = await fetchVocabItemCountsBySetIds(
-    supabase,
-    setList.map((s) => s.id as string)
-  );
-
-  const sets = setList.map((s) => ({
+  const sets = (setsRes.data ?? []).map((s) => ({
     id: s.id as string,
     title: s.title as string,
     folder_id: (s.folder_id as string | null) ?? null,
-    item_count: itemCountBySet.get(s.id as string) ?? 0,
+    item_count: 0,
   }));
 
   return {

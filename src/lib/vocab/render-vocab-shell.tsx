@@ -5,8 +5,6 @@ import { VocabCombinedSidebar } from "@/components/vocab/VocabCombinedSidebar";
 import { VocabSidebarProvider } from "@/components/vocab/VocabSidebarContext";
 import { loadVocabSidebarData } from "@/lib/vocab/load-sidebar";
 
-const EMPTY_SIDEBAR = { classes: [], folders: [], sets: [] };
-
 export async function renderVocabShell(
   role: "admin" | "teacher",
   mode: "status" | "assign" | "sets",
@@ -21,11 +19,8 @@ export async function renderVocabShell(
 ) {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-
-  const sidebarData =
-    mode === "status"
-      ? EMPTY_SIDEBAR
-      : await loadVocabSidebarData(supabase, role, profile!.id);
+  // status도 동일 셸에서 사이드바 유지 (탭 전환 시 재로드 방지)
+  const sidebarData = await loadVocabSidebarData(supabase, role, profile!.id);
 
   return (
     <VocabSidebarProvider value={sidebarData}>

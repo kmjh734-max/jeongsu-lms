@@ -30,28 +30,37 @@ async function loadAssignedPairs(
     if (scopedSetIds.length === 0) return [];
   }
 
+  const { data: classLinks } = await supabase
+    .from("class_students")
+    .select("student_id, class_id")
+    .in("student_id", studentIds);
+
+  const classIdsByStudent = new Map<string, Set<string>>();
+  const classIdSet = new Set<string>();
+  for (const row of classLinks ?? []) {
+    const sid = row.student_id as string;
+    const cid = row.class_id as string;
+    const set = classIdsByStudent.get(sid) ?? new Set<string>();
+    set.add(cid);
+    classIdsByStudent.set(sid, set);
+    classIdSet.add(cid);
+  }
+
+  const classIds = [...classIdSet];
+  const orParts: string[] = [`student_id.in.(${studentIds.join(",")})`];
+  if (classIds.length > 0) {
+    orParts.push(`class_id.in.(${classIds.join(",")})`);
+  }
+
   let assignmentQuery = supabase
     .from("vocab_assignments")
-    .select("set_id, student_id, class_id, set:vocab_sets(title)");
+    .select("set_id, student_id, class_id, set:vocab_sets(title)")
+    .or(orParts.join(","));
   if (scopedSetIds) {
     assignmentQuery = assignmentQuery.in("set_id", scopedSetIds);
   }
 
-  const [{ data: assignments }, { data: classLinks }] = await Promise.all([
-    assignmentQuery,
-    supabase
-      .from("class_students")
-      .select("student_id, class_id")
-      .in("student_id", studentIds),
-  ]);
-
-  const classIdsByStudent = new Map<string, Set<string>>();
-  for (const row of classLinks ?? []) {
-    const sid = row.student_id as string;
-    const set = classIdsByStudent.get(sid) ?? new Set<string>();
-    set.add(row.class_id as string);
-    classIdsByStudent.set(sid, set);
-  }
+  const { data: assignments } = await assignmentQuery;
 
   const pairs: AssignedPair[] = [];
   const seen = new Set<string>();
@@ -134,59 +143,53 @@ export async function loadVocabTodayStatusTable(
   const activityByPair = new Map<string, string[]>();
 
   if (setIds.length > 0) {
-    const [{ data: itemRows }, activityQueries] = await Promise.all([
-      supabase.from("vocab_items").select("id, set_id").in("set_id", setIds),
-      Promise.all([
-        supabase
-          .from("vocab_progress")
-          .select("student_id, item_id, last_studied_at")
-          .in("student_id", studentIds)
-          .gte("last_studied_at", start)
-          .lte("last_studied_at", end),
-        supabase
-          .from("vocab_spelling_attempts")
-          .select("student_id, set_id, created_at")
-          .in("student_id", studentIds)
-          .in("set_id", setIds)
-          .gte("created_at", start)
-          .lte("created_at", end),
-        supabase
-          .from("vocab_example_attempts")
-          .select("student_id, set_id, created_at")
-          .in("student_id", studentIds)
-          .in("set_id", setIds)
-          .gte("created_at", start)
-          .lte("created_at", end),
-        supabase
-          .from("vocab_test_attempts")
-          .select("student_id, set_id, submitted_at, started_at")
-          .in("student_id", studentIds)
-          .in("set_id", setIds),
-        supabase
-          .from("vocab_final_test_attempts")
-          .select("student_id, set_id, submitted_at")
-          .in("student_id", studentIds)
-          .in("set_id", setIds)
-          .gte("submitted_at", start)
-          .lte("submitted_at", end),
-      ]),
-    ]);
-
-    const itemToSet = new Map(
-      (itemRows ?? []).map((r) => [r.id as string, r.set_id as string])
-    );
-
     const [
       { data: progressRows },
       { data: spellingRows },
       { data: exampleRows },
       { data: testRows },
       { data: finalRows },
-    ] = activityQueries;
+    ] = await Promise.all([
+      supabase
+        .from("vocab_progress")
+        .select(
+          "student_id, item_id, last_studied_at, item:vocab_items!inner(set_id)"
+        )
+        .in("student_id", studentIds)
+        .gte("last_studied_at", start)
+        .lte("last_studied_at", end),
+      supabase
+        .from("vocab_spelling_attempts")
+        .select("student_id, set_id, created_at")
+        .in("student_id", studentIds)
+        .in("set_id", setIds)
+        .gte("created_at", start)
+        .lte("created_at", end),
+      supabase
+        .from("vocab_example_attempts")
+        .select("student_id, set_id, created_at")
+        .in("student_id", studentIds)
+        .in("set_id", setIds)
+        .gte("created_at", start)
+        .lte("created_at", end),
+      supabase
+        .from("vocab_test_attempts")
+        .select("student_id, set_id, submitted_at, started_at")
+        .in("student_id", studentIds)
+        .in("set_id", setIds),
+      supabase
+        .from("vocab_final_test_attempts")
+        .select("student_id, set_id, submitted_at")
+        .in("student_id", studentIds)
+        .in("set_id", setIds)
+        .gte("submitted_at", start)
+        .lte("submitted_at", end),
+    ]);
 
     for (const row of progressRows ?? []) {
-      const setId = itemToSet.get(row.item_id as string);
-      if (!setId) continue;
+      const item = row.item as { set_id?: string } | { set_id?: string }[] | null;
+      const setId = Array.isArray(item) ? item[0]?.set_id : item?.set_id;
+      if (!setId || !setIds.includes(setId)) continue;
       const key = `${row.student_id}:${setId}`;
       const list = activityByPair.get(key) ?? [];
       mergeActivityLabels(list, "1단계 카드학습");

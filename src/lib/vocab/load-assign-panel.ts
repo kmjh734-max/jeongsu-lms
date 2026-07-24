@@ -52,11 +52,20 @@ export async function loadAssignableStudents(
     });
   }
 
-  const { data: teacherClasses } = await supabase
-    .from("classes")
-    .select("id, name")
-    .eq("teacher_id", userId)
-    .eq("is_active", true);
+  const [{ data: teacherClasses }, { data: createdStudents }] =
+    await Promise.all([
+      supabase
+        .from("classes")
+        .select("id, name")
+        .eq("teacher_id", userId)
+        .eq("is_active", true),
+      supabase
+        .from("profiles")
+        .select("id, name, username")
+        .eq("role", "student")
+        .eq("is_active", true)
+        .eq("created_by", userId),
+    ]);
 
   const classIds = (teacherClasses ?? []).map((c) => c.id as string);
   const classNameById = new Map(
@@ -69,29 +78,23 @@ export async function loadAssignableStudents(
     { ids: string[]; names: string[] }
   >();
 
-  if (classIds.length > 0) {
-    const { data: members } = await supabase
-      .from("class_students")
-      .select("student_id, class_id")
-      .in("class_id", classIds);
+  const { data: members } =
+    classIds.length > 0
+      ? await supabase
+          .from("class_students")
+          .select("student_id, class_id")
+          .in("class_id", classIds)
+      : { data: [] as { student_id: string; class_id: string }[] };
 
-    for (const row of members ?? []) {
-      const sid = row.student_id as string;
-      studentIdSet.add(sid);
-      const entry = classInfoByStudent.get(sid) ?? { ids: [], names: [] };
-      const cid = row.class_id as string;
-      entry.ids.push(cid);
-      entry.names.push(classNameById.get(cid) ?? "—");
-      classInfoByStudent.set(sid, entry);
-    }
+  for (const row of members ?? []) {
+    const sid = row.student_id as string;
+    studentIdSet.add(sid);
+    const entry = classInfoByStudent.get(sid) ?? { ids: [], names: [] };
+    const cid = row.class_id as string;
+    entry.ids.push(cid);
+    entry.names.push(classNameById.get(cid) ?? "—");
+    classInfoByStudent.set(sid, entry);
   }
-
-  const { data: createdStudents } = await supabase
-    .from("profiles")
-    .select("id, name, username")
-    .eq("role", "student")
-    .eq("is_active", true)
-    .eq("created_by", userId);
 
   for (const s of createdStudents ?? []) {
     studentIdSet.add(s.id as string);
@@ -217,6 +220,20 @@ async function finishFolderAssignPanel(
   const setIds = setList.map((s) => s.id);
   const setTitles = setList.map((s) => s.title);
 
+  const classList = classRows as { id: string; name: string }[];
+  const classIds = classList.map((c) => c.id);
+
+  // allStudents에 이미 classIds가 있으므로 class_students를 다시 안 치고 조립
+  const studentsByClass = new Map<string, { id: string; name: string }[]>();
+  for (const student of allStudents) {
+    for (const cid of student.classIds) {
+      if (!classIds.includes(cid)) continue;
+      const list = studentsByClass.get(cid) ?? [];
+      list.push({ id: student.id, name: student.name });
+      studentsByClass.set(cid, list);
+    }
+  }
+
   const assignmentsRes =
     setIds.length > 0
       ? await supabase
@@ -228,30 +245,6 @@ async function finishFolderAssignPanel(
           .not("student_id", "is", null)
           .order("created_at", { ascending: false })
       : { data: [] };
-
-  const classList = classRows as { id: string; name: string }[];
-  const classIds = classList.map((c) => c.id);
-
-  const { data: memberRows } =
-    classIds.length > 0
-      ? await supabase
-          .from("class_students")
-          .select(
-            "class_id, student_id, student:profiles!class_students_student_id_fkey(id, name)"
-          )
-          .in("class_id", classIds)
-      : { data: [] };
-
-  const studentsByClass = new Map<string, { id: string; name: string }[]>();
-  for (const row of memberRows ?? []) {
-    const student = Array.isArray(row.student) ? row.student[0] : row.student;
-    const list = studentsByClass.get(row.class_id as string) ?? [];
-    list.push({
-      id: row.student_id as string,
-      name: (student as { name?: string } | null)?.name ?? "—",
-    });
-    studentsByClass.set(row.class_id as string, list);
-  }
 
   const classes: ClassWithStudents[] = classList.map((c) => ({
     id: c.id,
@@ -340,25 +333,14 @@ export async function loadSetAssignPanelData(
   const classList = (classesRes.data ?? []) as { id: string; name: string }[];
   const classIds = classList.map((c) => c.id);
 
-  const { data: memberRows } =
-    classIds.length > 0
-      ? await supabase
-          .from("class_students")
-          .select(
-            "class_id, student_id, student:profiles!class_students_student_id_fkey(id, name)"
-          )
-          .in("class_id", classIds)
-      : { data: [] };
-
   const studentsByClass = new Map<string, { id: string; name: string }[]>();
-  for (const row of memberRows ?? []) {
-    const student = Array.isArray(row.student) ? row.student[0] : row.student;
-    const list = studentsByClass.get(row.class_id as string) ?? [];
-    list.push({
-      id: row.student_id as string,
-      name: (student as { name?: string } | null)?.name ?? "—",
-    });
-    studentsByClass.set(row.class_id as string, list);
+  for (const student of allStudents) {
+    for (const cid of student.classIds) {
+      if (!classIds.includes(cid)) continue;
+      const list = studentsByClass.get(cid) ?? [];
+      list.push({ id: student.id, name: student.name });
+      studentsByClass.set(cid, list);
+    }
   }
 
   const classes: ClassWithStudents[] = classList.map((c) => ({

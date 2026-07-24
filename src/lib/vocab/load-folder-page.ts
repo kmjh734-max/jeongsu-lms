@@ -29,45 +29,44 @@ export async function loadVocabFolderPageData(
 ): Promise<VocabFolderPageData | null> {
   const folderRes = await supabase
     .from("vocab_folders")
-    .select("*")
+    .select("id, name, created_by, teacher_id, created_at")
     .eq("id", folderId)
     .maybeSingle();
 
   if (!folderRes.data) return null;
 
   const folder = folderRes.data as VocabFolder;
-
-  const setsQuery = supabase
-    .from("vocab_sets")
-    .select("*, teacher:profiles!vocab_sets_teacher_id_fkey(id, name)")
-    .eq("folder_id", folderId)
-    .order("order_index", { ascending: true })
-    .order("created_at", { ascending: true });
-
-  const foldersQuery = supabase
-    .from("vocab_folders")
-    .select("id, name")
-    .order("name");
+  const ownerId = folder.created_by ?? folder.teacher_id ?? userId;
 
   const [setsRes, foldersRes, ownerRes, teachersRes] = await Promise.all([
-    setsQuery,
-    foldersQuery,
+    supabase
+      .from("vocab_sets")
+      .select(
+        "id, title, is_locked, teacher:profiles!vocab_sets_teacher_id_fkey(id, name)"
+      )
+      .eq("folder_id", folderId)
+      .order("order_index", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase.from("vocab_folders").select("id, name").order("name"),
     supabase
       .from("profiles")
       .select("name, username")
-      .eq("id", folder.created_by ?? folder.teacher_id ?? userId)
+      .eq("id", ownerId)
       .maybeSingle(),
     role === "admin"
       ? supabase
           .from("profiles")
-          .select("*")
+          .select("id, name, email, username, role, is_active")
           .eq("role", "teacher")
           .eq("is_active", true)
           .order("name")
       : Promise.resolve({ data: [] as Profile[] }),
   ]);
 
-  const setList = (setsRes.data ?? []) as (VocabSet & {
+  const setList = (setsRes.data ?? []) as unknown as (Pick<
+    VocabSet,
+    "id" | "title" | "is_locked"
+  > & {
     teacher: { id: string; name: string } | null;
   })[];
 
@@ -107,21 +106,16 @@ export async function loadVocabUnfiledPageData(
   role: "admin" | "teacher",
   userId: string
 ): Promise<Omit<VocabFolderPageData, "folder"> & { setCount: number }> {
-  const setsQuery = supabase
-    .from("vocab_sets")
-    .select("*, teacher:profiles!vocab_sets_teacher_id_fkey(id, name)")
-    .is("folder_id", null)
-    .order("order_index", { ascending: true })
-    .order("created_at", { ascending: true });
-
-  const foldersQuery = supabase
-    .from("vocab_folders")
-    .select("id, name")
-    .order("name");
-
   const [setsRes, foldersRes, ownerRes, teachersRes] = await Promise.all([
-    setsQuery,
-    foldersQuery,
+    supabase
+      .from("vocab_sets")
+      .select(
+        "id, title, is_locked, teacher:profiles!vocab_sets_teacher_id_fkey(id, name)"
+      )
+      .is("folder_id", null)
+      .order("order_index", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase.from("vocab_folders").select("id, name").order("name"),
     supabase
       .from("profiles")
       .select("name, username")
@@ -130,14 +124,17 @@ export async function loadVocabUnfiledPageData(
     role === "admin"
       ? supabase
           .from("profiles")
-          .select("*")
+          .select("id, name, email, username, role, is_active")
           .eq("role", "teacher")
           .eq("is_active", true)
           .order("name")
       : Promise.resolve({ data: [] as Profile[] }),
   ]);
 
-  const setList = (setsRes.data ?? []) as (VocabSet & {
+  const setList = (setsRes.data ?? []) as unknown as (Pick<
+    VocabSet,
+    "id" | "title" | "is_locked"
+  > & {
     teacher: { id: string; name: string } | null;
   })[];
 

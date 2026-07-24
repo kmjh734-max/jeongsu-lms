@@ -113,10 +113,6 @@ export function VocabSetsOverview({
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {folders.map((folder) => {
               const folderSets = setsByFolder.get(folder.id) ?? [];
-              const cardCount = folderSets.reduce(
-                (sum, s) => sum + s.item_count,
-                0
-              );
               return (
                 <Link
                   key={folder.id}
@@ -133,7 +129,7 @@ export function VocabSetsOverview({
                       {folder.name}
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
-                      세트 {folderSets.length}개 · {cardCount} 카드
+                      세트 {folderSets.length}개
                     </p>
                   </div>
                 </Link>
@@ -163,8 +159,7 @@ export function VocabSetsOverview({
                   미분류
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
-                  세트 {unfiled.length}개 ·{" "}
-                  {unfiled.reduce((sum, s) => sum + s.item_count, 0)} 카드
+                  세트 {unfiled.length}개
                 </p>
               </div>
             </Link>
