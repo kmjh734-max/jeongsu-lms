@@ -334,7 +334,7 @@ export function AccountManagement({
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 className="font-semibold text-slate-900">새 {roleLabel} 등록</h3>
         <p className="mt-1 text-sm text-slate-600">
-          {roleLabel}는 아이디와 비밀번호로 로그인합니다. (내부: 아이디@jslms.local)
+          {roleLabel}는 아이디와 비밀번호로 로그인합니다.
         </p>
 
         <form onSubmit={handleCreate} className="mt-4 grid gap-4 sm:grid-cols-2">
