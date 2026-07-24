@@ -5,9 +5,12 @@ export function isVocabEnabled(): boolean {
   return ACADEMY_ID === "jeongsu";
 }
 
-/** NELT 성장 리포트 — 정수학원(jeongsu)만 사용 */
+/**
+ * NELT 성장 리포트 — EngCore에 등록되는 모든 학원에서 사용.
+ * (기존에는 jeongsu 전용이었으나, 신규 등록 학원도 쓸 수 있게 개방)
+ */
 export function isNeltEnabled(): boolean {
-  return ACADEMY_ID === "jeongsu";
+  return true;
 }
 
 export function filterNavItems<T extends { href: string }>(items: T[]): T[] {
