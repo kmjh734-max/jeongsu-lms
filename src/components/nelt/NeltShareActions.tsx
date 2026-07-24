@@ -169,6 +169,8 @@ export function NeltShareActions({
           parentMessage,
           analysis,
           meta,
+          // 저장된 UUID면 이름 조회 실패해도 공유 가능 / local-*면 서버가 자동 저장
+          reportIds: analysis.attempts.map((a) => a.id),
         }),
       });
       const json = await res.json();

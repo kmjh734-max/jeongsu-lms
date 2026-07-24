@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
-import { saveNeltDraftAsReport } from "@/lib/nelt/save-draft-report";
 import { upsertNeltGrowthReport } from "@/lib/nelt/upsert-growth-report";
+import { loadNeltAttemptsByReportIds } from "@/lib/nelt/load-student-attempts";
 import {
-  loadNeltAttemptsByReportIds,
-  renumberNeltAttempts,
-} from "@/lib/nelt/load-student-attempts";
+  persistNeltBatchItems,
+  type NeltPersistBatchItem,
+} from "@/lib/nelt/persist-batch-items";
 import type { NeltExtractedDraft } from "@/lib/nelt/types-draft";
 
 export const runtime = "nodejs";
@@ -51,49 +51,37 @@ export async function POST(request: Request) {
     );
   }
 
-  // 시험일 오름차순 → 입력 순서 그대로면 1·2·3차로 인식
-  const sorted = [...items].sort((a, b) => {
-    const da = a.draft.testDate ?? "";
-    const db = b.draft.testDate ?? "";
-    if (da && db && da !== db) return da.localeCompare(db);
-    return 0;
-  });
+  const persistItems: NeltPersistBatchItem[] = items.map((i) => ({
+    draft: i.draft,
+    sourceUrl: i.sourceUrl,
+    overwriteId: i.overwriteId,
+  }));
 
-  const savedIds: string[] = [];
-  for (const item of sorted) {
-    if (item.overwriteId) {
-      await auth.supabase
-        .from("nelt_reports")
-        .delete()
-        .eq("id", item.overwriteId)
-        .eq("academy_id", auth.academyId);
-    }
-    const draft = { ...item.draft, studentName };
-    const saved = await saveNeltDraftAsReport(auth.supabase, {
-      academyId: auth.academyId,
-      createdBy: auth.profile.id,
-      draft,
-      studentName,
-      sourceUrl: item.sourceUrl,
-    });
-    if (!saved.ok) {
-      return NextResponse.json(
-        { ok: false, message: saved.message, savedIds },
-        { status: 400 }
-      );
-    }
-    savedIds.push(saved.reportId);
+  const saved = await persistNeltBatchItems(auth.supabase, {
+    academyId: auth.academyId,
+    createdBy: auth.profile.id,
+    studentName,
+    items: persistItems,
+  });
+  if (!saved.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: saved.message,
+        savedIds: saved.reportIds,
+      },
+      { status: 400 }
+    );
   }
 
-  await renumberNeltAttempts(auth.supabase, auth.academyId, studentName);
-
+  const savedIds = saved.reportIds;
   let growth: {
     ok: true;
     growthId: string;
     attemptCount: number;
   } | null = null;
 
-  // 링크 2개 이상 저장 = 성장 리포트 (방금 저장한 id로 바로 생성)
+  // 링크 2개 이상 저장 = 성장 리포트
   if (savedIds.length >= 2) {
     const attempts = await loadNeltAttemptsByReportIds(
       auth.supabase,

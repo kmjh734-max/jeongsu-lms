@@ -1,18 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import type { NeltAttemptBundle } from "@/lib/nelt/compare/types";
+import { isReportUuid } from "@/lib/nelt/is-report-uuid";
 import {
   loadNeltAttemptsByReportIds,
   loadStudentNeltAttempts,
 } from "@/lib/nelt/load-student-attempts";
 import { parseStoredNarratives } from "@/lib/nelt/generate-report-narratives";
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function isReportUuid(id: string | null | undefined): id is string {
-  return typeof id === "string" && UUID_RE.test(id);
-}
 
 /** 미리보기용 local-* id 등은 DB FK에 넣지 않음 */
 function withPersistedIdsOnly(attempts: NeltAttemptBundle[]): NeltAttemptBundle[] {
@@ -52,8 +46,7 @@ export async function upsertNeltGrowthReport(
   if (attempts.length < 2) {
     return {
       ok: false,
-      message:
-        "저장된 회차가 부족합니다. 링크를 저장한 뒤 다시 공유해 주세요.",
+      message: "결과 링크를 2개 이상 분석한 뒤 다시 시도해 주세요.",
     };
   }
 

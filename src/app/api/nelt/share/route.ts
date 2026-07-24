@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
-import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
 import { upsertNeltGrowthReport } from "@/lib/nelt/upsert-growth-report";
+import { resolveNeltShareAttempts } from "@/lib/nelt/resolve-share-attempts";
 import {
   buildNeltShareUrl,
   generateShareToken,
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     parentMessage?: string;
     analysis?: NeltGrowthAnalysis;
     meta?: NeltParentMessageMeta;
+    reportIds?: string[];
   };
   try {
     body = await request.json();
@@ -48,7 +49,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const studentName = body.studentName?.trim();
+  const studentName =
+    body.studentName?.trim() || body.analysis?.studentName?.trim() || "";
   if (!studentName) {
     return NextResponse.json(
       { ok: false, message: "학생 이름이 필요합니다." },
@@ -56,19 +58,28 @@ export async function POST(request: Request) {
     );
   }
 
-  // 미리보기 local-* id는 DB에 넣을 수 없음 → 항상 저장된 회차로 재구성
-  const attempts = await loadStudentNeltAttempts(
-    auth.supabase,
-    auth.academyId,
-    studentName
-  );
+  // 링크 2개 이상 분석 = 성장 리포트 (미저장 미리보기면 자동 저장)
+  const resolved = await resolveNeltShareAttempts(auth.supabase, {
+    academyId: auth.academyId,
+    createdBy: auth.profile.id,
+    studentName,
+    analysis: body.analysis,
+    reportIds: body.reportIds,
+  });
+  if (!resolved.ok) {
+    return NextResponse.json(
+      { ok: false, message: resolved.message },
+      { status: 400 }
+    );
+  }
+
+  const attempts = resolved.attempts;
   const analysis = buildNeltGrowthAnalysis(studentName, attempts);
   if (!analysis || analysis.attemptCount < 2) {
     return NextResponse.json(
       {
         ok: false,
-        message:
-          "저장된 회차가 2개 이상이어야 공유할 수 있습니다. 링크를 저장한 뒤 다시 시도해 주세요.",
+        message: "결과 링크를 2개 이상 분석한 뒤 다시 시도해 주세요.",
       },
       { status: 400 }
     );
