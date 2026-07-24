@@ -348,10 +348,10 @@ export function NeltGrowthReportView({
                 <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
                   <div className="rounded-2xl border border-[#dce3ed] p-3.5">
                     <h4 className="m-0 text-sm font-bold text-[#172033]">
-                      {section.label} 성장 그래프
+                      {section.label} 수준 변화
                     </h4>
                     <p className="mb-2 mt-1 text-xs text-[#68748a]">
-                      회차별 핵심 지표 변화입니다.
+                      위 전체 그래프와 같은 학년 수준 기준입니다.
                     </p>
                     <DomainMetricsChart section={section} />
                   </div>

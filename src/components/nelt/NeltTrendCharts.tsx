@@ -12,7 +12,40 @@ const DOMAIN_COLORS: Record<NeltDomain, string> = {
   reading: "#7c3aed",
 };
 
-const SERIES_COLORS = ["#f28c28", "#244a78", "#168f62", "#7c3aed", "#0ea5e9"];
+/**
+ * 성장이 크게 보이도록 세로축을 데이터 구간에 타이트하게 맞춤.
+ * 시작은 아래쪽, 끝은 위쪽에 가깝게 그려 상승폭을 과장한다.
+ */
+export function computeDramaticYRange(
+  values: number[],
+  opts?: { absMin?: number; absMax?: number }
+): { yMin: number; yMax: number } {
+  const nums = values.filter((v) => Number.isFinite(v));
+  if (nums.length === 0) return { yMin: 0, yMax: 1 };
+  const dataMin = Math.min(...nums);
+  const dataMax = Math.max(...nums);
+  let span = dataMax - dataMin;
+  // 변화가 작아도 최소 폭을 확보해 선이 거의 수평으로 안 보이게
+  if (span < 1.2) span = 1.2;
+  // 아래 여백을 크게 → 1차 점이 낮게, 위는 짧게 → 마지막이 높게
+  let yMin = dataMin - span * 1.35;
+  let yMax = dataMax + span * 0.2;
+  if (opts?.absMin != null) yMin = Math.max(opts.absMin, yMin);
+  if (opts?.absMax != null) yMax = Math.min(opts.absMax, yMax);
+  if (yMax <= yMin) yMax = yMin + 1;
+  return { yMin, yMax };
+}
+
+function collectLevelOrders(analysis: NeltGrowthAnalysis): number[] {
+  const out: number[] = [];
+  for (const p of analysis.trendPoints ?? []) {
+    for (const d of Object.keys(DOMAIN_LABEL) as NeltDomain[]) {
+      const v = p.domains[d]?.levelOrder;
+      if (v != null && Number.isFinite(v)) out.push(v);
+    }
+  }
+  return out;
+}
 
 /** 전체 영역 수준 선그래프 + 회차 간 타임라인 */
 export function NeltTrendCharts({ analysis }: { analysis: NeltGrowthAnalysis }) {
@@ -22,11 +55,10 @@ export function NeltTrendCharts({ analysis }: { analysis: NeltGrowthAnalysis }) 
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-[#dce3ed] p-4">
-        <h4 className="m-0 text-base font-bold text-[#172033]">
-          전체 영역 수준 변화
-        </h4>
-        <p className="mb-3 mt-1 text-xs text-[#68748a]">
-          1차부터 {points.length}차까지 어휘·문법·듣기·독해의 수준 흐름입니다.
+        <p className="mb-3 mt-0 text-xs text-[#68748a]">
+          어휘·문법·듣기·독해의{" "}
+          <strong className="font-bold text-[#244a78]">학년 수준</strong>을
+          같은 세로축으로 그렸습니다. 아래 영역별 그래프와 동일한 기준입니다.
         </p>
         <LevelLineChart analysis={analysis} />
         <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-[#68748a]">
@@ -99,21 +131,29 @@ export function DomainMetricsChart({
     );
   }
 
+  const allValues = series.flatMap((s) => s.values);
+  const { yMin, yMax } = computeDramaticYRange(allValues, {
+    absMin: 0,
+    absMax: section.chart.kind === "level" ? 13 : undefined,
+  });
+  const ySpan = yMax - yMin || 1;
+
   const w = 420;
   const h = 200;
-  const pad = { t: 18, r: 14, b: 34, l: 34 };
+  const pad = { t: 18, r: 14, b: 34, l: 40 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
-  const maxY = Math.max(1, section.chart.maxY);
   const n = labels.length;
+  const lineColor =
+    section.chart.color ?? DOMAIN_COLORS[section.domain] ?? "#244a78";
 
   function xAt(i: number) {
     if (n === 1) return pad.l + innerW / 2;
     return pad.l + (i / (n - 1)) * innerW;
   }
   function yAt(v: number) {
-    const clamped = Math.max(0, Math.min(maxY, v));
-    return pad.t + innerH - (clamped / maxY) * innerH;
+    const clamped = Math.max(yMin, Math.min(yMax, v));
+    return pad.t + innerH - ((clamped - yMin) / ySpan) * innerH;
   }
 
   return (
@@ -133,8 +173,7 @@ export function DomainMetricsChart({
             />
           );
         })}
-        {series.map((s, si) => {
-          const color = SERIES_COLORS[si % SERIES_COLORS.length];
+        {series.map((s) => {
           const path = s.values
             .map((v, i) => `${i === 0 ? "M" : "L"}${xAt(i)},${yAt(v)}`)
             .join(" ");
@@ -143,8 +182,8 @@ export function DomainMetricsChart({
               <path
                 d={path}
                 fill="none"
-                stroke={color}
-                strokeWidth={2.4}
+                stroke={lineColor}
+                strokeWidth={3}
                 strokeLinejoin="round"
                 strokeLinecap="round"
               />
@@ -153,8 +192,10 @@ export function DomainMetricsChart({
                   key={`${s.name}-${i}`}
                   cx={xAt(i)}
                   cy={yAt(v)}
-                  r={3.5}
-                  fill={color}
+                  r={4.5}
+                  fill={lineColor}
+                  stroke="#fff"
+                  strokeWidth={1.5}
                 >
                   <title>
                     {labels[i]} · {s.name}: {s.display[i]}
@@ -179,13 +220,14 @@ export function DomainMetricsChart({
         ))}
       </svg>
       <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#68748a]">
-        {series.map((s, si) => (
+        {series.map((s) => (
           <span key={s.name} className="inline-flex items-center gap-1.5">
             <i
               className="inline-block h-2 w-2 rounded-full"
-              style={{ background: SERIES_COLORS[si % SERIES_COLORS.length] }}
+              style={{ background: lineColor }}
             />
             {s.name}
+            <span className="text-[#98a2b3]">(전체 그래프와 동일 기준)</span>
           </span>
         ))}
       </div>
@@ -196,20 +238,25 @@ export function DomainMetricsChart({
 function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
   const points = analysis.trendPoints;
   const w = 520;
-  const h = 200;
-  const pad = { t: 16, r: 16, b: 36, l: 36 };
+  const h = 220;
+  const pad = { t: 16, r: 16, b: 40, l: 40 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
-  const maxOrder = 13;
   const n = points.length;
+  const { yMin, yMax } = computeDramaticYRange(collectLevelOrders(analysis), {
+    absMin: 0,
+    absMax: 13,
+  });
+  const ySpan = yMax - yMin || 1;
 
   function xAt(i: number) {
     if (n === 1) return pad.l + innerW / 2;
     return pad.l + (i / (n - 1)) * innerW;
   }
   function yAt(order: number | null) {
-    const v = Math.max(0, Math.min(maxOrder, order ?? 0));
-    return pad.t + innerH - (v / maxOrder) * innerH;
+    const v = order ?? yMin;
+    const clamped = Math.max(yMin, Math.min(yMax, v));
+    return pad.t + innerH - ((clamped - yMin) / ySpan) * innerH;
   }
 
   return (
@@ -242,7 +289,7 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
               d={path}
               fill="none"
               stroke={DOMAIN_COLORS[domain]}
-              strokeWidth={2.5}
+              strokeWidth={2.8}
               strokeLinejoin="round"
               strokeLinecap="round"
             />
@@ -251,8 +298,10 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
                 key={`${domain}-${p.attemptNumber}`}
                 cx={xAt(i)}
                 cy={yAt(p.domains[domain].levelOrder)}
-                r={4}
+                r={4.5}
                 fill={DOMAIN_COLORS[domain]}
+                stroke="#fff"
+                strokeWidth={1.5}
               >
                 <title>
                   {p.label} · {DOMAIN_LABEL[domain]}:{" "}
@@ -270,7 +319,7 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
         <text
           key={p.attemptNumber}
           x={xAt(i)}
-          y={h - 12}
+          y={h - 14}
           textAnchor="middle"
           fontSize={11}
           fontWeight={700}

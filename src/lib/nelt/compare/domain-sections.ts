@@ -23,6 +23,7 @@ export type NeltDomainSection = {
   explanation: string;
   plan: string;
   chart: {
+    /** 전체 영역 그래프와 동일하게 수준(order) 기준 */
     kind: "level" | "metrics";
     series: Array<{
       name: string;
@@ -30,8 +31,45 @@ export type NeltDomainSection = {
       display: string[];
     }>;
     maxY: number;
+    /** 수준 그래프 색 — 전체 영역 차트와 맞춤 */
+    color?: string;
   };
 };
+
+/** 영역별 수준 선그래프 (전체 영역 변화와 같은 축) */
+function levelChartForDomain(
+  attempts: NeltAttemptBundle[],
+  domain: NeltDomain,
+  seriesName: string
+): NeltDomainSection["chart"] {
+  const values = attempts.map(
+    (a) =>
+      a.domains.find((d) => d.domain === domain)?.evaluatedLevelOrder ?? 0
+  );
+  return {
+    kind: "level",
+    maxY: 13,
+    color:
+      domain === "vocabulary"
+        ? "#f28c28"
+        : domain === "grammar"
+          ? "#244a78"
+          : domain === "listening"
+            ? "#168f62"
+            : "#7c3aed",
+    series: [
+      {
+        name: seriesName,
+        values,
+        display: attempts.map((a) =>
+          shortLevel(
+            a.domains.find((d) => d.domain === domain)?.evaluatedLevel ?? null
+          )
+        ),
+      },
+    ],
+  };
+}
 
 function shortLevel(level: string | null | undefined): string {
   if (!level) return "—";
@@ -290,48 +328,7 @@ export function buildDomainSections(
         subskillSeries(attempts, "vocabulary", ["상관", "관계"]),
         subskillSeries(attempts, "vocabulary", ["사용"]),
       ].filter(Boolean) as NeltDomainSection["subskills"];
-      chart = {
-        kind: "metrics",
-        maxY: Math.max(
-          100,
-          ...attempts.map((a) => (a.vocabulary?.vocabularySize ?? 0) / 10)
-        ),
-        series: [
-          {
-            name: "어휘량(÷10)",
-            values: attempts.map((a) =>
-              Math.round((a.vocabulary?.vocabularySize ?? 0) / 10)
-            ),
-            display: attempts.map((a) =>
-              a.vocabulary?.vocabularySize != null
-                ? String(a.vocabulary.vocabularySize)
-                : "—"
-            ),
-          },
-          {
-            name: "필수어휘(%)",
-            values: attempts.map(
-              (a) => a.vocabulary?.elementaryRequiredPercentage ?? 0
-            ),
-            display: attempts.map((a) =>
-              a.vocabulary?.elementaryRequiredPercentage != null
-                ? `${a.vocabulary.elementaryRequiredPercentage}%`
-                : "—"
-            ),
-          },
-          {
-            name: "수능어휘(%)",
-            values: attempts.map(
-              (a) => a.vocabulary?.csatVocabularyPercentage ?? 0
-            ),
-            display: attempts.map((a) =>
-              a.vocabulary?.csatVocabularyPercentage != null
-                ? `${a.vocabulary.csatVocabularyPercentage}%`
-                : "—"
-            ),
-          },
-        ],
-      };
+      chart = levelChartForDomain(attempts, "vocabulary", "어휘 수준");
     } else if (domain === "grammar") {
       subtitle = "기초 문장 구조 · 문법 이해율 · 항목별 정답";
       keyPoints = [
@@ -391,43 +388,7 @@ export function buildDomainSections(
               .join("·") || "—",
         },
       ].filter(Boolean) as NeltDomainSection["subskills"];
-      chart = {
-        kind: "metrics",
-        maxY: 100,
-        series: [
-          {
-            name: "점수",
-            values: attempts.map(
-              (a) =>
-                a.domains.find((d) => d.domain === "grammar")?.rawScore ?? 0
-            ),
-            display: attempts.map((a) => {
-              const s = a.domains.find((d) => d.domain === "grammar")?.rawScore;
-              return s != null ? String(s) : "—";
-            }),
-          },
-          {
-            name: "이해율(%)",
-            values: attempts.map(
-              (a) => a.grammar?.elementaryGrammarPercentage ?? 0
-            ),
-            display: attempts.map((a) =>
-              a.grammar?.elementaryGrammarPercentage != null
-                ? `${a.grammar.elementaryGrammarPercentage}%`
-                : "—"
-            ),
-          },
-          {
-            name: "정답항목",
-            values: attempts.map((a) => a.grammar?.correctItemCount ?? 0),
-            display: attempts.map((a) =>
-              a.grammar?.correctItemCount != null
-                ? `${a.grammar.correctItemCount}`
-                : "—"
-            ),
-          },
-        ],
-      };
+      chart = levelChartForDomain(attempts, "grammar", "문법 수준");
     } else if (domain === "listening") {
       subtitle = "대의 파악 · 세부 정보 · 추론 · 상황 표현";
       keyPoints = [
@@ -462,26 +423,7 @@ export function buildDomainSections(
         subskillSeries(attempts, "listening", ["추론"]),
         subskillSeries(attempts, "listening", ["표현", "적절"]),
       ].filter(Boolean) as NeltDomainSection["subskills"];
-      chart = {
-        kind: "level",
-        maxY: 13,
-        series: [
-          {
-            name: "듣기 수준",
-            values: attempts.map(
-              (a) =>
-                a.domains.find((d) => d.domain === "listening")
-                  ?.evaluatedLevelOrder ?? 0
-            ),
-            display: attempts.map((a) =>
-              shortLevel(
-                a.domains.find((d) => d.domain === "listening")
-                  ?.evaluatedLevel ?? null
-              )
-            ),
-          },
-        ],
-      };
+      chart = levelChartForDomain(attempts, "listening", "듣기 수준");
     } else {
       subtitle = "대의 파악 · 세부 내용 · 추론 · 논리적 관계";
       keyPoints = [
@@ -513,26 +455,7 @@ export function buildDomainSections(
         subskillSeries(attempts, "reading", ["추론"]),
         subskillSeries(attempts, "reading", ["논리", "관계"]),
       ].filter(Boolean) as NeltDomainSection["subskills"];
-      chart = {
-        kind: "level",
-        maxY: 13,
-        series: [
-          {
-            name: "독해 수준",
-            values: attempts.map(
-              (a) =>
-                a.domains.find((d) => d.domain === "reading")
-                  ?.evaluatedLevelOrder ?? 0
-            ),
-            display: attempts.map((a) =>
-              shortLevel(
-                a.domains.find((d) => d.domain === "reading")?.evaluatedLevel ??
-                  null
-              )
-            ),
-          },
-        ],
-      };
+      chart = levelChartForDomain(attempts, "reading", "독해 수준");
     }
 
     return {
