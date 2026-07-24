@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { NeltShareActions } from "@/components/nelt/NeltShareActions";
 import {
@@ -12,6 +12,10 @@ import {
   buildParentOverallSummary,
 } from "@/lib/nelt/compare/domain-sections";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
+import {
+  applyAiNarratives,
+  type NeltAiNarratives,
+} from "@/lib/nelt/generate-report-narratives";
 
 interface NeltGrowthReportViewProps {
   analysis: NeltGrowthAnalysis;
@@ -29,20 +33,39 @@ export function NeltGrowthReportView({
   analysis,
   parentView = false,
 }: NeltGrowthReportViewProps) {
+  const [ai, setAi] = useState<NeltAiNarratives | null>(
+    analysis.aiNarratives ?? null
+  );
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiStatus, setAiStatus] = useState<string | null>(null);
+
+  const displayAnalysis = useMemo(
+    () => (ai ? applyAiNarratives(analysis, ai) : analysis),
+    [analysis, ai]
+  );
+
   const period = useMemo(() => {
     return `${formatDateDots(analysis.start.testDate)} — ${formatDateDots(
       analysis.end.testDate
     )}`;
   }, [analysis]);
 
-  const summaryHtml = useMemo(
-    () => buildParentOverallSummary(analysis),
-    [analysis]
-  );
+  const summaryHtml = useMemo(() => {
+    if (ai?.overallSummary?.trim()) {
+      return ai.overallSummary.includes("<strong>")
+        ? ai.overallSummary
+        : ai.overallSummary;
+    }
+    return buildParentOverallSummary(analysis);
+  }, [ai, analysis]);
 
   const domainSections = useMemo(
-    () => buildDomainSections(analysis),
-    [analysis]
+    () =>
+      buildDomainSections(analysis, {
+        explanations: ai?.domainExplanations,
+        plans: ai?.domainPlans,
+      }),
+    [analysis, ai]
   );
 
   const parentHighlights = useMemo(
@@ -50,10 +73,61 @@ export function NeltGrowthReportView({
     [analysis.highlights]
   );
 
+  async function loadNarratives(force = false) {
+    if (parentView) return;
+    setAiLoading(true);
+    setAiStatus(null);
+    try {
+      const res = await fetch("/api/nelt/report-narratives", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: analysis.studentName,
+          analysis,
+          force,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok || !json.narratives) {
+        throw new Error(json.message ?? "서술 생성 실패");
+      }
+      setAi(json.narratives as NeltAiNarratives);
+      if (json.source === "ai") {
+        setAiStatus(`AI 서술을 적용했습니다. (${json.model ?? "gpt-5.5"})`);
+      } else if (json.source === "cache") {
+        setAiStatus(
+          json.model
+            ? `저장된 AI 서술을 불러왔습니다. (${json.model})`
+            : "저장된 서술을 불러왔습니다."
+        );
+      } else {
+        setAiStatus(
+          json.message
+            ? `기본 문구를 사용합니다. (${json.message})`
+            : "기본 문구를 사용합니다."
+        );
+      }
+    } catch (e) {
+      setAiStatus(e instanceof Error ? e.message : "서술 생성 오류");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (parentView) return;
+    if (analysis.aiNarratives) {
+      setAi(analysis.aiNarratives);
+      return;
+    }
+    void loadNarratives(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 학생 단위로 1회 로드
+  }, [analysis.studentName, analysis.attemptCount, parentView]);
+
   return (
     <div className="nelt-proto space-y-4">
       {!parentView && (
-        <div className="print:hidden flex flex-wrap gap-2">
+        <div className="print:hidden flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="secondary"
@@ -62,6 +136,18 @@ export function NeltGrowthReportView({
           >
             PDF·인쇄
           </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            disabled={aiLoading}
+            onClick={() => void loadNarratives(true)}
+          >
+            {aiLoading ? "AI 서술 작성 중…" : "AI로 서술 다듬기 (gpt-5.5)"}
+          </Button>
+          {aiStatus && (
+            <span className="text-xs text-slate-500">{aiStatus}</span>
+          )}
         </div>
       )}
 
@@ -99,7 +185,12 @@ export function NeltGrowthReportView({
         </header>
 
         <div className="px-5 py-7 sm:px-8 sm:py-9">
-          {/* 1. 전체 성장 요약 */}
+          {aiLoading && !ai && (
+            <p className="mb-5 rounded-xl bg-[#edf4ff] px-4 py-3 text-sm text-[#244a78]">
+              학부모용 서술을 AI로 다듬는 중입니다…
+            </p>
+          )}
+
           <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
             <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
             전체 성장 요약
@@ -111,7 +202,6 @@ export function NeltGrowthReportView({
             />
           </div>
 
-          {/* 2. 핵심 성장 카드 */}
           <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
             <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
             핵심 성장
@@ -145,16 +235,14 @@ export function NeltGrowthReportView({
             )}
           </div>
 
-          {/* 3. 전체 영역 수준 선그래프 */}
           <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
             <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
             전체 영역 수준 변화
           </h3>
           <div className="mb-8">
-            <NeltTrendCharts analysis={analysis} />
+            <NeltTrendCharts analysis={displayAnalysis} />
           </div>
 
-          {/* 4–7. 영역별 섹션 */}
           {domainSections.map((section) => (
             <section
               key={section.domain}
@@ -200,7 +288,6 @@ export function NeltGrowthReportView({
               </header>
 
               <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
-                {/* 회차별 수준 */}
                 <div className="flex flex-wrap items-center gap-2">
                   {section.stages.map((stage, i) => (
                     <div key={stage.attempt} className="flex items-center gap-2">
@@ -292,14 +379,16 @@ export function NeltGrowthReportView({
             </section>
           ))}
 
-          {/* 8–9. 종합 / 향후 계획 */}
           <div className="mb-7 grid gap-3.5 md:grid-cols-2">
             <section className="rounded-2xl border border-[#cbeadc] bg-[#eaf8f2] p-4">
               <h4 className="m-0 mb-2 font-bold text-[#152d4f]">
                 종합 성장 평가
               </h4>
               <p className="m-0 text-sm leading-relaxed text-[#172033]">
-                {[analysis.strengthsNarrative, analysis.stableNarrative]
+                {[
+                  displayAnalysis.strengthsNarrative,
+                  displayAnalysis.stableNarrative,
+                ]
                   .filter((t) => t?.trim())
                   .join(" ")}
               </p>
@@ -309,12 +398,11 @@ export function NeltGrowthReportView({
                 향후 지도 계획
               </h4>
               <p className="m-0 text-sm leading-relaxed text-[#172033]">
-                {analysis.nextGoalsNarrative}
+                {displayAnalysis.nextGoalsNarrative}
               </p>
             </section>
           </div>
 
-          {/* 원본 링크 */}
           <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
             <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
             원본 결과 링크
@@ -342,7 +430,6 @@ export function NeltGrowthReportView({
             )}
           </div>
 
-          {/* 10. 학부모 카카오 안내 */}
           {!parentView && (
             <>
               <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
@@ -351,7 +438,11 @@ export function NeltGrowthReportView({
               </h3>
               <NeltShareActions
                 studentName={analysis.studentName}
-                analysis={analysis}
+                analysis={
+                  ai
+                    ? { ...displayAnalysis, aiNarratives: ai }
+                    : displayAnalysis
+                }
               />
             </>
           )}

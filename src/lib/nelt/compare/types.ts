@@ -176,4 +176,14 @@ export type NeltGrowthAnalysis = {
     { strength: string; nextGoal: string; classFocus: string; homework: string }
   >;
   parentCopy: string;
+  /** gpt-5.5 등으로 다듬은 학부모용 서술 (있으면 화면 우선) */
+  aiNarratives?: {
+    version: 1;
+    model: string | null;
+    overallSummary: string;
+    strengthsNarrative: string;
+    nextGoalsNarrative: string;
+    domainExplanations: Partial<Record<NeltDomain, string>>;
+    domainPlans: Partial<Record<NeltDomain, string>>;
+  };
 };

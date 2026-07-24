@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
+import { parseStoredNarratives } from "@/lib/nelt/generate-report-narratives";
 
 export async function upsertNeltGrowthReport(
   supabase: SupabaseClient,
@@ -31,18 +32,33 @@ export async function upsertNeltGrowthReport(
     return { ok: false, message: "성장 비교를 만들 수 없습니다." };
   }
 
+  const { data: existing } = await supabase
+    .from("nelt_growth_reports")
+    .select("id, generated_summary")
+    .eq("academy_id", params.academyId)
+    .eq("student_name_raw", params.studentName)
+    .eq("is_finalized", false)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const keepAiSummary = parseStoredNarratives(existing?.generated_summary);
+  const generatedSummary = keepAiSummary
+    ? JSON.stringify(keepAiSummary)
+    : [
+        analysis.overallNarrative,
+        analysis.strengthsNarrative,
+        analysis.stableNarrative,
+        analysis.nextGoalsNarrative,
+      ].join("\n\n");
+
   const payload = {
     academy_id: params.academyId,
     student_id: null,
     student_name_raw: params.studentName,
     start_report_id: analysis.start.id,
     end_report_id: analysis.end.id,
-    generated_summary: [
-      analysis.overallNarrative,
-      analysis.strengthsNarrative,
-      analysis.stableNarrative,
-      analysis.nextGoalsNarrative,
-    ].join("\n\n"),
+    generated_summary: generatedSummary,
     growth_highlights: analysis.highlights,
     focus_areas: analysis.focusGrammar.map((g) => ({
       category: g.category,
@@ -50,20 +66,9 @@ export async function upsertNeltGrowthReport(
       kind: g.kind,
     })),
     learning_plan: analysis.learningPlan,
-    teacher_comment: null,
     created_by: params.createdBy,
     updated_at: new Date().toISOString(),
   };
-
-  const { data: existing } = await supabase
-    .from("nelt_growth_reports")
-    .select("id")
-    .eq("academy_id", params.academyId)
-    .eq("student_name_raw", params.studentName)
-    .eq("is_finalized", false)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
 
   if (existing?.id) {
     const { error } = await supabase

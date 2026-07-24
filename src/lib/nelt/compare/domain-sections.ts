@@ -214,7 +214,11 @@ function parentDomainExplanation(
 }
 
 export function buildDomainSections(
-  analysis: NeltGrowthAnalysis
+  analysis: NeltGrowthAnalysis,
+  overrides?: {
+    explanations?: Partial<Record<NeltDomain, string>>;
+    plans?: Partial<Record<NeltDomain, string>>;
+  }
 ): NeltDomainSection[] {
   const attempts = analysis.attempts;
   const domains: NeltDomain[] = [
@@ -548,8 +552,12 @@ export function buildDomainSections(
       stages,
       keyPoints,
       subskills,
-      explanation: parentDomainExplanation(analysis, domain),
-      plan: analysis.learningPlan[domain].nextGoal,
+      explanation:
+        overrides?.explanations?.[domain]?.trim() ||
+        parentDomainExplanation(analysis, domain),
+      plan:
+        overrides?.plans?.[domain]?.trim() ||
+        analysis.learningPlan[domain].nextGoal,
       chart,
     };
   });

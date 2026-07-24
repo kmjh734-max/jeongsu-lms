@@ -16,12 +16,17 @@ import {
   generateNeltParentMessageAi,
   type NeltParentMessageMeta,
 } from "@/lib/nelt/generate-parent-message";
+import {
+  applyAiNarratives,
+  generateNeltReportNarrativesAi,
+  parseStoredNarratives,
+} from "@/lib/nelt/generate-report-narratives";
 import { ACADEMY_NAME } from "@/lib/branding";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 90;
 
 /** 학부모용 공유 링크 생성 */
 export async function POST(request: Request) {
@@ -77,6 +82,34 @@ export async function POST(request: Request) {
     );
   }
 
+  // 학부모 공개 스냅샷에 AI 서술 포함
+  let snapshotAnalysis = analysis;
+  const { data: growthRow } = await auth.supabase
+    .from("nelt_growth_reports")
+    .select("generated_summary")
+    .eq("id", growth.growthId)
+    .maybeSingle();
+  let narratives =
+    analysis.aiNarratives ??
+    parseStoredNarratives(growthRow?.generated_summary);
+  if (!narratives?.model) {
+    const generated = await generateNeltReportNarrativesAi(analysis);
+    narratives = generated.narratives;
+    await auth.supabase
+      .from("nelt_growth_reports")
+      .update({
+        generated_summary: JSON.stringify(narratives),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", growth.growthId);
+  }
+  if (narratives) {
+    snapshotAnalysis = {
+      ...applyAiNarratives(analysis, narratives),
+      aiNarratives: narratives,
+    };
+  }
+
   const meta: NeltParentMessageMeta = {
     academyName: ACADEMY_NAME,
     ...(body.meta ?? {}),
@@ -84,10 +117,10 @@ export async function POST(request: Request) {
 
   let parentMessage = body.parentMessage?.trim() || "";
   if (!parentMessage) {
-    const ai = await generateNeltParentMessageAi(analysis, meta);
+    const ai = await generateNeltParentMessageAi(snapshotAnalysis, meta);
     parentMessage = ai.ok
       ? ai.message
-      : buildNeltParentMessageFallback(analysis, meta);
+      : buildNeltParentMessageFallback(snapshotAnalysis, meta);
   }
   parentMessage = ensureNeltMessageTitle(parentMessage);
 
@@ -113,7 +146,7 @@ export async function POST(request: Request) {
     expires_at: expiresAt,
     created_by: auth.profile.id,
     parent_message: parentMessage,
-    report_snapshot: analysis as unknown as Record<string, unknown>,
+    report_snapshot: snapshotAnalysis as unknown as Record<string, unknown>,
     student_name_raw: studentName,
   });
 
