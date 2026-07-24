@@ -97,12 +97,55 @@ export type NeltGrammarItemChange = {
   kind: "newly_correct" | "still_correct" | "still_incorrect" | "regressed";
 };
 
+/** 회차 간(1→2, 2→3 …) 단계별 변화 */
+export type NeltAttemptStep = {
+  fromAttempt: number;
+  toAttempt: number;
+  fromDate: string | null;
+  toDate: string | null;
+  overallLevelBefore: string | null;
+  overallLevelAfter: string | null;
+  vocabBefore: number | null;
+  vocabAfter: number | null;
+  vocabDelta: number | null;
+  summary: string;
+  domainLines: Array<{
+    domain: NeltDomain;
+    label: string;
+    line: string;
+    status: NeltGrowthStatus;
+  }>;
+};
+
+/** 그래프용 회차별 시계열 */
+export type NeltTrendPoint = {
+  attemptNumber: number;
+  testDate: string | null;
+  label: string;
+  overallLevelOrder: number | null;
+  overallLevel: string | null;
+  vocabularySize: number | null;
+  domains: Record<
+    NeltDomain,
+    {
+      levelOrder: number | null;
+      level: string | null;
+      difficulty: string | null;
+      score: number | null;
+    }
+  >;
+};
+
 export type NeltGrowthAnalysis = {
   studentName: string;
   attemptCount: number;
   start: NeltAttemptBundle;
   end: NeltAttemptBundle;
   attempts: NeltAttemptBundle[];
+  /** 1→2, 2→3 … 단계 변화 */
+  attemptSteps: NeltAttemptStep[];
+  /** 차트용 시계열 */
+  trendPoints: NeltTrendPoint[];
   highlights: NeltGrowthHighlightCard[];
   domainGrowth: NeltDomainGrowth[];
   vocabularyGrowth: {

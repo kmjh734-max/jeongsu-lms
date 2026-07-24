@@ -2,11 +2,13 @@ import { resolveLevelOrder } from "@/lib/nelt/level-order";
 import type { NeltDomain, NeltGrowthStatus } from "@/types/nelt";
 import type {
   NeltAttemptBundle,
+  NeltAttemptStep,
   NeltDomainGrowth,
   NeltGrammarItemChange,
   NeltGrowthAnalysis,
   NeltGrowthHighlightCard,
   NeltSubskillGrowth,
+  NeltTrendPoint,
 } from "@/lib/nelt/compare/types";
 
 export const DOMAIN_LABEL: Record<NeltDomain, string> = {
@@ -544,8 +546,12 @@ function buildCopy(analysis: Omit<
     (d) => d.status === "focus_needed"
   );
 
+  const roundPhrase =
+    n >= 3
+      ? `NELT ${n}회차(1차→${n}차) 변화를 따라가 본 결과,`
+      : `NELT ${n}회차 결과를 비교한 결과,`;
   const overallNarrative = [
-    `${name} 학생의 NELT ${n}회차 결과를 비교한 결과,`,
+    `${name} 학생의 ${roundPhrase}`,
     grown.length > 0
       ? `${grown.map((d) => d.label).join("·")} 영역에서 눈에 띄는 성장이 확인됩니다.`
       : `여러 영역에서 현재 수준을 다지며 다음 단계로 준비하는 흐름입니다.`,
@@ -758,12 +764,17 @@ export function buildNeltGrowthAnalysis(
   );
   const learningPlan = buildLearningPlan(domainGrowth, end, focusGrammar);
 
+  const attemptSteps = buildAttemptSteps(attempts);
+  const trendPoints = buildTrendPoints(attempts);
+
   const partial = {
     studentName,
     attemptCount: attempts.length,
     start,
     end,
     attempts,
+    attemptSteps,
+    trendPoints,
     highlights,
     domainGrowth,
     vocabularyGrowth,
@@ -777,4 +788,98 @@ export function buildNeltGrowthAnalysis(
   const copy = buildCopy(partial);
 
   return { ...partial, ...copy };
+}
+
+function buildTrendPoints(attempts: NeltAttemptBundle[]): NeltTrendPoint[] {
+  return attempts.map((a) => {
+    const domains = {} as NeltTrendPoint["domains"];
+    for (const domain of DOMAINS) {
+      const d = domainOf(a, domain);
+      domains[domain] = {
+        levelOrder: d?.evaluatedLevelOrder ?? null,
+        level: d?.evaluatedLevel ?? null,
+        difficulty: d?.difficultyCode ?? null,
+        score: d?.rawScore ?? null,
+      };
+    }
+    return {
+      attemptNumber: a.attemptNumber,
+      testDate: a.testDate,
+      label: `${a.attemptNumber}차`,
+      overallLevelOrder: a.overallLevelOrder,
+      overallLevel: a.overallLevel,
+      vocabularySize: a.vocabulary?.vocabularySize ?? null,
+      domains,
+    };
+  });
+}
+
+function buildAttemptSteps(attempts: NeltAttemptBundle[]): NeltAttemptStep[] {
+  const steps: NeltAttemptStep[] = [];
+  for (let i = 1; i < attempts.length; i++) {
+    const prev = attempts[i - 1];
+    const curr = attempts[i];
+    const domainLines: NeltAttemptStep["domainLines"] = [];
+    for (const domain of DOMAINS) {
+      const before = domainOf(prev, domain);
+      const after = domainOf(curr, domain);
+      const c = classifyDomain(before, after);
+      domainLines.push({
+        domain,
+        label: DOMAIN_LABEL[domain],
+        status: c.status,
+        line: domainNarrative(DOMAIN_LABEL[domain], before, after, c),
+      });
+    }
+    const vocabBefore = prev.vocabulary?.vocabularySize ?? null;
+    const vocabAfter = curr.vocabulary?.vocabularySize ?? null;
+    const vocabDelta =
+      vocabBefore != null && vocabAfter != null
+        ? vocabAfter - vocabBefore
+        : null;
+
+    const bits: string[] = [];
+    if (
+      prev.overallLevel &&
+      curr.overallLevel &&
+      prev.overallLevel !== curr.overallLevel
+    ) {
+      bits.push(
+        `종합 ${prev.overallLevel} → ${curr.overallLevel}`
+      );
+    }
+    if (vocabDelta != null && vocabDelta > 0) {
+      bits.push(`어휘 약 +${vocabDelta.toLocaleString()}단어`);
+    }
+    const grownDomains = domainLines.filter(
+      (d) =>
+        d.status === "major_growth" ||
+        d.status === "growth" ||
+        d.status === "advanced_challenge"
+    );
+    if (grownDomains.length > 0) {
+      bits.push(
+        `${grownDomains.map((d) => d.label).join("·")} 성장`
+      );
+    }
+    const summary =
+      bits.length > 0
+        ? `${prev.attemptNumber}차 → ${curr.attemptNumber}차: ${bits.join(" · ")}`
+        : `${prev.attemptNumber}차 → ${curr.attemptNumber}차: 수준을 다지며 다음 단계로 이어갔습니다.`;
+
+    steps.push({
+      fromAttempt: prev.attemptNumber,
+      toAttempt: curr.attemptNumber,
+      fromDate: prev.testDate,
+      toDate: curr.testDate,
+      overallLevelBefore: prev.overallLevel,
+      overallLevelAfter: curr.overallLevel,
+      vocabBefore,
+      vocabAfter,
+      vocabDelta,
+      summary,
+      domainLines,
+    });
+  }
+  return steps;
 }

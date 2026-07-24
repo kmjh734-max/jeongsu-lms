@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { NeltShareActions } from "@/components/nelt/NeltShareActions";
+import { NeltTrendCharts } from "@/components/nelt/NeltTrendCharts";
 import { DOMAIN_LABEL } from "@/lib/nelt/compare/build-growth";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 import type { NeltDomain } from "@/types/nelt";
@@ -9,6 +11,8 @@ import type { NeltDomain } from "@/types/nelt";
 interface NeltGrowthReportViewProps {
   analysis: NeltGrowthAnalysis;
   role: "admin" | "teacher";
+  /** 학부모 공개 페이지 — 공유/편집 UI 숨김 */
+  parentView?: boolean;
 }
 
 function formatDateDots(iso: string | null): string {
@@ -21,7 +25,10 @@ function domainOf(analysis: NeltGrowthAnalysis, domain: NeltDomain, which: "star
   return attempt.domains.find((d) => d.domain === domain) ?? null;
 }
 
-export function NeltGrowthReportView({ analysis }: NeltGrowthReportViewProps) {
+export function NeltGrowthReportView({
+  analysis,
+  parentView = false,
+}: NeltGrowthReportViewProps) {
   const [copyMsg, setCopyMsg] = useState<string | null>(null);
 
   const period = useMemo(() => {
@@ -32,6 +39,7 @@ export function NeltGrowthReportView({ analysis }: NeltGrowthReportViewProps) {
 
   const summaryHtml = useMemo(() => {
     const name = analysis.studentName;
+    const n = analysis.attemptCount;
     const bits: string[] = [];
     if (
       (analysis.end.overallLevelOrder ?? 0) >
@@ -57,10 +65,17 @@ export function NeltGrowthReportView({ analysis }: NeltGrowthReportViewProps) {
         }로 향상</strong>되었습니다`
       );
     }
+    if (n >= 3 && (analysis.attemptSteps?.length ?? 0) > 0) {
+      bits.push(
+        `<strong>1→${n}차</strong>로 이어지며 ${analysis.attemptSteps
+          .map((s) => `${s.fromAttempt}→${s.toAttempt}차`)
+          .join(", ")} 구간에서 변화가 확인됩니다`
+      );
+    }
     const head =
       bits.length > 0
-        ? `${name} 학생은 두 차례의 NELT 평가에서 ${bits.join(", ")}. `
-        : `${name} 학생의 NELT ${analysis.attemptCount}회차 결과를 비교했습니다. `;
+        ? `${name} 학생은 NELT ${n}회차 평가에서 ${bits.join(", ")}. `
+        : `${name} 학생의 NELT ${n}회차 결과를 비교했습니다. `;
     return (
       head +
       "서로 다른 난이도의 원점수는 단순 비교하지 않고, 판정 수준·난이도 코드·절대 개수의 변화를 중심으로 해석했습니다."
@@ -81,17 +96,38 @@ export function NeltGrowthReportView({ analysis }: NeltGrowthReportViewProps) {
 
   return (
     <div className="nelt-proto space-y-4">
-      <div className="print:hidden flex flex-wrap gap-2">
-        <Button type="button" variant="secondary" size="sm" onClick={() => window.print()}>
-          PDF·인쇄
-        </Button>
-        <Button type="button" variant="primary" size="sm" onClick={() => void copyParent()}>
-          학부모 문구 복사
-        </Button>
-        {copyMsg && (
-          <span className="self-center text-xs text-emerald-700">{copyMsg}</span>
-        )}
-      </div>
+      {!parentView && (
+        <div className="print:hidden flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => window.print()}
+          >
+            PDF·인쇄
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => void copyParent()}
+          >
+            학부모 문구 복사
+          </Button>
+          {copyMsg && (
+            <span className="self-center text-xs text-emerald-700">
+              {copyMsg}
+            </span>
+          )}
+        </div>
+      )}
+
+      {!parentView && (
+        <NeltShareActions
+          studentName={analysis.studentName}
+          analysis={analysis}
+        />
+      )}
 
       <article className="overflow-hidden rounded-[22px] border border-[#dce3ed] bg-white shadow-[0_14px_38px_rgba(21,45,79,0.10)]">
         {/* Cover */}
@@ -138,6 +174,17 @@ export function NeltGrowthReportView({ analysis }: NeltGrowthReportViewProps) {
               className="text-[15px] leading-relaxed text-[#172033] [&_strong]:text-[#152d4f]"
               dangerouslySetInnerHTML={{ __html: summaryHtml }}
             />
+          </div>
+
+          {/* Multi-attempt trends */}
+          <h3 className="mb-3.5 flex items-center gap-2 text-lg font-bold text-[#172033]">
+            <span className="inline-block h-5 w-1.5 rounded-lg bg-[#f28c28]" />
+            {analysis.attemptCount >= 3
+              ? `1차 → ${analysis.attemptCount}차 성장 추이`
+              : "회차별 성장 추이"}
+          </h3>
+          <div className="mb-7">
+            <NeltTrendCharts analysis={analysis} />
           </div>
 
           {/* Growth cards */}
