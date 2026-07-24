@@ -55,16 +55,21 @@ export function percentileImprovement(
 function statusLabel(status: NeltGrowthStatus): string {
   switch (status) {
     case "major_growth":
-      return "크게 성장";
+      return "눈에 띄게 좋아짐";
     case "growth":
-      return "꾸준한 성장";
+      return "한 단계 성장";
     case "advanced_challenge":
-      return "상위 레벨 진입";
+      return "더 넓은 범위 도전";
     case "maintained":
-      return "안정적으로 유지";
+      return "실력 유지";
     case "focus_needed":
-      return "다음 성장 목표";
+      return "앞으로 채워갈 부분";
   }
+}
+
+/** 학부모용: 학년 수준이 실제로 올랐을 때만 true */
+function levelActuallyUp(levelDelta: number | null): boolean {
+  return levelDelta != null && levelDelta > 0.4;
 }
 
 function domainOf(
@@ -154,46 +159,49 @@ function domainNarrative(
   c: ReturnType<typeof classifyDomain>
 ): string {
   if (!before || !after) {
-    return `${label} 영역은 비교할 회차 데이터가 충분하지 않습니다.`;
+    return `${label}은 아직 비교할 회차가 부족합니다.`;
   }
 
   const parts: string[] = [];
-  if (c.levelDelta != null && c.levelDelta > 0) {
+  if (levelActuallyUp(c.levelDelta)) {
     parts.push(
-      `${label} 판정 수준이 ${before.evaluatedLevel ?? "이전"}에서 ${
+      `${label} 실력이 ${before.evaluatedLevel ?? "이전"}에서 ${
         after.evaluatedLevel ?? "최근"
-      }으로 성장했습니다.`
+      } 수준으로 올라왔습니다.`
     );
   } else if (c.difficultyUp) {
     parts.push(
-      `${before.difficultyCode ?? "이전"}에서 ${
-        after.difficultyCode ?? "최근"
-      } 범위에 도전하며 다음 단계에서 보완할 항목이 구체적으로 확인되었습니다.`
+      `${label}은 ${before.difficultyCode ?? "이전"}보다 넓은 ${
+        after.difficultyCode ?? "다음"
+      } 범위에 도전해 보았습니다.`
     );
     if (after.evaluatedLevel) {
       parts.push(
-        `현재 ${after.evaluatedLevel} 수준을 기준으로 학습을 이어가고 있습니다.`
+        `지금 실력은 ${after.evaluatedLevel} 정도를 기준으로 보면 됩니다.`
+      );
+    }
+    if (c.levelDelta != null && c.levelDelta < -0.4) {
+      parts.push(
+        `범위가 넓어진 만큼 아직 익숙해지는 과정이 남아 있어, 수업에서 차근차근 채워가겠습니다.`
       );
     }
   } else if (c.scoreComparable && c.scoreDelta != null && c.scoreDelta > 0) {
     parts.push(
-      `${after.difficultyCode ?? label} 범위에서 점수가 ${before.rawScore}점에서 ${after.rawScore}점으로 올랐습니다.`
+      `${label} 점수가 ${before.rawScore}점에서 ${after.rawScore}점으로 올랐습니다.`
     );
   } else if (c.status === "maintained") {
     parts.push(
-      `${label}은(는) ${after.evaluatedLevel ?? "현재 수준"}에 도달한 뒤 안정적으로 유지하고 있습니다.`
+      `${label}은 ${after.evaluatedLevel ?? "지금 실력"}을 잘 유지하고 있습니다.`
     );
   } else {
     parts.push(
-      `${label}은(는) 다음 성장 목표로 삼아, 현재 ${
-        after.evaluatedLevel ?? "수준"
-      }을 더 단단히 다질 예정입니다.`
+      `${label}은 앞으로 ${after.evaluatedLevel ?? "지금 실력"}을 더 탄탄하게 다지는 쪽으로 지도하겠습니다.`
     );
   }
 
   if (c.percentileImproved && c.percentileDelta != null) {
     parts.push(
-      `동학년 대비 상위 비율도 상위 ${before.percentile}%에서 상위 ${after.percentile}%로 ${c.percentileDelta}%p 상승했습니다.`
+      `같은 학년 안에서는 상위 ${before.percentile}%에서 상위 ${after.percentile}%로 자리가 좋아졌습니다.`
     );
   }
 
@@ -310,7 +318,7 @@ function buildHighlights(
       title: "종합 레벨",
       beforeLabel: start.overallLevel ?? start.overallBand ?? "—",
       afterLabel: end.overallLevel ?? end.overallBand ?? "—",
-      deltaLabel: "종합 수준 상승",
+      deltaLabel: "종합 실력이 한 단계 올라옴",
       status:
         afterOverall - beforeOverall >= 2 ? "major_growth" : "growth",
       parentVisible: true,
@@ -336,29 +344,37 @@ function buildHighlights(
   }
 
   for (const d of domainGrowth) {
+    const levelUp = levelActuallyUp(d.levelDelta);
+    // 실력(학년 수준)이 실제로 오른 경우만 '수준 카드'로 강조
     if (
-      d.status === "major_growth" ||
-      d.status === "growth" ||
-      d.status === "advanced_challenge"
+      (d.status === "major_growth" || d.status === "growth") &&
+      levelUp &&
+      d.beforeLevel &&
+      d.afterLevel
     ) {
       cards.push({
         key: `domain_${d.domain}`,
-        title: `${d.label} 수준`,
-        beforeLabel: d.beforeLevel ?? "—",
-        afterLabel: d.afterLevel ?? "—",
-        deltaLabel: d.difficultyUp
-          ? `${d.beforeDifficulty ?? ""} → ${d.afterDifficulty ?? ""} 도전`
-          : d.levelDelta != null && d.levelDelta > 0
-            ? "판정 수준 상승"
-            : statusLabel(d.status),
+        title: `${d.label} 실력`,
+        beforeLabel: d.beforeLevel,
+        afterLabel: d.afterLevel,
+        deltaLabel: "한 단계 올라옴",
         status: d.status,
         parentVisible: true,
-        priority:
-          d.status === "major_growth"
-            ? 90
-            : d.status === "advanced_challenge"
-              ? 85
-              : 70,
+        priority: d.status === "major_growth" ? 90 : 70,
+      });
+      continue;
+    }
+    // 난이도만 올라간 경우: 실력 향상처럼 보이지 않게 도전으로만 표시
+    if (d.status === "advanced_challenge" && d.difficultyUp) {
+      cards.push({
+        key: `domain_${d.domain}_challenge`,
+        title: `${d.label} 도전 범위`,
+        beforeLabel: d.beforeDifficulty ?? "이전",
+        afterLabel: d.afterDifficulty ?? "다음",
+        deltaLabel: "더 넓은 범위에 도전",
+        status: d.status,
+        parentVisible: true,
+        priority: 68,
       });
     }
   }
@@ -545,16 +561,20 @@ function buildCopy(analysis: Omit<
     (d) => d.status === "focus_needed"
   );
 
-  const roundPhrase =
-    n >= 3
-      ? `NELT ${n}회차(1차→${n}차) 변화를 따라가 본 결과,`
-      : `NELT ${n}회차 결과를 비교한 결과,`;
-  const overallNarrative = [
-    `${name} 학생의 ${roundPhrase}`,
-    grown.length > 0
-      ? `${grown.map((d) => d.label).join("·")} 영역에서 눈에 띄는 성장이 확인됩니다.`
-      : `여러 영역에서 현재 수준을 다지며 다음 단계로 준비하는 흐름입니다.`,
-  ].join(" ");
+  const trulyGrown = grown.filter((d) => levelActuallyUp(d.levelDelta));
+  const challenged = grown.filter(
+    (d) => d.status === "advanced_challenge" && !levelActuallyUp(d.levelDelta)
+  );
+  const overallNarrative =
+    trulyGrown.length > 0
+      ? `${name}는 NELT ${n}회차를 거치며 ${trulyGrown
+          .map((d) => d.label)
+          .join("·")}에서 실력이 눈에 띄게 좋아졌습니다.`
+      : challenged.length > 0
+        ? `${name}는 NELT ${n}회차에서 ${challenged
+            .map((d) => d.label)
+            .join("·")}의 더 넓은 범위에 도전해 보았습니다.`
+        : `${name}는 NELT ${n}회차를 이어가며 실력을 차근차근 쌓아 가고 있습니다.`;
 
   const strengthParts: string[] = [];
   if (
@@ -573,7 +593,10 @@ function buildCopy(analysis: Omit<
       `초등 필수 어휘 이해도도 ${analysis.vocabularyGrowth.beforeRequiredPct}%에서 ${analysis.vocabularyGrowth.afterRequiredPct}%로 ${analysis.vocabularyGrowth.requiredPctDelta}%p 상승했습니다.`
     );
   }
-  for (const d of grown) {
+  for (const d of trulyGrown) {
+    strengthParts.push(d.narrative);
+  }
+  for (const d of challenged.slice(0, 1)) {
     strengthParts.push(d.narrative);
   }
   if (analysis.newlyCorrectGrammar.length > 0) {
@@ -586,28 +609,28 @@ function buildCopy(analysis: Omit<
   }
   const strengthsNarrative =
     strengthParts.slice(0, 6).join(" ") ||
-    "회차를 거듭하며 기초를 쌓아 가는 과정이 확인됩니다.";
+    "회차를 이어가며 기초를 차근차근 쌓아 가고 있습니다.";
 
   const stableNarrative =
     stable.length > 0
       ? `${stable
           .map((d) => d.label)
-          .join("·")} 영역은 최근 확보한 수준을 안정적으로 유지하고 있습니다.`
+          .join("·")}은 지금 실력을 잘 유지하고 있습니다.`
       : "";
 
   const focusLines = focus.map((d) => analysis.learningPlan[d.domain].nextGoal);
   if (analysis.focusGrammar.length > 0) {
     focusLines.push(
-      `문법 보완: ${analysis.focusGrammar
+      `문법에서는 ${analysis.focusGrammar
         .slice(0, 4)
         .map((g) => g.category || g.detail.slice(0, 18))
-        .join(", ")}`
+        .join(", ")}을(를) 수업에서 다시 정리하겠습니다.`
     );
   }
   const nextGoalsNarrative =
     focusLines.length > 0
-      ? `앞으로의 학습 방향입니다. ${focusLines.slice(0, 4).join(" ")}`
-      : `앞으로 ${grown[0]?.label ?? "어휘"}·문법 기초를 문장에 적용하는 힘을 키우겠습니다.`;
+      ? focusLines.slice(0, 4).join(" ")
+      : `앞으로는 ${trulyGrown[0]?.label ?? grown[0]?.label ?? "어휘"}와 문법을 문장에 자연스럽게 쓰는 연습을 이어가겠습니다.`;
 
   const parentCopy = buildNeltParentMessageFallback(
     {
@@ -851,7 +874,7 @@ function buildAttemptSteps(attempts: NeltAttemptBundle[]): NeltAttemptStep[] {
     const summary =
       bits.length > 0
         ? `${prev.attemptNumber}차 → ${curr.attemptNumber}차: ${bits.join(" · ")}`
-        : `${prev.attemptNumber}차 → ${curr.attemptNumber}차: 수준을 다지며 다음 단계로 이어갔습니다.`;
+        : `${prev.attemptNumber}차 → ${curr.attemptNumber}차: 지금 실력을 다지며 다음으로 이어갔습니다.`;
 
     steps.push({
       fromAttempt: prev.attemptNumber,

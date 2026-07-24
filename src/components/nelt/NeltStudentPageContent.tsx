@@ -109,7 +109,7 @@ function SingleAttemptDetail({ attempt }: { attempt: NeltAttemptBundle }) {
               <th>영역</th>
               <th>난이도</th>
               <th>점수</th>
-              <th>판정 수준</th>
+              <th>학년 수준</th>
               <th>상위%</th>
             </tr>
           </thead>

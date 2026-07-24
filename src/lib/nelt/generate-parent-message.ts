@@ -118,15 +118,15 @@ function growthHighlights(analysis: NeltGrowthAnalysis): string[] {
   }
   for (const d of analysis.domainGrowth) {
     if (
-      (d.status === "major_growth" ||
-        d.status === "growth" ||
-        d.status === "advanced_challenge") &&
+      (d.status === "major_growth" || d.status === "growth") &&
+      d.levelDelta != null &&
+      d.levelDelta > 0.4 &&
       d.beforeLevel &&
       d.afterLevel &&
       d.beforeLevel !== d.afterLevel
     ) {
       out.push(
-        `${d.label} 수준이 ${d.beforeLevel}에서 ${d.afterLevel}로 성장했습니다`
+        `${d.label} 실력이 ${d.beforeLevel}에서 ${d.afterLevel} 수준으로 올라왔습니다`
       );
     }
   }

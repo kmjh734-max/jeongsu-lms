@@ -284,7 +284,7 @@ export function NeltUrlReviewCard({
                 />
               </label>
               <label className="text-xs font-medium text-slate-600">
-                판정 수준
+                학년 수준
                 <input
                   className="ui-input mt-1"
                   value={domain.evaluatedLevel ?? ""}

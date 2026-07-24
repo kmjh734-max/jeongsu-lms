@@ -77,27 +77,34 @@ function subskillSeries(
   };
 }
 
+function levelUp(g: { levelDelta: number | null } | undefined): boolean {
+  return g?.levelDelta != null && g.levelDelta > 0.4;
+}
+
 function domainBadge(
   analysis: NeltGrowthAnalysis,
   domain: NeltDomain
 ): { badge: string; tone: "growth" | "focus" | "stable" } {
   const g = analysis.domainGrowth.find((d) => d.domain === domain);
-  if (!g) return { badge: "변화 확인", tone: "stable" };
-  if (g.status === "major_growth" || g.status === "growth") {
+  if (!g) return { badge: "변화 살펴보기", tone: "stable" };
+  if (
+    (g.status === "major_growth" || g.status === "growth") &&
+    levelUp(g)
+  ) {
     if (domain === "vocabulary") return { badge: "가장 큰 성장", tone: "growth" };
-    if (domain === "reading") return { badge: "꾸준한 수준 상승", tone: "growth" };
-    return { badge: "성장 확인", tone: "growth" };
+    if (domain === "reading") return { badge: "꾸준히 올라옴", tone: "growth" };
+    return { badge: "실력 향상", tone: "growth" };
   }
-  if (g.status === "advanced_challenge") {
-    return { badge: "상위 범위 도전", tone: "growth" };
+  if (g.status === "advanced_challenge" || g.difficultyUp) {
+    return { badge: "더 넓은 범위 도전", tone: "stable" };
   }
   if (g.status === "focus_needed") {
-    return { badge: "다음 성장 목표", tone: "focus" };
+    return { badge: "앞으로 채워갈 부분", tone: "focus" };
   }
   if (domain === "listening") {
     return { badge: `${shortLevel(g.afterLevel)} 유지`, tone: "stable" };
   }
-  return { badge: "안정 유지", tone: "stable" };
+  return { badge: "실력 유지", tone: "stable" };
 }
 
 function parentDomainExplanation(
@@ -109,7 +116,13 @@ function parentDomainExplanation(
   const last = attempts[attempts.length - 1];
   const d0 = first.domains.find((d) => d.domain === domain);
   const dN = last.domains.find((d) => d.domain === domain);
+  const g = analysis.domainGrowth.find((d) => d.domain === domain);
   const plan = analysis.learningPlan[domain];
+  const up = levelUp(g);
+  const sameLevel =
+    !!d0?.evaluatedLevel &&
+    !!dN?.evaluatedLevel &&
+    d0.evaluatedLevel === dN.evaluatedLevel;
 
   if (domain === "vocabulary") {
     const s0 = first.vocabulary?.vocabularySize;
@@ -118,16 +131,22 @@ function parentDomainExplanation(
     const eN = last.vocabulary?.elementaryRequiredPercentage;
     const use = subskillSeries(attempts, "vocabulary", ["사용"]);
     const ctx = subskillSeries(attempts, "vocabulary", ["문맥"]);
+    const sizeUp = s0 != null && sN != null && sN > s0;
+    const pctUp = e0 != null && eN != null && eN > e0;
     return [
-      `${shortLevel(d0?.evaluatedLevel)} 단계에서 ${shortLevel(dN?.evaluatedLevel)} 단계까지 어휘 실력이 넓어졌습니다.`,
-      s0 != null && sN != null
-        ? `알고 있는 어휘는 약 ${s0.toLocaleString()}단어에서 약 ${sN.toLocaleString()}단어로 늘었습니다.`
+      up
+        ? `어휘 실력은 ${shortLevel(d0?.evaluatedLevel)}에서 ${shortLevel(dN?.evaluatedLevel)} 정도까지 넓어졌습니다.`
+        : sameLevel
+          ? `어휘는 ${shortLevel(dN?.evaluatedLevel)} 실력을 잘 이어가고 있습니다.`
+          : `어휘는 지금 ${shortLevel(dN?.evaluatedLevel)} 정도를 기준으로 보면 됩니다.`,
+      sizeUp
+        ? `알고 있는 단어는 약 ${s0!.toLocaleString()}개에서 약 ${sN!.toLocaleString()}개로 늘었습니다.`
         : "",
-      e0 != null && eN != null
-        ? `초등 필수 어휘 이해율도 ${e0}%에서 ${eN}%로 올랐습니다.`
+      pctUp
+        ? `초등에서 꼭 알아야 할 어휘도 ${e0}%에서 ${eN}%까지 더 잘 이해하고 있습니다.`
         : "",
-      ctx ? `문맥에서 단어를 이해하는 능력은 ${ctx.series}로 나타났습니다.` : "",
-      use ? `단어를 문장에 맞게 쓰는 능력은 ${use.series}입니다.` : "",
+      ctx ? `문장 속에서 뜻을 파악하는 모습은 ${ctx.series}로 나타났습니다.` : "",
+      use ? `단어를 문장에 맞게 쓰는 연습은 ${use.series}입니다.` : "",
       plan.nextGoal,
     ]
       .filter(Boolean)
@@ -146,15 +165,16 @@ function parentDomainExplanation(
       .filter(Boolean)
       .join(" → ");
     return [
-      `문법 수준은 ${shortLevel(d0?.evaluatedLevel)}에서 시작해 회차를 거치며 기초 문장 구조를 넓혀 왔습니다.`,
-      codes
-        ? `${codes} 범위에서 학습 성과와 다음 보완 항목이 구체적으로 확인되었습니다.`
-        : "",
+      up
+        ? `문법은 ${shortLevel(d0?.evaluatedLevel)}에서 ${shortLevel(dN?.evaluatedLevel)} 수준으로 기초가 넓어졌습니다.`
+        : g?.difficultyUp
+          ? `문법은 ${codes || "다음"} 범위에 도전해 보며, 앞으로 채울 항목이 더 분명해졌습니다.`
+          : `문법은 ${shortLevel(dN?.evaluatedLevel)} 기초를 다지는 단계입니다.`,
       newly.length
-        ? `최근 평가에서 확인된 강점으로는 ${newly.join("·")} 등이 있습니다.`
+        ? `최근에는 ${newly.join("·")} 같은 항목을 잘 이해하고 있습니다.`
         : "",
       focus.length
-        ? `앞으로는 ${focus.join("·")}을(를) 중심으로 문장에 적용하는 연습을 이어가겠습니다.`
+        ? `앞으로는 ${focus.join("·")}을(를) 문장 속에서 쓰는 연습을 수업에서 이어가겠습니다.`
         : plan.nextGoal,
     ]
       .filter(Boolean)
@@ -164,13 +184,13 @@ function parentDomainExplanation(
   if (domain === "listening") {
     const main = subskillSeries(attempts, "listening", ["대의"]);
     return [
-      `듣기는 ${shortLevel(d0?.evaluatedLevel)}에서 ${shortLevel(dN?.evaluatedLevel)} 수준으로 성장했습니다.`,
-      d0?.evaluatedLevel === dN?.evaluatedLevel ||
-      (dN?.evaluatedLevelOrder ?? 0) >= 5
-        ? `최근 평가에서도 ${shortLevel(dN?.evaluatedLevel)} 수준을 안정적으로 유지하고 있습니다.`
+      up
+        ? `듣기는 ${shortLevel(d0?.evaluatedLevel)}에서 ${shortLevel(dN?.evaluatedLevel)} 수준으로 올라왔습니다.`
+        : `듣기는 ${shortLevel(dN?.evaluatedLevel)} 실력을 잘 유지하고 있습니다.`,
+      main
+        ? `대화의 중심 내용을 잡는 모습은 ${main.series}로 나타났습니다.`
         : "",
-      main ? `대화의 중심 내용을 파악하는 능력은 ${main.series}입니다.` : "",
-      "앞으로는 세부 정보를 놓치지 않도록 핵심 표현 받아쓰기와 짧은 쉐도잉을 병행하고, 추론·적절한 표현 선택 문제를 함께 보완하겠습니다.",
+      "앞으로는 세부 내용을 놓치지 않도록 받아쓰기와 짧은 따라 읽기를 함께 하겠습니다.",
     ]
       .filter(Boolean)
       .join(" ");
@@ -180,10 +200,14 @@ function parentDomainExplanation(
   const main = subskillSeries(attempts, "reading", ["대의"]);
   const detail = subskillSeries(attempts, "reading", ["세부"]);
   return [
-    `독해는 ${shortLevel(d0?.evaluatedLevel)}에서 ${shortLevel(dN?.evaluatedLevel)}까지 매 평가에서 판정 수준이 꾸준히 올라갔습니다.`,
-    main ? `글의 중심 내용을 파악하는 능력은 ${main.series}입니다.` : "",
-    detail ? `세부 정보 파악은 ${detail.series}입니다.` : "",
-    "앞으로는 추론 문제와 문장·단락 사이의 관계를 집중적으로 연습하고, 하나의 지문으로 여러 유형을 해결하는 훈련을 강화하겠습니다.",
+    up
+      ? `독해는 ${shortLevel(d0?.evaluatedLevel)}에서 ${shortLevel(dN?.evaluatedLevel)}까지 차근차근 올라왔습니다.`
+      : sameLevel
+        ? `독해는 ${shortLevel(dN?.evaluatedLevel)} 실력을 이어가고 있습니다.`
+        : `독해는 지금 ${shortLevel(dN?.evaluatedLevel)} 정도를 기준으로 지도하고 있습니다.`,
+    main ? `글의 중심 내용을 파악하는 모습은 ${main.series}입니다.` : "",
+    detail ? `세부 내용을 찾는 연습은 ${detail.series}입니다.` : "",
+    "앞으로는 숨은 뜻을 찾는 문제와 문장 연결을 조금 더 연습하겠습니다.",
   ]
     .filter(Boolean)
     .join(" ");
@@ -535,33 +559,60 @@ export function buildParentOverallSummary(analysis: NeltGrowthAnalysis): string 
   const name = analysis.studentName;
   const n = analysis.attemptCount;
   const v = analysis.vocabularyGrowth;
-  const reading = analysis.domainGrowth.find((d) => d.domain === "reading");
-  const listening = analysis.domainGrowth.find((d) => d.domain === "listening");
-  const grammar = analysis.domainGrowth.find((d) => d.domain === "grammar");
-
-  const bits: string[] = [];
-  bits.push(
-    `${name} 학생은 ${n}차례의 NELT 평가를 통해 <strong>어휘와 독해 영역에서 가장 뚜렷한 성장</strong>을 보였습니다.`
+  const grown = analysis.domainGrowth.filter(
+    (d) =>
+      (d.status === "major_growth" || d.status === "growth") &&
+      d.levelDelta != null &&
+      d.levelDelta > 0.4
   );
+  const bits: string[] = [];
+
+  if (grown.length > 0) {
+    bits.push(
+      `${name}는 ${n}차례 NELT를 거쳐 <strong>${grown
+        .map((d) => d.label)
+        .join("·")}에서 실력이 눈에 띄게 좋아졌습니다</strong>.`
+    );
+  } else {
+    bits.push(
+      `${name}는 ${n}차례 NELT를 통해 지금 실력을 점검하고, 앞으로 채울 부분을 정리해 보았습니다.`
+    );
+  }
+
   if (v.sizeDelta != null && v.sizeDelta > 0) {
     bits.push(
-      `어휘량은 약 ${v.beforeSize?.toLocaleString()}단어에서 ${v.afterSize?.toLocaleString()}단어로 확대되었습니다.`
+      `알고 있는 단어는 약 ${v.beforeSize?.toLocaleString()}개에서 ${v.afterSize?.toLocaleString()}개로 늘었습니다.`
     );
   }
-  if (reading?.beforeLevel && reading.afterLevel) {
+
+  for (const d of grown.slice(0, 2)) {
+    if (d.beforeLevel && d.afterLevel && d.beforeLevel !== d.afterLevel) {
+      bits.push(
+        `${d.label}는 ${shortLevel(d.beforeLevel)}에서 ${shortLevel(d.afterLevel)} 수준으로 올라왔습니다.`
+      );
+    }
+  }
+
+  const listening = analysis.domainGrowth.find((d) => d.domain === "listening");
+  if (
+    listening?.afterLevel &&
+    !grown.some((d) => d.domain === "listening")
+  ) {
     bits.push(
-      `독해 수준은 ${shortLevel(reading.beforeLevel)}에서 ${shortLevel(reading.afterLevel)}까지 향상되었습니다.`
+      `듣기는 ${shortLevel(listening.afterLevel)} 실력을 잘 유지하고 있습니다.`
     );
   }
-  if (listening?.afterLevel) {
+
+  const challenge = analysis.domainGrowth.filter(
+    (d) =>
+      d.difficultyUp &&
+      (d.levelDelta == null || d.levelDelta <= 0.4)
+  );
+  if (challenge.length > 0) {
     bits.push(
-      `듣기는 ${shortLevel(listening.afterLevel)} 수준에 도달해 안정적으로 유지하고 있습니다.`
+      `${challenge.map((d) => d.label).join("·")}은 더 넓은 범위에 도전해 보았고, 수업에서 차근차근 채워가겠습니다.`
     );
   }
-  if (grammar) {
-    bits.push(
-      `문법은 기초 문장 구조에서 시작해 다양한 문법 항목을 학습하는 단계로 발전했습니다.`
-    );
-  }
+
   return bits.join(" ");
 }
