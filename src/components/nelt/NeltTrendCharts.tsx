@@ -36,6 +36,19 @@ export function computeDramaticYRange(
   return { yMin, yMax };
 }
 
+function shortLevelLabel(
+  level: string | null | undefined,
+  difficulty?: string | null
+): string {
+  if (!level) return "";
+  const s = level
+    .replace("초등학교 ", "초")
+    .replace("중학교 ", "중")
+    .replace("고등학교 ", "고")
+    .replace("학년", "");
+  return difficulty && !s.includes("(") ? `${s} (${difficulty})` : s;
+}
+
 function collectLevelOrders(analysis: NeltGrowthAnalysis): number[] {
   const out: number[] = [];
   for (const p of analysis.trendPoints ?? []) {
@@ -122,7 +135,6 @@ export function DomainMetricsChart({
   section: NeltDomainSection;
 }) {
   const labels = section.stages.map((s) => `${s.attempt}차`);
-  const levelLabels = section.stages.map((s) => s.level ?? "");
   const series = section.chart.series;
   if (series.length === 0 || labels.length < 2) {
     return (
@@ -140,8 +152,8 @@ export function DomainMetricsChart({
   const ySpan = yMax - yMin || 1;
 
   const w = 420;
-  const h = 214;
-  const pad = { t: 18, r: 14, b: 48, l: 40 };
+  const h = 210;
+  const pad = { t: 34, r: 14, b: 34, l: 40 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const n = labels.length;
@@ -189,19 +201,30 @@ export function DomainMetricsChart({
                 strokeLinecap="round"
               />
               {s.values.map((v, i) => (
-                <circle
-                  key={`${s.name}-${i}`}
-                  cx={xAt(i)}
-                  cy={yAt(v)}
-                  r={4.5}
-                  fill={lineColor}
-                  stroke="#fff"
-                  strokeWidth={1.5}
-                >
-                  <title>
-                    {labels[i]} · {s.name}: {s.display[i]}
-                  </title>
-                </circle>
+                <g key={`${s.name}-${i}`}>
+                  <text
+                    x={xAt(i)}
+                    y={yAt(v) - 12}
+                    textAnchor="middle"
+                    fontSize={13}
+                    fontWeight={800}
+                    fill={lineColor}
+                  >
+                    {s.display[i]}
+                  </text>
+                  <circle
+                    cx={xAt(i)}
+                    cy={yAt(v)}
+                    r={5}
+                    fill={lineColor}
+                    stroke="#fff"
+                    strokeWidth={2}
+                  >
+                    <title>
+                      {labels[i]} · {s.name}: {s.display[i]}
+                    </title>
+                  </circle>
+                </g>
               ))}
             </g>
           );
@@ -210,7 +233,7 @@ export function DomainMetricsChart({
           <text
             key={label}
             x={xAt(i)}
-            y={h - 24}
+            y={h - 10}
             textAnchor="middle"
             fontSize={11}
             fontWeight={700}
@@ -219,21 +242,6 @@ export function DomainMetricsChart({
             {label}
           </text>
         ))}
-        {levelLabels.map((lv, i) =>
-          lv ? (
-            <text
-              key={`lv-${i}`}
-              x={xAt(i)}
-              y={h - 8}
-              textAnchor="middle"
-              fontSize={11}
-              fontWeight={800}
-              fill="#152d4f"
-            >
-              {lv}
-            </text>
-          ) : null
-        )}
       </svg>
       <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#68748a]">
         {series.map((s) => (
@@ -254,8 +262,8 @@ export function DomainMetricsChart({
 function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
   const points = analysis.trendPoints;
   const w = 520;
-  const h = 220;
-  const pad = { t: 16, r: 16, b: 40, l: 40 };
+  const h = 232;
+  const pad = { t: 30, r: 16, b: 40, l: 40 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const n = points.length;
@@ -310,23 +318,37 @@ function LevelLineChart({ analysis }: { analysis: NeltGrowthAnalysis }) {
               strokeLinecap="round"
             />
             {points.map((p, i) => (
-              <circle
-                key={`${domain}-${p.attemptNumber}`}
-                cx={xAt(i)}
-                cy={yAt(p.domains[domain].levelOrder)}
-                r={4.5}
-                fill={DOMAIN_COLORS[domain]}
-                stroke="#fff"
-                strokeWidth={1.5}
-              >
-                <title>
-                  {p.label} · {DOMAIN_LABEL[domain]}:{" "}
-                  {p.domains[domain].level ?? "—"}
-                  {p.domains[domain].difficulty
-                    ? ` (${p.domains[domain].difficulty})`
-                    : ""}
-                </title>
-              </circle>
+              <g key={`${domain}-${p.attemptNumber}`}>
+                <text
+                  x={xAt(i)}
+                  y={yAt(p.domains[domain].levelOrder) - 11}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fontWeight={800}
+                  fill={DOMAIN_COLORS[domain]}
+                >
+                  {shortLevelLabel(
+                    p.domains[domain].level,
+                    p.domains[domain].difficulty
+                  )}
+                </text>
+                <circle
+                  cx={xAt(i)}
+                  cy={yAt(p.domains[domain].levelOrder)}
+                  r={5}
+                  fill={DOMAIN_COLORS[domain]}
+                  stroke="#fff"
+                  strokeWidth={2}
+                >
+                  <title>
+                    {p.label} · {DOMAIN_LABEL[domain]}:{" "}
+                    {p.domains[domain].level ?? "—"}
+                    {p.domains[domain].difficulty
+                      ? ` (${p.domains[domain].difficulty})`
+                      : ""}
+                  </title>
+                </circle>
+              </g>
             ))}
           </g>
         );
