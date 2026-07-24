@@ -43,38 +43,47 @@ export default async function AdminStudentsPage({ searchParams }: PageProps) {
         </p>
       </div>
 
-      <form method="get" className="flex flex-wrap items-end gap-2">
-        <label className="text-sm font-medium text-slate-700">
-          이름 검색
-          <input
-            name="q"
-            defaultValue={search}
-            placeholder="학생 이름"
-            className="mt-1 block rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          />
-        </label>
-        <button
-          type="submit"
-          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white"
-        >
-          검색
-        </button>
-        {search && (
-          <Link href="/admin/students" className="text-sm text-indigo-600 hover:underline">
-            검색 초기화
-          </Link>
-        )}
-      </form>
-
-      <StudentsPagePagination
-        page={data.page}
-        total={data.totalStudents}
-        pageSize={data.pageSize}
-        search={search}
-      />
-
       <section id="students" className="scroll-mt-8">
-        <StudentManagement students={studentList} studentTree={studentTree} />
+        <StudentManagement
+          students={studentList}
+          studentTree={studentTree}
+          beforeList={
+            <div className="space-y-3">
+              <form method="get" className="flex flex-wrap items-end gap-2">
+                <label className="text-sm font-medium text-slate-700">
+                  이름 검색
+                  <input
+                    name="q"
+                    defaultValue={search}
+                    placeholder="학생 이름"
+                    className="mt-1 block rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white"
+                >
+                  검색
+                </button>
+                {search && (
+                  <Link
+                    href="/admin/students"
+                    className="text-sm text-indigo-600 hover:underline"
+                  >
+                    검색 초기화
+                  </Link>
+                )}
+              </form>
+
+              <StudentsPagePagination
+                page={data.page}
+                total={data.totalStudents}
+                pageSize={data.pageSize}
+                search={search}
+              />
+            </div>
+          }
+        />
       </section>
 
       <section id="assign" className="scroll-mt-8">

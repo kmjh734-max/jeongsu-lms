@@ -7,11 +7,14 @@ import type { Profile } from "@/types/database";
 interface StudentManagementProps {
   students: Profile[];
   studentTree: TreeNode[];
+  /** 등록 카드와 명단 사이 영역 (이름 검색·페이지네이션 등) */
+  beforeList?: React.ReactNode;
 }
 
 export function StudentManagement({
   students,
   studentTree,
+  beforeList,
 }: StudentManagementProps) {
   return (
     <AccountManagement
@@ -24,6 +27,7 @@ export function StudentManagement({
       listSearchPlaceholder="학생 이름·아이디 검색"
       listFilterTree={studentTree}
       listFilterLabel="반·학생으로 찾기"
+      beforeList={beforeList}
     />
   );
 }

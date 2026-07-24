@@ -28,6 +28,8 @@ interface AccountManagementProps {
   /** 반·학생 트리로 명단 필터 */
   listFilterTree?: TreeNode[];
   listFilterLabel?: string;
+  /** 등록 카드와 명단 사이에 끼워 넣을 영역 (예: 서버 이름 검색·페이지네이션) */
+  beforeList?: React.ReactNode;
 }
 
 type Message = { type: "success" | "error"; text: string } | null;
@@ -43,6 +45,7 @@ export function AccountManagement({
   listSearchPlaceholder = "이름·아이디로 검색",
   listFilterTree,
   listFilterLabel = "반·학생으로 찾기",
+  beforeList,
 }: AccountManagementProps) {
   const router = useRouter();
   // 받침 유무에 따른 은/는 조사 (학생은, 강사는)
@@ -410,6 +413,8 @@ export function AccountManagement({
           {message.text}
         </p>
       )}
+
+      {beforeList}
 
       {(showListSearch || listFilterTree) && initialUsers.length > 0 && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
