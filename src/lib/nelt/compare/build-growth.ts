@@ -1,4 +1,5 @@
 import { resolveLevelOrder } from "@/lib/nelt/level-order";
+import { buildNeltParentMessageFallback } from "@/lib/nelt/generate-parent-message";
 import type { NeltDomain, NeltGrowthStatus } from "@/types/nelt";
 import type {
   NeltAttemptBundle,
@@ -608,31 +609,18 @@ function buildCopy(analysis: Omit<
       ? `앞으로의 학습 방향입니다. ${focusLines.slice(0, 4).join(" ")}`
       : `앞으로 ${grown[0]?.label ?? "어휘"}·문법 기초를 문장에 적용하는 힘을 키우겠습니다.`;
 
-  const highlightLines = analysis.highlights
-    .filter((h) => h.parentVisible)
-    .slice(0, 5)
-    .map(
-      (h) =>
-        `· ${h.title}: ${h.beforeLabel} → ${h.afterLabel}${
-          h.deltaLabel ? ` (${h.deltaLabel})` : ""
-        }`
-    );
-
-  const parentCopy = [
-    `[${name} 학생 NELT 영어 성장 리포트]`,
-    "",
-    overallNarrative,
-    "",
-    "[주요 성장]",
-    ...highlightLines,
-    "",
-    strengthsNarrative,
-    "",
-    stableNarrative,
-    "",
-    "[앞으로의 학습]",
-    nextGoalsNarrative,
-  ].join("\n");
+  const parentCopy = buildNeltParentMessageFallback(
+    {
+      ...analysis,
+      overallNarrative,
+      strengthsNarrative,
+      stableNarrative,
+      nextGoalsNarrative,
+      parentCopy: "",
+    },
+    { parentTitle: "어머님", senderRole: "영어원장" },
+    "standard"
+  );
 
   return {
     overallNarrative,

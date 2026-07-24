@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import {
   copyKakaoPasteMessage,
@@ -10,8 +10,15 @@ import {
   shareReportViaKakao,
   validateShareUrlForKakao,
 } from "@/lib/kakao/share-report";
-import type { NeltParentMessageTone } from "@/lib/nelt/generate-parent-message";
+import {
+  attachReportUrlToMessage,
+  buildNeltParentMessageFallback,
+  formatStudyDuration,
+  type NeltParentMessageTone,
+} from "@/lib/nelt/generate-parent-message";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
+
+const SENDER_STORAGE_KEY = "nelt-parent-message-sender-v1";
 
 interface NeltShareActionsProps {
   studentName: string;
@@ -26,7 +33,10 @@ export function NeltShareActions({
 }: NeltShareActionsProps) {
   const kakaoConfigured = isKakaoShareConfigured();
   const [tone, setTone] = useState<NeltParentMessageTone>("standard");
-  const [parentMessage, setParentMessage] = useState(analysis.parentCopy);
+  const [parentTitle, setParentTitle] = useState("어머님");
+  const [senderRole, setSenderRole] = useState("영어원장");
+  const [senderName, setSenderName] = useState("");
+  const [enrollmentDate, setEnrollmentDate] = useState("");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [msgLoading, setMsgLoading] = useState(false);
@@ -34,6 +44,41 @@ export function NeltShareActions({
   const [kakaoLoading, setKakaoLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const studyDuration = useMemo(
+    () => formatStudyDuration(enrollmentDate || null),
+    [enrollmentDate]
+  );
+
+  const meta = useMemo(
+    () => ({
+      academyName,
+      parentTitle,
+      senderRole,
+      senderName,
+      enrollmentDate: enrollmentDate || null,
+      studyDuration,
+      reportUrl: shareUrl,
+    }),
+    [
+      academyName,
+      parentTitle,
+      senderRole,
+      senderName,
+      enrollmentDate,
+      studyDuration,
+      shareUrl,
+    ]
+  );
+
+  const [parentMessage, setParentMessage] = useState(() =>
+    buildNeltParentMessageFallback(analysis, {
+      academyName,
+      parentTitle: "어머님",
+      senderRole: "영어원장",
+      senderName: "",
+    })
+  );
 
   const periodLabel =
     analysis.start.testDate && analysis.end.testDate
@@ -46,6 +91,32 @@ export function NeltShareActions({
     }
   }, [kakaoConfigured]);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SENDER_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as {
+        senderRole?: string;
+        senderName?: string;
+      };
+      if (saved.senderRole) setSenderRole(saved.senderRole);
+      if (saved.senderName) setSenderName(saved.senderName);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        SENDER_STORAGE_KEY,
+        JSON.stringify({ senderRole, senderName })
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [senderRole, senderName]);
+
   function flashOk(text: string) {
     setStatus(text);
     setError(null);
@@ -56,19 +127,25 @@ export function NeltShareActions({
     window.setTimeout(() => setError(null), 6000);
   }
 
+  function pasteBody(message: string, url: string) {
+    return attachReportUrlToMessage(message, url);
+  }
+
   async function generateParentMessage() {
     setMsgLoading(true);
     try {
       const res = await fetch("/api/nelt/parent-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentName, analysis, tone }),
+        body: JSON.stringify({ studentName, analysis, tone, meta }),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
         throw new Error(json.message ?? "문구 생성 실패");
       }
-      setParentMessage(json.message as string);
+      let message = json.message as string;
+      if (shareUrl) message = attachReportUrlToMessage(message, shareUrl);
+      setParentMessage(message);
       flashOk(
         json.source === "ai"
           ? `학부모 안내 문구를 만들었습니다. (${json.model ?? "AI"})`
@@ -91,6 +168,7 @@ export function NeltShareActions({
           studentName,
           parentMessage,
           analysis,
+          meta,
         }),
       });
       const json = await res.json();
@@ -99,7 +177,13 @@ export function NeltShareActions({
       }
       setShareUrl(json.shareUrl as string);
       setExpiresAt(json.expiresAt ?? null);
-      if (json.parentMessage) setParentMessage(json.parentMessage as string);
+      if (json.parentMessage) {
+        setParentMessage(json.parentMessage as string);
+      } else {
+        setParentMessage((prev) =>
+          attachReportUrlToMessage(prev, json.shareUrl as string)
+        );
+      }
       flashOk("학부모용 공유 링크를 만들었습니다. (30일)");
       return json.shareUrl as string;
     } catch (e) {
@@ -117,10 +201,8 @@ export function NeltShareActions({
       if (!url) url = await createShareLink();
       if (!url) return;
 
-      const paste = `${parentMessage.trim()}
-
-아래 링크에서 성장 리포트를 확인해 주세요.
-${url}`;
+      const paste = pasteBody(parentMessage, url);
+      setParentMessage(paste);
 
       const result = await shareReportViaKakao({
         studentName,
@@ -169,13 +251,11 @@ ${url}`;
     let url = shareUrl;
     if (!url) url = await createShareLink();
     if (!url) return;
-    const paste = `${parentMessage.trim()}
-
-아래 링크에서 성장 리포트를 확인해 주세요.
-${url}`;
+    const paste = pasteBody(parentMessage, url);
+    setParentMessage(paste);
     try {
       await navigator.clipboard.writeText(paste);
-      flashOk("카카오톡에 붙여넣을 안내+링크를 복사했습니다.");
+      flashOk("카카오톡에 붙여넣을 안내문을 복사했습니다.");
     } catch {
       const r = await copyKakaoPasteMessage({
         studentName,
@@ -194,13 +274,72 @@ ${url}`;
 
   return (
     <section className="print:hidden space-y-4 rounded-2xl border border-[#dce3ed] bg-[#fbfcfe] p-5">
+      <div className="rounded-2xl border border-[#dce3ed] bg-white p-4">
+        <h4 className="m-0 text-sm font-bold text-[#152d4f]">
+          안내문 발신 정보
+        </h4>
+        <p className="mt-1 text-xs text-slate-500">
+          학부모 호칭·발신자·수강 시작일을 넣으면 따뜻한 편지형 안내문이
+          만들어집니다.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <label className="text-xs text-slate-600">
+            학부모 호칭
+            <select
+              className="ui-input mt-1 h-9 w-full text-sm"
+              value={parentTitle}
+              onChange={(e) => setParentTitle(e.target.value)}
+            >
+              <option value="어머님">어머님</option>
+              <option value="아버님">아버님</option>
+              <option value="보호자님">보호자님</option>
+            </select>
+          </label>
+          <label className="text-xs text-slate-600">
+            발신자 직책
+            <select
+              className="ui-input mt-1 h-9 w-full text-sm"
+              value={senderRole}
+              onChange={(e) => setSenderRole(e.target.value)}
+            >
+              <option value="영어원장">영어원장</option>
+              <option value="영어전임">영어전임</option>
+              <option value="영어강사">영어강사</option>
+            </select>
+          </label>
+          <label className="text-xs text-slate-600">
+            발신자 이름
+            <input
+              className="ui-input mt-1 h-9 w-full text-sm"
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              placeholder="예: 최정민"
+            />
+          </label>
+          <label className="text-xs text-slate-600">
+            수강 시작일
+            <input
+              type="date"
+              className="ui-input mt-1 h-9 w-full text-sm"
+              value={enrollmentDate}
+              onChange={(e) => setEnrollmentDate(e.target.value)}
+            />
+          </label>
+        </div>
+        {studyDuration && (
+          <p className="mt-2 text-xs text-[#244a78]">
+            함께한 기간: 약 {studyDuration}
+          </p>
+        )}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-[#dce3ed] bg-white p-4">
           <h4 className="m-0 text-sm font-bold text-[#152d4f]">
             리포트 공유 링크
           </h4>
           <p className="mt-1 text-xs text-slate-500">
-            학부모 공개 링크를 만들고 복사할 수 있습니다.
+            링크를 만들면 안내문 본문에도 자동으로 들어갑니다.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button
@@ -250,7 +389,7 @@ ${url}`;
             카카오톡 발송 문구
           </h4>
           <p className="mt-1 text-xs text-slate-500">
-            톤을 고른 뒤 AI로 다시 만들거나 직접 수정하세요.
+            기본·간단·상세 톤을 고른 뒤 문구를 다시 만드세요.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <select
@@ -287,7 +426,7 @@ ${url}`;
       </div>
 
       <textarea
-        className="ui-input min-h-[200px] w-full resize-y text-sm leading-relaxed"
+        className="ui-input min-h-[260px] w-full resize-y text-sm leading-relaxed"
         value={parentMessage}
         onChange={(e) => setParentMessage(e.target.value)}
         aria-label="학부모 안내 문구"
@@ -315,7 +454,7 @@ ${url}`;
           disabled={linkLoading}
           onClick={() => void handlePasteCopy()}
         >
-          안내+링크 함께 복사
+          안내문 복사 (링크 포함)
         </Button>
       </div>
 

@@ -3,6 +3,7 @@ import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
 import {
   buildNeltParentMessageFallback,
   generateNeltParentMessageAi,
+  type NeltParentMessageMeta,
   type NeltParentMessageTone,
 } from "@/lib/nelt/generate-parent-message";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
@@ -20,6 +21,27 @@ function normalizeTone(value: unknown): NeltParentMessageTone {
   return "standard";
 }
 
+function pickMeta(body: {
+  meta?: NeltParentMessageMeta;
+  parentTitle?: string;
+  senderRole?: string;
+  senderName?: string;
+  enrollmentDate?: string | null;
+  studyDuration?: string | null;
+  reportUrl?: string | null;
+}): NeltParentMessageMeta {
+  const m = body.meta ?? {};
+  return {
+    academyName: m.academyName ?? ACADEMY_NAME,
+    parentTitle: body.parentTitle ?? m.parentTitle,
+    senderRole: body.senderRole ?? m.senderRole,
+    senderName: body.senderName ?? m.senderName,
+    enrollmentDate: body.enrollmentDate ?? m.enrollmentDate,
+    studyDuration: body.studyDuration ?? m.studyDuration,
+    reportUrl: body.reportUrl ?? m.reportUrl,
+  };
+}
+
 export async function POST(request: Request) {
   const auth = await requireNeltStaff();
   if (!auth.ok) return auth.error;
@@ -28,6 +50,13 @@ export async function POST(request: Request) {
     studentName?: string;
     analysis?: NeltGrowthAnalysis;
     tone?: NeltParentMessageTone;
+    meta?: NeltParentMessageMeta;
+    parentTitle?: string;
+    senderRole?: string;
+    senderName?: string;
+    enrollmentDate?: string | null;
+    studyDuration?: string | null;
+    reportUrl?: string | null;
   };
   try {
     body = await request.json();
@@ -41,6 +70,7 @@ export async function POST(request: Request) {
   let analysis = body.analysis ?? null;
   const studentName = body.studentName?.trim() || analysis?.studentName?.trim();
   const tone = normalizeTone(body.tone);
+  const meta = pickMeta(body);
 
   if (!analysis && studentName) {
     const attempts = await loadStudentNeltAttempts(
@@ -58,12 +88,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const ai = await generateNeltParentMessageAi(analysis, ACADEMY_NAME, tone);
+  const ai = await generateNeltParentMessageAi(analysis, meta, tone);
   const message = ai.ok
     ? ai.message
-    : buildNeltParentMessageFallback(analysis, ACADEMY_NAME, tone);
+    : buildNeltParentMessageFallback(analysis, meta, tone);
 
-  // 성장 리포트에 저장 (있으면)
   await auth.supabase
     .from("nelt_growth_reports")
     .update({

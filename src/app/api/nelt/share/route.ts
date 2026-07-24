@@ -10,8 +10,10 @@ import {
   shareExpiresAt,
 } from "@/lib/nelt/share-token";
 import {
+  attachReportUrlToMessage,
   buildNeltParentMessageFallback,
   generateNeltParentMessageAi,
+  type NeltParentMessageMeta,
 } from "@/lib/nelt/generate-parent-message";
 import { ACADEMY_NAME } from "@/lib/branding";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -29,6 +31,7 @@ export async function POST(request: Request) {
     studentName?: string;
     parentMessage?: string;
     analysis?: NeltGrowthAnalysis;
+    meta?: NeltParentMessageMeta;
   };
   try {
     body = await request.json();
@@ -73,13 +76,23 @@ export async function POST(request: Request) {
     );
   }
 
+  const meta: NeltParentMessageMeta = {
+    academyName: ACADEMY_NAME,
+    ...(body.meta ?? {}),
+  };
+
   let parentMessage = body.parentMessage?.trim() || "";
   if (!parentMessage) {
-    const ai = await generateNeltParentMessageAi(analysis, ACADEMY_NAME);
+    const ai = await generateNeltParentMessageAi(analysis, meta);
     parentMessage = ai.ok
       ? ai.message
-      : buildNeltParentMessageFallback(analysis, ACADEMY_NAME);
+      : buildNeltParentMessageFallback(analysis, meta);
   }
+
+  const token = generateShareToken();
+  const expiresAt = shareExpiresAt(30);
+  const shareUrl = buildNeltShareUrl(token, resolveShareBaseUrl());
+  parentMessage = attachReportUrlToMessage(parentMessage, shareUrl);
 
   await auth.supabase
     .from("nelt_growth_reports")
@@ -89,8 +102,6 @@ export async function POST(request: Request) {
     })
     .eq("id", growth.growthId);
 
-  const token = generateShareToken();
-  const expiresAt = shareExpiresAt(30);
   const admin = createAdminClient();
 
   const { error } = await admin.from("nelt_shared_reports").insert({
@@ -119,7 +130,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const shareUrl = buildNeltShareUrl(token, resolveShareBaseUrl());
   return NextResponse.json({
     ok: true,
     shareUrl,
