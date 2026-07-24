@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
 import { saveNeltDraftAsReport } from "@/lib/nelt/save-draft-report";
 import { upsertNeltGrowthReport } from "@/lib/nelt/upsert-growth-report";
+import {
+  loadNeltAttemptsByReportIds,
+  renumberNeltAttempts,
+} from "@/lib/nelt/load-student-attempts";
 import type { NeltExtractedDraft } from "@/lib/nelt/types-draft";
 
 export const runtime = "nodejs";
@@ -81,19 +85,39 @@ export async function POST(request: Request) {
     savedIds.push(saved.reportId);
   }
 
+  await renumberNeltAttempts(auth.supabase, auth.academyId, studentName);
+
   let growth: {
     ok: true;
     growthId: string;
     attemptCount: number;
   } | null = null;
 
-  if (savedIds.length >= 2 || items.length >= 2) {
+  // 링크 2개 이상 저장 = 성장 리포트 (방금 저장한 id로 바로 생성)
+  if (savedIds.length >= 2) {
+    const attempts = await loadNeltAttemptsByReportIds(
+      auth.supabase,
+      savedIds
+    );
     const g = await upsertNeltGrowthReport(auth.supabase, {
       academyId: auth.academyId,
       studentName,
       createdBy: auth.profile.id,
+      attempts,
+      reportIds: savedIds,
     });
-    if (g.ok) growth = g;
+    if (!g.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: g.message,
+          savedIds,
+          studentName,
+        },
+        { status: 400 }
+      );
+    }
+    growth = g;
   }
 
   return NextResponse.json({

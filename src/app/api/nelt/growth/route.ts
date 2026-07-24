@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
+import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
 import { upsertNeltGrowthReport } from "@/lib/nelt/upsert-growth-report";
 
 export const runtime = "nodejs";
@@ -27,10 +28,17 @@ export async function POST(request: Request) {
     );
   }
 
+  const attempts = await loadStudentNeltAttempts(
+    auth.supabase,
+    auth.academyId,
+    studentName
+  );
   const g = await upsertNeltGrowthReport(auth.supabase, {
     academyId: auth.academyId,
     studentName,
     createdBy: auth.profile.id,
+    attempts,
+    reportIds: attempts.map((a) => a.id),
   });
 
   if (!g.ok) {

@@ -74,6 +74,8 @@ export async function POST(request: Request) {
     academyId: auth.academyId,
     studentName,
     createdBy: auth.profile.id,
+    attempts: analysis.attempts,
+    reportIds: analysis.attempts.map((a) => a.id),
   });
   if (!growth.ok) {
     return NextResponse.json(

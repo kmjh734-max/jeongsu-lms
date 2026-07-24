@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
-import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
+import type { NeltAttemptBundle } from "@/lib/nelt/compare/types";
+import {
+  loadNeltAttemptsByReportIds,
+  loadStudentNeltAttempts,
+} from "@/lib/nelt/load-student-attempts";
 import { parseStoredNarratives } from "@/lib/nelt/generate-report-narratives";
 
 export async function upsertNeltGrowthReport(
@@ -9,25 +13,37 @@ export async function upsertNeltGrowthReport(
     academyId: string;
     studentName: string;
     createdBy: string;
+    /** 이미 로드한 회차(링크 2개 이상 저장 직후 등) */
+    attempts?: NeltAttemptBundle[];
+    /** 방금 저장한 report id — 이름 조회 실패 시 사용 */
+    reportIds?: string[];
   }
 ): Promise<
   | { ok: true; growthId: string; attemptCount: number }
   | { ok: false; message: string }
 > {
-  const attempts = await loadStudentNeltAttempts(
-    supabase,
-    params.academyId,
-    params.studentName
-  );
+  const name = params.studentName.trim();
+  let attempts = params.attempts ?? [];
+
+  if (attempts.length < 2 && params.reportIds && params.reportIds.length >= 2) {
+    attempts = await loadNeltAttemptsByReportIds(supabase, params.reportIds);
+  }
+  if (attempts.length < 2) {
+    attempts = await loadStudentNeltAttempts(
+      supabase,
+      params.academyId,
+      name
+    );
+  }
 
   if (attempts.length < 2) {
     return {
       ok: false,
-      message: "성장 리포트는 회차가 2개 이상일 때 만들 수 있습니다.",
+      message: "저장한 회차를 찾지 못했습니다. 목록에서 다시 열어 주세요.",
     };
   }
 
-  const analysis = buildNeltGrowthAnalysis(params.studentName, attempts);
+  const analysis = buildNeltGrowthAnalysis(name, attempts);
   if (!analysis) {
     return { ok: false, message: "성장 비교를 만들 수 없습니다." };
   }
@@ -36,7 +52,7 @@ export async function upsertNeltGrowthReport(
     .from("nelt_growth_reports")
     .select("id, generated_summary")
     .eq("academy_id", params.academyId)
-    .eq("student_name_raw", params.studentName)
+    .eq("student_name_raw", name)
     .eq("is_finalized", false)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -55,7 +71,7 @@ export async function upsertNeltGrowthReport(
   const payload = {
     academy_id: params.academyId,
     student_id: null,
-    student_name_raw: params.studentName,
+    student_name_raw: name,
     start_report_id: analysis.start.id,
     end_report_id: analysis.end.id,
     generated_summary: generatedSummary,

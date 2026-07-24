@@ -17,6 +17,9 @@ type ReportRow = {
   source_url: string | null;
 };
 
+const REPORT_SELECT =
+  "id, attempt_number, test_date, test_name, student_grade_raw, overall_level, overall_band, overall_level_order, overall_percentile, total_duration_seconds, source_type, source_url";
+
 export async function renumberNeltAttempts(
   supabase: SupabaseClient,
   academyId: string,
@@ -42,24 +45,50 @@ export async function renumberNeltAttempts(
   }
 }
 
+/** 방금 저장한 report id들로 회차 번들 로드 (이름 매칭 실패 방지) */
+export async function loadNeltAttemptsByReportIds(
+  supabase: SupabaseClient,
+  reportIds: string[]
+): Promise<NeltAttemptBundle[]> {
+  const ids = [...new Set(reportIds.filter(Boolean))];
+  if (ids.length === 0) return [];
+
+  const { data: reports, error } = await supabase
+    .from("nelt_reports")
+    .select(REPORT_SELECT)
+    .in("id", ids)
+    .order("attempt_number", { ascending: true, nullsFirst: false })
+    .order("test_date", { ascending: true, nullsFirst: false });
+
+  if (error || !reports?.length) return [];
+  return hydrateAttemptBundles(supabase, reports as ReportRow[]);
+}
+
 export async function loadStudentNeltAttempts(
   supabase: SupabaseClient,
   academyId: string,
   studentName: string
 ): Promise<NeltAttemptBundle[]> {
+  const name = studentName.trim();
+  if (!name) return [];
+
   const { data: reports, error } = await supabase
     .from("nelt_reports")
-    .select(
-      "id, attempt_number, test_date, test_name, student_grade_raw, overall_level, overall_band, overall_level_order, overall_percentile, total_duration_seconds, source_type, source_url"
-    )
+    .select(REPORT_SELECT)
     .eq("academy_id", academyId)
-    .eq("student_name_raw", studentName)
+    .eq("student_name_raw", name)
     .eq("extraction_status", "completed")
     .order("attempt_number", { ascending: true, nullsFirst: false })
     .order("test_date", { ascending: true, nullsFirst: false });
 
   if (error || !reports?.length) return [];
+  return hydrateAttemptBundles(supabase, reports as ReportRow[]);
+}
 
+async function hydrateAttemptBundles(
+  supabase: SupabaseClient,
+  reports: ReportRow[]
+): Promise<NeltAttemptBundle[]> {
   const reportIds = reports.map((r) => r.id);
 
   const [
@@ -101,22 +130,24 @@ export async function loadStudentNeltAttempts(
             "nelt_domain_result_id, subskill_name, description, student_accuracy, level_average_accuracy"
           )
           .in("nelt_domain_result_id", domainIds)
-      : { data: [] as Array<{
-          nelt_domain_result_id: string;
-          subskill_name: string;
-          description: string | null;
-          student_accuracy: number | null;
-          level_average_accuracy: number | null;
-        }> };
+      : {
+          data: [] as Array<{
+            nelt_domain_result_id: string;
+            subskill_name: string;
+            description: string | null;
+            student_accuracy: number | null;
+            level_average_accuracy: number | null;
+          }>,
+        };
 
-  const subByDomain = new Map<string, typeof subskills>();
+  const subByDomain = new Map<string, NonNullable<typeof subskills>>();
   for (const s of subskills ?? []) {
     const list = subByDomain.get(s.nelt_domain_result_id) ?? [];
     list.push(s);
     subByDomain.set(s.nelt_domain_result_id, list);
   }
 
-  return (reports as ReportRow[]).map((r, idx) => {
+  return reports.map((r, idx) => {
     const reportDomains = (domains ?? []).filter(
       (d) => d.nelt_report_id === r.id
     );

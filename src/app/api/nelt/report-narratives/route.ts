@@ -54,11 +54,13 @@ export async function POST(request: Request) {
 
   const fingerprint = buildAttemptFingerprint(analysis);
 
-  // 성장 리포트 행이 없으면 만들어 둠 (서술 저장 대상)
+  // 이미 분석된 회차로 성장 리포트 행 확보 (이름 재조회로 실패하지 않게)
   await upsertNeltGrowthReport(auth.supabase, {
     academyId: auth.academyId,
     studentName: analysis.studentName,
     createdBy: auth.profile.id,
+    attempts: analysis.attempts,
+    reportIds: analysis.attempts.map((a) => a.id),
   });
 
   if (!force) {
