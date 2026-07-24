@@ -2022,7 +2022,8 @@
   #listening-print-root,
   #a4-print-root,
   #shared-report-print-root,
-  #student-record-print-root {
+  #student-record-print-root,
+  #nelt-print-root {
     page: app-print-a4;
   }
 
@@ -2059,6 +2060,7 @@
   #listening-print-root,
   #student-record-print-root,
   #vocab-print-root,
+  #nelt-print-root,
   #qg-print-root {
     visibility: visible;
   }
@@ -2073,6 +2075,8 @@
   #student-record-print-root *,
   #vocab-print-root,
   #vocab-print-root *,
+  #nelt-print-root,
+  #nelt-print-root *,
   #qg-print-root,
   #qg-print-root * {
     visibility: visible;
@@ -2101,13 +2105,21 @@
   #a4-print-root,
   #shared-report-print-root,
   #listening-print-root,
-  #student-record-print-root {
+  #student-record-print-root,
+  #nelt-print-root {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
     box-shadow: none !important;
     margin: 0 auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* NELT 성장 리포트: 인쇄 시 컨트롤/공유 영역 숨김 */
+  #nelt-print-root .print\:hidden {
+    display: none !important;
   }
 
   /* 단어장: 고정 mm (PDF Save as 시 확대/축소 방지) */

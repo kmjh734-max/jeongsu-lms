@@ -148,7 +148,7 @@ export function NeltGrowthReportView({
   ]);
 
   return (
-    <div className="nelt-proto space-y-4">
+    <div id="nelt-print-root" className="nelt-proto space-y-4">
       {!parentView && (
         <div className="print:hidden flex flex-wrap items-center gap-2">
           <Button
