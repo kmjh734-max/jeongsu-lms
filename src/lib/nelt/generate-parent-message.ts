@@ -78,6 +78,21 @@ function resolveMeta(
   };
 }
 
+export const NELT_PARENT_MESSAGE_TITLE = "[NELT 성장 리포트]";
+
+/** 카카오톡 본문 맨 앞에 제목 보장 */
+export function ensureNeltMessageTitle(message: string): string {
+  const t = message.trim();
+  if (!t) return NELT_PARENT_MESSAGE_TITLE;
+  if (
+    t.startsWith(NELT_PARENT_MESSAGE_TITLE) ||
+    /^\[NELT[^\]]*\]/.test(t)
+  ) {
+    return t;
+  }
+  return `${NELT_PARENT_MESSAGE_TITLE}\n\n${t}`;
+}
+
 function greetingLine(m: ReturnType<typeof resolveMeta>): string {
   const intro =
     m.senderRole && m.senderName
@@ -213,6 +228,8 @@ export function buildNeltParentMessageFallback(
   const highlightLimit = tone === "short" ? 2 : tone === "detail" ? 3 : 3;
 
   const parts: string[] = [];
+  parts.push(NELT_PARENT_MESSAGE_TITLE);
+  parts.push("");
   parts.push(greetingLine(m));
   parts.push("");
   parts.push(durationParagraph(name, m.academyName, m.studyDuration));
@@ -319,6 +336,7 @@ function systemForTone(tone: NeltParentMessageTone): string {
 이모티콘: 첫 인사 :) 또는 마무리에 가벼운 기호 최대 1~2개. 하트·박수·불꽃 과다 금지.
 
 구성 순서(필수):
+0) 맨 첫 줄에 반드시 단독으로: [NELT 성장 리포트]
 1) 따뜻한 인사와 발신자 소개
 2) 학생이 정수학원과 함께한 기간 (studyDuration 있으면 시간의 흐름이 느껴지게; 없으면 임의 기간 만들지 말고 꾸준히 공부해 온 흐름으로)
 3) 이번 NELT를 실시한 이유
@@ -329,11 +347,12 @@ function systemForTone(tone: NeltParentMessageTone): string {
 8) 리포트 링크 안내 후 링크 단독 줄 (reportUrl 있을 때만 URL 출력; 없으면 URL을 지어내지 말 것)
 9) 함께 성장·문의 환영 마무리
 
+"학원 안내" 같은 별도의 섹션 제목은 쓰지 말 것.
 목록·보고서 형식보다 자연스러운 편지형. 핵심 성장이 많을 때만 짧은 항목 2~3개 허용.
 ${lengthHint}
 반드시 제공된 JSON 사실만 사용. 없는 기간·없는 성장을 만들지 말 것.
 상위 %는 향상된 경우(숫자 감소)에만 언급.
-본문만 출력. 제목·설명·마크다운 금지.`;
+안내문 본문만 출력. 작성 설명·마크다운 금지.`;
 }
 
 export async function generateNeltParentMessageAi(
@@ -449,7 +468,7 @@ export async function generateNeltParentMessageAi(
           lastErr = "빈 응답";
           break;
         }
-        return { ok: true, message: content, model };
+        return { ok: true, message: ensureNeltMessageTitle(content), model };
       }
     } catch (e) {
       lastErr = e instanceof Error ? e.message : "요청 실패";
@@ -469,11 +488,11 @@ export function attachReportUrlToMessage(
   reportUrl: string
 ): string {
   const url = reportUrl.trim();
-  if (!url) return message;
-  if (message.includes(url)) return message;
-  const trimmed = message.trim();
-  if (/https?:\/\/\S+/i.test(trimmed)) {
-    return trimmed.replace(/https?:\/\/\S+/gi, url);
+  const base = ensureNeltMessageTitle(message);
+  if (!url) return base;
+  if (base.includes(url)) return base;
+  if (/https?:\/\/\S+/i.test(base)) {
+    return base.replace(/https?:\/\/\S+/gi, url);
   }
-  return `${trimmed}\n\n자세한 영역별 변화와 앞으로의 학습 계획은\n아래 리포트에 정리해 두었습니다.\n\n${url}`;
+  return `${base}\n\n자세한 영역별 변화와 앞으로의 학습 계획은\n아래 리포트에 정리해 두었습니다.\n\n${url}`;
 }

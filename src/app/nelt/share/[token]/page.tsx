@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NeltGrowthReportView } from "@/components/nelt/NeltGrowthReportView";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
@@ -7,6 +8,35 @@ import { ACADEMY_NAME } from "@/lib/branding";
 
 interface PageProps {
   params: Promise<{ token: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { token: raw } = await params;
+  const token = decodeURIComponent(raw).trim();
+  if (!token) return { title: "[NELT 성장 리포트]" };
+
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("nelt_shared_reports")
+    .select("student_name_raw")
+    .eq("token", token)
+    .maybeSingle();
+
+  const name = data?.student_name_raw?.trim();
+  const title = name
+    ? `[NELT 성장 리포트] ${name}`
+    : "[NELT 성장 리포트]";
+
+  return {
+    title,
+    openGraph: {
+      title,
+      description: `${ACADEMY_NAME} NELT 영어 누적 성장 리포트`,
+      type: "website",
+    },
+  };
 }
 
 export default async function NeltSharePage({ params }: PageProps) {
@@ -50,8 +80,7 @@ export default async function NeltSharePage({ params }: PageProps) {
       </p>
       {data.parent_message && (
         <section className="mb-5 rounded-2xl border border-[#e6eaf1] bg-white px-5 py-4 shadow-sm">
-          <h2 className="text-sm font-bold text-[#152d4f]">학원 안내</h2>
-          <pre className="mt-2 whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700">
+          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700">
             {data.parent_message}
           </pre>
         </section>

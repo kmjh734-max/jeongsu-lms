@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
 import {
   buildNeltParentMessageFallback,
+  ensureNeltMessageTitle,
   generateNeltParentMessageAi,
   type NeltParentMessageMeta,
   type NeltParentMessageTone,
@@ -89,9 +90,11 @@ export async function POST(request: Request) {
   }
 
   const ai = await generateNeltParentMessageAi(analysis, meta, tone);
-  const message = ai.ok
-    ? ai.message
-    : buildNeltParentMessageFallback(analysis, meta, tone);
+  const message = ensureNeltMessageTitle(
+    ai.ok
+      ? ai.message
+      : buildNeltParentMessageFallback(analysis, meta, tone)
+  );
 
   await auth.supabase
     .from("nelt_growth_reports")

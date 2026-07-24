@@ -12,6 +12,7 @@ import {
 import {
   attachReportUrlToMessage,
   buildNeltParentMessageFallback,
+  ensureNeltMessageTitle,
   generateNeltParentMessageAi,
   type NeltParentMessageMeta,
 } from "@/lib/nelt/generate-parent-message";
@@ -88,6 +89,7 @@ export async function POST(request: Request) {
       ? ai.message
       : buildNeltParentMessageFallback(analysis, meta);
   }
+  parentMessage = ensureNeltMessageTitle(parentMessage);
 
   const token = generateShareToken();
   const expiresAt = shareExpiresAt(30);
