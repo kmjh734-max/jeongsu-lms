@@ -4,7 +4,9 @@ import type {
   NeltExtractedDraft,
 } from "@/lib/nelt/types-draft";
 import {
+  extractPercentFromProse,
   findAfter,
+  findLabeledPercent,
   htmlToLines,
   normalizeLevelLabel,
   parseKoreanDate,
@@ -293,43 +295,83 @@ export function parseNetutorNeltHtml(
   );
 
   const vocaBlock = blocks.vocabulary ?? [];
-  const vocabularySize = parseVocabSize(
-    vocaBlock.find((l) => l.includes("단어")) ??
-      findAfter(lines, "Vocabulary Size", { within: 4 })
-  );
+  const grammarBlock = blocks.grammar ?? [];
+  const fullText = lines.join("\n");
+
+  const vocabularySize =
+    parseVocabSize(
+      vocaBlock.find((l) => /약?\s*\d+\s*단어/.test(l)) ??
+        findAfter(lines, "Vocabulary Size", { within: 4 })
+    ) ??
+    (() => {
+      const m = fullText.match(/Vocabulary Size[\s\S]{0,40}?약?\s*([\d,]+)\s*단어/i);
+      return m ? Number(m[1].replace(/,/g, "")) : null;
+    })();
 
   let elementaryRequiredTotal: number | null = null;
-  let elementaryRequiredPercentage: number | null = null;
-  const elemIdx = vocaBlock.findIndex((l) => l.includes("초등 필수 어휘"));
-  if (elemIdx >= 0) {
-    const totalM = vocaBlock[elemIdx].match(/(\d+)\s*개/);
-    if (totalM) elementaryRequiredTotal = Number(totalM[1]);
-    elementaryRequiredPercentage = parsePercent(
-      vocaBlock.slice(elemIdx, elemIdx + 4).find((l) => l.includes("%")) ?? null
-    );
+  for (const line of [...vocaBlock, ...lines]) {
+    const totalM = line.match(/초등\s*필수\s*어휘\s*([\d,]+)\s*개/);
+    if (totalM) {
+      elementaryRequiredTotal = Number(totalM[1].replace(/,/g, ""));
+      break;
+    }
+  }
+  if (elementaryRequiredTotal == null) {
+    const m = fullText.match(/초등\s*필수\s*어휘\s*([\d,]+)\s*개/);
+    if (m) elementaryRequiredTotal = Number(m[1].replace(/,/g, ""));
   }
 
-  let csatVocabularyPercentage: number | null = null;
-  const csatIdx = vocaBlock.findIndex((l) => l.includes("수능 기출"));
-  if (csatIdx >= 0) {
-    csatVocabularyPercentage = parsePercent(
-      vocaBlock.slice(csatIdx, csatIdx + 4).find((l) => l.includes("%")) ?? null
-    );
-  }
+  const vocabPctLabels = [
+    "초등 필수 어휘",
+    "필수 어휘 이해",
+    "필수어휘",
+    /초등\s*필수\s*어휘/,
+    /필수\s*어휘\s*이해율?/,
+  ];
+  let elementaryRequiredPercentage =
+    findLabeledPercent(vocaBlock, vocabPctLabels, { within: 8 }) ??
+    findLabeledPercent(lines, vocabPctLabels, { within: 8 }) ??
+    extractPercentFromProse(fullText, [
+      /초등\s*필수\s*어휘[^%]{0,60}?약?\s*(\d+(?:\.\d+)?)\s*%/,
+      /필수\s*어휘\s*이해율[^%]{0,30}?약?\s*(\d+(?:\.\d+)?)\s*%/,
+      /필수\s*어휘\s*[\d,]+\s*개\s*중\s*약?\s*(\d+(?:\.\d+)?)\s*%/,
+    ]);
 
-  const grammarBlock = blocks.grammar ?? [];
-  let elementaryGrammarPercentage: number | null = null;
-  const gElemIdx = grammarBlock.findIndex((l) =>
-    l.includes("초등 필수 문법")
+  const csatLabels = [
+    "수능 기출 어휘",
+    "수능 기출",
+    /수능\s*기출\s*어휘/,
+    /최근\s*5개년\s*수능/,
+  ];
+  let csatVocabularyPercentage =
+    findLabeledPercent(vocaBlock, csatLabels, { within: 8 }) ??
+    findLabeledPercent(lines, csatLabels, { within: 8 }) ??
+    extractPercentFromProse(fullText, [
+      /수능\s*기출\s*어휘[^%]{0,40}?약?\s*(\d+(?:\.\d+)?)\s*%/,
+      /최근\s*5개년\s*수능\s*기출\s*어휘의?\s*약?\s*(\d+(?:\.\d+)?)\s*%/,
+    ]);
+
+  const grammarPctLabels = [
+    "초등 필수 문법",
+    "필수 문법 이해",
+    "필수문법",
+    "필수 문법 항목",
+    /초등\s*필수\s*문법/,
+    /필수\s*문법\s*이해율?/,
+    /필수\s*문법\s*항목/,
+  ];
+  let elementaryGrammarPercentage =
+    findLabeledPercent(grammarBlock, grammarPctLabels, { within: 10 }) ??
+    findLabeledPercent(lines, grammarPctLabels, { within: 10 }) ??
+    extractPercentFromProse(fullText, [
+      /초등\s*필수\s*문법[^%]{0,40}?약?\s*(\d+(?:\.\d+)?)\s*%/,
+      /필수\s*문법\s*이해율[^%]{0,30}?약?\s*(\d+(?:\.\d+)?)\s*%/,
+      /필수\s*문법\s*항목의?\s*약?\s*(\d+(?:\.\d+)?)\s*%/,
+    ]);
+
+  const grammarItems = parseGrammarItems(
+    grammarBlock.length > 0 ? grammarBlock : lines
   );
-  if (gElemIdx >= 0) {
-    elementaryGrammarPercentage = parsePercent(
-      grammarBlock
-        .slice(gElemIdx, gElemIdx + 4)
-        .find((l) => l.includes("%")) ?? null
-    );
-  }
-  const grammarItems = parseGrammarItems(grammarBlock);
 
   if (!studentName) needsReviewFields.push("studentName");
   if (!testDate) needsReviewFields.push("testDate");
@@ -341,6 +383,8 @@ export function parseNetutorNeltHtml(
   if (overallLevel) confidence += 0.1;
   if (domains.length >= 4) confidence += 0.15;
   if (vocabularySize) confidence += 0.05;
+  if (elementaryRequiredPercentage != null) confidence += 0.03;
+  if (elementaryGrammarPercentage != null) confidence += 0.03;
   if (grammarItems.length > 0) confidence += 0.05;
 
   return {
