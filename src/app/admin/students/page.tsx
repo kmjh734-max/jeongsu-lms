@@ -35,7 +35,7 @@ export default async function AdminStudentsPage({ searchParams }: PageProps) {
   const courseTree = buildCoursePickerTree(courseList);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold">학생 · 수강 관리</h2>
         <p className="mt-1 text-sm text-slate-600">
@@ -78,7 +78,7 @@ export default async function AdminStudentsPage({ searchParams }: PageProps) {
       </section>
 
       <section id="assign" className="scroll-mt-8">
-        <h3 className="mb-3 font-semibold">수강 배정</h3>
+        <h3 className="mb-2 font-semibold">수강 배정</h3>
         <EnrollmentForm
           studentTree={buildStudentPickerTree(activeStudents, studentClassLinks)}
           courseTree={courseTree}

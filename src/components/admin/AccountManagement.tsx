@@ -330,14 +330,19 @@ export function AccountManagement({
   }, [initialUsers, listQuery, showListSearch, treeFilterIds]);
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="font-semibold text-slate-900">새 {roleLabel} 등록</h3>
-        <p className="mt-1 text-sm text-slate-600">
-          {roleLabel}는 아이디와 비밀번호로 로그인합니다.
-        </p>
+    <div className="space-y-6">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+          <h3 className="font-semibold text-slate-900">새 {roleLabel} 등록</h3>
+          <p className="text-xs text-slate-500">
+            {roleLabel}는 아이디와 비밀번호로 로그인합니다.
+          </p>
+        </div>
 
-        <form onSubmit={handleCreate} className="mt-4 grid gap-4 sm:grid-cols-2">
+        <form
+          onSubmit={handleCreate}
+          className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        >
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
               {roleLabel} 이름
@@ -364,7 +369,7 @@ export function AccountManagement({
               영문 소문자·숫자 3~32자
             </p>
           </div>
-          <div className="sm:col-span-2">
+          <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
               초기 비밀번호
             </label>
@@ -374,15 +379,15 @@ export function AccountManagement({
               minLength={6}
               value={createPassword}
               onChange={(e) => setCreatePassword(e.target.value)}
-              className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               autoComplete="new-password"
             />
           </div>
-          <div className="sm:col-span-2">
+          <div className="flex items-end">
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+              className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
             >
               {loading ? "등록 중..." : `${roleLabel} 등록`}
             </button>
