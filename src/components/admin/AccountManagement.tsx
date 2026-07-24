@@ -45,6 +45,11 @@ export function AccountManagement({
   listFilterLabel = "반·학생으로 찾기",
 }: AccountManagementProps) {
   const router = useRouter();
+  // 받침 유무에 따른 은/는 조사 (학생은, 강사는)
+  const last = roleLabel.charCodeAt(roleLabel.length - 1);
+  const hasBatchim =
+    last >= 0xac00 && last <= 0xd7a3 && (last - 0xac00) % 28 !== 0;
+  const roleTopic = `${roleLabel}${hasBatchim ? "은" : "는"}`;
   const [message, setMessage] = useState<Message>(null);
   const [loading, setLoading] = useState(false);
   const [listQuery, setListQuery] = useState("");
@@ -335,13 +340,13 @@ export function AccountManagement({
         <div className="flex flex-wrap items-baseline justify-between gap-x-3">
           <h3 className="font-semibold text-slate-900">새 {roleLabel} 등록</h3>
           <p className="text-xs text-slate-500">
-            {roleLabel}는 아이디와 비밀번호로 로그인합니다.
+            {roleTopic} 아이디와 비밀번호로 로그인합니다.
           </p>
         </div>
 
         <form
           onSubmit={handleCreate}
-          className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+          className="mt-3 grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4"
         >
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -356,7 +361,10 @@ export function AccountManagement({
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
-              로그인 아이디
+              로그인 아이디{" "}
+              <span className="font-normal text-slate-400">
+                (영문 소문자·숫자 3~32자)
+              </span>
             </label>
             <input
               required
@@ -365,9 +373,6 @@ export function AccountManagement({
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
               autoComplete="off"
             />
-            <p className="mt-1 text-xs text-slate-500">
-              영문 소문자·숫자 3~32자
-            </p>
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
@@ -383,15 +388,13 @@ export function AccountManagement({
               autoComplete="new-password"
             />
           </div>
-          <div className="flex items-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
-            >
-              {loading ? "등록 중..." : `${roleLabel} 등록`}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+          >
+            {loading ? "등록 중..." : `${roleLabel} 등록`}
+          </button>
         </form>
       </div>
 
