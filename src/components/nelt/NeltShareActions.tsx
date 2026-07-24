@@ -137,7 +137,15 @@ export function NeltShareActions({
       const res = await fetch("/api/nelt/parent-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentName, analysis, tone, meta }),
+        body: JSON.stringify({
+          studentName,
+          analysis,
+          tone,
+          meta: {
+            ...meta,
+            variationSeed: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          },
+        }),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {

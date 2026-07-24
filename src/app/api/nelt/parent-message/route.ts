@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     enrollmentDate?: string | null;
     studyDuration?: string | null;
     reportUrl?: string | null;
+    variationSeed?: number | string | null;
   };
   try {
     body = await request.json();
@@ -71,7 +72,13 @@ export async function POST(request: Request) {
   let analysis = body.analysis ?? null;
   const studentName = body.studentName?.trim() || analysis?.studentName?.trim();
   const tone = normalizeTone(body.tone);
-  const meta = pickMeta(body);
+  const meta: NeltParentMessageMeta = {
+    ...pickMeta(body),
+    variationSeed:
+      body.variationSeed ??
+      body.meta?.variationSeed ??
+      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  };
 
   if (!analysis && studentName) {
     const attempts = await loadStudentNeltAttempts(

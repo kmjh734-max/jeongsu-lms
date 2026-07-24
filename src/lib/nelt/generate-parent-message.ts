@@ -1,11 +1,19 @@
 import {
   buildStudentRecordChatBody,
-  getStudentRecordModelCandidates,
+  isGpt5FamilyModel,
   isModelUnavailableError,
   isUnsupportedParameterError,
   isUnsupportedTemperatureError,
+  STUDENT_RECORD_MODEL_FALLBACK,
+  STUDENT_RECORD_MODEL_PRIMARY,
 } from "@/lib/student-records/model";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
+import {
+  buildKoreanNameForms,
+  joinKoreanList,
+  normalizeStudentNamesInMessage,
+  type KoreanNameForms,
+} from "@/lib/nelt/korean-name";
 import { ACADEMY_NAME } from "@/lib/branding";
 
 export type NeltParentMessageTone = "standard" | "short" | "detail";
@@ -18,6 +26,8 @@ export type NeltParentMessageMeta = {
   studyDuration?: string | null;
   reportUrl?: string | null;
   academyName?: string;
+  /** 같은 톤에서도 문구가 달라지도록 (재생성 시 전달) */
+  variationSeed?: number | string | null;
 };
 
 function formatDateDots(iso: string | null | undefined): string | null {
@@ -65,6 +75,7 @@ function resolveMeta(
   const latestTestDate =
     formatDateDots(analysis.end.testDate) ||
     formatDateDots(analysis.start.testDate);
+  const names = buildKoreanNameForms(analysis.studentName.trim());
   return {
     academyName,
     parentTitle,
@@ -74,7 +85,9 @@ function resolveMeta(
     studyDuration,
     reportUrl,
     latestTestDate,
-    studentName: analysis.studentName.trim(),
+    studentName: names.fullName,
+    names,
+    variationSeed: meta.variationSeed ?? null,
   };
 }
 
@@ -100,6 +113,7 @@ function greetingLine(m: ReturnType<typeof resolveMeta>): string {
       : m.senderName
         ? `${m.academyName} ${m.senderName}입니다.`
         : `${m.academyName}입니다.`;
+  // 인사만 풀네임 유지: "서윤우 어머님"
   return `안녕하세요~ ${m.studentName} ${m.parentTitle} :)\n${intro}`;
 }
 
@@ -185,31 +199,98 @@ function learningPlanLines(analysis: NeltGrowthAnalysis): string[] {
   return [analysis.nextGoalsNarrative].filter(Boolean).slice(0, 2);
 }
 
-function durationParagraph(
-  name: string,
-  academyName: string,
-  studyDuration: string | null
-): string {
-  if (studyDuration) {
-    return `${name}가 ${academyName}과 함께 공부한 지도 어느덧 ${studyDuration}이 되었습니다.\n처음 수업을 시작했을 때와 비교하면 영어를 대하는 태도와 기본 실력 모두 많이 안정된 모습입니다.`;
+function variationIndex(seed: number | string | null | undefined, mod: number): number {
+  if (mod <= 0) return 0;
+  if (seed == null || seed === "") {
+    return Math.floor(Math.random() * mod);
   }
-  return `${name}가 ${academyName}에서 꾸준히 영어 공부를 이어오고 있는데요.\n그동안 쌓아 온 실력을 확인해 보기 위해 이번에 NELT를 진행했습니다.`;
+  const s = String(seed);
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % mod;
+}
+
+function durationParagraph(
+  names: KoreanNameForms,
+  academyName: string,
+  studyDuration: string | null,
+  variant: number
+): string {
+  const { eunNeun, iGa, ui } = names;
+  if (studyDuration) {
+    const opts = [
+      `${eunNeun} ${academyName}과 함께 공부한 지도 어느덧 ${studyDuration}이 되었습니다.\n처음 수업을 시작했을 때와 비교하면 영어를 대하는 태도와 기본 실력 모두 많이 안정된 모습입니다.`,
+      `${academyName}에서 ${iGa} 영어를 배우기 시작한 지 ${studyDuration}, 차근차근 실력이 쌓이는 게 느껴집니다.`,
+      `${ui} 수업이 ${studyDuration}째 이어지고 있는데요. 그동안의 변화를 이번 NELT로 정리해 보았습니다.`,
+    ];
+    return opts[variant % opts.length]!;
+  }
+  const opts = [
+    `${eunNeun} ${academyName}에서 꾸준히 영어 공부를 이어오고 있는데요.\n그동안 쌓아 온 실력을 확인해 보기 위해 이번에 NELT를 진행했습니다.`,
+    `${academyName}에서 ${iGa} 차근차근 실력을 키워 오고 있습니다.\n그 흐름을 확인해 보고자 이번에 NELT 결과를 모아 보았습니다.`,
+    `평소 수업에서 ${ui} 성장이 느껴져, 이번엔 NELT로 구체적인 변화를 정리해 드렸습니다.`,
+  ];
+  return opts[variant % opts.length]!;
 }
 
 function neltReasonParagraph(
-  name: string,
+  names: KoreanNameForms,
   studyDuration: string | null,
-  attemptCount: number
+  attemptCount: number,
+  variant: number
 ): string {
-  if (studyDuration) {
-    return `그동안 ${name}가 어떻게 성장했는지 확인해 보기 위해 이번에 NELT를 ${
-      attemptCount >= 2 ? "다시 " : ""
-    }진행했습니다.`;
-  }
-  return "";
+  const { iGa, eunNeun } = names;
+  if (!studyDuration) return "";
+  const again = attemptCount >= 2 ? "다시 " : "";
+  const opts = [
+    `그동안 ${iGa} 어떻게 성장했는지 확인해 보기 위해 이번에 NELT를 ${again}진행했습니다.`,
+    `${eunNeun} 수업 시간에 보여 준 변화를 숫자로도 확인하고자 NELT를 ${again}실시했습니다.`,
+    `학원에서 쌓아 온 실력을 한눈에 보여 드리려고 NELT를 ${again}진행했습니다.`,
+  ];
+  return opts[variant % opts.length]!;
 }
 
-/** 규칙 기반 폴백 — 따뜻한 카카오톡 편지형 */
+function deliverParagraph(attemptCount: number, variant: number): string {
+  const opts = [
+    `${attemptCount}차례의 결과를 모아 성장 리포트로 정리해 보내드립니다.`,
+    `NELT ${attemptCount}회 결과를 한곳에 모아, 성장이 보이는 부분 위주로 정리했습니다.`,
+    `${attemptCount}번의 기록을 비교해 보니 변화가 분명해, 학부모님께 공유드립니다.`,
+  ];
+  return opts[variant % opts.length]!;
+}
+
+function praiseParagraph(names: KoreanNameForms, variant: number): string {
+  const { iGa, eunNeun } = names;
+  const opts = [
+    `짧은 기간에 만들어진 결과라기보다, ${iGa} 수업과 학습을 꾸준히 따라와 준 결과라고 생각합니다.\n성장한 부분은 충분히 칭찬해 주셔도 좋을 것 같습니다.`,
+    `${eunNeun} 꾸준히 따라와 준 덕분에 이런 변화가 보였습니다. 가정에서도 한 번 꼭 칭찬해 주시면 좋겠습니다.`,
+    `숫자로만 보면 간단해 보여도, 매일 수업에서 쌓인 노력이 반영된 결과입니다. ${iGa} 스스로도 뿌듯해할 만합니다.`,
+  ];
+  return opts[variant % opts.length]!;
+}
+
+function closingParagraph(
+  names: KoreanNameForms,
+  tone: NeltParentMessageTone,
+  variant: number
+): string {
+  const { iGa, ui, eunNeun } = names;
+  if (tone === "short") {
+    const opts = [
+      `앞으로도 ${iGa} 꾸준히 성장할 수 있도록 세심하게 지도하겠습니다.\n궁금하신 부분은 언제든 편하게 말씀해 주세요. 감사합니다 :)`,
+      `${ui} 다음 목표도 수업에서 차근차근 챙기겠습니다. 편하게 연락 주세요~`,
+    ];
+    return opts[variant % opts.length]!;
+  }
+  const opts = [
+    `앞으로도 ${ui} 강점은 더욱 살리고,\n아직 채워야 할 부분은 수업에서 꼼꼼히 보완해 나가겠습니다.\n리포트를 보시고 궁금하신 부분이 있으시면\n언제든 편하게 말씀해 주세요~ 감사합니다.`,
+    `${eunNeun} 앞으로 더 자신 있게 영어를 쓸 수 있도록 학원에서 세심히 챙기겠습니다.\n리포트 보시며 궁금한 점 있으시면 언제든 말씀해 주세요.`,
+    `가정과 학원이 같은 방향으로 응원해 주시면 ${iGa} 더 빠르게 안정될 수 있습니다.\n궁금하신 부분은 편하게 연락 주세요. 감사합니다 :)`,
+  ];
+  return opts[variant % opts.length]!;
+}
+
+/** 규칙 기반 폴백 — 따뜻한 카카오톡 편지형 (버전 다양) */
 export function buildNeltParentMessageFallback(
   analysis: NeltGrowthAnalysis,
   academyNameOrMeta: string | NeltParentMessageMeta = ACADEMY_NAME,
@@ -220,24 +301,26 @@ export function buildNeltParentMessageFallback(
       ? { academyName: academyNameOrMeta }
       : academyNameOrMeta;
   const m = resolveMeta(analysis, metaIn);
-  const name = m.studentName;
+  const names = m.names;
+  const v = variationIndex(m.variationSeed, 6);
   const highlights = growthHighlights(analysis);
   const areas = mainGrowthAreas(analysis);
   const focus = focusAreas(analysis);
   const plans = learningPlanLines(analysis);
-  const highlightLimit = tone === "short" ? 2 : tone === "detail" ? 3 : 3;
+  const highlightLimit = tone === "short" ? 2 : 3;
 
   const parts: string[] = [];
   parts.push(NELT_PARENT_MESSAGE_TITLE);
   parts.push("");
   parts.push(greetingLine(m));
   parts.push("");
-  parts.push(durationParagraph(name, m.academyName, m.studyDuration));
+  parts.push(durationParagraph(names, m.academyName, m.studyDuration, v));
 
   const reason = neltReasonParagraph(
-    name,
+    names,
     m.studyDuration,
-    analysis.attemptCount
+    analysis.attemptCount,
+    v + 1
   );
   if (reason) {
     parts.push("");
@@ -245,43 +328,49 @@ export function buildNeltParentMessageFallback(
   }
 
   parts.push("");
-  parts.push(
-    `${analysis.attemptCount}차례의 결과를 모아 성장 리포트로 정리해 보내드립니다.`
-  );
+  parts.push(deliverParagraph(analysis.attemptCount, v + 2));
 
   if (highlights.length > 0) {
     parts.push("");
-    const areaPhrase =
-      areas.length > 0
-        ? `이번 누적 결과에서 가장 눈에 띄는 부분은 ${areas.join("와 ")}였습니다.`
-        : "이번 누적 결과에서 눈에 띄는 성장이 확인되었습니다.";
-    parts.push(areaPhrase);
-    parts.push(highlights.slice(0, highlightLimit).join(".\n") + ".");
+    const areaLabel = joinKoreanList(areas);
+    const areaOpts = [
+      areaLabel
+        ? `이번 누적 결과에서 가장 눈에 띄는 부분은 ${areaLabel}입니다.`
+        : "이번 누적 결과에서 눈에 띄는 성장이 확인되었습니다.",
+      areaLabel
+        ? `특히 ${areaLabel} 쪽에서 변화가 또렷했습니다.`
+        : "전반적으로 고른 성장 흐름이 보였습니다.",
+      areaLabel
+        ? `학부모님께 가장 먼저 말씀드리고 싶은 성장은 ${areaLabel}입니다.`
+        : "작은 변화들이 모여 확실한 성장으로 이어지고 있습니다.",
+    ];
+    parts.push(areaOpts[v % areaOpts.length]!);
+    // 하이라이트 순서도 살짝 섞기
+    const ordered = [...highlights];
+    if (v % 2 === 1) ordered.reverse();
+    parts.push(ordered.slice(0, highlightLimit).join(".\n") + ".");
   }
 
   if (tone !== "short") {
     parts.push("");
-    parts.push(
-      `짧은 기간에 만들어진 결과라기보다, ${name}가 수업과 학습을 꾸준히 따라와 준 결과라고 생각합니다.\n성장한 부분은 충분히 칭찬해 주셔도 좋을 것 같습니다.`
-    );
+    parts.push(praiseParagraph(names, v));
   }
 
   if (tone !== "short" && (focus.length > 0 || plans.length > 0)) {
     parts.push("");
     if (focus.length > 0) {
-      parts.push(
-        `${focus.join("·")} 쪽은 아직 조금 더 연습이 필요한 부분도 함께 확인할 수 있었습니다.`
-      );
+      const focusLabel = joinKoreanList(focus);
+      const focusOpts = [
+        `${focusLabel} 쪽은 아직 조금 더 연습이 필요한 부분도 함께 확인할 수 있었습니다.`,
+        `다음으로 다듬을 부분은 ${focusLabel}입니다. 부담 없이 수업에서 천천히 채워가면 됩니다.`,
+        `${focusLabel}은 지금부터 수업 안에서 더 자주 다루겠습니다.`,
+      ];
+      parts.push(focusOpts[v % focusOpts.length]!);
     }
     if (plans.length > 0) {
       parts.push(`앞으로는 ${plans.join(" ")}`);
-      if (!plans[plans.length - 1]?.endsWith("습니다.") && !plans[plans.length - 1]?.endsWith("겠습니다.")) {
-        // keep as-is; learningPlan already sentence-like
-      }
     } else {
-      parts.push(
-        "앞으로는 이 부분을 수업에서 더욱 꼼꼼히 채워가겠습니다."
-      );
+      parts.push("앞으로는 이 부분을 수업에서 더욱 꼼꼼히 채워가겠습니다.");
     }
   }
 
@@ -295,18 +384,20 @@ export function buildNeltParentMessageFallback(
   }
 
   parts.push("");
-  if (tone === "short") {
-    parts.push(
-      `앞으로도 ${name}가 꾸준히 성장할 수 있도록 세심하게 지도하겠습니다.\n궁금하신 부분은 언제든 편하게 말씀해 주세요. 감사합니다 :)`
-    );
-  } else {
-    parts.push(
-      `앞으로도 ${name}의 강점은 더욱 살리고,\n아직 채워야 할 부분은 수업에서 꼼꼼히 보완해 나가겠습니다.\n리포트를 보시고 궁금하신 부분이 있으시면\n언제든 편하게 말씀해 주세요~ 감사합니다.`
-    );
-  }
+  parts.push(closingParagraph(names, tone, v));
 
-  return parts.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  const raw = parts.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return normalizeStudentNamesInMessage(raw, m.studentName);
 }
+
+const STYLE_HINTS = [
+  "조금 더 다정하고 짧은 문장 위주로",
+  "성장 수치를 문장 앞에 자연스럽게 배치",
+  "칭찬을 한 문단 더 살리고 보완점은 부드럽게",
+  "수업 장면이 떠오르도록 구체적 표현",
+  "학부모 안심이 느껴지게 차분한 톤",
+  "첫 성장 문단을 다른 순서로 시작해 차별화",
+];
 
 function systemForTone(tone: NeltParentMessageTone): string {
   const lengthHint =
@@ -322,11 +413,21 @@ function systemForTone(tone: NeltParentMessageTone): string {
 
 말투: 따뜻하고 친근한 카카오톡 말투. 학부모에게 직접 이야기하듯. 가볍거나 장난스럽지 않게.
 첫 문장 형식(필수):
-안녕하세요~ {studentName} {parentTitle} :)
+안녕하세요~ {fullName} {parentTitle} :)
 정수학원 {senderRole} {senderName}입니다.
 (senderRole/senderName이 없으면 "정수학원입니다."로 대체. parentTitle이 아버님이면 어머님을 쓰지 말 것.)
 
-학생 이름 뒤에 "학생"을 반복하지 말 것. "{이름}가", "{이름}는", "{이름}의"를 자연스럽게 사용.
+이름 규칙(매우 중요):
+- 인사(어머님/아버님 앞)에만 성+이름 풀네임(fullName)을 쓴다. 예: "서윤우 어머님"
+- 본문에서는 반드시 이름만(givenName)을 쓴다. 예: 서윤우→윤우, 신지환→지환
+- 조사는 받침에 맞게: 윤우가/윤우는/윤우의, 지환이/지환이는/지환의
+- 절대 "서윤우가", "신지환가"처럼 풀네임+잘못된 조사를 쓰지 말 것.
+- 학생 이름 뒤에 "학생"을 반복하지 말 것.
+
+다양성(필수):
+- 매번 문장 구조·연결어·문단 시작을 바꿔 다른 버전의 편지를 쓴다.
+- 같은 템플릿 문장("꾸준히 영어 공부를 이어오고 있는데요", "3차례의 결과를 모아 성장 리포트로 정리해 보내드립니다")을 그대로 복사하지 말 것.
+- styleHint와 variationSeed를 반영해 표현을 달리할 것.
 
 문장 끝 예시: 보내드립니다 / 확인해 보시면 좋을 것 같습니다 / 앞으로도 꼼꼼히 지도하겠습니다 / 함께 지켜봐 주세요 / 궁금하신 부분은 언제든 편하게 말씀해 주세요.
 
@@ -359,6 +460,18 @@ ${lengthHint}
 안내문 본문만 출력. 작성 설명·마크다운 금지.`;
 }
 
+function getNeltParentMessageModels(): string[] {
+  const configured = process.env.OPENAI_MODEL_NELT?.trim();
+  const list = [
+    configured,
+    STUDENT_RECORD_MODEL_PRIMARY,
+    "gpt-5.5",
+    STUDENT_RECORD_MODEL_FALLBACK,
+    "gpt-5",
+  ].filter((m): m is string => Boolean(m && m.trim()));
+  return [...new Set(list)];
+}
+
 export async function generateNeltParentMessageAi(
   analysis: NeltGrowthAnalysis,
   academyNameOrMeta: string | NeltParentMessageMeta = ACADEMY_NAME,
@@ -374,10 +487,24 @@ export async function generateNeltParentMessageAi(
       ? { academyName: academyNameOrMeta }
       : academyNameOrMeta;
   const m = resolveMeta(analysis, metaIn);
+  const seed =
+    m.variationSeed != null && m.variationSeed !== ""
+      ? String(m.variationSeed)
+      : String(Date.now());
+  const styleHint = STYLE_HINTS[variationIndex(seed, STYLE_HINTS.length)]!;
 
   const facts = {
     tone,
-    studentName: m.studentName,
+    variationSeed: seed,
+    styleHint,
+    fullName: m.names.fullName,
+    givenName: m.names.givenName,
+    nameForms: {
+      iGa: m.names.iGa,
+      eunNeun: m.names.eunNeun,
+      ui: m.names.ui,
+      eulReul: m.names.eulReul,
+    },
     parentTitle: m.parentTitle,
     senderRole: m.senderRole || null,
     senderName: m.senderName || null,
@@ -413,27 +540,39 @@ export async function generateNeltParentMessageAi(
     })),
   };
 
-  const user = `다음 JSON 사실만으로 학부모 카카오톡 안내문을 한국어로 작성하세요.\n${JSON.stringify(facts, null, 2)}`;
+  const user = `다음 JSON 사실만으로 학부모 카카오톡 안내문을 한국어로 작성하세요.
+본문 이름·조사는 nameForms(iGa/eunNeun/ui)를 그대로 사용하세요.
+styleHint(${styleHint})와 variationSeed(${seed})에 맞춰 이전과 다른 문장으로 쓰세요.
+
+${JSON.stringify(facts, null, 2)}`;
   const SYSTEM = systemForTone(tone);
 
-  const candidates = getStudentRecordModelCandidates();
+  const candidates = getNeltParentMessageModels();
   let lastErr = "AI 생성 실패";
 
   for (const model of candidates) {
     try {
       let includeTemperature = true;
       let includeReasoningEffort = true;
-      for (let attempt = 0; attempt < 3; attempt++) {
+      for (let attempt = 0; attempt < 4; attempt++) {
         const body = buildStudentRecordChatBody(model, SYSTEM, user, {
           includeTemperature,
           includeReasoningEffort,
         });
-        if (includeTemperature && "temperature" in body) {
-          body.temperature = 0.65;
+        // gpt-5 계열은 temperature 미지원 — 넣지 않음
+        if (
+          includeTemperature &&
+          "temperature" in body &&
+          !isGpt5FamilyModel(model)
+        ) {
+          body.temperature = 0.9;
         }
-        if (isGpt5(model)) {
-          body.max_completion_tokens = tone === "detail" ? 2800 : 2200;
-          if (includeReasoningEffort) body.reasoning_effort = "medium";
+        if (isGpt5FamilyModel(model)) {
+          // reasoning이 completion을 잡아먹어 빈 응답이 나오지 않게
+          body.max_completion_tokens = tone === "detail" ? 5000 : 4000;
+          if (includeReasoningEffort) {
+            body.reasoning_effort = attempt >= 2 ? "low" : "medium";
+          }
         }
 
         const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -470,9 +609,19 @@ export async function generateNeltParentMessageAi(
         const content = json.choices?.[0]?.message?.content?.trim();
         if (!content) {
           lastErr = "빈 응답";
+          // 빈 응답이면 reasoning 낮추고 재시도
+          if (includeReasoningEffort && attempt < 3) {
+            includeReasoningEffort = attempt >= 1 ? false : true;
+            if (attempt >= 1) includeReasoningEffort = false;
+            continue;
+          }
           break;
         }
-        return { ok: true, message: ensureNeltMessageTitle(content), model };
+        const normalized = normalizeStudentNamesInMessage(
+          ensureNeltMessageTitle(content),
+          m.studentName
+        );
+        return { ok: true, message: normalized, model };
       }
     } catch (e) {
       lastErr = e instanceof Error ? e.message : "요청 실패";
@@ -480,10 +629,6 @@ export async function generateNeltParentMessageAi(
   }
 
   return { ok: false, message: lastErr };
-}
-
-function isGpt5(model: string) {
-  return model.trim().toLowerCase().startsWith("gpt-5");
 }
 
 /** 공유 링크를 안내문 본문에 자연스럽게 붙이거나 교체 */
