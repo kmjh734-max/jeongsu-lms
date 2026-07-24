@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isVocabEnabled, isVocabPath } from "@/lib/academy-features";
+import { isNeltEnabled, isNeltPath, isVocabEnabled, isVocabPath } from "@/lib/academy-features";
 import { updateSession } from "@/lib/supabase/middleware";
 import {
   getDashboardPathForRole,
@@ -22,8 +22,10 @@ const PUBLIC_PREFIXES = [
   "/auth/callback",
   "/report/share",
   "/student-record/share",
+  "/nelt/share",
   "/api/reports/share",
   "/api/student-records/share",
+  "/api/nelt/share",
   "/exam-vocab",
   "/api/exam-vocab",
 ];
@@ -124,6 +126,13 @@ export async function middleware(request: NextRequest) {
     );
   }
 
+  if (!isNeltEnabled() && pathname.startsWith("/api/nelt")) {
+    return NextResponse.json(
+      { ok: false, message: "이 학원에서는 NELT 성장 리포트를 사용하지 않습니다." },
+      { status: 404 }
+    );
+  }
+
   const { supabase, user, supabaseResponse } = await updateSession(request);
   applyAcademyCookie(supabaseResponse, academySlug);
 
@@ -168,6 +177,15 @@ export async function middleware(request: NextRequest) {
   const dashboardPath = getDashboardPathForRole(role);
 
   if (!isVocabEnabled() && isVocabPath(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = dashboardPath;
+    url.search = "";
+    const res = NextResponse.redirect(url);
+    applyRoleCookie(res, role);
+    return res;
+  }
+
+  if (!isNeltEnabled() && isNeltPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
     url.search = "";

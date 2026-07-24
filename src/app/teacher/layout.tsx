@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: "/teacher/progress", label: "수강 현황" },
   { href: "/teacher/reports", label: "학습 리포트" },
   { href: "/teacher/student-records", label: "학생부 분석" },
+  { href: "/teacher/nelt", label: "NELT 성장 리포트" },
   { href: "/teacher/credits", label: "크레딧" },
 ];
 
