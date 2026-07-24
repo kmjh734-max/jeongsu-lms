@@ -14,6 +14,11 @@ export function isNeltEnabled(): boolean {
   return true;
 }
 
+/** 내신대비학습 — EngCore 모든 학원에서 사용 */
+export function isExamPrepEnabled(): boolean {
+  return true;
+}
+
 export function filterNavItems<T extends { href: string }>(items: T[]): T[] {
   let next = items;
   if (!isVocabEnabled()) {
@@ -21,6 +26,9 @@ export function filterNavItems<T extends { href: string }>(items: T[]): T[] {
   }
   if (!isNeltEnabled()) {
     next = next.filter((item) => !item.href.includes("/nelt"));
+  }
+  if (!isExamPrepEnabled()) {
+    next = next.filter((item) => !item.href.includes("/exam-prep"));
   }
   return next;
 }
@@ -40,5 +48,14 @@ export function isNeltPath(pathname: string): boolean {
     pathname.startsWith("/teacher/nelt") ||
     pathname.startsWith("/nelt/") ||
     pathname.startsWith("/api/nelt")
+  );
+}
+
+export function isExamPrepPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/admin/exam-prep") ||
+    pathname.startsWith("/teacher/exam-prep") ||
+    pathname.startsWith("/student/exam-prep") ||
+    pathname.startsWith("/api/exam-prep")
   );
 }

@@ -18,6 +18,8 @@ export const CREDIT_FEATURES = {
   report_ai_draft: "report_ai_draft",
   vocab_student_monthly: "vocab_student_monthly",
   listening_student_monthly: "listening_student_monthly",
+  exam_prep_workbook_ai: "exam_prep_workbook_ai",
+  exam_prep_grade_writing: "exam_prep_grade_writing",
 } as const;
 
 export type CreditFeatureKey =

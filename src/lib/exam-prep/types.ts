@@ -1,0 +1,194 @@
+/** 내신대비학습 (Exam Prep) 공통 타입 */
+
+export type ExamPassageStatus = "draft" | "ready" | "archived";
+export type ExamWorkbookStatus =
+  | "draft"
+  | "reviewing"
+  | "approved"
+  | "archived";
+
+export type ExamStepType =
+  | "comprehension"
+  | "korean_blank"
+  | "english_blank"
+  | "translation_practice"
+  | "verb_form"
+  | "grammar_vocab_choice"
+  | "error_correction"
+  | "sentence_order"
+  | "paragraph_order"
+  | "writing";
+
+export type ExamAssignmentStudentStatus =
+  | "not_started"
+  | "in_progress"
+  | "needs_retry"
+  | "completed"
+  | "overdue";
+
+export type ExamGradingStatus =
+  | "pending"
+  | "auto_correct"
+  | "auto_incorrect"
+  | "needs_review"
+  | "teacher_correct"
+  | "teacher_incorrect";
+
+export type ExamShowAnswerPolicy =
+  | "never"
+  | "after_submit"
+  | "after_pass"
+  | "immediate";
+
+export type ExamPresetType = "basic" | "memorize" | "exam_eve" | "custom";
+
+export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
+  comprehension: "본문 이해",
+  korean_blank: "우리말 해석 빈칸",
+  english_blank: "영문 빈칸",
+  translation_practice: "해석 연습",
+  verb_form: "동사형 연습",
+  grammar_vocab_choice: "어법·어휘 고르기",
+  error_correction: "어색한 곳 고쳐 쓰기",
+  sentence_order: "문장 순서 배열",
+  paragraph_order: "문장·문단 배열",
+  writing: "서술형 영작",
+};
+
+/** MVP에서 풀이 UI를 제공하는 단계 */
+export const MVP_STEP_TYPES: ExamStepType[] = [
+  "comprehension",
+  "english_blank",
+  "grammar_vocab_choice",
+  "sentence_order",
+  "writing",
+];
+
+export type ExamPassage = {
+  id: string;
+  academy_id: string;
+  title: string;
+  school_name: string | null;
+  grade: string | null;
+  textbook_name: string | null;
+  publisher: string | null;
+  unit_name: string | null;
+  exam_range: string | null;
+  passage_number: string | null;
+  passage_type: string | null;
+  difficulty: string | null;
+  original_text: string;
+  full_translation: string | null;
+  teacher_note: string | null;
+  exam_points: string | null;
+  status: ExamPassageStatus;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExamPassageSentence = {
+  id: string;
+  academy_id: string;
+  passage_id: string;
+  sentence_order: number;
+  english_text: string;
+  korean_text: string | null;
+  vocabulary: unknown;
+  grammar_points: unknown;
+  exam_points: unknown;
+  is_important_writing: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExamWorkbook = {
+  id: string;
+  academy_id: string;
+  passage_id: string;
+  title: string;
+  description: string | null;
+  preset_type: string | null;
+  status: ExamWorkbookStatus;
+  created_by: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExamWorkbookStep = {
+  id: string;
+  academy_id: string;
+  workbook_id: string;
+  step_type: ExamStepType | string;
+  step_order: number;
+  title: string | null;
+  difficulty: string | null;
+  passing_score: number;
+  is_required: boolean;
+  sequential_unlock: boolean;
+  max_attempts: number;
+  show_answer_policy: ExamShowAnswerPolicy | string;
+  settings: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExamWorkbookQuestion = {
+  id: string;
+  academy_id: string;
+  workbook_id: string;
+  step_id: string;
+  sentence_id: string | null;
+  question_type: string;
+  question_order: number;
+  question_text: string | null;
+  question_data: Record<string, unknown>;
+  correct_answer: unknown;
+  acceptable_answers: unknown;
+  explanation: string | null;
+  difficulty: string | null;
+  points: number;
+  is_active: boolean;
+  ai_generated: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+/** 학생에게 내려줄 때 정답 필드 제거 */
+export type ExamWorkbookQuestionPublic = Omit<
+  ExamWorkbookQuestion,
+  "correct_answer" | "acceptable_answers"
+>;
+
+export type ExamAssignment = {
+  id: string;
+  academy_id: string;
+  workbook_id: string;
+  title: string;
+  class_id: string | null;
+  start_at: string | null;
+  due_at: string | null;
+  settings: Record<string, unknown>;
+  teacher_message: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExamAssignmentStudent = {
+  id: string;
+  academy_id: string;
+  assignment_id: string;
+  student_id: string;
+  status: ExamAssignmentStudentStatus;
+  progress_rate: number;
+  total_score: number | null;
+  current_step_id: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  last_studied_at: string | null;
+  created_at: string;
+  updated_at: string;
+};

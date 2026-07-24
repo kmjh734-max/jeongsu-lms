@@ -1,0 +1,111 @@
+import { notFound, redirect } from "next/navigation";
+import { StudentAssignmentPlayer } from "@/components/exam-prep/StudentAssignmentPlayer";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { isExamPrepEnabled } from "@/lib/academy-features";
+import {
+  sanitizeQuestionDataForStudent,
+  stripQuestions,
+} from "@/lib/exam-prep/strip-answers";
+import { createClient } from "@/lib/supabase/server";
+import type {
+  ExamWorkbookQuestion,
+  ExamWorkbookQuestionPublic,
+  ExamWorkbookStep,
+} from "@/lib/exam-prep/types";
+
+interface PageProps {
+  params: Promise<{ assignmentStudentId: string }>;
+}
+
+export default async function StudentExamPrepPlayerPage({
+  params,
+}: PageProps) {
+  if (!isExamPrepEnabled()) redirect("/student");
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "student") redirect("/login");
+
+  const { assignmentStudentId } = await params;
+  const supabase = await createClient();
+
+  const { data: asRow } = await supabase
+    .from("exam_assignment_students")
+    .select("id, assignment_id")
+    .eq("id", assignmentStudentId)
+    .eq("student_id", profile.id)
+    .maybeSingle();
+
+  if (!asRow) notFound();
+
+  const { data: assignment } = await supabase
+    .from("exam_assignments")
+    .select("id, title, workbook_id")
+    .eq("id", asRow.assignment_id)
+    .maybeSingle();
+
+  if (!assignment?.workbook_id) notFound();
+
+  const { data: workbook } = await supabase
+    .from("exam_workbooks")
+    .select("id, title, passage_id")
+    .eq("id", assignment.workbook_id)
+    .maybeSingle();
+
+  if (!workbook) notFound();
+
+  const { data: passage } = await supabase
+    .from("exam_passages")
+    .select("id, title")
+    .eq("id", workbook.passage_id)
+    .maybeSingle();
+
+  const passageTitle =
+    passage?.title ?? workbook.title ?? assignment.title ?? "내신대비 학습";
+
+  const [{ data: steps }, { data: questions }, { data: attempts }] =
+    await Promise.all([
+      supabase
+        .from("exam_workbook_steps")
+        .select("*")
+        .eq("workbook_id", workbook.id)
+        .order("step_order", { ascending: true }),
+      supabase
+        .from("exam_workbook_questions")
+        .select("*")
+        .eq("workbook_id", workbook.id)
+        .eq("is_active", true)
+        .order("question_order", { ascending: true }),
+      supabase
+        .from("exam_attempts")
+        .select("step_id, status, score, attempt_number")
+        .eq("assignment_student_id", assignmentStudentId),
+    ]);
+
+  const publicQuestions: ExamWorkbookQuestionPublic[] = stripQuestions(
+    (questions ?? []) as ExamWorkbookQuestion[]
+  ).map((q) => ({
+    ...q,
+    question_data: sanitizeQuestionDataForStudent(
+      q.question_type,
+      q.question_data ?? {}
+    ),
+  }));
+
+  return (
+    <div>
+      <PageHeader title={assignment.title} description={passageTitle} />
+      <StudentAssignmentPlayer
+        assignmentStudentId={assignmentStudentId}
+        steps={(steps ?? []) as ExamWorkbookStep[]}
+        questions={publicQuestions}
+        passageTitle={passageTitle}
+        existingAttempts={(attempts ?? []).map((a) => ({
+          step_id: a.step_id as string,
+          status: a.status as string,
+          score: a.score != null ? Number(a.score) : null,
+          attempt_number: Number(a.attempt_number) || 1,
+        }))}
+      />
+    </div>
+  );
+}

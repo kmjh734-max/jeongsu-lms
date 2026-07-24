@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isNeltEnabled, isNeltPath, isVocabEnabled, isVocabPath } from "@/lib/academy-features";
+import { isExamPrepEnabled, isExamPrepPath, isNeltEnabled, isNeltPath, isVocabEnabled, isVocabPath } from "@/lib/academy-features";
 import { updateSession } from "@/lib/supabase/middleware";
 import {
   getDashboardPathForRole,
@@ -133,6 +133,13 @@ export async function middleware(request: NextRequest) {
     );
   }
 
+  if (!isExamPrepEnabled() && pathname.startsWith("/api/exam-prep")) {
+    return NextResponse.json(
+      { ok: false, message: "이 학원에서는 내신대비학습을 사용하지 않습니다." },
+      { status: 404 }
+    );
+  }
+
   const { supabase, user, supabaseResponse } = await updateSession(request);
   applyAcademyCookie(supabaseResponse, academySlug);
 
@@ -186,6 +193,15 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!isNeltEnabled() && isNeltPath(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = dashboardPath;
+    url.search = "";
+    const res = NextResponse.redirect(url);
+    applyRoleCookie(res, role);
+    return res;
+  }
+
+  if (!isExamPrepEnabled() && isExamPrepPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = dashboardPath;
     url.search = "";
