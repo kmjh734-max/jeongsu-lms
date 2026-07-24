@@ -122,6 +122,7 @@ export function DomainMetricsChart({
   section: NeltDomainSection;
 }) {
   const labels = section.stages.map((s) => `${s.attempt}차`);
+  const levelLabels = section.stages.map((s) => s.level ?? "");
   const series = section.chart.series;
   if (series.length === 0 || labels.length < 2) {
     return (
@@ -139,8 +140,8 @@ export function DomainMetricsChart({
   const ySpan = yMax - yMin || 1;
 
   const w = 420;
-  const h = 200;
-  const pad = { t: 18, r: 14, b: 34, l: 40 };
+  const h = 214;
+  const pad = { t: 18, r: 14, b: 48, l: 40 };
   const innerW = w - pad.l - pad.r;
   const innerH = h - pad.t - pad.b;
   const n = labels.length;
@@ -209,7 +210,7 @@ export function DomainMetricsChart({
           <text
             key={label}
             x={xAt(i)}
-            y={h - 10}
+            y={h - 24}
             textAnchor="middle"
             fontSize={11}
             fontWeight={700}
@@ -218,6 +219,21 @@ export function DomainMetricsChart({
             {label}
           </text>
         ))}
+        {levelLabels.map((lv, i) =>
+          lv ? (
+            <text
+              key={`lv-${i}`}
+              x={xAt(i)}
+              y={h - 8}
+              textAnchor="middle"
+              fontSize={11}
+              fontWeight={800}
+              fill="#152d4f"
+            >
+              {lv}
+            </text>
+          ) : null
+        )}
       </svg>
       <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#68748a]">
         {series.map((s) => (
