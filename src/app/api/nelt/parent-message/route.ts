@@ -4,6 +4,8 @@ import {
   buildNeltParentMessageFallback,
   ensureNeltMessageTitle,
   generateNeltParentMessageAi,
+  NELT_MESSAGE_VERSION_COUNT,
+  resolveNeltMessageVersion,
   type NeltParentMessageMeta,
   type NeltParentMessageTone,
 } from "@/lib/nelt/generate-parent-message";
@@ -59,6 +61,8 @@ export async function POST(request: Request) {
     studyDuration?: string | null;
     reportUrl?: string | null;
     variationSeed?: number | string | null;
+    messageVersion?: number | null;
+    previousMessage?: string | null;
   };
   try {
     body = await request.json();
@@ -72,13 +76,26 @@ export async function POST(request: Request) {
   let analysis = body.analysis ?? null;
   const studentName = body.studentName?.trim() || analysis?.studentName?.trim();
   const tone = normalizeTone(body.tone);
+  const messageVersion =
+    typeof body.messageVersion === "number"
+      ? body.messageVersion
+      : typeof body.meta?.messageVersion === "number"
+        ? body.meta.messageVersion
+        : null;
   const meta: NeltParentMessageMeta = {
     ...pickMeta(body),
     variationSeed:
       body.variationSeed ??
       body.meta?.variationSeed ??
       `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    messageVersion,
+    previousMessage:
+      body.previousMessage ?? body.meta?.previousMessage ?? null,
   };
+  const version = resolveNeltMessageVersion(
+    meta.messageVersion,
+    meta.variationSeed
+  );
 
   if (!analysis && studentName) {
     const attempts = await loadStudentNeltAttempts(
@@ -100,7 +117,11 @@ export async function POST(request: Request) {
   const message = ensureNeltMessageTitle(
     ai.ok
       ? ai.message
-      : buildNeltParentMessageFallback(analysis, meta, tone)
+      : buildNeltParentMessageFallback(
+          analysis,
+          { ...meta, messageVersion: version.index },
+          tone
+        )
   );
 
   await auth.supabase
@@ -117,5 +138,8 @@ export async function POST(request: Request) {
     message,
     source: ai.ok ? "ai" : "fallback",
     model: ai.ok ? ai.model : null,
+    versionIndex: ai.ok ? ai.versionIndex : version.index,
+    versionLabel: ai.ok ? ai.versionLabel : version.label,
+    versionCount: NELT_MESSAGE_VERSION_COUNT,
   });
 }

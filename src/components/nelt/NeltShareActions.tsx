@@ -14,6 +14,7 @@ import {
   attachReportUrlToMessage,
   buildNeltParentMessageFallback,
   formatStudyDuration,
+  NELT_MESSAGE_VERSION_COUNT,
   type NeltParentMessageTone,
 } from "@/lib/nelt/generate-parent-message";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
@@ -44,6 +45,8 @@ export function NeltShareActions({
   const [kakaoLoading, setKakaoLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** 문구 다시 만들기마다 0→1→…→5 순환 */
+  const [messageVersion, setMessageVersion] = useState(0);
 
   const studyDuration = useMemo(
     () => formatStudyDuration(enrollmentDate || null),
@@ -133,6 +136,7 @@ export function NeltShareActions({
 
   async function generateParentMessage() {
     setMsgLoading(true);
+    const nextVersion = (messageVersion + 1) % NELT_MESSAGE_VERSION_COUNT;
     try {
       const res = await fetch("/api/nelt/parent-message", {
         method: "POST",
@@ -141,9 +145,15 @@ export function NeltShareActions({
           studentName,
           analysis,
           tone,
+          messageVersion: nextVersion,
+          previousMessage: parentMessage,
           meta: {
             ...meta,
-            variationSeed: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            messageVersion: nextVersion,
+            previousMessage: parentMessage,
+            variationSeed: `${Date.now()}-${nextVersion}-${Math.random()
+              .toString(36)
+              .slice(2, 8)}`,
           },
         }),
       });
@@ -154,10 +164,18 @@ export function NeltShareActions({
       let message = json.message as string;
       if (shareUrl) message = attachReportUrlToMessage(message, shareUrl);
       setParentMessage(message);
+      setMessageVersion(
+        typeof json.versionIndex === "number" ? json.versionIndex : nextVersion
+      );
+      const verLabel =
+        typeof json.versionLabel === "string" ? json.versionLabel : "";
+      const verPart = verLabel
+        ? ` · ${verLabel} (${(json.versionIndex ?? nextVersion) + 1}/${json.versionCount ?? NELT_MESSAGE_VERSION_COUNT})`
+        : "";
       flashOk(
         json.source === "ai"
-          ? `학부모 안내 문구를 만들었습니다. (${json.model ?? "AI"})`
-          : "기본 문구로 만들었습니다. (AI 키/모델 확인)"
+          ? `다른 버전으로 만들었습니다. (${json.model ?? "AI"})${verPart}`
+          : `다른 버전으로 만들었습니다.${verPart}`
       );
     } catch (e) {
       flashErr(e instanceof Error ? e.message : "문구 생성 오류");
