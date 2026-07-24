@@ -328,7 +328,7 @@ export function parseNetutorNeltHtml(
     /초등\s*필수\s*어휘/,
     /필수\s*어휘\s*이해율?/,
   ];
-  let elementaryRequiredPercentage =
+  const elementaryRequiredPercentage =
     findLabeledPercent(vocaBlock, vocabPctLabels, { within: 8 }) ??
     findLabeledPercent(lines, vocabPctLabels, { within: 8 }) ??
     extractPercentFromProse(fullText, [
@@ -343,7 +343,7 @@ export function parseNetutorNeltHtml(
     /수능\s*기출\s*어휘/,
     /최근\s*5개년\s*수능/,
   ];
-  let csatVocabularyPercentage =
+  const csatVocabularyPercentage =
     findLabeledPercent(vocaBlock, csatLabels, { within: 8 }) ??
     findLabeledPercent(lines, csatLabels, { within: 8 }) ??
     extractPercentFromProse(fullText, [
@@ -360,7 +360,7 @@ export function parseNetutorNeltHtml(
     /필수\s*문법\s*이해율?/,
     /필수\s*문법\s*항목/,
   ];
-  let elementaryGrammarPercentage =
+  const elementaryGrammarPercentage =
     findLabeledPercent(grammarBlock, grammarPctLabels, { within: 10 }) ??
     findLabeledPercent(lines, grammarPctLabels, { within: 10 }) ??
     extractPercentFromProse(fullText, [
