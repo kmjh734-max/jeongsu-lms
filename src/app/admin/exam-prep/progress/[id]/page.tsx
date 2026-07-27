@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ExamPrepStaffNav } from "@/components/exam-prep/ExamPrepStaffNav";
+import { WritingReviewPanel } from "@/components/exam-prep/WritingReviewPanel";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
+import { loadNeedsReviewAnswers } from "@/lib/exam-prep/load-needs-review";
 import { createClient } from "@/lib/supabase/server";
 
 const BASE = "/admin/exam-prep";
@@ -35,7 +37,7 @@ export default async function AdminExamPrepProgressDetailPage({
 
   if (!asRow) notFound();
 
-  const [{ data: attempts }, { data: wrongs }] = await Promise.all([
+  const [{ data: attempts }, { data: wrongs }, reviewRows] = await Promise.all([
     supabase
       .from("exam_attempts")
       .select(
@@ -50,6 +52,7 @@ export default async function AdminExamPrepProgressDetailPage({
       )
       .eq("assignment_student_id", id)
       .order("last_wrong_at", { ascending: false }),
+    loadNeedsReviewAnswers(supabase, id),
   ]);
 
   const studentName =
@@ -89,6 +92,13 @@ export default async function AdminExamPrepProgressDetailPage({
           }
         />
       </div>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4">
+        <h3 className="mb-3 font-semibold text-slate-900">
+          서술형 검토 ({reviewRows.length})
+        </h3>
+        <WritingReviewPanel rows={reviewRows} />
+      </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4">
         <h3 className="mb-3 font-semibold text-slate-900">응시 기록</h3>

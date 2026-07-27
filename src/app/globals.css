@@ -2061,7 +2061,8 @@
   #student-record-print-root,
   #vocab-print-root,
   #nelt-print-root,
-  #qg-print-root {
+  #qg-print-root,
+  #exam-prep-print-root {
     visibility: visible;
   }
 
@@ -2078,7 +2079,9 @@
   #nelt-print-root,
   #nelt-print-root *,
   #qg-print-root,
-  #qg-print-root * {
+  #qg-print-root *,
+  #exam-prep-print-root,
+  #exam-prep-print-root * {
     visibility: visible;
   }
 

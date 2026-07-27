@@ -11,9 +11,19 @@ import {
   gradeOrder,
   gradeShortAnswer,
   gradeWriting,
+  type GradeResult,
 } from "@/lib/exam-prep/grade";
+import {
+  aiResultToGradeResult,
+  extractModelAnswerText,
+  extractStudentText,
+  gradeWritingAnswersWithAi,
+  type WritingGradeInput,
+} from "@/lib/exam-prep/grade-writing-ai";
 import { saveDraftSchema, submitAttemptSchema } from "@/lib/exam-prep/schemas";
+import { CREDIT_FEATURES, debitFeatureCredits } from "@/lib/credits";
 import type { ExamWorkbookQuestion } from "@/lib/exam-prep/types";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 async function requireStudent() {
   if (!isExamPrepEnabled()) {
@@ -367,10 +377,80 @@ export async function submitStepAttemptAction(raw: unknown) {
     step.show_answer_policy === "after_submit" ||
     step.show_answer_policy === "immediate";
 
+  type Pending = {
+    q: ExamWorkbookQuestion;
+    ans: unknown;
+    graded: GradeResult;
+  };
+  const pending: Pending[] = [];
+  const aiCandidates: WritingGradeInput[] = [];
+
   for (const q of qs) {
     maxScore += Number(q.points) || 1;
     const ans = data.answers[q.id];
     const graded = gradeOne(q, ans);
+
+    const writingLike =
+      q.question_type === "writing" ||
+      q.question_type === "translation_practice" ||
+      q.question_type === "error_correction";
+
+    if (graded.gradingStatus === "needs_review" && writingLike) {
+      const studentText = extractStudentText(ans);
+      const model = extractModelAnswerText(q.correct_answer);
+      if (studentText.trim()) {
+        aiCandidates.push({
+          questionId: q.id,
+          questionType: q.question_type,
+          prompt: q.question_text ?? "",
+          modelAnswer: model,
+          studentAnswer: studentText,
+          points: Number(q.points) || 1,
+        });
+      }
+    }
+
+    pending.push({ q, ans, graded });
+  }
+
+  if (aiCandidates.length > 0) {
+    let allowAi = false;
+    try {
+      const admin = createAdminClient();
+      await debitFeatureCredits(admin, {
+        academyId: asRow.academy_id,
+        featureKey: CREDIT_FEATURES.exam_prep_grade_writing,
+        actorId: auth.profile.id,
+        idempotencyKey: `exam_prep_write:${attempt.id}`,
+        quantity: aiCandidates.length,
+        metadata: {
+          attemptId: attempt.id,
+          count: aiCandidates.length,
+        },
+      });
+      allowAi = true;
+    } catch {
+      allowAi = false;
+    }
+
+    if (allowAi) {
+      const aiResults = await gradeWritingAnswersWithAi(aiCandidates);
+      if (aiResults) {
+        const byId = new Map(aiResults.map((r) => [r.questionId, r]));
+        for (const row of pending) {
+          const ai = byId.get(row.q.id);
+          if (!ai) continue;
+          const next = aiResultToGradeResult(ai, Number(row.q.points) || 1);
+          row.graded = {
+            ...next,
+            normalizedAnswer: row.graded.normalizedAnswer,
+          };
+        }
+      }
+    }
+  }
+
+  for (const { q, ans, graded } of pending) {
     totalScore += graded.score;
     if (graded.isCorrect === true) correctCount += 1;
 
@@ -422,7 +502,6 @@ export async function submitStepAttemptAction(raw: unknown) {
         });
       }
     } else if (graded.isCorrect === true) {
-      // 이전에 틀린 문항을 맞추면 숙달 처리
       await supabase
         .from("exam_wrong_answers")
         .update({

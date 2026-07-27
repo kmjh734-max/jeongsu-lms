@@ -816,3 +816,119 @@ export async function createAssignmentAction(raw: unknown) {
     studentCount: studentIds.size,
   };
 }
+
+/** 강사가 needs_review 답안을 수동 채점 */
+export async function teacherGradeAnswerAction(raw: {
+  answerId: string;
+  isCorrect: boolean;
+  feedback?: string;
+  score?: number;
+}) {
+  const auth = await requireStaff();
+  if (!auth.ok) return auth;
+  const supabase = await createClient();
+
+  const { data: answer } = await supabase
+    .from("exam_answers")
+    .select(
+      "id, academy_id, question_id, attempt_id, score, exam_workbook_questions(points, sentence_id)"
+    )
+    .eq("id", raw.answerId)
+    .eq("academy_id", auth.profile.academy_id)
+    .maybeSingle();
+  if (!answer) return { ok: false as const, message: "답안 없음" };
+
+  const q = answer.exam_workbook_questions as
+    | { points: number; sentence_id: string | null }
+    | { points: number; sentence_id: string | null }[]
+    | null;
+  const qRow = Array.isArray(q) ? q[0] : q;
+  const points = Number(qRow?.points) || 1;
+  const score =
+    typeof raw.score === "number"
+      ? Math.min(points, Math.max(0, raw.score))
+      : raw.isCorrect
+        ? points
+        : 0;
+
+  const { error } = await supabase
+    .from("exam_answers")
+    .update({
+      is_correct: raw.isCorrect,
+      score,
+      grading_status: raw.isCorrect ? "teacher_correct" : "teacher_incorrect",
+      teacher_feedback: raw.feedback?.trim() || null,
+      graded_by: auth.profile.id,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", raw.answerId);
+
+  if (error) return { ok: false as const, message: error.message };
+
+  // 오답 노트 연동
+  const { data: attempt } = await supabase
+    .from("exam_attempts")
+    .select("assignment_student_id")
+    .eq("id", answer.attempt_id)
+    .maybeSingle();
+
+  const asId = attempt?.assignment_student_id as string | undefined;
+  const { data: asRow } = asId
+    ? await supabase
+        .from("exam_assignment_students")
+        .select("id, student_id, academy_id")
+        .eq("id", asId)
+        .maybeSingle()
+    : { data: null };
+
+  if (asRow) {
+    if (!raw.isCorrect) {
+      const { data: existingWrong } = await supabase
+        .from("exam_wrong_answers")
+        .select("id, wrong_count")
+        .eq("student_id", asRow.student_id)
+        .eq("question_id", answer.question_id)
+        .eq("assignment_student_id", asRow.id)
+        .maybeSingle();
+      if (existingWrong) {
+        await supabase
+          .from("exam_wrong_answers")
+          .update({
+            wrong_count: (existingWrong.wrong_count ?? 1) + 1,
+            last_wrong_at: new Date().toISOString(),
+            is_mastered: false,
+            mastered_at: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingWrong.id);
+      } else {
+        await supabase.from("exam_wrong_answers").insert({
+          academy_id: asRow.academy_id,
+          student_id: asRow.student_id,
+          assignment_student_id: asRow.id,
+          question_id: answer.question_id,
+          sentence_id: qRow?.sentence_id ?? null,
+          error_category: "writing_review",
+          wrong_count: 1,
+        });
+      }
+    } else {
+      await supabase
+        .from("exam_wrong_answers")
+        .update({
+          is_mastered: true,
+          mastered_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("student_id", asRow.student_id)
+        .eq("question_id", answer.question_id)
+        .eq("assignment_student_id", asRow.id)
+        .eq("is_mastered", false);
+    }
+  }
+
+  revalidateExamPrep();
+  revalidatePath("/admin/exam-prep/progress");
+  revalidatePath("/teacher/exam-prep/progress");
+  return { ok: true as const };
+}

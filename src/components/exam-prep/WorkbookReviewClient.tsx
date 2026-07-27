@@ -169,6 +169,15 @@ export function WorkbookReviewClient({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() =>
+              router.push(`${basePath}/workbooks/${workbook.id}/print`)
+            }
+          >
+            인쇄 / PDF
+          </Button>
           {workbook.status !== "approved" && (
             <>
               <Button
