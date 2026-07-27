@@ -225,21 +225,37 @@ export function NeltShareActions({
       if (!url) url = await createShareLink();
       if (!url) return;
 
+      // 긴 안내문+URL을 카카오 text에 넣으면 200자에서 URL이 잘려 404가 난다.
+      // SDK 공유는 짧은 문구+버튼 링크만 쓰고, 전체 안내문은 클립보드에 둔다.
       const paste = pasteBody(parentMessage, url);
       setParentMessage(paste);
+      try {
+        await navigator.clipboard.writeText(paste);
+      } catch {
+        /* 클립보드 실패해도 공유는 진행 */
+      }
+
+      const kakaoBrief = `[NELT 성장 리포트] ${studentName}
+
+${periodLabel} 누적 성장 리포트입니다.
+
+자세한 내용은 아래 「성장 리포트 보기」에서 확인해 주세요.
+(전체 안내문은 복사해 두었습니다. 이어서 붙여넣으시면 됩니다.)`;
 
       const result = await shareReportViaKakao({
         studentName,
         periodLabel,
         shareUrl: url,
         feedTitle: `[NELT 성장 리포트] ${studentName}`,
-        feedDescription: `${periodLabel} 누적 성장 리포트입니다.`,
+        feedDescription: `${periodLabel} 누적 성장 리포트입니다. 아래 버튼에서 확인해 주세요.`,
         buttonTitle: "성장 리포트 보기",
-        pasteMessage: paste,
+        pasteMessage: kakaoBrief,
         academyName,
       });
       if (result.ok) {
-        flashOk("카카오톡 공유 창이 열렸습니다. 채팅방을 선택해 주세요.");
+        flashOk(
+          "카카오톡 공유 창이 열렸습니다. 카드의 「성장 리포트 보기」로 열어 주세요. 전체 안내문은 복사되어 있으니 이어서 붙여넣으실 수 있습니다."
+        );
       } else if (result.fallback) {
         flashOk(result.message);
       } else {
@@ -465,7 +481,7 @@ export function NeltShareActions({
           onClick={() => void handleKakao()}
           title={
             kakaoConfigured
-              ? "카카오톡 공유창"
+              ? "카카오톡 공유창 (버튼 링크로 열림)"
               : "카카오 키가 없어도 붙여넣기 복사는 가능합니다"
           }
         >
@@ -481,6 +497,12 @@ export function NeltShareActions({
           안내문 복사 (링크 포함)
         </Button>
       </div>
+      <p className="text-[11px] leading-relaxed text-slate-500">
+        카카오톡보내기는 카드의 「성장 리포트 보기」버튼으로 링크를 보냅니다.
+        긴 안내문 전체를 보내려면 「안내문 복사 (링크 포함)」을 채팅에
+        붙여넣으세요. (카카오 본문에 URL을 넣으면 글자 수 제한으로 링크가
+        잘려 404가 납니다.)
+      </p>
 
       {status && <p className="text-xs text-emerald-700">{status}</p>}
       {error && <p className="text-xs text-red-600">{error}</p>}

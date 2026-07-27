@@ -162,9 +162,9 @@ export function ReportShareActions({
 
       if (result.ok) {
         const hint =
-          result.method === "feed"
-            ? "카드 링크가 안 열리면 「카카오 붙여넣기용 복사」를 사용하거나 Kakao 제품 링크 관리에 도메인을 등록해 주세요."
-            : "메시지 본문의 URL을 눌러 리포트를 열 수 있습니다.";
+          result.method === "text"
+            ? "본문에 URL이 없어도 「리포트 보기」버튼으로 열 수 있습니다."
+            : "카드의 「리포트 보기」버튼으로 열어 주세요. 긴 안내문은 「카카오 붙여넣기용 복사」를 사용하세요.";
         showStatus(
           `카카오톡 공유 창이 열렸습니다. 보낼 채팅방을 선택해 주세요. ${hint}`
         );
