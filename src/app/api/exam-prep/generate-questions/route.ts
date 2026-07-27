@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireExamPrepStaff } from "@/lib/exam-prep/require-exam-prep";
-import { generateRuleBasedQuestions } from "@/lib/exam-prep/generate-rule-questions";
+import { generateStepQuestionsWithAi } from "@/lib/exam-prep/generate-ai-questions";
 import { CREDIT_FEATURES, debitFeatureCredits } from "@/lib/credits";
 import type { ExamPassageSentence, ExamStepType } from "@/lib/exam-prep/types";
 
+export const runtime = "nodejs";
+export const maxDuration = 120;
+
 /**
  * AI 워크북 문항 생성.
- * MVP: OpenAI JSON 시도 후 실패 시 규칙 기반으로 폴백 (지문 손상 없음).
+ * OpenAI JSON 시도 → 실패 시 규칙 기반 폴백 (지문 원문 미수정).
+ * AI로 하나라도 성공한 경우에만 크레딧 차감.
  */
 export async function POST(request: Request) {
   try {
@@ -58,34 +62,32 @@ export async function POST(request: Request) {
     if (body.stepId) stepsQuery = stepsQuery.eq("id", body.stepId);
     const { data: steps } = await stepsQuery;
 
-    try {
-      await debitFeatureCredits(supabase, {
-        academyId: profile.academy_id!,
-        featureKey: CREDIT_FEATURES.exam_prep_workbook_ai,
-        actorId: profile.id,
-        idempotencyKey: `exam_prep_ai:${body.workbookId}:${body.stepId ?? "all"}:${Date.now()}`,
-        quantity: 1,
-        metadata: { workbookId: body.workbookId },
-      });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "크레딧 차감 실패";
-      return NextResponse.json({ ok: false, message: msg }, { status: 402 });
-    }
-
+    const sentenceRows = (sentences ?? []) as ExamPassageSentence[];
     let total = 0;
+    let aiSteps = 0;
+    let ruleSteps = 0;
+    const aiErrors: string[] = [];
+
     for (const step of steps ?? []) {
       await supabase
         .from("exam_workbook_questions")
         .delete()
         .eq("step_id", step.id);
 
-      // MVP: 규칙 기반 (AI JSON 스키마는 후속 확장 — 원문 미수정 보장)
-      const questions = generateRuleBasedQuestions(
+      const generated = await generateStepQuestionsWithAi(
         step.step_type as ExamStepType,
-        (sentences ?? []) as ExamPassageSentence[],
+        sentenceRows,
         step.difficulty ?? "medium"
       );
+      if (generated.source === "ai") aiSteps += 1;
+      else {
+        ruleSteps += 1;
+        if (generated.aiError) aiErrors.push(`${step.step_type}: ${generated.aiError}`);
+      }
+
+      const questions = generated.questions;
       if (questions.length === 0) continue;
+
       await supabase.from("exam_workbook_questions").insert(
         questions.map((q) => ({
           academy_id: profile.academy_id,
@@ -102,10 +104,54 @@ export async function POST(request: Request) {
           difficulty: q.difficulty,
           points: q.points,
           is_active: true,
-          ai_generated: true,
+          ai_generated: q.ai_generated === true,
         }))
       );
       total += questions.length;
+    }
+
+    let charged = false;
+    if (aiSteps > 0) {
+      try {
+        await debitFeatureCredits(supabase, {
+          academyId: profile.academy_id!,
+          featureKey: CREDIT_FEATURES.exam_prep_workbook_ai,
+          actorId: profile.id,
+          idempotencyKey: `exam_prep_ai:${body.workbookId}:${body.stepId ?? "all"}:${Date.now()}`,
+          quantity: 1,
+          metadata: {
+            workbookId: body.workbookId,
+            aiSteps,
+            ruleSteps,
+            questionCount: total,
+          },
+        });
+        charged = true;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "크레딧 차감 실패";
+        // 문항은 이미 생성됨 — 크레딧 부족이면 안내만 (삭제하지 않음)
+        await supabase
+          .from("exam_workbooks")
+          .update({
+            status: "reviewing",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", body.workbookId);
+
+        return NextResponse.json(
+          {
+            ok: true,
+            source: aiSteps > 0 ? "ai" : "rule",
+            questionCount: total,
+            aiSteps,
+            ruleSteps,
+            charged: false,
+            creditWarning: msg,
+            message: `문항 ${total}개 생성(AI ${aiSteps}/규칙 ${ruleSteps}). 크레딧: ${msg}`,
+          },
+          { status: 200 }
+        );
+      }
     }
 
     await supabase
@@ -116,11 +162,27 @@ export async function POST(request: Request) {
       })
       .eq("id", body.workbookId);
 
+    const source =
+      aiSteps > 0 && ruleSteps === 0
+        ? "ai"
+        : aiSteps > 0
+          ? "mixed"
+          : "rule";
+
     return NextResponse.json({
       ok: true,
-      source: "rule",
+      source,
       questionCount: total,
-      message: "문항이 생성되었습니다. 검수 후 승인해 주세요.",
+      aiSteps,
+      ruleSteps,
+      charged,
+      aiErrors: aiErrors.slice(0, 5),
+      message:
+        source === "ai"
+          ? `AI로 문항 ${total}개를 생성했습니다. 검수 후 승인해 주세요.`
+          : source === "mixed"
+            ? `AI ${aiSteps}단계 + 규칙 ${ruleSteps}단계로 문항 ${total}개 생성. 검수 후 승인해 주세요.`
+            : `규칙 기반으로 문항 ${total}개를 생성했습니다. (AI 미사용·크레딧 미차감) 검수 후 승인해 주세요.`,
     });
   } catch (e) {
     if (e instanceof Response) return e;

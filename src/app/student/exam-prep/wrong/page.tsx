@@ -30,6 +30,7 @@ export default async function StudentExamPrepWrongPage() {
       "id, wrong_count, error_category, is_mastered, last_wrong_at, assignment_student_id, exam_workbook_questions(question_text, question_type)"
     )
     .eq("student_id", profile.id)
+    .eq("is_mastered", false)
     .order("last_wrong_at", { ascending: false })
     .limit(100);
 
@@ -39,7 +40,7 @@ export default async function StudentExamPrepWrongPage() {
     <div>
       <PageHeader
         title="내 오답"
-        description="틀린 문항을 다시 확인하세요."
+        description="아직 숙달되지 않은 틀린 문항입니다. 변형 연습으로 다시 풀어 보세요."
         action={
           <Link
             href="/student/exam-prep"
@@ -74,10 +75,10 @@ export default async function StudentExamPrepWrongPage() {
                 </p>
               </div>
               <Link
-                href={`/student/exam-prep/${r.assignment_student_id}`}
+                href={`/student/exam-prep/wrong/${r.id}`}
                 className="text-xs font-medium text-brand-700 hover:underline"
               >
-                다시 풀기
+                변형 연습
               </Link>
             </div>
           </li>

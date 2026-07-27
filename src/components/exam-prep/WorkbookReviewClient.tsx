@@ -86,7 +86,19 @@ export function WorkbookReviewClient({
       setMessage(result.message);
       return;
     }
-    setMessage(`${result.count}개 문항이 생성되었습니다.`);
+    const src =
+      "source" in result && result.source === "ai"
+        ? "AI"
+        : "source" in result && result.source === "rule"
+          ? "규칙"
+          : "";
+    const credit =
+      "creditWarning" in result && result.creditWarning
+        ? ` (크레딧: ${result.creditWarning})`
+        : "";
+    setMessage(
+      `${result.count}개 문항 생성${src ? ` · ${src}` : ""}${credit}`
+    );
     router.refresh();
   }
 

@@ -13,7 +13,9 @@ import {
   updateSentenceSchema,
 } from "@/lib/exam-prep/schemas";
 import { getPresetSteps, buildStepsFromNumbers } from "@/lib/exam-prep/presets";
+import { generateStepQuestionsWithAi } from "@/lib/exam-prep/generate-ai-questions";
 import { generateRuleBasedQuestions } from "@/lib/exam-prep/generate-rule-questions";
+import { CREDIT_FEATURES, debitFeatureCredits } from "@/lib/credits";
 import type {
   ExamPassageSentence,
   ExamPresetType,
@@ -621,11 +623,61 @@ export async function regenerateStepQuestionsAction(stepId: string) {
     .delete()
     .eq("step_id", stepId);
 
-  const questions = generateRuleBasedQuestions(
-    step.step_type,
+  const generated = await generateStepQuestionsWithAi(
+    step.step_type as ExamStepType,
     (sentences ?? []) as ExamPassageSentence[],
     step.difficulty ?? "medium"
   );
+  const questions = generated.questions;
+
+  if (generated.source === "ai" && questions.length > 0) {
+    try {
+      await debitFeatureCredits(supabase, {
+        academyId: auth.profile.academy_id!,
+        featureKey: CREDIT_FEATURES.exam_prep_workbook_ai,
+        actorId: auth.profile.id,
+        idempotencyKey: `exam_prep_ai_step:${stepId}:${Date.now()}`,
+        quantity: 1,
+        metadata: { stepId, workbookId: step.workbook_id, source: "ai" },
+      });
+    } catch (e) {
+      // 문항은 저장하되 크레딧 안내
+      if (questions.length > 0) {
+        await supabase.from("exam_workbook_questions").insert(
+          questions.map((q) => ({
+            academy_id: auth.profile.academy_id,
+            workbook_id: step.workbook_id,
+            step_id: stepId,
+            sentence_id: q.sentence_id,
+            question_type: q.question_type,
+            question_order: q.question_order,
+            question_text: q.question_text,
+            question_data: q.question_data,
+            correct_answer: q.correct_answer,
+            acceptable_answers: q.acceptable_answers,
+            explanation: q.explanation,
+            difficulty: q.difficulty,
+            points: q.points,
+            is_active: true,
+            ai_generated: q.ai_generated === true,
+          }))
+        );
+      }
+      await supabase
+        .from("exam_workbooks")
+        .update({ status: "reviewing", updated_at: new Date().toISOString() })
+        .eq("id", step.workbook_id);
+      revalidateExamPrep();
+      const msg = e instanceof Error ? e.message : "크레딧 차감 실패";
+      return {
+        ok: true as const,
+        count: questions.length,
+        source: generated.source,
+        creditWarning: msg,
+      };
+    }
+  }
+
   if (questions.length > 0) {
     await supabase.from("exam_workbook_questions").insert(
       questions.map((q) => ({
@@ -643,7 +695,7 @@ export async function regenerateStepQuestionsAction(stepId: string) {
         difficulty: q.difficulty,
         points: q.points,
         is_active: true,
-        ai_generated: false,
+        ai_generated: q.ai_generated === true,
       }))
     );
   }
@@ -654,7 +706,11 @@ export async function regenerateStepQuestionsAction(stepId: string) {
     .eq("id", step.workbook_id);
 
   revalidateExamPrep();
-  return { ok: true as const, count: questions.length };
+  return {
+    ok: true as const,
+    count: questions.length,
+    source: generated.source,
+  };
 }
 
 export async function createAssignmentAction(raw: unknown) {

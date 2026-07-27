@@ -406,6 +406,7 @@ export async function submitStepAttemptAction(raw: unknown) {
             wrong_count: (existingWrong.wrong_count ?? 1) + 1,
             last_wrong_at: new Date().toISOString(),
             is_mastered: false,
+            mastered_at: null,
             updated_at: new Date().toISOString(),
           })
           .eq("id", existingWrong.id);
@@ -420,6 +421,19 @@ export async function submitStepAttemptAction(raw: unknown) {
           wrong_count: 1,
         });
       }
+    } else if (graded.isCorrect === true) {
+      // 이전에 틀린 문항을 맞추면 숙달 처리
+      await supabase
+        .from("exam_wrong_answers")
+        .update({
+          is_mastered: true,
+          mastered_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("student_id", auth.profile.id)
+        .eq("question_id", q.id)
+        .eq("assignment_student_id", data.assignment_student_id)
+        .eq("is_mastered", false);
     }
 
     results.push({
@@ -541,5 +555,97 @@ export async function submitStepAttemptAction(raw: unknown) {
     progressRate,
     completed,
     nextStepId: nextStep?.id ?? nextStepId,
+  };
+}
+
+/** 오답 노트에서 변형 연습 제출 → 맞으면 숙달 */
+export async function submitWrongPracticeAction(raw: {
+  wrongAnswerId: string;
+  answer: unknown;
+  transform?: boolean;
+}) {
+  const auth = await requireStudent();
+  if (!auth.ok) return auth;
+  const supabase = await createClient();
+
+  const { data: wrong } = await supabase
+    .from("exam_wrong_answers")
+    .select("id, question_id, assignment_student_id, wrong_count")
+    .eq("id", raw.wrongAnswerId)
+    .eq("student_id", auth.profile.id)
+    .maybeSingle();
+  if (!wrong) return { ok: false as const, message: "오답을 찾을 수 없습니다." };
+
+  const { data: q } = await supabase
+    .from("exam_workbook_questions")
+    .select("*")
+    .eq("id", wrong.question_id)
+    .maybeSingle();
+  if (!q) return { ok: false as const, message: "문항 없음" };
+
+  const { transformWrongQuestionForPractice } = await import(
+    "@/lib/exam-prep/transform-wrong-question"
+  );
+  const practice = transformWrongQuestionForPractice(
+    q as ExamWorkbookQuestion,
+    raw.transform === false ? "same" : "transform"
+  );
+
+  const graded = gradeOne(
+    {
+      ...(q as ExamWorkbookQuestion),
+      question_type: practice.practice_type,
+      question_data: {
+        ...practice.question_data,
+        // 채점용 blanks 복원
+        ...(practice._correct_answer &&
+        typeof practice._correct_answer === "object" &&
+        practice._correct_answer !== null &&
+        "blanks" in practice._correct_answer
+          ? {
+              blanks: (practice._correct_answer as { blanks: unknown }).blanks,
+            }
+          : {}),
+      },
+      correct_answer: practice._correct_answer,
+      acceptable_answers: practice._acceptable_answers,
+    },
+    raw.answer
+  );
+
+  if (graded.isCorrect === true) {
+    await supabase
+      .from("exam_wrong_answers")
+      .update({
+        is_mastered: true,
+        mastered_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", wrong.id);
+  } else if (graded.isCorrect === false) {
+    await supabase
+      .from("exam_wrong_answers")
+      .update({
+        wrong_count: (wrong.wrong_count ?? 1) + 1,
+        last_wrong_at: new Date().toISOString(),
+        is_mastered: false,
+        mastered_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", wrong.id);
+  }
+
+  revalidatePath("/student/exam-prep/wrong");
+  revalidatePath(`/student/exam-prep/wrong/${wrong.id}`);
+
+  return {
+    ok: true as const,
+    isCorrect: graded.isCorrect,
+    score: graded.score,
+    gradingStatus: graded.gradingStatus,
+    feedback: graded.feedback ?? null,
+    mastered: graded.isCorrect === true,
+    correctAnswer:
+      graded.isCorrect === false ? practice._correct_answer : undefined,
   };
 }
