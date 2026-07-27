@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/Button";
 import {
   EXAM_PRESETS,
   EXAM_PRESET_STEP_NUMBERS,
-  WORKBOOK_10_STEPS,
+  WORKBOOK_VARIANT_STEPS,
 } from "@/lib/exam-prep/presets";
 import { createWorkbookAction } from "@/lib/exam-prep/staff-actions";
 import type { ExamPresetType } from "@/lib/exam-prep/types";
 
-const ALL_STEPS = WORKBOOK_10_STEPS.map((s) => s.number);
+const ALL_PACKS = WORKBOOK_VARIANT_STEPS.map((s) => s.number);
 
 export function WorkbookCreateForm({
   basePath,
@@ -23,7 +23,7 @@ export function WorkbookCreateForm({
   const router = useRouter();
   const [passageId, setPassageId] = useState(passages[0]?.id ?? "");
   const [title, setTitle] = useState("");
-  const [selected, setSelected] = useState<number[]>(() => [...ALL_STEPS]);
+  const [selected, setSelected] = useState<number[]>(() => [...ALL_PACKS]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ export function WorkbookCreateForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (selected.length === 0) {
-      setMessage("1~10단계 중 하나 이상 선택해 주세요.");
+      setMessage("유형 세트를 하나 이상 선택해 주세요.");
       return;
     }
     setLoading(true);
@@ -87,8 +87,7 @@ export function WorkbookCreateForm({
       </label>
       {passages.length === 0 && (
         <p className="text-sm text-amber-700">
-          지문 관리에서 본문을 먼저 등록해 주세요. 작성중(draft) 지문도 선택할
-          수 있습니다.
+          지문 관리에서 본문을 먼저 등록해 주세요.
         </p>
       )}
 
@@ -99,19 +98,19 @@ export function WorkbookCreateForm({
           className={inputClass}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="예: 중간고사 Unit 3 · 10단계"
+          placeholder="예: 중간고사 Unit 3 · 유형별 변형"
         />
       </label>
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-sm font-medium text-slate-700">
-            학습 단계 (PDF 1~10단계)
+            유형 세트 (PDF 예상·변형문제)
           </p>
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
-              onClick={() => setSelected([...ALL_STEPS])}
+              onClick={() => setSelected([...ALL_PACKS])}
               className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
             >
               전체 선택
@@ -139,7 +138,7 @@ export function WorkbookCreateForm({
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
-          {WORKBOOK_10_STEPS.map((s) => {
+          {WORKBOOK_VARIANT_STEPS.map((s) => {
             const on = selectedSet.has(s.number);
             return (
               <label
@@ -158,19 +157,19 @@ export function WorkbookCreateForm({
                 />
                 <span>
                   <span className="block text-sm font-semibold text-slate-900">
-                    {s.number}단계 · {s.shortLabel}
+                    {s.number}세트 · {s.shortLabel}
                   </span>
-                  <span className="text-xs text-slate-500">{s.label.replace(/^\d+단계 · /, "")}</span>
+                  <span className="text-xs text-slate-500">
+                    {s.optionKeys.length}문항 · 어법개수·주제·제목·요지 등
+                  </span>
                 </span>
               </label>
             );
           })}
         </div>
         <p className="text-xs text-slate-500">
-          선택 {selected.length}개
-          {selected.length > 0
-            ? ` · ${selected.map((n) => `${n}단계`).join(", ")}`
-            : ""}
+          생성 후 검수 화면에서 「AI로 문항 생성」을 누르면 첨부 PDF와 같은
+          유형별 객관식이 만들어집니다. 선택 {selected.length}개
         </p>
       </div>
 

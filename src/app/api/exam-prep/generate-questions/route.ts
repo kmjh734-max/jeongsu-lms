@@ -48,6 +48,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const { data: passageRow } = await supabase
+      .from("exam_passages")
+      .select("original_text, grade, title")
+      .eq("id", wb.passage_id)
+      .maybeSingle();
+
     const { data: sentences } = await supabase
       .from("exam_passage_sentences")
       .select("*")
@@ -63,6 +69,9 @@ export async function POST(request: Request) {
     const { data: steps } = await stepsQuery;
 
     const sentenceRows = (sentences ?? []) as ExamPassageSentence[];
+    const passageText =
+      (passageRow?.original_text as string | undefined)?.trim() ||
+      sentenceRows.map((s) => s.english_text).join(" ");
     let total = 0;
     let aiSteps = 0;
     let ruleSteps = 0;
@@ -77,7 +86,13 @@ export async function POST(request: Request) {
       const generated = await generateStepQuestionsWithAi(
         step.step_type as ExamStepType,
         sentenceRows,
-        step.difficulty ?? "medium"
+        step.difficulty ?? "medium",
+        {
+          passageText,
+          settings: (step.settings ?? {}) as Record<string, unknown>,
+          grade: (passageRow?.grade as string | null) ?? "고1",
+          sourceDetail: (passageRow?.title as string | null) ?? undefined,
+        }
       );
       if (generated.source === "ai") aiSteps += 1;
       else {

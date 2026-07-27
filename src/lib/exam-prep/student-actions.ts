@@ -199,15 +199,19 @@ function gradeOne(
         : answer === true;
     return gradeComprehensionCheck(confirmed, points);
   }
-  if (type === "grammar_vocab_choice") {
+  if (type === "grammar_vocab_choice" || type === "csat_mcq") {
     const optionId =
       typeof answer === "object" &&
       answer !== null &&
       "optionId" in answer
         ? String((answer as { optionId: unknown }).optionId)
-        : typeof answer === "string"
-          ? answer
-          : null;
+        : typeof answer === "object" &&
+            answer !== null &&
+            "choiceNumber" in answer
+          ? String((answer as { choiceNumber: unknown }).choiceNumber)
+          : typeof answer === "string" || typeof answer === "number"
+            ? String(answer)
+            : null;
     return gradeChoiceAnswer(optionId, q.correct_answer, points);
   }
   if (type === "english_blank" || type === "korean_blank" || type === "verb_form") {

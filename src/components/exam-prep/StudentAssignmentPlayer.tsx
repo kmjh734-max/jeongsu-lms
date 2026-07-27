@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import {
@@ -33,6 +33,30 @@ type SubmitResultItem = {
 };
 
 type BlankMeta = { id: string };
+
+/** 지문의 <u>밑줄</u>만 렌더 */
+function renderPassageMarks(text: string): ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const re = /<u>([\s\S]*?)<\/u>/gi;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) {
+      nodes.push(<span key={`t${key++}`}>{text.slice(last, m.index)}</span>);
+    }
+    nodes.push(
+      <u key={`u${key++}`} className="underline decoration-slate-700">
+        {m[1]}
+      </u>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) {
+    nodes.push(<span key={`t${key++}`}>{text.slice(last)}</span>);
+  }
+  return nodes.length > 0 ? nodes : [text];
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -575,10 +599,24 @@ function QuestionInput({
     );
   }
 
-  if (type === "grammar_vocab_choice") {
+  if (type === "grammar_vocab_choice" || type === "csat_mcq") {
+    const isCsat = type === "csat_mcq";
     const options = (
-      Array.isArray(data.options) ? data.options : []
-    ) as { id: string; text: string }[];
+      isCsat
+        ? Array.isArray(data.choices)
+          ? (data.choices as { id?: string; number?: number; text: string }[]).map(
+              (c) => ({
+                id: String(c.id ?? c.number ?? ""),
+                text: c.text,
+                number: c.number,
+              })
+            )
+          : []
+        : ((Array.isArray(data.options) ? data.options : []) as {
+            id: string;
+            text: string;
+          }[])
+    ) as { id: string; text: string; number?: number }[];
     const selected =
       typeof value === "object" &&
       value !== null &&
@@ -587,25 +625,46 @@ function QuestionInput({
         : typeof value === "string"
           ? value
           : "";
+    const passageHtml = String(
+      data.passageModified ?? data.passageOriginal ?? data.displayText ?? ""
+    );
+    const CIRCLED = ["①", "②", "③", "④", "⑤"];
     return (
-      <div className="space-y-2">
-        {data.displayText ? (
-          <p className="text-sm text-slate-700">{String(data.displayText)}</p>
+      <div className="space-y-3">
+        {isCsat && (
+          <p className="text-sm font-semibold text-violet-800">
+            {String(data.instruction ?? question.question_text)}
+          </p>
+        )}
+        {passageHtml ? (
+          isCsat ? (
+            <div className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm leading-relaxed text-slate-800">
+              {renderPassageMarks(passageHtml)}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-700">{passageHtml}</p>
+          )
         ) : null}
-        {options.map((opt) => (
-          <label
-            key={opt.id}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          >
-            <input
-              type="radio"
-              name={`q-${question.id}`}
-              checked={selected === opt.id}
-              onChange={() => onChange({ optionId: opt.id })}
-            />
-            {opt.text}
-          </label>
-        ))}
+        <div className={`space-y-2 ${isCsat && options.every((o) => o.text.length < 12) ? "flex flex-wrap gap-3 space-y-0" : ""}`}>
+          {options.map((opt, idx) => (
+            <label
+              key={opt.id}
+              className="flex items-start gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm"
+            >
+              <input
+                type="radio"
+                name={`q-${question.id}`}
+                className="mt-0.5"
+                checked={selected === opt.id}
+                onChange={() => onChange({ optionId: opt.id })}
+              />
+              <span>
+                {CIRCLED[(opt.number ?? idx + 1) - 1] ?? `${idx + 1}.`}{" "}
+                {opt.text}
+              </span>
+            </label>
+          ))}
+        </div>
         <ResultHint result={result} />
       </div>
     );

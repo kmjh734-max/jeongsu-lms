@@ -30,14 +30,15 @@ export function gradeChoiceAnswer(
   correctAnswer: unknown,
   points: number
 ): GradeResult {
-  const correct =
-    typeof correctAnswer === "object" &&
-    correctAnswer !== null &&
-    "optionId" in correctAnswer
-      ? String((correctAnswer as { optionId: unknown }).optionId)
-      : typeof correctAnswer === "string"
-        ? correctAnswer
-        : null;
+  let correct: string | null = null;
+  if (typeof correctAnswer === "object" && correctAnswer !== null) {
+    const o = correctAnswer as Record<string, unknown>;
+    if ("optionId" in o && o.optionId != null) correct = String(o.optionId);
+    else if ("choiceNumber" in o && o.choiceNumber != null)
+      correct = String(o.choiceNumber);
+  } else if (typeof correctAnswer === "string" || typeof correctAnswer === "number") {
+    correct = String(correctAnswer);
+  }
   const ok = !!studentOptionId && !!correct && studentOptionId === correct;
   return {
     isCorrect: ok,

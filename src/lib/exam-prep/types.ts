@@ -17,7 +17,14 @@ export type ExamStepType =
   | "error_correction"
   | "sentence_order"
   | "paragraph_order"
-  | "writing";
+  | "writing"
+  /** PDF 유형별 변형문제 세트 */
+  | "variant_grammar_vocab"
+  | "variant_main_idea"
+  | "variant_details"
+  | "variant_inference"
+  /** 개별 문항 유형 (세트 안에 저장) */
+  | "csat_mcq";
 
 export type ExamAssignmentStudentStatus =
   | "not_started"
@@ -53,20 +60,19 @@ export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
   sentence_order: "문장 순서 배열",
   paragraph_order: "문장·문단 배열",
   writing: "서술형 영작",
+  variant_grammar_vocab: "어법·어휘 (변형)",
+  variant_main_idea: "대의 파악 (변형)",
+  variant_details: "세부·함축 (변형)",
+  variant_inference: "추론 (변형)",
+  csat_mcq: "유형별 객관식",
 };
 
-/** 풀이 UI가 준비된 단계 (PDF 1~10 전체) */
+/** 기본으로 사용하는 변형 세트 */
 export const MVP_STEP_TYPES: ExamStepType[] = [
-  "comprehension",
-  "korean_blank",
-  "english_blank",
-  "translation_practice",
-  "verb_form",
-  "grammar_vocab_choice",
-  "error_correction",
-  "sentence_order",
-  "paragraph_order",
-  "writing",
+  "variant_grammar_vocab",
+  "variant_main_idea",
+  "variant_details",
+  "variant_inference",
 ];
 
 export type ExamPassage = {

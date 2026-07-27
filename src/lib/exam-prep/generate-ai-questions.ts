@@ -202,15 +202,50 @@ export type GenerateStepQuestionsResult = {
 };
 
 /**
- * AI JSON 문항 생성 → 검증 실패/오류 시 규칙 기반 폴백.
- * 원문 문장은 절대 수정하지 않는다.
+ * AI 문항 생성 → 변형 세트는 QG 엔진, 그 외는 JSON/규칙 폴백.
  */
 export async function generateStepQuestionsWithAi(
   stepType: ExamStepType | string,
   sentences: ExamPassageSentence[],
-  difficulty = "medium"
+  difficulty = "medium",
+  opts?: {
+    passageText?: string;
+    settings?: Record<string, unknown> | null;
+    grade?: string;
+    sourceDetail?: string;
+  }
 ): Promise<GenerateStepQuestionsResult> {
   const type = stepType as ExamStepType;
+
+  if (String(stepType).startsWith("variant_")) {
+    const passageText =
+      opts?.passageText?.trim() ||
+      sentences.map((s) => s.english_text).join(" ");
+    const { generateVariantQuestionsForStep } = await import(
+      "@/lib/exam-prep/generate-variant-questions"
+    );
+    const result = await generateVariantQuestionsForStep({
+      stepType,
+      passageText,
+      difficulty,
+      settings: opts?.settings,
+      grade: opts?.grade,
+      sourceDetail: opts?.sourceDetail,
+    });
+    if (result.questions.length === 0) {
+      return {
+        questions: [],
+        source: "rule",
+        aiError: result.errors.join("; ") || "변형 문항 생성 실패",
+      };
+    }
+    return {
+      questions: result.questions,
+      source: "ai",
+      aiError: result.errors.length ? result.errors.join("; ") : undefined,
+    };
+  }
+
   const fallback = () => ({
     questions: generateRuleBasedQuestions(type, sentences, difficulty).map(
       (q) => ({ ...q, ai_generated: false })
@@ -225,7 +260,6 @@ export async function generateStepQuestionsWithAi(
     return { questions: [], source: "rule", aiError: "문장 없음" };
   }
 
-  // comprehension / 단순 유형은 규칙이 충분 — AI 생략 가능하지만 품질 위해 시도
   try {
     const raw = await questionGeneratorChatJson({
       system: systemPrompt(type),

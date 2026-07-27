@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import { EXAM_STEP_LABELS, type ExamStepType } from "@/lib/exam-prep/types";
@@ -18,6 +19,50 @@ export type PrintStepBlock = {
     explanation?: string | null;
   }>;
 };
+
+const CIRCLED = ["①", "②", "③", "④", "⑤"];
+const PURPLE = "#7c3aed";
+
+function renderMarkedText(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  const re = /<u>([\s\S]*?)<\/u>/gi;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) {
+      nodes.push(<span key={`t${key++}`}>{text.slice(last, m.index)}</span>);
+    }
+    nodes.push(
+      <u key={`u${key++}`} className="underline decoration-slate-800">
+        {m[1]}
+      </u>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) {
+    nodes.push(<span key={`t${key++}`}>{text.slice(last)}</span>);
+  }
+  return nodes.length > 0 ? nodes : [text];
+}
+
+function formatAnswer(a: unknown): string {
+  if (a == null) return "-";
+  if (typeof a === "object" && a !== null) {
+    const o = a as Record<string, unknown>;
+    if (typeof o.display === "string") return o.display;
+    if (typeof o.choiceNumber === "number") {
+      return CIRCLED[o.choiceNumber - 1] ?? String(o.choiceNumber);
+    }
+    if (o.optionId != null) {
+      const n = Number(o.optionId);
+      if (n >= 1 && n <= 5) return CIRCLED[n - 1]!;
+      return String(o.optionId);
+    }
+  }
+  if (typeof a === "number" && a >= 1 && a <= 5) return CIRCLED[a - 1]!;
+  return typeof a === "string" ? a : JSON.stringify(a);
+}
 
 export function WorkbookPrintView({
   workbookTitle,
@@ -38,6 +83,11 @@ export function WorkbookPrintView({
   academyName?: string;
   logoSrc?: string;
 }) {
+  const allQuestions = steps.flatMap((s) =>
+    s.questions.map((q) => ({ ...q, stepTitle: s.title, stepOrder: s.stepOrder }))
+  );
+  const hasCsat = allQuestions.some((q) => q.type === "csat_mcq");
+
   return (
     <div className="min-h-screen bg-slate-100 print:bg-white">
       <div className="no-print sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-3">
@@ -56,7 +106,7 @@ export function WorkbookPrintView({
               window.location.href = url.toString();
             }}
           >
-            {showAnswers ? "문제지만 보기" : "정답 포함"}
+            {showAnswers ? "문제지만 보기" : "정답·해설 보기"}
           </Button>
           <Button type="button" size="sm" onClick={() => window.print()}>
             인쇄 / PDF 저장
@@ -66,189 +116,178 @@ export function WorkbookPrintView({
 
       <div
         id="exam-prep-print-root"
-        className="mx-auto max-w-[210mm] bg-white px-8 py-10 shadow-sm print:max-w-none print:shadow-none"
+        className="mx-auto max-w-[210mm] bg-white px-6 py-8 shadow-sm print:max-w-none print:px-8 print:py-6 print:shadow-none"
       >
-        <header className="mb-8 flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
-          <div>
-            <p className="text-xs font-semibold tracking-wide text-slate-500">
-              {academyName} · 내신대비학습
-            </p>
-            <h1 className="mt-1 text-xl font-bold text-slate-900">
-              {workbookTitle}
-            </h1>
-            <p className="mt-1 text-sm text-slate-600">지문: {passageTitle}</p>
+        <header className="mb-4 border-b-2 pb-2" style={{ borderColor: PURPLE }}>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold tracking-wide text-slate-500">
+                [{academyName}] 유형별 문제 · {workbookTitle}
+              </p>
+              <h1 className="mt-0.5 text-lg font-bold text-slate-900">
+                {passageTitle}
+              </h1>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoSrc} alt="" className="h-10 w-auto object-contain" />
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoSrc} alt="" className="h-12 w-auto object-contain" />
         </header>
 
-        <section className="mb-8 break-inside-avoid">
-          <h2 className="mb-2 text-sm font-bold text-slate-800">본문</h2>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
-            {passageText}
-          </p>
-        </section>
-
-        {steps.map((step) => (
-          <section
-            key={`${step.stepOrder}-${step.stepType}`}
-            className="mb-8 break-inside-avoid"
-          >
-            <h2 className="mb-3 border-b border-slate-100 pb-1 text-base font-bold text-slate-900">
-              {step.stepOrder}단계 ·{" "}
-              {step.title ||
-                EXAM_STEP_LABELS[step.stepType as ExamStepType] ||
-                step.stepType}
-            </h2>
-            <ol className="space-y-4">
-              {step.questions.map((q) => (
-                <li key={`${step.stepOrder}-${q.order}`} className="text-sm">
-                  <p className="font-medium text-slate-900">
-                    {q.order}. {q.text ?? q.type}
-                    <span className="ml-2 text-xs font-normal text-slate-400">
-                      ({q.points}점)
-                    </span>
-                  </p>
-                  <QuestionBody data={q.data} type={q.type} />
-                  {showAnswers && (
-                    <div className="mt-2 rounded-md bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
-                      <strong>정답:</strong>{" "}
-                      <code className="whitespace-pre-wrap">
-                        {stringifyAnswer(q.correctAnswer)}
-                      </code>
-                      {q.explanation ? (
-                        <p className="mt-1">해설: {q.explanation}</p>
-                      ) : null}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ol>
+        {!hasCsat && (
+          <section className="mb-6">
+            <h2 className="mb-2 text-sm font-bold text-slate-800">본문</h2>
+            <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-800">
+              {passageText}
+            </p>
           </section>
+        )}
+
+        {!showAnswers ? (
+          <div className="columns-1 gap-8 md:columns-2 print:columns-2 [column-rule:1px_solid_#e2e8f0]">
+            {allQuestions.map((q, idx) => (
+              <article
+                key={`${q.stepOrder}-${q.order}-${idx}`}
+                className="mb-5 break-inside-avoid"
+              >
+                <p
+                  className="mb-1 text-[13px] font-semibold"
+                  style={{ color: PURPLE }}
+                >
+                  {idx + 1}. {q.text}
+                </p>
+                {q.type === "csat_mcq" ? (
+                  <CsatQuestionBody data={q.data} />
+                ) : (
+                  <LegacyQuestionBody data={q.data} type={q.type} />
+                )}
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <h2
+              className="mb-4 text-xl font-bold"
+              style={{ color: "#0f172a", borderBottom: `2px solid ${PURPLE}` }}
+            >
+              정답 및 해설
+            </h2>
+            <div className="columns-1 gap-8 md:columns-2 print:columns-2">
+              {allQuestions.map((q, idx) => {
+                const summary = Array.isArray(q.data.passageSummary)
+                  ? (q.data.passageSummary as string[])
+                  : [];
+                return (
+                  <article
+                    key={`ans-${idx}`}
+                    className="mb-6 break-inside-avoid text-[12.5px] leading-relaxed"
+                  >
+                    <p className="mb-2 font-bold text-slate-900">
+                      {idx + 1}{" "}
+                      <span style={{ color: PURPLE }}>
+                        {formatAnswer(q.correctAnswer)}
+                      </span>
+                    </p>
+                    {summary.length > 0 && (
+                      <div className="mb-2">
+                        <p
+                          className="mb-1 font-semibold"
+                          style={{ color: PURPLE }}
+                        >
+                          ■ 지문 주요 내용 정리
+                        </p>
+                        <ul className="list-disc space-y-0.5 pl-5 text-slate-700">
+                          {summary.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {q.explanation ? (
+                      <div>
+                        <p
+                          className="mb-1 font-semibold"
+                          style={{ color: PURPLE }}
+                        >
+                          ■ 해설
+                        </p>
+                        <p className="whitespace-pre-wrap text-slate-700">
+                          {q.explanation}
+                        </p>
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {!showAnswers &&
+          steps.map((step) =>
+            step.questions.some((q) => q.type !== "csat_mcq") ? null : null
+          )}
+      </div>
+    </div>
+  );
+}
+
+function CsatQuestionBody({ data }: { data: Record<string, unknown> }) {
+  const passage = String(data.passageModified ?? data.passageOriginal ?? "");
+  const choices = (
+    Array.isArray(data.choices) ? data.choices : []
+  ) as Array<{ number?: number; text: string }>;
+  const shortChoices = choices.length > 0 && choices.every((c) => c.text.length <= 8);
+
+  return (
+    <div className="text-[12.5px] leading-relaxed text-slate-800">
+      <p className="mb-2 whitespace-pre-wrap font-serif">
+        {renderMarkedText(passage)}
+      </p>
+      <div
+        className={
+          shortChoices
+            ? "mt-2 flex flex-wrap gap-x-4 gap-y-1"
+            : "mt-2 space-y-1"
+        }
+      >
+        {choices.map((c, i) => (
+          <p key={i}>
+            {CIRCLED[(c.number ?? i + 1) - 1] ?? `${i + 1}.`} {c.text}
+          </p>
         ))}
       </div>
     </div>
   );
 }
 
-function QuestionBody({
+function LegacyQuestionBody({
   data,
   type,
 }: {
   data: Record<string, unknown>;
   type: string;
 }) {
-  if (type === "comprehension") {
+  if (type === "grammar_vocab_choice" && Array.isArray(data.options)) {
     return (
-      <div className="mt-1 space-y-1 text-slate-700">
-        {data.english ? (
-          <p className="whitespace-pre-wrap">{String(data.english)}</p>
-        ) : null}
-        {data.korean ? (
-          <p className="text-slate-500">{String(data.korean)}</p>
-        ) : null}
-      </div>
-    );
-  }
-  if (
-    type === "english_blank" ||
-    type === "korean_blank" ||
-    type === "verb_form"
-  ) {
-    return (
-      <div className="mt-1 space-y-1">
-        {data.englishHint ? (
-          <p className="font-mono text-xs text-slate-500">
-            {String(data.englishHint)}
-          </p>
-        ) : null}
-        {data.baseForm ? (
-          <p className="text-xs">기본형: {String(data.baseForm)}</p>
-        ) : null}
-        <p className="font-mono">{String(data.displayText ?? "")}</p>
-        <p className="text-slate-400">→ ________________</p>
-      </div>
-    );
-  }
-  if (type === "grammar_vocab_choice") {
-    const options = Array.isArray(data.options)
-      ? (data.options as Array<{ id: string; text: string }>)
-      : [];
-    return (
-      <div className="mt-1">
-        <p className="font-mono">{String(data.displayText ?? "")}</p>
-        <ul className="mt-1 list-none space-y-0.5 pl-1">
-          {options.map((o, i) => (
-            <li key={o.id}>
-              {String.fromCharCode(65 + i)}. {o.text}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-  if (type === "error_correction") {
-    return (
-      <p className="mt-1 font-mono text-slate-700">
-        {String(data.corruptedText ?? "")}
-      </p>
-    );
-  }
-  if (type === "translation_practice") {
-    return (
-      <p className="mt-1 font-mono">{String(data.english ?? "")}</p>
-    );
-  }
-  if (type === "sentence_order" || type === "paragraph_order") {
-    const items = Array.isArray(data.items)
-      ? (data.items as Array<{ id: string; text: string }>)
-      : [];
-    return (
-      <ul className="mt-1 list-disc space-y-0.5 pl-5">
-        {items.map((it) => (
-          <li key={it.id}>{it.text}</li>
+      <ul className="mt-1 space-y-1 text-[12.5px]">
+        {(data.options as { text: string }[]).map((o, i) => (
+          <li key={i}>
+            {CIRCLED[i] ?? `${i + 1}.`} {o.text}
+          </li>
         ))}
       </ul>
     );
   }
-  if (type === "writing") {
+  if (typeof data.displayText === "string") {
     return (
-      <div className="mt-1 text-slate-700">
-        {data.koreanPrompt ? <p>{String(data.koreanPrompt)}</p> : null}
-        {Array.isArray(data.cueWords) ? (
-          <p className="text-xs text-slate-500">
-            제시어: {(data.cueWords as string[]).join(" · ")}
-          </p>
-        ) : null}
-        <p className="mt-2 text-slate-400">→ _______________________________</p>
-      </div>
+      <p className="mt-1 font-mono text-[12.5px] text-slate-700">
+        {data.displayText}
+      </p>
     );
   }
-  return null;
-}
-
-function stringifyAnswer(v: unknown): string {
-  if (v == null) return "-";
-  if (typeof v === "string") return v;
-  if (typeof v === "object" && v !== null && "text" in v) {
-    return String((v as { text: unknown }).text ?? "");
-  }
-  if (typeof v === "object" && v !== null && "optionId" in v) {
-    return String((v as { optionId: unknown }).optionId);
-  }
-  if (typeof v === "object" && v !== null && "blanks" in v) {
-    const blanks = (v as { blanks: Array<{ id?: string; answer?: string }> })
-      .blanks;
-    if (Array.isArray(blanks)) {
-      return blanks.map((b) => b.answer ?? "").filter(Boolean).join(", ");
-    }
-  }
-  if (typeof v === "object" && v !== null && "order" in v) {
-    return JSON.stringify((v as { order: unknown }).order);
-  }
-  try {
-    return JSON.stringify(v);
-  } catch {
-    return String(v);
-  }
+  return (
+    <p className="mt-1 text-[11px] text-slate-400">
+      {EXAM_STEP_LABELS[type as ExamStepType] ?? type}
+    </p>
+  );
 }

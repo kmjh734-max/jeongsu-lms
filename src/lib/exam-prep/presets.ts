@@ -14,74 +14,73 @@ export type ExamStepDraft = {
   settings: Record<string, unknown>;
 };
 
-/** PDF WORKBOOK 1~10 단계 정의 */
-export const WORKBOOK_10_STEPS: Array<{
+/**
+ * 첨부 PDF(유형별 변형문제) 기준 4개 세트.
+ * settings.optionKeys = question-generator 옵션 키.
+ */
+export const WORKBOOK_VARIANT_STEPS: Array<{
   number: number;
   step_type: ExamStepType;
   label: string;
   shortLabel: string;
+  optionKeys: string[];
 }> = [
   {
     number: 1,
-    step_type: "comprehension",
-    label: "1단계 · 지문 연습하기 (본문 이해)",
-    shortLabel: "지문 연습",
+    step_type: "variant_grammar_vocab",
+    label: "1세트 · 어법·어휘",
+    shortLabel: "어법·어휘",
+    optionKeys: [
+      "grammar:na:default:어법개수",
+      "vocabulary:na:default:어휘추론",
+      "grammar:na:default:어법추론",
+      "vocabulary:na:default:어휘개수",
+    ],
   },
   {
     number: 2,
-    step_type: "korean_blank",
-    label: "2단계 · 빈칸 완성하기 (우리말)",
-    shortLabel: "우리말 빈칸",
+    step_type: "variant_main_idea",
+    label: "2세트 · 대의 파악 (주제·제목·요지)",
+    shortLabel: "대의 파악",
+    optionKeys: [
+      "topic:en:high:주제추론",
+      "title:en:high:제목추론",
+      "summary_mcq:ko:high:요지추론",
+      "summary_mcq:en:default:요지추론",
+    ],
   },
   {
     number: 3,
-    step_type: "english_blank",
-    label: "3단계 · 빈칸 완성하기 (영문)",
-    shortLabel: "영문 빈칸",
+    step_type: "variant_details",
+    label: "3세트 · 세부·함축",
+    shortLabel: "세부·함축",
+    optionKeys: [
+      "content_false:ko:high:내용불일치",
+      "content_false:en:high:내용불일치",
+      "underlined_inference:en:default:함축의미추론",
+    ],
   },
   {
     number: 4,
-    step_type: "translation_practice",
-    label: "4단계 · 해석 연습하기",
-    shortLabel: "해석 연습",
-  },
-  {
-    number: 5,
-    step_type: "verb_form",
-    label: "5단계 · 동사형 연습하기",
-    shortLabel: "동사형",
-  },
-  {
-    number: 6,
-    step_type: "grammar_vocab_choice",
-    label: "6단계 · 어법·어휘 고르기",
-    shortLabel: "어법·어휘",
-  },
-  {
-    number: 7,
-    step_type: "error_correction",
-    label: "7단계 · 어색한 곳 찾아 고쳐 쓰기",
-    shortLabel: "고쳐 쓰기",
-  },
-  {
-    number: 8,
-    step_type: "sentence_order",
-    label: "8단계 · 순서 배열하기",
-    shortLabel: "문장 배열",
-  },
-  {
-    number: 9,
-    step_type: "paragraph_order",
-    label: "9단계 · 문단 배열하기",
-    shortLabel: "문단 배열",
-  },
-  {
-    number: 10,
-    step_type: "writing",
-    label: "10단계 · 영작 연습하기",
-    shortLabel: "영작",
+    step_type: "variant_inference",
+    label: "4세트 · 추론 (삽입·무관·어법·어휘)",
+    shortLabel: "추론",
+    optionKeys: [
+      "sentence_insertion:na:high:문장삽입",
+      "irrelevant_sentence:na:high:무관한문장",
+      "grammar:na:default:어법추론",
+      "vocabulary:na:default:어휘추론",
+    ],
   },
 ];
+
+/** @deprecated 구 10단계 — 하위호환용 별칭 */
+export const WORKBOOK_10_STEPS = WORKBOOK_VARIANT_STEPS.map((s) => ({
+  number: s.number,
+  step_type: s.step_type,
+  label: s.label,
+  shortLabel: s.shortLabel,
+}));
 
 function step(
   type: ExamStepType,
@@ -91,60 +90,62 @@ function step(
   return {
     step_type: type,
     step_order: order,
-    title: opts?.title ?? EXAM_STEP_LABELS[type],
+    title: opts?.title ?? EXAM_STEP_LABELS[type] ?? type,
     difficulty: "medium",
-    passing_score: type === "comprehension" ? 0 : 70,
+    passing_score: 60,
     is_required: true,
     sequential_unlock: true,
-    max_attempts: type === "comprehension" ? 1 : 3,
+    max_attempts: 3,
     show_answer_policy: "after_submit",
     settings: {},
     ...opts,
   };
 }
 
-/** 선택한 단계 번호(1~10)로 워크북 단계 구성 */
+/** 선택한 세트 번호(1~4)로 워크북 단계 구성 */
 export function buildStepsFromNumbers(numbers: number[]): ExamStepDraft[] {
   const unique = [...new Set(numbers)]
-    .filter((n) => n >= 1 && n <= 10)
+    .filter((n) => n >= 1 && n <= 4)
     .sort((a, b) => a - b);
   return unique.map((n, i) => {
-    const def = WORKBOOK_10_STEPS.find((s) => s.number === n)!;
+    const def = WORKBOOK_VARIANT_STEPS.find((s) => s.number === n)!;
     return step(def.step_type, i + 1, {
-      title: `${n}단계 · ${def.shortLabel}`,
-      settings: { workbookStepNumber: n },
+      title: `${n}세트 · ${def.shortLabel}`,
+      settings: {
+        workbookStepNumber: n,
+        optionKeys: def.optionKeys,
+        format: "csat_variant",
+      },
     });
   });
 }
 
-/** 빠른 설정 프리셋 → 단계 번호 */
 export const EXAM_PRESET_STEP_NUMBERS: Record<
   Exclude<ExamPresetType, "custom">,
   number[]
 > = {
-  basic: [1, 3, 6, 8, 10],
-  memorize: [1, 3, 10],
-  exam_eve: [6, 7, 8, 9, 10],
+  basic: [1, 2, 3],
+  memorize: [2],
+  exam_eve: [1, 2, 3, 4],
 };
 
-/** 빠른 설정 프리셋 */
 export const EXAM_PRESETS: Record<
   Exclude<ExamPresetType, "custom">,
   { label: string; description: string; steps: ExamStepDraft[] }
 > = {
   basic: {
-    label: "기본 코스",
-    description: "1·3·6·8·10단계",
+    label: "기본 세트",
+    description: "어법·어휘 + 대의 + 세부",
     steps: buildStepsFromNumbers(EXAM_PRESET_STEP_NUMBERS.basic),
   },
   memorize: {
-    label: "집중 암기 코스",
-    description: "1·3·10단계",
+    label: "대의 집중",
+    description: "주제·제목·요지",
     steps: buildStepsFromNumbers(EXAM_PRESET_STEP_NUMBERS.memorize),
   },
   exam_eve: {
-    label: "시험 직전 코스",
-    description: "6·7·8·9·10단계",
+    label: "시험 직전 (PDF형)",
+    description: "첨부 PDF와 같은 유형 전체",
     steps: buildStepsFromNumbers(EXAM_PRESET_STEP_NUMBERS.exam_eve),
   },
 };
@@ -156,4 +157,8 @@ export function getPresetSteps(
     ...s,
     step_order: i + 1,
   }));
+}
+
+export function isVariantStepType(stepType: string): boolean {
+  return stepType.startsWith("variant_");
 }

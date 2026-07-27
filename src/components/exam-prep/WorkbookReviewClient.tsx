@@ -105,7 +105,7 @@ export function WorkbookReviewClient({
   async function generateAll() {
     if (
       !confirm(
-        "전체 단계 문항을 다시 생성합니다. 기존 문항이 덮어씌워집니다. 계속할까요?"
+        "유형별 변형문제(PDF형)를 AI로 생성합니다. 기존 문항이 있으면 덮어씁니다. 크레딧이 차감됩니다."
       )
     ) {
       return;
@@ -186,7 +186,7 @@ export function WorkbookReviewClient({
                 disabled={loading}
                 onClick={generateAll}
               >
-                문항 전체 생성
+                AI로 문항 생성 (PDF형)
               </Button>
               <Button type="button" disabled={loading} onClick={approve}>
                 승인
@@ -272,7 +272,10 @@ export function WorkbookReviewClient({
           </div>
 
           {stepQuestions.length === 0 ? (
-            <p className="text-sm text-slate-500">이 단계에 문항이 없습니다.</p>
+            <p className="text-sm text-slate-500">
+              이 세트에 문항이 없습니다. 상단 「AI로 문항 생성 (PDF형)」을
+              눌러 주세요.
+            </p>
           ) : (
             <ul className="space-y-3">
               {stepQuestions.map((q) => {

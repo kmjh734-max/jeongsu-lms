@@ -467,7 +467,7 @@ export async function createWorkbookAction(raw: unknown) {
     data.step_numbers && data.step_numbers.length > 0
       ? buildStepsFromNumbers(data.step_numbers)
       : preset === "custom"
-        ? buildStepsFromNumbers([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+        ? buildStepsFromNumbers([1, 2, 3, 4])
         : getPresetSteps(preset);
 
   if (steps.length === 0) {
@@ -519,6 +519,9 @@ export async function createWorkbookAction(raw: unknown) {
       .select("id")
       .single();
     if (stepErr || !stepRow) continue;
+
+    // 변형 세트는 검수 화면에서 AI 생성 (규칙 폴백 없음)
+    if (String(st.step_type).startsWith("variant_")) continue;
 
     const questions = generateRuleBasedQuestions(
       st.step_type as ExamStepType,
@@ -635,6 +638,12 @@ export async function regenerateStepQuestionsAction(stepId: string) {
     };
   }
 
+  const { data: passageMeta } = await supabase
+    .from("exam_passages")
+    .select("original_text, grade, title")
+    .eq("id", wb.passage_id)
+    .maybeSingle();
+
   const { data: sentences } = await supabase
     .from("exam_passage_sentences")
     .select("*")
@@ -646,10 +655,21 @@ export async function regenerateStepQuestionsAction(stepId: string) {
     .delete()
     .eq("step_id", stepId);
 
+  const sentenceRows = (sentences ?? []) as ExamPassageSentence[];
+  const passageText =
+    (passageMeta?.original_text as string | undefined)?.trim() ||
+    sentenceRows.map((s) => s.english_text).join(" ");
+
   const generated = await generateStepQuestionsWithAi(
     step.step_type as ExamStepType,
-    (sentences ?? []) as ExamPassageSentence[],
-    step.difficulty ?? "medium"
+    sentenceRows,
+    step.difficulty ?? "medium",
+    {
+      passageText,
+      settings: (step.settings ?? {}) as Record<string, unknown>,
+      grade: (passageMeta?.grade as string | null) ?? "고1",
+      sourceDetail: (passageMeta?.title as string | null) ?? undefined,
+    }
   );
   const questions = generated.questions;
 

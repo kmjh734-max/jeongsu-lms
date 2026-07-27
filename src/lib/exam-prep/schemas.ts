@@ -49,11 +49,11 @@ export const createWorkbookSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().optional().nullable(),
   preset_type: z.enum(["basic", "memorize", "exam_eve", "custom"]).optional(),
-  /** PDF 1~10단계 중 사용할 번호 (우선) */
+  /** PDF형 변형 세트 1~4 (우선) */
   step_numbers: z
-    .array(z.number().int().min(1).max(10))
+    .array(z.number().int().min(1).max(4))
     .min(1)
-    .max(10)
+    .max(4)
     .optional(),
 });
 
