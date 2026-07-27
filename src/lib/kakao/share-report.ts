@@ -56,47 +56,41 @@ export type KakaoShareResult =
 
 export { buildKakaoPasteMessage, KAKAO_PRODUCT_LINK_HINT, validateShareUrlForKakao };
 
-/** 카카오 기본 텍스트 템플릿 표시 한도 (초과 시 잘림 → 본문 URL 404) */
+/** 카카오 기본 텍스트 템플릿 표시 한도 */
 export const KAKAO_TEXT_MAX_CHARS = 200;
 
 /**
- * 카카오 SDK text 본문용.
- * - 본문 URL은 제거(링크는 button/link 객체만 사용)
- * - 200자 초과 시 안전하게 자름 (잘린 URL 방지)
+ * 카카오 text 본문: 안내문 + 완전한 URL.
+ * 200자 제한에 URL이 잘리지 않도록 본문만 줄이고 링크는 항상 끝에 온전히 붙인다.
  */
 export function buildKakaoSdkTextBody(
   raw: string,
-  options?: { buttonTitle?: string; fallback?: string }
+  shareUrl: string
 ): string {
-  const buttonLabel = (options?.buttonTitle ?? "자세히 보기").trim() || "자세히 보기";
-  const fallback =
-    options?.fallback?.trim() ||
-    `리포트를 확인해 주세요.\n아래 「${buttonLabel}」에서 열 수 있습니다.`;
-
-  let text = raw
+  const url = shareUrl.trim();
+  let body = raw
     .replace(/https?:\/\/\S+/gi, "")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-  if (!text) text = fallback;
-
-  // 본문에서 링크를 지웠다면 버튼으로 안내
-  if (/https?:\/\/\S+/i.test(raw) && !text.includes(buttonLabel)) {
-    const hint = `\n\n아래 「${buttonLabel}」에서 확인해 주세요.`;
-    const chars = [...text];
-    const hintChars = [...hint];
-    if (chars.length + hintChars.length <= KAKAO_TEXT_MAX_CHARS) {
-      text = `${text}${hint}`;
-    } else {
-      const keep = Math.max(0, KAKAO_TEXT_MAX_CHARS - hintChars.length - 1);
-      text = `${chars.slice(0, keep).join("").trimEnd()}…${hint}`;
-    }
+  if (!url) {
+    const chars = [...body];
+    if (chars.length <= KAKAO_TEXT_MAX_CHARS) return body;
+    return `${chars.slice(0, KAKAO_TEXT_MAX_CHARS - 1).join("").trimEnd()}…`;
   }
 
-  const chars = [...text];
-  if (chars.length <= KAKAO_TEXT_MAX_CHARS) return text;
-  return `${chars.slice(0, KAKAO_TEXT_MAX_CHARS - 1).join("").trimEnd()}…`;
+  const sep = "\n\n";
+  const reserved = [...url].length + [...sep].length;
+  const maxBody = Math.max(0, KAKAO_TEXT_MAX_CHARS - reserved);
+  const bodyChars = [...body];
+  const clipped =
+    bodyChars.length > maxBody
+      ? `${bodyChars.slice(0, Math.max(0, maxBody - 1)).join("").trimEnd()}…`
+      : body;
+
+  if (!clipped) return url.slice(0, KAKAO_TEXT_MAX_CHARS);
+  return `${clipped}${sep}${url}`;
 }
 
 /** 카카오톡 채팅에 붙여넣기용 (링크가 일반 URL로 인식되어 항상 탭 가능) */
@@ -119,20 +113,23 @@ export async function copyKakaoPasteMessage(
 
 function buildTextPayload(params: KakaoShareParams): Record<string, unknown> {
   const shareUrl = normalizeShareUrl(params.shareUrl);
-  const buttonTitle = params.buttonTitle ?? "리포트 보기";
   const raw =
     params.pasteMessage ??
     buildKakaoPasteMessage({ ...params, shareUrl });
-  const text = buildKakaoSdkTextBody(raw, { buttonTitle });
-  return {
+  const text = buildKakaoSdkTextBody(raw, shareUrl);
+  const payload: Record<string, unknown> = {
     objectType: "text",
     text,
     link: {
       mobileWebUrl: shareUrl,
       webUrl: shareUrl,
     },
-    buttonTitle,
   };
+  // 기본 「자세히 보기」 유지. 커스텀 제목이 있을 때만 덮어씀.
+  if (params.buttonTitle?.trim()) {
+    payload.buttonTitle = params.buttonTitle.trim();
+  }
+  return payload;
 }
 
 function buildFeedPayload(
@@ -200,9 +197,7 @@ function trySend(fn: () => void): { ok: true } | { ok: false; error?: unknown } 
 }
 
 /**
- * 카카오톡 공유 — feed(버튼 링크) → text(본문 URL 없음) → scrap 순.
- * 긴 안내문을 text에 넣으면 200자에서 URL이 잘려 404가 나므로,
- * 카드/버튼 링크를 우선하고 text 본문에서는 URL을 넣지 않는다.
+ * 카카오톡 공유 — text(안내문+온전한 URL) → scrap → feed 순.
  */
 export async function shareReportViaKakao(
   params: KakaoShareParams
@@ -229,20 +224,6 @@ export async function shareReportViaKakao(
 
   const kakao = window.Kakao!;
 
-  const feedImageResult = trySend(() =>
-    kakao.Share.sendDefault(buildFeedPayload(params, true))
-  );
-  if (feedImageResult.ok) {
-    return { ok: true, method: "feed" };
-  }
-
-  const feedResult = trySend(() =>
-    kakao.Share.sendDefault(buildFeedPayload(params, false))
-  );
-  if (feedResult.ok) {
-    return { ok: true, method: "feed" };
-  }
-
   const textResult = trySend(() =>
     kakao.Share.sendDefault(buildTextPayload(params))
   );
@@ -259,6 +240,20 @@ export async function shareReportViaKakao(
   );
   if (scrapResult.ok) {
     return { ok: true, method: "scrap" };
+  }
+
+  const feedImageResult = trySend(() =>
+    kakao.Share.sendDefault(buildFeedPayload(params, true))
+  );
+  if (feedImageResult.ok) {
+    return { ok: true, method: "feed" };
+  }
+
+  const feedResult = trySend(() =>
+    kakao.Share.sendDefault(buildFeedPayload(params, false))
+  );
+  if (feedResult.ok) {
+    return { ok: true, method: "feed" };
   }
 
   const feedErr = formatKakaoShareError(feedImageResult.error ?? feedResult.error);

@@ -161,12 +161,8 @@ export function ReportShareActions({
       });
 
       if (result.ok) {
-        const hint =
-          result.method === "text"
-            ? "본문에 URL이 없어도 「리포트 보기」버튼으로 열 수 있습니다."
-            : "카드의 「리포트 보기」버튼으로 열어 주세요. 긴 안내문은 「카카오 붙여넣기용 복사」를 사용하세요.";
         showStatus(
-          `카카오톡 공유 창이 열렸습니다. 보낼 채팅방을 선택해 주세요. ${hint}`
+          "카카오톡 공유 창이 열렸습니다. 보낼 채팅방을 선택해 주세요."
         );
       } else if (result.fallback) {
         setShareUrl(url);
