@@ -18,12 +18,11 @@ export type ExamStepType =
   | "sentence_order"
   | "paragraph_order"
   | "writing"
-  /** PDF 유형별 변형문제 세트 */
+  /** 하위 호환 (이전 변형세트 실험) */
   | "variant_grammar_vocab"
   | "variant_main_idea"
   | "variant_details"
   | "variant_inference"
-  /** 개별 문항 유형 (세트 안에 저장) */
   | "csat_mcq";
 
 export type ExamAssignmentStudentStatus =
@@ -50,16 +49,16 @@ export type ExamShowAnswerPolicy =
 export type ExamPresetType = "basic" | "memorize" | "exam_eve" | "custom";
 
 export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
-  comprehension: "본문 이해",
-  korean_blank: "우리말 해석 빈칸",
-  english_blank: "영문 빈칸",
-  translation_practice: "해석 연습",
-  verb_form: "동사형 연습",
+  comprehension: "지문 연습하기",
+  korean_blank: "빈칸 완성하기(우리말)",
+  english_blank: "빈칸 완성하기(영문)",
+  translation_practice: "해석 연습하기",
+  verb_form: "동사형 연습하기",
   grammar_vocab_choice: "어법·어휘 고르기",
-  error_correction: "어색한 곳 고쳐 쓰기",
-  sentence_order: "문장 순서 배열",
-  paragraph_order: "문장·문단 배열",
-  writing: "서술형 영작",
+  error_correction: "어색한 곳 찾기",
+  sentence_order: "순서 배열하기",
+  paragraph_order: "문단 배열하기",
+  writing: "영작 연습하기",
   variant_grammar_vocab: "어법·어휘 (변형)",
   variant_main_idea: "대의 파악 (변형)",
   variant_details: "세부·함축 (변형)",
@@ -67,12 +66,18 @@ export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
   csat_mcq: "유형별 객관식",
 };
 
-/** 기본으로 사용하는 변형 세트 */
+/** 인천 10단계 WORKBOOK */
 export const MVP_STEP_TYPES: ExamStepType[] = [
-  "variant_grammar_vocab",
-  "variant_main_idea",
-  "variant_details",
-  "variant_inference",
+  "comprehension",
+  "korean_blank",
+  "english_blank",
+  "translation_practice",
+  "verb_form",
+  "grammar_vocab_choice",
+  "error_correction",
+  "sentence_order",
+  "paragraph_order",
+  "writing",
 ];
 
 export type ExamPassage = {

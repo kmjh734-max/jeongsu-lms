@@ -1,4 +1,5 @@
 import type { ExamPassageSentence, ExamStepType } from "@/lib/exam-prep/types";
+import { workbookPromptForStepType } from "@/lib/exam-prep/presets";
 
 export type GeneratedQuestionDraft = {
   sentence_id: string | null;
@@ -13,6 +14,10 @@ export type GeneratedQuestionDraft = {
   points: number;
   ai_generated: boolean;
 };
+
+function stepPrompt(stepType: string, fallback: string): string {
+  return workbookPromptForStepType(stepType) ?? fallback;
+}
 
 const STOP = new Set([
   "the",
@@ -141,7 +146,10 @@ function buildEnglishBlank(
     sentence_id: sentence.id,
     question_type: "english_blank",
     question_order: order,
-    question_text: "우리말 해석을 참고하여 영문 빈칸을 채우세요.",
+    question_text: stepPrompt(
+      "english_blank",
+      "우리말 해석을 읽고 영문의 빈칸을 완성해 보세요."
+    ),
     question_data: {
       displayText: displayParts.join(" "),
       koreanHint: sentence.korean_text,
@@ -215,7 +223,10 @@ function buildGrammarChoice(
     sentence_id: sentence.id,
     question_type: "grammar_vocab_choice",
     question_order: order,
-    question_text: "문맥에 알맞은 표현을 고르세요.",
+    question_text: stepPrompt(
+      "grammar_vocab_choice",
+      "괄호 안에서 옳은 어법과 어휘를 골라 보세요."
+    ),
     question_data: {
       displayText: display,
       options,
@@ -258,7 +269,10 @@ function buildSentenceOrder(
     sentence_id: sentence.id,
     question_type: "sentence_order",
     question_order: order,
-    question_text: "조각을 올바른 순서로 배열하세요.",
+    question_text: stepPrompt(
+      "sentence_order",
+      "우리말과 같은 뜻이 되도록 주어진 단어를 바르게 배열해 보세요."
+    ),
     question_data: {
       items,
       correctOrder,
@@ -284,7 +298,10 @@ function buildWriting(
     sentence_id: sentence.id,
     question_type: "writing",
     question_order: order,
-    question_text: "제시어를 사용하여 영어 문장을 쓰세요.",
+    question_text: stepPrompt(
+      "writing",
+      "우리말과 같은 뜻이 되도록 주어진 단어를 순서대로 사용하여 영작하세요."
+    ),
     question_data: {
       koreanPrompt: sentence.korean_text ?? "(해석 없음)",
       cueWords: cues,
@@ -306,7 +323,10 @@ function buildComprehension(
     sentence_id: sentence.id,
     question_type: "comprehension",
     question_order: order,
-    question_text: "영문과 해석을 읽고 이해했으면 확인하세요.",
+    question_text: stepPrompt(
+      "comprehension",
+      "영문과 해석을 읽고 문장의 의미를 이해해 보세요."
+    ),
     question_data: {
       english: sentence.english_text,
       korean: sentence.korean_text,
@@ -367,7 +387,10 @@ function buildKoreanBlank(
     sentence_id: sentence.id,
     question_type: "korean_blank",
     question_order: order,
-    question_text: "영문을 보고 우리말 해석의 빈칸을 채우세요.",
+    question_text: stepPrompt(
+      "korean_blank",
+      "영문을 읽고 우리말 해석의 빈칸을 완성해 보세요."
+    ),
     question_data: {
       displayText: display.join(" "),
       englishHint: sentence.english_text,
@@ -390,7 +413,10 @@ function buildTranslationPractice(
     sentence_id: sentence.id,
     question_type: "translation_practice",
     question_order: order,
-    question_text: "영어 문장을 우리말로 해석하세요.",
+    question_text: stepPrompt(
+      "translation_practice",
+      "문장 전체의 자연스러운 해석을 써 보세요."
+    ),
     question_data: {
       english: sentence.english_text,
     },
@@ -549,7 +575,10 @@ function buildVerbForm(
     sentence_id: sentence.id,
     question_type: "verb_form",
     question_order: order,
-    question_text: `동사 기본형 [${t.base}] 를 문맥에 맞게 활용하세요.`,
+    question_text: stepPrompt(
+      "verb_form",
+      "괄호 안에 주어진 단어를 알맞게 고쳐 쓰세요."
+    ),
     question_data: {
       displayText: display.join(" "),
       baseForm: t.base,
@@ -640,7 +669,10 @@ function buildErrorCorrection(
     sentence_id: sentence.id,
     question_type: "error_correction",
     question_order: order,
-    question_text: "어색한 부분을 찾아 올바른 문장으로 고쳐 쓰세요.",
+    question_text: stepPrompt(
+      "error_correction",
+      "밑줄 친 부분 중 어법상 어색한 것을 세 개 찾아 알맞게 고쳐 쓰세요."
+    ),
     question_data: {
       corruptedText: corrupted.join(" "),
       koreanHint: sentence.korean_text,
@@ -673,7 +705,10 @@ function buildParagraphOrder(
     sentence_id: null,
     question_type: "paragraph_order",
     question_order: order,
-    question_text: "문장(문단)을 흐름에 맞게 배열하세요.",
+    question_text: stepPrompt(
+      "paragraph_order",
+      "다음 문단을 흐름상 알맞게 배열해 보세요."
+    ),
     question_data: {
       items,
       correctOrder,

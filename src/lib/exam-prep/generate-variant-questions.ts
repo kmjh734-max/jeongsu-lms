@@ -1,20 +1,48 @@
 import { analyzePassage } from "@/lib/question-generator/analyze-passage";
 import { generateOneQuestion, SkipQuestionError } from "@/lib/question-generator/generate-question";
 import { findAingkaOption } from "@/lib/question-generator/question-types";
-import { WORKBOOK_VARIANT_STEPS } from "@/lib/exam-prep/presets";
 import type { GeneratedQuestionDraft } from "@/lib/exam-prep/generate-rule-questions";
 import type { ExamStepType } from "@/lib/exam-prep/types";
+
+/** 하위 호환: 예전 variant_* 단계용 기본 유형 키 */
+const LEGACY_VARIANT_KEYS: Record<string, string[]> = {
+  variant_grammar_vocab: [
+    "grammar:na:default:어법개수",
+    "vocabulary:na:default:어휘추론",
+    "grammar:na:default:어법추론",
+    "vocabulary:na:default:어휘개수",
+  ],
+  variant_main_idea: [
+    "topic:en:high:주제추론",
+    "title:en:high:제목추론",
+    "summary_mcq:ko:high:요지추론",
+    "summary_mcq:en:default:요지추론",
+  ],
+  variant_details: [
+    "content_false:ko:high:내용불일치",
+    "content_false:en:high:내용불일치",
+    "underlined_inference:en:default:함축의미추론",
+  ],
+  variant_inference: [
+    "sentence_insertion:na:high:문장삽입",
+    "irrelevant_sentence:na:high:무관한문장",
+    "grammar:na:default:어법추론",
+    "vocabulary:na:default:어휘추론",
+  ],
+};
 
 function optionKeysForStep(
   stepType: string,
   settings?: Record<string, unknown> | null
 ): string[] {
   const fromSettings = settings?.optionKeys;
-  if (Array.isArray(fromSettings) && fromSettings.every((x) => typeof x === "string")) {
+  if (
+    Array.isArray(fromSettings) &&
+    fromSettings.every((x) => typeof x === "string")
+  ) {
     return fromSettings as string[];
   }
-  const pack = WORKBOOK_VARIANT_STEPS.find((s) => s.step_type === stepType);
-  return pack?.optionKeys ?? [];
+  return LEGACY_VARIANT_KEYS[stepType] ?? [];
 }
 
 function circledAnswer(n: number): string {

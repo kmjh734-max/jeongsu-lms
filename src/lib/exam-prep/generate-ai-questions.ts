@@ -3,6 +3,7 @@ import {
   generateRuleBasedQuestions,
   type GeneratedQuestionDraft,
 } from "@/lib/exam-prep/generate-rule-questions";
+import { workbookPromptForStepType } from "@/lib/exam-prep/presets";
 import { EXAM_STEP_LABELS, type ExamPassageSentence, type ExamStepType } from "@/lib/exam-prep/types";
 
 type AiQuestionRaw = {
@@ -28,30 +29,32 @@ function sentencePayload(sentences: ExamPassageSentence[]) {
 
 function systemPrompt(stepType: ExamStepType): string {
   const label = EXAM_STEP_LABELS[stepType] ?? stepType;
-  return `당신은 한국 중고등 영어 내신 대비 문제 출제 전문가다.
-단계 유형: ${stepType} (${label})
+  const workbookPrompt =
+    workbookPromptForStepType(stepType) ?? "문제를 풀어 보세요.";
+  return `당신은 인천광역시 교육청 학력평가 10단계 WORKBOOK 형식의 내신 대비 출제 전문가다.
+단계: ${stepType} (${label})
+학생 발문(그대로 questionText에 사용): "${workbookPrompt}"
 
 절대 규칙:
-1. 원문(english) 문장 내용을 바꾸거나 요약·의역해 새 지문을 만들지 않는다.
-2. 빈칸/배열/오류는 제공된 문장만 사용해 출제한다.
-3. 반드시 JSON만 출력한다. 형식: {"questions":[...]}
-4. sentenceId는 입력 문장 id만 사용한다. 해당 없으면 null.
-5. 학생용 questionData에는 정답 문자열을 노출하지 말 것. 정답은 correctAnswer / blanks[].answer 에만.
+1. 원문(english)을 바꾸거나 새 지문을 만들지 않는다. 제공 문장만 사용.
+2. 반드시 JSON만: {"questions":[...]}
+3. sentenceId는 입력 문장 id만. paragraph_order는 null 가능.
+4. questionText는 위 학생 발문을 우선 사용.
+5. 학생용 questionData에 정답 문자열을 넣지 말 것.
 
-유형별 questionData 스키마:
-- comprehension: { english, korean, vocabulary?, grammar_points? }, correctAnswer: { confirmed: true }
-- korean_blank: { displayText(우리말 빈칸), englishHint, blanks:[{id,answer,acceptableAnswers}] }
+스키마:
+- comprehension: { english, korean, vocabulary?, grammar_points? }, correctAnswer:{confirmed:true}
+- korean_blank: { displayText(우리말 ____), englishHint, blanks:[{id,answer,acceptableAnswers}] }
 - english_blank: { displayText(영문 ____), koreanHint, blanks:[...] }
-- translation_practice: { english }, correctAnswer: { text: 우리말 }, acceptableAnswers: string[]
-- verb_form: { displayText, baseForm, koreanHint?, blanks:[{id,answer,acceptableAnswers}] }
-- grammar_vocab_choice: { displayText, options:[{id,text}] 4개, choiceKind:"grammar"|"vocab" }, correctAnswer: { optionId }
-- error_correction: { corruptedText, koreanHint? }, correctAnswer: { text: 올바른 원문 }
-- sentence_order: { items:[{id,text}], koreanHint? }, correctAnswer: { order: string[] }
-- paragraph_order: { items:[{id,text}], mode:"sentence" }, correctAnswer: { order: string[] } (문장 여러 개 배열, sentenceId null)
-- writing: { koreanPrompt, cueWords:string[] }, correctAnswer: { text: 원문 영문 }
+- translation_practice: { english }, correctAnswer:{text:우리말}
+- verb_form: { displayText(동사 자리를 (  ) 또는 ____), baseForm, blanks:[{id,answer}] }
+- grammar_vocab_choice: { displayText(괄호 선택형), options:[{id,text}] 정확히 2~4개, choiceKind }, correctAnswer:{optionId}
+- error_correction: HWP 7단계처럼 한 문장에 오류 밑줄 여러 개. { corruptedText, fixTargets:[{wrong,correct}] }, correctAnswer:{ text:원문, fixes:[...] }. 가능하면 어색한 곳 3개.
+- sentence_order: { items:[{id,text}], koreanHint }, correctAnswer:{order:[]}
+- paragraph_order: { items:[{id,text}], mode:"sentence" }, correctAnswer:{order:[]}
+- writing: { koreanPrompt, cueWords:string[] }, correctAnswer:{text:원문}
 
-문항 수: 문장이 많으면 핵심 5~12개. paragraph_order는 보통 1문항. comprehension은 문장마다 1개도 가능.
-난이도에 맞게 빈칸 수·오답 매력도를 조절한다.`;
+문항 수: 문장별 출제(핵심 문장 우선). paragraph_order는 1문항.`;
 }
 
 function normalizeAiQuestions(
@@ -126,30 +129,11 @@ function normalizeAiQuestions(
 }
 
 function defaultPrompt(stepType: ExamStepType): string {
-  switch (stepType) {
-    case "comprehension":
-      return "영문과 해석을 읽고 이해했으면 확인하세요.";
-    case "korean_blank":
-      return "영문을 보고 우리말 해석의 빈칸을 채우세요.";
-    case "english_blank":
-      return "우리말 해석을 참고하여 영문 빈칸을 채우세요.";
-    case "translation_practice":
-      return "영어 문장을 우리말로 해석하세요.";
-    case "verb_form":
-      return "동사 기본형을 문맥에 맞게 활용하세요.";
-    case "grammar_vocab_choice":
-      return "문맥에 알맞은 표현을 고르세요.";
-    case "error_correction":
-      return "어색한 부분을 찾아 올바른 문장으로 고쳐 쓰세요.";
-    case "sentence_order":
-      return "조각을 올바른 순서로 배열하세요.";
-    case "paragraph_order":
-      return "문장(문단)을 흐름에 맞게 배열하세요.";
-    case "writing":
-      return "제시어를 사용하여 영어 문장을 쓰세요.";
-    default:
-      return "문제를 풀어 주세요.";
-  }
+  return (
+    workbookPromptForStepType(stepType) ??
+    EXAM_STEP_LABELS[stepType] ??
+    "문제를 풀어 주세요."
+  );
 }
 
 function defaultPoints(stepType: ExamStepType): number {

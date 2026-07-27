@@ -27,7 +27,7 @@ export default async function AdminExamPrepWorkbookNewPage() {
     <div>
       <PageHeader
         title="워크북 생성"
-        description="등록한 지문으로 PDF형 유형별 변형문제 세트를 만듭니다."
+        description="인천 학평 10단계 WORKBOOK 형식으로 단계를 선택합니다."
       />
       <ExamPrepStaffNav basePath={BASE} current="workbooks" />
       <WorkbookCreateForm

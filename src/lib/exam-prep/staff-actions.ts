@@ -467,7 +467,7 @@ export async function createWorkbookAction(raw: unknown) {
     data.step_numbers && data.step_numbers.length > 0
       ? buildStepsFromNumbers(data.step_numbers)
       : preset === "custom"
-        ? buildStepsFromNumbers([1, 2, 3, 4])
+        ? buildStepsFromNumbers([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         : getPresetSteps(preset);
 
   if (steps.length === 0) {
@@ -520,7 +520,7 @@ export async function createWorkbookAction(raw: unknown) {
       .single();
     if (stepErr || !stepRow) continue;
 
-    // 변형 세트는 검수 화면에서 AI 생성 (규칙 폴백 없음)
+    // 변형 실험 세트만 규칙 스킵 — 인천 10단계는 규칙/후속 AI 생성
     if (String(st.step_type).startsWith("variant_")) continue;
 
     const questions = generateRuleBasedQuestions(

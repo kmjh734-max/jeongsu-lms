@@ -105,7 +105,7 @@ export function WorkbookReviewClient({
   async function generateAll() {
     if (
       !confirm(
-        "유형별 변형문제(PDF형)를 AI로 생성합니다. 기존 문항이 있으면 덮어씁니다. 크레딧이 차감됩니다."
+        "이 단계 문항을 AI로 다시 생성합니다. 기존 문항이 삭제됩니다. 크레딧이 차감될 수 있습니다."
       )
     ) {
       return;
@@ -186,7 +186,7 @@ export function WorkbookReviewClient({
                 disabled={loading}
                 onClick={generateAll}
               >
-                AI로 문항 생성 (PDF형)
+                AI로 문항 생성
               </Button>
               <Button type="button" disabled={loading} onClick={approve}>
                 승인
@@ -273,8 +273,7 @@ export function WorkbookReviewClient({
 
           {stepQuestions.length === 0 ? (
             <p className="text-sm text-slate-500">
-              이 세트에 문항이 없습니다. 상단 「AI로 문항 생성 (PDF형)」을
-              눌러 주세요.
+              이 단계에 문항이 없습니다. 「AI로 문항 생성」을 눌러 주세요.
             </p>
           ) : (
             <ul className="space-y-3">
