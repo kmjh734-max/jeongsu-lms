@@ -225,6 +225,7 @@ export function NeltShareActions({
       if (!url) url = await createShareLink();
       if (!url) return;
 
+      // 화면/복사용에는 링크 포함, 카카오 본문에는 안내문만 (링크는 「자세히 보기」)
       const paste = pasteBody(parentMessage, url);
       setParentMessage(paste);
 
@@ -236,7 +237,9 @@ export function NeltShareActions({
         academyName,
       });
       if (result.ok) {
-        flashOk("카카오톡 공유 창이 열렸습니다. 채팅방을 선택해 주세요.");
+        flashOk(
+          "카카오톡 공유 창이 열렸습니다. 리포트는 「자세히 보기」로 열어 주세요."
+        );
       } else if (result.fallback) {
         flashOk(result.message);
       } else {

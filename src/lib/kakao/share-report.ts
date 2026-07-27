@@ -60,37 +60,21 @@ export { buildKakaoPasteMessage, KAKAO_PRODUCT_LINK_HINT, validateShareUrlForKak
 export const KAKAO_TEXT_MAX_CHARS = 200;
 
 /**
- * 카카오 text 본문: 안내문 + 완전한 URL.
- * 200자 제한에 URL이 잘리지 않도록 본문만 줄이고 링크는 항상 끝에 온전히 붙인다.
+ * 카카오 text 본문: 안내문만 (URL 제외).
+ * 링크는 「자세히 보기」버튼(link)으로만 연다.
+ * 본문에 URL을 넣으면 200자 제한에 잘려 404가 난다.
  */
-export function buildKakaoSdkTextBody(
-  raw: string,
-  shareUrl: string
-): string {
-  const url = shareUrl.trim();
-  let body = raw
+export function buildKakaoSdkTextBody(raw: string): string {
+  const body = raw
     .replace(/https?:\/\/\S+/gi, "")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-  if (!url) {
-    const chars = [...body];
-    if (chars.length <= KAKAO_TEXT_MAX_CHARS) return body;
-    return `${chars.slice(0, KAKAO_TEXT_MAX_CHARS - 1).join("").trimEnd()}…`;
+  if (!body) {
+    return "자세한 내용은 아래 「자세히 보기」에서 확인해 주세요.";
   }
-
-  const sep = "\n\n";
-  const reserved = [...url].length + [...sep].length;
-  const maxBody = Math.max(0, KAKAO_TEXT_MAX_CHARS - reserved);
-  const bodyChars = [...body];
-  const clipped =
-    bodyChars.length > maxBody
-      ? `${bodyChars.slice(0, Math.max(0, maxBody - 1)).join("").trimEnd()}…`
-      : body;
-
-  if (!clipped) return url.slice(0, KAKAO_TEXT_MAX_CHARS);
-  return `${clipped}${sep}${url}`;
+  return body;
 }
 
 /** 카카오톡 채팅에 붙여넣기용 (링크가 일반 URL로 인식되어 항상 탭 가능) */
@@ -116,20 +100,19 @@ function buildTextPayload(params: KakaoShareParams): Record<string, unknown> {
   const raw =
     params.pasteMessage ??
     buildKakaoPasteMessage({ ...params, shareUrl });
-  const text = buildKakaoSdkTextBody(raw, shareUrl);
-  const payload: Record<string, unknown> = {
+  const text = buildKakaoSdkTextBody(raw);
+  return {
     objectType: "text",
     text,
     link: {
       mobileWebUrl: shareUrl,
       webUrl: shareUrl,
     },
+    // 기본 버튼명 「자세히 보기」— 커스텀이 있을 때만 덮어씀
+    ...(params.buttonTitle?.trim()
+      ? { buttonTitle: params.buttonTitle.trim() }
+      : {}),
   };
-  // 기본 「자세히 보기」 유지. 커스텀 제목이 있을 때만 덮어씀.
-  if (params.buttonTitle?.trim()) {
-    payload.buttonTitle = params.buttonTitle.trim();
-  }
-  return payload;
 }
 
 function buildFeedPayload(
