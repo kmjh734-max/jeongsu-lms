@@ -67,14 +67,14 @@ export default async function TeacherExamPrepPassagesPage() {
   return (
     <div>
       <PageHeader
-        title="?? ??"
-        description="?? ?? ?? ?? ??? ?? ?????."
+        title="지문 관리"
+        description="세트 제목 아래 여러 지문을 묶어 관리합니다."
         action={
           <Link
             href={`${BASE}/passages/new`}
             className="inline-flex h-10 items-center rounded-lg bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700"
           >
-            ?? ?? ??
+            지문 세트 추가
           </Link>
         }
       />
@@ -94,9 +94,9 @@ export default async function TeacherExamPrepPassagesPage() {
                     {set.title}
                   </h3>
                   <p className="mt-0.5 text-xs text-slate-500">
-                    ?? {children.length}?
-                    {set.grade ? ` � ${set.grade}` : ""}
-                    {set.school_name ? ` � ${set.school_name}` : ""}
+                    지문 {children.length}개
+                    {set.grade ? ` · ${set.grade}` : ""}
+                    {set.school_name ? ` · ${set.school_name}` : ""}
                   </p>
                 </div>
                 <StatusBadge status={set.status} />
@@ -114,7 +114,7 @@ export default async function TeacherExamPrepPassagesPage() {
                       <span className="mr-2 text-slate-400">
                         {p.passage_number
                           ? `#${p.passage_number}`
-                          : `?? ${i + 1}`}
+                          : `지문 ${i + 1}`}
                       </span>
                       {p.exam_range || p.title}
                     </Link>
@@ -128,7 +128,7 @@ export default async function TeacherExamPrepPassagesPage() {
                 ))}
                 {children.length === 0 && (
                   <li className="px-4 py-4 text-sm text-slate-500">
-                    ? ??? ??? ????.
+                    이 세트에 지문이 없습니다.
                   </li>
                 )}
               </ul>
@@ -139,7 +139,7 @@ export default async function TeacherExamPrepPassagesPage() {
         {orphans.length > 0 && (
           <section className="overflow-hidden rounded-xl border border-dashed border-slate-300 bg-white">
             <header className="border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-600">
-              ?? ?? (?? ???)
+              세트 없음 (이전 등록분)
             </header>
             <ul className="divide-y divide-slate-100">
               {orphans.map((p) => (
@@ -158,7 +158,7 @@ export default async function TeacherExamPrepPassagesPage() {
 
         {setList.length === 0 && orphans.length === 0 && (
           <p className="rounded-xl border border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
-            ??? ?? ??? ????. ??? ?? ???? ?????.
+            등록된 지문 세트가 없습니다. 「지문 세트 추가」로 시작하세요.
           </p>
         )}
       </div>
@@ -173,9 +173,9 @@ function StatusBadge({ status }: { status: string }) {
     archived: "bg-amber-100 text-amber-800",
   };
   const labels: Record<string, string> = {
-    draft: "??",
-    ready: "????",
-    archived: "??",
+    draft: "초안",
+    ready: "준비완료",
+    archived: "보관",
   };
   return (
     <span
