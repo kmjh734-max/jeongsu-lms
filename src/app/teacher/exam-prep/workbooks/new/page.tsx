@@ -18,21 +18,23 @@ export default async function TeacherExamPrepWorkbookNewPage() {
   const supabase = await createClient();
   const { data } = await supabase
     .from("exam_passages")
-    .select("id, title")
+    .select("id, title, status")
     .eq("academy_id", profile.academy_id)
-    .eq("status", "ready")
-    .order("title", { ascending: true });
+    .neq("status", "archived")
+    .order("updated_at", { ascending: false });
 
   return (
     <div>
       <PageHeader
         title="워크북 생성"
-        description="ready 상태 지문과 프리셋을 선택합니다."
+        description="등록한 지문과 학습 단계를 선택합니다."
       />
       <ExamPrepStaffNav basePath={BASE} current="workbooks" />
       <WorkbookCreateForm
         basePath={BASE}
-        passages={(data ?? []) as { id: string; title: string }[]}
+        passages={
+          (data ?? []) as { id: string; title: string; status?: string }[]
+        }
       />
     </div>
   );

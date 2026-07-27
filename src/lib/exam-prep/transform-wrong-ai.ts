@@ -48,7 +48,7 @@ JSON만: {"practiceType":"...","questionText":"...","questionData":{...},"correc
 
     const correctAnswer = r.correctAnswer ?? fallback._correct_answer;
     // blanks 정답이 questionData에 있으면 분리
-    let publicData = { ...questionData };
+    const publicData = { ...questionData };
     if (Array.isArray(publicData.blanks)) {
       publicData.blanks = (publicData.blanks as unknown[]).map((b) => {
         if (!b || typeof b !== "object") return b;

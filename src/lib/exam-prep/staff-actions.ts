@@ -432,11 +432,34 @@ export async function createWorkbookAction(raw: unknown) {
     .eq("academy_id", auth.profile.academy_id)
     .maybeSingle();
   if (!passage) return { ok: false as const, message: "지문 없음" };
-  if (passage.status !== "ready") {
+  if (passage.status === "archived") {
     return {
       ok: false as const,
-      message: "ready 상태의 지문만 워크북을 만들 수 있습니다.",
+      message: "보관된 지문으로는 워크북을 만들 수 없습니다.",
     };
+  }
+
+  const { count: sentenceCount } = await supabase
+    .from("exam_passage_sentences")
+    .select("id", { count: "exact", head: true })
+    .eq("passage_id", passage.id);
+  if (!sentenceCount || sentenceCount < 1) {
+    return {
+      ok: false as const,
+      message: "문장이 없는 지문입니다. 지문에서 문장을 분리해 주세요.",
+    };
+  }
+
+  // draft 지문으로 생성 시 ready로 승격해 이후 목록에도 보이게 함
+  if (passage.status === "draft") {
+    await supabase
+      .from("exam_passages")
+      .update({
+        status: "ready",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", passage.id)
+      .eq("academy_id", auth.profile.academy_id);
   }
 
   const preset = (data.preset_type ?? "custom") as ExamPresetType;

@@ -18,7 +18,7 @@ export function WorkbookCreateForm({
   passages,
 }: {
   basePath: string;
-  passages: { id: string; title: string }[];
+  passages: { id: string; title: string; status?: string }[];
 }) {
   const router = useRouter();
   const [passageId, setPassageId] = useState(passages[0]?.id ?? "");
@@ -67,21 +67,30 @@ export function WorkbookCreateForm({
   return (
     <form onSubmit={handleSubmit} className="ui-section-card space-y-5">
       <label className="block text-sm font-medium text-slate-700">
-        지문 (ready)
+        지문
         <select
           required
           className={inputClass}
           value={passageId}
           onChange={(e) => setPassageId(e.target.value)}
         >
-          {passages.length === 0 && <option value="">ready 지문 없음</option>}
+          {passages.length === 0 && (
+            <option value="">등록된 지문이 없습니다</option>
+          )}
           {passages.map((p) => (
             <option key={p.id} value={p.id}>
               {p.title}
+              {p.status === "draft" ? " (작성중)" : ""}
             </option>
           ))}
         </select>
       </label>
+      {passages.length === 0 && (
+        <p className="text-sm text-amber-700">
+          지문 관리에서 본문을 먼저 등록해 주세요. 작성중(draft) 지문도 선택할
+          수 있습니다.
+        </p>
+      )}
 
       <label className="block text-sm font-medium text-slate-700">
         워크북 제목

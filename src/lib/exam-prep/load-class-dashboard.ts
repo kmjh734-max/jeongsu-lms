@@ -57,8 +57,8 @@ export async function loadExamPrepClassDashboard(
   }
 
   const asIds = asRows.map((r) => r.id);
-  let reviewCountByAs = new Map<string, number>();
-  let wrongOpenByAs = new Map<string, number>();
+  const reviewCountByAs = new Map<string, number>();
+  const wrongOpenByAs = new Map<string, number>();
 
   if (asIds.length > 0) {
     const { data: attempts } = await supabase
