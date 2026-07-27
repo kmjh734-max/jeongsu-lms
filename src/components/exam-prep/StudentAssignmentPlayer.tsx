@@ -72,6 +72,11 @@ export function StudentAssignmentPlayer({
   const [lastScore, setLastScore] = useState<{
     percent: number;
     passed: boolean;
+    earned: number;
+    maxPoints: number;
+    correctCount: number;
+    totalCount: number;
+    needsReview: number;
   } | null>(null);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -95,6 +100,23 @@ export function StudentAssignmentPlayer({
     }
     return map;
   }, [existingAttempts]);
+
+  const unlockedStepIds = useMemo(() => {
+    const set = new Set<string>();
+    for (let i = 0; i < sortedSteps.length; i++) {
+      const step = sortedSteps[i]!;
+      if (i === 0 || !step.sequential_unlock) {
+        set.add(step.id);
+        continue;
+      }
+      const prev = sortedSteps[i - 1]!;
+      const best = bestByStep.get(prev.id);
+      const passed =
+        best != null && (best.score ?? 0) >= Number(prev.passing_score ?? 0);
+      if (passed) set.add(step.id);
+    }
+    return set;
+  }, [sortedSteps, bestByStep]);
 
   const scheduleDraft = useCallback(
     (nextAnswers: Record<string, unknown>, nextAttemptId: string | null) => {
@@ -165,7 +187,26 @@ export function StudentAssignmentPlayer({
       return;
     }
     setResults(result.results);
-    setLastScore({ percent: result.percent, passed: result.passed });
+    const earned = result.results.reduce(
+      (sum, r) => sum + (Number(r.score) || 0),
+      0
+    );
+    const maxPoints = stepQuestions.reduce(
+      (sum, q) => sum + (Number(q.points) || 0),
+      0
+    );
+    const needsReview = result.results.filter(
+      (r) => r.gradingStatus === "needs_review"
+    ).length;
+    setLastScore({
+      percent: result.percent,
+      passed: result.passed,
+      earned,
+      maxPoints,
+      correctCount: result.correctCount,
+      totalCount: result.totalCount,
+      needsReview,
+    });
     setAttemptId(null);
     router.refresh();
   }
@@ -179,36 +220,59 @@ export function StudentAssignmentPlayer({
     <div className="space-y-4">
       <div className="ui-section-card">
         <h2 className="text-lg font-semibold text-slate-900">{passageTitle}</h2>
-        <p className="mt-1 text-sm text-slate-600">단계별로 학습을 진행하세요.</p>
+        <p className="mt-1 text-sm text-slate-600">
+          앞 단계를 통과해야 다음 단계가 열립니다. 제출 후 부분 점수와 검토
+          상태를 확인하세요.
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-2">
         {sortedSteps.map((step) => {
           const best = bestByStep.get(step.id);
           const active = step.id === activeStepId;
+          const unlocked = unlockedStepIds.has(step.id);
+          const passed =
+            best != null &&
+            (best.score ?? 0) >= Number(step.passing_score ?? 0);
           return (
             <button
               key={step.id}
               type="button"
+              disabled={!unlocked}
+              title={
+                unlocked
+                  ? undefined
+                  : "이전 단계를 통과해야 열립니다."
+              }
               onClick={() => {
+                if (!unlocked) return;
                 setActiveStepId(step.id);
                 setAttemptId(null);
                 setResults(null);
                 setLastScore(null);
                 setAnswers({});
+                setMessage(null);
               }}
               className={`rounded-xl border px-3 py-2 text-left text-sm ${
-                active
-                  ? "border-brand-500 bg-brand-50 text-brand-900"
-                  : "border-slate-200 bg-white text-slate-700"
+                !unlocked
+                  ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-400"
+                  : active
+                    ? "border-brand-500 bg-brand-50 text-brand-900"
+                    : "border-slate-200 bg-white text-slate-700"
               }`}
             >
               <span className="font-medium">
+                {!unlocked ? "잠김 · " : passed ? "통과 · " : ""}
                 {step.step_order}. {stepTitle(step)}
               </span>
               {best && (
                 <span className="mt-0.5 block text-xs text-slate-500">
-                  최고 {best.score ?? 0}점
+                  최고 {best.score ?? 0}점 / 통과 {step.passing_score}점
+                </span>
+              )}
+              {!unlocked && (
+                <span className="mt-0.5 block text-xs text-slate-400">
+                  이전 단계 통과 필요
                 </span>
               )}
             </button>
@@ -234,7 +298,7 @@ export function StudentAssignmentPlayer({
                 {activeStep.max_attempts}회
               </p>
             </div>
-            {!attemptId && !results && (
+            {!attemptId && !results && unlockedStepIds.has(activeStep.id) && (
               <Button
                 type="button"
                 disabled={starting}
@@ -253,12 +317,33 @@ export function StudentAssignmentPlayer({
                   : "border-amber-200 bg-amber-50 text-amber-900"
               }`}
             >
-              점수 {lastScore.percent}점 —{" "}
-              {lastScore.passed ? "통과" : "재도전 필요"}
+              <p>
+                환산 {lastScore.percent}점
+                {lastScore.maxPoints > 0
+                  ? ` (획득 ${lastScore.earned}/${lastScore.maxPoints}점)`
+                  : ""}{" "}
+                · 정답 {lastScore.correctCount}/{lastScore.totalCount} —{" "}
+                {lastScore.passed
+                  ? "통과했습니다. 다음 단계로 진행할 수 있습니다."
+                  : `재도전이 필요합니다. (통과 ${activeStep.passing_score}점)`}
+              </p>
+              {lastScore.needsReview > 0 ? (
+                <p className="mt-1 text-xs">
+                  {lastScore.needsReview}문항은 강사·AI 검토 대기 중입니다.
+                  검토 전 점수는 잠정값일 수 있습니다.
+                </p>
+              ) : null}
             </div>
           )}
 
-          {attemptId && (
+          {!unlockedStepIds.has(activeStep.id) && (
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              이 단계는 잠겨 있습니다. 이전 단계를 통과 점수 이상으로 제출해
+              주세요.
+            </p>
+          )}
+
+          {attemptId && unlockedStepIds.has(activeStep.id) && (
             <>
               <ul className="space-y-4">
                 {stepQuestions.map((q, idx) => (
@@ -303,19 +388,23 @@ export function StudentAssignmentPlayer({
                     {r && (
                       <p
                         className={`mt-1 text-xs ${
-                          r.isCorrect === true
-                            ? "text-green-700"
-                            : r.isCorrect === false
-                              ? "text-red-600"
-                              : "text-slate-600"
+                          r.gradingStatus === "needs_review"
+                            ? "text-amber-700"
+                            : r.isCorrect === true
+                              ? "text-green-700"
+                              : r.isCorrect === false
+                                ? "text-red-600"
+                                : "text-slate-600"
                         }`}
                       >
-                        {r.isCorrect === true
-                          ? "정답"
-                          : r.isCorrect === false
-                            ? "오답"
-                            : "채점 중"}{" "}
-                        · {r.score}점
+                        {r.gradingStatus === "needs_review"
+                          ? "강사·AI 검토 대기"
+                          : r.isCorrect === true
+                            ? "정답"
+                            : r.isCorrect === false
+                              ? "오답"
+                              : "채점 중"}{" "}
+                        · {r.score}/{q.points ?? 0}점
                       </p>
                     )}
                     {r?.showAnswer && r.correctAnswer !== undefined && (
@@ -595,21 +684,26 @@ function QuestionInput({
 
 function ResultHint({ result }: { result?: SubmitResultItem }) {
   if (!result) return null;
+  const review = result.gradingStatus === "needs_review";
   return (
     <p
       className={`text-xs ${
-        result.isCorrect === true
-          ? "text-green-700"
-          : result.isCorrect === false
-            ? "text-red-600"
-            : "text-slate-500"
+        review
+          ? "text-amber-700"
+          : result.isCorrect === true
+            ? "text-green-700"
+            : result.isCorrect === false
+              ? "text-red-600"
+              : "text-slate-500"
       }`}
     >
-      {result.isCorrect === true
-        ? "정답"
-        : result.isCorrect === false
-          ? "오답"
-          : result.gradingStatus}{" "}
+      {review
+        ? "강사·AI 검토 대기"
+        : result.isCorrect === true
+          ? "정답"
+          : result.isCorrect === false
+            ? "오답"
+            : result.gradingStatus}{" "}
       · {result.score}점
     </p>
   );

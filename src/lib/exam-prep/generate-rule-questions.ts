@@ -164,16 +164,48 @@ function buildGrammarChoice(
   if (words.length < 2) return null;
   const target = words[0].replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
   if (!target) return null;
-  const distractor =
-    words.find((w) => {
-      const c = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-      return c && c.toLowerCase() !== target.toLowerCase();
-    })?.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") ?? `${target}s`;
 
-  const options = [
-    { id: "a", text: target },
-    { id: "b", text: distractor },
-  ];
+  const pool = words
+    .map((w) => w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, ""))
+    .filter((c) => c && c.toLowerCase() !== target.toLowerCase());
+
+  const distractors = new Set<string>();
+  // 형태 변형 오답
+  for (const d of [
+    `${target}s`,
+    `${target}ed`,
+    `${target}ing`,
+    target.toLowerCase().endsWith("y")
+      ? `${target.slice(0, -1)}ies`
+      : `${target}es`,
+    pool[0],
+    pool[1],
+  ]) {
+    if (!d) continue;
+    const clean = d.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
+    if (
+      clean &&
+      clean.toLowerCase() !== target.toLowerCase() &&
+      distractors.size < 3
+    ) {
+      distractors.add(clean);
+    }
+  }
+  while (distractors.size < 3) {
+    distractors.add(`${target}${distractors.size + 1}`);
+  }
+
+  const optionTexts = [target, ...[...distractors].slice(0, 3)];
+  // 셔플하되 정답 id는 고정하지 않고 텍스트로 채점할 수 있게 optionId 매핑
+  const shuffled = [...optionTexts];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
+  }
+  const ids = ["a", "b", "c", "d"];
+  const options = shuffled.map((text, i) => ({ id: ids[i]!, text }));
+  const correctId = options.find((o) => o.text === target)?.id ?? "a";
+
   const display = sentence.english_text.replace(
     new RegExp(`\\b${target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`),
     "____"
@@ -187,11 +219,11 @@ function buildGrammarChoice(
     question_data: {
       displayText: display,
       options,
-      shuffle: true,
+      shuffle: false,
       choiceKind: "vocab",
     },
-    correct_answer: { optionId: "a" },
-    acceptable_answers: ["a"],
+    correct_answer: { optionId: correctId },
+    acceptable_answers: [correctId],
     explanation: `정답은 "${target}"입니다.`,
     difficulty: "medium",
     points: 1,
@@ -375,6 +407,99 @@ function buildTranslationPractice(
   };
 }
 
+const IRREGULAR_BASE: Record<string, string> = {
+  was: "be",
+  were: "be",
+  been: "be",
+  am: "be",
+  is: "be",
+  are: "be",
+  being: "be",
+  had: "have",
+  has: "have",
+  having: "have",
+  did: "do",
+  does: "do",
+  done: "do",
+  doing: "do",
+  went: "go",
+  gone: "go",
+  going: "go",
+  made: "make",
+  making: "make",
+  took: "take",
+  taken: "take",
+  taking: "take",
+  came: "come",
+  coming: "come",
+  saw: "see",
+  seen: "see",
+  seeing: "see",
+  got: "get",
+  gotten: "get",
+  getting: "get",
+  said: "say",
+  saying: "say",
+  left: "leave",
+  leaving: "leave",
+  felt: "feel",
+  feeling: "feel",
+  found: "find",
+  finding: "find",
+  gave: "give",
+  given: "give",
+  giving: "give",
+  knew: "know",
+  known: "know",
+  knowing: "know",
+  thought: "think",
+  thinking: "think",
+  told: "tell",
+  telling: "tell",
+  became: "become",
+  becoming: "become",
+  began: "begin",
+  begun: "begin",
+  beginning: "begin",
+  ran: "run",
+  running: "run",
+  wrote: "write",
+  written: "write",
+  writing: "write",
+  spoke: "speak",
+  spoken: "speak",
+  speaking: "speak",
+};
+
+function guessVerbBase(core: string): string {
+  const lower = core.toLowerCase();
+  if (IRREGULAR_BASE[lower]) return IRREGULAR_BASE[lower]!;
+  if (/ying$/i.test(core) && core.length > 5) {
+    return core.replace(/ying$/i, "ie").toLowerCase();
+  }
+  if (/ing$/i.test(core) && core.length > 4) {
+    let base = core.replace(/ing$/i, "").toLowerCase();
+    if (base.length >= 2 && base.at(-1) === base.at(-2)) base = base.slice(0, -1);
+    else if (!/[aeiou]/.test(base.at(-1) ?? "") && base.length >= 3) {
+      // hoping → hope (rough)
+      base = `${base}e`;
+    }
+    return base;
+  }
+  if (/ied$/i.test(core) && core.length > 4) {
+    return core.replace(/ied$/i, "y").toLowerCase();
+  }
+  if (/ed$/i.test(core) && core.length > 3) {
+    let base = core.replace(/ed$/i, "").toLowerCase();
+    if (base.length >= 2 && base.at(-1) === base.at(-2)) base = base.slice(0, -1);
+    return base;
+  }
+  if (/s$/i.test(core) && core.length > 3 && !/ss$/i.test(core)) {
+    return core.replace(/s$/i, "").toLowerCase();
+  }
+  return lower;
+}
+
 function buildVerbForm(
   sentence: ExamPassageSentence,
   order: number
@@ -383,27 +508,21 @@ function buildVerbForm(
   const targets: Array<{ word: string; index: number; base: string }> = [];
   words.forEach((w, i) => {
     const core = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (!core) return;
-    let base = core.toLowerCase();
-    if (/ing$/i.test(core) && core.length > 4) {
-      base = core.replace(/ing$/i, "").toLowerCase();
-      // dumping → dump (rough: doubled consonant before -ing)
-      if (base.length >= 2 && base.at(-1) === base.at(-2)) {
-        base = base.slice(0, -1);
-      }
-      targets.push({ word: core, index: i, base });
-    } else if (/ed$/i.test(core) && core.length > 3) {
-      base = core.replace(/ed$/i, "").toLowerCase();
-      if (base.length >= 2 && base.at(-1) === base.at(-2)) {
-        base = base.slice(0, -1);
-      }
-      targets.push({ word: core, index: i, base });
-    }
+    if (!core || core.length < 2) return;
+    const lower = core.toLowerCase();
+    const looksInflected =
+      Boolean(IRREGULAR_BASE[lower]) ||
+      /ing$/i.test(core) ||
+      /ed$/i.test(core) ||
+      (/s$/i.test(core) && !STOP.has(lower) && core.length >= 4);
+    if (!looksInflected) return;
+    if (STOP.has(lower) && !IRREGULAR_BASE[lower]) return;
+    targets.push({ word: core, index: i, base: guessVerbBase(core) });
   });
   if (targets.length === 0) {
     const cw = contentWords(sentence.english_text);
     if (cw.length === 0) return null;
-    const core = cw[0].replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
+    const core = cw[0]!.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
     if (!core) return null;
     const idx = words.findIndex(
       (w) => w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") === core
@@ -411,10 +530,12 @@ function buildVerbForm(
     targets.push({
       word: core,
       index: idx >= 0 ? idx : 0,
-      base: core.toLowerCase(),
+      base: guessVerbBase(core),
     });
   }
-  const t = targets[0];
+  // prefer content-like verbs over aux
+  const t =
+    targets.find((x) => !["be", "have", "do"].includes(x.base)) ?? targets[0]!;
   const display = words.map((w, i) => {
     const core = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
     if (i === t.index || core === t.word) {
@@ -458,29 +579,62 @@ function buildVerbForm(
   };
 }
 
+function corruptWord(core: string): string {
+  if (/^(a|an|the)$/i.test(core)) {
+    if (/^a$/i.test(core)) return "an";
+    if (/^an$/i.test(core)) return "a";
+    return "a";
+  }
+  if (/s$/i.test(core) && core.length > 3) return core.replace(/s$/i, "");
+  if (/ed$/i.test(core)) return core.replace(/ed$/i, "");
+  if (/ing$/i.test(core)) return core.replace(/ing$/i, "");
+  if (/^(is|are|was|were)$/i.test(core)) {
+    const map: Record<string, string> = {
+      is: "are",
+      are: "is",
+      was: "were",
+      were: "was",
+    };
+    return map[core.toLowerCase()] ?? `${core}s`;
+  }
+  return `${core}s`;
+}
+
 function buildErrorCorrection(
   sentence: ExamPassageSentence,
   order: number
 ): GeneratedQuestionDraft | null {
   const words = tokens(sentence.english_text);
   if (words.length < 4) return null;
-  // content word 하나를 의도적으로 변형
   const candidates = contentWords(sentence.english_text);
-  if (candidates.length === 0) return null;
-  const target = candidates[0];
-  const core = target.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
+  // also allow articles/aux near content
+  const auxIdx = words.findIndex((w) =>
+    /^(a|an|the|is|are|was|were)$/i.test(
+      w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "")
+    )
+  );
+  let targetWord =
+    candidates[Math.min(1, candidates.length - 1)] ?? candidates[0];
+  let targetIndex = words.findIndex(
+    (w) =>
+      w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") ===
+      targetWord?.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "")
+  );
+  if (auxIdx >= 0 && Math.random() < 0.45) {
+    targetIndex = auxIdx;
+    targetWord = words[auxIdx]!;
+  }
+  if (!targetWord || targetIndex < 0) return null;
+  const core = targetWord.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
   if (!core) return null;
-  // 간단한 오류: 복수/시제 왜곡
-  const wrong =
-    /s$/i.test(core) ? core.replace(/s$/i, "") : `${core}s`;
-  const corrupted = words.map((w) => {
-    const c = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (c === core) {
-      const lead = w.match(/^[^A-Za-z']+/)?.[0] ?? "";
-      const trail = w.match(/[^A-Za-z']+$/)?.[0] ?? "";
-      return `${lead}${wrong}${trail}`;
-    }
-    return w;
+  const wrong = corruptWord(core);
+  if (wrong.toLowerCase() === core.toLowerCase()) return null;
+
+  const corrupted = words.map((w, i) => {
+    if (i !== targetIndex) return w;
+    const lead = w.match(/^[^A-Za-z']+/)?.[0] ?? "";
+    const trail = w.match(/[^A-Za-z']+$/)?.[0] ?? "";
+    return `${lead}${wrong}${trail}`;
   });
   return {
     sentence_id: sentence.id,

@@ -932,3 +932,85 @@ export async function teacherGradeAnswerAction(raw: {
   revalidatePath("/teacher/exam-prep/progress");
   return { ok: true as const };
 }
+
+/** 문장 해석·어휘 AI 초안 채우기 (원문 영어 미수정) */
+export async function enrichPassageSentencesAction(passageId: string) {
+  const auth = await requireStaff();
+  if (!auth.ok) return auth;
+  const supabase = await createClient();
+
+  const { data: passage } = await supabase
+    .from("exam_passages")
+    .select("id")
+    .eq("id", passageId)
+    .eq("academy_id", auth.profile.academy_id)
+    .maybeSingle();
+  if (!passage) return { ok: false as const, message: "지문 없음" };
+
+  const { data: sentences } = await supabase
+    .from("exam_passage_sentences")
+    .select("id, english_text, korean_text, vocabulary, grammar_points")
+    .eq("passage_id", passageId)
+    .order("sentence_order", { ascending: true });
+
+  const rows = sentences ?? [];
+  if (rows.length === 0) {
+    return { ok: false as const, message: "문장이 없습니다." };
+  }
+
+  try {
+    await debitFeatureCredits(supabase, {
+      academyId: auth.profile.academy_id!,
+      featureKey: CREDIT_FEATURES.exam_prep_workbook_ai,
+      actorId: auth.profile.id,
+      idempotencyKey: `exam_prep_enrich:${passageId}:${Date.now()}`,
+      quantity: 1,
+      metadata: { passageId, kind: "sentence_enrich" },
+    });
+  } catch (e) {
+    return {
+      ok: false as const,
+      message: e instanceof Error ? e.message : "크레딧 차감 실패",
+    };
+  }
+
+  const { enrichSentencesWithAi } = await import(
+    "@/lib/exam-prep/enrich-sentences-ai"
+  );
+  let enriched;
+  try {
+    enriched = await enrichSentencesWithAi(rows);
+  } catch (e) {
+    return {
+      ok: false as const,
+      message: e instanceof Error ? e.message : "AI 해석 생성 실패",
+    };
+  }
+
+  let updated = 0;
+  for (const item of enriched) {
+    const prev = rows.find((r) => r.id === item.sentenceId);
+    if (!prev) continue;
+    const patch: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (!(prev.korean_text ?? "").trim() && item.korean) {
+      patch.korean_text = item.korean;
+    }
+    if (item.vocabulary.length > 0) {
+      patch.vocabulary = item.vocabulary;
+    }
+    if (item.grammarPoints.length > 0) {
+      patch.grammar_points = item.grammarPoints;
+    }
+    if (Object.keys(patch).length <= 1) continue;
+    const { error } = await supabase
+      .from("exam_passage_sentences")
+      .update(patch)
+      .eq("id", item.sentenceId);
+    if (!error) updated += 1;
+  }
+
+  revalidateExamPrep();
+  return { ok: true as const, updated, total: enriched.length };
+}

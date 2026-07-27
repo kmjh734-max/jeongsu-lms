@@ -4,10 +4,8 @@ import { WrongPracticeClient } from "@/components/exam-prep/WrongPracticeClient"
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
-import {
-  toPublicWrongPractice,
-  transformWrongQuestionForPractice,
-} from "@/lib/exam-prep/transform-wrong-question";
+import { toPublicWrongPractice } from "@/lib/exam-prep/transform-wrong-question";
+import { transformWrongQuestionWithAi } from "@/lib/exam-prep/transform-wrong-ai";
 import { createClient } from "@/lib/supabase/server";
 import type { ExamWorkbookQuestion } from "@/lib/exam-prep/types";
 
@@ -37,9 +35,10 @@ export default async function StudentWrongPracticePage({ params }: PageProps) {
     .maybeSingle();
   if (!q) notFound();
 
-  const practice = toPublicWrongPractice(
-    transformWrongQuestionForPractice(q as ExamWorkbookQuestion, "transform")
+  const practiceFull = await transformWrongQuestionWithAi(
+    q as ExamWorkbookQuestion
   );
+  const practice = toPublicWrongPractice(practiceFull);
 
   return (
     <div>

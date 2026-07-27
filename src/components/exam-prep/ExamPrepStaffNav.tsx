@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 const STAFF_LINKS = [
+  { href: "dashboard", label: "클래스 대시보드" },
   { href: "passages", label: "지문 관리" },
   { href: "workbooks", label: "워크북 관리" },
   { href: "assignments", label: "학습 배정" },

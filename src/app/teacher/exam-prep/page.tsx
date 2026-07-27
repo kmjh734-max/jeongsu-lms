@@ -8,6 +8,7 @@ import { isExamPrepEnabled } from "@/lib/academy-features";
 const BASE = "/teacher/exam-prep";
 
 const LINKS = [
+  { href: "dashboard", label: "클래스 대시보드", desc: "반별 진도 · 검토 · 오답" },
   { href: "passages", label: "지문 관리", desc: "본문 등록 · 문장 분리 · 해석" },
   { href: "workbooks", label: "워크북 관리", desc: "프리셋 생성 · 문항 검수 · 승인" },
   { href: "assignments", label: "학습 배정", desc: "학생·반에 워크북 배정" },

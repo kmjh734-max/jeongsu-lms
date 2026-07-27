@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import {
   addSentenceAction,
   deleteSentenceAction,
+  enrichPassageSentencesAction,
   reorderSentencesAction,
   resplitPassageSentencesAction,
   saveSentencesAction,
@@ -18,7 +19,28 @@ type LocalSentence = {
   korean_text: string;
   is_important_writing: boolean;
   sentence_order: number;
+  vocabulary: Array<{ word: string; meaning: string }>;
+  grammar_points: string[];
 };
+
+function parseVocab(v: unknown): Array<{ word: string; meaning: string }> {
+  if (!Array.isArray(v)) return [];
+  return v
+    .filter((x) => x && typeof x === "object")
+    .map((x) => {
+      const o = x as Record<string, unknown>;
+      return {
+        word: String(o.word ?? ""),
+        meaning: String(o.meaning ?? ""),
+      };
+    })
+    .filter((x) => x.word);
+}
+
+function parseGrammar(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.map((x) => String(x)).filter(Boolean);
+}
 
 function toLocal(rows: ExamPassageSentence[]): LocalSentence[] {
   return [...rows]
@@ -29,6 +51,8 @@ function toLocal(rows: ExamPassageSentence[]): LocalSentence[] {
       korean_text: s.korean_text ?? "",
       is_important_writing: s.is_important_writing,
       sentence_order: s.sentence_order,
+      vocabulary: parseVocab(s.vocabulary),
+      grammar_points: parseGrammar(s.grammar_points),
     }));
 }
 
@@ -125,6 +149,28 @@ export function SentenceEditor({
     router.refresh();
   }
 
+  async function handleEnrich() {
+    if (
+      !confirm(
+        "AI로 빈 해석·핵심 어휘·문법 포인트를 채웁니다. (이미 있는 해석은 유지) 크레딧이 차감됩니다."
+      )
+    ) {
+      return;
+    }
+    setLoading(true);
+    setMessage(null);
+    const result = await enrichPassageSentencesAction(passageId);
+    setLoading(false);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setMessage(
+      `AI 해석 초안 ${result.updated}개 문장에 반영했습니다. (생성 ${result.total})`
+    );
+    router.refresh();
+  }
+
   async function handleDrop(targetIndex: number) {
     if (dragIndex === null || dragIndex === targetIndex) {
       setDragIndex(null);
@@ -169,6 +215,15 @@ export function SentenceEditor({
             type="button"
             variant="secondary"
             size="sm"
+            disabled={loading || rows.length === 0}
+            onClick={() => void handleEnrich()}
+          >
+            AI 해석·어휘
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
             disabled={loading}
             onClick={() =>
               handleAdd(rows.length > 0 ? rows[rows.length - 1].sentence_order : 0)
@@ -185,7 +240,9 @@ export function SentenceEditor({
       {message && (
         <p
           className={`text-sm ${
-            message.includes("저장") || message.includes("분리")
+            message.includes("저장") ||
+            message.includes("분리") ||
+            message.includes("반영")
               ? "text-green-700"
               : "text-red-600"
           }`}
@@ -256,6 +313,21 @@ export function SentenceEditor({
                 />
               </label>
             </div>
+            {(row.vocabulary.length > 0 || row.grammar_points.length > 0) && (
+              <div className="mt-2 space-y-1 text-xs text-slate-500">
+                {row.vocabulary.length > 0 && (
+                  <p>
+                    어휘:{" "}
+                    {row.vocabulary
+                      .map((v) => `${v.word}(${v.meaning})`)
+                      .join(" · ")}
+                  </p>
+                )}
+                {row.grammar_points.length > 0 && (
+                  <p>문법: {row.grammar_points.join(" · ")}</p>
+                )}
+              </div>
+            )}
           </li>
         ))}
       </ul>
