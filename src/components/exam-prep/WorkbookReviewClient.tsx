@@ -105,7 +105,7 @@ export function WorkbookReviewClient({
   async function generateAll() {
     if (
       !confirm(
-        "이 단계 문항을 AI로 다시 생성합니다. 기존 문항이 삭제됩니다. 크레딧이 차감될 수 있습니다."
+        "1~10단계 문항을 AI로 생성합니다. 기존 문항이 있으면 덮어씁니다. 크레딧이 차감될 수 있습니다."
       )
     ) {
       return;
