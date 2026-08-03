@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   ClassCoursesPanel,
   ClassInfoPanel,
@@ -22,6 +23,7 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
   const { classId } = await params;
   const profile = await getCurrentProfile();
   const supabase = await createClient();
+  const academyId = profile?.academy_id ?? null;
 
   const { data: classRow } = await supabase
     .from("classes")
@@ -33,29 +35,42 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
 
   const typedClass = classRow as Class;
 
+  // RLS와 동일하게 학원 범위만 — service role로 조회해 목록이 비는 경우 방지
+  const admin = createAdminClient();
+  let teachersQ = admin
+    .from("profiles")
+    .select("*")
+    .eq("role", "teacher")
+    .eq("is_active", true)
+    .order("name");
+  let studentsQ = admin
+    .from("profiles")
+    .select("*")
+    .eq("role", "student")
+    .eq("is_active", true)
+    .order("name");
+  let coursesQ = admin.from("courses").select("*").order("title");
+  if (academyId) {
+    teachersQ = teachersQ.eq("academy_id", academyId);
+    studentsQ = studentsQ.eq("academy_id", academyId);
+    coursesQ = coursesQ.eq("academy_id", academyId);
+  }
+
   const [
-    { data: teachers },
-    { data: students },
-    { data: courses },
+    { data: teachersRaw },
+    { data: studentsRaw },
+    { data: coursesRaw },
     { data: members },
     { data: classCourses },
   ] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "teacher")
-      .eq("is_active", true)
-      .order("name"),
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("role", "student")
-      .eq("is_active", true)
-      .order("name"),
-    supabase.from("courses").select("*").order("title"),
+    teachersQ,
+    studentsQ,
+    coursesQ,
     supabase
       .from("class_students")
-      .select("id, student_id, student:profiles!class_students_student_id_fkey(name, username)")
+      .select(
+        "id, student_id, student:profiles!class_students_student_id_fkey(name, username)"
+      )
       .eq("class_id", classId)
       .order("created_at"),
     supabase
@@ -110,7 +125,7 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
           initialDescription={typedClass.description ?? ""}
           initialTeacherId={typedClass.teacher_id ?? ""}
           initialIsActive={typedClass.is_active}
-          teachers={(teachers ?? []) as Profile[]}
+          teachers={(teachersRaw ?? []) as Profile[]}
         />
       </section>
 
@@ -120,7 +135,7 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
           variant="admin"
           classId={classId}
           members={memberList}
-          studentOptions={(students ?? []) as Profile[]}
+          studentOptions={(studentsRaw ?? []) as Profile[]}
         />
       </section>
 
@@ -130,7 +145,7 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
           variant="admin"
           classId={classId}
           classCourses={courseList}
-          courseOptions={(courses ?? []) as Course[]}
+          courseOptions={(coursesRaw ?? []) as Course[]}
         />
       </section>
 

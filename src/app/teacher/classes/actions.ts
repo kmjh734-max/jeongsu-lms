@@ -75,26 +75,34 @@ export async function teacherAddStudentToClass(
   const denied = await assertTeacherOwnsClass(auth.profileId, classId);
   if (denied) return denied;
 
-  const { data: student } = await (await createClient())
+  const admin = createAdminClient();
+  const { data: student } = await admin
     .from("profiles")
-    .select("id")
+    .select("id, created_by, academy_id, role, is_active")
     .eq("id", studentId)
     .eq("role", "student")
-    .eq("created_by", auth.profileId)
     .maybeSingle();
 
-  if (!student) {
+  if (!student || student.is_active === false) {
+    return { ok: false, message: "학생을 찾을 수 없습니다." };
+  }
+
+  const createdBySelf = student.created_by === auth.profileId;
+  const sameAcademy =
+    auth.academyId != null && student.academy_id === auth.academyId;
+
+  if (!createdBySelf && !sameAcademy) {
     return {
       ok: false,
-      message: "본인이 등록한 학생만 반에 추가할 수 있습니다.",
+      message: "본인이 등록했거나 같은 학원 학생만 반에 추가할 수 있습니다.",
     };
   }
 
-  const admin = createAdminClient();
   const result = await addStudentToClass(admin, {
     classId,
     studentId,
     assignedBy: auth.profileId,
+    academyId: auth.academyId ?? undefined,
   });
 
   if (result.ok) revalidateTeacherClassPaths(classId);
@@ -111,8 +119,8 @@ export async function teacherRemoveStudentFromClass(
   const denied = await assertTeacherOwnsClass(auth.profileId, classId);
   if (denied) return denied;
 
-  const supabase = await createClient();
-  const result = await removeStudentFromClass(supabase, classId, studentId);
+  const admin = createAdminClient();
+  const result = await removeStudentFromClass(admin, classId, studentId);
 
   if (result.ok) revalidateTeacherClassPaths(classId);
   return result;
@@ -134,6 +142,7 @@ export async function teacherAssignCourseToClass(
     courseId,
     assignedBy: auth.profileId,
     allowAnyCourse: false,
+    academyId: auth.academyId ?? undefined,
   });
 
   if (result.ok) revalidateTeacherClassPaths(classId);
@@ -150,8 +159,8 @@ export async function teacherRemoveCourseFromClass(
   const denied = await assertTeacherOwnsClass(auth.profileId, classId);
   if (denied) return denied;
 
-  const supabase = await createClient();
-  const result = await removeCourseFromClass(supabase, classId, courseId);
+  const admin = createAdminClient();
+  const result = await removeCourseFromClass(admin, classId, courseId);
 
   if (result.ok) revalidateTeacherClassPaths(classId);
   return result;

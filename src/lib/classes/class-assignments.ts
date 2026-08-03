@@ -4,6 +4,30 @@ export type ClassActionResult =
   | { ok: true; message: string; enrolledCount?: number }
   | { ok: false; message: string };
 
+function humanizeDbError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("row-level security") || m.includes("rls")) {
+    return "권한(RLS) 문제로 저장되지 않았습니다. 소속 학원 연결을 확인해 주세요.";
+  }
+  if (m.includes("not-null") && m.includes("academy")) {
+    return "학원 정보가 비어 있어 저장할 수 없습니다. 관리자 계정에 학원을 연결해 주세요.";
+  }
+  if (m.includes("foreign key") || m.includes("violates foreign")) {
+    return "연결된 학생·강사·강좌 정보가 올바르지 않습니다.";
+  }
+  return message;
+}
+
+function academyMismatch(
+  rowAcademyId: string | null | undefined,
+  expectedAcademyId: string | undefined
+): boolean {
+  if (!expectedAcademyId) return false;
+  // null은 미지정 레거시 → 같은 학원으로 취급(추가 시 백필)
+  if (rowAcademyId == null) return false;
+  return rowAcademyId !== expectedAcademyId;
+}
+
 /** Insert enrollment if missing; never removes existing rows. */
 export async function ensureEnrollment(
   supabase: SupabaseClient,
@@ -147,7 +171,7 @@ export async function assignCourseToClass(
     return { ok: false, message: "반 정보를 찾을 수 없습니다." };
   }
 
-  if (academyId && classRow.academy_id !== academyId) {
+  if (academyMismatch(classRow.academy_id, academyId)) {
     return { ok: false, message: "다른 학원 반에는 배정할 수 없습니다." };
   }
 
@@ -165,7 +189,7 @@ export async function assignCourseToClass(
     return { ok: false, message: "강좌를 찾을 수 없습니다." };
   }
 
-  if (academyId && course.academy_id !== academyId) {
+  if (academyMismatch(course.academy_id, academyId)) {
     return { ok: false, message: "다른 학원 강좌는 배정할 수 없습니다." };
   }
 
@@ -203,8 +227,17 @@ export async function assignCourseToClass(
       ok: false,
       message: duplicate
         ? "이미 이 반에 배정된 강좌입니다."
-        : linkError.message,
+        : humanizeDbError(linkError.message),
     };
+  }
+
+  // 강좌 academy 미지정이면 반 학원으로 맞춤
+  if (academyId && course.academy_id == null) {
+    await supabase
+      .from("courses")
+      .update({ academy_id: academyId })
+      .eq("id", courseId)
+      .is("academy_id", null);
   }
 
   const { enrolledCount, errors } = await syncEnrollmentsForCourse(
@@ -254,7 +287,7 @@ export async function addStudentToClass(
     return { ok: false, message: "반 정보를 찾을 수 없습니다." };
   }
 
-  if (academyId && classRow.academy_id !== academyId) {
+  if (academyMismatch(classRow.academy_id, academyId)) {
     return { ok: false, message: "다른 학원 반에는 추가할 수 없습니다." };
   }
 
@@ -272,7 +305,7 @@ export async function addStudentToClass(
     return { ok: false, message: "학생을 찾을 수 없습니다." };
   }
 
-  if (academyId && student.academy_id !== academyId) {
+  if (academyMismatch(student.academy_id, academyId)) {
     return { ok: false, message: "다른 학원 학생은 추가할 수 없습니다." };
   }
 
@@ -282,6 +315,16 @@ export async function addStudentToClass(
 
   if (student.is_active === false) {
     return { ok: false, message: "비활성화된 학생은 반에 추가할 수 없습니다." };
+  }
+
+  // 학원 미지정 학생 → 반/관리자 학원으로 자동 연결
+  const targetAcademy = academyId ?? classRow.academy_id ?? null;
+  if (targetAcademy && student.academy_id == null) {
+    await supabase
+      .from("profiles")
+      .update({ academy_id: targetAcademy })
+      .eq("id", studentId)
+      .is("academy_id", null);
   }
 
   const { data: existingMember } = await supabase
@@ -308,7 +351,7 @@ export async function addStudentToClass(
       ok: false,
       message: duplicate
         ? "이미 이 반에 등록된 학생입니다."
-        : memberError.message,
+        : humanizeDbError(memberError.message),
     };
   }
 
@@ -349,7 +392,7 @@ export async function removeCourseFromClass(
     .eq("course_id", courseId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return { ok: false, message: humanizeDbError(error.message) };
   }
 
   return {
@@ -371,7 +414,7 @@ export async function removeStudentFromClass(
     .eq("student_id", studentId);
 
   if (error) {
-    return { ok: false, message: error.message };
+    return { ok: false, message: humanizeDbError(error.message) };
   }
 
   return {

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { CreateClassForm } from "@/components/classes/CreateClassForm";
 import { DeleteClassButton } from "@/components/classes/DeleteClassButton";
 import { deleteClass } from "@/app/admin/classes/actions";
@@ -8,7 +10,20 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import type { Class, Profile } from "@/types/database";
 
 export default async function AdminClassesPage() {
+  const profile = await getCurrentProfile();
   const supabase = await createClient();
+  const academyId = profile?.academy_id ?? null;
+  const admin = createAdminClient();
+
+  let teachersQuery = admin
+    .from("profiles")
+    .select("*")
+    .eq("role", "teacher")
+    .eq("is_active", true)
+    .order("name");
+  if (academyId) {
+    teachersQuery = teachersQuery.eq("academy_id", academyId);
+  }
 
   const [{ data: classes }, { data: teachers }, { data: studentRows }, { data: courseRows }] =
     await Promise.all([
@@ -17,12 +32,7 @@ export default async function AdminClassesPage() {
         .select("*, teacher:profiles!classes_teacher_id_fkey(id, name)")
         .eq("is_active", true)
         .order("created_at", { ascending: false }),
-      supabase
-        .from("profiles")
-        .select("*")
-        .eq("role", "teacher")
-        .eq("is_active", true)
-        .order("name"),
+      teachersQuery,
       supabase.from("class_students").select("class_id"),
       supabase.from("class_courses").select("class_id"),
     ]);
@@ -53,6 +63,13 @@ export default async function AdminClassesPage() {
         title="반 관리"
         description="반을 만들고 학생·강좌를 일괄 배정합니다."
       />
+
+      {!academyId ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          소속 학원 정보가 없어 반을 만들 수 없습니다. EngCore Admin에서 이
+          계정을 학원 관리자로 연결해 주세요.
+        </div>
+      ) : null}
 
       <div className="ui-section-card">
         <CreateClassForm teachers={(teachers ?? []) as Profile[]} />

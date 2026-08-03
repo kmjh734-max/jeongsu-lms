@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   adminAddStudentToClass,
@@ -197,9 +197,26 @@ export function ClassStudentsPanel({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<Message>(null);
 
+  // 추가 후 목록이 바뀌면 선택값을 다음 후보로 맞춤 (빈 값으로 두면 다음 추가가 무반응)
+  useEffect(() => {
+    if (available.length === 0) {
+      setStudentId("");
+      return;
+    }
+    if (!available.some((s) => s.id === studentId)) {
+      setStudentId(available[0].id);
+    }
+  }, [available, studentId]);
+
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!studentId) return;
+    if (!studentId) {
+      setMessage({
+        type: "error",
+        text: "추가할 학생을 선택해 주세요.",
+      });
+      return;
+    }
     setLoading(true);
     setMessage(null);
 
@@ -213,7 +230,6 @@ export function ClassStudentsPanel({
       text: result.message,
     });
     if (result.ok) {
-      setStudentId("");
       router.refresh();
     }
     setLoading(false);
@@ -344,9 +360,25 @@ export function ClassCoursesPanel({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<Message>(null);
 
+  useEffect(() => {
+    if (available.length === 0) {
+      setCourseId("");
+      return;
+    }
+    if (!available.some((c) => c.id === courseId)) {
+      setCourseId(available[0].id);
+    }
+  }, [available, courseId]);
+
   async function handleAssign(e: React.FormEvent) {
     e.preventDefault();
-    if (!courseId) return;
+    if (!courseId) {
+      setMessage({
+        type: "error",
+        text: "배정할 강좌를 선택해 주세요.",
+      });
+      return;
+    }
     setLoading(true);
     setMessage(null);
 
@@ -360,7 +392,6 @@ export function ClassCoursesPanel({
       text: result.message,
     });
     if (result.ok) {
-      setCourseId("");
       router.refresh();
     }
     setLoading(false);

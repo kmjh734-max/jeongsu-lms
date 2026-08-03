@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import {
   ClassCoursesPanel,
@@ -22,6 +23,7 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
   const { classId } = await params;
   const profile = await getCurrentProfile();
   const supabase = await createClient();
+  const academyId = profile?.academy_id ?? null;
 
   const { data: classRow } = await supabase
     .from("classes")
@@ -34,6 +36,13 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
 
   const typedClass = classRow as Class;
 
+  // 본인 등록 + 같은 학원 학생 — RLS로는 본인 등록만 보이므로 admin client
+  const admin = createAdminClient();
+  let studentFilter = `created_by.eq.${profile!.id}`;
+  if (academyId) {
+    studentFilter += `,academy_id.eq.${academyId}`;
+  }
+
   const [
     { data: myStudents },
     { data: myCourses },
@@ -41,12 +50,12 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
     { data: classCourses },
     { data: teachers },
   ] = await Promise.all([
-    supabase
+    admin
       .from("profiles")
       .select("*")
       .eq("role", "student")
-      .eq("created_by", profile!.id)
       .eq("is_active", true)
+      .or(studentFilter)
       .order("name"),
     supabase
       .from("courses")
@@ -55,7 +64,9 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
       .order("title"),
     supabase
       .from("class_students")
-      .select("id, student_id, student:profiles!class_students_student_id_fkey(name, username)")
+      .select(
+        "id, student_id, student:profiles!class_students_student_id_fkey(name, username)"
+      )
       .eq("class_id", classId)
       .order("created_at"),
     supabase
@@ -127,7 +138,7 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
       <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <h3 className="mb-4 font-semibold">학생 관리</h3>
         <p className="mb-3 text-sm text-slate-600">
-          본인이 등록한 학생만 반에 추가할 수 있습니다.
+          본인이 등록한 학생, 또는 같은 학원 학생을 반에 추가할 수 있습니다.
         </p>
         <ClassStudentsPanel
           variant="teacher"
