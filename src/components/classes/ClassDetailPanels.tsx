@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   adminAddStudentToClass,
@@ -18,6 +18,7 @@ import {
   teacherRemoveCourseFromClass,
   teacherRemoveStudentFromClass,
 } from "@/app/teacher/classes/actions";
+import { SearchableSelect } from "@/components/ui/SearchableSelect";
 import type { Course, Profile } from "@/types/database";
 
 export type ClassPanelVariant = "admin" | "teacher";
@@ -193,18 +194,25 @@ export function ClassStudentsPanel({
     (s) => !memberIds.has(s.id) && s.is_active !== false
   );
 
-  const [studentId, setStudentId] = useState(available[0]?.id ?? "");
+  const studentSelectOptions = useMemo(
+    () =>
+      available.map((s) => ({
+        value: s.id,
+        label: s.username ? `${s.name} (${s.username})` : s.name,
+        searchText: [s.name, s.username, s.email].filter(Boolean).join(" "),
+      })),
+    [available]
+  );
+
+  const [studentId, setStudentId] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<Message>(null);
 
-  // 추가 후 목록이 바뀌면 선택값을 다음 후보로 맞춤 (빈 값으로 두면 다음 추가가 무반응)
+  // 추가 후 목록이 바뀌면 선택값 초기화
   useEffect(() => {
-    if (available.length === 0) {
-      setStudentId("");
-      return;
-    }
+    if (!studentId) return;
     if (!available.some((s) => s.id === studentId)) {
-      setStudentId(available[0].id);
+      setStudentId("");
     }
   }, [available, studentId]);
 
@@ -230,6 +238,7 @@ export function ClassStudentsPanel({
       text: result.message,
     });
     if (result.ok) {
+      setStudentId("");
       router.refresh();
     }
     setLoading(false);
@@ -266,24 +275,23 @@ export function ClassStudentsPanel({
         className="flex flex-col gap-3 sm:flex-row sm:items-end"
       >
         <div className="min-w-0 flex-1">
-          <label className="mb-1 block text-sm font-medium">학생 추가</label>
           {available.length === 0 ? (
-            <p className="text-sm text-amber-700">
-              추가할 수 있는 학생이 없습니다.
-            </p>
+            <>
+              <label className="mb-1 block text-sm font-medium">학생 추가</label>
+              <p className="text-sm text-amber-700">
+                추가할 수 있는 학생이 없습니다.
+              </p>
+            </>
           ) : (
-            <select
+            <SearchableSelect
+              label="학생 추가"
               value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            >
-              {available.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                  {s.username ? ` (${s.username})` : ""}
-                </option>
-              ))}
-            </select>
+              onChange={setStudentId}
+              options={studentSelectOptions}
+              searchPlaceholder="이름·아이디로 검색"
+              emptyOptionLabel="학생 선택"
+              required
+            />
           )}
         </div>
         <button
