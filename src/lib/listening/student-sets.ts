@@ -6,7 +6,7 @@ export interface StudentListeningSetItem {
   description: string | null;
 }
 
-/** 학생에게 배정된 듣기 세트 (반 배정 + 개별 배정) */
+/** 학생에게 배정된 듣기 세트 (반 배정 + 개별 배정) — 구형 listening_assignments */
 export async function fetchStudentListeningSets(
   supabase: SupabaseClient,
   studentId: string
