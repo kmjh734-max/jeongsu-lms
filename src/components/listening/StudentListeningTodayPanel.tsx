@@ -161,7 +161,7 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
 
 export function StudentListeningTodayPanel({
   initialSummary = null,
-  refreshAfterEnsureMs = 2000,
+  refreshAfterEnsureMs = 0,
 }: StudentListeningTodayPanelProps) {
   const [summary, setSummary] = useState<TodaySummary | null>(initialSummary);
   const [loading, setLoading] = useState(!initialSummary);
@@ -172,6 +172,8 @@ export function StudentListeningTodayPanel({
     const params = new URLSearchParams();
     if (year) params.set("year", String(year));
     if (month) params.set("month", String(month));
+    // 월 이동은 달력만 — ensure 재실행 생략
+    if (year && month) params.set("mode", "calendar");
     const qs = params.toString();
     const res = await fetch(
       `/api/listening/schedule-assignments/today${qs ? `?${qs}` : ""}`
@@ -179,12 +181,28 @@ export function StudentListeningTodayPanel({
     const data = (await res.json()) as TodaySummary & {
       ok?: boolean;
       message?: string;
+      calendar?: ListeningCalendarData;
     };
     if (!data.ok) {
       if (!silent) {
         setError(data.message ?? "오늘 과제를 불러오지 못했습니다.");
       }
       return null;
+    }
+    if (year && month && data.calendar) {
+      setSummary((prev) =>
+        prev
+          ? { ...prev, calendar: data.calendar }
+          : ({
+              todayIso: data.todayIso,
+              isStudyDayToday: false,
+              todayTask: null,
+              missedTasks: [],
+              nextStudyDate: null,
+              calendar: data.calendar,
+            } as TodaySummary)
+      );
+      return data;
     }
     setSummary(data);
     return data;

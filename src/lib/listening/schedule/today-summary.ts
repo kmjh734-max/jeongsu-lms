@@ -214,7 +214,32 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   };
 }
 
-/** 누락된 일일 과제 생성 — 응답 후 백그라운드 실행 */
+/** 오늘 과제만 동기 생성 — 페이지 첫 응답을 빠르게 */
+export async function ensureStudentTodayAndMissedTasks(
+  admin: SupabaseClient,
+  studentId: string,
+  todayIso = getTodayIsoKorea()
+): Promise<void> {
+  const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
+  if (assignments.length === 0) return;
+
+  await Promise.all(
+    assignments.map(async (assignment) => {
+      if (!isDateInAssignment(todayIso, assignment)) return;
+      const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
+      if (queue.length === 0) return;
+      await ensureDailyTaskForStudentDate(
+        admin,
+        assignment,
+        studentId,
+        todayIso,
+        queue
+      );
+    })
+  );
+}
+
+/** 누락된 일일 과제 생성 — 미래 구간 포함 (백그라운드용) */
 function addDaysIso(iso: string, days: number): string {
   const d = parseDateOnly(iso);
   d.setDate(d.getDate() + days);
@@ -269,6 +294,6 @@ export async function getStudentScheduleTodaySummary(
   studentId: string,
   todayIso = getTodayIsoKorea()
 ) {
-  await ensureStudentScheduleDailyTasks(admin, studentId, todayIso);
+  await ensureStudentTodayAndMissedTasks(admin, studentId, todayIso);
   return getStudentScheduleTodaySummaryReadOnly(admin, studentId, todayIso);
 }
