@@ -32,8 +32,8 @@ interface ClassVocabPanelProps {
     setId: string
   ) => Promise<{ ok: boolean; message: string }>;
   onRemove: (
-    assignmentId: string,
-    classId: string
+    classId: string,
+    assignmentId: string
   ) => Promise<{ ok: boolean; message: string }>;
 }
 
@@ -73,7 +73,7 @@ export function ClassVocabPanel({
   async function handleRemove(assignmentId: string) {
     if (!confirm("이 학생의 단어장 배정을 해제할까요?")) return;
     setLoading(true);
-    const result = await onRemove(assignmentId, classId);
+    const result = await onRemove(classId, assignmentId);
     setMessage(result.message);
     if (result.ok) router.refresh();
     setLoading(false);

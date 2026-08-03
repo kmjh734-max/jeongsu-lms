@@ -144,9 +144,7 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
             students={vocabPanel.students}
             setOptions={vocabPanel.setOptions}
             onAssign={classActions.adminAssignVocabSetToStudent}
-            onRemove={(assignmentId, cid) =>
-              classActions.adminRemoveVocabSetFromStudent(cid, assignmentId)
-            }
+            onRemove={classActions.adminRemoveVocabSetFromStudent}
           />
         </section>
       )}

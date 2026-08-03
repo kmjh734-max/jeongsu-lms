@@ -160,9 +160,7 @@ export default async function TeacherClassDetailPage({ params }: PageProps) {
             students={vocabPanel.students}
             setOptions={vocabPanel.setOptions}
             onAssign={classActions.teacherAssignVocabSetToStudent}
-            onRemove={(assignmentId, cid) =>
-              classActions.teacherRemoveVocabSetFromStudent(cid, assignmentId)
-            }
+            onRemove={classActions.teacherRemoveVocabSetFromStudent}
           />
         </section>
       )}
