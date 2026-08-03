@@ -362,6 +362,22 @@ export async function addStudentToClass(
     assignedBy
   );
 
+  // 반 스케줄 듣기 배정이 있으면 새 학생 일일 과제도 생성
+  try {
+    const { ensureStudentScheduleDailyTasks } = await import(
+      "@/lib/listening/schedule/today-summary"
+    );
+    const { getTodayIsoKorea } = await import("@/lib/date/korea-today");
+    await ensureStudentScheduleDailyTasks(
+      supabase,
+      studentId,
+      getTodayIsoKorea(),
+      { futureDays: 45 }
+    );
+  } catch {
+    // 듣기 과제 생성 실패해도 반 추가는 성공으로 유지
+  }
+
   if (errors.length > 0) {
     return {
       ok: true,

@@ -66,9 +66,14 @@ export function ListeningScheduleAssignModal({
   const [targetStudentId, setTargetStudentId] = useState(
     initialTargetStudentId ?? ""
   );
-  const [startDate, setStartDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
+  const [startDate, setStartDate] = useState(() => {
+    // 브라우저 로컬(한국) 기준 — UTC toISOString은 날짜가 하루 밀릴 수 있음
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  });
   const [endDate, setEndDate] = useState("");
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([...WEEKDAY_PRESETS.weekdays]);
   const [questionsPerDay, setQuestionsPerDay] = useState(5);

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import {
+  isStudyDay,
   nextStudyDateAfter,
   parseDateOnly,
   toDateOnlyString,
@@ -24,6 +25,18 @@ export interface StudentDailyTaskView {
   completedCount: number;
   totalCount: number;
   remainingCount: number;
+}
+
+function isDateInAssignment(
+  taskDateIso: string,
+  assignment: ScheduleAssignmentRow
+): boolean {
+  const taskDate = parseDateOnly(taskDateIso);
+  const start = parseDateOnly(assignment.start_date);
+  const end = assignment.end_date ? parseDateOnly(assignment.end_date) : null;
+  if (taskDate < start) return false;
+  if (end && taskDate > end) return false;
+  return isStudyDay(taskDate, assignment.days_of_week);
 }
 
 async function loadActiveAssignmentsForStudent(
@@ -188,10 +201,9 @@ export async function getStudentScheduleTodaySummaryReadOnly(
     };
   }
 
-  const isStudyDayToday = assignments.some((a) => {
-    const d = new Date(todayIso + "T12:00:00");
-    return a.days_of_week.includes(d.getDay());
-  });
+  const isStudyDayToday = assignments.some((a) =>
+    isDateInAssignment(todayIso, a)
+  );
 
   return {
     todayIso,

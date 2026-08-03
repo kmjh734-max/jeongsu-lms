@@ -59,9 +59,12 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
   const showTodayInProgress =
     today != null && today.status !== "completed";
   const hasSchedule =
-    missed.length > 0 || today != null || !summary.isStudyDayToday;
+    missed.length > 0 ||
+    today != null ||
+    !summary.isStudyDayToday ||
+    Boolean(summary.nextStudyDate);
 
-  if (!hasSchedule && !summary.nextStudyDate) {
+  if (!hasSchedule) {
     return null;
   }
 
@@ -129,6 +132,17 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
             {today.completedCount > 0 ? "이어 풀기" : "오늘 학습 시작"}
           </Link>
         </div>
+      )}
+
+      {!today && !missed.length && summary.isStudyDayToday && (
+        <p className="text-sm text-slate-600">
+          오늘 듣기학습 과제를 준비하지 못했습니다. 페이지를 새로고침해 주세요.
+          {summary.nextStudyDate && (
+            <span className="mt-1 block">
+              다음 학습일: {formatStudyDate(summary.nextStudyDate)}
+            </span>
+          )}
+        </p>
       )}
 
       {!today && !missed.length && !summary.isStudyDayToday && (
