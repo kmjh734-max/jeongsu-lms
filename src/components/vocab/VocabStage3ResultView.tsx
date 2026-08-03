@@ -57,7 +57,7 @@ export function VocabStage3ResultView({
   autoReturnSeconds = 3,
 }: VocabStage3ResultViewProps) {
   const router = useRouter();
-  const hub = hubHref ?? `/student/vocab/${setId}`;
+  const hub = hubHref ?? "/student/vocab";
   const wrong = answers.filter((a) => !a.is_correct);
   const meaningAnswers = answers.filter((a) => a.question_type === "meaning");
 

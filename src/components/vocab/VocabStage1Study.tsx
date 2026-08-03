@@ -39,7 +39,7 @@ export function VocabStage1Study({
   guestMode = false,
 }: VocabStage1StudyProps) {
   const router = useRouter();
-  const hub = hubHref ?? `/student/vocab/${setId}`;
+  const hub = hubHref ?? "/student/vocab";
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [seenIds, setSeenIds] = useState<Set<string>>(

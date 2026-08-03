@@ -29,6 +29,7 @@ interface VocabStage3ExampleBlankProps {
   itemCount: number;
   questions: ExampleBlankQuestion[];
   excludedCount: number;
+  hubHref?: string;
 }
 
 export function VocabStage3ExampleBlank({
@@ -37,8 +38,10 @@ export function VocabStage3ExampleBlank({
   itemCount,
   questions: initialQuestions,
   excludedCount,
+  hubHref,
 }: VocabStage3ExampleBlankProps) {
   const router = useRouter();
+  const hub = hubHref ?? "/student/vocab";
   const inputRef = useRef<HTMLInputElement>(null);
   const [queue, setQueue] = useState(() => shuffleQuestions(initialQuestions));
   const [answer, setAnswer] = useState("");
@@ -66,10 +69,10 @@ export function VocabStage3ExampleBlank({
     setAutoCompleting(true);
     void (async () => {
       await completeStage3(setId);
-      router.push(`/student/vocab/${setId}`);
+      router.push(hub);
       router.refresh();
     })();
-  }, [total, itemCount, setId, router, autoCompleting]);
+  }, [total, itemCount, setId, router, autoCompleting, hub]);
 
   function checkAnswer() {
     if (!current || feedback?.showAnswer) return;
@@ -102,7 +105,7 @@ export function VocabStage3ExampleBlank({
             attemptRound
           );
           await completeStage3(setId);
-          router.push(`/student/vocab/${setId}`);
+          router.push(hub);
           router.refresh();
         })();
         return;
@@ -148,7 +151,7 @@ export function VocabStage3ExampleBlank({
   if (total === 0) {
     return (
       <EmptyQuestionsView
-        setId={setId}
+        hub={hub}
         setTitle={setTitle}
         message="예문이 있는 단어가 없어 3단계를 자동 완료합니다."
       />
@@ -162,7 +165,7 @@ export function VocabStage3ExampleBlank({
         <Button
           type="button"
           className="mt-4"
-          onClick={() => router.push(`/student/vocab/${setId}`)}
+          onClick={() => router.push(hub)}
         >
           단어장으로
         </Button>
@@ -174,7 +177,7 @@ export function VocabStage3ExampleBlank({
     <div className="mx-auto w-full max-w-2xl space-y-4 px-2">
       <div>
         <Link
-          href={`/student/vocab/${setId}`}
+          href={hub}
           className="text-sm text-brand-600 hover:underline"
         >
           ← 단어장으로
@@ -272,14 +275,14 @@ export function VocabStage3ExampleBlank({
 }
 
 function EmptyQuestionsView(props: {
-  setId: string;
+  hub: string;
   setTitle: string;
   message: string;
 }) {
   return (
     <div className="mx-auto max-w-lg space-y-4 px-2 text-center">
       <Link
-        href={`/student/vocab/${props.setId}`}
+        href={props.hub}
         className="text-sm text-brand-600 hover:underline"
       >
         ← 단어장으로

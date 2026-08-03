@@ -41,7 +41,7 @@ export function VocabStage2Spelling({
   guestMode = false,
 }: VocabStage2SpellingProps) {
   const router = useRouter();
-  const hub = hubHref ?? `/student/vocab/${setId}`;
+  const hub = hubHref ?? "/student/vocab";
   const inputRef = useRef<HTMLInputElement>(null);
   const itemById = new Map(items.map((i) => [i.id, i]));
   const [queue, setQueue] = useState(() => shuffleIds(items.map((i) => i.id)));

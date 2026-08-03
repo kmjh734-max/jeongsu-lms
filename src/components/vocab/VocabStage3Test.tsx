@@ -42,7 +42,7 @@ export function VocabStage3Test({
   guestMode = false,
 }: VocabStage3TestProps) {
   const router = useRouter();
-  const hub = hubHref ?? `/student/vocab/${setId}`;
+  const hub = hubHref ?? "/student/vocab";
   const inputRef = useRef<HTMLInputElement>(null);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
