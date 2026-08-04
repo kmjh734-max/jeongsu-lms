@@ -60,7 +60,8 @@ export const WORKBOOK_10_STEPS: Array<{
     step_type: "verb_form",
     label: "5단계 · 동사형 연습하기",
     shortLabel: "동사형 연습하기",
-    prompt: "괄호 안에 주어진 단어를 알맞게 고쳐 쓰세요.",
+    prompt:
+      "괄호 안에 주어진 단어를 문맥에 맞는 알맞은 형태로 고쳐 쓰세요.",
   },
   {
     number: 6,

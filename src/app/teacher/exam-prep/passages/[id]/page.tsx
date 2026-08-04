@@ -5,6 +5,7 @@ import { SentenceEditor } from "@/components/exam-prep/SentenceEditor";
 import { Stage2BlankEditor } from "@/components/exam-prep/Stage2BlankEditor";
 import { Stage3BlankEditor } from "@/components/exam-prep/Stage3BlankEditor";
 import { Stage4SettingsEditor } from "@/components/exam-prep/Stage4SettingsEditor";
+import { Stage5VerbFormEditor } from "@/components/exam-prep/Stage5VerbFormEditor";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
@@ -16,6 +17,7 @@ import type {
 import type { ExamKoreanBlank } from "@/lib/exam-prep/stage2-types";
 import type { ExamStage3Blank } from "@/lib/exam-prep/stage3-types";
 import type { ExamStage4Setting } from "@/lib/exam-prep/stage4-types";
+import type { ExamStage5Item } from "@/lib/exam-prep/stage5-types";
 
 const BASE = "/teacher/exam-prep";
 
@@ -48,6 +50,7 @@ export default async function TeacherExamPrepPassageEditPage({
     { data: blanks2 },
     { data: blanks3 },
     { data: stage4Settings },
+    { data: stage5Items },
   ] = await Promise.all([
     supabase
       .from("exam_passage_sentences")
@@ -71,6 +74,12 @@ export default async function TeacherExamPrepPassageEditPage({
       .select("*")
       .eq("passage_id", id)
       .eq("stage_number", 4),
+    supabase
+      .from("exam_stage_blanks")
+      .select("*")
+      .eq("passage_id", id)
+      .eq("stage_number", 5)
+      .order("blank_order", { ascending: true }),
   ]);
 
   return (
@@ -113,6 +122,14 @@ export default async function TeacherExamPrepPassageEditPage({
         initialSettings={(stage4Settings ?? []) as ExamStage4Setting[]}
         initiallyPublished={Boolean(
           (passage as ExamPassage).stage4_published
+        )}
+      />
+      <Stage5VerbFormEditor
+        passageId={id}
+        sentences={(sentences ?? []) as ExamPassageSentence[]}
+        initialItems={(stage5Items ?? []) as ExamStage5Item[]}
+        initiallyPublished={Boolean(
+          (passage as ExamPassage).stage5_published
         )}
       />
     </div>

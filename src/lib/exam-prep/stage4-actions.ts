@@ -772,7 +772,7 @@ export async function completeStage4Action(input: {
   if (existing?.completed_at) {
     return {
       ok: true as const,
-      message: "4단계 학습을 완료했습니다. 다음 단계는 준비 중입니다.",
+      message: "4단계 학습을 완료했습니다. 5단계를 시작할 수 있습니다.",
       alreadyCompleted: true,
     };
   }
@@ -845,7 +845,7 @@ export async function completeStage4Action(input: {
   revalidatePath(`/student/exam-prep/${input.assignmentStudentId}`);
   return {
     ok: true as const,
-    message: "4단계 학습을 완료했습니다. 다음 단계는 준비 중입니다.",
+    message: "4단계 학습을 완료했습니다. 5단계를 시작할 수 있습니다.",
     stageCompleted: true,
   };
 }

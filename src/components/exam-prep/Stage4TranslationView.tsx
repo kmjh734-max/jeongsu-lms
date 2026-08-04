@@ -30,10 +30,16 @@ export function Stage4TranslationView({
   assignmentStudentId,
   stepId,
   onGoStage3,
+  canStartStage5 = false,
+  onStartStage5,
+  onStage4Completed,
 }: {
   assignmentStudentId: string;
   stepId: string;
   onGoStage3?: () => void;
+  canStartStage5?: boolean;
+  onStartStage5?: () => void;
+  onStage4Completed?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -222,6 +228,7 @@ export function Stage4TranslationView({
     }
     setStageDone(true);
     setMessage(result.message);
+    onStage4Completed?.();
   }
 
   const metaBits = [
@@ -412,7 +419,15 @@ export function Stage4TranslationView({
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">4단계 학습을 완료했습니다.</p>
-          <p className="mt-1">다음 단계는 준비 중입니다.</p>
+          {canStartStage5 ? (
+            <p className="mt-1">
+              5단계 「동사형 연습하기」를 시작할 수 있습니다.
+            </p>
+          ) : (
+            <p className="mt-1">
+              5단계가 아직 공개되지 않았거나 준비 중입니다.
+            </p>
+          )}
         </div>
       )}
 
@@ -444,6 +459,11 @@ export function Stage4TranslationView({
         >
           4단계 학습 완료
         </Button>
+        {stageDone && canStartStage5 && (
+          <Button type="button" onClick={() => onStartStage5?.()}>
+            5단계 시작하기
+          </Button>
+        )}
       </div>
     </div>
   );

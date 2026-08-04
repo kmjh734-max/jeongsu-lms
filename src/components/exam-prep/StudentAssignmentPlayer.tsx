@@ -21,6 +21,7 @@ import { Stage1FamiliarizeView } from "@/components/exam-prep/Stage1FamiliarizeV
 import { Stage2KoreanBlankView } from "@/components/exam-prep/Stage2KoreanBlankView";
 import { Stage3EnglishBlankView } from "@/components/exam-prep/Stage3EnglishBlankView";
 import { Stage4TranslationView } from "@/components/exam-prep/Stage4TranslationView";
+import { Stage5VerbFormView } from "@/components/exam-prep/Stage5VerbFormView";
 
 type AttemptSummary = {
   step_id: string;
@@ -86,8 +87,10 @@ export function StudentAssignmentPlayer({
   stage2Published = false,
   stage3Published = false,
   stage4Published = false,
+  stage5Published = false,
   stage2Completed = false,
   stage3Completed = false,
+  stage4Completed = false,
 }: {
   assignmentStudentId: string;
   steps: ExamWorkbookStep[];
@@ -109,8 +112,10 @@ export function StudentAssignmentPlayer({
   stage2Published?: boolean;
   stage3Published?: boolean;
   stage4Published?: boolean;
+  stage5Published?: boolean;
   stage2Completed?: boolean;
   stage3Completed?: boolean;
+  stage4Completed?: boolean;
 }) {
   const router = useRouter();
   const sortedSteps = useMemo(
@@ -124,6 +129,7 @@ export function StudentAssignmentPlayer({
   );
   const [stage2DoneLocal, setStage2DoneLocal] = useState(stage2Completed);
   const [stage3DoneLocal, setStage3DoneLocal] = useState(stage3Completed);
+  const [stage4DoneLocal, setStage4DoneLocal] = useState(stage4Completed);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [starting, setStarting] = useState(false);
@@ -181,11 +187,14 @@ export function StudentAssignmentPlayer({
         prev.step_type === "korean_blank" && stage2DoneLocal;
       const passedByStage3 =
         prev.step_type === "english_blank" && stage3DoneLocal;
+      const passedByStage4 =
+        prev.step_type === "translation_practice" && stage4DoneLocal;
       if (
         passedByAttempt ||
         passedByStage1 ||
         passedByStage2 ||
-        passedByStage3
+        passedByStage3 ||
+        passedByStage4
       )
         set.add(step.id);
     }
@@ -197,6 +206,7 @@ export function StudentAssignmentPlayer({
     stage1DoneLocal,
     stage2DoneLocal,
     stage3DoneLocal,
+    stage4DoneLocal,
   ]);
 
   const scheduleDraft = useCallback(
@@ -480,10 +490,47 @@ export function StudentAssignmentPlayer({
           <Stage4TranslationView
             assignmentStudentId={assignmentStudentId}
             stepId={activeStep.id}
+            canStartStage5={stage5Published}
+            onStage4Completed={() => setStage4DoneLocal(true)}
+            onStartStage5={() => {
+              setStage4DoneLocal(true);
+              const next = sortedSteps.find((s) => s.step_type === "verb_form");
+              if (next) {
+                setActiveStepId(next.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
             onGoStage3={() => {
               const s3 = sortedSteps.find((s) => s.step_type === "english_blank");
               if (s3) {
                 setActiveStepId(s3.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
+          />
+        )}
+
+      {activeStep &&
+        activeStep.step_type === "verb_form" &&
+        unlockedStepIds.has(activeStep.id) &&
+        stage5Published && (
+          <Stage5VerbFormView
+            assignmentStudentId={assignmentStudentId}
+            stepId={activeStep.id}
+            onGoStage4={() => {
+              const s4 = sortedSteps.find(
+                (s) => s.step_type === "translation_practice"
+              );
+              if (s4) {
+                setActiveStepId(s4.id);
                 setAttemptId(null);
                 setAnswers({});
                 setResults(null);
@@ -514,6 +561,11 @@ export function StudentAssignmentPlayer({
           activeStep.step_type === "translation_practice" &&
           unlockedStepIds.has(activeStep.id) &&
           stage4Published
+        ) &&
+        !(
+          activeStep.step_type === "verb_form" &&
+          unlockedStepIds.has(activeStep.id) &&
+          stage5Published
         ) && (
         <div className="ui-section-card space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
