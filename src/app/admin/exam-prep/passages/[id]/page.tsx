@@ -10,6 +10,7 @@ import { Stage6ChoiceEditor } from "@/components/exam-prep/Stage6ChoiceEditor";
 import { Stage7ErrorEditor } from "@/components/exam-prep/Stage7ErrorEditor";
 import { Stage8ReorderEditor } from "@/components/exam-prep/Stage8ReorderEditor";
 import { Stage9ParagraphEditor } from "@/components/exam-prep/Stage9ParagraphEditor";
+import { Stage10WritingEditor } from "@/components/exam-prep/Stage10WritingEditor";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
@@ -28,6 +29,11 @@ import type { ExamStage8Group } from "@/lib/exam-prep/stage8-types";
 import { parseReorderChunks } from "@/lib/exam-prep/stage8-types";
 import type { ExamStage9Block } from "@/lib/exam-prep/stage9-types";
 import { parseSentenceIds, parseCohesionClues } from "@/lib/exam-prep/stage9-types";
+import type { ExamStage10Item } from "@/lib/exam-prep/stage10-types";
+import {
+  parseWritingCues,
+  parseWritingSegments,
+} from "@/lib/exam-prep/stage10-types";
 
 const BASE = "/admin/exam-prep";
 
@@ -65,6 +71,7 @@ export default async function AdminExamPrepPassageEditPage({
     { data: stage7Items },
     { data: stage8Items },
     { data: stage9Items },
+    { data: stage10Items },
   ] = await Promise.all([
     supabase
       .from("exam_passage_sentences")
@@ -117,6 +124,12 @@ export default async function AdminExamPrepPassageEditPage({
       .select("*")
       .eq("passage_id", id)
       .eq("stage_number", 9)
+      .order("blank_order", { ascending: true }),
+    supabase
+      .from("exam_stage_blanks")
+      .select("*")
+      .eq("passage_id", id)
+      .eq("stage_number", 10)
       .order("blank_order", { ascending: true }),
   ]);
 
@@ -239,6 +252,34 @@ export default async function AdminExamPrepPassageEditPage({
         initialStructureHint={
           (passage as ExamPassage).stage9_structure_hint ?? ""
         }
+      />
+      <Stage10WritingEditor
+        passageId={id}
+        sentences={(sentences ?? []) as ExamPassageSentence[]}
+        initialItems={(stage10Items ?? []).map((row) => {
+          const r = row as Record<string, unknown>;
+          const mode = String(r.writing_input_mode ?? "guided_segments");
+          const display = String(
+            r.writing_blank_display_mode ?? "token_slots"
+          );
+          return {
+            ...(row as ExamStage10Item),
+            stage_number: 10 as const,
+            sentence_ids: parseSentenceIds(r.sentence_ids),
+            writing_segments: parseWritingSegments(r.writing_segments),
+            writing_cues: parseWritingCues(r.writing_cues),
+            writing_input_mode:
+              mode === "full_sentence" ? "full_sentence" : "guided_segments",
+            writing_blank_display_mode:
+              display === "phrase_input" ? "phrase_input" : "token_slots",
+            accepted_answers: Array.isArray(r.accepted_answers)
+              ? (r.accepted_answers as string[]).map(String)
+              : [],
+          };
+        })}
+        initiallyPublished={Boolean(
+          (passage as ExamPassage).stage10_published
+        )}
       />
     </div>
   );

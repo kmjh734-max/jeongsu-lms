@@ -120,6 +120,8 @@ export type ExamPassage = {
   stage9_fixed_suffix?: string;
   stage9_answer_mode?: string;
   stage9_structure_hint?: string | null;
+  stage10_published: boolean;
+  stage10_content_version?: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;

@@ -59,7 +59,7 @@ export default async function StudentExamPrepPlayerPage({
   const { data: passage } = await supabase
     .from("exam_passages")
     .select(
-      "id, title, school_level, grade, source, exam_name, passage_number, stage2_published, stage3_published, stage4_published, stage5_published, stage6_published, stage7_published, stage8_published, stage9_published"
+      "id, title, school_level, grade, source, exam_name, passage_number, stage2_published, stage3_published, stage4_published, stage5_published, stage6_published, stage7_published, stage8_published, stage9_published, stage10_published"
     )
     .eq("id", workbook.passage_id)
     .maybeSingle();
@@ -82,6 +82,7 @@ export default async function StudentExamPrepPlayerPage({
     { data: stage6Done },
     { data: stage7Done },
     { data: stage8Done },
+    { data: stage9Done },
   ] = await Promise.all([
     supabase
       .from("exam_workbook_steps")
@@ -151,6 +152,12 @@ export default async function StudentExamPrepPlayerPage({
       .eq("assignment_student_id", assignmentStudentId)
       .eq("stage_number", 8)
       .maybeSingle(),
+    supabase
+      .from("exam_stage2_progress")
+      .select("completed_at")
+      .eq("assignment_student_id", assignmentStudentId)
+      .eq("stage_number", 9)
+      .maybeSingle(),
   ]);
 
   const publicQuestions: ExamWorkbookQuestionPublic[] = stripQuestions(
@@ -198,6 +205,9 @@ export default async function StudentExamPrepPlayerPage({
         stage9Published={Boolean(
           (passage as { stage9_published?: boolean }).stage9_published
         )}
+        stage10Published={Boolean(
+          (passage as { stage10_published?: boolean }).stage10_published
+        )}
         stage2Completed={Boolean(stage2Done?.completed_at)}
         stage3Completed={Boolean(stage3Done?.completed_at)}
         stage4Completed={Boolean(stage4Done?.completed_at)}
@@ -205,6 +215,7 @@ export default async function StudentExamPrepPlayerPage({
         stage6Completed={Boolean(stage6Done?.completed_at)}
         stage7Completed={Boolean(stage7Done?.completed_at)}
         stage8Completed={Boolean(stage8Done?.completed_at)}
+        stage9Completed={Boolean(stage9Done?.completed_at)}
         existingAttempts={(attempts ?? []).map((a) => ({
           step_id: a.step_id as string,
           status: a.status as string,

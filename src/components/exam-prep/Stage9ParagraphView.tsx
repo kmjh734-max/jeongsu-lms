@@ -23,12 +23,14 @@ export function Stage9ParagraphView({
   stepId,
   onGoStage8,
   canStartStage10 = false,
+  onStartStage10,
   onStage9Completed,
 }: {
   assignmentStudentId: string;
   stepId: string;
   onGoStage8?: () => void;
   canStartStage10?: boolean;
+  onStartStage10?: () => void;
   onStage9Completed?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
@@ -461,8 +463,8 @@ export function Stage9ParagraphView({
           <p className="font-semibold">9단계 학습을 완료했습니다.</p>
           <p className="mt-1">
             {canStartStage10
-              ? "다음 단계를 시작할 수 있습니다."
-              : "다음 단계는 준비 중입니다."}
+              ? "10단계 영작 연습하기를 시작할 수 있습니다."
+              : "다음 단계는 준비 중이거나 아직 공개되지 않았습니다."}
           </p>
         </div>
       )}
@@ -497,6 +499,11 @@ export function Stage9ParagraphView({
         >
           9단계 학습 완료
         </Button>
+        {stageDone && canStartStage10 && (
+          <Button type="button" onClick={onStartStage10}>
+            10단계 시작하기
+          </Button>
+        )}
         <Link
           href="/student/exam-prep"
           className="rounded-lg border px-4 py-2 text-sm font-medium"
