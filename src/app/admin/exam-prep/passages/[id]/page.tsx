@@ -9,6 +9,7 @@ import { Stage5VerbFormEditor } from "@/components/exam-prep/Stage5VerbFormEdito
 import { Stage6ChoiceEditor } from "@/components/exam-prep/Stage6ChoiceEditor";
 import { Stage7ErrorEditor } from "@/components/exam-prep/Stage7ErrorEditor";
 import { Stage8ReorderEditor } from "@/components/exam-prep/Stage8ReorderEditor";
+import { Stage9ParagraphEditor } from "@/components/exam-prep/Stage9ParagraphEditor";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
@@ -25,6 +26,8 @@ import type { ExamStage6Item } from "@/lib/exam-prep/stage6-types";
 import type { ExamStage7Candidate } from "@/lib/exam-prep/stage7-types";
 import type { ExamStage8Group } from "@/lib/exam-prep/stage8-types";
 import { parseReorderChunks } from "@/lib/exam-prep/stage8-types";
+import type { ExamStage9Block } from "@/lib/exam-prep/stage9-types";
+import { parseSentenceIds, parseCohesionClues } from "@/lib/exam-prep/stage9-types";
 
 const BASE = "/admin/exam-prep";
 
@@ -61,6 +64,7 @@ export default async function AdminExamPrepPassageEditPage({
     { data: stage6Items },
     { data: stage7Items },
     { data: stage8Items },
+    { data: stage9Items },
   ] = await Promise.all([
     supabase
       .from("exam_passage_sentences")
@@ -107,6 +111,12 @@ export default async function AdminExamPrepPassageEditPage({
       .select("*")
       .eq("passage_id", id)
       .eq("stage_number", 8)
+      .order("blank_order", { ascending: true }),
+    supabase
+      .from("exam_stage_blanks")
+      .select("*")
+      .eq("passage_id", id)
+      .eq("stage_number", 9)
       .order("blank_order", { ascending: true }),
   ]);
 
@@ -192,6 +202,43 @@ export default async function AdminExamPrepPassageEditPage({
         initiallyPublished={Boolean(
           (passage as ExamPassage).stage8_published
         )}
+      />
+      <Stage9ParagraphEditor
+        passageId={id}
+        sentences={(sentences ?? []) as ExamPassageSentence[]}
+        initialBlocks={(stage9Items ?? []).map((row) => ({
+          ...(row as ExamStage9Block),
+          stage_number: 9 as const,
+          sentence_ids: parseSentenceIds(
+            (row as { sentence_ids: unknown }).sentence_ids
+          ),
+          display_label: String(
+            (row as { display_label?: string }).display_label ?? "A"
+          ),
+          teacher_role:
+            ((row as { teacher_role?: string | null }).teacher_role as
+              | ExamStage9Block["teacher_role"]) ?? null,
+          cohesion_clues: parseCohesionClues(
+            (row as { cohesion_clues: unknown }).cohesion_clues
+          ),
+        }))}
+        initiallyPublished={Boolean(
+          (passage as ExamPassage).stage9_published
+        )}
+        initialFixedPrefix={
+          (passage as ExamPassage).stage9_fixed_prefix ?? ""
+        }
+        initialFixedSuffix={
+          (passage as ExamPassage).stage9_fixed_suffix ?? ""
+        }
+        initialAnswerMode={
+          ((passage as ExamPassage).stage9_answer_mode as
+            | "label_sequence"
+            | "drag_blocks") || "label_sequence"
+        }
+        initialStructureHint={
+          (passage as ExamPassage).stage9_structure_hint ?? ""
+        }
       />
     </div>
   );

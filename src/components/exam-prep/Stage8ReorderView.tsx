@@ -233,11 +233,15 @@ export function Stage8ReorderView({
   assignmentStudentId,
   stepId,
   onGoStage7,
+  canStartStage9 = false,
+  onStartStage9,
   onStage8Completed,
 }: {
   assignmentStudentId: string;
   stepId: string;
   onGoStage7?: () => void;
+  canStartStage9?: boolean;
+  onStartStage9?: () => void;
   onStage8Completed?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
@@ -634,7 +638,13 @@ export function Stage8ReorderView({
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">8단계 학습을 완료했습니다.</p>
-          <p className="mt-1">다음 단계는 준비 중입니다.</p>
+          {canStartStage9 ? (
+            <p className="mt-1">9단계 문단 배열하기를 시작할 수 있습니다.</p>
+          ) : (
+            <p className="mt-1">
+              다음 단계는 준비 중이거나 아직 공개되지 않았습니다.
+            </p>
+          )}
         </div>
       )}
 
@@ -687,6 +697,11 @@ export function Stage8ReorderView({
         >
           8단계 학습 완료
         </Button>
+        {stageDone && canStartStage9 && (
+          <Button type="button" onClick={onStartStage9}>
+            9단계 시작하기
+          </Button>
+        )}
         <Link
           href="/student/exam-prep"
           className="rounded-lg border px-4 py-2 text-sm font-medium"

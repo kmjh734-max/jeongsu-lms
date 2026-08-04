@@ -114,6 +114,12 @@ export type ExamPassage = {
   stage7_content_version?: number;
   stage8_published: boolean;
   stage8_content_version?: number;
+  stage9_published: boolean;
+  stage9_content_version?: number;
+  stage9_fixed_prefix?: string;
+  stage9_fixed_suffix?: string;
+  stage9_answer_mode?: string;
+  stage9_structure_hint?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
