@@ -37,8 +37,8 @@ export const WORKBOOK_10_STEPS: Array<{
   {
     number: 2,
     step_type: "korean_blank",
-    label: "2단계 · 빈칸 완성하기(우리말)",
-    shortLabel: "빈칸 완성하기(우리말)",
+    label: "2단계 · 우리말 빈칸 완성하기",
+    shortLabel: "우리말 빈칸 완성하기",
     prompt: "영문을 읽고 우리말 해석의 빈칸을 완성해 보세요.",
   },
   {

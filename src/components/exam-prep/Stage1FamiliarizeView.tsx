@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import {
   completeStage1Action,
@@ -70,6 +71,9 @@ export function Stage1FamiliarizeView({
   sentences,
   initialProgress,
   totalSteps,
+  canStartStage2 = false,
+  onStartStage2,
+  onStage1Completed,
 }: {
   assignmentStudentId: string;
   stepId: string;
@@ -86,7 +90,11 @@ export function Stage1FamiliarizeView({
   sentences: ExamPassageSentence[];
   initialProgress: ExamStage1Progress | null;
   totalSteps: number;
+  canStartStage2?: boolean;
+  onStartStage2?: () => void;
+  onStage1Completed?: () => void;
 }) {
+  const router = useRouter();
   const ordered = useMemo(
     () =>
       [...sentences].sort((a, b) => a.sentence_order - b.sentence_order),
@@ -163,6 +171,8 @@ export function Stage1FamiliarizeView({
     }
     setStageDone(true);
     setMessage(result.message);
+    onStage1Completed?.();
+    router.refresh();
   }
 
   useEffect(() => {
@@ -324,7 +334,13 @@ export function Stage1FamiliarizeView({
       {stageDone ? (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">1단계 학습을 완료했습니다.</p>
-          <p className="mt-1">다음 단계는 준비 중입니다.</p>
+          {canStartStage2 ? (
+            <p className="mt-1">2단계 「우리말 빈칸 완성하기」를 시작할 수 있습니다.</p>
+          ) : (
+            <p className="mt-1">
+              2단계가 아직 공개되지 않았거나 준비 중입니다.
+            </p>
+          )}
         </div>
       ) : null}
 
@@ -361,6 +377,11 @@ export function Stage1FamiliarizeView({
         >
           {completing ? "저장 중…" : "1단계 학습 완료"}
         </Button>
+        {stageDone && canStartStage2 && (
+          <Button type="button" onClick={() => onStartStage2?.()}>
+            2단계 시작하기
+          </Button>
+        )}
       </div>
     </div>
   );

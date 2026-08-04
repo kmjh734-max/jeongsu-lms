@@ -59,7 +59,7 @@ export default async function StudentExamPrepPlayerPage({
   const { data: passage } = await supabase
     .from("exam_passages")
     .select(
-      "id, title, school_level, grade, source, exam_name, passage_number"
+      "id, title, school_level, grade, source, exam_name, passage_number, stage2_published"
     )
     .eq("id", workbook.passage_id)
     .maybeSingle();
@@ -125,6 +125,9 @@ export default async function StudentExamPrepPlayerPage({
         passage={passage as ExamPassage}
         sentences={(sentences ?? []) as ExamPassageSentence[]}
         stage1Progress={(stage1 as ExamStage1Progress | null) ?? null}
+        stage2Published={Boolean(
+          (passage as { stage2_published?: boolean }).stage2_published
+        )}
         existingAttempts={(attempts ?? []).map((a) => ({
           step_id: a.step_id as string,
           status: a.status as string,

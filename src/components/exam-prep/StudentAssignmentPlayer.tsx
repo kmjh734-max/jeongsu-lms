@@ -18,6 +18,7 @@ import {
   type ExamWorkbookStep,
 } from "@/lib/exam-prep/types";
 import { Stage1FamiliarizeView } from "@/components/exam-prep/Stage1FamiliarizeView";
+import { Stage2KoreanBlankView } from "@/components/exam-prep/Stage2KoreanBlankView";
 
 type AttemptSummary = {
   step_id: string;
@@ -80,6 +81,7 @@ export function StudentAssignmentPlayer({
   passage = null,
   sentences = [],
   stage1Progress = null,
+  stage2Published = false,
 }: {
   assignmentStudentId: string;
   steps: ExamWorkbookStep[];
@@ -98,6 +100,7 @@ export function StudentAssignmentPlayer({
   > | null;
   sentences?: ExamPassageSentence[];
   stage1Progress?: ExamStage1Progress | null;
+  stage2Published?: boolean;
 }) {
   const router = useRouter();
   const sortedSteps = useMemo(
@@ -106,6 +109,9 @@ export function StudentAssignmentPlayer({
   );
 
   const [activeStepId, setActiveStepId] = useState(sortedSteps[0]?.id ?? "");
+  const [stage1DoneLocal, setStage1DoneLocal] = useState(
+    Boolean(stage1Progress?.completed_at)
+  );
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [starting, setStarting] = useState(false);
@@ -154,12 +160,15 @@ export function StudentAssignmentPlayer({
       }
       const prev = sortedSteps[i - 1]!;
       const best = bestByStep.get(prev.id);
-      const passed =
+      const passedByAttempt =
         best != null && (best.score ?? 0) >= Number(prev.passing_score ?? 0);
-      if (passed) set.add(step.id);
+      const passedByStage1 =
+        prev.step_type === "comprehension" &&
+        (Boolean(stage1Progress?.completed_at) || stage1DoneLocal);
+      if (passedByAttempt || passedByStage1) set.add(step.id);
     }
     return set;
-  }, [sortedSteps, bestByStep]);
+  }, [sortedSteps, bestByStep, stage1Progress?.completed_at, stage1DoneLocal]);
 
   const scheduleDraft = useCallback(
     (nextAnswers: Record<string, unknown>, nextAttemptId: string | null) => {
@@ -340,6 +349,45 @@ export function StudentAssignmentPlayer({
             sentences={sentences}
             initialProgress={stage1Progress}
             totalSteps={Math.max(sortedSteps.length, 10)}
+            canStartStage2={stage2Published}
+            onStage1Completed={() => setStage1DoneLocal(true)}
+            onStartStage2={() => {
+              setStage1DoneLocal(true);
+              const next = sortedSteps.find(
+                (s) => s.step_type === "korean_blank"
+              );
+              if (next) {
+                setActiveStepId(next.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
+          />
+        )}
+
+      {activeStep &&
+        activeStep.step_type === "korean_blank" &&
+        unlockedStepIds.has(activeStep.id) &&
+        stage2Published && (
+          <Stage2KoreanBlankView
+            assignmentStudentId={assignmentStudentId}
+            stepId={activeStep.id}
+            onGoStage1={() => {
+              const first = sortedSteps.find(
+                (s) => s.step_type === "comprehension"
+              );
+              if (first) {
+                setActiveStepId(first.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
           />
         )}
 
@@ -348,6 +396,11 @@ export function StudentAssignmentPlayer({
           activeStep.step_type === "comprehension" &&
           passage &&
           unlockedStepIds.has(activeStep.id)
+        ) &&
+        !(
+          activeStep.step_type === "korean_blank" &&
+          unlockedStepIds.has(activeStep.id) &&
+          stage2Published
         ) && (
         <div className="ui-section-card space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

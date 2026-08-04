@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { ExamPrepStaffNav } from "@/components/exam-prep/ExamPrepStaffNav";
 import { PassageForm } from "@/components/exam-prep/PassageForm";
 import { SentenceEditor } from "@/components/exam-prep/SentenceEditor";
+import { Stage2BlankEditor } from "@/components/exam-prep/Stage2BlankEditor";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
@@ -10,6 +11,7 @@ import type {
   ExamPassage,
   ExamPassageSentence,
 } from "@/lib/exam-prep/types";
+import type { ExamKoreanBlank } from "@/lib/exam-prep/stage2-types";
 
 const BASE = "/teacher/exam-prep";
 
@@ -37,11 +39,18 @@ export default async function TeacherExamPrepPassageEditPage({
 
   if (!passage) notFound();
 
-  const { data: sentences } = await supabase
-    .from("exam_passage_sentences")
-    .select("*")
-    .eq("passage_id", id)
-    .order("sentence_order", { ascending: true });
+  const [{ data: sentences }, { data: blanks }] = await Promise.all([
+    supabase
+      .from("exam_passage_sentences")
+      .select("*")
+      .eq("passage_id", id)
+      .order("sentence_order", { ascending: true }),
+    supabase
+      .from("exam_korean_blanks")
+      .select("*")
+      .eq("passage_id", id)
+      .order("blank_order", { ascending: true }),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -60,6 +69,14 @@ export default async function TeacherExamPrepPassageEditPage({
         passageId={id}
         basePath={BASE}
         sentences={(sentences ?? []) as ExamPassageSentence[]}
+      />
+      <Stage2BlankEditor
+        passageId={id}
+        sentences={(sentences ?? []) as ExamPassageSentence[]}
+        initialBlanks={(blanks ?? []) as ExamKoreanBlank[]}
+        initiallyPublished={Boolean(
+          (passage as ExamPassage).stage2_published
+        )}
       />
     </div>
   );
