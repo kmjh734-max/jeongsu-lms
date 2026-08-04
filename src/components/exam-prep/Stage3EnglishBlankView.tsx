@@ -128,10 +128,16 @@ export function Stage3EnglishBlankView({
   assignmentStudentId,
   stepId,
   onGoStage2,
+  canStartStage4 = false,
+  onStartStage4,
+  onStage3Completed,
 }: {
   assignmentStudentId: string;
   stepId: string;
   onGoStage2?: () => void;
+  canStartStage4?: boolean;
+  onStartStage4?: () => void;
+  onStage3Completed?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -311,6 +317,7 @@ export function Stage3EnglishBlankView({
     }
     setStageDone(true);
     setMessage(result.message);
+    onStage3Completed?.();
   }
 
   const required = blanks.filter((b) => b.isRequired);
@@ -548,7 +555,15 @@ export function Stage3EnglishBlankView({
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">3단계 학습을 완료했습니다.</p>
-          <p className="mt-1">다음 단계는 준비 중입니다.</p>
+          {canStartStage4 ? (
+            <p className="mt-1">
+              4단계 「해석 연습하기」를 시작할 수 있습니다.
+            </p>
+          ) : (
+            <p className="mt-1">
+              4단계가 아직 공개되지 않았거나 준비 중입니다.
+            </p>
+          )}
         </div>
       )}
 
@@ -580,6 +595,11 @@ export function Stage3EnglishBlankView({
         >
           3단계 학습 완료
         </Button>
+        {stageDone && canStartStage4 && (
+          <Button type="button" onClick={() => onStartStage4?.()}>
+            4단계 시작하기
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -106,6 +106,7 @@ export type ExamPassage = {
   status: ExamPassageStatus;
   stage2_published: boolean;
   stage3_published: boolean;
+  stage4_published: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
