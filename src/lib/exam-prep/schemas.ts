@@ -4,7 +4,12 @@ export const createPassageSchema = z.object({
   title: z.string().trim().min(1).max(200),
   original_text: z.string().trim().min(1),
   grade: z.string().trim().optional().nullable(),
+  school_level: z.string().trim().optional().nullable(),
   school_name: z.string().trim().optional().nullable(),
+  source: z.string().trim().optional().nullable(),
+  exam_name: z.string().trim().optional().nullable(),
+  exam_year: z.number().int().min(2000).max(2100).optional().nullable(),
+  exam_month: z.number().int().min(1).max(12).optional().nullable(),
   textbook_name: z.string().trim().optional().nullable(),
   publisher: z.string().trim().optional().nullable(),
   unit_name: z.string().trim().optional().nullable(),
@@ -33,15 +38,37 @@ export const createPassagesBulkSchema = z.object({
   rows: z.array(bulkPassageRowSchema).min(1).max(100),
 });
 
+export const vocabMarkSchema = z.object({
+  id: z.string().min(1),
+  englishText: z.string().trim().min(1),
+  koreanText: z.string().trim().default(""),
+  englishOccurrence: z.number().int().min(0).optional(),
+  koreanOccurrence: z.number().int().min(0).optional(),
+  styleKey: z.enum([
+    "vocab-1",
+    "vocab-2",
+    "vocab-3",
+    "vocab-4",
+    "vocab-5",
+    "vocab-6",
+  ]),
+  meaning: z.string().trim().optional(),
+  memo: z.string().trim().optional(),
+});
+
 export const updateSentenceSchema = z.object({
   id: z.string().uuid(),
-  english_text: z.string().trim().min(1).optional(),
-  korean_text: z.string().trim().optional().nullable(),
-  vocabulary: z.unknown().optional(),
+  english_text: z.string().min(1).optional(),
+  korean_text: z.string().optional().nullable(),
+  vocabulary: z.array(vocabMarkSchema).optional(),
   grammar_points: z.unknown().optional(),
   exam_points: z.unknown().optional(),
   is_important_writing: z.boolean().optional(),
   sentence_order: z.number().int().positive().optional(),
+  paragraph_number: z.number().int().positive().optional(),
+  is_paragraph_start: z.boolean().optional(),
+  teacher_note: z.string().optional().nullable(),
+  student_note: z.string().optional().nullable(),
 });
 
 export const createWorkbookSchema = z.object({

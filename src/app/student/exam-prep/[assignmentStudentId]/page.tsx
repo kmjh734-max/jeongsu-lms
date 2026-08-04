@@ -9,6 +9,9 @@ import {
 } from "@/lib/exam-prep/strip-answers";
 import { createClient } from "@/lib/supabase/server";
 import type {
+  ExamPassage,
+  ExamPassageSentence,
+  ExamStage1Progress,
   ExamWorkbookQuestion,
   ExamWorkbookQuestionPublic,
   ExamWorkbookStep,
@@ -55,31 +58,51 @@ export default async function StudentExamPrepPlayerPage({
 
   const { data: passage } = await supabase
     .from("exam_passages")
-    .select("id, title")
+    .select(
+      "id, title, school_level, grade, source, exam_name, passage_number"
+    )
     .eq("id", workbook.passage_id)
     .maybeSingle();
 
-  const passageTitle =
-    passage?.title ?? workbook.title ?? assignment.title ?? "내신대비 학습";
+  if (!passage) notFound();
 
-  const [{ data: steps }, { data: questions }, { data: attempts }] =
-    await Promise.all([
-      supabase
-        .from("exam_workbook_steps")
-        .select("*")
-        .eq("workbook_id", workbook.id)
-        .order("step_order", { ascending: true }),
-      supabase
-        .from("exam_workbook_questions")
-        .select("*")
-        .eq("workbook_id", workbook.id)
-        .eq("is_active", true)
-        .order("question_order", { ascending: true }),
-      supabase
-        .from("exam_attempts")
-        .select("step_id, status, score, attempt_number")
-        .eq("assignment_student_id", assignmentStudentId),
-    ]);
+  const passageTitle =
+    passage.title ?? workbook.title ?? assignment.title ?? "내신대비 학습";
+
+  const [
+    { data: steps },
+    { data: questions },
+    { data: attempts },
+    { data: sentences },
+    { data: stage1 },
+  ] = await Promise.all([
+    supabase
+      .from("exam_workbook_steps")
+      .select("*")
+      .eq("workbook_id", workbook.id)
+      .order("step_order", { ascending: true }),
+    supabase
+      .from("exam_workbook_questions")
+      .select("*")
+      .eq("workbook_id", workbook.id)
+      .eq("is_active", true)
+      .order("question_order", { ascending: true }),
+    supabase
+      .from("exam_attempts")
+      .select("step_id, status, score, attempt_number")
+      .eq("assignment_student_id", assignmentStudentId),
+    supabase
+      .from("exam_passage_sentences")
+      .select("*")
+      .eq("passage_id", passage.id)
+      .order("sentence_order", { ascending: true }),
+    supabase
+      .from("exam_stage1_progress")
+      .select("*")
+      .eq("assignment_student_id", assignmentStudentId)
+      .eq("stage_number", 1)
+      .maybeSingle(),
+  ]);
 
   const publicQuestions: ExamWorkbookQuestionPublic[] = stripQuestions(
     (questions ?? []) as ExamWorkbookQuestion[]
@@ -99,6 +122,9 @@ export default async function StudentExamPrepPlayerPage({
         steps={(steps ?? []) as ExamWorkbookStep[]}
         questions={publicQuestions}
         passageTitle={passageTitle}
+        passage={passage as ExamPassage}
+        sentences={(sentences ?? []) as ExamPassageSentence[]}
+        stage1Progress={(stage1 as ExamStage1Progress | null) ?? null}
         existingAttempts={(attempts ?? []).map((a) => ({
           step_id: a.step_id as string,
           status: a.status as string,

@@ -62,7 +62,12 @@ export async function createPassageAction(raw: unknown) {
       title: data.title,
       original_text: data.original_text,
       grade: data.grade ?? null,
+      school_level: data.school_level ?? null,
       school_name: data.school_name ?? null,
+      source: data.source ?? null,
+      exam_name: data.exam_name ?? null,
+      exam_year: data.exam_year ?? null,
+      exam_month: data.exam_month ?? null,
       textbook_name: data.textbook_name ?? null,
       publisher: data.publisher ?? null,
       unit_name: data.unit_name ?? null,
@@ -305,6 +310,10 @@ export async function saveSentencesAction(
         exam_points: s.exam_points ?? undefined,
         is_important_writing: s.is_important_writing,
         sentence_order: s.sentence_order ?? i + 1,
+        paragraph_number: s.paragraph_number ?? 1,
+        is_paragraph_start: s.is_paragraph_start ?? false,
+        teacher_note: s.teacher_note ?? null,
+        student_note: s.student_note ?? null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", s.id)

@@ -29,9 +29,10 @@ export const WORKBOOK_10_STEPS: Array<{
   {
     number: 1,
     step_type: "comprehension",
-    label: "1단계 · 지문 연습하기",
-    shortLabel: "지문 연습하기",
-    prompt: "영문과 해석을 읽고 문장의 의미를 이해해 보세요.",
+    label: "1단계 · 지문 익히기",
+    shortLabel: "지문 익히기",
+    prompt:
+      "영문과 우리말 해석을 함께 읽으며 문장의 의미를 이해해 보세요.",
   },
   {
     number: 2,

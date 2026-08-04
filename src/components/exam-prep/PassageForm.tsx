@@ -12,6 +12,11 @@ import type { ExamPassage, ExamPassageStatus } from "@/lib/exam-prep/types";
 type PassageFormFields = {
   title: string;
   grade: string;
+  school_level: string;
+  source: string;
+  exam_name: string;
+  exam_year: string;
+  exam_month: string;
   original_text: string;
   school_name: string;
   textbook_name: string;
@@ -31,6 +36,11 @@ function emptyFields(initial?: Partial<ExamPassage>): PassageFormFields {
   return {
     title: initial?.title ?? "",
     grade: initial?.grade ?? "",
+    school_level: initial?.school_level ?? "",
+    source: initial?.source ?? "",
+    exam_name: initial?.exam_name ?? "",
+    exam_year: initial?.exam_year != null ? String(initial.exam_year) : "",
+    exam_month: initial?.exam_month != null ? String(initial.exam_month) : "",
     original_text: initial?.original_text ?? "",
     school_name: initial?.school_name ?? "",
     textbook_name: initial?.textbook_name ?? "",
@@ -78,6 +88,11 @@ export function PassageForm({
     const payload = {
       title: fields.title,
       grade: fields.grade || null,
+      school_level: fields.school_level || null,
+      source: fields.source || null,
+      exam_name: fields.exam_name || null,
+      exam_year: fields.exam_year ? Number(fields.exam_year) : null,
+      exam_month: fields.exam_month ? Number(fields.exam_month) : null,
       original_text: fields.original_text,
       school_name: fields.school_name || null,
       textbook_name: fields.textbook_name || null,
@@ -138,6 +153,57 @@ export function PassageForm({
             value={fields.grade}
             onChange={(e) => setField("grade", e.target.value)}
             placeholder="예: 중2, 고1"
+          />
+        </label>
+        <label className={labelClass}>
+          학교급
+          <select
+            className={inputClass}
+            value={fields.school_level}
+            onChange={(e) => setField("school_level", e.target.value)}
+          >
+            <option value="">선택</option>
+            <option value="중학교">중학교</option>
+            <option value="고등학교">고등학교</option>
+          </select>
+        </label>
+        <label className={labelClass}>
+          출처
+          <input
+            className={inputClass}
+            value={fields.source}
+            onChange={(e) => setField("source", e.target.value)}
+            placeholder="예: 인천광역시교육청 학력평가"
+          />
+        </label>
+        <label className={labelClass}>
+          시험명
+          <input
+            className={inputClass}
+            value={fields.exam_name}
+            onChange={(e) => setField("exam_name", e.target.value)}
+          />
+        </label>
+        <label className={labelClass}>
+          시험 연도
+          <input
+            type="number"
+            className={inputClass}
+            value={fields.exam_year}
+            onChange={(e) => setField("exam_year", e.target.value)}
+            placeholder="2026"
+          />
+        </label>
+        <label className={labelClass}>
+          시험 월
+          <input
+            type="number"
+            min={1}
+            max={12}
+            className={inputClass}
+            value={fields.exam_month}
+            onChange={(e) => setField("exam_month", e.target.value)}
+            placeholder="7"
           />
         </label>
         <label className={labelClass}>

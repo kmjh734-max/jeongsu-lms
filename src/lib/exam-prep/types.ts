@@ -49,7 +49,7 @@ export type ExamShowAnswerPolicy =
 export type ExamPresetType = "basic" | "memorize" | "exam_eve" | "custom";
 
 export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
-  comprehension: "지문 연습하기",
+  comprehension: "지문 익히기",
   korean_blank: "빈칸 완성하기(우리말)",
   english_blank: "빈칸 완성하기(영문)",
   translation_practice: "해석 연습하기",
@@ -85,8 +85,13 @@ export type ExamPassage = {
   academy_id: string;
   set_id?: string | null;
   title: string;
+  school_level: string | null;
   school_name: string | null;
   grade: string | null;
+  source: string | null;
+  exam_name: string | null;
+  exam_year: number | null;
+  exam_month: number | null;
   textbook_name: string | null;
   publisher: string | null;
   unit_name: string | null;
@@ -111,10 +116,28 @@ export type ExamPassageSentence = {
   sentence_order: number;
   english_text: string;
   korean_text: string | null;
+  paragraph_number: number;
+  is_paragraph_start: boolean;
+  teacher_note: string | null;
+  student_note: string | null;
   vocabulary: unknown;
   grammar_points: unknown;
   exam_points: unknown;
   is_important_writing: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExamStage1Progress = {
+  id: string;
+  academy_id: string;
+  assignment_student_id: string;
+  passage_id: string;
+  stage_number: number;
+  completed_sentence_ids: string[];
+  last_viewed_sentence_id: string | null;
+  progress_percent: number;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -10,10 +10,14 @@ import {
 } from "@/lib/exam-prep/student-actions";
 import {
   EXAM_STEP_LABELS,
+  type ExamPassage,
+  type ExamPassageSentence,
+  type ExamStage1Progress,
   type ExamStepType,
   type ExamWorkbookQuestionPublic,
   type ExamWorkbookStep,
 } from "@/lib/exam-prep/types";
+import { Stage1FamiliarizeView } from "@/components/exam-prep/Stage1FamiliarizeView";
 
 type AttemptSummary = {
   step_id: string;
@@ -73,12 +77,27 @@ export function StudentAssignmentPlayer({
   questions,
   passageTitle,
   existingAttempts,
+  passage = null,
+  sentences = [],
+  stage1Progress = null,
 }: {
   assignmentStudentId: string;
   steps: ExamWorkbookStep[];
   questions: ExamWorkbookQuestionPublic[];
   passageTitle: string;
   existingAttempts: AttemptSummary[];
+  passage?: Pick<
+    ExamPassage,
+    | "id"
+    | "title"
+    | "school_level"
+    | "grade"
+    | "source"
+    | "exam_name"
+    | "passage_number"
+  > | null;
+  sentences?: ExamPassageSentence[];
+  stage1Progress?: ExamStage1Progress | null;
 }) {
   const router = useRouter();
   const sortedSteps = useMemo(
@@ -310,7 +329,26 @@ export function StudentAssignmentPlayer({
         </p>
       )}
 
-      {activeStep && (
+      {activeStep &&
+        activeStep.step_type === "comprehension" &&
+        passage &&
+        unlockedStepIds.has(activeStep.id) && (
+          <Stage1FamiliarizeView
+            assignmentStudentId={assignmentStudentId}
+            stepId={activeStep.id}
+            passage={passage}
+            sentences={sentences}
+            initialProgress={stage1Progress}
+            totalSteps={Math.max(sortedSteps.length, 10)}
+          />
+        )}
+
+      {activeStep &&
+        !(
+          activeStep.step_type === "comprehension" &&
+          passage &&
+          unlockedStepIds.has(activeStep.id)
+        ) && (
         <div className="ui-section-card space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
