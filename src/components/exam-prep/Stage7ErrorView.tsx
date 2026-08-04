@@ -32,11 +32,15 @@ export function Stage7ErrorView({
   assignmentStudentId,
   stepId,
   onGoStage6,
+  canStartStage8 = false,
+  onStartStage8,
   onStage7Completed,
 }: {
   assignmentStudentId: string;
   stepId: string;
   onGoStage6?: () => void;
+  canStartStage8?: boolean;
+  onStartStage8?: () => void;
   onStage7Completed?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
@@ -509,7 +513,11 @@ export function Stage7ErrorView({
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">7단계 학습을 완료했습니다.</p>
-          <p className="mt-1">다음 단계는 준비 중입니다.</p>
+          {canStartStage8 ? (
+            <p className="mt-1">8단계 순서 배열하기를 시작할 수 있습니다.</p>
+          ) : (
+            <p className="mt-1">다음 단계는 준비 중이거나 아직 공개되지 않았습니다.</p>
+          )}
         </div>
       )}
 
@@ -526,6 +534,11 @@ export function Stage7ErrorView({
         >
           7단계 학습 완료
         </Button>
+        {stageDone && canStartStage8 && (
+          <Button type="button" onClick={onStartStage8}>
+            8단계 시작하기
+          </Button>
+        )}
         <Link
           href="/student/exam-prep"
           className="rounded-lg border px-4 py-2 text-sm font-medium"

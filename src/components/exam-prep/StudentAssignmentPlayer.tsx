@@ -24,6 +24,7 @@ import { Stage4TranslationView } from "@/components/exam-prep/Stage4TranslationV
 import { Stage5VerbFormView } from "@/components/exam-prep/Stage5VerbFormView";
 import { Stage6ChoiceView } from "@/components/exam-prep/Stage6ChoiceView";
 import { Stage7ErrorView } from "@/components/exam-prep/Stage7ErrorView";
+import { Stage8ReorderView } from "@/components/exam-prep/Stage8ReorderView";
 
 type AttemptSummary = {
   step_id: string;
@@ -92,11 +93,13 @@ export function StudentAssignmentPlayer({
   stage5Published = false,
   stage6Published = false,
   stage7Published = false,
+  stage8Published = false,
   stage2Completed = false,
   stage3Completed = false,
   stage4Completed = false,
   stage5Completed = false,
   stage6Completed = false,
+  stage7Completed = false,
 }: {
   assignmentStudentId: string;
   steps: ExamWorkbookStep[];
@@ -121,11 +124,13 @@ export function StudentAssignmentPlayer({
   stage5Published?: boolean;
   stage6Published?: boolean;
   stage7Published?: boolean;
+  stage8Published?: boolean;
   stage2Completed?: boolean;
   stage3Completed?: boolean;
   stage4Completed?: boolean;
   stage5Completed?: boolean;
   stage6Completed?: boolean;
+  stage7Completed?: boolean;
 }) {
   const router = useRouter();
   const sortedSteps = useMemo(
@@ -142,6 +147,7 @@ export function StudentAssignmentPlayer({
   const [stage4DoneLocal, setStage4DoneLocal] = useState(stage4Completed);
   const [stage5DoneLocal, setStage5DoneLocal] = useState(stage5Completed);
   const [stage6DoneLocal, setStage6DoneLocal] = useState(stage6Completed);
+  const [stage7DoneLocal, setStage7DoneLocal] = useState(stage7Completed);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [starting, setStarting] = useState(false);
@@ -205,6 +211,8 @@ export function StudentAssignmentPlayer({
         prev.step_type === "verb_form" && stage5DoneLocal;
       const passedByStage6 =
         prev.step_type === "grammar_vocab_choice" && stage6DoneLocal;
+      const passedByStage7 =
+        prev.step_type === "error_correction" && stage7DoneLocal;
       if (
         passedByAttempt ||
         passedByStage1 ||
@@ -212,7 +220,8 @@ export function StudentAssignmentPlayer({
         passedByStage3 ||
         passedByStage4 ||
         passedByStage5 ||
-        passedByStage6
+        passedByStage6 ||
+        passedByStage7
       )
         set.add(step.id);
     }
@@ -227,6 +236,7 @@ export function StudentAssignmentPlayer({
     stage4DoneLocal,
     stage5DoneLocal,
     stage6DoneLocal,
+    stage7DoneLocal,
   ]);
 
   const scheduleDraft = useCallback(
@@ -621,12 +631,51 @@ export function StudentAssignmentPlayer({
           <Stage7ErrorView
             assignmentStudentId={assignmentStudentId}
             stepId={activeStep.id}
+            canStartStage8={stage8Published}
+            onStage7Completed={() => setStage7DoneLocal(true)}
+            onStartStage8={() => {
+              setStage7DoneLocal(true);
+              const next = sortedSteps.find(
+                (s) => s.step_type === "sentence_order"
+              );
+              if (next) {
+                setActiveStepId(next.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
             onGoStage6={() => {
               const s6 = sortedSteps.find(
                 (s) => s.step_type === "grammar_vocab_choice"
               );
               if (s6) {
                 setActiveStepId(s6.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
+          />
+        )}
+
+      {activeStep &&
+        activeStep.step_type === "sentence_order" &&
+        unlockedStepIds.has(activeStep.id) &&
+        stage8Published && (
+          <Stage8ReorderView
+            assignmentStudentId={assignmentStudentId}
+            stepId={activeStep.id}
+            onGoStage7={() => {
+              const s7 = sortedSteps.find(
+                (s) => s.step_type === "error_correction"
+              );
+              if (s7) {
+                setActiveStepId(s7.id);
                 setAttemptId(null);
                 setAnswers({});
                 setResults(null);
@@ -672,6 +721,11 @@ export function StudentAssignmentPlayer({
           activeStep.step_type === "error_correction" &&
           unlockedStepIds.has(activeStep.id) &&
           stage7Published
+        ) &&
+        !(
+          activeStep.step_type === "sentence_order" &&
+          unlockedStepIds.has(activeStep.id) &&
+          stage8Published
         ) && (
         <div className="ui-section-card space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

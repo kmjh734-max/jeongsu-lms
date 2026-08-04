@@ -112,6 +112,8 @@ export type ExamPassage = {
   stage7_published: boolean;
   stage7_required_error_count?: number;
   stage7_content_version?: number;
+  stage8_published: boolean;
+  stage8_content_version?: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;

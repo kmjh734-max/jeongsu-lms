@@ -8,6 +8,7 @@ import { Stage4SettingsEditor } from "@/components/exam-prep/Stage4SettingsEdito
 import { Stage5VerbFormEditor } from "@/components/exam-prep/Stage5VerbFormEditor";
 import { Stage6ChoiceEditor } from "@/components/exam-prep/Stage6ChoiceEditor";
 import { Stage7ErrorEditor } from "@/components/exam-prep/Stage7ErrorEditor";
+import { Stage8ReorderEditor } from "@/components/exam-prep/Stage8ReorderEditor";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
@@ -22,6 +23,8 @@ import type { ExamStage4Setting } from "@/lib/exam-prep/stage4-types";
 import type { ExamStage5Item } from "@/lib/exam-prep/stage5-types";
 import type { ExamStage6Item } from "@/lib/exam-prep/stage6-types";
 import type { ExamStage7Candidate } from "@/lib/exam-prep/stage7-types";
+import type { ExamStage8Group } from "@/lib/exam-prep/stage8-types";
+import { parseReorderChunks } from "@/lib/exam-prep/stage8-types";
 
 const BASE = "/admin/exam-prep";
 
@@ -57,6 +60,7 @@ export default async function AdminExamPrepPassageEditPage({
     { data: stage5Items },
     { data: stage6Items },
     { data: stage7Items },
+    { data: stage8Items },
   ] = await Promise.all([
     supabase
       .from("exam_passage_sentences")
@@ -97,6 +101,12 @@ export default async function AdminExamPrepPassageEditPage({
       .select("*")
       .eq("passage_id", id)
       .eq("stage_number", 7)
+      .order("blank_order", { ascending: true }),
+    supabase
+      .from("exam_stage_blanks")
+      .select("*")
+      .eq("passage_id", id)
+      .eq("stage_number", 8)
       .order("blank_order", { ascending: true }),
   ]);
 
@@ -168,6 +178,20 @@ export default async function AdminExamPrepPassageEditPage({
         initialRequiredErrorCount={
           (passage as ExamPassage).stage7_required_error_count ?? 3
         }
+      />
+      <Stage8ReorderEditor
+        passageId={id}
+        sentences={(sentences ?? []) as ExamPassageSentence[]}
+        initialGroups={(stage8Items ?? []).map((row) => ({
+          ...(row as ExamStage8Group),
+          stage_number: 8 as const,
+          reorder_chunks: parseReorderChunks(
+            (row as { reorder_chunks: unknown }).reorder_chunks
+          ),
+        }))}
+        initiallyPublished={Boolean(
+          (passage as ExamPassage).stage8_published
+        )}
       />
     </div>
   );
