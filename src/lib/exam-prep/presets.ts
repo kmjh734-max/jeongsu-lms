@@ -74,10 +74,10 @@ export const WORKBOOK_10_STEPS: Array<{
   {
     number: 7,
     step_type: "error_correction",
-    label: "7단계 · 어색한 곳 찾기",
-    shortLabel: "어색한 곳 찾기",
+    label: "7단계 · 어색한 곳 찾아 고쳐 쓰기",
+    shortLabel: "어색한 곳 찾아 고쳐 쓰기",
     prompt:
-      "밑줄 친 부분 중 어법상 어색한 것을 세 개 찾아 알맞게 고쳐 쓰세요.",
+      "밑줄 친 부분 중 어법상 어색한 곳을 찾아 알맞게 고쳐 쓰세요.",
   },
   {
     number: 8,

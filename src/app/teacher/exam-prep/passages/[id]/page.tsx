@@ -7,6 +7,7 @@ import { Stage3BlankEditor } from "@/components/exam-prep/Stage3BlankEditor";
 import { Stage4SettingsEditor } from "@/components/exam-prep/Stage4SettingsEditor";
 import { Stage5VerbFormEditor } from "@/components/exam-prep/Stage5VerbFormEditor";
 import { Stage6ChoiceEditor } from "@/components/exam-prep/Stage6ChoiceEditor";
+import { Stage7ErrorEditor } from "@/components/exam-prep/Stage7ErrorEditor";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
@@ -20,6 +21,7 @@ import type { ExamStage3Blank } from "@/lib/exam-prep/stage3-types";
 import type { ExamStage4Setting } from "@/lib/exam-prep/stage4-types";
 import type { ExamStage5Item } from "@/lib/exam-prep/stage5-types";
 import type { ExamStage6Item } from "@/lib/exam-prep/stage6-types";
+import type { ExamStage7Candidate } from "@/lib/exam-prep/stage7-types";
 
 const BASE = "/teacher/exam-prep";
 
@@ -54,6 +56,7 @@ export default async function TeacherExamPrepPassageEditPage({
     { data: stage4Settings },
     { data: stage5Items },
     { data: stage6Items },
+    { data: stage7Items },
   ] = await Promise.all([
     supabase
       .from("exam_passage_sentences")
@@ -88,6 +91,12 @@ export default async function TeacherExamPrepPassageEditPage({
       .select("*")
       .eq("passage_id", id)
       .eq("stage_number", 6)
+      .order("blank_order", { ascending: true }),
+    supabase
+      .from("exam_stage_blanks")
+      .select("*")
+      .eq("passage_id", id)
+      .eq("stage_number", 7)
       .order("blank_order", { ascending: true }),
   ]);
 
@@ -148,6 +157,17 @@ export default async function TeacherExamPrepPassageEditPage({
         initiallyPublished={Boolean(
           (passage as ExamPassage).stage6_published
         )}
+      />
+      <Stage7ErrorEditor
+        passageId={id}
+        sentences={(sentences ?? []) as ExamPassageSentence[]}
+        initialCandidates={(stage7Items ?? []) as ExamStage7Candidate[]}
+        initiallyPublished={Boolean(
+          (passage as ExamPassage).stage7_published
+        )}
+        initialRequiredErrorCount={
+          (passage as ExamPassage).stage7_required_error_count ?? 3
+        }
       />
     </div>
   );

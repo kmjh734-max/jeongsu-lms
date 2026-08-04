@@ -30,10 +30,16 @@ export function Stage6ChoiceView({
   assignmentStudentId,
   stepId,
   onGoStage5,
+  canStartStage7 = false,
+  onStartStage7,
+  onStage6Completed,
 }: {
   assignmentStudentId: string;
   stepId: string;
   onGoStage5?: () => void;
+  canStartStage7?: boolean;
+  onStartStage7?: () => void;
+  onStage6Completed?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -214,6 +220,7 @@ export function Stage6ChoiceView({
     }
     setStageDone(true);
     setMessage(result.message);
+    onStage6Completed?.();
   }
 
   const required = items.filter((b) => b.isRequired);
@@ -494,7 +501,15 @@ export function Stage6ChoiceView({
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">6단계 학습을 완료했습니다.</p>
-          <p className="mt-1">다음 단계는 준비 중입니다.</p>
+          {canStartStage7 ? (
+            <p className="mt-1">
+              7단계 「어색한 곳 찾아 고쳐 쓰기」를 시작할 수 있습니다.
+            </p>
+          ) : (
+            <p className="mt-1">
+              7단계가 아직 공개되지 않았거나 준비 중입니다.
+            </p>
+          )}
         </div>
       )}
 
@@ -523,6 +538,11 @@ export function Stage6ChoiceView({
         >
           6단계 학습 완료
         </Button>
+        {stageDone && canStartStage7 && (
+          <Button type="button" onClick={() => onStartStage7?.()}>
+            7단계 시작하기
+          </Button>
+        )}
         <Link
           href="/student/exam-prep"
           className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"

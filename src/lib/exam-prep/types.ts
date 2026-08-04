@@ -55,7 +55,7 @@ export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
   translation_practice: "해석 연습하기",
   verb_form: "동사형 연습하기",
   grammar_vocab_choice: "어법·어휘 고르기",
-  error_correction: "어색한 곳 찾기",
+  error_correction: "어색한 곳 찾아 고쳐 쓰기",
   sentence_order: "순서 배열하기",
   paragraph_order: "문단 배열하기",
   writing: "영작 연습하기",
@@ -109,6 +109,9 @@ export type ExamPassage = {
   stage4_published: boolean;
   stage5_published: boolean;
   stage6_published: boolean;
+  stage7_published: boolean;
+  stage7_required_error_count?: number;
+  stage7_content_version?: number;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -125,6 +128,7 @@ export type ExamPassageSentence = {
   is_paragraph_start: boolean;
   teacher_note: string | null;
   student_note: string | null;
+  stage7_display_text?: string | null;
   vocabulary: unknown;
   grammar_points: unknown;
   exam_points: unknown;

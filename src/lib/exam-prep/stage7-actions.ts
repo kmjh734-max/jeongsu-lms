@@ -6,16 +6,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
 import {
-  STAGE6_DEFAULT_THRESHOLDS,
-  categoryFeedbackForItem,
-  gradeSelectedOption,
-  parseChoiceOptions,
-  shuffleOptionIds,
-  toStudentStage6Item,
-  type ExamStage6Item,
-  type ExamStage6Progress,
-  type Stage6AnswerState,
-} from "@/lib/exam-prep/stage6-types";
+  STAGE7_DEFAULT_THRESHOLDS,
+  canCompleteStage7,
+  categoryFeedbackForSubs,
+  computeStage7Score,
+  gradeStage7Candidate,
+  stage7GuideText,
+  toStudentStage7Candidate,
+  type ExamStage7Candidate,
+  type ExamStage7Progress,
+  type Stage7AnswerState,
+} from "@/lib/exam-prep/stage7-types";
 
 async function requireStudent() {
   if (!isExamPrepEnabled()) {
@@ -59,7 +60,7 @@ async function loadPassageForAssignment(assignmentId: string) {
   const { data: passage } = await admin
     .from("exam_passages")
     .select(
-      "id, title, school_level, grade, source, exam_name, passage_number, stage6_published"
+      "id, title, school_level, grade, source, exam_name, passage_number, stage7_published, stage7_required_error_count, stage7_content_version"
     )
     .eq("id", workbook.passage_id)
     .maybeSingle();
@@ -77,7 +78,7 @@ async function assertPriorStages(assignmentStudentId: string) {
   if (!s1?.completed_at) {
     return { ok: false as const, code: "stage1_required" as const };
   }
-  for (const n of [2, 3, 4, 5] as const) {
+  for (const n of [2, 3, 4, 5, 6] as const) {
     const { data } = await admin
       .from("exam_stage2_progress")
       .select("completed_at")
@@ -91,89 +92,78 @@ async function assertPriorStages(assignmentStudentId: string) {
   return { ok: true as const };
 }
 
-async function loadItemsAdmin(passageId: string): Promise<ExamStage6Item[]> {
+async function loadCandidates(passageId: string): Promise<ExamStage7Candidate[]> {
   const admin = createAdminClient();
   const { data } = await admin
     .from("exam_stage_blanks")
     .select("*")
     .eq("passage_id", passageId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .order("blank_order", { ascending: true });
-  return (data ?? []).map((row) => ({
-    ...(row as ExamStage6Item),
-    choice_options: parseChoiceOptions(
-      (row as { choice_options: unknown }).choice_options
-    ),
-  }));
+  return (data ?? []) as ExamStage7Candidate[];
 }
 
-function parseAnswers(raw: unknown): Record<string, Stage6AnswerState> {
+function parseAnswers(raw: unknown): Record<string, Stage7AnswerState> {
   if (!raw || typeof raw !== "object") return {};
-  const out: Record<string, Stage6AnswerState> = {};
+  const out: Record<string, Stage7AnswerState> = {};
   for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
     if (!v || typeof v !== "object") continue;
     const o = v as Record<string, unknown>;
     out[k] = {
-      selectedOptionId:
-        typeof o.selectedOptionId === "string" ? o.selectedOptionId : null,
-      isCorrect:
-        o.isCorrect === true ? true : o.isCorrect === false ? false : null,
+      selected: Boolean(o.selected),
+      correctionValue: String(o.correctionValue ?? ""),
+      selectionCorrect:
+        o.selectionCorrect === true
+          ? true
+          : o.selectionCorrect === false
+            ? false
+            : null,
+      correctionCorrect:
+        o.correctionCorrect === true
+          ? true
+          : o.correctionCorrect === false
+            ? false
+            : null,
+      result:
+        typeof o.result === "string"
+          ? (o.result as Stage7AnswerState["result"])
+          : null,
       attempts: Number(o.attempts) || 0,
       hintUsed: Boolean(o.hintUsed),
+      positionRevealed: Boolean(o.positionRevealed),
       answerRevealed: Boolean(o.answerRevealed),
-      revealedOptionId:
-        typeof o.revealedOptionId === "string" ? o.revealedOptionId : null,
-      revealedText: typeof o.revealedText === "string" ? o.revealedText : null,
       hintText: typeof o.hintText === "string" ? o.hintText : null,
+      revealedCorrection:
+        typeof o.revealedCorrection === "string" ? o.revealedCorrection : null,
       categoryFeedback:
         typeof o.categoryFeedback === "string" ? o.categoryFeedback : null,
-      optionOrder: Array.isArray(o.optionOrder)
-        ? o.optionOrder.map(String)
-        : [],
     };
   }
   return out;
 }
 
-function sanitizeProgressForClient(
-  row: ExamStage6Progress
-): ExamStage6Progress {
-  const answers: Record<string, Stage6AnswerState> = {};
+function sanitizeProgress(row: ExamStage7Progress): ExamStage7Progress {
+  const answers: Record<string, Stage7AnswerState> = {};
   for (const [id, a] of Object.entries(parseAnswers(row.answers))) {
     answers[id] = {
-      selectedOptionId: a.selectedOptionId,
-      isCorrect: a.isCorrect,
-      attempts: a.attempts,
-      hintUsed: a.hintUsed,
-      answerRevealed: a.answerRevealed,
-      revealedOptionId: a.answerRevealed ? a.revealedOptionId ?? null : null,
-      revealedText: a.answerRevealed ? a.revealedText ?? null : null,
+      ...a,
+      revealedCorrection: a.answerRevealed ? a.revealedCorrection ?? null : null,
       hintText: a.hintUsed ? a.hintText ?? null : null,
       categoryFeedback:
-        a.isCorrect === false ? a.categoryFeedback ?? null : null,
-      optionOrder: a.optionOrder,
+        a.result === "correct_selection_wrong_correction" ||
+        a.result === "wrong_selection"
+          ? a.categoryFeedback ?? null
+          : null,
     };
   }
   return { ...row, answers };
 }
 
-function ensureOptionOrder(
-  item: ExamStage6Item,
-  state: Stage6AnswerState | undefined,
-  assignmentStudentId: string
-): string[] {
-  if (state?.optionOrder?.length) return state.optionOrder;
-  const ids = parseChoiceOptions(item.choice_options).map((o) => o.id);
-  if (item.shuffle_options === false) return ids;
-  return shuffleOptionIds(ids, `${assignmentStudentId}:${item.id}`);
-}
-
-export async function loadStage6StudentDataAction(input: {
+export async function loadStage7StudentDataAction(input: {
   assignmentStudentId: string;
 }) {
   const auth = await requireStudent();
   if (!auth.ok) return auth;
-
   const asRow = await assertAssignmentOwned(
     input.assignmentStudentId,
     auth.profile.id
@@ -203,6 +193,7 @@ export async function loadStage6StudentDataAction(input: {
       stage3_required: "3단계 영문 빈칸 완성하기를 먼저 완료해 주세요.",
       stage4_required: "4단계 해석 연습하기를 먼저 완료해 주세요.",
       stage5_required: "5단계 동사형 연습하기를 먼저 완료해 주세요.",
+      stage6_required: "6단계 어법·어휘 고르기를 먼저 완료해 주세요.",
     };
     return {
       ok: false as const,
@@ -212,20 +203,22 @@ export async function loadStage6StudentDataAction(input: {
     };
   }
 
-  if (!ctx.passage.stage6_published) {
+  if (!ctx.passage.stage7_published) {
     return {
       ok: false as const,
-      message: "6단계가 아직 공개되지 않았습니다.",
+      message: "7단계가 아직 공개되지 않았습니다.",
       code: "not_published" as const,
       passage: ctx.passage,
     };
   }
 
-  const items = await loadItemsAdmin(ctx.passage.id);
-  if (items.length < 1) {
+  const candidates = await loadCandidates(ctx.passage.id);
+  const errors = candidates.filter((c) => c.is_error);
+  const required = Number(ctx.passage.stage7_required_error_count) || 3;
+  if (errors.length < 1 || errors.length !== required) {
     return {
       ok: false as const,
-      message: "6단계 문제가 준비되지 않았습니다.",
+      message: "7단계 문제가 준비되지 않았습니다.",
       code: "no_items" as const,
       passage: ctx.passage,
     };
@@ -235,88 +228,64 @@ export async function loadStage6StudentDataAction(input: {
   const { data: sentences } = await admin
     .from("exam_passage_sentences")
     .select(
-      "id, sentence_order, english_text, korean_text, paragraph_number, is_paragraph_start"
+      "id, sentence_order, stage7_display_text, paragraph_number, is_paragraph_start"
     )
     .eq("passage_id", ctx.passage.id)
     .order("sentence_order", { ascending: true });
+
+  const publicSentences = (sentences ?? []).map((s) => ({
+    id: s.id as string,
+    sentence_order: Number(s.sentence_order),
+    display_text: String(s.stage7_display_text ?? ""),
+    paragraph_number: Number(s.paragraph_number) || 1,
+    is_paragraph_start: Boolean(s.is_paragraph_start),
+  }));
+
+  if (publicSentences.some((s) => !s.display_text.trim())) {
+    return {
+      ok: false as const,
+      message: "7단계 표시 문장이 없습니다.",
+      code: "no_display" as const,
+      passage: ctx.passage,
+    };
+  }
 
   const supabase = await createClient();
   const { data: progressRow } = await supabase
     .from("exam_stage2_progress")
     .select("*")
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .maybeSingle();
-
-  const answers = parseAnswers(progressRow?.answers);
-  const publicItems = items.map((item) => {
-    const order = ensureOptionOrder(
-      item,
-      answers[item.id],
-      input.assignmentStudentId
-    );
-    if (!answers[item.id]) {
-      answers[item.id] = {
-        selectedOptionId: null,
-        isCorrect: null,
-        attempts: 0,
-        hintUsed: false,
-        answerRevealed: false,
-        optionOrder: order,
-      };
-    } else if (!answers[item.id]!.optionOrder?.length) {
-      answers[item.id]!.optionOrder = order;
-    }
-    return toStudentStage6Item(item, answers[item.id]!.optionOrder);
-  });
-
-  // persist newly generated option orders
-  if (progressRow || Object.keys(answers).length > 0) {
-    await supabase.from("exam_stage2_progress").upsert(
-      {
-        academy_id: asRow.academy_id ?? auth.profile.academy_id,
-        assignment_student_id: input.assignmentStudentId,
-        passage_id: ctx.passage.id,
-        stage_number: 6,
-        answers,
-        revision: (Number(progressRow?.revision) || 0) + (progressRow ? 0 : 1),
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "assignment_student_id,stage_number" }
-    );
-  }
 
   return {
     ok: true as const,
     passage: ctx.passage,
-    sentences: sentences ?? [],
-    items: publicItems,
+    requiredErrorCount: required,
+    contentVersion: Number(ctx.passage.stage7_content_version) || 1,
+    guideText: stage7GuideText(required),
+    sentences: publicSentences,
+    candidates: candidates.map(toStudentStage7Candidate),
     progress: progressRow
-      ? sanitizeProgressForClient({
-          ...(progressRow as ExamStage6Progress),
-          answers,
-        })
-      : ({
-          answers,
-          correct_blank_ids: [],
-          incorrect_blank_ids: [],
-          completed_blank_ids: [],
-          attempt_count: 0,
-          hint_used_blank_ids: [],
-          revealed_answer_blank_ids: [],
-          score: 0,
-          progress_percent: 0,
-          revision: 1,
-          completed_at: null,
-        } as unknown as ExamStage6Progress),
-    thresholds: STAGE6_DEFAULT_THRESHOLDS,
+      ? sanitizeProgress(progressRow as ExamStage7Progress)
+      : null,
+    canComplete: progressRow
+      ? canCompleteStage7(
+          candidates,
+          parseAnswers((progressRow as ExamStage7Progress).answers)
+        )
+      : false,
+    thresholds: STAGE7_DEFAULT_THRESHOLDS,
   };
 }
 
-export async function saveStage6DraftAction(input: {
+export async function saveStage7DraftAction(input: {
   assignmentStudentId: string;
   passageId: string;
-  selections: Record<string, string | null>;
+  answers: Record<
+    string,
+    { selected: boolean; correctionValue: string }
+  >;
   expectedRevision?: number;
 }) {
   const auth = await requireStudent();
@@ -332,15 +301,17 @@ export async function saveStage6DraftAction(input: {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }
 
-  const items = await loadItemsAdmin(input.passageId);
-  const byId = new Map(items.map((i) => [i.id, i]));
+  const candidates = await loadCandidates(input.passageId);
+  const byId = new Map(candidates.map((c) => [c.id, c]));
+  const ctx = await loadPassageForAssignment(asRow.assignment_id);
+  const required = Number(ctx?.passage.stage7_required_error_count) || 3;
 
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("exam_stage2_progress")
     .select("*")
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .maybeSingle();
 
   if (
@@ -352,43 +323,43 @@ export async function saveStage6DraftAction(input: {
       ok: false as const,
       message: "다른 기기에서 더 최근 답안이 저장되었습니다. 새로고침해 주세요.",
       code: "stale" as const,
-      progress: sanitizeProgressForClient(existing as ExamStage6Progress),
+      progress: sanitizeProgress(existing as ExamStage7Progress),
     };
   }
 
   const next = parseAnswers(existing?.answers);
-  for (const [itemId, selectedOptionId] of Object.entries(input.selections)) {
-    const item = byId.get(itemId);
-    if (!item) continue;
-    const prev = next[itemId];
-    if (prev?.isCorrect === true) continue;
-    if (
-      selectedOptionId &&
-      !parseChoiceOptions(item.choice_options).some(
-        (o) => o.id === selectedOptionId
-      )
-    ) {
-      return {
-        ok: false as const,
-        message: "유효하지 않은 선택지입니다.",
-      };
+  let selectedCount = 0;
+  for (const [id, patch] of Object.entries(input.answers)) {
+    if (!byId.has(id)) {
+      return { ok: false as const, message: "유효하지 않은 후보입니다." };
     }
-    const order = ensureOptionOrder(
-      item,
-      prev,
-      input.assignmentStudentId
-    );
-    next[itemId] = {
-      selectedOptionId,
-      isCorrect: prev?.isCorrect ?? null,
+    const prev = next[id];
+    if (prev?.result === "correct_selection_and_correction") continue;
+    if (patch.correctionValue.length > 200) {
+      return { ok: false as const, message: "수정 답안이 너무 깁니다." };
+    }
+    next[id] = {
+      selected: patch.selected,
+      correctionValue: patch.correctionValue,
+      selectionCorrect: null,
+      correctionCorrect: null,
+      result: null,
       attempts: prev?.attempts ?? 0,
       hintUsed: prev?.hintUsed ?? false,
+      positionRevealed: prev?.positionRevealed ?? false,
       answerRevealed: prev?.answerRevealed ?? false,
-      revealedOptionId: prev?.revealedOptionId ?? null,
-      revealedText: prev?.revealedText ?? null,
       hintText: prev?.hintText ?? null,
+      revealedCorrection: prev?.revealedCorrection ?? null,
       categoryFeedback: prev?.categoryFeedback ?? null,
-      optionOrder: order,
+    };
+  }
+  for (const a of Object.values(next)) {
+    if (a.selected) selectedCount++;
+  }
+  if (selectedCount > required) {
+    return {
+      ok: false as const,
+      message: `어색한 곳은 ${required}개까지 선택할 수 있습니다.`,
     };
   }
 
@@ -399,7 +370,7 @@ export async function saveStage6DraftAction(input: {
         academy_id: asRow.academy_id ?? auth.profile.academy_id,
         assignment_student_id: input.assignmentStudentId,
         passage_id: input.passageId,
-        stage_number: 6,
+        stage_number: 7,
         answers: next,
         revision: (Number(existing?.revision) || 0) + 1,
         updated_at: new Date().toISOString(),
@@ -412,15 +383,17 @@ export async function saveStage6DraftAction(input: {
   if (error) return { ok: false as const, message: error.message };
   return {
     ok: true as const,
-    progress: sanitizeProgressForClient(data as ExamStage6Progress),
+    progress: sanitizeProgress(data as ExamStage7Progress),
   };
 }
 
-export async function gradeStage6Action(input: {
+export async function gradeStage7Action(input: {
   assignmentStudentId: string;
   passageId: string;
-  itemIds?: string[];
-  selections: Record<string, string | null>;
+  answers: Record<
+    string,
+    { selected: boolean; correctionValue: string }
+  >;
 }) {
   const auth = await requireStudent();
   if (!auth.ok) return auth;
@@ -436,110 +409,110 @@ export async function gradeStage6Action(input: {
   }
 
   const ctx = await loadPassageForAssignment(asRow.assignment_id);
-  if (!ctx?.passage.stage6_published) {
-    return { ok: false as const, message: "6단계가 공개되지 않았습니다." };
+  if (!ctx?.passage.stage7_published) {
+    return { ok: false as const, message: "7단계가 공개되지 않았습니다." };
   }
 
-  const items = await loadItemsAdmin(input.passageId);
-  const targetIds = new Set(
-    input.itemIds?.length ? input.itemIds : items.map((b) => b.id)
-  );
-  const byId = new Map(items.map((b) => [b.id, b]));
+  const candidates = await loadCandidates(input.passageId);
+  const byId = new Map(candidates.map((c) => [c.id, c]));
+  const required = Number(ctx.passage.stage7_required_error_count) || 3;
+
+  const selectedIds = Object.entries(input.answers)
+    .filter(([, a]) => a.selected)
+    .map(([id]) => id);
+
+  for (const id of selectedIds) {
+    if (!byId.has(id)) {
+      return { ok: false as const, message: "유효하지 않은 후보입니다." };
+    }
+  }
+  if (selectedIds.length !== required) {
+    return {
+      ok: false as const,
+      message: `어색한 곳을 ${required}개 선택해 주세요. 현재 ${selectedIds.length}개를 선택했습니다.`,
+    };
+  }
+  for (const id of selectedIds) {
+    if (!String(input.answers[id]?.correctionValue ?? "").trim()) {
+      return {
+        ok: false as const,
+        message: "선택한 표현의 수정 답안을 모두 입력해 주세요.",
+      };
+    }
+  }
 
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("exam_stage2_progress")
     .select("*")
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .maybeSingle();
 
   if (existing?.completed_at) {
     return {
       ok: false as const,
-      message: "이미 6단계를 완료했습니다.",
-      progress: sanitizeProgressForClient(existing as ExamStage6Progress),
+      message: "이미 7단계를 완료했습니다.",
+      progress: sanitizeProgress(existing as ExamStage7Progress),
     };
   }
 
   const next = parseAnswers(existing?.answers);
-  const correctIds = new Set<string>(
-    (existing?.correct_blank_ids as string[] | undefined) ?? []
-  );
-  const incorrectIds = new Set<string>(
-    (existing?.incorrect_blank_ids as string[] | undefined) ?? []
-  );
-  const completedIds = new Set<string>(
-    (existing?.completed_blank_ids as string[] | undefined) ?? []
-  );
+  const correctIds: string[] = [];
+  const incorrectIds: string[] = [];
+  const completedIds: string[] = [];
 
-  for (const itemId of targetIds) {
-    const item = byId.get(itemId);
-    if (!item) continue;
-    const prev = next[itemId];
-    if (prev?.isCorrect === true) continue;
-
-    const selected =
-      input.selections[itemId] ?? prev?.selectedOptionId ?? null;
-    const options = parseChoiceOptions(item.choice_options);
-    if (selected && !options.some((o) => o.id === selected)) {
-      return {
-        ok: false as const,
-        message: "유효하지 않은 선택지입니다.",
-      };
-    }
-
-    const ok = gradeSelectedOption(options, selected);
-    const attempts = (prev?.attempts ?? 0) + (selected ? 1 : 0);
-    const categoryFb =
-      selected && !ok
-        ? categoryFeedbackForItem(
-            item.question_category,
-            item.grammar_subcategory ?? [],
-            item.vocabulary_subcategory ?? []
-          )
-        : null;
-
-    next[itemId] = {
-      selectedOptionId: selected,
-      isCorrect: selected ? ok : null,
-      attempts: selected ? attempts : prev?.attempts ?? 0,
-      hintUsed: prev?.hintUsed ?? false,
-      answerRevealed: prev?.answerRevealed ?? false,
-      revealedOptionId: prev?.revealedOptionId ?? null,
-      revealedText: prev?.revealedText ?? null,
-      hintText: prev?.hintText ?? null,
-      categoryFeedback: categoryFb,
-      optionOrder: ensureOptionOrder(
-        item,
-        prev,
-        input.assignmentStudentId
-      ),
+  for (const c of candidates) {
+    const patch = input.answers[c.id] ?? {
+      selected: next[c.id]?.selected ?? false,
+      correctionValue: next[c.id]?.correctionValue ?? "",
     };
-
-    if (!selected) {
-      incorrectIds.delete(itemId);
-      correctIds.delete(itemId);
-      completedIds.delete(itemId);
+    const prev = next[c.id];
+    if (prev?.result === "correct_selection_and_correction") {
+      correctIds.push(c.id);
+      completedIds.push(c.id);
       continue;
     }
-    if (ok) {
-      correctIds.add(itemId);
-      incorrectIds.delete(itemId);
-      completedIds.add(itemId);
-    } else {
-      incorrectIds.add(itemId);
-      correctIds.delete(itemId);
-      completedIds.delete(itemId);
+
+    const graded = gradeStage7Candidate(
+      c,
+      patch.selected,
+      patch.correctionValue
+    );
+    const attempts =
+      (prev?.attempts ?? 0) + (patch.selected || prev?.selected ? 1 : 0);
+
+    next[c.id] = {
+      selected: patch.selected,
+      correctionValue: patch.correctionValue,
+      selectionCorrect: graded.selectionCorrect,
+      correctionCorrect: graded.correctionCorrect,
+      result: graded.result,
+      attempts,
+      hintUsed: prev?.hintUsed ?? false,
+      positionRevealed: prev?.positionRevealed ?? false,
+      answerRevealed: prev?.answerRevealed ?? false,
+      hintText: prev?.hintText ?? null,
+      revealedCorrection: prev?.revealedCorrection ?? null,
+      categoryFeedback:
+        graded.result === "correct_selection_wrong_correction" ||
+        graded.result === "wrong_selection"
+          ? categoryFeedbackForSubs(c.grammar_category ?? [])
+          : null,
+    };
+
+    if (graded.result === "correct_selection_and_correction") {
+      correctIds.push(c.id);
+      completedIds.push(c.id);
+    } else if (patch.selected || (c.is_error && !patch.selected)) {
+      incorrectIds.push(c.id);
     }
   }
 
-  const required = items.filter((b) => b.is_required);
-  const requiredCorrect = required.filter((b) => correctIds.has(b.id)).length;
-  const score =
-    required.length === 0
-      ? 0
-      : Math.round((requiredCorrect / required.length) * 100);
+  const score = computeStage7Score(candidates, next);
+  const missedErrors = candidates.filter(
+    (c) => c.is_error && next[c.id]?.result === "not_selected"
+  ).length;
 
   const { data, error } = await supabase
     .from("exam_stage2_progress")
@@ -548,11 +521,11 @@ export async function gradeStage6Action(input: {
         academy_id: asRow.academy_id ?? auth.profile.academy_id,
         assignment_student_id: input.assignmentStudentId,
         passage_id: input.passageId,
-        stage_number: 6,
+        stage_number: 7,
         answers: next,
-        correct_blank_ids: [...correctIds],
-        incorrect_blank_ids: [...incorrectIds],
-        completed_blank_ids: [...completedIds],
+        correct_blank_ids: correctIds,
+        incorrect_blank_ids: incorrectIds,
+        completed_blank_ids: completedIds,
         hint_used_blank_ids:
           (existing?.hint_used_blank_ids as string[] | undefined) ?? [],
         revealed_answer_blank_ids:
@@ -570,16 +543,24 @@ export async function gradeStage6Action(input: {
     .single();
 
   if (error) return { ok: false as const, message: error.message };
+
+  let message = `채점 완료 · ${score}점`;
+  if (missedErrors > 0) {
+    message += " · 아직 찾지 못한 어색한 부분이 있습니다.";
+  }
+
   return {
     ok: true as const,
-    progress: sanitizeProgressForClient(data as ExamStage6Progress),
+    progress: sanitizeProgress(data as ExamStage7Progress),
     score,
+    canComplete: canCompleteStage7(candidates, next),
+    message,
   };
 }
 
-export async function requestStage6HintAction(input: {
+export async function requestStage7HintAction(input: {
   assignmentStudentId: string;
-  itemId: string;
+  candidateId: string;
 }) {
   const auth = await requireStudent();
   if (!auth.ok) return auth;
@@ -594,35 +575,31 @@ export async function requestStage6HintAction(input: {
     .from("exam_stage2_progress")
     .select("*")
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .maybeSingle();
 
   const answers = parseAnswers(existing?.answers);
-  const state = answers[input.itemId];
-  if (!state || state.attempts < STAGE6_DEFAULT_THRESHOLDS.hintAfterWrong) {
+  const state = answers[input.candidateId];
+  if (!state || state.attempts < STAGE7_DEFAULT_THRESHOLDS.hintAfterWrong) {
     return {
       ok: false as const,
-      message: `${STAGE6_DEFAULT_THRESHOLDS.hintAfterWrong}회 이상 오답 후 힌트를 볼 수 있습니다.`,
+      message: `${STAGE7_DEFAULT_THRESHOLDS.hintAfterWrong}회 이상 시도 후 힌트를 볼 수 있습니다.`,
     };
   }
 
-  const items = await loadItemsAdmin(String(existing?.passage_id ?? ""));
-  const item = items.find((b) => b.id === input.itemId);
-  if (!item) return { ok: false as const, message: "항목을 찾을 수 없습니다." };
+  const candidates = await loadCandidates(String(existing?.passage_id ?? ""));
+  const cand = candidates.find((c) => c.id === input.candidateId);
+  if (!cand) return { ok: false as const, message: "후보를 찾을 수 없습니다." };
 
   const hint =
-    item.hint?.trim() ||
-    categoryFeedbackForItem(
-      item.question_category,
-      item.grammar_subcategory ?? [],
-      item.vocabulary_subcategory ?? []
-    );
+    cand.hint?.trim() ||
+    categoryFeedbackForSubs(cand.grammar_category ?? []);
 
-  const hintUsed = new Set<string>(
+  const hintUsed = new Set(
     (existing?.hint_used_blank_ids as string[] | undefined) ?? []
   );
-  hintUsed.add(input.itemId);
-  answers[input.itemId] = { ...state, hintUsed: true, hintText: hint };
+  hintUsed.add(input.candidateId);
+  answers[input.candidateId] = { ...state, hintUsed: true, hintText: hint };
 
   const { data, error } = await supabase
     .from("exam_stage2_progress")
@@ -633,7 +610,7 @@ export async function requestStage6HintAction(input: {
       updated_at: new Date().toISOString(),
     })
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .select("*")
     .single();
 
@@ -641,13 +618,14 @@ export async function requestStage6HintAction(input: {
   return {
     ok: true as const,
     hint,
-    progress: sanitizeProgressForClient(data as ExamStage6Progress),
+    progress: sanitizeProgress(data as ExamStage7Progress),
   };
 }
 
-export async function requestStage6RevealAction(input: {
+export async function requestStage7RevealAction(input: {
   assignmentStudentId: string;
-  itemId: string;
+  candidateId: string;
+  mode: "position" | "answer";
 }) {
   const auth = await requireStudent();
   if (!auth.ok) return auth;
@@ -662,38 +640,39 @@ export async function requestStage6RevealAction(input: {
     .from("exam_stage2_progress")
     .select("*")
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .maybeSingle();
 
   const answers = parseAnswers(existing?.answers);
-  const state = answers[input.itemId];
-  if (!state || state.attempts < STAGE6_DEFAULT_THRESHOLDS.revealAfterWrong) {
+  const state = answers[input.candidateId];
+  const need =
+    input.mode === "position"
+      ? STAGE7_DEFAULT_THRESHOLDS.positionRevealAfterWrong
+      : STAGE7_DEFAULT_THRESHOLDS.answerRevealAfterWrong;
+  if (!state || state.attempts < need) {
     return {
       ok: false as const,
-      message: `${STAGE6_DEFAULT_THRESHOLDS.revealAfterWrong}회 이상 오답 후 정답을 확인할 수 있습니다.`,
+      message: `${need}회 이상 시도 후 확인할 수 있습니다.`,
     };
   }
 
-  const items = await loadItemsAdmin(String(existing?.passage_id ?? ""));
-  const item = items.find((b) => b.id === input.itemId);
-  if (!item) return { ok: false as const, message: "항목을 찾을 수 없습니다." };
-
-  const correct = parseChoiceOptions(item.choice_options).find(
-    (o) => o.isCorrect
-  );
-  if (!correct) {
-    return { ok: false as const, message: "정답 선택지가 없습니다." };
+  const candidates = await loadCandidates(String(existing?.passage_id ?? ""));
+  const cand = candidates.find((c) => c.id === input.candidateId);
+  if (!cand?.is_error) {
+    return { ok: false as const, message: "확인할 수 없습니다." };
   }
 
-  const revealed = new Set<string>(
+  const revealed = new Set(
     (existing?.revealed_answer_blank_ids as string[] | undefined) ?? []
   );
-  revealed.add(input.itemId);
-  answers[input.itemId] = {
+  if (input.mode === "answer") revealed.add(input.candidateId);
+
+  answers[input.candidateId] = {
     ...state,
-    answerRevealed: true,
-    revealedOptionId: correct.id,
-    revealedText: correct.text,
+    positionRevealed: true,
+    answerRevealed: input.mode === "answer" ? true : state.answerRevealed,
+    revealedCorrection:
+      input.mode === "answer" ? cand.answer_text : state.revealedCorrection,
   };
 
   const { data, error } = await supabase
@@ -705,20 +684,21 @@ export async function requestStage6RevealAction(input: {
       updated_at: new Date().toISOString(),
     })
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .select("*")
     .single();
 
   if (error) return { ok: false as const, message: error.message };
   return {
     ok: true as const,
-    answer: correct.text,
-    optionId: correct.id,
-    progress: sanitizeProgressForClient(data as ExamStage6Progress),
+    isError: true,
+    correction:
+      input.mode === "answer" ? cand.answer_text : undefined,
+    progress: sanitizeProgress(data as ExamStage7Progress),
   };
 }
 
-export async function completeStage6Action(input: {
+export async function completeStage7Action(input: {
   assignmentStudentId: string;
   passageId: string;
   stepId: string;
@@ -736,52 +716,42 @@ export async function completeStage6Action(input: {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }
 
-  const items = await loadItemsAdmin(input.passageId);
-  const required = items.filter((b) => b.is_required);
-  if (required.length < 1) {
-    return { ok: false as const, message: "필수 항목이 없습니다." };
-  }
-
+  const candidates = await loadCandidates(input.passageId);
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("exam_stage2_progress")
     .select("*")
     .eq("assignment_student_id", input.assignmentStudentId)
-    .eq("stage_number", 6)
+    .eq("stage_number", 7)
     .maybeSingle();
 
   if (existing?.completed_at) {
     return {
       ok: true as const,
-      message: "6단계 학습을 완료했습니다. 7단계를 시작할 수 있습니다.",
+      message: "7단계 학습을 완료했습니다. 다음 단계는 준비 중입니다.",
       alreadyCompleted: true,
     };
   }
 
   const answers = parseAnswers(existing?.answers);
-  for (const item of required) {
-    if (answers[item.id]?.isCorrect !== true) {
-      return {
-        ok: false as const,
-        message: "모든 필수 문제를 맞혀야 완료할 수 있습니다.",
-      };
-    }
+  if (!canCompleteStage7(candidates, answers)) {
+    return {
+      ok: false as const,
+      message:
+        "모든 어색한 곳을 찾아 정확히 고쳐야 완료할 수 있습니다. 올바른 표현을 잘못 선택하지 않았는지도 확인하세요.",
+    };
   }
 
-  const score = Math.round(
-    (required.filter((b) => answers[b.id]?.isCorrect).length / required.length) *
-      100
-  );
-
+  const score = computeStage7Score(candidates, answers);
   await supabase.from("exam_stage2_progress").upsert(
     {
       academy_id: asRow.academy_id ?? auth.profile.academy_id,
       assignment_student_id: input.assignmentStudentId,
       passage_id: input.passageId,
-      stage_number: 6,
+      stage_number: 7,
       answers,
-      correct_blank_ids: required.map((b) => b.id),
-      completed_blank_ids: required.map((b) => b.id),
+      correct_blank_ids: candidates.filter((c) => c.is_error).map((c) => c.id),
+      completed_blank_ids: candidates.filter((c) => c.is_error).map((c) => c.id),
       incorrect_blank_ids: [],
       score,
       progress_percent: 100,
@@ -808,7 +778,7 @@ export async function completeStage6Action(input: {
       .eq("is_active", true);
     const submitAnswers: Record<string, unknown> = {};
     for (const q of questions ?? []) {
-      submitAnswers[q.id as string] = { optionId: "completed" };
+      submitAnswers[q.id as string] = { text: "completed" };
     }
     await submitStepAttemptAction({
       assignment_student_id: input.assignmentStudentId,
@@ -821,7 +791,7 @@ export async function completeStage6Action(input: {
   revalidatePath(`/student/exam-prep/${input.assignmentStudentId}`);
   return {
     ok: true as const,
-    message: "6단계 학습을 완료했습니다. 7단계를 시작할 수 있습니다.",
+    message: "7단계 학습을 완료했습니다. 다음 단계는 준비 중입니다.",
     stageCompleted: true,
   };
 }
