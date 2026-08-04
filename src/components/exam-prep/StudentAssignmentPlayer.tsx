@@ -19,6 +19,7 @@ import {
 } from "@/lib/exam-prep/types";
 import { Stage1FamiliarizeView } from "@/components/exam-prep/Stage1FamiliarizeView";
 import { Stage2KoreanBlankView } from "@/components/exam-prep/Stage2KoreanBlankView";
+import { Stage3EnglishBlankView } from "@/components/exam-prep/Stage3EnglishBlankView";
 
 type AttemptSummary = {
   step_id: string;
@@ -82,6 +83,8 @@ export function StudentAssignmentPlayer({
   sentences = [],
   stage1Progress = null,
   stage2Published = false,
+  stage3Published = false,
+  stage2Completed = false,
 }: {
   assignmentStudentId: string;
   steps: ExamWorkbookStep[];
@@ -101,6 +104,8 @@ export function StudentAssignmentPlayer({
   sentences?: ExamPassageSentence[];
   stage1Progress?: ExamStage1Progress | null;
   stage2Published?: boolean;
+  stage3Published?: boolean;
+  stage2Completed?: boolean;
 }) {
   const router = useRouter();
   const sortedSteps = useMemo(
@@ -112,6 +117,7 @@ export function StudentAssignmentPlayer({
   const [stage1DoneLocal, setStage1DoneLocal] = useState(
     Boolean(stage1Progress?.completed_at)
   );
+  const [stage2DoneLocal, setStage2DoneLocal] = useState(stage2Completed);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [starting, setStarting] = useState(false);
@@ -165,10 +171,18 @@ export function StudentAssignmentPlayer({
       const passedByStage1 =
         prev.step_type === "comprehension" &&
         (Boolean(stage1Progress?.completed_at) || stage1DoneLocal);
-      if (passedByAttempt || passedByStage1) set.add(step.id);
+      const passedByStage2 =
+        prev.step_type === "korean_blank" && stage2DoneLocal;
+      if (passedByAttempt || passedByStage1 || passedByStage2) set.add(step.id);
     }
     return set;
-  }, [sortedSteps, bestByStep, stage1Progress?.completed_at, stage1DoneLocal]);
+  }, [
+    sortedSteps,
+    bestByStep,
+    stage1Progress?.completed_at,
+    stage1DoneLocal,
+    stage2DoneLocal,
+  ]);
 
   const scheduleDraft = useCallback(
     (nextAnswers: Record<string, unknown>, nextAttemptId: string | null) => {
@@ -375,12 +389,49 @@ export function StudentAssignmentPlayer({
           <Stage2KoreanBlankView
             assignmentStudentId={assignmentStudentId}
             stepId={activeStep.id}
+            canStartStage3={stage3Published}
+            onStage2Completed={() => setStage2DoneLocal(true)}
+            onStartStage3={() => {
+              setStage2DoneLocal(true);
+              const next = sortedSteps.find(
+                (s) => s.step_type === "english_blank"
+              );
+              if (next) {
+                setActiveStepId(next.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
             onGoStage1={() => {
               const first = sortedSteps.find(
                 (s) => s.step_type === "comprehension"
               );
               if (first) {
                 setActiveStepId(first.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
+          />
+        )}
+
+      {activeStep &&
+        activeStep.step_type === "english_blank" &&
+        unlockedStepIds.has(activeStep.id) &&
+        stage3Published && (
+          <Stage3EnglishBlankView
+            assignmentStudentId={assignmentStudentId}
+            stepId={activeStep.id}
+            onGoStage2={() => {
+              const s2 = sortedSteps.find((s) => s.step_type === "korean_blank");
+              if (s2) {
+                setActiveStepId(s2.id);
                 setAttemptId(null);
                 setAnswers({});
                 setResults(null);
@@ -401,6 +452,11 @@ export function StudentAssignmentPlayer({
           activeStep.step_type === "korean_blank" &&
           unlockedStepIds.has(activeStep.id) &&
           stage2Published
+        ) &&
+        !(
+          activeStep.step_type === "english_blank" &&
+          unlockedStepIds.has(activeStep.id) &&
+          stage3Published
         ) && (
         <div className="ui-section-card space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

@@ -39,10 +39,11 @@ export async function listKoreanBlanksAction(passageId: string) {
   if (!auth.ok) return auth;
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("exam_korean_blanks")
+    .from("exam_stage_blanks")
     .select("*")
     .eq("passage_id", passageId)
     .eq("academy_id", auth.profile.academy_id)
+    .eq("stage_number", 2)
     .order("blank_order", { ascending: true });
   if (error) return { ok: false as const, message: error.message };
   return { ok: true as const, blanks: (data ?? []) as ExamKoreanBlank[] };
@@ -106,10 +107,11 @@ export async function saveKoreanBlanksAction(
   }
 
   const { data: existingRows } = await supabase
-    .from("exam_korean_blanks")
+    .from("exam_stage_blanks")
     .select("id")
     .eq("passage_id", passageId)
-    .eq("academy_id", auth.profile.academy_id);
+    .eq("academy_id", auth.profile.academy_id)
+    .eq("stage_number", 2);
   const existingIds = new Set((existingRows ?? []).map((r) => r.id as string));
   const keptIds = new Set(
     drafts.map((d) => d.id).filter((id): id is string => Boolean(id))
@@ -118,7 +120,7 @@ export async function saveKoreanBlanksAction(
   const toDelete = [...existingIds].filter((id) => !keptIds.has(id));
   if (toDelete.length > 0) {
     const { error: delErr } = await supabase
-      .from("exam_korean_blanks")
+      .from("exam_stage_blanks")
       .delete()
       .in("id", toDelete)
       .eq("academy_id", auth.profile.academy_id);
@@ -136,6 +138,8 @@ export async function saveKoreanBlanksAction(
       academy_id: auth.profile.academy_id,
       passage_id: passageId,
       sentence_id: d.sentence_id,
+      stage_number: 2,
+      target_language: "ko" as const,
       blank_order: d.blank_order || i + 1,
       answer_text: d.answer_text,
       accepted_answers: (d.accepted_answers ?? []).filter(
@@ -144,6 +148,7 @@ export async function saveKoreanBlanksAction(
       korean_start: d.korean_start,
       korean_end: d.korean_end,
       answer_snapshot: d.answer_text,
+      selected_text: d.answer_text,
       linked_vocabulary_mark_id: d.linked_vocabulary_mark_id ?? null,
       linked_english_text: d.linked_english_text ?? null,
       linked_english_start: d.linked_english_start ?? null,
@@ -154,18 +159,19 @@ export async function saveKoreanBlanksAction(
       is_required: d.is_required ?? true,
       ignore_punctuation: d.ignore_punctuation ?? false,
       flexible_spacing: d.flexible_spacing ?? false,
+      ignore_extra_spaces: d.flexible_spacing ?? false,
       updated_at: new Date().toISOString(),
     };
 
     if (d.id && existingIds.has(d.id)) {
       const { error } = await supabase
-        .from("exam_korean_blanks")
+        .from("exam_stage_blanks")
         .update(row)
         .eq("id", d.id)
         .eq("academy_id", auth.profile.academy_id);
       if (error) return { ok: false as const, message: error.message };
     } else {
-      const { error } = await supabase.from("exam_korean_blanks").insert(row);
+      const { error } = await supabase.from("exam_stage_blanks").insert(row);
       if (error) return { ok: false as const, message: error.message };
     }
   }
@@ -184,10 +190,11 @@ export async function setStage2PublishedAction(
 
   if (published) {
     const { count } = await supabase
-      .from("exam_korean_blanks")
+      .from("exam_stage_blanks")
       .select("id", { count: "exact", head: true })
       .eq("passage_id", passageId)
-      .eq("academy_id", auth.profile.academy_id);
+      .eq("academy_id", auth.profile.academy_id)
+      .eq("stage_number", 2);
     if (!count || count < 1) {
       return {
         ok: false as const,

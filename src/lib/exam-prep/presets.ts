@@ -44,8 +44,8 @@ export const WORKBOOK_10_STEPS: Array<{
   {
     number: 3,
     step_type: "english_blank",
-    label: "3단계 · 빈칸 완성하기(영문)",
-    shortLabel: "빈칸 완성하기(영문)",
+    label: "3단계 · 영문 빈칸 완성하기",
+    shortLabel: "영문 빈칸 완성하기",
     prompt: "우리말 해석을 읽고 영문의 빈칸을 완성해 보세요.",
   },
   {

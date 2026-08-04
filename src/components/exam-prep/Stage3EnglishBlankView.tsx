@@ -7,32 +7,29 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import {
-  completeStage2Action,
-  gradeStage2Action,
-  loadStage2StudentDataAction,
-  requestStage2HintAction,
-  requestStage2RevealAction,
-  saveStage2DraftAction,
-} from "@/lib/exam-prep/stage2-actions";
+  completeStage3Action,
+  gradeStage3Action,
+  loadStage3StudentDataAction,
+  requestStage3HintAction,
+  requestStage3RevealAction,
+  saveStage3DraftAction,
+} from "@/lib/exam-prep/stage3-actions";
 import {
   BLANK_INPUT_CH,
   type InputSizeHint,
 } from "@/lib/exam-prep/korean-blank-normalize";
 import {
-  buildKoreanWithBlankSlots,
-  STAGE2_DEFAULT_THRESHOLDS,
-  type ExamKoreanBlankPublic,
-  type ExamStage2Progress,
-  type Stage2BlankAnswerState,
-} from "@/lib/exam-prep/stage2-types";
-import {
-  buildHighlightSegments,
-  type VocabMark,
-} from "@/lib/exam-prep/vocab-marks";
+  buildEnglishWithBlankSlots,
+  STAGE3_DEFAULT_THRESHOLDS,
+  type ExamStage3BlankPublic,
+  type ExamStage3Progress,
+  type Stage3BlankAnswerState,
+} from "@/lib/exam-prep/stage3-types";
 
 type SentenceRow = {
   id: string;
@@ -41,41 +38,45 @@ type SentenceRow = {
   korean_text: string | null;
 };
 
-function LinkedEnglish({
+function LinkedKorean({
   text,
-  blanks,
+  linkedTexts,
 }: {
   text: string;
-  blanks: ExamKoreanBlankPublic[];
+  linkedTexts: string[];
 }) {
-  const marks: VocabMark[] = blanks
-    .filter((b) => b.linkedEnglishText)
-    .map((b, i) => ({
-      id: `link-${b.id}`,
-      englishText: b.linkedEnglishText!,
-      koreanText: "",
-      englishOccurrence: b.linkedEnglishOccurrence ?? 0,
-      styleKey: (["vocab-1", "vocab-2", "vocab-3", "vocab-4", "vocab-5", "vocab-6"] as const)[
-        i % 6
-      ]!,
-    }));
-  const segs = buildHighlightSegments(text, marks, "english");
-  return (
-    <span className="leading-relaxed">
-      {segs.map((seg, i) =>
-        seg.mark ? (
-          <strong
-            key={i}
-            className="font-semibold underline decoration-2 decoration-slate-700"
-          >
-            {seg.text}
-          </strong>
-        ) : (
-          <span key={i}>{seg.text}</span>
-        )
-      )}
-    </span>
-  );
+  if (!text) return <span className="text-slate-400">(해석 없음)</span>;
+  // simple sequential highlight of linked phrases
+  let remaining = text;
+  const nodes: ReactNode[] = [];
+  let key = 0;
+  const needles = linkedTexts.filter(Boolean).sort((a, b) => b.length - a.length);
+  while (remaining.length > 0) {
+    let best: { idx: number; needle: string } | null = null;
+    for (const n of needles) {
+      const idx = remaining.indexOf(n);
+      if (idx >= 0 && (best == null || idx < best.idx)) {
+        best = { idx, needle: n };
+      }
+    }
+    if (!best) {
+      nodes.push(<span key={key++}>{remaining}</span>);
+      break;
+    }
+    if (best.idx > 0) {
+      nodes.push(<span key={key++}>{remaining.slice(0, best.idx)}</span>);
+    }
+    nodes.push(
+      <strong
+        key={key++}
+        className="font-semibold underline decoration-2 decoration-slate-700"
+      >
+        {best.needle}
+      </strong>
+    );
+    remaining = remaining.slice(best.idx + best.needle.length);
+  }
+  return <span className="leading-relaxed">{nodes}</span>;
 }
 
 function InlineBlankInput({
@@ -86,8 +87,8 @@ function InlineBlankInput({
   onChange,
   onKeyDown,
 }: {
-  blank: ExamKoreanBlankPublic;
-  state: Stage2BlankAnswerState | undefined;
+  blank: ExamStage3BlankPublic;
+  state: Stage3BlankAnswerState | undefined;
   disabled: boolean;
   inputRef: (el: HTMLInputElement | null) => void;
   onChange: (value: string) => void;
@@ -109,31 +110,28 @@ function InlineBlankInput({
       type="text"
       inputMode="text"
       autoComplete="off"
+      autoCapitalize="off"
+      autoCorrect="off"
+      spellCheck={false}
       disabled={disabled || status === true}
       value={state?.value ?? ""}
       onChange={(e) => onChange(e.target.value)}
       onKeyDown={onKeyDown}
       style={{ width: `${ch}ch`, minWidth: "3.5rem", maxWidth: "12rem" }}
       className={`mx-0.5 inline-block rounded border px-1.5 py-0.5 text-center text-sm outline-none focus:ring-2 focus:ring-brand-200 ${border}`}
-      aria-label="우리말 빈칸"
+      aria-label="영문 빈칸"
     />
   );
 }
 
-export function Stage2KoreanBlankView({
+export function Stage3EnglishBlankView({
   assignmentStudentId,
   stepId,
-  onGoStage1,
-  canStartStage3 = false,
-  onStartStage3,
-  onStage2Completed,
+  onGoStage2,
 }: {
   assignmentStudentId: string;
   stepId: string;
-  onGoStage1?: () => void;
-  canStartStage3?: boolean;
-  onStartStage3?: () => void;
-  onStage2Completed?: () => void;
+  onGoStage2?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -148,10 +146,10 @@ export function Stage2KoreanBlankView({
     passage_number?: string | null;
   } | null>(null);
   const [sentences, setSentences] = useState<SentenceRow[]>([]);
-  const [blanks, setBlanks] = useState<ExamKoreanBlankPublic[]>([]);
+  const [blanks, setBlanks] = useState<ExamStage3BlankPublic[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [states, setStates] = useState<
-    Record<string, Stage2BlankAnswerState>
+    Record<string, Stage3BlankAnswerState>
   >({});
   const [revision, setRevision] = useState(0);
   const [stageDone, setStageDone] = useState(false);
@@ -165,12 +163,12 @@ export function Stage2KoreanBlankView({
     [blanks]
   );
 
-  const applyProgress = useCallback((progress: ExamStage2Progress | null) => {
+  const applyProgress = useCallback((progress: ExamStage3Progress | null) => {
     if (!progress) return;
     setRevision(progress.revision);
     setStageDone(Boolean(progress.completed_at));
     const nextAnswers: Record<string, string> = {};
-    const nextStates: Record<string, Stage2BlankAnswerState> = {};
+    const nextStates: Record<string, Stage3BlankAnswerState> = {};
     for (const [id, st] of Object.entries(progress.answers ?? {})) {
       nextAnswers[id] = st.value ?? "";
       nextStates[id] = st;
@@ -183,7 +181,7 @@ export function Stage2KoreanBlankView({
     setLoading(true);
     setError(null);
     setErrorCode(null);
-    const result = await loadStage2StudentDataAction({ assignmentStudentId });
+    const result = await loadStage3StudentDataAction({ assignmentStudentId });
     setLoading(false);
     if (!result.ok) {
       setError(result.message);
@@ -208,7 +206,7 @@ export function Stage2KoreanBlankView({
       if (!passage || stageDone) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(async () => {
-        const result = await saveStage2DraftAction({
+        const result = await saveStage3DraftAction({
           assignmentStudentId,
           passageId: passage.id,
           answers: nextAnswers,
@@ -271,8 +269,7 @@ export function Stage2KoreanBlankView({
     const idx = blankOrder.findIndex((b) => b.id === blankId);
     if (e.key === "Enter" || e.key === "Tab") {
       e.preventDefault();
-      const dir = e.shiftKey ? -1 : 1;
-      focusBlank(idx + dir);
+      focusBlank(idx + (e.shiftKey ? -1 : 1));
     }
   }
 
@@ -280,7 +277,7 @@ export function Stage2KoreanBlankView({
     if (!passage || stageDone) return;
     setBusy(true);
     setMessage(null);
-    const result = await gradeStage2Action({
+    const result = await gradeStage3Action({
       assignmentStudentId,
       passageId: passage.id,
       blankIds,
@@ -292,46 +289,17 @@ export function Stage2KoreanBlankView({
       return;
     }
     applyProgress(result.progress);
+    const req = blanks.filter((b) => b.isRequired);
     setMessage(
-      `채점 완료 · 정답 진행률 ${result.score}% (${result.progress.correct_blank_ids.length}/${blanks.filter((b) => b.isRequired).length || blanks.length})`
+      `채점 완료 · ${result.progress.correct_blank_ids.length}/${req.length || blanks.length}개 정답`
     );
-  }
-
-  async function handleHint(blankId: string) {
-    setBusy(true);
-    const result = await requestStage2HintAction({
-      assignmentStudentId,
-      blankId,
-    });
-    setBusy(false);
-    if (!result.ok) {
-      setMessage(result.message);
-      return;
-    }
-    applyProgress(result.progress);
-    setMessage(`힌트: ${result.hint}`);
-  }
-
-  async function handleReveal(blankId: string) {
-    setBusy(true);
-    const result = await requestStage2RevealAction({
-      assignmentStudentId,
-      blankId,
-    });
-    setBusy(false);
-    if (!result.ok) {
-      setMessage(result.message);
-      return;
-    }
-    applyProgress(result.progress);
-    setMessage("정답을 확인했습니다. 직접 다시 입력해 주세요.");
   }
 
   async function handleComplete() {
     if (!passage || stageDone) return;
     setBusy(true);
     setMessage(null);
-    const result = await completeStage2Action({
+    const result = await completeStage3Action({
       assignmentStudentId,
       passageId: passage.id,
       stepId,
@@ -343,7 +311,6 @@ export function Stage2KoreanBlankView({
     }
     setStageDone(true);
     setMessage(result.message);
-    onStage2Completed?.();
   }
 
   const required = blanks.filter((b) => b.isRequired);
@@ -362,7 +329,7 @@ export function Stage2KoreanBlankView({
   if (loading) {
     return (
       <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-        2단계 불러오는 중…
+        3단계 불러오는 중…
       </p>
     );
   }
@@ -372,9 +339,9 @@ export function Stage2KoreanBlankView({
       <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
         <p className="font-semibold">{error}</p>
         <div className="flex flex-wrap gap-2">
-          {errorCode === "stage1_required" && (
-            <Button type="button" onClick={() => onGoStage1?.()}>
-              1단계로 이동
+          {errorCode === "stage2_required" && (
+            <Button type="button" onClick={() => onGoStage2?.()}>
+              2단계로 이동
             </Button>
           )}
           <Button type="button" variant="secondary" onClick={() => void reload()}>
@@ -393,8 +360,8 @@ export function Stage2KoreanBlankView({
 
   return (
     <div className="space-y-6">
-      <header className="rounded-xl border border-sky-100 bg-sky-50/70 p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-sky-700">
+      <header className="rounded-xl border border-teal-100 bg-teal-50/70 p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-teal-700">
           내신대비학습
         </p>
         <h2 className="mt-1 text-lg font-semibold text-slate-900">
@@ -404,14 +371,14 @@ export function Stage2KoreanBlankView({
           <p className="mt-1 text-sm text-slate-600">{metaBits.join(" · ")}</p>
         )}
         <p className="mt-3 text-sm font-medium text-slate-800">
-          현재 단계: 2단계 · 우리말 빈칸 완성하기
-          <span className="ml-2 text-slate-500">(2 / 10)</span>
+          현재 단계: 3단계 · 영문 빈칸 완성하기
+          <span className="ml-2 text-slate-500">(3 / 10)</span>
         </p>
         <p className="mt-2 text-sm text-slate-600">
-          영문을 읽고 우리말 해석의 빈칸을 완성해 보세요.
+          우리말 해석을 읽고 영문의 빈칸을 완성해 보세요.
         </p>
         <p className="mt-2 text-xs text-slate-500">
-          {required.length || blanks.length}개 중 {correctCount}개 정답
+          총 {required.length || blanks.length}개 중 {correctCount}개 정답
         </p>
       </header>
 
@@ -419,16 +386,19 @@ export function Stage2KoreanBlankView({
         {sentences.map((s) => {
           const sBlanks = blanks
             .filter((b) => b.sentenceId === s.id)
-            .sort((a, b) => a.koreanStart - b.koreanStart);
+            .sort((a, b) => a.englishStart - b.englishStart);
           if (sBlanks.length === 0) return null;
-          const slots = buildKoreanWithBlankSlots(
-            s.korean_text ?? "",
+          const slots = buildEnglishWithBlankSlots(
+            s.english_text ?? "",
             sBlanks.map((b) => ({
               id: b.id,
-              korean_start: b.koreanStart,
-              korean_end: b.koreanEnd,
+              english_start: b.englishStart,
+              english_end: b.englishEnd,
             }))
           );
+          const linked = sBlanks
+            .map((b) => b.linkedKoreanText)
+            .filter((x): x is string => Boolean(x));
           return (
             <article
               key={s.id}
@@ -437,10 +407,13 @@ export function Stage2KoreanBlankView({
               <p className="text-xs font-semibold text-slate-400">
                 {s.sentence_order}.
               </p>
-              <p className="mt-2 text-sm text-slate-900">
-                <LinkedEnglish text={s.english_text} blanks={sBlanks} />
+              <p className="mt-2 text-sm text-slate-800">
+                <LinkedKorean
+                  text={s.korean_text ?? ""}
+                  linkedTexts={linked}
+                />
               </p>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              <p className="mt-3 text-sm leading-relaxed text-slate-900">
                 {slots.map((seg, i) =>
                   seg.type === "text" ? (
                     <span key={i}>{seg.text}</span>
@@ -459,7 +432,6 @@ export function Stage2KoreanBlankView({
                   )
                 )}
               </p>
-
               <div className="mt-3 space-y-2">
                 {sBlanks.map((b) => {
                   const st = states[b.id];
@@ -477,7 +449,7 @@ export function Stage2KoreanBlankView({
                       {st?.isCorrect === false && (
                         <span className="font-medium text-rose-700">오답</span>
                       )}
-                      {st?.isCorrect === null && (st?.value ?? "") === "" && (
+                      {st?.isCorrect === null && !(st?.value ?? "") && (
                         <span className="text-slate-400">미입력</span>
                       )}
                       {st?.hintText && (
@@ -489,27 +461,50 @@ export function Stage2KoreanBlankView({
                         </span>
                       )}
                       {st?.isCorrect === false &&
-                        attempts >= STAGE2_DEFAULT_THRESHOLDS.hintAfterWrong &&
-                        b.hasHint &&
+                        attempts >= STAGE3_DEFAULT_THRESHOLDS.hintAfterWrong &&
                         !st.hintUsed && (
                           <button
                             type="button"
                             className="underline"
                             disabled={busy}
-                            onClick={() => void handleHint(b.id)}
+                            onClick={() =>
+                              void requestStage3HintAction({
+                                assignmentStudentId,
+                                blankId: b.id,
+                              }).then((r) => {
+                                if (!r.ok) setMessage(r.message);
+                                else {
+                                  applyProgress(r.progress);
+                                  setMessage(`힌트: ${r.hint}`);
+                                }
+                              })
+                            }
                           >
                             힌트 보기
                           </button>
                         )}
                       {st?.isCorrect === false &&
                         attempts >=
-                          STAGE2_DEFAULT_THRESHOLDS.revealAfterWrong &&
+                          STAGE3_DEFAULT_THRESHOLDS.revealAfterWrong &&
                         !st.answerRevealed && (
                           <button
                             type="button"
                             className="underline"
                             disabled={busy}
-                            onClick={() => void handleReveal(b.id)}
+                            onClick={() =>
+                              void requestStage3RevealAction({
+                                assignmentStudentId,
+                                blankId: b.id,
+                              }).then((r) => {
+                                if (!r.ok) setMessage(r.message);
+                                else {
+                                  applyProgress(r.progress);
+                                  setMessage(
+                                    "정답을 확인했습니다. 직접 다시 입력해 주세요."
+                                  );
+                                }
+                              })
+                            }
                           >
                             정답 확인
                           </button>
@@ -520,13 +515,9 @@ export function Stage2KoreanBlankView({
                           className="underline"
                           disabled={busy || stageDone}
                           onClick={() => {
-                            setBlankValue(b.id, st.value ?? "");
                             setStates((prev) => ({
                               ...prev,
-                              [b.id]: {
-                                ...prev[b.id]!,
-                                isCorrect: null,
-                              },
+                              [b.id]: { ...prev[b.id]!, isCorrect: null },
                             }));
                             focusBlank(
                               blankOrder.findIndex((x) => x.id === b.id)
@@ -556,16 +547,8 @@ export function Stage2KoreanBlankView({
 
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p className="font-semibold">2단계 학습을 완료했습니다.</p>
-          {canStartStage3 ? (
-            <p className="mt-1">
-              3단계 「영문 빈칸 완성하기」를 시작할 수 있습니다.
-            </p>
-          ) : (
-            <p className="mt-1">
-              3단계가 아직 공개되지 않았거나 준비 중입니다.
-            </p>
-          )}
+          <p className="font-semibold">3단계 학습을 완료했습니다.</p>
+          <p className="mt-1">다음 단계는 준비 중입니다.</p>
         </div>
       )}
 
@@ -588,20 +571,15 @@ export function Stage2KoreanBlankView({
           disabled={busy || stageDone}
           onClick={() => void grade()}
         >
-          {busy ? "처리 중…" : "전체 채점"}
+          {busy ? "처리 중…" : "전체 채점하기"}
         </Button>
         <Button
           type="button"
           disabled={!allRequiredCorrect || stageDone || busy}
           onClick={() => void handleComplete()}
         >
-          2단계 학습 완료
+          3단계 학습 완료
         </Button>
-        {stageDone && canStartStage3 && (
-          <Button type="button" onClick={() => onStartStage3?.()}>
-            3단계 시작하기
-          </Button>
-        )}
       </div>
     </div>
   );
