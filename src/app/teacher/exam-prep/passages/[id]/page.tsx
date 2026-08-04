@@ -11,6 +11,7 @@ import { Stage7ErrorEditor } from "@/components/exam-prep/Stage7ErrorEditor";
 import { Stage8ReorderEditor } from "@/components/exam-prep/Stage8ReorderEditor";
 import { Stage9ParagraphEditor } from "@/components/exam-prep/Stage9ParagraphEditor";
 import { Stage10WritingEditor } from "@/components/exam-prep/Stage10WritingEditor";
+import { GenerateWorkbookButton } from "@/components/exam-prep/GenerateWorkbookButton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
@@ -150,6 +151,11 @@ export default async function TeacherExamPrepPassageEditPage({
         passageId={id}
         basePath={BASE}
         sentences={(sentences ?? []) as ExamPassageSentence[]}
+      />
+      <GenerateWorkbookButton
+        passageId={id}
+        basePath={BASE}
+        passageTitle={(passage as ExamPassage).title}
       />
       <Stage2BlankEditor
         passageId={id}

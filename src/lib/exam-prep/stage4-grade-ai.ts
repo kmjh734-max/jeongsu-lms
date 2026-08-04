@@ -81,7 +81,7 @@ export function validateStage4AiResult(
     Math.abs(score - input.minimumPassScore) <= band &&
     score !== input.minimumPassScore;
 
-  let requiresTeacherReview =
+  const requiresTeacherReview =
     data.requiresTeacherReview ||
     nearPass ||
     input.keyMeaningPoints.length === 0;
