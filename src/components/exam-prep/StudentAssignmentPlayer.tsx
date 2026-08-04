@@ -22,6 +22,7 @@ import { Stage2KoreanBlankView } from "@/components/exam-prep/Stage2KoreanBlankV
 import { Stage3EnglishBlankView } from "@/components/exam-prep/Stage3EnglishBlankView";
 import { Stage4TranslationView } from "@/components/exam-prep/Stage4TranslationView";
 import { Stage5VerbFormView } from "@/components/exam-prep/Stage5VerbFormView";
+import { Stage6ChoiceView } from "@/components/exam-prep/Stage6ChoiceView";
 
 type AttemptSummary = {
   step_id: string;
@@ -88,9 +89,11 @@ export function StudentAssignmentPlayer({
   stage3Published = false,
   stage4Published = false,
   stage5Published = false,
+  stage6Published = false,
   stage2Completed = false,
   stage3Completed = false,
   stage4Completed = false,
+  stage5Completed = false,
 }: {
   assignmentStudentId: string;
   steps: ExamWorkbookStep[];
@@ -113,9 +116,11 @@ export function StudentAssignmentPlayer({
   stage3Published?: boolean;
   stage4Published?: boolean;
   stage5Published?: boolean;
+  stage6Published?: boolean;
   stage2Completed?: boolean;
   stage3Completed?: boolean;
   stage4Completed?: boolean;
+  stage5Completed?: boolean;
 }) {
   const router = useRouter();
   const sortedSteps = useMemo(
@@ -130,6 +135,7 @@ export function StudentAssignmentPlayer({
   const [stage2DoneLocal, setStage2DoneLocal] = useState(stage2Completed);
   const [stage3DoneLocal, setStage3DoneLocal] = useState(stage3Completed);
   const [stage4DoneLocal, setStage4DoneLocal] = useState(stage4Completed);
+  const [stage5DoneLocal, setStage5DoneLocal] = useState(stage5Completed);
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [starting, setStarting] = useState(false);
@@ -189,12 +195,15 @@ export function StudentAssignmentPlayer({
         prev.step_type === "english_blank" && stage3DoneLocal;
       const passedByStage4 =
         prev.step_type === "translation_practice" && stage4DoneLocal;
+      const passedByStage5 =
+        prev.step_type === "verb_form" && stage5DoneLocal;
       if (
         passedByAttempt ||
         passedByStage1 ||
         passedByStage2 ||
         passedByStage3 ||
-        passedByStage4
+        passedByStage4 ||
+        passedByStage5
       )
         set.add(step.id);
     }
@@ -207,6 +216,7 @@ export function StudentAssignmentPlayer({
     stage2DoneLocal,
     stage3DoneLocal,
     stage4DoneLocal,
+    stage5DoneLocal,
   ]);
 
   const scheduleDraft = useCallback(
@@ -525,12 +535,49 @@ export function StudentAssignmentPlayer({
           <Stage5VerbFormView
             assignmentStudentId={assignmentStudentId}
             stepId={activeStep.id}
+            canStartStage6={stage6Published}
+            onStage5Completed={() => setStage5DoneLocal(true)}
+            onStartStage6={() => {
+              setStage5DoneLocal(true);
+              const next = sortedSteps.find(
+                (s) => s.step_type === "grammar_vocab_choice"
+              );
+              if (next) {
+                setActiveStepId(next.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
             onGoStage4={() => {
               const s4 = sortedSteps.find(
                 (s) => s.step_type === "translation_practice"
               );
               if (s4) {
                 setActiveStepId(s4.id);
+                setAttemptId(null);
+                setAnswers({});
+                setResults(null);
+                setLastScore(null);
+                setMessage(null);
+              }
+            }}
+          />
+        )}
+
+      {activeStep &&
+        activeStep.step_type === "grammar_vocab_choice" &&
+        unlockedStepIds.has(activeStep.id) &&
+        stage6Published && (
+          <Stage6ChoiceView
+            assignmentStudentId={assignmentStudentId}
+            stepId={activeStep.id}
+            onGoStage5={() => {
+              const s5 = sortedSteps.find((s) => s.step_type === "verb_form");
+              if (s5) {
+                setActiveStepId(s5.id);
                 setAttemptId(null);
                 setAnswers({});
                 setResults(null);
@@ -566,6 +613,11 @@ export function StudentAssignmentPlayer({
           activeStep.step_type === "verb_form" &&
           unlockedStepIds.has(activeStep.id) &&
           stage5Published
+        ) &&
+        !(
+          activeStep.step_type === "grammar_vocab_choice" &&
+          unlockedStepIds.has(activeStep.id) &&
+          stage6Published
         ) && (
         <div className="ui-section-card space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">

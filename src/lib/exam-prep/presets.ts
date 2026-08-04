@@ -68,7 +68,8 @@ export const WORKBOOK_10_STEPS: Array<{
     step_type: "grammar_vocab_choice",
     label: "6단계 · 어법·어휘 고르기",
     shortLabel: "어법·어휘 고르기",
-    prompt: "괄호 안에서 옳은 어법과 어휘를 골라 보세요.",
+    prompt:
+      "괄호 안에서 문맥에 맞는 올바른 어법과 어휘를 골라 보세요.",
   },
   {
     number: 7,

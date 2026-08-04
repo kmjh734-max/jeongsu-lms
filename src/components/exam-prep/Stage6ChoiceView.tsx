@@ -1,30 +1,23 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import {
-  completeStage5Action,
-  gradeStage5Action,
-  loadStage5StudentDataAction,
-  requestStage5HintAction,
-  requestStage5RevealAction,
-  saveStage5DraftAction,
-} from "@/lib/exam-prep/stage5-actions";
+  completeStage6Action,
+  gradeStage6Action,
+  loadStage6StudentDataAction,
+  requestStage6HintAction,
+  requestStage6RevealAction,
+  saveStage6DraftAction,
+} from "@/lib/exam-prep/stage6-actions";
 import {
-  STAGE5_DEFAULT_THRESHOLDS,
-  buildEnglishWithVerbSlots,
-  type ExamStage5ItemPublic,
-  type ExamStage5Progress,
-  type Stage5ItemAnswerState,
-} from "@/lib/exam-prep/stage5-types";
+  STAGE6_DEFAULT_THRESHOLDS,
+  buildEnglishWithChoiceSlots,
+  type ExamStage6ItemPublic,
+  type ExamStage6Progress,
+  type Stage6AnswerState,
+} from "@/lib/exam-prep/stage6-types";
 
 type SentenceRow = {
   id: string;
@@ -33,20 +26,14 @@ type SentenceRow = {
   korean_text: string | null;
 };
 
-export function Stage5VerbFormView({
+export function Stage6ChoiceView({
   assignmentStudentId,
   stepId,
-  onGoStage4,
-  canStartStage6 = false,
-  onStartStage6,
-  onStage5Completed,
+  onGoStage5,
 }: {
   assignmentStudentId: string;
   stepId: string;
-  onGoStage4?: () => void;
-  canStartStage6?: boolean;
-  onStartStage6?: () => void;
-  onStage5Completed?: () => void;
+  onGoStage5?: () => void;
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,42 +48,26 @@ export function Stage5VerbFormView({
     passage_number?: string | null;
   } | null>(null);
   const [sentences, setSentences] = useState<SentenceRow[]>([]);
-  const [items, setItems] = useState<ExamStage5ItemPublic[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [states, setStates] = useState<Record<string, Stage5ItemAnswerState>>(
-    {}
-  );
+  const [items, setItems] = useState<ExamStage6ItemPublic[]>([]);
+  const [states, setStates] = useState<Record<string, Stage6AnswerState>>({});
   const [revision, setRevision] = useState(0);
   const [stageDone, setStageDone] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const itemOrder = useMemo(
-    () => [...items].sort((a, b) => a.blankOrder - b.blankOrder),
-    [items]
-  );
-
-  const applyProgress = useCallback((progress: ExamStage5Progress | null) => {
+  const applyProgress = useCallback((progress: ExamStage6Progress | null) => {
     if (!progress) return;
-    setRevision(progress.revision);
+    setRevision(progress.revision ?? 0);
     setStageDone(Boolean(progress.completed_at));
-    const nextAnswers: Record<string, string> = {};
-    const nextStates: Record<string, Stage5ItemAnswerState> = {};
-    for (const [id, st] of Object.entries(progress.answers ?? {})) {
-      nextAnswers[id] = st.value ?? "";
-      nextStates[id] = st;
-    }
-    setAnswers(nextAnswers);
-    setStates(nextStates);
+    setStates(progress.answers ?? {});
   }, []);
 
   const reload = useCallback(async () => {
     setLoading(true);
     setError(null);
     setErrorCode(null);
-    const result = await loadStage5StudentDataAction({ assignmentStudentId });
+    const result = await loadStage6StudentDataAction({ assignmentStudentId });
     setLoading(false);
     if (!result.ok) {
       setError(result.message);
@@ -117,14 +88,18 @@ export function Stage5VerbFormView({
   }, [reload]);
 
   const persistDraft = useCallback(
-    (nextAnswers: Record<string, string>, rev: number) => {
+    (nextStates: Record<string, Stage6AnswerState>, rev: number) => {
       if (!passage || stageDone) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(async () => {
-        const result = await saveStage5DraftAction({
+        const selections: Record<string, string | null> = {};
+        for (const [id, st] of Object.entries(nextStates)) {
+          selections[id] = st.selectedOptionId;
+        }
+        const result = await saveStage6DraftAction({
           assignmentStudentId,
           passageId: passage.id,
-          answers: nextAnswers,
+          selections,
           expectedRevision: rev,
         });
         if (result.ok && result.progress) {
@@ -135,7 +110,7 @@ export function Stage5VerbFormView({
             applyProgress(result.progress);
           }
         }
-      }, 700);
+      }, 500);
     },
     [assignmentStudentId, passage, stageDone, applyProgress]
   );
@@ -146,55 +121,42 @@ export function Stage5VerbFormView({
     };
   }, []);
 
-  function setItemValue(itemId: string, value: string) {
+  function selectOption(itemId: string, optionId: string) {
     if (stageDone || states[itemId]?.isCorrect === true) return;
-    setAnswers((prev) => {
-      const next = { ...prev, [itemId]: value };
+    setStates((prev) => {
+      const next = {
+        ...prev,
+        [itemId]: {
+          selectedOptionId: optionId,
+          isCorrect: null,
+          attempts: prev[itemId]?.attempts ?? 0,
+          hintUsed: prev[itemId]?.hintUsed ?? false,
+          answerRevealed: prev[itemId]?.answerRevealed ?? false,
+          revealedOptionId: prev[itemId]?.revealedOptionId,
+          revealedText: prev[itemId]?.revealedText,
+          hintText: prev[itemId]?.hintText,
+          categoryFeedback: prev[itemId]?.categoryFeedback,
+          optionOrder: prev[itemId]?.optionOrder ?? [],
+        },
+      };
       persistDraft(next, revision);
       return next;
     });
-    setStates((prev) => ({
-      ...prev,
-      [itemId]: {
-        value,
-        isCorrect: null,
-        attempts: prev[itemId]?.attempts ?? 0,
-        hintUsed: prev[itemId]?.hintUsed ?? false,
-        answerRevealed: prev[itemId]?.answerRevealed ?? false,
-        revealedAnswer: prev[itemId]?.revealedAnswer,
-        hintText: prev[itemId]?.hintText,
-        categoryFeedback: prev[itemId]?.categoryFeedback,
-      },
-    }));
-  }
-
-  function focusItem(index: number) {
-    const id = itemOrder[index]?.id;
-    if (!id) return;
-    inputRefs.current[id]?.focus();
-    inputRefs.current[id]?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-  }
-
-  function onKeyDown(itemId: string, e: KeyboardEvent<HTMLInputElement>) {
-    const idx = itemOrder.findIndex((b) => b.id === itemId);
-    if (e.key === "Enter" || e.key === "Tab") {
-      e.preventDefault();
-      focusItem(idx + (e.shiftKey ? -1 : 1));
-    }
   }
 
   async function grade(itemIds?: string[]) {
     if (!passage || stageDone) return;
     setBusy(true);
     setMessage(null);
-    const result = await gradeStage5Action({
+    const selections: Record<string, string | null> = {};
+    for (const [id, st] of Object.entries(states)) {
+      selections[id] = st.selectedOptionId;
+    }
+    const result = await gradeStage6Action({
       assignmentStudentId,
       passageId: passage.id,
       itemIds,
-      answers,
+      selections,
     });
     setBusy(false);
     if (!result.ok) {
@@ -210,7 +172,7 @@ export function Stage5VerbFormView({
 
   async function handleHint(itemId: string) {
     setBusy(true);
-    const result = await requestStage5HintAction({
+    const result = await requestStage6HintAction({
       assignmentStudentId,
       itemId,
     });
@@ -224,7 +186,7 @@ export function Stage5VerbFormView({
 
   async function handleReveal(itemId: string) {
     setBusy(true);
-    const result = await requestStage5RevealAction({
+    const result = await requestStage6RevealAction({
       assignmentStudentId,
       itemId,
     });
@@ -234,14 +196,13 @@ export function Stage5VerbFormView({
       return;
     }
     applyProgress(result.progress);
-    setMessage("정답을 확인했습니다. 직접 다시 입력해 제출하세요.");
+    setMessage("정답을 확인했습니다. 직접 다시 선택해 제출하세요.");
   }
 
   async function handleComplete() {
     if (!passage || stageDone) return;
     setBusy(true);
-    setMessage(null);
-    const result = await completeStage5Action({
+    const result = await completeStage6Action({
       assignmentStudentId,
       passageId: passage.id,
       stepId,
@@ -253,7 +214,6 @@ export function Stage5VerbFormView({
     }
     setStageDone(true);
     setMessage(result.message);
-    onStage5Completed?.();
   }
 
   const required = items.filter((b) => b.isRequired);
@@ -262,9 +222,13 @@ export function Stage5VerbFormView({
   ).length;
   const allRequiredCorrect =
     required.length > 0 && correctCount === required.length;
-  const incorrectIds = itemOrder
-    .filter((b) => states[b.id]?.isCorrect === false)
-    .map((b) => b.id);
+  const incorrectIds = useMemo(
+    () =>
+      items
+        .filter((b) => states[b.id]?.isCorrect === false)
+        .map((b) => b.id),
+    [items, states]
+  );
 
   const metaBits = [
     [passage?.school_level, passage?.grade].filter(Boolean).join(" · "),
@@ -275,7 +239,7 @@ export function Stage5VerbFormView({
   if (loading) {
     return (
       <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-        5단계 불러오는 중…
+        6단계 불러오는 중…
       </p>
     );
   }
@@ -285,9 +249,9 @@ export function Stage5VerbFormView({
       <div className="space-y-4 rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
         <p className="font-semibold">{error}</p>
         <div className="flex flex-wrap gap-2">
-          {errorCode === "stage4_required" && (
-            <Button type="button" onClick={() => onGoStage4?.()}>
-              4단계로 이동
+          {errorCode === "stage5_required" && (
+            <Button type="button" onClick={() => onGoStage5?.()}>
+              5단계로 이동
             </Button>
           )}
           <Button type="button" variant="secondary" onClick={() => void reload()}>
@@ -306,8 +270,8 @@ export function Stage5VerbFormView({
 
   return (
     <div className="space-y-6">
-      <header className="rounded-xl border border-indigo-100 bg-indigo-50/70 p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-indigo-700">
+      <header className="rounded-xl border border-violet-100 bg-violet-50/70 p-4">
+        <p className="text-xs font-medium uppercase tracking-wide text-violet-700">
           내신대비학습
         </p>
         <h2 className="mt-1 text-lg font-semibold text-slate-900">
@@ -317,11 +281,11 @@ export function Stage5VerbFormView({
           <p className="mt-1 text-sm text-slate-600">{metaBits.join(" · ")}</p>
         )}
         <p className="mt-3 text-sm font-medium text-slate-800">
-          현재 단계: 5단계 · 동사형 연습하기
-          <span className="ml-2 text-slate-500">(5 / 10)</span>
+          현재 단계: 6단계 · 어법·어휘 고르기
+          <span className="ml-2 text-slate-500">(6 / 10)</span>
         </p>
         <p className="mt-2 text-sm text-slate-600">
-          괄호 안에 주어진 단어를 문맥에 맞는 알맞은 형태로 고쳐 쓰세요.
+          괄호 안에서 문맥에 맞는 올바른 어법과 어휘를 골라 보세요.
         </p>
         <p className="mt-2 text-xs text-slate-500">
           총 {required.length || items.length}개 중 {correctCount}개 정답
@@ -334,7 +298,7 @@ export function Stage5VerbFormView({
             .filter((b) => b.sentenceId === s.id)
             .sort((a, b) => a.englishStart - b.englishStart);
           if (sItems.length === 0) return null;
-          const slots = buildEnglishWithVerbSlots(
+          const slots = buildEnglishWithChoiceSlots(
             s.english_text ?? "",
             sItems.map((b) => ({
               id: b.id,
@@ -359,22 +323,20 @@ export function Stage5VerbFormView({
                     return <span key={i}>{seg.text}</span>;
                   }
                   const item = sItems.find((b) => b.id === seg.itemId)!;
+                  const num = sItems.findIndex((b) => b.id === item.id) + 1;
                   const st = states[item.id];
-                  const num =
-                    sItems.findIndex((b) => b.id === item.id) + 1;
                   return (
                     <span
                       key={seg.itemId}
-                      className={`mx-0.5 inline-flex items-baseline gap-0.5 rounded px-1 font-medium ${
+                      className={`mx-0.5 inline-block rounded px-1 font-medium ${
                         st?.isCorrect === true
                           ? "bg-emerald-50 text-emerald-800"
                           : st?.isCorrect === false
                             ? "bg-rose-50 text-rose-800"
-                            : "bg-indigo-50 text-indigo-900"
+                            : "bg-violet-50 text-violet-900"
                       }`}
-                      title={`${num}번 문제`}
                     >
-                      ({item.cueDisplayText || "…"})
+                      [{item.options.map((o) => o.text).join(" / ")}]
                       <sup className="text-[10px] text-slate-400">{num}</sup>
                     </span>
                   );
@@ -384,42 +346,72 @@ export function Stage5VerbFormView({
               <div className="mt-4 space-y-3">
                 {sItems.map((item, idx) => {
                   const st = states[item.id];
-                  const locked =
-                    stageDone || st?.isCorrect === true;
+                  const locked = stageDone || st?.isCorrect === true;
+                  const orderedOpts = item.options;
                   return (
-                    <div
+                    <fieldset
                       key={item.id}
+                      disabled={locked}
                       className="rounded-lg border border-slate-100 bg-slate-50/80 p-3"
                     >
-                      <p className="text-xs font-medium text-indigo-800">
-                        {idx + 1}. 제시어: ({item.cueDisplayText})
-                        {item.grammarLabels.length > 0 && (
-                          <span className="ml-2 font-normal text-slate-500">
-                            {item.grammarLabels.join(" · ")}
+                      <legend className="px-1 text-xs font-medium text-violet-800">
+                        {idx + 1}.{" "}
+                        {item.questionCategory === "grammar" ? "어법" : "어휘"}
+                        {(item.grammarSubLabels.length > 0 ||
+                          item.vocabularySubLabels.length > 0) && (
+                          <span className="ml-1 font-normal text-slate-500">
+                            {(
+                              item.grammarSubLabels.length
+                                ? item.grammarSubLabels
+                                : item.vocabularySubLabels
+                            ).join(" · ")}
                           </span>
                         )}
-                      </p>
-                      <input
-                        ref={(el) => {
-                          inputRefs.current[item.id] = el;
-                        }}
-                        type="text"
-                        autoCapitalize="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        disabled={locked}
-                        className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-mono text-slate-900 disabled:bg-slate-100"
-                        value={answers[item.id] ?? ""}
-                        onChange={(e) =>
-                          setItemValue(item.id, e.target.value)
-                        }
-                        onKeyDown={(e) => onKeyDown(item.id, e)}
-                        placeholder="알맞은 형태로 입력"
-                        style={{
-                          minWidth: "8rem",
-                          width: "100%",
-                        }}
-                      />
+                      </legend>
+                      <div
+                        className="mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap"
+                        role="radiogroup"
+                        aria-label={`문제 ${idx + 1}`}
+                      >
+                        {orderedOpts.map((opt) => {
+                          const selected = st?.selectedOptionId === opt.id;
+                          return (
+                            <label
+                              key={opt.id}
+                              className={`flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                                selected
+                                  ? "border-violet-500 bg-white ring-1 ring-violet-400"
+                                  : "border-slate-200 bg-white"
+                              } ${locked ? "opacity-70" : ""}`}
+                            >
+                              <input
+                                type="radio"
+                                className="sr-only"
+                                name={`item-${item.id}`}
+                                checked={selected}
+                                disabled={locked}
+                                onChange={() => selectOption(item.id, opt.id)}
+                              />
+                              <span
+                                aria-hidden
+                                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                                  selected
+                                    ? "border-violet-600 bg-violet-600 text-white"
+                                    : "border-slate-300"
+                                }`}
+                              >
+                                {selected ? "✓" : ""}
+                              </span>
+                              <span className="font-mono">{opt.text}</span>
+                              {selected && (
+                                <span className="text-xs text-slate-500">
+                                  (선택됨)
+                                </span>
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
                       <div className="mt-2 flex flex-wrap gap-2 text-xs">
                         {st?.isCorrect === true && (
                           <span className="text-emerald-700">정답</span>
@@ -427,10 +419,9 @@ export function Stage5VerbFormView({
                         {st?.isCorrect === false && (
                           <span className="text-rose-700">오답</span>
                         )}
-                        {st?.isCorrect === null &&
-                          !(answers[item.id] ?? "").trim() && (
-                            <span className="text-slate-500">미입력</span>
-                          )}
+                        {!st?.selectedOptionId && st?.isCorrect == null && (
+                          <span className="text-slate-500">미선택</span>
+                        )}
                         {st?.categoryFeedback && st.isCorrect === false && (
                           <span className="text-amber-800">
                             {st.categoryFeedback}
@@ -441,15 +432,15 @@ export function Stage5VerbFormView({
                             힌트: {st.hintText}
                           </span>
                         )}
-                        {st?.revealedAnswer && (
+                        {st?.revealedText && (
                           <span className="text-slate-700">
-                            정답 확인: {st.revealedAnswer}
+                            정답 확인: {st.revealedText}
                           </span>
                         )}
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {(st?.attempts ?? 0) >=
-                          STAGE5_DEFAULT_THRESHOLDS.hintAfterWrong &&
+                          STAGE6_DEFAULT_THRESHOLDS.hintAfterWrong &&
                           !st?.hintUsed &&
                           st?.isCorrect !== true && (
                             <Button
@@ -462,7 +453,7 @@ export function Stage5VerbFormView({
                             </Button>
                           )}
                         {(st?.attempts ?? 0) >=
-                          STAGE5_DEFAULT_THRESHOLDS.revealAfterWrong &&
+                          STAGE6_DEFAULT_THRESHOLDS.revealAfterWrong &&
                           !st?.answerRevealed &&
                           st?.isCorrect !== true && (
                             <Button
@@ -485,7 +476,7 @@ export function Stage5VerbFormView({
                           </Button>
                         )}
                       </div>
-                    </div>
+                    </fieldset>
                   );
                 })}
               </div>
@@ -502,16 +493,8 @@ export function Stage5VerbFormView({
 
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p className="font-semibold">5단계 학습을 완료했습니다.</p>
-          {canStartStage6 ? (
-            <p className="mt-1">
-              6단계 「어법·어휘 고르기」를 시작할 수 있습니다.
-            </p>
-          ) : (
-            <p className="mt-1">
-              6단계가 아직 공개되지 않았거나 준비 중입니다.
-            </p>
-          )}
+          <p className="font-semibold">6단계 학습을 완료했습니다.</p>
+          <p className="mt-1">다음 단계는 준비 중입니다.</p>
         </div>
       )}
 
@@ -538,13 +521,8 @@ export function Stage5VerbFormView({
           disabled={!allRequiredCorrect || stageDone || busy}
           onClick={() => void handleComplete()}
         >
-          5단계 학습 완료
+          6단계 학습 완료
         </Button>
-        {stageDone && canStartStage6 && (
-          <Button type="button" onClick={() => onStartStage6?.()}>
-            6단계 시작하기
-          </Button>
-        )}
         <Link
           href="/student/exam-prep"
           className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"

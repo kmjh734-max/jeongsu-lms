@@ -59,7 +59,7 @@ export default async function StudentExamPrepPlayerPage({
   const { data: passage } = await supabase
     .from("exam_passages")
     .select(
-      "id, title, school_level, grade, source, exam_name, passage_number, stage2_published, stage3_published, stage4_published, stage5_published"
+      "id, title, school_level, grade, source, exam_name, passage_number, stage2_published, stage3_published, stage4_published, stage5_published, stage6_published"
     )
     .eq("id", workbook.passage_id)
     .maybeSingle();
@@ -78,6 +78,7 @@ export default async function StudentExamPrepPlayerPage({
     { data: stage2Done },
     { data: stage3Done },
     { data: stage4Done },
+    { data: stage5Done },
   ] = await Promise.all([
     supabase
       .from("exam_workbook_steps")
@@ -123,6 +124,12 @@ export default async function StudentExamPrepPlayerPage({
       .eq("assignment_student_id", assignmentStudentId)
       .eq("stage_number", 4)
       .maybeSingle(),
+    supabase
+      .from("exam_stage2_progress")
+      .select("completed_at")
+      .eq("assignment_student_id", assignmentStudentId)
+      .eq("stage_number", 5)
+      .maybeSingle(),
   ]);
 
   const publicQuestions: ExamWorkbookQuestionPublic[] = stripQuestions(
@@ -158,9 +165,13 @@ export default async function StudentExamPrepPlayerPage({
         stage5Published={Boolean(
           (passage as { stage5_published?: boolean }).stage5_published
         )}
+        stage6Published={Boolean(
+          (passage as { stage6_published?: boolean }).stage6_published
+        )}
         stage2Completed={Boolean(stage2Done?.completed_at)}
         stage3Completed={Boolean(stage3Done?.completed_at)}
         stage4Completed={Boolean(stage4Done?.completed_at)}
+        stage5Completed={Boolean(stage5Done?.completed_at)}
         existingAttempts={(attempts ?? []).map((a) => ({
           step_id: a.step_id as string,
           status: a.status as string,

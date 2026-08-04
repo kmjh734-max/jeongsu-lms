@@ -108,6 +108,7 @@ export type ExamPassage = {
   stage3_published: boolean;
   stage4_published: boolean;
   stage5_published: boolean;
+  stage6_published: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
