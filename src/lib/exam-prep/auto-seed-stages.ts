@@ -86,7 +86,6 @@ const NON_VERB_FORM = new Set(
     "limited",
     "detailed",
     "crowded",
-    "needed", // handled via multi-word "desperately needed"
   ].map((w) => w.toLowerCase())
 );
 
@@ -388,6 +387,7 @@ export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[]
   return drafts;
 }
 
+/** 동사구·준동사·분사형 — PDF처럼 문장당 여러 빈칸 */
 type VerbHit = {
   start: number;
   end: number;
@@ -396,11 +396,33 @@ type VerbHit = {
   category: string;
 };
 
-/** 동사구·준동사·분사형 — PDF처럼 문장당 여러 빈칸 */
+const NEVER_VERB = new Set(
+  "every each all most other another such same own next last first second many much more few little good bad big small long short high low new old great real true false only even still already often usually really somehow something everything anything nothing someone anyone everyone nobody everybody perhaps maybe however therefore thus hence although though while during before after above below between through against among within without upon whether until unless because since across around toward towards garbage ocean plastic problem people rats tourists laws day days year years time times way ways part parts place places thing things fact case state world country city school student students child children man men woman women".split(
+    " "
+  )
+);
+
+const IRREGULAR_VERBS = new Set(
+  `left made done gone seen taken given been come became become built felt kept lost meant met paid put read said sent set shown sold spent stood taught thought told understood won written wrote broke broken chose chosen drove driven ate eaten fell fallen flew flown forgot forgotten froze frozen grew grown hid hidden held hurt knew known laid lain led lent lit rode ridden rang rung rose risen ran sang sung sank sunk sat slept spoke spoken stole stolen swam swum threw thrown wore worn woke woken began begun brought bought caught fought found heard quit shut spread cost cut let hit wet drew drawn drank drunk hung sprang sprung swore sworn tore torn bound ground spun`.split(
+    " "
+  )
+);
+
+const AUX_VERBS = new Set(
+  "am is are was were be been being have has had do does did can could will would may might must should shall".split(
+    " "
+  )
+);
+
+/**
+ * 5단계: 문장 안 동사형을 **여러 개** 빈칸 (PDF: (have)(be)(dump) …).
+ * 구 전체를 한 칸으로 묶지 않는다.
+ */
 function findVerbHits(english: string): VerbHit[] {
   const hits: VerbHit[] = [];
   const used: Array<{ a: number; b: number }> = [];
   const push = (start: number, end: number, cues: string[], category: string) => {
+    if (start < 0 || end <= start) return;
     if (overlaps(used, start, end)) return;
     const answer = english.slice(start, end);
     if (!answer.trim()) return;
@@ -408,131 +430,161 @@ function findVerbHits(english: string): VerbHit[] {
     hits.push({ start, end, answer, cues, category });
   };
 
-  const patterns: Array<{
-    re: RegExp;
-    cues: (m: RegExpExecArray) => string[];
-    cat: string;
-    skip?: (m: RegExpExecArray, full: string) => boolean;
-  }> = [
-    {
-      re: /\b((?:have|has|had)\s+been\s+\w+ing)\b/gi,
-      cues: (m) => {
-        const parts = m[1]!.split(/\s+/);
-        return ["have", "be", lemmaCue(parts[parts.length - 1]!)];
-      },
-      cat: "perfect_progressive",
-    },
-    {
-      re: /\b((?:have|has|had)\s+(?:\w+(?:ed|en|n)|left|made|done|gone|seen|taken|given|been|come|become|built|felt|kept|lost|meant|met|paid|put|read|said|sent|set|shown|sold|spent|stood|taught|thought|told|understood|won|written))\b/gi,
-      cues: (m) => {
-        const parts = m[1]!.split(/\s+/);
-        return ["have", lemmaCue(parts[1]!)];
-      },
-      cat: "present_perfect",
-    },
-    {
-      // PDF: it (be) illegal
-      re: /\b(it(?:['’]s| is))\b(?=\s+(?:illegal|legal|important|necessary|possible|clear|true|false))/gi,
-      cues: () => ["be"],
-      cat: "linking_be",
-    },
-    {
-      re: /\b((?:is|are|was|were)\s+(?:not\s+)?\w+ing)\b/gi,
-      cues: (m) => {
-        const parts = m[1]!.replace(/\bnot\b/i, "").trim().split(/\s+/);
-        return ["be", lemmaCue(parts[parts.length - 1]!)];
-      },
-      cat: "present_progressive",
-    },
-    {
-      re: /\b((?:is|are|was|were)\s+\w+ly\s+\w+ed)\b/gi,
-      cues: (m) => {
-        const parts = m[1]!.split(/\s+/);
-        return [lemmaCue(parts[1]!), lemmaCue(parts[2]!)];
-      },
-      cat: "passive_voice",
-    },
-    {
-      re: /\b((?:is|are|was|were)\s+\w+ed)\b/gi,
-      cues: (m) => {
-        const parts = m[1]!.split(/\s+/);
-        return ["be", lemmaCue(parts[1]!)];
-      },
-      cat: "passive_voice",
-    },
-    {
-      // PDF: it (not, permit) ← it's not permitted
-      re: /\b(it(?:['’]s| is)\s+not\s+\w+ed)\b/gi,
-      cues: (m) => {
-        const last = m[1]!.split(/\s+/).pop()!;
-        return ["not", lemmaCue(last)];
-      },
-      cat: "passive_voice",
-    },
-    {
-      re: /\b(to\s+[a-z]+)\b/g,
-      cues: (m) => [lemmaCue(m[1]!.replace(/^to\s+/i, ""))],
-      cat: "infinitive",
-      skip: (m) => {
-        const verb = m[1]!.replace(/^to\s+/i, "");
-        // To Whom / To Fix(대문자 문두 제외는 아래 별도) — 전치사+고유명사 스킵
-        if (/^[A-Z]/.test(verb) && verb !== "Fix") return true;
-        if (/^(whom|which|whose|where|what|this|that|these|those|the|a|an)$/i.test(verb)) {
-          return true;
-        }
-        return false;
-      },
-    },
-  ];
+  const tokenRe = /[A-Za-z']+/g;
+  let m: RegExpExecArray | null;
+  const tokens: Array<{ text: string; start: number; end: number; low: string }> =
+    [];
+  while ((m = tokenRe.exec(english)) !== null) {
+    tokens.push({
+      text: m[0],
+      start: m.index,
+      end: m.index + m[0].length,
+      low: m[0].toLowerCase(),
+    });
+  }
 
-  for (const p of patterns) {
-    p.re.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = p.re.exec(english)) !== null) {
-      if (m.index == null) continue;
-      if (p.skip?.(m, english)) continue;
-      push(m.index, m.index + m[0].length, p.cues(m), p.cat);
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i]!;
+    const prev = tokens[i - 1];
+    const next = tokens[i + 1];
+    const before = english.slice(Math.max(0, t.start - 16), t.start);
+    const after = english.slice(t.end, t.end + 16);
+
+    // 전치사 to + 명사/관계사 스킵 (to whom / to the)
+    if (
+      prev &&
+      /^to$/i.test(prev.low) &&
+      /^(whom|which|whose|where|what|this|that|these|those|the|a|an|my|your|his|her|our|their)$/i.test(
+        t.low
+      )
+    ) {
+      continue;
     }
-  }
 
-  // PDF: (Fix) this (grow) … / (Thank) you …
-  const leadVerb = /\b(To\s+fix|Thank)\b/g;
-  let lm: RegExpExecArray | null;
-  while ((lm = leadVerb.exec(english)) !== null) {
-    if (lm.index == null) continue;
-    push(lm.index, lm.index + lm[0].length, [lemmaCue(lm[1]!.replace(/^To\s+/i, ""))], "infinitive");
-  }
+    if (NON_VERB_FORM.has(t.low)) continue;
+    if (NEVER_VERB.has(t.low)) continue;
 
-  // 단독 정동사 / 분사형 (형용사·명사 오탐 최소화)
-  const FINITE =
-    /\b(attracts?|urges?|leaves?|needs?|gets?|fixes?|grows?|dumps?|permits?|thanks?|protects?|strengthens?|weakens?|makes?|takes?|gives?|comes?|goes?|seems?|appears?|becomes?|remains?|keeps?|helps?|shows?|provides?|requires?|suggests?|causes?|creates?|allows?|prevents?|reduces?|increases?|improves?|supports?|includes?|contains?|offers?|asks?|tells?|says?|thinks?|knows?|feels?|wants?|tries?|begins?|starts?|ends?|continues?|happens?|occurs?)\b/gi;
-  let fm: RegExpExecArray | null;
-  while ((fm = FINITE.exec(english)) !== null) {
-    if (fm.index == null) continue;
-    const w = fm[1]!;
-    push(fm.index, fm.index + w.length, [lemmaCue(w)], "finite_verb");
-  }
+    // it's / he's → be
+    if (/^(?:it|he|she|that|what|who)'(?:s)$/i.test(t.low)) {
+      push(t.start, t.end, ["be"], "simple_present");
+      continue;
+    }
 
-  const participle =
-    /\b([A-Za-z]+(?:ing|ed))\b/g;
-  let pm: RegExpExecArray | null;
-  while ((pm = participle.exec(english)) !== null) {
-    if (pm.index == null) continue;
-    const w = pm[1]!;
-    const low = w.toLowerCase();
-    if (EN_STOP.has(low) || NON_VERB_FORM.has(low)) continue;
-    if (/^(being|been)$/i.test(w)) continue;
-    // 관사/형용사 뒤 분사 수식 (a disgusting state / this growing problem / illegal dumping)
-    const before = english.slice(Math.max(0, pm.index - 12), pm.index);
-    const after = english.slice(pm.index + w.length, pm.index + w.length + 12);
-    const looksLikeModifier =
-      /\b(a|an|the|this|that|these|those|illegal|large|strict)\s+$/i.test(before) ||
-      /^\s+(problem|state|situation|issue|dumping|waste|garbage|people|animals)\b/i.test(
-        after
-      );
-    const looksLikeGerundObject = /\bof\s+$/i.test(before) && /ing$/i.test(w);
-    if (!looksLikeModifier && !looksLikeGerundObject) continue;
-    push(pm.index, pm.index + w.length, [lemmaCue(w)], "participle");
+    // 1) 조동사·be·have·do
+    if (AUX_VERBS.has(t.low)) {
+      const cue =
+        /^(am|is|are|was|were|been|being)$/i.test(t.low)
+          ? "be"
+          : /^(have|has|had)$/i.test(t.low)
+            ? "have"
+            : /^(do|does|did)$/i.test(t.low)
+              ? "do"
+              : t.low;
+      let cat = "other";
+      if (/^(am|is|are)$/i.test(t.low)) cat = "simple_present";
+      else if (/^(was|were)$/i.test(t.low)) cat = "simple_past";
+      else if (/^(been|being|be)$/i.test(t.low)) cat = "other";
+      else if (/^(have|has)$/i.test(t.low)) cat = "present_perfect";
+      else if (/^had$/i.test(t.low)) cat = "past_perfect";
+      push(t.start, t.end, [cue], cat);
+      continue;
+    }
+
+    if (EN_STOP.has(t.low)) continue;
+
+    // 2) to + 원형
+    if (prev && /^to$/i.test(prev.low) && t.low.length >= 3) {
+      if (/^[A-Z]/.test(t.text) && !/^(Fix|Thank)$/.test(t.text)) continue;
+      push(t.start, t.end, [lemmaCue(t.text)], "infinitive");
+      continue;
+    }
+
+    // 3) -ing (동사·분사·동명사)
+    if (/ing$/i.test(t.low) && t.low.length > 4) {
+      let cat = "gerund";
+      if (prev && /^(is|are|was|were|am|be|been|being)$/i.test(prev.low)) {
+        cat = "present_progressive";
+      }
+      if (prev && /^(been)$/i.test(prev.low)) cat = "perfect_progressive";
+      // 관사·형용사 뒤면 현재분사 수식
+      if (/\b(a|an|the|this|that|these|those|illegal|growing|large)\s+$/i.test(before)) {
+        cat = "present_participle";
+      }
+      push(t.start, t.end, [lemmaCue(t.text)], cat);
+      continue;
+    }
+
+    // 4) -ed / 불규칙 pp·과거 (have/be 뒤 또는 서술 동사)
+    if (IRREGULAR_VERBS.has(t.low) || (/ed$/i.test(t.low) && t.low.length > 3)) {
+      let cat = "past_participle";
+      if (prev && /^(have|has|had)$/i.test(prev.low)) cat = "present_perfect";
+      if (prev && /^(is|are|was|were|am|be|been|being)$/i.test(prev.low)) {
+        cat = "passive_voice";
+      }
+      if (
+        prev &&
+        /ly$/i.test(prev.low) &&
+        tokens[i - 2] &&
+        /^(is|are|was|were)$/i.test(tokens[i - 2]!.low)
+      ) {
+        cat = "passive_voice";
+      }
+      // 불규칙 과거(서술) — have/be 앞이 아니면 단순과거로
+      if (
+        IRREGULAR_VERBS.has(t.low) &&
+        !/ed$/i.test(t.low) &&
+        !(prev && /^(have|has|had|is|are|was|were|be|been|being)$/i.test(prev.low))
+      ) {
+        cat = "simple_past";
+      }
+      push(t.start, t.end, [lemmaCue(t.text)], cat);
+      continue;
+    }
+
+    // 5) 사역·지각 뒤 원형
+    if (
+      prev &&
+      /^(see|saw|hear|heard|watch|watched|feel|felt|make|made|let|have|had|help|helped)$/i.test(
+        prev.low
+      ) === false &&
+      tokens[i - 2] &&
+      /^(see|saw|hear|heard|watch|watched|feel|felt|make|made|let|have|had|help|helped)$/i.test(
+        tokens[i - 2]!.low
+      ) &&
+      t.low.length >= 3
+    ) {
+      push(t.start, t.end, [lemmaCue(t.text)], "infinitive");
+      continue;
+    }
+
+    // 6) 3인칭 -s / 일반 정동사 (화이트리스트 + 휴리스틱)
+    const FINITE_HINT =
+      /^(attracts?|urges?|leaves?|needs?|gets?|fixes?|grows?|dumps?|permits?|thanks?|protects?|strengthens?|weakens?|makes?|takes?|gives?|comes?|goes?|seems?|appears?|becomes?|remains?|keeps?|helps?|shows?|provides?|requires?|suggests?|causes?|creates?|allows?|prevents?|reduces?|increases?|improves?|supports?|includes?|contains?|offers?|asks?|tells?|says?|thinks?|knows?|feels?|wants?|tries?|begins?|starts?|ends?|continues?|happens?|occurs?|means?|depends?|exists?|leads?|follows?|works?|plays?|lives?|looks?|uses?|calls?|changes?|moves?|turns?|brings?|holds?|finds?|believes?|considers?|decides?|explains?|produces?|represents?|serves?|stands?|understands?|writes?|reads?|runs?|walks?|talks?|speaks?|listens?|watches?|eats?|drinks?|sleeps?|opens?|closes?|adds?|removes?|replaces?|develops?|encourages?|enables?|forces?|fails?|succeeds?|proves?|argues?|claims?|states?|notes?|reports?|describes?|mentions?|refers?|relates?|applies?|compares?|differs?|varies?|tends?|seems?|proves?)$/i;
+    if (FINITE_HINT.test(t.low)) {
+      push(t.start, t.end, [lemmaCue(t.text)], "simple_present");
+      continue;
+    }
+
+    // 7) 동사처럼 보이는 3인칭 -s
+    if (
+      /[a-z]s$/i.test(t.low) &&
+      !/ss$/i.test(t.low) &&
+      t.low.length >= 5 &&
+      !/^(this|thus|towards|across|perhaps|always|sometimes|others|thanks)$/i.test(
+        t.low
+      )
+    ) {
+      const looksVerbal =
+        /\b(he|she|it|who|which|that|one|people|process|problem|system|machine|student|child|anyone|everyone|something)\b/i.test(
+          before
+        ) ||
+        /^\s+(a|an|the|to|that|how|why|what|when|where|not|also|often|usually|really|very|more|most|much|many|their|its|his|her|our|my|your)\b/i.test(
+          after
+        );
+      if (looksVerbal) {
+        push(t.start, t.end, [lemmaCue(t.text)], "simple_present");
+      }
+    }
   }
 
   return hits.sort((a, b) => a.start - b.start);

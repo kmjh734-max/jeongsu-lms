@@ -32,10 +32,6 @@ export type WorkbookGrammarHit = {
   forError: boolean;
 };
 
-function escapeRe(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function mapUnit(
   unitKey: string,
   caseId: string
@@ -84,6 +80,14 @@ function mapUnit(
     default:
       return { stage6Sub: "other_grammar", stage7Sub: "other" };
   }
+}
+
+function overlaps(
+  used: Array<{ a: number; b: number }>,
+  start: number,
+  end: number
+) {
+  return used.some((u) => start < u.b && end > u.a);
 }
 
 type MechPlant = {
@@ -171,12 +175,12 @@ const MECHANISM_PLANTS: MechPlant[] = [
     forChoice: true,
     forError: true,
   },
-  // 간접의문 어순 (what the sailor had done)
+  // 간접의문 어순 — know/ask/wonder 등 뒤에만 (관계부사 where절과 구분)
   {
     unitKey: "special",
     caseId: "sp-indirect",
     correct:
-      /\b(what|where|how|why|when)\s+((?:the\s+)?[\w'-]+(?:\s+[\w'-]+)?)\s+(had|has|have|was|were|is|are|will|would|can|could|did|do|does)\b/gi,
+      /(?<=\b(?:know|knew|knows|ask|asked|asks|wonder|wondered|wonders|tell|told|tells|explain|explained|explains|understand|understood|understands|remember|remembered|remembers|see|saw|sees|show|showed|shows|decide|decided|decides)\s+(?:(?:me|him|her|us|them|you|someone|anyone)\s+)?)(what|where|how|why|when)\s+((?:the\s+)?[\w'-]+(?:\s+[\w'-]+)?)\s+(had|has|have|was|were|is|are|will|would|can|could|did|do|does)\b/gi,
     wrong: (_m, g) =>
       `${g[0] ?? "what"} ${g[2] ?? "had"} ${g[1] ?? "he"}`,
     priority: 94,
@@ -619,108 +623,45 @@ function findCase(
   return { unit, c };
 }
 
-function overlaps(
-  used: Array<{ a: number; b: number }>,
-  start: number,
-  end: number
-) {
-  return used.some((u) => start < u.b && end > u.a);
-}
-
-function isTrivialNumberPair(a: string, b: string): boolean {
-  const x = a.toLowerCase();
-  const y = b.toLowerCase();
-  if (x === y) return true;
-  const strip = (w: string) =>
-    w.endsWith("ies")
-      ? `${w.slice(0, -3)}y`
-      : w.endsWith("es")
-        ? w.slice(0, -2)
-        : w.endsWith("s") && !w.endsWith("ss")
-          ? w.slice(0, -1)
-          : w;
-  return strip(x) === strip(y) || strip(x) === y || strip(y) === x;
-}
-
-/** pairForms "a/b·c/d" → 지문에 있는 쪽을 정답으로 한 hit */
-function catalogPairHits(english: string): WorkbookGrammarHit[] {
-  const hits: WorkbookGrammarHit[] = [];
-  const used: Array<{ a: number; b: number }> = [];
-  const WEAK = new Set(
-    "a an the is are was were be been being have has had do does did will would can could may might should my mine your yours his her its our their i we you they he she it them this that these those and or but not".split(
+function isElementaryChoice(a: string, b: string): boolean {
+  const x = a.toLowerCase().trim();
+  const y = b.toLowerCase().trim();
+  if (!x || !y) return true;
+  // 관사 a/an/the — 초등 수준, 절대 출제 금지
+  if (/^(a|an|the)$/i.test(x) || /^(a|an|the)$/i.test(y)) return true;
+  if (/^(a|an|the)(\s|$)/i.test(x) || /^(a|an|the)(\s|$)/i.test(y)) return true;
+  if (x === "—" || y === "—" || x === "-" || y === "-") return true;
+  // few/little·many/much 단독
+  const qty = new Set(["few", "little", "many", "much", "some", "any", "all", "each", "every"]);
+  if (qty.has(x) && qty.has(y)) return true;
+  // 단독 is/are·has/have (변형문제 HARD BAN)
+  if (
+    /^(is|are|was|were|has|have)$/i.test(x) &&
+    /^(is|are|was|were|has|have)$/i.test(y)
+  ) {
+    return true;
+  }
+  // 양쪽 모두 초등 닫힌 부류 (대명사·전치사만)
+  const CLOSED = new Set(
+    "i you he she it we they me him her us them my your his its our their and or but not so if of in on at to for with by from as".split(
       " "
     )
   );
-
-  for (const unit of GRAMMAR_UNIT_BANKS) {
-    for (const c of unit.cases) {
-      for (const group of c.pairForms.split("·")) {
-        const parts = group.split("/").map((p) => p.trim()).filter(Boolean);
-        if (parts.length !== 2) continue;
-        const [a, b] = parts;
-        if (!a || !b || a.length < 2 || b.length < 2 || a.length > 36) continue;
-        if (
-          !a.includes(" ") &&
-          !b.includes(" ") &&
-          WEAK.has(a.toLowerCase()) &&
-          WEAK.has(b.toLowerCase())
-        ) {
-          continue;
-        }
-        // 마더텅 HARD BAN: ask/asks·make/makes 식 인접 단순 수일치
-        if (!a.includes(" ") && !b.includes(" ") && isTrivialNumberPair(a, b)) {
-          continue;
-        }
-        for (const [correctText, wrongText] of [
-          [a, b],
-          [b, a],
-        ] as const) {
-          const re = new RegExp(`\\b${escapeRe(correctText)}\\b`, "i");
-          const m = english.match(re);
-          if (!m || m.index == null) continue;
-          const start = m.index;
-          const end = start + m[0].length;
-          if (overlaps(used, start, end)) continue;
-          if (
-            unit.key === "sv" &&
-            !correctText.includes(" ") &&
-            /^(is|are|was|were|has|have)$/i.test(correctText)
-          ) {
-            const before = english.slice(Math.max(0, start - 24), start);
-            if (!/\b(of|in|that|which|who|whom|to|by|from|with)\b/i.test(before)) {
-              continue;
-            }
-          }
-          used.push({ a: start, b: end });
-          const subs = mapUnit(unit.key, c.id);
-          hits.push({
-            start,
-            end,
-            correct: m[0],
-            wrong: wrongText,
-            unitKey: unit.key,
-            caseId: c.id,
-            koLabel: c.koLabel,
-            koTip: c.koTip,
-            ...subs,
-            priority: 35 + Math.min(correctText.length, 10),
-            forChoice: true,
-            forError: true,
-          });
-        }
-      }
-    }
-  }
-  return hits;
+  if (CLOSED.has(x) && CLOSED.has(y)) return true;
+  return false;
 }
 
+/** 변형문제는 pairForms를 지문에 맹목적으로 꽂지 않음 — CASE 메커니즘만 사용 */
 export function scanWorkbookGrammarHits(english: string): WorkbookGrammarHit[] {
   const hits: WorkbookGrammarHit[] = [];
   const used: Array<{ a: number; b: number }> = [];
 
   for (const plant of MECHANISM_PLANTS) {
     if (plant.ban) continue;
-    const re = new RegExp(plant.correct.source, plant.correct.flags.includes("g") ? plant.correct.flags : `${plant.correct.flags}g`);
+    const re = new RegExp(
+      plant.correct.source,
+      plant.correct.flags.includes("g") ? plant.correct.flags : `${plant.correct.flags}g`
+    );
     re.lastIndex = 0;
     let m: RegExpExecArray | null;
     while ((m = re.exec(english)) !== null) {
@@ -735,6 +676,7 @@ export function scanWorkbookGrammarHits(english: string): WorkbookGrammarHit[] {
           ? plant.wrong(correct, groups)
           : plant.wrong;
       if (!wrong || wrong.toLowerCase() === correct.toLowerCase()) continue;
+      if (isElementaryChoice(correct, wrong)) continue;
       used.push({ a: start, b: end });
       const meta = findCase(plant.unitKey, plant.caseId);
       const subs = mapUnit(plant.unitKey, plant.caseId);
@@ -753,13 +695,6 @@ export function scanWorkbookGrammarHits(english: string): WorkbookGrammarHit[] {
         forError: plant.forError !== false,
       });
     }
-  }
-
-  // 카탈로그 pairForms 보충 (메커니즘에 안 걸린 것)
-  for (const h of catalogPairHits(english)) {
-    if (overlaps(used, h.start, h.end)) continue;
-    used.push({ a: h.start, b: h.end });
-    hits.push(h);
   }
 
   return hits.sort((a, b) => b.priority - a.priority || a.start - b.start);
