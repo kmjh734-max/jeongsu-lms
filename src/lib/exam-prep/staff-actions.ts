@@ -830,7 +830,7 @@ export async function fillEmptyWorkbookQuestionsAction(workbookId: string) {
     return { ok: false as const, message: "승인된 워크북은 수정할 수 없습니다." };
   }
 
-  let { data: sentences } = await supabase
+  const { data: sentences } = await supabase
     .from("exam_passage_sentences")
     .select("*")
     .eq("passage_id", wb.passage_id)
