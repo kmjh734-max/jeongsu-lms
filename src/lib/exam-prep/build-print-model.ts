@@ -4,6 +4,7 @@ import {
   parseWritingSegments,
   composeSegmentsToText,
 } from "@/lib/exam-prep/stage10-types";
+import { formatWritingSlotLine } from "@/lib/exam-prep/guided-writing";
 import { parseSentenceIds } from "@/lib/exam-prep/stage9-types";
 import { WORKBOOK_10_STEPS } from "@/lib/exam-prep/presets";
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
@@ -451,19 +452,7 @@ export function buildPrintStagesFromPassage(input: {
       const cues = parseWritingCues(b.writing_cues).map((c) => c.cueText);
       const segs = parseWritingSegments(b.writing_segments);
       const writingLines =
-        segs.length > 0
-          ? [
-              segs
-                .map((s) =>
-                  s.segmentType === "fixed_text"
-                    ? s.fixedText ?? ""
-                    : underline(
-                        Math.max(8, (s.originalAnswerText ?? "").length)
-                      )
-                )
-                .join(""),
-            ]
-          : [underline(40)];
+        segs.length > 0 ? [formatWritingSlotLine(segs)] : [underline(40)];
       items.push({
         order: order++,
         korean: primary?.korean_text || String(b.selected_text ?? ""),

@@ -132,11 +132,19 @@ function QuestionPreview({ q }: { q: ExamWorkbookQuestion }) {
     const cues = Array.isArray(data.cueWords)
       ? (data.cueWords as string[])
       : [];
+    const displayText = String(data.displayText ?? "");
     return (
-      <div className="mt-2 space-y-1 text-sm">
-        <p>{String(data.koreanPrompt ?? "")}</p>
+      <div className="mt-2 space-y-2 text-sm">
+        <p className="text-slate-800">{String(data.koreanPrompt ?? "")}</p>
         {cues.length > 0 ? (
-          <p className="text-xs text-slate-500">제시어: {cues.join(" → ")}</p>
+          <p className="rounded bg-slate-100 px-2 py-1 font-serif text-slate-800">
+            {cues.join(", ")}
+          </p>
+        ) : null}
+        {displayText ? (
+          <p className="font-serif leading-relaxed tracking-wide text-slate-900 whitespace-pre-wrap">
+            {displayText}
+          </p>
         ) : null}
       </div>
     );

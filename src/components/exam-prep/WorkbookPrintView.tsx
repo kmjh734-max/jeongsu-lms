@@ -114,8 +114,8 @@ export function WorkbookPrintView({
                     </p>
                   ) : null}
                   {item.cues && item.cues.length > 0 ? (
-                    <p className="mt-1 text-slate-700">
-                      제시어: {item.cues.join(" → ")}
+                    <p className="mt-1 rounded bg-slate-100 px-2 py-1 font-serif text-sm text-slate-800">
+                      {item.cues.join(", ")}
                     </p>
                   ) : null}
                   {item.writingLines?.map((line, i) => (

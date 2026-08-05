@@ -52,7 +52,7 @@ function systemPrompt(stepType: ExamStepType): string {
 - error_correction: HWP 7단계처럼 한 문장에 오류 밑줄 여러 개. { corruptedText, fixTargets:[{wrong,correct}] }, correctAnswer:{ text:원문, fixes:[...] }. 가능하면 어색한 곳 3개.
 - sentence_order: 인천 WORKBOOK 8단계처럼 우리말 + 고정영문 + (어구 / 어구 / …) 형식. { format:"pdf_phrase_reorder", displayText:"To Whom…\n(where / been / not permitted / …)", koreanHint, items:[{id,text}] 어구 카드(섞인 순), correctOrder:정답 id 배열 }
 - paragraph_order: { items:[{id,text}], mode:"sentence" }, correctAnswer:{order:[]}
-- writing: { koreanPrompt, cueWords:string[] }, correctAnswer:{text:원문}
+- writing: 인천 WORKBOOK 10단계처럼 우리말 + 회색 제시어(원형 4~6개) + 고정구문/단어별 ______ . { format:"pdf_guided_writing", koreanPrompt, cueWords:string[], displayText:"People ______ ______ in areas of ______ …" }
 
 문항 수: 문장별 출제(핵심 문장 우선). paragraph_order는 1문항.`;
 }

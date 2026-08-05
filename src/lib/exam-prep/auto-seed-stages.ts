@@ -22,13 +22,15 @@ import {
 import { type Stage8GroupDraft } from "@/lib/exam-prep/stage8-types";
 import type { Stage9ConfigDraft } from "@/lib/exam-prep/stage9-types";
 import {
-  newCueId,
-  newSegId,
   proposeFullSentenceSegments,
   tokenizeAnswerText,
   type Stage10ItemDraft,
-  type Stage10Segment,
 } from "@/lib/exam-prep/stage10-types";
+import {
+  buildPdfWritingSegments,
+  buildWritingCues,
+  pickWritingCueTexts,
+} from "@/lib/exam-prep/guided-writing";
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
 import { GRAMMAR_UNIT_BANKS } from "@/lib/question-generator/grammar-catalog";
 
@@ -934,84 +936,7 @@ export function buildStage9Config(sentences: SeedSentence[]): Stage9ConfigDraft 
   };
 }
 
-/** PDF형: 고정 접속·전치사구 + 빈칸 토큰 슬롯 */
-function buildGuidedWritingSegments(english: string): Stage10Segment[] {
-  const GLUE: RegExp[] = [
-    /^To Whom It May Concern:\s*/i,
-    /\bin areas of\b/gi,
-    /\bwhere it(?:['’]s| is)\s+/gi,
-    /\bin those areas\b/gi,
-    /,\s*recently more and more\s+/gi,
-    /\band at\b/gi,
-    /\bin the community\.?/gi,
-    /\bThank you for your time and consideration\.?/gi,
-    /\bSincerely,?\s*/gi,
-    /\bEven though it(?:['’]s| is)\s+/gi,
-    /\bwhich\s+/gi,
-    /\bin a\b/gi,
-    /\sof\s+(?=(?:garbage|waste|illegal|our)\b)/gi,
-    /\band\s+(?=insects\b)/gi,
-    /,\s*I\s+/gi,
-    /\bin the\b(?=\s+community)/gi,
-  ];
-
-  type Span = { start: number; end: number };
-  const glues: Span[] = [];
-  for (const re of GLUE) {
-    re.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(english)) !== null) {
-      if (m.index == null) continue;
-      const start = m.index;
-      const end = start + m[0].length;
-      if (glues.some((g) => start < g.end && end > g.start)) continue;
-      glues.push({ start, end });
-    }
-  }
-  glues.sort((a, b) => a.start - b.start);
-  if (glues.length === 0) return [];
-
-  const segs: Stage10Segment[] = [];
-  let order = 1;
-  let cursor = 0;
-  const pushFixed = (text: string) => {
-    if (!text) return;
-    segs.push({
-      id: newSegId(),
-      segmentOrder: order++,
-      segmentType: "fixed_text",
-      fixedText: text,
-    });
-  };
-  const pushAnswer = (text: string, start: number, end: number) => {
-    const t = text;
-    if (!t.trim()) return;
-    segs.push({
-      id: newSegId(),
-      segmentOrder: order++,
-      segmentType: "answer_segment",
-      originalAnswerText: t,
-      answerTokens: tokenizeAnswerText(t),
-      acceptedAnswers: [],
-      englishStart: start,
-      englishEnd: end,
-      ignoreExtraSpaces: true,
-      ignoreTerminalPunctuation: true,
-    });
-  };
-
-  for (const g of glues) {
-    if (cursor < g.start) pushAnswer(english.slice(cursor, g.start), cursor, g.start);
-    pushFixed(english.slice(g.start, g.end));
-    cursor = g.end;
-  }
-  if (cursor < english.length) pushAnswer(english.slice(cursor), cursor, english.length);
-
-  const hasAnswer = segs.some((s) => s.segmentType === "answer_segment");
-  return hasAnswer ? segs : [];
-}
-
-/** 10단계: 우리말 + 제시어(원형) + 고정/영작 구간 */
+/** 10단계: 우리말 + 제시어(원형) + 고정구 + 단어별 ______ */
 export function buildStage10Drafts(sentences: SeedSentence[]): Stage10ItemDraft[] {
   const drafts: Stage10ItemDraft[] = [];
   let order = 1;
@@ -1022,38 +947,9 @@ export function buildStage10Drafts(sentences: SeedSentence[]): Stage10ItemDraft[
     const korean = String(s.korean_text ?? "").trim();
     if (!english || !korean) continue;
 
-    const marks = parseVocabMarks(s.vocabulary);
-    let segments = buildGuidedWritingSegments(english);
+    let segments = buildPdfWritingSegments(english);
     if (segments.length < 1) {
-      // 폴백: 앞 1~2어 고정 + 나머지 영작 (인사문 제외)
-      const words = english.split(/\s+/);
-      if (words.length >= 6 && /^(People|Some|Even|The|Consistent|To)\b/.test(english)) {
-        const headN = /^(Even though|Some of|To Whom)/i.test(english) ? 2 : 1;
-        const head = words.slice(0, headN).join(" ");
-        const rest = words.slice(headN).join(" ");
-        segments = [
-          {
-            id: newSegId(),
-            segmentOrder: 1,
-            segmentType: "fixed_text",
-            fixedText: `${head} `,
-          },
-          {
-            id: newSegId(),
-            segmentOrder: 2,
-            segmentType: "answer_segment",
-            originalAnswerText: rest,
-            answerTokens: tokenizeAnswerText(rest),
-            acceptedAnswers: [],
-            englishStart: head.length + 1,
-            englishEnd: english.length,
-            ignoreExtraSpaces: true,
-            ignoreTerminalPunctuation: true,
-          },
-        ];
-      } else {
-        segments = proposeFullSentenceSegments(english);
-      }
+      segments = proposeFullSentenceSegments(english);
     }
 
     const answerTexts = segments
@@ -1061,36 +957,14 @@ export function buildStage10Drafts(sentences: SeedSentence[]): Stage10ItemDraft[
       .map((x) => x.originalAnswerText ?? "")
       .join(" ");
 
-    const cueSource =
-      marks.length > 0
-        ? marks.map((m) => lemmaCue(m.englishText))
-        : contentEnglishTokens(answerTexts || english).map(lemmaCue);
-
-    const cueTexts = cueSource
-      .filter(Boolean)
-      .filter((v, i, a) => a.indexOf(v) === i)
-      .slice(0, 6);
-
-    const answerSeg = segments.find((x) => x.segmentType === "answer_segment");
-    const cues = cueTexts.map((text, i) => ({
-      id: newCueId(),
-      cueOrder: i + 1,
-      cueText: text,
-      linkedSegmentId: answerSeg?.id ?? null,
-      linkedAnswerText: null as string | null,
-    }));
-    if (cues.length < 1) {
+    let cueTexts = pickWritingCueTexts(english, s.vocabulary, answerTexts);
+    if (cueTexts.length < 1) {
       const first = tokenizeAnswerText(english)[0];
-      if (first) {
-        cues.push({
-          id: newCueId(),
-          cueOrder: 1,
-          cueText: lemmaCue(first),
-          linkedSegmentId: answerSeg?.id ?? null,
-          linkedAnswerText: null,
-        });
-      }
+      if (first) cueTexts = [writingLemmaFallback(first)];
     }
+    if (cueTexts.length < 1) cueTexts = ["word"];
+
+    const cues = buildWritingCues(cueTexts, segments);
 
     drafts.push({
       blank_order: order++,
@@ -1105,4 +979,8 @@ export function buildStage10Drafts(sentences: SeedSentence[]): Stage10ItemDraft[
     });
   }
   return drafts;
+}
+
+function writingLemmaFallback(answer: string): string {
+  return answer.toLowerCase().replace(/[^a-z']/g, "") || answer;
 }

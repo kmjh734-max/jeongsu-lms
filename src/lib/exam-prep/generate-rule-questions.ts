@@ -16,6 +16,12 @@ import {
   buildPdfReorderDisplay,
   buildPhraseChunkTexts,
 } from "@/lib/exam-prep/phrase-reorder";
+import {
+  buildPdfWritingSegments,
+  buildWritingCues,
+  formatWritingSlotLine,
+  pickWritingCueTexts,
+} from "@/lib/exam-prep/guided-writing";
 
 export type GeneratedQuestionDraft = {
   sentence_id: string | null;
@@ -388,13 +394,27 @@ function buildSentenceOrder(
   };
 }
 
+/**
+ * 10단계 PDF형: 우리말 + 제시어 + 고정구/단어 빈칸
+ */
 function buildWriting(
   sentence: ExamPassageSentence,
   order: number
 ): GeneratedQuestionDraft {
-  const cues = contentWords(sentence.english_text)
-    .slice(0, 4)
-    .map((w) => w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, ""));
+  const english = String(sentence.english_text ?? "").trim();
+  const korean = String(sentence.korean_text ?? "").trim() || "(해석 없음)";
+  const segments = buildPdfWritingSegments(english);
+  const answerTexts = segments
+    .filter((s) => s.segmentType === "answer_segment")
+    .map((s) => s.originalAnswerText ?? "")
+    .join(" ");
+  const cueWords = pickWritingCueTexts(english, sentence.vocabulary, answerTexts);
+  const displayText =
+    segments.length > 0
+      ? formatWritingSlotLine(segments)
+      : "______________";
+  const cues = buildWritingCues(cueWords, segments);
+
   return {
     sentence_id: sentence.id,
     question_type: "writing",
@@ -404,11 +424,15 @@ function buildWriting(
       "우리말과 같은 뜻이 되도록 주어진 단어를 순서대로 사용하여 영작하세요."
     ),
     question_data: {
-      koreanPrompt: sentence.korean_text ?? "(해석 없음)",
-      cueWords: cues,
+      format: "pdf_guided_writing",
+      koreanPrompt: korean,
+      cueWords,
+      displayText,
+      writingSegments: segments,
+      writingCues: cues,
     },
-    correct_answer: { text: sentence.english_text },
-    acceptable_answers: [sentence.english_text],
+    correct_answer: { text: english },
+    acceptable_answers: [english],
     explanation: null,
     difficulty: "hard",
     points: 2,

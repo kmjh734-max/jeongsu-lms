@@ -273,8 +273,8 @@ export function Stage10WritingView({
               )}
             </p>
             <p className="mt-1 text-sm text-slate-700">{item.koreanPrompt}</p>
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              제시어: {item.cues.map((c) => c.cueText).join(" → ")}
+            <p className="mt-2 rounded bg-slate-100 px-2 py-1.5 font-serif text-sm text-slate-800">
+              {item.cues.map((c) => c.cueText).join(", ")}
             </p>
 
             {item.inputMode === "full_sentence" ? (
