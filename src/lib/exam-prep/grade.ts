@@ -48,6 +48,68 @@ export function gradeChoiceAnswer(
   };
 }
 
+/** 문장 안 [a / b] 다중 슬롯 */
+export function gradeInlineAbChoices(
+  studentSelections: Record<string, string> | null | undefined,
+  questionData: Record<string, unknown>,
+  correctAnswer: unknown,
+  points: number
+): GradeResult {
+  type Blank = {
+    id: string;
+    correctOptionId?: string;
+    options?: Array<{ id: string; text: string }>;
+  };
+  const blanks = (
+    Array.isArray(questionData.choiceBlanks) ? questionData.choiceBlanks : []
+  ) as Blank[];
+
+  let expected: Record<string, string> = {};
+  if (
+    typeof correctAnswer === "object" &&
+    correctAnswer !== null &&
+    "selections" in correctAnswer &&
+    typeof (correctAnswer as { selections: unknown }).selections === "object" &&
+    (correctAnswer as { selections: unknown }).selections !== null
+  ) {
+    expected = (correctAnswer as { selections: Record<string, string> }).selections;
+  } else {
+    for (const b of blanks) {
+      if (b.correctOptionId) expected[b.id] = b.correctOptionId;
+    }
+  }
+
+  const ids = blanks.length > 0 ? blanks.map((b) => b.id) : Object.keys(expected);
+  if (ids.length === 0) {
+    return gradeChoiceAnswer(
+      studentSelections
+        ? Object.values(studentSelections)[0]
+        : null,
+      correctAnswer,
+      points
+    );
+  }
+
+  let correctCount = 0;
+  const detail: Record<string, boolean> = {};
+  for (const id of ids) {
+    const student = String(studentSelections?.[id] ?? "");
+    const want = String(expected[id] ?? "");
+    const ok = student.length > 0 && want.length > 0 && student === want;
+    detail[id] = ok;
+    if (ok) correctCount += 1;
+  }
+  const allOk = correctCount === ids.length;
+  const score =
+    Math.round((points * correctCount) / Math.max(1, ids.length) * 100) / 100;
+  return {
+    isCorrect: allOk,
+    score,
+    gradingStatus: allOk ? "auto_correct" : "auto_incorrect",
+    normalizedAnswer: { selections: studentSelections ?? {}, detail },
+  };
+}
+
 export function gradeShortAnswer(
   studentText: string | null | undefined,
   correctAnswer: unknown,

@@ -48,7 +48,7 @@ function systemPrompt(stepType: ExamStepType): string {
 - english_blank: { displayText(영문 ____), koreanHint, blanks:[...] }
 - translation_practice: { english }, correctAnswer:{text:우리말}
 - verb_form: { displayText(동사 자리를 (  ) 또는 ____), baseForm, blanks:[{id,answer}] }
-- grammar_vocab_choice: { displayText(괄호 선택형), options:[{id,text}] 정확히 2~4개, choiceKind }, correctAnswer:{optionId}
+- grammar_vocab_choice: 인천 WORKBOOK 6단계처럼 영문 안 [a / b] 2지 선택(문장당 여러 개 가능). { displayText:"… [been dumping / been dumped] … [where / that] …", format:"inline_ab", koreanHint, choiceBlanks:[{id, options:[{id,text}] 정확히 2개, correctOptionId}], options:첫슬롯2개 }. correctAnswer:{ selections:{blankId:optionId}, optionId:첫슬롯 }
 - error_correction: HWP 7단계처럼 한 문장에 오류 밑줄 여러 개. { corruptedText, fixTargets:[{wrong,correct}] }, correctAnswer:{ text:원문, fixes:[...] }. 가능하면 어색한 곳 3개.
 - sentence_order: { items:[{id,text}], koreanHint }, correctAnswer:{order:[]}
 - paragraph_order: { items:[{id,text}], mode:"sentence" }, correctAnswer:{order:[]}
@@ -163,9 +163,10 @@ function isPlausibleQuestion(
       return typeof data.english === "string";
     case "grammar_vocab_choice":
       return (
-        Array.isArray(data.options) &&
-        data.options.length >= 2 &&
-        correct != null
+        (Array.isArray(data.choiceBlanks) && data.choiceBlanks.length >= 1) ||
+        (Array.isArray(data.options) &&
+          data.options.length >= 2 &&
+          correct != null)
       );
     case "error_correction":
       return typeof data.corruptedText === "string" && correct != null;

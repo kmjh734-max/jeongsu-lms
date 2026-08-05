@@ -175,27 +175,45 @@ function convertQuestion(
     const words = english.split(/\s+/).filter(Boolean);
     const content = words
       .map((w) => w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, ""))
-      .filter((c) => c.length >= 3);
-    if (content.length < 2) return null;
-    const targetWord = content[0]!;
-    const distractor = content[1] ?? `${targetWord}s`;
+      .filter((c) => c.length >= 4);
+    if (content.length < 1) return null;
+    const targetWord = content[Math.min(1, content.length - 1)]!;
+    const distractor = targetWord.endsWith("ing")
+      ? `${targetWord.slice(0, -3)}ed`
+      : targetWord.endsWith("ed")
+        ? `${targetWord.slice(0, -2)}ing`
+        : `${targetWord}s`;
     const display = english.replace(
       new RegExp(`\\b${targetWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`),
-      "____"
+      `[${targetWord} / ${distractor}]`
     );
     return {
-      question_text: "문맥에 알맞은 말을 고르세요. (오답 변형)",
+      question_text: "괄호 안에서 옳은 어법과 어휘를 골라 보세요. (오답 변형)",
       question_data: {
         displayText: display,
+        format: "inline_ab",
+        koreanHint: "",
+        choiceBlanks: [
+          {
+            id: "blank_1",
+            answer: targetWord,
+            options: [
+              { id: "a", text: targetWord },
+              { id: "b", text: distractor },
+            ],
+            correctOptionId: "a",
+          },
+        ],
         options: [
           { id: "a", text: targetWord },
           { id: "b", text: distractor },
-          { id: "c", text: `${targetWord}ing` },
-          { id: "d", text: `${distractor}ed` },
         ],
         choiceKind: "vocab",
       },
-      correct_answer: { optionId: "a" },
+      correct_answer: {
+        optionId: "a",
+        selections: { blank_1: "a" },
+      },
       acceptable_answers: ["a"],
     };
   }

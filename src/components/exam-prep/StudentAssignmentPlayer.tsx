@@ -1123,6 +1123,72 @@ function QuestionInput({
 
   if (type === "grammar_vocab_choice" || type === "csat_mcq") {
     const isCsat = type === "csat_mcq";
+    const isInlineAb =
+      !isCsat &&
+      (String(data.format ?? "") === "inline_ab" ||
+        Array.isArray(data.choiceBlanks));
+
+    if (isInlineAb) {
+      type AbBlank = {
+        id: string;
+        options: { id: string; text: string }[];
+      };
+      const blanks = (
+        Array.isArray(data.choiceBlanks) ? data.choiceBlanks : []
+      ) as AbBlank[];
+      const selections =
+        typeof value === "object" &&
+        value !== null &&
+        "selections" in value
+          ? ((value as { selections: Record<string, string> }).selections ?? {})
+          : {};
+      return (
+        <div className="space-y-3">
+          {data.koreanHint ? (
+            <p className="text-sm text-slate-600">{String(data.koreanHint)}</p>
+          ) : null}
+          <p className="rounded-lg border border-slate-100 bg-slate-50 p-3 font-serif text-sm leading-relaxed text-slate-900">
+            {String(data.displayText ?? "")}
+          </p>
+          <div className="space-y-3">
+            {blanks.map((b, idx) => (
+              <div key={b.id} className="space-y-1">
+                <p className="text-xs font-medium text-slate-500">
+                  ({idx + 1}) [{b.options.map((o) => o.text).join(" / ")}]
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {b.options.map((opt) => (
+                    <label
+                      key={opt.id}
+                      className={`flex min-h-[40px] cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+                        selections[b.id] === opt.id
+                          ? "border-indigo-400 bg-indigo-50"
+                          : "border-slate-200"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`q-${question.id}-${b.id}`}
+                        className="sr-only"
+                        checked={selections[b.id] === opt.id}
+                        onChange={() =>
+                          onChange({
+                            selections: { ...selections, [b.id]: opt.id },
+                          })
+                        }
+                      />
+                      {opt.text}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <ResultHint result={result} />
+        </div>
+      );
+    }
+
     const options = (
       isCsat
         ? Array.isArray(data.choices)

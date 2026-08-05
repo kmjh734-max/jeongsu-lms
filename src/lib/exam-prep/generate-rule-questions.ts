@@ -10,6 +10,8 @@ import {
   vocabEnglishNeedles,
   vocabKoreanNeedles,
 } from "@/lib/exam-prep/blank-importance";
+import { buildStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
+import { newOptionId } from "@/lib/exam-prep/stage6-types";
 
 export type GeneratedQuestionDraft = {
   sentence_id: string | null;
@@ -185,60 +187,110 @@ function buildEnglishBlank(
   };
 }
 
+/**
+ * 6단계 PDF형: 문장 안 [a / b] (어법·어휘 2지 선택, 문장당 여러 개)
+ */
 function buildGrammarChoice(
   sentence: ExamPassageSentence,
   order: number
 ): GeneratedQuestionDraft | null {
-  const words = contentWords(sentence.english_text);
-  if (words.length < 2) return null;
-  const target = words[0].replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-  if (!target) return null;
+  const english = String(sentence.english_text ?? "").trim();
+  if (!english) return null;
 
-  const pool = words
-    .map((w) => w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, ""))
-    .filter((c) => c && c.toLowerCase() !== target.toLowerCase());
+  let items = buildStage6Drafts([
+    {
+      id: sentence.id,
+      english_text: english,
+      korean_text: sentence.korean_text,
+      sentence_order: sentence.sentence_order,
+      paragraph_number: sentence.paragraph_number,
+      vocabulary: sentence.vocabulary,
+      is_important_writing: sentence.is_important_writing,
+    },
+  ]);
 
-  const distractors = new Set<string>();
-  // 형태 변형 오답
-  for (const d of [
-    `${target}s`,
-    `${target}ed`,
-    `${target}ing`,
-    target.toLowerCase().endsWith("y")
-      ? `${target.slice(0, -1)}ies`
-      : `${target}es`,
-    pool[0],
-    pool[1],
-  ]) {
-    if (!d) continue;
-    const clean = d.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (
-      clean &&
-      clean.toLowerCase() !== target.toLowerCase() &&
-      distractors.size < 3
-    ) {
-      distractors.add(clean);
-    }
+  // 시드가 비면 중요 어휘 1~2곳에 형태 쌍 폴백
+  if (items.length === 0) {
+    const words = tokens(english);
+    const scored = words
+      .map((w, index) => ({
+        index,
+        word: w,
+        core: englishCore(w),
+        score: scoreEnglishBlank(w),
+      }))
+      .filter((x) => x.score > 0 && x.core.length >= 4);
+    const picked = pickSpreadByScore(scored, Math.min(3, Math.max(1, scored.length)));
+    let cursorSearch = 0;
+    items = picked.map((p, i) => {
+      const core = p.core;
+      const start = english.toLowerCase().indexOf(core.toLowerCase(), cursorSearch);
+      const end = start >= 0 ? start + core.length : 0;
+      if (start >= 0) cursorSearch = end;
+      const wrong = core.endsWith("ing")
+        ? `${core.slice(0, -3)}ed`
+        : core.endsWith("ed")
+          ? `${core.slice(0, -2)}ing`
+          : core.endsWith("s")
+            ? core.slice(0, -1)
+            : `${core}s`;
+      const matched = start >= 0 ? english.slice(start, end) : core;
+      return {
+        sentence_id: sentence.id,
+        blank_order: i + 1,
+        answer_text: matched,
+        english_start: Math.max(0, start),
+        english_end: Math.max(matched.length, end),
+        selected_text: matched,
+        choice_options: [
+          { id: newOptionId(), text: matched, isCorrect: true },
+          { id: newOptionId(), text: wrong, isCorrect: false },
+        ],
+        question_category: "vocabulary" as const,
+        grammar_subcategory: [] as string[],
+        vocabulary_subcategory: ["word_form"],
+        shuffle_options: true,
+        is_required: true,
+      };
+    });
   }
-  while (distractors.size < 3) {
-    distractors.add(`${target}${distractors.size + 1}`);
+
+  if (items.length === 0) return null;
+
+  const sorted = [...items].sort((a, b) => a.english_start - b.english_start);
+  let display = english;
+  // 뒤에서부터 치환해 인덱스 유지
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const d = sorted[i]!;
+    const opts = d.choice_options.map((o) => o.text).filter(Boolean);
+    if (opts.length < 2) continue;
+    // PDF처럼 좌우 순서 섞기 (정답이 항상 왼쪽이 아님)
+    const show =
+      d.shuffle_options !== false && Math.random() < 0.5
+        ? [opts[1]!, opts[0]!]
+        : [opts[0]!, opts[1]!];
+    const bracket = `[${show.join(" / ")}]`;
+    display =
+      display.slice(0, d.english_start) + bracket + display.slice(d.english_end);
   }
 
-  const optionTexts = [target, ...[...distractors].slice(0, 3)];
-  // 셔플하되 정답 id는 고정하지 않고 텍스트로 채점할 수 있게 optionId 매핑
-  const shuffled = [...optionTexts];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
-  }
-  const ids = ["a", "b", "c", "d"];
-  const options = shuffled.map((text, i) => ({ id: ids[i]!, text }));
-  const correctId = options.find((o) => o.text === target)?.id ?? "a";
+  const choiceBlanks = sorted.map((d, i) => {
+    const options = d.choice_options.map((o, j) => ({
+      id: o.id || `opt_${i + 1}_${j}`,
+      text: o.text,
+    }));
+    const correct =
+      d.choice_options.find((o) => o.isCorrect) ?? d.choice_options[0]!;
+    return {
+      id: `blank_${i + 1}`,
+      answer: d.answer_text,
+      options,
+      correctOptionId: correct.id || options[0]!.id,
+      category: d.question_category,
+    };
+  });
 
-  const display = sentence.english_text.replace(
-    new RegExp(`\\b${target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`),
-    "____"
-  );
+  const first = choiceBlanks[0]!;
 
   return {
     sentence_id: sentence.id,
@@ -250,15 +302,25 @@ function buildGrammarChoice(
     ),
     question_data: {
       displayText: display,
-      options,
-      shuffle: false,
-      choiceKind: "vocab",
+      koreanHint: sentence.korean_text,
+      format: "inline_ab",
+      choiceBlanks,
+      // 구형 UI 호환: 첫 슬롯 2지
+      options: first.options.slice(0, 2),
+      choiceKind: "mixed",
     },
-    correct_answer: { optionId: correctId },
-    acceptable_answers: [correctId],
-    explanation: `정답은 "${target}"입니다.`,
+    correct_answer: {
+      optionId: first.correctOptionId,
+      selections: Object.fromEntries(
+        choiceBlanks.map((b) => [b.id, b.correctOptionId])
+      ),
+    },
+    acceptable_answers: choiceBlanks.map((b) => b.correctOptionId),
+    explanation: choiceBlanks
+      .map((b) => `${b.answer}`)
+      .join(" · "),
     difficulty: "medium",
-    points: 1,
+    points: choiceBlanks.length,
     ai_generated: false,
   };
 }

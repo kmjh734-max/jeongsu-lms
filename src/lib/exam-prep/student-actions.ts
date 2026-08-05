@@ -8,6 +8,7 @@ import {
   gradeBlanks,
   gradeChoiceAnswer,
   gradeComprehensionCheck,
+  gradeInlineAbChoices,
   gradeOrder,
   gradeShortAnswer,
   gradeWriting,
@@ -200,6 +201,27 @@ function gradeOne(
     return gradeComprehensionCheck(confirmed, points);
   }
   if (type === "grammar_vocab_choice" || type === "csat_mcq") {
+    const dataFormat = String(data.format ?? "");
+    if (
+      type === "grammar_vocab_choice" &&
+      (dataFormat === "inline_ab" || Array.isArray(data.choiceBlanks))
+    ) {
+      const selections =
+        typeof answer === "object" &&
+        answer !== null &&
+        "selections" in answer
+          ? ((answer as { selections: Record<string, string> }).selections ?? {})
+          : typeof answer === "object" &&
+              answer !== null &&
+              "optionId" in answer
+            ? {
+                blank_1: String(
+                  (answer as { optionId: unknown }).optionId ?? ""
+                ),
+              }
+            : {};
+      return gradeInlineAbChoices(selections, data, q.correct_answer, points);
+    }
     const optionId =
       typeof answer === "object" &&
       answer !== null &&

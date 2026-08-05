@@ -67,19 +67,31 @@ function QuestionPreview({ q }: { q: ExamWorkbookQuestion }) {
   }
 
   if (type === "grammar_vocab_choice") {
-    const options = (
-      Array.isArray(data.options) ? data.options : []
-    ) as { text?: string }[];
+    const format = String(data.format ?? "");
+    const choiceBlanks = (
+      Array.isArray(data.choiceBlanks) ? data.choiceBlanks : []
+    ) as { options?: { text?: string }[] }[];
     return (
       <div className="mt-2 space-y-1 text-sm">
-        <p>{String(data.displayText ?? "")}</p>
-        <ul className="text-xs text-slate-600">
-          {options.map((o, i) => (
-            <li key={i}>
-              {String.fromCharCode(9312 + i)} {o.text}
-            </li>
-          ))}
-        </ul>
+        {data.koreanHint ? (
+          <p className="text-slate-600">{String(data.koreanHint)}</p>
+        ) : null}
+        <p className="font-serif leading-relaxed text-slate-900">
+          {String(data.displayText ?? "")}
+        </p>
+        {format !== "inline_ab" && choiceBlanks.length === 0 ? (
+          <ul className="text-xs text-slate-600">
+            {(
+              (Array.isArray(data.options) ? data.options : []) as {
+                text?: string;
+              }[]
+            ).map((o, i) => (
+              <li key={i}>
+                {String.fromCharCode(9312 + i)} {o.text}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     );
   }
