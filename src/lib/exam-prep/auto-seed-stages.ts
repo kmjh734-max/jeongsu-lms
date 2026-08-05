@@ -15,10 +15,11 @@ import type { Stage5ItemDraft } from "@/lib/exam-prep/stage5-types";
 import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
 import type { Stage7CandidateDraft } from "@/lib/exam-prep/stage7-types";
 import {
-  newChunkId,
-  type Stage8Chunk,
-  type Stage8GroupDraft,
-} from "@/lib/exam-prep/stage8-types";
+  buildPhraseChunkTexts,
+  planPhraseReorderParts,
+  toStage8Chunks,
+} from "@/lib/exam-prep/phrase-reorder";
+import { type Stage8GroupDraft } from "@/lib/exam-prep/stage8-types";
 import type { Stage9ConfigDraft } from "@/lib/exam-prep/stage9-types";
 import {
   newCueId,
@@ -838,201 +839,53 @@ export function buildStage7Seed(sentences: SeedSentence[]): {
   };
 }
 
-/** PDF형 어구 카드 — 긴 구를 우선 묶고 나머지를 1~2어절로 */
-function phraseChunks(text: string): Stage8Chunk[] {
-  const trimmed = text.trim().replace(/[,;:.!?]+$/u, "");
-  if (!trimmed) return [];
-
-  const MULTI: RegExp[] = [
-    /\beven though\b/gi,
-    /\bmore and more\b/gi,
-    /\bnot permitted\b/gi,
-    /\bin areas of\b/gi,
-    /\bour neighborhood\b/gi,
-    /\bstreet corners\b/gi,
-    /\bbus stops\b/gi,
-    /\bthe large buildup of\b/gi,
-    /\banimals and insects\b/gi,
-    /\bmanagement and supervision\b/gi,
-    /\bin the community\b/gi,
-    /\bof our neighborhood\b/gi,
-    /\bthe cleanliness\b/gi,
-    /\bdesperately needed\b/gi,
-    /\bto protect\b/gi,
-    /\band strict\b/gi,
-    /\bsome of\b/gi,
-    /\bmy neighbors\b/gi,
-    /\btheir garbage\b/gi,
-    /\btheir waste\b/gi,
-    /\bto leave\b/gi,
-    /\bin those areas\b/gi,
-    /\bthe situation\b/gi,
-    /\bare doing\b/gi,
-    /\bis getting\b/gi,
-    /\bhas left\b/gi,
-    /\bin a\b/gi,
-    /\bto fix\b/gi,
-    /\bthis growing problem\b/gi,
-    /\bgrowing problem\b/gi,
-    /\billegal dumping\b/gi,
-    /\bon street corners\b/gi,
-    /\band at\b/gi,
-    /\bThank you for your time and consideration\b/gi,
-  ];
-
-  type Span = { start: number; end: number; text: string };
-  const locked: Span[] = [];
-  for (const re of MULTI) {
-    re.lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(trimmed)) !== null) {
-      if (m.index == null) continue;
-      const start = m.index;
-      const end = start + m[0].length;
-      if (locked.some((u) => start < u.end && end > u.start)) continue;
-      locked.push({ start, end, text: trimmed.slice(start, end) });
-    }
-  }
-  locked.sort((a, b) => a.start - b.start);
-
-  const groups: string[] = [];
-  let cursor = 0;
-  const flushTokens = (slice: string) => {
-    const tokens = slice
-      .split(/\s+/)
-      .map((t) => t.trim())
-      .filter((t) => t && !/^[.,!?;:]+$/.test(t))
-      .map((t) => t.replace(/^[.,!?;:]+|[.,!?;:]+$/g, ""))
-      .filter(Boolean);
-    let i = 0;
-    while (i < tokens.length) {
-      const t = tokens[i]!.toLowerCase().replace(/[^a-z']/g, "");
-      if (
-        ["in", "on", "at", "of", "to", "for", "with", "from", "by", "into"].includes(t) &&
-        i + 2 < tokens.length
-      ) {
-        groups.push(tokens.slice(i, i + 3).join(" "));
-        i += 3;
-        continue;
-      }
-      if (
-        ["the", "a", "an", "our", "my", "their", "this", "those", "some"].includes(t) &&
-        i + 1 < tokens.length
-      ) {
-        const next = tokens[i + 1]!.toLowerCase().replace(/[^a-z']/g, "");
-        if (["and", "or"].includes(next) && i + 3 < tokens.length) {
-          groups.push(tokens.slice(i, i + 4).join(" "));
-          i += 4;
-          continue;
-        }
-        groups.push(tokens.slice(i, i + 2).join(" "));
-        i += 2;
-        continue;
-      }
-      if (["have", "has", "had", "been", "are", "is", "was", "were"].includes(t)) {
-        groups.push(tokens[i]!);
-        i += 1;
-        continue;
-      }
-      groups.push(tokens[i]!);
-      i += 1;
-    }
-  };
-
-  for (const lock of locked) {
-    if (cursor < lock.start) flushTokens(trimmed.slice(cursor, lock.start));
-    groups.push(lock.text);
-    cursor = lock.end;
-  }
-  if (cursor < trimmed.length) flushTokens(trimmed.slice(cursor));
-
-  // 카드가 너무 적으면 긴 구를 단어 단위로 분해
-  let finalGroups = groups.map((g) => g.trim()).filter(Boolean);
-  while (finalGroups.length < 3 && finalGroups.some((g) => g.split(/\s+/).length > 1)) {
-    const idx = finalGroups.findIndex((g) => g.split(/\s+/).length > 1);
-    if (idx < 0) break;
-    const parts = finalGroups[idx]!.split(/\s+/);
-    finalGroups = [
-      ...finalGroups.slice(0, idx),
-      ...parts,
-      ...finalGroups.slice(idx + 1),
-    ];
-  }
-
-  return finalGroups.map((chunkText, idx) => ({
-    id: newChunkId(),
-    chunkOrder: idx + 1,
-    chunkText,
-  }));
-}
-
 export function buildStage8Drafts(sentences: SeedSentence[]): Stage8GroupDraft[] {
   const drafts: Stage8GroupDraft[] = [];
   let order = 1;
-
-  const pushGroup = (sentenceId: string, english: string, start: number, end: number) => {
-    const original = english.slice(start, end).replace(/^\s+|\s+$/g, "");
-    // trim만 반영한 실제 범위
-    const realStart = english.indexOf(original, start);
-    if (realStart < 0) return;
-    const realEnd = realStart + original.length;
-    // 끝 문장부호·콤마는 배열 구간에서 제외 (카드·검증 단순화)
-    const noTerminal = original.replace(/[,;:.!?]+$/u, "").trimEnd();
-    if (noTerminal.split(/\s+/).filter(Boolean).length < 3) return;
-    const spanEnd = realStart + noTerminal.length;
-    const chunks = phraseChunks(noTerminal);
-    if (chunks.length < 3) return;
-    drafts.push({
-      sentence_id: sentenceId,
-      blank_order: order++,
-      english_start: realStart,
-      english_end: spanEnd,
-      original_text: noTerminal,
-      chunks,
-      is_required: true,
-    });
-  };
 
   for (const s of sentences) {
     const english = String(s.english_text ?? "").trim();
     if (english.split(/\s+/).length < 4) continue;
 
-    // 콤마·마침표 기준 절 분할 (PDF 3·4·6번)
-    const ranges: Array<{ start: number; end: number }> = [];
-    {
-      let start = 0;
-      for (let i = 0; i < english.length; i++) {
-        const ch = english[i];
-        if (ch === "," || ch === ";" || ch === ".") {
-          const end = i + 1;
-          // 절에 단어 3개 이상일 때만
-          const slice = english.slice(start, end).trim();
-          if (slice.split(/\s+/).filter(Boolean).length >= 3) {
-            ranges.push({ start, end });
-            // skip following spaces
-            let j = end;
-            while (j < english.length && /\s/.test(english[j]!)) j++;
-            start = j;
-            i = j - 1;
-          }
-        }
-      }
-      if (start < english.length) {
-        ranges.push({ start, end: english.length });
-      }
+    const parts = planPhraseReorderParts(english);
+    let added = 0;
+    for (const p of parts) {
+      if (p.type !== "reorder") continue;
+      const texts = buildPhraseChunkTexts(p.text);
+      if (texts.length < 3) continue;
+      // 원문 슬라이스와 청크 합이 맞도록 original은 p.text
+      drafts.push({
+        sentence_id: s.id,
+        blank_order: order++,
+        english_start: p.start,
+        english_end: p.end,
+        original_text: p.text,
+        chunks: toStage8Chunks(texts),
+        is_required: true,
+      });
+      added += 1;
     }
 
-    if (ranges.length >= 2 && english.split(/\s+/).length >= 10) {
-      let added = 0;
-      for (const r of ranges) {
-        const before = drafts.length;
-        pushGroup(s.id, english, r.start, r.end);
-        if (drafts.length > before) added += 1;
-      }
-      if (added > 0) continue;
+    if (added === 0) {
+      // 폴백: 인사 제외 전체
+      const body = english
+        .replace(/^(To Whom It May Concern:\s*|Dear\s+[^:]+:\s*)/i, "")
+        .replace(/[.!?]+$/u, "")
+        .trim();
+      const start = english.indexOf(body);
+      if (start < 0 || body.split(/\s+/).length < 3) continue;
+      const texts = buildPhraseChunkTexts(body);
+      if (texts.length < 3) continue;
+      drafts.push({
+        sentence_id: s.id,
+        blank_order: order++,
+        english_start: start,
+        english_end: start + body.length,
+        original_text: body,
+        chunks: toStage8Chunks(texts),
+        is_required: true,
+      });
     }
-
-    pushGroup(s.id, english, 0, english.length);
   }
   return drafts;
 }

@@ -124,8 +124,8 @@ export function WorkbookPrintView({
                     </p>
                   ))}
                   {item.chunks && item.chunks.length > 0 ? (
-                    <p className="mt-1 text-slate-600">
-                      [{item.chunks.join(" / ")}]
+                    <p className="mt-1 font-serif text-slate-800">
+                      ({item.chunks.join(" / ")})
                     </p>
                   ) : null}
                   {showAnswers && item.answerLines && item.answerLines.length > 0 ? (

@@ -108,16 +108,22 @@ function QuestionPreview({ q }: { q: ExamWorkbookQuestion }) {
     const items = (
       Array.isArray(data.items) ? data.items : []
     ) as { text?: string }[];
+    const displayText = String(data.displayText ?? "");
+    const isPdf = String(data.format ?? "") === "pdf_phrase_reorder" || displayText.includes("(");
     return (
       <div className="mt-2 space-y-1 text-sm">
         {data.koreanHint ? (
           <p className="text-slate-600">{String(data.koreanHint)}</p>
         ) : null}
-        <ul className="list-disc pl-5 text-slate-800">
-          {items.map((it, i) => (
-            <li key={i}>{it.text}</li>
-          ))}
-        </ul>
+        {isPdf && displayText ? (
+          <p className="font-serif leading-relaxed text-slate-900 whitespace-pre-wrap">
+            {displayText}
+          </p>
+        ) : (
+          <p className="font-serif text-slate-800">
+            ({items.map((it) => it.text).filter(Boolean).join(" / ")})
+          </p>
+        )}
       </div>
     );
   }

@@ -50,7 +50,7 @@ function systemPrompt(stepType: ExamStepType): string {
 - verb_form: { displayText(동사 자리를 (  ) 또는 ____), baseForm, blanks:[{id,answer}] }
 - grammar_vocab_choice: 인천 WORKBOOK 6단계처럼 영문 안 [a / b] 2지 선택(문장당 여러 개 가능). { displayText:"… [been dumping / been dumped] … [where / that] …", format:"inline_ab", koreanHint, choiceBlanks:[{id, options:[{id,text}] 정확히 2개, correctOptionId}], options:첫슬롯2개 }. correctAnswer:{ selections:{blankId:optionId}, optionId:첫슬롯 }
 - error_correction: HWP 7단계처럼 한 문장에 오류 밑줄 여러 개. { corruptedText, fixTargets:[{wrong,correct}] }, correctAnswer:{ text:원문, fixes:[...] }. 가능하면 어색한 곳 3개.
-- sentence_order: { items:[{id,text}], koreanHint }, correctAnswer:{order:[]}
+- sentence_order: 인천 WORKBOOK 8단계처럼 우리말 + 고정영문 + (어구 / 어구 / …) 형식. { format:"pdf_phrase_reorder", displayText:"To Whom…\n(where / been / not permitted / …)", koreanHint, items:[{id,text}] 어구 카드(섞인 순), correctOrder:정답 id 배열 }
 - paragraph_order: { items:[{id,text}], mode:"sentence" }, correctAnswer:{order:[]}
 - writing: { koreanPrompt, cueWords:string[] }, correctAnswer:{text:원문}
 

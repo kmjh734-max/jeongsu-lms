@@ -12,6 +12,10 @@ import {
 } from "@/lib/exam-prep/blank-importance";
 import { buildStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
+import {
+  buildPdfReorderDisplay,
+  buildPhraseChunkTexts,
+} from "@/lib/exam-prep/phrase-reorder";
 
 export type GeneratedQuestionDraft = {
   sentence_id: string | null;
@@ -325,28 +329,36 @@ function buildGrammarChoice(
   };
 }
 
+/**
+ * 8단계 PDF형: 우리말 + (어구 / 어구 / …) 순서배열
+ */
 function buildSentenceOrder(
   sentence: ExamPassageSentence,
   order: number
 ): GeneratedQuestionDraft | null {
-  const words = tokens(sentence.english_text);
-  if (words.length < 3) return null;
+  const english = String(sentence.english_text ?? "").trim();
+  if (english.split(/\s+/).length < 3) return null;
 
-  // 의미 단위: 2~3 단어씩 묶기
-  const chunks: string[] = [];
-  for (let i = 0; i < words.length; ) {
-    const remain = words.length - i;
-    const size = remain <= 4 ? remain : remain >= 6 ? 3 : 2;
-    chunks.push(words.slice(i, i + size).join(" "));
-    i += size;
-  }
-  if (chunks.length < 2) return null;
+  const { displayText, reorderChunks } = buildPdfReorderDisplay(english, true);
+  const primary =
+    reorderChunks.find((c) => c.length >= 3) ??
+    reorderChunks[0] ??
+    buildPhraseChunkTexts(english);
+  if (primary.length < 2) return null;
 
-  const items = chunks.map((text, i) => ({
+  const items = primary.map((text, i) => ({
     id: `item_${i + 1}`,
     text,
   }));
   const correctOrder = items.map((it) => it.id);
+
+  // 미리보기용: 섞인 순서는 displayText에 이미 반영. items는 정답 순서 유지(채점용)
+  // 학습 UI는 items를 셔플해서 보여 줌
+  const shuffledItems = [...items];
+  for (let i = shuffledItems.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledItems[i], shuffledItems[j]] = [shuffledItems[j]!, shuffledItems[i]!];
+  }
 
   return {
     sentence_id: sentence.id,
@@ -357,9 +369,15 @@ function buildSentenceOrder(
       "우리말과 같은 뜻이 되도록 주어진 단어를 바르게 배열해 보세요."
     ),
     question_data: {
-      items,
+      format: "pdf_phrase_reorder",
+      displayText,
+      items: shuffledItems,
       correctOrder,
       koreanHint: sentence.korean_text,
+      allReorderGroups: reorderChunks.map((chunks, gi) => ({
+        id: `g${gi + 1}`,
+        items: chunks.map((text, i) => ({ id: `g${gi + 1}_${i + 1}`, text })),
+      })),
     },
     correct_answer: { order: correctOrder },
     acceptable_answers: [correctOrder],
