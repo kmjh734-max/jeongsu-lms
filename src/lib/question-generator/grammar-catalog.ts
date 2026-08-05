@@ -11,6 +11,7 @@
 export const GRAMMAR_TEXTBOOK_TITLES = [
   "어법끝(개정) START",
   "처음 만나는 수능 어법 스타터(입문)",
+  "마더텅 고2 영어 어휘·어법 (수능필수어법)",
 ] as const;
 
 export const GRAMMAR_HARD_BANS = [

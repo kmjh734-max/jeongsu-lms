@@ -34,6 +34,7 @@ import {
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
 import {
   pickDiverseGrammarHits,
+  pickPassageGrammarHits,
   pickStage7Errors,
   scanVocabChoiceHits,
   scanWorkbookGrammarHits,
@@ -563,22 +564,36 @@ export function buildStage5Drafts(sentences: SeedSentence[]): Stage5ItemDraft[] 
 
 /**
  * 6단계: 문장 안 [a / b]
- * 어법끝·처음만나는수능어법 + 변형문제 grammar-catalog CASE/pairForms
+ * 마더텅식 — 지문 전체에서 서로 다른 수능필수어법 포인트를 고른 뒤
+ * 문장에 배치 (+ 어휘 혼동어)
  */
 export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] {
   const drafts: Stage6ItemDraft[] = [];
   let order = 1;
+
+  const passageHits = pickPassageGrammarHits(
+    sentences.map((s) => ({
+      id: s.id,
+      english_text: String(s.english_text ?? ""),
+      sentence_order: s.sentence_order,
+    })),
+    Math.min(10, Math.max(4, sentences.length * 2))
+  );
+
+  const grammarBySentence = new Map<string, typeof passageHits>();
+  for (const row of passageHits) {
+    const list = grammarBySentence.get(row.sentenceId) ?? [];
+    list.push(row);
+    grammarBySentence.set(row.sentenceId, list);
+  }
+
   for (const s of sentences) {
     const english = String(s.english_text ?? "");
     const used: Array<{ a: number; b: number }> = [];
     let added = 0;
 
-    const grammarHits = pickDiverseGrammarHits(
-      scanWorkbookGrammarHits(english),
-      3,
-      { forChoice: true }
-    );
-    for (const h of grammarHits) {
+    for (const row of grammarBySentence.get(s.id) ?? []) {
+      const h = row.hit;
       if (overlaps(used, h.start, h.end)) continue;
       used.push({ a: h.start, b: h.end });
       const tip = [h.koLabel, h.koTip].filter(Boolean).join(" — ");
@@ -614,10 +629,10 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       added += 1;
     }
 
-    // 어휘 [a/b] — PDF 워크북 혼합
-    if (added < 4) {
+    // 어휘 [a/b] — 마더텅 어휘편 혼동어
+    if (added < 3) {
       for (const v of scanVocabChoiceHits(english)) {
-        if (added >= 4) break;
+        if (added >= 3) break;
         if (overlaps(used, v.start, v.end)) continue;
         used.push({ a: v.start, b: v.end });
         drafts.push({
@@ -641,7 +656,48 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       }
     }
 
-    // 부족하면 어휘 마크 기반 [원형 / 형태 변형]
+    // 문장에 포인트가 하나도 없으면 로컬 스캔 폴백
+    if (added < 1) {
+      const local = pickDiverseGrammarHits(scanWorkbookGrammarHits(english), 2, {
+        forChoice: true,
+      });
+      for (const h of local) {
+        if (overlaps(used, h.start, h.end)) continue;
+        used.push({ a: h.start, b: h.end });
+        const tip = [h.koLabel, h.koTip].filter(Boolean).join(" — ");
+        drafts.push({
+          sentence_id: s.id,
+          blank_order: order++,
+          answer_text: h.correct,
+          english_start: h.start,
+          english_end: h.end,
+          selected_text: h.correct,
+          choice_options: [
+            {
+              id: `opt-c-${order}-0`,
+              text: h.correct,
+              isCorrect: true,
+              explanation: tip || null,
+            },
+            {
+              id: `opt-w-${order}-1`,
+              text: h.wrong,
+              isCorrect: false,
+              explanation: tip || null,
+            },
+          ],
+          question_category: "grammar",
+          grammar_subcategory: [h.stage6Sub],
+          vocabulary_subcategory: [],
+          shuffle_options: true,
+          hint: h.koLabel || null,
+          explanation: tip || null,
+          is_required: true,
+        });
+        added += 1;
+      }
+    }
+
     if (added < 1) {
       const marks = parseVocabMarks(s.vocabulary);
       for (const m of marks.slice(0, 2)) {

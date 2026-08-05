@@ -1,11 +1,11 @@
 /**
- * 6·7단계 어법 — 『어법끝(개정) START』·『처음 만나는 수능 어법』스타터
+ * 6·7단계 어법 — 『어법끝』·『처음 만나는 수능 어법』·『마더텅 고2 어휘·어법』
  * + 변형문제 grammar-catalog CASE/pairForms/심는 법 반영
  *
- * 원칙 (QG와 동일):
- *  - 단원·CASE 다양성 (수일치 문항당 최대 1)
- *  - 인접 단순 수일치 금지
- *  - 네모/밑줄은 교재형 형태 쌍 (is/are, which/that, to-V/V-ing …)
+ * 마더텅식 포인트 고르기:
+ *  - 긴 내용어가 아니라 「수능필수어법」 구조 포인트
+ *  - 한 지문에 서로 다른 단원(정동사 vs 준동사·관계사·수일치·형부·사역 등)
+ *  - 인접 단순 수일치·동일 형태 쌍 반복 금지
  */
 import {
   GRAMMAR_UNIT_BANKS,
@@ -57,10 +57,15 @@ function mapUnit(
     case "participle":
       return { stage6Sub: "participle", stage7Sub: "participle" };
     case "verbal":
+      if (/slot|do-be|oc/i.test(caseId)) {
+        return { stage6Sub: "verb_form", stage7Sub: "verb_form" };
+      }
       if (/obj|to-v|ing/i.test(caseId)) {
         return { stage6Sub: "gerund", stage7Sub: "gerund" };
       }
       return { stage6Sub: "infinitive", stage7Sub: "infinitive" };
+    case "special":
+      return { stage6Sub: "word_order", stage7Sub: "word_order" };
     case "parallel":
       return { stage6Sub: "other_grammar", stage7Sub: "parallelism" };
     case "compare":
@@ -93,27 +98,116 @@ type MechPlant = {
   ban?: boolean;
 };
 
+function toIngForm(word: string): string {
+  const low = word.toLowerCase();
+  let base = low;
+  if (low.endsWith("ies") && low.length > 4) base = `${low.slice(0, -3)}y`;
+  else if (low.endsWith("es") && low.length > 3) base = low.slice(0, -2);
+  else if (low.endsWith("s") && !low.endsWith("ss") && low.length > 2) {
+    base = low.slice(0, -1);
+  }
+  if (base.endsWith("ie")) return `${base.slice(0, -2)}ying`;
+  if (base.endsWith("e") && !base.endsWith("ee") && base !== "be") {
+    return `${base.slice(0, -1)}ing`;
+  }
+  return `${base}ing`;
+}
+
 /**
  * 교재 CASE ‘심는 법’을 지문에 적용할 수 있는 고빈도 패턴.
- * (변형문제 pickGrammarFocus가 고르는 유닛·형태 쌍과 정렬)
+ * (마더텅 수능필수어법 + 변형문제 pickGrammarFocus와 정렬)
  */
 const MECHANISM_PLANTS: MechPlant[] = [
-  // —— relative (어법끝 Point 관계사 / 처음만나는 UNIT 08)
+  // ═══ 마더텅 고빈도: 정동사 자리 vs 준동사 (-ing/to-V) ═══
+  {
+    unitKey: "verbal",
+    caseId: "verb-slot",
+    correct:
+      /\b(allows?|knows?|moves?|learns?|causes?|requires?|provides?|creates?|supports?|includes?|offers?|appears?|remains?|becomes?|happens?|occurs?)\b/gi,
+    wrong: (_m, g) => toIngForm(g[0] ?? "allow"),
+    priority: 96,
+    forChoice: true,
+    forError: true,
+  },
+  // 대동사 do vs be (마더텅 해설 단골)
+  {
+    unitKey: "verbal",
+    caseId: "verb-do-be",
+    correct: /\bdoes so\b/gi,
+    wrong: "is so",
+    priority: 97,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "verbal",
+    caseId: "verb-do-be",
+    correct: /\bdid so\b/gi,
+    wrong: "was so",
+    priority: 97,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "verbal",
+    caseId: "verb-do-be",
+    correct: /\bdo so\b/gi,
+    wrong: "are so",
+    priority: 96,
+    forChoice: true,
+    forError: true,
+  },
+  // 사역·지각 + 원형 (have students change / see an apple fall)
+  {
+    unitKey: "verbal",
+    caseId: "verb-oc",
+    correct:
+      /\b((?:see|saw|hear|heard|watch|watched|feel|felt|make|made|let|have|had|help|helped)\s+(?:an?\s+|the\s+|my\s+|your\s+|his\s+|her\s+|their\s+|our\s+|college\s+)?[\w'-]+\s+)(fall|change|take|go|come|move|run|work|look|become)\b/gi,
+    wrong: (matched, g) => {
+      const bare = g[1] ?? "fall";
+      return matched.replace(new RegExp(`\\b${bare}\\b`, "i"), `to ${bare}`);
+    },
+    priority: 95,
+    forChoice: true,
+    forError: true,
+  },
+  // 간접의문 어순 (what the sailor had done)
+  {
+    unitKey: "special",
+    caseId: "sp-indirect",
+    correct:
+      /\b(what|where|how|why|when)\s+((?:the\s+)?[\w'-]+(?:\s+[\w'-]+)?)\s+(had|has|have|was|were|is|are|will|would|can|could|did|do|does)\b/gi,
+    wrong: (_m, g) =>
+      `${g[0] ?? "what"} ${g[2] ?? "had"} ${g[1] ?? "he"}`,
+    priority: 94,
+    forChoice: true,
+    forError: true,
+  },
+  // —— relative (어법끝 / 마더텅 Unit IV-03)
   {
     unitKey: "relative",
     caseId: "rel-adv",
-    correct: /\bwhere\b(?=\s+it(?:['’]s| is)\b)/i,
+    correct: /\bwhere\b(?=\s+(?:it|they|he|she|we|you|there|the)\b)/i,
     wrong: "which",
-    priority: 95,
+    priority: 93,
     forChoice: true,
     forError: true,
   },
   {
     unitKey: "relative",
-    caseId: "rel-adv",
-    correct: /\bwhere\b/i,
-    wrong: "that",
-    priority: 88,
+    caseId: "rel-vs-adv",
+    correct: /\bwhy\b(?=\s+(?:it|they|he|she|we|you|the|there)\b)/i,
+    wrong: "what",
+    priority: 92,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "relative",
+    caseId: "rel-case",
+    correct: /\b(?:to|in|on|of|for|with|from|by|at)\s+which\b/gi,
+    wrong: "which",
+    priority: 91,
     forChoice: true,
     forError: true,
   },
@@ -131,7 +225,7 @@ const MECHANISM_PLANTS: MechPlant[] = [
     caseId: "rel-that",
     correct: /\bwhich\b/i,
     wrong: "that",
-    priority: 70,
+    priority: 68,
     forChoice: true,
     forError: true,
   },
@@ -153,15 +247,15 @@ const MECHANISM_PLANTS: MechPlant[] = [
     forChoice: true,
     forError: true,
   },
-  // —— voice (능동·수동)
+  // —— voice
   {
     unitKey: "voice",
     caseId: "voice-prog",
     correct: /\bbeen (\w+)ing\b/gi,
     wrong: (_m, g) => {
       const stem = g[0] ?? "dump";
-      if (stem.endsWith("e")) return `been ${stem}d`;
       if (stem === "leav") return "been left";
+      if (stem.endsWith("e")) return `been ${stem}d`;
       return `been ${stem}ed`;
     },
     priority: 90,
@@ -181,6 +275,15 @@ const MECHANISM_PLANTS: MechPlant[] = [
     priority: 85,
     forChoice: true,
     forError: false,
+  },
+  {
+    unitKey: "voice",
+    caseId: "voice-basic",
+    correct: /\bis known\b/gi,
+    wrong: "knows",
+    priority: 88,
+    forChoice: true,
+    forError: true,
   },
   {
     unitKey: "voice",
@@ -213,19 +316,34 @@ const MECHANISM_PLANTS: MechPlant[] = [
   {
     unitKey: "verbal",
     caseId: "verb-obj",
-    correct: /\bto (fix|solve|protect|leave|prevent|improve|reduce|increase)\b/gi,
+    correct: /\bto (fix|solve|protect|leave|prevent|improve|reduce|increase|learn|apologize)\b/gi,
     wrong: (_m, g) => `${g[0] ?? "fix"}ing`,
     priority: 72,
     forChoice: true,
     forError: true,
   },
-  // —— adjadv
+  {
+    unitKey: "verbal",
+    caseId: "verb-it-obj",
+    correct: /\b(make|find|think|consider)\s+it\s+(\w+)\s+to\b/gi,
+    wrong: (_m, g) => `${g[0] ?? "make"} ${g[1] ?? "possible"} to`,
+    priority: 94,
+    forChoice: true,
+    forError: true,
+  },
+  // —— adjadv (마더텅: specifically / automatically / increasingly)
   {
     unitKey: "adjadv",
     caseId: "adj-slot",
-    correct: /\bdesperately\b/i,
-    wrong: "desperate",
-    priority: 84,
+    correct: /\b(desperately|specifically|automatically|increasingly|extremely|completely|carefully|easily|clearly)\b/gi,
+    wrong: (_m, g) => {
+      const w = (g[0] ?? "desperate").toLowerCase();
+      if (w.endsWith("ically") && w.length > 7) return `${w.slice(0, -6)}ic`;
+      if (w.endsWith("ally") && w.length > 5) return w.slice(0, -4);
+      if (w.endsWith("ly")) return w.slice(0, -2);
+      return w;
+    },
+    priority: 89,
     forChoice: true,
     forError: true,
   },
@@ -234,20 +352,30 @@ const MECHANISM_PLANTS: MechPlant[] = [
     caseId: "adj-slot",
     correct: /\billegal\b(?=\s+\w+ing\b)/i,
     wrong: "illegally",
-    priority: 82,
+    priority: 88,
     forChoice: true,
     forError: true,
   },
   {
     unitKey: "adjadv",
-    caseId: "adj-slot",
+    caseId: "adj-ly-meaning",
     correct: /\bhardly\b/i,
     wrong: "hard",
     priority: 70,
     forChoice: true,
     forError: true,
   },
-  // —— participle
+  // —— compare (much more / very more)
+  {
+    unitKey: "compare",
+    caseId: "cmp-very",
+    correct: /\bmuch (more|better|worse|easier|harder|larger|smaller)\b/gi,
+    wrong: (_m, g) => `very ${g[0] ?? "more"}`,
+    priority: 90,
+    forChoice: true,
+    forError: true,
+  },
+  // —— participle (감정·수식·분사구문 능수동)
   {
     unitKey: "participle",
     caseId: "part-mod",
@@ -259,32 +387,40 @@ const MECHANISM_PLANTS: MechPlant[] = [
   },
   {
     unitKey: "participle",
-    caseId: "part-mod",
-    correct: /\binterested\b/i,
-    wrong: "interesting",
-    priority: 74,
+    caseId: "part-emotion",
+    correct: /\b(interested|interesting|surprised|surprising|bored|boring|excited|exciting|confused|confusing|frightened|frightening)\b/gi,
+    wrong: (_m, g) => {
+      const w = (g[0] ?? "interested").toLowerCase();
+      if (w.endsWith("ed")) return `${w.slice(0, -2)}ing`;
+      if (w.endsWith("ing")) return `${w.slice(0, -3)}ed`;
+      return w;
+    },
+    priority: 86,
     forChoice: true,
     forError: true,
   },
   {
     unitKey: "participle",
-    caseId: "part-mod",
-    correct: /\binteresting\b/i,
-    wrong: "interested",
-    priority: 74,
+    caseId: "part-abs",
+    correct: /\b(Known|Based|Located|Called|Named|Found|Made|Built)\b(?=\s+as\b|\s+on\b|\s+in\b|\s+from\b)/g,
+    wrong: (_m, g) => {
+      const w = g[0] ?? "Known";
+      const low = w.toLowerCase();
+      if (low === "known") return "Knowing";
+      if (low === "based") return "Basing";
+      if (low === "located") return "Locating";
+      if (low === "called") return "Calling";
+      if (low === "named") return "Naming";
+      if (low === "found") return "Finding";
+      if (low === "made") return "Making";
+      if (low === "built") return "Building";
+      return w;
+    },
+    priority: 91,
     forChoice: true,
     forError: true,
   },
-  {
-    unitKey: "participle",
-    caseId: "part-mod",
-    correct: /\bsurprised\b/i,
-    wrong: "surprising",
-    priority: 74,
-    forChoice: true,
-    forError: true,
-  },
-  // —— prepconj (접속사 vs 전치사)
+  // —— prepconj
   {
     unitKey: "prepconj",
     caseId: "pc-conj",
@@ -330,7 +466,66 @@ const MECHANISM_PLANTS: MechPlant[] = [
     forChoice: true,
     forError: true,
   },
-  // —— sv: ONLY modifier-lure style (관계절 has/have 등). 인접 단순 수일치 금지
+  // —— noun (대명사 수·재귀)
+  {
+    unitKey: "noun",
+    caseId: "noun-pron-num",
+    correct: /\bthemselves\b/gi,
+    wrong: "himself",
+    priority: 80,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "noun",
+    caseId: "noun-poss-refl",
+    correct: /\byourself\b/gi,
+    wrong: "you",
+    priority: 82,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "noun",
+    caseId: "noun-pron-num",
+    correct: /\bthose\b(?=\s+(?:of|who|that|which)\b)/gi,
+    wrong: "that",
+    priority: 79,
+    forChoice: true,
+    forError: true,
+  },
+  // —— parallel
+  {
+    unitKey: "parallel",
+    caseId: "par-correl",
+    correct: /\bnot only\b/gi,
+    wrong: "not",
+    priority: 70,
+    forChoice: false,
+    forError: false,
+  },
+  // —— sv: 수식어·관계절 유인만 (마더텅 Unit V-03). 인접 단순 금지
+  {
+    unitKey: "sv",
+    caseId: "sv-prep",
+    correct:
+      /\b(purpose|process|number|amount|variety|majority|group|series|set|type|kind|pair)\s+of\s+[\w'-]+(?:\s+[\w'-]+)?\s+(is|are|was|were|has|have)\b/gi,
+    wrong: (matched, g) => {
+      const verb = (g[1] ?? "is").toLowerCase();
+      const flip: Record<string, string> = {
+        is: "are",
+        are: "is",
+        was: "were",
+        were: "was",
+        has: "have",
+        have: "has",
+      };
+      return matched.replace(new RegExp(`\\b${verb}\\b`, "i"), flip[verb] ?? verb);
+    },
+    priority: 92,
+    forChoice: true,
+    forError: true,
+  },
   {
     unitKey: "sv",
     caseId: "sv-rel-ante",
@@ -349,7 +544,34 @@ const MECHANISM_PLANTS: MechPlant[] = [
     forChoice: true,
     forError: true,
   },
-  // 금지 예시 — 등록하지 않음: attracts→attract (인접 단순)
+  {
+    unitKey: "sv",
+    caseId: "sv-there",
+    correct: /\bthere (is|are|was|were)\b/gi,
+    wrong: (_m, g) => {
+      const v = (g[0] ?? "is").toLowerCase();
+      const flip: Record<string, string> = {
+        is: "are",
+        are: "is",
+        was: "were",
+        were: "was",
+      };
+      return `there ${flip[v] ?? v}`;
+    },
+    priority: 74,
+    forChoice: true,
+    forError: true,
+  },
+  // —— tense markers (마더텅 시제 해설)
+  {
+    unitKey: "tense",
+    caseId: "tense-adv",
+    correct: /\bhave\s+(\w+ed|\w+en)\b(?=[^.]*\bsince\b)/gi,
+    wrong: (_m, g) => `had ${g[0] ?? "been"}`,
+    priority: 77,
+    forChoice: true,
+    forError: true,
+  },
 ];
 
 /** 어휘 [a/b] — PDF·워크북용 (어법과 함께) */
@@ -359,6 +581,7 @@ export const VOCAB_CHOICE_PLANTS: Array<{
   sub: string;
   priority: number;
 }> = [
+  // 마더텅 어휘편: 문맥·혼동어 위주
   { correct: /\bgrowing\b/i, wrong: "declining", sub: "increase_decrease", priority: 60 },
   { correct: /\bstrengthen\b/i, wrong: "weaken", sub: "strengthen_weaken", priority: 60 },
   { correct: /\bworse\b/i, wrong: "better", sub: "opposite_meaning", priority: 58 },
@@ -367,6 +590,20 @@ export const VOCAB_CHOICE_PLANTS: Array<{
   { correct: /\bgarbage\b/i, wrong: "garage", sub: "similar_spelling", priority: 62 },
   { correct: /\bConsistent\b/, wrong: "Inconsistent", sub: "opposite_meaning", priority: 60 },
   { correct: /\bmore and more\b/i, wrong: "less and less", sub: "increase_decrease", priority: 61 },
+  { correct: /\baffect\b/i, wrong: "effect", sub: "similar_spelling", priority: 64 },
+  { correct: /\beffect\b/i, wrong: "affect", sub: "similar_spelling", priority: 63 },
+  { correct: /\baccept\b/i, wrong: "except", sub: "similar_spelling", priority: 64 },
+  { correct: /\braise\b/i, wrong: "rise", sub: "similar_spelling", priority: 63 },
+  { correct: /\blie\b/i, wrong: "lay", sub: "similar_spelling", priority: 58 },
+  { correct: /\bprincipal\b/i, wrong: "principle", sub: "similar_spelling", priority: 64 },
+  { correct: /\bprinciple\b/i, wrong: "principal", sub: "similar_spelling", priority: 63 },
+  { correct: /\baccess\b/i, wrong: "assess", sub: "similar_spelling", priority: 62 },
+  { correct: /\bassure\b/i, wrong: "ensure", sub: "contextual_meaning", priority: 60 },
+  { correct: /\bensure\b/i, wrong: "assure", sub: "contextual_meaning", priority: 60 },
+  { correct: /\bremind\b/i, wrong: "remember", sub: "contextual_meaning", priority: 61 },
+  { correct: /\bremember\b/i, wrong: "remind", sub: "contextual_meaning", priority: 58 },
+  { correct: /\bearn\b/i, wrong: "gain", sub: "contextual_meaning", priority: 57 },
+  { correct: /\bspend\b/i, wrong: "take", sub: "collocation", priority: 56 },
 ];
 
 function findCase(
@@ -388,6 +625,21 @@ function overlaps(
   end: number
 ) {
   return used.some((u) => start < u.b && end > u.a);
+}
+
+function isTrivialNumberPair(a: string, b: string): boolean {
+  const x = a.toLowerCase();
+  const y = b.toLowerCase();
+  if (x === y) return true;
+  const strip = (w: string) =>
+    w.endsWith("ies")
+      ? `${w.slice(0, -3)}y`
+      : w.endsWith("es")
+        ? w.slice(0, -2)
+        : w.endsWith("s") && !w.endsWith("ss")
+          ? w.slice(0, -1)
+          : w;
+  return strip(x) === strip(y) || strip(x) === y || strip(y) === x;
 }
 
 /** pairForms "a/b·c/d" → 지문에 있는 쪽을 정답으로 한 hit */
@@ -413,7 +665,11 @@ function catalogPairHits(english: string): WorkbookGrammarHit[] {
           WEAK.has(a.toLowerCase()) &&
           WEAK.has(b.toLowerCase())
         ) {
-          continue; // 단순 is/are 단독 — HARD BAN에 가깝게 스킵
+          continue;
+        }
+        // 마더텅 HARD BAN: ask/asks·make/makes 식 인접 단순 수일치
+        if (!a.includes(" ") && !b.includes(" ") && isTrivialNumberPair(a, b)) {
+          continue;
         }
         for (const [correctText, wrongText] of [
           [a, b],
@@ -425,7 +681,6 @@ function catalogPairHits(english: string): WorkbookGrammarHit[] {
           const start = m.index;
           const end = start + m[0].length;
           if (overlaps(used, start, end)) continue;
-          // 인접 단순 수일치 스킵: people are / things change 류
           if (
             unit.key === "sv" &&
             !correctText.includes(" ") &&
@@ -448,7 +703,7 @@ function catalogPairHits(english: string): WorkbookGrammarHit[] {
             koLabel: c.koLabel,
             koTip: c.koTip,
             ...subs,
-            priority: 40 + Math.min(correctText.length, 12),
+            priority: 35 + Math.min(correctText.length, 10),
             forChoice: true,
             forError: true,
           });
@@ -594,6 +849,57 @@ export function scanVocabChoiceHits(english: string): Array<{
   return out.sort((a, b) => b.priority - a.priority);
 }
 
+/** 지문 전체에서 마더텅식 다양 단원 포인트 (문장당 최대 2) */
+export function pickPassageGrammarHits(
+  sentences: Array<{ id: string; english_text: string; sentence_order: number }>,
+  maxTotal = 8
+): Array<{ sentenceId: string; hit: WorkbookGrammarHit }> {
+  const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
+  const pool: Array<{ sentenceId: string; hit: WorkbookGrammarHit }> = [];
+  for (const s of ordered) {
+    for (const h of scanWorkbookGrammarHits(s.english_text).filter((x) => x.forChoice)) {
+      pool.push({ sentenceId: s.id, hit: h });
+    }
+  }
+  pool.sort((a, b) => b.hit.priority - a.hit.priority);
+
+  const picked: Array<{ sentenceId: string; hit: WorkbookGrammarHit }> = [];
+  const usedUnits = new Set<string>();
+  const perSentence = new Map<string, number>();
+  let usedSv = false;
+
+  const tryAdd = (row: { sentenceId: string; hit: WorkbookGrammarHit }, requireNewUnit: boolean) => {
+    if (picked.length >= maxTotal) return false;
+    if ((perSentence.get(row.sentenceId) ?? 0) >= 2) return false;
+    if (
+      picked.some(
+        (p) =>
+          p.sentenceId === row.sentenceId &&
+          p.hit.start === row.hit.start &&
+          p.hit.end === row.hit.end
+      )
+    ) {
+      return false;
+    }
+    if (row.hit.unitKey === "sv" && usedSv) return false;
+    if (requireNewUnit && usedUnits.has(row.hit.unitKey)) return false;
+    picked.push(row);
+    usedUnits.add(row.hit.unitKey);
+    perSentence.set(row.sentenceId, (perSentence.get(row.sentenceId) ?? 0) + 1);
+    if (row.hit.unitKey === "sv") usedSv = true;
+    return true;
+  };
+
+  for (const row of pool) tryAdd(row, true);
+  for (const row of pool) tryAdd(row, false);
+
+  return picked.sort((a, b) => {
+    const oa = ordered.findIndex((s) => s.id === a.sentenceId);
+    const ob = ordered.findIndex((s) => s.id === b.sentenceId);
+    return oa - ob || a.hit.start - b.hit.start;
+  });
+}
+
 /** 지문 전체에서 7단계용 오류 3개 (서로 다른 단원) */
 export function pickStage7Errors(
   sentences: Array<{ id: string; english_text: string; sentence_order: number }>,
@@ -650,8 +956,8 @@ export function pickStage7Errors(
 
 export function grammarWorkbookSourceNote(): string {
   return [
-    `근거 교재: ${GRAMMAR_UNIT_BANKS.map((u) => u.title).slice(0, 3).join(" · ")} 등`,
-    "어법끝(개정) START · 처음 만나는 수능 어법 스타터(입문)",
-    "변형문제 grammar-catalog CASE/pairForms/심는 법과 동일 뱅크",
+    "마더텅 고2 어휘·어법(수능필수어법) · 어법끝 START · 처음 만나는 수능 어법",
+    "정동사 vs 준동사·관계사·수일치(수식 유인)·형부·사역·간접의문 등 구조 포인트",
+    "변형문제 grammar-catalog CASE/pairForms와 동일 뱅크",
   ].join(" / ");
 }
