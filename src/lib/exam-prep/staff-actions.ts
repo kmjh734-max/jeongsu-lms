@@ -544,7 +544,17 @@ export async function createWorkbookAction(raw: unknown) {
     .eq("passage_id", data.passage_id)
     .order("sentence_order", { ascending: true });
 
-  const sentenceRows = (sentences ?? []) as ExamPassageSentence[];
+  let sentenceRows = (sentences ?? []) as ExamPassageSentence[];
+  const needsKo = sentenceRows.some((s) => !String(s.korean_text ?? "").trim());
+  if (needsKo) {
+    await enrichPassageSentencesAction(data.passage_id);
+    const { data: refreshed } = await supabase
+      .from("exam_passage_sentences")
+      .select("*")
+      .eq("passage_id", data.passage_id)
+      .order("sentence_order", { ascending: true });
+    sentenceRows = (refreshed ?? []) as ExamPassageSentence[];
+  }
 
   for (const st of steps) {
     const { data: stepRow, error: stepErr } = await supabase
@@ -800,6 +810,101 @@ export async function regenerateStepQuestionsAction(stepId: string) {
     ok: true as const,
     count: questions.length,
     source: generated.source,
+  };
+}
+
+/** 빈 단계만 규칙 기반으로 즉시 채움 (AI 버튼 없이) */
+export async function fillEmptyWorkbookQuestionsAction(workbookId: string) {
+  const auth = await requireStaff();
+  if (!auth.ok) return auth;
+  const supabase = await createClient();
+
+  const { data: wb } = await supabase
+    .from("exam_workbooks")
+    .select("id, passage_id, status")
+    .eq("id", workbookId)
+    .eq("academy_id", auth.profile.academy_id)
+    .maybeSingle();
+  if (!wb) return { ok: false as const, message: "워크북 없음" };
+  if (wb.status === "approved") {
+    return { ok: false as const, message: "승인된 워크북은 수정할 수 없습니다." };
+  }
+
+  let { data: sentences } = await supabase
+    .from("exam_passage_sentences")
+    .select("*")
+    .eq("passage_id", wb.passage_id)
+    .order("sentence_order", { ascending: true });
+
+  let sentenceRows = (sentences ?? []) as ExamPassageSentence[];
+  if (sentenceRows.some((s) => !String(s.korean_text ?? "").trim())) {
+    await enrichPassageSentencesAction(wb.passage_id as string);
+    const refreshed = await supabase
+      .from("exam_passage_sentences")
+      .select("*")
+      .eq("passage_id", wb.passage_id)
+      .order("sentence_order", { ascending: true });
+    sentenceRows = (refreshed.data ?? []) as ExamPassageSentence[];
+  }
+
+  const { data: steps } = await supabase
+    .from("exam_workbook_steps")
+    .select("id, step_type, difficulty, step_order")
+    .eq("workbook_id", workbookId)
+    .order("step_order", { ascending: true });
+
+  let filledSteps = 0;
+  let filledQuestions = 0;
+
+  for (const st of steps ?? []) {
+    const { count } = await supabase
+      .from("exam_workbook_questions")
+      .select("id", { count: "exact", head: true })
+      .eq("step_id", st.id)
+      .eq("is_active", true);
+    if ((count ?? 0) > 0) continue;
+
+    const drafts = generateRuleBasedQuestions(
+      st.step_type as ExamStepType,
+      sentenceRows,
+      (st.difficulty as string) || "medium"
+    );
+    if (drafts.length === 0) continue;
+
+    const { error } = await supabase.from("exam_workbook_questions").insert(
+      drafts.map((q) => ({
+        academy_id: auth.profile.academy_id,
+        workbook_id: workbookId,
+        step_id: st.id,
+        sentence_id: q.sentence_id,
+        question_type: q.question_type,
+        question_order: q.question_order,
+        question_text: q.question_text,
+        question_data: q.question_data,
+        correct_answer: q.correct_answer,
+        acceptable_answers: q.acceptable_answers,
+        explanation: q.explanation,
+        difficulty: q.difficulty,
+        points: q.points,
+        is_active: true,
+        ai_generated: false,
+      }))
+    );
+    if (!error) {
+      filledSteps += 1;
+      filledQuestions += drafts.length;
+    }
+  }
+
+  revalidateExamPrep();
+  return {
+    ok: true as const,
+    filledSteps,
+    filledQuestions,
+    message:
+      filledQuestions > 0
+        ? `빈 단계 ${filledSteps}개에 문항 ${filledQuestions}개를 자동 생성했습니다.`
+        : "모든 단계에 문항이 이미 있습니다.",
   };
 }
 

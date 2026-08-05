@@ -349,11 +349,67 @@ function buildKoreanBlank(
 ): GeneratedQuestionDraft | null {
   const korean = (sentence.korean_text ?? "").trim();
   if (!korean) {
-    // 해석 없으면 영문 빈칸으로 대체하지 않고 스킵
-    return null;
+    // 해석이 아직 없으면 영문 제시 + 해석 쓰기 형태로라도 문항을 둔다
+    return {
+      sentence_id: sentence.id,
+      question_type: "korean_blank",
+      question_order: order,
+      question_text: stepPrompt(
+        "korean_blank",
+        "영문을 읽고 우리말 해석의 빈칸을 완성해 보세요."
+      ),
+      question_data: {
+        displayText: "______________________________",
+        englishHint: sentence.english_text,
+        blanks: [
+          {
+            id: "blank_1",
+            answer: "",
+            acceptableAnswers: [],
+          },
+        ],
+      },
+      correct_answer: { blanks: [] },
+      acceptable_answers: null,
+      explanation: null,
+      difficulty,
+      points: 1,
+      ai_generated: false,
+    };
   }
   const parts = korean.split(/\s+/).filter(Boolean);
-  if (parts.length < 2) return null;
+  if (parts.length < 2) {
+    return {
+      sentence_id: sentence.id,
+      question_type: "korean_blank",
+      question_order: order,
+      question_text: stepPrompt(
+        "korean_blank",
+        "영문을 읽고 우리말 해석의 빈칸을 완성해 보세요."
+      ),
+      question_data: {
+        displayText: "____",
+        englishHint: sentence.english_text,
+        blanks: [
+          {
+            id: "blank_1",
+            answer: korean,
+            acceptableAnswers: [korean],
+          },
+        ],
+      },
+      correct_answer: {
+        blanks: [
+          { id: "blank_1", answer: korean, acceptableAnswers: [korean] },
+        ],
+      },
+      acceptable_answers: [[korean]],
+      explanation: null,
+      difficulty,
+      points: 1,
+      ai_generated: false,
+    };
+  }
   const contentIdx = parts
     .map((w, i) => ({ w, i }))
     .filter(({ w }) => w.replace(/[^\uAC00-\uD7A3]/g, "").length >= 2);
@@ -363,7 +419,10 @@ function buildKoreanBlank(
       : difficulty === "hard"
         ? Math.max(2, Math.ceil(contentIdx.length * 0.5))
         : Math.max(1, Math.ceil(contentIdx.length * 0.35));
-  const picked = contentIdx.slice(0, pickN);
+  const picked = (contentIdx.length > 0 ? contentIdx : parts.map((w, i) => ({ w, i }))).slice(
+    0,
+    Math.max(1, pickN)
+  );
   const blanks: Array<{
     id: string;
     answer: string;
@@ -747,6 +806,11 @@ export function generateRuleBasedQuestions(
         order += 1;
       }
     }
+    if (out.length === 0) {
+      for (const s of sentences) {
+        out.push(buildComprehension(s, order++));
+      }
+    }
     return out;
   }
 
@@ -772,6 +836,11 @@ export function generateRuleBasedQuestions(
         order += 1;
       }
     }
+    if (out.length === 0) {
+      for (const s of sentences) {
+        out.push(buildEnglishBlank(s, order++, difficulty));
+      }
+    }
     return out;
   }
 
@@ -781,6 +850,11 @@ export function generateRuleBasedQuestions(
       if (q) {
         out.push(q);
         order += 1;
+      }
+    }
+    if (out.length === 0) {
+      for (const s of sentences) {
+        out.push(buildEnglishBlank(s, order++, difficulty));
       }
     }
     return out;
@@ -794,6 +868,11 @@ export function generateRuleBasedQuestions(
         order += 1;
       }
     }
+    if (out.length === 0) {
+      for (const s of sentences) {
+        out.push(buildComprehension(s, order++));
+      }
+    }
     return out;
   }
 
@@ -805,12 +884,22 @@ export function generateRuleBasedQuestions(
         order += 1;
       }
     }
+    if (out.length === 0) {
+      for (const s of sentences) {
+        out.push(buildWriting(s, order++));
+      }
+    }
     return out;
   }
 
   if (stepType === "paragraph_order") {
     const q = buildParagraphOrder(sentences, order);
     if (q) out.push(q);
+    else {
+      for (const s of sentences) {
+        out.push(buildComprehension(s, order++));
+      }
+    }
     return out;
   }
 
@@ -819,6 +908,11 @@ export function generateRuleBasedQuestions(
     const list = important.length > 0 ? important : sentences.slice(0, 5);
     for (const s of list) {
       out.push(buildWriting(s, order++));
+    }
+    if (out.length === 0) {
+      for (const s of sentences) {
+        out.push(buildWriting(s, order++));
+      }
     }
     return out;
   }

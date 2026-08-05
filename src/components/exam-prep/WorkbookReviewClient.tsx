@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import {
   approveWorkbookAction,
+  fillEmptyWorkbookQuestionsAction,
   regenerateStepQuestionsAction,
   updateQuestionAction,
 } from "@/lib/exam-prep/staff-actions";
@@ -16,6 +17,115 @@ import {
   type ExamWorkbookStep,
   type ExamStepType,
 } from "@/lib/exam-prep/types";
+
+function QuestionPreview({ q }: { q: ExamWorkbookQuestion }) {
+  const data = (q.question_data ?? {}) as Record<string, unknown>;
+  const type = q.question_type;
+
+  if (type === "comprehension") {
+    return (
+      <div className="mt-2 space-y-1 text-sm">
+        <p className="font-serif text-slate-900">{String(data.english ?? "")}</p>
+        {data.korean ? (
+          <p className="text-slate-600">{String(data.korean)}</p>
+        ) : (
+          <p className="text-xs text-amber-700">우리말 해석이 비어 있습니다.</p>
+        )}
+      </div>
+    );
+  }
+
+  if (
+    type === "english_blank" ||
+    type === "korean_blank" ||
+    type === "verb_form"
+  ) {
+    return (
+      <div className="mt-2 space-y-1 text-sm">
+        {data.englishHint ? (
+          <p className="font-serif text-slate-900">{String(data.englishHint)}</p>
+        ) : null}
+        {data.koreanHint ? (
+          <p className="text-slate-600">{String(data.koreanHint)}</p>
+        ) : null}
+        {data.baseForm ? (
+          <p className="text-xs text-slate-500">기본형: {String(data.baseForm)}</p>
+        ) : null}
+        {data.displayText ? (
+          <p className="font-mono text-slate-800">{String(data.displayText)}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (type === "translation_practice") {
+    return (
+      <p className="mt-2 font-serif text-sm text-slate-900">
+        {String(data.english ?? "")}
+      </p>
+    );
+  }
+
+  if (type === "grammar_vocab_choice") {
+    const options = (
+      Array.isArray(data.options) ? data.options : []
+    ) as { text?: string }[];
+    return (
+      <div className="mt-2 space-y-1 text-sm">
+        <p>{String(data.displayText ?? "")}</p>
+        <ul className="text-xs text-slate-600">
+          {options.map((o, i) => (
+            <li key={i}>
+              {String.fromCharCode(9312 + i)} {o.text}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (type === "error_correction") {
+    return (
+      <p className="mt-2 text-sm leading-relaxed">
+        {String(data.corruptedText ?? data.displayText ?? "")}
+      </p>
+    );
+  }
+
+  if (type === "sentence_order" || type === "paragraph_order") {
+    const items = (
+      Array.isArray(data.items) ? data.items : []
+    ) as { text?: string }[];
+    return (
+      <div className="mt-2 space-y-1 text-sm">
+        {data.koreanHint ? (
+          <p className="text-slate-600">{String(data.koreanHint)}</p>
+        ) : null}
+        <ul className="list-disc pl-5 text-slate-800">
+          {items.map((it, i) => (
+            <li key={i}>{it.text}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (type === "writing") {
+    const cues = Array.isArray(data.cueWords)
+      ? (data.cueWords as string[])
+      : [];
+    return (
+      <div className="mt-2 space-y-1 text-sm">
+        <p>{String(data.koreanPrompt ?? "")}</p>
+        {cues.length > 0 ? (
+          <p className="text-xs text-slate-500">제시어: {cues.join(" → ")}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export function WorkbookReviewClient({
   basePath,
@@ -36,6 +146,7 @@ export function WorkbookReviewClient({
   const [selectedStepId, setSelectedStepId] = useState(steps[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const autoFillTried = useRef(false);
 
   const sortedSteps = useMemo(
     () => [...steps].sort((a, b) => a.step_order - b.step_order),
@@ -55,6 +166,27 @@ export function WorkbookReviewClient({
     for (const s of sentences) map.set(s.id, s);
     return map;
   }, [sentences]);
+
+  const hasEmptyStep = useMemo(() => {
+    return sortedSteps.some(
+      (st) => !questions.some((q) => q.step_id === st.id && q.is_active)
+    );
+  }, [sortedSteps, questions]);
+
+  useEffect(() => {
+    if (autoFillTried.current) return;
+    if (!hasEmptyStep || workbook.status === "approved") return;
+    autoFillTried.current = true;
+    void (async () => {
+      setLoading(true);
+      const result = await fillEmptyWorkbookQuestionsAction(workbook.id);
+      setLoading(false);
+      if (result.ok && result.filledQuestions > 0) {
+        setMessage(result.message);
+        router.refresh();
+      }
+    })();
+  }, [hasEmptyStep, workbook.id, workbook.status, router]);
 
   async function toggleActive(q: ExamWorkbookQuestion) {
     setLoading(true);
@@ -103,15 +235,15 @@ export function WorkbookReviewClient({
   }
 
   async function generateAll() {
-    if (
-      !confirm(
-        "1~10단계 문항을 AI로 생성합니다. 기존 문항이 있으면 덮어씁니다. 크레딧이 차감될 수 있습니다."
-      )
-    ) {
-      return;
-    }
     setLoading(true);
     setMessage(null);
+    const fill = await fillEmptyWorkbookQuestionsAction(workbook.id);
+    if (fill.ok && fill.filledQuestions > 0) {
+      setMessage(fill.message);
+      setLoading(false);
+      router.refresh();
+      return;
+    }
     try {
       const res = await fetch("/api/exam-prep/generate-questions", {
         method: "POST",
@@ -149,11 +281,7 @@ export function WorkbookReviewClient({
 
   function stepLabel(step: ExamWorkbookStep) {
     const key = step.step_type as ExamStepType;
-    return (
-      step.title ||
-      EXAM_STEP_LABELS[key] ||
-      step.step_type
-    );
+    return step.title || EXAM_STEP_LABELS[key] || step.step_type;
   }
 
   return (
@@ -179,39 +307,25 @@ export function WorkbookReviewClient({
             인쇄 / PDF
           </Button>
           {workbook.status !== "approved" && (
-            <>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={loading}
-                onClick={generateAll}
-              >
-                AI로 문항 생성
-              </Button>
-              <Button type="button" disabled={loading} onClick={approve}>
-                승인
-              </Button>
-            </>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={loading}
+              onClick={() => void generateAll()}
+            >
+              빈 단계 자동 채우기
+            </Button>
           )}
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => router.push(`${basePath}/workbooks`)}
-          >
-            목록
-          </Button>
+          {workbook.status !== "approved" && (
+            <Button type="button" disabled={loading} onClick={() => void approve()}>
+              승인
+            </Button>
+          )}
         </div>
       </div>
 
       {message && (
-        <p
-          className={`text-sm ${
-            message.includes("승인") || message.includes("생성")
-              ? "text-green-700"
-              : "text-red-600"
-          }`}
-          role="status"
-        >
+        <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
           {message}
         </p>
       )}
@@ -220,31 +334,43 @@ export function WorkbookReviewClient({
         <aside className="rounded-xl border border-slate-200 bg-white p-3">
           <h3 className="mb-2 text-sm font-semibold text-slate-800">단계</h3>
           <ul className="space-y-1">
-            {sortedSteps.map((step) => (
-              <li key={step.id}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedStepId(step.id)}
-                  className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
-                    selectedStepId === step.id
-                      ? "bg-brand-600 text-white"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  {step.step_order}. {stepLabel(step)}
-                </button>
-              </li>
-            ))}
+            {sortedSteps.map((st, idx) => {
+              const count = questions.filter(
+                (q) => q.step_id === st.id && q.is_active
+              ).length;
+              const active = st.id === selectedStepId;
+              return (
+                <li key={st.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStepId(st.id)}
+                    className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
+                      active
+                        ? "bg-brand-700 text-white"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    {idx + 1}. {stepLabel(st)}
+                    <span
+                      className={`mt-0.5 block text-xs ${
+                        active ? "text-brand-100" : "text-slate-400"
+                      }`}
+                    >
+                      {count}문항
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
           <h3 className="mb-2 mt-4 text-sm font-semibold text-slate-800">
             문장
           </h3>
-          <ul className="max-h-64 space-y-1 overflow-y-auto text-xs text-slate-600">
-            {sentences
-              .slice()
+          <ul className="max-h-48 space-y-1 overflow-auto text-xs text-slate-600">
+            {[...sentences]
               .sort((a, b) => a.sentence_order - b.sentence_order)
               .map((s) => (
-                <li key={s.id} className="rounded border border-slate-100 p-2">
+                <li key={s.id}>
                   <span className="font-medium text-slate-500">
                     #{s.sentence_order}
                   </span>{" "}
@@ -272,9 +398,22 @@ export function WorkbookReviewClient({
           </div>
 
           {stepQuestions.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              이 단계에 문항이 없습니다. 「AI로 문항 생성」을 눌러 주세요.
-            </p>
+            <div className="space-y-3 text-sm text-slate-600">
+              <p>
+                {loading
+                  ? "문항을 자동으로 채우는 중…"
+                  : "이 단계에 문항이 없습니다. 잠시 후 자동 생성되거나 「빈 단계 자동 채우기」를 눌러 주세요."}
+              </p>
+              {!loading && workbook.status !== "approved" && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void generateAll()}
+                >
+                  지금 자동 채우기
+                </Button>
+              )}
+            </div>
           ) : (
             <ul className="space-y-3">
               {stepQuestions.map((q) => {
@@ -292,7 +431,10 @@ export function WorkbookReviewClient({
                   >
                     <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
                       <span className="text-xs font-medium text-slate-500">
-                        #{q.question_order} · {q.question_type} · {q.points}점
+                        #{q.question_order} ·{" "}
+                        {EXAM_STEP_LABELS[q.question_type as ExamStepType] ||
+                          q.question_type}{" "}
+                        · {q.points}점
                         {q.difficulty ? ` · ${q.difficulty}` : ""}
                       </span>
                       <label className="flex items-center gap-1.5 text-xs text-slate-600">
@@ -310,25 +452,15 @@ export function WorkbookReviewClient({
                     </p>
                     {sentence && (
                       <p className="mt-1 text-xs text-slate-500">
-                        문장 #{sentence.sentence_order}:{" "}
-                        {sentence.english_text.slice(0, 100)}
+                        문장 #{sentence.sentence_order}
                       </p>
                     )}
+                    <QuestionPreview q={q} />
                     {q.explanation && (
                       <p className="mt-1 text-xs text-slate-500">
                         해설: {q.explanation}
                       </p>
                     )}
-                    <pre className="mt-2 max-h-32 overflow-auto rounded-lg bg-slate-50 p-2 text-[11px] text-slate-600">
-                      {JSON.stringify(
-                        {
-                          data: q.question_data,
-                          answer: q.correct_answer,
-                        },
-                        null,
-                        2
-                      )}
-                    </pre>
                   </li>
                 );
               })}
