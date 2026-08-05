@@ -3,6 +3,12 @@
  * 영어 원문은 수정하지 않는다. (7단계만 표시문에 오류 삽입)
  */
 import { parseVocabMarks } from "@/lib/exam-prep/vocab-marks";
+import {
+  blankPickCount,
+  pickSpreadByScore,
+  scoreEnglishBlank,
+  scoreKoreanBlank,
+} from "@/lib/exam-prep/blank-importance";
 import type { BlankDraft } from "@/lib/exam-prep/stage2-types";
 import type { Stage3BlankDraft } from "@/lib/exam-prep/stage3-types";
 import type { Stage5ItemDraft } from "@/lib/exam-prep/stage5-types";
@@ -29,10 +35,6 @@ const EN_STOP = new Set(
   `the a an of to in on for and or is are was were be been being it this that with as by from at have has had do does did will would can could may might should not but so if than then into over under about their its his her our your my we you they he she i am`.split(
     " "
   )
-);
-
-const KO_LIGHT = new Set(
-  "그 이 저 수 것 등 및 또 더 좀 잘 안 못 는 은 이 가 을 를 의 에 도 만 와 과 이나".split(" ")
 );
 
 /** -ing/-ed 이지만 동사형 연습 대상이 아닌 단어 */
@@ -184,16 +186,6 @@ function contentEnglishTokens(english: string): string[] {
     .filter((t) => t.length >= 4 && !EN_STOP.has(t.toLowerCase()));
 }
 
-function contentKoreanTokens(korean: string): string[] {
-  return korean
-    .split(/\s+/)
-    .map((t) => t.replace(/[.,!?;:'"()\-]/g, "").trim())
-    .filter((t) => {
-      const core = t.replace(/[은는이가을를의에도만와과]/g, "");
-      return core.length >= 2 && !KO_LIGHT.has(core);
-    });
-}
-
 function lemmaCue(answer: string): string {
   const w = answer.toLowerCase().replace(/[^a-z']/g, "");
   if (w === "been" || w === "being" || w === "is" || w === "are" || w === "was" || w === "were") {
@@ -305,7 +297,7 @@ const ALL_CHOICE_PLANTS: typeof CHOICE_PLANTS = [
   ...catalogChoicePlants(),
 ];
 
-/** 2단계: 중요 어휘·표현 위주, 문장당 여러 빈칸 */
+/** 2단계: 중요 어휘·표현을 문장 전반에 분산 */
 export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
   const drafts: BlankDraft[] = [];
   let order = 1;
@@ -314,55 +306,93 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
     if (!korean.trim()) continue;
     const marks = parseVocabMarks(s.vocabulary);
     const used: Array<{ a: number; b: number }> = [];
-    let added = 0;
-    const maxPerSentence = 8;
+    const wordEntries: Array<{ text: string; start: number; end: number; index: number }> = [];
+    let cursor = 0;
+    let wi = 0;
+    for (const part of korean.split(/(\s+)/)) {
+      if (!part) continue;
+      if (/^\s+$/.test(part)) {
+        cursor += part.length;
+        continue;
+      }
+      wordEntries.push({
+        text: part,
+        start: cursor,
+        end: cursor + part.length,
+        index: wi++,
+      });
+      cursor += part.length;
+    }
 
-    for (const m of marks) {
-      if (added >= maxPerSentence) break;
-      const needle = (m.koreanText || "").trim();
-      if (!needle || needle.length < 2 || !korean.includes(needle)) continue;
-      const span = findSpan(korean, needle);
-      if (!span || overlaps(used, span.start, span.end)) continue;
-      used.push({ a: span.start, b: span.end });
+    const maxPerSentence = blankPickCount(Math.max(wordEntries.length, 1), "medium", {
+      max: 5,
+    });
+
+    // 1) 어휘 마크 — 위치 분산
+    const markCands = marks
+      .map((m) => {
+        const needle = (m.koreanText || "").trim();
+        if (!needle || needle.length < 2) return null;
+        const span = findSpan(korean, needle);
+        if (!span) return null;
+        const wIdx =
+          wordEntries.find((w) => w.start <= span.start && span.end <= w.end)?.index ??
+          wordEntries.findIndex((w) => w.text.includes(needle));
+        return {
+          mark: m,
+          span,
+          index: wIdx >= 0 ? wIdx : 0,
+          score: 20 + needle.length,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => Boolean(x));
+
+    const pickedMarks = pickSpreadByScore(markCands, maxPerSentence);
+    for (const p of pickedMarks) {
+      if (overlaps(used, p.span.start, p.span.end)) continue;
+      used.push({ a: p.span.start, b: p.span.end });
       drafts.push({
         sentence_id: s.id,
         blank_order: order++,
-        answer_text: needle,
+        answer_text: p.mark.koreanText.trim(),
         accepted_answers: [],
-        korean_start: span.start,
-        korean_end: span.end,
-        linked_vocabulary_mark_id: m.id,
-        linked_english_text: m.englishText || null,
-        hint: m.meaning || null,
+        korean_start: p.span.start,
+        korean_end: p.span.end,
+        linked_vocabulary_mark_id: p.mark.id,
+        linked_english_text: p.mark.englishText || null,
+        hint: p.mark.meaning || null,
         is_required: true,
       });
-      added += 1;
     }
 
-    if (added < 3) {
-      const tokens = contentKoreanTokens(korean).sort((a, b) => b.length - a.length);
-      for (const tok of tokens) {
-        if (added >= Math.max(4, maxPerSentence)) break;
-        const span = findSpan(korean, tok);
-        if (!span || overlaps(used, span.start, span.end)) continue;
-        used.push({ a: span.start, b: span.end });
+    // 2) 부족하면 중요 우리말 분산 보충
+    if (used.length < Math.min(2, maxPerSentence)) {
+      const scored = wordEntries
+        .map((w) => ({
+          ...w,
+          score: scoreKoreanBlank(w.text),
+        }))
+        .filter((w) => w.score > 0 && !overlaps(used, w.start, w.end));
+      const need = maxPerSentence - used.length;
+      for (const p of pickSpreadByScore(scored, need)) {
+        if (overlaps(used, p.start, p.end)) continue;
+        used.push({ a: p.start, b: p.end });
         drafts.push({
           sentence_id: s.id,
           blank_order: order++,
-          answer_text: tok,
+          answer_text: p.text.replace(/[.,!?;:'"()\-]+$/g, ""),
           accepted_answers: [],
-          korean_start: span.start,
-          korean_end: span.end,
+          korean_start: p.start,
+          korean_end: p.end,
           is_required: true,
         });
-        added += 1;
       }
     }
   }
   return drafts;
 }
 
-/** 3단계: 중요 영어 어휘·표현 위주, 문장당 여러 빈칸 */
+/** 3단계: 중요 영어 어휘·표현을 문장 전반에 분산 */
 export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[] {
   const drafts: Stage3BlankDraft[] = [];
   let order = 1;
@@ -371,48 +401,88 @@ export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[]
     if (!english.trim()) continue;
     const marks = parseVocabMarks(s.vocabulary);
     const used: Array<{ a: number; b: number }> = [];
-    let added = 0;
-    const maxPerSentence = 8;
 
-    for (const m of marks) {
-      if (added >= maxPerSentence) break;
-      const needle = (m.englishText || "").trim();
-      if (!needle || needle.length < 3) continue;
-      const span = findSpanCi(english, needle);
-      if (!span || overlaps(used, span.start, span.end)) continue;
-      used.push({ a: span.start, b: span.end });
+    const wordEntries: Array<{ text: string; start: number; end: number; index: number }> = [];
+    let cursor = 0;
+    let wi = 0;
+    for (const part of english.split(/(\s+)/)) {
+      if (!part) continue;
+      if (/^\s+$/.test(part)) {
+        cursor += part.length;
+        continue;
+      }
+      wordEntries.push({
+        text: part,
+        start: cursor,
+        end: cursor + part.length,
+        index: wi++,
+      });
+      cursor += part.length;
+    }
+
+    const maxPerSentence = blankPickCount(Math.max(wordEntries.length, 1), "medium", {
+      max: 5,
+    });
+
+    const markCands = marks
+      .map((m) => {
+        const needle = (m.englishText || "").trim();
+        if (!needle || needle.length < 3) return null;
+        const span = findSpanCi(english, needle);
+        if (!span) return null;
+        const wIdx =
+          wordEntries.find((w) => w.start <= span.start && span.end <= w.end)?.index ??
+          wordEntries.findIndex((w) =>
+            w.text.toLowerCase().includes(needle.toLowerCase().split(/\s+/)[0]!)
+          );
+        return {
+          mark: m,
+          span,
+          index: wIdx >= 0 ? wIdx : 0,
+          score: 20 + needle.length,
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => Boolean(x));
+
+    for (const p of pickSpreadByScore(markCands, maxPerSentence)) {
+      if (overlaps(used, p.span.start, p.span.end)) continue;
+      used.push({ a: p.span.start, b: p.span.end });
       drafts.push({
         sentence_id: s.id,
         blank_order: order++,
-        answer_text: span.text,
+        answer_text: p.span.text,
         accepted_answers: [],
-        english_start: span.start,
-        english_end: span.end,
-        selected_text: span.text,
-        linked_vocabulary_mark_id: m.id,
-        linked_korean_text: m.koreanText || null,
+        english_start: p.span.start,
+        english_end: p.span.end,
+        selected_text: p.span.text,
+        linked_vocabulary_mark_id: p.mark.id,
+        linked_korean_text: p.mark.koreanText || null,
         is_required: true,
       });
-      added += 1;
     }
 
-    if (added < 3) {
-      for (const tok of contentEnglishTokens(english)) {
-        if (added >= Math.max(4, maxPerSentence)) break;
-        const span = findSpanCi(english, tok);
-        if (!span || overlaps(used, span.start, span.end)) continue;
-        used.push({ a: span.start, b: span.end });
+    if (used.length < Math.min(2, maxPerSentence)) {
+      const scored = wordEntries
+        .map((w) => ({
+          ...w,
+          score: scoreEnglishBlank(w.text),
+        }))
+        .filter((w) => w.score > 0 && !overlaps(used, w.start, w.end));
+      const need = maxPerSentence - used.length;
+      for (const p of pickSpreadByScore(scored, need)) {
+        if (overlaps(used, p.start, p.end)) continue;
+        used.push({ a: p.start, b: p.end });
+        const answer = p.text.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") || p.text;
         drafts.push({
           sentence_id: s.id,
           blank_order: order++,
-          answer_text: span.text,
+          answer_text: answer,
           accepted_answers: [],
-          english_start: span.start,
-          english_end: span.end,
-          selected_text: span.text,
+          english_start: p.start,
+          english_end: p.end,
+          selected_text: p.text,
           is_required: true,
         });
-        added += 1;
       }
     }
   }

@@ -1,5 +1,15 @@
 import type { ExamPassageSentence, ExamStepType } from "@/lib/exam-prep/types";
 import { workbookPromptForStepType } from "@/lib/exam-prep/presets";
+import {
+  blankPickCount,
+  englishCore,
+  koreanCore,
+  pickSpreadByScore,
+  scoreEnglishBlank,
+  scoreKoreanBlank,
+  vocabEnglishNeedles,
+  vocabKoreanNeedles,
+} from "@/lib/exam-prep/blank-importance";
 
 export type GeneratedQuestionDraft = {
   sentence_id: string | null;
@@ -57,6 +67,24 @@ const STOP = new Set([
   "our",
   "my",
   "your",
+  "we",
+  "you",
+  "they",
+  "he",
+  "she",
+  "i",
+  "me",
+  "him",
+  "them",
+  "us",
+  "can",
+  "could",
+  "would",
+  "should",
+  "will",
+  "may",
+  "might",
+  "must",
 ]);
 
 function tokens(english: string): string[] {
@@ -69,16 +97,9 @@ function tokens(english: string): string[] {
 
 function contentWords(english: string): string[] {
   return tokens(english).filter((t) => {
-    const core = t.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "").toLowerCase();
+    const core = englishCore(t).toLowerCase();
     return core.length >= 3 && !STOP.has(core);
   });
-}
-
-function blankRatioCount(n: number, difficulty: string): number {
-  if (n <= 0) return 0;
-  if (difficulty === "easy") return Math.max(1, Math.min(2, Math.ceil(n * 0.25)));
-  if (difficulty === "hard") return Math.max(2, Math.ceil(n * 0.55));
-  return Math.max(1, Math.ceil(n * 0.4));
 }
 
 function buildEnglishBlank(
@@ -87,53 +108,53 @@ function buildEnglishBlank(
   difficulty: string
 ): GeneratedQuestionDraft {
   const words = tokens(sentence.english_text);
-  const candidates = contentWords(sentence.english_text);
-  const pickCount = blankRatioCount(candidates.length, difficulty);
-  const picked = candidates.slice(0, pickCount);
+  const vocab = vocabEnglishNeedles(sentence.vocabulary).map((v) => v.toLowerCase());
+
+  const scored = words
+    .map((w, index) => {
+      const core = englishCore(w);
+      let score = scoreEnglishBlank(w);
+      if (vocab.some((v) => v === core.toLowerCase() || core.toLowerCase().includes(v) || v.includes(core.toLowerCase()))) {
+        score = Math.max(score, 0) + 12;
+      }
+      return { index, word: w, core, score };
+    })
+    .filter((x) => x.score > 0 && x.core.length >= 3);
+
+  const pickCount = blankPickCount(scored.length, difficulty, { max: 5 });
+  const picked = pickSpreadByScore(scored, pickCount);
+  const pickedIndex = new Set(picked.map((p) => p.index));
+
   const blanks: Array<{
     id: string;
     answer: string;
     acceptableAnswers: string[];
   }> = [];
   let blankIdx = 0;
-  const displayParts = words.map((w) => {
-    const core = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (picked.includes(w) || picked.some((p) => p === w)) {
-      const lead = w.match(/^[^A-Za-z']+/)?.[0] ?? "";
-      const trail = w.match(/[^A-Za-z']+$/)?.[0] ?? "";
-      const id = `blank_${blankIdx + 1}`;
-      blankIdx += 1;
-      blanks.push({
-        id,
-        answer: core,
-        acceptableAnswers: [core, core.toLowerCase()],
-      });
-      return `${lead}____${trail}`;
-    }
-    // also match by core
-    const match = picked.find(
-      (p) => p.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") === core
-    );
-    if (match && !blanks.some((b) => b.answer === core)) {
-      const lead = w.match(/^[^A-Za-z']+/)?.[0] ?? "";
-      const trail = w.match(/[^A-Za-z']+$/)?.[0] ?? "";
-      const id = `blank_${blankIdx + 1}`;
-      blankIdx += 1;
-      blanks.push({
-        id,
-        answer: core,
-        acceptableAnswers: [core, core.toLowerCase()],
-      });
-      return `${lead}____${trail}`;
-    }
-    return w;
+  const displayParts = words.map((w, i) => {
+    if (!pickedIndex.has(i)) return w;
+    const core = englishCore(w);
+    const lead = w.match(/^[^A-Za-z']+/)?.[0] ?? "";
+    const trail = w.match(/[^A-Za-z']+$/)?.[0] ?? "";
+    const id = `blank_${blankIdx + 1}`;
+    blankIdx += 1;
+    blanks.push({
+      id,
+      answer: core,
+      acceptableAnswers: [core, core.toLowerCase()],
+    });
+    return `${lead}____${trail}`;
   });
 
-  // ensure at least one blank
   if (blanks.length === 0 && words.length > 0) {
-    const i = Math.min(2, words.length - 1);
-    const w = words[i];
-    const core = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") || w;
+    // 문장 중간의 가장 긴 content 단어
+    const mid = scored.sort((a, b) => b.score - a.score)[0] ?? {
+      index: Math.min(Math.floor(words.length / 2), words.length - 1),
+      core: englishCore(words[Math.min(Math.floor(words.length / 2), words.length - 1)]!),
+    };
+    const i = mid.index;
+    const w = words[i]!;
+    const core = englishCore(w) || w;
     blanks.push({
       id: "blank_1",
       answer: core,
@@ -349,7 +370,6 @@ function buildKoreanBlank(
 ): GeneratedQuestionDraft | null {
   const korean = (sentence.korean_text ?? "").trim();
   if (!korean) {
-    // 해석이 아직 없으면 영문 제시 + 해석 쓰기 형태로라도 문항을 둔다
     return {
       sentence_id: sentence.id,
       question_type: "korean_blank",
@@ -410,27 +430,39 @@ function buildKoreanBlank(
       ai_generated: false,
     };
   }
-  const contentIdx = parts
-    .map((w, i) => ({ w, i }))
-    .filter(({ w }) => w.replace(/[^\uAC00-\uD7A3]/g, "").length >= 2);
-  const pickN =
-    difficulty === "easy"
-      ? Math.max(1, Math.min(2, Math.ceil(contentIdx.length * 0.25)))
-      : difficulty === "hard"
-        ? Math.max(2, Math.ceil(contentIdx.length * 0.5))
-        : Math.max(1, Math.ceil(contentIdx.length * 0.35));
-  const picked = (contentIdx.length > 0 ? contentIdx : parts.map((w, i) => ({ w, i }))).slice(
-    0,
-    Math.max(1, pickN)
+
+  const vocab = vocabKoreanNeedles(sentence.vocabulary);
+  const scored = parts
+    .map((w, index) => {
+      let score = scoreKoreanBlank(w);
+      const core = koreanCore(w);
+      if (vocab.some((v) => v === core || w.includes(v) || v.includes(core))) {
+        score = Math.max(score, 0) + 12;
+      }
+      return { index, word: w, score };
+    })
+    .filter((x) => x.score > 0);
+
+  const pickN = blankPickCount(scored.length || parts.length, difficulty, { max: 5 });
+  const picked = pickSpreadByScore(
+    scored.length > 0
+      ? scored
+      : parts.map((w, index) => ({
+          index,
+          word: w,
+          score: Math.max(1, koreanCore(w).length),
+        })),
+    pickN
   );
+  const pickedIndex = new Set(picked.map((p) => p.index));
+
   const blanks: Array<{
     id: string;
     answer: string;
     acceptableAnswers: string[];
   }> = [];
   const display = parts.map((w, i) => {
-    const hit = picked.find((p) => p.i === i);
-    if (!hit) return w;
+    if (!pickedIndex.has(i)) return w;
     const core = w.replace(/[^\uAC00-\uD7A3A-Za-z0-9]+$/g, "");
     const trail = w.slice(core.length);
     const id = `blank_${blanks.length + 1}`;
