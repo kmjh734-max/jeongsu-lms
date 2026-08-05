@@ -32,7 +32,12 @@ import {
   pickWritingCueTexts,
 } from "@/lib/exam-prep/guided-writing";
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
-import { GRAMMAR_UNIT_BANKS } from "@/lib/question-generator/grammar-catalog";
+import {
+  pickDiverseGrammarHits,
+  pickStage7Errors,
+  scanVocabChoiceHits,
+  scanWorkbookGrammarHits,
+} from "@/lib/exam-prep/grammar-workbook-plants";
 
 const EN_STOP = new Set(
   `the a an of to in on for and or is are was were be been being it this that with as by from at have has had do does did will would can could may might should not but so if than then into over under about their its his her our your my we you they he she i am`.split(
@@ -83,69 +88,6 @@ const NON_VERB_FORM = new Set(
     "needed", // handled via multi-word "desperately needed"
   ].map((w) => w.toLowerCase())
 );
-
-/** PDF·어법책 형태 쌍 — 정답이 문장에 있을 때 [정답 / 오답] */
-const CHOICE_PLANTS: Array<{
-  correct: RegExp;
-  wrong: string;
-  category: "grammar" | "vocabulary";
-  sub: string;
-}> = [
-  // PDF 18번 예시
-  { correct: /\bbeen dumping\b/i, wrong: "been dumped", category: "grammar", sub: "voice" },
-  { correct: /\bbeen leaving\b/i, wrong: "been left", category: "grammar", sub: "voice" },
-  { correct: /\bare leaving\b/i, wrong: "are left", category: "grammar", sub: "voice" },
-  { correct: /\battracts\b/i, wrong: "is attracted", category: "grammar", sub: "voice" },
-  { correct: /\bis desperately needed\b/i, wrong: "is desperate needed", category: "grammar", sub: "adverb" },
-  { correct: /\bdesperately\b/i, wrong: "desperate", category: "grammar", sub: "adjective_adverb" },
-  { correct: /\bwhere\b/i, wrong: "that", category: "grammar", sub: "relative_adverb" },
-  { correct: /\bwhich has\b/i, wrong: "that have", category: "grammar", sub: "relative_pronoun" },
-  { correct: /\bwhich\b/i, wrong: "that", category: "grammar", sub: "relative_pronoun" },
-  { correct: /\bto strengthen\b/i, wrong: "strengthening", category: "grammar", sub: "infinitive" },
-  { correct: /\billegal\b/i, wrong: "illegally", category: "grammar", sub: "adjective_adverb" },
-  { correct: /\bgrowing\b/i, wrong: "declining", category: "vocabulary", sub: "increase_decrease" },
-  { correct: /\bstrengthen\b/i, wrong: "weaken", category: "vocabulary", sub: "strengthen_weaken" },
-  { correct: /\bworse\b/i, wrong: "better", category: "vocabulary", sub: "opposite_meaning" },
-  { correct: /\billegal\b/i, wrong: "legal", category: "vocabulary", sub: "opposite_meaning" },
-  { correct: /\bpermitted\b/i, wrong: "prevented", category: "vocabulary", sub: "similar_spelling" },
-  { correct: /\bgarbage\b/i, wrong: "garage", category: "vocabulary", sub: "similar_spelling" },
-  { correct: /\bdisgusting\b/i, wrong: "disgusted", category: "grammar", sub: "participle" },
-  { correct: /\bConsistent\b/, wrong: "Inconsistent", category: "vocabulary", sub: "opposite_meaning" },
-  { correct: /\bmore and more\b/i, wrong: "less and less", category: "vocabulary", sub: "increase_decrease" },
-  { correct: /\bleaving\b/i, wrong: "left", category: "grammar", sub: "verb_form" },
-  { correct: /\bhas left\b/i, wrong: "have left", category: "grammar", sub: "subject_verb_agreement" },
-  // 어법 카탈로그 고빈도 쌍
-  { correct: /\bwho\b/i, wrong: "which", category: "grammar", sub: "relative_pronoun" },
-  { correct: /\bwhom\b/i, wrong: "who", category: "grammar", sub: "relative_pronoun" },
-  { correct: /\bwhose\b/i, wrong: "who's", category: "grammar", sub: "relative_pronoun" },
-  { correct: /\bwhat\b/i, wrong: "that", category: "grammar", sub: "relative_pronoun" },
-  { correct: /\bbecause\b/i, wrong: "because of", category: "grammar", sub: "conjunction_preposition" },
-  { correct: /\balthough\b/i, wrong: "despite", category: "grammar", sub: "conjunction_preposition" },
-  { correct: /\bdespite\b/i, wrong: "although", category: "grammar", sub: "conjunction_preposition" },
-  { correct: /\bduring\b/i, wrong: "while", category: "grammar", sub: "conjunction_preposition" },
-  { correct: /\bwhile\b/i, wrong: "during", category: "grammar", sub: "conjunction_preposition" },
-  { correct: /\binterested\b/i, wrong: "interesting", category: "grammar", sub: "participle" },
-  { correct: /\binteresting\b/i, wrong: "interested", category: "grammar", sub: "participle" },
-  { correct: /\bsurprised\b/i, wrong: "surprising", category: "grammar", sub: "participle" },
-  { correct: /\bsurprising\b/i, wrong: "surprised", category: "grammar", sub: "participle" },
-  { correct: /\bhardly\b/i, wrong: "hard", category: "grammar", sub: "adjective_adverb" },
-  { correct: /\blate\b/i, wrong: "lately", category: "grammar", sub: "adjective_adverb" },
-  { correct: /\bnearly\b/i, wrong: "near", category: "grammar", sub: "adjective_adverb" },
-];
-
-/** 7단계 오류 심기: PDF 우선 (where→which, which→that, to strengthen→strengthening) */
-const STAGE7_PLANTS: Array<[RegExp, string, string, string]> = [
-  [/\bwhere\b/i, "which", "where", "relative_adverb"],
-  [/\bwhich has\b/i, "that has", "which has", "relative_pronoun"],
-  [/\bwhich\b/i, "that", "which", "relative_pronoun"],
-  [/\bto strengthen\b/i, "strengthening", "to strengthen", "infinitive"],
-  [/\bwho\b/i, "which", "who", "relative_pronoun"],
-  [/\bwhom\b/i, "who", "whom", "relative_pronoun"],
-  [/\bis desperately\b/i, "are desperately", "is desperately", "subject_verb_agreement"],
-  [/\battracts\b/i, "attract", "attracts", "subject_verb_agreement"],
-  [/\bhave been\b/i, "has been", "have been", "subject_verb_agreement"],
-  [/\bare leaving\b/i, "is leaving", "are leaving", "subject_verb_agreement"],
-];
 
 export type SeedSentence = Pick<
   ExamPassageSentence,
@@ -234,12 +176,6 @@ function lemmaCue(answer: string): string {
   return w || answer;
 }
 
-const WEAK_CHOICE_WORD = new Set(
-  "a an the is are was were be been being have has had do does did will would can could may might should my mine your yours his her hers its our ours their theirs i we you they he she it them this that these those and or but not".split(
-    " "
-  )
-);
-
 function overlaps(
   used: Array<{ a: number; b: number }>,
   start: number,
@@ -248,57 +184,16 @@ function overlaps(
   return used.some((u) => start < u.b && end > u.a);
 }
 
-/** 어법 카탈로그 pairForms → [a/b] 후보 */
-function catalogChoicePlants(): typeof CHOICE_PLANTS {
-  const out: typeof CHOICE_PLANTS = [];
-  const seen = new Set<string>();
-  for (const unit of GRAMMAR_UNIT_BANKS) {
-    for (const c of unit.cases) {
-      for (const group of c.pairForms.split("·")) {
-        const parts = group.split("/").map((p) => p.trim()).filter(Boolean);
-        if (parts.length !== 2) continue;
-        const [a, b] = parts;
-        if (!a || !b || a.length < 2 || b.length < 2) continue;
-        if (/\s{2,}/.test(a) || a.length > 40) continue;
-        // 닫힌 어휘만의 is/are·have/has 등은 워크북 [a/b]로 약함
-        if (
-          !a.includes(" ") &&
-          !b.includes(" ") &&
-          WEAK_CHOICE_WORD.has(a.toLowerCase()) &&
-          WEAK_CHOICE_WORD.has(b.toLowerCase())
-        ) {
-          continue;
-        }
-        const key = `${a.toLowerCase()}|${b.toLowerCase()}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        const sub = unit.key;
-        out.push({
-          correct: new RegExp(`\\b${escapeRe(a)}\\b`, "i"),
-          wrong: b,
-          category: "grammar",
-          sub,
-        });
-        const key2 = `${b.toLowerCase()}|${a.toLowerCase()}`;
-        if (!seen.has(key2)) {
-          seen.add(key2);
-          out.push({
-            correct: new RegExp(`\\b${escapeRe(b)}\\b`, "i"),
-            wrong: a,
-            category: "grammar",
-            sub,
-          });
-        }
-      }
-    }
+function matchCase(replacement: string, matched: string): string {
+  if (
+    matched[0] &&
+    matched[0] === matched[0].toUpperCase() &&
+    matched[0] !== matched[0].toLowerCase()
+  ) {
+    return replacement[0]!.toUpperCase() + replacement.slice(1);
   }
-  return out;
+  return replacement;
 }
-
-const ALL_CHOICE_PLANTS: typeof CHOICE_PLANTS = [
-  ...CHOICE_PLANTS,
-  ...catalogChoicePlants(),
-];
 
 /** 2단계: 중요 어휘·표현을 문장 전반에 분산 */
 export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
@@ -666,7 +561,10 @@ export function buildStage5Drafts(sentences: SeedSentence[]): Stage5ItemDraft[] 
   return drafts;
 }
 
-/** 6단계: 문장 안 [a / b] 두 선택지 (어법·어휘) */
+/**
+ * 6단계: 문장 안 [a / b]
+ * 어법끝·처음만나는수능어법 + 변형문제 grammar-catalog CASE/pairForms
+ */
 export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] {
   const drafts: Stage6ItemDraft[] = [];
   let order = 1;
@@ -675,43 +573,72 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
     const used: Array<{ a: number; b: number }> = [];
     let added = 0;
 
-    for (const plant of ALL_CHOICE_PLANTS) {
-      if (added >= 4) break;
-      plant.correct.lastIndex = 0;
-      const m = plant.correct.exec(english);
-      if (!m || m.index == null) continue;
-      const start = m.index;
-      const end = start + m[0].length;
-      if (overlaps(used, start, end)) continue;
-      const answer = m[0];
-      if (answer.toLowerCase() === plant.wrong.toLowerCase()) continue;
-      // 단독 조동사·대명사 [is/are] 류는 워크북 품질이 낮아 제외 (where/which 등은 유지)
-      if (
-        !answer.includes(" ") &&
-        WEAK_CHOICE_WORD.has(answer.toLowerCase()) &&
-        WEAK_CHOICE_WORD.has(plant.wrong.toLowerCase().split(/\s+/)[0]!)
-      ) {
-        continue;
-      }
-      used.push({ a: start, b: end });
+    const grammarHits = pickDiverseGrammarHits(
+      scanWorkbookGrammarHits(english),
+      3,
+      { forChoice: true }
+    );
+    for (const h of grammarHits) {
+      if (overlaps(used, h.start, h.end)) continue;
+      used.push({ a: h.start, b: h.end });
+      const tip = [h.koLabel, h.koTip].filter(Boolean).join(" — ");
       drafts.push({
         sentence_id: s.id,
         blank_order: order++,
-        answer_text: answer,
-        english_start: start,
-        english_end: end,
-        selected_text: answer,
+        answer_text: h.correct,
+        english_start: h.start,
+        english_end: h.end,
+        selected_text: h.correct,
         choice_options: [
-          { id: `opt-c-${order}-0`, text: answer, isCorrect: true },
-          { id: `opt-w-${order}-1`, text: plant.wrong, isCorrect: false },
+          {
+            id: `opt-c-${order}-0`,
+            text: h.correct,
+            isCorrect: true,
+            explanation: tip || null,
+          },
+          {
+            id: `opt-w-${order}-1`,
+            text: h.wrong,
+            isCorrect: false,
+            explanation: tip || null,
+          },
         ],
-        question_category: plant.category,
-        grammar_subcategory: plant.category === "grammar" ? [plant.sub] : [],
-        vocabulary_subcategory: plant.category === "vocabulary" ? [plant.sub] : [],
+        question_category: "grammar",
+        grammar_subcategory: [h.stage6Sub],
+        vocabulary_subcategory: [],
         shuffle_options: true,
+        hint: h.koLabel || null,
+        explanation: tip || null,
         is_required: true,
       });
       added += 1;
+    }
+
+    // 어휘 [a/b] — PDF 워크북 혼합
+    if (added < 4) {
+      for (const v of scanVocabChoiceHits(english)) {
+        if (added >= 4) break;
+        if (overlaps(used, v.start, v.end)) continue;
+        used.push({ a: v.start, b: v.end });
+        drafts.push({
+          sentence_id: s.id,
+          blank_order: order++,
+          answer_text: v.correct,
+          english_start: v.start,
+          english_end: v.end,
+          selected_text: v.correct,
+          choice_options: [
+            { id: `opt-c-${order}-0`, text: v.correct, isCorrect: true },
+            { id: `opt-w-${order}-1`, text: v.wrong, isCorrect: false },
+          ],
+          question_category: "vocabulary",
+          grammar_subcategory: [],
+          vocabulary_subcategory: [v.sub],
+          shuffle_options: true,
+          is_required: true,
+        });
+        added += 1;
+      }
     }
 
     // 부족하면 어휘 마크 기반 [원형 / 형태 변형]
@@ -752,6 +679,9 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
   return drafts;
 }
 
+/**
+ * 7단계: 서로 다른 어법 단원 오류 3개 심기 (QG·교재와 동일 뱅크)
+ */
 export function buildStage7Seed(sentences: SeedSentence[]): {
   displays: Array<{ sentenceId: string; stage7DisplayText: string }>;
   candidates: Stage7CandidateDraft[];
@@ -765,54 +695,67 @@ export function buildStage7Seed(sentences: SeedSentence[]): {
 
   const candidates: Stage7CandidateDraft[] = [];
   let order = 1;
-  const targetErrors = 3;
   const usedSentenceErrors = new Set<string>();
 
-  // 1차: PDF·우선 패턴을 지문 전체에서 최대 3개 심기
-  for (const [re, wrong, correct, cat] of STAGE7_PLANTS) {
-    if (candidates.filter((c) => c.is_error).length >= targetErrors) break;
-    for (const s of ordered) {
-      if (candidates.filter((c) => c.is_error).length >= targetErrors) break;
-      if (usedSentenceErrors.has(s.id)) continue;
-      let display = displayMap.get(s.id) ?? "";
-      const m = display.match(re);
-      if (!m || m.index == null) continue;
-      // where→which 후 which→that 이 같은 문장에 겹치지 않게
-      const matched = m[0];
-      let replacement = wrong;
-      if (
-        matched[0] === matched[0]!.toUpperCase() &&
-        matched[0] !== matched[0]!.toLowerCase()
-      ) {
-        replacement = wrong[0]!.toUpperCase() + wrong.slice(1);
-      }
+  for (const row of pickStage7Errors(ordered, 3)) {
+    const { hit } = row;
+    let display = displayMap.get(row.sentenceId) ?? "";
+    // 원문 기준 span — display가 아직 원문과 같다고 가정 (문장당 1오류)
+    const slice = display.slice(hit.start, hit.end);
+    if (slice.toLowerCase() !== hit.correct.toLowerCase()) {
+      const found = findSpanCi(display, hit.correct);
+      if (!found) continue;
+      const replacement = matchCase(hit.wrong, found.text);
       display =
-        display.slice(0, m.index) +
+        display.slice(0, found.start) +
         replacement +
-        display.slice(m.index + matched.length);
-      displayMap.set(s.id, display);
+        display.slice(found.end);
+      displayMap.set(row.sentenceId, display);
+      const tip = [hit.koLabel, hit.koTip].filter(Boolean).join(" — ");
       candidates.push({
-        sentence_id: s.id,
+        sentence_id: row.sentenceId,
         blank_order: order++,
-        english_start: m.index,
-        english_end: m.index + replacement.length,
+        english_start: found.start,
+        english_end: found.start + replacement.length,
         displayed_text: replacement,
         is_error: true,
-        correction_text: matched,
-        accepted_corrections: [matched, correct],
-        error_subcategory: [cat],
+        correction_text: found.text,
+        accepted_corrections: [found.text, hit.correct],
+        error_subcategory: [hit.stage7Sub],
+        hint: hit.koLabel || null,
+        explanation: tip || null,
       });
-      usedSentenceErrors.add(s.id);
-      break;
+    } else {
+      const replacement = matchCase(hit.wrong, slice);
+      display =
+        display.slice(0, hit.start) +
+        replacement +
+        display.slice(hit.end);
+      displayMap.set(row.sentenceId, display);
+      const tip = [hit.koLabel, hit.koTip].filter(Boolean).join(" — ");
+      candidates.push({
+        sentence_id: row.sentenceId,
+        blank_order: order++,
+        english_start: hit.start,
+        english_end: hit.start + replacement.length,
+        displayed_text: replacement,
+        is_error: true,
+        correction_text: slice,
+        accepted_corrections: [slice, hit.correct],
+        error_subcategory: [hit.stage7Sub],
+        hint: hit.koLabel || null,
+        explanation: tip || null,
+      });
     }
+    usedSentenceErrors.add(row.sentenceId);
   }
 
-  // 2차: 오류 없는 문장에 함정 밑줄
+  // 함정 밑줄 (오류 없는 문장)
   for (const s of ordered) {
     const display = displayMap.get(s.id) ?? "";
     if (usedSentenceErrors.has(s.id)) continue;
     const tok = contentEnglishTokens(display).find(
-      (t) => !/^(which|that|where|who)$/i.test(t)
+      (t) => !/^(which|that|where|who|whom|whose)$/i.test(t)
     );
     if (!tok) continue;
     const span = findSpanCi(display, tok);
