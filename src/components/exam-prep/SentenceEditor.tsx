@@ -205,6 +205,9 @@ export function SentenceEditor({
       return;
     }
     setMessage("문장이 저장되었습니다.");
+    if ("enrichNote" in result && result.enrichNote) {
+      setMessage(`문장이 저장되었습니다. ${result.enrichNote}`);
+    }
     router.refresh();
   }
 
@@ -225,6 +228,11 @@ export function SentenceEditor({
       return;
     }
     setMessage(`${result.count}개 문장으로 분리되었습니다.`);
+    if ("enrichNote" in result && result.enrichNote) {
+      setMessage(
+        `${result.count}개 문장으로 분리되었습니다. ${result.enrichNote}`
+      );
+    }
     router.refresh();
   }
 

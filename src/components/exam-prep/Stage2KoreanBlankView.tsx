@@ -10,6 +10,8 @@ import {
 } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { ExamPrepStageChrome } from "@/components/exam-prep/ExamPrepStageChrome";
+import { WorkbookUnderlineBlank } from "@/components/exam-prep/WorkbookUnderlineBlank";
 import {
   completeStage2Action,
   gradeStage2Action,
@@ -95,27 +97,16 @@ function InlineBlankInput({
 }) {
   const size: InputSizeHint = blank.inputSize;
   const ch = BLANK_INPUT_CH[size];
-  const status = state?.isCorrect;
-  const border =
-    status === true
-      ? "border-emerald-500 bg-emerald-50"
-      : status === false
-        ? "border-rose-400 bg-rose-50"
-        : "border-slate-300 bg-white";
-
   return (
-    <input
-      ref={inputRef}
-      type="text"
-      inputMode="text"
-      autoComplete="off"
-      disabled={disabled || status === true}
+    <WorkbookUnderlineBlank
       value={state?.value ?? ""}
-      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled || state?.isCorrect === true}
+      status={state?.isCorrect}
+      sizeCh={ch}
+      ariaLabel="우리말 빈칸"
+      inputRef={inputRef}
+      onChange={onChange}
       onKeyDown={onKeyDown}
-      style={{ width: `${ch}ch`, minWidth: "3.5rem", maxWidth: "12rem" }}
-      className={`mx-0.5 inline-block rounded border px-1.5 py-0.5 text-center text-sm outline-none focus:ring-2 focus:ring-brand-200 ${border}`}
-      aria-label="우리말 빈칸"
     />
   );
 }
@@ -392,29 +383,12 @@ export function Stage2KoreanBlankView({
   }
 
   return (
-    <div className="space-y-6">
-      <header className="rounded-xl border border-sky-100 bg-sky-50/70 p-4">
-        <p className="text-xs font-medium uppercase tracking-wide text-sky-700">
-          내신대비학습
-        </p>
-        <h2 className="mt-1 text-lg font-semibold text-slate-900">
-          {passage?.title}
-        </h2>
-        {metaBits.length > 0 && (
-          <p className="mt-1 text-sm text-slate-600">{metaBits.join(" · ")}</p>
-        )}
-        <p className="mt-3 text-sm font-medium text-slate-800">
-          현재 단계: 2단계 · 우리말 빈칸 완성하기
-          <span className="ml-2 text-slate-500">(2 / 10)</span>
-        </p>
-        <p className="mt-2 text-sm text-slate-600">
-          영문을 읽고 우리말 해석의 빈칸을 완성해 보세요.
-        </p>
-        <p className="mt-2 text-xs text-slate-500">
-          {required.length || blanks.length}개 중 {correctCount}개 정답
-        </p>
-      </header>
-
+    <ExamPrepStageChrome
+      stageNumber={2}
+      passageTitle={passage?.title}
+      metaLine={metaBits.join(" · ")}
+      progressLabel={`2 / 10 · ${correctCount}/${required.length || blanks.length} 정답`}
+    >
       <div className="space-y-4">
         {sentences.map((s) => {
           const sBlanks = blanks
@@ -432,15 +406,15 @@ export function Stage2KoreanBlankView({
           return (
             <article
               key={s.id}
-              className="rounded-xl border border-slate-200 bg-white p-4"
+              className="border-b border-slate-200 pb-4 last:border-0"
             >
-              <p className="text-xs font-semibold text-slate-400">
+              <p className="text-xs font-semibold text-slate-500">
                 {s.sentence_order}.
               </p>
-              <p className="mt-2 text-sm text-slate-900">
+              <p className="mt-2 font-serif text-[14px] text-slate-900">
                 <LinkedEnglish text={s.english_text} blanks={sBlanks} />
               </p>
-              <p className="mt-3 text-sm leading-relaxed text-slate-700">
+              <p className="mt-3 leading-relaxed text-slate-800">
                 {slots.map((seg, i) =>
                   seg.type === "text" ? (
                     <span key={i}>{seg.text}</span>
@@ -603,6 +577,6 @@ export function Stage2KoreanBlankView({
           </Button>
         )}
       </div>
-    </div>
+    </ExamPrepStageChrome>
   );
 }

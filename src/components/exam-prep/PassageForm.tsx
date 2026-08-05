@@ -122,6 +122,9 @@ export function PassageForm({
     }
 
     if (mode === "create" && "id" in result) {
+      if ("enrichNote" in result && result.enrichNote) {
+        setMessage(String(result.enrichNote));
+      }
       router.push(`${basePath}/passages/${result.id}`);
       return;
     }

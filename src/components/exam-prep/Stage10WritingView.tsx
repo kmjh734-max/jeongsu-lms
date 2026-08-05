@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { ExamPrepStageChrome } from "@/components/exam-prep/ExamPrepStageChrome";
 import { Button } from "@/components/ui/Button";
 import {
   completeStage10Action,
@@ -246,36 +247,21 @@ export function Stage10WritingView({
   }
 
   return (
-    <div className="space-y-4">
-      <header className="rounded-xl border border-slate-200 bg-white p-4">
-        <p className="text-xs font-medium text-slate-500">내신대비학습</p>
-        <h2 className="text-lg font-semibold text-slate-900">
-          {passage?.title}
-        </h2>
-        <p className="mt-1 text-sm text-slate-600">
-          {[passage?.school_level, passage?.grade, passage?.source]
-            .filter(Boolean)
-            .join(" · ")}
-          {passage?.passage_number ? ` · ${passage.passage_number}` : ""}
-        </p>
-        <p className="mt-2 text-sm font-medium text-brand-800">
-          현재 단계: 10단계 · 영작 연습하기 · 10 / 10
-        </p>
-        <p className="mt-1 text-sm text-slate-700">
-          우리말과 같은 뜻이 되도록 주어진 단어를 순서대로 사용하여 영작하세요.
-        </p>
-        <p className="mt-2 text-sm text-slate-600">
-          {required.length}문항 중 {correctCount}문항 정답
-        </p>
-      </header>
-
+    <ExamPrepStageChrome
+      stageNumber={10}
+      passageTitle={passage?.title}
+      metaLine={[passage?.school_level, passage?.grade, passage?.source, passage?.passage_number]
+        .filter(Boolean)
+        .join(" · ")}
+      progressLabel={`10 / 10 · ${correctCount}/${required.length} 정답`}
+    >
       {items.map((item) => {
         const st = states[item.id] ?? emptyState();
         const locked = stageDone || st.isCorrect === true;
         return (
           <section
             key={item.id}
-            className="rounded-xl border border-slate-200 bg-white p-4"
+            className="border-b border-slate-200 pb-4 last:border-0"
           >
             <p className="text-sm font-semibold text-slate-900">
               {item.itemOrder}번
@@ -484,6 +470,6 @@ export function Stage10WritingView({
           내신대비학습 목록으로 이동
         </Link>
       </div>
-    </div>
+    </ExamPrepStageChrome>
   );
 }

@@ -101,7 +101,22 @@ export async function createPassageAction(raw: unknown) {
   }
 
   revalidateExamPrep();
-  return { ok: true as const, id: row.id as string };
+  // 해석 미입력 시 AI 자동 채움 (실패해도 지문 생성은 유지)
+  let enrichNote: string | null = null;
+  try {
+    const enrich = await enrichPassageSentencesAction(row.id as string);
+    enrichNote = enrich.ok
+      ? `우리말 해석을 AI로 채웠습니다.`
+      : `해석 자동 채움 보류: ${enrich.message}`;
+  } catch {
+    enrichNote = "해석 자동 채움 중 오류가 발생했습니다.";
+  }
+
+  return {
+    ok: true as const,
+    id: row.id as string,
+    enrichNote,
+  };
 }
 
 export async function createPassagesBulkAction(raw: unknown) {
@@ -269,7 +284,16 @@ export async function resplitPassageSentencesAction(passageId: string) {
     );
   }
   revalidateExamPrep();
-  return { ok: true as const, count: sentences.length };
+  let enrichNote: string | null = null;
+  try {
+    const enrich = await enrichPassageSentencesAction(passageId);
+    enrichNote = enrich.ok
+      ? "우리말 해석을 AI로 채웠습니다."
+      : `해석 자동 채움 보류: ${enrich.message}`;
+  } catch {
+    enrichNote = "해석 자동 채움 중 오류가 발생했습니다.";
+  }
+  return { ok: true as const, count: sentences.length, enrichNote };
 }
 
 export async function saveSentencesAction(
@@ -323,7 +347,21 @@ export async function saveSentencesAction(
   }
 
   revalidateExamPrep();
-  return { ok: true as const };
+
+  const needsEnrich = validated.some((s) => !String(s.korean_text ?? "").trim());
+  let enrichNote: string | null = null;
+  if (needsEnrich) {
+    try {
+      const enrich = await enrichPassageSentencesAction(passageId);
+      enrichNote = enrich.ok
+        ? "비어 있던 우리말 해석을 AI로 채웠습니다."
+        : `해석 자동 채움 보류: ${enrich.message}`;
+    } catch {
+      enrichNote = "해석 자동 채움 중 오류가 발생했습니다.";
+    }
+  }
+
+  return { ok: true as const, enrichNote };
 }
 
 export async function addSentenceAction(passageId: string, afterOrder: number) {
