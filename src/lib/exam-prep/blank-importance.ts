@@ -44,17 +44,16 @@ export function koreanCore(token: string): string {
 export function scoreEnglishBlank(token: string): number {
   const core = englishCore(token);
   const low = core.toLowerCase();
-  if (!core || core.length < 4) return -1;
+  if (!core || core.length < 3) return -1;
   if (EN_STOP.has(low)) return -1;
   if (/^\d+$/.test(core)) return -1;
   let score = Math.min(core.length, 12);
-  if (EN_WEAK.has(low)) return -1;
+  if (EN_WEAK.has(low)) score = Math.max(1, Math.floor(score / 2));
   if (core.length >= 7) score += 3;
   if (core.length >= 9) score += 2;
   if (/ing$|tion$|sion$|ment$|ness$|ity$|ous$|ive$|ical$|able$|ible$/i.test(core)) {
     score += 2;
   }
-  // 축약·대명사형
   if (
     /(^'|n't$)/i.test(core) ||
     /^(you're|we're|they're|it's|that's|who's|what's|you've|we've|they've|i've|you'd|we'd|they'd|i'd|you'll|we'll|they'll|i'll|don't|doesn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't|won't|wouldn't|couldn't|shouldn't|can't|mustn't)$/i.test(

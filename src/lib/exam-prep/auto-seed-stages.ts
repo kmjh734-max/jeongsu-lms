@@ -5,6 +5,7 @@
 import { parseVocabMarks } from "@/lib/exam-prep/vocab-marks";
 import {
   blankPickCount,
+  koreanCore,
   pickSpreadByScore,
   scoreEnglishBlank,
   scoreKoreanBlank,
@@ -36,7 +37,6 @@ import {
   pickDiverseGrammarHits,
   pickPassageGrammarHits,
   pickStage7Errors,
-  scanVocabChoiceHits,
   scanWorkbookGrammarHits,
 } from "@/lib/exam-prep/grammar-workbook-plants";
 
@@ -195,7 +195,27 @@ function matchCase(replacement: string, matched: string): string {
   return replacement;
 }
 
-/** 2단계: 중요 어휘·표현을 문장 전반에 분산 */
+function expandKoreanEojeol(
+  korean: string,
+  start: number,
+  end: number
+): { start: number; end: number; text: string } {
+  let a = start;
+  while (a > 0 && !/\s/.test(korean[a - 1]!) && !/[.,!?;:'"()]/.test(korean[a - 1]!)) {
+    a -= 1;
+  }
+  let b = end;
+  while (
+    b < korean.length &&
+    !/\s/.test(korean[b]!) &&
+    !/[.,!?;:'"()]/.test(korean[b]!)
+  ) {
+    b += 1;
+  }
+  return { start: a, end: b, text: korean.slice(a, b) };
+}
+
+/** 2단계: 중요 우리말 + 조사(어절 전체)를 빈칸에 포함 */
 export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
   const drafts: BlankDraft[] = [];
   let order = 1;
@@ -226,13 +246,13 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
       max: 5,
     });
 
-    // 1) 어휘 마크 — 위치 분산
     const markCands = marks
       .map((m) => {
         const needle = (m.koreanText || "").trim();
         if (!needle || needle.length < 2) return null;
-        const span = findSpan(korean, needle);
-        if (!span) return null;
+        const raw = findSpan(korean, needle);
+        if (!raw) return null;
+        const span = expandKoreanEojeol(korean, raw.start, raw.end);
         const wIdx =
           wordEntries.find((w) => w.start <= span.start && span.end <= w.end)?.index ??
           wordEntries.findIndex((w) => w.text.includes(needle));
@@ -240,7 +260,7 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
           mark: m,
           span,
           index: wIdx >= 0 ? wIdx : 0,
-          score: 20 + needle.length,
+          score: 20 + span.text.length,
         };
       })
       .filter((x): x is NonNullable<typeof x> => Boolean(x));
@@ -252,8 +272,12 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
       drafts.push({
         sentence_id: s.id,
         blank_order: order++,
-        answer_text: p.mark.koreanText.trim(),
-        accepted_answers: [],
+        answer_text: p.span.text,
+        accepted_answers: [
+          p.span.text,
+          p.mark.koreanText.trim(),
+          koreanCore(p.span.text),
+        ].filter((x, i, arr) => x && arr.indexOf(x) === i),
         korean_start: p.span.start,
         korean_end: p.span.end,
         linked_vocabulary_mark_id: p.mark.id,
@@ -263,8 +287,8 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
       });
     }
 
-    // 2) 부족하면 중요 우리말 분산 보충
-    if (used.length < Math.min(2, maxPerSentence)) {
+    // 부족하면 중요 우리말 어절(조사 포함) 보충 — 항상 max까지
+    if (used.length < maxPerSentence) {
       const scored = wordEntries
         .map((w) => ({
           ...w,
@@ -275,11 +299,14 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
       for (const p of pickSpreadByScore(scored, need)) {
         if (overlaps(used, p.start, p.end)) continue;
         used.push({ a: p.start, b: p.end });
+        const answer = p.text.replace(/[.,!?;:'"()\-]+$/g, "");
         drafts.push({
           sentence_id: s.id,
           blank_order: order++,
-          answer_text: p.text.replace(/[.,!?;:'"()\-]+$/g, ""),
-          accepted_answers: [],
+          answer_text: answer,
+          accepted_answers: [answer, koreanCore(answer)].filter(
+            (x, i, arr) => x && arr.indexOf(x) === i
+          ),
           korean_start: p.start,
           korean_end: p.end,
           is_required: true,
@@ -290,7 +317,7 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
   return drafts;
 }
 
-/** 3단계: 중요 영어 어휘·표현을 문장 전반에 분산 */
+/** 3단계: 영문 빈칸을 더 많이 (문장당 최대 6) */
 export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[] {
   const drafts: Stage3BlankDraft[] = [];
   let order = 1;
@@ -318,9 +345,10 @@ export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[]
       cursor += part.length;
     }
 
-    const maxPerSentence = blankPickCount(Math.max(wordEntries.length, 1), "medium", {
-      max: 5,
-    });
+    const maxPerSentence = Math.max(
+      3,
+      blankPickCount(Math.max(wordEntries.length, 1), "hard", { max: 6 })
+    );
 
     const markCands = marks
       .map((m) => {
@@ -359,7 +387,8 @@ export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[]
       });
     }
 
-    if (used.length < Math.min(2, maxPerSentence)) {
+    // 항상 max까지 중요 어휘로 채움
+    if (used.length < maxPerSentence) {
       const scored = wordEntries
         .map((w) => ({
           ...w,
@@ -681,34 +710,7 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       added += 1;
     }
 
-    // 어휘 [a/b] — 마더텅 어휘편 혼동어
-    if (added < 3) {
-      for (const v of scanVocabChoiceHits(english)) {
-        if (added >= 3) break;
-        if (overlaps(used, v.start, v.end)) continue;
-        used.push({ a: v.start, b: v.end });
-        drafts.push({
-          sentence_id: s.id,
-          blank_order: order++,
-          answer_text: v.correct,
-          english_start: v.start,
-          english_end: v.end,
-          selected_text: v.correct,
-          choice_options: [
-            { id: `opt-c-${order}-0`, text: v.correct, isCorrect: true },
-            { id: `opt-w-${order}-1`, text: v.wrong, isCorrect: false },
-          ],
-          question_category: "vocabulary",
-          grammar_subcategory: [],
-          vocabulary_subcategory: [v.sub],
-          shuffle_options: true,
-          is_required: true,
-        });
-        added += 1;
-      }
-    }
-
-    // 문장에 포인트가 하나도 없으면 로컬 스캔 폴백
+    // 문장에 포인트가 하나도 없으면 로컬 문법 스캔만 (어휘 as a result→results 금지)
     if (added < 1) {
       const local = pickDiverseGrammarHits(scanWorkbookGrammarHits(english), 2, {
         forChoice: true,
@@ -744,40 +746,6 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
           shuffle_options: true,
           hint: h.koLabel || null,
           explanation: tip || null,
-          is_required: true,
-        });
-        added += 1;
-      }
-    }
-
-    if (added < 1) {
-      const marks = parseVocabMarks(s.vocabulary);
-      for (const m of marks.slice(0, 2)) {
-        const span = findSpanCi(english, m.englishText);
-        if (!span || overlaps(used, span.start, span.end)) continue;
-        used.push({ a: span.start, b: span.end });
-        const answer = span.text;
-        const wrong = answer.toLowerCase().endsWith("ing")
-          ? answer.replace(/ing$/i, "ed")
-          : answer.toLowerCase().endsWith("ed")
-            ? `${answer.slice(0, -2)}ing`
-            : `${answer}s`;
-        if (wrong.toLowerCase() === answer.toLowerCase()) continue;
-        drafts.push({
-          sentence_id: s.id,
-          blank_order: order++,
-          answer_text: answer,
-          english_start: span.start,
-          english_end: span.end,
-          selected_text: answer,
-          choice_options: [
-            { id: `opt-c-${order}-0`, text: answer, isCorrect: true },
-            { id: `opt-w-${order}-1`, text: wrong, isCorrect: false },
-          ],
-          question_category: "vocabulary",
-          grammar_subcategory: [],
-          vocabulary_subcategory: ["word_form"],
-          shuffle_options: true,
           is_required: true,
         });
         added += 1;

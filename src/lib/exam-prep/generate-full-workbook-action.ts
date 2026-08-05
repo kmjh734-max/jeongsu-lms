@@ -15,6 +15,10 @@ import {
   buildStage9Config,
   type SeedSentence,
 } from "@/lib/exam-prep/auto-seed-stages";
+import {
+  generateStage6WithAi,
+  generateStage7WithAi,
+} from "@/lib/exam-prep/generate-stage67-grammar-ai";
 import { createWorkbookAction, enrichPassageSentencesAction } from "@/lib/exam-prep/staff-actions";
 import { saveKoreanBlanksAction, setStage2PublishedAction } from "@/lib/exam-prep/stage2-staff-actions";
 import { saveStage3BlanksAction, setStage3PublishedAction } from "@/lib/exam-prep/stage3-staff-actions";
@@ -168,16 +172,31 @@ export async function generateFullExamPrepWorkbookAction(input: {
     await tryPublish(5, () => setStage5PublishedAction(passageId, true));
   }
 
-  const s6 = buildStage6Drafts(sentences);
-  if (s6.length > 0) {
-    const r = await saveStage6ItemsAction(passageId, s6);
-    if (!r.ok) return { ok: false as const, message: `6단계: ${r.message}` };
-    notes.push(`6단계 ${s6.length}문항`);
-    await tryPublish(6, () => setStage6PublishedAction(passageId, true));
+  // 6·7단계: 변형문제 어법 API(pickGrammarFocus) 우선, 실패 시 규칙 폴백
+  {
+    const ai6 = await generateStage6WithAi(sentences);
+    const s6 = ai6.drafts.length > 0 ? ai6.drafts : buildStage6Drafts(sentences);
+    if (ai6.source === "ai") notes.push(`6단계 AI 어법 ${s6.length}문항`);
+    else if (ai6.error) notes.push(`6단계 AI 실패→규칙: ${ai6.error}`);
+    if (s6.length > 0) {
+      const r = await saveStage6ItemsAction(passageId, s6);
+      if (!r.ok) return { ok: false as const, message: `6단계: ${r.message}` };
+      if (ai6.source !== "ai") notes.push(`6단계 규칙 ${s6.length}문항`);
+      await tryPublish(6, () => setStage6PublishedAction(passageId, true));
+    }
   }
 
   {
-    const seed7 = buildStage7Seed(sentences);
+    const ai7 = await generateStage7WithAi(sentences);
+    const seed7 =
+      ai7.source === "ai" && ai7.candidates.some((c) => c.is_error)
+        ? ai7
+        : buildStage7Seed(sentences);
+    if (ai7.source === "ai") {
+      notes.push(`7단계 AI 오류 ${seed7.requiredErrorCount}개`);
+    } else if (ai7.error) {
+      notes.push(`7단계 AI 실패→규칙: ${ai7.error}`);
+    }
     const d = await saveStage7DisplayTextsAction(passageId, seed7.displays);
     if (!d.ok) return { ok: false as const, message: `7단계 표시문장: ${d.message}` };
     if (seed7.candidates.length > 0) {
