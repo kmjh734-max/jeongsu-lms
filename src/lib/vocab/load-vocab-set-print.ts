@@ -11,21 +11,13 @@ export interface VocabSetPrintData {
   items: VocabItem[];
 }
 
+/** RLS가 읽기 권한을 결정한다(강사: 본인 세트 + 잠금 커리큘럼). */
 export async function loadVocabSetPrintData(
   supabase: SupabaseClient,
-  setId: string,
-  teacherScopeId?: string
+  setId: string
 ): Promise<VocabSetPrintData | null> {
-  let query = supabase.from("vocab_sets").select("*").eq("id", setId);
-
-  if (teacherScopeId) {
-    query = query.or(
-      `teacher_id.eq.${teacherScopeId},created_by.eq.${teacherScopeId}`
-    );
-  }
-
   const [{ data: set }, items] = await Promise.all([
-    query.single(),
+    supabase.from("vocab_sets").select("*").eq("id", setId).maybeSingle(),
     fetchAllRows<VocabItem>((from, to) =>
       supabase
         .from("vocab_items")
@@ -46,18 +38,14 @@ export async function loadVocabSetPrintData(
 
 async function loadSetsByIds(
   supabase: SupabaseClient,
-  setIds: string[],
-  teacherScopeId?: string
+  setIds: string[]
 ): Promise<VocabSet[]> {
   const sets: VocabSet[] = [];
   for (const batch of chunkIds(setIds, 80)) {
-    let setsQuery = supabase.from("vocab_sets").select("*").in("id", batch);
-    if (teacherScopeId) {
-      setsQuery = setsQuery.or(
-        `teacher_id.eq.${teacherScopeId},created_by.eq.${teacherScopeId}`
-      );
-    }
-    const { data, error } = await setsQuery;
+    const { data, error } = await supabase
+      .from("vocab_sets")
+      .select("*")
+      .in("id", batch);
     if (error) throw new Error(error.message);
     for (const row of data ?? []) sets.push(row as VocabSet);
   }
@@ -86,13 +74,12 @@ async function loadItemsBySetIds(
 
 export async function loadVocabSetsPrintData(
   supabase: SupabaseClient,
-  setIds: string[],
-  teacherScopeId?: string
+  setIds: string[]
 ): Promise<VocabPrintSection[]> {
   const uniqueIds = [...new Set(setIds.filter(Boolean))];
   if (uniqueIds.length === 0) return [];
 
-  const sets = await loadSetsByIds(supabase, uniqueIds, teacherScopeId);
+  const sets = await loadSetsByIds(supabase, uniqueIds);
   if (!sets.length) return [];
 
   const allowedSetIds = sets.map((s) => s.id);
@@ -106,7 +93,6 @@ export async function loadVocabSetsPrintData(
     itemsBySet.set(sid, list);
   }
 
-  // Keep stable per-set order even if pages interleaved across batches
   for (const [sid, list] of itemsBySet) {
     list.sort((a, b) => {
       if (a.order_index !== b.order_index) return a.order_index - b.order_index;

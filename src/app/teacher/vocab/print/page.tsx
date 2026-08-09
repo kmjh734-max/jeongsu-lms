@@ -24,9 +24,13 @@ export default async function TeacherVocabBulkPrintPage({
   }
 
   const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "teacher") {
+    redirect("/login");
+  }
+
   const supabase = await createClient();
   const [sections, branding] = await Promise.all([
-    loadVocabSetsPrintData(supabase, setIds, profile!.id),
+    loadVocabSetsPrintData(supabase, setIds),
     getAcademyBrandingForCurrentUser(),
   ]);
   if (sections.length === 0) notFound();

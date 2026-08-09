@@ -22,15 +22,15 @@ export default async function TeacherVocabSetPage({
   const { setId } = await params;
   const { import: importParam } = await searchParams;
   const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "teacher") notFound();
   const supabase = await createClient();
-  const teacherId = profile!.id;
 
+  // RLS: 본인 세트 + 잠금 커리큘럼 세트 읽기 허용
   const { data: set } = await supabase
     .from("vocab_sets")
     .select("*")
     .eq("id", setId)
-    .or(`teacher_id.eq.${teacherId},created_by.eq.${teacherId}`)
-    .single();
+    .maybeSingle();
 
   if (!set) notFound();
 

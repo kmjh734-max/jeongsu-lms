@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VocabSetPrintView } from "@/components/vocab/VocabSetPrintView";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
@@ -13,9 +13,13 @@ interface PageProps {
 export default async function TeacherVocabSetPrintPage({ params }: PageProps) {
   const { setId } = await params;
   const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "teacher") {
+    redirect("/login");
+  }
+
   const supabase = await createClient();
   const [loaded, branding] = await Promise.all([
-    loadVocabSetPrintData(supabase, setId, profile!.id),
+    loadVocabSetPrintData(supabase, setId),
     getAcademyBrandingForCurrentUser(),
   ]);
   if (!loaded) notFound();
