@@ -22,12 +22,9 @@ export async function loadAssignableStudents(
       studentsQuery = studentsQuery.eq("academy_id", academyId);
     }
 
-    let membershipsQuery = supabase
+    const membershipsQuery = supabase
       .from("class_students")
       .select("student_id, class_id, class:classes(name, is_active, academy_id)");
-    if (academyId) {
-      // filter after fetch if join can't filter easily
-    }
 
     const [{ data: students }, { data: memberships }] = await Promise.all([
       studentsQuery,

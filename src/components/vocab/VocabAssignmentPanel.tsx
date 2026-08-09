@@ -220,21 +220,6 @@ export function VocabAssignmentPanel({
     setLoading(false);
   }
 
-  async function handleRemove(assignmentId: string) {
-    if (!confirm("이 배정을 해제할까요?")) return;
-    setLoading(true);
-    try {
-      const result = await onRemoveAssignment(assignmentId);
-      setMessage(result.message);
-      if (result.ok) router.refresh();
-    } catch (e) {
-      setMessage(
-        e instanceof Error ? e.message : "배정 해제에 실패했습니다."
-      );
-    }
-    setLoading(false);
-  }
-
   async function handleRemoveGroup(items: FolderAssignmentRow[]) {
     if (items.length === 0) return;
     const label =
