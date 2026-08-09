@@ -1263,8 +1263,9 @@
 .vocab-answer-key-body {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 14px;
+  row-gap: 0;
   align-content: start;
   min-height: 0;
   overflow: hidden;
@@ -1273,23 +1274,29 @@
 .vocab-answer-key-col {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
 }
 
 .vocab-answer-key-row {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   align-items: baseline;
-  font-size: calc(var(--vocab-body-size) + 1px);
-  line-height: 1.35;
+  font-size: 11px;
+  line-height: 1.25;
   break-inside: avoid;
+  padding: 1px 0;
+}
+
+.vocab-print-page--b5 .vocab-answer-key-row {
+  font-size: 10px;
+  line-height: 1.22;
 }
 
 .vocab-answer-key-no {
   flex-shrink: 0;
   font-weight: 900;
   color: var(--vocab-navy);
-  min-width: 1.6em;
+  min-width: 1.4em;
 }
 
 .vocab-answer-key-ans {
@@ -1300,6 +1307,21 @@
 
 .vocab-print-page--answer-key .vocab-print-book-title {
   color: #0f766e;
+}
+
+.vocab-print-page--answer-key .vocab-print-header {
+  margin-bottom: 6px;
+}
+
+/* 정답지만 인쇄할 때 시험지·표지 숨김 */
+body[data-vocab-print-scope="answers"] .vocab-print-cover,
+body[data-vocab-print-scope="answers"] .vocab-print-page--exam-sheet {
+  display: none !important;
+}
+
+/* 시험지만 인쇄할 때 정답지 숨김 */
+body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
+  display: none !important;
 }
 
 .vocab-exam-list--basic {

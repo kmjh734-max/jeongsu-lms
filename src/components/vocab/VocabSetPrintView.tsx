@@ -145,8 +145,16 @@ export function VocabSetPrintView({
   const [examSettings, setExamSettings] = useState<ExamPrintSettings>(() =>
     parseExamPrintSettings(searchParams)
   );
+  /** 정답지를 시험지와 함께 미리보기/인쇄에 포함할지 */
+  const [includeAnswerKey, setIncludeAnswerKey] = useState(
+    () =>
+      searchParams.get("answers") === "1" ||
+      searchParams.get("answers") === "true"
+  );
   const [printing, setPrinting] = useState(false);
   const [printPreparing, setPrintPreparing] = useState(false);
+  /** 정답지만 인쇄할 때 미리보기에 정답지를 잠시 띄움 */
+  const [forceAnswerKeyPreview, setForceAnswerKeyPreview] = useState(false);
 
   const pageDims = VOCAB_PRINT_PAGE_DIMENSIONS[size];
   const perPage = itemsPerVocabPrintPage(mode, size, fontScale, lineSpacing);
@@ -164,7 +172,13 @@ export function VocabSetPrintView({
   const totalItems = allItems.length;
 
   const examGenerated = useMemo(() => {
-    if (mode !== "exam") return { questions: [] as PrintExamQuestion[], skipped: 0 };
+    if (mode !== "exam") {
+      return {
+        questions: [] as PrintExamQuestion[],
+        skipped: 0,
+        capped: false,
+      };
+    }
     return generatePrintExamQuestions(allItems, examSettings.counts, {
       shuffle: examSettings.layout.shuffle,
       shuffleSeed: examSettings.shuffleSeed,
@@ -176,6 +190,11 @@ export function VocabSetPrintView({
     examSettings.layout.shuffle,
     examSettings.shuffleSeed,
   ]);
+
+  const showAnswerKey =
+    mode === "exam" &&
+    examGenerated.questions.length > 0 &&
+    (includeAnswerKey || forceAnswerKeyPreview);
 
   const flatPages = useMemo(() => {
     if (deferredMode === "exam") return [];
@@ -267,21 +286,25 @@ export function VocabSetPrintView({
   const examExampleQuestions = examPagination.examples;
 
   const answerKeyPages = useMemo(() => {
-    if (mode !== "exam" || examGenerated.questions.length === 0) return [];
-    const perPage = size === "b5" ? 36 : 44;
+    if (!showAnswerKey) return [];
+    // 3단 밀집 배치 — 일반 시험(≤60문항)은 한 장에 맞춤
+    const perPage = size === "b5" ? 66 : 78;
     const pages: PrintExamQuestion[][] = [];
     const qs = examGenerated.questions;
     for (let i = 0; i < qs.length; i += perPage) {
       pages.push(qs.slice(i, i + perPage));
     }
     return pages;
-  }, [mode, examGenerated.questions, size]);
+  }, [showAnswerKey, examGenerated.questions, size]);
 
   const bodyPageCount =
     mode === "exam"
-      ? resolvedExamPages.length + answerKeyPages.length
+      ? resolvedExamPages.length +
+        (includeAnswerKey || forceAnswerKeyPreview ? answerKeyPages.length : 0)
       : flatPages.length;
-  const pageCount = bodyPageCount + (cover.enabled ? 1 : 0);
+  const pageCount =
+    bodyPageCount +
+    (cover.enabled && !forceAnswerKeyPreview ? 1 : 0);
   const examSheetCount = resolvedExamPages.length;
 
   useEffect(() => {
@@ -303,6 +326,10 @@ export function VocabSetPrintView({
     setLineSpacing(parseVocabPrintLineSpacing(searchParams.get("spacing")));
     setBindingMargin(parseVocabPrintBinding(searchParams.get("bind")));
     setExamSettings(parseExamPrintSettings(searchParams));
+    setIncludeAnswerKey(
+      searchParams.get("answers") === "1" ||
+        searchParams.get("answers") === "true"
+    );
     const defaults = buildDefaultVocabPrintCover({
       sections,
       mode: nextMode,
@@ -310,7 +337,16 @@ export function VocabSetPrintView({
       documentTitle,
       totalItems,
     });
-    setCover(mergeVocabPrintCoverFromSearchParams(defaults, searchParams));
+    // 세트 2개 이상이면 표지 기본 ON (URL에 cover=0이 있을 때만 끔)
+    const merged = mergeVocabPrintCoverFromSearchParams(defaults, searchParams);
+    if (
+      sections.length > 1 &&
+      searchParams.get("cover") == null &&
+      !merged.enabled
+    ) {
+      merged.enabled = true;
+    }
+    setCover(merged);
   }, [searchParams, sections, academyName, documentTitle, totalItems]);
 
   useEffect(() => {
@@ -360,6 +396,19 @@ export function VocabSetPrintView({
       syncLayoutToUrl();
     }, 400);
   }, [syncLayoutToUrl]);
+
+  // 다중 세트 인쇄: 표지 기본값으로 켜 두기
+  useEffect(() => {
+    if (sections.length <= 1) return;
+    if (searchParams.get("cover") === "0") return;
+    setCover((prev) => {
+      if (prev.enabled) return prev;
+      const next = { ...coverDefaults, enabled: true };
+      coverRef.current = next;
+      return next;
+    });
+    queueLayoutUrlSync();
+  }, [sections.length, coverDefaults, searchParams, queueLayoutUrlSync]);
 
   const updateCover = useCallback(
     (patch: Partial<VocabPrintCoverSettings>) => {
@@ -468,13 +517,45 @@ export function VocabSetPrintView({
 
   const handlePrint = useCallback(() => {
     ensurePrintPageStyle();
+    document.body.dataset.vocabPrintScope =
+      mode === "exam" && !includeAnswerKey ? "exam" : "all";
     if (mode === "exam") {
       window.print();
+      window.setTimeout(() => {
+        delete document.body.dataset.vocabPrintScope;
+      }, 500);
       return;
     }
     setPrintPreparing(true);
     setPrinting(true);
-  }, [mode, ensurePrintPageStyle]);
+  }, [mode, includeAnswerKey, ensurePrintPageStyle]);
+
+  const handlePrintAnswerKeyOnly = useCallback(() => {
+    if (examGenerated.questions.length === 0) return;
+    ensurePrintPageStyle();
+    setPrintPreparing(true);
+    setForceAnswerKeyPreview(true);
+  }, [examGenerated.questions.length, ensurePrintPageStyle]);
+
+  useEffect(() => {
+    if (!forceAnswerKeyPreview || !printPreparing) return;
+    if (answerKeyPages.length === 0) return;
+    let cancelled = false;
+    const t = window.setTimeout(() => {
+      if (cancelled) return;
+      document.body.dataset.vocabPrintScope = "answers";
+      setPrintPreparing(false);
+      window.print();
+      window.setTimeout(() => {
+        delete document.body.dataset.vocabPrintScope;
+        setForceAnswerKeyPreview(false);
+      }, 400);
+    }, 50);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+  }, [forceAnswerKeyPreview, printPreparing, answerKeyPages.length]);
 
   useEffect(() => {
     if (!printing) return;
@@ -550,10 +631,11 @@ export function VocabSetPrintView({
   const previewPages =
     mode === "exam" ? (
       <>
-        {resolvedExamPages.map((pageSlice, pageIndex) => (
+        {(!forceAnswerKeyPreview ? resolvedExamPages : []).map(
+          (pageSlice, pageIndex) => (
           <article
             key={`exam-${pageIndex}`}
-            className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} vocab-print-page-break`}
+            className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--exam-sheet vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} vocab-print-page-break`}
             data-size={size}
             style={examPageStyle}
           >
@@ -595,11 +677,13 @@ export function VocabSetPrintView({
           </article>
         ))}
         {answerKeyPages.map((slice, pageIndex) => {
-          const isLast =
-            pageIndex === answerKeyPages.length - 1;
-          const mid = Math.ceil(slice.length / 2);
-          const left = slice.slice(0, mid);
-          const right = slice.slice(mid);
+          const isLast = pageIndex === answerKeyPages.length - 1;
+          const colSize = Math.ceil(slice.length / 3);
+          const cols = [
+            slice.slice(0, colSize),
+            slice.slice(colSize, colSize * 2),
+            slice.slice(colSize * 2),
+          ];
           return (
             <article
               key={`answer-${pageIndex}`}
@@ -619,22 +703,16 @@ export function VocabSetPrintView({
                 </div>
               </header>
               <div className="vocab-answer-key-body">
-                <div className="vocab-answer-key-col">
-                  {left.map((q) => (
-                    <div key={q.number} className="vocab-answer-key-row">
-                      <span className="vocab-answer-key-no">{q.number}.</span>
-                      <span className="vocab-answer-key-ans">{q.answer}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="vocab-answer-key-col">
-                  {right.map((q) => (
-                    <div key={q.number} className="vocab-answer-key-row">
-                      <span className="vocab-answer-key-no">{q.number}.</span>
-                      <span className="vocab-answer-key-ans">{q.answer}</span>
-                    </div>
-                  ))}
-                </div>
+                {cols.map((col, colIndex) => (
+                  <div key={colIndex} className="vocab-answer-key-col">
+                    {col.map((q) => (
+                      <div key={q.number} className="vocab-answer-key-row">
+                        <span className="vocab-answer-key-no">{q.number}.</span>
+                        <span className="vocab-answer-key-ans">{q.answer}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
               <footer className="vocab-print-footer">
                 <span>교사용 정답지</span>
@@ -1071,11 +1149,36 @@ export function VocabSetPrintView({
                     예문에 단어가 포함된 항목이 필요합니다.
                   </p>
                 ) : null}
+                {examGenerated.capped ? (
+                  <p className="text-xs text-amber-700">
+                    단어 {totalItems}개까지만 출제됩니다. (요청{" "}
+                    {examTotal}문항 → 실제 {examGenerated.questions.length}문항)
+                  </p>
+                ) : null}
                 {examGenerated.skipped > 0 ? (
                   <p className="text-xs text-amber-700">
                     {examGenerated.skipped}문항은 보기를 만들 수 없어 제외되었습니다.
                   </p>
                 ) : null}
+                <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={includeAnswerKey}
+                    onChange={(e) => {
+                      const on = e.target.checked;
+                      setIncludeAnswerKey(on);
+                      const params = new URLSearchParams(
+                        searchParams.toString()
+                      );
+                      if (on) params.set("answers", "1");
+                      else params.delete("answers");
+                      skipUrlEchoRef.current = true;
+                      router.replace(`?${params.toString()}`);
+                    }}
+                    className="rounded border-slate-300 text-emerald-700 focus:ring-emerald-600"
+                  />
+                  시험지와 정답지 함께 인쇄
+                </label>
               </div>
             ) : null}
 
@@ -1089,8 +1192,24 @@ export function VocabSetPrintView({
                 }
                 className="w-full rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-50"
               >
-                {printPreparing ? "인쇄 준비 중…" : "인쇄 / PDF 저장"}
+                {printPreparing
+                  ? "인쇄 준비 중…"
+                  : mode === "exam"
+                    ? includeAnswerKey
+                      ? "시험지+정답지 인쇄"
+                      : "시험지 인쇄"
+                    : "인쇄 / PDF 저장"}
               </button>
+              {mode === "exam" && examGenerated.questions.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={handlePrintAnswerKeyOnly}
+                  disabled={printPreparing}
+                  className="w-full rounded-lg border border-teal-700 bg-white px-4 py-2.5 text-sm font-bold text-teal-800 hover:bg-teal-50 disabled:opacity-50"
+                >
+                  정답지만 인쇄
+                </button>
+              ) : null}
               <p className="text-[10px] leading-snug text-slate-500">
                 PDF 저장은 용지 선택이 없습니다. 위에서 고른{" "}
                 <strong className="font-semibold text-slate-700">
@@ -1134,7 +1253,7 @@ export function VocabSetPrintView({
               data-size={size}
               className="flex w-full max-w-[920px] flex-col items-center gap-8 print:max-w-none print:gap-0"
             >
-              {cover.enabled ? (
+              {cover.enabled && !forceAnswerKeyPreview ? (
                 <VocabPrintCoverPage
                   cover={cover}
                   size={size}

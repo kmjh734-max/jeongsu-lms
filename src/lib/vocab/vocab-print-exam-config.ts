@@ -83,6 +83,40 @@ export function examConfigTotal(config: ExamPrintConfig): number {
   );
 }
 
+const EXAM_CONFIG_KEYS: (keyof ExamPrintConfig)[] = [
+  "word_mc",
+  "word_sa",
+  "meaning_mc",
+  "meaning_sa",
+  "example_mc",
+  "example_sa",
+];
+
+/** 요청 문항 합이 단어 수를 넘지 않도록 앞에서부터 배분 */
+export function clampExamConfigToPool(
+  config: ExamPrintConfig,
+  maxTotal: number
+): ExamPrintConfig {
+  const max = Math.max(0, maxTotal);
+  if (examConfigTotal(config) <= max) return config;
+
+  let remaining = max;
+  const next: ExamPrintConfig = {
+    word_mc: 0,
+    word_sa: 0,
+    meaning_mc: 0,
+    meaning_sa: 0,
+    example_mc: 0,
+    example_sa: 0,
+  };
+  for (const key of EXAM_CONFIG_KEYS) {
+    const take = Math.min(config[key], remaining);
+    next[key] = take;
+    remaining -= take;
+  }
+  return next;
+}
+
 function readCount(
   searchParams: URLSearchParams,
   key: keyof ExamPrintConfig

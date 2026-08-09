@@ -1,6 +1,13 @@
 import type { VocabItem } from "@/types/database";
 import { buildChoices } from "@/lib/vocab/generate-test-questions";
-import type { ExamPrintConfig, ExamQuestionKind } from "@/lib/vocab/vocab-print-exam-config";
+import type {
+  ExamPrintConfig,
+  ExamQuestionKind,
+} from "@/lib/vocab/vocab-print-exam-config";
+import {
+  clampExamConfigToPool,
+  examConfigTotal,
+} from "@/lib/vocab/vocab-print-exam-config";
 
 export interface PrintExamQuestion {
   kind: ExamQuestionKind;
@@ -41,14 +48,10 @@ function shuffle<T>(arr: T[]): T[] {
   return copy;
 }
 
-function pickItems(pool: VocabItem[], count: number): VocabItem[] {
-  if (count <= 0) return [];
-  const shuffled = shuffle(pool);
-  const out: VocabItem[] = [];
-  for (let i = 0; i < count; i++) {
-    out.push(shuffled[i % shuffled.length]!);
-  }
-  return out;
+/** 재사용 없이 count개만 뽑음 (부족하면 그만큼만) */
+function pickItemsNoReuse(pool: VocabItem[], count: number): VocabItem[] {
+  if (count <= 0 || pool.length === 0) return [];
+  return shuffle(pool).slice(0, Math.min(count, pool.length));
 }
 
 const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
@@ -146,47 +149,56 @@ export function generatePrintExamQuestions(
   items: VocabItem[],
   config: ExamPrintConfig,
   options?: { shuffle?: boolean; shuffleSeed?: number }
-): { questions: PrintExamQuestion[]; skipped: number } {
+): { questions: PrintExamQuestion[]; skipped: number; capped: boolean } {
   if (items.length < 2) {
-    return { questions: [], skipped: 0 };
+    return { questions: [], skipped: 0, capped: false };
   }
+
+  const cappedConfig = clampExamConfigToPool(config, items.length);
+  const capped = examConfigTotal(config) > examConfigTotal(cappedConfig);
 
   const basicQuestions: PrintExamQuestion[] = [];
   const exampleQuestions: PrintExamQuestion[] = [];
   let skipped = 0;
 
-  const examplePool = itemsWithBlankableExample(items);
+  const examplePoolAll = itemsWithBlankableExample(items);
+  const usedIds = new Set<string>();
 
   for (const { kind, configKey } of KIND_ORDER) {
-    const count = config[configKey];
+    const count = cappedConfig[configKey];
     if (count <= 0) continue;
 
     const isExample = kind === "example_mc" || kind === "example_sa";
-    const pool = isExample ? examplePool : items;
+    const basePool = isExample ? examplePoolAll : items;
+    const pool = basePool.filter((item) => !usedIds.has(item.id));
     if (pool.length === 0) {
       skipped += count;
       continue;
     }
 
-    const picked = pickItems(pool, count);
+    const picked = pickItemsNoReuse(pool, count);
+    skipped += Math.max(0, count - picked.length);
     const bucket = isExample ? exampleQuestions : basicQuestions;
 
     for (const item of picked) {
+      usedIds.add(item.id);
       const q = buildQuestion(kind, item, items);
       if (!q) {
         skipped += 1;
+        usedIds.delete(item.id);
         continue;
       }
       bucket.push(q);
     }
   }
 
-  // shuffleSeed changes re-run generation (e.g. 「순서 다시 섞기」)
   void options?.shuffleSeed;
 
   const doShuffle = options?.shuffle !== false;
   const orderedBasic = doShuffle ? shuffle(basicQuestions) : basicQuestions;
-  const orderedExamples = doShuffle ? shuffle(exampleQuestions) : exampleQuestions;
+  const orderedExamples = doShuffle
+    ? shuffle(exampleQuestions)
+    : exampleQuestions;
 
   return {
     questions: [...orderedBasic, ...orderedExamples].map((q, i) => ({
@@ -194,5 +206,6 @@ export function generatePrintExamQuestions(
       number: i + 1,
     })),
     skipped,
+    capped,
   };
 }

@@ -10,6 +10,8 @@ import type {
 import {
   EXAM_COLUMN_LABELS,
   EXAM_LINE_SPACING_LABELS,
+  clampExamConfigToPool,
+  examConfigTotal,
 } from "@/lib/vocab/vocab-print-exam-config";
 
 interface VocabPrintExamConfigProps {
@@ -36,8 +38,14 @@ export function VocabPrintExamConfig({
 }: VocabPrintExamConfigProps) {
   const { counts, layout } = settings;
 
+  const total = examConfigTotal(counts);
+  const overPool = total > maxPool;
+
   function setCounts(next: ExamPrintConfig) {
-    onChange({ ...settings, counts: next });
+    onChange({
+      ...settings,
+      counts: clampExamConfigToPool(next, maxPool),
+    });
   }
 
   function setLayout(next: Partial<ExamPrintLayout>) {
@@ -50,14 +58,24 @@ export function VocabPrintExamConfig({
 
   function setCount(key: keyof ExamPrintConfig, raw: string) {
     const n = Number.parseInt(raw, 10);
-    const value = Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 0;
+    const value =
+      Number.isFinite(n) && n > 0 ? Math.min(n, Math.max(maxPool, 0), 99) : 0;
     setCounts({ ...counts, [key]: value });
   }
 
   return (
     <div className="w-full space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
       <p className="text-xs font-semibold text-slate-600">
-        시험지 문항 수 (세트 단어 {maxPool}개 · 예문은 단어·의미 다음 1단 출력)
+        시험지 문항 수 (단어 {maxPool}개 · 합계 최대 {maxPool}문항 · 예문은 마지막
+        1단)
+      </p>
+      <p
+        className={`text-[11px] font-medium ${
+          overPool ? "text-amber-700" : "text-slate-500"
+        }`}
+      >
+        현재 합계 {Math.min(total, maxPool)} / {maxPool}문항
+        {overPool ? " · 단어 수를 넘길 수 없어 자동으로 줄입니다." : ""}
       </p>
 
       <table className="w-full border-collapse text-sm">
@@ -76,7 +94,7 @@ export function VocabPrintExamConfig({
                 <input
                   type="number"
                   min={0}
-                  max={99}
+                  max={maxPool || 0}
                   value={counts[row.mc] || ""}
                   onChange={(e) => setCount(row.mc, e.target.value)}
                   className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-sm"
@@ -86,7 +104,7 @@ export function VocabPrintExamConfig({
                 <input
                   type="number"
                   min={0}
-                  max={99}
+                  max={maxPool || 0}
                   value={counts[row.sa] || ""}
                   onChange={(e) => setCount(row.sa, e.target.value)}
                   className="w-16 rounded border border-slate-300 px-2 py-1 text-center text-sm"
