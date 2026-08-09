@@ -1319,17 +1319,9 @@ body[data-vocab-print-scope="answers"] .vocab-print-page--exam-sheet {
   display: none !important;
 }
 
-/* 시험지만 인쇄할 때 정답지 숨김 + 마지막 시험지 뒤 빈 페이지 방지 */
+/* 시험지만 인쇄할 때 정답지 숨김 */
 body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   display: none !important;
-}
-
-@media print {
-  body[data-vocab-print-scope="exam"]
-    .vocab-print-page--exam-sheet:has(+ .vocab-print-page--answer-key) {
-    break-after: auto;
-    page-break-after: auto;
-  }
 }
 
 .vocab-exam-list--basic {
@@ -2285,6 +2277,54 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   .vocab-print-page-break {
     break-after: page !important;
     page-break-after: always !important;
+  }
+
+  .vocab-print-page-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* 마지막 페이지·시험지만 인쇄 시 뒤쪽 빈 페이지 방지 */
+  .vocab-print-page-last,
+  .vocab-print-page--exam-sheet:last-of-type {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  body[data-vocab-print-scope="exam"] .vocab-print-page--exam-sheet {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  body[data-vocab-print-scope="exam"]
+    .vocab-print-page--exam-sheet.vocab-print-page-break {
+    break-after: page !important;
+    page-break-after: always !important;
+  }
+
+  /* 정답지만 인쇄: 숨긴 시험지 뒤 break-before로 생기는 빈 페이지 제거 */
+  body[data-vocab-print-scope="answers"] .vocab-print-page--answer-key {
+    break-before: auto !important;
+    page-break-before: auto !important;
+  }
+
+  body[data-vocab-print-scope="answers"]
+    .vocab-print-page--answer-key
+    + .vocab-print-page--answer-key {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* 고정 297mm + break 조합 빈 페이지 완화 */
+  .vocab-print-page.vocab-print-page--exam {
+    min-height: 0 !important;
+    height: 286mm !important;
+    max-height: 286mm !important;
+  }
+
+  body[data-vocab-print-size="b5"] .vocab-print-page.vocab-print-page--exam {
+    height: 248mm !important;
+    max-height: 248mm !important;
   }
 
   .a4-report {

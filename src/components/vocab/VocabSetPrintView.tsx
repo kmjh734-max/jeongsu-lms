@@ -583,10 +583,14 @@ export function VocabSetPrintView({
   const previewPages =
     mode === "exam" ? (
       <>
-        {resolvedExamPages.map((pageSlice, pageIndex) => (
+        {resolvedExamPages.map((pageSlice, pageIndex) => {
+          const isLastExam = pageIndex === resolvedExamPages.length - 1;
+          // 마지막 장에는 break-after 금지(Chrome 빈 페이지). 정답지는 break-before로 나눔.
+          const examBreak = isLastExam ? "" : "vocab-print-page-break";
+          return (
           <article
             key={`exam-${pageIndex}`}
-            className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--exam-sheet vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} vocab-print-page-break`}
+            className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--exam-sheet vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} ${examBreak}${isLastExam ? " vocab-print-page-last" : ""}`}
             data-size={size}
             style={examPageStyle}
           >
@@ -626,7 +630,8 @@ export function VocabSetPrintView({
               </span>
             </footer>
           </article>
-        ))}
+          );
+        })}
         {answerKeyPages.map((slice, pageIndex) => {
           const isLast = pageIndex === answerKeyPages.length - 1;
           const colSize = Math.ceil(slice.length / 3);
@@ -635,10 +640,17 @@ export function VocabSetPrintView({
             slice.slice(colSize, colSize * 2),
             slice.slice(colSize * 2),
           ];
+          // 시험지 뒤에 붙일 때·정답지 2장째부터 페이지 나눔
+          const answerBreakClass =
+            pageIndex === 0
+              ? resolvedExamPages.length > 0
+                ? "vocab-print-page-break-before"
+                : ""
+              : "vocab-print-page-break-before";
           return (
             <article
               key={`answer-${pageIndex}`}
-              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--answer-key vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} ${isLast ? "" : "vocab-print-page-break"}`}
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--answer-key vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} ${answerBreakClass} ${isLast ? "vocab-print-page-last" : ""}`}
               data-size={size}
               style={examPageStyle}
             >
