@@ -1319,9 +1319,17 @@ body[data-vocab-print-scope="answers"] .vocab-print-page--exam-sheet {
   display: none !important;
 }
 
-/* 시험지만 인쇄할 때 정답지 숨김 */
+/* 시험지만 인쇄할 때 정답지 숨김 + 마지막 시험지 뒤 빈 페이지 방지 */
 body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   display: none !important;
+}
+
+@media print {
+  body[data-vocab-print-scope="exam"]
+    .vocab-print-page--exam-sheet:has(+ .vocab-print-page--answer-key) {
+    break-after: auto;
+    page-break-after: auto;
+  }
 }
 
 .vocab-exam-list--basic {

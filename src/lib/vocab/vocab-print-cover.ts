@@ -137,10 +137,9 @@ export function buildDefaultVocabPrintCover(input: {
   totalItems: number;
 }): VocabPrintCoverSettings {
   const { sections, mode, academyName, documentTitle, totalItems } = input;
-  const multi = sections.length > 1;
   const academy = academyName.trim() || "학원";
   return {
-    enabled: multi,
+    enabled: false,
     theme: "poster",
     title: defaultCoverTitle(documentTitle, sections),
     subtitle: defaultSubtitle(mode),
