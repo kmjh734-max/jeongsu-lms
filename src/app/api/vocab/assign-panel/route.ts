@@ -20,16 +20,10 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
   const role = profile.role as "admin" | "teacher";
-  const academyId = profile.academy_id ?? null;
 
   try {
     if (unfiled) {
-      const data = await loadUnfiledAssignPanelData(
-        supabase,
-        role,
-        profile.id,
-        academyId
-      );
+      const data = await loadUnfiledAssignPanelData(supabase, role, profile.id);
       return NextResponse.json(data);
     }
 
@@ -38,8 +32,7 @@ export async function GET(request: Request) {
         supabase,
         role,
         profile.id,
-        folderId,
-        academyId
+        folderId
       );
       return NextResponse.json(data);
     }
@@ -49,8 +42,7 @@ export async function GET(request: Request) {
         supabase,
         role,
         profile.id,
-        setId,
-        academyId
+        setId
       );
       return NextResponse.json(data);
     }

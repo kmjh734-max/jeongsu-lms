@@ -8,27 +8,19 @@ import type {
 export async function loadAssignableStudents(
   supabase: SupabaseClient,
   role: "admin" | "teacher",
-  userId: string,
-  academyId: string | null
+  userId: string
 ): Promise<AssignableStudent[]> {
   if (role === "admin") {
-    let studentsQuery = supabase
-      .from("profiles")
-      .select("id, name, username")
-      .eq("role", "student")
-      .eq("is_active", true)
-      .order("name");
-    if (academyId) {
-      studentsQuery = studentsQuery.eq("academy_id", academyId);
-    }
-
-    const membershipsQuery = supabase
-      .from("class_students")
-      .select("student_id, class_id, class:classes(name, is_active, academy_id)");
-
     const [{ data: students }, { data: memberships }] = await Promise.all([
-      studentsQuery,
-      membershipsQuery,
+      supabase
+        .from("profiles")
+        .select("id, name, username")
+        .eq("role", "student")
+        .eq("is_active", true)
+        .order("name"),
+      supabase
+        .from("class_students")
+        .select("student_id, class_id, class:classes(name, is_active)"),
     ]);
 
     const classInfoByStudent = new Map<
@@ -38,15 +30,8 @@ export async function loadAssignableStudents(
 
     for (const row of memberships ?? []) {
       const cls = Array.isArray(row.class) ? row.class[0] : row.class;
-      const classRow = cls as {
-        name?: string;
-        is_active?: boolean;
-        academy_id?: string | null;
-      } | null;
+      const classRow = cls as { name?: string; is_active?: boolean } | null;
       if (!classRow?.name || classRow.is_active === false) continue;
-      if (academyId && classRow.academy_id && classRow.academy_id !== academyId) {
-        continue;
-      }
       const name = classRow.name;
       const sid = row.student_id as string;
       const entry = classInfoByStudent.get(sid) ?? { ids: [], names: [] };
@@ -69,27 +54,20 @@ export async function loadAssignableStudents(
     });
   }
 
-  let teacherClassesQuery = supabase
-    .from("classes")
-    .select("id, name")
-    .eq("teacher_id", userId)
-    .eq("is_active", true);
-  if (academyId) {
-    teacherClassesQuery = teacherClassesQuery.eq("academy_id", academyId);
-  }
-
-  let createdStudentsQuery = supabase
-    .from("profiles")
-    .select("id, name, username")
-    .eq("role", "student")
-    .eq("is_active", true)
-    .eq("created_by", userId);
-  if (academyId) {
-    createdStudentsQuery = createdStudentsQuery.eq("academy_id", academyId);
-  }
-
   const [{ data: teacherClasses }, { data: createdStudents }] =
-    await Promise.all([teacherClassesQuery, createdStudentsQuery]);
+    await Promise.all([
+      supabase
+        .from("classes")
+        .select("id, name")
+        .eq("teacher_id", userId)
+        .eq("is_active", true),
+      supabase
+        .from("profiles")
+        .select("id, name, username")
+        .eq("role", "student")
+        .eq("is_active", true)
+        .eq("created_by", userId),
+    ]);
 
   const classIds = (teacherClasses ?? []).map((c) => c.id as string);
   const classNameById = new Map(
@@ -147,37 +125,31 @@ export async function loadAssignableStudents(
   });
 }
 
-async function loadClasses(
+function classesQuery(
   supabase: SupabaseClient,
   role: "admin" | "teacher",
-  userId: string,
-  academyId: string | null
+  userId: string
 ) {
   if (role === "admin") {
-    let q = supabase
+    return supabase
       .from("classes")
       .select("id, name")
       .eq("is_active", true)
       .order("name");
-    if (academyId) q = q.eq("academy_id", academyId);
-    return q;
   }
-  let q = supabase
+  return supabase
     .from("classes")
     .select("id, name")
     .eq("teacher_id", userId)
     .eq("is_active", true)
     .order("name");
-  if (academyId) q = q.eq("academy_id", academyId);
-  return q;
 }
 
 export async function loadFolderAssignPanelData(
   supabase: SupabaseClient,
   role: "admin" | "teacher",
   userId: string,
-  folderId: string,
-  academyId: string | null = null
+  folderId: string
 ): Promise<{
   classes: ClassWithStudents[];
   allStudents: AssignableStudent[];
@@ -186,14 +158,14 @@ export async function loadFolderAssignPanelData(
   setTitles: string[];
 }> {
   const [classesRes, setsRes, allStudents] = await Promise.all([
-    loadClasses(supabase, role, userId, academyId),
+    classesQuery(supabase, role, userId),
     supabase
       .from("vocab_sets")
       .select("id, title")
       .eq("folder_id", folderId)
       .order("order_index", { ascending: true })
       .order("created_at", { ascending: true }),
-    loadAssignableStudents(supabase, role, userId, academyId),
+    loadAssignableStudents(supabase, role, userId),
   ]);
 
   return finishFolderAssignPanel(
@@ -207,8 +179,7 @@ export async function loadFolderAssignPanelData(
 export async function loadUnfiledAssignPanelData(
   supabase: SupabaseClient,
   role: "admin" | "teacher",
-  userId: string,
-  academyId: string | null = null
+  userId: string
 ): Promise<{
   classes: ClassWithStudents[];
   allStudents: AssignableStudent[];
@@ -217,14 +188,14 @@ export async function loadUnfiledAssignPanelData(
   setTitles: string[];
 }> {
   const [classesRes, setsRes, allStudents] = await Promise.all([
-    loadClasses(supabase, role, userId, academyId),
+    classesQuery(supabase, role, userId),
     supabase
       .from("vocab_sets")
       .select("id, title")
       .is("folder_id", null)
       .order("order_index", { ascending: true })
       .order("created_at", { ascending: true }),
-    loadAssignableStudents(supabase, role, userId, academyId),
+    loadAssignableStudents(supabase, role, userId),
   ]);
 
   return finishFolderAssignPanel(
@@ -254,7 +225,6 @@ async function finishFolderAssignPanel(
   const classList = classRows as { id: string; name: string }[];
   const classIds = classList.map((c) => c.id);
 
-  // allStudents에 이미 classIds가 있으므로 class_students를 다시 안 치고 조립
   const studentsByClass = new Map<string, { id: string; name: string }[]>();
   for (const student of allStudents) {
     for (const cid of student.classIds) {
@@ -313,8 +283,7 @@ export async function loadSetAssignPanelData(
   supabase: SupabaseClient,
   role: "admin" | "teacher",
   userId: string,
-  setId: string,
-  academyId: string | null = null
+  setId: string
 ): Promise<{
   classes: ClassWithStudents[];
   allStudents: AssignableStudent[];
@@ -339,8 +308,8 @@ export async function loadSetAssignPanelData(
   }
 
   const [classesRes, allStudents, assignmentsRes] = await Promise.all([
-    loadClasses(supabase, role, userId, academyId),
-    loadAssignableStudents(supabase, role, userId, academyId),
+    classesQuery(supabase, role, userId),
+    loadAssignableStudents(supabase, role, userId),
     supabase
       .from("vocab_assignments")
       .select(

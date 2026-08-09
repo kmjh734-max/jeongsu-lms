@@ -82,7 +82,6 @@ export function VocabAssignmentPanel({
 }: VocabAssignmentPanelProps) {
   const router = useRouter();
   const [classId, setClassId] = useState("");
-  const [classSearch, setClassSearch] = useState("");
   const [search, setSearch] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
     new Set()
@@ -96,25 +95,12 @@ export function VocabAssignmentPanel({
     [classes]
   );
 
-  const filteredClasses = useMemo(() => {
-    if (!classSearch.trim()) return classes;
-    return classes.filter((c) => fieldMatchesSearch(classSearch, c.name));
-  }, [classes, classSearch]);
-
   const filteredStudents = useMemo(() => {
     let list = allStudents.filter((s) =>
       studentMatches(s, search, classNameById)
     );
     if (classId) {
-      const selectedClassName = classNameById.get(classId) ?? "";
-      list = list.filter(
-        (s) =>
-          s.classIds.includes(classId) ||
-          (selectedClassName &&
-            s.classLabel
-              .toLowerCase()
-              .includes(selectedClassName.toLowerCase()))
-      );
+      list = list.filter((s) => s.classIds.includes(classId));
     }
     return list.sort((a, b) => a.name.localeCompare(b.name, "ko"));
   }, [allStudents, search, classId, classNameById]);
@@ -286,30 +272,22 @@ export function VocabAssignmentPanel({
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
-            <label className={labelClass}>반 검색</label>
-            <input
-              className={fieldClass}
-              value={classSearch}
-              onChange={(e) => setClassSearch(e.target.value)}
-              placeholder="반 이름 입력"
-              autoComplete="off"
-            />
-            <label className={`${labelClass} mt-4`}>반 선택 (선택 사항)</label>
+            <label className={labelClass}>반 선택</label>
             <select
               className={fieldClass}
               value={classId}
               onChange={(e) => handleClassChange(e.target.value)}
             >
-              <option value="">선택 안 함 — 전체 학생 검색</option>
-              {filteredClasses.map((c) => (
+              <option value="">선택 안 함 — 전체 학생</option>
+              {classes.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name} (학생 {c.students.length}명)
                 </option>
               ))}
             </select>
-            {classSearch.trim() && filteredClasses.length === 0 ? (
+            {classes.length === 0 ? (
               <p className="mt-2 text-sm text-amber-700">
-                검색된 반이 없습니다.
+                등록된 반이 없습니다. 반 관리에서 먼저 반을 만들어 주세요.
               </p>
             ) : null}
             {classId && (
@@ -334,7 +312,7 @@ export function VocabAssignmentPanel({
               autoComplete="off"
             />
             <p className="mt-2 text-sm text-slate-500">
-              반을 선택하지 않아도 전체 학생 중 검색할 수 있습니다.
+              이름·아이디로 빠르게 찾을 수 있습니다.
               {allStudents.length > 0
                 ? ` (등록 학생 ${allStudents.length}명)`
                 : ""}
