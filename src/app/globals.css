@@ -1260,6 +1260,48 @@
   gap: 8px;
 }
 
+.vocab-answer-key-body {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 28px;
+  align-content: start;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.vocab-answer-key-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vocab-answer-key-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: calc(var(--vocab-body-size) + 1px);
+  line-height: 1.35;
+  break-inside: avoid;
+}
+
+.vocab-answer-key-no {
+  flex-shrink: 0;
+  font-weight: 900;
+  color: var(--vocab-navy);
+  min-width: 1.6em;
+}
+
+.vocab-answer-key-ans {
+  font-weight: 700;
+  color: #111827;
+  word-break: keep-all;
+}
+
+.vocab-print-page--answer-key .vocab-print-book-title {
+  color: #0f766e;
+}
+
 .vocab-exam-list--basic {
   display: grid;
   grid-template-columns: repeat(var(--vocab-exam-cols, 1), minmax(0, 1fr));

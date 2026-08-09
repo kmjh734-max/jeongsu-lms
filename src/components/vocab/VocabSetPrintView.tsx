@@ -266,9 +266,23 @@ export function VocabSetPrintView({
   const examBasicQuestions = examPagination.basic;
   const examExampleQuestions = examPagination.examples;
 
+  const answerKeyPages = useMemo(() => {
+    if (mode !== "exam" || examGenerated.questions.length === 0) return [];
+    const perPage = size === "b5" ? 36 : 44;
+    const pages: PrintExamQuestion[][] = [];
+    const qs = examGenerated.questions;
+    for (let i = 0; i < qs.length; i += perPage) {
+      pages.push(qs.slice(i, i + perPage));
+    }
+    return pages;
+  }, [mode, examGenerated.questions, size]);
+
   const bodyPageCount =
-    mode === "exam" ? resolvedExamPages.length : flatPages.length;
+    mode === "exam"
+      ? resolvedExamPages.length + answerKeyPages.length
+      : flatPages.length;
   const pageCount = bodyPageCount + (cover.enabled ? 1 : 0);
+  const examSheetCount = resolvedExamPages.length;
 
   useEffect(() => {
     return () => {
@@ -535,50 +549,103 @@ export function VocabSetPrintView({
 
   const previewPages =
     mode === "exam" ? (
-      resolvedExamPages.map((pageSlice, pageIndex) => (
-        <article
-          key={`exam-${pageIndex}`}
-          className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} ${pageIndex < resolvedExamPages.length - 1 ? "vocab-print-page-break" : ""}`}
-          data-size={size}
-          style={examPageStyle}
-        >
-          <PrintPageHeader
-            sectionTitle={headerTitle}
-            academyName={academyName}
-            logoSrc={logoSrc}
-          />
+      <>
+        {resolvedExamPages.map((pageSlice, pageIndex) => (
+          <article
+            key={`exam-${pageIndex}`}
+            className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-exam-spacing-${examSettings.layout.lineSpacing} vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} vocab-print-page-break`}
+            data-size={size}
+            style={examPageStyle}
+          >
+            <PrintPageHeader
+              sectionTitle={headerTitle}
+              academyName={academyName}
+              logoSrc={logoSrc}
+            />
 
-          <div className="vocab-exam-body">
-            {pageSlice.basic.length > 0 ? (
-              <div
-                className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
-              >
-                {pageSlice.basic.map((q) => (
-                  <PrintExamEntry key={q.number} question={q} />
-                ))}
-              </div>
-            ) : null}
-            {pageSlice.examples.length > 0 ? (
-              <div className="vocab-exam-list vocab-exam-list--examples">
-                {pageSlice.examples.map((q) => (
-                  <PrintExamEntry
-                    key={q.number}
-                    question={q}
-                    variant="example"
-                  />
-                ))}
-              </div>
-            ) : null}
-          </div>
+            <div className="vocab-exam-body">
+              {pageSlice.basic.length > 0 ? (
+                <div
+                  className={`vocab-exam-list vocab-exam-list--basic vocab-exam-list--${examCols}col`}
+                >
+                  {pageSlice.basic.map((q) => (
+                    <PrintExamEntry key={q.number} question={q} />
+                  ))}
+                </div>
+              ) : null}
+              {pageSlice.examples.length > 0 ? (
+                <div className="vocab-exam-list vocab-exam-list--examples">
+                  {pageSlice.examples.map((q) => (
+                    <PrintExamEntry
+                      key={q.number}
+                      question={q}
+                      variant="example"
+                    />
+                  ))}
+                </div>
+              ) : null}
+            </div>
 
-          <footer className="vocab-print-footer">
-            <span>{academyName}</span>
-            <span>
-              {pageIndex + 1} / {resolvedExamPages.length}
-            </span>
-          </footer>
-        </article>
-      ))
+            <footer className="vocab-print-footer">
+              <span>{academyName}</span>
+              <span>
+                {pageIndex + 1} / {examSheetCount}
+              </span>
+            </footer>
+          </article>
+        ))}
+        {answerKeyPages.map((slice, pageIndex) => {
+          const isLast =
+            pageIndex === answerKeyPages.length - 1;
+          const mid = Math.ceil(slice.length / 2);
+          const left = slice.slice(0, mid);
+          const right = slice.slice(mid);
+          return (
+            <article
+              key={`answer-${pageIndex}`}
+              className={`vocab-print-page vocab-print-page--${size} vocab-print-page--exam vocab-print-page--answer-key vocab-print-page--font-${fontScale} ${bindingMargin ? "vocab-print-page--bind" : "vocab-print-page--nobind"} ${isLast ? "" : "vocab-print-page-break"}`}
+              data-size={size}
+              style={examPageStyle}
+            >
+              <div className="vocab-print-top-line" />
+              <header className="vocab-print-header">
+                <div className="vocab-print-header-left">
+                  <div className="vocab-print-book-meta">
+                    <p className="vocab-print-series">{academyName} · 교사용</p>
+                    <h2 className="vocab-print-book-title">
+                      {headerTitle} · 정답지
+                    </h2>
+                  </div>
+                </div>
+              </header>
+              <div className="vocab-answer-key-body">
+                <div className="vocab-answer-key-col">
+                  {left.map((q) => (
+                    <div key={q.number} className="vocab-answer-key-row">
+                      <span className="vocab-answer-key-no">{q.number}.</span>
+                      <span className="vocab-answer-key-ans">{q.answer}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="vocab-answer-key-col">
+                  {right.map((q) => (
+                    <div key={q.number} className="vocab-answer-key-row">
+                      <span className="vocab-answer-key-no">{q.number}.</span>
+                      <span className="vocab-answer-key-ans">{q.answer}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <footer className="vocab-print-footer">
+                <span>교사용 정답지</span>
+                <span>
+                  {pageIndex + 1} / {answerKeyPages.length}
+                </span>
+              </footer>
+            </article>
+          );
+        })}
+      </>
     ) : (
       <VocabWorkbookPrintPages
         pages={flatPages}

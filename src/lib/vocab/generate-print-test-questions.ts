@@ -7,6 +7,9 @@ export interface PrintExamQuestion {
   number: number;
   prompt: string;
   choices?: string[];
+  /** 정답 표시용 (객관식: ① meaning / 주관식: 정답 문자열) */
+  answer: string;
+  correctChoiceIndex?: number;
 }
 
 function escapeRegExp(s: string): string {
@@ -48,6 +51,8 @@ function pickItems(pool: VocabItem[], count: number): VocabItem[] {
   return out;
 }
 
+const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
+
 function buildQuestion(
   kind: ExamQuestionKind,
   item: VocabItem,
@@ -57,28 +62,70 @@ function buildQuestion(
     case "word_mc": {
       const choices = buildChoices(pool, item, (i) => i.meaning);
       if (!choices || choices.length < 2) return null;
-      return { kind, number: 0, prompt: item.word, choices };
+      const idx = choices.findIndex((c) => c === item.meaning.trim());
+      const mark = CHOICE_MARKS[idx >= 0 ? idx : 0] ?? "①";
+      return {
+        kind,
+        number: 0,
+        prompt: item.word,
+        choices,
+        answer: `${mark} ${item.meaning.trim()}`,
+        correctChoiceIndex: idx >= 0 ? idx : 0,
+      };
     }
     case "word_sa":
-      return { kind, number: 0, prompt: item.word };
+      return {
+        kind,
+        number: 0,
+        prompt: item.word,
+        answer: item.meaning.trim(),
+      };
     case "meaning_mc": {
       const choices = buildChoices(pool, item, (i) => i.word);
       if (!choices || choices.length < 2) return null;
-      return { kind, number: 0, prompt: item.meaning, choices };
+      const idx = choices.findIndex((c) => c === item.word.trim());
+      const mark = CHOICE_MARKS[idx >= 0 ? idx : 0] ?? "①";
+      return {
+        kind,
+        number: 0,
+        prompt: item.meaning,
+        choices,
+        answer: `${mark} ${item.word.trim()}`,
+        correctChoiceIndex: idx >= 0 ? idx : 0,
+      };
     }
     case "meaning_sa":
-      return { kind, number: 0, prompt: item.meaning };
+      return {
+        kind,
+        number: 0,
+        prompt: item.meaning,
+        answer: item.word.trim(),
+      };
     case "example_mc": {
       const blanked = blankExampleSentence(item);
       if (!blanked) return null;
       const choices = buildChoices(pool, item, (i) => i.word);
       if (!choices || choices.length < 2) return null;
-      return { kind, number: 0, prompt: blanked, choices };
+      const idx = choices.findIndex((c) => c === item.word.trim());
+      const mark = CHOICE_MARKS[idx >= 0 ? idx : 0] ?? "①";
+      return {
+        kind,
+        number: 0,
+        prompt: blanked,
+        choices,
+        answer: `${mark} ${item.word.trim()}`,
+        correctChoiceIndex: idx >= 0 ? idx : 0,
+      };
     }
     case "example_sa": {
       const blanked = blankExampleSentence(item);
       if (!blanked) return null;
-      return { kind, number: 0, prompt: blanked };
+      return {
+        kind,
+        number: 0,
+        prompt: blanked,
+        answer: item.word.trim(),
+      };
     }
     default:
       return null;
