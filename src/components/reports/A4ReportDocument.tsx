@@ -165,7 +165,7 @@ export function A4ReportDocument({
         </h2>
         {report.courses.length === 0 ? (
           <p className="mt-2 text-[10pt] text-slate-600">
-            현재 온라인 영상 강좌는 배정되어 있지 않습니다.
+            {report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.
           </p>
         ) : (
           <table className="mt-2 w-full border-collapse text-[9.5pt]">
@@ -212,7 +212,7 @@ export function A4ReportDocument({
         </h2>
         {report.listeningSchedule.length === 0 ? (
           <p className="mt-2 text-[10pt] text-slate-600">
-            배정된 듣기 스케줄이 없습니다.
+            {report.rangeLabel} 기준 듣기 스케줄 학습 기록이 없습니다.
           </p>
         ) : (
           <table className="mt-2 w-full border-collapse text-[9.5pt]">
@@ -245,7 +245,9 @@ export function A4ReportDocument({
           단어학습 현황
         </h2>
         {report.vocabSets.length === 0 ? (
-          <p className="mt-2 text-[10pt] text-slate-600">배정된 단어장이 없습니다.</p>
+          <p className="mt-2 text-[10pt] text-slate-600">
+            {report.rangeLabel} 기준 학습한 단어장이 없습니다.
+          </p>
         ) : (
           <table className="mt-2 w-full border-collapse text-[8.5pt]">
             <thead>

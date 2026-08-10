@@ -2,6 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
 import { loadStudentListeningSetIdsForReport } from "@/lib/listening/schedule/report-summary";
+import {
+  getReportRangeBounds,
+  isIsoInReportRange,
+} from "@/lib/reports/date-range";
+import type { ReportRange } from "@/lib/reports/types";
 
 export interface ListeningDictationReportSection {
   setId: string;
@@ -23,10 +28,13 @@ export interface ListeningDictationReportSection {
 
 export async function buildListeningDictationReport(
   supabase: SupabaseClient,
-  studentId: string
+  studentId: string,
+  range: ReportRange = "all"
 ): Promise<ListeningDictationReportSection[]> {
   const setIds = await loadStudentListeningSetIdsForReport(supabase, studentId);
   if (setIds.length === 0) return [];
+
+  const bounds = getReportRangeBounds(range);
 
   const { data: sets } = await supabase
     .from("listening_sets")
@@ -42,6 +50,12 @@ export async function buildListeningDictationReport(
     .in("set_id", setIds)
     .not("submitted_at", "is", null);
 
+  const attemptsInRange = (attempts ?? []).filter((a) =>
+    range === "all"
+      ? true
+      : isIsoInReportRange(a.submitted_at as string, bounds)
+  );
+
   const { data: questions } = await supabase
     .from("listening_questions")
     .select("id, set_id, order_index, question_type")
@@ -51,8 +65,8 @@ export async function buildListeningDictationReport(
 
   for (const set of sets ?? []) {
     const setId = set.id as string;
-    const setAttempts = (attempts ?? []).filter((a) => a.set_id === setId);
-    if (set.dictation_enabled === false && setAttempts.length === 0) continue;
+    const setAttempts = attemptsInRange.filter((a) => a.set_id === setId);
+    if (setAttempts.length === 0) continue;
 
     const setQuestions = (questions ?? []).filter((q) => q.set_id === setId);
 
@@ -90,9 +104,6 @@ export async function buildListeningDictationReport(
         }
       }
     }
-
-    // 시도만 있고 문항 메타가 비어 있으면 시도 기준으로라도 표시
-    if (setQuestions.length === 0 && setAttempts.length === 0) continue;
 
     const questionRows = (
       setQuestions.length > 0
@@ -140,20 +151,15 @@ export async function buildListeningDictationReport(
       .slice(0, 8)
       .map(([w]) => w);
 
-    let summaryLine = "듣기 Dictation 기록이 없습니다.";
-    if (setAttempts.length > 0) {
-      if (avg != null && avg >= 85) {
-        summaryLine =
-          "듣기 후 Dictation 단계에서 핵심 단어 청취 정확도가 높았습니다.";
-      } else if (frequentWrongWords.length > 0) {
-        summaryLine = `${frequentWrongWords.slice(0, 4).join(", ")} 관련 핵심어에서 오답이 반복되어 복습이 필요합니다.`;
-      } else if (avg != null) {
-        summaryLine = `평균 Dictation 점수는 ${avg}점이며, ${passedCount}/${questionCount}문항을 통과했습니다.`;
-      }
+    let summaryLine = `Dictation ${setAttempts.length}회 제출`;
+    if (avg != null && avg >= 85) {
+      summaryLine =
+        "듣기 후 Dictation 단계에서 핵심 단어 청취 정확도가 높았습니다.";
+    } else if (frequentWrongWords.length > 0) {
+      summaryLine = `${frequentWrongWords.slice(0, 4).join(", ")} 관련 핵심어에서 오답이 반복되어 복습이 필요합니다.`;
+    } else if (avg != null) {
+      summaryLine = `평균 Dictation 점수는 ${avg}점이며, ${passedCount}/${questionCount}문항을 통과했습니다.`;
     }
-
-    // 스케줄 세트까지 넓히면 미시도 세트가 많아지므로, 제출 기록이 있는 세트만 표시
-    if (setAttempts.length === 0) continue;
 
     sections.push({
       setId,

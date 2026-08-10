@@ -226,28 +226,45 @@ export async function getStudentReport(
     progressRecords ?? []
   );
 
-  const courses: CourseReportSection[] = enrollmentRows.map((row) => {
-    const lessonDates = row.lessons.flatMap((l) => [
-      l.lastWatchedAt,
-      l.completedAt,
-    ]);
-    const lastInRange =
-      range === "all"
-        ? row.lastStudiedAt
-        : maxIsoInRange(lessonDates, bounds);
+  const courses: CourseReportSection[] = enrollmentRows
+    .map((row) => {
+      const studiedLessons = row.lessons.filter((l) => {
+        const watched =
+          range === "all"
+            ? Boolean(l.lastWatchedAt || l.completedAt)
+            : isIsoInReportRange(l.lastWatchedAt, bounds) ||
+              isIsoInReportRange(l.completedAt, bounds);
+        return watched;
+      });
+      if (studiedLessons.length === 0) return null;
 
-    return {
-      courseId: row.courseId,
-      courseTitle: row.courseTitle,
-      totalLessons: row.totalLessons,
-      completedLessons: row.completedLessons,
-      progressPercent: row.progressPercent,
-      lastStudiedAt: lastInRange,
-      completedLessonsList: row.lessons
-        .filter((l) => l.isCompleted)
-        .map((l) => l.lessonTitle),
-    };
-  });
+      const completedInPeriod = row.lessons.filter((l) => {
+        if (!l.isCompleted) return false;
+        if (range === "all") return true;
+        return isIsoInReportRange(l.completedAt, bounds);
+      });
+
+      const lessonDates = studiedLessons.flatMap((l) => [
+        l.lastWatchedAt,
+        l.completedAt,
+      ]);
+      const lastInRange =
+        range === "all"
+          ? row.lastStudiedAt
+          : maxIsoInRange(lessonDates, bounds);
+
+      return {
+        courseId: row.courseId,
+        courseTitle: row.courseTitle,
+        totalLessons: row.totalLessons,
+        completedLessons:
+          range === "all" ? row.completedLessons : completedInPeriod.length,
+        progressPercent: row.progressPercent,
+        lastStudiedAt: lastInRange,
+        completedLessonsList: completedInPeriod.map((l) => l.lessonTitle),
+      };
+    })
+    .filter((c): c is CourseReportSection => c != null);
 
   const stageBySet = new Map(
     (stageRows ?? []).map((r) => [r.set_id as string, r as VocabStageProgress])
@@ -309,9 +326,19 @@ export async function getStudentReport(
       progress.stage3_completed_at,
       progress.stage3_passed_at,
       progress.stage4_passed_at,
-      progress.updated_at,
     ]) {
       if (iso) activityDates.push(iso as string);
+    }
+    // 1단계 시작만 한 경우에도 학습으로 인정
+    if ((progress.stage1_seen_item_ids ?? []).length > 0 && progress.updated_at) {
+      activityDates.push(progress.updated_at as string);
+    }
+    if (
+      ((progress.stage3_attempt_count ?? 0) > 0 ||
+        (progress.stage4_attempt_count ?? 0) > 0) &&
+      progress.updated_at
+    ) {
+      activityDates.push(progress.updated_at as string);
     }
     for (const row of spellingWrong ?? []) {
       if (!setItemIds.has(row.item_id as string)) continue;
@@ -361,7 +388,7 @@ export async function getStudentReport(
       lastStudiedAt,
       statusLabel: vocabStatusLabel(progress),
     };
-  });
+  }).filter((set) => Boolean(set.lastStudiedAt));
 
   const reviewMap = new Map<
     string,
@@ -427,19 +454,18 @@ export async function getStudentReport(
     })
     .sort((a, b) => a.word.localeCompare(b.word, "ko"));
 
-  const totalLessons = courses.reduce((s, c) => s + c.totalLessons, 0);
   const completedLessons = courses.reduce((s, c) => s + c.completedLessons, 0);
   const vocabPassed = vocabSetsReport.filter((v) => v.stage4Passed).length;
 
   const videoLine =
     courses.length === 0
-      ? "배정된 영상 강좌가 없습니다."
-      : `영상 강좌는 전체 ${totalLessons}강 중 ${completedLessons}강을 완료했습니다.`;
+      ? `${rangeLabel} 기준 학습한 영상 강좌가 없습니다.`
+      : `${rangeLabel} 기준 학습한 영상 강좌는 ${courses.length}개이며, 완료한 강의는 ${completedLessons}강입니다.`;
 
   const vocabLine =
     vocabSetsReport.length === 0
-      ? "배정된 단어장이 없습니다."
-      : `단어학습은 ${vocabSetsReport.length}개 단어장 중 ${vocabPassed}개를 통과했습니다.`;
+      ? `${rangeLabel} 기준 학습한 단어장이 없습니다.`
+      : `단어학습은 학습한 ${vocabSetsReport.length}개 단어장 중 ${vocabPassed}개를 통과했습니다.`;
 
   const reviewLine =
     reviewWords.length === 0
@@ -467,12 +493,16 @@ export async function getStudentReport(
   );
   const listeningScheduleLine =
     listeningSchedule.length === 0
-      ? "배정된 듣기 스케줄이 없습니다."
+      ? `${rangeLabel} 기준 듣기 스케줄 학습 기록이 없습니다.`
       : listeningSchedule
           .map((s) => `${s.title}: ${s.summaryLine}`)
           .join(" ");
 
-  const dictationSections = await buildListeningDictationReport(supabase, studentId);
+  const dictationSections = await buildListeningDictationReport(
+    supabase,
+    studentId,
+    range
+  );
   const listeningDictation: ListeningDictationReportRow[] = dictationSections.map(
     (s) => ({
       setId: s.setId,

@@ -143,7 +143,7 @@ export function StudentReportView({
           <h2 className="text-base font-semibold text-slate-900">영상 강좌 학습 현황</h2>
           {report.courses.length === 0 ? (
             <p className="mt-4 text-sm text-slate-500">
-              배정된 영상 강좌가 없습니다.
+              {report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.
             </p>
           ) : (
             <div className="mt-4 space-y-6">
@@ -200,7 +200,7 @@ export function StudentReportView({
           </p>
           {report.listeningSchedule.length === 0 ? (
             <p className="mt-4 text-sm text-slate-500">
-              배정된 듣기 스케줄이 없습니다.
+              {report.rangeLabel} 기준 듣기 스케줄 학습 기록이 없습니다.
             </p>
           ) : (
             <div className="mt-4 space-y-4">
@@ -259,7 +259,9 @@ export function StudentReportView({
           <h2 className="text-base font-semibold text-slate-900">듣기 Dictation</h2>
           <p className="mt-2 text-sm text-slate-600">{report.summary.listeningDictationLine}</p>
           {report.listeningDictation.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">배정된 듣기 Dictation 기록이 없습니다.</p>
+            <p className="mt-4 text-sm text-slate-500">
+              Dictation 제출 기록이 없습니다.
+            </p>
           ) : (
             <div className="mt-4 space-y-4">
               {report.listeningDictation.map((d) => (
@@ -290,7 +292,9 @@ export function StudentReportView({
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900">단어학습 현황</h2>
           {report.vocabSets.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">배정된 단어장이 없습니다.</p>
+            <p className="mt-4 text-sm text-slate-500">
+              {report.rangeLabel} 기준 학습한 단어장이 없습니다.
+            </p>
           ) : (
             <div className="ui-table-wrap mt-4">
               <table className="ui-table min-w-[640px]">

@@ -158,7 +158,7 @@ export function SharedReportHtmlView({
         <SectionCard title="영상 학습 현황">
           {report.courses.length === 0 ? (
             <p className="text-sm text-slate-600">
-              배정된 영상 강좌가 없습니다.
+              {report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.
             </p>
           ) : (
             <ul className="space-y-3">
@@ -203,7 +203,9 @@ export function SharedReportHtmlView({
 
         <SectionCard title="단어학습 현황">
           {report.vocabSets.length === 0 ? (
-            <p className="text-sm text-slate-600">배정된 단어장이 없습니다.</p>
+            <p className="text-sm text-slate-600">
+              {report.rangeLabel} 기준 학습한 단어장이 없습니다.
+            </p>
           ) : (
             <ul className="space-y-3">
               {report.vocabSets.map((set) => (

@@ -179,64 +179,60 @@ export async function buildListeningScheduleReport(
 
   for (const assignment of assignmentById.values()) {
     const rows = tasksByAssignment.get(assignment.id) ?? [];
-    // 비활성·기간 밖 배정은 실제 과제 기록이 있을 때만 표시
-    if (rows.length === 0) {
-      if (!assignment.is_active) continue;
-      if (
-        assignment.end_date &&
-        startDate &&
-        assignment.end_date < startDate
-      ) {
-        continue;
-      }
-    }
+    // 실제 학습(완료·진행)한 일만 리포트에 포함
+    const studiedRows = rows.filter(
+      (r) =>
+        r.status === "completed" ||
+        r.status === "in_progress" ||
+        (r.completed_count as number) > 0
+    );
+    if (studiedRows.length === 0) continue;
 
-    const completedTasks = rows.filter((r) => r.status === "completed").length;
-    const inProgressTasks = rows.filter((r) => r.status === "in_progress").length;
+    const completedTasks = studiedRows.filter(
+      (r) => r.status === "completed"
+    ).length;
+    const inProgressOnly = studiedRows.filter(
+      (r) => r.status !== "completed"
+    ).length;
+    const totalStudied = studiedRows.length;
     const missedOrPendingTasks = rows.filter(
       (r) => r.status === "pending" || r.status === "missed"
     ).length;
-    const totalTasks = rows.length;
 
-    const recentTasks: ListeningScheduleRecentTask[] = rows.slice(0, 8).map((r) => {
-      const status = r.status as DailyTaskStatus;
-      return {
-        taskDate: r.task_date as string,
-        status,
-        statusLabel: dailyTaskStatusLabel(status),
-        completedCount: r.completed_count as number,
-        totalCount: r.total_count as number,
-        setTitle: setTitleById.get(r.set_id as string) ?? "",
-      };
-    });
+    const recentTasks: ListeningScheduleRecentTask[] = studiedRows
+      .slice(0, 8)
+      .map((r) => {
+        const status = r.status as DailyTaskStatus;
+        return {
+          taskDate: r.task_date as string,
+          status,
+          statusLabel: dailyTaskStatusLabel(status),
+          completedCount: r.completed_count as number,
+          totalCount: r.total_count as number,
+          setTitle: setTitleById.get(r.set_id as string) ?? "",
+        };
+      });
 
-    const activityDates = rows
-      .filter((r) => r.status === "completed" || r.status === "in_progress")
-      .map((r) => r.task_date as string);
+    const activityDates = studiedRows.map((r) => r.task_date as string);
     const lastActivityDate =
       activityDates.length > 0
         ? activityDates.reduce((a, b) => (a > b ? a : b))
         : null;
 
-    let summaryLine = "기간 내 일일 듣기 과제가 없습니다.";
-    if (totalTasks > 0) {
-      const rate = Math.round((completedTasks / totalTasks) * 100);
-      summaryLine = `일일 과제 ${totalTasks}일 중 ${completedTasks}일 완료(${rate}%)`;
-      if (inProgressTasks > 0) {
-        summaryLine += `, 진행중 ${inProgressTasks}일`;
-      }
-      if (missedOrPendingTasks > 0) {
-        summaryLine += `, 미완료 ${missedOrPendingTasks}일`;
-      }
-      summaryLine += ".";
-    } else if (assignment.is_active) {
-      summaryLine = "듣기 스케줄이 배정되어 있으나 기간 내 기록이 없습니다.";
+    let summaryLine = `${totalStudied}일 학습(완료 ${completedTasks}일`;
+    if (inProgressOnly > 0) {
+      summaryLine += `, 진행중 ${inProgressOnly}일`;
     }
+    summaryLine += ")";
+    if (missedOrPendingTasks > 0) {
+      summaryLine += `. 같은 기간 미학습 ${missedOrPendingTasks}일`;
+    }
+    summaryLine += ".";
 
     const title =
       assignment.title ||
-      (rows[0]
-        ? setTitleById.get(rows[0].set_id as string) || "듣기 스케줄"
+      (studiedRows[0]
+        ? setTitleById.get(studiedRows[0].set_id as string) || "듣기 스케줄"
         : "듣기 스케줄");
 
     sections.push({
@@ -245,9 +241,9 @@ export async function buildListeningScheduleReport(
       periodLabel: assignment.start_date
         ? formatPeriodLabel(assignment)
         : "—",
-      totalTasks,
+      totalTasks: totalStudied,
       completedTasks,
-      inProgressTasks,
+      inProgressTasks: inProgressOnly,
       missedOrPendingTasks,
       recentTasks,
       lastActivityDate,

@@ -37,7 +37,7 @@ export function buildParentReportMessage({
   lines.push("", "2. 영상 학습 현황");
 
   if (report.courses.length === 0) {
-    lines.push("- 현재 온라인 영상 강좌는 배정되어 있지 않습니다.");
+    lines.push(`- ${report.rangeLabel} 기준 학습한 영상 강좌가 없습니다.`);
   } else {
     for (const course of report.courses) {
       lines.push(
@@ -55,7 +55,7 @@ export function buildParentReportMessage({
   lines.push("", "3. 단어학습 현황");
 
   if (report.vocabSets.length === 0) {
-    lines.push("- 배정된 단어장이 없습니다.");
+    lines.push(`- ${report.rangeLabel} 기준 학습한 단어장이 없습니다.`);
   } else {
     for (const set of report.vocabSets) {
       lines.push(formatVocabSetParentLine(set));

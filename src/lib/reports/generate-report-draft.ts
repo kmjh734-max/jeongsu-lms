@@ -16,7 +16,7 @@ function buildReportContext(report: StudentReport): string {
 
   const courseLines =
     courses.length === 0
-      ? ["- 배정된 영상 강좌 없음"]
+      ? [`- ${rangeLabel} 기준 학습한 영상 강좌 없음`]
       : courses.flatMap((c) => {
           const head = `- ${c.courseTitle}: 총 ${c.totalLessons}강 중 ${c.completedLessons}강 완료, 진도율 ${c.progressPercent}%`;
           if (c.completedLessonsList.length === 0) return [head];
@@ -28,7 +28,7 @@ function buildReportContext(report: StudentReport): string {
 
   const vocabLines =
     vocabSets.length === 0
-      ? ["- 배정된 단어장 없음"]
+      ? [`- ${rangeLabel} 기준 학습한 단어장 없음`]
       : vocabSets.map((s) => formatVocabSetParentLine(s).replace(/^- /, ""));
 
   const reviewLines =
@@ -38,14 +38,14 @@ function buildReportContext(report: StudentReport): string {
 
   const scheduleLines =
     listeningSchedule.length === 0
-      ? ["- 듣기 스케줄 없음"]
+      ? [`- ${rangeLabel} 기준 듣기 스케줄 학습 기록 없음`]
       : listeningSchedule.map(
           (s) => `- ${s.title}: ${s.summaryLine}`
         );
 
   const dictationLines =
     listeningDictation.length === 0
-      ? ["- Dictation 기록 없음"]
+      ? ["- Dictation 제출 기록 없음"]
       : listeningDictation.map(
           (d) => `- ${d.setTitle}: ${d.summaryLine}`
         );
