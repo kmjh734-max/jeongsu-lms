@@ -1080,7 +1080,7 @@ export function buildStage10Drafts(sentences: SeedSentence[]): Stage10ItemDraft[
     const korean = String(s.korean_text ?? "").trim();
     if (!english || !korean) continue;
 
-    let segments = buildPdfWritingSegments(english);
+    let segments = buildPdfWritingSegments(english, s.vocabulary);
     if (segments.length < 1) {
       segments = proposeFullSentenceSegments(english);
     }

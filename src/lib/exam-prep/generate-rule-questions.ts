@@ -367,7 +367,7 @@ function buildWriting(
 ): GeneratedQuestionDraft {
   const english = String(sentence.english_text ?? "").trim();
   const korean = String(sentence.korean_text ?? "").trim() || "(해석 없음)";
-  const segments = buildPdfWritingSegments(english);
+  const segments = buildPdfWritingSegments(english, sentence.vocabulary);
   const answerTexts = segments
     .filter((s) => s.segmentType === "answer_segment")
     .map((s) => s.originalAnswerText ?? "")
