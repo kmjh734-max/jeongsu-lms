@@ -5,6 +5,7 @@ import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
 import {
   buildAttemptFingerprint,
   generateNeltReportNarrativesAi,
+  narrativesFromRuleBased,
   parseStoredNarratives,
   type NeltAiNarratives,
 } from "@/lib/nelt/generate-report-narratives";
@@ -56,17 +57,7 @@ export async function POST(request: Request) {
   const fingerprint = buildAttemptFingerprint(analysis);
   const persistedIds = analysis.attempts.map((a) => a.id).filter(isReportUuid);
 
-  // 저장된 UUID 회차만 DB upsert (미리보기 local-* 은 AI만 수행)
-  if (persistedIds.length >= 2) {
-    await upsertNeltGrowthReport(auth.supabase, {
-      academyId: auth.academyId,
-      studentName: analysis.studentName,
-      createdBy: auth.profile.id,
-      attempts: analysis.attempts.filter((a) => isReportUuid(a.id)),
-      reportIds: persistedIds,
-    });
-  }
-
+  // 재생성 버튼이 아니면 AI 호출 금지 — 저장분 또는 규칙 문구만
   if (!force) {
     const { data: existing } = await auth.supabase
       .from("nelt_growth_reports")
@@ -78,19 +69,33 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     const cached = parseStoredNarratives(existing?.generated_summary);
-    if (
-      cached?.model &&
-      cached.attemptFingerprint &&
-      cached.attemptFingerprint === fingerprint
-    ) {
+    if (cached?.overallSummary?.trim()) {
       return NextResponse.json({
         ok: true,
         narratives: cached,
-        source: "cache",
+        source: cached.model ? "cache" : "fallback",
         model: cached.model,
         growthId: existing?.id ?? null,
       });
     }
+
+    return NextResponse.json({
+      ok: true,
+      narratives: narrativesFromRuleBased(analysis),
+      source: "fallback",
+      model: null,
+      growthId: existing?.id ?? null,
+    });
+  }
+
+  if (persistedIds.length >= 2) {
+    await upsertNeltGrowthReport(auth.supabase, {
+      academyId: auth.academyId,
+      studentName: analysis.studentName,
+      createdBy: auth.profile.id,
+      attempts: analysis.attempts.filter((a) => isReportUuid(a.id)),
+      reportIds: persistedIds,
+    });
   }
 
   const result = await generateNeltReportNarrativesAi(analysis);

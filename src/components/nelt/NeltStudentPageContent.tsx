@@ -15,22 +15,31 @@ interface NeltStudentPageContentProps {
   role: "admin" | "teacher";
   studentName: string;
   attempts: NeltAttemptBundle[];
+  /** DB에 저장된 AI 서술 — 있으면 재생성 없이 표시 */
+  storedNarratives?: NeltGrowthAnalysis["aiNarratives"] | null;
 }
 
 export function NeltStudentPageContent({
   role,
   studentName,
   attempts,
+  storedNarratives = null,
 }: NeltStudentPageContentProps) {
   const base = role === "admin" ? "/admin/nelt" : "/teacher/nelt";
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const analysis =
+  const baseAnalysis =
     attempts.length >= 2
       ? buildNeltGrowthAnalysis(studentName, attempts)
       : null;
+  const analysis = baseAnalysis
+    ? {
+        ...baseAnalysis,
+        ...(storedNarratives ? { aiNarratives: storedNarratives } : {}),
+      }
+    : null;
 
   async function deleteAll() {
     const ok = window.confirm(

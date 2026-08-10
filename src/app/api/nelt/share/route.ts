@@ -129,7 +129,8 @@ export async function POST(request: Request) {
   let narratives =
     analysis.aiNarratives ??
     parseStoredNarratives(growthRow?.generated_summary);
-  if (!narratives?.model) {
+  // 공유 시에도 저장된 서술이 있으면 재생성하지 않음
+  if (!narratives?.overallSummary?.trim()) {
     const generated = await generateNeltReportNarrativesAi(analysis);
     narratives = generated.narratives;
     await auth.supabase

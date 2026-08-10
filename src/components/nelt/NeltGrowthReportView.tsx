@@ -22,7 +22,9 @@ interface NeltGrowthReportViewProps {
   role: "admin" | "teacher";
   /** 학부모 공개 페이지 — 공유/편집 UI 숨김 */
   parentView?: boolean;
-  /** 이미 AI 서술 적용됨 — 마운트 시 자동 재생성 안 함 */
+  /**
+   * @deprecated 자동 AI 호출을 제거함. analysis.aiNarratives 사용.
+   */
   narrativesReady?: boolean;
 }
 
@@ -34,7 +36,6 @@ function formatDateDots(iso: string | null): string {
 export function NeltGrowthReportView({
   analysis,
   parentView = false,
-  narrativesReady = false,
 }: NeltGrowthReportViewProps) {
   const [ai, setAi] = useState<NeltAiNarratives | null>(
     analysis.aiNarratives ?? null
@@ -133,19 +134,11 @@ export function NeltGrowthReportView({
 
   useEffect(() => {
     if (parentView) return;
-    if (narrativesReady || analysis.aiNarratives) {
-      if (analysis.aiNarratives) setAi(analysis.aiNarratives);
-      return;
+    if (analysis.aiNarratives) {
+      setAi(analysis.aiNarratives);
     }
-    void loadNarratives(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 학생·회차·서술 변경 시
-  }, [
-    analysis.studentName,
-    analysis.attemptCount,
-    analysis.aiNarratives,
-    narrativesReady,
-    parentView,
-  ]);
+    // 자동 AI 호출 금지 — 「AI로 서술 다시 작성」에서만 생성
+  }, [analysis.aiNarratives, parentView]);
 
   return (
     <div id="nelt-print-root" className="nelt-proto space-y-4">
@@ -168,7 +161,7 @@ export function NeltGrowthReportView({
           >
             {aiLoading
               ? `AI 서술 작성 중… ${Math.max(1, Math.round(aiProgress))}%`
-              : "AI로 서술 다시 작성"}
+              : "AI 서술 재생성"}
           </Button>
           {aiStatus && (
             <span className="text-xs text-slate-500">{aiStatus}</span>
