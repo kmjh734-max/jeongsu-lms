@@ -45,7 +45,7 @@ type SubmitResultItem = {
   explanation?: string | null;
 };
 
-type BlankMeta = { id: string };
+type BlankMeta = { id: string; baseForm?: string };
 
 /** 지문의 <u>밑줄</u>만 렌더 */
 function renderPassageMarks(text: string): ReactNode[] {
@@ -1034,9 +1034,12 @@ function QuestionInput({
             {String(data.englishHint)}
           </p>
         ) : null}
-        {type === "verb_form" && data.baseForm ? (
+        {type === "verb_form" && (data.baseForm || Array.isArray(data.baseForms)) ? (
           <p className="text-sm font-medium text-brand-800">
-            기본형: {String(data.baseForm)}
+            기본형:{" "}
+            {data.baseForm
+              ? String(data.baseForm)
+              : (data.baseForms as string[]).map((b) => `(${b})`).join(" ")}
           </p>
         ) : null}
         {type !== "korean_blank" && data.koreanHint ? (
@@ -1046,7 +1049,7 @@ function QuestionInput({
         <div className="grid gap-2 sm:grid-cols-2">
           {blanks.map((b) => (
             <label key={b.id} className="block text-xs text-slate-600">
-              {b.id}
+              {b.baseForm ? `(${b.baseForm})` : b.id}
               <input
                 className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm"
                 value={blankAnswers[b.id] ?? ""}

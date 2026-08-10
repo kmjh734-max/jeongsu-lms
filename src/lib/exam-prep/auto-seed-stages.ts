@@ -33,6 +33,12 @@ import {
   buildWritingCues,
   pickWritingCueTexts,
 } from "@/lib/exam-prep/guided-writing";
+import {
+  BE_HAVE_DO,
+  isLikelyNonVerbToken,
+  MODAL_VERBS,
+  verbLemma,
+} from "@/lib/exam-prep/verb-lemma";
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
 import {
   pickDiverseGrammarHits,
@@ -87,6 +93,24 @@ const NON_VERB_FORM = new Set(
     "limited",
     "detailed",
     "crowded",
+    "sometimes",
+    "always",
+    "usually",
+    "often",
+    "never",
+    "already",
+    "still",
+    "perhaps",
+    "maybe",
+    "really",
+    "very",
+    "towards",
+    "toward",
+    "afterwards",
+    "besides",
+    "otherwise",
+    "somehow",
+    "anyway",
   ].map((w) => w.toLowerCase())
 );
 
@@ -133,48 +157,7 @@ function contentEnglishTokens(english: string): string[] {
 }
 
 function lemmaCue(answer: string): string {
-  const w = answer.toLowerCase().replace(/[^a-z']/g, "");
-  if (w === "been" || w === "being" || w === "is" || w === "are" || w === "was" || w === "were") {
-    return "be";
-  }
-  if (w === "has" || w === "had" || w === "have") return "have";
-  if (w === "does" || w === "did" || w === "done" || w === "doing") return "do";
-  if (w === "thanks" || w === "thanked" || w === "thanking") return "thank";
-  if (w === "left") return "leave";
-  if (w === "made") return "make";
-  if (w === "taken") return "take";
-  if (w === "given") return "give";
-  if (w === "seen") return "see";
-  if (w === "gone") return "go";
-  if (w === "come" || w === "came") return "come";
-  if (w.endsWith("ying") && w.length > 5) return `${w.slice(0, -4)}y`;
-  if (w.endsWith("ing") && w.length > 5) {
-    const base = w.slice(0, -3);
-    if (base.length >= 2 && base[base.length - 1] === base[base.length - 2]) {
-      return base.slice(0, -1);
-    }
-    // leaving → leave, having → have
-    if (base.endsWith("v")) return `${base}e`;
-    return base;
-  }
-  if (w.endsWith("ied") && w.length > 4) return `${w.slice(0, -3)}y`;
-  if (w.endsWith("ed") && w.length > 4) {
-    const base = w.slice(0, -2);
-    if (base.endsWith("i")) return `${base.slice(0, -1)}y`;
-    // permitted → permit, stopped → stop
-    if (
-      base.length >= 2 &&
-      base[base.length - 1] === base[base.length - 2] &&
-      !/[aeiou]/.test(base[base.length - 1]!)
-    ) {
-      return base.slice(0, -1);
-    }
-    return base;
-  }
-  if (w.endsWith("ies") && w.length > 4) return `${w.slice(0, -3)}y`;
-  if (w.endsWith("es") && w.length > 4) return w.slice(0, -2);
-  if (w.endsWith("s") && w.length > 3 && !w.endsWith("ss")) return w.slice(0, -1);
-  return w || answer;
+  return verbLemma(answer);
 }
 
 function overlaps(
@@ -473,9 +456,9 @@ const AUX_VERBS = new Set(
 
 /**
  * 5단계: 문장 안 동사형을 **여러 개** 빈칸 (PDF: (have)(be)(dump) …).
- * 구 전체를 한 칸으로 묶지 않는다.
+ * 구 전체를 한 칸으로 묶지 않는다. 부사·명사 제외, 원형 cue 제공.
  */
-function findVerbHits(english: string): VerbHit[] {
+export function findVerbHits(english: string): VerbHit[] {
   const hits: VerbHit[] = [];
   const used: Array<{ a: number; b: number }> = [];
   const push = (start: number, end: number, cues: string[], category: string) => {
@@ -483,8 +466,15 @@ function findVerbHits(english: string): VerbHit[] {
     if (overlaps(used, start, end)) return;
     const answer = english.slice(start, end);
     if (!answer.trim()) return;
+    const token = answer.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
+    if (isLikelyNonVerbToken(token) || NON_VERB_FORM.has(token.toLowerCase())) {
+      return;
+    }
+    if (MODAL_VERBS.has(token.toLowerCase())) return;
+    const cue = (cues[0] ? verbLemma(cues[0]) : verbLemma(token)) || token.toLowerCase();
+    // 원형과 답이 같고 조동사/be·have·do도 아니면(이미 원형)  sparingly keep only finite whitelist
     used.push({ a: start, b: end });
-    hits.push({ start, end, answer, cues, category });
+    hits.push({ start, end, answer, cues: [cue], category });
   };
 
   const tokenRe = /[A-Za-z']+/g;
@@ -503,11 +493,9 @@ function findVerbHits(english: string): VerbHit[] {
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i]!;
     const prev = tokens[i - 1];
-    const next = tokens[i + 1];
     const before = english.slice(Math.max(0, t.start - 16), t.start);
     const after = english.slice(t.end, t.end + 16);
 
-    // 전치사 to + 명사/관계사 스킵 (to whom / to the)
     if (
       prev &&
       /^to$/i.test(prev.low) &&
@@ -518,31 +506,42 @@ function findVerbHits(english: string): VerbHit[] {
       continue;
     }
 
-    if (NON_VERB_FORM.has(t.low)) continue;
+    if (NON_VERB_FORM.has(t.low) || isLikelyNonVerbToken(t.low)) continue;
     if (NEVER_VERB.has(t.low)) continue;
+    if (MODAL_VERBS.has(t.low)) continue;
 
-    // it's / he's → be
-    if (/^(?:it|he|she|that|what|who)'(?:s)$/i.test(t.low)) {
-      push(t.start, t.end, ["be"], "simple_present");
+    // you're / we've / it's …
+    const contraction = t.low.match(
+      /^(i|you|we|they|he|she|it|that|what|who)'(s|re|m|ve|d|ll)$/
+    );
+    if (contraction) {
+      const part = contraction[2]!;
+      if (part === "ll") continue;
+      const cue =
+        part === "ve" || part === "d"
+          ? "have"
+          : "be";
+      const cat =
+        part === "ve" || part === "d" ? "present_perfect" : "simple_present";
+      push(t.start, t.end, [cue], cat);
       continue;
     }
 
-    // 1) 조동사·be·have·do
-    if (AUX_VERBS.has(t.low)) {
-      const cue =
-        /^(am|is|are|was|were|been|being)$/i.test(t.low)
-          ? "be"
-          : /^(have|has|had)$/i.test(t.low)
-            ? "have"
-            : /^(do|does|did)$/i.test(t.low)
-              ? "do"
-              : t.low;
+    // 1) be·have·do 조동사/본동사 (형태 변화 연습)
+    if (BE_HAVE_DO.has(t.low) || AUX_VERBS.has(t.low)) {
+      if (MODAL_VERBS.has(t.low)) continue;
+      if (!BE_HAVE_DO.has(t.low) && !/^(am|is|are|was|were|be|been|being|have|has|had|do|does|did|done|doing)$/i.test(t.low)) {
+        continue;
+      }
+      const cue = verbLemma(t.text);
       let cat = "other";
       if (/^(am|is|are)$/i.test(t.low)) cat = "simple_present";
       else if (/^(was|were)$/i.test(t.low)) cat = "simple_past";
       else if (/^(been|being|be)$/i.test(t.low)) cat = "other";
       else if (/^(have|has)$/i.test(t.low)) cat = "present_perfect";
       else if (/^had$/i.test(t.low)) cat = "past_perfect";
+      else if (/^(do|does)$/i.test(t.low)) cat = "simple_present";
+      else if (/^did$/i.test(t.low)) cat = "simple_past";
       push(t.start, t.end, [cue], cat);
       continue;
     }
@@ -556,14 +555,13 @@ function findVerbHits(english: string): VerbHit[] {
       continue;
     }
 
-    // 3) -ing (동사·분사·동명사)
+    // 3) -ing
     if (/ing$/i.test(t.low) && t.low.length > 4) {
       let cat = "gerund";
       if (prev && /^(is|are|was|were|am|be|been|being)$/i.test(prev.low)) {
         cat = "present_progressive";
       }
       if (prev && /^(been)$/i.test(prev.low)) cat = "perfect_progressive";
-      // 관사·형용사 뒤면 현재분사 수식
       if (/\b(a|an|the|this|that|these|those|illegal|growing|large)\s+$/i.test(before)) {
         cat = "present_participle";
       }
@@ -571,7 +569,7 @@ function findVerbHits(english: string): VerbHit[] {
       continue;
     }
 
-    // 4) -ed / 불규칙 pp·과거 (have/be 뒤 또는 서술 동사)
+    // 4) -ed / 불규칙
     if (IRREGULAR_VERBS.has(t.low) || (/ed$/i.test(t.low) && t.low.length > 3)) {
       let cat = "past_participle";
       if (prev && /^(have|has|had)$/i.test(prev.low)) cat = "present_perfect";
@@ -586,7 +584,6 @@ function findVerbHits(english: string): VerbHit[] {
       ) {
         cat = "passive_voice";
       }
-      // 불규칙 과거(서술) — have/be 앞이 아니면 단순과거로
       if (
         IRREGULAR_VERBS.has(t.low) &&
         !/ed$/i.test(t.low) &&
@@ -614,15 +611,15 @@ function findVerbHits(english: string): VerbHit[] {
       continue;
     }
 
-    // 6) 3인칭 -s / 일반 정동사 (화이트리스트 + 휴리스틱)
+    // 6) 3인칭 -s / 일반 정동사
     const FINITE_HINT =
-      /^(attracts?|urges?|leaves?|needs?|gets?|fixes?|grows?|dumps?|permits?|thanks?|protects?|strengthens?|weakens?|makes?|takes?|gives?|comes?|goes?|seems?|appears?|becomes?|remains?|keeps?|helps?|shows?|provides?|requires?|suggests?|causes?|creates?|allows?|prevents?|reduces?|increases?|improves?|supports?|includes?|contains?|offers?|asks?|tells?|says?|thinks?|knows?|feels?|wants?|tries?|begins?|starts?|ends?|continues?|happens?|occurs?|means?|depends?|exists?|leads?|follows?|works?|plays?|lives?|looks?|uses?|calls?|changes?|moves?|turns?|brings?|holds?|finds?|believes?|considers?|decides?|explains?|produces?|represents?|serves?|stands?|understands?|writes?|reads?|runs?|walks?|talks?|speaks?|listens?|watches?|eats?|drinks?|sleeps?|opens?|closes?|adds?|removes?|replaces?|develops?|encourages?|enables?|forces?|fails?|succeeds?|proves?|argues?|claims?|states?|notes?|reports?|describes?|mentions?|refers?|relates?|applies?|compares?|differs?|varies?|tends?|seems?|proves?)$/i;
+      /^(attracts?|urges?|leaves?|needs?|gets?|fixes?|grows?|dumps?|permits?|thanks?|protects?|strengthens?|weakens?|makes?|takes?|gives?|comes?|goes?|seems?|appears?|becomes?|remains?|keeps?|helps?|shows?|provides?|requires?|suggests?|causes?|creates?|allows?|prevents?|reduces?|increases?|improves?|supports?|includes?|contains?|offers?|asks?|tells?|says?|thinks?|knows?|feels?|wants?|tries?|begins?|starts?|ends?|continues?|happens?|occurs?|means?|depends?|exists?|leads?|follows?|works?|plays?|lives?|looks?|uses?|calls?|changes?|moves?|turns?|brings?|holds?|finds?|believes?|considers?|decides?|explains?|produces?|represents?|serves?|stands?|understands?|writes?|reads?|runs?|walks?|talks?|speaks?|listens?|watches?|eats?|drinks?|sleeps?|opens?|closes?|adds?|removes?|replaces?|develops?|encourages?|enables?|forces?|fails?|succeeds?|proves?|argues?|claims?|states?|notes?|reports?|describes?|mentions?|refers?|relates?|applies?|compares?|differs?|varies?|tends?|assumes?|supposes?)$/i;
     if (FINITE_HINT.test(t.low)) {
       push(t.start, t.end, [lemmaCue(t.text)], "simple_present");
       continue;
     }
 
-    // 7) 동사처럼 보이는 3인칭 -s
+    // 7) 동사처럼 보이는 3인칭 -s (부사 제외는 위에서 처리)
     if (
       /[a-z]s$/i.test(t.low) &&
       !/ss$/i.test(t.low) &&

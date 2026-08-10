@@ -11,7 +11,8 @@ import {
   vocabEnglishNeedles,
   vocabKoreanNeedles,
 } from "@/lib/exam-prep/blank-importance";
-import { buildStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
+import { buildStage6Drafts, findVerbHits } from "@/lib/exam-prep/auto-seed-stages";
+import { verbLemma } from "@/lib/exam-prep/verb-lemma";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
 import {
   buildPdfReorderDisplay,
@@ -632,177 +633,67 @@ function buildTranslationPractice(
   };
 }
 
-const IRREGULAR_BASE: Record<string, string> = {
-  was: "be",
-  were: "be",
-  been: "be",
-  am: "be",
-  is: "be",
-  are: "be",
-  being: "be",
-  had: "have",
-  has: "have",
-  having: "have",
-  did: "do",
-  does: "do",
-  done: "do",
-  doing: "do",
-  went: "go",
-  gone: "go",
-  going: "go",
-  made: "make",
-  making: "make",
-  took: "take",
-  taken: "take",
-  taking: "take",
-  came: "come",
-  coming: "come",
-  saw: "see",
-  seen: "see",
-  seeing: "see",
-  got: "get",
-  gotten: "get",
-  getting: "get",
-  said: "say",
-  saying: "say",
-  left: "leave",
-  leaving: "leave",
-  felt: "feel",
-  feeling: "feel",
-  found: "find",
-  finding: "find",
-  gave: "give",
-  given: "give",
-  giving: "give",
-  knew: "know",
-  known: "know",
-  knowing: "know",
-  thought: "think",
-  thinking: "think",
-  told: "tell",
-  telling: "tell",
-  became: "become",
-  becoming: "become",
-  began: "begin",
-  begun: "begin",
-  beginning: "begin",
-  ran: "run",
-  running: "run",
-  wrote: "write",
-  written: "write",
-  writing: "write",
-  spoke: "speak",
-  spoken: "speak",
-  speaking: "speak",
-};
-
-function guessVerbBase(core: string): string {
-  const lower = core.toLowerCase();
-  if (IRREGULAR_BASE[lower]) return IRREGULAR_BASE[lower]!;
-  if (/ying$/i.test(core) && core.length > 5) {
-    return core.replace(/ying$/i, "ie").toLowerCase();
-  }
-  if (/ing$/i.test(core) && core.length > 4) {
-    let base = core.replace(/ing$/i, "").toLowerCase();
-    if (base.length >= 2 && base.at(-1) === base.at(-2)) base = base.slice(0, -1);
-    else if (!/[aeiou]/.test(base.at(-1) ?? "") && base.length >= 3) {
-      // hoping → hope (rough)
-      base = `${base}e`;
-    }
-    return base;
-  }
-  if (/ied$/i.test(core) && core.length > 4) {
-    return core.replace(/ied$/i, "y").toLowerCase();
-  }
-  if (/ed$/i.test(core) && core.length > 3) {
-    let base = core.replace(/ed$/i, "").toLowerCase();
-    if (base.length >= 2 && base.at(-1) === base.at(-2)) base = base.slice(0, -1);
-    return base;
-  }
-  if (/s$/i.test(core) && core.length > 3 && !/ss$/i.test(core)) {
-    return core.replace(/s$/i, "").toLowerCase();
-  }
-  return lower;
-}
-
+/**
+ * 문장의 동사를 모두 빈칸으로. 기본형(cue) 제시.
+ * sometimes 같은 비동사는 제외.
+ */
 function buildVerbForm(
   sentence: ExamPassageSentence,
   order: number
 ): GeneratedQuestionDraft | null {
-  const words = tokens(sentence.english_text);
-  const targets: Array<{ word: string; index: number; base: string }> = [];
-  words.forEach((w, i) => {
-    const core = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (!core || core.length < 2) return;
-    const lower = core.toLowerCase();
-    const looksInflected =
-      Boolean(IRREGULAR_BASE[lower]) ||
-      /ing$/i.test(core) ||
-      /ed$/i.test(core) ||
-      (/s$/i.test(core) && !STOP.has(lower) && core.length >= 4);
-    if (!looksInflected) return;
-    if (STOP.has(lower) && !IRREGULAR_BASE[lower]) return;
-    targets.push({ word: core, index: i, base: guessVerbBase(core) });
-  });
-  if (targets.length === 0) {
-    const cw = contentWords(sentence.english_text);
-    if (cw.length === 0) return null;
-    const core = cw[0]!.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (!core) return null;
-    const idx = words.findIndex(
-      (w) => w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") === core
-    );
-    targets.push({
-      word: core,
-      index: idx >= 0 ? idx : 0,
-      base: guessVerbBase(core),
+  const english = sentence.english_text ?? "";
+  const hits = findVerbHits(english);
+  if (hits.length === 0) return null;
+
+  const blanks: Array<{
+    id: string;
+    answer: string;
+    acceptableAnswers: string[];
+    baseForm: string;
+  }> = [];
+
+  // 뒤에서부터 치환해 인덱스 유지
+  let display = english;
+  for (let i = hits.length - 1; i >= 0; i--) {
+    const h = hits[i]!;
+    const core = h.answer.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") || h.answer;
+    const lead = h.answer.match(/^[^A-Za-z']*/)?.[0] ?? "";
+    const trail = h.answer.match(/[^A-Za-z']*$/)?.[0] ?? "";
+    const base = (h.cues[0] || verbLemma(core)).toLowerCase();
+    const id = `blank_${i + 1}`;
+    blanks.unshift({
+      id,
+      answer: core,
+      acceptableAnswers: [...new Set([core, core.toLowerCase(), h.answer.trim()])],
+      baseForm: base,
     });
+    display =
+      display.slice(0, h.start) + `${lead}____${trail}` + display.slice(h.end);
   }
-  // prefer content-like verbs over aux
-  const t =
-    targets.find((x) => !["be", "have", "do"].includes(x.base)) ?? targets[0]!;
-  const display = words.map((w, i) => {
-    const core = w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (i === t.index || core === t.word) {
-      const lead = w.match(/^[^A-Za-z']+/)?.[0] ?? "";
-      const trail = w.match(/[^A-Za-z']+$/)?.[0] ?? "";
-      return `${lead}____${trail}`;
-    }
-    return w;
-  });
+
+  const baseForms = blanks.map((b) => b.baseForm);
+  const baseFormLabel = baseForms.map((b) => `(${b})`).join(" ");
+
   return {
     sentence_id: sentence.id,
     question_type: "verb_form",
     question_order: order,
     question_text: stepPrompt(
       "verb_form",
-      "괄호 안에 주어진 단어를 알맞게 고쳐 쓰세요."
+      "괄호 안에 주어진 단어를 문맥에 맞는 알맞은 형태로 고쳐 쓰세요."
     ),
     question_data: {
-      displayText: display.join(" "),
-      baseForm: t.base,
+      displayText: display,
+      baseForm: baseFormLabel,
+      baseForms,
       koreanHint: sentence.korean_text,
-      blanks: [
-        {
-          id: "blank_1",
-          answer: t.word,
-          acceptableAnswers: [t.word, t.word.toLowerCase()],
-        },
-      ],
+      blanks,
     },
-    correct_answer: {
-      blanks: [
-        {
-          id: "blank_1",
-          answer: t.word,
-          acceptableAnswers: [t.word, t.word.toLowerCase()],
-        },
-      ],
-    },
-    acceptable_answers: [t.word],
-    explanation: `정답: ${t.word}`,
+    correct_answer: { blanks },
+    acceptable_answers: blanks.map((b) => b.acceptableAnswers),
+    explanation: `정답: ${blanks.map((b) => b.answer).join(", ")}`,
     difficulty: "medium",
-    points: 1,
+    points: Math.max(1, blanks.length),
     ai_generated: false,
   };
 }

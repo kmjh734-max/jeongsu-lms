@@ -51,6 +51,14 @@ function QuestionPreview({ q }: { q: ExamWorkbookQuestion }) {
         {data.baseForm ? (
           <p className="text-xs text-slate-500">기본형: {String(data.baseForm)}</p>
         ) : null}
+        {Array.isArray(data.baseForms) &&
+        (data.baseForms as unknown[]).length > 0 &&
+        !data.baseForm ? (
+          <p className="text-xs text-slate-500">
+            기본형:{" "}
+            {(data.baseForms as string[]).map((b) => `(${b})`).join(" ")}
+          </p>
+        ) : null}
         {data.displayText ? (
           <p className="font-mono text-slate-800">{String(data.displayText)}</p>
         ) : null}
