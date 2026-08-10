@@ -4,48 +4,74 @@
  */
 import { newChunkId, type Stage8Chunk } from "@/lib/exam-prep/stage8-types";
 
-/** PDF에 자주 나오는 다어절 구 */
+/** 의미·관용·결합이 강한 다어절 구 (긴 것부터 매칭) */
 const MULTI_PHRASES: RegExp[] = [
-  /\beven though\b/gi,
-  /\bmore and more\b/gi,
-  /\bless and less\b/gi,
-  /\bnot permitted\b/gi,
-  /\bin areas of\b/gi,
-  /\bour neighborhood\b/gi,
-  /\bthe neighborhood\b/gi,
+  /\bThank you for your time and consideration\b/gi,
+  /\bTo Whom It May Concern\b/gi,
+  /\bthe large buildup of\b/gi,
+  /\bin a disgusting state\b/gi,
+  /\bthis growing problem\b/gi,
+  /\bmanagement and supervision\b/gi,
+  /\banimals and insects\b/gi,
   /\bon street corners\b/gi,
-  /\bstreet corners\b/gi,
   /\band at bus stops\b/gi,
   /\bat bus stops\b/gi,
-  /\bbus stops\b/gi,
-  /\bthe large buildup of\b/gi,
-  /\banimals and insects\b/gi,
-  /\bmanagement and supervision\b/gi,
   /\bin the community\b/gi,
   /\bof our neighborhood\b/gi,
+  /\bour neighborhood\b/gi,
+  /\bthe neighborhood\b/gi,
+  /\bstreet corners\b/gi,
+  /\bbus stops\b/gi,
   /\bthe cleanliness\b/gi,
   /\bdesperately needed\b/gi,
-  /\bto protect\b/gi,
-  /\band strict\b/gi,
-  /\bsome of\b/gi,
+  /\bgrowing problem\b/gi,
+  /\billegal dumping\b/gi,
+  /\bnot permitted\b/gi,
+  /\bin areas of\b/gi,
+  /\bin those areas\b/gi,
+  /\bmore and more\b/gi,
+  /\bless and less\b/gi,
+  /\beven though\b/gi,
+  /\bfor example\b/gi,
+  /\bas a result\b/gi,
+  /\bin charge of\b/gi,
+  /\bon board\b/gi,
+  /\bas good as\b/gi,
+  /\beach of its\b/gi,
+  /\beach of\b/gi,
+  /\bin spite of\b/gi,
+  /\bbecause of\b/gi,
+  /\binstead of\b/gi,
+  /\baccording to\b/gi,
+  /\bin order to\b/gi,
+  /\bso that\b/gi,
+  /\bsuch as\b/gi,
+  /\bas well as\b/gi,
+  /\brather than\b/gi,
+  /\bdue to\b/gi,
+  /\bout of\b/gi,
+  /\bup to\b/gi,
+  /\bthe situation\b/gi,
   /\bmy neighbors\b/gi,
   /\btheir garbage\b/gi,
   /\btheir waste\b/gi,
+  /\bsome of\b/gi,
+  /\bto protect\b/gi,
   /\bto leave\b/gi,
-  /\bin those areas\b/gi,
-  /\bthe situation\b/gi,
+  /\bto fix\b/gi,
   /\bare doing\b/gi,
   /\bis getting\b/gi,
   /\bhas left\b/gi,
-  /\bin a disgusting state\b/gi,
-  /\bin a\b/gi,
-  /\bto fix\b/gi,
-  /\bthis growing problem\b/gi,
-  /\bgrowing problem\b/gi,
-  /\billegal dumping\b/gi,
+  /\bhave been\b/gi,
+  /\bhas been\b/gi,
+  /\bhad been\b/gi,
+  /\bwill be\b/gi,
+  /\bcan be\b/gi,
+  /\bmight be\b/gi,
+  /\bmust be\b/gi,
+  /\band strict\b/gi,
   /\band at\b/gi,
-  /\bThank you for your time and consideration\b/gi,
-  /\bTo Whom It May Concern\b/gi,
+  /\bin a\b/gi,
 ];
 
 const GREETING_RE = /^(To Whom It May Concern:\s*|Dear\s+[^:]+:\s*)/i;
@@ -57,6 +83,50 @@ const FIXED_BRIDGES: RegExp[] = [
   /,\s*recently more and more\s+/gi,
   /\s+in a disgusting state\.?/gi,
 ];
+
+const PREPS = new Set(
+  "in on at of to for with from by into onto upon over under about after before without within among between through during against toward towards across".split(
+    " "
+  )
+);
+const DETS = new Set(
+  "the a an our my their his her its your this that these those some any each every no such".split(
+    " "
+  )
+);
+const AUX_FINITE = new Set(
+  "am is are was were be been being have has had do does did will would can could may might must should shall".split(
+    " "
+  )
+);
+const CONJ_SMALL = new Set("and or but so yet".split(" "));
+
+function tokenCore(tok: string): string {
+  return tok.toLowerCase().replace(/[^a-z']/g, "");
+}
+
+function looksLikeNounOrAdj(tok: string): boolean {
+  const c = tokenCore(tok);
+  if (!c || c.length < 2) return false;
+  if (AUX_FINITE.has(c) || PREPS.has(c) || DETS.has(c) || CONJ_SMALL.has(c)) {
+    return false;
+  }
+  if (
+    /^(who|whom|whose|which|that|where|when|why|how|what|if|whether|because|although|though|while)$/i.test(
+      c
+    )
+  ) {
+    return false;
+  }
+  // 동사 활용형으로 보이면 명사구에 넣지 않음
+  if (/ing$|ed$/.test(c) && c.length > 4) return false;
+  return true;
+}
+
+function isFiniteOrAux(tok: string): boolean {
+  const c = tokenCore(tok);
+  return AUX_FINITE.has(c);
+}
 
 export type ReorderPlanPart =
   | { type: "fixed"; text: string }
@@ -220,37 +290,76 @@ export function buildPhraseChunkTexts(text: string): string[] {
       .filter((t) => t && !/^[.,!?;:]+$/.test(t))
       .map((t) => t.replace(/^[.,!?;:]+|[.,!?;:]+$/g, ""))
       .filter(Boolean);
+
     let i = 0;
     while (i < tokens.length) {
-      const t = tokens[i]!.toLowerCase().replace(/[^a-z']/g, "");
-      if (
-        ["in", "on", "at", "of", "to", "for", "with", "from", "by", "into"].includes(t) &&
-        i + 2 < tokens.length
-      ) {
-        groups.push(tokens.slice(i, i + 3).join(" "));
-        i += 3;
-        continue;
-      }
-      if (
-        ["the", "a", "an", "our", "my", "their", "this", "those", "some"].includes(t) &&
-        i + 1 < tokens.length
-      ) {
-        const next = tokens[i + 1]!.toLowerCase().replace(/[^a-z']/g, "");
-        if (["and", "or"].includes(next) && i + 3 < tokens.length) {
-          groups.push(tokens.slice(i, i + 4).join(" "));
-          i += 4;
+      const core = tokenCore(tokens[i]!);
+
+      // 전치사구: on board / in charge / for startups — 뒤 동사(is/are…)는 절대 묶지 않음
+      if (PREPS.has(core) && i + 1 < tokens.length) {
+        let j = i + 1;
+        if (DETS.has(tokenCore(tokens[j]!)) && j + 1 < tokens.length) {
+          j += 1;
+        }
+        // 형용사 1개까지
+        if (
+          j + 1 < tokens.length &&
+          looksLikeNounOrAdj(tokens[j]!) &&
+          looksLikeNounOrAdj(tokens[j + 1]!) &&
+          !isFiniteOrAux(tokens[j + 1]!)
+        ) {
+          j += 1;
+        }
+        if (j < tokens.length && looksLikeNounOrAdj(tokens[j]!)) {
+          groups.push(tokens.slice(i, j + 1).join(" "));
+          i = j + 1;
           continue;
         }
-        groups.push(tokens.slice(i, i + 2).join(" "));
-        i += 2;
-        continue;
-      }
-      // PDF: have / been / dumping / are / is 단독 카드
-      if (["have", "has", "had", "been", "are", "is", "was", "were", "it's", "it’s"].includes(t)) {
+        // 전치사만 남으면 단독 (다음이 동사라면)
         groups.push(tokens[i]!);
         i += 1;
         continue;
       }
+
+      // 관사/소유격 + 명사(구)
+      if (DETS.has(core) && i + 1 < tokens.length) {
+        let j = i + 1;
+        if (
+          j + 1 < tokens.length &&
+          looksLikeNounOrAdj(tokens[j]!) &&
+          looksLikeNounOrAdj(tokens[j + 1]!) &&
+          !isFiniteOrAux(tokens[j + 1]!)
+        ) {
+          j += 1;
+        }
+        if (j < tokens.length && looksLikeNounOrAdj(tokens[j]!)) {
+          groups.push(tokens.slice(i, j + 1).join(" "));
+          i = j + 1;
+          continue;
+        }
+      }
+
+      // 조동사·be/have 단독 카드 (PDF형)
+      if (AUX_FINITE.has(core) || core === "it's" || core === "it’s") {
+        groups.push(tokens[i]!);
+        i += 1;
+        continue;
+      }
+
+      // to + 동사원형
+      if (core === "to" && i + 1 < tokens.length && !isFiniteOrAux(tokens[i + 1]!)) {
+        groups.push(tokens.slice(i, i + 2).join(" "));
+        i += 2;
+        continue;
+      }
+
+      // not + V
+      if (core === "not" && i + 1 < tokens.length) {
+        groups.push(tokens.slice(i, i + 2).join(" "));
+        i += 2;
+        continue;
+      }
+
       groups.push(tokens[i]!);
       i += 1;
     }
@@ -264,19 +373,42 @@ export function buildPhraseChunkTexts(text: string): string[] {
   if (cursor < trimmed.length) flushTokens(trimmed.slice(cursor));
 
   let finalGroups = groups.map((g) => g.trim()).filter(Boolean);
-  while (finalGroups.length < 3 && finalGroups.some((g) => g.split(/\s+/).length > 1)) {
-    const idx = finalGroups.findIndex((g) => g.split(/\s+/).length > 1);
+
+  // 카드가 너무 적으면 긴 구만 쪼개되, 전치사구·관용구는 유지
+  while (finalGroups.length < 3 && finalGroups.some((g) => g.split(/\s+/).length > 2)) {
+    const idx = finalGroups.findIndex((g) => {
+      const n = g.split(/\s+/).length;
+      if (n <= 2) return false;
+      const low = g.toLowerCase();
+      if (/^(on board|for example|as a result|in charge of|as good as)\b/.test(low)) {
+        return false;
+      }
+      return true;
+    });
     if (idx < 0) break;
     const parts = finalGroups[idx]!.split(/\s+/);
+    const mid = Math.ceil(parts.length / 2);
     finalGroups = [
       ...finalGroups.slice(0, idx),
-      ...parts,
+      parts.slice(0, mid).join(" "),
+      parts.slice(mid).join(" "),
       ...finalGroups.slice(idx + 1),
     ];
   }
 
-  // PDF 미리보기용: 문두 대문자 유지하되 카드는 원문 그대로
-  return finalGroups;
+  // 안전망: "on board is" 같은 잘못된 묶음 분해
+  finalGroups = finalGroups.flatMap((g) => {
+    const parts = g.split(/\s+/);
+    if (parts.length < 3) return [g];
+    const last = tokenCore(parts[parts.length - 1]!);
+    const first = tokenCore(parts[0]!);
+    if (PREPS.has(first) && AUX_FINITE.has(last)) {
+      return [parts.slice(0, -1).join(" "), parts[parts.length - 1]!];
+    }
+    return [g];
+  });
+
+  return finalGroups.map((g) => g.trim()).filter(Boolean);
 }
 
 export function toStage8Chunks(texts: string[]): Stage8Chunk[] {
