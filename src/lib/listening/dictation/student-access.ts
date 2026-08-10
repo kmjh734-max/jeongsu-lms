@@ -127,10 +127,30 @@ export function formatDictationStartResponse(
     });
   }
 
-  const display = buildDictationStartPayload(wordItems, {
+  let display = buildDictationStartPayload(wordItems, {
     scriptText,
     segments: access.segments,
   });
+
+  // 대본은 있는데 표시 빈칸이 0개면 fallback으로 다시 생성 (특정 문항 Dictation 누락 방지)
+  if (!display.blanks.length && scriptText.trim() && access.settings) {
+    wordItems = filterWordOnlyBlankItems(
+      buildFallbackDictationBlanks({
+        scriptText,
+        segments: access.segments,
+        blankLevel: access.settings.dictation_blank_level,
+        answerClue: access.question.answer_clue ?? "",
+      })
+    );
+    wordItems = anchorDictationBlankItems(wordItems, {
+      scriptText,
+      segments: access.segments,
+    });
+    display = buildDictationStartPayload(wordItems, {
+      scriptText,
+      segments: access.segments,
+    });
+  }
 
   return {
     attemptId,

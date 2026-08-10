@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
-import { assertDailyTaskAccessible } from "@/lib/listening/schedule/task-access";
-import { loadDailyTaskProgressMap } from "@/lib/listening/schedule/update-progress";
+import {
+  loadDailyTaskProgressMap,
+  reconcileDailyTaskDictationProgress,
+} from "@/lib/listening/schedule/update-progress";
 import { StudentListeningPractice } from "@/components/listening/StudentListeningPractice";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -31,19 +33,8 @@ export default async function StudentListeningDailyTaskPage({
   if (!task) notFound();
 
   const todayIso = getTodayIsoKorea();
-  const access = await assertDailyTaskAccessible(admin, {
-    studentId: profile.id,
-    task: {
-      id: task.id as string,
-      assignment_id: task.assignment_id as string,
-      task_date: task.task_date as string,
-    },
-    todayIso,
-  });
-  if (!access.ok) {
-    if (access.blockingTaskId && access.blockingTaskId !== taskId) {
-      redirect(`/student/listening/daily/${access.blockingTaskId}`);
-    }
+  // 미래 날짜만 차단 — 과거 미완료 과제는 언제든 다시 풀 수 있음
+  if ((task.task_date as string) > todayIso) {
     redirect("/student/listening");
   }
 
@@ -65,6 +56,20 @@ export default async function StudentListeningDailyTaskPage({
 
   if (!set) notFound();
 
+  const requireDictation =
+    assignment?.require_dictation_pass !== false &&
+    set.dictation_enabled !== false;
+  const passScore = assignment?.dictation_pass_score ?? 80;
+
+  // 잘못 완료 처리된 Dictation(빈칸 없이 통과 등) 복구
+  await reconcileDailyTaskDictationProgress(admin, {
+    dailyTaskId: taskId,
+    studentId: profile.id,
+    setId: task.set_id as string,
+    requireDictation,
+    dictationPassScore: passScore,
+  });
+
   const questionIds = (task.question_ids as string[]) ?? [];
   const { data: allQuestions } = await admin
     .from("listening_questions")
@@ -80,9 +85,6 @@ export default async function StudentListeningDailyTaskPage({
     .filter((q): q is NonNullable<typeof q> => !!q);
 
   const progressMap = await loadDailyTaskProgressMap(admin, taskId, profile.id);
-
-  const requireDictation = assignment?.require_dictation_pass !== false;
-  const passScore = assignment?.dictation_pass_score ?? 80;
 
   return (
     <div>
@@ -101,8 +103,7 @@ export default async function StudentListeningDailyTaskPage({
           setId={task.set_id}
           setTitle={set.title}
           dictationSettings={{
-            dictation_enabled:
-              requireDictation && (set.dictation_enabled ?? true),
+            dictation_enabled: requireDictation,
             dictation_pass_score: passScore,
             dictation_blank_level:
               (set.dictation_blank_level as

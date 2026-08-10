@@ -197,15 +197,38 @@ export function StudentListeningPractice({
         const res = await fetch("/api/listening/dictation/start", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ setId, questionId }),
+          body: JSON.stringify({
+            setId,
+            questionId,
+            dailyTaskId: scheduleMode?.dailyTaskId,
+          }),
         });
         const data = (await res.json()) as {
           ok?: boolean;
+          alreadyPassed?: boolean;
+          score?: number;
           attemptId?: string;
           passageLines?: DictationStartPayloadClient["passageLines"];
           blanks?: DictationStartPayloadClient["blanks"];
         };
-        if (data.ok && data.attemptId && data.passageLines?.length) {
+        if (data.ok && data.alreadyPassed) {
+          dictationPrefetchedIds.current.add(questionId);
+          setDictationByQuestion((prev) => ({
+            ...prev,
+            [questionId]: {
+              passed: true,
+              bestScore: data.score ?? null,
+              attemptCount: 1,
+            },
+          }));
+          return;
+        }
+        if (
+          data.ok &&
+          data.attemptId &&
+          data.passageLines?.length &&
+          (data.blanks?.length ?? 0) > 0
+        ) {
           dictationPrefetchedIds.current.add(questionId);
           setDictationPrefetch((prev) => ({
             ...prev,
@@ -220,7 +243,7 @@ export function StudentListeningPractice({
         dictationPrefetching.current.delete(questionId);
       }
     },
-    [setId, dictationSettings.dictation_enabled]
+    [setId, dictationSettings.dictation_enabled, scheduleMode?.dailyTaskId]
   );
 
   useEffect(() => {
@@ -347,22 +370,25 @@ export function StudentListeningPractice({
     pauseObjectiveAudio();
     setObjectiveSubmitted((prev) => ({ ...prev, [q.id]: true }));
     setShowScript(false);
+    const alreadyDictationPassed = !!dictationByQuestion[q.id]?.passed;
     if (scheduleMode) {
       void reportScheduleProgress(q.id, {
         objectiveCompleted: true,
-        dictationCompleted: !dictationRequired,
-        dictationScore: !dictationRequired
-          ? scheduleMode.dictationPassScore
-          : undefined,
+        dictationCompleted: !dictationRequired || alreadyDictationPassed,
+        dictationScore:
+          !dictationRequired || alreadyDictationPassed
+            ? (dictationByQuestion[q.id]?.bestScore ??
+              scheduleMode.dictationPassScore)
+            : undefined,
       });
-      if (!dictationRequired) {
+      if (!dictationRequired && !alreadyDictationPassed) {
         setDictationByQuestion((prev) => ({
           ...prev,
           [q.id]: { passed: true, bestScore: null, attemptCount: 1 },
         }));
       }
     }
-    if (dictationRequired) {
+    if (dictationRequired && !alreadyDictationPassed) {
       setDictationKey((k) => k + 1);
       void prefetchDictationStart(q.id);
     }

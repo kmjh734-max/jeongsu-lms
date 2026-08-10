@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
-import { loadAssignmentPriorIncompleteDates } from "@/lib/listening/schedule/task-access";
 import type {
   DailyTaskStatus,
   ScheduleAssignmentRow,
@@ -102,17 +101,9 @@ export async function getStudentListeningCalendar(
 }> {
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
   const { start, end, daysInMonth } = monthBounds(year, month);
-  const assignmentById = new Map(assignments.map((a) => [a.id, a]));
-  const earliestIncomplete = await loadAssignmentPriorIncompleteDates(
-    admin,
-    studentId,
-    assignments.map((a) => a.id),
-    todayIso
-  );
 
   type TaskRow = {
     id: string;
-    assignment_id: string;
     task_date: string;
     status: DailyTaskStatus;
     completed_count: number;
@@ -124,7 +115,7 @@ export async function getStudentListeningCalendar(
   const { data: taskRows } = await admin
     .from("listening_daily_tasks")
     .select(
-      "id, assignment_id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
+      "id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
     )
     .eq("student_id", studentId)
     .gte("task_date", start)
@@ -169,21 +160,8 @@ export async function getStudentListeningCalendar(
 
     const pick =
       rows.find((r) => r.status !== "completed") ?? rows[0] ?? null;
-
-    const assignmentForLock =
-      (pick ? assignmentById.get(pick.assignment_id) : null) ??
-      studyAssignments[0] ??
-      null;
-    const lockEnabled =
-      assignmentForLock?.lock_next_until_today_complete !== false;
-    const earliest =
-      assignmentForLock != null
-        ? earliestIncomplete.get(assignmentForLock.id)
-        : undefined;
-    // 이전 미완료가 있고, 그 날짜보다 뒤면 잠금 (해당 미완료일 자체는 열림)
-    const lockedByPrior =
-      lockEnabled && earliest != null && taskDate > earliest;
-    const locked = taskDate > todayIso || lockedByPrior;
+    // 미래만 잠금 — 과거·오늘 미완료는 언제든 입장 가능
+    const locked = taskDate > todayIso;
 
     if (pick) {
       const assignment = Array.isArray(pick.assignment)

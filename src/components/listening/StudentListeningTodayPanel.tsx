@@ -59,14 +59,6 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
   const todayIso = summary.todayIso;
   const showTodayInProgress =
     today != null && today.status !== "completed";
-  const todayBlockedByPrior =
-    today != null &&
-    missed.some(
-      (m) =>
-        !today.assignmentId ||
-        !m.assignmentId ||
-        m.assignmentId === today.assignmentId
-    );
   const hasSchedule =
     missed.length > 0 ||
     today != null ||
@@ -83,7 +75,7 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
 
       {missed.length > 0 && showTodayInProgress && (
         <p className="text-xs text-amber-800">
-          미완료 학습을 먼저 마친 뒤 오늘 학습을 진행할 수 있습니다.
+          미완료 학습이 있습니다. 오늘 학습과 함께 마저 풀 수 있습니다.
         </p>
       )}
 
@@ -134,18 +126,12 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
               ? ` · 남은 문항 ${today.remainingCount}개`
               : ""}
           </p>
-          {todayBlockedByPrior ? (
-            <p className="mt-2 text-xs font-medium text-amber-800">
-              위 미완료 학습을 끝낸 뒤 시작할 수 있습니다.
-            </p>
-          ) : (
-            <Link
-              href={`/student/listening/daily/${today.id}`}
-              className="mt-2 inline-block rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
-            >
-              {today.completedCount > 0 ? "이어 풀기" : "오늘 학습 시작"}
-            </Link>
-          )}
+          <Link
+            href={`/student/listening/daily/${today.id}`}
+            className="mt-2 inline-block rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
+          >
+            {today.completedCount > 0 ? "이어 풀기" : "오늘 학습 시작"}
+          </Link>
         </div>
       )}
 

@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       questionId?: string;
       attemptNo?: number;
       previousBlankWords?: string[];
+      dailyTaskId?: string;
     };
 
     const setId = body.setId?.trim();
@@ -51,15 +52,62 @@ export async function POST(request: Request) {
     }
 
     const { admin, profile, question, settings, segments } = access;
+    const dailyTaskId = body.dailyTaskId?.trim();
+
+    let effectivePassScore = settings.dictation_pass_score;
+    if (dailyTaskId) {
+      const { data: task } = await admin
+        .from("listening_daily_tasks")
+        .select("assignment_id, student_id")
+        .eq("id", dailyTaskId)
+        .maybeSingle();
+      if (task && task.student_id === profile.id) {
+        const { data: assignment } = await admin
+          .from("listening_schedule_assignments")
+          .select("dictation_pass_score")
+          .eq("id", task.assignment_id)
+          .maybeSingle();
+        if (assignment?.dictation_pass_score != null) {
+          effectivePassScore = assignment.dictation_pass_score as number;
+        }
+      }
+    }
 
     const { data: priorAttempts } = await admin
       .from("listening_dictation_attempts")
-      .select("id, blank_items, submitted_at, attempt_no, passed")
+      .select("id, blank_items, submitted_at, attempt_no, passed, score")
       .eq("student_id", profile.id)
       .eq("question_id", questionId)
       .order("attempt_no", { ascending: true });
 
-    if ((priorAttempts ?? []).some((a) => a.passed)) {
+    const bestScore = (priorAttempts ?? [])
+      .filter((a) => a.submitted_at && a.score != null)
+      .reduce((m, a) => Math.max(m, a.score as number), -1);
+
+    if (bestScore >= effectivePassScore) {
+      return NextResponse.json({
+        ok: true,
+        alreadyPassed: true,
+        score: bestScore,
+        passScore: effectivePassScore,
+        attemptId: "",
+        passageLines: [],
+        blanks: [],
+      });
+    }
+
+    const weakPassed = (priorAttempts ?? []).filter(
+      (a) => a.passed && (a.score == null || (a.score as number) < effectivePassScore)
+    );
+    if (weakPassed.length > 0) {
+      await admin
+        .from("listening_dictation_attempts")
+        .update({ passed: false })
+        .in(
+          "id",
+          weakPassed.map((a) => a.id as string)
+        );
+    } else if ((priorAttempts ?? []).some((a) => a.passed) && !dailyTaskId) {
       return jsonError("이미 Dictation을 통과한 문항입니다.");
     }
 
@@ -119,13 +167,18 @@ export async function POST(request: Request) {
       return jsonError(insErr?.message ?? "Dictation 시도 저장 실패");
     }
 
+    const payload = formatDictationStartResponse(inserted.id, blankItems, {
+      question,
+      segments,
+      settings,
+    });
+    if (!payload.blanks?.length) {
+      return jsonError("Dictation 빈칸을 표시하지 못했습니다. 다시 시도해 주세요.");
+    }
+
     return NextResponse.json({
       ok: true,
-      ...formatDictationStartResponse(inserted.id, blankItems, {
-        question,
-        segments,
-        settings,
-      }),
+      ...payload,
       attemptNo: inserted.attempt_no,
     });
   } catch (e) {

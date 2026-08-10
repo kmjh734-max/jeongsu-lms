@@ -57,6 +57,8 @@ export function DictationSection({
   const [error, setError] = useState<string | null>(null);
   const [playbackRate, setPlaybackRate] = useState(1);
   const loadGeneration = useRef(0);
+  const onPassedRef = useRef(onPassed);
+  onPassedRef.current = onPassed;
 
   const resultsById = useMemo(() => {
     const map = new Map<string, DictationBlankScoreResult>();
@@ -108,14 +110,23 @@ export function DictationSection({
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ setId, questionId }),
+          body: JSON.stringify({ setId, questionId, dailyTaskId }),
         });
         const data = (await res.json()) as {
           ok?: boolean;
           message?: string;
+          alreadyPassed?: boolean;
+          score?: number;
         } & Partial<DictationStartPayloadClient>;
 
         if (gen !== loadGeneration.current) return;
+
+        if (data.ok && data.alreadyPassed) {
+          onPassedRef.current(data.score);
+          setUiState("submitted_pass");
+          setScore(data.score ?? null);
+          return;
+        }
 
         if (!data.ok || !data.attemptId || !data.passageLines?.length) {
           setError(data.message ?? "Dictation을 불러오지 못했습니다.");
@@ -149,7 +160,7 @@ export function DictationSection({
         setUiState("error");
       }
     },
-    [enabled, setId, questionId]
+    [enabled, setId, questionId, dailyTaskId]
   );
 
   useEffect(() => {
