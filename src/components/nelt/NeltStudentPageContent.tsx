@@ -9,7 +9,10 @@ import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { NeltGrowthReportView } from "@/components/nelt/NeltGrowthReportView";
 import { buildNeltGrowthAnalysis, DOMAIN_LABEL } from "@/lib/nelt/compare/build-growth";
-import type { NeltAttemptBundle } from "@/lib/nelt/compare/types";
+import type {
+  NeltAttemptBundle,
+  NeltGrowthAnalysis,
+} from "@/lib/nelt/compare/types";
 
 interface NeltStudentPageContentProps {
   role: "admin" | "teacher";
