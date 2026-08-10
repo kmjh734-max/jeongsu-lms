@@ -29,6 +29,15 @@ interface StudentOption {
 
 type ViewFilter = "all" | "class" | "student";
 
+function summarizeSetTitles(titles: string[], setCount: number): string {
+  const n = titles.length > 0 ? titles.length : setCount;
+  if (n <= 0) return "세트 없음";
+  if (titles.length === 0) return `세트 ${n}개`;
+  if (titles.length === 1) return titles[0]!;
+  if (titles.length === 2) return `${titles[0]}, ${titles[1]}`;
+  return `${titles[0]} 외 ${titles.length - 1}개`;
+}
+
 interface ListeningScheduleManageClientProps {
   basePath: "/admin/listening" | "/teacher/listening";
   classes: ClassOption[];
@@ -58,6 +67,9 @@ export function ListeningScheduleManageClient({
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [addSetsTarget, setAddSetsTarget] =
     useState<ScheduleAssignmentListItem | null>(null);
+  const [expandedSetIds, setExpandedSetIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const [assignPreset, setAssignPreset] = useState<{
     targetType?: "class" | "student";
     targetClassId?: string;
@@ -375,24 +387,61 @@ export function ListeningScheduleManageClient({
                       {a.targetLabel}
                     </span>
                   </td>
-                  <td className="max-w-[240px] text-sm text-slate-700">
-                    <div className="flex flex-wrap items-center gap-1">
-                      <span>
-                        {a.setTitles.length > 0
-                          ? a.setTitles.join(", ")
-                          : `세트 ${a.setCount}개`}
-                      </span>
-                      {a.isActive &&
-                        sets.some((s) => !a.setIds.includes(s.id)) && (
-                        <button
-                          type="button"
-                          disabled={busyId === a.id}
-                          onClick={() => setAddSetsTarget(a)}
-                          className="shrink-0 rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-800 hover:bg-indigo-100 disabled:opacity-50"
-                        >
-                          + 추가
-                        </button>
-                        )}
+                  <td className="max-w-[220px] text-sm text-slate-700">
+                    <div className="flex flex-col items-start gap-1">
+                      {(() => {
+                        const expanded = expandedSetIds.has(a.id);
+                        const full =
+                          a.setTitles.length > 0
+                            ? a.setTitles.join(", ")
+                            : `세트 ${a.setCount}개`;
+                        const summary = summarizeSetTitles(
+                          a.setTitles,
+                          a.setCount
+                        );
+                        const canExpand = a.setTitles.length > 2;
+                        return (
+                          <>
+                            <span
+                              className="line-clamp-2 break-keep"
+                              title={full}
+                            >
+                              {expanded ? full : summary}
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1">
+                              {canExpand ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedSetIds((prev) => {
+                                      const next = new Set(prev);
+                                      if (next.has(a.id)) next.delete(a.id);
+                                      else next.add(a.id);
+                                      return next;
+                                    })
+                                  }
+                                  className="text-xs font-medium text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline"
+                                >
+                                  {expanded
+                                    ? "접기"
+                                    : `전체 ${a.setTitles.length}개`}
+                                </button>
+                              ) : null}
+                              {a.isActive &&
+                                sets.some((s) => !a.setIds.includes(s.id)) && (
+                                  <button
+                                    type="button"
+                                    disabled={busyId === a.id}
+                                    onClick={() => setAddSetsTarget(a)}
+                                    className="shrink-0 rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-800 hover:bg-indigo-100 disabled:opacity-50"
+                                  >
+                                    + 추가
+                                  </button>
+                                )}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </td>
                   <td className="whitespace-nowrap text-sm">
