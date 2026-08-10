@@ -5,6 +5,7 @@ import {
   getTodayIsoKorea,
 } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
+import { getStudentListeningEffectiveStartIso } from "@/lib/listening/schedule/student-effective-start";
 import type {
   DailyTaskStatus,
   ScheduleAssignmentRow,
@@ -143,8 +144,10 @@ function aggregateTasksForDay(rows: TaskRow[]): {
 
 function isDateInAssignment(
   taskDateIso: string,
-  assignment: ScheduleAssignmentRow
+  assignment: ScheduleAssignmentRow,
+  effectiveStartIso?: string
 ): boolean {
+  if (effectiveStartIso && taskDateIso < effectiveStartIso) return false;
   const taskDate = parseDateOnly(taskDateIso);
   const start = parseDateOnly(assignment.start_date);
   const end = assignment.end_date ? parseDateOnly(assignment.end_date) : null;
@@ -196,7 +199,8 @@ function buildStudentDays(
   year: number,
   month: number,
   daysInMonth: number,
-  todayIso: string
+  todayIso: string,
+  effectiveStartByAssignmentId: Map<string, string>
 ): HomeworkDayCell[] {
   const days: HomeworkDayCell[] = [];
 
@@ -205,7 +209,11 @@ function buildStudentDays(
     const dateObj = parseDateOnly(taskDate);
     const weekday = dateObj.getDay();
     const studyAssignments = assignments.filter((a) =>
-      isDateInAssignment(taskDate, a)
+      isDateInAssignment(
+        taskDate,
+        a,
+        effectiveStartByAssignmentId.get(a.id)
+      )
     );
     const isStudyDayFlag = studyAssignments.length > 0;
     const rows = tasksByDate.get(taskDate) ?? [];
@@ -369,47 +377,59 @@ export async function loadListeningMonthlyStatusTable(
     tasksByStudentDate.set(sid, byDate);
   }
 
-  const rows: ListeningStatusRow[] = students.map((student) => {
-    const assignments = assignmentsByStudent.get(student.id) ?? [];
-    const tasksByDate = tasksByStudentDate.get(student.id) ?? new Map();
-    const days = buildStudentDays(
-      assignments,
-      tasksByDate,
-      options.year,
-      options.month,
-      daysInMonth,
-      todayIso
-    );
+  const rows: ListeningStatusRow[] = await Promise.all(
+    students.map(async (student) => {
+      const assignments = assignmentsByStudent.get(student.id) ?? [];
+      const effectiveStartByAssignmentId = new Map<string, string>();
+      await Promise.all(
+        assignments.map(async (a) => {
+          effectiveStartByAssignmentId.set(
+            a.id,
+            await getStudentListeningEffectiveStartIso(admin, a, student.id)
+          );
+        })
+      );
+      const tasksByDate = tasksByStudentDate.get(student.id) ?? new Map();
+      const days = buildStudentDays(
+        assignments,
+        tasksByDate,
+        options.year,
+        options.month,
+        daysInMonth,
+        todayIso,
+        effectiveStartByAssignmentId
+      );
 
-    let completedCount = 0;
-    let totalCount = 0;
-    for (const cell of days) {
-      if (!cell.isStudyDay || cell.taskDate > todayIso) continue;
-      totalCount += 1;
-      if (cell.symbol === "complete") completedCount += 1;
-    }
+      let completedCount = 0;
+      let totalCount = 0;
+      for (const cell of days) {
+        if (!cell.isStudyDay || cell.taskDate > todayIso) continue;
+        totalCount += 1;
+        if (cell.symbol === "complete") completedCount += 1;
+      }
 
-    const executionRate =
-      totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+      const executionRate =
+        totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-    const programLabel =
-      assignments.length === 0
-        ? "듣기학습"
-        : assignments.length === 1
-          ? assignments[0]!.title
-          : `듣기학습 (${assignments.length}개 과제)`;
+      const programLabel =
+        assignments.length === 0
+          ? "듣기학습"
+          : assignments.length === 1
+            ? assignments[0]!.title
+            : `듣기학습 (${assignments.length}개 과제)`;
 
-    return {
-      studentId: student.id,
-      studentName: student.name,
-      classLabel: student.classNames.join(", ") || "—",
-      programLabel,
-      days,
-      completedCount,
-      totalCount,
-      executionRate,
-    };
-  });
+      return {
+        studentId: student.id,
+        studentName: student.name,
+        classLabel: student.classNames.join(", ") || "—",
+        programLabel,
+        days,
+        completedCount,
+        totalCount,
+        executionRate,
+      };
+    })
+  );
 
   const omrByStudent: ListeningOmrStudentSummary[] = students
     .flatMap((student) => {

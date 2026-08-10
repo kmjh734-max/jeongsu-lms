@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
+import { getStudentListeningEffectiveStartIso } from "@/lib/listening/schedule/student-effective-start";
 import type {
   DailyTaskStatus,
   ScheduleAssignmentRow,
@@ -59,8 +60,10 @@ async function loadActiveAssignmentsForStudent(
 
 function isDateInAssignment(
   taskDateIso: string,
-  assignment: ScheduleAssignmentRow
+  assignment: ScheduleAssignmentRow,
+  effectiveStartIso?: string
 ): boolean {
+  if (effectiveStartIso && taskDateIso < effectiveStartIso) return false;
   const taskDate = parseDateOnly(taskDateIso);
   const start = parseDateOnly(assignment.start_date);
   const end = assignment.end_date ? parseDateOnly(assignment.end_date) : null;
@@ -102,6 +105,16 @@ export async function getStudentListeningCalendar(
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
   const { start, end, daysInMonth } = monthBounds(year, month);
 
+  const effectiveStartByAssignment = new Map<string, string>();
+  await Promise.all(
+    assignments.map(async (a) => {
+      effectiveStartByAssignment.set(
+        a.id,
+        await getStudentListeningEffectiveStartIso(admin, a, studentId)
+      );
+    })
+  );
+
   type TaskRow = {
     id: string;
     task_date: string;
@@ -136,7 +149,11 @@ export async function getStudentListeningCalendar(
     const dateObj = parseDateOnly(taskDate);
     const weekday = dateObj.getDay();
     const studyAssignments = assignments.filter((a) =>
-      isDateInAssignment(taskDate, a)
+      isDateInAssignment(
+        taskDate,
+        a,
+        effectiveStartByAssignment.get(a.id)
+      )
     );
     const isStudyDayFlag = studyAssignments.length > 0;
     const rows = tasksByDate.get(taskDate) ?? [];

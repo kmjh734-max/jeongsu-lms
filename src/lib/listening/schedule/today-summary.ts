@@ -11,6 +11,10 @@ import {
   ensureDailyTasksForStudentRange,
 } from "@/lib/listening/schedule/generate-daily-tasks";
 import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
+import {
+  getStudentListeningEffectiveStartIso,
+  pruneIncompleteTasksBeforeEffectiveStart,
+} from "@/lib/listening/schedule/student-effective-start";
 import type { DailyTaskStatus, ScheduleAssignmentRow } from "@/lib/listening/schedule/types";
 
 export interface StudentDailyTaskView {
@@ -132,6 +136,22 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   todayIso = getTodayIsoKorea()
 ) {
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
+  const effectiveStartByAssignment = new Map<string, string>();
+  await Promise.all(
+    assignments.map(async (a) => {
+      const start = await getStudentListeningEffectiveStartIso(
+        admin,
+        a,
+        studentId
+      );
+      effectiveStartByAssignment.set(a.id, start);
+      await pruneIncompleteTasksBeforeEffectiveStart(admin, {
+        studentId,
+        assignmentId: a.id,
+        effectiveStartIso: start,
+      });
+    })
+  );
 
   const [{ data: missedRows }, { data: todayRows }] = await Promise.all([
     admin
@@ -157,6 +177,11 @@ export async function getStudentScheduleTodaySummaryReadOnly(
 
   const missedTasks: StudentDailyTaskView[] = [];
   for (const row of missedRows ?? []) {
+    const assignmentId = row.assignment_id as string;
+    const effectiveStart =
+      effectiveStartByAssignment.get(assignmentId) ?? "0000-01-01";
+    if ((row.task_date as string) < effectiveStart) continue;
+
     const assignment = row.assignment as { title?: string } | null;
     missedTasks.push(
       mapTaskRow(
@@ -175,6 +200,9 @@ export async function getStudentScheduleTodaySummaryReadOnly(
     if (todayTask) break;
     const assignment = assignmentById.get(row.assignment_id as string);
     if (!assignment) continue;
+    const effectiveStart =
+      effectiveStartByAssignment.get(assignment.id) ?? assignment.start_date;
+    if (todayIso < effectiveStart) continue;
     todayTask = mapTaskRow(
       row as Record<string, unknown>,
       assignment.title,
@@ -183,13 +211,24 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   }
 
   for (const assignment of assignments) {
+    const effectiveStart =
+      effectiveStartByAssignment.get(assignment.id) ?? assignment.start_date;
     const next = nextStudyDateAfter(
-      todayIso,
+      todayIso < effectiveStart ? addDaysIso(effectiveStart, -1) : todayIso,
       assignment.days_of_week,
       assignment.end_date
     );
-    if (next && (!nextStudyDate || next < nextStudyDate)) {
-      nextStudyDate = next;
+    // effectiveStart 이전 next 는 무시
+    const nextOk =
+      next && next >= effectiveStart
+        ? next
+        : nextStudyDateAfter(
+            addDaysIso(effectiveStart, -1),
+            assignment.days_of_week,
+            assignment.end_date
+          );
+    if (nextOk && (!nextStudyDate || nextOk < nextStudyDate)) {
+      nextStudyDate = nextOk;
     }
   }
 
@@ -227,9 +266,12 @@ export async function getStudentScheduleTodaySummaryReadOnly(
     };
   }
 
-  const isStudyDayToday = assignments.some((a) =>
-    isDateInAssignment(todayIso, a)
-  );
+  const isStudyDayToday = assignments.some((a) => {
+    const effectiveStart =
+      effectiveStartByAssignment.get(a.id) ?? a.start_date;
+    if (todayIso < effectiveStart) return false;
+    return isDateInAssignment(todayIso, a);
+  });
 
   return {
     todayIso,
@@ -251,6 +293,12 @@ export async function ensureStudentTodayAndMissedTasks(
 
   await Promise.all(
     assignments.map(async (assignment) => {
+      const effectiveStart = await getStudentListeningEffectiveStartIso(
+        admin,
+        assignment,
+        studentId
+      );
+      if (todayIso < effectiveStart) return;
       if (!isDateInAssignment(todayIso, assignment)) return;
       const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
       if (queue.length === 0) return;
@@ -259,7 +307,8 @@ export async function ensureStudentTodayAndMissedTasks(
         assignment,
         studentId,
         todayIso,
-        queue
+        queue,
+        effectiveStart
       );
     })
   );
@@ -285,10 +334,17 @@ export async function ensureStudentScheduleDailyTasks(
 
   await Promise.all(
     assignments.map(async (assignment) => {
-      const rangeFrom =
+      const effectiveStart = await getStudentListeningEffectiveStartIso(
+        admin,
+        assignment,
+        studentId
+      );
+      let rangeFrom =
         assignment.start_date > lookbackFrom
           ? assignment.start_date
           : lookbackFrom;
+      if (rangeFrom < effectiveStart) rangeFrom = effectiveStart;
+
       const rangeTo =
         assignment.end_date && assignment.end_date < futureTo
           ? assignment.end_date
@@ -302,15 +358,19 @@ export async function ensureStudentScheduleDailyTasks(
         studentId,
         rangeFrom,
         rangeTo,
-        queue
+        queue,
+        effectiveStart
       );
-      await ensureDailyTaskForStudentDate(
-        admin,
-        assignment,
-        studentId,
-        todayIso,
-        queue
-      );
+      if (todayIso >= effectiveStart) {
+        await ensureDailyTaskForStudentDate(
+          admin,
+          assignment,
+          studentId,
+          todayIso,
+          queue,
+          effectiveStart
+        );
+      }
     })
   );
 }

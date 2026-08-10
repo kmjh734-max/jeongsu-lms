@@ -10,6 +10,10 @@ import {
   sliceQuestionsForStudyDay,
 } from "@/lib/listening/schedule/question-queue";
 import { resolveStudentIdsForScheduleAssignment } from "@/lib/listening/schedule/resolve-students";
+import {
+  getStudentListeningEffectiveStartIso,
+  pruneIncompleteTasksBeforeEffectiveStart,
+} from "@/lib/listening/schedule/student-effective-start";
 import type { QuestionQueueItem } from "@/lib/listening/schedule/types";
 import type { ScheduleAssignmentRow } from "@/lib/listening/schedule/types";
 
@@ -109,8 +113,16 @@ export async function ensureDailyTaskForStudentDate(
   assignment: ScheduleAssignmentRow,
   studentId: string,
   taskDateIso: string,
-  queue?: QuestionQueueItem[]
+  queue?: QuestionQueueItem[],
+  effectiveStartIso?: string
 ): Promise<{ created: boolean; taskId: string | null }> {
+  const effectiveStart =
+    effectiveStartIso ??
+    (await getStudentListeningEffectiveStartIso(admin, assignment, studentId));
+  if (taskDateIso < effectiveStart) {
+    return { created: false, taskId: null };
+  }
+
   const { data: existing } = await admin
     .from("listening_daily_tasks")
     .select("id")
@@ -163,8 +175,22 @@ export async function ensureDailyTasksForStudentRange(
   studentId: string,
   fromIso: string,
   toIso: string,
-  queue?: QuestionQueueItem[]
+  queue?: QuestionQueueItem[],
+  effectiveStartIso?: string
 ): Promise<void> {
+  const effectiveStart =
+    effectiveStartIso ??
+    (await getStudentListeningEffectiveStartIso(admin, assignment, studentId));
+
+  await pruneIncompleteTasksBeforeEffectiveStart(admin, {
+    studentId,
+    assignmentId: assignment.id,
+    effectiveStartIso: effectiveStart,
+  });
+
+  const clampedFrom = fromIso < effectiveStart ? effectiveStart : fromIso;
+  if (clampedFrom > toIso) return;
+
   const resolvedQueue =
     queue ?? (await buildQuestionQueueForAssignment(admin, assignment.id));
   if (resolvedQueue.length === 0) return;
@@ -174,7 +200,7 @@ export async function ensureDailyTasksForStudentRange(
     .select("task_date")
     .eq("assignment_id", assignment.id)
     .eq("student_id", studentId)
-    .gte("task_date", fromIso)
+    .gte("task_date", clampedFrom)
     .lte("task_date", toIso);
 
   const existingDates = new Set(
@@ -182,7 +208,7 @@ export async function ensureDailyTasksForStudentRange(
   );
 
   const pending: DailyTaskInsert[] = [];
-  const from = parseDateOnly(fromIso);
+  const from = parseDateOnly(clampedFrom);
   const to = parseDateOnly(toIso);
   const cursor = new Date(from);
 
@@ -236,13 +262,22 @@ export async function bootstrapDailyTasksForAssignment(
   if (fromIso > toIso) return;
 
   for (const studentId of studentIds) {
+    const effectiveStart = await getStudentListeningEffectiveStartIso(
+      admin,
+      assignment,
+      studentId
+    );
+    const studentFrom = fromIso < effectiveStart ? effectiveStart : fromIso;
+    if (studentFrom > toIso) continue;
+
     await ensureDailyTasksForStudentRange(
       admin,
       assignment,
       studentId,
-      fromIso,
+      studentFrom,
       toIso,
-      queue
+      queue,
+      effectiveStart
     );
   }
 }

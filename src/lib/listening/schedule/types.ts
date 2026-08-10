@@ -18,6 +18,7 @@ export interface ScheduleAssignmentRow {
   dictation_pass_score: number;
   lock_next_until_today_complete: boolean;
   is_active: boolean;
+  created_at?: string | null;
 }
 
 export interface QuestionQueueItem {
