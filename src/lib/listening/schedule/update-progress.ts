@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ScheduleAssignmentRow } from "@/lib/listening/schedule/types";
+import { assertDailyTaskAccessible } from "@/lib/listening/schedule/task-access";
 
 export async function updateDailyTaskQuestionProgress(
   admin: SupabaseClient,
@@ -17,13 +18,30 @@ export async function updateDailyTaskQuestionProgress(
   const { data: task } = await admin
     .from("listening_daily_tasks")
     .select(
-      "id, student_id, assignment_id, set_id, completed_count, total_count, status"
+      "id, student_id, assignment_id, set_id, question_ids, completed_count, total_count, status, task_date"
     )
     .eq("id", opts.dailyTaskId)
     .maybeSingle();
 
   if (!task || task.student_id !== opts.studentId) {
     return { ok: false, message: "오늘 과제를 찾을 수 없습니다." };
+  }
+
+  const questionIds = (task.question_ids as string[]) ?? [];
+  if (!questionIds.includes(opts.questionId)) {
+    return { ok: false, message: "이 과제의 문항이 아닙니다." };
+  }
+
+  const access = await assertDailyTaskAccessible(admin, {
+    studentId: opts.studentId,
+    task: {
+      id: task.id as string,
+      assignment_id: task.assignment_id as string,
+      task_date: task.task_date as string,
+    },
+  });
+  if (!access.ok) {
+    return { ok: false, message: access.message };
   }
 
   const [{ data: assignment }, { data: set }] = await Promise.all([
@@ -45,20 +63,40 @@ export async function updateDailyTaskQuestionProgress(
   const passScore =
     assignment?.dictation_pass_score ?? opts.dictationPassScore;
 
-  const dictationOk =
-    !requireDictation ||
-    (opts.dictationCompleted &&
-      (opts.dictationScore ?? 0) >= passScore);
+  let dictationCompleted = opts.dictationCompleted ?? false;
+  let dictationScore = opts.dictationScore ?? null;
 
-  const completed =
-    opts.objectiveCompleted && (!requireDictation || dictationOk);
+  // Dictation은 DB 제출 기록으로만 통과 인정 (클라이언트 값 신뢰 금지)
+  if (requireDictation) {
+    const { data: attempt } = await admin
+      .from("listening_dictation_attempts")
+      .select("score, passed, submitted_at")
+      .eq("student_id", opts.studentId)
+      .eq("set_id", task.set_id as string)
+      .eq("question_id", opts.questionId)
+      .not("submitted_at", "is", null)
+      .order("score", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (attempt && attempt.score != null) {
+      dictationScore = attempt.score as number;
+      dictationCompleted = dictationScore >= passScore;
+    } else {
+      dictationCompleted = false;
+      dictationScore = null;
+    }
+  }
+
+  const dictationOk = !requireDictation || dictationCompleted;
+  const completed = opts.objectiveCompleted && dictationOk;
 
   await admin
     .from("listening_daily_task_progress")
     .update({
       objective_completed: opts.objectiveCompleted,
-      dictation_completed: opts.dictationCompleted ?? false,
-      dictation_score: opts.dictationScore ?? null,
+      dictation_completed: dictationCompleted,
+      dictation_score: dictationScore,
       completed,
       completed_at: completed ? new Date().toISOString() : null,
     })

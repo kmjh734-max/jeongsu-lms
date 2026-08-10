@@ -44,7 +44,9 @@ function cellClass(day: ListeningCalendarDay, todayIso: string): string {
 
 function statusLabel(day: ListeningCalendarDay, todayIso: string): string {
   if (!day.isStudyDay) return "";
-  if (day.locked) return "예정";
+  if (day.locked) {
+    return day.taskDate > todayIso ? "예정" : "잠금";
+  }
   if (day.status === "completed") return "완료";
   if (day.taskDate === todayIso) return "오늘";
   if (day.status === "in_progress") return "진행";

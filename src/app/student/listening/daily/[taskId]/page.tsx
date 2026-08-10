@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
+import { assertDailyTaskAccessible } from "@/lib/listening/schedule/task-access";
 import { loadDailyTaskProgressMap } from "@/lib/listening/schedule/update-progress";
 import { StudentListeningPractice } from "@/components/listening/StudentListeningPractice";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -30,7 +31,19 @@ export default async function StudentListeningDailyTaskPage({
   if (!task) notFound();
 
   const todayIso = getTodayIsoKorea();
-  if ((task.task_date as string) > todayIso) {
+  const access = await assertDailyTaskAccessible(admin, {
+    studentId: profile.id,
+    task: {
+      id: task.id as string,
+      assignment_id: task.assignment_id as string,
+      task_date: task.task_date as string,
+    },
+    todayIso,
+  });
+  if (!access.ok) {
+    if (access.blockingTaskId && access.blockingTaskId !== taskId) {
+      redirect(`/student/listening/daily/${access.blockingTaskId}`);
+    }
     redirect("/student/listening");
   }
 
@@ -88,12 +101,17 @@ export default async function StudentListeningDailyTaskPage({
           setId={task.set_id}
           setTitle={set.title}
           dictationSettings={{
-            dictation_enabled: requireDictation && (set.dictation_enabled ?? true),
+            dictation_enabled:
+              requireDictation && (set.dictation_enabled ?? true),
             dictation_pass_score: passScore,
             dictation_blank_level:
-              (set.dictation_blank_level as "auto" | "few" | "normal" | "many") ??
-              "auto",
-            dictation_randomize_on_retry: set.dictation_randomize_on_retry ?? true,
+              (set.dictation_blank_level as
+                | "auto"
+                | "few"
+                | "normal"
+                | "many") ?? "auto",
+            dictation_randomize_on_retry:
+              set.dictation_randomize_on_retry ?? true,
             dictation_lock_next_until_pass: true,
           }}
           scheduleMode={{

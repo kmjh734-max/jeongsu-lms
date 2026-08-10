@@ -1,7 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
-import type { DailyTaskStatus, ScheduleAssignmentRow } from "@/lib/listening/schedule/types";
+import { loadAssignmentPriorIncompleteDates } from "@/lib/listening/schedule/task-access";
+import type {
+  DailyTaskStatus,
+  ScheduleAssignmentRow,
+} from "@/lib/listening/schedule/types";
 
 export interface ListeningCalendarDay {
   taskDate: string;
@@ -90,12 +94,25 @@ export async function getStudentListeningCalendar(
   year: number,
   month: number,
   todayIso = getTodayIsoKorea()
-): Promise<{ year: number; month: number; todayIso: string; days: ListeningCalendarDay[] }> {
+): Promise<{
+  year: number;
+  month: number;
+  todayIso: string;
+  days: ListeningCalendarDay[];
+}> {
   const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
   const { start, end, daysInMonth } = monthBounds(year, month);
+  const assignmentById = new Map(assignments.map((a) => [a.id, a]));
+  const earliestIncomplete = await loadAssignmentPriorIncompleteDates(
+    admin,
+    studentId,
+    assignments.map((a) => a.id),
+    todayIso
+  );
 
   type TaskRow = {
     id: string;
+    assignment_id: string;
     task_date: string;
     status: DailyTaskStatus;
     completed_count: number;
@@ -107,7 +124,7 @@ export async function getStudentListeningCalendar(
   const { data: taskRows } = await admin
     .from("listening_daily_tasks")
     .select(
-      "id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
+      "id, assignment_id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
     )
     .eq("student_id", studentId)
     .gte("task_date", start)
@@ -151,9 +168,22 @@ export async function getStudentListeningCalendar(
     }
 
     const pick =
-      rows.find((r) => r.status !== "completed") ??
-      rows[0] ??
+      rows.find((r) => r.status !== "completed") ?? rows[0] ?? null;
+
+    const assignmentForLock =
+      (pick ? assignmentById.get(pick.assignment_id) : null) ??
+      studyAssignments[0] ??
       null;
+    const lockEnabled =
+      assignmentForLock?.lock_next_until_today_complete !== false;
+    const earliest =
+      assignmentForLock != null
+        ? earliestIncomplete.get(assignmentForLock.id)
+        : undefined;
+    // 이전 미완료가 있고, 그 날짜보다 뒤면 잠금 (해당 미완료일 자체는 열림)
+    const lockedByPrior =
+      lockEnabled && earliest != null && taskDate > earliest;
+    const locked = taskDate > todayIso || lockedByPrior;
 
     if (pick) {
       const assignment = Array.isArray(pick.assignment)
@@ -165,7 +195,6 @@ export async function getStudentListeningCalendar(
         taskDate,
         todayIso
       );
-      const locked = taskDate > todayIso;
 
       days.push({
         taskDate,
@@ -177,7 +206,8 @@ export async function getStudentListeningCalendar(
         locked,
         totalCount: (pick.total_count as number) ?? 0,
         completedCount: (pick.completed_count as number) ?? 0,
-        assignmentTitle: assignment?.title ?? studyAssignments[0]?.title ?? null,
+        assignmentTitle:
+          assignment?.title ?? studyAssignments[0]?.title ?? null,
         setTitle: set?.title ?? null,
       });
       continue;
@@ -190,7 +220,7 @@ export async function getStudentListeningCalendar(
       isStudyDay: true,
       taskId: null,
       status: taskDate > todayIso ? "scheduled" : "pending",
-      locked: taskDate > todayIso,
+      locked,
       totalCount: studyAssignments[0]?.questions_per_day ?? 0,
       completedCount: 0,
       assignmentTitle: studyAssignments[0]?.title ?? null,

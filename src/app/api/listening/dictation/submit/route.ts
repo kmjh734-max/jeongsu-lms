@@ -22,6 +22,9 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       attemptId?: string;
       studentAnswers?: Record<string, string>;
+      /** 스케줄 배정 등 UI 통과 기준 — 세트 설정과 다를 수 있음 */
+      passScore?: number;
+      dailyTaskId?: string;
     };
 
     const attemptId = body.attemptId?.trim();
@@ -50,8 +53,32 @@ export async function POST(request: Request) {
       .eq("id", attempt.set_id)
       .maybeSingle();
 
-    const passScore =
+    let passScore =
       setRow?.dictation_pass_score ?? DEFAULT_DICTATION_SETTINGS.dictation_pass_score;
+
+    const dailyTaskId = body.dailyTaskId?.trim();
+    if (dailyTaskId) {
+      const { data: task } = await admin
+        .from("listening_daily_tasks")
+        .select("assignment_id, student_id")
+        .eq("id", dailyTaskId)
+        .maybeSingle();
+      if (task && task.student_id === profile.id) {
+        const { data: assignment } = await admin
+          .from("listening_schedule_assignments")
+          .select("dictation_pass_score")
+          .eq("id", task.assignment_id)
+          .maybeSingle();
+        if (assignment?.dictation_pass_score != null) {
+          passScore = assignment.dictation_pass_score as number;
+        }
+      }
+    } else if (
+      typeof body.passScore === "number" &&
+      Number.isFinite(body.passScore)
+    ) {
+      passScore = body.passScore;
+    }
 
     const blankItems = filterWordOnlyBlankItems(
       (attempt.blank_items ?? []) as DictationBlankItem[]

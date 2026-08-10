@@ -25,6 +25,8 @@ interface DictationSectionProps {
   enabled: boolean;
   onPassed: (score?: number) => void;
   prefetched?: DictationStartPayloadClient | null;
+  /** 스케줄 일일 과제 — 통과 점수를 배정 기준으로 맞춤 */
+  dailyTaskId?: string;
 }
 
 export function DictationSection({
@@ -35,6 +37,7 @@ export function DictationSection({
   enabled,
   onPassed,
   prefetched,
+  dailyTaskId,
 }: DictationSectionProps) {
   const [uiState, setUiState] = useState<DictationUiState>(
     prefetched?.attemptId ? "ready" : "loading"
@@ -166,7 +169,12 @@ export function DictationSection({
     const res = await fetch("/api/listening/dictation/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ attemptId, studentAnswers: answers }),
+      body: JSON.stringify({
+        attemptId,
+        studentAnswers: answers,
+        passScore,
+        dailyTaskId,
+      }),
     });
     const data = (await res.json()) as {
       ok?: boolean;
@@ -182,11 +190,14 @@ export function DictationSection({
       return;
     }
 
-    setScore(data.score ?? 0);
+    const scoreValue = data.score ?? 0;
+    setScore(scoreValue);
     setResults(data.results ?? []);
-    if (data.passed) {
+    // UI 통과 기준(배정 점수)으로 한 번 더 확인
+    const passedClient = scoreValue >= passScore;
+    if (passedClient) {
       setUiState("submitted_pass");
-      onPassed(data.score ?? 0);
+      onPassed(scoreValue);
     } else {
       setUiState("submitted_fail");
     }

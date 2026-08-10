@@ -82,7 +82,8 @@ export function StudentListeningPractice({
     const m: Record<string, QuestionDictationStatus> = {};
     if (scheduleMode?.initialProgress) {
       for (const [qid, p] of Object.entries(scheduleMode.initialProgress)) {
-        if (p.completed || p.dictationCompleted) {
+        // 문항 완전 완료일 때만 다음 문항 해금 (dictationCompleted 단독으로는 부족)
+        if (p.completed) {
           m[qid] = { passed: true, bestScore: null, attemptCount: 1 };
         }
       }
@@ -168,12 +169,6 @@ export function StudentListeningPractice({
     const firstOpen = questions.findIndex((item) => {
       const p = scheduleMode.initialProgress?.[item.id];
       if (p?.completed) return false;
-      if (
-        p?.objectiveCompleted &&
-        (!scheduleMode.requireDictationPass || p.dictationCompleted)
-      ) {
-        return false;
-      }
       return true;
     });
     if (firstOpen > 0) setIndex(firstOpen);
@@ -547,6 +542,7 @@ export function StudentListeningPractice({
           enabled
           onPassed={handleDictationPassed}
           prefetched={dictationPrefetch[q.id] ?? null}
+          dailyTaskId={scheduleMode?.dailyTaskId}
         />
       )}
 
