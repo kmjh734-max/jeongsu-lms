@@ -5,11 +5,12 @@ import {
 } from "@/lib/exam-prep/generate-rule-questions";
 import { workbookPromptForStepType } from "@/lib/exam-prep/presets";
 import { EXAM_STEP_LABELS, type ExamPassageSentence, type ExamStepType } from "@/lib/exam-prep/types";
-import { generateStage6WithAi } from "@/lib/exam-prep/generate-stage67-grammar-ai";
-import { buildStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
+import { generateStage6WithAi, generateStage7WithAi } from "@/lib/exam-prep/generate-stage67-grammar-ai";
+import { buildStage6Drafts, buildStage7Seed } from "@/lib/exam-prep/auto-seed-stages";
 import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
 import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
+import type { Stage7CandidateDraft } from "@/lib/exam-prep/stage7-types";
 
 type AiQuestionRaw = {
   sentenceId?: string | null;
@@ -276,6 +277,92 @@ function stage6DraftsToQuestions(
   return out;
 }
 
+function stage7SeedToQuestions(
+  seed: {
+    displays: Array<{ sentenceId: string; stage7DisplayText: string }>;
+    candidates: Stage7CandidateDraft[];
+  },
+  sentences: ExamPassageSentence[],
+  aiGenerated: boolean
+): GeneratedQuestionDraft[] {
+  const displayById = new Map(
+    seed.displays.map((d) => [d.sentenceId, d.stage7DisplayText])
+  );
+  const candsBySent = new Map<string, Stage7CandidateDraft[]>();
+  for (const c of seed.candidates) {
+    if (
+      c.is_error &&
+      isNonsenseChoicePair(c.correction_text, c.displayed_text)
+    ) {
+      continue;
+    }
+    const list = candsBySent.get(c.sentence_id) ?? [];
+    list.push(c);
+    candsBySent.set(c.sentence_id, list);
+  }
+
+  const out: GeneratedQuestionDraft[] = [];
+  let order = 1;
+  for (const s of sentences) {
+    const cands = (candsBySent.get(s.id) ?? []).sort(
+      (a, b) => a.english_start - b.english_start
+    );
+    const error = cands.find((c) => c.is_error);
+    if (!error) continue;
+    const display = displayById.get(s.id) ?? String(s.english_text ?? "");
+    let marked = display;
+    for (let i = cands.length - 1; i >= 0; i--) {
+      const c = cands[i]!;
+      marked =
+        marked.slice(0, c.english_start) +
+        `<u>${marked.slice(c.english_start, c.english_end)}</u>` +
+        marked.slice(c.english_end);
+    }
+    out.push({
+      sentence_id: s.id,
+      question_type: "error_correction",
+      question_order: order++,
+      question_text:
+        workbookPromptForStepType("error_correction") ??
+        "밑줄 친 부분 중 어법상 어색한 곳을 찾아 알맞게 고쳐 쓰세요.",
+      question_data: {
+        corruptedText: marked,
+        displayText: marked,
+        koreanHint: s.korean_text,
+        format: "underline_fix",
+        fixTargets: [
+          { wrong: error.displayed_text, correct: error.correction_text },
+        ],
+        underlines: cands.map((c) => ({
+          text: c.displayed_text,
+          isError: c.is_error,
+          correct: c.is_error ? c.correction_text : null,
+        })),
+      },
+      correct_answer: {
+        text: s.english_text,
+        errorWord: error.displayed_text,
+        fixWord: error.correction_text,
+        fixes: [
+          { wrong: error.displayed_text, correct: error.correction_text },
+        ],
+      },
+      acceptable_answers: [
+        s.english_text,
+        error.correction_text,
+        ...(error.accepted_corrections ?? []),
+      ],
+      explanation:
+        error.explanation ||
+        `"${error.displayed_text}" → "${error.correction_text}"`,
+      difficulty: "hard",
+      points: 2,
+      ai_generated: aiGenerated,
+    });
+  }
+  return out;
+}
+
 /**
  * AI 문항 생성 → 변형 세트는 QG 엔진, 그 외는 JSON/규칙 폴백.
  */
@@ -321,7 +408,7 @@ export async function generateStepQuestionsWithAi(
     };
   }
 
-  // 6단계: 변형문제 어법·어휘 엔진 (catalog + plants). 일반 JSON 스키마 우회.
+  // 6단계: 변형문제 어법·어휘 엔진
   if (type === "grammar_vocab_choice") {
     const seed = sentences.map((s) => ({
       id: s.id,
@@ -339,7 +426,6 @@ export async function generateStepQuestionsWithAi(
           };
         }
       } catch (e) {
-        // fall through to plants
         const msg = e instanceof Error ? e.message : "AI 실패";
         const plantDrafts = buildStage6Drafts(
           sentences.map((s) => ({
@@ -375,6 +461,52 @@ export async function generateStepQuestionsWithAi(
       source: "rule",
       aiError: process.env.OPENAI_API_KEY?.trim()
         ? "AI 어법 포인트 없음 → 플랜트"
+        : "OPENAI_API_KEY 없음",
+    };
+  }
+
+  // 7단계: 변형문제 어법오류수정 엔진
+  if (type === "error_correction") {
+    const seedInput = sentences.map((s) => ({
+      id: s.id,
+      english_text: s.english_text,
+      sentence_order: s.sentence_order,
+      korean_text: s.korean_text,
+      paragraph_number: s.paragraph_number,
+      vocabulary: s.vocabulary,
+      is_important_writing: s.is_important_writing,
+    }));
+    if (process.env.OPENAI_API_KEY?.trim()) {
+      try {
+        const ai = await generateStage7WithAi(
+          seedInput.map((s) => ({
+            id: s.id,
+            english_text: s.english_text,
+            sentence_order: s.sentence_order,
+          }))
+        );
+        if (ai.candidates.some((c) => c.is_error)) {
+          const qs = stage7SeedToQuestions(ai, sentences, true);
+          if (qs.length > 0) {
+            return { questions: qs, source: "ai", aiError: ai.error };
+          }
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "AI 실패";
+        const plant = buildStage7Seed(seedInput);
+        return {
+          questions: stage7SeedToQuestions(plant, sentences, false),
+          source: "rule",
+          aiError: msg,
+        };
+      }
+    }
+    const plant = buildStage7Seed(seedInput);
+    return {
+      questions: stage7SeedToQuestions(plant, sentences, false),
+      source: "rule",
+      aiError: process.env.OPENAI_API_KEY?.trim()
+        ? "AI 오류 포인트 없음 → 플랜트"
         : "OPENAI_API_KEY 없음",
     };
   }

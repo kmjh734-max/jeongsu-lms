@@ -1110,7 +1110,7 @@ function QuestionInput({
           <p className="text-sm text-slate-600">{String(data.koreanHint)}</p>
         ) : null}
         <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 font-mono text-sm text-slate-800">
-          {String(data.corruptedText ?? "")}
+          {renderPassageMarks(String(data.corruptedText ?? ""))}
         </p>
         <textarea
           rows={3}

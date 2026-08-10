@@ -105,9 +105,24 @@ function QuestionPreview({ q }: { q: ExamWorkbookQuestion }) {
   }
 
   if (type === "error_correction") {
+    const raw = String(data.corruptedText ?? data.displayText ?? "");
+    const parts = raw.split(/(<u>[\s\S]*?<\/u>)/gi);
     return (
-      <p className="mt-2 text-sm leading-relaxed">
-        {String(data.corruptedText ?? data.displayText ?? "")}
+      <p className="mt-2 text-sm leading-relaxed font-serif text-slate-900">
+        {parts.map((part, i) => {
+          const m = part.match(/^<u>([\s\S]*)<\/u>$/i);
+          if (m) {
+            return (
+              <u
+                key={i}
+                className="mx-0.5 underline decoration-2 decoration-slate-800 underline-offset-4"
+              >
+                {m[1]}
+              </u>
+            );
+          }
+          return <span key={i}>{part}</span>;
+        })}
       </p>
     );
   }

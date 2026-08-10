@@ -11,7 +11,7 @@ import {
   vocabEnglishNeedles,
   vocabKoreanNeedles,
 } from "@/lib/exam-prep/blank-importance";
-import { buildStage6Drafts, findVerbHits } from "@/lib/exam-prep/auto-seed-stages";
+import { buildStage6Drafts, buildStage7Seed, findVerbHits } from "@/lib/exam-prep/auto-seed-stages";
 import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import { verbLemma } from "@/lib/exam-prep/verb-lemma";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
@@ -659,83 +659,89 @@ function buildVerbForm(
   };
 }
 
-function corruptWord(core: string): string {
-  if (/^(a|an|the)$/i.test(core)) {
-    if (/^a$/i.test(core)) return "an";
-    if (/^an$/i.test(core)) return "a";
-    return "a";
-  }
-  if (/s$/i.test(core) && core.length > 3) return core.replace(/s$/i, "");
-  if (/ed$/i.test(core)) return core.replace(/ed$/i, "");
-  if (/ing$/i.test(core)) return core.replace(/ing$/i, "");
-  if (/^(is|are|was|were)$/i.test(core)) {
-    const map: Record<string, string> = {
-      is: "are",
-      are: "is",
-      was: "were",
-      were: "was",
-    };
-    return map[core.toLowerCase()] ?? `${core}s`;
-  }
-  return `${core}s`;
-}
-
+/**
+ * 7단계: 변형문제 어법 플랜트로 오류 심기 (문장당 1오류 + 함정 밑줄)
+ */
 function buildErrorCorrection(
   sentence: ExamPassageSentence,
   order: number
 ): GeneratedQuestionDraft | null {
-  const words = tokens(sentence.english_text);
-  if (words.length < 4) return null;
-  const candidates = contentWords(sentence.english_text);
-  // also allow articles/aux near content
-  const auxIdx = words.findIndex((w) =>
-    /^(a|an|the|is|are|was|were)$/i.test(
-      w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "")
-    )
-  );
-  let targetWord =
-    candidates[Math.min(1, candidates.length - 1)] ?? candidates[0];
-  let targetIndex = words.findIndex(
-    (w) =>
-      w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "") ===
-      targetWord?.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "")
-  );
-  if (auxIdx >= 0 && Math.random() < 0.45) {
-    targetIndex = auxIdx;
-    targetWord = words[auxIdx]!;
+  const seed = buildStage7Seed([
+    {
+      id: sentence.id,
+      english_text: sentence.english_text,
+      korean_text: sentence.korean_text,
+      sentence_order: sentence.sentence_order,
+      paragraph_number: sentence.paragraph_number,
+      vocabulary: sentence.vocabulary,
+      is_important_writing: sentence.is_important_writing,
+    },
+  ]);
+  const display =
+    seed.displays.find((d) => d.sentenceId === sentence.id)?.stage7DisplayText ??
+    String(sentence.english_text ?? "");
+  const cands = seed.candidates
+    .filter((c) => c.sentence_id === sentence.id)
+    .sort((a, b) => a.english_start - b.english_start);
+  const error = cands.find((c) => c.is_error);
+  if (!error) return null;
+  if (isNonsenseChoicePair(error.correction_text, error.displayed_text)) {
+    return null;
   }
-  if (!targetWord || targetIndex < 0) return null;
-  const core = targetWord.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-  if (!core) return null;
-  const wrong = corruptWord(core);
-  if (wrong.toLowerCase() === core.toLowerCase()) return null;
 
-  const corrupted = words.map((w, i) => {
-    if (i !== targetIndex) return w;
-    const lead = w.match(/^[^A-Za-z']+/)?.[0] ?? "";
-    const trail = w.match(/[^A-Za-z']+$/)?.[0] ?? "";
-    return `${lead}${wrong}${trail}`;
-  });
+  // 오류·함정 구간에 <u> 표시 (뒤에서부터)
+  let marked = display;
+  for (let i = cands.length - 1; i >= 0; i--) {
+    const c = cands[i]!;
+    marked =
+      marked.slice(0, c.english_start) +
+      `<u>${marked.slice(c.english_start, c.english_end)}</u>` +
+      marked.slice(c.english_end);
+  }
+
   return {
     sentence_id: sentence.id,
     question_type: "error_correction",
     question_order: order,
     question_text: stepPrompt(
       "error_correction",
-      "밑줄 친 부분 중 어법상 어색한 것을 세 개 찾아 알맞게 고쳐 쓰세요."
+      "밑줄 친 부분 중 어법상 어색한 곳을 찾아 알맞게 고쳐 쓰세요."
     ),
     question_data: {
-      corruptedText: corrupted.join(" "),
+      corruptedText: marked,
+      displayText: marked,
       koreanHint: sentence.korean_text,
-      errorWord: wrong,
+      format: "underline_fix",
+      fixTargets: [
+        {
+          wrong: error.displayed_text,
+          correct: error.correction_text,
+        },
+      ],
+      underlines: cands.map((c) => ({
+        text: c.displayed_text,
+        isError: c.is_error,
+        correct: c.is_error ? c.correction_text : null,
+        start: c.english_start,
+        end: c.english_end,
+      })),
     },
     correct_answer: {
       text: sentence.english_text,
-      errorWord: wrong,
-      fixWord: core,
+      errorWord: error.displayed_text,
+      fixWord: error.correction_text,
+      fixes: [
+        { wrong: error.displayed_text, correct: error.correction_text },
+      ],
     },
-    acceptable_answers: [sentence.english_text],
-    explanation: `"${wrong}" → "${core}"`,
+    acceptable_answers: [
+      sentence.english_text,
+      error.correction_text,
+      ...(error.accepted_corrections ?? []),
+    ],
+    explanation:
+      error.explanation ||
+      `"${error.displayed_text}" → "${error.correction_text}"`,
     difficulty: "hard",
     points: 2,
     ai_generated: false,

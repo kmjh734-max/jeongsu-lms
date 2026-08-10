@@ -235,11 +235,18 @@ ${focus.focusBlock}
 
 ${grammarCatalogPromptBlock()}
 
+${grammarExplanationRules()}
+
+${grammarChoiceCraftNote()}
+
 절대 규칙:
 1. 원문 문장 id를 유지한다. wrong는 원문의 correct 자리에 심을 틀린 형태.
 2. 서로 다른 단원 오류 정확히 3개(문장 분산). 수일치 최대 1.
-3. 금지: a/an/the, as a result→as a results 난센스, 인접 단순 is/are, 철자 장난.
-4. correct는 원문 부분문자열. wrong는 CASE 심는 법에 맞는 형태.
+3. 금지(하드):
+   - assume→assumes, logical→logicals, example→examples 식 단순 ±s 장난
+   - for example→for examples 관용구 파괴
+   - a/an/the, as a result→as a results, 인접 단순 is/are, 철자 장난
+4. correct는 원문 부분문자열. wrong는 CASE 심는 법(관계사·준동사·태·시제·병렬 등)에 맞는 형태.
 5. JSON만: {"errors":[{"sentenceId","correct","wrong","errorSub","koLabel","koTip"}]}`;
 
   const user = JSON.stringify({
