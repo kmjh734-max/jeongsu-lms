@@ -22,7 +22,10 @@ import {
   toStage8Chunks,
 } from "@/lib/exam-prep/phrase-reorder";
 import { type Stage8GroupDraft } from "@/lib/exam-prep/stage8-types";
-import type { Stage9ConfigDraft } from "@/lib/exam-prep/stage9-types";
+import {
+  assignShuffledLabels,
+  type Stage9ConfigDraft,
+} from "@/lib/exam-prep/stage9-types";
 import {
   proposeFullSentenceSegments,
   tokenizeAnswerText,
@@ -976,31 +979,77 @@ export function buildStage8Drafts(sentences: SeedSentence[]): Stage8GroupDraft[]
   return drafts;
 }
 
+function isStage9FixedLine(text: string): boolean {
+  const t = text.trim();
+  return (
+    /^(to whom|sincerely|dear|thank you)/i.test(t) ||
+    /morgan|sincerely/i.test(t)
+  );
+}
+
+/** 문단 번호 기준으로 묶고, 부족하면 연속 문장 덩어리로 2~3분할. 라벨은 A/B/C 셔플. */
 export function buildStage9Config(sentences: SeedSentence[]): Stage9ConfigDraft | null {
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
   if (ordered.length < 2) return null;
 
-  const body = ordered.filter(
-    (s) =>
-      !/^(to whom|sincerely|dear|thank you)/i.test(s.english_text.trim()) &&
-      !/morgan|sincerely/i.test(s.english_text)
-  );
+  const body = ordered.filter((s) => !isStage9FixedLine(s.english_text));
   const use = body.length >= 3 ? body : ordered;
 
-  const n = Math.min(3, use.length);
-  if (n < 2) return null;
-  const size = Math.ceil(use.length / n);
-  const blocks = [];
-  for (let i = 0; i < n; i++) {
-    const slice = use.slice(i * size, (i + 1) * size);
-    if (slice.length === 0) continue;
-    blocks.push({
-      sentence_ids: slice.map((x) => x.id),
-      blank_order: blocks.length + 1,
-      is_required: true as const,
-    });
+  const paraMap = new Map<number, SeedSentence[]>();
+  for (const s of use) {
+    const pn = Math.max(1, Number(s.paragraph_number) || 1);
+    const arr = paraMap.get(pn) ?? [];
+    arr.push(s);
+    paraMap.set(pn, arr);
   }
-  if (blocks.length < 2) return null;
+  let groups = [...paraMap.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([, ss]) => ss);
+
+  // 문단이 1개뿐이면 인천 PDF처럼 2~3개 블록으로 연속 분할
+  if (groups.length < 2) {
+    const flat = groups[0] ?? use;
+    if (flat.length < 2) return null;
+    const blockCount = flat.length >= 6 ? 3 : 2;
+    const size = Math.ceil(flat.length / blockCount);
+    groups = [];
+    for (let i = 0; i < blockCount; i++) {
+      const slice = flat.slice(i * size, (i + 1) * size);
+      if (slice.length > 0) groups.push(slice);
+    }
+  }
+
+  // 문단이 너무 많으면 인접 소블록부터 합쳐 최대 4개
+  while (groups.length > 4) {
+    let bestI = 0;
+    let bestLen = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < groups.length - 1; i++) {
+      const len = groups[i]!.length + groups[i + 1]!.length;
+      if (len < bestLen) {
+        bestLen = len;
+        bestI = i;
+      }
+    }
+    groups = [
+      ...groups.slice(0, bestI),
+      [...groups[bestI]!, ...groups[bestI + 1]!],
+      ...groups.slice(bestI + 2),
+    ];
+  }
+
+  if (groups.length < 2) return null;
+
+  const labels = assignShuffledLabels(
+    groups.length,
+    `seed9:${use.map((s) => s.id).join("|").slice(0, 64)}`
+  );
+
+  const blocks = groups.map((slice, i) => ({
+    sentence_ids: slice.map((x) => x.id),
+    blank_order: i + 1,
+    display_label: labels[i]!,
+    is_required: true as const,
+  }));
 
   const prefix = ordered
     .filter((s) => /^(to whom|dear)/i.test(s.english_text.trim()))

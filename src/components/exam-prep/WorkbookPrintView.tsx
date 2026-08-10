@@ -92,9 +92,15 @@ export function WorkbookPrintView({
                   key={`${stage.stageNumber}-${item.order}`}
                   className="text-[13px] leading-[1.75] text-slate-900"
                 >
-                  <p className="mb-1 font-semibold">
-                    {item.label ? `${item.label}.` : `${item.order}.`}
-                  </p>
+                  {item.label || item.order > 0 ? (
+                    <p className="mb-1 font-semibold">
+                      {item.label
+                        ? item.label.startsWith("(")
+                          ? item.label
+                          : `${item.label}.`
+                        : `${item.order}.`}
+                    </p>
+                  ) : null}
                   {item.english ? (
                     <p className="font-serif whitespace-pre-wrap">{item.english}</p>
                   ) : null}

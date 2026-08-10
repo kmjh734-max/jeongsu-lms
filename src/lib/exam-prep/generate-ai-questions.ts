@@ -57,7 +57,8 @@ function systemPrompt(stepType: ExamStepType): string {
 - grammar_vocab_choice: 인천 WORKBOOK 6단계처럼 영문 안 [a / b] 2지 선택(문장당 여러 개 가능). { displayText:"… [been dumping / been dumped] … [where / that] …", format:"inline_ab", koreanHint, choiceBlanks:[{id, options:[{id,text}] 정확히 2개, correctOptionId}], options:첫슬롯2개 }. correctAnswer:{ selections:{blankId:optionId}, optionId:첫슬롯 }
 - error_correction: HWP 7단계처럼 한 문장에 오류 밑줄 여러 개. { corruptedText, fixTargets:[{wrong,correct}] }, correctAnswer:{ text:원문, fixes:[...] }. 가능하면 어색한 곳 3개.
 - sentence_order: 인천 WORKBOOK 8단계처럼 우리말 + 고정영문 + (어구 / 어구 / …) 형식. { format:"pdf_phrase_reorder", displayText:"To Whom…\n(where / been / not permitted / …)", koreanHint, items:[{id,text}] 어구 카드(섞인 순), correctOrder:정답 id 배열 }
-- paragraph_order: { items:[{id,text}], mode:"sentence" }, correctAnswer:{order:[]}
+- paragraph_order: { items:[{id,label,text}], mode:"paragraph", answerBlank:"(   ) - (   ) - (   )" }, correctAnswer:{order:[], labelSequence:"(B) - (A) - (C)"}
+  ※ 문장 단위가 아니라 문단(연속 문장 묶음)에 (A)(B)(C) 라벨. 표시는 라벨 순, 정답은 흐름 순.
 - writing: 인천 WORKBOOK 10단계처럼 우리말 + 회색 제시어(원형 4~6개) + 고정구문/단어별 ______ . { format:"pdf_guided_writing", koreanPrompt, cueWords:string[], displayText:"People ______ ______ in areas of ______ …" }
 
 문항 수: 문장별 출제(핵심 문장 우선). paragraph_order는 1문항.`;

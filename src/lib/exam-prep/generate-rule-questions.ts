@@ -19,6 +19,7 @@ import {
   buildPdfReorderDisplay,
   buildPhraseChunkTexts,
 } from "@/lib/exam-prep/phrase-reorder";
+import { assignShuffledLabels } from "@/lib/exam-prep/stage9-types";
 import {
   buildPdfWritingSegments,
   buildWritingCues,
@@ -752,12 +753,55 @@ function buildParagraphOrder(
   sentences: ExamPassageSentence[],
   order: number
 ): GeneratedQuestionDraft | null {
-  if (sentences.length < 2) return null;
-  const items = sentences.map((s, i) => ({
-    id: `item_${i + 1}`,
-    text: s.english_text,
+  const ordered = [...sentences].sort(
+    (a, b) => a.sentence_order - b.sentence_order
+  );
+  if (ordered.length < 2) return null;
+
+  const paraMap = new Map<number, ExamPassageSentence[]>();
+  for (const s of ordered) {
+    const pn = Math.max(1, Number(s.paragraph_number) || 1);
+    const arr = paraMap.get(pn) ?? [];
+    arr.push(s);
+    paraMap.set(pn, arr);
+  }
+  let groups = [...paraMap.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([, ss]) => ss);
+
+  if (groups.length < 2) {
+    const flat = groups[0] ?? ordered;
+    const blockCount = flat.length >= 6 ? 3 : 2;
+    const size = Math.ceil(flat.length / blockCount);
+    groups = [];
+    for (let i = 0; i < blockCount; i++) {
+      const slice = flat.slice(i * size, (i + 1) * size);
+      if (slice.length > 0) groups.push(slice);
+    }
+  }
+  while (groups.length > 4) {
+    groups = [
+      [...groups[0]!, ...groups[1]!],
+      ...groups.slice(2),
+    ];
+  }
+  if (groups.length < 2) return null;
+
+  // blank_order(=원문 문단 순)에 셔플된 A/B/C 라벨 배정 → 표시는 라벨 순
+  const labels = assignShuffledLabels(
+    groups.length,
+    `rule9:${ordered.map((s) => s.id).join("|").slice(0, 64)}`
+  );
+  const items = groups.map((g, i) => ({
+    id: labels[i]!,
+    label: labels[i]!,
+    text: g.map((s) => s.english_text).join(" "),
   }));
+  const displayItems = [...items].sort((a, b) =>
+    a.label.localeCompare(b.label, "en")
+  );
   const correctOrder = items.map((it) => it.id);
+
   return {
     sentence_id: null,
     question_type: "paragraph_order",
@@ -767,11 +811,15 @@ function buildParagraphOrder(
       "다음 문단을 흐름상 알맞게 배열해 보세요."
     ),
     question_data: {
-      items,
+      items: displayItems,
       correctOrder,
-      mode: "sentence",
+      mode: "paragraph",
+      answerBlank: items.map(() => "(   )").join(" - "),
     },
-    correct_answer: { order: correctOrder },
+    correct_answer: {
+      order: correctOrder,
+      labelSequence: correctOrder.map((id) => `(${id})`).join(" - "),
+    },
     acceptable_answers: [correctOrder],
     explanation: null,
     difficulty: "medium",

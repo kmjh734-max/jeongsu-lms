@@ -411,29 +411,47 @@ export function buildPrintStagesFromPassage(input: {
     }
   }
 
-  // 9
+  // 9 — 인천 PDF: 답란 (   )-(   )-(   ) + (A)(B)(C) 문단(라벨 순, 정답 순서 아님)
   {
     const preset = WORKBOOK_10_STEPS[8]!;
-    const blanks = [...(input.blanksByStage[9] ?? [])].sort(
-      (a, b) => a.blank_order - b.blank_order
-    );
-    if (blanks.length >= 2) {
+    const raw = [...(input.blanksByStage[9] ?? [])];
+    if (raw.length >= 2) {
+      const byLabel = [...raw].sort((a, b) =>
+        String(a.display_label ?? "").localeCompare(
+          String(b.display_label ?? ""),
+          "en"
+        )
+      );
+      const byCorrect = [...raw].sort((a, b) => a.blank_order - b.blank_order);
+      const answerBlank = byLabel.map(() => "(   )").join(" - ");
+      const correctLine = byCorrect
+        .map((b) => `(${String(b.display_label ?? "?").trim() || "?"})`)
+        .join(" - ");
+      const items: PrintItem[] = [
+        {
+          order: 0,
+          writingLines: [answerBlank],
+          answerLines: showAnswers ? [correctLine] : undefined,
+        },
+      ];
+      byLabel.forEach((b, i) => {
+        const ids = parseSentenceIds(b.sentence_ids);
+        const text = ids
+          .map((id) => byId.get(id)?.english_text ?? "")
+          .filter(Boolean)
+          .join(" ");
+        const lab = String(b.display_label ?? String.fromCharCode(65 + i)).trim();
+        items.push({
+          order: i + 1,
+          label: `(${lab})`,
+          english: text,
+        });
+      });
       stages.push({
         stageNumber: 9,
         title: preset.shortLabel,
         prompt: preset.prompt,
-        items: blanks.map((b, i) => {
-          const ids = parseSentenceIds(b.sentence_ids);
-          const text = ids
-            .map((id) => byId.get(id)?.english_text ?? "")
-            .filter(Boolean)
-            .join(" ");
-          return {
-            order: i + 1,
-            label: String(b.display_label ?? String.fromCharCode(65 + i)),
-            english: text,
-          };
-        }),
+        items,
       });
     }
   }

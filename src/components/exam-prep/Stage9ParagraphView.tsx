@@ -281,7 +281,8 @@ export function Stage9ParagraphView({
           현재 단계: 9단계 · 문단 배열하기 · 9 / 10
         </p>
         <p className="mt-1 text-sm text-slate-700">
-          다음 문단을 글의 흐름에 맞게 배열해 보세요.
+          다음 문단을 흐름상 알맞게 배열해 보세요. (A)(B)(C) 기호로 순서를
+          고르세요.
         </p>
       </header>
 
@@ -427,8 +428,10 @@ export function Stage9ParagraphView({
 
         <p className="mt-3 text-sm font-medium text-slate-800">
           {answer.selectedLabels.length > 0
-            ? answer.selectedLabels.join(" → ")
-            : "아직 순서를 선택하지 않았습니다."}
+            ? answer.selectedLabels.map((l) => `(${l})`).join(" - ")
+            : Array.from({ length: problem.blocks.length })
+                .map(() => "(   )")
+                .join(" - ")}
         </p>
         {answer.isCorrect === true && (
           <p className="mt-1 text-sm text-emerald-700">
@@ -449,7 +452,8 @@ export function Stage9ParagraphView({
       )}
       {revealLabels && (
         <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm">
-          정답 예시(직접 배열): {revealLabels.join(" → ")}
+          정답 예시(직접 배열):{" "}
+          {revealLabels.map((l) => `(${l})`).join(" - ")}
         </p>
       )}
       {message && (
