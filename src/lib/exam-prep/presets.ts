@@ -16,7 +16,18 @@ export type ExamStepDraft = {
 
 /**
  * 인천광역시 교육청 학력평가 10단계 WORKBOOK 통합본 기준.
- * 제목·발문은 HWP 원문과 동일하게 맞춤.
+ * 제목·발문·Learning Guide는 2026 고3 7월 인천 PDF와 동일.
+ *
+ * 1 지문 연습하기 — 영문+해석 읽고 의미 파악
+ * 2 빈칸(우리말) — 영문 보고 우리말 핵심어 빈칸 (조사·어미는 남김)
+ * 3 빈칸(영문) — 우리말 보고 영문 핵심어 빈칸 (골격 유지)
+ * 4 해석 연습 — 영문만 보고 우리말 통역
+ * 5 동사형 — (have, be, dump)처럼 원형 cue로 동사구·분사 형태
+ * 6 어법·어휘 — [a / b] 최소쌍을 문장당 여러 개
+ * 7 어색한 곳 — 지문 전체에 오류 3개 → 찾아 고치기
+ * 8 순서 배열 — 의미 단위 어구 카드 + 고정 다리
+ * 9 문단 배열 — (A)(B)(C) + (   )→(   )→(   )
+ * 10 영작 — 제시어(순서) + 고정 골격 + 내용어 ______
  */
 export const WORKBOOK_10_STEPS: Array<{
   number: number;
@@ -29,23 +40,22 @@ export const WORKBOOK_10_STEPS: Array<{
   {
     number: 1,
     step_type: "comprehension",
-    label: "1단계 · 지문 익히기",
-    shortLabel: "지문 익히기",
-    prompt:
-      "영문과 우리말 해석을 함께 읽으며 문장의 의미를 이해해 보세요.",
+    label: "1단계 · 지문 연습하기",
+    shortLabel: "지문 연습하기",
+    prompt: "영문과 해석을 읽고 문장의 의미를 이해해 보세요.",
   },
   {
     number: 2,
     step_type: "korean_blank",
-    label: "2단계 · 우리말 빈칸 완성하기",
-    shortLabel: "우리말 빈칸 완성하기",
+    label: "2단계 · 빈칸 완성하기(우리말)",
+    shortLabel: "빈칸 완성하기(우리말)",
     prompt: "영문을 읽고 우리말 해석의 빈칸을 완성해 보세요.",
   },
   {
     number: 3,
     step_type: "english_blank",
-    label: "3단계 · 영문 빈칸 완성하기",
-    shortLabel: "영문 빈칸 완성하기",
+    label: "3단계 · 빈칸 완성하기(영문)",
+    shortLabel: "빈칸 완성하기(영문)",
     prompt: "우리말 해석을 읽고 영문의 빈칸을 완성해 보세요.",
   },
   {
@@ -60,16 +70,14 @@ export const WORKBOOK_10_STEPS: Array<{
     step_type: "verb_form",
     label: "5단계 · 동사형 연습하기",
     shortLabel: "동사형 연습하기",
-    prompt:
-      "괄호 안에 주어진 단어를 문맥에 맞는 알맞은 형태로 고쳐 쓰세요.",
+    prompt: "괄호 안에 주어진 단어를 알맞게 고쳐 쓰세요.",
   },
   {
     number: 6,
     step_type: "grammar_vocab_choice",
     label: "6단계 · 어법·어휘 고르기",
     shortLabel: "어법·어휘 고르기",
-    prompt:
-      "괄호 안에서 문맥에 맞는 올바른 어법과 어휘를 골라 보세요.",
+    prompt: "괄호 안에서 옳은 어법과 어휘를 골라 보세요.",
   },
   {
     number: 7,
@@ -77,7 +85,7 @@ export const WORKBOOK_10_STEPS: Array<{
     label: "7단계 · 어색한 곳 찾아 고쳐 쓰기",
     shortLabel: "어색한 곳 찾아 고쳐 쓰기",
     prompt:
-      "밑줄 친 부분 중 어법상 어색한 곳을 찾아 알맞게 고쳐 쓰세요.",
+      "밑줄 친 부분 중 어법상 어색한 것을 세 개 찾아 알맞게 고쳐 쓰세요.",
   },
   {
     number: 8,

@@ -857,7 +857,7 @@ export function scanVocabChoiceHits(english: string): Array<{
   return out.sort((a, b) => b.priority - a.priority);
 }
 
-/** 지문 전체에서 마더텅식 다양 단원 포인트 (문장당 최대 2) */
+/** 지문 전체에서 마더텅식 다양 단원 포인트 (문장당 최대 4 — 인천 PDF 밀도) */
 export function pickPassageGrammarHits(
   sentences: Array<{ id: string; english_text: string; sentence_order: number }>,
   maxTotal = 8
@@ -878,7 +878,7 @@ export function pickPassageGrammarHits(
 
   const tryAdd = (row: { sentenceId: string; hit: WorkbookGrammarHit }, requireNewUnit: boolean) => {
     if (picked.length >= maxTotal) return false;
-    if ((perSentence.get(row.sentenceId) ?? 0) >= 2) return false;
+    if ((perSentence.get(row.sentenceId) ?? 0) >= 4) return false;
     if (
       picked.some(
         (p) =>

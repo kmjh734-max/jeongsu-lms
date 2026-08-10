@@ -158,7 +158,7 @@ export function blankPickCount(
   difficulty: string,
   opts?: { max?: number }
 ): number {
-  const max = opts?.max ?? 5;
+  const max = opts?.max ?? 6;
   if (candidateCount <= 0) return 0;
   if (difficulty === "easy") {
     return Math.max(1, Math.min(2, Math.min(max, Math.ceil(candidateCount * 0.2))));
@@ -166,8 +166,8 @@ export function blankPickCount(
   if (difficulty === "hard") {
     return Math.max(2, Math.min(max, Math.ceil(candidateCount * 0.4)));
   }
-  // medium: PDF처럼 문장당 3~4개 전후, 앞쪽 몰림 없이
-  return Math.max(2, Math.min(4, Math.min(max, Math.ceil(candidateCount * 0.35))));
+  // medium: 인천 PDF 2·3단계처럼 문장당 핵심어 여러 개 (앞쪽 몰림 없이)
+  return Math.max(3, Math.min(max, Math.ceil(candidateCount * 0.45)));
 }
 
 /**

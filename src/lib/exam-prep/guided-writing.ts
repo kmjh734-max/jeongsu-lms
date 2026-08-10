@@ -1,11 +1,13 @@
 /**
  * 10단계 영작 — 인천 WORKBOOK PDF형
- * 우리말 + 제시어(원형) + 고정 구문 + 중요 어휘·표현 위주 ______ 슬롯
+ * 우리말 + 제시어(원형, 등장 순서) + 고정 골격 + 내용어 ______ 슬롯
+ *
+ * PDF 예:
+ *   dump, waste, neighborhood, permit
+ *   To Whom…: People ____ ____ ____ ____ ____ in areas of ____ ____ where it’s ____ ____.
  */
 import {
-  blankPickCount,
   englishCore,
-  pickSpreadByScore,
   scoreEnglishBlank,
 } from "@/lib/exam-prep/blank-importance";
 import { parseVocabMarks } from "@/lib/exam-prep/vocab-marks";
@@ -63,7 +65,6 @@ function lemmaCue(answer: string): string {
     return base;
   }
   if (w.endsWith("ies") && w.length > 4) return `${w.slice(0, -3)}y`;
-  // employees→employee, boxes→box (sibilant+es만 -es)
   if (/(?:ss|sh|ch|x|z)es$/i.test(w) && w.length > 4) return w.slice(0, -2);
   if (w.endsWith("s") && w.length > 3 && !w.endsWith("ss") && !/(us|is|os|ss)$/i.test(w)) {
     return w.slice(0, -1);
@@ -71,13 +72,21 @@ function lemmaCue(answer: string): string {
   return w || answer;
 }
 
-/** 담화·구조 고정 구문 (빈칸이 아닌 안내 문구) — 모두 g 플래그 필수 */
+/** PDF에서 남겨 두는 골격·담화 구 (빈칸 아님) */
 const STAGE10_FIXED: RegExp[] = [
   /^To Whom It May Concern:\s*/gim,
+  /\bPeople\s+(?=have\b|are\b|will\b|can\b)/g,
+  /\bSome of\s+/gi,
+  /\bin areas of\s+/gi,
+  /\bwhere it(?:['’]s| is)\s+/gi,
   /\bEven though it(?:['’]s| is)\s+/gi,
   /\bin those areas,\s*recently more and more\s+/gi,
   /,\s*recently more and more\s+/gi,
+  /\brecently more and more\s+/gi,
   /\bin those areas\b/gi,
+  /\band at\s+/gi,
+  /\bin the community\.?/gi,
+  /\bin a disgusting state\.?/gi,
   /\bThank you for your time and consideration\.?/gi,
   /\bSincerely,?\s*/gi,
   /\bJulia Morgan\b/gi,
@@ -89,33 +98,15 @@ const STAGE10_FIXED: RegExp[] = [
   /\bAs a result,\s*/gi,
   /\bFor example,\s*/gi,
   /\bOn the other hand,\s*/gi,
-];
-
-/** 의미 단위로 한 칸에 묶을 관용·결합 표현 */
-const STAGE10_PHRASE_BLANKS: RegExp[] = [
-  /\bon board\b/gi,
-  /\btake place\b/gi,
-  /\bend in\b/gi,
-  /\bin charge of\b/gi,
-  /\bas a result\b/gi,
-  /\bin spite of\b/gi,
-  /\bbecause of\b/gi,
-  /\binstead of\b/gi,
-  /\baccording to\b/gi,
-  /\bin order to\b/gi,
-  /\brather than\b/gi,
-  /\bdue to\b/gi,
-  /\bout of\b/gi,
-  /\bsuch as\b/gi,
-  /\bas well as\b/gi,
-  /\bmore and more\b/gi,
-  /\bless and less\b/gi,
-  /\beven though\b/gi,
-  /\bfor example\b/gi,
-  /\bpredator[-‑]?prey\b/gi,
-  /\billegal dumping\b/gi,
-  /\bstreet corners\b/gi,
-  /\bbus stops\b/gi,
+  /\bFor a long time,\s*/gi,
+  /\bUnlike the empty ocean,\s*/gi,
+  /\bThere seemed\s+/gi,
+  /\bUnder the rising sun,\s*/gi,
+  /\bBelow the light\s+/gi,
+  /\bThen\s+(?=something\b)/gi,
+  /\bmonths after\s+/gi,
+  /\band Steller\s+/gi,
+  /\bwith the thought that\s+/gi,
 ];
 
 type CharSpan = { start: number; end: number };
@@ -153,43 +144,8 @@ function collectRegexSpans(src: string, patterns: RegExp[]): CharSpan[] {
   return out.sort((a, b) => a.start - b.start);
 }
 
-function collectVocabSpans(src: string, vocabulary: unknown): CharSpan[] {
-  const marks = parseVocabMarks(vocabulary)
-    .map((m) => (m.englishText || "").trim())
-    .filter((t) => t.length >= 3)
-    .sort((a, b) => b.length - a.length);
-  const out: CharSpan[] = [];
-  const low = src.toLowerCase();
-  for (const needle of marks) {
-    const n = needle.toLowerCase();
-    let from = 0;
-    while (from < low.length) {
-      const idx = low.indexOf(n, from);
-      if (idx < 0) break;
-      const end = idx + needle.length;
-      const boundaryOk =
-        (idx === 0 || !/[a-z]/i.test(src[idx - 1]!)) &&
-        (end >= src.length || !/[a-z]/i.test(src[end]!));
-      if (
-        boundaryOk &&
-        !out.some((g) => idx < g.end && end > g.start)
-      ) {
-        out.push({ start: idx, end });
-      }
-      from = idx + Math.max(1, needle.length);
-    }
-  }
-  return out.sort((a, b) => a.start - b.start);
-}
-
 function overlaps(tok: Tok, spans: CharSpan[]): boolean {
   return spans.some((g) => tok.start < g.end && tok.end > g.start);
-}
-
-function spanCoveringTokens(toks: Tok[], span: CharSpan): number[] {
-  return toks
-    .filter((t) => t.start < span.end && t.end > span.start)
-    .map((t) => t.index);
 }
 
 function pushFixed(segs: Stage10Segment[], text: string, order: { n: number }) {
@@ -233,12 +189,12 @@ function pushAnswer(
 }
 
 /**
- * 중요 어휘·표현만 빈칸. 관사·조동사·담화표지 등은 고정.
- * vocabulary 마크·관용 구는 한 덩어리로 비움.
+ * PDF형: 고정 골격만 남기고 나머지 내용어를 ______ 로.
+ * 고정 구가 없으면 앞 1~2어절만 고정.
  */
 export function buildPdfWritingSegments(
   english: string,
-  vocabulary?: unknown
+  _vocabulary?: unknown
 ): Stage10Segment[] {
   const src = english.trim();
   if (!src) return [];
@@ -246,44 +202,25 @@ export function buildPdfWritingSegments(
   const toks = tokenizeWithPos(src);
   if (toks.length < 2) return [];
 
-  const fixedSpans = collectRegexSpans(src, STAGE10_FIXED);
-  const phraseSpans = [
-    ...collectVocabSpans(src, vocabulary),
-    ...collectRegexSpans(src, STAGE10_PHRASE_BLANKS),
-  ].filter((p) => !fixedSpans.some((f) => p.start < f.end && p.end > f.start));
+  let fixedSpans = collectRegexSpans(src, STAGE10_FIXED);
 
-  const forcedBlank = new Set<number>();
-  for (const span of phraseSpans) {
-    for (const idx of spanCoveringTokens(toks, span)) forcedBlank.add(idx);
+  // 고정이 너무 없으면 머리만 고정 (전체 통째 blank 방지)
+  if (fixedSpans.length === 0) {
+    const headN = Math.min(2, Math.max(1, Math.floor(toks.length * 0.15)));
+    if (headN < toks.length) {
+      fixedSpans = [{ start: 0, end: toks[headN]!.start }];
+    } else {
+      fixedSpans = [{ start: 0, end: toks[0]!.end }];
+    }
   }
 
-  const scored = toks.map((t) => {
-    if (overlaps(t, fixedSpans)) return { index: t.index, score: -1 };
-    if (forcedBlank.has(t.index)) return { index: t.index, score: 100 };
-    return { index: t.index, score: scoreEnglishBlank(t.text) };
-  });
-
-  const eligible = scored.filter((x) => x.score > 0);
-  // 구(phrase)는 칸 1개로 세고, 나머지 중요어를 문장에 분산
-  const phraseUnitCount = phraseSpans.length;
-  const pickTarget = Math.max(
-    3,
-    blankPickCount(Math.max(1, eligible.length), "medium", { max: 6 })
-  );
-  const need = Math.max(0, pickTarget - Math.max(1, phraseUnitCount));
-  const picked = pickSpreadByScore(
-    eligible.filter((x) => !forcedBlank.has(x.index)),
-    need
-  );
-
-  const blankIdx = new Set<number>([
-    ...forcedBlank,
-    ...picked.map((p) => p.index),
-  ]);
+  const blankIdx = new Set<number>();
+  for (const t of toks) {
+    if (!overlaps(t, fixedSpans)) blankIdx.add(t.index);
+  }
   if (blankIdx.size < 2) {
-    for (const c of [...eligible].sort((a, b) => b.score - a.score)) {
-      blankIdx.add(c.index);
-      if (blankIdx.size >= 2) break;
+    for (const t of toks) {
+      if (scoreEnglishBlank(t.text) > 0) blankIdx.add(t.index);
     }
   }
   if (blankIdx.size < 1) return [];
@@ -305,7 +242,6 @@ export function buildPdfWritingSegments(
       pushAnswer(segs, src.slice(runStart, runEnd), runStart, runEnd, order);
       cursor = runEnd;
     } else {
-      // 다음 빈칸 전까지의 공백·구두점 포함
       const to = j < toks.length ? toks[j]!.start : src.length;
       pushFixed(segs, src.slice(runStart, to), order);
       cursor = to;
@@ -317,46 +253,41 @@ export function buildPdfWritingSegments(
   return segs.some((s) => s.segmentType === "answer_segment") ? segs : [];
 }
 
-/** 제시어: 빈칸 답안 원형 우선, 어휘 마크 보강 (4~6개) */
 const CUE_STOP = new Set(
-  "a an the of to in on at for with from by into onto upon over under and or but so as if than then".split(
+  "a an the of to in on at for with from by into onto upon over under and or but so as if than then it its this that these those their our my your his her not".split(
     " "
   )
 );
 
+/** 제시어: 빈칸에 등장하는 핵심 원형을 **문장 등장 순서**로 4~6개 */
 export function pickWritingCueTexts(
   english: string,
   vocabulary: unknown,
   answerText: string
 ): string[] {
-  const fromAnswers = tokenizeAnswerText(answerText)
-    .map((t) => lemmaCue(englishCore(t) || t))
-    .filter((v) => v.length >= 3 && !CUE_STOP.has(v))
-    .filter((v, i, a) => a.indexOf(v) === i);
-
   const marks = parseVocabMarks(vocabulary)
     .map((m) => lemmaCue(m.englishText))
-    .filter((v) => v.length >= 3 && !CUE_STOP.has(v))
-    .filter((v, i, a) => a.indexOf(v) === i);
+    .filter((v) => v.length >= 3 && !CUE_STOP.has(v));
 
-  const scored = `${answerText} ${english}`
-    .split(/\s+/)
-    .map((w) => {
-      const core = englishCore(w);
-      return { lemma: lemmaCue(core), score: scoreEnglishBlank(w) };
-    })
-    .filter((x) => x.score > 0 && x.lemma.length >= 3 && !CUE_STOP.has(x.lemma))
-    .sort((a, b) => b.score - a.score);
-
-  const out: string[] = [];
-  for (const x of [...fromAnswers, ...marks, ...scored.map((s) => s.lemma)]) {
-    if (!x || out.includes(x)) continue;
-    out.push(x);
-    if (out.length >= 6) break;
+  const blankTokens = tokenizeAnswerText(answerText);
+  const ordered: string[] = [];
+  for (const t of blankTokens) {
+    const core = englishCore(t);
+    const lemma = lemmaCue(core || t);
+    if (!lemma || lemma.length < 3 || CUE_STOP.has(lemma)) continue;
+    if (scoreEnglishBlank(t) <= 0 && !marks.includes(lemma)) continue;
+    if (ordered.includes(lemma)) continue;
+    ordered.push(lemma);
   }
 
-  const target = answerText.split(/\s+/).filter(Boolean).length > 8 ? 6 : 4;
-  return out.slice(0, Math.max(Math.min(4, out.length), Math.min(target, out.length)));
+  for (const m of marks) {
+    if (!ordered.includes(m) && english.toLowerCase().includes(m.slice(0, 4))) {
+      ordered.push(m);
+    }
+  }
+
+  const target = blankTokens.length > 10 ? 6 : blankTokens.length > 6 ? 5 : 4;
+  return ordered.slice(0, Math.min(6, Math.max(3, target)));
 }
 
 export function buildWritingCues(

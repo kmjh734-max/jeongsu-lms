@@ -245,7 +245,7 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
     }
 
     const maxPerSentence = blankPickCount(Math.max(wordEntries.length, 1), "medium", {
-      max: 5,
+      max: 6,
     });
 
     const markCands = marks
@@ -459,27 +459,13 @@ const AUX_VERBS = new Set(
 );
 
 /**
- * 5단계: 문장 안 동사형을 **여러 개** 빈칸 (PDF: (have)(be)(dump) …).
- * 구 전체를 한 칸으로 묶지 않는다. 부사·명사 제외, 원형 cue 제공.
+ * 5단계: PDF형 — 동사구·분사를 **한 칸**으로 두고 원형 cue를 여러 개 제시.
+ * 예: (have, be, dump)→have been dumping / (not, permit)→is not permitted /
+ *     (disgust)→disgusting / (be, get)→is getting
  */
 export function findVerbHits(english: string): VerbHit[] {
   const hits: VerbHit[] = [];
-  const used: Array<{ a: number; b: number }> = [];
-  const push = (start: number, end: number, cues: string[], category: string) => {
-    if (start < 0 || end <= start) return;
-    if (overlaps(used, start, end)) return;
-    const answer = english.slice(start, end);
-    if (!answer.trim()) return;
-    const token = answer.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
-    if (isLikelyNonVerbToken(token) || NON_VERB_FORM.has(token.toLowerCase())) {
-      return;
-    }
-    if (MODAL_VERBS.has(token.toLowerCase())) return;
-    const cue = (cues[0] ? verbLemma(cues[0]) : verbLemma(token)) || token.toLowerCase();
-    // 원형과 답이 같고 조동사/be·have·do도 아니면(이미 원형)  sparingly keep only finite whitelist
-    used.push({ a: start, b: end });
-    hits.push({ start, end, answer, cues: [cue], category });
-  };
+  const consumed = new Set<number>();
 
   const tokenRe = /[A-Za-z']+/g;
   let m: RegExpExecArray | null;
@@ -494,155 +480,215 @@ export function findVerbHits(english: string): VerbHit[] {
     });
   }
 
-  for (let i = 0; i < tokens.length; i++) {
-    const t = tokens[i]!;
-    const prev = tokens[i - 1];
-    const before = english.slice(Math.max(0, t.start - 16), t.start);
-    const after = english.slice(t.end, t.end + 16);
+  const pushSpan = (
+    from: number,
+    to: number,
+    cues: string[],
+    category: string
+  ) => {
+    if (from > to || from < 0 || to >= tokens.length) return;
+    for (let i = from; i <= to; i++) {
+      if (consumed.has(i)) return;
+    }
+    const start = tokens[from]!.start;
+    const end = tokens[to]!.end;
+    const answer = english.slice(start, end);
+    if (!answer.trim()) return;
+    const normCues = cues
+      .map((c) => verbLemma(c) || c.toLowerCase())
+      .filter(Boolean);
+    if (normCues.length < 1) return;
+    for (let i = from; i <= to; i++) consumed.add(i);
+    hits.push({ start, end, answer, cues: [...new Set(normCues)], category });
+  };
 
+  const isBe = (low: string) =>
+    /^(am|is|are|was|were|be|been|being)$/i.test(low) ||
+    /^(i|he|she|it|that|what|who)'s$/i.test(low) ||
+    /^(you|we|they)'re$/i.test(low);
+  const isHave = (low: string) =>
+    /^(have|has|had)$/i.test(low) || /^(i|you|we|they)'ve$/i.test(low);
+  const beCue = (low: string) => "be";
+  const haveCue = (low: string) => "have";
+
+  for (let i = 0; i < tokens.length; i++) {
+    if (consumed.has(i)) continue;
+    const t = tokens[i]!;
+    const n1 = tokens[i + 1];
+    const n2 = tokens[i + 2];
+    const n3 = tokens[i + 3];
+    const prev = tokens[i - 1];
+
+    // To Whom / relative — skip
     if (
       prev &&
       /^to$/i.test(prev.low) &&
-      /^(whom|which|whose|where|what|this|that|these|those|the|a|an|my|your|his|her|our|their)$/i.test(
-        t.low
-      )
+      /^(whom|which|whose|where|what)$/i.test(t.low)
     ) {
       continue;
     }
 
-    if (NON_VERB_FORM.has(t.low) || isLikelyNonVerbToken(t.low)) continue;
-    if (NEVER_VERB.has(t.low)) continue;
-    if (MODAL_VERBS.has(t.low)) continue;
-
-    // you're / we've / it's …
-    const contraction = t.low.match(
-      /^(i|you|we|they|he|she|it|that|what|who)'(s|re|m|ve|d|ll)$/
-    );
-    if (contraction) {
-      const part = contraction[2]!;
-      if (part === "ll") continue;
-      const cue =
-        part === "ve" || part === "d"
-          ? "have"
-          : "be";
-      const cat =
-        part === "ve" || part === "d" ? "present_perfect" : "simple_present";
-      push(t.start, t.end, [cue], cat);
+    // have/has/had + been + Ving
+    if (
+      isHave(t.low) &&
+      n1 &&
+      /^been$/i.test(n1.low) &&
+      n2 &&
+      /ing$/i.test(n2.low) &&
+      n2.low.length > 4 &&
+      !NON_VERB_FORM.has(n2.low)
+    ) {
+      pushSpan(i, i + 2, [haveCue(t.low), "be", lemmaCue(n2.text)], "perfect_progressive");
       continue;
     }
 
-    // 1) be·have·do 조동사/본동사 (형태 변화 연습)
-    if (BE_HAVE_DO.has(t.low) || AUX_VERBS.has(t.low)) {
-      if (MODAL_VERBS.has(t.low)) continue;
-      if (!BE_HAVE_DO.has(t.low) && !/^(am|is|are|was|were|be|been|being|have|has|had|do|does|did|done|doing)$/i.test(t.low)) {
-        continue;
-      }
-      const cue = verbLemma(t.text);
-      let cat = "other";
-      if (/^(am|is|are)$/i.test(t.low)) cat = "simple_present";
-      else if (/^(was|were)$/i.test(t.low)) cat = "simple_past";
-      else if (/^(been|being|be)$/i.test(t.low)) cat = "other";
-      else if (/^(have|has)$/i.test(t.low)) cat = "present_perfect";
-      else if (/^had$/i.test(t.low)) cat = "past_perfect";
-      else if (/^(do|does)$/i.test(t.low)) cat = "simple_present";
-      else if (/^did$/i.test(t.low)) cat = "simple_past";
-      push(t.start, t.end, [cue], cat);
+    // have/has/had + Ven
+    if (
+      isHave(t.low) &&
+      n1 &&
+      (IRREGULAR_VERBS.has(n1.low) || (/ed$/i.test(n1.low) && n1.low.length > 3)) &&
+      !NON_VERB_FORM.has(n1.low)
+    ) {
+      pushSpan(i, i + 1, [haveCue(t.low), lemmaCue(n1.text)], "present_perfect");
       continue;
     }
 
-    if (EN_STOP.has(t.low)) continue;
-
-    // 2) to + 원형
-    if (prev && /^to$/i.test(prev.low) && t.low.length >= 3) {
-      if (/^[A-Z]/.test(t.text) && !/^(Fix|Thank)$/.test(t.text)) continue;
-      push(t.start, t.end, [lemmaCue(t.text)], "infinitive");
+    // be + ADV + Ven  (is desperately needed)
+    if (
+      isBe(t.low) &&
+      n1 &&
+      /ly$/i.test(n1.low) &&
+      n2 &&
+      (IRREGULAR_VERBS.has(n2.low) || /ed$/i.test(n2.low)) &&
+      !NON_VERB_FORM.has(n2.low)
+    ) {
+      pushSpan(
+        i,
+        i + 2,
+        [n1.low.replace(/ly$/, ""), lemmaCue(n2.text)],
+        "passive_voice"
+      );
+      // PDF: (desperately, need) — keep adverb lemma as given form-ish
+      const last = hits[hits.length - 1];
+      if (last) last.cues = [n1.low, lemmaCue(n2.text)];
       continue;
     }
 
-    // 3) -ing
-    if (/ing$/i.test(t.low) && t.low.length > 4) {
-      let cat = "gerund";
-      if (prev && /^(is|are|was|were|am|be|been|being)$/i.test(prev.low)) {
-        cat = "present_progressive";
-      }
-      if (prev && /^(been)$/i.test(prev.low)) cat = "perfect_progressive";
-      if (/\b(a|an|the|this|that|these|those|illegal|growing|large)\s+$/i.test(before)) {
-        cat = "present_participle";
-      }
-      push(t.start, t.end, [lemmaCue(t.text)], cat);
+    // be + Ving
+    if (
+      isBe(t.low) &&
+      n1 &&
+      /ing$/i.test(n1.low) &&
+      n1.low.length > 4 &&
+      !NON_VERB_FORM.has(n1.low)
+    ) {
+      pushSpan(i, i + 1, [beCue(t.low), lemmaCue(n1.text)], "present_progressive");
       continue;
     }
 
-    // 4) -ed / 불규칙
-    if (IRREGULAR_VERBS.has(t.low) || (/ed$/i.test(t.low) && t.low.length > 3)) {
-      let cat = "past_participle";
-      if (prev && /^(have|has|had)$/i.test(prev.low)) cat = "present_perfect";
-      if (prev && /^(is|are|was|were|am|be|been|being)$/i.test(prev.low)) {
-        cat = "passive_voice";
-      }
-      if (
-        prev &&
-        /ly$/i.test(prev.low) &&
-        tokens[i - 2] &&
-        /^(is|are|was|were)$/i.test(tokens[i - 2]!.low)
-      ) {
-        cat = "passive_voice";
-      }
-      if (
-        IRREGULAR_VERBS.has(t.low) &&
-        !/ed$/i.test(t.low) &&
-        !(prev && /^(have|has|had|is|are|was|were|be|been|being)$/i.test(prev.low))
-      ) {
-        cat = "simple_past";
-      }
-      push(t.start, t.end, [lemmaCue(t.text)], cat);
+    // be + Ven (passive) — not after have
+    if (
+      isBe(t.low) &&
+      n1 &&
+      (IRREGULAR_VERBS.has(n1.low) || (/ed$/i.test(n1.low) && n1.low.length > 3)) &&
+      !NON_VERB_FORM.has(n1.low)
+    ) {
+      pushSpan(i, i + 1, [beCue(t.low), lemmaCue(n1.text)], "passive_voice");
       continue;
     }
 
-    // 5) 사역·지각 뒤 원형
+    // it's/is/are + not + Ven  → (not, V)
+    if (
+      (isBe(t.low) || /^(it|he|she|that)'s$/i.test(t.low)) &&
+      n1 &&
+      /^not$/i.test(n1.low) &&
+      n2 &&
+      (IRREGULAR_VERBS.has(n2.low) || /ed$/i.test(n2.low) || /ing$/i.test(n2.low))
+    ) {
+      // PDF keeps "it" and blanks from be/not… : prefer span starting at not if contraction on it
+      if (/^it$/i.test(t.low) && n1 && /^not$/i.test(n1.low)) {
+        // "it not permitted" won't happen; "it is not permitted"
+      }
+      if (/^(it|he|she|that)'s$/i.test(t.low)) {
+        // "'s not permitted" — blank whole contraction+not+Ven? PDF: it (not, permit)
+        // Keep subject "it", blank "'s not permitted" approx as from 's
+        pushSpan(i, i + 2, ["not", lemmaCue(n2.text)], "passive_voice");
+      } else {
+        pushSpan(i, i + 2, ["not", lemmaCue(n2.text)], "passive_voice");
+      }
+      continue;
+    }
+
+    // standalone "not" + Ven after be already consumed — rare
+
+    // to + V (not To Whom)
+    if (
+      /^to$/i.test(t.low) &&
+      n1 &&
+      n1.low.length >= 3 &&
+      !/^(whom|which|whose|where|what|the|a|an)$/i.test(n1.low) &&
+      !NON_VERB_FORM.has(n1.low)
+    ) {
+      pushSpan(i + 1, i + 1, [lemmaCue(n1.text)], "infinitive");
+      continue;
+    }
+
+    // adj/participle after determiner: a disgusting / this growing
     if (
       prev &&
-      /^(see|saw|hear|heard|watch|watched|feel|felt|make|made|let|have|had|help|helped)$/i.test(
-        prev.low
-      ) === false &&
-      tokens[i - 2] &&
-      /^(see|saw|hear|heard|watch|watched|feel|felt|make|made|let|have|had|help|helped)$/i.test(
-        tokens[i - 2]!.low
-      ) &&
-      t.low.length >= 3
+      /^(a|an|the|this|that|these|those)$/i.test(prev.low) &&
+      (/ing$/i.test(t.low) || /ed$/i.test(t.low) || /ous$|ive$|ful$|less$/i.test(t.low)) &&
+      t.low.length > 4 &&
+      !NON_VERB_FORM.has(t.low)
     ) {
-      push(t.start, t.end, [lemmaCue(t.text)], "infinitive");
-      continue;
-    }
-
-    // 6) 3인칭 -s / 일반 정동사
-    const FINITE_HINT =
-      /^(attracts?|urges?|leaves?|needs?|gets?|fixes?|grows?|dumps?|permits?|thanks?|protects?|strengthens?|weakens?|makes?|takes?|gives?|comes?|goes?|seems?|appears?|becomes?|remains?|keeps?|helps?|shows?|provides?|requires?|suggests?|causes?|creates?|allows?|prevents?|reduces?|increases?|improves?|supports?|includes?|contains?|offers?|asks?|tells?|says?|thinks?|knows?|feels?|wants?|tries?|begins?|starts?|ends?|continues?|happens?|occurs?|means?|depends?|exists?|leads?|follows?|works?|plays?|lives?|looks?|uses?|calls?|changes?|moves?|turns?|brings?|holds?|finds?|believes?|considers?|decides?|explains?|produces?|represents?|serves?|stands?|understands?|writes?|reads?|runs?|walks?|talks?|speaks?|listens?|watches?|eats?|drinks?|sleeps?|opens?|closes?|adds?|removes?|replaces?|develops?|encourages?|enables?|forces?|fails?|succeeds?|proves?|argues?|claims?|states?|notes?|reports?|describes?|mentions?|refers?|relates?|applies?|compares?|differs?|varies?|tends?|assumes?|supposes?)$/i;
-    if (FINITE_HINT.test(t.low)) {
-      push(t.start, t.end, [lemmaCue(t.text)], "simple_present");
-      continue;
-    }
-
-    // 7) 동사처럼 보이는 3인칭 -s (부사 제외는 위에서 처리)
-    if (
-      /[a-z]s$/i.test(t.low) &&
-      !/ss$/i.test(t.low) &&
-      t.low.length >= 5 &&
-      !/^(this|thus|towards|across|perhaps|always|sometimes|others|thanks)$/i.test(
-        t.low
-      )
-    ) {
-      const looksVerbal =
-        /\b(he|she|it|who|which|that|one|people|process|problem|system|machine|student|child|anyone|everyone|something)\b/i.test(
-          before
-        ) ||
-        /^\s+(a|an|the|to|that|how|why|what|when|where|not|also|often|usually|really|very|more|most|much|many|their|its|his|her|our|my|your)\b/i.test(
-          after
-        );
-      if (looksVerbal) {
-        push(t.start, t.end, [lemmaCue(t.text)], "simple_present");
+      // allow disgusting, growing even if in NON_VERB? growing is often adj
+      if (/^(disgusting|growing|living|rising|setting|winding|endless|dreadful)$/i.test(t.low) ||
+          (/ing$/i.test(t.low) && !NON_VERB_FORM.has(t.low))) {
+        pushSpan(i, i, [lemmaCue(t.text)], "present_participle");
+        continue;
       }
     }
+
+    // Fix / Thank sentence-initial imperatives
+    if (/^(Fix|Thank)$/i.test(t.text)) {
+      pushSpan(i, i, [lemmaCue(t.text)], "imperative");
+      continue;
+    }
+
+    if (consumed.has(i)) continue;
+    if (NON_VERB_FORM.has(t.low) || isLikelyNonVerbToken(t.low)) continue;
+    if (NEVER_VERB.has(t.low) || MODAL_VERBS.has(t.low)) continue;
+    if (EN_STOP.has(t.low) && !BE_HAVE_DO.has(t.low)) continue;
+
+    // single be/have/do finite left
+    if (BE_HAVE_DO.has(t.low) || isBe(t.low) || isHave(t.low)) {
+      if (MODAL_VERBS.has(t.low)) continue;
+      pushSpan(i, i, [verbLemma(t.text)], "simple_present");
+      continue;
+    }
+
+    // -ing / -ed / irregular / finite -s
+    if (/ing$/i.test(t.low) && t.low.length > 4 && !NON_VERB_FORM.has(t.low)) {
+      pushSpan(i, i, [lemmaCue(t.text)], "gerund");
+      continue;
+    }
+    if (
+      (IRREGULAR_VERBS.has(t.low) || (/ed$/i.test(t.low) && t.low.length > 3)) &&
+      !NON_VERB_FORM.has(t.low)
+    ) {
+      pushSpan(i, i, [lemmaCue(t.text)], "simple_past");
+      continue;
+    }
+
+    const FINITE_HINT =
+      /^(attracts?|urges?|leaves?|needs?|gets?|fixes?|grows?|dumps?|permits?|thanks?|protects?|strengthens?|makes?|takes?|gives?|comes?|goes?|seems?|appears?|becomes?|suggests?|drifts?|scans?|emerges?|angles?|gathers?|drains?|perishes?|lets?|feels?|begins?|wears?)$/i;
+    if (FINITE_HINT.test(t.low)) {
+      pushSpan(i, i, [lemmaCue(t.text)], "simple_present");
+      continue;
+    }
+
+    // silence unused
+    void n3;
   }
 
   return hits.sort((a, b) => a.start - b.start);
@@ -687,7 +733,7 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       english_text: String(s.english_text ?? ""),
       sentence_order: s.sentence_order,
     })),
-    Math.min(10, Math.max(4, sentences.length * 2))
+    Math.min(24, Math.max(8, sentences.length * 3))
   );
 
   const grammarBySentence = new Map<string, typeof passageHits>();
@@ -781,9 +827,9 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       }
     }
 
-    // 변형문제 어휘 혼동어 플랜트 (affect/effect 등) — 문장당 최대 1
-    if (added < 2) {
-      const vocabHits = scanVocabChoiceHits(english).slice(0, 1);
+    // 변형문제 어휘 혼동어 플랜트 — PDF처럼 문법과 병행 (문장당 최대 2)
+    if (added < 4) {
+      const vocabHits = scanVocabChoiceHits(english).slice(0, 2);
       for (const h of vocabHits) {
         if (overlaps(used, h.start, h.end)) continue;
         used.push({ a: h.start, b: h.end });
@@ -924,7 +970,8 @@ export function buildStage7Seed(sentences: SeedSentence[]): {
       stage7DisplayText: displayMap.get(s.id) ?? "",
     })),
     candidates,
-    requiredErrorCount: Math.max(1, Math.min(3, errorCount || 1)),
+    // 인천 PDF: 오류 정확히 3개
+    requiredErrorCount: errorCount >= 3 ? 3 : Math.max(1, errorCount),
   };
 }
 

@@ -49,9 +49,9 @@ export type ExamShowAnswerPolicy =
 export type ExamPresetType = "basic" | "memorize" | "exam_eve" | "custom";
 
 export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
-  comprehension: "지문 익히기",
-  korean_blank: "우리말 빈칸 완성하기",
-  english_blank: "영문 빈칸 완성하기",
+  comprehension: "지문 연습하기",
+  korean_blank: "빈칸 완성하기(우리말)",
+  english_blank: "빈칸 완성하기(영문)",
   translation_practice: "해석 연습하기",
   verb_form: "동사형 연습하기",
   grammar_vocab_choice: "어법·어휘 고르기",
