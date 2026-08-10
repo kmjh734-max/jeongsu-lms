@@ -46,9 +46,8 @@ export async function fetchStudentVocabSummaries(
   const [{ data: sets }, { data: stageRows }, itemCounts] = await Promise.all([
     supabase
       .from("vocab_sets")
-      .select("id, title, created_at")
-      .in("id", setIds)
-      .order("created_at", { ascending: false }),
+      .select("id, title, created_at, order_index")
+      .in("id", setIds),
     supabase
       .from("vocab_stage_progress")
       .select(
@@ -66,31 +65,39 @@ export async function fetchStudentVocabSummaries(
     (stageRows ?? []).map((r) => [r.set_id as string, r])
   );
 
-  return publishedSets.map((set) => {
-    const stage = stageBySet.get(set.id) as VocabStageProgress | undefined;
-    const progress: VocabStageProgress =
-      stage ??
-      ({
-        stage1_completed: false,
-        stage2_completed: false,
-        stage3_completed: false,
-        stage4_passed: false,
-        stage4_last_score: 0,
-        stage4_best_score: 0,
-        stage3_passed: false,
-        stage3_last_score: 0,
-        stage3_best_score: 0,
-      } as VocabStageProgress);
+  return publishedSets
+    .map((set) => {
+      const stage = stageBySet.get(set.id) as VocabStageProgress | undefined;
+      const progress: VocabStageProgress =
+        stage ??
+        ({
+          stage1_completed: false,
+          stage2_completed: false,
+          stage3_completed: false,
+          stage4_passed: false,
+          stage4_last_score: 0,
+          stage4_best_score: 0,
+          stage3_passed: false,
+          stage3_last_score: 0,
+          stage3_best_score: 0,
+        } as VocabStageProgress);
 
-    return {
-      set,
-      itemCount: itemCounts.get(set.id) ?? 0,
-      stage1Completed: Boolean(progress.stage1_completed),
-      stage2Completed: Boolean(progress.stage2_completed),
-      stage3Completed: stage3Completed(progress),
-      stage4Passed: stage4Passed(progress),
-      stage4LastScore: stage4LastScore(progress),
-      stage4BestScore: stage4BestScore(progress),
-    };
-  });
+      return {
+        set,
+        itemCount: itemCounts.get(set.id) ?? 0,
+        stage1Completed: Boolean(progress.stage1_completed),
+        stage2Completed: Boolean(progress.stage2_completed),
+        stage3Completed: stage3Completed(progress),
+        stage4Passed: stage4Passed(progress),
+        stage4LastScore: stage4LastScore(progress),
+        stage4BestScore: stage4BestScore(progress),
+      };
+    })
+    .sort((a, b) => {
+      if (a.set.order_index !== b.set.order_index) {
+        return a.set.order_index - b.set.order_index;
+      }
+      // Day 1 < Day 2 < Day 10
+      return a.set.title.localeCompare(b.set.title, "ko", { numeric: true });
+    });
 }

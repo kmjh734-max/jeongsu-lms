@@ -246,9 +246,12 @@ export async function loadVocabTodayStatusTable(
     })
     .filter((r): r is VocabTodayStatusRow => r != null)
     .sort((a, b) => {
+      const classCmp = a.classLabel.localeCompare(b.classLabel, "ko");
+      if (classCmp !== 0) return classCmp;
       const nameCmp = a.studentName.localeCompare(b.studentName, "ko");
       if (nameCmp !== 0) return nameCmp;
-      return a.setTitle.localeCompare(b.setTitle, "ko");
+      // Day 1 < Day 2 < Day 10 (문자열 정렬이면 Day 10이 Day 2보다 앞)
+      return a.setTitle.localeCompare(b.setTitle, "ko", { numeric: true });
     });
 
   return { dateIso, rows };
