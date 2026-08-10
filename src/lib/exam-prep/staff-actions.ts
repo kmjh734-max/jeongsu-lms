@@ -1209,3 +1209,110 @@ export async function enrichPassageSentencesAction(passageId: string) {
   revalidateExamPrep();
   return { ok: true as const, updated, total: enriched.length };
 }
+
+const DELETE_BATCH = 50;
+
+function chunkIds(ids: string[], size = DELETE_BATCH): string[][] {
+  const unique = [...new Set(ids.filter(Boolean))];
+  const chunks: string[][] = [];
+  for (let i = 0; i < unique.length; i += size) {
+    chunks.push(unique.slice(i, i + size));
+  }
+  return chunks;
+}
+
+/** 지문 삭제 (연결된 워크북·배정도 cascade) */
+export async function deletePassagesAction(passageIds: string[]) {
+  const auth = await requireStaff();
+  if (!auth.ok) return auth;
+  const chunks = chunkIds(passageIds);
+  if (chunks.length === 0) {
+    return { ok: false as const, message: "삭제할 지문을 선택해 주세요." };
+  }
+
+  const supabase = await createClient();
+  let deleted = 0;
+  for (const chunk of chunks) {
+    const { data, error } = await supabase
+      .from("exam_passages")
+      .delete()
+      .in("id", chunk)
+      .eq("academy_id", auth.profile.academy_id)
+      .select("id");
+    if (error) {
+      return { ok: false as const, message: error.message };
+    }
+    deleted += data?.length ?? 0;
+  }
+
+  revalidateExamPrep();
+  return {
+    ok: true as const,
+    deleted,
+    message: `지문 ${deleted}개를 삭제했습니다.`,
+  };
+}
+
+/** 지문 세트 삭제 (세트 내 지문·워크북 cascade) */
+export async function deletePassageSetsAction(setIds: string[]) {
+  const auth = await requireStaff();
+  if (!auth.ok) return auth;
+  const chunks = chunkIds(setIds);
+  if (chunks.length === 0) {
+    return { ok: false as const, message: "삭제할 세트를 선택해 주세요." };
+  }
+
+  const supabase = await createClient();
+  let deleted = 0;
+  for (const chunk of chunks) {
+    const { data, error } = await supabase
+      .from("exam_passage_sets")
+      .delete()
+      .in("id", chunk)
+      .eq("academy_id", auth.profile.academy_id)
+      .select("id");
+    if (error) {
+      return { ok: false as const, message: error.message };
+    }
+    deleted += data?.length ?? 0;
+  }
+
+  revalidateExamPrep();
+  return {
+    ok: true as const,
+    deleted,
+    message: `지문 세트 ${deleted}개를 삭제했습니다.`,
+  };
+}
+
+/** 워크북 삭제 (단계·문항·배정 cascade) */
+export async function deleteWorkbooksAction(workbookIds: string[]) {
+  const auth = await requireStaff();
+  if (!auth.ok) return auth;
+  const chunks = chunkIds(workbookIds);
+  if (chunks.length === 0) {
+    return { ok: false as const, message: "삭제할 워크북을 선택해 주세요." };
+  }
+
+  const supabase = await createClient();
+  let deleted = 0;
+  for (const chunk of chunks) {
+    const { data, error } = await supabase
+      .from("exam_workbooks")
+      .delete()
+      .in("id", chunk)
+      .eq("academy_id", auth.profile.academy_id)
+      .select("id");
+    if (error) {
+      return { ok: false as const, message: error.message };
+    }
+    deleted += data?.length ?? 0;
+  }
+
+  revalidateExamPrep();
+  return {
+    ok: true as const,
+    deleted,
+    message: `워크북 ${deleted}개를 삭제했습니다.`,
+  };
+}
