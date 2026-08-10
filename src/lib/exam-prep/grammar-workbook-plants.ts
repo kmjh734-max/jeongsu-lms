@@ -919,7 +919,9 @@ export function pickStage7Errors(
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
   const pool: Array<{ sentenceId: string; hit: WorkbookGrammarHit }> = [];
   for (const s of ordered) {
-    const hits = scanWorkbookGrammarHits(s.english_text).filter((h) => h.forError);
+    const hits = scanWorkbookGrammarHits(s.english_text).filter(
+      (h) => h.forError && !isNonsenseChoicePair(h.correct, h.wrong)
+    );
     for (const h of hits) {
       pool.push({ sentenceId: s.id, hit: h });
     }
