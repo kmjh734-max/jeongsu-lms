@@ -211,7 +211,7 @@ function buildGrammarChoice(
   const english = String(sentence.english_text ?? "").trim();
   if (!english) return null;
 
-  let items = buildStage6Drafts([
+  const items = buildStage6Drafts([
     {
       id: sentence.id,
       english_text: english,
@@ -367,7 +367,7 @@ function buildWriting(
 ): GeneratedQuestionDraft {
   const english = String(sentence.english_text ?? "").trim();
   const korean = String(sentence.korean_text ?? "").trim() || "(해석 없음)";
-  const segments = buildPdfWritingSegments(english, sentence.vocabulary);
+  const segments = buildPdfWritingSegments(english);
   const answerTexts = segments
     .filter((s) => s.segmentType === "answer_segment")
     .map((s) => s.originalAnswerText ?? "")

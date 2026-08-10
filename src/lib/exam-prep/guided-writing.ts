@@ -192,10 +192,7 @@ function pushAnswer(
  * PDF형: 고정 골격만 남기고 나머지 내용어를 ______ 로.
  * 고정 구가 없으면 앞 1~2어절만 고정.
  */
-export function buildPdfWritingSegments(
-  english: string,
-  _vocabulary?: unknown
-): Stage10Segment[] {
+export function buildPdfWritingSegments(english: string): Stage10Segment[] {
   const src = english.trim();
   if (!src) return [];
 

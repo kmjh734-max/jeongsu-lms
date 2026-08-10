@@ -452,12 +452,6 @@ const IRREGULAR_VERBS = new Set(
   )
 );
 
-const AUX_VERBS = new Set(
-  "am is are was were be been being have has had do does did can could will would may might must should shall".split(
-    " "
-  )
-);
-
 /**
  * 5단계: PDF형 — 동사구·분사를 **한 칸**으로 두고 원형 cue를 여러 개 제시.
  * 예: (have, be, dump)→have been dumping / (not, permit)→is not permitted /
@@ -508,15 +502,12 @@ export function findVerbHits(english: string): VerbHit[] {
     /^(you|we|they)'re$/i.test(low);
   const isHave = (low: string) =>
     /^(have|has|had)$/i.test(low) || /^(i|you|we|they)'ve$/i.test(low);
-  const beCue = (low: string) => "be";
-  const haveCue = (low: string) => "have";
 
   for (let i = 0; i < tokens.length; i++) {
     if (consumed.has(i)) continue;
     const t = tokens[i]!;
     const n1 = tokens[i + 1];
     const n2 = tokens[i + 2];
-    const n3 = tokens[i + 3];
     const prev = tokens[i - 1];
 
     // To Whom / relative — skip
@@ -538,7 +529,7 @@ export function findVerbHits(english: string): VerbHit[] {
       n2.low.length > 4 &&
       !NON_VERB_FORM.has(n2.low)
     ) {
-      pushSpan(i, i + 2, [haveCue(t.low), "be", lemmaCue(n2.text)], "perfect_progressive");
+      pushSpan(i, i + 2, ["have", "be", lemmaCue(n2.text)], "perfect_progressive");
       continue;
     }
 
@@ -549,7 +540,7 @@ export function findVerbHits(english: string): VerbHit[] {
       (IRREGULAR_VERBS.has(n1.low) || (/ed$/i.test(n1.low) && n1.low.length > 3)) &&
       !NON_VERB_FORM.has(n1.low)
     ) {
-      pushSpan(i, i + 1, [haveCue(t.low), lemmaCue(n1.text)], "present_perfect");
+      pushSpan(i, i + 1, ["have", lemmaCue(n1.text)], "present_perfect");
       continue;
     }
 
@@ -582,7 +573,7 @@ export function findVerbHits(english: string): VerbHit[] {
       n1.low.length > 4 &&
       !NON_VERB_FORM.has(n1.low)
     ) {
-      pushSpan(i, i + 1, [beCue(t.low), lemmaCue(n1.text)], "present_progressive");
+      pushSpan(i, i + 1, ["be", lemmaCue(n1.text)], "present_progressive");
       continue;
     }
 
@@ -593,7 +584,7 @@ export function findVerbHits(english: string): VerbHit[] {
       (IRREGULAR_VERBS.has(n1.low) || (/ed$/i.test(n1.low) && n1.low.length > 3)) &&
       !NON_VERB_FORM.has(n1.low)
     ) {
-      pushSpan(i, i + 1, [beCue(t.low), lemmaCue(n1.text)], "passive_voice");
+      pushSpan(i, i + 1, ["be", lemmaCue(n1.text)], "passive_voice");
       continue;
     }
 
@@ -686,9 +677,6 @@ export function findVerbHits(english: string): VerbHit[] {
       pushSpan(i, i, [lemmaCue(t.text)], "simple_present");
       continue;
     }
-
-    // silence unused
-    void n3;
   }
 
   return hits.sort((a, b) => a.start - b.start);
@@ -1127,7 +1115,7 @@ export function buildStage10Drafts(sentences: SeedSentence[]): Stage10ItemDraft[
     const korean = String(s.korean_text ?? "").trim();
     if (!english || !korean) continue;
 
-    let segments = buildPdfWritingSegments(english, s.vocabulary);
+    let segments = buildPdfWritingSegments(english);
     if (segments.length < 1) {
       segments = proposeFullSentenceSegments(english);
     }
