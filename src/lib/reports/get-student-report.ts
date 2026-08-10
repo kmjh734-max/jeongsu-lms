@@ -14,10 +14,12 @@ import {
 } from "@/lib/reports/date-range";
 import { buildListeningDictationReport } from "@/lib/listening/dictation/report-summary";
 import { buildListeningExamReport } from "@/lib/listening/exam/report-summary";
+import { buildListeningScheduleReport } from "@/lib/listening/schedule/report-summary";
 import type {
   CourseReportSection,
   ListeningDictationReportRow,
   ListeningExamReportRow,
+  ListeningScheduleReportRow,
   ReviewWordRow,
   StudentReport,
   VocabReportSection,
@@ -301,6 +303,16 @@ export async function getStudentReport(
       if (!setItemIds.has(vp.item_id as string)) continue;
       if (vp.last_studied_at) activityDates.push(vp.last_studied_at as string);
     }
+    for (const iso of [
+      progress.stage1_completed_at,
+      progress.stage2_completed_at,
+      progress.stage3_completed_at,
+      progress.stage3_passed_at,
+      progress.stage4_passed_at,
+      progress.updated_at,
+    ]) {
+      if (iso) activityDates.push(iso as string);
+    }
     for (const row of spellingWrong ?? []) {
       if (!setItemIds.has(row.item_id as string)) continue;
       activityDates.push(row.created_at as string);
@@ -434,6 +446,32 @@ export async function getStudentReport(
       ? "복습이 필요한 단어가 없습니다."
       : `복습이 필요한 단어는 ${reviewWords.length}개입니다.`;
 
+  const scheduleSections = await buildListeningScheduleReport(
+    supabase,
+    studentId,
+    range
+  );
+  const listeningSchedule: ListeningScheduleReportRow[] = scheduleSections.map(
+    (s) => ({
+      assignmentId: s.assignmentId,
+      title: s.title,
+      periodLabel: s.periodLabel,
+      totalTasks: s.totalTasks,
+      completedTasks: s.completedTasks,
+      inProgressTasks: s.inProgressTasks,
+      missedOrPendingTasks: s.missedOrPendingTasks,
+      recentTasks: s.recentTasks,
+      lastActivityDate: s.lastActivityDate,
+      summaryLine: s.summaryLine,
+    })
+  );
+  const listeningScheduleLine =
+    listeningSchedule.length === 0
+      ? "배정된 듣기 스케줄이 없습니다."
+      : listeningSchedule
+          .map((s) => `${s.title}: ${s.summaryLine}`)
+          .join(" ");
+
   const dictationSections = await buildListeningDictationReport(supabase, studentId);
   const listeningDictation: ListeningDictationReportRow[] = dictationSections.map(
     (s) => ({
@@ -449,7 +487,7 @@ export async function getStudentReport(
   );
   const listeningDictationLine =
     listeningDictation.length === 0
-      ? "배정된 듣기 Dictation 기록이 없습니다."
+      ? "듣기 Dictation 제출 기록이 없습니다."
       : listeningDictation
           .map((d) => `${d.setTitle}: ${d.summaryLine}`)
           .join(" ");
@@ -484,11 +522,13 @@ export async function getStudentReport(
       videoLine,
       vocabLine,
       reviewLine,
+      listeningScheduleLine,
       listeningDictationLine,
       listeningExamLine,
     },
     courses,
     vocabSets: vocabSetsReport,
+    listeningSchedule,
     listeningDictation,
     listeningExam,
     reviewWords,

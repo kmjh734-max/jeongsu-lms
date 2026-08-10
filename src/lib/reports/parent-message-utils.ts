@@ -5,7 +5,7 @@ const SECTION1_HEADER = "1. 학습 리포트";
 const SECTION2_HEADER = "2. 영상 학습 현황";
 
 function defaultLearningReportText(report: StudentReport): string {
-  return `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine}`;
+  return `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine} ${report.summary.listeningScheduleLine}`;
 }
 
 /** 학부모 문구에서 1번 학습 리포트 본문만 추출 */

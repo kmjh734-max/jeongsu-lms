@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { DictationBlankItem } from "@/lib/listening/dictation/types";
 import { normalizeDictationText } from "@/lib/listening/dictation/normalize-text";
+import { loadStudentListeningSetIdsForReport } from "@/lib/listening/schedule/report-summary";
 
 export interface ListeningDictationReportSection {
   setId: string;
@@ -24,32 +25,7 @@ export async function buildListeningDictationReport(
   supabase: SupabaseClient,
   studentId: string
 ): Promise<ListeningDictationReportSection[]> {
-  const { data: assignments } = await supabase
-    .from("listening_assignments")
-    .select("set_id")
-    .eq("student_id", studentId);
-
-  const { data: classLinks } = await supabase
-    .from("class_students")
-    .select("class_id")
-    .eq("student_id", studentId);
-
-  const classIds = (classLinks ?? []).map((r) => r.class_id);
-  const { data: classAssign } =
-    classIds.length > 0
-      ? await supabase
-          .from("listening_assignments")
-          .select("set_id")
-          .in("class_id", classIds)
-      : { data: [] as { set_id: string }[] };
-
-  const setIds = [
-    ...new Set([
-      ...(assignments ?? []).map((a) => a.set_id as string),
-      ...(classAssign ?? []).map((a) => a.set_id as string),
-    ]),
-  ];
-
+  const setIds = await loadStudentListeningSetIdsForReport(supabase, studentId);
   if (setIds.length === 0) return [];
 
   const { data: sets } = await supabase
@@ -71,17 +47,14 @@ export async function buildListeningDictationReport(
     .select("id, set_id, order_index, question_type")
     .in("set_id", setIds);
 
-  const qById = new Map(
-    (questions ?? []).map((q) => [q.id as string, q])
-  );
-
   const sections: ListeningDictationReportSection[] = [];
 
   for (const set of sets ?? []) {
-    if (set.dictation_enabled === false) continue;
     const setId = set.id as string;
-    const setQuestions = (questions ?? []).filter((q) => q.set_id === setId);
     const setAttempts = (attempts ?? []).filter((a) => a.set_id === setId);
+    if (set.dictation_enabled === false && setAttempts.length === 0) continue;
+
+    const setQuestions = (questions ?? []).filter((q) => q.set_id === setId);
 
     const wrongWords: string[] = [];
     const byQuestion = new Map<
@@ -95,8 +68,11 @@ export async function buildListeningDictationReport(
 
     for (const att of setAttempts) {
       const qid = att.question_id as string;
-      const row = byQuestion.get(qid);
-      if (!row) continue;
+      let row = byQuestion.get(qid);
+      if (!row) {
+        row = { best: null, attempts: 0, passed: false };
+        byQuestion.set(qid, row);
+      }
       row.attempts += 1;
       const sc = att.score as number | null;
       if (sc != null) {
@@ -115,11 +91,27 @@ export async function buildListeningDictationReport(
       }
     }
 
-    const questionRows = setQuestions
+    // 시도만 있고 문항 메타가 비어 있으면 시도 기준으로라도 표시
+    if (setQuestions.length === 0 && setAttempts.length === 0) continue;
+
+    const questionRows = (
+      setQuestions.length > 0
+        ? setQuestions
+        : [...byQuestion.keys()].map((id) => ({
+            id,
+            set_id: setId,
+            order_index: 0,
+            question_type: "",
+          }))
+    )
       .map((q) => {
-        const meta = byQuestion.get(q.id as string)!;
+        const meta = byQuestion.get(q.id as string) ?? {
+          best: null,
+          attempts: 0,
+          passed: false,
+        };
         return {
-          orderIndex: q.order_index as number,
+          orderIndex: (q.order_index as number) ?? 0,
           questionType: (q.question_type as string) ?? "",
           bestScore: meta.best,
           attemptCount: meta.attempts,
@@ -129,6 +121,8 @@ export async function buildListeningDictationReport(
       .sort((a, b) => a.orderIndex - b.orderIndex);
 
     const passedCount = questionRows.filter((r) => r.passed).length;
+    const questionCount =
+      setQuestions.length > 0 ? setQuestions.length : questionRows.length;
     const scores = questionRows
       .map((r) => r.bestScore)
       .filter((s): s is number => s != null);
@@ -137,11 +131,10 @@ export async function buildListeningDictationReport(
         ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
         : null;
 
-    const freq = [...wrongWords]
-      .reduce((map, w) => {
-        map.set(w, (map.get(w) ?? 0) + 1);
-        return map;
-      }, new Map<string, number>());
+    const freq = [...wrongWords].reduce((map, w) => {
+      map.set(w, (map.get(w) ?? 0) + 1);
+      return map;
+    }, new Map<string, number>());
     const frequentWrongWords = [...freq.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8)
@@ -155,14 +148,17 @@ export async function buildListeningDictationReport(
       } else if (frequentWrongWords.length > 0) {
         summaryLine = `${frequentWrongWords.slice(0, 4).join(", ")} 관련 핵심어에서 오답이 반복되어 복습이 필요합니다.`;
       } else if (avg != null) {
-        summaryLine = `평균 Dictation 점수는 ${avg}점이며, ${passedCount}/${setQuestions.length}문항을 통과했습니다.`;
+        summaryLine = `평균 Dictation 점수는 ${avg}점이며, ${passedCount}/${questionCount}문항을 통과했습니다.`;
       }
     }
+
+    // 스케줄 세트까지 넓히면 미시도 세트가 많아지므로, 제출 기록이 있는 세트만 표시
+    if (setAttempts.length === 0) continue;
 
     sections.push({
       setId,
       setTitle: set.title as string,
-      questionCount: setQuestions.length,
+      questionCount,
       passedQuestionCount: passedCount,
       averageBestScore: avg,
       totalAttempts: setAttempts.length,
@@ -172,5 +168,5 @@ export async function buildListeningDictationReport(
     });
   }
 
-  return sections;
+  return sections.sort((a, b) => a.setTitle.localeCompare(b.setTitle, "ko"));
 }

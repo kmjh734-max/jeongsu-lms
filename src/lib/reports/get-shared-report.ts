@@ -5,6 +5,28 @@ import {
   type AcademyBranding,
 } from "@/lib/tenant/academy-branding";
 
+function normalizeStudentReport(raw: StudentReport): StudentReport {
+  const summary = raw.summary ?? ({} as StudentReport["summary"]);
+  return {
+    ...raw,
+    summary: {
+      videoLine: summary.videoLine ?? "",
+      vocabLine: summary.vocabLine ?? "",
+      reviewLine: summary.reviewLine ?? "",
+      listeningScheduleLine:
+        summary.listeningScheduleLine ?? "배정된 듣기 스케줄이 없습니다.",
+      listeningDictationLine: summary.listeningDictationLine ?? "",
+      listeningExamLine: summary.listeningExamLine ?? "",
+    },
+    listeningSchedule: raw.listeningSchedule ?? [],
+    listeningDictation: raw.listeningDictation ?? [],
+    listeningExam: raw.listeningExam ?? [],
+    courses: raw.courses ?? [],
+    vocabSets: raw.vocabSets ?? [],
+    reviewWords: raw.reviewWords ?? [],
+  };
+}
+
 export interface SharedReportPayload {
   report: StudentReport;
   parentMessage: string;
@@ -56,7 +78,7 @@ export async function lookupSharedReport(
     return {
       status: "ok",
       payload: {
-        report: data.report_data as StudentReport,
+        report: normalizeStudentReport(data.report_data as StudentReport),
         parentMessage: (data.parent_message as string) ?? "",
         aiReportText: (data.ai_report_text as string) ?? "",
         expiresAt,

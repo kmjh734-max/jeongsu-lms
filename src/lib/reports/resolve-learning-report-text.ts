@@ -11,5 +11,5 @@ export function resolveLearningReportText(
   if (fromAi) return fromAi;
   const fromParent = extractLearningReportSection(parentMessage).trim();
   if (fromParent) return fromParent;
-  return `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine}`;
+  return `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine} ${report.summary.listeningScheduleLine}`;
 }

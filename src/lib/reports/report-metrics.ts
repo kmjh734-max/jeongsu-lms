@@ -28,6 +28,14 @@ export function computeReportMetrics(report: StudentReport): ReportSummaryMetric
   for (const s of report.vocabSets) {
     if (s.lastStudiedAt) dateCandidates.push(s.lastStudiedAt);
   }
+  for (const s of report.listeningSchedule) {
+    if (s.lastActivityDate) {
+      dateCandidates.push(`${s.lastActivityDate}T12:00:00+09:00`);
+    }
+  }
+  for (const e of report.listeningExam) {
+    if (e.latestSubmittedAt) dateCandidates.push(e.latestSubmittedAt);
+  }
   dateCandidates.sort((a, b) => b.localeCompare(a));
   const lastStudiedLabel = dateCandidates[0]
     ? formatLastStudiedDate(dateCandidates[0])

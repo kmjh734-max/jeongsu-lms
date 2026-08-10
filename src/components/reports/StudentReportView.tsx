@@ -194,6 +194,44 @@ export function StudentReportView({
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900">듣기 스케줄 (일일 과제)</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {report.summary.listeningScheduleLine}
+          </p>
+          {report.listeningSchedule.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-500">
+              배정된 듣기 스케줄이 없습니다.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-4">
+              {report.listeningSchedule.map((s) => (
+                <article
+                  key={s.assignmentId}
+                  className="rounded-xl border border-teal-100 bg-teal-50/40 p-4 text-sm"
+                >
+                  <h3 className="font-semibold text-slate-900">{s.title}</h3>
+                  <p className="mt-0.5 text-xs text-slate-500">{s.periodLabel}</p>
+                  <p className="mt-1 text-slate-700">{s.summaryLine}</p>
+                  {s.recentTasks.length > 0 && (
+                    <ul className="mt-2 space-y-0.5 text-slate-600">
+                      {s.recentTasks.map((t) => (
+                        <li key={`${s.assignmentId}-${t.taskDate}-${t.setTitle}`}>
+                          · {t.taskDate} {t.setTitle ? `(${t.setTitle})` : ""} —{" "}
+                          {t.statusLabel}
+                          {t.totalCount > 0
+                            ? ` ${t.completedCount}/${t.totalCount}`
+                            : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-base font-semibold text-slate-900">듣기 시험 (OMR)</h2>
           <p className="mt-2 text-sm text-slate-600">{report.summary.listeningExamLine}</p>
           {report.listeningExam.length === 0 ? (

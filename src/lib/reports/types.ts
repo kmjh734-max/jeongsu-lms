@@ -69,6 +69,26 @@ export interface ListeningExamReportRow {
   summaryLine: string;
 }
 
+export interface ListeningScheduleReportRow {
+  assignmentId: string;
+  title: string;
+  periodLabel: string;
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  missedOrPendingTasks: number;
+  recentTasks: Array<{
+    taskDate: string;
+    status: string;
+    statusLabel: string;
+    completedCount: number;
+    totalCount: number;
+    setTitle: string;
+  }>;
+  lastActivityDate: string | null;
+  summaryLine: string;
+}
+
 export interface StudentReport {
   generatedAt: string;
   range: ReportRange;
@@ -83,11 +103,13 @@ export interface StudentReport {
     videoLine: string;
     vocabLine: string;
     reviewLine: string;
+    listeningScheduleLine: string;
     listeningDictationLine: string;
     listeningExamLine: string;
   };
   courses: CourseReportSection[];
   vocabSets: VocabReportSection[];
+  listeningSchedule: ListeningScheduleReportRow[];
   listeningDictation: ListeningDictationReportRow[];
   listeningExam: ListeningExamReportRow[];
   reviewWords: ReviewWordRow[];

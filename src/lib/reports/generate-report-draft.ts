@@ -2,8 +2,17 @@ import { formatReviewWordParentLine, formatVocabSetParentLine } from "@/lib/repo
 import type { StudentReport } from "@/lib/reports/types";
 
 function buildReportContext(report: StudentReport): string {
-  const { student, rangeLabel, courses, vocabSets, reviewWords, summary } =
-    report;
+  const {
+    student,
+    rangeLabel,
+    courses,
+    vocabSets,
+    reviewWords,
+    summary,
+    listeningSchedule,
+    listeningDictation,
+    listeningExam,
+  } = report;
 
   const courseLines =
     courses.length === 0
@@ -27,6 +36,25 @@ function buildReportContext(report: StudentReport): string {
       ? ["- 복습 필요 단어 없음"]
       : reviewWords.map((w) => formatReviewWordParentLine(w).replace(/^- /, ""));
 
+  const scheduleLines =
+    listeningSchedule.length === 0
+      ? ["- 듣기 스케줄 없음"]
+      : listeningSchedule.map(
+          (s) => `- ${s.title}: ${s.summaryLine}`
+        );
+
+  const dictationLines =
+    listeningDictation.length === 0
+      ? ["- Dictation 기록 없음"]
+      : listeningDictation.map(
+          (d) => `- ${d.setTitle}: ${d.summaryLine}`
+        );
+
+  const examLines =
+    listeningExam.length === 0
+      ? ["- 듣기 시험 기록 없음"]
+      : listeningExam.map((e) => `- ${e.setTitle}: ${e.summaryLine}`);
+
   return [
     `학생: ${student.name}`,
     `기간: ${rangeLabel}`,
@@ -35,6 +63,9 @@ function buildReportContext(report: StudentReport): string {
     `- ${summary.videoLine}`,
     `- ${summary.vocabLine}`,
     `- ${summary.reviewLine}`,
+    `- ${summary.listeningScheduleLine}`,
+    `- ${summary.listeningDictationLine}`,
+    `- ${summary.listeningExamLine}`,
     "",
     "영상 학습:",
     ...courseLines,
@@ -44,6 +75,15 @@ function buildReportContext(report: StudentReport): string {
     "",
     "복습 필요 단어:",
     ...reviewLines,
+    "",
+    "듣기 스케줄(일일 과제):",
+    ...scheduleLines,
+    "",
+    "듣기 Dictation:",
+    ...dictationLines,
+    "",
+    "듣기 시험:",
+    ...examLines,
   ].join("\n");
 }
 

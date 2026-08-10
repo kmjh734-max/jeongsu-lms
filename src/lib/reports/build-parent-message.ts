@@ -30,7 +30,7 @@ export function buildParentReportMessage({
     lines.push(reflected);
   } else {
     lines.push(
-      `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine} ${report.summary.listeningDictationLine} ${report.summary.listeningExamLine}`
+      `${report.summary.videoLine} ${report.summary.vocabLine} ${report.summary.reviewLine} ${report.summary.listeningScheduleLine} ${report.summary.listeningDictationLine} ${report.summary.listeningExamLine}`
     );
   }
 
@@ -72,6 +72,26 @@ export function buildParentReportMessage({
     }
     if (report.reviewWords.length > 30) {
       lines.push(`- 외 ${report.reviewWords.length - 30}개`);
+    }
+  }
+
+  lines.push("", "5. 듣기 학습 현황");
+
+  if (
+    report.listeningSchedule.length === 0 &&
+    report.listeningDictation.length === 0 &&
+    report.listeningExam.length === 0
+  ) {
+    lines.push("- 기간 내 듣기 학습 기록이 없습니다.");
+  } else {
+    for (const s of report.listeningSchedule) {
+      lines.push(`- [스케줄] ${s.title}: ${s.summaryLine}`);
+    }
+    for (const d of report.listeningDictation) {
+      lines.push(`- [Dictation] ${d.setTitle}: ${d.summaryLine}`);
+    }
+    for (const e of report.listeningExam) {
+      lines.push(`- [시험] ${e.setTitle}: ${e.summaryLine}`);
     }
   }
 

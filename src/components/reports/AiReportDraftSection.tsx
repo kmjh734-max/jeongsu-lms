@@ -44,6 +44,7 @@ export function AiReportDraftSection({
         <li>{report.summary.videoLine}</li>
         <li>{report.summary.vocabLine}</li>
         <li>{report.summary.reviewLine}</li>
+        <li>{report.summary.listeningScheduleLine}</li>
         <li>{report.summary.listeningDictationLine}</li>
         <li>{report.summary.listeningExamLine}</li>
       </ul>

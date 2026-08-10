@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { loadStudentListeningSetIdsForReport } from "@/lib/listening/schedule/report-summary";
 import { getReportRangeBounds, isIsoInReportRange } from "@/lib/reports/date-range";
 import type { ReportRange } from "@/lib/reports/types";
 
@@ -11,37 +12,6 @@ export interface ListeningExamReportSection {
   latestScore: number | null;
   latestSubmittedAt: string | null;
   summaryLine: string;
-}
-
-async function loadAssignedListeningSetIds(
-  supabase: SupabaseClient,
-  studentId: string
-): Promise<string[]> {
-  const { data: assignments } = await supabase
-    .from("listening_assignments")
-    .select("set_id")
-    .eq("student_id", studentId);
-
-  const { data: classLinks } = await supabase
-    .from("class_students")
-    .select("class_id")
-    .eq("student_id", studentId);
-
-  const classIds = (classLinks ?? []).map((r) => r.class_id as string);
-  const { data: classAssign } =
-    classIds.length > 0
-      ? await supabase
-          .from("listening_assignments")
-          .select("set_id")
-          .in("class_id", classIds)
-      : { data: [] as { set_id: string }[] };
-
-  return [
-    ...new Set([
-      ...(assignments ?? []).map((a) => a.set_id as string),
-      ...(classAssign ?? []).map((a) => a.set_id as string),
-    ]),
-  ];
 }
 
 export async function buildListeningExamReport(
@@ -57,7 +27,10 @@ export async function buildListeningExamReport(
 
   if (!attempts || attempts.length === 0) return [];
 
-  const assignedSetIds = await loadAssignedListeningSetIds(supabase, studentId);
+  const assignedSetIds = await loadStudentListeningSetIdsForReport(
+    supabase,
+    studentId
+  );
   const attemptSetIds = [...new Set(attempts.map((a) => a.set_id as string))];
   const setIds = [
     ...new Set([...assignedSetIds, ...attemptSetIds]),

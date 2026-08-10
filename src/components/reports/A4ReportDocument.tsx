@@ -208,6 +208,40 @@ export function A4ReportDocument({
 
       <section className="mt-5 break-inside-avoid">
         <h2 className="border-b border-slate-200 pb-1 text-[11pt] font-bold text-[#1e3a5f]">
+          듣기 스케줄 (일일 과제)
+        </h2>
+        {report.listeningSchedule.length === 0 ? (
+          <p className="mt-2 text-[10pt] text-slate-600">
+            배정된 듣기 스케줄이 없습니다.
+          </p>
+        ) : (
+          <table className="mt-2 w-full border-collapse text-[9.5pt]">
+            <thead>
+              <tr className="border-b border-[#1e3a5f]/25 text-slate-600">
+                <th className="py-1.5 text-left font-semibold">스케줄</th>
+                <th className="py-1.5 text-center font-semibold">완료</th>
+                <th className="py-1.5 text-center font-semibold">전체</th>
+                <th className="py-1.5 text-left font-semibold">요약</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.listeningSchedule.map((s) => (
+                <tr key={s.assignmentId} className="border-b border-slate-100">
+                  <td className="py-1.5 pr-2 font-medium text-slate-800">
+                    {s.title}
+                  </td>
+                  <td className="py-1.5 text-center">{s.completedTasks}</td>
+                  <td className="py-1.5 text-center">{s.totalTasks}</td>
+                  <td className="py-1.5 text-slate-600">{s.summaryLine}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <section className="mt-5 break-inside-avoid">
+        <h2 className="border-b border-slate-200 pb-1 text-[11pt] font-bold text-[#1e3a5f]">
           단어학습 현황
         </h2>
         {report.vocabSets.length === 0 ? (
