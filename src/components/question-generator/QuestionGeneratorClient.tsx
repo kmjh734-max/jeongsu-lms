@@ -1135,15 +1135,101 @@ export function QuestionGeneratorClient({
             </p>
           </section>
 
-          <section className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-slate-900">
-                영어 지문
-                <span className="ml-2 text-xs font-normal text-slate-500">
-                  {filledPassages.length}/{passages.length}개 입력 · 최대{" "}
-                  {MAX_PASSAGES}개
-                </span>
-              </h2>
+          <section className="space-y-2">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">
+                  영어 지문
+                  <span className="ml-2 text-xs font-normal text-slate-500">
+                    {filledPassages.length}/{passages.length}개 입력 · 최대{" "}
+                    {MAX_PASSAGES}개
+                  </span>
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  엑셀처럼 행 단위로 입력합니다. 셀을 클릭해 바로 수정하세요.
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+              <table className="w-full min-w-[760px] border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-bold text-slate-600">
+                    <th className="w-14 px-2 py-2.5 text-center">#</th>
+                    <th className="w-36 px-2 py-2.5">제목</th>
+                    <th className="w-36 px-2 py-2.5">출처</th>
+                    <th className="px-2 py-2.5">본문 (영어 지문)</th>
+                    <th className="w-12 px-1 py-2.5 text-center" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {passages.map((p, index) => (
+                    <tr
+                      key={p.clientId ?? index}
+                      className="border-b border-slate-100 align-top hover:bg-slate-50/60"
+                    >
+                      <td className="bg-slate-50/80 px-2 py-2 text-center text-xs font-bold text-slate-500">
+                        {index + 1}
+                      </td>
+                      <td className="p-1">
+                        <input
+                          className="w-full rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-300 focus:bg-white focus:ring-1 focus:ring-brand-200"
+                          value={p.title ?? ""}
+                          onChange={(e) =>
+                            updatePassage(index, { title: e.target.value })
+                          }
+                          placeholder={`${title || "자료"} · ${index + 1}`}
+                          aria-label={`지문 ${index + 1} 제목`}
+                        />
+                      </td>
+                      <td className="p-1">
+                        <input
+                          className="w-full rounded-md border border-transparent bg-transparent px-2 py-1.5 text-sm text-slate-800 outline-none focus:border-brand-300 focus:bg-white focus:ring-1 focus:ring-brand-200"
+                          value={p.sourceDetail ?? ""}
+                          onChange={(e) =>
+                            updatePassage(index, {
+                              sourceDetail: e.target.value,
+                            })
+                          }
+                          placeholder={sourceDetail || "공통 출처"}
+                          aria-label={`지문 ${index + 1} 출처`}
+                        />
+                      </td>
+                      <td className="p-1">
+                        <textarea
+                          rows={4}
+                          className="w-full resize-y rounded-md border border-transparent bg-transparent px-2 py-1.5 font-serif text-[13px] leading-relaxed text-slate-800 outline-none focus:border-brand-300 focus:bg-white focus:ring-1 focus:ring-brand-200"
+                          value={p.text}
+                          onChange={(e) =>
+                            updatePassage(index, { text: e.target.value })
+                          }
+                          placeholder="영어 지문을 그대로 붙여넣으세요."
+                          spellCheck={false}
+                          aria-label={`지문 ${index + 1} 본문`}
+                        />
+                      </td>
+                      <td className="p-1 text-center">
+                        {passages.length > 1 ? (
+                          <button
+                            type="button"
+                            className="rounded px-1.5 py-1 text-xs text-slate-400 hover:bg-red-50 hover:text-red-600"
+                            onClick={() => removePassage(index)}
+                            title="행 삭제"
+                            aria-label={`지문 ${index + 1} 삭제`}
+                          >
+                            ✕
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-300">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <Button
                 type="button"
                 variant="secondary"
@@ -1152,65 +1238,12 @@ export function QuestionGeneratorClient({
               >
                 + 지문 추가
               </Button>
+              <span className="text-xs text-slate-500">
+                {passages.length >= MAX_PASSAGES
+                  ? `최대 ${MAX_PASSAGES}개입니다.`
+                  : "아래에 새 행이 추가됩니다."}
+              </span>
             </div>
-
-            {passages.map((p, index) => (
-              <div
-                key={p.clientId ?? index}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
-              >
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-brand-800">
-                    지문 {index + 1}
-                  </p>
-                  {passages.length > 1 && (
-                    <button
-                      type="button"
-                      className="text-xs text-red-600 hover:underline"
-                      onClick={() => removePassage(index)}
-                    >
-                      삭제
-                    </button>
-                  )}
-                </div>
-                <div className="mb-3 grid gap-2 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="ui-label">지문 제목 (선택)</span>
-                    <input
-                      className="ui-input mt-1"
-                      value={p.title ?? ""}
-                      onChange={(e) =>
-                        updatePassage(index, { title: e.target.value })
-                      }
-                      placeholder={`${title || "자료 제목"} · 지문 ${index + 1}`}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="ui-label">출처 상세 (선택)</span>
-                    <input
-                      className="ui-input mt-1"
-                      value={p.sourceDetail ?? ""}
-                      onChange={(e) =>
-                        updatePassage(index, { sourceDetail: e.target.value })
-                      }
-                      placeholder={sourceDetail || "공통 출처 사용"}
-                    />
-                  </label>
-                </div>
-                <label className="block">
-                  <span className="ui-label">본문</span>
-                  <textarea
-                    className="ui-input mt-1 min-h-[180px] font-serif text-[15px] leading-relaxed"
-                    value={p.text}
-                    onChange={(e) =>
-                      updatePassage(index, { text: e.target.value })
-                    }
-                    placeholder="영어 지문을 그대로 붙여넣으세요."
-                    spellCheck={false}
-                  />
-                </label>
-              </div>
-            ))}
           </section>
 
           {showPresetForm && (
