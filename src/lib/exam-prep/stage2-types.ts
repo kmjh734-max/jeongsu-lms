@@ -3,6 +3,10 @@ import {
   type InputSizeHint,
   blankInputSizeHint,
 } from "@/lib/exam-prep/korean-blank-normalize";
+import {
+  koreanCore,
+  splitKoreanParticle,
+} from "@/lib/exam-prep/blank-importance";
 
 export type ExamKoreanBlank = {
   id: string;
@@ -114,6 +118,37 @@ export function toPublicBlank(b: ExamKoreanBlank): ExamKoreanBlankPublic {
     hasHint: Boolean(b.hint?.trim()),
     isRequired: b.is_required,
     inputSize: blankInputSizeHint(b.answer_text.length),
+  };
+}
+
+/**
+ * 빈칸 끝의 조사는 범위·정답에서 뺀다.
+ * 예: 해석 "…전체가…" + 빈칸 "전체가" → 빈칸 "전체", 조사 "가"는 문장에 유지
+ */
+export function excludeTrailingJosaFromBlank<
+  T extends {
+    korean_start: number;
+    korean_end: number;
+    answer_text: string;
+    accepted_answers?: string[] | null;
+  },
+>(koreanText: string, blank: T): T {
+  const slice = koreanText.slice(blank.korean_start, blank.korean_end);
+  if (!slice) return blank;
+  const { stem, particle } = splitKoreanParticle(slice);
+  if (!particle || !stem || stem.length >= slice.length) return blank;
+  const newEnd = blank.korean_start + stem.length;
+  if (koreanText.slice(blank.korean_start, newEnd) !== stem) return blank;
+
+  const accepted = [stem, koreanCore(stem), blank.answer_text, ...(blank.accepted_answers ?? [])]
+    .map((x) => (x ?? "").trim())
+    .filter((x, i, arr) => Boolean(x) && arr.indexOf(x) === i);
+
+  return {
+    ...blank,
+    answer_text: stem,
+    korean_end: newEnd,
+    accepted_answers: accepted,
   };
 }
 

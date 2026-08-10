@@ -10,37 +10,48 @@ import {
 import {
   blankCoverageRatio,
   buildKoreanWithBlankSlots,
+  excludeTrailingJosaFromBlank,
   findOverlappingBlanks,
   validateBlankAgainstKorean,
   type BlankDraft,
   type ExamKoreanBlank,
 } from "@/lib/exam-prep/stage2-types";
 import { parseVocabMarks } from "@/lib/exam-prep/vocab-marks";
+import { splitKoreanParticle } from "@/lib/exam-prep/blank-importance";
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
 
 type LocalBlank = BlankDraft & { localKey: string };
 
-function toLocal(rows: ExamKoreanBlank[]): LocalBlank[] {
-  return rows.map((b) => ({
-    localKey: b.id,
-    id: b.id,
-    sentence_id: b.sentence_id,
-    blank_order: b.blank_order,
-    answer_text: b.answer_text,
-    accepted_answers: b.accepted_answers ?? [],
-    korean_start: b.korean_start,
-    korean_end: b.korean_end,
-    linked_vocabulary_mark_id: b.linked_vocabulary_mark_id,
-    linked_english_text: b.linked_english_text,
-    linked_english_start: b.linked_english_start,
-    linked_english_end: b.linked_english_end,
-    linked_english_occurrence: b.linked_english_occurrence,
-    hint: b.hint,
-    explanation: b.explanation,
-    is_required: b.is_required,
-    ignore_punctuation: b.ignore_punctuation,
-    flexible_spacing: b.flexible_spacing,
-  }));
+function toLocal(rows: ExamKoreanBlank[], sentences: ExamPassageSentence[]): LocalBlank[] {
+  const koreanById = new Map(
+    sentences.map((s) => [s.id, String(s.korean_text ?? "")])
+  );
+  return rows.map((b) => {
+    const normalized = excludeTrailingJosaFromBlank(
+      koreanById.get(b.sentence_id) ?? "",
+      b
+    );
+    return {
+      localKey: normalized.id,
+      sentence_id: normalized.sentence_id,
+      blank_order: normalized.blank_order,
+      answer_text: normalized.answer_text,
+      accepted_answers: normalized.accepted_answers ?? [],
+      korean_start: normalized.korean_start,
+      korean_end: normalized.korean_end,
+      linked_vocabulary_mark_id: normalized.linked_vocabulary_mark_id,
+      linked_english_text: normalized.linked_english_text,
+      linked_english_start: normalized.linked_english_start,
+      linked_english_end: normalized.linked_english_end,
+      linked_english_occurrence: normalized.linked_english_occurrence,
+      hint: normalized.hint ?? "",
+      explanation: normalized.explanation ?? "",
+      is_required: normalized.is_required,
+      ignore_punctuation: normalized.ignore_punctuation,
+      flexible_spacing: normalized.flexible_spacing,
+      id: normalized.id,
+    };
+  });
 }
 
 export function Stage2BlankEditor({
@@ -58,7 +69,7 @@ export function Stage2BlankEditor({
     () => [...sentences].sort((a, b) => a.sentence_order - b.sentence_order),
     [sentences]
   );
-  const [blanks, setBlanks] = useState(() => toLocal(initialBlanks));
+  const [blanks, setBlanks] = useState(() => toLocal(initialBlanks, sentences));
   const [published, setPublished] = useState(initiallyPublished);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -70,8 +81,8 @@ export function Stage2BlankEditor({
   const koreanRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    setBlanks(toLocal(initialBlanks));
-  }, [initialBlanks]);
+    setBlanks(toLocal(initialBlanks, sentences));
+  }, [initialBlanks, sentences]);
 
   const activeSentence = ordered.find((s) => s.id === activeSentenceId);
   const sentenceBlanks = blanks
@@ -140,16 +151,27 @@ export function Stage2BlankEditor({
       return;
     }
 
+    const { stem, particle } = splitKoreanParticle(selected);
+    const blankStart = start;
+    const blankEnd = particle ? start + stem.length : end;
+    const blankText = particle ? stem : selected;
+    if (!blankText.trim() || korean.slice(blankStart, blankEnd) !== blankText) {
+      setMessage("선택 범위를 다시 확인해 주세요.");
+      return;
+    }
+
     const marks = parseVocabMarks(activeSentence.vocabulary);
-    const matchMark = marks.find((m) => m.koreanText === selected);
+    const matchMark = marks.find(
+      (m) => m.koreanText === blankText || m.koreanText === selected
+    );
     const draft: LocalBlank = {
       localKey: `new-${Date.now()}`,
       sentence_id: activeSentence.id,
       blank_order: blanks.length + 1,
-      answer_text: selected,
+      answer_text: blankText,
       accepted_answers: [],
-      korean_start: start,
-      korean_end: end,
+      korean_start: blankStart,
+      korean_end: blankEnd,
       linked_vocabulary_mark_id: matchMark?.id ?? null,
       linked_english_text: matchMark?.englishText ?? null,
       linked_english_occurrence: matchMark?.englishOccurrence ?? null,
@@ -162,8 +184,12 @@ export function Stage2BlankEditor({
     setBlanks((prev) => [...prev, draft]);
     setMessage(
       matchMark
-        ? `빈칸 「${selected}」 지정 · 연결 후보: ${matchMark.englishText}`
-        : `빈칸 「${selected}」 지정`
+        ? `빈칸 「${blankText}」 지정 · 연결 후보: ${matchMark.englishText}${
+            particle ? ` (조사 「${particle}」 제외)` : ""
+          }`
+        : `빈칸 「${blankText}」 지정${
+            particle ? ` (조사 「${particle}」 제외)` : ""
+          }`
     );
     sel.removeAllRanges();
   }

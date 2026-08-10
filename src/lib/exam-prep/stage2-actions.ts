@@ -8,6 +8,7 @@ import { isExamPrepEnabled } from "@/lib/academy-features";
 import { compareKoreanBlankAnswer } from "@/lib/exam-prep/korean-blank-normalize";
 import {
   STAGE2_DEFAULT_THRESHOLDS,
+  excludeTrailingJosaFromBlank,
   toPublicBlank,
   type ExamKoreanBlank,
   type ExamStage2Progress,
@@ -78,13 +79,24 @@ async function assertStage1Complete(assignmentStudentId: string) {
 
 async function loadBlanksAdmin(passageId: string): Promise<ExamKoreanBlank[]> {
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("exam_stage_blanks")
-    .select("*")
-    .eq("passage_id", passageId)
-    .eq("stage_number", 2)
-    .order("blank_order", { ascending: true });
-  return (data ?? []) as ExamKoreanBlank[];
+  const [{ data }, { data: sentences }] = await Promise.all([
+    admin
+      .from("exam_stage_blanks")
+      .select("*")
+      .eq("passage_id", passageId)
+      .eq("stage_number", 2)
+      .order("blank_order", { ascending: true }),
+    admin
+      .from("exam_passage_sentences")
+      .select("id, korean_text")
+      .eq("passage_id", passageId),
+  ]);
+  const koreanById = new Map(
+    (sentences ?? []).map((s) => [s.id as string, String(s.korean_text ?? "")])
+  );
+  return ((data ?? []) as ExamKoreanBlank[]).map((b) =>
+    excludeTrailingJosaFromBlank(koreanById.get(b.sentence_id) ?? "", b)
+  );
 }
 
 function parseAnswers(raw: unknown): Record<string, Stage2BlankAnswerState> {

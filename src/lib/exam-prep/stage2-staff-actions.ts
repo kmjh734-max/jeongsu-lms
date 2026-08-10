@@ -7,6 +7,7 @@ import { isExamPrepEnabled } from "@/lib/academy-features";
 import { parseVocabMarks } from "@/lib/exam-prep/vocab-marks";
 import {
   blankCoverageRatio,
+  excludeTrailingJosaFromBlank,
   findOverlappingBlanks,
   validateBlankAgainstKorean,
   type BlankDraft,
@@ -38,15 +39,28 @@ export async function listKoreanBlanksAction(passageId: string) {
   const auth = await requireStaff();
   if (!auth.ok) return auth;
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("exam_stage_blanks")
-    .select("*")
-    .eq("passage_id", passageId)
-    .eq("academy_id", auth.profile.academy_id)
-    .eq("stage_number", 2)
-    .order("blank_order", { ascending: true });
+  const [{ data, error }, { data: sentences }] = await Promise.all([
+    supabase
+      .from("exam_stage_blanks")
+      .select("*")
+      .eq("passage_id", passageId)
+      .eq("academy_id", auth.profile.academy_id)
+      .eq("stage_number", 2)
+      .order("blank_order", { ascending: true }),
+    supabase
+      .from("exam_passage_sentences")
+      .select("id, korean_text")
+      .eq("passage_id", passageId)
+      .eq("academy_id", auth.profile.academy_id),
+  ]);
   if (error) return { ok: false as const, message: error.message };
-  return { ok: true as const, blanks: (data ?? []) as ExamKoreanBlank[] };
+  const koreanById = new Map(
+    (sentences ?? []).map((s) => [s.id as string, String(s.korean_text ?? "")])
+  );
+  const blanks = ((data ?? []) as ExamKoreanBlank[]).map((b) =>
+    excludeTrailingJosaFromBlank(koreanById.get(b.sentence_id) ?? "", b)
+  );
+  return { ok: true as const, blanks };
 }
 
 export async function saveKoreanBlanksAction(
@@ -74,7 +88,13 @@ export async function saveKoreanBlanksAction(
   const byId = new Map((sentences ?? []).map((s) => [s.id as string, s]));
   const warnings: string[] = [];
 
-  for (const d of drafts) {
+  const normalizedDrafts = drafts.map((d) => {
+    const sent = byId.get(d.sentence_id);
+    const korean = String(sent?.korean_text ?? "");
+    return excludeTrailingJosaFromBlank(korean, d);
+  });
+
+  for (const d of normalizedDrafts) {
     const sent = byId.get(d.sentence_id);
     if (!sent) {
       return { ok: false as const, message: "문장 데이터가 없는 빈칸이 있습니다." };
@@ -88,7 +108,7 @@ export async function saveKoreanBlanksAction(
   }
 
   const bySentence = new Map<string, BlankDraft[]>();
-  for (const d of drafts) {
+  for (const d of normalizedDrafts) {
     const list = bySentence.get(d.sentence_id) ?? [];
     list.push(d);
     bySentence.set(d.sentence_id, list);
@@ -114,7 +134,7 @@ export async function saveKoreanBlanksAction(
     .eq("stage_number", 2);
   const existingIds = new Set((existingRows ?? []).map((r) => r.id as string));
   const keptIds = new Set(
-    drafts.map((d) => d.id).filter((id): id is string => Boolean(id))
+    normalizedDrafts.map((d) => d.id).filter((id): id is string => Boolean(id))
   );
 
   const toDelete = [...existingIds].filter((id) => !keptIds.has(id));
@@ -127,13 +147,13 @@ export async function saveKoreanBlanksAction(
     if (delErr) return { ok: false as const, message: delErr.message };
   }
 
-  if (drafts.length === 0) {
+  if (normalizedDrafts.length === 0) {
     revalidatePassage(passageId);
     return { ok: true as const, count: 0, warnings };
   }
 
-  for (let i = 0; i < drafts.length; i++) {
-    const d = drafts[i]!;
+  for (let i = 0; i < normalizedDrafts.length; i++) {
+    const d = normalizedDrafts[i]!;
     const row = {
       academy_id: auth.profile.academy_id,
       passage_id: passageId,
@@ -177,7 +197,7 @@ export async function saveKoreanBlanksAction(
   }
 
   revalidatePassage(passageId);
-  return { ok: true as const, count: drafts.length, warnings };
+  return { ok: true as const, count: normalizedDrafts.length, warnings };
 }
 
 export async function setStage2PublishedAction(

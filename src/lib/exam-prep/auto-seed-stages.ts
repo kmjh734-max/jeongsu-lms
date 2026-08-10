@@ -9,6 +9,7 @@ import {
   pickSpreadByScore,
   scoreEnglishBlank,
   scoreKoreanBlank,
+  splitKoreanParticle,
 } from "@/lib/exam-prep/blank-importance";
 import type { BlankDraft } from "@/lib/exam-prep/stage2-types";
 import type { Stage3BlankDraft } from "@/lib/exam-prep/stage3-types";
@@ -195,7 +196,11 @@ function matchCase(replacement: string, matched: string): string {
   return replacement;
 }
 
-function expandKoreanEojeol(
+/**
+ * 어절 범위로 확장한 뒤, 끝 조사는 빈칸에서 제외한다.
+ * 예: "전체" → 어절 "전체가" → 빈칸 "전체" + 조사 "가" 유지
+ */
+function expandKoreanStemSpan(
   korean: string,
   start: number,
   end: number
@@ -212,10 +217,20 @@ function expandKoreanEojeol(
   ) {
     b += 1;
   }
-  return { start: a, end: b, text: korean.slice(a, b) };
+  const eojeol = korean.slice(a, b);
+  const { stem } = splitKoreanParticle(eojeol);
+  if (!stem) return { start: a, end: b, text: eojeol };
+  // 어절 안에서 어간 위치 (보통 접두)
+  const stemAt = eojeol.indexOf(stem);
+  const stemStart = stemAt >= 0 ? a + stemAt : a;
+  return {
+    start: stemStart,
+    end: stemStart + stem.length,
+    text: stem,
+  };
 }
 
-/** 2단계: 중요 우리말 + 조사(어절 전체)를 빈칸에 포함 */
+/** 2단계: 중요 우리말 어간만 빈칸 (조사는 빈칸 밖) */
 export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
   const drafts: BlankDraft[] = [];
   let order = 1;
@@ -252,7 +267,7 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
         if (!needle || needle.length < 2) return null;
         const raw = findSpan(korean, needle);
         if (!raw) return null;
-        const span = expandKoreanEojeol(korean, raw.start, raw.end);
+        const span = expandKoreanStemSpan(korean, raw.start, raw.end);
         const wIdx =
           wordEntries.find((w) => w.start <= span.start && span.end <= w.end)?.index ??
           wordEntries.findIndex((w) => w.text.includes(needle));
@@ -287,19 +302,32 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
       });
     }
 
-    // 부족하면 중요 우리말 어절(조사 포함) 보충 — 항상 max까지
+    // 부족하면 중요 우리말 어간만 보충 (조사 제외)
     if (used.length < maxPerSentence) {
       const scored = wordEntries
-        .map((w) => ({
-          ...w,
-          score: scoreKoreanBlank(w.text),
-        }))
-        .filter((w) => w.score > 0 && !overlaps(used, w.start, w.end));
+        .map((w) => {
+          const { stem } = splitKoreanParticle(w.text);
+          const stemAt = w.text.indexOf(stem);
+          const start = stemAt >= 0 ? w.start + stemAt : w.start;
+          return {
+            text: stem,
+            start,
+            end: start + stem.length,
+            index: w.index,
+            score: scoreKoreanBlank(w.text),
+          };
+        })
+        .filter(
+          (w) =>
+            w.score > 0 &&
+            w.text.length >= 2 &&
+            !overlaps(used, w.start, w.end)
+        );
       const need = maxPerSentence - used.length;
       for (const p of pickSpreadByScore(scored, need)) {
         if (overlaps(used, p.start, p.end)) continue;
         used.push({ a: p.start, b: p.end });
-        const answer = p.text.replace(/[.,!?;:'"()\-]+$/g, "");
+        const answer = p.text;
         drafts.push({
           sentence_id: s.id,
           blank_order: order++,

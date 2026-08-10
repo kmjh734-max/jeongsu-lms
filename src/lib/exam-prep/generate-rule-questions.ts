@@ -4,6 +4,7 @@ import {
   blankPickCount,
   englishCore,
   koreanCore,
+  splitKoreanParticle,
   pickSpreadByScore,
   scoreEnglishBlank,
   scoreKoreanBlank,
@@ -567,13 +568,16 @@ function buildKoreanBlank(
   }> = [];
   const display = parts.map((w, i) => {
     if (!pickedIndex.has(i)) return w;
-    const core = w.replace(/[^\uAC00-\uD7A3A-Za-z0-9]+$/g, "");
-    const trail = w.slice(core.length);
+    const { stem, particle } = splitKoreanParticle(w);
+    const answer = stem || w.replace(/[^\uAC00-\uD7A3A-Za-z0-9]+$/g, "");
+    const trail = particle || w.slice(answer.length);
     const id = `blank_${blanks.length + 1}`;
     blanks.push({
       id,
-      answer: core,
-      acceptableAnswers: [core],
+      answer,
+      acceptableAnswers: [answer, koreanCore(w)].filter(
+        (x, idx, arr) => x && arr.indexOf(x) === idx
+      ),
     });
     return `____${trail}`;
   });

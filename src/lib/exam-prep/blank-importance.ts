@@ -34,11 +34,82 @@ export function englishCore(token: string): string {
   return token.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "");
 }
 
+/** 긴 조사부터 매칭 (빈칸에는 어간만, 조사는 문장에 남김) */
+const JOSA_SUFFIXES = [
+  "으로서",
+  "으로써",
+  "이라도",
+  "이라도",
+  "에서부터",
+  "에게서",
+  "한테서",
+  "으로부터",
+  "으로",
+  "로서",
+  "로써",
+  "에서",
+  "부터",
+  "까지",
+  "처럼",
+  "만큼",
+  "한테",
+  "에게",
+  "보다",
+  "대로",
+  "조차",
+  "마저",
+  "이나",
+  "이랑",
+  "하고",
+  "이라",
+  "라서",
+  "은",
+  "는",
+  "이",
+  "가",
+  "을",
+  "를",
+  "의",
+  "에",
+  "도",
+  "만",
+  "와",
+  "과",
+  "로",
+  "랑",
+  "께",
+  "나",
+] as const;
+
+/**
+ * 어절 끝 조사·문장부호를 분리한다.
+ * 예: "전체가" → stem "전체", particle "가"
+ * "도로"처럼 어간이 너무 짧아지면 조사로 보지 않는다.
+ */
+export function splitKoreanParticle(token: string): {
+  stem: string;
+  particle: string;
+} {
+  const punctMatch = token.match(/[.,!?;:'"“”‘’()\-…·]+$/);
+  const punct = punctMatch?.[0] ?? "";
+  const base = punct ? token.slice(0, -punct.length) : token;
+  if (!base) return { stem: token, particle: "" };
+
+  for (const josa of JOSA_SUFFIXES) {
+    if (base.length <= josa.length || !base.endsWith(josa)) continue;
+    const stem = base.slice(0, -josa.length);
+    const hangul = stem.replace(/[^\uAC00-\uD7A3]/g, "");
+    // 어간이 한 글자면 "도로"→"도" 같은 오분해 방지
+    if (hangul.length < 2) continue;
+    return { stem, particle: josa + punct };
+  }
+  return { stem: base, particle: punct };
+}
+
 export function koreanCore(token: string): string {
-  return token
-    .replace(/[.,!?;:'"()\-…·]/g, "")
-    .replace(/[은는이가을를의에도만와과이나]$/g, "")
-    .trim();
+  return splitKoreanParticle(
+    token.replace(/[.,!?;:'"()\-…·]/g, " ").replace(/\s+/g, " ").trim()
+  ).stem.trim();
 }
 
 export function scoreEnglishBlank(token: string): number {
