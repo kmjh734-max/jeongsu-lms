@@ -12,6 +12,7 @@ import {
   vocabKoreanNeedles,
 } from "@/lib/exam-prep/blank-importance";
 import { buildStage6Drafts, findVerbHits } from "@/lib/exam-prep/auto-seed-stages";
+import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import { verbLemma } from "@/lib/exam-prep/verb-lemma";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
 import {
@@ -219,54 +220,14 @@ function buildGrammarChoice(
       vocabulary: sentence.vocabulary,
       is_important_writing: sentence.is_important_writing,
     },
-  ]);
+  ]).filter((d) => {
+    const wrong = d.choice_options.find((o) => !o.isCorrect)?.text ?? "";
+    const correct =
+      d.choice_options.find((o) => o.isCorrect)?.text ?? d.answer_text;
+    return !isNonsenseChoicePair(correct, wrong);
+  });
 
-  // 시드가 비면 중요 어휘 1~2곳에 형태 쌍 폴백
-  if (items.length === 0) {
-    const words = tokens(english);
-    const scored = words
-      .map((w, index) => ({
-        index,
-        word: w,
-        core: englishCore(w),
-        score: scoreEnglishBlank(w),
-      }))
-      .filter((x) => x.score > 0 && x.core.length >= 4);
-    const picked = pickSpreadByScore(scored, Math.min(3, Math.max(1, scored.length)));
-    let cursorSearch = 0;
-    items = picked.map((p, i) => {
-      const core = p.core;
-      const start = english.toLowerCase().indexOf(core.toLowerCase(), cursorSearch);
-      const end = start >= 0 ? start + core.length : 0;
-      if (start >= 0) cursorSearch = end;
-      const wrong = core.endsWith("ing")
-        ? `${core.slice(0, -3)}ed`
-        : core.endsWith("ed")
-          ? `${core.slice(0, -2)}ing`
-          : core.endsWith("s")
-            ? core.slice(0, -1)
-            : `${core}s`;
-      const matched = start >= 0 ? english.slice(start, end) : core;
-      return {
-        sentence_id: sentence.id,
-        blank_order: i + 1,
-        answer_text: matched,
-        english_start: Math.max(0, start),
-        english_end: Math.max(matched.length, end),
-        selected_text: matched,
-        choice_options: [
-          { id: newOptionId(), text: matched, isCorrect: true },
-          { id: newOptionId(), text: wrong, isCorrect: false },
-        ],
-        question_category: "vocabulary" as const,
-        grammar_subcategory: [] as string[],
-        vocabulary_subcategory: ["word_form"],
-        shuffle_options: true,
-        is_required: true,
-      };
-    });
-  }
-
+  // 형태 장난(sometime/sometimes, know/knowing) 폴백은 쓰지 않음
   if (items.length === 0) return null;
 
   const sorted = [...items].sort((a, b) => a.english_start - b.english_start);

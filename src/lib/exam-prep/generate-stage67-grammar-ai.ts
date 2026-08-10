@@ -8,6 +8,11 @@ import {
   grammarExplanationRules,
   pickGrammarFocus,
 } from "@/lib/question-generator/grammar-catalog";
+import {
+  grammarChoiceCraftNote,
+  vocabChoiceCraft,
+} from "@/lib/question-generator/choice-craft";
+import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
 import type { Stage7CandidateDraft } from "@/lib/exam-prep/stage7-types";
 
@@ -29,12 +34,12 @@ function findSpanCi(
 }
 
 function isBadGrammarPair(correct: string, wrong: string): boolean {
+  if (isNonsenseChoicePair(correct, wrong)) return true;
   const a = correct.trim();
   const b = wrong.trim();
   if (!a || !b || a.toLowerCase() === b.toLowerCase()) return true;
   if (/^(a|an|the)$/i.test(a) || /^(a|an|the)$/i.test(b)) return true;
   if (/^(a|an|the)\s/i.test(a) && /^(a|an|the)\s/i.test(b)) {
-    // as a result / as a results 류 — 관사+명사 단순 복수 장난 금지
     const stemA = a.replace(/^(a|an|the)\s+/i, "").replace(/s$/i, "");
     const stemB = b.replace(/^(a|an|the)\s+/i, "").replace(/s$/i, "");
     if (stemA.toLowerCase() === stemB.toLowerCase()) return true;
@@ -45,7 +50,6 @@ function isBadGrammarPair(correct: string, wrong: string): boolean {
   ) {
     return true;
   }
-  // 철자만 틀린 난센스
   if (a.length <= 2 || b.length <= 2) return true;
   return false;
 }
@@ -66,6 +70,8 @@ type AiStage6Blank = {
   correct?: string;
   wrong?: string;
   grammarSub?: string;
+  vocabularySub?: string;
+  questionKind?: string;
   koLabel?: string;
   koTip?: string;
 };
@@ -84,7 +90,7 @@ export async function generateStage6WithAi(
 ): Promise<{ drafts: Stage6ItemDraft[]; source: "ai" | "none"; error?: string }> {
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
   const focus = pickGrammarFocus(Math.min(4, Math.max(2, ordered.length)));
-  const system = `당신은 수능·내신 어법 출제 전문가다. 변형문제 어법 엔진과 동일 기준으로 워크북 6단계 [a / b]를 만든다.
+  const system = `당신은 수능·내신 어법·어휘 출제 전문가다. 변형문제(question-generator) 어법·어휘 엔진과 동일 기준으로 워크북 6단계 [a / b]를 만든다.
 
 ${focus.focusBlock}
 
@@ -92,13 +98,22 @@ ${grammarCatalogPromptBlock()}
 
 ${grammarExplanationRules()}
 
+${grammarChoiceCraftNote()}
+
+${vocabChoiceCraft()}
+
 절대 규칙:
 1. 원문 english를 절대 바꾸지 않는다. correct는 원문에 그대로 있는 부분문자열이어야 한다.
-2. 각 blank는 영문 안 [correct / wrong] 2지. wrong는 위 CASE의 형태 쌍·심는 법에 맞는 그럴듯한 오답.
-3. 금지: a/an/the 관사 선택, as a result/as a results 식 난센스 복수, 인접 단순 is/are, 철자 장난, 어휘 의미만 틀린 함정.
+2. 각 blank는 영문 안 [correct / wrong] 2지. wrong는 위 CASE 메커니즘·혼동어에 맞는 그럴듯한 오답.
+3. 금지(하드):
+   - sometime/sometimes, whole/wholes, part/parts 식 ±s 만 다른 쌍
+   - know/knowing, allow/allowing 식 단일 단어 ↔ -ing 장난
+   - a/an/the 관사, as a result/as a results, 인접 단순 is/are
+   - 철자 장난·의미 없는 형태 변형
 4. 수일치는 전체에서 최대 1개. 단원은 서로 다르게.
-5. 문장마다 1~2개, 지문 전체 4~10개.
-6. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","koLabel","koTip"}]}
+5. 문장마다 0~2개(없으면 생략), 지문 전체 4~10개. 억지로 만들지 말 것.
+6. 어법(grammarSub)과 어휘(vocabularySub: similar_spelling|contextual_meaning|collocation|opposite_meaning 등)를 섞을 수 있다. 어휘면 grammarSub 대신 vocabularySub를 넣고 questionKind:"vocabulary".
+7. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","vocabularySub","questionKind","koLabel","koTip"}]}
 grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle, adjective_adverb, infinitive, gerund, conjunction, subject_verb_agreement, word_order, comparison`;
 
   const user = JSON.stringify({
@@ -136,8 +151,14 @@ grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle,
       const correct = String(item.correct ?? "").trim();
       const wrong = String(item.wrong ?? "").trim();
       if (isBadGrammarPair(correct, wrong)) continue;
-      const sub = String(item.grammarSub ?? "other_grammar").trim() || "other_grammar";
-      if (sub === "subject_verb_agreement") {
+      const isVocab =
+        String(item.questionKind ?? "").toLowerCase() === "vocabulary" ||
+        Boolean(String(item.vocabularySub ?? "").trim());
+      const sub = isVocab
+        ? String(item.vocabularySub ?? "contextual_meaning").trim() ||
+          "contextual_meaning"
+        : String(item.grammarSub ?? "other_grammar").trim() || "other_grammar";
+      if (!isVocab && sub === "subject_verb_agreement") {
         if (usedSv) continue;
         usedSv = true;
       }
@@ -174,9 +195,9 @@ grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle,
             explanation: tip || null,
           },
         ],
-        question_category: "grammar",
-        grammar_subcategory: [sub],
-        vocabulary_subcategory: [],
+        question_category: isVocab ? "vocabulary" : "grammar",
+        grammar_subcategory: isVocab ? [] : [sub],
+        vocabulary_subcategory: isVocab ? [sub] : [],
         shuffle_options: true,
         hint: item.koLabel?.trim() || null,
         explanation: tip || null,

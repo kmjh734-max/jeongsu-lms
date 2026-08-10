@@ -122,13 +122,32 @@ function toIngForm(word: string): string {
  * (마더텅 수능필수어법 + 변형문제 pickGrammarFocus와 정렬)
  */
 const MECHANISM_PLANTS: MechPlant[] = [
-  // ═══ 마더텅 고빈도: 정동사 자리 vs 준동사 (-ing/to-V) ═══
+  // ═══ 마더텅: 준동사 자리 (전치사·동사 뒤 V-ing / to-V) — 단일 know→knowing 금지 ═══
   {
     unitKey: "verbal",
     caseId: "verb-slot",
     correct:
-      /\b(allows?|knows?|moves?|learns?|causes?|requires?|provides?|creates?|supports?|includes?|offers?|appears?|remains?|becomes?|happens?|occurs?)\b/gi,
-    wrong: (_m, g) => toIngForm(g[0] ?? "allow"),
+      /\b((?:by|without|before|after|while|when|of|for|in|on|from|about)\s+)(allowing|moving|learning|causing|requiring|providing|creating|supporting|including|offering|appearing|remaining|becoming|happening|occurring|dumping|growing|leaving|taking|making|getting)\b/gi,
+    wrong: (_m, g) => {
+      const prep = g[0] ?? "by ";
+      const ing = g[1] ?? "allowing";
+      const base = ing.replace(/ing$/i, "").replace(/ll$/i, "l");
+      return `${prep}${base || "allow"}`;
+    },
+    priority: 96,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "verbal",
+    caseId: "verb-slot",
+    correct:
+      /\b((?:want|wants|wanted|need|needs|needed|decide|decides|decided|refuse|refuses|refused|hope|hopes|hoped|plan|plans|planned|fail|fails|failed|agree|agrees|agreed|afford|affords|afforded)\s+to\s+)(allow|move|learn|cause|require|provide|create|support|include|offer|appear|remain|become|dump|grow|leave|take|make|get)\b/gi,
+    wrong: (_m, g) => {
+      const head = g[0] ?? "want to ";
+      const base = g[1] ?? "allow";
+      return `${head}${toIngForm(base)}`;
+    },
     priority: 96,
     forChoice: true,
     forError: true,
@@ -651,6 +670,59 @@ function isElementaryChoice(a: string, b: string): boolean {
   return false;
 }
 
+/**
+ * 어이없는 [a/b] 쌍 — sometime/sometimes, whole/wholes, know/knowing 등.
+ * 변형문제 품질 기준으로 출제 금지.
+ */
+export function isNonsenseChoicePair(correct: string, wrong: string): boolean {
+  if (isElementaryChoice(correct, wrong)) return true;
+  const a = correct.trim();
+  const b = wrong.trim();
+  if (!a || !b || a.toLowerCase() === b.toLowerCase()) return true;
+
+  const aw = a.toLowerCase().replace(/[^a-z']/g, "");
+  const bw = b.toLowerCase().replace(/[^a-z']/g, "");
+  if (!aw || !bw) return true;
+
+  // 부사 sometime ↔ sometimes
+  if (
+    (aw === "sometime" && bw === "sometimes") ||
+    (aw === "sometimes" && bw === "sometime")
+  ) {
+    return true;
+  }
+
+  // 단일 토큰 ±s / ±es 만 다른 쌍 (whole/wholes, part/parts, rat/rats…)
+  if (!/\s/.test(a) && !/\s/.test(b)) {
+    if (
+      aw + "s" === bw ||
+      bw + "s" === aw ||
+      aw + "es" === bw ||
+      bw + "es" === aw ||
+      (aw.endsWith("y") && aw.slice(0, -1) + "ies" === bw) ||
+      (bw.endsWith("y") && bw.slice(0, -1) + "ies" === aw)
+    ) {
+      return true;
+    }
+    // know/knowing, allow/allowing — 문맥 없는 단순 -ing 장난
+    const stemIng = (w: string) =>
+      w.endsWith("ing") && w.length > 4 ? w.slice(0, -3) : null;
+    const aIng = stemIng(aw);
+    const bIng = stemIng(bw);
+    if (aIng && (aIng === bw || aIng + "e" === bw || aIng.replace(/e$/, "") === bw)) {
+      return true;
+    }
+    if (bIng && (bIng === aw || bIng + "e" === aw || bIng.replace(/e$/, "") === aw)) {
+      return true;
+    }
+  }
+
+  // 철자만 1글자 차이·길이 2 이하
+  if (a.length <= 2 || b.length <= 2) return true;
+
+  return false;
+}
+
 /** 변형문제는 pairForms를 지문에 맹목적으로 꽂지 않음 — CASE 메커니즘만 사용 */
 export function scanWorkbookGrammarHits(english: string): WorkbookGrammarHit[] {
   const hits: WorkbookGrammarHit[] = [];
@@ -676,7 +748,7 @@ export function scanWorkbookGrammarHits(english: string): WorkbookGrammarHit[] {
           ? plant.wrong(correct, groups)
           : plant.wrong;
       if (!wrong || wrong.toLowerCase() === correct.toLowerCase()) continue;
-      if (isElementaryChoice(correct, wrong)) continue;
+      if (isNonsenseChoicePair(correct, wrong)) continue;
       used.push({ a: start, b: end });
       const meta = findCase(plant.unitKey, plant.caseId);
       const subs = mapUnit(plant.unitKey, plant.caseId);
@@ -770,6 +842,7 @@ export function scanVocabChoiceHits(english: string): Array<{
     while ((m = re.exec(english)) !== null) {
       if (m.index == null) continue;
       if (overlaps(used, m.index, m.index + m[0].length)) continue;
+      if (isNonsenseChoicePair(m[0], p.wrong)) continue;
       used.push({ a: m.index, b: m.index + m[0].length });
       out.push({
         start: m.index,

@@ -5,6 +5,11 @@ import {
 } from "@/lib/exam-prep/generate-rule-questions";
 import { workbookPromptForStepType } from "@/lib/exam-prep/presets";
 import { EXAM_STEP_LABELS, type ExamPassageSentence, type ExamStepType } from "@/lib/exam-prep/types";
+import { generateStage6WithAi } from "@/lib/exam-prep/generate-stage67-grammar-ai";
+import { buildStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
+import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
+import { newOptionId } from "@/lib/exam-prep/stage6-types";
+import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
 
 type AiQuestionRaw = {
   sentenceId?: string | null;
@@ -186,6 +191,91 @@ export type GenerateStepQuestionsResult = {
   aiError?: string;
 };
 
+function stage6DraftsToQuestions(
+  drafts: Stage6ItemDraft[],
+  sentences: ExamPassageSentence[],
+  aiGenerated: boolean
+): GeneratedQuestionDraft[] {
+  const bySent = new Map<string, Stage6ItemDraft[]>();
+  for (const d of drafts) {
+    const wrong = d.choice_options.find((o) => !o.isCorrect)?.text ?? "";
+    const correct =
+      d.choice_options.find((o) => o.isCorrect)?.text ?? d.answer_text;
+    if (isNonsenseChoicePair(correct, wrong)) continue;
+    const list = bySent.get(d.sentence_id) ?? [];
+    list.push(d);
+    bySent.set(d.sentence_id, list);
+  }
+
+  const out: GeneratedQuestionDraft[] = [];
+  let order = 1;
+  for (const s of sentences) {
+    const items = (bySent.get(s.id) ?? []).sort(
+      (a, b) => a.english_start - b.english_start
+    );
+    if (items.length === 0) continue;
+    const english = String(s.english_text ?? "");
+    let display = english;
+    for (let i = items.length - 1; i >= 0; i--) {
+      const d = items[i]!;
+      const opts = d.choice_options.map((o) => o.text).filter(Boolean);
+      if (opts.length < 2) continue;
+      const show =
+        d.shuffle_options !== false && Math.random() < 0.5
+          ? [opts[1]!, opts[0]!]
+          : [opts[0]!, opts[1]!];
+      display =
+        display.slice(0, d.english_start) +
+        `[${show.join(" / ")}]` +
+        display.slice(d.english_end);
+    }
+    const choiceBlanks = items.map((d, i) => {
+      const options = d.choice_options.map((o, j) => ({
+        id: o.id || newOptionId() || `opt_${i}_${j}`,
+        text: o.text,
+      }));
+      const correct =
+        d.choice_options.find((o) => o.isCorrect) ?? d.choice_options[0]!;
+      return {
+        id: `blank_${i + 1}`,
+        answer: d.answer_text,
+        options,
+        correctOptionId: correct.id || options[0]!.id,
+        category: d.question_category,
+      };
+    });
+    if (choiceBlanks.length === 0) continue;
+    const first = choiceBlanks[0]!;
+    out.push({
+      sentence_id: s.id,
+      question_type: "grammar_vocab_choice",
+      question_order: order++,
+      question_text: workbookPromptForStepType("grammar_vocab_choice") ??
+        "괄호 안에서 옳은 어법과 어휘를 골라 보세요.",
+      question_data: {
+        displayText: display,
+        koreanHint: s.korean_text,
+        format: "inline_ab",
+        choiceBlanks,
+        options: first.options.slice(0, 2),
+        choiceKind: "mixed",
+      },
+      correct_answer: {
+        optionId: first.correctOptionId,
+        selections: Object.fromEntries(
+          choiceBlanks.map((b) => [b.id, b.correctOptionId])
+        ),
+      },
+      acceptable_answers: choiceBlanks.map((b) => b.correctOptionId),
+      explanation: choiceBlanks.map((b) => b.answer).join(" · "),
+      difficulty: "medium",
+      points: choiceBlanks.length,
+      ai_generated: aiGenerated,
+    });
+  }
+  return out;
+}
+
 /**
  * AI 문항 생성 → 변형 세트는 QG 엔진, 그 외는 JSON/규칙 폴백.
  */
@@ -228,6 +318,64 @@ export async function generateStepQuestionsWithAi(
       questions: result.questions,
       source: "ai",
       aiError: result.errors.length ? result.errors.join("; ") : undefined,
+    };
+  }
+
+  // 6단계: 변형문제 어법·어휘 엔진 (catalog + plants). 일반 JSON 스키마 우회.
+  if (type === "grammar_vocab_choice") {
+    const seed = sentences.map((s) => ({
+      id: s.id,
+      english_text: s.english_text,
+      sentence_order: s.sentence_order,
+    }));
+    if (process.env.OPENAI_API_KEY?.trim()) {
+      try {
+        const ai = await generateStage6WithAi(seed);
+        if (ai.drafts.length > 0) {
+          return {
+            questions: stage6DraftsToQuestions(ai.drafts, sentences, true),
+            source: "ai",
+            aiError: ai.error,
+          };
+        }
+      } catch (e) {
+        // fall through to plants
+        const msg = e instanceof Error ? e.message : "AI 실패";
+        const plantDrafts = buildStage6Drafts(
+          sentences.map((s) => ({
+            id: s.id,
+            english_text: s.english_text,
+            korean_text: s.korean_text,
+            sentence_order: s.sentence_order,
+            paragraph_number: s.paragraph_number,
+            vocabulary: s.vocabulary,
+            is_important_writing: s.is_important_writing,
+          }))
+        );
+        return {
+          questions: stage6DraftsToQuestions(plantDrafts, sentences, false),
+          source: "rule",
+          aiError: msg,
+        };
+      }
+    }
+    const plantDrafts = buildStage6Drafts(
+      sentences.map((s) => ({
+        id: s.id,
+        english_text: s.english_text,
+        korean_text: s.korean_text,
+        sentence_order: s.sentence_order,
+        paragraph_number: s.paragraph_number,
+        vocabulary: s.vocabulary,
+        is_important_writing: s.is_important_writing,
+      }))
+    );
+    return {
+      questions: stage6DraftsToQuestions(plantDrafts, sentences, false),
+      source: "rule",
+      aiError: process.env.OPENAI_API_KEY?.trim()
+        ? "AI 어법 포인트 없음 → 플랜트"
+        : "OPENAI_API_KEY 없음",
     };
   }
 

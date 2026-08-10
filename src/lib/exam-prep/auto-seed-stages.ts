@@ -44,6 +44,7 @@ import {
   pickDiverseGrammarHits,
   pickPassageGrammarHits,
   pickStage7Errors,
+  scanVocabChoiceHits,
   scanWorkbookGrammarHits,
 } from "@/lib/exam-prep/grammar-workbook-plants";
 
@@ -771,6 +772,45 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
           shuffle_options: true,
           hint: h.koLabel || null,
           explanation: tip || null,
+          is_required: true,
+        });
+        added += 1;
+      }
+    }
+
+    // 변형문제 어휘 혼동어 플랜트 (affect/effect 등) — 문장당 최대 1
+    if (added < 2) {
+      const vocabHits = scanVocabChoiceHits(english).slice(0, 1);
+      for (const h of vocabHits) {
+        if (overlaps(used, h.start, h.end)) continue;
+        used.push({ a: h.start, b: h.end });
+        drafts.push({
+          sentence_id: s.id,
+          blank_order: order++,
+          answer_text: h.correct,
+          english_start: h.start,
+          english_end: h.end,
+          selected_text: h.correct,
+          choice_options: [
+            {
+              id: `opt-c-${order}-0`,
+              text: h.correct,
+              isCorrect: true,
+              explanation: null,
+            },
+            {
+              id: `opt-w-${order}-1`,
+              text: h.wrong,
+              isCorrect: false,
+              explanation: null,
+            },
+          ],
+          question_category: "vocabulary",
+          grammar_subcategory: [],
+          vocabulary_subcategory: [h.sub],
+          shuffle_options: true,
+          hint: null,
+          explanation: null,
           is_required: true,
         });
         added += 1;
