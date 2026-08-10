@@ -108,11 +108,7 @@ export default async function StudentListeningDailyTaskPage({
   const progressMap = await loadDailyTaskProgressMap(admin, taskId, profile.id);
   const missingCount = questionIds.length - ordered.length;
 
-  const setTitle =
-    ordered.length > 0 &&
-    new Set(ordered.map((q) => q.set_id as string)).size > 1
-      ? `${primarySet?.title ?? "듣기"} 외`
-      : (primarySet?.title ?? "듣기 학습");
+  const setTitle = primarySet?.title ?? "듣기 학습";
 
   return (
     <div>
@@ -158,25 +154,29 @@ export default async function StudentListeningDailyTaskPage({
             dictationPassScore: passScore,
             initialProgress: progressMap,
           }}
-          questions={ordered.map((q) => ({
-            id: q.id as string,
-            setId: q.set_id as string,
-            order_index: q.order_index as number,
-            question_type: (q.question_type as string) ?? "",
-            instruction: (q.instruction as string) ?? "",
-            question_text: (q.question_text as string) ?? "",
-            choices: Array.isArray(q.choices) ? (q.choices as string[]) : [],
-            correct_answer: (q.correct_answer as number) ?? 1,
-            audio_url: q.audio_url as string | null,
-            script_text: (q.script_text as string) ?? "",
-            script_translation: (q.script_translation as string) ?? "",
-            answer_clue: (q.answer_clue as string) ?? "",
-            explanation: (q.explanation as string) ?? "",
-            table_data:
-              q.table_data && typeof q.table_data === "object"
-                ? q.table_data
-                : null,
-          }))}
+          questions={ordered.map((q) => {
+            const qSet = setById.get(q.set_id as string);
+            return {
+              id: q.id as string,
+              setId: q.set_id as string,
+              setTitle: (qSet?.title as string) ?? setTitle,
+              order_index: q.order_index as number,
+              question_type: (q.question_type as string) ?? "",
+              instruction: (q.instruction as string) ?? "",
+              question_text: (q.question_text as string) ?? "",
+              choices: Array.isArray(q.choices) ? (q.choices as string[]) : [],
+              correct_answer: (q.correct_answer as number) ?? 1,
+              audio_url: q.audio_url as string | null,
+              script_text: (q.script_text as string) ?? "",
+              script_translation: (q.script_translation as string) ?? "",
+              answer_clue: (q.answer_clue as string) ?? "",
+              explanation: (q.explanation as string) ?? "",
+              table_data:
+                q.table_data && typeof q.table_data === "object"
+                  ? q.table_data
+                  : null,
+            };
+          })}
         />
       </div>
     </div>

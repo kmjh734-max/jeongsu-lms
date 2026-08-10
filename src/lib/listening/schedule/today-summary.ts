@@ -194,10 +194,36 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   }
 
   if (todayTask) {
-    const titles = await loadSetTitles(admin, [todayTask.setId]);
+    let displaySetId = todayTask.setId;
+    const { data: progressRows } = await admin
+      .from("listening_daily_task_progress")
+      .select("question_id, completed")
+      .eq("daily_task_id", todayTask.id)
+      .eq("student_id", studentId);
+
+    const incompleteQid = (progressRows ?? []).find((p) => !p.completed)
+      ?.question_id as string | undefined;
+    if (incompleteQid) {
+      const { data: qRow } = await admin
+        .from("listening_questions")
+        .select("set_id")
+        .eq("id", incompleteQid)
+        .maybeSingle();
+      if (qRow?.set_id) displaySetId = qRow.set_id as string;
+    } else if (todayTask.questionIds[0]) {
+      const { data: qRow } = await admin
+        .from("listening_questions")
+        .select("set_id")
+        .eq("id", todayTask.questionIds[0])
+        .maybeSingle();
+      if (qRow?.set_id) displaySetId = qRow.set_id as string;
+    }
+
+    const titles = await loadSetTitles(admin, [displaySetId, todayTask.setId]);
     todayTask = {
       ...todayTask,
-      setTitle: titles.get(todayTask.setId) ?? todayTask.setTitle,
+      setId: displaySetId,
+      setTitle: titles.get(displaySetId) ?? titles.get(todayTask.setId) ?? "",
     };
   }
 

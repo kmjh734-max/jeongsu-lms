@@ -19,6 +19,7 @@ export interface StudentListeningQuestion {
   id: string;
   /** 문항이 속한 세트 (하루 과제가 세트 경계를 넘는 경우 문항마다 다를 수 있음) */
   setId?: string;
+  setTitle?: string;
   order_index: number;
   question_type: string;
   instruction: string;
@@ -485,7 +486,9 @@ export function StudentListeningPractice({
         </div>
       )}
       <header>
-        <h1 className="text-xl font-bold text-slate-900">{setTitle}</h1>
+        <h1 className="text-xl font-bold text-slate-900">
+          {q.setTitle?.trim() || setTitle}
+        </h1>
         <p className="text-sm text-slate-600">
           {index + 1}번 / 총 {questions.length}문항
           {q.question_type ? ` · ${q.question_type}` : ""}
