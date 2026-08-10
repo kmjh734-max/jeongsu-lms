@@ -17,6 +17,8 @@ const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
 export interface StudentListeningQuestion {
   id: string;
+  /** 문항이 속한 세트 (하루 과제가 세트 경계를 넘는 경우 문항마다 다를 수 있음) */
+  setId?: string;
   order_index: number;
   question_type: string;
   instruction: string;
@@ -122,6 +124,11 @@ export function StudentListeningPractice({
   const selected = q ? answers[q.id] : undefined;
   const table = q ? normalizeTableData(q.table_data) : null;
   const blankLine = q ? continuationQuestionDisplayText(q.order_index) : null;
+  const questionSetId = q?.setId || setId;
+
+  function resolveSetId(questionId: string): string {
+    return questions.find((item) => item.id === questionId)?.setId || setId;
+  }
 
   const reportScheduleProgress = useCallback(
     async (
@@ -180,10 +187,14 @@ export function StudentListeningPractice({
       await fetch("/api/listening/dictation/warmup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ setId, questionId }),
+        body: JSON.stringify({
+          setId: resolveSetId(questionId),
+          questionId,
+        }),
       });
     },
-    [setId, dictationSettings.dictation_enabled]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- resolveSetId uses questions/setId
+    [setId, questions, dictationSettings.dictation_enabled]
   );
 
   const prefetchDictationStart = useCallback(
@@ -198,7 +209,7 @@ export function StudentListeningPractice({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            setId,
+            setId: resolveSetId(questionId),
             questionId,
             dailyTaskId: scheduleMode?.dailyTaskId,
           }),
@@ -243,7 +254,8 @@ export function StudentListeningPractice({
         dictationPrefetching.current.delete(questionId);
       }
     },
-    [setId, dictationSettings.dictation_enabled, scheduleMode?.dailyTaskId]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [setId, questions, dictationSettings.dictation_enabled, scheduleMode?.dailyTaskId]
   );
 
   useEffect(() => {
@@ -339,7 +351,15 @@ export function StudentListeningPractice({
       if (!dictationRequired) return true;
       if (!dictationSettings.dictation_lock_next_until_pass) return true;
       return dictationByQuestion[item.id]?.passed;
-    });
+    }) &&
+    // 진행 데이터에만 있고 화면에 없는 미완료 문항이 있으면 완료로 보지 않음
+    !(
+      scheduleMode?.initialProgress &&
+      Object.entries(scheduleMode.initialProgress).some(
+        ([qid, p]) =>
+          !p.completed && !questions.some((item) => item.id === qid)
+      )
+    );
 
   const scheduleRedirectStarted = useRef(false);
 
@@ -352,8 +372,25 @@ export function StudentListeningPractice({
     return () => clearTimeout(timer);
   }, [allComplete, scheduleMode, router]);
 
+  const missingIncomplete =
+    scheduleMode?.initialProgress &&
+    Object.entries(scheduleMode.initialProgress).filter(
+      ([qid, p]) =>
+        !p.completed && !questions.some((item) => item.id === qid)
+    );
+
   if (!q) {
-    return <p className="text-slate-600">문항이 없습니다.</p>;
+    return (
+      <div className="space-y-3">
+        <p className="text-slate-600">문항이 없습니다.</p>
+        {missingIncomplete && missingIncomplete.length > 0 && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            남은 문항을 불러오지 못했습니다. 페이지를 새로고침하거나 선생님께
+            문의해 주세요.
+          </p>
+        )}
+      </div>
+    );
   }
 
   const displayChoices = q.choices
@@ -441,6 +478,12 @@ export function StudentListeningPractice({
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
+      {missingIncomplete && missingIncomplete.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          남은 문항 중 {missingIncomplete.length}개를 화면에 불러오지 못했습니다.
+          새로고침 후에도 같으면 선생님께 문의해 주세요.
+        </div>
+      )}
       <header>
         <h1 className="text-xl font-bold text-slate-900">{setTitle}</h1>
         <p className="text-sm text-slate-600">
@@ -561,7 +604,7 @@ export function StudentListeningPractice({
       {objectiveDone && dictationRequired && !currentDictationPassed && (
         <DictationSection
           key={`${q.id}-${dictationKey}`}
-          setId={setId}
+          setId={questionSetId}
           questionId={q.id}
           audioUrl={q.audio_url}
           passScore={dictationSettings.dictation_pass_score}

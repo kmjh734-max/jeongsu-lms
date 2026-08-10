@@ -71,7 +71,6 @@ export async function reconcileDailyTaskDictationProgress(
       .from("listening_dictation_attempts")
       .select("score, passed")
       .eq("student_id", opts.studentId)
-      .eq("set_id", opts.setId)
       .eq("question_id", row.question_id as string)
       .not("submitted_at", "is", null)
       .order("score", { ascending: false })
@@ -103,18 +102,20 @@ export async function reconcileDailyTaskDictationProgress(
     }
 
     // 실제 통과 점수 미달인데 완료로 남아 있으면 되돌림
-    await admin
-      .from("listening_daily_task_progress")
-      .update({
-        dictation_completed: false,
-        dictation_score: score,
-        completed: false,
-        completed_at: null,
-      })
-      .eq("daily_task_id", opts.dailyTaskId)
-      .eq("question_id", row.question_id as string)
-      .eq("student_id", opts.studentId);
-    changed = true;
+    if (row.completed || row.dictation_completed) {
+      await admin
+        .from("listening_daily_task_progress")
+        .update({
+          dictation_completed: false,
+          dictation_score: score,
+          completed: false,
+          completed_at: null,
+        })
+        .eq("daily_task_id", opts.dailyTaskId)
+        .eq("question_id", row.question_id as string)
+        .eq("student_id", opts.studentId);
+      changed = true;
+    }
 
     // 세트 기준 passed=true 이지만 배정 점수 미달인 시도는 재도전 가능하도록 표시 해제
     if (attempt?.passed && score != null && score < opts.dictationPassScore) {
@@ -122,7 +123,6 @@ export async function reconcileDailyTaskDictationProgress(
         .from("listening_dictation_attempts")
         .update({ passed: false })
         .eq("student_id", opts.studentId)
-        .eq("set_id", opts.setId)
         .eq("question_id", row.question_id as string)
         .eq("passed", true)
         .lt("score", opts.dictationPassScore);
@@ -191,12 +191,12 @@ export async function updateDailyTaskQuestionProgress(
   let dictationScore = opts.dictationScore ?? null;
 
   // Dictation은 DB 제출 기록으로만 통과 인정 (클라이언트 값 신뢰 금지)
+  // 하루 과제가 세트 경계를 넘으면 task.set_id 와 문항 set_id 가 다를 수 있음
   if (requireDictation) {
     const { data: attempt } = await admin
       .from("listening_dictation_attempts")
-      .select("score, passed, submitted_at")
+      .select("score, passed, submitted_at, set_id")
       .eq("student_id", opts.studentId)
-      .eq("set_id", task.set_id as string)
       .eq("question_id", opts.questionId)
       .not("submitted_at", "is", null)
       .order("score", { ascending: false })
