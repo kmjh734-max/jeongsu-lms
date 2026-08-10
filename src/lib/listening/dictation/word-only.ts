@@ -32,7 +32,10 @@ function blankWordInSentence(sentence: string, word: string): string {
 }
 
 export function speakerPrefix(speaker: string): string {
-  return String(speaker).toUpperCase() === "W" ? "W" : "M";
+  const sp = String(speaker).toUpperCase();
+  if (sp === "W") return "W";
+  if (sp === "ANN" || sp === "N" || sp === "NARRATOR" || sp === "A") return "ANN";
+  return "M";
 }
 
 /** 예전 phrase 빈칸 → 대본에 있는 단어 하나로 변환 */
@@ -40,7 +43,7 @@ export function coercePhraseItemToWord(
   item: DictationBlankItem
 ): DictationBlankItem | null {
   const sentence = (item.original_sentence || item.display_sentence || "")
-    .replace(/^(M|W)\s*:\s*/i, "")
+    .replace(/^(M|W|ANN)\s*:\s*/i, "")
     .trim();
   if (!sentence) return null;
 
@@ -93,7 +96,7 @@ export function filterWordOnlyBlankItems(
 
     const answerKey = item.answer.trim().toLowerCase();
     const lineKey = (item.original_sentence || item.display_sentence || "")
-      .replace(/^(M|W)\s*:\s*/i, "")
+      .replace(/^(M|W|ANN)\s*:\s*/i, "")
       .trim()
       .toLowerCase();
     const dedupeKey = `${lineKey}::${answerKey}`;
@@ -102,7 +105,7 @@ export function filterWordOnlyBlankItems(
 
     const sp = speakerPrefix(item.speaker);
     const sentence = (item.original_sentence || item.display_sentence || "").trim();
-    const displayCore = sentence.replace(/^(M|W)\s*:\s*/i, "").trim();
+    const displayCore = sentence.replace(/^(M|W|ANN)\s*:\s*/i, "").trim();
     const blanked = displayCore
       ? blankWordInSentence(displayCore, item.answer)
       : "";

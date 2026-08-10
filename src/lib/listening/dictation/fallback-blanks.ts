@@ -93,7 +93,7 @@ function makeBlankInSentence(sentence: string, word: string): string {
 function pushBlankItem(
   items: DictationBlankItem[],
   p: {
-    speaker: "M" | "W";
+    speaker: string;
     sentence: string;
     word: string;
     importance: number;
@@ -183,7 +183,7 @@ export function buildFallbackDictationBlanks(opts: {
   );
 
   const pool: Array<{
-    speaker: "M" | "W";
+    speaker: string;
     sentence: string;
     word: string;
     importance: number;

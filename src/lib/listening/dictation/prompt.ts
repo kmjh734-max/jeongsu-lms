@@ -6,12 +6,12 @@ export function buildDictationSystemPrompt(): string {
 대본에서 중요한 영어 단어 하나만 빈칸(________)으로 만든다. 두 단어 이상(구, phrase)은 절대 금지한다.
 answer에는 공백 없는 단어 하나만 넣는다 (예: subway, library). "take the subway" 같은 구는 금지.
 무의미한 관사(a, an, the), 대명사만, be동사만 빈칸으로 만들지 마라.
-ANN 안내문은 제외한다. M/W 대화·담화만 사용한다.
+ANN 안내·담화(ANN)와 M/W 대화 모두 사용한다. 화자 접두는 M: / W: / ANN: 중 하나다.
 정답 단서·핵심 정보·문항 유형과 관련 표현을 우선한다.
-M/W 대본의 모든 문장이 화면에 보이도록, 빈칸 없는 문장도 그대로 포함한다.
-각 M/W 문장마다 최소 1개의 빈칸(단어)을 넣는다. 한 문장에 빈칸 2개 이상도 가능하다(서로 다른 단어).
+대본의 모든 문장이 화면에 보이도록, 빈칸 없는 문장도 그대로 포함한다.
+각 문장마다 최소 1개의 빈칸(단어)을 넣는다. 한 문장에 빈칸 2개 이상도 가능하다(서로 다른 단어).
 담화(한 화자가 여러 문장을 이어 말함)도 문장마다 빈칸을 넣는다. 긴 담화일수록 빈칸을 더 많이 만든다.
-display_sentence는 한 문장 단위이며 speaker 접두(M: / W:)를 붙인다.
+display_sentence는 한 문장 단위이며 speaker 접두(M: / W: / ANN:)를 붙인다.
 반드시 JSON만 출력한다.`;
 }
 
@@ -35,7 +35,7 @@ export function buildDictationUserPrompt(opts: {
 대본(script_text):
 ${opts.scriptText}
 
-segments (ANN 제외):
+segments:
 ${opts.segmentsJson}
 
 빈칸 개수: ${opts.blankMin}~${opts.blankMax}개 (아래 segments 문장 수 기준 — 문장마다 최소 1빈칸, 담화도 동일)
@@ -74,13 +74,15 @@ export function parseDictationAiResponse(raw: unknown): DictationBlankItem[] {
     const original = String(r.original_sentence ?? display).trim();
     if (!answer || !display.includes("________")) continue;
     const speaker = String(r.speaker ?? "M").toUpperCase();
+    const sp =
+      speaker === "W" ? "W" : speaker === "ANN" || speaker === "N" ? "ANN" : "M";
     items.push({
       id: String(r.id ?? `blank_${i + 1}`),
-      speaker: speaker === "W" ? "W" : "M",
+      speaker: sp,
       original_sentence: original,
-      display_sentence: display.startsWith("M:") || display.startsWith("W:")
+      display_sentence: /^(M|W|ANN)\s*:/i.test(display)
         ? display
-        : `${speaker === "W" ? "W" : "M"}: ${display}`,
+        : `${sp}: ${display}`,
       answer,
       answer_type: "word",
       importance: String(r.importance ?? "key_information"),

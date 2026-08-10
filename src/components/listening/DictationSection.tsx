@@ -97,44 +97,54 @@ export function DictationSection({
       setResults([]);
       setScore(null);
 
-      const url = opts?.retry
-        ? "/api/listening/dictation/generate"
-        : "/api/listening/dictation/start";
+      try {
+        const url = opts?.retry
+          ? "/api/listening/dictation/generate"
+          : "/api/listening/dictation/start";
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ setId, questionId }),
-      });
-      const data = (await res.json()) as {
-        ok?: boolean;
-        message?: string;
-      } & Partial<DictationStartPayloadClient>;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ setId, questionId }),
+        });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          message?: string;
+        } & Partial<DictationStartPayloadClient>;
 
-      if (gen !== loadGeneration.current) return;
+        if (gen !== loadGeneration.current) return;
 
-      if (!data.ok || !data.attemptId || !data.passageLines?.length) {
-        setError(data.message ?? "Dictation을 불러오지 못했습니다.");
-        setUiState("error");
-        return;
-      }
-
-      const blanks = data.blanks ?? [];
-      if (blanks.length === 0) {
-        if (!opts?.retry) {
-          await loadBlanks({ retry: true });
+        if (!data.ok || !data.attemptId || !data.passageLines?.length) {
+          setError(data.message ?? "Dictation을 불러오지 못했습니다.");
+          setUiState("error");
           return;
         }
-        setError(data.message ?? "Dictation 빈칸을 불러오지 못했습니다.");
-        setUiState("error");
-        return;
-      }
 
-      applyPayload({
-        attemptId: data.attemptId,
-        passageLines: data.passageLines,
-        blanks,
-      });
+        const blanks = data.blanks ?? [];
+        if (blanks.length === 0) {
+          if (!opts?.retry) {
+            await loadBlanks({ retry: true });
+            return;
+          }
+          setError(data.message ?? "Dictation 빈칸을 불러오지 못했습니다.");
+          setUiState("error");
+          return;
+        }
+
+        applyPayload({
+          attemptId: data.attemptId,
+          passageLines: data.passageLines,
+          blanks,
+        });
+      } catch (e) {
+        if (gen !== loadGeneration.current) return;
+        setError(
+          e instanceof Error
+            ? e.message
+            : "Dictation을 불러오는 중 오류가 발생했습니다."
+        );
+        setUiState("error");
+      }
     },
     [enabled, setId, questionId]
   );
