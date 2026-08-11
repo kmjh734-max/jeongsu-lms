@@ -89,8 +89,11 @@ export async function generateStage6WithAi(
   sentences: SeedSentence[]
 ): Promise<{ drafts: Stage6ItemDraft[]; source: "ai" | "none"; error?: string }> {
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
-  const focus = pickGrammarFocus(Math.min(4, Math.max(2, ordered.length)));
-  const system = `당신은 수능·내신 어법·어휘 출제 전문가다. 변형문제(question-generator) 어법·어휘 엔진과 동일 기준으로 워크북 6단계 [a / b]를 만든다.
+  const focusSlots = Math.min(8, Math.max(3, ordered.length * 2));
+  const focus = pickGrammarFocus(focusSlots);
+  const system = `당신은 수능·내신 어법·어휘 출제 전문가다.
+워크북 6단계 [a / b]는 **변형문제(question-generator) 어법·어휘 엔진과 동일 기준**으로 만든다.
+지문을 먼저 분석한 뒤, 인천 WORKBOOK 6단계처럼 **문장마다** 중요한 어법·어휘 포인트를 고른다.
 
 ${focus.focusBlock}
 
@@ -102,22 +105,32 @@ ${grammarChoiceCraftNote()}
 
 ${vocabChoiceCraft()}
 
-절대 규칙:
-1. 원문 english를 절대 바꾸지 않는다. correct는 원문에 그대로 있는 부분문자열이어야 한다.
-2. 각 blank는 영문 안 [correct / wrong] 2지. wrong는 위 CASE 메커니즘·혼동어에 맞는 그럴듯한 오답.
-3. 금지(하드):
-   - sometime/sometimes, whole/wholes, part/parts 식 ±s 만 다른 쌍
-   - know/knowing, allow/allowing 식 단일 단어 ↔ -ing 장난
-   - a/an/the 관사, as a result/as a results, 인접 단순 is/are
-   - 철자 장난·의미 없는 형태 변형
-4. 수일치는 전체에서 최대 1개. 단원은 서로 다르게.
-5. 모든 문장에 최소 2개 [a/b]를 만든다(짧은 문장만 1개 허용). 지문 전체 ≈ 문장수×2~4. 인천 WORKBOOK 6단계처럼 어법(태·관계사·분사·형부사…)과 어휘(반의어·혼동어)를 섞는다.
-6. 어법(grammarSub)과 어휘(vocabularySub: similar_spelling|contextual_meaning|collocation|opposite_meaning 등)를 섞을 수 있다. 어휘면 grammarSub 대신 vocabularySub를 넣고 questionKind:"vocabulary".
-7. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","vocabularySub","questionKind","koLabel","koTip"}]}
+출제 품질 (인천 PDF 예시 방향):
+- 어법: been dumping/been dumped, where/that(관계부사 자리), attracts/is attracted, which has/which have, growing 분사, desperately/desperate, illegal/illegally
+- 어휘: garbage/garage, permitted/prevented, endless/temporary, strengthen/weaken, efficient/inefficient 등 문맥·혼동·반의
+- 한 문장에 어법+어휘를 섞어 2~4개
+
+절대 금지 (하드 — 해당 blank 폐기):
+1. assume that / assume which, know that / know which 등 **명사절 that ↔ which** 장난
+2. allow/allowing, know/knowing, to V / V-ing 단순 형태 장난
+3. sometime/sometimes, whole/wholes, part/parts 식 ±s만 다른 쌍
+4. a/an/the 관사, as a result/as a results, 인접 단순 is/are·has/have
+5. 철자 1글자 장난·의미 없는 형태 변형
+6. 원문에 없는 correct 문자열
+
+규칙:
+1. 원문 english를 절대 바꾸지 않는다. correct는 원문 부분문자열.
+2. 각 blank = [correct / wrong] 2지. wrong는 CASE 메커니즘·혼동어에 맞는 그럴듯한 오답.
+3. 수일치는 지문 전체 최대 1개. 단원은 서로 다르게(변형문제 pickGrammarFocus와 동일).
+4. **모든 문장**에 최소 2개(아주 짧은 문장만 1개). 지문 전체 ≈ 문장수×2~4.
+5. 어법이면 grammarSub, 어휘면 vocabularySub + questionKind:"vocabulary".
+6. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","vocabularySub","questionKind","koLabel","koTip"}]}
 grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle, adjective_adverb, infinitive, gerund, conjunction, subject_verb_agreement, word_order, comparison`;
 
   const user = JSON.stringify({
-    task: "stage6_inline_ab",
+    task: "stage6_inline_ab_qg_engine",
+    engine: "question-generator-grammar-catalog",
+    style: "incheon_workbook_stage6",
     sentences: ordered.map((s) => ({
       id: s.id,
       order: s.sentence_order,
@@ -129,8 +142,13 @@ grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle,
     const raw = await questionGeneratorChatJson({
       system,
       user,
-      temperature: 0.4,
-      maxTokens: 2500,
+      temperature: 0.25,
+      maxTokens: 6000,
+      reasoningEffort: "medium",
+      preferredModels: [
+        process.env.OPENAI_MODEL_EXAM_PREP_STAGE6?.trim() || "gpt-5.5",
+        "gpt-5",
+      ],
     });
     const list = (raw as { blanks?: AiStage6Blank[] })?.blanks;
     if (!Array.isArray(list) || list.length === 0) {
@@ -162,13 +180,15 @@ grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle,
         if (usedSv) continue;
         usedSv = true;
       }
-      // 단원 중복은 여유 있을 때만 허용
-      if (usedUnits.has(sub) && drafts.length >= Math.min(6, ordered.length)) continue;
+      if (usedUnits.has(sub) && drafts.length >= Math.min(10, ordered.length * 2)) {
+        continue;
+      }
       const english = String(sent.english_text ?? "");
       const span = findSpanCi(english, correct);
       if (!span) continue;
       const used = usedBySent.get(sid) ?? [];
       if (used.some((u) => span.start < u.b && span.end > u.a)) continue;
+      if (used.length >= 4) continue;
       used.push({ a: span.start, b: span.end });
       usedBySent.set(sid, used);
       usedUnits.add(sub);
@@ -273,8 +293,10 @@ ${grammarChoiceCraftNote()}
     const raw = await questionGeneratorChatJson({
       system,
       user,
-      temperature: 0.4,
-      maxTokens: 2200,
+      temperature: 0.3,
+      maxTokens: 4000,
+      reasoningEffort: "medium",
+      preferredModels: ["gpt-5.5", "gpt-5"],
     });
     const list = (raw as { errors?: AiStage7Error[] })?.errors;
     if (!Array.isArray(list) || list.length === 0) {

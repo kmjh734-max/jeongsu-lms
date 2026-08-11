@@ -983,19 +983,21 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
   return drafts;
 }
 
-/** AI 결과가 빈약할 때 규칙 시드를 기준으로 합친다 (문장 커버리지 우선) */
+/**
+ * 6단계 병합: 변형문제 AI를 우선하고, 비는 문장만 규칙 플랜트로 채운다.
+ * (엉터리 plant가 AI를 덮어쓰지 않게)
+ */
 export function mergeStage6Drafts(
-  plant: Stage6ItemDraft[],
-  ai: Stage6ItemDraft[],
+  primary: Stage6ItemDraft[],
+  filler: Stage6ItemDraft[],
   sentenceIds: string[]
 ): Stage6ItemDraft[] {
   const bySent = new Map<string, Stage6ItemDraft[]>();
   for (const id of sentenceIds) bySent.set(id, []);
 
-  const add = (d: Stage6ItemDraft, prefer: boolean) => {
+  const add = (d: Stage6ItemDraft) => {
     const list = bySent.get(d.sentence_id) ?? [];
-    if (list.length >= 4 && !prefer) return;
-    if (list.length >= 5) return;
+    if (list.length >= 4) return;
     if (list.some((x) => x.english_start < d.english_end && x.english_end > d.english_start)) {
       return;
     }
@@ -1007,11 +1009,11 @@ export function mergeStage6Drafts(
     bySent.set(d.sentence_id, list);
   };
 
-  for (const d of plant) add(d, true);
-  for (const d of ai) {
+  for (const d of primary) add(d);
+  for (const d of filler) {
     const list = bySent.get(d.sentence_id) ?? [];
-    if (list.length >= 2) continue; // 문장당 이미 충분하면 AI 생략
-    add(d, false);
+    if (list.length >= 2) continue;
+    add(d);
   }
 
   let order = 1;
@@ -1021,7 +1023,20 @@ export function mergeStage6Drafts(
       out.push({ ...d, blank_order: order++ });
     }
   }
-  return out.length > 0 ? out : plant;
+  if (out.length > 0) return out;
+  return primary.length > 0 ? primary : filler;
+}
+
+/** AI 커버리지가 충분하면 true (문장의 75%+ · 문항수 ≥ 문장수) */
+export function stage6AiCoverageOk(
+  ai: Stage6ItemDraft[],
+  sentenceCount: number
+): boolean {
+  if (sentenceCount <= 0 || ai.length === 0) return false;
+  const covered = new Set(ai.map((d) => d.sentence_id)).size;
+  return (
+    covered >= Math.ceil(sentenceCount * 0.75) && ai.length >= sentenceCount
+  );
 }
 
 /**

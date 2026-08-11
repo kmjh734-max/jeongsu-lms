@@ -14,6 +14,7 @@ import {
   buildStage8Drafts,
   buildStage9Config,
   mergeStage6Drafts,
+  stage6AiCoverageOk,
   type SeedSentence,
 } from "@/lib/exam-prep/auto-seed-stages";
 import {
@@ -173,17 +174,21 @@ export async function generateFullExamPrepWorkbookAction(input: {
     await tryPublish(5, () => setStage5PublishedAction(passageId, true));
   }
 
-  // 6·7단계: 지문 분석 규칙 시드가 기본, AI는 빈 문장만 보충
+  // 6·7단계: 변형문제 AI(상위 모델) 우선, 부족 문장만 규칙 보충
   {
     const plant6 = buildStage6Drafts(sentences);
     const ai6 = await generateStage6WithAi(sentences);
+    const ids = sentences.map((s) => s.id);
+    const preferAi = stage6AiCoverageOk(ai6.drafts, sentences.length);
     const s6 = mergeStage6Drafts(
-      plant6,
-      ai6.drafts,
-      sentences.map((s) => s.id)
+      preferAi ? ai6.drafts : plant6,
+      preferAi ? plant6 : ai6.drafts,
+      ids
     );
-    if (ai6.source === "ai") {
-      notes.push(`6단계 지문분석 ${plant6.length}+AI보충 → ${s6.length}문항`);
+    if (ai6.source === "ai" && preferAi) {
+      notes.push(`6단계 변형문제AI ${ai6.drafts.length}+규칙보충 → ${s6.length}문항`);
+    } else if (ai6.source === "ai") {
+      notes.push(`6단계 규칙 ${plant6.length}+AI보충 → ${s6.length}문항`);
     } else if (ai6.error) {
       notes.push(`6단계 AI 생략→규칙: ${ai6.error}`);
     }

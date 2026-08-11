@@ -407,17 +407,6 @@ const MECHANISM_PLANTS: MechPlant[] = [
     forChoice: true,
     forError: true,
   },
-  // —— that 명사절 vs which (가정·인식 동사 뒤)
-  {
-    unitKey: "relative",
-    caseId: "rel-that-clause",
-    correct:
-      /\b(?:assume|assumes|assumed|know|knows|knew|think|thinks|thought|seem|seems|seemed|feel|feels|felt|suggest|suggests|suggested)\s+that\b/gi,
-    wrong: (matched) => matched.replace(/\bthat\b/i, "which"),
-    priority: 84,
-    forChoice: true,
-    forError: true,
-  },
   // —— 분사·부사: highly skilled
   {
     unitKey: "adjadv",
@@ -758,6 +747,24 @@ export function isNonsenseChoicePair(correct: string, wrong: string): boolean {
     (aw === "sometimes" && bw === "sometime")
   ) {
     return true;
+  }
+
+  // 명사절 동사 + that ↔ which (assume that / assume which) — 출제 금지
+  {
+    const thatWhich = (x: string, y: string) => {
+      const mx = x.match(
+        /^((?:assume|assumes|assumed|know|knows|knew|think|thinks|thought|seem|seems|seemed|feel|feels|felt|suggest|suggests|suggested|believe|believes|believed|realize|realizes|realized|hope|hopes|hoped|say|says|said|show|shows|showed|decide|decides|decided)\s+)(that|which)$/i
+      );
+      const my = y.match(
+        /^((?:assume|assumes|assumed|know|knows|knew|think|thinks|thought|seem|seems|seemed|feel|feels|felt|suggest|suggests|suggested|believe|believes|believed|realize|realizes|realized|hope|hopes|hoped|say|says|said|show|shows|showed|decide|decides|decided)\s+)(that|which)$/i
+      );
+      if (!mx || !my) return false;
+      return (
+        mx[1]!.toLowerCase() === my[1]!.toLowerCase() &&
+        mx[2]!.toLowerCase() !== my[2]!.toLowerCase()
+      );
+    };
+    if (thatWhich(a, b)) return true;
   }
 
   // 단일 토큰 ±s / ±es 만 다른 쌍 (whole/wholes, part/parts, rat/rats…)

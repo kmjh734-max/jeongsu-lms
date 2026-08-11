@@ -8,12 +8,18 @@ import {
   listeningModelSupportsCustomTemperature,
 } from "@/lib/listening/openai-listening-model";
 
-function modelCandidates(): string[] {
+function modelCandidates(preferred?: string[]): string[] {
   const dedicated = process.env.OPENAI_MODEL_QUESTION_GENERATOR?.trim();
-  if (dedicated) {
-    return [dedicated, ...getListeningGeneratorModelCandidates().filter((m) => m !== dedicated)];
-  }
-  return getListeningGeneratorModelCandidates();
+  const base = getListeningGeneratorModelCandidates();
+  const extras = (preferred ?? []).map((m) => m.trim()).filter(Boolean);
+  const ordered: string[] = [];
+  const push = (m: string) => {
+    if (m && !ordered.includes(m)) ordered.push(m);
+  };
+  for (const m of extras) push(m);
+  if (dedicated) push(dedicated);
+  for (const m of base) push(m);
+  return ordered;
 }
 
 type RequestProfile = {
@@ -37,7 +43,8 @@ function buildBody(
   user: string,
   temperature: number,
   maxTokens: number,
-  profile: RequestProfile
+  profile: RequestProfile,
+  reasoningEffort?: "low" | "medium" | "high"
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {
     model,
@@ -58,7 +65,7 @@ function buildBody(
       maxTokens
     );
     if (profile.includeReasoningEffort) {
-      body.reasoning_effort = "low";
+      body.reasoning_effort = reasoningEffort ?? "low";
     }
   } else {
     body.max_tokens = Math.min(8192, maxTokens);
@@ -113,6 +120,10 @@ export async function questionGeneratorChatJson(opts: {
   user: string;
   temperature?: number;
   maxTokens?: number;
+  /** GPT-5 계열 reasoning_effort (기본 low) */
+  reasoningEffort?: "low" | "medium" | "high";
+  /** 우선 시도할 모델 (예: gpt-5.5) */
+  preferredModels?: string[];
 }): Promise<unknown> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
@@ -123,7 +134,7 @@ export async function questionGeneratorChatJson(opts: {
   const maxTokens = opts.maxTokens ?? 4096;
   let lastError = "AI 요청에 실패했습니다.";
 
-  for (const model of modelCandidates()) {
+  for (const model of modelCandidates(opts.preferredModels)) {
     let profile = defaultProfile(model);
     for (let attempt = 0; attempt < 4; attempt++) {
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -133,7 +144,15 @@ export async function questionGeneratorChatJson(opts: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(
-          buildBody(model, opts.system, opts.user, temperature, maxTokens, profile)
+          buildBody(
+            model,
+            opts.system,
+            opts.user,
+            temperature,
+            maxTokens,
+            profile,
+            opts.reasoningEffort
+          )
         ),
       });
       const bodyText = await res.text();
