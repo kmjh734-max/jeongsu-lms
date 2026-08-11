@@ -25,17 +25,61 @@ const QUESTION_GAP_MM = 5;
 const QUESTION_GAP_MM_WITH_SCRIPT = 3;
 const COLUMN_SAFETY_PX = 16;
 const COLUMN_SAFETY_PX_WITH_SCRIPT = 28;
+const COLUMN_SAFETY_PX_WITH_FIGURE = 28;
 const MAX_OVERFLOW_FIXES = 24;
 const A4_HEIGHT_PX = Math.round((297 * 96) / 25.4);
 
-function getExamLayoutConfig(showScript: boolean) {
+function getExamLayoutConfig(
+  showScript: boolean,
+  hasFigureQuestions: boolean
+) {
   const gapMm = showScript ? QUESTION_GAP_MM_WITH_SCRIPT : QUESTION_GAP_MM;
+  const safety = showScript
+    ? COLUMN_SAFETY_PX_WITH_SCRIPT
+    : hasFigureQuestions
+      ? COLUMN_SAFETY_PX_WITH_FIGURE
+      : COLUMN_SAFETY_PX;
   return {
     gapMm,
     gapPx: Math.round((gapMm * 96) / 25.4),
     gapStyle: { gap: `${gapMm}mm` } as const,
-    columnSafetyPx: showScript ? COLUMN_SAFETY_PX_WITH_SCRIPT : COLUMN_SAFETY_PX,
+    columnSafetyPx: safety,
   };
+}
+
+function questionsHaveFigures(questions: ListeningQuestionData[]): boolean {
+  return questions.some((q) =>
+    (q.choice_image_urls ?? []).some((u) => String(u).trim())
+  );
+}
+
+/** 인쇄 측정 전에 그림 로드 완료 대기 (미로드 높이로 단 배치되면 잘림) */
+function waitForImages(root: HTMLElement, timeoutMs = 12000): Promise<void> {
+  const imgs = Array.from(root.querySelectorAll("img"));
+  if (imgs.length === 0) return Promise.resolve();
+  return Promise.race([
+    Promise.all(
+      imgs.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            if (img.complete) {
+              resolve();
+              return;
+            }
+            img.addEventListener("load", () => resolve(), { once: true });
+            img.addEventListener("error", () => resolve(), { once: true });
+          })
+      )
+    ),
+    new Promise<void>((resolve) => {
+      window.setTimeout(() => resolve(), timeoutMs);
+    }),
+  ]).then(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      })
+  );
 }
 
 function columnUsedHeight(indices: number[], heights: number[], gapPx: number) {
@@ -171,7 +215,13 @@ export function ListeningExamPrintView({
   };
 
   const resolvedPages = pages;
-  const layoutConfig = getExamLayoutConfig(showScript);
+  const hasFigures = questionsHaveFigures(questions);
+  const layoutConfig = getExamLayoutConfig(showScript, hasFigures);
+  /** 그림 문항이 있으면 고정 5+5 배치보다 높이 기반·오버플로 이동을 우선 */
+  const useFixedTwentyLayout =
+    !showScript &&
+    isStandardTwentyQuestionExam(questions.length) &&
+    !hasFigures;
 
   useLayoutEffect(() => {
     if (questions.length === 0) {
@@ -186,7 +236,10 @@ export function ListeningExamPrintView({
     const probeNext = probeNextRef.current;
     if (!measureRoot || !probeFirst || !probeNext) return;
 
+    let cancelled = false;
+
     const measureAndPaginate = () => {
+      if (cancelled) return;
       const firstBody = probeFirst.querySelector<HTMLElement>("[data-body-zone]");
       const nextBody = probeNext.querySelector<HTMLElement>("[data-body-zone]");
       if (!firstBody || !nextBody) return;
@@ -200,8 +253,13 @@ export function ListeningExamPrintView({
         const answerEl = measureRoot.querySelector<HTMLElement>(
           `[data-measure-answer-q="${q.id}"]`
         );
-        const examH = Math.ceil(examEl?.offsetHeight ?? 96);
-        const answerH = Math.ceil(answerEl?.offsetHeight ?? examH);
+        const hasFig = Boolean(
+          examEl?.querySelector(".listening-exam-figure-img")
+        );
+        // 그림 문항은 측정 오차·여백을 조금 더 줌 → 단 끝에 끼워 넣다 잘리는 것 방지
+        const pad = hasFig ? 12 : 0;
+        const examH = Math.ceil(examEl?.offsetHeight ?? 96) + pad;
+        const answerH = Math.ceil(answerEl?.offsetHeight ?? examH) + pad;
         examHeights.push(examH);
         answerHeights.push(answerH);
       }
@@ -213,25 +271,43 @@ export function ListeningExamPrintView({
         columnSafetyPx: layoutConfig.columnSafetyPx,
       };
 
-      // 표준 20문항(전국 듣기와 동일 규격)은 좌5+우5 × 2페이지 고정
-      // → 오버플로 보정에 문항이 밀려 4문제만 남는 현상 방지
-      const examLayouts =
-        !showScript && isStandardTwentyQuestionExam(questions.length)
-          ? paginateStandardTwentyExam()
-          : paginateExamQuestions(examHeights, packOpts);
+      const examLayouts = useFixedTwentyLayout
+        ? paginateStandardTwentyExam()
+        : paginateExamQuestions(examHeights, packOpts);
 
       overflowFixAttempts.current = 0;
       setPagesVerified(false);
       setPages(examLayouts);
       setAnswerPages(
-        !showScript && isStandardTwentyQuestionExam(questions.length)
+        useFixedTwentyLayout
           ? paginateStandardTwentyExam()
           : paginateExamQuestions(answerHeights, packOpts)
       );
     };
 
-    measureAndPaginate();
-    void document.fonts?.ready?.then(measureAndPaginate);
+    const run = async () => {
+      await document.fonts?.ready?.catch(() => undefined);
+      await waitForImages(measureRoot);
+      if (cancelled) return;
+      measureAndPaginate();
+    };
+
+    void run();
+
+    // 늦게 뜨는 그림이 있으면 다시 측정 → 큰 그림 문항이 다음 단으로 이동
+    const onImg = () => {
+      void waitForImages(measureRoot, 2000).then(() => {
+        if (!cancelled) measureAndPaginate();
+      });
+    };
+    measureRoot.addEventListener("load", onImg, true);
+    measureRoot.addEventListener("error", onImg, true);
+
+    return () => {
+      cancelled = true;
+      measureRoot.removeEventListener("load", onImg, true);
+      measureRoot.removeEventListener("error", onImg, true);
+    };
   }, [
     questions,
     showScript,
@@ -242,13 +318,15 @@ export function ListeningExamPrintView({
     setId,
     layoutConfig.gapPx,
     layoutConfig.columnSafetyPx,
+    useFixedTwentyLayout,
+    hasFigures,
   ]);
 
   useLayoutEffect(() => {
     if (!pages || questions.length === 0) return;
 
-    // 표준 20문항은 고정 배치 — 오버플로로 밀지 않음 (여백만 남기거나 CSS로 압축)
-    if (!showScript && isStandardTwentyQuestionExam(questions.length)) {
+    // 고정 20문항(그림 없음)만 오버플로 이동 생략
+    if (useFixedTwentyLayout) {
       overflowFixAttempts.current = 0;
       setPagesVerified(true);
       return;
@@ -332,6 +410,7 @@ export function ListeningExamPrintView({
     gradeLabel,
     studentName,
     includeAnswerKey,
+    useFixedTwentyLayout,
   ]);
 
   function runPrint(scope: PrintScope) {
@@ -441,7 +520,7 @@ export function ListeningExamPrintView({
               </label>
             </div>
             <p className="mt-3 text-xs text-slate-500">
-              A4 2단 · 문항 높이에 맞춰 배치 · 넘치면 다음 페이지
+              A4 2단 · 문항 높이에 맞춰 배치 · 그림이 크면 다음 단으로 이동
               {resolvedPages && ` · 시험지 ${totalPages}페이지`}
             </p>
           </div>
