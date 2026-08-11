@@ -1,6 +1,7 @@
 /**
  * 듣기 그림 문항 — OpenAI Images → Supabase storage
- * high1 4번: 합성 장면 1장 (그림 안에 ①–⑤ 전부) / middle: 선택지별 최대 5장
+ * high1 4번: 합성 장면 1장 (그림 안에 ①–⑤ 전부, 대본·색 정보 반영)
+ * middle: 선택지별 최대 5장
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
@@ -10,13 +11,23 @@ import {
 
 export const LISTENING_IMAGES_BUCKET = "listening-images";
 
-const COMPOSITE_LABEL_RULES = `CRITICAL — Korean CSAT / 학력평가 listening 「그림 불일치」 worksheet figure:
-1) Draw ONE clean black-and-white line-art poster/scene on white background (textbook style, no photo, no 3D, no watermark).
-2) The figure MUST contain ALL FIVE circled answer labels inside the drawing: ① ② ③ ④ ⑤.
-3) Each of ① ② ③ ④ ⑤ must be a LARGE bold black circled number placed clearly next to a DISTINCT element (title, object, people, date, icon, etc.).
-4) Do NOT omit any label. Before finishing, count: there must be exactly five circled numbers ①,②,③,④,⑤ all visible and readable.
-5) Labels are the answer choices — students pick which numbered part mismatches the dialogue. Do not put a separate multiple-choice list outside the scene.
-6) High contrast, simple shapes, exam-booklet look.`;
+export type CompositeFigureContext = {
+  /** 듣기 대본 (영문) */
+  scriptText?: string;
+  /** 불일치 라벨 ①~⑤ */
+  mismatchLabel?: string;
+  /** 해설/단서 */
+  explanation?: string;
+  answerClue?: string;
+};
+
+const COMPOSITE_LABEL_RULES = `CRITICAL — Korean 학력평가 listening 「그림 불일치」 exam figure:
+1) Draw ONE clean educational illustration (poster/scene) on white background. Flat vector / textbook style. No photorealism, no 3D, no watermark.
+2) COLOR IS ALLOWED AND REQUIRED when the scene mentions different colors (e.g. bins of different colors). Use simple flat colors (red/blue/green/yellow) so differences are obvious. Do NOT make everything grayscale if color is part of the content.
+3) The figure MUST contain ALL FIVE large circled labels inside the drawing: ① ② ③ ④ ⑤.
+4) Each label sits next to a DISTINCT element. Count them — all five must be readable.
+5) The picture shows what is ON the poster/scene (including the one mismatched detail). Students find which numbered part does NOT match the dialogue.
+6) No separate multiple-choice list outside the scene.`;
 
 function imageModelCandidates(): string[] {
   const dedicated = process.env.OPENAI_MODEL_LISTENING_IMAGE?.trim();
@@ -25,7 +36,6 @@ function imageModelCandidates(): string[] {
     if (m && !out.includes(m)) out.push(m);
   };
   push(dedicated);
-  // 상위 이미지 모델 우선
   push("gpt-image-1.5");
   push("gpt-image-1");
   push("dall-e-3");
@@ -48,10 +58,27 @@ export function publicChoiceImageUrl(
   return `${base}/storage/v1/object/public/${LISTENING_IMAGES_BUCKET}/${storagePath}`;
 }
 
+/** choices/correct_answer → 그림 속 불일치 라벨 ①~⑤ */
+export function resolveMismatchLabel(
+  choices: string[] | null | undefined,
+  correctAnswer: number | null | undefined
+): string | null {
+  const list = (choices ?? []).map((c) => String(c).trim());
+  const idx = Number(correctAnswer);
+  if (!Number.isFinite(idx) || idx < 1) return null;
+  const fromChoice = list[idx - 1];
+  if (fromChoice && /^[①②③④⑤]$/.test(fromChoice)) return fromChoice;
+  const byIndex = ["①", "②", "③", "④", "⑤"][idx - 1];
+  return byIndex ?? null;
+}
+
 /**
- * 장면 설명을 ①–⑤ 체크리스트형 영문 프롬프트로 확장 (상위 chat 모델)
+ * 장면 설명을 대본·불일치 정보까지 넣어 영문 드로잉 프롬프트로 확장
  */
-async function enrichCompositeScenePrompt(scenePrompt: string): Promise<string> {
+async function enrichCompositeScenePrompt(
+  scenePrompt: string,
+  ctx?: CompositeFigureContext
+): Promise<string> {
   const raw = String(scenePrompt ?? "").trim();
   if (!raw) throw new Error("choice_image_prompts가 비어 있습니다.");
 
@@ -67,19 +94,26 @@ async function enrichCompositeScenePrompt(scenePrompt: string): Promise<string> 
     const planned = (await questionGeneratorChatJsonWithRetry({
       system: `You plan Korean high-school listening exam figures (그림 불일치).
 Return JSON only: {"imagePrompt":"..."}.
-imagePrompt must be detailed English drawing instructions for ONE worksheet illustration.
-Hard rules for imagePrompt:
-- Require ALL five circled labels ① ② ③ ④ ⑤ inside the picture, each large and next to a different element.
-- Explicitly list: "Label ①: ...", "Label ②: ...", "Label ③: ...", "Label ④: ...", "Label ⑤: ...".
-- End with: "VERIFY: circled numbers ①,②,③,④,⑤ are all present and readable."
-- Black-and-white line art, white background, CSAT listening booklet style.
-- No photorealism, no extra choice list outside the scene.`,
+imagePrompt = detailed English drawing instructions for ONE worksheet illustration.
+
+Hard rules:
+- ALL five circled labels ① ② ③ ④ ⑤ must appear large inside the picture.
+- Explicitly list Label ①…⑤ with what to draw at each.
+- If dialogue mentions colors (different colors, colored objects), the drawing MUST use distinct flat colors — never all gray/identical.
+- The picture must show the POSTER AS DRAWN, including the mismatched detail (the wrong label content). Other labels match the dialogue.
+- If mismatchLabel is given, that label's drawn content is the wrong one (e.g. time says 4 p.m. while dialogue planned 3; or microphone instead of camera).
+- Flat educational colors OK. No photorealism. No extra choice list outside the scene.
+- End with: "VERIFY: ①②③④⑤ all present; color differences visible when required."`,
       user: JSON.stringify({
         task: "enrich_high1_type4_figure_prompt",
         sourceScene: raw,
+        scriptText: ctx?.scriptText ?? null,
+        mismatchLabel: ctx?.mismatchLabel ?? null,
+        explanation: ctx?.explanation ?? null,
+        answerClue: ctx?.answerClue ?? null,
       }),
-      temperature: 0.3,
-      maxTokens: 2000,
+      temperature: 0.25,
+      maxTokens: 2500,
       reasoningEffort: "high",
       preferredModels: preferred,
     })) as { imagePrompt?: string };
@@ -89,28 +123,33 @@ Hard rules for imagePrompt:
       return `${COMPOSITE_LABEL_RULES}\n\n${enriched}`.slice(0, 3200);
     }
   } catch {
-    // fall through to deterministic wrap
+    // fall through
   }
+
+  const mismatch = ctx?.mismatchLabel
+    ? `\nMismatch label ${ctx.mismatchLabel}: draw the WRONG detail here (${ctx.answerClue || ctx.explanation || "as in answer clue"}).`
+    : "";
+  const scriptBit = ctx?.scriptText
+    ? `\nDialogue (use for colors & details):\n${ctx.scriptText}`
+    : "";
 
   return `${COMPOSITE_LABEL_RULES}
 
-Scene details (must map each detail to one label):
+Scene:
 ${raw}
+${scriptBit}
+${mismatch}
 
-Mandatory label checklist — draw ALL of these as large circled numbers on the matching elements:
-- ① must appear
-- ② must appear
-- ③ must appear
-- ④ must appear
-- ⑤ must appear
-VERIFY before done: count five circled labels ①②③④⑤.`.slice(0, 3200);
+Mandatory: Label ①,②,③,④,⑤ all large and visible.
+If bins/objects have different colors in the dialogue, paint them clearly different flat colors (e.g. blue / yellow / green).
+VERIFY: five labels + color differences when mentioned.`.slice(0, 3200);
 }
 
 function buildSimpleChoicePrompt(scenePrompt: string): string {
   const body = String(scenePrompt ?? "").trim();
   if (!body) throw new Error("choice_image_prompts가 비어 있습니다.");
   return `Korean middle-school English listening exam choice illustration.
-Clean simple black-and-white line drawing, white background, textbook style, no text labels unless essential.
+Clean simple flat-color or line drawing, white background, textbook style.
 Subject: ${body}`.slice(0, 3000);
 }
 
@@ -131,7 +170,6 @@ async function generateImagePngBytes(prompt: string): Promise<Buffer> {
       body.quality = "hd";
       body.style = "natural";
     } else {
-      // gpt-image-* : high quality for exam figures
       body.quality = "high";
     }
 
@@ -191,7 +229,6 @@ async function uploadPng(
   if (error) {
     throw new Error(`storage upload 실패: ${error.message}`);
   }
-  // cache-bust query so print/UI refresh shows new art
   const base = publicChoiceImageUrl(supabaseUrl, storagePath);
   return `${base}?v=${Date.now()}`;
 }
@@ -229,14 +266,14 @@ async function verifyCompositeHasAllLabels(
             {
               role: "system",
               content:
-                'You check Korean listening-exam figures. Reply JSON only: {"has1":bool,"has2":bool,"has3":bool,"has4":bool,"has5":bool,"missing":["②"],"note":"..."}. hasN true only if circled label ①/②/③/④/⑤ is clearly visible in the image.',
+                'Check Korean listening-exam figures. JSON only: {"has1":bool,"has2":bool,"has3":bool,"has4":bool,"has5":bool,"colorsDistinct":bool|null,"missing":["②"],"note":"..."}. hasN true only if circled ①–⑤ visible. colorsDistinct=true if multi-color objects are clearly different colors (not all gray/same).',
             },
             {
               role: "user",
               content: [
                 {
                   type: "text",
-                  text: "Are circled labels ① ② ③ ④ ⑤ ALL present and readable?",
+                  text: "Are circled labels ①②③④⑤ all present? If recycling bins or colored items appear, are their colors clearly different?",
                 },
                 { type: "image_url", image_url: { url: dataUrl } },
               ],
@@ -260,6 +297,7 @@ async function verifyCompositeHasAllLabels(
         has3?: boolean;
         has4?: boolean;
         has5?: boolean;
+        colorsDistinct?: boolean | null;
         missing?: string[];
         note?: string;
       };
@@ -275,16 +313,18 @@ async function verifyCompositeHasAllLabels(
         Array.isArray(parsed.missing) && parsed.missing.length
           ? parsed.missing.map(String)
           : labels.filter((_, i) => flags[i] !== true);
+      const colorFail = parsed.colorsDistinct === false;
       return {
-        ok: missing.length === 0,
-        missing,
+        ok: missing.length === 0 && !colorFail,
+        missing: colorFail
+          ? [...missing, "colors-not-distinct"]
+          : missing,
         note: String(parsed.note ?? ""),
       };
     } catch (e) {
       lastErr = e instanceof Error ? e.message : String(e);
     }
   }
-  // 검수 실패 시 통과시키지 않고 재시도 유도
   return { ok: false, missing: ["①", "②", "③", "④", "⑤"], note: lastErr };
 }
 
@@ -295,12 +335,10 @@ export async function generateAndSaveChoiceImages(opts: {
   setId: string;
   questionId: string;
   prompts: string[];
-  /** high1 4번처럼 그림 안에 ①–⑤가 들어가는 합성 장면 */
   compositeLabeledFigure?: boolean;
-  /** 이미 URL이 있으면 스킵 (기본 true) */
+  figureContext?: CompositeFigureContext;
   skipIfPresent?: boolean;
   force?: boolean;
-  /** 합성 장면 라벨 검수 재시도 (기본 2 = 총 3회) */
   maxLabelRetries?: number;
 }): Promise<{ urls: string[]; generated: number; skipped: boolean }> {
   const admin = createAdminClient();
@@ -336,7 +374,7 @@ export async function generateAndSaveChoiceImages(opts: {
     let bytes: Buffer | null = null;
     let attemptPrompt =
       composite && prompts.length === 1
-        ? await enrichCompositeScenePrompt(prompts[i]!)
+        ? await enrichCompositeScenePrompt(prompts[i]!, opts.figureContext)
         : buildSimpleChoicePrompt(prompts[i]!);
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -347,28 +385,26 @@ export async function generateAndSaveChoiceImages(opts: {
       if (check.ok) break;
       if (attempt >= maxRetries) {
         console.warn(
-          `[listening-image] labels incomplete after retries: missing=${check.missing.join(",")}`
+          `[listening-image] QA incomplete: ${check.missing.join(",")}`
         );
         break;
       }
       attemptPrompt = `${COMPOSITE_LABEL_RULES}
 
-PREVIOUS DRAWING FAILED QA — missing labels: ${check.missing.join(", ") || "unknown"}.
+PREVIOUS DRAWING FAILED QA — issues: ${check.missing.join(", ") || "unknown"}.
 ${check.note ? `QA note: ${check.note}` : ""}
 
-You MUST redraw so EVERY circled label ① ② ③ ④ ⑤ is large, bold, and clearly visible next to its element.
-Especially force these missing ones back into the figure: ${check.missing.join(", ")}.
+Redraw with ALL of ①②③④⑤ large and visible.
+If colors were not distinct: paint recycling bins / colored objects in clearly DIFFERENT flat colors (blue, yellow, green — not the same gray).
+Mismatch label ${opts.figureContext?.mismatchLabel ?? "(see scene)"} must show the WRONG detail from the answer.
 
-Original scene:
+Scene:
 ${prompts[i]}
+Script:
+${opts.figureContext?.scriptText ?? ""}
+Clue: ${opts.figureContext?.answerClue ?? opts.figureContext?.explanation ?? ""}
 
-Explicit checklist:
-Label ①: first element from the scene (must show ①)
-Label ②: second element (must show ②)
-Label ③: third element (must show ③)
-Label ④: fourth element (must show ④)
-Label ⑤: fifth element (must show ⑤)
-VERIFY: count five circled numbers.`.slice(0, 3200);
+VERIFY five labels + distinct colors when required.`.slice(0, 3200);
     }
 
     if (!bytes) throw new Error("이미지 바이트 없음");
@@ -389,9 +425,6 @@ VERIFY: count five circled numbers.`.slice(0, 3200);
   return { urls, generated, skipped: false };
 }
 
-/**
- * 템플릿 학원 문항의 이미지 URL을 같은 회차·같은 번호 문항에 복사
- */
 export async function propagateChoiceImageUrls(opts: {
   sourceQuestionId: string;
   setTitle: string;
@@ -433,5 +466,4 @@ export async function propagateChoiceImageUrls(opts: {
   return updated;
 }
 
-/** 인쇄용: 보기가 ①–⑤ 번호뿐이면 목록을 숨기고 그림만 쓴다 */
 export { shouldHideTextChoicesForFigure } from "@/lib/listening/figure-choice-display";
