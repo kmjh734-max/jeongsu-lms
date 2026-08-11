@@ -22,7 +22,7 @@ function loadEnvLocal() {
     ) {
       v = v.slice(1, -1);
     }
-    if (!process.env[k]) process.env[k] = v;
+    process.env[k] = v;
   }
 }
 loadEnvLocal();
