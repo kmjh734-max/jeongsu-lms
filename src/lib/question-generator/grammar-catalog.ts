@@ -1,14 +1,17 @@
 /**
  * 어법 출제 — 교재 유닛×CASE 뱅크 + 문항마다 다른 포커스 샘플링
  *
+ * 고등 영어 어법서술형 GRAMMAR POINT 01–15
  * 어법끝(개정) START PART I UNIT 01–10 (Point 01–23)
  * 처음 만나는 수능 어법 스타터 UNIT 01–13
+ * 고등 영어 어법서술형 GRAMMAR POINT 01–15
  *
  * 원칙: 단원 나열이 아니라 CASE별 ‘네모 형태·심는 법’이 달라야 함.
  * 금지: 인접 단순 수일치(such things change/changes), 같은 is/are 패턴 반복.
  */
 
 export const GRAMMAR_TEXTBOOK_TITLES = [
+  "고등 영어 어법서술형 (GRAMMAR POINT 01–15)",
   "어법끝(개정) START",
   "처음 만나는 수능 어법 스타터(입문)",
   "마더텅 고2 영어 어휘·어법 (수능필수어법)",

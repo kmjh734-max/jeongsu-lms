@@ -242,7 +242,7 @@ export async function generateFullExamPrepWorkbookAction(input: {
     const vOk = stage6AiCoverageOk(vocab, sentences.length, "vocabulary");
 
     notes.push(
-      `5단계 어법 ${useAiG ? "AI" : "규칙"} ${grammarN}문항 · ${gCover}/${sentences.length}문장${gOk ? " ✓" : ""}${aiG.error && !useAiG ? ` (${aiG.error})` : ""}`
+      `5단계 어법 ${useAiG ? "분석→AI" : "규칙"} ${grammarN}문항 · ${gCover}/${sentences.length}문장${gOk ? " ✓" : ""}${aiG.error ? ` · ${aiG.error}` : ""}`
     );
     notes.push(
       `6단계 어휘 ${useAiV ? "AI" : "규칙"} ${vocabN}문항 · ${vCover}/${sentences.length}문장${vOk ? " ✓" : ""}${aiV.error && !useAiV ? ` (${aiV.error})` : ""}`

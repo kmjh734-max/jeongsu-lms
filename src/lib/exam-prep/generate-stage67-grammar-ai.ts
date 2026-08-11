@@ -19,6 +19,10 @@ import {
   grammarChoiceCraftNote,
   vocabChoiceCraft,
 } from "@/lib/question-generator/choice-craft";
+import {
+  analyzePassageGrammarForWorkbook,
+  analysisHitsToSeedBlanks,
+} from "@/lib/exam-prep/analyze-passage-grammar";
 import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
 import type { Stage7CandidateDraft } from "@/lib/exam-prep/stage7-types";
@@ -115,10 +119,14 @@ function blanksPerSentenceTarget(english: string): number {
 
 function buildGrammarSystem(focusBlock: string): string {
   return `당신은 한국 고등 영어 내신·학력평가 **어법** 출제위원이다.
-변형문제 「어법추론」「어법개수」와 **같은 grammar-catalog / CASE / craft**로 워크북 5단계 [correct / wrong]를 만든다.
+워크북 5단계 [correct / wrong]는 아래 교재 기준으로만 출제한다.
 
-핵심 차이: 변형문제는 지문 전체 밑줄 5~6개, 워크북은 문장마다 [원문형 / 오답형] 2지.
-품질 기준은 변형문제와 동일 — CASE 메커니즘·심는 법·금지 규칙을 지켜라.
+교재:
+1) 고등 영어 어법서술형 GRAMMAR POINT 01–15 (시제·태, 조동사, to부정사, 동명사, 분사구문, 접속사, 관계사, 가정법, 5형식/it, 도치·강조, 비교, 수일치)
+2) 어법끝(개정) START — 네모 어법 CASE (Point·심는 법)
+3) 처음 만나는 수능 어법 스타터(입문) UNIT/Point
+
+**반드시 지문 분석 결과(아래 focus)에 나온 포인트 우선.** 분석에 없는 억지 함정 금지.
 
 ${focusBlock}
 
@@ -128,28 +136,26 @@ ${grammarExplanationRules()}
 
 ${grammarChoiceCraftNote()}
 
-좋은 예 (변형문제 수준):
-- been dumping / been dumped (태)
-- where / that (관계부사 자리)
+좋은 예:
+- been dumping / been dumped (태·GP01)
+- where / that (관계부사·GP10)
 - attracts / is attracted (능동·수동)
 - which has / which have (관계절 수일치 — 인접 단순 is/are 금지)
 - desperately / desperate (부사·형용사)
-- illegal / illegally
 
 절대 금지:
 1. assume that/which, know that/which 명사절 장난
 2. allow/allowing, to V/V-ing 단순 형태 장난
-3. ±s만 다른 쌍, 관사, 인접 단순 is/are·has/have, 철자 장난
-4. 어휘 혼동 쌍(garbage/garage 등) — 그건 6단계
+3. ±s만, 관사, 인접 단순 is/are·has/have, 철자 장난
+4. 어휘 혼동 쌍 — 그건 6단계
 5. 원문에 없는 correct
 
 규칙:
-1. 먼저 지문 전체를 읽고, 변형문제처럼 중요한 어법 포인트를 고른다.
-2. correct = 원문 부분문자열. wrong = CASE에 맞는 그럴듯한 오답.
-3. **모든 sentenceId**에 최소 1개(가능하면 2개). 짧은 문장(≤8단어)은 1개.
-4. 수일치 지문 전체 ≤1. 단원 다양.
-5. questionKind:"grammar", grammarSub 필수.
-6. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","questionKind","koLabel","koTip"}]}`;
+1. correct = 원문 부분문자열. wrong = CASE/GP 메커니즘 오답.
+2. 모든 sentenceId에 최소 1개(짧은 문장 1, 보통 2).
+3. 수일치 지문 전체 ≤1.
+4. questionKind:"grammar", grammarSub = unitKey (sv, voice, relative…).
+5. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","questionKind","koLabel","koTip"}]}`;
 }
 
 function buildVocabSystem(): string {
@@ -274,8 +280,8 @@ function parseAiBlanks(
 }
 
 /**
- * 5단계 어법 / 6단계 어휘 AI 생성 (변형문제와 동일 모델·retry·catalog)
- * 1차: 지문 전체 분석 → 2차: 빠진 문장만 보충
+ * 5단계 어법 / 6단계 어휘 AI 생성
+ * 어법: 교재 기준 지문 분석 → 분석 시드 + AI 출제 → 빈 문장 보충
  */
 export async function generateStage6WithAi(
   sentences: SeedSentence[],
@@ -286,8 +292,38 @@ export async function generateStage6WithAi(
     return { drafts: [], source: "none", error: "문장 없음" };
   }
 
+  // —— 어법: 지문 먼저 분석 (어법서술형·어법끝·처음만나는) ——
+  let analysisFocus = "";
+  let analysisSeedBlanks: AiStage6Blank[] = [];
+  let analysisNote = "";
+  if (mode === "grammar" || mode === "mixed") {
+    const analysis = await analyzePassageGrammarForWorkbook({
+      sentences: ordered,
+    });
+    analysisFocus = analysis.focusBlock;
+    analysisNote = [
+      analysis.overallTopic && `주제: ${analysis.overallTopic}`,
+      analysis.overallMainIdea && `요지: ${analysis.overallMainIdea}`,
+      `분석 hit ${analysis.hits.length}개`,
+      analysis.rawError ? `분석경고: ${analysis.rawError}` : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    analysisSeedBlanks = analysisHitsToSeedBlanks(analysis).map((b) => ({
+      sentenceId: b.sentenceId,
+      correct: b.correct,
+      wrong: b.wrong,
+      grammarSub: b.grammarSub,
+      questionKind: "grammar",
+      koLabel: b.koLabel,
+      koTip: b.koTip,
+    }));
+  }
+
   const focusSlots = Math.min(12, Math.max(5, ordered.length + 2));
   const focus = pickGrammarFocus(Math.min(5, focusSlots));
+  const focusBlock =
+    analysisFocus.trim().length > 40 ? analysisFocus : focus.focusBlock;
 
   const targets = ordered.map((s) => ({
     id: s.id,
@@ -304,8 +340,8 @@ export async function generateStage6WithAi(
     mode === "vocabulary"
       ? buildVocabSystem()
       : mode === "grammar"
-        ? buildGrammarSystem(focus.focusBlock)
-        : `${buildGrammarSystem(focus.focusBlock)}
+        ? buildGrammarSystem(focusBlock)
+        : `${buildGrammarSystem(focusBlock)}
 
 --- 혼합 모드 ---
 ${vocabChoiceCraft()}
@@ -314,37 +350,72 @@ ${vocabChoiceCraft()}
   const baseUser = {
     task:
       mode === "grammar"
-        ? "stage5_grammar_like_qg"
+        ? "stage5_grammar_after_passage_analysis"
         : mode === "vocabulary"
           ? "stage6_vocab_like_qg"
           : "stage6_mixed_like_qg",
     engine:
       mode === "vocabulary"
         ? "question-generator-vocab-craft"
-        : "question-generator-grammar-catalog",
+        : "question-generator-grammar-catalog+seosulhyeong",
     modelHint: EXAM_PREP_MODEL_PRIMARY,
     mode,
     requireEverySentence: true,
     fullPassage,
     sentences: targets,
-    note: "변형문제처럼 지문 전체를 먼저 읽고, 문장 id별로 blanks를 배분하라.",
+    passageAnalysisNote: analysisNote || undefined,
+    analysisSeeds: analysisSeedBlanks.length
+      ? analysisSeedBlanks.slice(0, 24)
+      : undefined,
+    note:
+      mode === "grammar"
+        ? "1) 지문 분석(analysisSeeds/focus)을 우선 반영해 blanks를 확정하라. 2) 빠진 문장만 CASE로 보충. 어휘 쌍 금지."
+        : "변형문제처럼 지문 전체를 먼저 읽고, 문장 id별로 blanks를 배분하라.",
   };
 
   try {
+    // 분석 시드를 먼저 draft로 변환
+    let drafts =
+      mode === "vocabulary"
+        ? []
+        : parseAiBlanks(analysisSeedBlanks, ordered, mode === "mixed" ? "grammar" : mode);
+
     const raw1 = await stage56ChatJson(system, JSON.stringify(baseUser));
     const list1 = (raw1 as { blanks?: AiStage6Blank[] })?.blanks;
-    let drafts = Array.isArray(list1)
-      ? parseAiBlanks(list1, ordered, mode)
-      : [];
+    if (Array.isArray(list1) && list1.length > 0) {
+      const fromAi = parseAiBlanks(list1, ordered, mode);
+      // AI를 앞에 두고, 분석 시드로 빈 문장 보충
+      const bySent = new Map<string, Stage6ItemDraft[]>();
+      for (const d of [...fromAi, ...drafts]) {
+        const list = bySent.get(d.sentence_id) ?? [];
+        if (list.length >= 3) continue;
+        if (
+          list.some(
+            (x) =>
+              x.english_start < d.english_end && x.english_end > d.english_start
+          )
+        ) {
+          continue;
+        }
+        list.push(d);
+        bySent.set(d.sentence_id, list);
+      }
+      drafts = [];
+      let order = 1;
+      for (const s of ordered) {
+        for (const d of bySent.get(s.id) ?? []) {
+          drafts.push({ ...d, blank_order: order++ });
+        }
+      }
+    }
 
-    // 2차: 커버 안 된 문장만 재요청 (변형문제도 품질 안 나오면 재시도하는 것과 동일)
     const covered = new Set(drafts.map((d) => d.sentence_id));
     const missing = ordered.filter((s) => !covered.has(s.id));
-    if (missing.length > 0 && drafts.length > 0) {
+    if (missing.length > 0) {
       const gapUser = {
         ...baseUser,
         task: `${baseUser.task}_gap_fill`,
-        note: `다음 ${missing.length}개 문장에만 추가 blanks를 만들어라. 이미 있는 문장은 건드리지 마라.`,
+        note: `다음 ${missing.length}개 문장에만 교재 CASE/GP로 blanks 추가. 이미 있는 문장 금지.`,
         sentences: missing.map((s) => ({
           id: s.id,
           order: s.sentence_order,
@@ -363,15 +434,18 @@ ${vocabChoiceCraft()}
           drafts = [...drafts, ...more];
         }
       } catch {
-        // gap fill 실패해도 1차 결과 유지
+        // keep
       }
     }
 
-    // 1차가 비었으면 한 번 더 전체 재시도
     if (drafts.length === 0) {
       const rawRetry = await stage56ChatJson(
         system,
-        JSON.stringify({ ...baseUser, retry: true, note: "이전 응답이 비어 재시도. 모든 문장에 최소 1개." })
+        JSON.stringify({
+          ...baseUser,
+          retry: true,
+          note: "이전 응답이 비어 재시도. 모든 문장에 최소 1개. 교재 GP/CASE만.",
+        })
       );
       const listRetry = (rawRetry as { blanks?: AiStage6Blank[] })?.blanks;
       if (Array.isArray(listRetry)) {
@@ -386,11 +460,30 @@ ${vocabChoiceCraft()}
         error:
           mode === "vocabulary"
             ? "유효한 AI 어휘 빈칸 0개"
-            : "유효한 AI 어법 빈칸 0개",
+            : `유효한 AI 어법 빈칸 0개${analysisNote ? ` (${analysisNote})` : ""}`,
       };
     }
-    return { drafts, source: "ai" };
+    return {
+      drafts,
+      source: "ai",
+      error: analysisNote || undefined,
+    };
   } catch (e) {
+    // 분석 시드만이라도 있으면 사용
+    if (analysisSeedBlanks.length > 0 && mode !== "vocabulary") {
+      const drafts = parseAiBlanks(
+        analysisSeedBlanks,
+        ordered,
+        mode === "mixed" ? "grammar" : mode
+      );
+      if (drafts.length > 0) {
+        return {
+          drafts,
+          source: "ai",
+          error: e instanceof Error ? e.message : "AI 출제 실패·분석시드 사용",
+        };
+      }
+    }
     return {
       drafts: [],
       source: "none",
