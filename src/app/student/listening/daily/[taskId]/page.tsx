@@ -54,7 +54,7 @@ export default async function StudentListeningDailyTaskPage({
       ? await admin
           .from("listening_questions")
           .select(
-            "id, set_id, order_index, question_type, instruction, question_text, choices, correct_answer, audio_url, script_text, script_translation, answer_clue, explanation, table_data"
+            "id, set_id, order_index, question_type, instruction, question_text, choices, correct_answer, audio_url, script_text, script_translation, answer_clue, explanation, table_data, needs_image_choices, choice_image_urls"
           )
           .in("id", questionIds)
       : { data: [] as Array<Record<string, unknown>> };
@@ -175,6 +175,10 @@ export default async function StudentListeningDailyTaskPage({
                 q.table_data && typeof q.table_data === "object"
                   ? q.table_data
                   : null,
+              needs_image_choices: Boolean(q.needs_image_choices),
+              choice_image_urls: Array.isArray(q.choice_image_urls)
+                ? (q.choice_image_urls as string[]).map(String)
+                : [],
             };
           })}
         />

@@ -7,6 +7,7 @@ import type {
   DictationStartPayloadClient,
 } from "@/lib/listening/dictation/types";
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
+import { shouldHideTextChoicesForFigure } from "@/lib/listening/figure-choice-display";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
 import type { ListeningTableData } from "@/lib/listening/types";
@@ -32,6 +33,8 @@ export interface StudentListeningQuestion {
   answer_clue?: string;
   explanation?: string;
   table_data?: ListeningTableData | null;
+  needs_image_choices?: boolean;
+  choice_image_urls?: string[];
 }
 
 interface QuestionDictationStatus {
@@ -124,6 +127,16 @@ export function StudentListeningPractice({
   const q = questions[index];
   const selected = q ? answers[q.id] : undefined;
   const table = q ? normalizeTableData(q.table_data) : null;
+  const figureUrls = (q?.choice_image_urls ?? [])
+    .map((u) => String(u).trim())
+    .filter(Boolean);
+  const hideFigureTextChoices = q
+    ? shouldHideTextChoicesForFigure({
+        choiceImageUrls: figureUrls,
+        choices: q.choices,
+        needsImageChoices: q.needs_image_choices,
+      })
+    : false;
   const blankLine = q ? continuationQuestionDisplayText(q.order_index) : null;
   const questionSetId = q?.setId || setId;
 
@@ -532,6 +545,17 @@ export function StudentListeningPractice({
           </div>
         )}
 
+        {!table && figureUrls.length === 1 && (
+          <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={figureUrls[0]}
+              alt="문항 그림"
+              className="mx-auto max-h-[min(70vh,28rem)] w-auto max-w-full object-contain"
+            />
+          </div>
+        )}
+
         {blankLine && !table && (
           <p className="mt-4 font-mono text-base text-slate-900">{blankLine}</p>
         )}
@@ -541,6 +565,10 @@ export function StudentListeningPractice({
             const isSelected = selected === num;
             const choiceCorrect = objectiveDone && num === q.correct_answer;
             const choiceWrong = objectiveDone && isSelected && num !== q.correct_answer;
+            const perChoiceImg =
+              !table && figureUrls.length > 1
+                ? figureUrls[num - 1]
+                : undefined;
             return (
               <li key={num}>
                 <button
@@ -560,7 +588,15 @@ export function StudentListeningPractice({
                   <span className="mr-2 font-semibold text-slate-600">
                     {CIRCLED[num - 1] ?? `${num}.`}
                   </span>
-                  {text}
+                  {hideFigureTextChoices ? null : text}
+                  {perChoiceImg ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={perChoiceImg}
+                      alt=""
+                      className="mt-2 max-h-28 w-auto rounded border border-slate-200"
+                    />
+                  ) : null}
                 </button>
               </li>
             );
