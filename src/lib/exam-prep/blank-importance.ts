@@ -1,6 +1,6 @@
 /**
- * 2·3단계 / 워크북 빈칸: 중요 어휘·표현을 문장 전반에 분산 선택.
- * (앞에서부터 N개 자르기 금지)
+ * 2·3단계 / 워크북 빈칸: 지문 분석 후 중요 어휘·표현만 선택.
+ * (앞에서부터 N개 자르기 금지 · 있다/조사·담화어 빈칸 금지)
  */
 import { parseVocabMarks } from "@/lib/exam-prep/vocab-marks";
 
@@ -18,14 +18,21 @@ const EN_WEAK = new Set(
 );
 
 const KO_LIGHT = new Set(
-  "그 이 저 수 것 등 및 또 더 좀 잘 안 못 는 은 이 가 을 를 의 에 도 만 와 과 이나 또는 및 또한 매우 아주 다시 모든 어떤 이런 그런 저런 있는 없는 하는 되는 위해 대한 통해 따라 대해 관한 같은 다른 새로운 여러 각각 서로 우리 당신 여러분 사람들 사람 것으로 것이다 것입니다 있다 없다 한다 된다 된다 하자 보자 주세요".split(
+  "그 이 저 수 것 등 및 또 더 좀 잘 안 못 는 은 이 가 을 를 의 에 도 만 와 과 이나 또는 또한 매우 아주 다시 모든 어떤 이런 그런 저런 있는 없는 하는 되는 위해 대한 통해 따라 대해 관한 같은 다른 새로운 여러 각각 서로 우리 당신 여러분 사람들 사람 것으로 것이다 것입니다 있다 없다 한다 된다 하자 보자 주세요 있고 있다고 있으며 있어서 있을 있던 있어 없지 없고 없을 것을 수가 등을".split(
     " "
   )
 );
 
-/** 담화·기능 우리말 (빈칸 비권장) */
+/** 담화·기능 우리말 (빈칸 비권장) — 실질 명사(전체/부분 등)는 제외 */
 const KO_WEAK = new Set(
-  "예를 들어 들면 가정해 가정하면 결과 따라서 그러나 하지만 그래서 그리고 또한 또 즉 곧 사실 경우 때 점 부분 전체 이것 그것 저것 수 있다 없다 하다 되다 이다 아닙니다 것입니다 것입니다".split(
+  "예를 들어 들면 가정해 가정하면 가정할 결과 따라서 그러나 하지만 그래서 그리고 또한 또 즉 곧 사실 경우 때 점 이것 그것 저것 수 있다 없다 하다 되다 입니다 아닙니다 것입니다 때때로 서로 바로 따로 뜻대로 정말로 제대로 스스로 일부러 알고 맡아 맡고 보일 아니라고 아니다 좋을 것이라고".split(
+    " "
+  )
+);
+
+/** 조사로 오분해하면 안 되는 부사·다어절 */
+const KO_NO_JOSA_SPLIT = new Set(
+  "때때로 서로 바로 따로 뜻대로 정말로 함부로 제대로 스스로 일부러 거꾸로 비로소".split(
     " "
   )
 );
@@ -94,6 +101,7 @@ export function splitKoreanParticle(token: string): {
   const punct = punctMatch?.[0] ?? "";
   const base = punct ? token.slice(0, -punct.length) : token;
   if (!base) return { stem: token, particle: "" };
+  if (KO_NO_JOSA_SPLIT.has(base)) return { stem: base, particle: punct };
 
   for (const josa of JOSA_SUFFIXES) {
     if (base.length <= josa.length || !base.endsWith(josa)) continue;
@@ -101,9 +109,45 @@ export function splitKoreanParticle(token: string): {
     const hangul = stem.replace(/[^\uAC00-\uD7A3]/g, "");
     // 어간이 한 글자면 "도로"→"도" 같은 오분해 방지
     if (hangul.length < 2) continue;
+    // "때때로"→"때때"+"로" 같은 오분해 방지
+    if (josa === "로" || josa === "으로") {
+      if (hangul.length < 3) continue;
+      if (/^(때때|서|바|따|뜻|참|함부|제대|스스|일부)$/.test(hangul)) continue;
+    }
     return { stem, particle: josa + punct };
   }
   return { stem: base, particle: punct };
+}
+
+/** 있다/없다/하다/되다·지시·형식명사 등 빈칸 금지 */
+function isKoreanLightPredicate(hangul: string, core: string): boolean {
+  if (!hangul) return true;
+  if (
+    /^(있|없)(다|고|어|아|는|은|을|음|지|겠|었|았|던|습|으|니|나요|다고|다는|다고요|으며|어서|으니|지만|을까|을지)?/.test(
+      hangul
+    )
+  ) {
+    return true;
+  }
+  if (/있(다|고|어|는|을|음|지|던|다고|다는|으며|어서|다고요)/.test(hangul)) {
+    return true;
+  }
+  if (/없(다|고|어|는|을|음|지|던|으며|어서)/.test(hangul)) return true;
+  if (/^(하|되|않|못)(다|고|어|아|는|은|을|지|겠|었|았|던|니|요)?$/.test(hangul)) {
+    return true;
+  }
+  if (/^(것|수|등|및)([은는이가을를도만의]|이다|입니다)?$/.test(hangul)) return true;
+  if (/^(그|이|저)(것|수|런|런가)?$/.test(hangul)) return true;
+  if (/(이라고|것이라고|것이다|것입니다|아니다|아닙니다)$/.test(hangul)) {
+    return true;
+  }
+  if (/^(알고|맡아|맡고|보일|하자|보자|주세요)$/.test(hangul)) return true;
+  if (KO_LIGHT.has(core) || KO_WEAK.has(core) || KO_LIGHT.has(hangul) || KO_WEAK.has(hangul)) {
+    return true;
+  }
+  // 조사 미분리로 남은 형식명사+조사
+  if (/^것.+/.test(hangul) && hangul.length <= 4) return true;
+  return false;
 }
 
 export function koreanCore(token: string): string {
@@ -118,13 +162,6 @@ export function scoreEnglishBlank(token: string): number {
   if (!core || core.length < 3) return -1;
   if (EN_STOP.has(low)) return -1;
   if (/^\d+$/.test(core)) return -1;
-  let score = Math.min(core.length, 12);
-  if (EN_WEAK.has(low)) score = Math.max(1, Math.floor(score / 2));
-  if (core.length >= 7) score += 3;
-  if (core.length >= 9) score += 2;
-  if (/ing$|tion$|sion$|ment$|ness$|ity$|ous$|ive$|ical$|able$|ible$/i.test(core)) {
-    score += 2;
-  }
   if (
     /(^'|n't$)/i.test(core) ||
     /^(you're|we're|they're|it's|that's|who's|what's|you've|we've|they've|i've|you'd|we'd|they'd|i'd|you'll|we'll|they'll|i'll|don't|doesn't|isn't|aren't|wasn't|weren't|haven't|hasn't|hadn't|won't|wouldn't|couldn't|shouldn't|can't|mustn't)$/i.test(
@@ -133,6 +170,17 @@ export function scoreEnglishBlank(token: string): number {
   ) {
     return -1;
   }
+  // 중간 구두점/대시 잡토큰
+  if (/[^A-Za-z']/.test(core)) return -1;
+
+  let score = Math.min(core.length, 12);
+  if (EN_WEAK.has(low)) return -1; // 담화·고빈도 동사 빈칸 금지
+  if (core.length >= 7) score += 3;
+  if (core.length >= 9) score += 2;
+  if (/ing$|tion$|sion$|ment$|ness$|ity$|ous$|ive$|ical$|able$|ible$/i.test(core)) {
+    score += 2;
+  }
+  if (score < 4) return -1; // 중요 어휘·표현만
   return score;
 }
 
@@ -140,16 +188,31 @@ export function scoreKoreanBlank(token: string): number {
   const hangul = token.replace(/[^\uAC00-\uD7A3]/g, "");
   if (hangul.length < 2) return -1;
   const core = koreanCore(token);
-  if (!core || core.length < 2) return -1;
-  if (KO_LIGHT.has(core) || KO_WEAK.has(core) || KO_LIGHT.has(hangul) || KO_WEAK.has(hangul)) {
+  const coreHangul = core.replace(/[^\uAC00-\uD7A3]/g, "");
+  if (!core || coreHangul.length < 2) return -1;
+  if (isKoreanLightPredicate(hangul, core) || isKoreanLightPredicate(coreHangul, core)) {
     return -1;
   }
-  let score = Math.min(hangul.length, 10);
-  if (hangul.length >= 3) score += 2;
-  if (hangul.length >= 4) score += 2;
-  // 서술·담화 어미 덩어리
-  if (/(하자|보자|주세요|습니다|됩니다|입니다)$/.test(hangul)) score -= 4;
-  if (/^(예를|들어|들면|가정)/.test(hangul)) score -= 5;
+  // 담화 연결·추측 덩어리
+  if (/^(예를|들어|들면|가정|결과로|따라서|그러나|하지만)/.test(hangul)) return -1;
+  if (/(하자|보자|주세요|습니다|됩니다|입니다|것이다|것입니다)$/.test(hangul)) {
+    return -1;
+  }
+
+  let score = Math.min(coreHangul.length, 12);
+  if (coreHangul.length >= 3) score += 2;
+  if (coreHangul.length >= 4) score += 3;
+  if (coreHangul.length >= 5) score += 2;
+  // 한자어·전문 어휘 성향 (2음절 이상 실질 명사)
+  if (coreHangul.length >= 3 && !/(다|고|며|면|니|요)$/.test(coreHangul)) {
+    score += 2;
+  }
+  // 2음절 실질 명사(전체·부분·논리 등). 어미형·연결형은 제외
+  if (coreHangul.length === 2) {
+    if (/(다|고|며|면|니|요|아|어|은|는)$/.test(coreHangul)) return -1;
+    score += 5;
+  }
+  if (score < 5) return -1; // 중요어만 (가벼운 어절 제외)
   return score;
 }
 

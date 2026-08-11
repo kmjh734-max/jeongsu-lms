@@ -186,7 +186,38 @@ function matchCase(replacement: string, matched: string): string {
 /**
  * 어절 범위로 확장한 뒤, 끝 조사는 빈칸에서 제외한다.
  * 예: "전체" → 어절 "전체가" → 빈칸 "전체" + 조사 "가" 유지
+ * 예: "구성하는" → "구성" + "하는"(표시상 는은 조사 분리, 하는 어미 peel)
  */
+function refineKoreanBlankStem(stem: string, particle: string): string {
+  if (!stem) return stem;
+  // 구성하는 → 구성하+는 → 구성
+  if (
+    /^(는|고|며|면)$/.test(particle) &&
+    stem.endsWith("하") &&
+    stem.replace(/[^\uAC00-\uD7A3]/g, "").length >= 3
+  ) {
+    return stem.slice(0, -1);
+  }
+  // 효율적이라는 → 효율적이라+는 → 효율적
+  if (particle === "는" && stem.endsWith("이라") && stem.length > 4) {
+    return stem.slice(0, -2);
+  }
+  // 생산적이고 → 조사 미분리 시
+  if (!particle && stem.endsWith("이고") && stem.length > 4) {
+    return stem.slice(0, -2);
+  }
+  if (!particle && stem.endsWith("적일") && stem.length > 4) {
+    return stem.slice(0, -1); // leave 적? 효율적일 → 효율적
+  }
+  if (stem.endsWith("적일") && stem.length > 3) {
+    return `${stem.slice(0, -1)}`;
+  }
+  if (stem.endsWith("일") && stem.includes("적") && stem.length > 3) {
+    return stem.slice(0, -1);
+  }
+  return stem;
+}
+
 function expandKoreanStemSpan(
   korean: string,
   start: number,
@@ -205,15 +236,23 @@ function expandKoreanStemSpan(
     b += 1;
   }
   const eojeol = korean.slice(a, b);
-  const { stem } = splitKoreanParticle(eojeol);
-  if (!stem) return { start: a, end: b, text: eojeol };
-  // 어절 안에서 어간 위치 (보통 접두)
-  const stemAt = eojeol.indexOf(stem);
-  const stemStart = stemAt >= 0 ? a + stemAt : a;
+  const { stem, particle } = splitKoreanParticle(eojeol);
+  const refined = refineKoreanBlankStem(stem || eojeol, particle);
+  if (!refined) return { start: a, end: b, text: eojeol };
+  const stemAt = eojeol.indexOf(refined);
+  if (stemAt < 0) {
+    const fallbackAt = eojeol.indexOf(stem);
+    const stemStart = fallbackAt >= 0 ? a + fallbackAt : a;
+    return {
+      start: stemStart,
+      end: stemStart + (stem || eojeol).length,
+      text: stem || eojeol,
+    };
+  }
   return {
-    start: stemStart,
-    end: stemStart + stem.length,
-    text: stem,
+    start: a + stemAt,
+    end: a + stemAt + refined.length,
+    text: refined,
   };
 }
 
@@ -244,10 +283,6 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
       cursor += part.length;
     }
 
-    const maxPerSentence = blankPickCount(Math.max(wordEntries.length, 1), "medium", {
-      max: 6,
-    });
-
     const markCands = marks
       .map((m) => {
         const needle = (m.koreanText || "").trim();
@@ -255,6 +290,9 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
         const raw = findSpan(korean, needle);
         if (!raw) return null;
         const span = expandKoreanStemSpan(korean, raw.start, raw.end);
+        if (scoreKoreanBlank(span.text) < 0 && scoreKoreanBlank(needle) < 0) {
+          return null;
+        }
         const wIdx =
           wordEntries.find((w) => w.start <= span.start && span.end <= w.end)?.index ??
           wordEntries.findIndex((w) => w.text.includes(needle));
@@ -262,10 +300,15 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
           mark: m,
           span,
           index: wIdx >= 0 ? wIdx : 0,
-          score: 20 + span.text.length,
+          score: Math.max(20, scoreKoreanBlank(span.text) + 15),
         };
       })
       .filter((x): x is NonNullable<typeof x> => Boolean(x));
+
+    const maxPerSentence = Math.min(
+      blankPickCount(Math.max(wordEntries.length, 1), "medium", { max: 5 }),
+      Math.max(2, Math.ceil(wordEntries.filter((w) => scoreKoreanBlank(w.text) > 0).length))
+    );
 
     const pickedMarks = pickSpreadByScore(markCands, maxPerSentence);
     for (const p of pickedMarks) {
@@ -293,13 +336,14 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
     if (used.length < maxPerSentence) {
       const scored = wordEntries
         .map((w) => {
-          const { stem } = splitKoreanParticle(w.text);
-          const stemAt = w.text.indexOf(stem);
+          const { stem, particle } = splitKoreanParticle(w.text);
+          const refined = refineKoreanBlankStem(stem, particle);
+          const stemAt = w.text.indexOf(refined);
           const start = stemAt >= 0 ? w.start + stemAt : w.start;
           return {
-            text: stem,
+            text: refined,
             start,
-            end: start + stem.length,
+            end: start + refined.length,
             index: w.index,
             score: scoreKoreanBlank(w.text),
           };
@@ -308,6 +352,7 @@ export function buildStage2Drafts(sentences: SeedSentence[]): BlankDraft[] {
           (w) =>
             w.score > 0 &&
             w.text.length >= 2 &&
+            scoreKoreanBlank(w.text) > 0 &&
             !overlaps(used, w.start, w.end)
         );
       const need = maxPerSentence - used.length;
@@ -360,9 +405,12 @@ export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[]
       cursor += part.length;
     }
 
-    const maxPerSentence = Math.max(
-      3,
-      blankPickCount(Math.max(wordEntries.length, 1), "hard", { max: 6 })
+    const maxPerSentence = Math.min(
+      Math.max(
+        2,
+        blankPickCount(Math.max(wordEntries.length, 1), "hard", { max: 5 })
+      ),
+      Math.max(2, wordEntries.filter((w) => scoreEnglishBlank(w.text) > 0).length || 2)
     );
 
     const markCands = marks
@@ -371,6 +419,9 @@ export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[]
         if (!needle || needle.length < 3) return null;
         const span = findSpanCi(english, needle);
         if (!span) return null;
+        if (scoreEnglishBlank(span.text) < 0 && scoreEnglishBlank(needle) < 0) {
+          return null;
+        }
         const wIdx =
           wordEntries.find((w) => w.start <= span.start && span.end <= w.end)?.index ??
           wordEntries.findIndex((w) =>
@@ -380,7 +431,7 @@ export function buildStage3Drafts(sentences: SeedSentence[]): Stage3BlankDraft[]
           mark: m,
           span,
           index: wIdx >= 0 ? wIdx : 0,
-          score: 20 + needle.length,
+          score: Math.max(20, scoreEnglishBlank(span.text) + 15),
         };
       })
       .filter((x): x is NonNullable<typeof x> => Boolean(x));
