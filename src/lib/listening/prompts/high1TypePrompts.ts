@@ -34,8 +34,10 @@ needs_image_choices=false. segments=M 또는 W만.
 ### 고1 4번 — 그림 불일치
 지시: 대화를 듣고, 그림에서 대화의 내용과 일치하지 않는 것을 고르시오.
 형식: 포스터/장면 대화. ①~⑤ 요소를 모두 언급하되, 그림 설계상 하나와 불일치.
-choices: ["①","②","③","④","⑤"]. needs_image_choices=true.
-choice_image_prompts: 라벨 ①–⑤가 명확한 장면 1장 설명.
+choices: ["①","②","③","④","⑤"] (채점용; 시험지에는 그림만 표시, 보기는 그림 안 라벨).
+needs_image_choices=true.
+choice_image_prompts: 반드시 1개. 그림 안에 큰 원형 라벨 ①②③④⑤가 서로 다른 요소에 모두 붙는 장면 설명.
+예: "Label ① title …; Label ② guitar …; Label ③ students …; Label ④ mic …; Label ⑤ date … — all five circled labels must be visible."
 `.trim(),
   5: `
 ### 고1 5번 — 할 일

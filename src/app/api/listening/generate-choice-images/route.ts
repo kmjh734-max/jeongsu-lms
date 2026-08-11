@@ -69,6 +69,7 @@ export async function POST(req: Request) {
       setId,
       questionId,
       prompts,
+      compositeLabeledFigure: prompts.length === 1,
       force: Boolean(body.force),
     });
 

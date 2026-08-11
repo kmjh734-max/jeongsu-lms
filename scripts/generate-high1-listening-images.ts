@@ -126,6 +126,7 @@ async function main() {
         setId: set.id,
         questionId: qs.id as string,
         prompts: usePrompts,
+        compositeLabeledFigure: true,
         force,
       });
       if (result.skipped) {

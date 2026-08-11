@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
+import { shouldHideTextChoicesForFigure } from "@/lib/listening/figure-choice-display";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
 import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
 import { buildStudentListeningHubUrl } from "@/lib/listening/listen-url";
@@ -779,7 +780,7 @@ function ExamQuestionBlock({
       {(() => {
         const urls = (q.choice_image_urls ?? []).filter((u) => String(u).trim());
         if (urls.length === 0) return null;
-        // 고1 그림 불일치 등: 합성 장면 1장
+        // 고1 그림 불일치 등: 합성 장면 1장 (보기 ①–⑤는 그림 안)
         if (urls.length === 1) {
           return (
             <div className="listening-exam-figure">
@@ -812,38 +813,45 @@ function ExamQuestionBlock({
         );
       })()}
 
-      <ul className="listening-exam-choices mt-[1mm] list-none pl-0">
-        {q.choices.map((choice, i) => {
-          const urls = (q.choice_image_urls ?? []).filter((u) => String(u).trim());
-          // 합성 1장이면 선택지는 번호·텍스트만 (그림은 위에)
-          const showInline =
-            urls.length > 1 && Boolean(urls[i]?.trim());
-          return (
-            <li key={i} className="flex gap-[2mm] leading-snug">
-              <span className="listening-exam-choice-mark">
-                {CIRCLED[i] ?? `${i + 1}.`}
-              </span>
-              <span className="listening-exam-choice-text min-w-0 flex-1 break-words">
-                {showInline ? (
-                  <span className="listening-exam-choice-with-img">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={urls[i]}
-                      alt=""
-                      className="listening-exam-choice-thumb"
-                    />
-                    {choice && !/^①|②|③|④|⑤$/.test(choice.trim()) ? (
-                      <span>{choice}</span>
-                    ) : null}
-                  </span>
-                ) : (
-                  choice
-                )}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+      {!shouldHideTextChoicesForFigure({
+        choiceImageUrls: q.choice_image_urls,
+        choices: q.choices,
+        needsImageChoices: q.needs_image_choices,
+      }) && (
+        <ul className="listening-exam-choices mt-[1mm] list-none pl-0">
+          {q.choices.map((choice, i) => {
+            const urls = (q.choice_image_urls ?? []).filter((u) =>
+              String(u).trim()
+            );
+            const showInline =
+              urls.length > 1 && Boolean(urls[i]?.trim());
+            return (
+              <li key={i} className="flex gap-[2mm] leading-snug">
+                <span className="listening-exam-choice-mark">
+                  {CIRCLED[i] ?? `${i + 1}.`}
+                </span>
+                <span className="listening-exam-choice-text min-w-0 flex-1 break-words">
+                  {showInline ? (
+                    <span className="listening-exam-choice-with-img">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={urls[i]}
+                        alt=""
+                        className="listening-exam-choice-thumb"
+                      />
+                      {choice && !/^[①②③④⑤]$/.test(choice.trim()) ? (
+                        <span>{choice}</span>
+                      ) : null}
+                    </span>
+                  ) : (
+                    choice
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 
