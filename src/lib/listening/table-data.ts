@@ -1,5 +1,27 @@
 import type { ListeningTableData, ListeningTableRow } from "@/lib/listening/types";
 
+/** AI가 value를 객체로 줄 때 String(obj) → "[object Object]" 방지 */
+export function stringifyTableCell(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") {
+    const t = value.trim();
+    return t === "[object Object]" ? "" : t;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(stringifyTableCell).filter(Boolean).join(" / ");
+  }
+  if (typeof value === "object") {
+    return Object.values(value as Record<string, unknown>)
+      .map(stringifyTableCell)
+      .filter(Boolean)
+      .join(" / ");
+  }
+  return String(value).trim();
+}
+
 export function normalizeTableData(raw: unknown): ListeningTableData | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
@@ -10,7 +32,7 @@ export function normalizeTableData(raw: unknown): ListeningTableData | null {
       const row = r as Record<string, unknown>;
       const no = Number(row.no ?? i + 1);
       const label = String(row.label ?? "").trim();
-      const value = String(row.value ?? "").trim();
+      const value = stringifyTableCell(row.value);
       if (!label || !value) return null;
       return { no, label, value };
     })

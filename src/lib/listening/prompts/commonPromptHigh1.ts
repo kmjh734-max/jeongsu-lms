@@ -69,7 +69,8 @@ export const HIGH1_JSON_OUTPUT_SCHEMA = `
   ]
 }
 
-4번: needs_image_choices true, choices=["①","②","③","④","⑤"], choice_image_prompts에 라벨 ①–⑤가 보이는 장면 설명 1개.
+4번: needs_image_choices true, choices=["①","②","③","④","⑤"], choice_image_prompts에 라벨 ①–⑤ 장면 1개.
+중요: 대화는 올바른 사실만 말하고, 그림만 그중 하나를 틀리게. "포스터에 이미 틀린 값이 있다"고 대화에서 인정하지 말 것.
 10번: table_data 필수 { title, rows[5](no,label,value), mismatch_no=정답 행(1~5), mismatch_reason }. question_text "".
 11~14번: previous_turn, blank_speaker, correct_response_function, distractor_reasons 필수. 응답은 segments에 넣지 않음.
 15번: question_text에 "Name: _____" 형식. choices는 영어 발화.
