@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 5단계·워크북 동사형: 활용형 → 원형(dictionary form)
  * are/is/was → be, brought → bring
  */
@@ -300,6 +300,36 @@ export const MODAL_VERBS = new Set(
 
 export const BE_HAVE_DO = new Set(
   "am is are was were be been being have has had do does did done doing".split(
+    " "
+  )
+);
+
+/**
+ * 5단계 정형·활용 동사 원형 목록.
+ * (원형 그대로 쓰인 suppose/know/assume 등도 빈칸 대상으로 잡기 위함)
+ */
+export const COMMON_VERB_LEMMAS = new Set(
+  `
+be have do go make take give come see get say know think tell become begin run write speak
+bring buy catch teach build keep lose mean meet pay put read send set show sell spend stand
+understand win break choose drive eat fall fly forget freeze grow hide hold hurt lay lie lead
+lend light ride ring rise sing sink sit sleep steal swim throw wear wake draw drink hang swear
+tear bind assume suppose dump permit thank protect urge fix attract leave need seem appear
+suggest drift scan emerge angle gather drain perish feel let live look want like try help hope
+wish expect believe remember decide refuse agree allow force cause enable create include
+provide require remain continue start stop finish move turn call ask answer work play learn
+study use find change happen occur exist contain consist depend rely consider notice realize
+recognize describe explain discuss mention prove support oppose prefer enjoy hate love fear
+avoid prevent reduce increase improve develop produce offer accept receive return strengthen
+manage supervise
+`
+    .split(/\s+/)
+    .filter(Boolean)
+);
+
+/** 동사처럼 보이지만 명사 자리가 흔한 단어 (in charge / on board 등) */
+export const VERB_LOOKALIKE_NOUNS = new Set(
+  "charge board result example instance fact case way thing part place state time world people person home work school day year life land food light waste trash garbage problem situation".split(
     " "
   )
 );

@@ -38,8 +38,10 @@ import {
 } from "@/lib/exam-prep/guided-writing";
 import {
   BE_HAVE_DO,
+  COMMON_VERB_LEMMAS,
   isLikelyNonVerbToken,
   MODAL_VERBS,
+  VERB_LOOKALIKE_NOUNS,
   verbLemma,
 } from "@/lib/exam-prep/verb-lemma";
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
@@ -691,20 +693,73 @@ export function findVerbHits(english: string): VerbHit[] {
       }
     }
 
-    // Fix / Thank sentence-initial imperatives
-    if (/^(Fix|Thank)$/i.test(t.text)) {
+    // 조동사 + (부사) + 본동사 → PDF: (might, perish)
+    // will/can + be/have 는 조동사만 건너뛰고 be/have를 개별 빈칸으로 둠
+    if (MODAL_VERBS.has(t.low)) {
+      let j = i + 1;
+      while (
+        j < tokens.length &&
+        (NON_VERB_FORM.has(tokens[j]!.low) ||
+          /^(not|never|also|even|still|just|really|quite|rather|always|often|usually|sometimes)$/i.test(
+            tokens[j]!.low
+          ) ||
+          (/ly$/i.test(tokens[j]!.low) && tokens[j]!.low.length > 3))
+      ) {
+        j += 1;
+      }
+      const main = tokens[j];
+      if (!main || consumed.has(j) || MODAL_VERBS.has(main.low) || NEVER_VERB.has(main.low)) {
+        continue;
+      }
+      if (BE_HAVE_DO.has(main.low) || isBe(main.low) || isHave(main.low)) {
+        continue;
+      }
+      if (
+        !isLikelyNonVerbToken(main.low) &&
+        (COMMON_VERB_LEMMAS.has(verbLemma(main.text)) ||
+          IRREGULAR_VERBS.has(main.low) ||
+          /ed$/i.test(main.low) ||
+          /ing$/i.test(main.low))
+      ) {
+        if (j === i + 1) {
+          // might perish → (might, perish)
+          pushSpan(i, j, [t.low, lemmaCue(main.text)], "modal_verb");
+        } else {
+          // can sometimes assume → assume 만 (부사는 빈칸 밖)
+          pushSpan(j, j, [lemmaCue(main.text)], "simple_present");
+        }
+      }
+      continue;
+    }
+
+    // 문두·담화 동사: Suppose / Assume / Fix / Thank …
+    if (
+      (i === 0 || /^(Fix|Thank|Suppose|Assume|Consider|Imagine)$/i.test(t.text)) &&
+      COMMON_VERB_LEMMAS.has(verbLemma(t.text)) &&
+      !VERB_LOOKALIKE_NOUNS.has(t.low)
+    ) {
       pushSpan(i, i, [lemmaCue(t.text)], "imperative");
       continue;
     }
 
     if (consumed.has(i)) continue;
     if (NON_VERB_FORM.has(t.low) || isLikelyNonVerbToken(t.low)) continue;
-    if (NEVER_VERB.has(t.low) || MODAL_VERBS.has(t.low)) continue;
+    if (NEVER_VERB.has(t.low)) continue;
     if (EN_STOP.has(t.low) && !BE_HAVE_DO.has(t.low)) continue;
+
+    // 명사 자리: in charge / on board / as a result …
+    if (
+      VERB_LOOKALIKE_NOUNS.has(t.low) &&
+      prev &&
+      /^(a|an|the|this|that|these|those|my|your|our|their|his|her|its|in|on|at|of|for|with|from|by|into|onto|as)$/i.test(
+        prev.low
+      )
+    ) {
+      continue;
+    }
 
     // single be/have/do finite left
     if (BE_HAVE_DO.has(t.low) || isBe(t.low) || isHave(t.low)) {
-      if (MODAL_VERBS.has(t.low)) continue;
       pushSpan(i, i, [verbLemma(t.text)], "simple_present");
       continue;
     }
@@ -722,10 +777,25 @@ export function findVerbHits(english: string): VerbHit[] {
       continue;
     }
 
-    const FINITE_HINT =
-      /^(attracts?|urges?|leaves?|needs?|gets?|fixes?|grows?|dumps?|permits?|thanks?|protects?|strengthens?|makes?|takes?|gives?|comes?|goes?|seems?|appears?|becomes?|suggests?|drifts?|scans?|emerges?|angles?|gathers?|drains?|perishes?|lets?|feels?|begins?|wears?)$/i;
-    if (FINITE_HINT.test(t.low)) {
-      pushSpan(i, i, [lemmaCue(t.text)], "simple_present");
+    const lemma = verbLemma(t.text);
+    const isKnownVerb =
+      COMMON_VERB_LEMMAS.has(lemma) || COMMON_VERB_LEMMAS.has(t.low);
+    // 주어/관계사 뒤 정형 동사: you know / that … / who need
+    const afterSubject =
+      !!prev &&
+      /^(i|you|we|they|he|she|it|that|who|which|what|there|everyone|someone|anyone|people|one)$/i.test(
+        prev.low
+      );
+    // 3인칭 -s: assumes, knows, seems
+    const thirdPersonS =
+      t.low !== lemma &&
+      /s$/i.test(t.low) &&
+      !/ss$/i.test(t.low) &&
+      COMMON_VERB_LEMMAS.has(lemma);
+
+    if (isKnownVerb && (afterSubject || thirdPersonS || t.low === lemma)) {
+      if (VERB_LOOKALIKE_NOUNS.has(t.low) && !afterSubject) continue;
+      pushSpan(i, i, [lemma], "simple_present");
       continue;
     }
   }
