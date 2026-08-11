@@ -1,7 +1,7 @@
 /**
  * 5·6단계 어법·어휘 — 변형문제(question-generator)와 동일 엔진
- * 5단계(어법): pickGrammarFocus + grammar-catalog + grammarChoiceCraft
- * 6단계(어휘): vocabChoiceCraft (문맥 혼동·반의)
+ * 5단계(어법): 지문 분석 + grammar-catalog
+ * 6단계(어휘): 지문 분석 + workbookVocabChoiceCraft (반의·유사형태)
  */
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
 import {
@@ -18,11 +18,16 @@ import {
 import {
   grammarChoiceCraftNote,
   vocabChoiceCraft,
+  workbookVocabChoiceCraft,
 } from "@/lib/question-generator/choice-craft";
 import {
   analyzePassageGrammarForWorkbook,
   analysisHitsToSeedBlanks,
 } from "@/lib/exam-prep/analyze-passage-grammar";
+import {
+  analyzePassageVocabForWorkbook,
+  analysisVocabHitsToSeedBlanks,
+} from "@/lib/exam-prep/analyze-passage-vocab";
 import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
 import type { Stage7CandidateDraft } from "@/lib/exam-prep/stage7-types";
@@ -98,13 +103,17 @@ type AiStage7Error = {
   koTip?: string;
 };
 
-async function stage56ChatJson(system: string, user: string): Promise<unknown> {
+async function stage56ChatJson(
+  system: string,
+  user: string,
+  opts?: { temperature?: number; maxTokens?: number }
+): Promise<unknown> {
   // 변형문제와 동일 경로: retry + 상위 모델 + high/xhigh reasoning
   return questionGeneratorChatJsonWithRetry({
     system,
     user,
-    temperature: 0.25,
-    maxTokens: 8000,
+    temperature: opts?.temperature ?? 0.25,
+    maxTokens: opts?.maxTokens ?? 9000,
     reasoningEffort: getExamPrepReasoningEffort(),
     preferredModels: getExamPrepPreferredModels(),
   });
@@ -158,31 +167,38 @@ ${grammarChoiceCraftNote()}
 5. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","questionKind","koLabel","koTip"}]}`;
 }
 
-function buildVocabSystem(): string {
-  return `당신은 한국 고등 영어 내신·학력평가 **어휘(문맥)** 출제위원이다.
-변형문제 「어휘추론」「어휘개수」와 **같은 craft**로 워크북 6단계 [correct / wrong]를 만든다.
+function buildVocabSystem(focusBlock: string): string {
+  return `당신은 한국 고등 영어 내신·학력평가 **어휘 고르기** 출제위원이다.
+워크북 6단계 [correct / wrong] 2지를 만든다. (학평·내신 어휘고르기 동형)
 
-핵심 차이: 변형문제는 지문 전체 밑줄, 워크북은 문장마다 [원문어휘 / 문맥오답] 2지.
-품질 기준은 변형문제와 동일.
+**반드시 지문 어휘 분석 결과(아래)의 반의·유사형태 쌍을 우선 반영.** 분석에 없는 억지 함정 금지.
 
+${focusBlock || "(분석 시드 없음 — 아래 craft로 직접 출제)"}
+
+${workbookVocabChoiceCraft()}
+
+변형문제 어휘 craft (문맥 적합성 참고):
 ${vocabChoiceCraft()}
 
-좋은 예:
-- garbage / garage, permitted / prevented, endless / temporary
-- strengthen / weaken, efficient / inefficient
-- 문장만 보면 자연스러워 보이지만 앞뒤 논리를 보면 틀림
+좋은 예 (반드시 이런 품질):
+- 반의: endless/temporary, dreadful/delightful, strengthen/weaken, vast/narrow, growing/declining
+- 유사형태: garbage/garage, permitted/prevented, affect/effect, principal/principle, composition/competition
+- 문맥: remind/remember, interact/interfere
 
 절대 금지:
-1. 어법 최소쌍 (태·관계사·분사·수일치 등) — 그건 5단계
-2. ±s만, 관사, 철자 장난, 황당 무관 단어
+1. 어법 최소쌍 (태·관계사·분사·수일치·±s) — 그건 5단계
+2. 관사, be동사만, 황당 무관 단어, 단순 철자 오타
 3. 원문에 없는 correct
+4. 세트 전체가 전부 반의만 또는 전부 유사철자만
 
 규칙:
-1. 지문 전체를 읽고 논리·어휘 방향을 파악한 뒤 문항을 고른다.
-2. correct = 원문 내용어. wrong = 문맥 혼동·반의·유사.
-3. **모든 sentenceId**에 최소 1개(가능하면 2개).
-4. questionKind:"vocabulary", vocabularySub 필수.
-5. JSON만: {"blanks":[{"sentenceId","correct","wrong","vocabularySub","questionKind","koLabel","koTip"}]}`;
+1. 지문 전체 논리 방향을 읽고 blanks를 고른다.
+2. correct = 원문 내용어. wrong = 반의·유사형태·문맥오답 (같은 품사·시제·수).
+3. **모든 sentenceId**에 최소 1개(가능하면 2개). 반의≈유사형태 비율을 섞는다.
+4. questionKind:"vocabulary", vocabularySub 필수
+   (opposite_meaning|similar_spelling|contextual_meaning|collocation|positive_negative|increase_decrease|strengthen_weaken|word_form).
+5. JSON만: {"blanks":[{"sentenceId","correct","wrong","vocabularySub","questionKind","technique","koLabel","koTip"}]}
+   technique = antonym|lookalike|context|collocation`;
 }
 
 function parseAiBlanks(
@@ -245,6 +261,7 @@ function parseAiBlanks(
     unitCount.set(sub, prevUnit + 1);
 
     const tip = [item.koLabel, item.koTip].filter(Boolean).join(" — ");
+    const wrongMatched = matchCase(wrong, span.text);
     drafts.push({
       sentence_id: sid,
       blank_order: order++,
@@ -261,7 +278,7 @@ function parseAiBlanks(
         },
         {
           id: `opt-w-${order}-1`,
-          text: wrong,
+          text: wrongMatched,
           isCorrect: false,
           explanation: tip || null,
         },
@@ -282,6 +299,7 @@ function parseAiBlanks(
 /**
  * 5단계 어법 / 6단계 어휘 AI 생성
  * 어법: 교재 기준 지문 분석 → 분석 시드 + AI 출제 → 빈 문장 보충
+ * 어휘: 반의·유사형태 지문 분석 → 분석 시드 + AI 출제 → 빈 문장 보충
  */
 export async function generateStage6WithAi(
   sentences: SeedSentence[],
@@ -320,6 +338,28 @@ export async function generateStage6WithAi(
     }));
   }
 
+  // —— 어휘: 지문 먼저 분석 (반의어·유사형태) ——
+  let vocabFocus = "";
+  let vocabSeedBlanks: AiStage6Blank[] = [];
+  let vocabNote = "";
+  if (mode === "vocabulary" || mode === "mixed") {
+    const vAnalysis = await analyzePassageVocabForWorkbook({
+      sentences: ordered,
+    });
+    vocabFocus = vAnalysis.focusBlock;
+    vocabNote = [
+      vAnalysis.overallTopic && `주제: ${vAnalysis.overallTopic}`,
+      vAnalysis.logicDirection && `논리: ${vAnalysis.logicDirection}`,
+      `어휘분석 hit ${vAnalysis.hits.length}개` +
+        ` (반의 ${vAnalysis.hits.filter((h) => h.technique === "antonym").length}` +
+        `·유사 ${vAnalysis.hits.filter((h) => h.technique === "lookalike").length})`,
+      vAnalysis.rawError ? `분석경고: ${vAnalysis.rawError}` : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    vocabSeedBlanks = analysisVocabHitsToSeedBlanks(vAnalysis);
+  }
+
   const focusSlots = Math.min(12, Math.max(5, ordered.length + 2));
   const focus = pickGrammarFocus(Math.min(5, focusSlots));
   const focusBlock =
@@ -338,49 +378,78 @@ export async function generateStage6WithAi(
 
   const system =
     mode === "vocabulary"
-      ? buildVocabSystem()
+      ? buildVocabSystem(vocabFocus)
       : mode === "grammar"
         ? buildGrammarSystem(focusBlock)
         : `${buildGrammarSystem(focusBlock)}
 
---- 혼합 모드 ---
-${vocabChoiceCraft()}
-어법·어휘를 섞되 questionKind로 구분.`;
+--- 혼합 모드 (어휘) ---
+${buildVocabSystem(vocabFocus)}`;
+
+  const seedBlanksForMode =
+    mode === "vocabulary"
+      ? vocabSeedBlanks
+      : mode === "grammar"
+        ? analysisSeedBlanks
+        : [...analysisSeedBlanks, ...vocabSeedBlanks];
+
+  const noteForMode =
+    mode === "grammar"
+      ? "1) 지문 분석(analysisSeeds/focus)을 우선 반영해 blanks를 확정하라. 2) 빠진 문장만 CASE로 보충. 어휘 쌍 금지."
+      : mode === "vocabulary"
+        ? "1) 어휘 분석(analysisSeeds)의 반의·유사형태 쌍을 우선 확정하라. 2) 빠진 문장만 antonym/lookalike로 보충. 어법 쌍 금지. 세트에서 반의와 유사형태를 섞어라."
+        : "어법·어휘 분석 시드를 반영하고 questionKind로 구분. 어휘는 반의·유사형태 우선.";
 
   const baseUser = {
     task:
       mode === "grammar"
         ? "stage5_grammar_after_passage_analysis"
         : mode === "vocabulary"
-          ? "stage6_vocab_like_qg"
+          ? "stage6_vocab_after_passage_analysis"
           : "stage6_mixed_like_qg",
     engine:
       mode === "vocabulary"
-        ? "question-generator-vocab-craft"
+        ? "question-generator-workbook-vocab-craft+passage-analysis"
         : "question-generator-grammar-catalog+seosulhyeong",
     modelHint: EXAM_PREP_MODEL_PRIMARY,
     mode,
     requireEverySentence: true,
+    requireVocabMix:
+      mode === "vocabulary" || mode === "mixed"
+        ? "blanks 중 opposite_meaning·similar_spelling(및 동계)를 모두 포함할 것"
+        : undefined,
     fullPassage,
     sentences: targets,
-    passageAnalysisNote: analysisNote || undefined,
-    analysisSeeds: analysisSeedBlanks.length
-      ? analysisSeedBlanks.slice(0, 24)
+    passageAnalysisNote:
+      [analysisNote, vocabNote].filter(Boolean).join(" | ") || undefined,
+    analysisSeeds: seedBlanksForMode.length
+      ? seedBlanksForMode.slice(0, 28)
       : undefined,
-    note:
-      mode === "grammar"
-        ? "1) 지문 분석(analysisSeeds/focus)을 우선 반영해 blanks를 확정하라. 2) 빠진 문장만 CASE로 보충. 어휘 쌍 금지."
-        : "변형문제처럼 지문 전체를 먼저 읽고, 문장 id별로 blanks를 배분하라.",
+    note: noteForMode,
   };
+
+  const chatOpts =
+    mode === "vocabulary"
+      ? { temperature: 0.35, maxTokens: 10000 }
+      : { temperature: 0.25, maxTokens: 9000 };
 
   try {
     // 분석 시드를 먼저 draft로 변환
     let drafts =
       mode === "vocabulary"
-        ? []
-        : parseAiBlanks(analysisSeedBlanks, ordered, mode === "mixed" ? "grammar" : mode);
+        ? parseAiBlanks(vocabSeedBlanks, ordered, "vocabulary")
+        : mode === "grammar"
+          ? parseAiBlanks(analysisSeedBlanks, ordered, "grammar")
+          : [
+              ...parseAiBlanks(analysisSeedBlanks, ordered, "grammar"),
+              ...parseAiBlanks(vocabSeedBlanks, ordered, "vocabulary"),
+            ];
 
-    const raw1 = await stage56ChatJson(system, JSON.stringify(baseUser));
+    const raw1 = await stage56ChatJson(
+      system,
+      JSON.stringify(baseUser),
+      chatOpts
+    );
     const list1 = (raw1 as { blanks?: AiStage6Blank[] })?.blanks;
     if (Array.isArray(list1) && list1.length > 0) {
       const fromAi = parseAiBlanks(list1, ordered, mode);
@@ -412,10 +481,16 @@ ${vocabChoiceCraft()}
     const covered = new Set(drafts.map((d) => d.sentence_id));
     const missing = ordered.filter((s) => !covered.has(s.id));
     if (missing.length > 0) {
+      const gapNote =
+        mode === "vocabulary"
+          ? `다음 ${missing.length}개 문장에만 반의어(antonym) 또는 유사형태(lookalike) blanks 추가. 이미 있는 문장 금지. 어법 쌍 금지.`
+          : mode === "grammar"
+            ? `다음 ${missing.length}개 문장에만 교재 CASE/GP로 blanks 추가. 이미 있는 문장 금지.`
+            : `다음 ${missing.length}개 문장만 보충. questionKind 구분.`;
       const gapUser = {
         ...baseUser,
         task: `${baseUser.task}_gap_fill`,
-        note: `다음 ${missing.length}개 문장에만 교재 CASE/GP로 blanks 추가. 이미 있는 문장 금지.`,
+        note: gapNote,
         sentences: missing.map((s) => ({
           id: s.id,
           order: s.sentence_order,
@@ -427,7 +502,11 @@ ${vocabChoiceCraft()}
           .join("\n"),
       };
       try {
-        const raw2 = await stage56ChatJson(system, JSON.stringify(gapUser));
+        const raw2 = await stage56ChatJson(
+          system,
+          JSON.stringify(gapUser),
+          chatOpts
+        );
         const list2 = (raw2 as { blanks?: AiStage6Blank[] })?.blanks;
         if (Array.isArray(list2) && list2.length > 0) {
           const more = parseAiBlanks(list2, missing, mode);
@@ -444,13 +523,26 @@ ${vocabChoiceCraft()}
         JSON.stringify({
           ...baseUser,
           retry: true,
-          note: "이전 응답이 비어 재시도. 모든 문장에 최소 1개. 교재 GP/CASE만.",
-        })
+          note:
+            mode === "vocabulary"
+              ? "이전 응답이 비어 재시도. 모든 문장에 최소 1개. 반의·유사형태만. 어법 금지."
+              : "이전 응답이 비어 재시도. 모든 문장에 최소 1개. 교재 GP/CASE만.",
+        }),
+        chatOpts
       );
       const listRetry = (rawRetry as { blanks?: AiStage6Blank[] })?.blanks;
       if (Array.isArray(listRetry)) {
         drafts = parseAiBlanks(listRetry, ordered, mode);
       }
+    }
+
+    // 어휘: 분석 시드만이라도 있으면 사용
+    if (drafts.length === 0 && vocabSeedBlanks.length > 0 && mode !== "grammar") {
+      drafts = parseAiBlanks(
+        vocabSeedBlanks,
+        ordered,
+        mode === "mixed" ? "vocabulary" : mode
+      );
     }
 
     if (drafts.length === 0) {
@@ -459,17 +551,28 @@ ${vocabChoiceCraft()}
         source: "none",
         error:
           mode === "vocabulary"
-            ? "유효한 AI 어휘 빈칸 0개"
+            ? `유효한 AI 어휘 빈칸 0개${vocabNote ? ` (${vocabNote})` : ""}`
             : `유효한 AI 어법 빈칸 0개${analysisNote ? ` (${analysisNote})` : ""}`,
       };
     }
     return {
       drafts,
       source: "ai",
-      error: analysisNote || undefined,
+      error:
+        [analysisNote, vocabNote].filter(Boolean).join(" | ") || undefined,
     };
   } catch (e) {
     // 분석 시드만이라도 있으면 사용
+    if (mode === "vocabulary" && vocabSeedBlanks.length > 0) {
+      const drafts = parseAiBlanks(vocabSeedBlanks, ordered, "vocabulary");
+      if (drafts.length > 0) {
+        return {
+          drafts,
+          source: "ai",
+          error: e instanceof Error ? e.message : "AI 출제 실패·어휘분석시드 사용",
+        };
+      }
+    }
     if (analysisSeedBlanks.length > 0 && mode !== "vocabulary") {
       const drafts = parseAiBlanks(
         analysisSeedBlanks,

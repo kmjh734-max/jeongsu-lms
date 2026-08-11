@@ -104,11 +104,47 @@ export function contentFalseChoiceCraft(en: boolean): string {
 }
 
 export function vocabChoiceCraft(): string {
-  return `어휘(문맥) 밑줄:
-- 틀린 어휘: 그 문장만 보면 자연스러워 보이게. 앞뒤·전체 논리 방향을 봐야 오류 발견.
-- 너무 명백한 반의어·주제 무관 단어 금지.
-- 나머지 밑줄은 문법·문맥 완전 적합.
-- 예시는 방향 반전(favor→dislike)이되, 문장 단독으로는 ‘가능해 보이는’ 수준.`;
+  return `어휘(문맥) 밑줄 — 학평·내신 표준 오답 기법:
+1) 반의·방향 반전 (가장 흔함): favor↔dislike, endless↔temporary, strengthen↔weaken, rising↔falling
+   - 문장만 보면 문법·연어는 자연스러워야 함. 앞뒤·전체 논리를 봐야 ‘반대’임이 드러남.
+   - not만 붙인 조잡 반전·주제 무관 단어 금지. 같은 품사·비슷한 길이.
+2) 모양·철자 유사 (혼동어): garbage/garage, permitted/prevented, affect/effect, principal/principle, access/assess
+   - 발음·철자가 비슷하고 뜻은 다름. 문맥에 끼워 넣으면 순간 헷갈리게.
+3) 유의어처럼 보이지만 문맥 방향이 틀림 / 연어만 미세 오류.
+- 나머지 밑줄(어휘개수·추론)은 문법·문맥 완전 적합.
+- 오답 해설은 ‘왜 반대/혼동인지 + 바른 말’을 명시.`;
+}
+
+/**
+ * 워크북 6단계 [correct / wrong] 2지 — 학평 어휘고르기 동형
+ * (변형문제 어휘추론 밑줄형과 달리, 반의어·유사형태를 적극 사용)
+ */
+export function workbookVocabChoiceCraft(): string {
+  return `워크북 6단계 어휘 고르기 [원문어휘 / 오답] 제작 원칙:
+
+목표: 학생이 문장만 훑으면 둘 다 가능해 보이지만, 지문 논리·연어를 보면 정답 하나.
+
+오답(wrong) 기법 — 반드시 아래 중 하나 (우선순위 순):
+A) opposite_meaning / positive_negative / strengthen_weaken / increase_decrease
+   = 반의어·의미 방향 반전 (학평 최다 유형)
+   예: endless/temporary, dreadful/delightful, vast/narrow, strengthen/weaken,
+       growing/declining, more and more/less and less, efficient/inefficient
+B) similar_spelling
+   = 철자·발음·형태가 비슷한 혼동어 (모양이 유사)
+   예: garbage/garage, permitted/prevented, affect/effect, accept/except,
+       principal/principle, access/assess, composition/competition, assume/assure,
+       collating/collapsing, fallacy/fantasy
+C) contextual_meaning / collocation
+   = 사전상 유의어처럼 보이지만 이 문맥·연어에서는 틀림
+   예: remind/remember, assure/ensure, spend/take(시간), interact/interfere
+
+품질 규칙:
+1. correct = 원문 부분문자열(내용어). wrong = 같은 품사·시제·수 맞춰 대소문자 맞춤.
+2. 어법 최소쌍 금지 (태·관계사·분사·수일치·±s) — 그건 5단계.
+3. 관사·be동사만, 황당 무관 단어, 철자 오타 장난 금지.
+4. 세트 전체에서 A(반의)와 B(유사형태)를 섞을 것 — 전부 반의만 또는 전부 유사만 금지.
+5. 같은 wrong 반복·같은 단어만 반복 출제 금지.
+6. vocabularySub에 A/B/C 해당 코드를 정확히 넣을 것.`;
 }
 
 export function irrelevantChoiceCraft(): string {

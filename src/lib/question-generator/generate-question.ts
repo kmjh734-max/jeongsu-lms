@@ -362,23 +362,25 @@ ${catalog}`;
         return `어휘 개수 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
 - passageModified = FULL ENGLISH passage with exactly six vocabulary spots ① ② ③ ④ ⑤ ⑥ as ①<u>word/phrase</u>.
 - Put 1~5 contextually WRONG items; rest correct and natural.
+- WRONG 기법: 반의·방향 반전 / 유사 철자·형태 혼동어 / 문맥만 틀린 유의어.
 ${vocabChoiceCraft()}
 ${choiceExplanationRules()}
 - choices MUST be EXACTLY and ONLY these five texts in order:
   1:"1개"  2:"2개"  3:"3개"  4:"4개"  5:"5개"
 - correctAnswer = N = count of wrong spots.
-- questionText empty. explanation: Korean — 틀린 번호 + 왜 반대인지 + 바른 말.
+- questionText empty. explanation: Korean — 틀린 번호 + 왜 반의/혼동인지 + 바른 말.
 LANGUAGE: passage ENGLISH only.`;
       }
       // 어휘추론 (어색한 것 고르기) — PDF형 ①~⑤, 하단 보기 없음
       return `어휘 어색한 것 고르기 — 고1 학력평가·내신 고퀄리티 (A4 변형동형):
 - passageModified = FULL ENGLISH passage with exactly five vocabulary spots ① ② ③ ④ ⑤ as ①<u>word/phrase</u>.
 - Exactly ONE is contextually WRONG; the other four are clearly correct in context.
+- WRONG 기법 우선: (1) 반의·방향 반전 (2) 철자·형태 유사 혼동어 (3) 문맥만 틀린 유의어형.
 ${vocabChoiceCraft()}
 ${choiceExplanationRules()}
 - choices: omit or empty array — numbers IN the passage are the options; do NOT print a separate choice list.
 - correctAnswer 1-5 = the wrong underlined number. questionText empty.
-- explanation (Korean): which number + why opposite in context + replacement word.
+- explanation (Korean): which number + why opposite/lookalike/wrong-in-context + replacement word.
 LANGUAGE: passage ENGLISH only.`;
     case "underlined_inference":
       if (code === "목적추론") {
