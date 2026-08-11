@@ -6,7 +6,7 @@ import {
 import { workbookPromptForStepType } from "@/lib/exam-prep/presets";
 import { EXAM_STEP_LABELS, type ExamPassageSentence, type ExamStepType } from "@/lib/exam-prep/types";
 import { generateStage6WithAi, generateStage7WithAi } from "@/lib/exam-prep/generate-stage67-grammar-ai";
-import { buildStage6Drafts, buildStage7Seed } from "@/lib/exam-prep/auto-seed-stages";
+import { buildStage6Drafts, buildStage7Seed, mergeStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
 import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
 import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
@@ -409,43 +409,8 @@ export async function generateStepQuestionsWithAi(
     };
   }
 
-  // 6단계: 변형문제 어법·어휘 엔진
+  // 6단계: 지문 분석 규칙 시드 + AI 보충
   if (type === "grammar_vocab_choice") {
-    const seed = sentences.map((s) => ({
-      id: s.id,
-      english_text: s.english_text,
-      sentence_order: s.sentence_order,
-    }));
-    if (process.env.OPENAI_API_KEY?.trim()) {
-      try {
-        const ai = await generateStage6WithAi(seed);
-        if (ai.drafts.length > 0) {
-          return {
-            questions: stage6DraftsToQuestions(ai.drafts, sentences, true),
-            source: "ai",
-            aiError: ai.error,
-          };
-        }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "AI 실패";
-        const plantDrafts = buildStage6Drafts(
-          sentences.map((s) => ({
-            id: s.id,
-            english_text: s.english_text,
-            korean_text: s.korean_text,
-            sentence_order: s.sentence_order,
-            paragraph_number: s.paragraph_number,
-            vocabulary: s.vocabulary,
-            is_important_writing: s.is_important_writing,
-          }))
-        );
-        return {
-          questions: stage6DraftsToQuestions(plantDrafts, sentences, false),
-          source: "rule",
-          aiError: msg,
-        };
-      }
-    }
     const plantDrafts = buildStage6Drafts(
       sentences.map((s) => ({
         id: s.id,
@@ -457,12 +422,37 @@ export async function generateStepQuestionsWithAi(
         is_important_writing: s.is_important_writing,
       }))
     );
+    const seed = sentences.map((s) => ({
+      id: s.id,
+      english_text: s.english_text,
+      sentence_order: s.sentence_order,
+    }));
+    if (process.env.OPENAI_API_KEY?.trim()) {
+      try {
+        const ai = await generateStage6WithAi(seed);
+        const merged = mergeStage6Drafts(
+          plantDrafts,
+          ai.drafts,
+          sentences.map((s) => s.id)
+        );
+        return {
+          questions: stage6DraftsToQuestions(merged, sentences, ai.source === "ai"),
+          source: ai.source === "ai" ? "ai" : "rule",
+          aiError: ai.error,
+        };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "AI 실패";
+        return {
+          questions: stage6DraftsToQuestions(plantDrafts, sentences, false),
+          source: "rule",
+          aiError: msg,
+        };
+      }
+    }
     return {
       questions: stage6DraftsToQuestions(plantDrafts, sentences, false),
       source: "rule",
-      aiError: process.env.OPENAI_API_KEY?.trim()
-        ? "AI 어법 포인트 없음 → 플랜트"
-        : "OPENAI_API_KEY 없음",
+      aiError: "OPENAI_API_KEY 없음",
     };
   }
 

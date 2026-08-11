@@ -111,7 +111,7 @@ ${vocabChoiceCraft()}
    - a/an/the 관사, as a result/as a results, 인접 단순 is/are
    - 철자 장난·의미 없는 형태 변형
 4. 수일치는 전체에서 최대 1개. 단원은 서로 다르게.
-5. 문장마다 0~2개(없으면 생략), 지문 전체 4~10개. 억지로 만들지 말 것.
+5. 모든 문장에 최소 2개 [a/b]를 만든다(짧은 문장만 1개 허용). 지문 전체 ≈ 문장수×2~4. 인천 WORKBOOK 6단계처럼 어법(태·관계사·분사·형부사…)과 어휘(반의어·혼동어)를 섞는다.
 6. 어법(grammarSub)과 어휘(vocabularySub: similar_spelling|contextual_meaning|collocation|opposite_meaning 등)를 섞을 수 있다. 어휘면 grammarSub 대신 vocabularySub를 넣고 questionKind:"vocabulary".
 7. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","vocabularySub","questionKind","koLabel","koTip"}]}
 grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle, adjective_adverb, infinitive, gerund, conjunction, subject_verb_agreement, word_order, comparison`;

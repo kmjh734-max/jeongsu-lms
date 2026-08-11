@@ -135,7 +135,7 @@ const MECHANISM_PLANTS: MechPlant[] = [
       return `${prep}${base || "allow"}`;
     },
     priority: 96,
-    forChoice: true,
+    forChoice: false, // by allowing↔by allow 류는 6단계 품질 낮음 → 7단계만
     forError: true,
   },
   {
@@ -149,7 +149,7 @@ const MECHANISM_PLANTS: MechPlant[] = [
       return `${head}${toIngForm(base)}`;
     },
     priority: 96,
-    forChoice: true,
+    forChoice: false, // fails to allow / allowing — 인천 PDF·변형문제 금지
     forError: true,
   },
   // 대동사 do vs be (마더텅 해설 단골)
@@ -339,8 +339,8 @@ const MECHANISM_PLANTS: MechPlant[] = [
   {
     unitKey: "verbal",
     caseId: "verb-obj",
-    correct: /\bto (fix|solve|protect|leave|prevent|improve|reduce|increase|learn|apologize)\b/gi,
-    wrong: (_m, g) => `${g[0] ?? "fix"}ing`,
+    correct: /\bto (fix|solve|protect|leave|prevent|improve|reduce|increase|learn|apologize|assume|allow|strengthen|gather|appear|emerge)\b/gi,
+    wrong: (_m, g) => toIngForm(g[0] ?? "fix"),
     priority: 72,
     forChoice: true,
     forError: true,
@@ -391,10 +391,57 @@ const MECHANISM_PLANTS: MechPlant[] = [
   // —— compare (much more / very more)
   {
     unitKey: "compare",
+    caseId: "cmp-as-as",
+    correct: /\bas (good|well|large|small|high|low|long|short|bad|great) as\b/gi,
+    wrong: (_m, g) => `so ${g[0] ?? "good"} as`,
+    priority: 91,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "compare",
     caseId: "cmp-very",
     correct: /\bmuch (more|better|worse|easier|harder|larger|smaller)\b/gi,
     wrong: (_m, g) => `very ${g[0] ?? "more"}`,
     priority: 90,
+    forChoice: true,
+    forError: true,
+  },
+  // —— that 명사절 vs which (가정·인식 동사 뒤)
+  {
+    unitKey: "relative",
+    caseId: "rel-that-clause",
+    correct:
+      /\b(?:assume|assumes|assumed|know|knows|knew|think|thinks|thought|seem|seems|seemed|feel|feels|felt|suggest|suggests|suggested)\s+that\b/gi,
+    wrong: (matched) => matched.replace(/\bthat\b/i, "which"),
+    priority: 84,
+    forChoice: true,
+    forError: true,
+  },
+  // —— 분사·부사: highly skilled
+  {
+    unitKey: "adjadv",
+    caseId: "adj-slot",
+    correct: /\b(highly|deeply|widely|largely|mainly|mostly|nearly|barely)\b/gi,
+    wrong: (_m, g) => {
+      const w = (g[0] ?? "high").toLowerCase();
+      return w.replace(/ly$/i, "");
+    },
+    priority: 86,
+    forChoice: true,
+    forError: true,
+  },
+  // —— each + 단수 동사
+  {
+    unitKey: "sv",
+    caseId: "sv-each",
+    correct: /\beach\s+(assumes|thinks|knows|has|does|takes|makes|seems|appears)\b/gi,
+    wrong: (_m, g) => {
+      const v = g[0] ?? "assumes";
+      const base = v.endsWith("es") && /[sxz]es$/i.test(v) ? v.slice(0, -2) : v.replace(/s$/i, "");
+      return `each ${base || v}`;
+    },
+    priority: 92,
     forChoice: true,
     forError: true,
   },
@@ -627,6 +674,27 @@ export const VOCAB_CHOICE_PLANTS: Array<{
   { correct: /\bremember\b/i, wrong: "remind", sub: "contextual_meaning", priority: 58 },
   { correct: /\bearn\b/i, wrong: "gain", sub: "contextual_meaning", priority: 57 },
   { correct: /\bspend\b/i, wrong: "take", sub: "collocation", priority: 56 },
+  // 지문 분석형 반의어·혼동 (인천 PDF: endless/temporary, vast/narrow …)
+  { correct: /\befficient\b/i, wrong: "inefficient", sub: "opposite_meaning", priority: 59 },
+  { correct: /\bproductive\b/i, wrong: "unproductive", sub: "opposite_meaning", priority: 59 },
+  { correct: /\blogical\b/i, wrong: "illogical", sub: "opposite_meaning", priority: 59 },
+  { correct: /\bskilled\b/i, wrong: "unskilled", sub: "opposite_meaning", priority: 58 },
+  { correct: /\bdifferent\b/i, wrong: "identical", sub: "opposite_meaning", priority: 57 },
+  { correct: /\bendless\b/i, wrong: "temporary", sub: "opposite_meaning", priority: 60 },
+  { correct: /\bdreadful\b/i, wrong: "delightful", sub: "opposite_meaning", priority: 60 },
+  { correct: /\bvast\b/i, wrong: "narrow", sub: "opposite_meaning", priority: 58 },
+  { correct: /\bliving\b/i, wrong: "lifeless", sub: "opposite_meaning", priority: 57 },
+  { correct: /\brising\b/i, wrong: "setting", sub: "opposite_meaning", priority: 58 },
+  { correct: /\bcomposition\b/i, wrong: "competition", sub: "similar_spelling", priority: 61 },
+  { correct: /\bassumes\b/i, wrong: "assures", sub: "similar_spelling", priority: 60 },
+  { correct: /\bassume\b/i, wrong: "assure", sub: "similar_spelling", priority: 58 },
+  { correct: /\binteract\b/i, wrong: "interfere", sub: "contextual_meaning", priority: 58 },
+  { correct: /\bcollating\b/i, wrong: "collapsing", sub: "similar_spelling", priority: 57 },
+  { correct: /\bfallacy\b/i, wrong: "fantasy", sub: "similar_spelling", priority: 60 },
+  { correct: /\bprototype\b/i, wrong: "stereotype", sub: "contextual_meaning", priority: 56 },
+  { correct: /\badministrator\b/i, wrong: "administration", sub: "contextual_meaning", priority: 55 },
+  { correct: /\bwhole\b/i, wrong: "hole", sub: "similar_spelling", priority: 54 },
+  { correct: /\bstartup\b/i, wrong: "start-up", sub: "similar_spelling", priority: 52 },
 ];
 
 function findCase(
@@ -714,6 +782,39 @@ export function isNonsenseChoicePair(correct: string, wrong: string): boolean {
     }
     if (bIng && (bIng === aw || bIng + "e" === aw || bIng.replace(/e$/, "") === aw)) {
       return true;
+    }
+  }
+
+  // 다중 토큰: fails to allow / fails to allowing — -ing 장난만 금지 (±s 수일치는 허용)
+  {
+    const ta = a.trim().split(/\s+/);
+    const tb = b.trim().split(/\s+/);
+    if (ta.length === tb.length && ta.length >= 2) {
+      const headA = ta.slice(0, -1).join(" ").toLowerCase();
+      const headB = tb.slice(0, -1).join(" ").toLowerCase();
+      if (headA === headB) {
+        const la = ta[ta.length - 1]!.toLowerCase().replace(/[^a-z']/g, "");
+        const lb = tb[tb.length - 1]!.toLowerCase().replace(/[^a-z']/g, "");
+        const stemIng = (w: string) =>
+          w.endsWith("ing") && w.length > 4 ? w.slice(0, -3) : null;
+        const aIng = stemIng(la);
+        const bIng = stemIng(lb);
+        if (aIng && (aIng === lb || aIng + "e" === lb || aIng.replace(/e$/, "") === lb)) {
+          return true;
+        }
+        if (bIng && (bIng === la || bIng + "e" === la || bIng.replace(/e$/, "") === la)) {
+          return true;
+        }
+      }
+    }
+    // to allow / allowing
+    const toA = a.trim().match(/^to\s+(\w+)$/i);
+    const toB = b.trim().match(/^to\s+(\w+)$/i);
+    if (toA && !/\s/.test(b.trim())) {
+      if (isNonsenseChoicePair(toA[1]!, b.trim())) return true;
+    }
+    if (toB && !/\s/.test(a.trim())) {
+      if (isNonsenseChoicePair(a.trim(), toB[1]!)) return true;
     }
   }
 

@@ -13,6 +13,7 @@ import {
   buildStage7Seed,
   buildStage8Drafts,
   buildStage9Config,
+  mergeStage6Drafts,
   type SeedSentence,
 } from "@/lib/exam-prep/auto-seed-stages";
 import {
@@ -172,12 +173,20 @@ export async function generateFullExamPrepWorkbookAction(input: {
     await tryPublish(5, () => setStage5PublishedAction(passageId, true));
   }
 
-  // 6·7단계: 변형문제 어법 API(pickGrammarFocus) 우선, 실패 시 규칙 폴백
+  // 6·7단계: 지문 분석 규칙 시드가 기본, AI는 빈 문장만 보충
   {
+    const plant6 = buildStage6Drafts(sentences);
     const ai6 = await generateStage6WithAi(sentences);
-    const s6 = ai6.drafts.length > 0 ? ai6.drafts : buildStage6Drafts(sentences);
-    if (ai6.source === "ai") notes.push(`6단계 AI 어법 ${s6.length}문항`);
-    else if (ai6.error) notes.push(`6단계 AI 실패→규칙: ${ai6.error}`);
+    const s6 = mergeStage6Drafts(
+      plant6,
+      ai6.drafts,
+      sentences.map((s) => s.id)
+    );
+    if (ai6.source === "ai") {
+      notes.push(`6단계 지문분석 ${plant6.length}+AI보충 → ${s6.length}문항`);
+    } else if (ai6.error) {
+      notes.push(`6단계 AI 생략→규칙: ${ai6.error}`);
+    }
     if (s6.length > 0) {
       const r = await saveStage6ItemsAction(passageId, s6);
       if (!r.ok) return { ok: false as const, message: `6단계: ${r.message}` };
