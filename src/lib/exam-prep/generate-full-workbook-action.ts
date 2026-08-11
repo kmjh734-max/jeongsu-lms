@@ -32,7 +32,8 @@ import {
 import { EXAM_PREP_MODEL_PRIMARY, getExamPrepReasoningEffort } from "@/lib/exam-prep/exam-prep-openai";
 import { createWorkbookAction, enrichPassageSentencesAction } from "@/lib/exam-prep/staff-actions";
 import { setStage2PublishedAction } from "@/lib/exam-prep/stage2-staff-actions";
-import { saveStage3BlanksAction, setStage3PublishedAction } from "@/lib/exam-prep/stage3-staff-actions";import {
+import { saveStage3BlanksAction, setStage3PublishedAction } from "@/lib/exam-prep/stage3-staff-actions";
+import {
   ensureDefaultStage4SettingsAction,
   setStage4PublishedAction,
 } from "@/lib/exam-prep/stage4-staff-actions";
@@ -210,24 +211,24 @@ export async function generateFullExamPrepWorkbookAction(input: {
 
   {
     const ids = sentences.map((s) => s.id);
-    // 5단계 어법 = 변형문제 grammar-catalog 엔진
+    // 5단계 어법 = 변형문제 grammar 엔진 (AI 우선, 규칙으로 빈 문장만 보충)
     const plantG = buildStage6GrammarDrafts(sentences);
     const aiG = await generateStage6WithAi(sentences, "grammar");
-    const preferG = stage6AiCoverageOk(aiG.drafts, sentences.length, "grammar");
+    const useAiG = aiG.source === "ai" && aiG.drafts.length > 0;
     const grammar = mergeStage6Drafts(
-      preferG ? aiG.drafts : plantG,
-      preferG ? plantG : aiG.drafts,
+      useAiG ? aiG.drafts : plantG,
+      plantG,
       ids,
       { category: "grammar", minPerSentence: 1 }
     );
 
-    // 6단계 어휘 = 변형문제 vocab craft 엔진
+    // 6단계 어휘 = 변형문제 vocab craft (AI 우선)
     const plantV = buildStage6VocabDrafts(sentences);
     const aiV = await generateStage6WithAi(sentences, "vocabulary");
-    const preferV = stage6AiCoverageOk(aiV.drafts, sentences.length, "vocabulary");
+    const useAiV = aiV.source === "ai" && aiV.drafts.length > 0;
     const vocab = mergeStage6Drafts(
-      preferV ? aiV.drafts : plantV,
-      preferV ? plantV : aiV.drafts,
+      useAiV ? aiV.drafts : plantV,
+      plantV,
       ids,
       { category: "vocabulary", minPerSentence: 1 }
     );
@@ -237,34 +238,15 @@ export async function generateFullExamPrepWorkbookAction(input: {
     const vocabN = vocab.length;
     const gCover = new Set(grammar.map((d) => d.sentence_id)).size;
     const vCover = new Set(vocab.map((d) => d.sentence_id)).size;
+    const gOk = stage6AiCoverageOk(grammar, sentences.length, "grammar");
+    const vOk = stage6AiCoverageOk(vocab, sentences.length, "vocabulary");
 
-    if (aiG.source === "ai" && preferG) {
-      notes.push(
-        `5단계 어법 AI ${aiG.drafts.length}+규칙 → ${grammarN}문항 (${gCover}/${sentences.length}문장)`
-      );
-    } else if (aiG.source === "ai") {
-      notes.push(
-        `5단계 어법 규칙 ${plantG.length}+AI보충 → ${grammarN}문항 (${gCover}/${sentences.length}문장)${aiG.error ? ` (${aiG.error})` : ""}`
-      );
-    } else {
-      notes.push(
-        `5단계 어법 규칙 ${grammarN}문항 (${gCover}/${sentences.length}문장)${aiG.error ? ` (AI: ${aiG.error})` : ""}`
-      );
-    }
-
-    if (aiV.source === "ai" && preferV) {
-      notes.push(
-        `6단계 어휘 AI ${aiV.drafts.length}+규칙 → ${vocabN}문항 (${vCover}/${sentences.length}문장)`
-      );
-    } else if (aiV.source === "ai") {
-      notes.push(
-        `6단계 어휘 규칙 ${plantV.length}+AI보충 → ${vocabN}문항 (${vCover}/${sentences.length}문장)${aiV.error ? ` (${aiV.error})` : ""}`
-      );
-    } else {
-      notes.push(
-        `6단계 어휘 규칙 ${vocabN}문항 (${vCover}/${sentences.length}문장)${aiV.error ? ` (AI: ${aiV.error})` : ""}`
-      );
-    }
+    notes.push(
+      `5단계 어법 ${useAiG ? "AI" : "규칙"} ${grammarN}문항 · ${gCover}/${sentences.length}문장${gOk ? " ✓" : ""}${aiG.error && !useAiG ? ` (${aiG.error})` : ""}`
+    );
+    notes.push(
+      `6단계 어휘 ${useAiV ? "AI" : "규칙"} ${vocabN}문항 · ${vCover}/${sentences.length}문장${vOk ? " ✓" : ""}${aiV.error && !useAiV ? ` (${aiV.error})` : ""}`
+    );
 
     if (s6.length > 0) {
       const r = await saveStage6ItemsAction(passageId, s6);

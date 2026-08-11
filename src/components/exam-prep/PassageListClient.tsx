@@ -7,6 +7,7 @@ import {
   deletePassageSetsAction,
   deletePassagesAction,
 } from "@/lib/exam-prep/staff-actions";
+import { GenerateSetWorkbooksButton } from "@/components/exam-prep/GenerateSetWorkbooksButton";
 
 export type PassageListItem = {
   id: string;
@@ -220,6 +221,14 @@ export function PassageListClient({
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <GenerateSetWorkbooksButton
+                setTitle={set.title}
+                passages={set.passages.map((p) => ({
+                  id: p.id,
+                  title: p.exam_range || p.title,
+                }))}
+                basePath={basePath}
+              />
               <StatusBadge status={set.status} />
               <button
                 type="button"

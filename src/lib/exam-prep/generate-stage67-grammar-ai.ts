@@ -3,7 +3,13 @@
  * 5단계(어법): pickGrammarFocus + grammar-catalog + grammarChoiceCraft
  * 6단계(어휘): vocabChoiceCraft (문맥 혼동·반의)
  */
-import { examPrepChatJson } from "@/lib/exam-prep/exam-prep-openai";
+import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
+import {
+  examPrepChatJson,
+  EXAM_PREP_MODEL_PRIMARY,
+  getExamPrepPreferredModels,
+  getExamPrepReasoningEffort,
+} from "@/lib/exam-prep/exam-prep-openai";
 import {
   grammarCatalogPromptBlock,
   grammarExplanationRules,
@@ -88,17 +94,31 @@ type AiStage7Error = {
   koTip?: string;
 };
 
+async function stage56ChatJson(system: string, user: string): Promise<unknown> {
+  // 변형문제와 동일 경로: retry + 상위 모델 + high/xhigh reasoning
+  return questionGeneratorChatJsonWithRetry({
+    system,
+    user,
+    temperature: 0.25,
+    maxTokens: 8000,
+    reasoningEffort: getExamPrepReasoningEffort(),
+    preferredModels: getExamPrepPreferredModels(),
+  });
+}
+
 function blanksPerSentenceTarget(english: string): number {
   const words = english.split(/\s+/).filter(Boolean).length;
   if (words <= 8) return 1;
   if (words <= 18) return 2;
-  return Math.min(4, Math.max(2, Math.ceil(words / 14)));
+  return Math.min(3, Math.max(2, Math.ceil(words / 16)));
 }
 
 function buildGrammarSystem(focusBlock: string): string {
-  return `당신은 수능·내신 **어법** 출제 전문가다.
-워크북 5단계 [a / b]는 **변형문제(question-generator) 어법 엔진과 동일 기준**으로 만든다.
-(어법추론·어법개수와 같은 grammar-catalog / CASE / craft 규칙을 따른다.)
+  return `당신은 한국 고등 영어 내신·학력평가 **어법** 출제위원이다.
+변형문제 「어법추론」「어법개수」와 **같은 grammar-catalog / CASE / craft**로 워크북 5단계 [correct / wrong]를 만든다.
+
+핵심 차이: 변형문제는 지문 전체 밑줄 5~6개, 워크북은 문장마다 [원문형 / 오답형] 2지.
+품질 기준은 변형문제와 동일 — CASE 메커니즘·심는 법·금지 규칙을 지켜라.
 
 ${focusBlock}
 
@@ -108,54 +128,55 @@ ${grammarExplanationRules()}
 
 ${grammarChoiceCraftNote()}
 
-출제 품질 (인천 PDF · 변형문제 어법):
-- been dumping/been dumped, where/that(관계부사), attracts/is attracted, which has/which have
-- growing 분사, desperately/desperate, illegal/illegally, 준동사·태·시제·병렬·비교 등
-- **어휘 혼동 쌍은 넣지 말 것** (garbage/garage 등은 6단계 전용)
+좋은 예 (변형문제 수준):
+- been dumping / been dumped (태)
+- where / that (관계부사 자리)
+- attracts / is attracted (능동·수동)
+- which has / which have (관계절 수일치 — 인접 단순 is/are 금지)
+- desperately / desperate (부사·형용사)
+- illegal / illegally
 
-절대 금지 (하드 — 해당 blank 폐기):
-1. assume that / assume which, know that / know which 등 **명사절 that ↔ which** 장난
-2. allow/allowing, know/knowing, to V / V-ing 단순 형태 장난
-3. sometime/sometimes, whole/wholes, part/parts 식 ±s만 다른 쌍
-4. a/an/the 관사, as a result/as a results, 인접 단순 is/are·has/have
-5. 철자 1글자 장난·의미 없는 형태 변형
-6. 원문에 없는 correct 문자열
+절대 금지:
+1. assume that/which, know that/which 명사절 장난
+2. allow/allowing, to V/V-ing 단순 형태 장난
+3. ±s만 다른 쌍, 관사, 인접 단순 is/are·has/have, 철자 장난
+4. 어휘 혼동 쌍(garbage/garage 등) — 그건 6단계
+5. 원문에 없는 correct
 
 규칙:
-1. 원문 english를 절대 바꾸지 않는다. correct는 원문 부분문자열.
-2. 각 blank = [correct / wrong] 2지. wrong는 CASE 메커니즘에 맞는 그럴듯한 어법 오답.
-3. 수일치는 지문 전체 최대 1개. 단원은 가능한 한 다양하게(변형문제 pickGrammarFocus와 동일).
-4. **지문의 모든 문장**에 최소 목표 개수(짧은 문장 1, 보통 2~4). 빠뜨린 문장 금지.
-5. questionKind는 항상 "grammar". grammarSub 필수.
-6. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","questionKind","koLabel","koTip"}]}
-grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle, adjective_adverb, infinitive, gerund, conjunction, subject_verb_agreement, word_order, comparison`;
+1. 먼저 지문 전체를 읽고, 변형문제처럼 중요한 어법 포인트를 고른다.
+2. correct = 원문 부분문자열. wrong = CASE에 맞는 그럴듯한 오답.
+3. **모든 sentenceId**에 최소 1개(가능하면 2개). 짧은 문장(≤8단어)은 1개.
+4. 수일치 지문 전체 ≤1. 단원 다양.
+5. questionKind:"grammar", grammarSub 필수.
+6. JSON만: {"blanks":[{"sentenceId","correct","wrong","grammarSub","questionKind","koLabel","koTip"}]}`;
 }
 
 function buildVocabSystem(): string {
-  return `당신은 수능·내신 **어휘(문맥)** 출제 전문가다.
-워크북 6단계 [a / b]는 **변형문제(question-generator) 어휘 엔진과 동일 기준**으로 만든다.
-(어휘추론·어휘개수와 같은 문맥 혼동·논리 방향 반전 craft를 따른다.)
+  return `당신은 한국 고등 영어 내신·학력평가 **어휘(문맥)** 출제위원이다.
+변형문제 「어휘추론」「어휘개수」와 **같은 craft**로 워크북 6단계 [correct / wrong]를 만든다.
+
+핵심 차이: 변형문제는 지문 전체 밑줄, 워크북은 문장마다 [원문어휘 / 문맥오답] 2지.
+품질 기준은 변형문제와 동일.
 
 ${vocabChoiceCraft()}
 
-출제 품질 (인천 PDF · 변형문제 어휘):
-- garbage/garage, permitted/prevented, endless/temporary, strengthen/weaken, efficient/inefficient
-- 문장만 보면 가능해 보이지만 앞뒤·전체 논리를 보면 틀린 단어
-- **어법 최소쌍은 넣지 말 것** (been dumping/been dumped, where/that 등은 5단계 전용)
+좋은 예:
+- garbage / garage, permitted / prevented, endless / temporary
+- strengthen / weaken, efficient / inefficient
+- 문장만 보면 자연스러워 보이지만 앞뒤 논리를 보면 틀림
 
-절대 금지 (하드 — 해당 blank 폐기):
-1. 어법만 다른 쌍 (분사/태/관계사/수일치 등)
-2. ±s만 다른 쌍, 관사 a/an/the, 철자 1글자 장난
-3. 원문에 없는 correct 문자열
-4. 주제와 무관한 황당 단어
+절대 금지:
+1. 어법 최소쌍 (태·관계사·분사·수일치 등) — 그건 5단계
+2. ±s만, 관사, 철자 장난, 황당 무관 단어
+3. 원문에 없는 correct
 
 규칙:
-1. 원문 english를 절대 바꾸지 않는다. correct는 원문 부분문자열(내용어 위주).
-2. 각 blank = [correct / wrong] 2지. wrong는 문맥상 그럴듯한 혼동·반의·유사어.
-3. **지문의 모든 문장**에 최소 목표 개수(짧은 문장 1, 보통 2~3). 빠뜨린 문장 금지.
-4. questionKind는 항상 "vocabulary". vocabularySub 필수.
-5. JSON만: {"blanks":[{"sentenceId","correct","wrong","vocabularySub","questionKind","koLabel","koTip"}]}
-vocabularySub 예: contextual_meaning, antonym, confusion, collocation, register`;
+1. 지문 전체를 읽고 논리·어휘 방향을 파악한 뒤 문항을 고른다.
+2. correct = 원문 내용어. wrong = 문맥 혼동·반의·유사.
+3. **모든 sentenceId**에 최소 1개(가능하면 2개).
+4. questionKind:"vocabulary", vocabularySub 필수.
+5. JSON만: {"blanks":[{"sentenceId","correct","wrong","vocabularySub","questionKind","koLabel","koTip"}]}`;
 }
 
 function parseAiBlanks(
@@ -253,8 +274,8 @@ function parseAiBlanks(
 }
 
 /**
- * 5단계 어법 / 6단계 어휘 AI 생성 (변형문제 엔진)
- * @param mode grammar = 워크북 5단계, vocabulary = 워크북 6단계
+ * 5단계 어법 / 6단계 어휘 AI 생성 (변형문제와 동일 모델·retry·catalog)
+ * 1차: 지문 전체 분석 → 2차: 빠진 문장만 보충
  */
 export async function generateStage6WithAi(
   sentences: SeedSentence[],
@@ -265,8 +286,8 @@ export async function generateStage6WithAi(
     return { drafts: [], source: "none", error: "문장 없음" };
   }
 
-  const focusSlots = Math.min(12, Math.max(4, ordered.length * 2));
-  const focus = pickGrammarFocus(focusSlots);
+  const focusSlots = Math.min(12, Math.max(5, ordered.length + 2));
+  const focus = pickGrammarFocus(Math.min(5, focusSlots));
 
   const targets = ordered.map((s) => ({
     id: s.id,
@@ -275,6 +296,10 @@ export async function generateStage6WithAi(
     minBlanks: blanksPerSentenceTarget(String(s.english_text ?? "")),
   }));
 
+  const fullPassage = ordered
+    .map((s, i) => `[${s.id}|S${i + 1}] ${String(s.english_text ?? "").trim()}`)
+    .join("\n");
+
   const system =
     mode === "vocabulary"
       ? buildVocabSystem()
@@ -282,38 +307,78 @@ export async function generateStage6WithAi(
         ? buildGrammarSystem(focus.focusBlock)
         : `${buildGrammarSystem(focus.focusBlock)}
 
---- 혼합 모드 추가 ---
+--- 혼합 모드 ---
 ${vocabChoiceCraft()}
-어법·어휘를 문장마다 섞어 내되 questionKind로 구분한다.`;
+어법·어휘를 섞되 questionKind로 구분.`;
 
-  const user = JSON.stringify({
+  const baseUser = {
     task:
       mode === "grammar"
-        ? "stage5_grammar_inline_ab_qg_engine"
+        ? "stage5_grammar_like_qg"
         : mode === "vocabulary"
-          ? "stage6_vocab_inline_ab_qg_engine"
-          : "stage6_inline_ab_qg_engine",
+          ? "stage6_vocab_like_qg"
+          : "stage6_mixed_like_qg",
     engine:
       mode === "vocabulary"
         ? "question-generator-vocab-craft"
         : "question-generator-grammar-catalog",
+    modelHint: EXAM_PREP_MODEL_PRIMARY,
     mode,
     requireEverySentence: true,
+    fullPassage,
     sentences: targets,
-  });
+    note: "변형문제처럼 지문 전체를 먼저 읽고, 문장 id별로 blanks를 배분하라.",
+  };
 
   try {
-    const raw = await examPrepChatJson({
-      system,
-      user,
-      maxTokens: 7000,
-    });
-    const list = (raw as { blanks?: AiStage6Blank[] })?.blanks;
-    if (!Array.isArray(list) || list.length === 0) {
-      return { drafts: [], source: "none", error: "AI 응답에 blanks 없음" };
+    const raw1 = await stage56ChatJson(system, JSON.stringify(baseUser));
+    const list1 = (raw1 as { blanks?: AiStage6Blank[] })?.blanks;
+    let drafts = Array.isArray(list1)
+      ? parseAiBlanks(list1, ordered, mode)
+      : [];
+
+    // 2차: 커버 안 된 문장만 재요청 (변형문제도 품질 안 나오면 재시도하는 것과 동일)
+    const covered = new Set(drafts.map((d) => d.sentence_id));
+    const missing = ordered.filter((s) => !covered.has(s.id));
+    if (missing.length > 0 && drafts.length > 0) {
+      const gapUser = {
+        ...baseUser,
+        task: `${baseUser.task}_gap_fill`,
+        note: `다음 ${missing.length}개 문장에만 추가 blanks를 만들어라. 이미 있는 문장은 건드리지 마라.`,
+        sentences: missing.map((s) => ({
+          id: s.id,
+          order: s.sentence_order,
+          english: s.english_text,
+          minBlanks: blanksPerSentenceTarget(String(s.english_text ?? "")),
+        })),
+        fullPassage: missing
+          .map((s) => `[${s.id}] ${String(s.english_text ?? "").trim()}`)
+          .join("\n"),
+      };
+      try {
+        const raw2 = await stage56ChatJson(system, JSON.stringify(gapUser));
+        const list2 = (raw2 as { blanks?: AiStage6Blank[] })?.blanks;
+        if (Array.isArray(list2) && list2.length > 0) {
+          const more = parseAiBlanks(list2, missing, mode);
+          drafts = [...drafts, ...more];
+        }
+      } catch {
+        // gap fill 실패해도 1차 결과 유지
+      }
     }
 
-    const drafts = parseAiBlanks(list, ordered, mode);
+    // 1차가 비었으면 한 번 더 전체 재시도
+    if (drafts.length === 0) {
+      const rawRetry = await stage56ChatJson(
+        system,
+        JSON.stringify({ ...baseUser, retry: true, note: "이전 응답이 비어 재시도. 모든 문장에 최소 1개." })
+      );
+      const listRetry = (rawRetry as { blanks?: AiStage6Blank[] })?.blanks;
+      if (Array.isArray(listRetry)) {
+        drafts = parseAiBlanks(listRetry, ordered, mode);
+      }
+    }
+
     if (drafts.length === 0) {
       return {
         drafts: [],
