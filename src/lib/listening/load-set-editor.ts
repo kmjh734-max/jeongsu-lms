@@ -30,7 +30,7 @@ export async function loadListeningSetForEditor(
   const { data: questions } = await supabase
     .from("listening_questions")
     .select(
-      "id, order_index, question_type, instruction, question_text, choices, correct_answer, explanation, answer_clue, needs_review, quality_score, answer_clarity_score, quality_issues, answer_validation, table_data, previous_turn, correct_response_function, distractor_reason, blank_speaker, situation_type, needs_image_choices, choice_image_prompts, visual_choice_type, selected_conditions, weather_target_location, weather_target_time, weather_answer, mentioned_weather_by_time, last_speaker, final_utterance, target_intention, intention_candidates, mention_plan, time_question_target, final_time, mentioned_times, target_person, dream_job, interest_clues, target_emotion, emotion_clues, immediate_action, mentioned_actions, main_content, content_clues, topic_distractor_reasons, destination, final_transport, mentioned_transport_options, target_place, reason_for_going, mentioned_possible_reasons, place_clues, distractor_places, source_facts_from_script, requester, requested_person, requested_action, request_expression, suggester, suggested_to, suggested_action, suggestion_expression, target_time, planned_action, mentioned_other_actions, target_job, job_clues, distractor_jobs, script_text, script_translation, audio_url"
+      "id, order_index, question_type, instruction, question_text, choices, correct_answer, explanation, answer_clue, needs_review, quality_score, answer_clarity_score, quality_issues, answer_validation, table_data, previous_turn, correct_response_function, distractor_reason, blank_speaker, situation_type, needs_image_choices, choice_image_prompts, choice_image_urls, visual_choice_type, selected_conditions, weather_target_location, weather_target_time, weather_answer, mentioned_weather_by_time, last_speaker, final_utterance, target_intention, intention_candidates, mention_plan, time_question_target, final_time, mentioned_times, target_person, dream_job, interest_clues, target_emotion, emotion_clues, immediate_action, mentioned_actions, main_content, content_clues, topic_distractor_reasons, destination, final_transport, mentioned_transport_options, target_place, reason_for_going, mentioned_possible_reasons, place_clues, distractor_places, source_facts_from_script, requester, requested_person, requested_action, request_expression, suggester, suggested_to, suggested_action, suggestion_expression, target_time, planned_action, mentioned_other_actions, target_job, job_clues, distractor_jobs, script_text, script_translation, audio_url"
     )
     .eq("set_id", setId)
     .order("order_index", { ascending: true });
@@ -76,6 +76,9 @@ export async function loadListeningSetForEditor(
     needs_image_choices: Boolean(q.needs_image_choices),
     choice_image_prompts: Array.isArray(q.choice_image_prompts)
       ? (q.choice_image_prompts as string[]).map(String)
+      : [],
+    choice_image_urls: Array.isArray(q.choice_image_urls)
+      ? (q.choice_image_urls as string[]).map(String)
       : [],
     visual_choice_type: String(q.visual_choice_type ?? ""),
     selected_conditions:

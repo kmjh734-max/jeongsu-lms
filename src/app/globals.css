@@ -391,6 +391,57 @@
     color: #333;
   }
 
+  .listening-exam-figure {
+    margin: 1.5mm 0 2mm;
+    text-align: center;
+  }
+
+  .listening-exam-figure-img {
+    max-width: 100%;
+    max-height: 52mm;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border: 1px solid #c5d8ec;
+    background: #fff;
+  }
+
+  .listening-exam-figure-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1.2mm;
+    margin: 1.5mm 0 2mm;
+  }
+
+  .listening-exam-figure-cell {
+    text-align: center;
+  }
+
+  .listening-exam-figure-label {
+    display: block;
+    font-size: 8pt;
+    font-weight: 800;
+    color: #234b8c;
+    margin-bottom: 0.4mm;
+  }
+
+  .listening-exam-figure-cell .listening-exam-figure-img {
+    max-height: 22mm;
+  }
+
+  .listening-exam-choice-with-img {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.5mm;
+  }
+
+  .listening-exam-choice-thumb {
+    max-height: 14mm;
+    max-width: 22mm;
+    object-fit: contain;
+    border: 1px solid #d5e5f5;
+  }
+
   .listening-exam-footer {
     border-top: 2px solid #d0e3f5;
     padding-top: 2mm;

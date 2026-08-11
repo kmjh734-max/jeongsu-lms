@@ -35,6 +35,7 @@ export interface ListeningQuestionData {
   situation_type?: string;
   needs_image_choices?: boolean;
   choice_image_prompts?: string[];
+  choice_image_urls?: string[];
   visual_choice_type?: string;
   selected_conditions?: import("@/lib/listening/types").PurchaseSelectedConditions | null;
   weather_target_location?: string;

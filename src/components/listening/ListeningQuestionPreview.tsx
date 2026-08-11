@@ -162,14 +162,35 @@ export function ListeningQuestionPreview({
               {CIRCLED[i] ?? `${i + 1}.`} {c}
               {question.correct_answer === i + 1 ? " ✓" : ""}
             </div>
-            {question.choice_image_prompts?.[i]?.trim() && (
+            {((question.choice_image_urls?.length ?? 0) > 1 &&
+              question.choice_image_urls?.[i]?.trim()) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={question.choice_image_urls[i]}
+                alt=""
+                className="mt-1 max-h-28 rounded border border-slate-200"
+              />
+            ) : (question.choice_image_urls?.length ?? 0) <= 1 &&
+              question.choice_image_prompts?.[i]?.trim() ? (
               <p className="mt-0.5 text-xs text-slate-500">
                 그림: {question.choice_image_prompts[i]}
               </p>
-            )}
+            ) : null}
           </li>
         ))}
       </ul>
+
+      {(question.choice_image_urls?.length === 1 &&
+        question.choice_image_urls[0]?.trim()) && (
+        <div className="mb-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={question.choice_image_urls[0]}
+            alt="문항 그림"
+            className="max-h-64 w-auto rounded border border-slate-200"
+          />
+        </div>
+      )}
 
       {(question.order_index === 1 ||
         question.order_index === 2 ||
@@ -180,7 +201,9 @@ export function ListeningQuestionPreview({
           {question.visual_choice_type
             ? ` (${question.visual_choice_type})`
             : ""}
-          — 이미지 생성은 별도 기능
+          {(question.choice_image_urls ?? []).some((u) => u?.trim())
+            ? " — 이미지 있음"
+            : " — 이미지 미생성"}
         </p>
       )}
 

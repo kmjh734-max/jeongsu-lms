@@ -17,14 +17,15 @@ import { normalizeTableData } from "@/lib/listening/table-data";
 import type { ListeningTableData } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
-/** 우열(구분선 패딩) 기준 최소 열 너비 — 이보다 넓게 측정하면 줄바꿈이 달라져 잘림 발생 */
-const COLUMN_WIDTH_CLASS = "w-[89mm]";
-/** 문항 간격 — 과하면 페이지당 문항이 급감 */
+/** 실제 인쇄 열보다 약간 좁게 재어 줄바꿈 여유를 둠 */
+const COLUMN_WIDTH_CLASS = "w-[84mm]";
+/** 문항 간격 */
 const QUESTION_GAP_MM = 5;
 const QUESTION_GAP_MM_WITH_SCRIPT = 3;
-const COLUMN_SAFETY_PX = 10;
-const COLUMN_SAFETY_PX_WITH_SCRIPT = 20;
-const MAX_OVERFLOW_FIXES = 200;
+const COLUMN_SAFETY_PX = 16;
+const COLUMN_SAFETY_PX_WITH_SCRIPT = 28;
+const MAX_OVERFLOW_FIXES = 24;
+const A4_HEIGHT_PX = Math.round((297 * 96) / 25.4);
 
 function getExamLayoutConfig(showScript: boolean) {
   const gapMm = showScript ? QUESTION_GAP_MM_WITH_SCRIPT : QUESTION_GAP_MM;
@@ -44,30 +45,16 @@ function columnUsedHeight(indices: number[], heights: number[], gapPx: number) {
   return used;
 }
 
-function canFitStandardLayout(
-  heights: number[],
-  opts: {
-    firstColumnMaxPx: number;
-    nextColumnMaxPx: number;
-    questionGapPx: number;
-    columnSafetyPx?: number;
-  }
-): boolean {
-  if (!isStandardTwentyQuestionExam(heights.length)) return false;
-  const safety = opts.columnSafetyPx ?? 0;
-  const pages = paginateStandardTwentyExam();
-  for (let pi = 0; pi < pages.length; pi++) {
-    const maxH =
-      (pi === 0 ? opts.firstColumnMaxPx : opts.nextColumnMaxPx) - safety;
-    const page = pages[pi]!;
-    if (
-      columnUsedHeight(page.left, heights, opts.questionGapPx) > maxH ||
-      columnUsedHeight(page.right, heights, opts.questionGapPx) > maxH
-    ) {
-      return false;
-    }
-  }
-  return true;
+/** off-screen flex 측정이 0으로 나오는 경우 대비 */
+function resolveColumnMaxPx(bodyZone: HTMLElement): number {
+  const measured = bodyZone.clientHeight;
+  if (measured >= 420) return measured;
+  const sheet = bodyZone.closest(".listening-exam-sheet");
+  const header = sheet?.querySelector("header");
+  const footer = sheet?.querySelector("footer");
+  const headerH = header?.getBoundingClientRect().height ?? 200;
+  const footerH = footer?.getBoundingClientRect().height ?? 36;
+  return Math.max(420, A4_HEIGHT_PX - Math.ceil(headerH) - Math.ceil(footerH) - 48);
 }
 
 type PrintScope = "exam" | "answers" | "all";
@@ -219,26 +206,27 @@ export function ListeningExamPrintView({
       }
 
       const packOpts = {
-        firstColumnMaxPx: firstBody.clientHeight,
-        nextColumnMaxPx: nextBody.clientHeight,
+        firstColumnMaxPx: resolveColumnMaxPx(firstBody),
+        nextColumnMaxPx: resolveColumnMaxPx(nextBody),
         questionGapPx: layoutConfig.gapPx,
         columnSafetyPx: layoutConfig.columnSafetyPx,
       };
 
-      // 시험지는 문제 높이만으로 채움 (정답 스크립트가 더 길어도 여백 과다 방지)
-      let examLayouts = paginateExamQuestions(examHeights, packOpts);
-      if (
-        !showScript &&
-        isStandardTwentyQuestionExam(questions.length) &&
-        canFitStandardLayout(examHeights, packOpts)
-      ) {
-        examLayouts = paginateStandardTwentyExam();
-      }
+      // 표준 20문항(전국 듣기와 동일 규격)은 좌5+우5 × 2페이지 고정
+      // → 오버플로 보정에 문항이 밀려 4문제만 남는 현상 방지
+      const examLayouts =
+        !showScript && isStandardTwentyQuestionExam(questions.length)
+          ? paginateStandardTwentyExam()
+          : paginateExamQuestions(examHeights, packOpts);
 
       overflowFixAttempts.current = 0;
       setPagesVerified(false);
       setPages(examLayouts);
-      setAnswerPages(paginateExamQuestions(answerHeights, packOpts));
+      setAnswerPages(
+        !showScript && isStandardTwentyQuestionExam(questions.length)
+          ? paginateStandardTwentyExam()
+          : paginateExamQuestions(answerHeights, packOpts)
+      );
     };
 
     measureAndPaginate();
@@ -257,6 +245,13 @@ export function ListeningExamPrintView({
 
   useLayoutEffect(() => {
     if (!pages || questions.length === 0) return;
+
+    // 표준 20문항은 고정 배치 — 오버플로로 밀지 않음 (여백만 남기거나 CSS로 압축)
+    if (!showScript && isStandardTwentyQuestionExam(questions.length)) {
+      overflowFixAttempts.current = 0;
+      setPagesVerified(true);
+      return;
+    }
 
     const root = document.getElementById("listening-print-root");
     if (!root) return;
@@ -289,11 +284,12 @@ export function ListeningExamPrintView({
         const maxH = bodyZone?.clientHeight ?? 0;
         if (!bodyZone || maxH <= 0) continue;
 
-        const columnOverflow = col.scrollHeight > maxH + 2;
+        // 1~2px 오차는 무시 (밀도가 4문제로 붕괴되는 연쇄 보정 방지)
+        const columnOverflow = col.scrollHeight > maxH + 8;
         const bodyBottom = bodyZone.getBoundingClientRect().bottom;
         const questionOverflow = Array.from(
           col.querySelectorAll<HTMLElement>("[data-exam-question]")
-        ).some((qEl) => qEl.getBoundingClientRect().bottom > bodyBottom + 1);
+        ).some((qEl) => qEl.getBoundingClientRect().bottom > bodyBottom + 4);
 
         if (!columnOverflow && !questionOverflow) continue;
         const page = Number(col.dataset.page);
@@ -780,17 +776,73 @@ function ExamQuestionBlock({
 
       {table && <ExamPrintTable table={table} />}
 
+      {(() => {
+        const urls = (q.choice_image_urls ?? []).filter((u) => String(u).trim());
+        if (urls.length === 0) return null;
+        // 고1 그림 불일치 등: 합성 장면 1장
+        if (urls.length === 1) {
+          return (
+            <div className="listening-exam-figure">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={urls[0]}
+                alt="듣기 문항 그림"
+                className="listening-exam-figure-img"
+              />
+            </div>
+          );
+        }
+        // 중등 등: 선택지별 그림
+        return (
+          <div className="listening-exam-figure-grid">
+            {urls.slice(0, 5).map((url, i) => (
+              <div key={url} className="listening-exam-figure-cell">
+                <span className="listening-exam-figure-label">
+                  {CIRCLED[i] ?? `${i + 1}`}
+                </span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt={`선택지 ${CIRCLED[i] ?? i + 1}`}
+                  className="listening-exam-figure-img"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       <ul className="listening-exam-choices mt-[1mm] list-none pl-0">
-        {q.choices.map((choice, i) => (
-          <li key={i} className="flex gap-[2mm] leading-snug">
-            <span className="listening-exam-choice-mark">
-              {CIRCLED[i] ?? `${i + 1}.`}
-            </span>
-            <span className="listening-exam-choice-text min-w-0 flex-1 break-words">
-              {choice}
-            </span>
-          </li>
-        ))}
+        {q.choices.map((choice, i) => {
+          const urls = (q.choice_image_urls ?? []).filter((u) => String(u).trim());
+          // 합성 1장이면 선택지는 번호·텍스트만 (그림은 위에)
+          const showInline =
+            urls.length > 1 && Boolean(urls[i]?.trim());
+          return (
+            <li key={i} className="flex gap-[2mm] leading-snug">
+              <span className="listening-exam-choice-mark">
+                {CIRCLED[i] ?? `${i + 1}.`}
+              </span>
+              <span className="listening-exam-choice-text min-w-0 flex-1 break-words">
+                {showInline ? (
+                  <span className="listening-exam-choice-with-img">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={urls[i]}
+                      alt=""
+                      className="listening-exam-choice-thumb"
+                    />
+                    {choice && !/^①|②|③|④|⑤$/.test(choice.trim()) ? (
+                      <span>{choice}</span>
+                    ) : null}
+                  </span>
+                ) : (
+                  choice
+                )}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </>
   );
