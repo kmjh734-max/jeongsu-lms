@@ -1,4 +1,4 @@
-import { questionGeneratorChatJson } from "@/lib/question-generator/openai";
+import { examPrepChatJson } from "@/lib/exam-prep/exam-prep-openai";
 import type { ExamPassageSentence } from "@/lib/exam-prep/types";
 
 export type SentenceEnrichment = {
@@ -22,11 +22,11 @@ export async function enrichSentencesWithAi(
   const list = targets.length > 0 ? targets : sentences.slice(0, 20);
   if (list.length === 0) return [];
 
-  const raw = await questionGeneratorChatJson({
+  const raw = await examPrepChatJson({
     system: `당신은 중고등 영어 내신 지문 해석 도우미다.
 입력 영어 문장만 해석한다. 영어 원문을 바꾸지 않는다.
 JSON만 출력: {"items":[{"sentenceId":"...","korean":"자연스러운 우리말","vocabulary":[{"word":"원문에 나온 단어","meaning":"뜻"}],"grammarPoints":["짧은 문법 포인트"]}]}
-vocabulary는 문장당 0~4개, grammarPoints는 0~2개.`,
+vocabulary는 문장당 2~5개, grammarPoints는 1~3개. 핵심 내용어 위주.`,
     user: JSON.stringify({
       sentences: list.map((s) => ({
         sentenceId: s.id,
@@ -34,8 +34,7 @@ vocabulary는 문장당 0~4개, grammarPoints는 0~2개.`,
         existingKorean: s.korean_text,
       })),
     }),
-    temperature: 0.3,
-    maxTokens: 5000,
+    maxTokens: 8000,
   });
 
   const items =

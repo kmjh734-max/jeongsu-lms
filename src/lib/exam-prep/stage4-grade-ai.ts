@@ -2,7 +2,7 @@ import {
   isBlankOrWhitespace,
   looksLikeEnglishCopy,
 } from "@/lib/exam-prep/stage4-types";
-import { questionGeneratorChatJson } from "@/lib/question-generator/openai";
+import { examPrepChatJson } from "@/lib/exam-prep/exam-prep-openai";
 import {
   stage4AiGradeSchema,
   type KeyMeaningPoint,
@@ -176,7 +176,7 @@ export async function gradeStage4TranslationWithAi(
   }
 
   try {
-    const raw = await questionGeneratorChatJson({
+    const raw = await examPrepChatJson({
       system: SYSTEM,
       user: JSON.stringify(
         {

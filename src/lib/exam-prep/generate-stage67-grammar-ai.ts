@@ -2,7 +2,7 @@
  * 6·7단계 어법 — 변형문제(question-generator)와 동일 엔진
  * pickGrammarFocus + grammar-catalog + OpenAI JSON
  */
-import { questionGeneratorChatJson } from "@/lib/question-generator/openai";
+import { examPrepChatJson } from "@/lib/exam-prep/exam-prep-openai";
 import {
   grammarCatalogPromptBlock,
   grammarExplanationRules,
@@ -139,16 +139,10 @@ grammarSub 예: voice, relative_pronoun, relative_adverb, verb_form, participle,
   });
 
   try {
-    const raw = await questionGeneratorChatJson({
+    const raw = await examPrepChatJson({
       system,
       user,
-      temperature: 0.25,
       maxTokens: 6000,
-      reasoningEffort: "medium",
-      preferredModels: [
-        process.env.OPENAI_MODEL_EXAM_PREP_STAGE6?.trim() || "gpt-5.5",
-        "gpt-5",
-      ],
     });
     const list = (raw as { blanks?: AiStage6Blank[] })?.blanks;
     if (!Array.isArray(list) || list.length === 0) {
@@ -290,13 +284,10 @@ ${grammarChoiceCraftNote()}
   };
 
   try {
-    const raw = await questionGeneratorChatJson({
+    const raw = await examPrepChatJson({
       system,
       user,
-      temperature: 0.3,
       maxTokens: 4000,
-      reasoningEffort: "medium",
-      preferredModels: ["gpt-5.5", "gpt-5"],
     });
     const list = (raw as { errors?: AiStage7Error[] })?.errors;
     if (!Array.isArray(list) || list.length === 0) {

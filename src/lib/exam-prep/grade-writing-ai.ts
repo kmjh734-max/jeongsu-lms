@@ -1,4 +1,4 @@
-import { questionGeneratorChatJson } from "@/lib/question-generator/openai";
+import { examPrepChatJson } from "@/lib/exam-prep/exam-prep-openai";
 import type { GradeResult } from "@/lib/exam-prep/grade";
 import type { ExamGradingStatus } from "@/lib/exam-prep/types";
 
@@ -36,7 +36,7 @@ export async function gradeWritingAnswersWithAi(
   if (!process.env.OPENAI_API_KEY?.trim()) return null;
 
   try {
-    const raw = await questionGeneratorChatJson({
+    const raw = await examPrepChatJson({
       system: SYSTEM,
       user: JSON.stringify(
         {

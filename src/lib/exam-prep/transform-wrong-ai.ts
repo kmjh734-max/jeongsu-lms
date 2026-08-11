@@ -1,4 +1,4 @@
-import { questionGeneratorChatJson } from "@/lib/question-generator/openai";
+import { examPrepChatJson } from "@/lib/exam-prep/exam-prep-openai";
 import { sanitizeQuestionDataForStudent } from "@/lib/exam-prep/strip-answers";
 import {
   transformWrongQuestionForPractice,
@@ -17,7 +17,7 @@ export async function transformWrongQuestionWithAi(
   if (!process.env.OPENAI_API_KEY?.trim()) return fallback;
 
   try {
-    const raw = await questionGeneratorChatJson({
+    const raw = await examPrepChatJson({
       system: `당신은 내신 오답 재출제 전문가다.
 원 문항을 다른 유형으로 바꿔 연습 문제를 만든다. 원문 의미를 바꾸지 않는다.
 가능 유형: english_blank, grammar_vocab_choice, error_correction, translation_practice, verb_form

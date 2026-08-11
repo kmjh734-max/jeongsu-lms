@@ -44,7 +44,7 @@ function buildBody(
   temperature: number,
   maxTokens: number,
   profile: RequestProfile,
-  reasoningEffort?: "low" | "medium" | "high"
+  reasoningEffort?: "low" | "medium" | "high" | "xhigh"
 ): Record<string, unknown> {
   const body: Record<string, unknown> = {
     model,
@@ -121,7 +121,7 @@ export async function questionGeneratorChatJson(opts: {
   temperature?: number;
   maxTokens?: number;
   /** GPT-5 계열 reasoning_effort (기본 low) */
-  reasoningEffort?: "low" | "medium" | "high";
+  reasoningEffort?: "low" | "medium" | "high" | "xhigh";
   /** 우선 시도할 모델 (예: gpt-5.5) */
   preferredModels?: string[];
 }): Promise<unknown> {

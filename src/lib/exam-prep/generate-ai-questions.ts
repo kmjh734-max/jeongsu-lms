@@ -1,4 +1,4 @@
-import { questionGeneratorChatJson } from "@/lib/question-generator/openai";
+import { examPrepChatJson } from "@/lib/exam-prep/exam-prep-openai";
 import {
   generateRuleBasedQuestions,
   type GeneratedQuestionDraft,
@@ -518,7 +518,7 @@ export async function generateStepQuestionsWithAi(
   }
 
   try {
-    const raw = await questionGeneratorChatJson({
+    const raw = await examPrepChatJson({
       system: systemPrompt(type),
       user: JSON.stringify(
         {
@@ -532,8 +532,7 @@ export async function generateStepQuestionsWithAi(
         null,
         2
       ),
-      temperature: 0.4,
-      maxTokens: 6000,
+      maxTokens: 8000,
     });
 
     const normalized = normalizeAiQuestions(type, raw, sentences, difficulty);
