@@ -335,7 +335,7 @@ export function Stage1FamiliarizeView({
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-semibold">1단계 학습을 완료했습니다.</p>
           {canStartStage2 ? (
-            <p className="mt-1">2단계 「우리말 빈칸 완성하기」를 시작할 수 있습니다.</p>
+            <p className="mt-1">2단계 「빈칸 완성하기(영문)」를 시작할 수 있습니다.</p>
           ) : (
             <p className="mt-1">
               2단계가 아직 공개되지 않았거나 준비 중입니다.

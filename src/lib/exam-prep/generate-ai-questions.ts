@@ -169,6 +169,8 @@ function isPlausibleQuestion(
     case "translation_practice":
       return typeof data.english === "string";
     case "grammar_vocab_choice":
+    case "grammar_choice":
+    case "vocab_choice":
       return (
         (Array.isArray(data.choiceBlanks) && data.choiceBlanks.length >= 1) ||
         (Array.isArray(data.options) &&
@@ -196,10 +198,18 @@ export type GenerateStepQuestionsResult = {
 function stage6DraftsToQuestions(
   drafts: Stage6ItemDraft[],
   sentences: ExamPassageSentence[],
-  aiGenerated: boolean
+  aiGenerated: boolean,
+  categoryFilter?: "grammar" | "vocabulary" | "all"
 ): GeneratedQuestionDraft[] {
   const bySent = new Map<string, Stage6ItemDraft[]>();
   for (const d of drafts) {
+    if (
+      categoryFilter &&
+      categoryFilter !== "all" &&
+      d.question_category !== categoryFilter
+    ) {
+      continue;
+    }
     const wrong = d.choice_options.find((o) => !o.isCorrect)?.text ?? "";
     const correct =
       d.choice_options.find((o) => o.isCorrect)?.text ?? d.answer_text;
@@ -211,6 +221,19 @@ function stage6DraftsToQuestions(
 
   const out: GeneratedQuestionDraft[] = [];
   let order = 1;
+  const qType =
+    categoryFilter === "grammar"
+      ? "grammar_choice"
+      : categoryFilter === "vocabulary"
+        ? "vocab_choice"
+        : "grammar_vocab_choice";
+  const prompt =
+    workbookPromptForStepType(qType) ??
+    (categoryFilter === "grammar"
+      ? "괄호 안에서 옳은 어법을 골라 보세요."
+      : categoryFilter === "vocabulary"
+        ? "괄호 안에서 옳은 어휘를 골라 보세요."
+        : "괄호 안에서 옳은 어법과 어휘를 골라 보세요.");
   for (const s of sentences) {
     const items = (bySent.get(s.id) ?? []).sort(
       (a, b) => a.english_start - b.english_start
@@ -250,17 +273,19 @@ function stage6DraftsToQuestions(
     const first = choiceBlanks[0]!;
     out.push({
       sentence_id: s.id,
-      question_type: "grammar_vocab_choice",
+      question_type: qType,
       question_order: order++,
-      question_text: workbookPromptForStepType("grammar_vocab_choice") ??
-        "괄호 안에서 옳은 어법과 어휘를 골라 보세요.",
+      question_text: prompt,
       question_data: {
         displayText: display,
         koreanHint: s.korean_text,
         format: "inline_ab",
         choiceBlanks,
         options: first.options.slice(0, 2),
-        choiceKind: "mixed",
+        choiceKind:
+          categoryFilter === "grammar" || categoryFilter === "vocabulary"
+            ? categoryFilter
+            : "mixed",
       },
       correct_answer: {
         optionId: first.correctOptionId,
@@ -409,8 +434,12 @@ export async function generateStepQuestionsWithAi(
     };
   }
 
-  // 6단계: 지문 분석 규칙 시드 + AI 보충
-  if (type === "grammar_vocab_choice") {
+  // 5·6단계: 지문 분석 규칙 시드 + AI 보충
+  if (
+    type === "grammar_vocab_choice" ||
+    type === "grammar_choice" ||
+    type === "vocab_choice"
+  ) {
     const plantDrafts = buildStage6Drafts(
       sentences.map((s) => ({
         id: s.id,
@@ -427,6 +456,12 @@ export async function generateStepQuestionsWithAi(
       english_text: s.english_text,
       sentence_order: s.sentence_order,
     }));
+    const catFilter =
+      type === "grammar_choice"
+        ? ("grammar" as const)
+        : type === "vocab_choice"
+          ? ("vocabulary" as const)
+          : ("all" as const);
     if (process.env.OPENAI_API_KEY?.trim()) {
       try {
         const ai = await generateStage6WithAi(seed);
@@ -437,21 +472,36 @@ export async function generateStepQuestionsWithAi(
           sentences.map((s) => s.id)
         );
         return {
-          questions: stage6DraftsToQuestions(merged, sentences, preferAi),
+          questions: stage6DraftsToQuestions(
+            merged,
+            sentences,
+            preferAi,
+            catFilter
+          ),
           source: preferAi ? "ai" : "rule",
           aiError: ai.error,
         };
       } catch (e) {
         const msg = e instanceof Error ? e.message : "AI 실패";
         return {
-          questions: stage6DraftsToQuestions(plantDrafts, sentences, false),
+          questions: stage6DraftsToQuestions(
+            plantDrafts,
+            sentences,
+            false,
+            catFilter
+          ),
           source: "rule",
           aiError: msg,
         };
       }
     }
     return {
-      questions: stage6DraftsToQuestions(plantDrafts, sentences, false),
+      questions: stage6DraftsToQuestions(
+        plantDrafts,
+        sentences,
+        false,
+        catFilter
+      ),
       source: "rule",
       aiError: "OPENAI_API_KEY 없음",
     };

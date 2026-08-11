@@ -15,19 +15,18 @@ export type ExamStepDraft = {
 };
 
 /**
- * 인천광역시 교육청 학력평가 10단계 WORKBOOK 통합본 기준.
- * 제목·발문·Learning Guide는 2026 고3 7월 인천 PDF와 동일.
+ * EngCore 내신 WORKBOOK 10단계 (우리말 빈칸 제외).
  *
  * 1 지문 연습하기 — 영문+해석 읽고 의미 파악
- * 2 빈칸(우리말) — 영문 보고 우리말 핵심어 빈칸 (조사·어미는 남김)
- * 3 빈칸(영문) — 우리말 보고 영문 핵심어 빈칸 (골격 유지)
- * 4 해석 연습 — 영문만 보고 우리말 통역
- * 5 동사형 — (have, be, dump)처럼 원형 cue로 동사구·분사 형태
- * 6 어법·어휘 — [a / b] 최소쌍을 문장당 여러 개
- * 7 어색한 곳 — 지문 전체에 오류 3개 → 찾아 고치기
- * 8 순서 배열 — 의미 단위 어구 카드 + 고정 다리
- * 9 문단 배열 — (A)(B)(C) + (   )→(   )→(   )
- * 10 영작 — 제시어(순서) + 고정 골격 + 내용어 ______
+ * 2 빈칸(영문) — 우리말 보고 영문 핵심어 빈칸
+ * 3 해석 연습 — 영문만 보고 우리말 통역
+ * 4 동사형 — 원형 cue로 동사구·분사 형태
+ * 5 어법 고르기 — [a / b] 어법 최소쌍
+ * 6 어휘 고르기 — [a / b] 어휘 최소쌍
+ * 7 어색한 곳 — 지문 전체에 오류 찾아 고치기
+ * 8 순서 배열 — 의미 단위 어구 카드
+ * 9 문단 배열 — (A)(B)(C)
+ * 10 영작 — 제시어 + 고정 골격
  */
 export const WORKBOOK_10_STEPS: Array<{
   number: number;
@@ -46,38 +45,38 @@ export const WORKBOOK_10_STEPS: Array<{
   },
   {
     number: 2,
-    step_type: "korean_blank",
-    label: "2단계 · 빈칸 완성하기(우리말)",
-    shortLabel: "빈칸 완성하기(우리말)",
-    prompt: "영문을 읽고 우리말 해석의 빈칸을 완성해 보세요.",
-  },
-  {
-    number: 3,
     step_type: "english_blank",
-    label: "3단계 · 빈칸 완성하기(영문)",
+    label: "2단계 · 빈칸 완성하기(영문)",
     shortLabel: "빈칸 완성하기(영문)",
     prompt: "우리말 해석을 읽고 영문의 빈칸을 완성해 보세요.",
   },
   {
-    number: 4,
+    number: 3,
     step_type: "translation_practice",
-    label: "4단계 · 해석 연습하기",
+    label: "3단계 · 해석 연습하기",
     shortLabel: "해석 연습하기",
     prompt: "문장 전체의 자연스러운 해석을 써 보세요.",
   },
   {
-    number: 5,
+    number: 4,
     step_type: "verb_form",
-    label: "5단계 · 동사형 연습하기",
+    label: "4단계 · 동사형 연습하기",
     shortLabel: "동사형 연습하기",
     prompt: "괄호 안에 주어진 단어를 알맞게 고쳐 쓰세요.",
   },
   {
+    number: 5,
+    step_type: "grammar_choice",
+    label: "5단계 · 어법 고르기",
+    shortLabel: "어법 고르기",
+    prompt: "괄호 안에서 옳은 어법을 골라 보세요.",
+  },
+  {
     number: 6,
-    step_type: "grammar_vocab_choice",
-    label: "6단계 · 어법·어휘 고르기",
-    shortLabel: "어법·어휘 고르기",
-    prompt: "괄호 안에서 옳은 어법과 어휘를 골라 보세요.",
+    step_type: "vocab_choice",
+    label: "6단계 · 어휘 고르기",
+    shortLabel: "어휘 고르기",
+    prompt: "괄호 안에서 옳은 어휘를 골라 보세요.",
   },
   {
     number: 7,
@@ -132,6 +131,21 @@ function step(
   };
 }
 
+function settingsForWorkbookStep(
+  n: number,
+  stepType: ExamStepType,
+  prompt: string
+): Record<string, unknown> {
+  const base: Record<string, unknown> = {
+    workbookStepNumber: n,
+    workbookPrompt: prompt,
+    format: "incheon_10_step",
+  };
+  if (stepType === "grammar_choice") base.stage6Filter = "grammar";
+  if (stepType === "vocab_choice") base.stage6Filter = "vocabulary";
+  return base;
+}
+
 /** 선택한 단계 번호(1~10)로 워크북 단계 구성 */
 export function buildStepsFromNumbers(numbers: number[]): ExamStepDraft[] {
   const unique = [...new Set(numbers)]
@@ -141,11 +155,7 @@ export function buildStepsFromNumbers(numbers: number[]): ExamStepDraft[] {
     const def = WORKBOOK_10_STEPS.find((s) => s.number === n)!;
     return step(def.step_type, i + 1, {
       title: `${n}단계 · ${def.shortLabel}`,
-      settings: {
-        workbookStepNumber: n,
-        workbookPrompt: def.prompt,
-        format: "incheon_10_step",
-      },
+      settings: settingsForWorkbookStep(n, def.step_type, def.prompt),
     });
   });
 }
@@ -154,9 +164,9 @@ export const EXAM_PRESET_STEP_NUMBERS: Record<
   Exclude<ExamPresetType, "custom">,
   number[]
 > = {
-  basic: [1, 3, 6, 8, 10],
-  memorize: [1, 3, 10],
-  exam_eve: [6, 7, 8, 9, 10],
+  basic: [1, 2, 5, 8, 10],
+  memorize: [1, 2, 10],
+  exam_eve: [5, 6, 7, 8, 9, 10],
 };
 
 export const EXAM_PRESETS: Record<
@@ -165,17 +175,17 @@ export const EXAM_PRESETS: Record<
 > = {
   basic: {
     label: "기본 코스",
-    description: "1·3·6·8·10단계",
+    description: "1·2·5·8·10단계",
     steps: buildStepsFromNumbers(EXAM_PRESET_STEP_NUMBERS.basic),
   },
   memorize: {
     label: "집중 암기 코스",
-    description: "1·3·10단계",
+    description: "1·2·10단계",
     steps: buildStepsFromNumbers(EXAM_PRESET_STEP_NUMBERS.memorize),
   },
   exam_eve: {
     label: "시험 직전 코스",
-    description: "6·7·8·9·10단계",
+    description: "5·6·7·8·9·10단계",
     steps: buildStepsFromNumbers(EXAM_PRESET_STEP_NUMBERS.exam_eve),
   },
 };

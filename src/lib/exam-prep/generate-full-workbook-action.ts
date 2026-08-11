@@ -6,7 +6,6 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
 import {
   buildStage10Drafts,
-  buildStage2Drafts,
   buildStage3Drafts,
   buildStage5Drafts,
   buildStage6Drafts,
@@ -22,7 +21,6 @@ import {
   generateStage7WithAi,
 } from "@/lib/exam-prep/generate-stage67-grammar-ai";
 import {
-  generateStage2WithAi,
   generateStage3WithAi,
   generateStage5WithAi,
   generateStage8WithAi,
@@ -31,9 +29,8 @@ import {
 } from "@/lib/exam-prep/generate-workbook-stages-ai";
 import { EXAM_PREP_MODEL_PRIMARY, getExamPrepReasoningEffort } from "@/lib/exam-prep/exam-prep-openai";
 import { createWorkbookAction, enrichPassageSentencesAction } from "@/lib/exam-prep/staff-actions";
-import { saveKoreanBlanksAction, setStage2PublishedAction } from "@/lib/exam-prep/stage2-staff-actions";
-import { saveStage3BlanksAction, setStage3PublishedAction } from "@/lib/exam-prep/stage3-staff-actions";
-import {
+import { setStage2PublishedAction } from "@/lib/exam-prep/stage2-staff-actions";
+import { saveStage3BlanksAction, setStage3PublishedAction } from "@/lib/exam-prep/stage3-staff-actions";import {
   ensureDefaultStage4SettingsAction,
   setStage4PublishedAction,
 } from "@/lib/exam-prep/stage4-staff-actions";
@@ -153,31 +150,14 @@ export async function generateFullExamPrepWorkbookAction(input: {
     else notes.push(`${stage}단계 공개 완료`);
   }
 
-  // 2) Stage seeds — 전 단계 최고 상위 API 우선, 실패 시 규칙 폴백
+  // 2) Stage seeds — 우리말 빈칸(구 2단계) 제외, 영어빈칸~영작
   notes.push(
     `모델 ${EXAM_PREP_MODEL_PRIMARY} · reasoning ${getExamPrepReasoningEffort()}`
   );
 
-  {
-    const plant = buildStage2Drafts(sentences);
-    const ai = await generateStage2WithAi(sentences);
-    const s2 =
-      ai.source === "ai" && stageCoverageOk(ai.drafts, sentences.length)
-        ? ai.drafts
-        : plant;
-    if (s2.length > 0) {
-      const r = await saveKoreanBlanksAction(passageId, s2);
-      if (!r.ok) return { ok: false as const, message: `2단계: ${r.message}` };
-      notes.push(
-        ai.source === "ai" && s2 === ai.drafts
-          ? `2단계 AI ${s2.length}개`
-          : `2단계 규칙 ${s2.length}개${ai.error ? ` (AI: ${ai.error})` : ""}`
-      );
-      await tryPublish(2, () => setStage2PublishedAction(passageId, true));
-    } else {
-      notes.push("2단계: 생성할 빈칸 없음");
-    }
-  }
+  // 우리말 빈칸은 생성·공개하지 않음 (선행 게이트에서 미공개면 스킵)
+  await setStage2PublishedAction(passageId, false);
+  notes.push("우리말 빈칸 단계 생략");
 
   {
     const plant = buildStage3Drafts(sentences);
@@ -188,22 +168,22 @@ export async function generateFullExamPrepWorkbookAction(input: {
         : plant;
     if (s3.length > 0) {
       const r = await saveStage3BlanksAction(passageId, s3);
-      if (!r.ok) return { ok: false as const, message: `3단계: ${r.message}` };
+      if (!r.ok) return { ok: false as const, message: `2단계(영문빈칸): ${r.message}` };
       notes.push(
         ai.source === "ai" && s3 === ai.drafts
-          ? `3단계 AI ${s3.length}개`
-          : `3단계 규칙 ${s3.length}개${ai.error ? ` (AI: ${ai.error})` : ""}`
+          ? `2단계 영문빈칸 AI ${s3.length}개`
+          : `2단계 영문빈칸 규칙 ${s3.length}개${ai.error ? ` (AI: ${ai.error})` : ""}`
       );
       await tryPublish(3, () => setStage3PublishedAction(passageId, true));
     } else {
-      notes.push("3단계: 생성할 빈칸 없음");
+      notes.push("2단계 영문빈칸: 생성할 빈칸 없음");
     }
   }
 
   {
     const r = await ensureDefaultStage4SettingsAction(passageId);
-    if (!r.ok) return { ok: false as const, message: `4단계: ${r.message}` };
-    notes.push(`4단계 설정 ${"created" in r ? r.created : 0}개`);
+    if (!r.ok) return { ok: false as const, message: `3단계(해석): ${r.message}` };
+    notes.push(`3단계 해석 설정 ${"created" in r ? r.created : 0}개`);
     await tryPublish(4, () => setStage4PublishedAction(passageId, true));
   }
 
@@ -216,11 +196,11 @@ export async function generateFullExamPrepWorkbookAction(input: {
         : plant;
     if (s5.length > 0) {
       const r = await saveStage5ItemsAction(passageId, s5);
-      if (!r.ok) return { ok: false as const, message: `5단계: ${r.message}` };
+      if (!r.ok) return { ok: false as const, message: `4단계(동사): ${r.message}` };
       notes.push(
         ai.source === "ai" && s5 === ai.drafts
-          ? `5단계 AI ${s5.length}문항`
-          : `5단계 규칙 ${s5.length}문항${ai.error ? ` (AI: ${ai.error})` : ""}`
+          ? `4단계 동사 AI ${s5.length}문항`
+          : `4단계 동사 규칙 ${s5.length}문항${ai.error ? ` (AI: ${ai.error})` : ""}`
       );
       await tryPublish(5, () => setStage5PublishedAction(passageId, true));
     }
@@ -236,17 +216,25 @@ export async function generateFullExamPrepWorkbookAction(input: {
       preferAi ? plant6 : ai6.drafts,
       ids
     );
+    const grammarN = s6.filter((d) => d.question_category === "grammar").length;
+    const vocabN = s6.filter((d) => d.question_category === "vocabulary").length;
     if (ai6.source === "ai" && preferAi) {
-      notes.push(`6단계 AI ${ai6.drafts.length}+규칙보충 → ${s6.length}문항`);
+      notes.push(
+        `5·6단계 AI ${ai6.drafts.length}+규칙보충 → 어법 ${grammarN}·어휘 ${vocabN}`
+      );
     } else if (ai6.source === "ai") {
-      notes.push(`6단계 규칙 ${plant6.length}+AI보충 → ${s6.length}문항`);
+      notes.push(
+        `5·6단계 규칙 ${plant6.length}+AI보충 → 어법 ${grammarN}·어휘 ${vocabN}`
+      );
     } else if (ai6.error) {
-      notes.push(`6단계 AI 생략→규칙: ${ai6.error}`);
+      notes.push(`5·6단계 AI 생략→규칙: ${ai6.error}`);
     }
     if (s6.length > 0) {
       const r = await saveStage6ItemsAction(passageId, s6);
-      if (!r.ok) return { ok: false as const, message: `6단계: ${r.message}` };
-      if (ai6.source !== "ai") notes.push(`6단계 규칙 ${s6.length}문항`);
+      if (!r.ok) return { ok: false as const, message: `5·6단계: ${r.message}` };
+      if (ai6.source !== "ai") {
+        notes.push(`5·6단계 규칙 어법 ${grammarN}·어휘 ${vocabN}`);
+      }
       await tryPublish(6, () => setStage6PublishedAction(passageId, true));
     }
   }

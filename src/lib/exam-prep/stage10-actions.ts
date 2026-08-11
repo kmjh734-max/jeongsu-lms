@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  assertPublishedPriorStages,
+  STAGE_GATE_MESSAGES,
+} from "@/lib/exam-prep/stage-gates";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
 import {
@@ -76,30 +80,17 @@ async function loadPassageForAssignment(assignmentId: string) {
   return passage ? { passage, workbookId: workbook.id as string } : null;
 }
 
-async function assertPriorStages(assignmentStudentId: string) {
-  const admin = createAdminClient();
-  const { data: s1 } = await admin
-    .from("exam_stage1_progress")
-    .select("completed_at")
-    .eq("assignment_student_id", assignmentStudentId)
-    .eq("stage_number", 1)
-    .maybeSingle();
-  if (!s1?.completed_at) {
-    return { ok: false as const, code: "stage1_required" as const };
-  }
-  for (const n of [2, 3, 4, 5, 6, 7, 8, 9] as const) {
-    const { data } = await admin
-      .from("exam_stage2_progress")
-      .select("completed_at")
-      .eq("assignment_student_id", assignmentStudentId)
-      .eq("stage_number", n)
-      .maybeSingle();
-    if (!data?.completed_at) {
-      return { ok: false as const, code: (`stage${n}_required` as const) };
-    }
-  }
-  return { ok: true as const };
+async function assertPriorStages(
+  assignmentStudentId: string,
+  passageId: string
+) {
+  return assertPublishedPriorStages(
+    assignmentStudentId,
+    passageId,
+    10
+  );
 }
+
 
 function mapItem(row: Record<string, unknown>): ExamStage10Item {
   return {
@@ -224,7 +215,7 @@ export async function loadStage10StudentDataAction(input: {
       code: "no_passage" as const,
     };
   }
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, ctx.passage.id);
   if (!prior.ok) {
     const messages: Record<string, string> = {
       stage9_required: "9단계 문단 배열하기를 먼저 완료해 주세요.",
@@ -338,7 +329,7 @@ export async function saveStage10DraftAction(input: {
     auth.profile.id
   );
   if (!asRow) return { ok: false as const, message: "배정을 찾을 수 없습니다." };
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, input.passageId);
   if (!prior.ok) {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }
@@ -437,7 +428,7 @@ export async function gradeStage10Action(input: {
     auth.profile.id
   );
   if (!asRow) return { ok: false as const, message: "배정을 찾을 수 없습니다." };
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, input.passageId);
   if (!prior.ok) {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }
@@ -794,7 +785,7 @@ export async function completeStage10Action(input: {
     auth.profile.id
   );
   if (!asRow) return { ok: false as const, message: "배정을 찾을 수 없습니다." };
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, input.passageId);
   if (!prior.ok) {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }

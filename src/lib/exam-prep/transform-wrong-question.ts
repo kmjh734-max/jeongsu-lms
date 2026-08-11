@@ -8,10 +8,12 @@ import { sanitizeQuestionDataForStudent } from "@/lib/exam-prep/strip-answers";
 /** 오답 재연습 시 다른 유형으로 변환 우선순위 */
 const TRANSFORM_MAP: Partial<Record<string, ExamStepType>> = {
   grammar_vocab_choice: "english_blank",
+  grammar_choice: "english_blank",
+  vocab_choice: "english_blank",
   english_blank: "error_correction",
   korean_blank: "translation_practice",
   translation_practice: "english_blank",
-  verb_form: "grammar_vocab_choice",
+  verb_form: "grammar_choice",
   error_correction: "english_blank",
   sentence_order: "english_blank",
   paragraph_order: "sentence_order",

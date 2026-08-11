@@ -240,7 +240,7 @@ export function Stage4TranslationView({
   if (loading) {
     return (
       <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm">
-        4단계 불러오는 중…
+        3단계 불러오는 중…
       </p>
     );
   }
@@ -279,8 +279,8 @@ export function Stage4TranslationView({
           <p className="mt-1 text-sm text-slate-600">{metaBits.join(" · ")}</p>
         )}
         <p className="mt-3 text-sm font-medium text-slate-800">
-          현재 단계: 4단계 · 해석 연습하기
-          <span className="ml-2 text-slate-500">(4 / 10)</span>
+          현재 단계: 3단계 · 해석 연습하기
+          <span className="ml-2 text-slate-500">(3 / 10)</span>
         </p>
         <p className="mt-2 text-sm text-slate-600">
           영어 문장을 읽고 자연스러운 우리말 해석을 써 보세요.
@@ -418,14 +418,14 @@ export function Stage4TranslationView({
 
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p className="font-semibold">4단계 학습을 완료했습니다.</p>
+          <p className="font-semibold">3단계 학습을 완료했습니다.</p>
           {canStartStage5 ? (
             <p className="mt-1">
-              5단계 「동사형 연습하기」를 시작할 수 있습니다.
+              4단계 「동사형 연습하기」를 시작할 수 있습니다.
             </p>
           ) : (
             <p className="mt-1">
-              5단계가 아직 공개되지 않았거나 준비 중입니다.
+              4단계가 아직 공개되지 않았거나 준비 중입니다.
             </p>
           )}
         </div>
@@ -457,11 +457,11 @@ export function Stage4TranslationView({
           disabled={!allPassed || stageDone || busy}
           onClick={() => void handleComplete()}
         >
-          4단계 학습 완료
+          3단계 학습 완료
         </Button>
         {stageDone && canStartStage5 && (
           <Button type="button" onClick={() => onStartStage5?.()}>
-            5단계 시작하기
+            4단계 시작하기
           </Button>
         )}
       </div>

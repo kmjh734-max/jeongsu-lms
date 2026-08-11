@@ -200,10 +200,12 @@ function gradeOne(
         : answer === true;
     return gradeComprehensionCheck(confirmed, points);
   }
-  if (type === "grammar_vocab_choice" || type === "csat_mcq") {
+  if (type === "grammar_vocab_choice" || type === "grammar_choice" || type === "vocab_choice" || type === "csat_mcq") {
     const dataFormat = String(data.format ?? "");
     if (
-      type === "grammar_vocab_choice" &&
+      (type === "grammar_vocab_choice" ||
+        type === "grammar_choice" ||
+        type === "vocab_choice") &&
       (dataFormat === "inline_ab" || Array.isArray(data.choiceBlanks))
     ) {
       const selections =

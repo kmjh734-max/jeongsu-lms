@@ -275,7 +275,7 @@ export function Stage5VerbFormView({
   if (loading) {
     return (
       <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-        5단계 불러오는 중…
+        4단계 불러오는 중…
       </p>
     );
   }
@@ -317,8 +317,8 @@ export function Stage5VerbFormView({
           <p className="mt-1 text-sm text-slate-600">{metaBits.join(" · ")}</p>
         )}
         <p className="mt-3 text-sm font-medium text-slate-800">
-          현재 단계: 5단계 · 동사형 연습하기
-          <span className="ml-2 text-slate-500">(5 / 10)</span>
+          현재 단계: 4단계 · 동사형 연습하기
+          <span className="ml-2 text-slate-500">(4 / 10)</span>
         </p>
         <p className="mt-2 text-sm text-slate-600">
           괄호 안에 주어진 단어를 문맥에 맞는 알맞은 형태로 고쳐 쓰세요.
@@ -502,14 +502,14 @@ export function Stage5VerbFormView({
 
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p className="font-semibold">5단계 학습을 완료했습니다.</p>
+          <p className="font-semibold">4단계 학습을 완료했습니다.</p>
           {canStartStage6 ? (
             <p className="mt-1">
-              6단계 「어법·어휘 고르기」를 시작할 수 있습니다.
+              5단계 「어법 고르기」를 시작할 수 있습니다.
             </p>
           ) : (
             <p className="mt-1">
-              6단계가 아직 공개되지 않았거나 준비 중입니다.
+              5단계가 아직 공개되지 않았거나 준비 중입니다.
             </p>
           )}
         </div>
@@ -538,11 +538,11 @@ export function Stage5VerbFormView({
           disabled={!allRequiredCorrect || stageDone || busy}
           onClick={() => void handleComplete()}
         >
-          5단계 학습 완료
+          4단계 학습 완료
         </Button>
         {stageDone && canStartStage6 && (
           <Button type="button" onClick={() => onStartStage6?.()}>
-            6단계 시작하기
+            5단계 시작하기
           </Button>
         )}
         <Link

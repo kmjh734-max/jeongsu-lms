@@ -13,6 +13,9 @@ export type ExamStepType =
   | "english_blank"
   | "translation_practice"
   | "verb_form"
+  | "grammar_choice"
+  | "vocab_choice"
+  /** @deprecated 하위 호환 — 어법·어휘 통합 단계 */
   | "grammar_vocab_choice"
   | "error_correction"
   | "sentence_order"
@@ -54,6 +57,8 @@ export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
   english_blank: "빈칸 완성하기(영문)",
   translation_practice: "해석 연습하기",
   verb_form: "동사형 연습하기",
+  grammar_choice: "어법 고르기",
+  vocab_choice: "어휘 고르기",
   grammar_vocab_choice: "어법·어휘 고르기",
   error_correction: "어색한 곳 찾아 고쳐 쓰기",
   sentence_order: "순서 배열하기",
@@ -66,14 +71,14 @@ export const EXAM_STEP_LABELS: Record<ExamStepType, string> = {
   csat_mcq: "유형별 객관식",
 };
 
-/** 인천 10단계 WORKBOOK */
+/** 기본 10단계 WORKBOOK (우리말 빈칸 제외) */
 export const MVP_STEP_TYPES: ExamStepType[] = [
   "comprehension",
-  "korean_blank",
   "english_blank",
   "translation_practice",
   "verb_form",
-  "grammar_vocab_choice",
+  "grammar_choice",
+  "vocab_choice",
   "error_correction",
   "sentence_order",
   "paragraph_order",

@@ -890,11 +890,55 @@ export function generateRuleBasedQuestions(
     return out;
   }
 
-  if (stepType === "grammar_vocab_choice") {
+  if (
+    stepType === "grammar_vocab_choice" ||
+    stepType === "grammar_choice" ||
+    stepType === "vocab_choice"
+  ) {
     for (const s of sentences) {
       const q = buildGrammarChoice(s, order);
       if (q) {
-        out.push(q);
+        if (stepType === "grammar_choice" || stepType === "vocab_choice") {
+          const cat =
+            stepType === "grammar_choice" ? "grammar" : "vocabulary";
+          const data = q.question_data as Record<string, unknown>;
+          const blanks = Array.isArray(data.choiceBlanks)
+            ? (data.choiceBlanks as Array<Record<string, unknown>>)
+            : [];
+          const filtered = blanks.filter((b) => b.category === cat);
+          if (filtered.length === 0) continue;
+          const first = filtered[0]!;
+          out.push({
+            ...q,
+            question_type: stepType,
+            question_text: stepPrompt(
+              stepType,
+              stepType === "grammar_choice"
+                ? "괄호 안에서 옳은 어법을 골라 보세요."
+                : "괄호 안에서 옳은 어휘를 골라 보세요."
+            ),
+            question_data: {
+              ...data,
+              choiceBlanks: filtered,
+              options: Array.isArray(first.options)
+                ? (first.options as unknown[]).slice(0, 2)
+                : data.options,
+              choiceKind: cat,
+            },
+            correct_answer: {
+              optionId: first.correctOptionId,
+              selections: Object.fromEntries(
+                filtered.map((b) => [b.id, b.correctOptionId])
+              ),
+            },
+            acceptable_answers: filtered.map((b) =>
+              String(b.correctOptionId ?? "")
+            ),
+            points: filtered.length,
+          });
+        } else {
+          out.push(q);
+        }
         order += 1;
       }
     }

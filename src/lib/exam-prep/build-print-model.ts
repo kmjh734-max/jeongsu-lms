@@ -28,6 +28,7 @@ export type PrintBlankRow = {
   reorder_chunks?: unknown;
   is_error?: boolean | null;
   stage7_display?: string | null;
+  question_category?: string | null;
 };
 
 export type PrintItem = {
@@ -69,22 +70,6 @@ function withEnglishBlanks(
   }
   if (cursor < english.length) out += english.slice(cursor);
   return out || english;
-}
-
-function withKoreanBlanksPrecise(
-  korean: string,
-  blanks: Array<{ korean_start: number; korean_end: number; answer_text: string }>
-) {
-  const sorted = [...blanks].sort((a, b) => a.korean_start - b.korean_start);
-  let out = "";
-  let cursor = 0;
-  for (const b of sorted) {
-    if (b.korean_start > cursor) out += korean.slice(cursor, b.korean_start);
-    out += underline(Math.max(4, b.answer_text.length));
-    cursor = b.korean_end;
-  }
-  if (cursor < korean.length) out += korean.slice(cursor);
-  return out || korean;
 }
 
 function withVerbCues(
@@ -163,51 +148,9 @@ export function buildPrintStagesFromPassage(input: {
     });
   }
 
-  // 2
+  // 2 영어 빈칸 (data stage 3)
   {
     const preset = WORKBOOK_10_STEPS[1]!;
-    const blanks = input.blanksByStage[2] ?? [];
-    const bySent = new Map<string, PrintBlankRow[]>();
-    for (const b of blanks) {
-      const list = bySent.get(b.sentence_id) ?? [];
-      list.push(b);
-      bySent.set(b.sentence_id, list);
-    }
-    const items: PrintItem[] = [];
-    let order = 1;
-    for (const s of ordered) {
-      const list = bySent.get(s.id);
-      if (!list?.length) continue;
-      const ko = String(s.korean_text ?? "");
-      items.push({
-        order: order++,
-        english: s.english_text,
-        koreanWithBlanks: withKoreanBlanksPrecise(
-          ko,
-          list.map((b) => ({
-            korean_start: Number(b.korean_start) || 0,
-            korean_end: Number(b.korean_end) || 0,
-            answer_text: b.answer_text,
-          }))
-        ),
-        answerLines: showAnswers
-          ? list.map((b) => b.answer_text).filter(Boolean)
-          : undefined,
-      });
-    }
-    if (items.length > 0) {
-      stages.push({
-        stageNumber: 2,
-        title: preset.shortLabel,
-        prompt: preset.prompt,
-        items,
-      });
-    }
-  }
-
-  // 3
-  {
-    const preset = WORKBOOK_10_STEPS[2]!;
     const blanks = input.blanksByStage[3] ?? [];
     const bySent = new Map<string, PrintBlankRow[]>();
     for (const b of blanks) {
@@ -238,7 +181,7 @@ export function buildPrintStagesFromPassage(input: {
     }
     if (items.length > 0) {
       stages.push({
-        stageNumber: 3,
+        stageNumber: 2,
         title: preset.shortLabel,
         prompt: preset.prompt,
         items,
@@ -246,11 +189,11 @@ export function buildPrintStagesFromPassage(input: {
     }
   }
 
-  // 4
+  // 3 해석 연습
   {
-    const preset = WORKBOOK_10_STEPS[3]!;
+    const preset = WORKBOOK_10_STEPS[2]!;
     stages.push({
-      stageNumber: 4,
+      stageNumber: 3,
       title: preset.shortLabel,
       prompt: preset.prompt,
       items: ordered.map((s, i) => ({
@@ -261,9 +204,9 @@ export function buildPrintStagesFromPassage(input: {
     });
   }
 
-  // 5
+  // 4 동사형 (data stage 5)
   {
-    const preset = WORKBOOK_10_STEPS[4]!;
+    const preset = WORKBOOK_10_STEPS[3]!;
     const blanks = input.blanksByStage[5] ?? [];
     const bySent = new Map<string, PrintBlankRow[]>();
     for (const b of blanks) {
@@ -294,7 +237,7 @@ export function buildPrintStagesFromPassage(input: {
     }
     if (items.length > 0) {
       stages.push({
-        stageNumber: 5,
+        stageNumber: 4,
         title: preset.shortLabel,
         prompt: preset.prompt,
         items,
@@ -302,10 +245,16 @@ export function buildPrintStagesFromPassage(input: {
     }
   }
 
-  // 6
-  {
-    const preset = WORKBOOK_10_STEPS[5]!;
-    const blanks = input.blanksByStage[6] ?? [];
+  // 5 어법 / 6 어휘 (data stage 6, question_category)
+  for (const { workbookIdx, category } of [
+    { workbookIdx: 4, category: "grammar" as const },
+    { workbookIdx: 5, category: "vocabulary" as const },
+  ]) {
+    const preset = WORKBOOK_10_STEPS[workbookIdx]!;
+    const blanks = (input.blanksByStage[6] ?? []).filter((b) => {
+      const cat = String(b.question_category || "grammar");
+      return cat === category;
+    });
     const bySent = new Map<string, PrintBlankRow[]>();
     for (const b of blanks) {
       const list = bySent.get(b.sentence_id) ?? [];
@@ -335,7 +284,7 @@ export function buildPrintStagesFromPassage(input: {
     }
     if (items.length > 0) {
       stages.push({
-        stageNumber: 6,
+        stageNumber: preset.number,
         title: preset.shortLabel,
         prompt: preset.prompt,
         items,

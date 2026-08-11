@@ -74,7 +74,11 @@ function QuestionPreview({ q }: { q: ExamWorkbookQuestion }) {
     );
   }
 
-  if (type === "grammar_vocab_choice") {
+  if (
+    type === "grammar_vocab_choice" ||
+    type === "grammar_choice" ||
+    type === "vocab_choice"
+  ) {
     const format = String(data.format ?? "");
     const choiceBlanks = (
       Array.isArray(data.choiceBlanks) ? data.choiceBlanks : []

@@ -33,6 +33,10 @@ export function Stage6ChoiceView({
   canStartStage7 = false,
   onStartStage7,
   onStage6Completed,
+  categoryFilter = "all",
+  workbookStageNumber = 6,
+  finalizeDataStage = true,
+  nextStepLabel,
 }: {
   assignmentStudentId: string;
   stepId: string;
@@ -40,6 +44,10 @@ export function Stage6ChoiceView({
   canStartStage7?: boolean;
   onStartStage7?: () => void;
   onStage6Completed?: () => void;
+  categoryFilter?: "grammar" | "vocabulary" | "all";
+  workbookStageNumber?: number;
+  finalizeDataStage?: boolean;
+  nextStepLabel?: string;
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,9 +93,23 @@ export function Stage6ChoiceView({
     }
     setPassage(result.passage as typeof passage);
     setSentences(result.sentences as SentenceRow[]);
-    setItems(result.items);
+    const allItems = result.items as ExamStage6ItemPublic[];
+    const filtered =
+      categoryFilter === "all"
+        ? allItems
+        : allItems.filter(
+            (it) => (it.questionCategory || "grammar") === categoryFilter
+          );
+    setItems(filtered);
     applyProgress(result.progress);
-  }, [assignmentStudentId, applyProgress]);
+    if (result.progress) {
+      const states = result.progress.answers ?? {};
+      const req = filtered.filter((b) => b.isRequired);
+      const allOk =
+        req.length > 0 && req.every((b) => states[b.id]?.isCorrect === true);
+      if (allOk) setStageDone(true);
+    }
+  }, [assignmentStudentId, applyProgress, categoryFilter]);
 
   useEffect(() => {
     void reload();
@@ -212,6 +234,8 @@ export function Stage6ChoiceView({
       assignmentStudentId,
       passageId: passage.id,
       stepId,
+      categoryFilter,
+      finalizeDataStage,
     });
     setBusy(false);
     if (!result.ok) {
@@ -246,7 +270,7 @@ export function Stage6ChoiceView({
   if (loading) {
     return (
       <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-        6단계 불러오는 중…
+        {workbookStageNumber}단계 불러오는 중…
       </p>
     );
   }
@@ -288,11 +312,22 @@ export function Stage6ChoiceView({
           <p className="mt-1 text-sm text-slate-600">{metaBits.join(" · ")}</p>
         )}
         <p className="mt-3 text-sm font-medium text-slate-800">
-          현재 단계: 6단계 · 어법·어휘 고르기
-          <span className="ml-2 text-slate-500">(6 / 10)</span>
+          현재 단계: {workbookStageNumber}단계 ·{" "}
+          {categoryFilter === "grammar"
+            ? "어법 고르기"
+            : categoryFilter === "vocabulary"
+              ? "어휘 고르기"
+              : "어법·어휘 고르기"}
+          <span className="ml-2 text-slate-500">
+            ({workbookStageNumber} / 10)
+          </span>
         </p>
         <p className="mt-2 text-sm text-slate-600">
-          괄호 안에서 문맥에 맞는 올바른 어법과 어휘를 골라 보세요.
+          {categoryFilter === "grammar"
+            ? "괄호 안에서 문맥에 맞는 올바른 어법을 골라 보세요."
+            : categoryFilter === "vocabulary"
+              ? "괄호 안에서 문맥에 맞는 올바른 어휘를 골라 보세요."
+              : "괄호 안에서 문맥에 맞는 올바른 어법과 어휘를 골라 보세요."}
         </p>
         <p className="mt-2 text-xs text-slate-500">
           총 {required.length || items.length}개 중 {correctCount}개 정답
@@ -500,14 +535,18 @@ export function Stage6ChoiceView({
 
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p className="font-semibold">6단계 학습을 완료했습니다.</p>
+          <p className="font-semibold">
+            {workbookStageNumber}단계 학습을 완료했습니다.
+          </p>
           {canStartStage7 ? (
             <p className="mt-1">
-              7단계 「어색한 곳 찾아 고쳐 쓰기」를 시작할 수 있습니다.
+              {nextStepLabel
+                ? `${nextStepLabel}를 시작할 수 있습니다.`
+                : "다음 단계를 시작할 수 있습니다."}
             </p>
           ) : (
             <p className="mt-1">
-              7단계가 아직 공개되지 않았거나 준비 중입니다.
+              다음 단계가 아직 공개되지 않았거나 준비 중입니다.
             </p>
           )}
         </div>
@@ -536,11 +575,11 @@ export function Stage6ChoiceView({
           disabled={!allRequiredCorrect || stageDone || busy}
           onClick={() => void handleComplete()}
         >
-          6단계 학습 완료
+          {workbookStageNumber}단계 학습 완료
         </Button>
         {stageDone && canStartStage7 && (
           <Button type="button" onClick={() => onStartStage7?.()}>
-            7단계 시작하기
+            다음 단계 시작하기
           </Button>
         )}
         <Link

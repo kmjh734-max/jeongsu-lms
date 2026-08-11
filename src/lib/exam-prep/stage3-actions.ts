@@ -13,6 +13,10 @@ import {
   type ExamStage3Progress,
   type Stage3BlankAnswerState,
 } from "@/lib/exam-prep/stage3-types";
+import {
+  assertPublishedPriorStages,
+  STAGE_GATE_MESSAGES,
+} from "@/lib/exam-prep/stage-gates";
 
 async function requireStudent() {
   if (!isExamPrepEnabled()) {
@@ -67,10 +71,11 @@ async function loadPassageForAssignment(assignmentId: string) {
 
 async function assertStageComplete(
   assignmentStudentId: string,
-  stageNumber: 1 | 2
+  stageNumber: 1 | 2,
+  passageId?: string
 ) {
-  const admin = createAdminClient();
   if (stageNumber === 1) {
+    const admin = createAdminClient();
     const { data } = await admin
       .from("exam_stage1_progress")
       .select("completed_at")
@@ -79,6 +84,16 @@ async function assertStageComplete(
       .maybeSingle();
     return Boolean(data?.completed_at);
   }
+  // 우리말 빈칸(data stage2) 미공개면 선행 완료로 보지 않고 통과
+  if (passageId) {
+    const prior = await assertPublishedPriorStages(
+      assignmentStudentId,
+      passageId,
+      3
+    );
+    return prior.ok;
+  }
+  const admin = createAdminClient();
   const { data } = await admin
     .from("exam_stage2_progress")
     .select("completed_at")
@@ -174,11 +189,16 @@ export async function loadStage3StudentDataAction(input: {
     };
   }
 
-  if (!(await assertStageComplete(input.assignmentStudentId, 2))) {
+  const prior = await assertPublishedPriorStages(
+    input.assignmentStudentId,
+    ctx.passage.id,
+    3
+  );
+  if (!prior.ok) {
     return {
       ok: false as const,
-      message: "2단계 우리말 빈칸 완성하기를 먼저 완료해 주세요.",
-      code: "stage2_required" as const,
+      message: STAGE_GATE_MESSAGES[prior.code] ?? "이전 단계를 먼저 완료해 주세요.",
+      code: prior.code,
       passage: ctx.passage,
     };
   }
@@ -247,10 +267,10 @@ export async function saveStage3DraftAction(input: {
   if (!asRow) {
     return { ok: false as const, message: "배정을 찾을 수 없습니다." };
   }
-  if (!(await assertStageComplete(input.assignmentStudentId, 2))) {
+  if (!(await assertStageComplete(input.assignmentStudentId, 2, input.passageId))) {
     return {
       ok: false as const,
-      message: "2단계 우리말 빈칸 완성하기를 먼저 완료해 주세요.",
+      message: STAGE_GATE_MESSAGES.stage2_required ?? "이전 단계를 먼저 완료해 주세요.",
     };
   }
 
@@ -332,10 +352,10 @@ export async function gradeStage3Action(input: {
   if (!asRow) {
     return { ok: false as const, message: "배정을 찾을 수 없습니다." };
   }
-  if (!(await assertStageComplete(input.assignmentStudentId, 2))) {
+  if (!(await assertStageComplete(input.assignmentStudentId, 2, input.passageId))) {
     return {
       ok: false as const,
-      message: "2단계 우리말 빈칸 완성하기를 먼저 완료해 주세요.",
+      message: STAGE_GATE_MESSAGES.stage2_required ?? "이전 단계를 먼저 완료해 주세요.",
     };
   }
 
@@ -647,10 +667,10 @@ export async function completeStage3Action(input: {
       message: "1단계 지문 익히기를 먼저 완료해 주세요.",
     };
   }
-  if (!(await assertStageComplete(input.assignmentStudentId, 2))) {
+  if (!(await assertStageComplete(input.assignmentStudentId, 2, input.passageId))) {
     return {
       ok: false as const,
-      message: "2단계 우리말 빈칸 완성하기를 먼저 완료해 주세요.",
+      message: STAGE_GATE_MESSAGES.stage2_required ?? "이전 단계를 먼저 완료해 주세요.",
     };
   }
 

@@ -336,7 +336,7 @@ export function Stage3EnglishBlankView({
   if (loading) {
     return (
       <p className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-        3단계 불러오는 중…
+        2단계 불러오는 중…
       </p>
     );
   }
@@ -378,8 +378,8 @@ export function Stage3EnglishBlankView({
           <p className="mt-1 text-sm text-slate-600">{metaBits.join(" · ")}</p>
         )}
         <p className="mt-3 text-sm font-medium text-slate-800">
-          현재 단계: 3단계 · 영문 빈칸 완성하기
-          <span className="ml-2 text-slate-500">(3 / 10)</span>
+          현재 단계: 2단계 · 영문 빈칸 완성하기
+          <span className="ml-2 text-slate-500">(2 / 10)</span>
         </p>
         <p className="mt-2 text-sm text-slate-600">
           우리말 해석을 읽고 영문의 빈칸을 완성해 보세요.
@@ -554,14 +554,14 @@ export function Stage3EnglishBlankView({
 
       {stageDone && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p className="font-semibold">3단계 학습을 완료했습니다.</p>
+          <p className="font-semibold">2단계 학습을 완료했습니다.</p>
           {canStartStage4 ? (
             <p className="mt-1">
-              4단계 「해석 연습하기」를 시작할 수 있습니다.
+              3단계 「해석 연습하기」를 시작할 수 있습니다.
             </p>
           ) : (
             <p className="mt-1">
-              4단계가 아직 공개되지 않았거나 준비 중입니다.
+              3단계가 아직 공개되지 않았거나 준비 중입니다.
             </p>
           )}
         </div>
@@ -593,11 +593,11 @@ export function Stage3EnglishBlankView({
           disabled={!allRequiredCorrect || stageDone || busy}
           onClick={() => void handleComplete()}
         >
-          3단계 학습 완료
+          2단계 학습 완료
         </Button>
         {stageDone && canStartStage4 && (
           <Button type="button" onClick={() => onStartStage4?.()}>
-            4단계 시작하기
+            3단계 시작하기
           </Button>
         )}
       </div>

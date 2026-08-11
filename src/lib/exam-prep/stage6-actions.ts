@@ -3,6 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  assertPublishedPriorStages,
+  STAGE_GATE_MESSAGES,
+} from "@/lib/exam-prep/stage-gates";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { isExamPrepEnabled } from "@/lib/academy-features";
 import {
@@ -66,30 +70,17 @@ async function loadPassageForAssignment(assignmentId: string) {
   return passage ? { passage, workbookId: workbook.id as string } : null;
 }
 
-async function assertPriorStages(assignmentStudentId: string) {
-  const admin = createAdminClient();
-  const { data: s1 } = await admin
-    .from("exam_stage1_progress")
-    .select("completed_at")
-    .eq("assignment_student_id", assignmentStudentId)
-    .eq("stage_number", 1)
-    .maybeSingle();
-  if (!s1?.completed_at) {
-    return { ok: false as const, code: "stage1_required" as const };
-  }
-  for (const n of [2, 3, 4, 5] as const) {
-    const { data } = await admin
-      .from("exam_stage2_progress")
-      .select("completed_at")
-      .eq("assignment_student_id", assignmentStudentId)
-      .eq("stage_number", n)
-      .maybeSingle();
-    if (!data?.completed_at) {
-      return { ok: false as const, code: (`stage${n}_required` as const) };
-    }
-  }
-  return { ok: true as const };
+async function assertPriorStages(
+  assignmentStudentId: string,
+  passageId: string
+) {
+  return assertPublishedPriorStages(
+    assignmentStudentId,
+    passageId,
+    6
+  );
 }
+
 
 async function loadItemsAdmin(passageId: string): Promise<ExamStage6Item[]> {
   const admin = createAdminClient();
@@ -195,11 +186,11 @@ export async function loadStage6StudentDataAction(input: {
     };
   }
 
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, ctx.passage.id);
   if (!prior.ok) {
     const messages: Record<string, string> = {
       stage1_required: "1단계 지문 익히기를 먼저 완료해 주세요.",
-      stage2_required: "2단계 우리말 빈칸 완성하기를 먼저 완료해 주세요.",
+      stage2_required: STAGE_GATE_MESSAGES.stage2_required,
       stage3_required: "3단계 영문 빈칸 완성하기를 먼저 완료해 주세요.",
       stage4_required: "4단계 해석 연습하기를 먼저 완료해 주세요.",
       stage5_required: "5단계 동사형 연습하기를 먼저 완료해 주세요.",
@@ -327,7 +318,7 @@ export async function saveStage6DraftAction(input: {
   );
   if (!asRow) return { ok: false as const, message: "배정을 찾을 수 없습니다." };
 
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, input.passageId);
   if (!prior.ok) {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }
@@ -430,7 +421,7 @@ export async function gradeStage6Action(input: {
   );
   if (!asRow) return { ok: false as const, message: "배정을 찾을 수 없습니다." };
 
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, input.passageId);
   if (!prior.ok) {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }
@@ -722,6 +713,10 @@ export async function completeStage6Action(input: {
   assignmentStudentId: string;
   passageId: string;
   stepId: string;
+  /** 어법/어휘 분리 단계용 — 해당 카테고리만 완료 검사 */
+  categoryFilter?: "grammar" | "vocabulary" | "all";
+  /** true면 data stage6 completed_at 기록 (다음 단계 게이트용) */
+  finalizeDataStage?: boolean;
 }) {
   const auth = await requireStudent();
   if (!auth.ok) return auth;
@@ -731,13 +726,19 @@ export async function completeStage6Action(input: {
   );
   if (!asRow) return { ok: false as const, message: "배정을 찾을 수 없습니다." };
 
-  const prior = await assertPriorStages(input.assignmentStudentId);
+  const prior = await assertPriorStages(input.assignmentStudentId, input.passageId);
   if (!prior.ok) {
     return { ok: false as const, message: "이전 단계를 먼저 완료해 주세요." };
   }
 
+  const filter = input.categoryFilter ?? "all";
   const items = await loadItemsAdmin(input.passageId);
-  const required = items.filter((b) => b.is_required);
+  const required = items.filter((b) => {
+    if (!b.is_required) return false;
+    if (filter === "all") return true;
+    const cat = b.question_category || "grammar";
+    return cat === filter;
+  });
   if (required.length < 1) {
     return { ok: false as const, message: "필수 항목이 없습니다." };
   }
@@ -750,10 +751,15 @@ export async function completeStage6Action(input: {
     .eq("stage_number", 6)
     .maybeSingle();
 
-  if (existing?.completed_at) {
+  if (existing?.completed_at && (input.finalizeDataStage !== false || filter === "all")) {
     return {
       ok: true as const,
-      message: "6단계 학습을 완료했습니다. 7단계를 시작할 수 있습니다.",
+      message:
+        filter === "grammar"
+          ? "어법 고르기를 완료했습니다."
+          : filter === "vocabulary"
+            ? "어휘 고르기를 완료했습니다. 다음 단계를 시작할 수 있습니다."
+            : "어법·어휘 고르기를 완료했습니다. 다음 단계를 시작할 수 있습니다.",
       alreadyCompleted: true,
     };
   }
@@ -768,10 +774,27 @@ export async function completeStage6Action(input: {
     }
   }
 
+  const allRequired = items.filter((b) => b.is_required);
   const score = Math.round(
-    (required.filter((b) => answers[b.id]?.isCorrect).length / required.length) *
+    (allRequired.filter((b) => answers[b.id]?.isCorrect).length /
+      Math.max(1, allRequired.length)) *
       100
   );
+
+  const hasVocabRequired = allRequired.some(
+    (b) => b.question_category === "vocabulary"
+  );
+  const finalize =
+    input.finalizeDataStage === true ||
+    filter === "all" ||
+    (filter === "vocabulary") ||
+    (filter === "grammar" && !hasVocabRequired) ||
+    (input.finalizeDataStage !== false &&
+      allRequired.every((b) => answers[b.id]?.isCorrect === true));
+
+  const doneAt = finalize
+    ? existing?.completed_at ?? new Date().toISOString()
+    : existing?.completed_at ?? null;
 
   await supabase.from("exam_stage2_progress").upsert(
     {
@@ -781,11 +804,16 @@ export async function completeStage6Action(input: {
       stage_number: 6,
       answers,
       correct_blank_ids: required.map((b) => b.id),
-      completed_blank_ids: required.map((b) => b.id),
+      completed_blank_ids: [
+        ...new Set([
+          ...((existing?.completed_blank_ids as string[] | null) ?? []),
+          ...required.map((b) => b.id),
+        ]),
+      ],
       incorrect_blank_ids: [],
       score,
-      progress_percent: 100,
-      completed_at: new Date().toISOString(),
+      progress_percent: finalize ? 100 : Math.min(99, score),
+      completed_at: doneAt,
       revision: (Number(existing?.revision) || 0) + 1,
       updated_at: new Date().toISOString(),
     },
@@ -819,9 +847,17 @@ export async function completeStage6Action(input: {
   }
 
   revalidatePath(`/student/exam-prep/${input.assignmentStudentId}`);
+  const message =
+    filter === "grammar"
+      ? finalize
+        ? "어법 고르기를 완료했습니다. 다음 단계를 시작할 수 있습니다."
+        : "어법 고르기를 완료했습니다. 어휘 고르기를 시작할 수 있습니다."
+      : filter === "vocabulary"
+        ? "어휘 고르기를 완료했습니다. 다음 단계를 시작할 수 있습니다."
+        : "어법·어휘 고르기를 완료했습니다. 다음 단계를 시작할 수 있습니다.";
   return {
     ok: true as const,
-    message: "6단계 학습을 완료했습니다. 7단계를 시작할 수 있습니다.",
-    stageCompleted: true,
+    message,
+    stageCompleted: Boolean(finalize),
   };
 }

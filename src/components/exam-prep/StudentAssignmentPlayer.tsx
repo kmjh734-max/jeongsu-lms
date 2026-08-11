@@ -157,6 +157,7 @@ export function StudentAssignmentPlayer({
   const [stage4DoneLocal, setStage4DoneLocal] = useState(stage4Completed);
   const [stage5DoneLocal, setStage5DoneLocal] = useState(stage5Completed);
   const [stage6DoneLocal, setStage6DoneLocal] = useState(stage6Completed);
+  const [stage6GrammarDoneLocal, setStage6GrammarDoneLocal] = useState(false);
   const [stage7DoneLocal, setStage7DoneLocal] = useState(stage7Completed);
   const [stage8DoneLocal, setStage8DoneLocal] = useState(stage8Completed);
   const [stage9DoneLocal, setStage9DoneLocal] = useState(stage9Completed);
@@ -222,7 +223,9 @@ export function StudentAssignmentPlayer({
       const passedByStage5 =
         prev.step_type === "verb_form" && stage5DoneLocal;
       const passedByStage6 =
-        prev.step_type === "grammar_vocab_choice" && stage6DoneLocal;
+        (prev.step_type === "grammar_vocab_choice" && stage6DoneLocal) ||
+        (prev.step_type === "grammar_choice" && stage6GrammarDoneLocal) ||
+        (prev.step_type === "vocab_choice" && stage6DoneLocal);
       const passedByStage7 =
         prev.step_type === "error_correction" && stage7DoneLocal;
       const passedByStage8 =
@@ -254,6 +257,7 @@ export function StudentAssignmentPlayer({
     stage4DoneLocal,
     stage5DoneLocal,
     stage6DoneLocal,
+    stage6GrammarDoneLocal,
     stage7DoneLocal,
     stage8DoneLocal,
     stage9DoneLocal,
@@ -438,13 +442,16 @@ export function StudentAssignmentPlayer({
             sentences={sentences}
             initialProgress={stage1Progress}
             totalSteps={Math.max(sortedSteps.length, 10)}
-            canStartStage2={stage2Published}
+            canStartStage2={
+              stage3Published ||
+              sortedSteps.some((s) => s.step_type === "english_blank")
+            }
             onStage1Completed={() => setStage1DoneLocal(true)}
             onStartStage2={() => {
               setStage1DoneLocal(true);
-              const next = sortedSteps.find(
-                (s) => s.step_type === "korean_blank"
-              );
+              const next =
+                sortedSteps.find((s) => s.step_type === "english_blank") ??
+                sortedSteps.find((s) => s.step_type === "korean_blank");
               if (next) {
                 setActiveStepId(next.id);
                 setAttemptId(null);
@@ -520,9 +527,11 @@ export function StudentAssignmentPlayer({
               }
             }}
             onGoStage2={() => {
-              const s2 = sortedSteps.find((s) => s.step_type === "korean_blank");
-              if (s2) {
-                setActiveStepId(s2.id);
+              const prev =
+                sortedSteps.find((s) => s.step_type === "korean_blank") ??
+                sortedSteps.find((s) => s.step_type === "comprehension");
+              if (prev) {
+                setActiveStepId(prev.id);
                 setAttemptId(null);
                 setAnswers({});
                 setResults(null);
@@ -579,9 +588,9 @@ export function StudentAssignmentPlayer({
             onStage5Completed={() => setStage5DoneLocal(true)}
             onStartStage6={() => {
               setStage5DoneLocal(true);
-              const next = sortedSteps.find(
-                (s) => s.step_type === "grammar_vocab_choice"
-              );
+              const next =
+                sortedSteps.find((s) => s.step_type === "grammar_choice") ??
+                sortedSteps.find((s) => s.step_type === "grammar_vocab_choice");
               if (next) {
                 setActiveStepId(next.id);
                 setAttemptId(null);
@@ -608,16 +617,73 @@ export function StudentAssignmentPlayer({
         )}
 
       {activeStep &&
-        activeStep.step_type === "grammar_vocab_choice" &&
+        (activeStep.step_type === "grammar_vocab_choice" ||
+          activeStep.step_type === "grammar_choice" ||
+          activeStep.step_type === "vocab_choice") &&
         unlockedStepIds.has(activeStep.id) &&
         stage6Published && (
           <Stage6ChoiceView
             assignmentStudentId={assignmentStudentId}
             stepId={activeStep.id}
-            canStartStage7={stage7Published}
-            onStage6Completed={() => setStage6DoneLocal(true)}
+            categoryFilter={
+              activeStep.step_type === "grammar_choice"
+                ? "grammar"
+                : activeStep.step_type === "vocab_choice"
+                  ? "vocabulary"
+                  : "all"
+            }
+            workbookStageNumber={
+              activeStep.step_type === "grammar_choice"
+                ? 5
+                : activeStep.step_type === "vocab_choice"
+                  ? 6
+                  : 6
+            }
+            finalizeDataStage={
+              activeStep.step_type !== "grammar_choice" ||
+              !sortedSteps.some((s) => s.step_type === "vocab_choice")
+            }
+            canStartStage7={
+              activeStep.step_type === "grammar_choice"
+                ? sortedSteps.some((s) => s.step_type === "vocab_choice") ||
+                  stage7Published
+                : stage7Published
+            }
+            nextStepLabel={
+              activeStep.step_type === "grammar_choice" &&
+              sortedSteps.some((s) => s.step_type === "vocab_choice")
+                ? "6단계 「어휘 고르기」"
+                : "7단계 「어색한 곳 찾아 고쳐 쓰기」"
+            }
+            onStage6Completed={() => {
+              if (activeStep.step_type === "grammar_choice") {
+                setStage6GrammarDoneLocal(true);
+                if (!sortedSteps.some((s) => s.step_type === "vocab_choice")) {
+                  setStage6DoneLocal(true);
+                }
+              } else {
+                setStage6DoneLocal(true);
+              }
+            }}
             onStartStage7={() => {
-              setStage6DoneLocal(true);
+              if (activeStep.step_type === "grammar_choice") {
+                setStage6GrammarDoneLocal(true);
+                const vocab = sortedSteps.find(
+                  (s) => s.step_type === "vocab_choice"
+                );
+                if (vocab) {
+                  setActiveStepId(vocab.id);
+                  setAttemptId(null);
+                  setAnswers({});
+                  setResults(null);
+                  setLastScore(null);
+                  setMessage(null);
+                  return;
+                }
+                setStage6DoneLocal(true);
+              } else {
+                setStage6DoneLocal(true);
+              }
               const next = sortedSteps.find(
                 (s) => s.step_type === "error_correction"
               );
@@ -631,9 +697,13 @@ export function StudentAssignmentPlayer({
               }
             }}
             onGoStage5={() => {
-              const s5 = sortedSteps.find((s) => s.step_type === "verb_form");
-              if (s5) {
-                setActiveStepId(s5.id);
+              const prev =
+                activeStep.step_type === "vocab_choice"
+                  ? sortedSteps.find((s) => s.step_type === "grammar_choice") ??
+                    sortedSteps.find((s) => s.step_type === "verb_form")
+                  : sortedSteps.find((s) => s.step_type === "verb_form");
+              if (prev) {
+                setActiveStepId(prev.id);
                 setAttemptId(null);
                 setAnswers({});
                 setResults(null);
@@ -668,9 +738,10 @@ export function StudentAssignmentPlayer({
               }
             }}
             onGoStage6={() => {
-              const s6 = sortedSteps.find(
-                (s) => s.step_type === "grammar_vocab_choice"
-              );
+              const s6 =
+                sortedSteps.find((s) => s.step_type === "vocab_choice") ??
+                sortedSteps.find((s) => s.step_type === "grammar_choice") ??
+                sortedSteps.find((s) => s.step_type === "grammar_vocab_choice");
               if (s6) {
                 setActiveStepId(s6.id);
                 setAttemptId(null);
@@ -809,7 +880,9 @@ export function StudentAssignmentPlayer({
           stage5Published
         ) &&
         !(
-          activeStep.step_type === "grammar_vocab_choice" &&
+          (activeStep.step_type === "grammar_vocab_choice" ||
+            activeStep.step_type === "grammar_choice" ||
+            activeStep.step_type === "vocab_choice") &&
           unlockedStepIds.has(activeStep.id) &&
           stage6Published
         ) &&
@@ -1124,7 +1197,7 @@ function QuestionInput({
     );
   }
 
-  if (type === "grammar_vocab_choice" || type === "csat_mcq") {
+  if (type === "grammar_vocab_choice" || type === "grammar_choice" || type === "vocab_choice" || type === "csat_mcq") {
     const isCsat = type === "csat_mcq";
     const isInlineAb =
       !isCsat &&
