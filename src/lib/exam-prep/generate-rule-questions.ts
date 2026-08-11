@@ -202,26 +202,30 @@ function buildEnglishBlank(
 }
 
 /**
- * 6단계 PDF형: 문장 안 [a / b] (어법·어휘 2지 선택, 문장당 여러 개)
+ * 5·6단계 PDF형: 문장 안 [a / b]
  */
 function buildGrammarChoice(
   sentence: ExamPassageSentence,
-  order: number
+  order: number,
+  category: "grammar" | "vocabulary" | "all" = "all"
 ): GeneratedQuestionDraft | null {
   const english = String(sentence.english_text ?? "").trim();
   if (!english) return null;
 
-  const items = buildStage6Drafts([
-    {
-      id: sentence.id,
-      english_text: english,
-      korean_text: sentence.korean_text,
-      sentence_order: sentence.sentence_order,
-      paragraph_number: sentence.paragraph_number,
-      vocabulary: sentence.vocabulary,
-      is_important_writing: sentence.is_important_writing,
-    },
-  ]).filter((d) => {
+  const items = buildStage6Drafts(
+    [
+      {
+        id: sentence.id,
+        english_text: english,
+        korean_text: sentence.korean_text,
+        sentence_order: sentence.sentence_order,
+        paragraph_number: sentence.paragraph_number,
+        vocabulary: sentence.vocabulary,
+        is_important_writing: sentence.is_important_writing,
+      },
+    ],
+    category
+  ).filter((d) => {
     const wrong = d.choice_options.find((o) => !o.isCorrect)?.text ?? "";
     const correct =
       d.choice_options.find((o) => o.isCorrect)?.text ?? d.answer_text;
@@ -895,17 +899,24 @@ export function generateRuleBasedQuestions(
     stepType === "grammar_choice" ||
     stepType === "vocab_choice"
   ) {
+    const cat =
+      stepType === "grammar_choice"
+        ? ("grammar" as const)
+        : stepType === "vocab_choice"
+          ? ("vocabulary" as const)
+          : ("all" as const);
     for (const s of sentences) {
-      const q = buildGrammarChoice(s, order);
+      const q = buildGrammarChoice(s, order, cat);
       if (q) {
         if (stepType === "grammar_choice" || stepType === "vocab_choice") {
-          const cat =
-            stepType === "grammar_choice" ? "grammar" : "vocabulary";
           const data = q.question_data as Record<string, unknown>;
           const blanks = Array.isArray(data.choiceBlanks)
             ? (data.choiceBlanks as Array<Record<string, unknown>>)
             : [];
-          const filtered = blanks.filter((b) => b.category === cat);
+          const filtered =
+            cat === "all"
+              ? blanks
+              : blanks.filter((b) => b.category === cat);
           if (filtered.length === 0) continue;
           const first = filtered[0]!;
           out.push({
@@ -923,7 +934,7 @@ export function generateRuleBasedQuestions(
               options: Array.isArray(first.options)
                 ? (first.options as unknown[]).slice(0, 2)
                 : data.options,
-              choiceKind: cat,
+              choiceKind: cat === "all" ? "mixed" : cat,
             },
             correct_answer: {
               optionId: first.correctOptionId,

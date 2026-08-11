@@ -8,10 +8,12 @@ import {
   buildStage10Drafts,
   buildStage3Drafts,
   buildStage5Drafts,
-  buildStage6Drafts,
+  buildStage6GrammarDrafts,
+  buildStage6VocabDrafts,
   buildStage7Seed,
   buildStage8Drafts,
   buildStage9Config,
+  combineStage6Categories,
   mergeStage6Drafts,
   stage6AiCoverageOk,
   type SeedSentence,
@@ -207,34 +209,66 @@ export async function generateFullExamPrepWorkbookAction(input: {
   }
 
   {
-    const plant6 = buildStage6Drafts(sentences);
-    const ai6 = await generateStage6WithAi(sentences);
     const ids = sentences.map((s) => s.id);
-    const preferAi = stage6AiCoverageOk(ai6.drafts, sentences.length);
-    const s6 = mergeStage6Drafts(
-      preferAi ? ai6.drafts : plant6,
-      preferAi ? plant6 : ai6.drafts,
-      ids
+    // 5단계 어법 = 변형문제 grammar-catalog 엔진
+    const plantG = buildStage6GrammarDrafts(sentences);
+    const aiG = await generateStage6WithAi(sentences, "grammar");
+    const preferG = stage6AiCoverageOk(aiG.drafts, sentences.length, "grammar");
+    const grammar = mergeStage6Drafts(
+      preferG ? aiG.drafts : plantG,
+      preferG ? plantG : aiG.drafts,
+      ids,
+      { category: "grammar", minPerSentence: 1 }
     );
-    const grammarN = s6.filter((d) => d.question_category === "grammar").length;
-    const vocabN = s6.filter((d) => d.question_category === "vocabulary").length;
-    if (ai6.source === "ai" && preferAi) {
+
+    // 6단계 어휘 = 변형문제 vocab craft 엔진
+    const plantV = buildStage6VocabDrafts(sentences);
+    const aiV = await generateStage6WithAi(sentences, "vocabulary");
+    const preferV = stage6AiCoverageOk(aiV.drafts, sentences.length, "vocabulary");
+    const vocab = mergeStage6Drafts(
+      preferV ? aiV.drafts : plantV,
+      preferV ? plantV : aiV.drafts,
+      ids,
+      { category: "vocabulary", minPerSentence: 1 }
+    );
+
+    const s6 = combineStage6Categories(grammar, vocab, ids);
+    const grammarN = grammar.length;
+    const vocabN = vocab.length;
+    const gCover = new Set(grammar.map((d) => d.sentence_id)).size;
+    const vCover = new Set(vocab.map((d) => d.sentence_id)).size;
+
+    if (aiG.source === "ai" && preferG) {
       notes.push(
-        `5·6단계 AI ${ai6.drafts.length}+규칙보충 → 어법 ${grammarN}·어휘 ${vocabN}`
+        `5단계 어법 AI ${aiG.drafts.length}+규칙 → ${grammarN}문항 (${gCover}/${sentences.length}문장)`
       );
-    } else if (ai6.source === "ai") {
+    } else if (aiG.source === "ai") {
       notes.push(
-        `5·6단계 규칙 ${plant6.length}+AI보충 → 어법 ${grammarN}·어휘 ${vocabN}`
+        `5단계 어법 규칙 ${plantG.length}+AI보충 → ${grammarN}문항 (${gCover}/${sentences.length}문장)${aiG.error ? ` (${aiG.error})` : ""}`
       );
-    } else if (ai6.error) {
-      notes.push(`5·6단계 AI 생략→규칙: ${ai6.error}`);
+    } else {
+      notes.push(
+        `5단계 어법 규칙 ${grammarN}문항 (${gCover}/${sentences.length}문장)${aiG.error ? ` (AI: ${aiG.error})` : ""}`
+      );
     }
+
+    if (aiV.source === "ai" && preferV) {
+      notes.push(
+        `6단계 어휘 AI ${aiV.drafts.length}+규칙 → ${vocabN}문항 (${vCover}/${sentences.length}문장)`
+      );
+    } else if (aiV.source === "ai") {
+      notes.push(
+        `6단계 어휘 규칙 ${plantV.length}+AI보충 → ${vocabN}문항 (${vCover}/${sentences.length}문장)${aiV.error ? ` (${aiV.error})` : ""}`
+      );
+    } else {
+      notes.push(
+        `6단계 어휘 규칙 ${vocabN}문항 (${vCover}/${sentences.length}문장)${aiV.error ? ` (AI: ${aiV.error})` : ""}`
+      );
+    }
+
     if (s6.length > 0) {
       const r = await saveStage6ItemsAction(passageId, s6);
       if (!r.ok) return { ok: false as const, message: `5·6단계: ${r.message}` };
-      if (ai6.source !== "ai") {
-        notes.push(`5·6단계 규칙 어법 ${grammarN}·어휘 ${vocabN}`);
-      }
       await tryPublish(6, () => setStage6PublishedAction(passageId, true));
     }
   }

@@ -434,42 +434,54 @@ export async function generateStepQuestionsWithAi(
     };
   }
 
-  // 5·6단계: 지문 분석 규칙 시드 + AI 보충
+  // 5단계 어법 / 6단계 어휘: 변형문제 QG 엔진 분리 생성
   if (
     type === "grammar_vocab_choice" ||
     type === "grammar_choice" ||
     type === "vocab_choice"
   ) {
-    const plantDrafts = buildStage6Drafts(
-      sentences.map((s) => ({
-        id: s.id,
-        english_text: s.english_text,
-        korean_text: s.korean_text,
-        sentence_order: s.sentence_order,
-        paragraph_number: s.paragraph_number,
-        vocabulary: s.vocabulary,
-        is_important_writing: s.is_important_writing,
-      }))
-    );
-    const seed = sentences.map((s) => ({
-      id: s.id,
-      english_text: s.english_text,
-      sentence_order: s.sentence_order,
-    }));
     const catFilter =
       type === "grammar_choice"
         ? ("grammar" as const)
         : type === "vocab_choice"
           ? ("vocabulary" as const)
           : ("all" as const);
+    const seedSentences = sentences.map((s) => ({
+      id: s.id,
+      english_text: s.english_text,
+      korean_text: s.korean_text,
+      sentence_order: s.sentence_order,
+      paragraph_number: s.paragraph_number,
+      vocabulary: s.vocabulary,
+      is_important_writing: s.is_important_writing,
+    }));
+    const plantDrafts = buildStage6Drafts(
+      seedSentences,
+      catFilter === "all" ? "all" : catFilter
+    );
+    const seed = sentences.map((s) => ({
+      id: s.id,
+      english_text: s.english_text,
+      sentence_order: s.sentence_order,
+    }));
+    const aiMode =
+      catFilter === "all" ? ("mixed" as const) : catFilter;
     if (process.env.OPENAI_API_KEY?.trim()) {
       try {
-        const ai = await generateStage6WithAi(seed);
-        const preferAi = stage6AiCoverageOk(ai.drafts, sentences.length);
+        const ai = await generateStage6WithAi(seed, aiMode);
+        const preferAi = stage6AiCoverageOk(
+          ai.drafts,
+          sentences.length,
+          catFilter === "all" ? undefined : catFilter
+        );
         const merged = mergeStage6Drafts(
           preferAi ? ai.drafts : plantDrafts,
           preferAi ? plantDrafts : ai.drafts,
-          sentences.map((s) => s.id)
+          sentences.map((s) => s.id),
+          {
+            category: catFilter === "all" ? "all" : catFilter,
+            minPerSentence: 1,
+          }
         );
         return {
           questions: stage6DraftsToQuestions(

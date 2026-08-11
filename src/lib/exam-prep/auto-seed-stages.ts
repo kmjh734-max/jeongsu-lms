@@ -828,16 +828,23 @@ export function buildStage5Drafts(sentences: SeedSentence[]): Stage5ItemDraft[] 
 }
 
 /**
- * 6단계: 문장 안 [a / b]
- * 인천 PDF형 — 지문 문장마다 어법·어휘를 분석해 2~4개씩 배치
+ * 5·6단계: 문장 안 [a / b]
+ * - grammar: 워크북 5단계 (변형문제 어법 플랜트)
+ * - vocabulary: 워크북 6단계 (어휘 혼동 플랜트)
+ * - all: 혼합 (하위 호환)
  */
-export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] {
+export function buildStage6Drafts(
+  sentences: SeedSentence[],
+  category: "grammar" | "vocabulary" | "all" = "all"
+): Stage6ItemDraft[] {
   const drafts: Stage6ItemDraft[] = [];
   let order = 1;
   let usedSv = false;
   const usedUnitsGlobal = new Set<string>();
 
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
+  const wantGrammar = category === "grammar" || category === "all";
+  const wantVocab = category === "vocabulary" || category === "all";
 
   for (const s of ordered) {
     const english = String(s.english_text ?? "");
@@ -845,8 +852,10 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
     const used: Array<{ a: number; b: number }> = [];
     let added = 0;
     const wordCount = english.split(/\s+/).filter(Boolean).length;
-    // 인천 PDF: 문장당 보통 2~4개
-    const target = Math.min(4, Math.max(2, Math.ceil(wordCount / 14)));
+    const target =
+      category === "all"
+        ? Math.min(4, Math.max(2, Math.ceil(wordCount / 14)))
+        : Math.min(3, Math.max(wordCount <= 8 ? 1 : 2, Math.ceil(wordCount / 16)));
 
     const pushGrammar = (h: {
       start: number;
@@ -858,6 +867,7 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       koTip: string;
       unitKey?: string;
     }) => {
+      if (!wantGrammar) return false;
       if (added >= target) return false;
       if (overlaps(used, h.start, h.end)) return false;
       if (isNonsenseChoicePair(h.correct, h.wrong)) return false;
@@ -908,6 +918,7 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       wrong: string;
       sub: string;
     }) => {
+      if (!wantVocab) return false;
       if (added >= target) return false;
       if (overlaps(used, h.start, h.end)) return false;
       if (isNonsenseChoicePair(h.correct, h.wrong)) return false;
@@ -945,31 +956,43 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
       return true;
     };
 
-    // 1) 이 문장에서 발견된 어법 포인트 (단원 다양)
-    const grammarHits = pickDiverseGrammarHits(
-      scanWorkbookGrammarHits(english),
-      target,
-      { forChoice: true }
-    );
-    // 전역에서 이미 많이 쓴 단원은 뒤로
-    const sortedGrammar = [...grammarHits].sort((a, b) => {
-      const aUsed = usedUnitsGlobal.has(a.unitKey) ? 1 : 0;
-      const bUsed = usedUnitsGlobal.has(b.unitKey) ? 1 : 0;
-      return aUsed - bUsed || b.priority - a.priority;
-    });
-    for (const h of sortedGrammar) {
-      pushGrammar(h);
+    if (wantGrammar) {
+      const grammarHits = pickDiverseGrammarHits(
+        scanWorkbookGrammarHits(english),
+        target,
+        { forChoice: true }
+      );
+      const sortedGrammar = [...grammarHits].sort((a, b) => {
+        const aUsed = usedUnitsGlobal.has(a.unitKey) ? 1 : 0;
+        const bUsed = usedUnitsGlobal.has(b.unitKey) ? 1 : 0;
+        return aUsed - bUsed || b.priority - a.priority;
+      });
+      for (const h of sortedGrammar) {
+        pushGrammar(h);
+      }
+      if (added < (wordCount <= 8 ? 1 : 2)) {
+        const more = pickDiverseGrammarHits(scanWorkbookGrammarHits(english), 4, {
+          forChoice: true,
+        });
+        for (const h of more) {
+          pushGrammar(h);
+          if (added >= target) break;
+        }
+      }
     }
 
-    // 2) 어휘 혼동·반의어로 문장 밀도 채움 (PDF: garbage/garage, endless/temporary)
-    if (added < target) {
+    if (wantVocab) {
       for (const h of scanVocabChoiceHits(english)) {
         if (!pushVocab(h)) break;
       }
     }
 
-    // 3) 그래도 비면 문법 스캔을 한 번 더 (유닛 중복 허용)
-    if (added < 2) {
+    if (category === "all" && added < target) {
+      for (const h of scanVocabChoiceHits(english)) {
+        if (!pushVocab(h)) break;
+      }
+    }
+    if (category === "all" && added < 2) {
       const more = pickDiverseGrammarHits(scanWorkbookGrammarHits(english), 3, {
         forChoice: true,
       });
@@ -983,26 +1006,57 @@ export function buildStage6Drafts(sentences: SeedSentence[]): Stage6ItemDraft[] 
   return drafts;
 }
 
+export function buildStage6GrammarDrafts(
+  sentences: SeedSentence[]
+): Stage6ItemDraft[] {
+  return buildStage6Drafts(sentences, "grammar");
+}
+
+export function buildStage6VocabDrafts(
+  sentences: SeedSentence[]
+): Stage6ItemDraft[] {
+  return buildStage6Drafts(sentences, "vocabulary");
+}
+
 /**
- * 6단계 병합: 변형문제 AI를 우선하고, 비는 문장만 규칙 플랜트로 채운다.
- * (엉터리 plant가 AI를 덮어쓰지 않게)
+ * 카테고리별 병합: AI 우선, 비는 문장만 규칙 플랜트로 채움.
  */
 export function mergeStage6Drafts(
   primary: Stage6ItemDraft[],
   filler: Stage6ItemDraft[],
-  sentenceIds: string[]
+  sentenceIds: string[],
+  opts?: {
+    category?: "grammar" | "vocabulary" | "all";
+    minPerSentence?: number;
+  }
 ): Stage6ItemDraft[] {
+  const category = opts?.category ?? "all";
+  const minPer = opts?.minPerSentence ?? 1;
+  const matchCat = (d: Stage6ItemDraft) => {
+    if (category === "all") return true;
+    return (d.question_category || "grammar") === category;
+  };
+
   const bySent = new Map<string, Stage6ItemDraft[]>();
   for (const id of sentenceIds) bySent.set(id, []);
 
   const add = (d: Stage6ItemDraft) => {
+    if (!matchCat(d)) return;
     const list = bySent.get(d.sentence_id) ?? [];
     if (list.length >= 4) return;
-    if (list.some((x) => x.english_start < d.english_end && x.english_end > d.english_start)) {
+    if (
+      list.some(
+        (x) =>
+          x.english_start < d.english_end && x.english_end > d.english_start
+      )
+    ) {
       return;
     }
     const wrong = d.choice_options?.find((o) => !o.isCorrect)?.text ?? "";
-    if (wrong && isNonsenseChoicePair(d.answer_text || d.selected_text || "", wrong)) {
+    if (
+      wrong &&
+      isNonsenseChoicePair(d.answer_text || d.selected_text || "", wrong)
+    ) {
       return;
     }
     list.push(d);
@@ -1012,7 +1066,7 @@ export function mergeStage6Drafts(
   for (const d of primary) add(d);
   for (const d of filler) {
     const list = bySent.get(d.sentence_id) ?? [];
-    if (list.length >= 2) continue;
+    if (list.length >= Math.max(2, minPer)) continue;
     add(d);
   }
 
@@ -1024,18 +1078,59 @@ export function mergeStage6Drafts(
     }
   }
   if (out.length > 0) return out;
-  return primary.length > 0 ? primary : filler;
+  const fallback = [...primary, ...filler].filter(matchCat);
+  return fallback.length > 0 ? fallback : primary.length > 0 ? primary : filler;
 }
 
-/** AI 커버리지가 충분하면 true (문장의 75%+ · 문항수 ≥ 문장수) */
+/** 어법·어휘 초안을 blank_order 재부여하며 합친다 */
+export function combineStage6Categories(
+  grammar: Stage6ItemDraft[],
+  vocab: Stage6ItemDraft[],
+  sentenceIds: string[]
+): Stage6ItemDraft[] {
+  const bySent = new Map<string, Stage6ItemDraft[]>();
+  for (const id of sentenceIds) bySent.set(id, []);
+  const add = (d: Stage6ItemDraft) => {
+    const list = bySent.get(d.sentence_id) ?? [];
+    if (
+      list.some(
+        (x) =>
+          x.english_start < d.english_end && x.english_end > d.english_start
+      )
+    ) {
+      return;
+    }
+    list.push(d);
+    bySent.set(d.sentence_id, list);
+  };
+  for (const d of grammar) add(d);
+  for (const d of vocab) add(d);
+
+  let order = 1;
+  const out: Stage6ItemDraft[] = [];
+  for (const id of sentenceIds) {
+    const list = (bySent.get(id) ?? []).sort(
+      (a, b) => a.english_start - b.english_start
+    );
+    for (const d of list) out.push({ ...d, blank_order: order++ });
+  }
+  return out;
+}
+
 export function stage6AiCoverageOk(
   ai: Stage6ItemDraft[],
-  sentenceCount: number
+  sentenceCount: number,
+  category?: "grammar" | "vocabulary"
 ): boolean {
   if (sentenceCount <= 0 || ai.length === 0) return false;
-  const covered = new Set(ai.map((d) => d.sentence_id)).size;
+  const filtered = category
+    ? ai.filter((d) => (d.question_category || "grammar") === category)
+    : ai;
+  if (filtered.length === 0) return false;
+  const covered = new Set(filtered.map((d) => d.sentence_id)).size;
   return (
-    covered >= Math.ceil(sentenceCount * 0.75) && ai.length >= sentenceCount
+    covered >= Math.ceil(sentenceCount * 0.9) &&
+    filtered.length >= sentenceCount
   );
 }
 
