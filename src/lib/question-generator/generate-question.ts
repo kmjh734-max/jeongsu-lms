@@ -448,16 +448,19 @@ LANGUAGE: 지문·정답 영어만.`;
           mode === "basic"
             ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용 (필요 시 어형 변화 가능)
 - <보기>: 반드시 원형·기본형만 (복수·과거·3인칭 -s 금지). 생성 후 시스템이 무작위로 섞음. 8~12개
-- correctAnswer = 어형·어순을 맞춘 완성 영어`
+- correctAnswer = 어형·어순을 맞춘 완성 영어
+- CRITICAL: <보기> 다중집합 = correctAnswer의 모든 토큰(전치사 for/to/of, 관사 the/a, 중복 pleasure 등 포함). 정답에 쓰인 단어를 보기에서 빼지 말 것.`
             : mode === "inflect"
               ? `- <조건>: 주어진 단어를 모두 한 번씩만 사용하되, 필요한 경우 어형 변화
 - <보기>: 반드시 원형·기본형만 (과거·과거분사·복수 금지). 생성 후 시스템이 무작위로 섞음
-- correctAnswer = 어형 변화를 적용한 완성 영어 (예: ${c.example})`
+- correctAnswer = 어형 변화를 적용한 완성 영어 (예: ${c.example})
+- CRITICAL: <보기> 다중집합 = correctAnswer 토큰의 원형(전치사·관사·중복 포함). 누락 금지.`
               : `- <조건>은 반드시 아래 두 줄만 (한 줄에 / 로 붙이지 말 것). 조건에 <보기> 태그 금지:
 ○ 단어 중복·어형 변화 가능
 ○ 보기에 없는 단어 추가 가능
 - <보기>: 핵심 어휘 원형 6~10개만 (과거형·복수형·한글·안내문 금지). 생성 후 시스템이 무작위로 섞음
 - correctAnswer = 관사·전치사·접속사 추가·어형 변화 포함한 완성문 (예: ${c.example})
+- CRITICAL: 정답의 내용어(명사·동사·형용사·부사)는 모두 <보기>에 넣을 것. 관사·전치사만 보기 밖에서 추가 가능.
 - 금지: <보기> 본문에 '에 없는 단어'·한글 조사·문법 설명·중복 <보기> 태그`;
 
         return `서술형 · 제시어 배열 — 『고등영어 어법서술형』 반영
@@ -922,7 +925,16 @@ export function assertBasicQuestionShape(
       return "제시어 배열 정답(영어 완성문)이 필요합니다.";
     }
     q.choices = undefined;
-    q.questionText = normalizeWordOrderQuestionText(q.questionText || "");
+    const woMode =
+      option.aingkaCode === "제시어배열단어추가"
+        ? ("add" as const)
+        : option.aingkaCode === "제시어배열어형변화"
+          ? ("inflect" as const)
+          : ("basic" as const);
+    q.questionText = normalizeWordOrderQuestionText(q.questionText || "", {
+      correctAnswer: String(q.correctAnswer ?? ""),
+      mode: woMode,
+    });
   } else if (
     option.type === "writing" &&
     (option.aingkaCode === "지칭대명사서술" ||

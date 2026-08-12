@@ -380,6 +380,87 @@ export function joinWordBank(words: string[]): string {
   return words.join(" / ");
 }
 
+/** 정답 영어 구 → 토큰 (구두점 제거) */
+export function tokenizeAnswerPhrase(answer: string): string[] {
+  return String(answer ?? "")
+    .replace(/^[ⓐⓑⓒⓓⓔ]\s*[:：]?\s*/i, "")
+    .replace(/[“”‘’"'`]/g, "")
+    .replace(/[.,!?;:()[\]{}…—–-]/g, " ")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter((w) => w.length > 0 && /[A-Za-z]/.test(w));
+}
+
+export type WordOrderBankMode = "basic" | "inflect" | "add";
+
+/**
+ * 정답에 쓰인 단어가 <보기>에 빠지지 않게 맞춤.
+ * - basic / inflect: 보기 = 정답 토큰 다중집합 (어형변화 모드는 원형)
+ * - add: 기존 보기 유지 + 정답의 내용어(전치사·관사 제외) 누락분 보강
+ */
+export function buildWordBankFromAnswer(
+  correctAnswer: string,
+  mode: WordOrderBankMode,
+  existingBankRaw = ""
+): string[] {
+  const answerTokens = tokenizeAnswerPhrase(correctAnswer);
+  if (answerTokens.length === 0) {
+    return splitWordBank(scrubWordBankNoise(existingBankRaw)).map(lemmaEnglishToken);
+  }
+
+  if (mode === "add") {
+    const bank = splitWordBank(scrubWordBankNoise(existingBankRaw)).map(
+      lemmaEnglishToken
+    );
+    const contentNeeded = answerTokens
+      .map(lemmaEnglishToken)
+      .filter((t) => t && !FUNCTION_KEEP.has(t));
+    for (const w of contentNeeded) {
+      const need = contentNeeded.filter((x) => x === w).length;
+      while (bank.filter((x) => x === w).length < need) {
+        bank.push(w);
+      }
+    }
+    return bank.filter(Boolean);
+  }
+
+  // basic: 형태 고정 → 정답 표면형 유지 / inflect: 원형
+  return answerTokens
+    .map((t) => (mode === "inflect" ? lemmaEnglishToken(t) : t.toLowerCase()))
+    .filter(Boolean);
+}
+
+function countMap(tokens: string[]): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const t of tokens) {
+    m.set(t, (m.get(t) ?? 0) + 1);
+  }
+  return m;
+}
+
+/** 보기가 정답 토큰을 모두 커버하는지 (lemma 기준) */
+export function wordBankMissingFromAnswer(
+  bankRaw: string,
+  correctAnswer: string,
+  mode: WordOrderBankMode
+): string[] {
+  const bank = splitWordBank(scrubWordBankNoise(bankRaw)).map(lemmaEnglishToken);
+  const bankCounts = countMap(bank);
+  const answerTokens = tokenizeAnswerPhrase(correctAnswer).map(lemmaEnglishToken);
+  const needed =
+    mode === "add"
+      ? answerTokens.filter((t) => t && !FUNCTION_KEEP.has(t))
+      : answerTokens.filter(Boolean);
+
+  const missing: string[] = [];
+  const needCounts = countMap(needed);
+  for (const [w, n] of needCounts) {
+    const have = bankCounts.get(w) ?? 0;
+    for (let i = have; i < n; i++) missing.push(w);
+  }
+  return missing;
+}
+
 export function normalizeAndShuffleWordBank(raw: string): string {
   const tokens = splitWordBank(scrubWordBankNoise(raw))
     .map(lemmaEnglishToken)
@@ -445,8 +526,13 @@ export function stripExtraWordHint(conditions: string): {
   return { conditions: next, allowExtraWords };
 }
 
-/** questionText의 <보기>·<조건>을 정리해 다시 조립 */
-export function normalizeWordOrderQuestionText(questionText: string): string {
+/** questionText의 <보기>·<조건>을 정리해 다시 조립.
+ * correctAnswer가 있으면 정답에 필요한 단어가 보기에 빠지지 않게 보정한다.
+ */
+export function normalizeWordOrderQuestionText(
+  questionText: string,
+  opts?: { correctAnswer?: string; mode?: WordOrderBankMode }
+): string {
   const cleaned = (questionText || "")
     .replace(/<보기>(의|를|에|만|와|과|로|을|은|이|가)/g, "보기$1")
     .trim();
@@ -473,7 +559,26 @@ export function normalizeWordOrderQuestionText(questionText: string): string {
     /* keep */
   }
 
-  words = normalizeAndShuffleWordBank(words);
+  const mode: WordOrderBankMode =
+    opts?.mode ??
+    (stripped.allowExtraWords || /추가\s*가능/.test(conditions)
+      ? "add"
+      : /어형|변화/.test(conditions)
+        ? "inflect"
+        : "basic");
+
+  const answer = String(opts?.correctAnswer ?? "").trim();
+  if (answer) {
+    const reconciled = buildWordBankFromAnswer(answer, mode, words);
+    if (reconciled.length > 0) {
+      shuffleInPlace(reconciled);
+      words = joinWordBank(reconciled);
+    } else {
+      words = normalizeAndShuffleWordBank(words);
+    }
+  } else {
+    words = normalizeAndShuffleWordBank(words);
+  }
 
   const condBlock = conditions
     .split(/\n+/)
