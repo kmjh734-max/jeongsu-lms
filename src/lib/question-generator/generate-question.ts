@@ -41,6 +41,7 @@ import {
   type WordOrderMode,
 } from "@/lib/question-generator/word-order-catalog";
 import { normalizeWordOrderQuestionText } from "@/lib/question-generator/word-order-normalize";
+import { reconcileGrammarFixQuestion } from "@/lib/question-generator/grammar-fix-normalize";
 
 /** 함축의미 등 — 적합한 소재가 없으면 문항 생략 */
 export class SkipQuestionError extends Error {
@@ -306,8 +307,7 @@ ${catalog}`;
         const wrongN =
           code === "어법오류수정2" ? 2 : code === "어법오류수정3" ? 3 : 2;
         const { focusBlock } = pickGrammarFocus(wrongN);
-        if (code === "어법문장오류수정") {
-          return `서술형 · 어법 틀린 문장 수정 (수특형):
+        return `서술형 · 어법 틀린 문장 수정 (수특형):
 ${focusBlock}
 
 형식:
@@ -322,6 +322,11 @@ ${focusBlock}
 ${wrongN}
 - correctAnswer 형식: "③: why / ④: to continue" (번호 + 바르게 고친 핵심 형태)
 - choices 없음. explanation 한글: 각 번호의 틀린 점 → 바른 형태 + 쉬운 이유.
+CRITICAL 정합:
+1) 틀린 문장 안의 오류 형태가 본문에 그대로 있어야 함.
+2) correctAnswer의 기호 = 실제로 틀린 ${wrongN}개만. 맞는 문장 번호를 넣지 말 것.
+3) explanation도 같은 ${wrongN}개만 틀림으로 설명. 정답과 해설이 모순되면 안 됨.
+4) "are → are"처럼 고친 결과가 본문과 같은 쌍 금지.
 LANGUAGE: 지문 영어만.
 
 ${catalog}`;
@@ -334,17 +339,23 @@ ${catalog}`;
 ${focusBlock}
 
 형식:
-- passageModified = 영어 지문. 밑줄 정확히 ${marks} → ⓐ<u>대상</u>
-- 틀린 곳 정확히 ${wrongN}개 — 위 ‘이번 문항’ 문법을 서로 다른 단원으로 하나씩.
-- 나머지 밑줄은 어법상 맞음 (함정처럼 보이되 옳음).
+- passageModified = 영어 지문. 밑줄 정확히 ${marks} → ⓐ<u>틀린형태또는맞는형태</u>
+- 틀린 곳 정확히 ${wrongN}개 — <u>안에는 틀린 형태</u>를 넣음. 위 ‘이번 문항’ 문법을 서로 다른 단원으로 하나씩.
+- 나머지 밑줄은 어법상 맞음 (함정처럼 보이되 옳음) — <u>안에는 이미 바른 형태</u>.
 - questionText:
 <조건>
 ○ 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함
 
 <답안행>
 ${wrongN}
-- correctAnswer 형식 예: "ⓒ: alike / ⓓ: show up / ⓔ: what" (기호 + 바른 형태, ${wrongN}쌍)
-- choices 없음. explanation 한글: 각 기호의 틀린 점 → 바른 형태 + 쉬운 이유 (영어 은어 금지).
+- correctAnswer 형식 예: "ⓒ: keep / ⓓ: surprising" (기호 + 바른 형태만, ${wrongN}쌍). "are → are" 금지.
+- choices 없음.
+- explanation 한글: ⓐ~ⓔ(또는 ⓖ) 각각에 대해 (맞음) 또는 (틀림: 본문형 → 바른형 + 이유).
+CRITICAL 정합 (필수):
+1) correctAnswer에 적은 기호의 <u>본문</u>은 틀린 형태여야 하고, correctAnswer 값은 바른 형태.
+2) explanation에서 틀리다고 한 기호 집합 = correctAnswer 기호 집합 (동일 ${wrongN}개).
+3) explanation에서 맞다고 한 기호는 correctAnswer에 넣지 말 것.
+4) 본문 밑줄 텍스트와 고친 형태가 같으면 그 기호는 정답이 될 수 없음.
 LANGUAGE: 지문 영어만.
 
 ${catalog}`;
@@ -1024,13 +1035,17 @@ export function assertBasicQuestionShape(
     if (!ans) {
       return "어법 수정 정답(기호+바른 형태)이 필요합니다.";
     }
-    const pairs = ans
-      .split(/\s*\/\s*|\n+/)
-      .map((s) => s.trim())
-      .filter((s) => /[ⓐ-ⓖ①-⑤]/.test(s) || /:/.test(s));
-    if (pairs.length < wrongN) {
-      return `어법 수정 정답은 ${wrongN}쌍(기호: 바른형태)이어야 합니다.`;
+    const reconciled = reconcileGrammarFixQuestion({
+      passageModified: mod,
+      correctAnswer: ans,
+      explanation: q.explanation || "",
+      wrongN,
+    });
+    if (!reconciled.ok) {
+      return reconciled.reason ?? "어법 수정 정답·해설·본문이 일치하지 않습니다.";
     }
+    q.correctAnswer = reconciled.correctAnswer;
+    q.explanation = reconciled.explanation;
     if (!/<조건>/.test(q.questionText || "")) {
       q.questionText = `<조건>\n○ 틀린 곳의 기호와 수정한 형태를 모두 써야 정답으로 인정함\n\n<답안행>\n${wrongN}`;
     } else if (!/<답안행>/.test(q.questionText || "")) {
