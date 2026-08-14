@@ -82,3 +82,20 @@ export function nextStudyDateAfter(
   }
   return null;
 }
+
+/** start~end(포함) 학습일 ISO 목록 */
+export function listStudyDatesInclusive(
+  startIso: string,
+  endIso: string,
+  daysOfWeek: number[]
+): string[] {
+  const out: string[] = [];
+  const cursor = parseDateOnly(startIso);
+  const end = parseDateOnly(endIso);
+  if (end < cursor) return out;
+  while (cursor <= end) {
+    if (isStudyDay(cursor, daysOfWeek)) out.push(toDateOnlyString(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return out;
+}

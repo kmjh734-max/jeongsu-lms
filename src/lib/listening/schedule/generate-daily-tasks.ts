@@ -1,11 +1,14 @@
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   getStudyDayIndex,
   isStudyDay,
+  listStudyDatesInclusive,
   parseDateOnly,
   toDateOnlyString,
 } from "@/lib/listening/schedule/days-of-week";
 import {
+  buildLeftoverDailySlices,
   buildQuestionQueueForAssignment,
   sliceQuestionsForStudyDay,
 } from "@/lib/listening/schedule/question-queue";
@@ -76,6 +79,28 @@ function buildTaskRowForDate(
   };
 }
 
+function sameIdList(a: string[] | null | undefined, b: string[]): boolean {
+  const left = a ?? [];
+  if (left.length !== b.length) return false;
+  return left.every((id, i) => id === b[i]);
+}
+
+type ExistingTaskRow = {
+  id: string;
+  task_date: string;
+  status: string;
+  completed_count: number | null;
+  question_ids: string[] | null;
+  set_id: string;
+};
+
+function isLockedExistingTask(row: ExistingTaskRow, todayIso: string): boolean {
+  if (row.task_date < todayIso) return true;
+  if (row.status === "completed" || row.status === "in_progress") return true;
+  if ((row.completed_count ?? 0) > 0) return true;
+  return false;
+}
+
 async function insertDailyTasksBatch(
   admin: SupabaseClient,
   rows: DailyTaskInsert[]
@@ -123,7 +148,7 @@ export async function ensureDailyTaskForStudentDate(
     return { created: false, taskId: null };
   }
 
-  const { data: existing } = await admin
+  const { data: before } = await admin
     .from("listening_daily_tasks")
     .select("id")
     .eq("assignment_id", assignment.id)
@@ -131,42 +156,28 @@ export async function ensureDailyTaskForStudentDate(
     .eq("task_date", taskDateIso)
     .maybeSingle();
 
-  if (existing?.id) {
-    return { created: false, taskId: existing.id as string };
-  }
-
-  const resolvedQueue =
-    queue ?? (await buildQuestionQueueForAssignment(admin, assignment.id));
-  const row = buildTaskRowForDate(
+  await ensureDailyTasksForStudentRange(
+    admin,
     assignment,
     studentId,
     taskDateIso,
-    resolvedQueue
+    taskDateIso,
+    queue,
+    effectiveStart
   );
-  if (!row) return { created: false, taskId: null };
 
-  const { data: inserted, error } = await admin
+  const { data: after } = await admin
     .from("listening_daily_tasks")
-    .insert(row)
     .select("id")
-    .single();
+    .eq("assignment_id", assignment.id)
+    .eq("student_id", studentId)
+    .eq("task_date", taskDateIso)
+    .maybeSingle();
 
-  if (error || !inserted) {
-    return { created: false, taskId: null };
-  }
-
-  const progressRows = row.question_ids.map((questionId) => ({
-    daily_task_id: inserted.id as string,
-    student_id: studentId,
-    question_id: questionId,
-    objective_completed: false,
-    dictation_completed: false,
-    completed: false,
-  }));
-
-  await admin.from("listening_daily_task_progress").insert(progressRows);
-
-  return { created: true, taskId: inserted.id as string };
+  return {
+    created: !before?.id && Boolean(after?.id),
+    taskId: (after?.id as string | undefined) ?? null,
+  };
 }
 
 export async function ensureDailyTasksForStudentRange(
@@ -195,35 +206,121 @@ export async function ensureDailyTasksForStudentRange(
     queue ?? (await buildQuestionQueueForAssignment(admin, assignment.id));
   if (resolvedQueue.length === 0) return;
 
-  const { data: existingRows } = await admin
+  const todayIso = getTodayIsoKorea();
+  const { data: existingAll } = await admin
     .from("listening_daily_tasks")
-    .select("task_date")
+    .select("id, task_date, status, completed_count, question_ids, set_id")
     .eq("assignment_id", assignment.id)
-    .eq("student_id", studentId)
-    .gte("task_date", clampedFrom)
-    .lte("task_date", toIso);
+    .eq("student_id", studentId);
 
-  const existingDates = new Set(
-    (existingRows ?? []).map((r) => r.task_date as string)
+  const existingRows = (existingAll ?? []) as ExistingTaskRow[];
+  const locked = existingRows.filter((row) =>
+    isLockedExistingTask(row, todayIso)
+  );
+  const unlockedInRange = existingRows.filter(
+    (row) =>
+      !isLockedExistingTask(row, todayIso) &&
+      row.task_date >= clampedFrom &&
+      row.task_date <= toIso
   );
 
-  const pending: DailyTaskInsert[] = [];
-  const from = parseDateOnly(clampedFrom);
-  const to = parseDateOnly(toIso);
-  const cursor = new Date(from);
+  const consumed = new Set<string>();
+  for (const row of locked) {
+    for (const id of row.question_ids ?? []) consumed.add(id);
+  }
 
-  while (cursor <= to) {
-    const iso = toDateOnlyString(cursor);
-    if (!existingDates.has(iso)) {
-      const row = buildTaskRowForDate(
+  const lockedByDate = new Map(locked.map((row) => [row.task_date, row]));
+  const unlockedByDate = new Map(
+    unlockedInRange.map((row) => [row.task_date, row])
+  );
+  const existingByDate = new Map(
+    existingRows.map((row) => [row.task_date, row])
+  );
+
+  const studyDates = listStudyDatesInclusive(
+    clampedFrom,
+    toIso,
+    assignment.days_of_week
+  ).filter((iso) => isTaskDateInAssignment(iso, assignment));
+
+  const pending: DailyTaskInsert[] = [];
+  const idsToDelete: string[] = [];
+
+  for (const iso of studyDates) {
+    if (iso >= todayIso) continue;
+    if (existingByDate.has(iso)) continue;
+    const row = buildTaskRowForDate(
+      assignment,
+      studentId,
+      iso,
+      resolvedQueue
+    );
+    if (row) pending.push(row);
+  }
+
+  const futureDates = studyDates.filter(
+    (iso) => iso >= todayIso && !lockedByDate.has(iso)
+  );
+
+  if (locked.length === 0) {
+    for (const iso of futureDates) {
+      const expected = buildTaskRowForDate(
         assignment,
         studentId,
         iso,
         resolvedQueue
       );
-      if (row) pending.push(row);
+      const existing = unlockedByDate.get(iso);
+      if (!expected) {
+        if (existing) idsToDelete.push(existing.id);
+        continue;
+      }
+      if (
+        existing &&
+        existing.set_id === expected.set_id &&
+        sameIdList(existing.question_ids, expected.question_ids)
+      ) {
+        continue;
+      }
+      if (existing) idsToDelete.push(existing.id);
+      pending.push(expected);
     }
-    cursor.setDate(cursor.getDate() + 1);
+  } else {
+    const slices = buildLeftoverDailySlices(
+      resolvedQueue,
+      consumed,
+      assignment.questions_per_day
+    );
+    futureDates.forEach((iso, i) => {
+      const slice = slices[i];
+      const existing = unlockedByDate.get(iso);
+      if (!slice) {
+        if (existing) idsToDelete.push(existing.id);
+        return;
+      }
+      if (
+        existing &&
+        existing.set_id === slice.setId &&
+        sameIdList(existing.question_ids, slice.questionIds)
+      ) {
+        return;
+      }
+      if (existing) idsToDelete.push(existing.id);
+      pending.push({
+        assignment_id: assignment.id,
+        student_id: studentId,
+        task_date: iso,
+        set_id: slice.setId,
+        question_ids: slice.questionIds,
+        status: "pending",
+        completed_count: 0,
+        total_count: slice.questionIds.length,
+      });
+    });
+  }
+
+  if (idsToDelete.length > 0) {
+    await admin.from("listening_daily_tasks").delete().in("id", idsToDelete);
   }
 
   if (pending.length > 0) {

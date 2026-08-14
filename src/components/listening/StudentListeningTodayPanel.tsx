@@ -14,6 +14,7 @@ interface DailyTaskView {
   assignmentTitle: string;
   taskDate: string;
   setTitle: string;
+  questionRangeLabel?: string;
   status: string;
   completedCount: number;
   totalCount: number;
@@ -89,7 +90,10 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
             학습이 있습니다
           </p>
           <p className="mt-1 text-amber-800">
-            {task.assignmentTitle} · 남은 문항 {task.remainingCount}개
+            {task.assignmentTitle}
+            {task.setTitle ? ` · ${task.setTitle}` : ""}
+            {task.questionRangeLabel ? ` · ${task.questionRangeLabel}` : ""}
+            {` · 남은 문항 ${task.remainingCount}개`}
           </p>
           <Link
             href={`/student/listening/daily/${task.id}`}
@@ -118,7 +122,12 @@ function TodaySummaryView({ summary }: { summary: TodaySummary }) {
       {showTodayInProgress && today && (
         <div className="rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm">
           <p className="font-medium text-slate-900">
-            오늘 학습: {today.totalCount}문항 ({today.setTitle})
+            오늘 학습: {today.totalCount}문항
+            {today.setTitle ? ` (${today.setTitle}` : ""}
+            {today.questionRangeLabel
+              ? `${today.setTitle ? " · " : " ("}${today.questionRangeLabel}`
+              : ""}
+            {today.setTitle || today.questionRangeLabel ? ")" : ""}
           </p>
           <p className="mt-1 text-slate-600">
             완료: {today.completedCount} / {today.totalCount}

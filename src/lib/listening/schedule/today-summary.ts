@@ -6,10 +6,7 @@ import {
   parseDateOnly,
   toDateOnlyString,
 } from "@/lib/listening/schedule/days-of-week";
-import {
-  ensureDailyTaskForStudentDate,
-  ensureDailyTasksForStudentRange,
-} from "@/lib/listening/schedule/generate-daily-tasks";
+import { ensureDailyTasksForStudentRange } from "@/lib/listening/schedule/generate-daily-tasks";
 import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import {
   getStudentListeningEffectiveStartIso,
@@ -25,6 +22,7 @@ export interface StudentDailyTaskView {
   setId: string;
   setTitle: string;
   questionIds: string[];
+  questionRangeLabel: string;
   status: DailyTaskStatus;
   completedCount: number;
   totalCount: number;
@@ -107,13 +105,46 @@ async function loadSetTitles(
   return map;
 }
 
+function formatQuestionRangeLabel(orderIndexes: number[]): string {
+  if (orderIndexes.length === 0) return "";
+  const sorted = [...orderIndexes].sort((a, b) => a - b);
+  const first = sorted[0]!;
+  const last = sorted[sorted.length - 1]!;
+  if (first === last) return `${first}번`;
+  return `${first}–${last}번`;
+}
+
+async function loadQuestionOrderIndexes(
+  admin: SupabaseClient,
+  questionIds: string[]
+): Promise<Map<string, number>> {
+  const unique = [...new Set(questionIds.filter(Boolean))];
+  const map = new Map<string, number>();
+  if (!unique.length) return map;
+
+  const { data } = await admin
+    .from("listening_questions")
+    .select("id, order_index")
+    .in("id", unique);
+
+  for (const row of data ?? []) {
+    map.set(row.id as string, row.order_index as number);
+  }
+  return map;
+}
+
 function mapTaskRow(
   row: Record<string, unknown>,
   assignmentTitle: string,
-  setTitle: string
+  setTitle: string,
+  orderById?: Map<string, number>
 ): StudentDailyTaskView {
   const total = row.total_count as number;
   const completed = row.completed_count as number;
+  const questionIds = (row.question_ids as string[]) ?? [];
+  const orders = questionIds
+    .map((id) => orderById?.get(id))
+    .filter((n): n is number => typeof n === "number");
   return {
     id: row.id as string,
     assignmentId: row.assignment_id as string,
@@ -121,7 +152,8 @@ function mapTaskRow(
     taskDate: row.task_date as string,
     setId: row.set_id as string,
     setTitle,
-    questionIds: (row.question_ids as string[]) ?? [],
+    questionIds,
+    questionRangeLabel: formatQuestionRangeLabel(orders),
     status: row.status as DailyTaskStatus,
     completedCount: completed,
     totalCount: total,
@@ -174,6 +206,11 @@ export async function getStudentScheduleTodaySummaryReadOnly(
 
   const missedSetIds = (missedRows ?? []).map((r) => r.set_id as string);
   const missedSetTitles = await loadSetTitles(admin, missedSetIds);
+  const questionIdsForLabels = [
+    ...(missedRows ?? []).flatMap((r) => (r.question_ids as string[]) ?? []),
+    ...(todayRows ?? []).flatMap((r) => (r.question_ids as string[]) ?? []),
+  ];
+  const orderById = await loadQuestionOrderIndexes(admin, questionIdsForLabels);
 
   const missedTasks: StudentDailyTaskView[] = [];
   for (const row of missedRows ?? []) {
@@ -187,7 +224,8 @@ export async function getStudentScheduleTodaySummaryReadOnly(
       mapTaskRow(
         row as Record<string, unknown>,
         assignment?.title ?? "듣기 과제",
-        missedSetTitles.get(row.set_id as string) ?? ""
+        missedSetTitles.get(row.set_id as string) ?? "",
+        orderById
       )
     );
   }
@@ -206,7 +244,8 @@ export async function getStudentScheduleTodaySummaryReadOnly(
     todayTask = mapTaskRow(
       row as Record<string, unknown>,
       assignment.title,
-      ""
+      "",
+      orderById
     );
   }
 
@@ -302,10 +341,11 @@ export async function ensureStudentTodayAndMissedTasks(
       if (!isDateInAssignment(todayIso, assignment)) return;
       const queue = await buildQuestionQueueForAssignment(admin, assignment.id);
       if (queue.length === 0) return;
-      await ensureDailyTaskForStudentDate(
+      await ensureDailyTasksForStudentRange(
         admin,
         assignment,
         studentId,
+        todayIso,
         todayIso,
         queue,
         effectiveStart
@@ -361,16 +401,6 @@ export async function ensureStudentScheduleDailyTasks(
         queue,
         effectiveStart
       );
-      if (todayIso >= effectiveStart) {
-        await ensureDailyTaskForStudentDate(
-          admin,
-          assignment,
-          studentId,
-          todayIso,
-          queue,
-          effectiveStart
-        );
-      }
     })
   );
 }

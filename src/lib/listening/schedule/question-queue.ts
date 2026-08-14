@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { QuestionQueueItem } from "@/lib/listening/schedule/types";
+import type {
+  DailyTaskSlice,
+  QuestionQueueItem,
+} from "@/lib/listening/schedule/types";
 
 export async function buildQuestionQueueForAssignment(
   admin: SupabaseClient,
@@ -49,19 +52,109 @@ export async function buildQuestionQueueForAssignment(
   return queue;
 }
 
+/**
+ * 하루 분량을 세트(회차) 경계에서 자른다.
+ * `index * N` 방식은 17문항 세트가 3문항/일이면 6일차에 다음 회 1번을 끌어와
+ * 다음 회가 2번부터 시작하고, 빠진 1번이 나중에 다시 섞여 나온다.
+ */
+export function buildPackedDailySlices(
+  queue: QuestionQueueItem[],
+  questionsPerDay: number
+): DailyTaskSlice[] {
+  const perDay = Math.max(1, Math.floor(questionsPerDay) || 1);
+  const slices: DailyTaskSlice[] = [];
+  let i = 0;
+  while (i < queue.length) {
+    const setId = queue[i]!.setId;
+    const questionIds: string[] = [];
+    while (
+      questionIds.length < perDay &&
+      i < queue.length &&
+      queue[i]!.setId === setId
+    ) {
+      questionIds.push(queue[i]!.questionId);
+      i += 1;
+    }
+    if (questionIds.length > 0) {
+      slices.push({ setId, questionIds });
+    }
+  }
+  return slices;
+}
+
 export function sliceQuestionsForStudyDay(
   queue: QuestionQueueItem[],
   studyDayIndex: number,
   questionsPerDay: number
-): { setId: string; questionIds: string[] } | null {
+): DailyTaskSlice | null {
   if (studyDayIndex < 0 || queue.length === 0) return null;
-  const start = studyDayIndex * questionsPerDay;
-  if (start >= queue.length) return null;
+  const slices = buildPackedDailySlices(queue, questionsPerDay);
+  return slices[studyDayIndex] ?? null;
+}
 
-  const slice = queue.slice(start, start + questionsPerDay);
-  if (slice.length === 0) return null;
+/** 이미 배정된 문항보다 앞번호가 빠져 있으면 해당 회차 맨 뒤로 보냄 */
+export function leftoverQueueAfterConsumed(
+  queue: QuestionQueueItem[],
+  consumed: Set<string>
+): QuestionQueueItem[] {
+  const slices = splitLeftoverBySet(queue, consumed);
+  const out: QuestionQueueItem[] = [];
+  for (const part of slices) {
+    out.push(...part.rest, ...part.makeup);
+  }
+  return out;
+}
 
-  const questionIds = slice.map((s) => s.questionId);
-  const setId = slice[0]!.setId;
-  return { setId, questionIds };
+/**
+ * 빠진 앞번호를 같은 날 마지막 문항과 묶지 않는다.
+ * 예: 11–13, 14–16, 17, 그다음 보충 1번.
+ */
+export function buildLeftoverDailySlices(
+  queue: QuestionQueueItem[],
+  consumed: Set<string>,
+  questionsPerDay: number
+): DailyTaskSlice[] {
+  const slices: DailyTaskSlice[] = [];
+  for (const part of splitLeftoverBySet(queue, consumed)) {
+    slices.push(...buildPackedDailySlices(part.rest, questionsPerDay));
+    slices.push(...buildPackedDailySlices(part.makeup, questionsPerDay));
+  }
+  return slices;
+}
+
+function splitLeftoverBySet(
+  queue: QuestionQueueItem[],
+  consumed: Set<string>
+): Array<{ rest: QuestionQueueItem[]; makeup: QuestionQueueItem[] }> {
+  const leftover = queue.filter((q) => !consumed.has(q.questionId));
+  const bySet = new Map<string, QuestionQueueItem[]>();
+  const setOrder: string[] = [];
+  for (const q of leftover) {
+    if (!bySet.has(q.setId)) {
+      setOrder.push(q.setId);
+      bySet.set(q.setId, []);
+    }
+    bySet.get(q.setId)!.push(q);
+  }
+
+  const maxConsumedOrder = new Map<string, number>();
+  for (const q of queue) {
+    if (!consumed.has(q.questionId)) continue;
+    const prev = maxConsumedOrder.get(q.setId) ?? Number.NEGATIVE_INFINITY;
+    if (q.orderIndex > prev) maxConsumedOrder.set(q.setId, q.orderIndex);
+  }
+
+  return setOrder.map((setId) => {
+    const items = (bySet.get(setId) ?? [])
+      .slice()
+      .sort((a, b) => a.orderIndex - b.orderIndex);
+    const maxDone = maxConsumedOrder.get(setId);
+    if (maxDone == null) {
+      return { rest: items, makeup: [] };
+    }
+    return {
+      rest: items.filter((q) => q.orderIndex > maxDone),
+      makeup: items.filter((q) => q.orderIndex <= maxDone),
+    };
+  });
 }
