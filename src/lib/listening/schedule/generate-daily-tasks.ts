@@ -10,6 +10,7 @@ import {
 import {
   buildLeftoverDailySlices,
   buildQuestionQueueForAssignment,
+  remainingQueueAfterConsumed,
   sliceQuestionsForStudyDay,
 } from "@/lib/listening/schedule/question-queue";
 import { resolveStudentIdsForScheduleAssignment } from "@/lib/listening/schedule/resolve-students";
@@ -93,13 +94,6 @@ type ExistingTaskRow = {
   question_ids: string[] | null;
   set_id: string;
 };
-
-function isLockedExistingTask(row: ExistingTaskRow, todayIso: string): boolean {
-  if (row.task_date < todayIso) return true;
-  if (row.status === "completed" || row.status === "in_progress") return true;
-  if ((row.completed_count ?? 0) > 0) return true;
-  return false;
-}
 
 async function insertDailyTasksBatch(
   admin: SupabaseClient,
@@ -214,19 +208,60 @@ export async function ensureDailyTasksForStudentRange(
     .eq("student_id", studentId);
 
   const existingRows = (existingAll ?? []) as ExistingTaskRow[];
-  const locked = existingRows.filter((row) =>
-    isLockedExistingTask(row, todayIso)
-  );
-  const unlockedInRange = existingRows.filter(
-    (row) =>
-      !isLockedExistingTask(row, todayIso) &&
-      row.task_date >= clampedFrom &&
-      row.task_date <= toIso
-  );
+  const pastRows = existingRows.filter((row) => row.task_date < todayIso);
 
   const consumed = new Set<string>();
-  for (const row of locked) {
+  for (const row of pastRows) {
     for (const id of row.question_ids ?? []) consumed.add(id);
+  }
+
+  const queueIds = resolvedQueue.map((q) => q.questionId);
+  for (let i = 0; i < queueIds.length; i += 100) {
+    const chunk = queueIds.slice(i, i + 100);
+    const { data: doneRows } = await admin
+      .from("listening_daily_task_progress")
+      .select("question_id")
+      .eq("student_id", studentId)
+      .eq("completed", true)
+      .in("question_id", chunk);
+    for (const row of doneRows ?? []) {
+      consumed.add(row.question_id as string);
+    }
+  }
+
+  const leftoverIds = new Set(
+    remainingQueueAfterConsumed(resolvedQueue, consumed).map(
+      (q) => q.questionId
+    )
+  );
+
+  const locked: ExistingTaskRow[] = [];
+  const unlockedInRange: ExistingTaskRow[] = [];
+  for (const row of existingRows) {
+    if (row.task_date < todayIso) {
+      locked.push(row);
+      continue;
+    }
+
+    const remainingIds = (row.question_ids ?? []).filter(
+      (id) => !consumed.has(id)
+    );
+    const sequential =
+      remainingIds.length > 0 &&
+      remainingIds.every((id) => leftoverIds.has(id));
+    const keep =
+      row.status === "completed" ||
+      ((row.completed_count ?? 0) > 0 && sequential);
+
+    if (keep) {
+      locked.push(row);
+      for (const id of row.question_ids ?? []) consumed.add(id);
+      continue;
+    }
+
+    if (row.task_date >= clampedFrom && row.task_date <= toIso) {
+      unlockedInRange.push(row);
+    }
   }
 
   const lockedByDate = new Map(locked.map((row) => [row.task_date, row]));
@@ -246,23 +281,22 @@ export async function ensureDailyTasksForStudentRange(
   const pending: DailyTaskInsert[] = [];
   const idsToDelete: string[] = [];
 
-  for (const iso of studyDates) {
-    if (iso >= todayIso) continue;
-    if (existingByDate.has(iso)) continue;
-    const row = buildTaskRowForDate(
-      assignment,
-      studentId,
-      iso,
-      resolvedQueue
-    );
-    if (row) pending.push(row);
-  }
-
   const futureDates = studyDates.filter(
     (iso) => iso >= todayIso && !lockedByDate.has(iso)
   );
 
-  if (locked.length === 0) {
+  if (consumed.size === 0) {
+    for (const iso of studyDates) {
+      if (iso >= todayIso) continue;
+      if (existingByDate.has(iso)) continue;
+      const row = buildTaskRowForDate(
+        assignment,
+        studentId,
+        iso,
+        resolvedQueue
+      );
+      if (row) pending.push(row);
+    }
     for (const iso of futureDates) {
       const expected = buildTaskRowForDate(
         assignment,

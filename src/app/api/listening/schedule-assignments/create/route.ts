@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { bootstrapDailyTasksForAssignment } from "@/lib/listening/schedule/generate-daily-tasks";
+import { sortSetIdsByRound } from "@/lib/listening/schedule/question-queue";
 import {
   assertScheduleManager,
   teacherCanAccessClass,
@@ -93,6 +94,15 @@ export async function POST(request: Request) {
 
     const { admin } = access;
 
+    const { data: setTitleRows } = await admin
+      .from("listening_sets")
+      .select("id, title")
+      .in("id", setIds);
+    const titleById = new Map(
+      (setTitleRows ?? []).map((row) => [row.id as string, (row.title as string) ?? ""])
+    );
+    const orderedSetIds = sortSetIdsByRound(setIds, titleById);
+
     const { data: inserted, error } = await admin
       .from("listening_schedule_assignments")
       .insert({
@@ -120,7 +130,7 @@ export async function POST(request: Request) {
       return jsonError(error?.message ?? "과제 저장 실패");
     }
 
-    const setRows = setIds.map((setId, i) => ({
+    const setRows = orderedSetIds.map((setId, i) => ({
       assignment_id: inserted.id,
       set_id: setId,
       order_index: i + 1,

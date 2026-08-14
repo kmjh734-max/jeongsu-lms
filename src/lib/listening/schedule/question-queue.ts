@@ -4,25 +4,61 @@ import type {
   QuestionQueueItem,
 } from "@/lib/listening/schedule/types";
 
+/** "고1 3회", "1회차" → 3, 1. 없으면 null */
+export function parseListeningSetRound(title: string): number | null {
+  const match = title.match(/(\d+)\s*회/);
+  if (!match) return null;
+  const n = Number(match[1]);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function sortSetIdsByRound(
+  setIds: string[],
+  titleById: Map<string, string> | Record<string, string>
+): string[] {
+  const titleOf = (id: string) =>
+    titleById instanceof Map ? (titleById.get(id) ?? "") : (titleById[id] ?? "");
+  return setIds
+    .map((id, index) => ({
+      id,
+      index,
+      round: parseListeningSetRound(titleOf(id)),
+    }))
+    .sort((a, b) => {
+      if (a.round != null && b.round != null && a.round !== b.round) {
+        return a.round - b.round;
+      }
+      if (a.round != null && b.round == null) return -1;
+      if (a.round == null && b.round != null) return 1;
+      return a.index - b.index;
+    })
+    .map((row) => row.id);
+}
+
 export async function buildQuestionQueueForAssignment(
   admin: SupabaseClient,
   assignmentId: string
 ): Promise<QuestionQueueItem[]> {
   const { data: setRows } = await admin
     .from("listening_schedule_assignment_sets")
-    .select("set_id, order_index")
+    .select("set_id, order_index, set:listening_sets(title)")
     .eq("assignment_id", assignmentId)
     .order("order_index", { ascending: true });
 
   if (!setRows?.length) return [];
 
-  const setOrder = new Map<string, number>();
-  const setIds: string[] = [];
+  const titleById = new Map<string, string>();
+  const orderedIds: string[] = [];
   for (const row of setRows) {
     const setId = row.set_id as string;
-    setIds.push(setId);
-    setOrder.set(setId, row.order_index as number);
+    orderedIds.push(setId);
+    const set = row.set as { title?: string } | { title?: string }[] | null;
+    const title = Array.isArray(set)
+      ? (set[0]?.title ?? "")
+      : (set?.title ?? "");
+    titleById.set(setId, title);
   }
+  const setIds = sortSetIdsByRound(orderedIds, titleById);
 
   const { data: questions } = await admin
     .from("listening_questions")
@@ -92,69 +128,31 @@ export function sliceQuestionsForStudyDay(
   return slices[studyDayIndex] ?? null;
 }
 
-/** 이미 배정된 문항보다 앞번호가 빠져 있으면 해당 회차 맨 뒤로 보냄 */
-export function leftoverQueueAfterConsumed(
+/**
+ * 1회→20회 큐에서, 이미 나온(또는 푼) 마지막 문항 다음부터만 남긴다.
+ * 빠진 앞번호로 돌아가지 않고, 푼 문항은 다시 넣지 않는다.
+ */
+export function remainingQueueAfterConsumed(
   queue: QuestionQueueItem[],
   consumed: Set<string>
 ): QuestionQueueItem[] {
-  const slices = splitLeftoverBySet(queue, consumed);
-  const out: QuestionQueueItem[] = [];
-  for (const part of slices) {
-    out.push(...part.rest, ...part.makeup);
+  if (consumed.size === 0) return queue;
+  let lastIdx = -1;
+  for (let i = 0; i < queue.length; i++) {
+    if (consumed.has(queue[i]!.questionId)) lastIdx = i;
   }
-  return out;
+  return queue
+    .slice(lastIdx + 1)
+    .filter((q) => !consumed.has(q.questionId));
 }
 
-/**
- * 빠진 앞번호를 같은 날 마지막 문항과 묶지 않는다.
- * 예: 11–13, 14–16, 17, 그다음 보충 1번.
- */
 export function buildLeftoverDailySlices(
   queue: QuestionQueueItem[],
   consumed: Set<string>,
   questionsPerDay: number
 ): DailyTaskSlice[] {
-  const slices: DailyTaskSlice[] = [];
-  for (const part of splitLeftoverBySet(queue, consumed)) {
-    slices.push(...buildPackedDailySlices(part.rest, questionsPerDay));
-    slices.push(...buildPackedDailySlices(part.makeup, questionsPerDay));
-  }
-  return slices;
-}
-
-function splitLeftoverBySet(
-  queue: QuestionQueueItem[],
-  consumed: Set<string>
-): Array<{ rest: QuestionQueueItem[]; makeup: QuestionQueueItem[] }> {
-  const leftover = queue.filter((q) => !consumed.has(q.questionId));
-  const bySet = new Map<string, QuestionQueueItem[]>();
-  const setOrder: string[] = [];
-  for (const q of leftover) {
-    if (!bySet.has(q.setId)) {
-      setOrder.push(q.setId);
-      bySet.set(q.setId, []);
-    }
-    bySet.get(q.setId)!.push(q);
-  }
-
-  const maxConsumedOrder = new Map<string, number>();
-  for (const q of queue) {
-    if (!consumed.has(q.questionId)) continue;
-    const prev = maxConsumedOrder.get(q.setId) ?? Number.NEGATIVE_INFINITY;
-    if (q.orderIndex > prev) maxConsumedOrder.set(q.setId, q.orderIndex);
-  }
-
-  return setOrder.map((setId) => {
-    const items = (bySet.get(setId) ?? [])
-      .slice()
-      .sort((a, b) => a.orderIndex - b.orderIndex);
-    const maxDone = maxConsumedOrder.get(setId);
-    if (maxDone == null) {
-      return { rest: items, makeup: [] };
-    }
-    return {
-      rest: items.filter((q) => q.orderIndex > maxDone),
-      makeup: items.filter((q) => q.orderIndex <= maxDone),
-    };
-  });
+  return buildPackedDailySlices(
+    remainingQueueAfterConsumed(queue, consumed),
+    questionsPerDay
+  );
 }

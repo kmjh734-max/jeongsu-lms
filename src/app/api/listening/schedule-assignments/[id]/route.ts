@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { bootstrapDailyTasksForAssignment } from "@/lib/listening/schedule/generate-daily-tasks";
 import { teacherCanManageAssignment } from "@/lib/listening/schedule/list-assignments";
+import { sortSetIdsByRound } from "@/lib/listening/schedule/question-queue";
 import {
   assertScheduleManager,
   teacherCanAccessSet,
@@ -61,6 +62,18 @@ export async function PATCH(
         return jsonError("선택한 세트는 이미 이 과제에 포함되어 있습니다.");
       }
 
+      const { data: titleRows } = await access.admin
+        .from("listening_sets")
+        .select("id, title")
+        .in("id", newSetIds);
+      const titleById = new Map(
+        (titleRows ?? []).map((row) => [
+          row.id as string,
+          (row.title as string) ?? "",
+        ])
+      );
+      const orderedNewSetIds = sortSetIdsByRound(newSetIds, titleById);
+
       const maxOrder = Math.max(
         0,
         ...(existingLinks ?? []).map((row) => row.order_index as number)
@@ -69,7 +82,7 @@ export async function PATCH(
       const { error: insertErr } = await access.admin
         .from("listening_schedule_assignment_sets")
         .insert(
-          newSetIds.map((setId, index) => ({
+          orderedNewSetIds.map((setId, index) => ({
             assignment_id: id,
             set_id: setId,
             order_index: maxOrder + index + 1,

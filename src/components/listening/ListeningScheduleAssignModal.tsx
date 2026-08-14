@@ -162,8 +162,9 @@ export function ListeningScheduleAssignModal({
       <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-5 shadow-xl">
         <h2 className="text-lg font-semibold text-slate-900">스케줄 과제 배정</h2>
         <p className="mt-1 text-xs text-slate-600">
-          선택 {selectedSetIds.length}개 세트 · 요일마다 {questionsPerDay}문항씩
-          순서대로 배정합니다. 회차가 바뀌는 날은 문항 수가 더 적을 수 있습니다.
+          선택 {selectedSetIds.length}개 세트 · 1회부터 마지막 회까지 번호 순서대로
+          나갑니다. 이미 푼 문항은 다시 나오지 않으며, 회차가 바뀌는 날은 문항 수가
+          더 적을 수 있습니다.
         </p>
 
         {availableSets.length > 0 ? (
