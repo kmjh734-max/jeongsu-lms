@@ -307,7 +307,8 @@ ${catalog}`;
         const wrongN =
           code === "어법오류수정2" ? 2 : code === "어법오류수정3" ? 3 : 2;
         const { focusBlock } = pickGrammarFocus(wrongN);
-        return `서술형 · 어법 틀린 문장 수정 (수특형):
+        if (code === "어법문장오류수정") {
+          return `서술형 · 어법 틀린 문장 수정 (수특형):
 ${focusBlock}
 
 형식:
