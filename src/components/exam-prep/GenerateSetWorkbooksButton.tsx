@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type GenResult =
@@ -62,8 +62,33 @@ export function GenerateSetWorkbooksButton({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState<string | null>(null);
+  const [progressLabel, setProgressLabel] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState(0);
   const [lines, setLines] = useState<string[]>([]);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function clearTicker() {
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+  }
+
+  function startPassageTicker(index: number, total: number, title: string) {
+    clearTicker();
+    const span = 100 / total;
+    const base = (index / total) * 100;
+    const ceiling = base + span * 0.92;
+    let soft = base;
+    setProgressPercent(Math.round(base));
+    setProgressLabel(`${Math.round(base)}% · ${index + 1}/${total} · ${title}`);
+    tickRef.current = setInterval(() => {
+      soft = Math.min(ceiling, soft + span * 0.035);
+      const pct = Math.round(soft);
+      setProgressPercent(pct);
+      setProgressLabel(`${pct}% · ${index + 1}/${total} · ${title}`);
+    }, 1800);
+  }
 
   async function handleClick() {
     if (passages.length === 0) {
@@ -80,17 +105,23 @@ export function GenerateSetWorkbooksButton({
 
     setLoading(true);
     setLines([]);
+    setProgressPercent(0);
     const okIds: string[] = [];
     const failNotes: string[] = [];
+    const total = passages.length;
 
-    for (let i = 0; i < passages.length; i++) {
+    for (let i = 0; i < total; i++) {
       const p = passages[i]!;
-      setProgress(`${i + 1}/${passages.length} · ${p.title}`);
+      startPassageTicker(i, total, p.title);
       try {
         const result = await generateOneWorkbook({
           passageId: p.id,
           title: `${p.title} · 10단계 WORKBOOK`,
         });
+        clearTicker();
+        const pct = Math.round(((i + 1) / total) * 100);
+        setProgressPercent(pct);
+        setProgressLabel(`${pct}% · ${i + 1}/${total} · ${p.title} 완료`);
         if (result.ok && result.workbookId) {
           okIds.push(result.workbookId);
           setLines((prev) => [
@@ -104,14 +135,22 @@ export function GenerateSetWorkbooksButton({
           setLines((prev) => [...prev, `✗ ${p.title}: ${msg}`]);
         }
       } catch (e) {
+        clearTicker();
         const msg = e instanceof Error ? e.message : "네트워크 오류";
         failNotes.push(`${p.title}: ${msg}`);
         setLines((prev) => [...prev, `✗ ${p.title}: ${msg}`]);
       }
     }
 
+    clearTicker();
     setLoading(false);
-    setProgress(null);
+    if (okIds.length > 0) {
+      setProgressPercent(100);
+      setProgressLabel("100% · 완료");
+    } else {
+      setProgressLabel(null);
+      setProgressPercent(0);
+    }
     router.refresh();
 
     if (okIds.length === 1) {
@@ -142,13 +181,27 @@ export function GenerateSetWorkbooksButton({
         className="rounded-md border border-brand-300 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-800 hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading
-          ? progress ?? "생성 중…"
+          ? `${progressPercent}% 생성 중…`
           : `세트 워크북 생성 (${passages.length})`}
       </button>
       {loading && (
-        <p className="max-w-[14rem] text-right text-[10px] text-amber-700">
-          생성 중입니다. 페이지를 닫지 마세요.
-        </p>
+        <div className="w-44 space-y-1">
+          <div className="flex justify-between gap-1 text-[10px] text-brand-800">
+            <span className="truncate">{progressLabel}</span>
+            <span className="shrink-0 tabular-nums">{progressPercent}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+            <div
+              className="h-full rounded-full bg-brand-600 transition-[width] duration-500"
+              style={{
+                width: `${Math.min(100, Math.max(0, progressPercent))}%`,
+              }}
+            />
+          </div>
+          <p className="text-right text-[10px] text-amber-700">
+            생성 중입니다. 페이지를 닫지 마세요.
+          </p>
+        </div>
       )}
       {lines.length > 0 && (
         <ul className="max-w-xs text-right text-[10px] leading-snug text-slate-500">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import {
@@ -27,6 +27,12 @@ export type WorkbookCreateSet = {
   passages: WorkbookCreatePassage[];
 };
 
+function passageLabel(p: WorkbookCreatePassage) {
+  return p.passage_number != null
+    ? `#${p.passage_number} ${p.title}`
+    : p.title;
+}
+
 export function WorkbookCreateForm({
   basePath,
   passages,
@@ -47,7 +53,9 @@ export function WorkbookCreateForm({
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [progress, setProgress] = useState<string | null>(null);
+  const [progressLabel, setProgressLabel] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const selectedSet = useMemo(() => new Set(selected), [selected]);
   const activeSet = sets.find((s) => s.id === setId);
@@ -58,6 +66,41 @@ export function WorkbookCreateForm({
     const one = passages.find((p) => p.id === passageId);
     return one ? [one] : [];
   }, [mode, activeSet, passages, passageId]);
+
+  function clearTicker() {
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+  }
+
+  /** 지문 i/N 구간에서 대기 중일 때 부드럽게 % 상승 (완료 전까지 구간 상한의 92%) */
+  function startPassageTicker(
+    index: number,
+    total: number,
+    label: string
+  ) {
+    clearTicker();
+    const span = 100 / total;
+    const base = (index / total) * 100;
+    const ceiling = base + span * 0.92;
+    let soft = base;
+    setProgressPercent(Math.round(base));
+    setProgressLabel(`${Math.round(base)}% · ${index + 1}/${total} · ${label}`);
+    tickRef.current = setInterval(() => {
+      soft = Math.min(ceiling, soft + span * 0.035);
+      const pct = Math.round(soft);
+      setProgressPercent(pct);
+      setProgressLabel(`${pct}% · ${index + 1}/${total} · ${label}`);
+    }, 1800);
+  }
+
+  function markPassageDone(index: number, total: number, label: string) {
+    clearTicker();
+    const pct = Math.round(((index + 1) / total) * 100);
+    setProgressPercent(pct);
+    setProgressLabel(`${pct}% · ${index + 1}/${total} · ${label} 완료`);
+  }
 
   function toggle(n: number) {
     setSelected((prev) =>
@@ -85,11 +128,12 @@ export function WorkbookCreateForm({
       ok: boolean;
       workbookId?: string;
       message?: string;
+      notes?: string[];
     };
     if (!res.ok || !data.ok || !data.workbookId) {
       throw new Error(data.message || `생성 실패 (HTTP ${res.status})`);
     }
-    return data.workbookId;
+    return data;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -109,23 +153,23 @@ export function WorkbookCreateForm({
 
     setLoading(true);
     setMessage(null);
-    setProgress(null);
+    setProgressLabel(null);
+    setProgressPercent(0);
 
     const okIds: string[] = [];
     const fails: string[] = [];
+    const noteLines: string[] = [];
     const baseTitle = title.trim();
+    const total = targetPassages.length;
 
     try {
-      for (let i = 0; i < targetPassages.length; i++) {
+      for (let i = 0; i < total; i++) {
         const p = targetPassages[i]!;
-        const label =
-          p.passage_number != null
-            ? `#${p.passage_number} ${p.title}`
-            : p.title;
-        setProgress(`${i + 1}/${targetPassages.length} · ${label}`);
+        const label = passageLabel(p);
+        startPassageTicker(i, total, label);
 
         const wbTitle =
-          targetPassages.length === 1
+          total === 1
             ? baseTitle || `${p.title} · 10단계 WORKBOOK`
             : baseTitle
               ? `${baseTitle} · ${label}`
@@ -133,9 +177,19 @@ export function WorkbookCreateForm({
 
         if (autoGenerate) {
           try {
-            const id = await generateFull(p, wbTitle);
-            okIds.push(id);
+            const data = await generateFull(p, wbTitle);
+            okIds.push(data.workbookId!);
+            if (data.notes?.length) {
+              noteLines.push(
+                ...data.notes
+                  .filter((n) => /어법|어휘|5단계|6단계/.test(n))
+                  .slice(0, 4)
+                  .map((n) => `${label}: ${n}`)
+              );
+            }
+            markPassageDone(i, total, label);
           } catch (err) {
+            clearTicker();
             fails.push(
               `${label}: ${err instanceof Error ? err.message : "실패"}`
             );
@@ -151,12 +205,17 @@ export function WorkbookCreateForm({
             fails.push(`${label}: ${result.message}`);
           } else {
             okIds.push(result.id);
+            markPassageDone(i, total, label);
           }
         }
       }
     } finally {
+      clearTicker();
       setLoading(false);
-      setProgress(null);
+      if (okIds.length > 0 && fails.length === 0) {
+        setProgressPercent(100);
+        setProgressLabel("100% · 완료");
+      }
     }
 
     if (okIds.length === 1 && fails.length === 0) {
@@ -165,14 +224,20 @@ export function WorkbookCreateForm({
     }
     if (okIds.length > 0) {
       setMessage(
-        `워크북 ${okIds.length}개 생성${
-          fails.length ? ` · 실패 ${fails.length}개: ${fails.join(" / ")}` : ""
-        }`
+        [
+          `워크북 ${okIds.length}개 생성`,
+          fails.length ? `실패 ${fails.length}개: ${fails.join(" / ")}` : "",
+          ...noteLines.slice(0, 6),
+        ]
+          .filter(Boolean)
+          .join("\n")
       );
       router.push(`${basePath}/workbooks`);
       router.refresh();
       return;
     }
+    setProgressLabel(null);
+    setProgressPercent(0);
     setMessage(fails.join("\n") || "워크북 생성에 실패했습니다.");
   }
 
@@ -367,10 +432,28 @@ export function WorkbookCreateForm({
         </div>
       )}
 
-      {progress && (
-        <p className="text-sm font-medium text-brand-800" role="status">
-          {progress}
-        </p>
+      {(loading || progressLabel) && (
+        <div className="space-y-2" role="status" aria-live="polite">
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <p className="font-medium text-brand-800">
+              {progressLabel ?? "준비 중…"}
+            </p>
+            <span className="tabular-nums font-semibold text-brand-700">
+              {progressPercent}%
+            </span>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+            <div
+              className="h-full rounded-full bg-brand-600 transition-[width] duration-500 ease-out"
+              style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+            />
+          </div>
+          {loading && (
+            <p className="text-xs text-amber-700">
+              생성 중입니다. 페이지를 닫지 마세요.
+            </p>
+          )}
+        </div>
       )}
       {message && (
         <p className="whitespace-pre-wrap text-sm text-red-600" role="status">
@@ -387,7 +470,7 @@ export function WorkbookCreateForm({
         }
       >
         {loading
-          ? progress ?? "생성 중..."
+          ? `${progressPercent}% 생성 중…`
           : mode === "set"
             ? `세트 워크북 생성 (${targetPassages.length}개 지문)`
             : "워크북 생성"}

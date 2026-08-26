@@ -56,6 +56,28 @@ function underline(len: number) {
   return "_".repeat(Math.max(6, Math.min(18, len + 2)));
 }
 
+function emptyStagePlaceholder(stageNumber: number): PrintItem {
+  return {
+    order: 1,
+    english: `(${stageNumber}단계 문항이 아직 없습니다. 지문 편집에서 문제를 생성해 주세요.)`,
+  };
+}
+
+function pushPrintStage(
+  stages: PrintStageBlock[],
+  stageNumber: number,
+  title: string,
+  prompt: string,
+  items: PrintItem[]
+) {
+  stages.push({
+    stageNumber,
+    title,
+    prompt,
+    items: items.length > 0 ? items : [emptyStagePlaceholder(stageNumber)],
+  });
+}
+
 function withEnglishBlanks(
   english: string,
   blanks: Array<{ english_start: number; english_end: number; answer_text: string }>
@@ -179,14 +201,7 @@ export function buildPrintStagesFromPassage(input: {
           : undefined,
       });
     }
-    if (items.length > 0) {
-      stages.push({
-        stageNumber: 2,
-        title: preset.shortLabel,
-        prompt: preset.prompt,
-        items,
-      });
-    }
+    pushPrintStage(stages, 2, preset.shortLabel, preset.prompt, items);
   }
 
   // 3 해석 연습
@@ -235,14 +250,7 @@ export function buildPrintStagesFromPassage(input: {
           : undefined,
       });
     }
-    if (items.length > 0) {
-      stages.push({
-        stageNumber: 4,
-        title: preset.shortLabel,
-        prompt: preset.prompt,
-        items,
-      });
-    }
+    pushPrintStage(stages, 4, preset.shortLabel, preset.prompt, items);
   }
 
   // 5 어법 / 6 어휘 (data stage 6, question_category)
@@ -282,14 +290,13 @@ export function buildPrintStagesFromPassage(input: {
           : undefined,
       });
     }
-    if (items.length > 0) {
-      stages.push({
-        stageNumber: preset.number,
-        title: preset.shortLabel,
-        prompt: preset.prompt,
-        items,
-      });
-    }
+    pushPrintStage(
+      stages,
+      preset.number,
+      preset.shortLabel,
+      preset.prompt,
+      items
+    );
   }
 
   // 7
@@ -350,20 +357,14 @@ export function buildPrintStagesFromPassage(input: {
         answerLines: showAnswers ? [mid] : undefined,
       });
     }
-    if (items.length > 0) {
-      stages.push({
-        stageNumber: 8,
-        title: preset.shortLabel,
-        prompt: preset.prompt,
-        items,
-      });
-    }
+    pushPrintStage(stages, 8, preset.shortLabel, preset.prompt, items);
   }
 
   // 9 — 인천 PDF: 답란 (   )-(   )-(   ) + (A)(B)(C) 문단(라벨 순, 정답 순서 아님)
   {
     const preset = WORKBOOK_10_STEPS[8]!;
     const raw = [...(input.blanksByStage[9] ?? [])];
+    const items: PrintItem[] = [];
     if (raw.length >= 2) {
       const byLabel = [...raw].sort((a, b) =>
         String(a.display_label ?? "").localeCompare(
@@ -376,13 +377,11 @@ export function buildPrintStagesFromPassage(input: {
       const correctLine = byCorrect
         .map((b) => `(${String(b.display_label ?? "?").trim() || "?"})`)
         .join(" - ");
-      const items: PrintItem[] = [
-        {
-          order: 0,
-          writingLines: [answerBlank],
-          answerLines: showAnswers ? [correctLine] : undefined,
-        },
-      ];
+      items.push({
+        order: 0,
+        writingLines: [answerBlank],
+        answerLines: showAnswers ? [correctLine] : undefined,
+      });
       byLabel.forEach((b, i) => {
         const ids = parseSentenceIds(b.sentence_ids);
         const text = ids
@@ -396,13 +395,8 @@ export function buildPrintStagesFromPassage(input: {
           english: text,
         });
       });
-      stages.push({
-        stageNumber: 9,
-        title: preset.shortLabel,
-        prompt: preset.prompt,
-        items,
-      });
     }
+    pushPrintStage(stages, 9, preset.shortLabel, preset.prompt, items);
   }
 
   // 10
@@ -430,14 +424,7 @@ export function buildPrintStagesFromPassage(input: {
           : undefined,
       });
     }
-    if (items.length > 0) {
-      stages.push({
-        stageNumber: 10,
-        title: preset.shortLabel,
-        prompt: preset.prompt,
-        items,
-      });
-    }
+    pushPrintStage(stages, 10, preset.shortLabel, preset.prompt, items);
   }
 
   return stages;
