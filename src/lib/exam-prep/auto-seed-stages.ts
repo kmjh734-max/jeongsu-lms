@@ -49,9 +49,11 @@ import type { ExamPassageSentence } from "@/lib/exam-prep/types";
 import {
   isNonsenseChoicePair,
   pickDiverseGrammarHits,
+  pickPassageGrammarHits,
   pickStage7Errors,
   scanVocabChoiceHits,
   scanWorkbookGrammarHits,
+  type WorkbookGrammarHit,
 } from "@/lib/exam-prep/grammar-workbook-plants";
 
 const EN_STOP = new Set(
@@ -865,13 +867,16 @@ export function buildStage6Drafts(
     const used: Array<{ a: number; b: number }> = [];
     let added = 0;
     const wordCount = english.split(/\s+/).filter(Boolean).length;
+    // 어법 전용: 문장당 최소 2(가능 시)~4 — 규칙만으로도 복수 포인트
     const target =
-      category === "all"
-        ? Math.min(4, Math.max(2, Math.ceil(wordCount / 12)))
-        : Math.min(
-            3,
-            Math.max(wordCount <= 10 ? 1 : 2, Math.ceil(wordCount / 12))
-          );
+      category === "grammar"
+        ? Math.min(4, Math.max(wordCount <= 6 ? 1 : 2, Math.ceil(wordCount / 10)))
+        : category === "all"
+          ? Math.min(4, Math.max(2, Math.ceil(wordCount / 12)))
+          : Math.min(
+              3,
+              Math.max(wordCount <= 10 ? 1 : 2, Math.ceil(wordCount / 12))
+            );
 
     const pushGrammar = (h: {
       start: number;
@@ -1022,10 +1027,119 @@ export function buildStage6Drafts(
   return drafts;
 }
 
+function grammarHitToDraft(
+  sentenceId: string,
+  h: WorkbookGrammarHit,
+  order: number
+): Stage6ItemDraft | null {
+  if (isNonsenseChoicePair(h.correct, h.wrong)) return null;
+  const tip = [h.koLabel, h.koTip].filter(Boolean).join(" — ");
+  return {
+    sentence_id: sentenceId,
+    blank_order: order,
+    answer_text: h.correct,
+    english_start: h.start,
+    english_end: h.end,
+    selected_text: h.correct,
+    choice_options: [
+      {
+        id: `opt-c-${order}-0`,
+        text: h.correct,
+        isCorrect: true,
+        explanation: tip || null,
+      },
+      {
+        id: `opt-w-${order}-1`,
+        text: h.wrong,
+        isCorrect: false,
+        explanation: tip || null,
+      },
+    ],
+    question_category: "grammar",
+    grammar_subcategory: [h.stage6Sub],
+    vocabulary_subcategory: [],
+    shuffle_options: true,
+    hint: h.koLabel || null,
+    explanation: tip || null,
+    is_required: true,
+  };
+}
+
 export function buildStage6GrammarDrafts(
   sentences: SeedSentence[]
 ): Stage6ItemDraft[] {
-  return buildStage6Drafts(sentences, "grammar");
+  const perSentence = buildStage6Drafts(sentences, "grammar");
+  const ordered = [...sentences].sort(
+    (a, b) => a.sentence_order - b.sentence_order
+  );
+  const maxTotal = Math.max(12, ordered.length * 2);
+  const passageRows = pickPassageGrammarHits(
+    ordered.map((s) => ({
+      id: s.id,
+      english_text: String(s.english_text ?? ""),
+      sentence_order: s.sentence_order,
+    })),
+    maxTotal
+  );
+
+  const bySent = new Map<string, Stage6ItemDraft[]>();
+  for (const s of ordered) bySent.set(s.id, []);
+
+  const add = (d: Stage6ItemDraft) => {
+    const list = bySent.get(d.sentence_id) ?? [];
+    if (list.length >= 4) return;
+    if (
+      list.some(
+        (x) =>
+          x.english_start < d.english_end && x.english_end > d.english_start
+      )
+    ) {
+      return;
+    }
+    list.push(d);
+    bySent.set(d.sentence_id, list);
+  };
+
+  for (const d of perSentence) add(d);
+
+  let order = perSentence.length + 1;
+  for (const row of passageRows) {
+    const draft = grammarHitToDraft(row.sentenceId, row.hit, order);
+    if (!draft) continue;
+    const before = (bySent.get(row.sentenceId) ?? []).length;
+    add(draft);
+    if ((bySent.get(row.sentenceId) ?? []).length > before) order += 1;
+  }
+
+  // 빈 문장 보충: 문장별 스캔으로 최소 1개
+  for (const s of ordered) {
+    const list = bySent.get(s.id) ?? [];
+    if (list.length >= 1) continue;
+    const english = String(s.english_text ?? "");
+    if (!english.trim()) continue;
+    const hits = pickDiverseGrammarHits(scanWorkbookGrammarHits(english), 2, {
+      forChoice: true,
+    });
+    for (const h of hits) {
+      const draft = grammarHitToDraft(s.id, h, order);
+      if (!draft) continue;
+      const before = (bySent.get(s.id) ?? []).length;
+      add(draft);
+      if ((bySent.get(s.id) ?? []).length > before) {
+        order += 1;
+        break;
+      }
+    }
+  }
+
+  let blankOrder = 1;
+  const out: Stage6ItemDraft[] = [];
+  for (const s of ordered) {
+    for (const d of bySent.get(s.id) ?? []) {
+      out.push({ ...d, blank_order: blankOrder++ });
+    }
+  }
+  return out.length > 0 ? out : perSentence;
 }
 
 export function buildStage6VocabDrafts(

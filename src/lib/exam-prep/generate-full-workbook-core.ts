@@ -227,7 +227,7 @@ async function runShellPhase(input: {
     const plantV = buildStage6VocabDrafts(sentences);
     const grammar = mergeStage6Drafts(plantG, plantG, ids, {
       category: "grammar",
-      minPerSentence: 1,
+      minPerSentence: 2,
     });
     const vocab = mergeStage6Drafts(plantV, plantV, ids, {
       category: "vocabulary",
@@ -238,7 +238,7 @@ async function runShellPhase(input: {
       const r = await saveStage6ItemsAction(passageId, s6);
       if (!r.ok) return { ok: false, message: `5·6단계: ${r.message}`, phase: "shell", notes };
       notes.push(
-        `5·6단계 규칙 임시 ${grammar.length}+${vocab.length}문항 (AI 보강 예정)`
+        `5·6단계 규칙 ${grammar.length}어법+${vocab.length}어휘 (문장당 복수 포인트)`
       );
       await tryPublish(publish, notes, 6, () => setStage6PublishedAction(passageId, true));
     }

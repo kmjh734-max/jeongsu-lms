@@ -631,6 +631,212 @@ const MECHANISM_PLANTS: MechPlant[] = [
     forChoice: true,
     forError: true,
   },
+  // —— 접속·전치 (밀도 보강: 규칙 전용 생성에서도 문장당 복수 포인트)
+  {
+    unitKey: "prepconj",
+    caseId: "pc-despite",
+    correct: /\bdespite\b/gi,
+    wrong: "although",
+    priority: 88,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "prepconj",
+    caseId: "pc-although",
+    correct: /\balthough\b/gi,
+    wrong: "despite",
+    priority: 86,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "prepconj",
+    caseId: "pc-becauseof",
+    correct: /\bbecause of\b/gi,
+    wrong: "because",
+    priority: 87,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "prepconj",
+    caseId: "pc-in-spite",
+    correct: /\bin spite of\b/gi,
+    wrong: "in spite",
+    priority: 85,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "prepconj",
+    caseId: "pc-whether",
+    correct: /\bwhether\b/gi,
+    wrong: "if",
+    priority: 74,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "subjunctive",
+    caseId: "sj-were",
+    correct: /\bif\s+(?:I|he|she|it)\s+were\b/gi,
+    wrong: (matched) => matched.replace(/\bwere\b/i, "was"),
+    priority: 90,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "verbal",
+    caseId: "verb-slot",
+    correct:
+      /\b((?:looking forward to|dedicated to|committed to|accustomed to|object to|opposed to)\s+)(\w+ing)\b/gi,
+    wrong: (_m, g) => {
+      const head = g[0] ?? "looking forward to ";
+      const ing = g[1] ?? "seeing";
+      const base = ing
+        .replace(/ying$/i, "y")
+        .replace(/ing$/i, "")
+        .replace(/ll$/i, "l");
+      // looking forward to seeing → looking forward to see
+      return `${head}${base || "see"}`;
+    },
+    priority: 94,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "verbal",
+    caseId: "verb-obj",
+    correct:
+      /\b((?:succeed(?:s|ed)? in|prevent(?:s|ed)?\s+[\w'-]+\s+from|keep(?:s|t)?\s+[\w'-]+\s+from|stop(?:s|ped)?\s+[\w'-]+\s+from|insist(?:s|ed)? on)\s+)(\w+ing)\b/gi,
+    wrong: (_m, g) => {
+      const head = g[0] ?? "succeed in ";
+      const ing = g[1] ?? "doing";
+      const base = ing
+        .replace(/ying$/i, "y")
+        .replace(/ing$/i, "")
+        .replace(/ll$/i, "l");
+      // prevent them from dumping → prevent them to dump
+      if (/\bfrom\s*$/i.test(head)) {
+        return `${head.replace(/\bfrom\s*$/i, "to ")}${base || "do"}`;
+      }
+      // succeed in doing → succeed to do / insist on doing → insist to do
+      return `${head.replace(/\b(?:in|on)\s*$/i, "to ")}${base || "do"}`;
+    },
+    priority: 93,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "participle",
+    caseId: "part-perfect",
+    correct: /\bHaving\s+(\w+(?:ed|en|ne))\b/g,
+    wrong: (_m, g) => `Have ${g[0] ?? "finished"}`,
+    priority: 88,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "participle",
+    caseId: "part-sense",
+    correct: /\b(interested|surprised|bored|excited|tired|confused|amazed)\b/gi,
+    wrong: (_m, g) => {
+      const w = (g[0] ?? "interested").toLowerCase();
+      if (w.endsWith("ed")) return `${w.slice(0, -2)}ing`;
+      return w;
+    },
+    priority: 76,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "participle",
+    caseId: "part-sense",
+    correct: /\b(interesting|surprising|boring|exciting|tiring|confusing|amazing)\b/gi,
+    wrong: (_m, g) => {
+      const w = (g[0] ?? "interesting").toLowerCase();
+      if (w.endsWith("ing")) return `${w.slice(0, -3)}ed`;
+      return w;
+    },
+    priority: 75,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "relative",
+    caseId: "rel-what",
+    correct: /\bwhat\b(?=\s+(?:is|was|are|were|has|have|we|they|he|she|it)\b)/i,
+    wrong: "that",
+    priority: 82,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "relative",
+    caseId: "rel-whose",
+    correct: /\bwhose\b/i,
+    wrong: "who's",
+    priority: 84,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "noun",
+    caseId: "n-one",
+    correct: /\bone of (?:the\s+)?[\w'-]+\s+who\s+(are|is|were|was|have|has)\b/gi,
+    wrong: (matched, g) => {
+      const v = (g[0] ?? "are").toLowerCase();
+      const flip: Record<string, string> = {
+        are: "is",
+        is: "are",
+        were: "was",
+        was: "were",
+        have: "has",
+        has: "have",
+      };
+      return matched.replace(new RegExp(`\\b${v}\\b`, "i"), flip[v] ?? v);
+    },
+    priority: 91,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "compare",
+    caseId: "cmp-more",
+    correct: /\b(much|far|even)\s+(more|less|better|worse|greater)\b/gi,
+    wrong: (_m, g) => `very ${g[1] ?? "more"}`,
+    priority: 86,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "special",
+    caseId: "sp-notonly",
+    correct: /\bnot only\b/gi,
+    wrong: "not",
+    priority: 72,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "voice",
+    caseId: "voice-basic",
+    correct: /\b(is|are|was|were|been)\s+(\w+ed|\w+en)\b(?=\s+by\b)/gi,
+    wrong: (_m, g) => g[1] ?? "made",
+    priority: 84,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "modal",
+    caseId: "mod-perf",
+    correct: /\b(should|must|may|might|could|would)\s+have\s+(\w+ed|\w+en)\b/gi,
+    wrong: (_m, g) => `${g[0] ?? "should"} ${g[1] ?? "been"}`,
+    priority: 89,
+    forChoice: true,
+    forError: true,
+  },
 ];
 
 /** 어휘 [a/b] — 학평·워크북용 (반의어 · 유사형태 · 문맥) */
@@ -871,7 +1077,14 @@ export function isNonsenseChoicePair(correct: string, wrong: string): boolean {
   }
 
   // 다중 토큰: fails to allow / fails to allowing — -ing 장난만 금지 (±s 수일치는 허용)
+  // 단 to-V ↔ V-ing 은 수능·내신 준동사 자리로 허용
   {
+    const toA = a.trim().match(/^to\s+(\w+)$/i);
+    const toB = b.trim().match(/^to\s+(\w+)$/i);
+    const ingOnly = (x: string) => /^\w+ing$/i.test(x.trim()) && !/\s/.test(x.trim());
+    if (toA && ingOnly(b)) return false;
+    if (toB && ingOnly(a)) return false;
+
     const ta = a.trim().split(/\s+/);
     const tb = b.trim().split(/\s+/);
     if (ta.length === tb.length && ta.length >= 2) {
@@ -891,15 +1104,6 @@ export function isNonsenseChoicePair(correct: string, wrong: string): boolean {
           return true;
         }
       }
-    }
-    // to allow / allowing
-    const toA = a.trim().match(/^to\s+(\w+)$/i);
-    const toB = b.trim().match(/^to\s+(\w+)$/i);
-    if (toA && !/\s/.test(b.trim())) {
-      if (isNonsenseChoicePair(toA[1]!, b.trim())) return true;
-    }
-    if (toB && !/\s/.test(a.trim())) {
-      if (isNonsenseChoicePair(a.trim(), toB[1]!)) return true;
     }
   }
 
@@ -1046,7 +1250,7 @@ export function scanVocabChoiceHits(english: string): Array<{
 /** 지문 전체에서 마더텅식 다양 단원 포인트 (문장당 최대 4 — 인천 PDF 밀도) */
 export function pickPassageGrammarHits(
   sentences: Array<{ id: string; english_text: string; sentence_order: number }>,
-  maxTotal = 8
+  maxTotal = 16
 ): Array<{ sentenceId: string; hit: WorkbookGrammarHit }> {
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
   const pool: Array<{ sentenceId: string; hit: WorkbookGrammarHit }> = [];
