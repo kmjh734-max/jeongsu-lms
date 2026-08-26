@@ -6,7 +6,7 @@ import {
 import { workbookPromptForStepType } from "@/lib/exam-prep/presets";
 import { EXAM_STEP_LABELS, type ExamPassageSentence, type ExamStepType } from "@/lib/exam-prep/types";
 import { generateStage6WithAi, generateStage7WithAi } from "@/lib/exam-prep/generate-stage67-grammar-ai";
-import { buildStage6Drafts, buildStage7Seed, mergeStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
+import { buildStage6Drafts, buildStage6GrammarDrafts, buildStage6VocabDrafts, buildStage7Seed, mergeStage6Drafts } from "@/lib/exam-prep/auto-seed-stages";
 import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
 import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
@@ -195,7 +195,7 @@ export type GenerateStepQuestionsResult = {
   aiError?: string;
 };
 
-function stage6DraftsToQuestions(
+export function stage6DraftsToQuestions(
   drafts: Stage6ItemDraft[],
   sentences: ExamPassageSentence[],
   aiGenerated: boolean,
@@ -455,10 +455,12 @@ export async function generateStepQuestionsWithAi(
       vocabulary: s.vocabulary,
       is_important_writing: s.is_important_writing,
     }));
-    const plantDrafts = buildStage6Drafts(
-      seedSentences,
-      catFilter === "all" ? "all" : catFilter
-    );
+    const plantDrafts =
+      catFilter === "grammar"
+        ? buildStage6GrammarDrafts(seedSentences)
+        : catFilter === "vocabulary"
+          ? buildStage6VocabDrafts(seedSentences)
+          : buildStage6Drafts(seedSentences, "all");
     const seed = sentences.map((s) => ({
       id: s.id,
       english_text: s.english_text,
@@ -476,7 +478,7 @@ export async function generateStepQuestionsWithAi(
           sentences.map((s) => s.id),
           {
             category: catFilter === "all" ? "all" : catFilter,
-            minPerSentence: 1,
+            minPerSentence: catFilter === "grammar" ? 2 : 1,
           }
         );
         return {

@@ -54,7 +54,7 @@ export function GenerateSetWorkbooksButton({
     }
     if (
       !window.confirm(
-        `「${setTitle}」세트 지문 ${passages.length}개 전체에 워크북(1~10단계)을 만들까요?\n규칙으로 빠르게 생성합니다. 완료될 때까지 창을 닫지 마세요.`
+        `「${setTitle}」세트 지문 ${passages.length}개 전체에 워크북(1~10단계)을 만들까요?\n규칙 생성 후 어법 AI 보강까지 진행합니다. 지문당 1~2분 걸릴 수 있습니다.`
       )
     ) {
       return;
@@ -71,18 +71,36 @@ export function GenerateSetWorkbooksButton({
       const p = passages[i]!;
       const span = 100 / total;
       const base = (i / total) * 100;
+      const shellEnd = base + span * 0.4;
       const aiEnd = base + span * 0.92;
       try {
         const result = await postGenerateWorkbook({
           passageId: p.id,
           title: `${p.title} · 10단계 WORKBOOK`,
-          enhanceGrammarAi: false,
           onPhase: ({ phase, status }) => {
             if (phase === "shell" && status === "start") {
               startRangeTicker(
                 base,
-                aiEnd,
+                shellEnd,
                 `${i + 1}/${total} · ${p.title} · 규칙`
+              );
+            } else if (phase === "shell" && status === "done") {
+              clearTicker();
+              setProgressPercent(Math.round(shellEnd));
+              setProgressLabel(
+                `${Math.round(shellEnd)}% · ${i + 1}/${total} · ${p.title} · 규칙 완료`
+              );
+            } else if (phase === "ai56" && status === "start") {
+              startRangeTicker(
+                shellEnd,
+                aiEnd,
+                `${i + 1}/${total} · ${p.title} · 어법 AI`
+              );
+            } else if (phase === "ai56" && status === "done") {
+              clearTicker();
+              setProgressPercent(Math.round(aiEnd));
+              setProgressLabel(
+                `${Math.round(aiEnd)}% · ${i + 1}/${total} · ${p.title} · 어법 완료`
               );
             }
           },

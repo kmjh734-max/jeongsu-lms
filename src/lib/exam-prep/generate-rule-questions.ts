@@ -963,9 +963,8 @@ export function generateRuleBasedQuestions(
       }
     }
     if (out.length === 0) {
-      for (const s of sentences) {
-        out.push(buildEnglishBlank(s, order++, difficulty));
-      }
+      // 어법·어휘는 절대 영문 빈칸으로 대체하지 않음 (리뷰 화면이 엉망 됨)
+      return out;
     }
     return out;
   }

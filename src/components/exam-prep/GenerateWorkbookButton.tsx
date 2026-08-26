@@ -23,7 +23,7 @@ export function GenerateWorkbookButton({
   async function handleClick() {
     if (
       !window.confirm(
-        "한글 해석이 비어 있으면 AI로 채우고, 1~10단계 문제를 자동 생성한 뒤 워크북을 만듭니다. 계속할까요?"
+        "한글 해석이 비어 있으면 AI로 채우고, 1~10단계 문제·어법 AI 보강까지 자동 생성합니다. 지문당 1~2분 걸릴 수 있습니다. 계속할까요?"
       )
     ) {
       return;
@@ -36,10 +36,11 @@ export function GenerateWorkbookButton({
       passageId,
       title: passageTitle ? `${passageTitle} · 10단계 WORKBOOK` : "10단계 WORKBOOK",
       publishStages: true,
-      enhanceGrammarAi: false,
       onPhase: ({ phase, status }) => {
         if (phase === "shell") {
-          setProgress(status === "start" ? "규칙 생성 중…" : "완료");
+          setProgress(status === "start" ? "규칙 생성 중…" : "규칙 완료");
+        } else if (phase === "ai56") {
+          setProgress(status === "start" ? "어법 AI 보강 중…" : "어법 보강 완료");
         }
       },
     });
@@ -63,11 +64,11 @@ export function GenerateWorkbookButton({
           원클릭 워크북 생성
         </h3>
         <p className="mt-1 text-sm text-slate-600">
-          지문·문장만 준비되면 1~10단계 문제·워크북을 규칙으로 빠르게 만듭니다.
+          지문·문장만 준비되면 1~10단계 문제·어법 AI 보강·워크북까지 만듭니다.
         </p>
       </div>
       <Button type="button" disabled={loading} onClick={() => void handleClick()}>
-        {loading ? progress ?? "생성 중…" : "워크북 생성 (빠른 규칙)"}
+        {loading ? progress ?? "생성 중…" : "워크북 생성"}
       </Button>
       {message && (
         <p className="text-sm text-slate-700 whitespace-pre-wrap">{message}</p>

@@ -29,6 +29,9 @@ import {
 } from "@/lib/exam-prep/generate-stage67-grammar-ai";
 import { EXAM_PREP_MODEL_PRIMARY } from "@/lib/exam-prep/exam-prep-openai";
 import { createWorkbookAction, enrichPassageSentencesAction } from "@/lib/exam-prep/staff-actions";
+import { syncWorkbookChoiceQuestionsAction } from "@/lib/exam-prep/sync-workbook-choice-questions";
+import type { Stage6ItemDraft } from "@/lib/exam-prep/stage6-types";
+import type { ExamPassageSentence } from "@/lib/exam-prep/types";
 import { setStage2PublishedAction } from "@/lib/exam-prep/stage2-staff-actions";
 import { saveStage3BlanksAction, setStage3PublishedAction } from "@/lib/exam-prep/stage3-staff-actions";
 import {
@@ -221,6 +224,7 @@ async function runShellPhase(input: {
     }
   }
 
+  let stage6Drafts: Stage6ItemDraft[] = [];
   {
     const ids = sentences.map((s) => s.id);
     const plantG = buildStage6GrammarDrafts(sentences);
@@ -234,6 +238,7 @@ async function runShellPhase(input: {
       minPerSentence: 1,
     });
     const s6 = combineStage6Categories(grammar, vocab, ids);
+    stage6Drafts = s6;
     if (s6.length > 0) {
       const r = await saveStage6ItemsAction(passageId, s6);
       if (!r.ok) return { ok: false, message: `5·6단계: ${r.message}`, phase: "shell", notes };
@@ -316,13 +321,29 @@ async function runShellPhase(input: {
     };
   }
 
+  if (stage6Drafts.length > 0) {
+    const sync = await syncWorkbookChoiceQuestionsAction(
+      wb.id,
+      stage6Drafts,
+      sentences as ExamPassageSentence[],
+      { aiGenerated: false }
+    );
+    if (sync.ok) {
+      notes.push(
+        `리뷰 문항 동기화 어법 ${sync.grammar} · 어휘 ${sync.vocab}`
+      );
+    } else {
+      notes.push(`리뷰 문항 동기화 보류: ${sync.message}`);
+    }
+  }
+
   revalidateWorkbookPaths(passageId);
   return {
     ok: true,
     workbookId: wb.id,
     phase: "shell",
     notes,
-    message: "규칙 워크북 생성 완료. 어법·어휘·오류 AI 보강 중…",
+    message: "규칙 워크북 생성 완료. 어법 AI 보강 중…",
   };
 }
 
@@ -383,6 +404,33 @@ async function runAi56Phase(input: {
     const r = await saveStage6ItemsAction(passageId, s6);
     if (!r.ok) return { ok: false, message: `5·6단계: ${r.message}`, phase: "ai56", notes };
     await tryPublish(publish, notes, 6, () => setStage6PublishedAction(passageId, true));
+  }
+
+  // 최신 워크북 리뷰 문항을 stage6과 맞춤 (어법 AI 반영 + 어휘 [a/b])
+  const supabase = await createClient();
+  const { data: latestWb } = await supabase
+    .from("exam_workbooks")
+    .select("id")
+    .eq("passage_id", passageId)
+    .eq("academy_id", input.academyId)
+    .neq("status", "archived")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (latestWb?.id && s6.length > 0) {
+    const sync = await syncWorkbookChoiceQuestionsAction(
+      latestWb.id as string,
+      s6,
+      sentences as ExamPassageSentence[],
+      { aiGenerated: useAiG }
+    );
+    if (sync.ok) {
+      notes.push(
+        `리뷰 문항 갱신 어법 ${sync.grammar} · 어휘 ${sync.vocab}`
+      );
+    } else {
+      notes.push(`리뷰 문항 갱신 보류: ${sync.message}`);
+    }
   }
 
   revalidateWorkbookPaths(passageId);

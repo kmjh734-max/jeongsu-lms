@@ -1145,7 +1145,176 @@ export function buildStage6GrammarDrafts(
 export function buildStage6VocabDrafts(
   sentences: SeedSentence[]
 ): Stage6ItemDraft[] {
-  return buildStage6Drafts(sentences, "vocabulary");
+  const perSentence = buildStage6Drafts(sentences, "vocabulary");
+  const ordered = [...sentences].sort(
+    (a, b) => a.sentence_order - b.sentence_order
+  );
+  const bySent = new Map<string, Stage6ItemDraft[]>();
+  for (const s of ordered) bySent.set(s.id, []);
+
+  const add = (d: Stage6ItemDraft) => {
+    if ((d.question_category || "grammar") !== "vocabulary") return;
+    const list = bySent.get(d.sentence_id) ?? [];
+    if (list.length >= 3) return;
+    if (
+      list.some(
+        (x) =>
+          x.english_start < d.english_end && x.english_end > d.english_start
+      )
+    ) {
+      return;
+    }
+    const wrong = d.choice_options?.find((o) => !o.isCorrect)?.text ?? "";
+    if (
+      wrong &&
+      isNonsenseChoicePair(d.answer_text || d.selected_text || "", wrong)
+    ) {
+      return;
+    }
+    list.push(d);
+    bySent.set(d.sentence_id, list);
+  };
+
+  for (const d of perSentence) add(d);
+
+  let order = perSentence.length + 1;
+  // 문장 어휘 마크 → [원형 / 혼동어] (플랜트 부족 시)
+  for (const s of ordered) {
+    if ((bySent.get(s.id) ?? []).length >= 1) continue;
+    const english = String(s.english_text ?? "");
+    if (!english.trim()) continue;
+    const marks = parseVocabMarks(s.vocabulary);
+    for (const m of marks) {
+      const word = String(m.englishText ?? "").trim();
+      if (!word || word.length < 4) continue;
+      const found = findSpanCi(english, word);
+      if (!found) continue;
+      const correct = english.slice(found.start, found.end);
+      const wrong = vocabConfusable(correct);
+      if (!wrong || isNonsenseChoicePair(correct, wrong)) continue;
+      add({
+        sentence_id: s.id,
+        blank_order: order++,
+        answer_text: correct,
+        english_start: found.start,
+        english_end: found.end,
+        selected_text: correct,
+        choice_options: [
+          {
+            id: `opt-c-${order}-0`,
+            text: correct,
+            isCorrect: true,
+            explanation: null,
+          },
+          {
+            id: `opt-w-${order}-1`,
+            text: wrong,
+            isCorrect: false,
+            explanation: null,
+          },
+        ],
+        question_category: "vocabulary",
+        grammar_subcategory: [],
+        vocabulary_subcategory: ["contextual_meaning"],
+        shuffle_options: true,
+        hint: null,
+        explanation: null,
+        is_required: true,
+      });
+      if ((bySent.get(s.id) ?? []).length >= 1) break;
+    }
+  }
+
+  // 여전히 비면 내용어 + 혼동 플랜트 스캔
+  for (const s of ordered) {
+    if ((bySent.get(s.id) ?? []).length >= 1) continue;
+    const english = String(s.english_text ?? "");
+    for (const h of scanVocabChoiceHits(english)) {
+      add({
+        sentence_id: s.id,
+        blank_order: order++,
+        answer_text: h.correct,
+        english_start: h.start,
+        english_end: h.end,
+        selected_text: h.correct,
+        choice_options: [
+          {
+            id: `opt-c-${order}-0`,
+            text: h.correct,
+            isCorrect: true,
+            explanation: null,
+          },
+          {
+            id: `opt-w-${order}-1`,
+            text: h.wrong,
+            isCorrect: false,
+            explanation: null,
+          },
+        ],
+        question_category: "vocabulary",
+        grammar_subcategory: [],
+        vocabulary_subcategory: [h.sub],
+        shuffle_options: true,
+        hint: null,
+        explanation: null,
+        is_required: true,
+      });
+      if ((bySent.get(s.id) ?? []).length >= 1) break;
+    }
+  }
+
+  let blankOrder = 1;
+  const out: Stage6ItemDraft[] = [];
+  for (const s of ordered) {
+    for (const d of bySent.get(s.id) ?? []) {
+      out.push({ ...d, blank_order: blankOrder++ });
+    }
+  }
+  return out.length > 0 ? out : perSentence;
+}
+
+function vocabConfusable(word: string): string | null {
+  const w = word.trim();
+  const low = w.toLowerCase();
+  const MAP: Record<string, string> = {
+    priorities: "priorites",
+    disturbance: "interruption",
+    reorganizing: "reorganising",
+    rerouting: "rerouting",
+    energy: "energies",
+    taller: "tallest",
+    hard: "hardly",
+    deal: "dealt",
+    plant: "plants",
+    clearly: "clear",
+    growing: "grown",
+    getting: "gotten",
+    work: "works",
+    away: "aside",
+  };
+  if (MAP[low]) {
+    const rep = MAP[low]!;
+    return w[0] === w[0]!.toUpperCase()
+      ? rep[0]!.toUpperCase() + rep.slice(1)
+      : rep;
+  }
+  // 유사 형태: -ing ↔ -ed, 또는 흔한 철자 혼동
+  if (low.endsWith("ing") && low.length > 5) {
+    const base = low.slice(0, -3);
+    return `${base}ed`;
+  }
+  if (low.endsWith("ed") && low.length > 4) {
+    return `${low.slice(0, -2)}ing`;
+  }
+  if (low.endsWith("ly") && low.length > 4) {
+    return low.slice(0, -2);
+  }
+  if (low.length >= 6) {
+    // 모음 하나 바꿔 유사 철자
+    const flipped = low.replace(/[aeiou]/, (ch) => (ch === "e" ? "a" : "e"));
+    if (flipped !== low) return flipped;
+  }
+  return null;
 }
 
 /**

@@ -52,7 +52,6 @@ export function WorkbookCreateForm({
   const [title, setTitle] = useState("");
   const [selected, setSelected] = useState<number[]>(() => [...ALL_STEPS]);
   const [autoGenerate, setAutoGenerate] = useState(true);
-  const [enhanceGrammarAi, setEnhanceGrammarAi] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [progressLabel, setProgressLabel] = useState<string | null>(null);
@@ -126,9 +125,7 @@ export function WorkbookCreateForm({
   ) {
     const span = 100 / Math.max(1, passageTotal);
     const base = (passageIndex / passageTotal) * 100;
-    const shellEnd = enhanceGrammarAi
-      ? base + span * 0.45
-      : base + span * 0.92;
+    const shellEnd = base + span * 0.4;
     const aiEnd = base + span * 0.92;
     const label = passageLabel(p);
 
@@ -136,7 +133,6 @@ export function WorkbookCreateForm({
       passageId: p.id,
       title: wbTitle,
       publishStages: true,
-      enhanceGrammarAi,
       onPhase: ({ phase, status }) => {
         if (phase === "shell" && status === "start") {
           startRangeTicker(
@@ -389,30 +385,13 @@ export function WorkbookCreateForm({
         <span>
           <span className="font-semibold">1~10단계 문제 자동 생성</span>
           <span className="mt-0.5 block text-xs text-slate-500">
-            규칙으로 빠르게 만듭니다. 지문당 보통 수 초~수십 초입니다.
+            규칙으로 만든 뒤 어법 AI 보강까지 자동으로 합니다. 지문당 1~2분
+            걸릴 수 있습니다.
             {!autoGenerate &&
               " (끄면 단계 껍데기만 만들고, 문제는 나중에 채웁니다.)"}
           </span>
         </span>
       </label>
-
-      {autoGenerate && (
-        <label className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-sm text-slate-700">
-          <input
-            type="checkbox"
-            className="mt-0.5"
-            checked={enhanceGrammarAi}
-            onChange={(e) => setEnhanceGrammarAi(e.target.checked)}
-          />
-          <span>
-            <span className="font-semibold">어법 AI 보강 (느림)</span>
-            <span className="mt-0.5 block text-xs text-slate-500">
-              지문 분석 후 어법을 AI로 다시 만듭니다. 지문당 1~2분 걸릴 수
-              있습니다. 기본은 꺼 두세요.
-            </span>
-          </span>
-        </label>
-      )}
 
       {!autoGenerate && (
         <div className="space-y-3">
