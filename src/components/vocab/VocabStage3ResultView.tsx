@@ -54,12 +54,12 @@ export function VocabStage3ResultView({
   answers,
   stageNumber = 4,
   hubHref,
-  autoReturnSeconds = 3,
+  autoReturnSeconds = 0,
 }: VocabStage3ResultViewProps) {
   const router = useRouter();
   const hub = hubHref ?? "/student/vocab";
-  const wrong = answers.filter((a) => !a.is_correct);
   const meaningAnswers = answers.filter((a) => a.question_type === "meaning");
+  const spellingAnswers = answers.filter((a) => a.question_type === "spelling");
 
   useEffect(() => {
     if (autoReturnSeconds <= 0) return;
@@ -77,11 +77,9 @@ export function VocabStage3ResultView({
         <p className="text-sm text-slate-600">
           {stageNumber}단계 종합테스트 결과
         </p>
-        {autoReturnSeconds > 0 && (
-          <p className="mt-1 text-xs text-slate-400">
-            {autoReturnSeconds}초 후 단어장 화면으로 이동합니다…
-          </p>
-        )}
+        <p className="mt-1 text-xs text-slate-500">
+          아래 문항을 모두 확인한 뒤 버튼을 눌러 이동하세요.
+        </p>
       </div>
 
       <div
@@ -111,7 +109,9 @@ export function VocabStage3ResultView({
 
       {meaningAnswers.length > 0 && (
         <section className="space-y-3">
-          <h2 className="font-semibold text-slate-900">뜻 문제 채점 (AI)</h2>
+          <h2 className="font-semibold text-slate-900">
+            뜻 문제 ({meaningAnswers.length})
+          </h2>
           <ul className="space-y-3">
             {meaningAnswers.map((a) => (
               <AnswerResultCard key={a.id} a={a} />
@@ -120,18 +120,15 @@ export function VocabStage3ResultView({
         </section>
       )}
 
-      {wrong.filter((a) => a.question_type === "spelling").length > 0 && (
+      {spellingAnswers.length > 0 && (
         <section className="space-y-3">
           <h2 className="font-semibold text-slate-900">
-            스펠링 오답 (
-            {wrong.filter((a) => a.question_type === "spelling").length})
+            스펠링 문제 ({spellingAnswers.length})
           </h2>
           <ul className="space-y-3">
-            {wrong
-              .filter((a) => a.question_type === "spelling")
-              .map((a) => (
-                <AnswerResultCard key={a.id} a={a} />
-              ))}
+            {spellingAnswers.map((a) => (
+              <AnswerResultCard key={a.id} a={a} />
+            ))}
           </ul>
         </section>
       )}
