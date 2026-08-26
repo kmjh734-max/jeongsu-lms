@@ -1,6 +1,7 @@
 /**
- * /api/exam-prep/generate-workbook — shell → ai56 순차 호출.
- * 진행률 콜백은 각 단계 시작 전에 호출해 UI가 멈추지 않게 한다.
+ * /api/exam-prep/generate-workbook
+ * 기본: shell(규칙)만 — 수 초 내 완료.
+ * enhanceGrammarAi=true 일 때만 ai56(지문분석+어법) 추가 호출.
  */
 export type GenerateWorkbookApiResult =
   | {
@@ -113,12 +114,15 @@ export async function postGenerateWorkbook(input: {
   passageId: string;
   title: string;
   publishStages?: boolean;
+  /** true면 규칙 생성 후 어법 AI 보강(느림). 기본 false */
+  enhanceGrammarAi?: boolean;
   onPhase?: (info: {
     phase: "shell" | "ai56";
     status: "start" | "done";
   }) => void;
 }): Promise<GenerateWorkbookApiResult> {
   const notes: string[] = [];
+  const enhance = Boolean(input.enhanceGrammarAi);
 
   input.onPhase?.({ phase: "shell", status: "start" });
   const shell = await postPhase({
@@ -139,6 +143,16 @@ export async function postGenerateWorkbook(input: {
   if (shell.notes?.length) notes.push(...shell.notes);
 
   const workbookId = shell.workbookId;
+
+  if (!enhance) {
+    notes.push("어법 AI 보강 생략(빠른 생성) · 필요 시 지문 편집에서 재생성");
+    return {
+      ok: true,
+      workbookId,
+      notes,
+      message: "1~10단계 워크북을 생성했습니다.",
+    };
+  }
 
   input.onPhase?.({ phase: "ai56", status: "start" });
   const ai56 = await postPhase({

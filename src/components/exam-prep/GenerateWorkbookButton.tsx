@@ -36,13 +36,10 @@ export function GenerateWorkbookButton({
       passageId,
       title: passageTitle ? `${passageTitle} · 10단계 WORKBOOK` : "10단계 WORKBOOK",
       publishStages: true,
+      enhanceGrammarAi: false,
       onPhase: ({ phase, status }) => {
         if (phase === "shell") {
-          setProgress(status === "start" ? "규칙 생성 중…" : "규칙 완료");
-        } else {
-          setProgress(
-            status === "start" ? "지문분석·어법 AI 중…" : "어법 보강 완료"
-          );
+          setProgress(status === "start" ? "규칙 생성 중…" : "완료");
         }
       },
     });
@@ -66,12 +63,11 @@ export function GenerateWorkbookButton({
           원클릭 워크북 생성
         </h3>
         <p className="mt-1 text-sm text-slate-600">
-          지문·문장만 준비되면 한글 해석(필요 시)·1~10단계 문제·워크북을 만듭니다.
-          규칙으로 먼저 만든 뒤 어법·어휘를 AI로 보강합니다.
+          지문·문장만 준비되면 1~10단계 문제·워크북을 규칙으로 빠르게 만듭니다.
         </p>
       </div>
       <Button type="button" disabled={loading} onClick={() => void handleClick()}>
-        {loading ? progress ?? "생성 중…" : "워크북 생성 (1~10단계 자동)"}
+        {loading ? progress ?? "생성 중…" : "워크북 생성 (빠른 규칙)"}
       </Button>
       {message && (
         <p className="text-sm text-slate-700 whitespace-pre-wrap">{message}</p>
