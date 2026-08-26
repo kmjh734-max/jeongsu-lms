@@ -115,13 +115,14 @@ export async function postGenerateWorkbook(input: {
   title: string;
   publishStages?: boolean;
   onPhase?: (info: {
-    phase: "shell" | "ai56" | "ai7";
+    phase: "shell" | "ai56";
     index: number;
     total: number;
   }) => void;
 }): Promise<GenerateWorkbookApiResult> {
   const notes: string[] = [];
-  const phases: Array<"shell" | "ai56" | "ai7"> = ["shell", "ai56", "ai7"];
+  // shell → ai56(지문분석+어법·어휘). 7단계는 shell 규칙으로 두고 AI 생략(속도).
+  const phases: Array<"shell" | "ai56"> = ["shell", "ai56"];
 
   const shell = await postPhase({
     passageId: input.passageId,
@@ -142,25 +143,18 @@ export async function postGenerateWorkbook(input: {
 
   const workbookId = shell.workbookId;
 
-  // AI 보강 — 실패해도 shell 워크북은 성공으로 반환
-  for (const phase of ["ai56", "ai7"] as const) {
-    input.onPhase?.({
-      phase,
-      index: phase === "ai56" ? 2 : 3,
-      total: phases.length,
-    });
-    const step = await postPhase({
-      passageId: input.passageId,
-      publishStages: input.publishStages,
-      phase,
-    });
-    if (step.ok) {
-      if (step.notes?.length) notes.push(...step.notes);
-    } else {
-      notes.push(
-        `${phase} 보강 생략: ${step.message || "시간 초과/오류"} (규칙 문항 유지)`
-      );
-    }
+  input.onPhase?.({ phase: "ai56", index: 2, total: phases.length });
+  const ai56 = await postPhase({
+    passageId: input.passageId,
+    publishStages: input.publishStages,
+    phase: "ai56",
+  });
+  if (ai56.ok) {
+    if (ai56.notes?.length) notes.push(...ai56.notes);
+  } else {
+    notes.push(
+      `ai56 보강 생략: ${ai56.message || "시간 초과/오류"} (규칙 문항 유지)`
+    );
   }
 
   return {

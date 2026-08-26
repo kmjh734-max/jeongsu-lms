@@ -327,9 +327,55 @@ manage supervise
     .filter(Boolean)
 );
 
-/** 동사처럼 보이지만 명사 자리가 흔한 단어 (in charge / on board 등) */
+/** 동사처럼 보이지만 명사 자리가 흔한 단어 (in charge / an increase 등) */
 export const VERB_LOOKALIKE_NOUNS = new Set(
-  "charge board result example instance fact case way thing part place state time world people person home work school day year life land food light waste trash garbage problem situation".split(
+  `
+charge board result example instance fact case way thing part place state time world
+people person home work school day year life land food light waste trash garbage problem
+situation increase decrease change challenge process progress research access control
+demand supply experience practice report review influence damage benefit form force
+issue impact attempt concern interest visit travel account amount number rate level
+point effect record present past future question answer order cause reason purpose
+support need use help hope love fear play call show move start finish return offer
+`
+    .split(/\s+/)
+    .filter(Boolean)
+);
+
+/** 관사·소유격·지시 뒤면 명사 자리로 본다 */
+export const NOUN_DETERMINERS = new Set(
+  "a an the this that these those my your our their his her its any some no every each another other such".split(
     " "
   )
 );
+
+/** 앞에 오면 뒤 단어가 명사일 확률이 높은 형용사·수량 표현 */
+const NOUN_PREMODIFIERS =
+  /^(significant|sharp|sudden|gradual|rapid|large|small|great|further|overall|percent|percentage|dramatic|slight|steady|annual|total|average|major|minor|recent|current|growing|increasing|decreasing)$/i;
+
+/** 뒤에 전치사가 오면 명사구(increase in / change of) */
+const NOUN_FOLLOW_PREP =
+  /^(in|of|on|to|for|from|into|with|by|about|over|under|between|among|as)$/i;
+
+/**
+ * 동사·명사 동형(increase 등)이 명사 자리인지 판별.
+ * 예: an increase / significant increase / increase in sales
+ */
+export function isLikelyNounSlot(
+  tokenLow: string,
+  prevLow: string | undefined,
+  nextLow: string | undefined
+): boolean {
+  const lemma = verbLemma(tokenLow);
+  const dual =
+    VERB_LOOKALIKE_NOUNS.has(tokenLow) || VERB_LOOKALIKE_NOUNS.has(lemma);
+  if (!dual) return false;
+  if (prevLow && NOUN_DETERMINERS.has(prevLow)) return true;
+  if (prevLow && NOUN_PREMODIFIERS.test(prevLow)) return true;
+  if (prevLow && /(?:ous|ive|al|ful|less|ic|able|ary|ent|ant|ing|ed)$/i.test(prevLow)) {
+    // significant / growing increase — 형용사·분사 수식
+    if (!BE_HAVE_DO.has(prevLow) && !MODAL_VERBS.has(prevLow)) return true;
+  }
+  if (nextLow && NOUN_FOLLOW_PREP.test(nextLow)) return true;
+  return false;
+}

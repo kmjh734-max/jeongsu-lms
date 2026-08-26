@@ -130,11 +130,7 @@ export function WorkbookCreateForm({
         const within = Math.round((index / phaseTotal) * span * 0.95);
         const pct = Math.min(99, base + within);
         const phaseLabel =
-          phase === "shell"
-            ? "규칙 생성"
-            : phase === "ai56"
-              ? "어법·어휘 AI"
-              : "오류찾기 AI";
+          phase === "shell" ? "규칙 생성" : "지문분석→어법·어휘";
         setProgressPercent(pct);
         setProgressLabel(
           `${pct}% · ${passageLabel(p)} · ${phaseLabel} (${index}/${phaseTotal})`
@@ -366,8 +362,7 @@ export function WorkbookCreateForm({
         <span>
           <span className="font-semibold">1~10단계 문제 자동 생성</span>
           <span className="mt-0.5 block text-xs text-slate-500">
-            규칙으로 빠르게 만든 뒤 어법·어휘·오류찾기를 AI로 보강합니다. 지문당
-            보통 1~2분입니다.
+            규칙으로 빠르게 만든 뒤, 지문 분석→수능·내신 어법·어휘로 보강합니다.
             {!autoGenerate &&
               " (끄면 단계 껍데기만 만들고, 문제는 나중에 채웁니다.)"}
           </span>

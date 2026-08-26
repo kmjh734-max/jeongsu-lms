@@ -38,11 +38,7 @@ export function GenerateWorkbookButton({
       publishStages: true,
       onPhase: ({ phase, index, total }) => {
         const label =
-          phase === "shell"
-            ? "규칙 생성"
-            : phase === "ai56"
-              ? "어법·어휘 AI"
-              : "오류찾기 AI";
+          phase === "shell" ? "규칙 생성" : "지문분석→어법·어휘";
         setProgress(`${label} (${index}/${total})`);
       },
     });

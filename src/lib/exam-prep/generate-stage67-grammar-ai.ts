@@ -139,6 +139,8 @@ function buildGrammarSystem(focusBlock: string): string {
 3) 처음 만나는 수능 어법 스타터(입문) UNIT/Point
 
 **반드시 지문 분석 결과(아래 focus)에 나온 포인트 우선.** 분석에 없는 억지 함정 금지.
+수능·학평·내신에서 실제로 묻는 어법만: 시제·태, 조동사, to부정사/동명사, 분사구문, 접속사, 관계사, 가정법, 수일치, 비교, 도치·강조.
+한 문장에 시험 포인트가 2개면 blanks도 2개.
 
 ${focusBlock}
 
@@ -300,8 +302,15 @@ function parseAiBlanks(
 }
 
 export type Stage6AiOptions = {
-  /** 원클릭 워크북: 사전분석·gap·재시도 생략 + reasoning medium */
+  /**
+   * 초고속: 사전분석·gap·재시도 모두 생략 (품질↓)
+   */
   fast?: boolean;
+  /**
+   * 원클릭 권장: 지문 분석은 하되 gap/재시도는 생략
+   * (수능·내신 어법 포인트 반영 + 속도)
+   */
+  quality?: boolean;
 };
 
 /**
@@ -315,6 +324,9 @@ export async function generateStage6WithAi(
   opts?: Stage6AiOptions
 ): Promise<{ drafts: Stage6ItemDraft[]; source: "ai" | "none"; error?: string }> {
   const fast = Boolean(opts?.fast);
+  const quality = Boolean(opts?.quality) && !fast;
+  const skipExtra = fast || quality;
+  const doAnalyze = !fast; // quality·기본은 지문 분석 먼저
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
   if (ordered.length === 0) {
     return { drafts: [], source: "none", error: "문장 없음" };
@@ -324,7 +336,7 @@ export async function generateStage6WithAi(
   let analysisFocus = "";
   let analysisSeedBlanks: AiStage6Blank[] = [];
   let analysisNote = "";
-  if (!fast && (mode === "grammar" || mode === "mixed")) {
+  if (doAnalyze && (mode === "grammar" || mode === "mixed")) {
     const analysis = await analyzePassageGrammarForWorkbook({
       sentences: ordered,
     });
@@ -352,7 +364,7 @@ export async function generateStage6WithAi(
   let vocabFocus = "";
   let vocabSeedBlanks: AiStage6Blank[] = [];
   let vocabNote = "";
-  if (!fast && (mode === "vocabulary" || mode === "mixed")) {
+  if (doAnalyze && (mode === "vocabulary" || mode === "mixed")) {
     const vAnalysis = await analyzePassageVocabForWorkbook({
       sentences: ordered,
     });
@@ -405,16 +417,16 @@ ${buildVocabSystem(vocabFocus)}`;
 
   const noteForMode =
     mode === "grammar"
-      ? fast
-        ? "모든 문장에 교재 CASE/GP 어법 blanks. 어휘 쌍 금지. 빠르게 확정."
-        : "1) 지문 분석(analysisSeeds/focus)을 우선 반영해 blanks를 확정하라. 2) 빠진 문장만 CASE로 보충. 어휘 쌍 금지."
+      ? doAnalyze
+        ? "1) analysisSeeds/focus의 수능·내신 어법 포인트를 우선 반영. 2) 한 문장에 어법 포인트가 2개 이상이면 blanks도 2개 이상. 3) 모든 문장 최소 1개. 어휘 쌍 금지."
+        : "모든 문장에 교재 CASE/GP 어법 blanks. 한 문장 복수 포인트면 복수 blanks. 어휘 쌍 금지."
       : mode === "vocabulary"
-        ? fast
-          ? "모든 문장에 반의어·유사형태 어휘 blanks. 어법 쌍 금지. 빠르게 확정."
-          : "1) 어휘 분석(analysisSeeds)의 반의·유사형태 쌍을 우선 확정하라. 2) 빠진 문장만 antonym/lookalike로 보충. 어법 쌍 금지. 세트에서 반의와 유사형태를 섞어라."
-        : fast
-          ? "어법·어휘를 questionKind로 구분해 한 번에 출제. 모든 문장 최소 1개. 빠르게 확정."
-          : "어법·어휘 분석 시드를 반영하고 questionKind로 구분. 어휘는 반의·유사형태 우선.";
+        ? doAnalyze
+          ? "1) 어휘 분석 시드(반의·유사형태) 우선. 2) 모든 문장 최소 1개. 어법 쌍 금지."
+          : "모든 문장에 반의어·유사형태 어휘 blanks. 어법 쌍 금지."
+        : doAnalyze
+          ? "어법·어휘 분석 시드 반영. questionKind 구분. 한 문장에 어법 포인트가 여럿이면 grammar blanks를 여러 개. 모든 문장 최소 1개."
+          : "어법·어휘를 questionKind로 구분. 모든 문장 최소 1개. 복수 어법 포인트면 복수 blanks.";
 
   const baseUser = {
     task:
@@ -426,11 +438,14 @@ ${buildVocabSystem(vocabFocus)}`;
     engine:
       mode === "vocabulary"
         ? "question-generator-workbook-vocab-craft+passage-analysis"
-        : "question-generator-grammar-catalog+seosulhyeong",
+        : "question-generator-grammar-catalog+seosulhyeong+csat",
     modelHint: EXAM_PREP_MODEL_PRIMARY,
     mode,
+    quality: quality || undefined,
     fast: fast || undefined,
     requireEverySentence: true,
+    requireMultiPointPerSentence:
+      "한 문장에 시험에 낼 만한 어법 포인트가 2개 이상이면 그 문장에 blanks를 2개 이상 둬라.",
     requireVocabMix:
       mode === "vocabulary" || mode === "mixed"
         ? "blanks 중 opposite_meaning·similar_spelling(및 동계)를 모두 포함할 것"
@@ -447,8 +462,12 @@ ${buildVocabSystem(vocabFocus)}`;
 
   const chatOpts = {
     temperature: mode === "vocabulary" ? 0.35 : 0.25,
-    maxTokens: fast ? 7000 : mode === "vocabulary" ? 10000 : 9000,
-    reasoningEffort: (fast ? "medium" : getExamPrepReasoningEffort()) as
+    maxTokens: skipExtra ? 8000 : mode === "vocabulary" ? 10000 : 9000,
+    reasoningEffort: (fast
+      ? "medium"
+      : quality
+        ? "medium"
+        : getExamPrepReasoningEffort()) as
       | "low"
       | "medium"
       | "high"
@@ -502,7 +521,7 @@ ${buildVocabSystem(vocabFocus)}`;
 
     const covered = new Set(drafts.map((d) => d.sentence_id));
     const missing = ordered.filter((s) => !covered.has(s.id));
-    if (!fast && missing.length > 0) {
+    if (!skipExtra && missing.length > 0) {
       const gapNote =
         mode === "vocabulary"
           ? `다음 ${missing.length}개 문장에만 반의어(antonym) 또는 유사형태(lookalike) blanks 추가. 이미 있는 문장 금지. 어법 쌍 금지.`
@@ -539,7 +558,7 @@ ${buildVocabSystem(vocabFocus)}`;
       }
     }
 
-    if (!fast && drafts.length === 0) {
+    if (!skipExtra && drafts.length === 0) {
       const rawRetry = await stage56ChatJson(
         system,
         JSON.stringify({

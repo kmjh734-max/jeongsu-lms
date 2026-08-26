@@ -229,6 +229,12 @@ export function PassageListClient({
                 }))}
                 basePath={basePath}
               />
+              <Link
+                href={`${basePath}/workbooks/print-set/${set.id}`}
+                className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                세트 출력
+              </Link>
               <StatusBadge status={set.status} />
               <button
                 type="button"

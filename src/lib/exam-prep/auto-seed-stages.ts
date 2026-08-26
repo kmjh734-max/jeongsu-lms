@@ -40,6 +40,7 @@ import {
   BE_HAVE_DO,
   COMMON_VERB_LEMMAS,
   isLikelyNonVerbToken,
+  isLikelyNounSlot,
   MODAL_VERBS,
   VERB_LOOKALIKE_NOUNS,
   verbLemma,
@@ -747,6 +748,12 @@ export function findVerbHits(english: string): VerbHit[] {
     if (NEVER_VERB.has(t.low)) continue;
     if (EN_STOP.has(t.low) && !BE_HAVE_DO.has(t.low)) continue;
 
+    const nextTok = tokens[i + 1];
+    // increase in / an increase / significant increase → 명사 자리 (동사형 빈칸 금지)
+    if (isLikelyNounSlot(t.low, prev?.low, nextTok?.low)) {
+      continue;
+    }
+
     // 명사 자리: in charge / on board / as a result …
     if (
       VERB_LOOKALIKE_NOUNS.has(t.low) &&
@@ -793,8 +800,14 @@ export function findVerbHits(english: string): VerbHit[] {
       !/ss$/i.test(t.low) &&
       COMMON_VERB_LEMMAS.has(lemma);
 
-    if (isKnownVerb && (afterSubject || thirdPersonS || t.low === lemma)) {
-      if (VERB_LOOKALIKE_NOUNS.has(t.low) && !afterSubject) continue;
+    // 동사·명사 동형: 주어/3인칭 -s 문맥에서만 빈칸 (원형 단독 금지)
+    const dualPos =
+      VERB_LOOKALIKE_NOUNS.has(t.low) || VERB_LOOKALIKE_NOUNS.has(lemma);
+    if (dualPos && !(afterSubject || thirdPersonS)) {
+      continue;
+    }
+
+    if (isKnownVerb && (afterSubject || thirdPersonS || (!dualPos && t.low === lemma))) {
       pushSpan(i, i, [lemma], "simple_present");
       continue;
     }
@@ -854,8 +867,11 @@ export function buildStage6Drafts(
     const wordCount = english.split(/\s+/).filter(Boolean).length;
     const target =
       category === "all"
-        ? Math.min(4, Math.max(2, Math.ceil(wordCount / 14)))
-        : Math.min(3, Math.max(wordCount <= 8 ? 1 : 2, Math.ceil(wordCount / 16)));
+        ? Math.min(4, Math.max(2, Math.ceil(wordCount / 12)))
+        : Math.min(
+            3,
+            Math.max(wordCount <= 10 ? 1 : 2, Math.ceil(wordCount / 12))
+          );
 
     const pushGrammar = (h: {
       start: number;
@@ -1066,7 +1082,8 @@ export function mergeStage6Drafts(
   for (const d of primary) add(d);
   for (const d of filler) {
     const list = bySent.get(d.sentence_id) ?? [];
-    if (list.length >= Math.max(2, minPer)) continue;
+    // 문장당 minPer까지 채움 (복수 어법 포인트 허용)
+    if (list.length >= Math.max(minPer, 2)) continue;
     add(d);
   }
 

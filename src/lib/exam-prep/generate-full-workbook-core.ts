@@ -352,7 +352,7 @@ async function runAi56Phase(input: {
   const plantG = buildStage6GrammarDrafts(sentences);
   const plantV = buildStage6VocabDrafts(sentences);
 
-  const ai56 = await generateStage6WithAi(sentences, "mixed", { fast: true });
+  const ai56 = await generateStage6WithAi(sentences, "mixed", { quality: true });
   const aiGrammar = (ai56.drafts ?? []).filter(
     (d) => (d.question_category || "grammar") !== "vocabulary"
   );
@@ -366,7 +366,7 @@ async function runAi56Phase(input: {
     useAiG ? aiGrammar : plantG,
     plantG,
     ids,
-    { category: "grammar", minPerSentence: 1 }
+    { category: "grammar", minPerSentence: 2 }
   );
   const vocab = mergeStage6Drafts(
     useAiV ? aiVocab : plantV,
@@ -381,10 +381,10 @@ async function runAi56Phase(input: {
   const vOk = stage6AiCoverageOk(vocab, sentences.length, "vocabulary");
 
   notes.push(
-    `5단계 어법 ${useAiG ? "AI" : "규칙"} ${grammar.length} · ${gCover}/${sentences.length}${gOk ? " ✓" : ""}`
+    `5단계 어법 ${useAiG ? "분석→AI" : "규칙"} ${grammar.length} · ${gCover}/${sentences.length}${gOk ? " ✓" : ""}`
   );
   notes.push(
-    `6단계 어휘 ${useAiV ? "AI" : "규칙"} ${vocab.length} · ${vCover}/${sentences.length}${vOk ? " ✓" : ""}`
+    `6단계 어휘 ${useAiV ? "분석→AI" : "규칙"} ${vocab.length} · ${vCover}/${sentences.length}${vOk ? " ✓" : ""}`
   );
 
   if (s6.length > 0) {
