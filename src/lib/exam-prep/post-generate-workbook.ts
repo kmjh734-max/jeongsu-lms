@@ -1,7 +1,7 @@
 /**
- * /api/exam-prep/generate-workbook 응답 파싱.
- * Vercel/Cloudflare가 "An error occurred..." 평문을 주면 JSON.parse가 깨지므로
- * 본문을 먼저 text로 읽고 안전하게 처리한다.
+ * /api/exam-prep/generate-workbook — shell → ai56 → ai7 순차 호출.
+ * 한 요청에 몰면 Vercel/CDN 504가 나므로 단계를 나눈다.
+ * AI 보강이 실패해도 shell 워크북은 유지한다.
  */
 export type GenerateWorkbookApiResult =
   | {
@@ -14,13 +14,30 @@ export type GenerateWorkbookApiResult =
       ok: false;
       message: string;
       notes?: string[];
+      workbookId?: string;
     };
 
-export async function postGenerateWorkbook(input: {
+type PhaseResult =
+  | {
+      ok: true;
+      workbookId?: string;
+      notes?: string[];
+      message?: string;
+      phase?: string;
+    }
+  | {
+      ok: false;
+      message: string;
+      notes?: string[];
+      phase?: string;
+    };
+
+async function postPhase(input: {
   passageId: string;
-  title: string;
+  title?: string;
   publishStages?: boolean;
-}): Promise<GenerateWorkbookApiResult> {
+  phase: "shell" | "ai56" | "ai7";
+}): Promise<PhaseResult> {
   let res: Response;
   try {
     res = await fetch("/api/exam-prep/generate-workbook", {
@@ -30,6 +47,7 @@ export async function postGenerateWorkbook(input: {
         passageId: input.passageId,
         title: input.title,
         publishStages: input.publishStages !== false,
+        phase: input.phase,
       }),
     });
   } catch (e) {
@@ -43,12 +61,18 @@ export async function postGenerateWorkbook(input: {
   }
 
   const raw = await res.text();
-  let data: GenerateWorkbookApiResult | null = null;
+  let data: PhaseResult | null = null;
   if (raw.trim()) {
     try {
-      data = JSON.parse(raw) as GenerateWorkbookApiResult;
+      data = JSON.parse(raw) as PhaseResult;
     } catch {
       const snippet = raw.replace(/\s+/g, " ").trim().slice(0, 160);
+      if (res.status === 504 || res.status === 502 || res.status === 524) {
+        return {
+          ok: false,
+          message: `서버 시간 초과 (HTTP ${res.status}). 잠시 후 다시 시도해 주세요.`,
+        };
+      }
       const looksPlatform =
         /an error occurred/i.test(snippet) ||
         /FUNCTION_INVOCATION/i.test(snippet) ||
@@ -83,16 +107,66 @@ export async function postGenerateWorkbook(input: {
     };
   }
 
-  if (data.ok === true && data.workbookId) {
-    return data;
+  return data;
+}
+
+export async function postGenerateWorkbook(input: {
+  passageId: string;
+  title: string;
+  publishStages?: boolean;
+  onPhase?: (info: {
+    phase: "shell" | "ai56" | "ai7";
+    index: number;
+    total: number;
+  }) => void;
+}): Promise<GenerateWorkbookApiResult> {
+  const notes: string[] = [];
+  const phases: Array<"shell" | "ai56" | "ai7"> = ["shell", "ai56", "ai7"];
+
+  const shell = await postPhase({
+    passageId: input.passageId,
+    title: input.title,
+    publishStages: input.publishStages,
+    phase: "shell",
+  });
+  input.onPhase?.({ phase: "shell", index: 1, total: phases.length });
+
+  if (!shell.ok || !shell.workbookId) {
+    return {
+      ok: false,
+      message: !shell.ok ? shell.message : "워크북 ID를 받지 못했습니다.",
+      notes: shell.notes,
+    };
+  }
+  if (shell.notes?.length) notes.push(...shell.notes);
+
+  const workbookId = shell.workbookId;
+
+  // AI 보강 — 실패해도 shell 워크북은 성공으로 반환
+  for (const phase of ["ai56", "ai7"] as const) {
+    input.onPhase?.({
+      phase,
+      index: phase === "ai56" ? 2 : 3,
+      total: phases.length,
+    });
+    const step = await postPhase({
+      passageId: input.passageId,
+      publishStages: input.publishStages,
+      phase,
+    });
+    if (step.ok) {
+      if (step.notes?.length) notes.push(...step.notes);
+    } else {
+      notes.push(
+        `${phase} 보강 생략: ${step.message || "시간 초과/오류"} (규칙 문항 유지)`
+      );
+    }
   }
 
   return {
-    ok: false,
-    message:
-      "message" in data && data.message
-        ? String(data.message)
-        : `생성 실패 (HTTP ${res.status})`,
-    notes: "notes" in data ? data.notes : undefined,
+    ok: true,
+    workbookId,
+    notes,
+    message: "1~10단계 워크북을 생성했습니다.",
   };
 }

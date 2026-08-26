@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
-import { generateFullExamPrepWorkbook } from "@/lib/exam-prep/generate-full-workbook-core";
+import {
+  generateExamPrepWorkbookPhase,
+  type WorkbookGenPhase,
+} from "@/lib/exam-prep/generate-full-workbook-core";
 
-/** 지문 1개 원클릭 워크북 — AI 다단계라 장시간 허용 */
+/** 단계별 호출(shell/ai56/ai7) — 각 요청이 게이트웨이 제한 안에 끝나도록 */
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
+
+const PHASES = new Set<WorkbookGenPhase>(["shell", "ai56", "ai7", "full"]);
 
 export async function POST(req: Request) {
   try {
@@ -12,6 +17,7 @@ export async function POST(req: Request) {
       passageId?: string;
       title?: string;
       publishStages?: boolean;
+      phase?: string;
     };
     try {
       body = (await req.json()) as typeof body;
@@ -30,10 +36,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await generateFullExamPrepWorkbook({
+    const rawPhase = String(body.phase ?? "shell").trim() as WorkbookGenPhase;
+    const phase: WorkbookGenPhase = PHASES.has(rawPhase) ? rawPhase : "shell";
+
+    const result = await generateExamPrepWorkbookPhase({
       passageId,
       title: body.title,
       publishStages: body.publishStages !== false,
+      phase,
     });
 
     if (!result.ok) {

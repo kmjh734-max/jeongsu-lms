@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { generateFullExamPrepWorkbookAction } from "@/lib/exam-prep/generate-full-workbook-action";
+import { postGenerateWorkbook } from "@/lib/exam-prep/post-generate-workbook";
 
 export function GenerateWorkbookButton({
   passageId,
@@ -18,6 +18,7 @@ export function GenerateWorkbookButton({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [notes, setNotes] = useState<string[]>([]);
+  const [progress, setProgress] = useState<string | null>(null);
 
   async function handleClick() {
     if (
@@ -30,20 +31,29 @@ export function GenerateWorkbookButton({
     setLoading(true);
     setMessage(null);
     setNotes([]);
-    const result = await generateFullExamPrepWorkbookAction({
+    setProgress("규칙 생성 중…");
+    const result = await postGenerateWorkbook({
       passageId,
-      title: passageTitle ? `${passageTitle} · 10단계 WORKBOOK` : undefined,
+      title: passageTitle ? `${passageTitle} · 10단계 WORKBOOK` : "10단계 WORKBOOK",
       publishStages: true,
+      onPhase: ({ phase, index, total }) => {
+        const label =
+          phase === "shell"
+            ? "규칙 생성"
+            : phase === "ai56"
+              ? "어법·어휘 AI"
+              : "오류찾기 AI";
+        setProgress(`${label} (${index}/${total})`);
+      },
     });
     setLoading(false);
+    setProgress(null);
     if (!result.ok) {
       setMessage(result.message);
-      if ("notes" in result && Array.isArray(result.notes)) {
-        setNotes(result.notes);
-      }
+      if (result.notes?.length) setNotes(result.notes);
       return;
     }
-    setMessage(result.message);
+    setMessage(result.message ?? "완료");
     setNotes(result.notes ?? []);
     router.push(`${basePath}/workbooks/${result.workbookId}/edit`);
     router.refresh();
@@ -56,12 +66,12 @@ export function GenerateWorkbookButton({
           원클릭 워크북 생성
         </h3>
         <p className="mt-1 text-sm text-slate-600">
-          지문·문장만 준비되면 한글 해석(필요 시)·1~10단계 문제·워크북을 한 번에
-          만듭니다. 이후 세부 수정은 아래 단계 편집에서 가능합니다.
+          지문·문장만 준비되면 한글 해석(필요 시)·1~10단계 문제·워크북을 만듭니다.
+          규칙으로 먼저 만든 뒤 어법·어휘를 AI로 보강합니다.
         </p>
       </div>
       <Button type="button" disabled={loading} onClick={() => void handleClick()}>
-        {loading ? "생성 중… (보통 1~2분)" : "워크북 생성 (1~10단계 자동)"}
+        {loading ? progress ?? "생성 중…" : "워크북 생성 (1~10단계 자동)"}
       </Button>
       {message && (
         <p className="text-sm text-slate-700 whitespace-pre-wrap">{message}</p>

@@ -120,11 +120,29 @@ export function WorkbookCreateForm({
       passageId: p.id,
       title: wbTitle,
       publishStages: true,
+      onPhase: ({ phase, index, total: phaseTotal }) => {
+        const span = 100 / Math.max(1, targetPassages.length);
+        // find current passage index from label progress — use soft percent within current passage
+        const base = Math.round(
+          ((targetPassages.findIndex((x) => x.id === p.id) || 0) / targetPassages.length) *
+            100
+        );
+        const within = Math.round((index / phaseTotal) * span * 0.95);
+        const pct = Math.min(99, base + within);
+        const phaseLabel =
+          phase === "shell"
+            ? "규칙 생성"
+            : phase === "ai56"
+              ? "어법·어휘 AI"
+              : "오류찾기 AI";
+        setProgressPercent(pct);
+        setProgressLabel(
+          `${pct}% · ${passageLabel(p)} · ${phaseLabel} (${index}/${phaseTotal})`
+        );
+      },
     });
-    if (!data.ok || !("workbookId" in data) || !data.workbookId) {
-      throw new Error(
-        !data.ok ? data.message : `생성 실패`
-      );
+    if (!data.ok || !data.workbookId) {
+      throw new Error(!data.ok ? data.message : "생성 실패");
     }
     return data;
   }
@@ -348,8 +366,8 @@ export function WorkbookCreateForm({
         <span>
           <span className="font-semibold">1~10단계 문제 자동 생성</span>
           <span className="mt-0.5 block text-xs text-slate-500">
-            해석·빈칸은 규칙으로, 어법·어휘·오류찾기는 AI로 만듭니다. 지문당 보통
-            1~2분 정도입니다.
+            규칙으로 빠르게 만든 뒤 어법·어휘·오류찾기를 AI로 보강합니다. 지문당
+            보통 1~2분입니다.
             {!autoGenerate &&
               " (끄면 단계 껍데기만 만들고, 문제는 나중에 채웁니다.)"}
           </span>
