@@ -117,6 +117,81 @@ function toIngForm(word: string): string {
   return `${base}ing`;
 }
 
+/** V-ing → 원형 (of getting→get, rerouting→reroute) */
+function fromIngForm(word: string): string {
+  const low = word.toLowerCase().replace(/[^a-z']/g, "");
+  const SPECIAL: Record<string, string> = {
+    getting: "get",
+    coming: "come",
+    going: "go",
+    being: "be",
+    having: "have",
+    doing: "do",
+    taking: "take",
+    making: "make",
+    giving: "give",
+    leaving: "leave",
+    using: "use",
+    showing: "show",
+    growing: "grow",
+    dealing: "deal",
+    coping: "cope",
+    rerouting: "reroute",
+    reorganizing: "reorganize",
+    creating: "create",
+    providing: "provide",
+    including: "include",
+    changing: "change",
+    moving: "move",
+    learning: "learn",
+    causing: "cause",
+    requiring: "require",
+    supporting: "support",
+    offering: "offer",
+    appearing: "appear",
+    remaining: "remain",
+    becoming: "become",
+    happening: "happen",
+    occurring: "occur",
+    dumping: "dump",
+    looking: "look",
+    trying: "try",
+    starting: "start",
+    ending: "end",
+    building: "build",
+    finding: "find",
+    keeping: "keep",
+    helping: "help",
+    teaching: "teach",
+    thinking: "think",
+    feeling: "feel",
+    working: "work",
+    running: "run",
+    sitting: "sit",
+    swimming: "swim",
+    beginning: "begin",
+  };
+  if (SPECIAL[low]) return SPECIAL[low];
+  if (low.endsWith("ying") && low.length > 5) return `${low.slice(0, -4)}y`;
+  if (low.endsWith("ing") && low.length > 4) {
+    let base = low.slice(0, -3);
+    // running → runn → run
+    if (
+      base.length >= 3 &&
+      base[base.length - 1] === base[base.length - 2] &&
+      !"aeiou".includes(base[base.length - 1]!)
+    ) {
+      base = base.slice(0, -1);
+    } else if (!base.endsWith("e") && !base.endsWith("y")) {
+      // reorganiz → reorganize (흔한 묵음 e)
+      const withE = `${base}e`;
+      if (toIngForm(withE) === low) return withE;
+    }
+    return base || low;
+  }
+  return low;
+}
+
 /**
  * 교재 CASE ‘심는 법’을 지문에 적용할 수 있는 고빈도 패턴.
  * (마더텅 수능필수어법 + 변형문제 pickGrammarFocus와 정렬)
@@ -131,11 +206,10 @@ const MECHANISM_PLANTS: MechPlant[] = [
     wrong: (_m, g) => {
       const prep = g[0] ?? "by ";
       const ing = g[1] ?? "allowing";
-      const base = ing.replace(/ing$/i, "").replace(/ll$/i, "l");
-      return `${prep}${base || "allow"}`;
+      return `${prep}${fromIngForm(ing)}`;
     },
     priority: 96,
-    forChoice: false, // by allowing↔by allow 류는 6단계 품질 낮음 → 7단계만
+    forChoice: true, // of getting / of get 등 전치사+V-ing 는 6단계 출제
     forError: true,
   },
   {
@@ -339,7 +413,7 @@ const MECHANISM_PLANTS: MechPlant[] = [
   {
     unitKey: "verbal",
     caseId: "verb-obj",
-    correct: /\bto (fix|solve|protect|leave|prevent|improve|reduce|increase|learn|apologize|assume|allow|strengthen|gather|appear|emerge)\b/gi,
+    correct: /\bto (fix|solve|protect|leave|prevent|improve|reduce|increase|learn|apologize|assume|allow|strengthen|gather|appear|emerge|deal|cope|handle|respond|adapt|adjust|manage|maintain|develop|produce|provide|create|achieve|establish|identify|recognize|determine|ensure|consider|continue|begin|start|try|help|serve|contribute|reorganize|reroute|grow|get)\b/gi,
     wrong: (_m, g) => toIngForm(g[0] ?? "fix"),
     priority: 72,
     forChoice: true,
@@ -837,6 +911,65 @@ const MECHANISM_PLANTS: MechPlant[] = [
     forChoice: true,
     forError: true,
   },
+  // —— 진행·목적 to-V·전치사+V-ing·병렬 -ing (긴 문장 복수 포인트)
+  {
+    unitKey: "tense",
+    caseId: "tense-prog",
+    correct: /\b(was|were|is|are)\s+(\w+ing)\b/gi,
+    wrong: (_m, g) => {
+      const be = g[0] ?? "was";
+      const ing = g[1] ?? "doing";
+      return `${be} ${fromIngForm(ing)}`;
+    },
+    priority: 83,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "verbal",
+    caseId: "verb-slot",
+    correct:
+      /\b((?:into|upon)\s+)(getting|growing|making|taking|giving|being|having|doing|working|moving|leaving|coming|going|finding|keeping|using|showing|helping|learning|teaching|thinking|feeling|looking|trying|starting|ending|building|creating|providing|supporting|including|rerouting|reorganizing|dealing|coping)\b/gi,
+    wrong: (_m, g) => {
+      const prep = g[0] ?? "into ";
+      const ing = g[1] ?? "getting";
+      return `${prep}${fromIngForm(ing)}`;
+    },
+    priority: 90,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "parallel",
+    caseId: "par-ing",
+    correct: /(?<=,\s+and\s+)(\w+ing)\b/gi,
+    wrong: (_m, g) => fromIngForm(g[0] ?? "doing"),
+    priority: 92,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "parallel",
+    caseId: "par-ing",
+    correct: /(?<=\band\s+)(\w+ing)\b(?=\s+(?:energy|time|money|effort|attention|resources|people|students|them|it|him|her)\b)/gi,
+    wrong: (_m, g) => `to ${fromIngForm(g[0] ?? "doing")}`,
+    priority: 91,
+    forChoice: true,
+    forError: true,
+  },
+  {
+    unitKey: "participle",
+    caseId: "part-free",
+    correct: /\b(reorganizing|rerouting|reallocating|redirecting|rearranging|reconstructing)\b/gi,
+    wrong: (_m, g) => {
+      const base = fromIngForm(g[0] ?? "reorganizing");
+      if (base.endsWith("e")) return `${base}d`;
+      return `${base}ed`;
+    },
+    priority: 70,
+    forChoice: true,
+    forError: true,
+  },
 ];
 
 /** 어휘 [a/b] — 학평·워크북용 (반의어 · 유사형태 · 문맥) */
@@ -1077,13 +1210,16 @@ export function isNonsenseChoicePair(correct: string, wrong: string): boolean {
   }
 
   // 다중 토큰: fails to allow / fails to allowing — -ing 장난만 금지 (±s 수일치는 허용)
-  // 단 to-V ↔ V-ing 은 수능·내신 준동사 자리로 허용
+  // 단 to-V ↔ V-ing, 전치사+V-ing ↔ 전치사+원형 은 수능·내신 준동사 자리로 허용
   {
     const toA = a.trim().match(/^to\s+(\w+)$/i);
     const toB = b.trim().match(/^to\s+(\w+)$/i);
     const ingOnly = (x: string) => /^\w+ing$/i.test(x.trim()) && !/\s/.test(x.trim());
     if (toA && ingOnly(b)) return false;
     if (toB && ingOnly(a)) return false;
+
+    const PREP_HEAD =
+      /^(?:of|from|by|without|before|after|while|when|for|in|on|about|into|upon|with|at|to)$/i;
 
     const ta = a.trim().split(/\s+/);
     const tb = b.trim().split(/\s+/);
@@ -1093,6 +1229,10 @@ export function isNonsenseChoicePair(correct: string, wrong: string): boolean {
       if (headA === headB) {
         const la = ta[ta.length - 1]!.toLowerCase().replace(/[^a-z']/g, "");
         const lb = tb[tb.length - 1]!.toLowerCase().replace(/[^a-z']/g, "");
+        // of getting / of get — 전치사 뒤 준동사 자리는 허용
+        if (PREP_HEAD.test(headA)) return false;
+        // was reorganizing / was reorganize — 진행형 자리 허용
+        if (/^(?:is|are|was|were|am|be|been)$/i.test(headA)) return false;
         const stemIng = (w: string) =>
           w.endsWith("ing") && w.length > 4 ? w.slice(0, -3) : null;
         const aIng = stemIng(la);

@@ -11,7 +11,13 @@ import {
   vocabEnglishNeedles,
   vocabKoreanNeedles,
 } from "@/lib/exam-prep/blank-importance";
-import { buildStage6Drafts, buildStage7Seed, findVerbHits } from "@/lib/exam-prep/auto-seed-stages";
+import {
+  buildStage6Drafts,
+  buildStage6GrammarDrafts,
+  buildStage6VocabDrafts,
+  buildStage7Seed,
+  findVerbHits,
+} from "@/lib/exam-prep/auto-seed-stages";
 import { isNonsenseChoicePair } from "@/lib/exam-prep/grammar-workbook-plants";
 import { verbLemma } from "@/lib/exam-prep/verb-lemma";
 import { newOptionId } from "@/lib/exam-prep/stage6-types";
@@ -212,19 +218,22 @@ function buildGrammarChoice(
   const english = String(sentence.english_text ?? "").trim();
   if (!english) return null;
 
-  const items = buildStage6Drafts(
-    [
-      {
-        id: sentence.id,
-        english_text: english,
-        korean_text: sentence.korean_text,
-        sentence_order: sentence.sentence_order,
-        paragraph_number: sentence.paragraph_number,
-        vocabulary: sentence.vocabulary,
-        is_important_writing: sentence.is_important_writing,
-      },
-    ],
-    category
+  const seed = {
+    id: sentence.id,
+    english_text: english,
+    korean_text: sentence.korean_text,
+    sentence_order: sentence.sentence_order,
+    paragraph_number: sentence.paragraph_number,
+    vocabulary: sentence.vocabulary,
+    is_important_writing: sentence.is_important_writing,
+  };
+
+  const items = (
+    category === "grammar"
+      ? buildStage6GrammarDrafts([seed])
+      : category === "vocabulary"
+        ? buildStage6VocabDrafts([seed])
+        : buildStage6Drafts([seed], "all")
   ).filter((d) => {
     const wrong = d.choice_options.find((o) => !o.isCorrect)?.text ?? "";
     const correct =
