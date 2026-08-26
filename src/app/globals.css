@@ -22,21 +22,6 @@
     @apply appearance-none;
   }
 
-  .exam-prep-workbook-sheet {
-    font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-  }
-
-  .exam-prep-workbook-sheet .font-serif,
-  .exam-prep-workbook-print .font-serif {
-    font-family: "Georgia", "Times New Roman", "Noto Serif KR", serif;
-  }
-
-  .exam-prep-workbook-print {
-    font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
-    font-size: 13px;
-    line-height: 1.75;
-  }
-
   .ui-select {
     @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
@@ -2201,8 +2186,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #student-record-print-root,
   #vocab-print-root,
   #nelt-print-root,
-  #qg-print-root,
-  #exam-prep-print-root {
+  #qg-print-root {
     visibility: visible;
   }
 
@@ -2219,9 +2203,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #nelt-print-root,
   #nelt-print-root *,
   #qg-print-root,
-  #qg-print-root *,
-  #exam-prep-print-root,
-  #exam-prep-print-root * {
+  #qg-print-root * {
     visibility: visible;
   }
 

@@ -9,7 +9,6 @@ const NAV_ITEMS = [
   { href: "/student/courses", label: "수강 강좌" },
   { href: "/student/vocab", label: "단어학습" },
   { href: "/student/listening", label: "듣기학습" },
-  { href: "/student/exam-prep", label: "내신대비" },
 ];
 
 export default async function StudentLayout({
