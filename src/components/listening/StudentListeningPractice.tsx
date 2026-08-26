@@ -460,6 +460,7 @@ export function StudentListeningPractice({
     if (scheduleMode) {
       void reportScheduleProgress(q.id, {
         objectiveCompleted: true,
+        selectedAnswer: answers[q.id] ?? selected ?? null,
         dictationCompleted: true,
         dictationScore: dictationScore ?? scheduleMode.dictationPassScore,
       });

@@ -398,8 +398,13 @@ export async function loadListeningMonthlyStatusTable(
         const sid = p.student_id as string;
         const bucket = accuracyByStudent.get(sid);
         if (!bucket) continue;
-        bucket.answeredCount += 1;
-        if (p.objective_correct === true) bucket.correctCount += 1;
+        // 구데이터는 objective_correct=null → 채점 불가. 채점된 문항만 집계
+        if (p.objective_correct === true) {
+          bucket.correctCount += 1;
+          bucket.answeredCount += 1;
+        } else if (p.objective_correct === false) {
+          bucket.answeredCount += 1;
+        }
       }
     }
   }

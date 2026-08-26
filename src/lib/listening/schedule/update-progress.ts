@@ -218,11 +218,13 @@ export async function updateDailyTaskQuestionProgress(
   const completed = opts.objectiveCompleted && dictationOk;
 
   let objectiveCorrect: boolean | null | undefined;
+  let selectedAnswer: number | null | undefined;
   if (
     opts.objectiveCompleted &&
     typeof opts.selectedAnswer === "number" &&
     opts.selectedAnswer > 0
   ) {
+    selectedAnswer = Math.floor(opts.selectedAnswer);
     const { data: question } = await admin
       .from("listening_questions")
       .select("correct_answer")
@@ -230,7 +232,7 @@ export async function updateDailyTaskQuestionProgress(
       .maybeSingle();
     const correct = Number(question?.correct_answer);
     if (Number.isFinite(correct) && correct > 0) {
-      objectiveCorrect = opts.selectedAnswer === correct;
+      objectiveCorrect = selectedAnswer === correct;
     }
   }
 
@@ -243,6 +245,9 @@ export async function updateDailyTaskQuestionProgress(
   };
   if (objectiveCorrect !== undefined) {
     progressPatch.objective_correct = objectiveCorrect;
+  }
+  if (selectedAnswer !== undefined) {
+    progressPatch.selected_answer = selectedAnswer;
   }
 
   await admin

@@ -98,7 +98,8 @@ export function ListeningStatusPanel({
         <div>
           <h2 className="text-lg font-bold text-slate-900">듣기학습 현황표</h2>
           <p className="mt-1 text-sm text-slate-600">
-            학생별 월간 듣기학습(숙제) 완료·정답 현황입니다. 미학습 학생은
+            학생별 월간 듣기학습(숙제) 완료·정답 현황입니다. 「정답/응시」는
+            정답 기록이 저장된 문항만 집계됩니다(최근 학습부터). 미학습 학생은
             「독촉」으로 학부모 카카오 안내문을 보낼 수 있습니다. OMR 시험
             결과는 아래 별도 표에서 확인하세요.
           </p>
@@ -222,10 +223,10 @@ export function ListeningStatusPanel({
                     >
                       완료/전체
                     </th>
-                    <th
+                      <th
                       rowSpan={2}
                       className="min-w-[4.5rem] border-b border-slate-200 px-2 py-2 text-center"
-                      title="객관식 맞은 수 / 응시한 문항 수"
+                      title="객관식 맞은 수 / 채점된 문항 수 (정답 기록이 있는 문항만)"
                     >
                       정답/응시
                     </th>
@@ -272,8 +273,8 @@ export function ListeningStatusPanel({
                         className="px-2 py-2 text-center whitespace-nowrap"
                         title={
                           row.answeredCount > 0
-                            ? `객관식 ${row.answeredCount}문항 중 ${row.correctCount}문항 정답`
-                            : "이번 달 객관식 응시 기록 없음"
+                            ? `채점된 객관식 ${row.answeredCount}문항 중 ${row.correctCount}문항 정답`
+                            : "정답 기록이 있는 문항이 없습니다. (최근 학습부터 집계)"
                         }
                       >
                         {row.answeredCount > 0
