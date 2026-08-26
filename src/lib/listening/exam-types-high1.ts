@@ -120,9 +120,9 @@ export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     format_guide:
       "Table with 5 rows (A–E) and 3~4 columns. Speakers apply constraints until one row remains. table_data required. question_text empty.",
     segment_guide:
-      "M/W dialogue 8~12 turns. Total 100~150 words. Sequential filters (price, size, feature…). Final choice stated.",
+      "M/W dialogue 8~12 turns. Total 100~150 words. Speakers apply sequential filters (budget, size, feature…) by describing REQUIREMENTS only. NEVER name the correct row label/title/letter (no Pine Valley / Room B / Package D). Close with 'that one / that remaining option / let's book it' after the last distinguishing condition.",
     choice_guide:
-      "table_data: { title, rows[5] with no/label/value summary, mismatch_no=correct row 1~5, mismatch_reason=why that row }. choices may be row labels A–E.",
+      "table_data: { title, rows[5] with no/label/value summary, mismatch_no=correct row 1~5, mismatch_reason=why that row }. choices may be row labels A–E. Script must force students to use the table — do not spoil by naming the answer row.",
     difficulty_tier: "standard",
   },
   {

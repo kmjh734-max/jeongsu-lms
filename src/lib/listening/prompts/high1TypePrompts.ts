@@ -81,6 +81,10 @@ choice_image_prompts: 1장. 라벨 ①–⑤가 모두 보이고, 정답 라벨�
 형식: 표 5행(A–E)·3~4열. 조건(가격·크기·옵션)을 순차 적용해 1행 확정.
 table_data 필수: title, rows[5]{no,label,value}, mismatch_no=정답행, mismatch_reason.
 question_text "". needs_image_choices=false.
+CRITICAL (스포일러 금지):
+- 대본에서 정답 행의 이름·라벨·알파벳(예: Pine Valley, Room B, Package D, Game Coding)을 말하지 말 것.
+- 오답 행 이름을 배제 과정에서 잠깐 언급하는 것은 가능하나, 최종 선택에서는 "that one / the remaining option / let's book it"처럼 가리키기만 할 것.
+- 학생이 표를 대조해야만 답을 알 수 있게 조건만 말할 것.
 `.trim(),
   11: `
 ### 고1 11번 — 짧은 응답
