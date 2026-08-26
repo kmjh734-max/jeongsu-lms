@@ -25,14 +25,7 @@ import {
   generateStage6WithAi,
   generateStage7WithAi,
 } from "@/lib/exam-prep/generate-stage67-grammar-ai";
-import {
-  generateStage3WithAi,
-  generateStage5WithAi,
-  generateStage8WithAi,
-  generateStage10WithAi,
-  stageCoverageOk,
-} from "@/lib/exam-prep/generate-workbook-stages-ai";
-import { EXAM_PREP_MODEL_PRIMARY, getExamPrepReasoningEffort } from "@/lib/exam-prep/exam-prep-openai";
+import { EXAM_PREP_MODEL_PRIMARY } from "@/lib/exam-prep/exam-prep-openai";
 import { createWorkbookAction, enrichPassageSentencesAction } from "@/lib/exam-prep/staff-actions";
 import { setStage2PublishedAction } from "@/lib/exam-prep/stage2-staff-actions";
 import { saveStage3BlanksAction, setStage3PublishedAction } from "@/lib/exam-prep/stage3-staff-actions";
@@ -123,29 +116,27 @@ async function generateFullExamPrepWorkbookInner(input: {
     };
   }
 
-  // 1) 한글 해석·어휘 — 항상 상위 API로 지문 분석(이미 해석 있어도 어휘 보강)
+  // 1) 한글 해석 — 비어 있을 때만 AI (이미 있으면 API 생략)
   const { data: before } = await supabase
     .from("exam_passage_sentences")
     .select("id, korean_text")
     .eq("passage_id", passageId);
   const needKo = (before ?? []).some((s) => !String(s.korean_text ?? "").trim());
-  {
+  if (needKo) {
     const enrich = await enrichPassageSentencesAction(passageId);
     if (!enrich.ok) {
-      if (needKo) {
-        return {
-          ok: false as const,
-          message: `한글 해석 생성 실패: ${enrich.message}`,
-        };
-      }
-      notes.push(`1단계 해석 AI 보강 생략: ${enrich.message}`);
-    } else {
-      notes.push(
-        `1단계 해석·어휘 AI(${EXAM_PREP_MODEL_PRIMARY}/${getExamPrepReasoningEffort()}) ${
-          "updated" in enrich ? enrich.updated : 0
-        }문장`
-      );
+      return {
+        ok: false as const,
+        message: `한글 해석 생성 실패: ${enrich.message}`,
+      };
     }
+    notes.push(
+      `1단계 해석 AI(${EXAM_PREP_MODEL_PRIMARY}) ${
+        "updated" in enrich ? enrich.updated : 0
+      }문장`
+    );
+  } else {
+    notes.push("1단계 해석 이미 있음 → AI 생략");
   }
 
   const { data: sentenceRows } = await supabase
@@ -175,30 +166,20 @@ async function generateFullExamPrepWorkbookInner(input: {
     else notes.push(`${stage}단계 공개 완료`);
   }
 
-  // 2) Stage seeds — 우리말 빈칸(구 2단계) 제외, 영어빈칸~영작
+  // 원클릭: 규칙으로 충분한 단계는 AI 생략, 어법·어휘·오류찾기만 경량 AI(병렬)
   notes.push(
-    `모델 ${EXAM_PREP_MODEL_PRIMARY} · reasoning ${getExamPrepReasoningEffort()}`
+    `빠른 생성 · AI는 5·6·7단계만 (medium) · 모델 ${EXAM_PREP_MODEL_PRIMARY}`
   );
 
-  // 우리말 빈칸은 생성·공개하지 않음 (선행 게이트에서 미공개면 스킵)
   await setStage2PublishedAction(passageId, false);
   notes.push("우리말 빈칸 단계 생략");
 
   {
-    const plant = buildStage3Drafts(sentences);
-    const ai = await generateStage3WithAi(sentences);
-    const s3 =
-      ai.source === "ai" && stageCoverageOk(ai.drafts, sentences.length)
-        ? ai.drafts
-        : plant;
+    const s3 = buildStage3Drafts(sentences);
     if (s3.length > 0) {
       const r = await saveStage3BlanksAction(passageId, s3);
       if (!r.ok) return { ok: false as const, message: `2단계(영문빈칸): ${r.message}` };
-      notes.push(
-        ai.source === "ai" && s3 === ai.drafts
-          ? `2단계 영문빈칸 AI ${s3.length}개`
-          : `2단계 영문빈칸 규칙 ${s3.length}개${ai.error ? ` (AI: ${ai.error})` : ""}`
-      );
+      notes.push(`2단계 영문빈칸 규칙 ${s3.length}개`);
       await tryPublish(3, () => setStage3PublishedAction(passageId, true));
     } else {
       notes.push("2단계 영문빈칸: 생성할 빈칸 없음");
@@ -213,61 +194,59 @@ async function generateFullExamPrepWorkbookInner(input: {
   }
 
   {
-    const plant = buildStage5Drafts(sentences);
-    const ai = await generateStage5WithAi(sentences);
-    const s5 =
-      ai.source === "ai" && stageCoverageOk(ai.drafts, sentences.length, 0.6)
-        ? ai.drafts
-        : plant;
+    const s5 = buildStage5Drafts(sentences);
     if (s5.length > 0) {
       const r = await saveStage5ItemsAction(passageId, s5);
       if (!r.ok) return { ok: false as const, message: `4단계(동사): ${r.message}` };
-      notes.push(
-        ai.source === "ai" && s5 === ai.drafts
-          ? `4단계 동사 AI ${s5.length}문항`
-          : `4단계 동사 규칙 ${s5.length}문항${ai.error ? ` (AI: ${ai.error})` : ""}`
-      );
+      notes.push(`4단계 동사 규칙 ${s5.length}문항`);
       await tryPublish(5, () => setStage5PublishedAction(passageId, true));
     }
   }
 
   {
     const ids = sentences.map((s) => s.id);
-    // 5단계 어법 = 변형문제 grammar 엔진 (AI 우선, 규칙으로 빈 문장만 보충)
     const plantG = buildStage6GrammarDrafts(sentences);
-    const aiG = await generateStage6WithAi(sentences, "grammar");
-    const useAiG = aiG.source === "ai" && aiG.drafts.length > 0;
+    const plantV = buildStage6VocabDrafts(sentences);
+
+    // 어법·어휘(혼합 1회) + 7단계 오류찾기 — 병렬·fast
+    const [ai56, ai7] = await Promise.all([
+      generateStage6WithAi(sentences, "mixed", { fast: true }),
+      generateStage7WithAi(sentences, { fast: true }),
+    ]);
+
+    const aiGrammar = (ai56.drafts ?? []).filter(
+      (d) => (d.question_category || "grammar") !== "vocabulary"
+    );
+    const aiVocab = (ai56.drafts ?? []).filter(
+      (d) => d.question_category === "vocabulary"
+    );
+    const useAiG = ai56.source === "ai" && aiGrammar.length > 0;
+    const useAiV = ai56.source === "ai" && aiVocab.length > 0;
+
     const grammar = mergeStage6Drafts(
-      useAiG ? aiG.drafts : plantG,
+      useAiG ? aiGrammar : plantG,
       plantG,
       ids,
       { category: "grammar", minPerSentence: 1 }
     );
-
-    // 6단계 어휘 = 변형문제 vocab craft (AI 우선)
-    const plantV = buildStage6VocabDrafts(sentences);
-    const aiV = await generateStage6WithAi(sentences, "vocabulary");
-    const useAiV = aiV.source === "ai" && aiV.drafts.length > 0;
     const vocab = mergeStage6Drafts(
-      useAiV ? aiV.drafts : plantV,
+      useAiV ? aiVocab : plantV,
       plantV,
       ids,
       { category: "vocabulary", minPerSentence: 1 }
     );
 
     const s6 = combineStage6Categories(grammar, vocab, ids);
-    const grammarN = grammar.length;
-    const vocabN = vocab.length;
     const gCover = new Set(grammar.map((d) => d.sentence_id)).size;
     const vCover = new Set(vocab.map((d) => d.sentence_id)).size;
     const gOk = stage6AiCoverageOk(grammar, sentences.length, "grammar");
     const vOk = stage6AiCoverageOk(vocab, sentences.length, "vocabulary");
 
     notes.push(
-      `5단계 어법 ${useAiG ? "분석→AI" : "규칙"} ${grammarN}문항 · ${gCover}/${sentences.length}문장${gOk ? " ✓" : ""}${aiG.error ? ` · ${aiG.error}` : ""}`
+      `5단계 어법 ${useAiG ? "AI(fast)" : "규칙"} ${grammar.length}문항 · ${gCover}/${sentences.length}문장${gOk ? " ✓" : ""}${ai56.error && !useAiG ? ` · ${ai56.error}` : ""}`
     );
     notes.push(
-      `6단계 어휘 ${useAiV ? "AI" : "규칙"} ${vocabN}문항 · ${vCover}/${sentences.length}문장${vOk ? " ✓" : ""}${aiV.error && !useAiV ? ` (${aiV.error})` : ""}`
+      `6단계 어휘 ${useAiV ? "AI(fast)" : "규칙"} ${vocab.length}문항 · ${vCover}/${sentences.length}문장${vOk ? " ✓" : ""}`
     );
 
     if (s6.length > 0) {
@@ -275,16 +254,13 @@ async function generateFullExamPrepWorkbookInner(input: {
       if (!r.ok) return { ok: false as const, message: `5·6단계: ${r.message}` };
       await tryPublish(6, () => setStage6PublishedAction(passageId, true));
     }
-  }
 
-  {
-    const ai7 = await generateStage7WithAi(sentences);
     const seed7 =
       ai7.source === "ai" && ai7.candidates.some((c) => c.is_error)
         ? ai7
         : buildStage7Seed(sentences);
     if (ai7.source === "ai") {
-      notes.push(`7단계 AI 오류 ${seed7.requiredErrorCount}개`);
+      notes.push(`7단계 AI(fast) 오류 ${seed7.requiredErrorCount}개`);
     } else if (ai7.error) {
       notes.push(`7단계 AI 실패→규칙: ${ai7.error}`);
     }
@@ -308,22 +284,13 @@ async function generateFullExamPrepWorkbookInner(input: {
   }
 
   {
-    const plant = buildStage8Drafts(sentences);
-    const ai = await generateStage8WithAi(sentences);
-    const s8 =
-      ai.source === "ai" && stageCoverageOk(ai.drafts, Math.max(1, plant.length), 0.5)
-        ? ai.drafts
-        : plant;
+    const s8 = buildStage8Drafts(sentences);
     if (s8.length > 0) {
       const r = await saveStage8GroupsAction(passageId, s8);
       if (!r.ok) {
         notes.push(`8단계 보류: ${r.message}`);
       } else {
-        notes.push(
-          ai.source === "ai" && s8 === ai.drafts
-            ? `8단계 AI ${s8.length}문항`
-            : `8단계 규칙 ${s8.length}문항${ai.error ? ` (AI: ${ai.error})` : ""}`
-        );
+        notes.push(`8단계 규칙 ${s8.length}문항`);
         await tryPublish(8, () => setStage8PublishedAction(passageId, true));
       }
     } else {
@@ -345,22 +312,13 @@ async function generateFullExamPrepWorkbookInner(input: {
   }
 
   {
-    const plant = buildStage10Drafts(sentences);
-    const ai = await generateStage10WithAi(sentences);
-    const s10 =
-      ai.source === "ai" && stageCoverageOk(ai.drafts, sentences.length, 0.5)
-        ? ai.drafts
-        : plant;
+    const s10 = buildStage10Drafts(sentences);
     if (s10.length > 0) {
       const r = await saveStage10ItemsAction(passageId, s10);
       if (!r.ok) {
         notes.push(`10단계 보류: ${r.message}`);
       } else {
-        notes.push(
-          ai.source === "ai" && s10 === ai.drafts
-            ? `10단계 AI ${s10.length}문항`
-            : `10단계 규칙 ${s10.length}문항${ai.error ? ` (AI: ${ai.error})` : ""}`
-        );
+        notes.push(`10단계 규칙 ${s10.length}문항`);
         await tryPublish(10, () => setStage10PublishedAction(passageId, true));
       }
     }

@@ -54,7 +54,7 @@ export function GenerateSetWorkbooksButton({
     }
     if (
       !window.confirm(
-        `「${setTitle}」세트 지문 ${passages.length}개 전체에 워크북(1~10단계)을 만들까요?\n지문당 최대 5분 정도 걸릴 수 있습니다. 완료될 때까지 창을 닫지 마세요.`
+        `「${setTitle}」세트 지문 ${passages.length}개 전체에 워크북(1~10단계)을 만들까요?\n지문당 보통 1~2분 걸립니다. 완료될 때까지 창을 닫지 마세요.`
       )
     ) {
       return;

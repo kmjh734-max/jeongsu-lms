@@ -61,7 +61,7 @@ export function GenerateWorkbookButton({
         </p>
       </div>
       <Button type="button" disabled={loading} onClick={() => void handleClick()}>
-        {loading ? "생성 중… (1~2분 걸릴 수 있음)" : "워크북 생성 (1~10단계 자동)"}
+        {loading ? "생성 중… (보통 1~2분)" : "워크북 생성 (1~10단계 자동)"}
       </Button>
       {message && (
         <p className="text-sm text-slate-700 whitespace-pre-wrap">{message}</p>

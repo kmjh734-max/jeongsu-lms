@@ -106,15 +106,18 @@ type AiStage7Error = {
 async function stage56ChatJson(
   system: string,
   user: string,
-  opts?: { temperature?: number; maxTokens?: number }
+  opts?: {
+    temperature?: number;
+    maxTokens?: number;
+    reasoningEffort?: ReturnType<typeof getExamPrepReasoningEffort>;
+  }
 ): Promise<unknown> {
-  // 변형문제와 동일 경로: retry + 상위 모델 + high/xhigh reasoning
   return questionGeneratorChatJsonWithRetry({
     system,
     user,
     temperature: opts?.temperature ?? 0.25,
     maxTokens: opts?.maxTokens ?? 9000,
-    reasoningEffort: getExamPrepReasoningEffort(),
+    reasoningEffort: opts?.reasoningEffort ?? getExamPrepReasoningEffort(),
     preferredModels: getExamPrepPreferredModels(),
   });
 }
@@ -296,6 +299,11 @@ function parseAiBlanks(
   return drafts;
 }
 
+export type Stage6AiOptions = {
+  /** 원클릭 워크북: 사전분석·gap·재시도 생략 + reasoning medium */
+  fast?: boolean;
+};
+
 /**
  * 5단계 어법 / 6단계 어휘 AI 생성
  * 어법: 교재 기준 지문 분석 → 분석 시드 + AI 출제 → 빈 문장 보충
@@ -303,8 +311,10 @@ function parseAiBlanks(
  */
 export async function generateStage6WithAi(
   sentences: SeedSentence[],
-  mode: Stage6AiMode = "mixed"
+  mode: Stage6AiMode = "mixed",
+  opts?: Stage6AiOptions
 ): Promise<{ drafts: Stage6ItemDraft[]; source: "ai" | "none"; error?: string }> {
+  const fast = Boolean(opts?.fast);
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
   if (ordered.length === 0) {
     return { drafts: [], source: "none", error: "문장 없음" };
@@ -314,7 +324,7 @@ export async function generateStage6WithAi(
   let analysisFocus = "";
   let analysisSeedBlanks: AiStage6Blank[] = [];
   let analysisNote = "";
-  if (mode === "grammar" || mode === "mixed") {
+  if (!fast && (mode === "grammar" || mode === "mixed")) {
     const analysis = await analyzePassageGrammarForWorkbook({
       sentences: ordered,
     });
@@ -342,7 +352,7 @@ export async function generateStage6WithAi(
   let vocabFocus = "";
   let vocabSeedBlanks: AiStage6Blank[] = [];
   let vocabNote = "";
-  if (mode === "vocabulary" || mode === "mixed") {
+  if (!fast && (mode === "vocabulary" || mode === "mixed")) {
     const vAnalysis = await analyzePassageVocabForWorkbook({
       sentences: ordered,
     });
@@ -395,10 +405,16 @@ ${buildVocabSystem(vocabFocus)}`;
 
   const noteForMode =
     mode === "grammar"
-      ? "1) 지문 분석(analysisSeeds/focus)을 우선 반영해 blanks를 확정하라. 2) 빠진 문장만 CASE로 보충. 어휘 쌍 금지."
+      ? fast
+        ? "모든 문장에 교재 CASE/GP 어법 blanks. 어휘 쌍 금지. 빠르게 확정."
+        : "1) 지문 분석(analysisSeeds/focus)을 우선 반영해 blanks를 확정하라. 2) 빠진 문장만 CASE로 보충. 어휘 쌍 금지."
       : mode === "vocabulary"
-        ? "1) 어휘 분석(analysisSeeds)의 반의·유사형태 쌍을 우선 확정하라. 2) 빠진 문장만 antonym/lookalike로 보충. 어법 쌍 금지. 세트에서 반의와 유사형태를 섞어라."
-        : "어법·어휘 분석 시드를 반영하고 questionKind로 구분. 어휘는 반의·유사형태 우선.";
+        ? fast
+          ? "모든 문장에 반의어·유사형태 어휘 blanks. 어법 쌍 금지. 빠르게 확정."
+          : "1) 어휘 분석(analysisSeeds)의 반의·유사형태 쌍을 우선 확정하라. 2) 빠진 문장만 antonym/lookalike로 보충. 어법 쌍 금지. 세트에서 반의와 유사형태를 섞어라."
+        : fast
+          ? "어법·어휘를 questionKind로 구분해 한 번에 출제. 모든 문장 최소 1개. 빠르게 확정."
+          : "어법·어휘 분석 시드를 반영하고 questionKind로 구분. 어휘는 반의·유사형태 우선.";
 
   const baseUser = {
     task:
@@ -413,6 +429,7 @@ ${buildVocabSystem(vocabFocus)}`;
         : "question-generator-grammar-catalog+seosulhyeong",
     modelHint: EXAM_PREP_MODEL_PRIMARY,
     mode,
+    fast: fast || undefined,
     requireEverySentence: true,
     requireVocabMix:
       mode === "vocabulary" || mode === "mixed"
@@ -428,10 +445,15 @@ ${buildVocabSystem(vocabFocus)}`;
     note: noteForMode,
   };
 
-  const chatOpts =
-    mode === "vocabulary"
-      ? { temperature: 0.35, maxTokens: 10000 }
-      : { temperature: 0.25, maxTokens: 9000 };
+  const chatOpts = {
+    temperature: mode === "vocabulary" ? 0.35 : 0.25,
+    maxTokens: fast ? 7000 : mode === "vocabulary" ? 10000 : 9000,
+    reasoningEffort: (fast ? "medium" : getExamPrepReasoningEffort()) as
+      | "low"
+      | "medium"
+      | "high"
+      | "xhigh",
+  };
 
   try {
     // 분석 시드를 먼저 draft로 변환
@@ -480,7 +502,7 @@ ${buildVocabSystem(vocabFocus)}`;
 
     const covered = new Set(drafts.map((d) => d.sentence_id));
     const missing = ordered.filter((s) => !covered.has(s.id));
-    if (missing.length > 0) {
+    if (!fast && missing.length > 0) {
       const gapNote =
         mode === "vocabulary"
           ? `다음 ${missing.length}개 문장에만 반의어(antonym) 또는 유사형태(lookalike) blanks 추가. 이미 있는 문장 금지. 어법 쌍 금지.`
@@ -517,7 +539,7 @@ ${buildVocabSystem(vocabFocus)}`;
       }
     }
 
-    if (drafts.length === 0) {
+    if (!fast && drafts.length === 0) {
       const rawRetry = await stage56ChatJson(
         system,
         JSON.stringify({
@@ -606,7 +628,8 @@ export async function generateStage6VocabWithAi(sentences: SeedSentence[]) {
 }
 
 export async function generateStage7WithAi(
-  sentences: SeedSentence[]
+  sentences: SeedSentence[],
+  opts?: { fast?: boolean }
 ): Promise<{
   displays: Array<{ sentenceId: string; stage7DisplayText: string }>;
   candidates: Stage7CandidateDraft[];
@@ -614,6 +637,7 @@ export async function generateStage7WithAi(
   source: "ai" | "none";
   error?: string;
 }> {
+  const fast = Boolean(opts?.fast);
   const ordered = [...sentences].sort((a, b) => a.sentence_order - b.sentence_order);
   const focus = pickGrammarFocus(3);
   const system = `당신은 수능·내신 어법 출제 전문가다. 변형문제 「어법오류수정3」과 동일 기준으로 워크북 7단계를 만든다.
@@ -660,7 +684,8 @@ ${grammarChoiceCraftNote()}
     const raw = await examPrepChatJson({
       system,
       user,
-      maxTokens: 4000,
+      maxTokens: fast ? 3000 : 4000,
+      reasoningEffort: fast ? "medium" : undefined,
     });
     const list = (raw as { errors?: AiStage7Error[] })?.errors;
     if (!Array.isArray(list) || list.length === 0) {

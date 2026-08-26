@@ -348,8 +348,8 @@ export function WorkbookCreateForm({
         <span>
           <span className="font-semibold">1~10단계 문제 자동 생성</span>
           <span className="mt-0.5 block text-xs text-slate-500">
-            해석·빈칸·어법·어휘까지 한 번에 만듭니다. 지문당 수 분 걸릴 수
-            있습니다.
+            해석·빈칸은 규칙으로, 어법·어휘·오류찾기는 AI로 만듭니다. 지문당 보통
+            1~2분 정도입니다.
             {!autoGenerate &&
               " (끄면 단계 껍데기만 만들고, 문제는 나중에 채웁니다.)"}
           </span>
