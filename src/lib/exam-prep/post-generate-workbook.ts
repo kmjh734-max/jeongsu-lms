@@ -1,7 +1,6 @@
 /**
- * /api/exam-prep/generate-workbook — shell → ai56 → ai7 순차 호출.
- * 한 요청에 몰면 Vercel/CDN 504가 나므로 단계를 나눈다.
- * AI 보강이 실패해도 shell 워크북은 유지한다.
+ * /api/exam-prep/generate-workbook — shell → ai56 순차 호출.
+ * 진행률 콜백은 각 단계 시작 전에 호출해 UI가 멈추지 않게 한다.
  */
 export type GenerateWorkbookApiResult =
   | {
@@ -70,7 +69,7 @@ async function postPhase(input: {
       if (res.status === 504 || res.status === 502 || res.status === 524) {
         return {
           ok: false,
-          message: `서버 시간 초과 (HTTP ${res.status}). 잠시 후 다시 시도해 주세요.`,
+          message: `서버 시간 초과 (HTTP ${res.status}). 규칙 문항은 저장됐을 수 있습니다.`,
         };
       }
       const looksPlatform =
@@ -81,7 +80,7 @@ async function postPhase(input: {
       return {
         ok: false,
         message: looksPlatform
-          ? `서버가 응답하지 못했습니다 (HTTP ${res.status}). 로그인 상태를 확인하거나 잠시 후 다시 시도해 주세요.`
+          ? `서버가 응답하지 못했습니다 (HTTP ${res.status}).`
           : `서버 응답을 해석할 수 없습니다 (HTTP ${res.status})${
               snippet ? `: ${snippet}` : ""
             }`,
@@ -116,21 +115,19 @@ export async function postGenerateWorkbook(input: {
   publishStages?: boolean;
   onPhase?: (info: {
     phase: "shell" | "ai56";
-    index: number;
-    total: number;
+    status: "start" | "done";
   }) => void;
 }): Promise<GenerateWorkbookApiResult> {
   const notes: string[] = [];
-  // shell → ai56(지문분석+어법·어휘). 7단계는 shell 규칙으로 두고 AI 생략(속도).
-  const phases: Array<"shell" | "ai56"> = ["shell", "ai56"];
 
+  input.onPhase?.({ phase: "shell", status: "start" });
   const shell = await postPhase({
     passageId: input.passageId,
     title: input.title,
     publishStages: input.publishStages,
     phase: "shell",
   });
-  input.onPhase?.({ phase: "shell", index: 1, total: phases.length });
+  input.onPhase?.({ phase: "shell", status: "done" });
 
   if (!shell.ok || !shell.workbookId) {
     return {
@@ -143,17 +140,19 @@ export async function postGenerateWorkbook(input: {
 
   const workbookId = shell.workbookId;
 
-  input.onPhase?.({ phase: "ai56", index: 2, total: phases.length });
+  input.onPhase?.({ phase: "ai56", status: "start" });
   const ai56 = await postPhase({
     passageId: input.passageId,
     publishStages: input.publishStages,
     phase: "ai56",
   });
+  input.onPhase?.({ phase: "ai56", status: "done" });
+
   if (ai56.ok) {
     if (ai56.notes?.length) notes.push(...ai56.notes);
   } else {
     notes.push(
-      `ai56 보강 생략: ${ai56.message || "시간 초과/오류"} (규칙 문항 유지)`
+      `어법 보강 생략: ${ai56.message || "시간 초과/오류"} (규칙 문항 유지)`
     );
   }
 

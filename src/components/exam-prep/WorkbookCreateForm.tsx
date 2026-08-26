@@ -75,25 +75,27 @@ export function WorkbookCreateForm({
     }
   }
 
-  /** 지문 i/N 구간에서 대기 중일 때 부드럽게 % 상승 (완료 전까지 구간 상한의 92%) */
-  function startPassageTicker(
-    index: number,
-    total: number,
+  /**
+   * fromPct → toPct 구간에서 계속 올라가도록 (상한에 멈춰 보이지 않게)
+   */
+  function startRangeTicker(
+    fromPct: number,
+    toPct: number,
     label: string
   ) {
     clearTicker();
-    const span = 100 / total;
-    const base = (index / total) * 100;
-    const ceiling = base + span * 0.92;
-    let soft = base;
-    setProgressPercent(Math.round(base));
-    setProgressLabel(`${Math.round(base)}% · ${index + 1}/${total} · ${label}`);
+    const lo = Math.max(0, fromPct);
+    const hi = Math.max(lo + 1, toPct);
+    let soft = lo;
+    setProgressPercent(Math.round(lo));
+    setProgressLabel(`${Math.round(lo)}% · ${label}`);
     tickRef.current = setInterval(() => {
-      soft = Math.min(ceiling, soft + span * 0.035);
+      const room = hi - soft;
+      soft = Math.min(hi - 0.3, soft + Math.max(0.4, room * 0.08));
       const pct = Math.round(soft);
       setProgressPercent(pct);
-      setProgressLabel(`${pct}% · ${index + 1}/${total} · ${label}`);
-    }, 1800);
+      setProgressLabel(`${pct}% · ${label}`);
+    }, 900);
   }
 
   function markPassageDone(index: number, total: number, label: string) {
@@ -115,26 +117,48 @@ export function WorkbookCreateForm({
     setSelected([...EXAM_PRESET_STEP_NUMBERS[key]]);
   }
 
-  async function generateFull(p: WorkbookCreatePassage, wbTitle: string) {
+  async function generateFull(
+    p: WorkbookCreatePassage,
+    wbTitle: string,
+    passageIndex: number,
+    passageTotal: number
+  ) {
+    const span = 100 / Math.max(1, passageTotal);
+    const base = (passageIndex / passageTotal) * 100;
+    const shellEnd = base + span * 0.35;
+    const aiEnd = base + span * 0.92;
+    const label = passageLabel(p);
+
     const data = await postGenerateWorkbook({
       passageId: p.id,
       title: wbTitle,
       publishStages: true,
-      onPhase: ({ phase, index, total: phaseTotal }) => {
-        const span = 100 / Math.max(1, targetPassages.length);
-        // find current passage index from label progress — use soft percent within current passage
-        const base = Math.round(
-          ((targetPassages.findIndex((x) => x.id === p.id) || 0) / targetPassages.length) *
-            100
-        );
-        const within = Math.round((index / phaseTotal) * span * 0.95);
-        const pct = Math.min(99, base + within);
-        const phaseLabel =
-          phase === "shell" ? "규칙 생성" : "지문분석→어법·어휘";
-        setProgressPercent(pct);
-        setProgressLabel(
-          `${pct}% · ${passageLabel(p)} · ${phaseLabel} (${index}/${phaseTotal})`
-        );
+      onPhase: ({ phase, status }) => {
+        if (phase === "shell" && status === "start") {
+          startRangeTicker(
+            base,
+            shellEnd,
+            `${passageIndex + 1}/${passageTotal} · ${label} · 규칙 생성`
+          );
+        } else if (phase === "shell" && status === "done") {
+          clearTicker();
+          setProgressPercent(Math.round(shellEnd));
+          setProgressLabel(
+            `${Math.round(shellEnd)}% · ${passageIndex + 1}/${passageTotal} · ${label} · 규칙 완료`
+          );
+        } else if (phase === "ai56" && status === "start") {
+          startRangeTicker(
+            shellEnd,
+            aiEnd,
+            `${passageIndex + 1}/${passageTotal} · ${label} · 지문분석·어법 AI`
+          );
+        } else if (phase === "ai56" && status === "done") {
+          clearTicker();
+          setProgressPercent(Math.round(aiEnd));
+          setProgressLabel(
+            `${Math.round(aiEnd)}% · ${passageIndex + 1}/${passageTotal} · ${label} · 어법 보강 완료`
+          );
+        }
       },
     });
     if (!data.ok || !data.workbookId) {
@@ -173,7 +197,6 @@ export function WorkbookCreateForm({
       for (let i = 0; i < total; i++) {
         const p = targetPassages[i]!;
         const label = passageLabel(p);
-        startPassageTicker(i, total, label);
 
         const wbTitle =
           total === 1
@@ -184,7 +207,7 @@ export function WorkbookCreateForm({
 
         if (autoGenerate) {
           try {
-            const data = await generateFull(p, wbTitle);
+            const data = await generateFull(p, wbTitle, i, total);
             okIds.push(data.workbookId!);
             if (data.notes?.length) {
               noteLines.push(

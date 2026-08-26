@@ -352,28 +352,20 @@ async function runAi56Phase(input: {
   const plantG = buildStage6GrammarDrafts(sentences);
   const plantV = buildStage6VocabDrafts(sentences);
 
-  const ai56 = await generateStage6WithAi(sentences, "mixed", { quality: true });
-  const aiGrammar = (ai56.drafts ?? []).filter(
-    (d) => (d.question_category || "grammar") !== "vocabulary"
-  );
-  const aiVocab = (ai56.drafts ?? []).filter(
-    (d) => d.question_category === "vocabulary"
-  );
-  const useAiG = ai56.source === "ai" && aiGrammar.length > 0;
-  const useAiV = ai56.source === "ai" && aiVocab.length > 0;
+  // 어법만 지문분석→AI (혼합+어휘분석은 504/장시간 원인). 어휘는 규칙 유지.
+  const aiG = await generateStage6WithAi(sentences, "grammar", { quality: true });
+  const useAiG = aiG.source === "ai" && aiG.drafts.length > 0;
 
   const grammar = mergeStage6Drafts(
-    useAiG ? aiGrammar : plantG,
+    useAiG ? aiG.drafts : plantG,
     plantG,
     ids,
     { category: "grammar", minPerSentence: 2 }
   );
-  const vocab = mergeStage6Drafts(
-    useAiV ? aiVocab : plantV,
-    plantV,
-    ids,
-    { category: "vocabulary", minPerSentence: 1 }
-  );
+  const vocab = mergeStage6Drafts(plantV, plantV, ids, {
+    category: "vocabulary",
+    minPerSentence: 1,
+  });
   const s6 = combineStage6Categories(grammar, vocab, ids);
   const gCover = new Set(grammar.map((d) => d.sentence_id)).size;
   const vCover = new Set(vocab.map((d) => d.sentence_id)).size;
@@ -381,10 +373,10 @@ async function runAi56Phase(input: {
   const vOk = stage6AiCoverageOk(vocab, sentences.length, "vocabulary");
 
   notes.push(
-    `5단계 어법 ${useAiG ? "분석→AI" : "규칙"} ${grammar.length} · ${gCover}/${sentences.length}${gOk ? " ✓" : ""}`
+    `5단계 어법 ${useAiG ? "분석→AI" : "규칙"} ${grammar.length} · ${gCover}/${sentences.length}${gOk ? " ✓" : ""}${aiG.error && !useAiG ? ` · ${aiG.error}` : ""}`
   );
   notes.push(
-    `6단계 어휘 ${useAiV ? "분석→AI" : "규칙"} ${vocab.length} · ${vCover}/${sentences.length}${vOk ? " ✓" : ""}`
+    `6단계 어휘 규칙 ${vocab.length} · ${vCover}/${sentences.length}${vOk ? " ✓" : ""}`
   );
 
   if (s6.length > 0) {
@@ -398,7 +390,7 @@ async function runAi56Phase(input: {
     ok: true,
     phase: "ai56",
     notes,
-    message: "어법·어휘 AI 보강 완료",
+    message: "어법 AI 보강 완료",
   };
 }
 

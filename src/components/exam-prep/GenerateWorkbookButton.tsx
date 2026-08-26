@@ -36,10 +36,14 @@ export function GenerateWorkbookButton({
       passageId,
       title: passageTitle ? `${passageTitle} · 10단계 WORKBOOK` : "10단계 WORKBOOK",
       publishStages: true,
-      onPhase: ({ phase, index, total }) => {
-        const label =
-          phase === "shell" ? "규칙 생성" : "지문분석→어법·어휘";
-        setProgress(`${label} (${index}/${total})`);
+      onPhase: ({ phase, status }) => {
+        if (phase === "shell") {
+          setProgress(status === "start" ? "규칙 생성 중…" : "규칙 완료");
+        } else {
+          setProgress(
+            status === "start" ? "지문분석·어법 AI 중…" : "어법 보강 완료"
+          );
+        }
       },
     });
     setLoading(false);

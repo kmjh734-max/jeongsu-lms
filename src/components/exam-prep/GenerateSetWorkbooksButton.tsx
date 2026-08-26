@@ -31,20 +31,20 @@ export function GenerateSetWorkbooksButton({
     }
   }
 
-  function startPassageTicker(index: number, total: number, title: string) {
+  function startRangeTicker(fromPct: number, toPct: number, label: string) {
     clearTicker();
-    const span = 100 / total;
-    const base = (index / total) * 100;
-    const ceiling = base + span * 0.92;
-    let soft = base;
-    setProgressPercent(Math.round(base));
-    setProgressLabel(`${Math.round(base)}% · ${index + 1}/${total} · ${title}`);
+    const lo = Math.max(0, fromPct);
+    const hi = Math.max(lo + 1, toPct);
+    let soft = lo;
+    setProgressPercent(Math.round(lo));
+    setProgressLabel(`${Math.round(lo)}% · ${label}`);
     tickRef.current = setInterval(() => {
-      soft = Math.min(ceiling, soft + span * 0.035);
+      const room = hi - soft;
+      soft = Math.min(hi - 0.3, soft + Math.max(0.4, room * 0.08));
       const pct = Math.round(soft);
       setProgressPercent(pct);
-      setProgressLabel(`${pct}% · ${index + 1}/${total} · ${title}`);
-    }, 1800);
+      setProgressLabel(`${pct}% · ${label}`);
+    }, 900);
   }
 
   async function handleClick() {
@@ -69,11 +69,29 @@ export function GenerateSetWorkbooksButton({
 
     for (let i = 0; i < total; i++) {
       const p = passages[i]!;
-      startPassageTicker(i, total, p.title);
+      const span = 100 / total;
+      const base = (i / total) * 100;
+      const shellEnd = base + span * 0.35;
+      const aiEnd = base + span * 0.92;
       try {
         const result = await postGenerateWorkbook({
           passageId: p.id,
           title: `${p.title} · 10단계 WORKBOOK`,
+          onPhase: ({ phase, status }) => {
+            if (phase === "shell" && status === "start") {
+              startRangeTicker(
+                base,
+                shellEnd,
+                `${i + 1}/${total} · ${p.title} · 규칙`
+              );
+            } else if (phase === "ai56" && status === "start") {
+              startRangeTicker(
+                shellEnd,
+                aiEnd,
+                `${i + 1}/${total} · ${p.title} · 어법 AI`
+              );
+            }
+          },
         });
         clearTicker();
         const pct = Math.round(((i + 1) / total) * 100);
