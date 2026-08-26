@@ -9,6 +9,7 @@ import {
   WORKBOOK_10_STEPS,
 } from "@/lib/exam-prep/presets";
 import { createWorkbookAction } from "@/lib/exam-prep/staff-actions";
+import { postGenerateWorkbook } from "@/lib/exam-prep/post-generate-workbook";
 import type { ExamPresetType } from "@/lib/exam-prep/types";
 
 const ALL_STEPS = WORKBOOK_10_STEPS.map((s) => s.number);
@@ -115,23 +116,15 @@ export function WorkbookCreateForm({
   }
 
   async function generateFull(p: WorkbookCreatePassage, wbTitle: string) {
-    const res = await fetch("/api/exam-prep/generate-workbook", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        passageId: p.id,
-        title: wbTitle,
-        publishStages: true,
-      }),
+    const data = await postGenerateWorkbook({
+      passageId: p.id,
+      title: wbTitle,
+      publishStages: true,
     });
-    const data = (await res.json()) as {
-      ok: boolean;
-      workbookId?: string;
-      message?: string;
-      notes?: string[];
-    };
-    if (!res.ok || !data.ok || !data.workbookId) {
-      throw new Error(data.message || `생성 실패 (HTTP ${res.status})`);
+    if (!data.ok || !("workbookId" in data) || !data.workbookId) {
+      throw new Error(
+        !data.ok ? data.message : `생성 실패`
+      );
     }
     return data;
   }

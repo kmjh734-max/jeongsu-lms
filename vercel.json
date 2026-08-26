@@ -3,6 +3,9 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "functions": {
+    "src/app/api/exam-prep/generate-workbook/route.ts": {
+      "maxDuration": 300
+    },
     "src/app/api/student-records/extract/route.ts": {
       "maxDuration": 300
     },

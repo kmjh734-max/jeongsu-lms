@@ -2,50 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-
-type GenResult =
-  | {
-      ok: true;
-      workbookId: string;
-      notes?: string[];
-      message?: string;
-    }
-  | { ok: false; message: string; notes?: string[] };
-
-async function generateOneWorkbook(input: {
-  passageId: string;
-  title: string;
-}): Promise<GenResult> {
-  const res = await fetch("/api/exam-prep/generate-workbook", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      passageId: input.passageId,
-      title: input.title,
-      publishStages: true,
-    }),
-  });
-  let data: GenResult | null = null;
-  try {
-    data = (await res.json()) as GenResult;
-  } catch {
-    return {
-      ok: false,
-      message: `서버 응답 오류 (HTTP ${res.status}). 시간 초과일 수 있습니다.`,
-    };
-  }
-  if (!res.ok && data && typeof data === "object") {
-    return {
-      ok: false,
-      message:
-        "message" in data && data.message
-          ? String(data.message)
-          : `생성 실패 (HTTP ${res.status})`,
-      notes: "notes" in data ? data.notes : undefined,
-    };
-  }
-  return data;
-}
+import { postGenerateWorkbook } from "@/lib/exam-prep/post-generate-workbook";
 
 /**
  * 세트에 속한 모든 지문에 대해 1~10단계 워크북을 순차 생성
@@ -114,7 +71,7 @@ export function GenerateSetWorkbooksButton({
       const p = passages[i]!;
       startPassageTicker(i, total, p.title);
       try {
-        const result = await generateOneWorkbook({
+        const result = await postGenerateWorkbook({
           passageId: p.id,
           title: `${p.title} · 10단계 WORKBOOK`,
         });

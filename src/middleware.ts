@@ -144,6 +144,13 @@ export async function middleware(request: NextRequest) {
   applyAcademyCookie(supabaseResponse, academySlug);
 
   if (!user) {
+    // fetch(/api/...)는 HTML 로그인 페이지를 JSON으로 파싱하다 깨지므로 JSON 반환
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { ok: false, message: "로그인이 필요합니다. 새로고침 후 다시 시도해 주세요." },
+        { status: 401 }
+      );
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
@@ -171,6 +178,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!role) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { ok: false, message: "권한이 없습니다. 다시 로그인해 주세요." },
+        { status: 401 }
+      );
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
