@@ -145,6 +145,8 @@ export async function updateDailyTaskQuestionProgress(
     studentId: string;
     questionId: string;
     objectiveCompleted: boolean;
+    /** 학생이 고른 객관식 번호(1-based). 있으면 서버에서 정답과 비교해 저장 */
+    selectedAnswer?: number | null;
     dictationCompleted?: boolean;
     dictationScore?: number | null;
     requireDictationPass: boolean;
@@ -215,15 +217,37 @@ export async function updateDailyTaskQuestionProgress(
   const dictationOk = !requireDictation || dictationCompleted;
   const completed = opts.objectiveCompleted && dictationOk;
 
+  let objectiveCorrect: boolean | null | undefined;
+  if (
+    opts.objectiveCompleted &&
+    typeof opts.selectedAnswer === "number" &&
+    opts.selectedAnswer > 0
+  ) {
+    const { data: question } = await admin
+      .from("listening_questions")
+      .select("correct_answer")
+      .eq("id", opts.questionId)
+      .maybeSingle();
+    const correct = Number(question?.correct_answer);
+    if (Number.isFinite(correct) && correct > 0) {
+      objectiveCorrect = opts.selectedAnswer === correct;
+    }
+  }
+
+  const progressPatch: Record<string, unknown> = {
+    objective_completed: opts.objectiveCompleted,
+    dictation_completed: dictationCompleted,
+    dictation_score: dictationScore,
+    completed,
+    completed_at: completed ? new Date().toISOString() : null,
+  };
+  if (objectiveCorrect !== undefined) {
+    progressPatch.objective_correct = objectiveCorrect;
+  }
+
   await admin
     .from("listening_daily_task_progress")
-    .update({
-      objective_completed: opts.objectiveCompleted,
-      dictation_completed: dictationCompleted,
-      dictation_score: dictationScore,
-      completed,
-      completed_at: completed ? new Date().toISOString() : null,
-    })
+    .update(progressPatch)
     .eq("daily_task_id", opts.dailyTaskId)
     .eq("question_id", opts.questionId)
     .eq("student_id", opts.studentId);

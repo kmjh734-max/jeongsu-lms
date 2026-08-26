@@ -43,6 +43,12 @@ export interface ListeningStatusRow {
   completedCount: number;
   totalCount: number;
   executionRate: number;
+  /** 객관식 맞은 문항 수 */
+  correctCount: number;
+  /** 객관식 응시(제출) 문항 수 */
+  answeredCount: number;
+  /** 미완료 학습일 (독촉용) */
+  missedDates: string[];
 }
 
 export interface ListeningStatusTable {

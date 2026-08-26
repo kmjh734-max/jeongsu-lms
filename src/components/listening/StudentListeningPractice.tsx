@@ -149,6 +149,7 @@ export function StudentListeningPractice({
       questionId: string,
       patch: {
         objectiveCompleted: boolean;
+        selectedAnswer?: number | null;
         dictationCompleted?: boolean;
         dictationScore?: number;
       }
@@ -161,6 +162,7 @@ export function StudentListeningPractice({
           dailyTaskId: scheduleMode.dailyTaskId,
           questionId,
           objectiveCompleted: patch.objectiveCompleted,
+          selectedAnswer: patch.selectedAnswer ?? undefined,
           dictationCompleted: patch.dictationCompleted,
           dictationScore: patch.dictationScore,
         }),
@@ -425,6 +427,7 @@ export function StudentListeningPractice({
     if (scheduleMode) {
       void reportScheduleProgress(q.id, {
         objectiveCompleted: true,
+        selectedAnswer: selected,
         dictationCompleted: !dictationRequired || alreadyDictationPassed,
         dictationScore:
           !dictationRequired || alreadyDictationPassed

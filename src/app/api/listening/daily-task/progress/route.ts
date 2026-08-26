@@ -15,6 +15,7 @@ export async function POST(request: Request) {
       dailyTaskId?: string;
       questionId?: string;
       objectiveCompleted?: boolean;
+      selectedAnswer?: number;
       dictationCompleted?: boolean;
       dictationScore?: number;
     };
@@ -25,11 +26,17 @@ export async function POST(request: Request) {
       return jsonError("dailyTaskId와 questionId가 필요합니다.");
     }
 
+    const selectedAnswer =
+      typeof body.selectedAnswer === "number" && body.selectedAnswer > 0
+        ? Math.floor(body.selectedAnswer)
+        : null;
+
     const result = await updateDailyTaskQuestionProgress(access.admin, {
       dailyTaskId,
       studentId: access.profile.id,
       questionId,
       objectiveCompleted: !!body.objectiveCompleted,
+      selectedAnswer,
       dictationCompleted: body.dictationCompleted,
       dictationScore: body.dictationScore,
       requireDictationPass: true,

@@ -367,6 +367,7 @@ export async function loadListeningMonthlyStatusTable(
   }
 
   const tasksByStudentDate = new Map<string, Map<string, TaskRow[]>>();
+  const taskIds: string[] = [];
   for (const row of (taskRows ?? []) as TaskRow[]) {
     const sid = row.student_id;
     const date = row.task_date;
@@ -375,6 +376,32 @@ export async function loadListeningMonthlyStatusTable(
     list.push(row);
     byDate.set(date, list);
     tasksByStudentDate.set(sid, byDate);
+    taskIds.push(row.id);
+  }
+
+  const accuracyByStudent = new Map<
+    string,
+    { correctCount: number; answeredCount: number }
+  >();
+  for (const id of studentIds) {
+    accuracyByStudent.set(id, { correctCount: 0, answeredCount: 0 });
+  }
+  if (taskIds.length > 0) {
+    for (let i = 0; i < taskIds.length; i += 200) {
+      const chunk = taskIds.slice(i, i + 200);
+      const { data: progressRows } = await admin
+        .from("listening_daily_task_progress")
+        .select("student_id, objective_completed, objective_correct")
+        .in("daily_task_id", chunk)
+        .eq("objective_completed", true);
+      for (const p of progressRows ?? []) {
+        const sid = p.student_id as string;
+        const bucket = accuracyByStudent.get(sid);
+        if (!bucket) continue;
+        bucket.answeredCount += 1;
+        if (p.objective_correct === true) bucket.correctCount += 1;
+      }
+    }
   }
 
   const rows: ListeningStatusRow[] = await Promise.all(
@@ -402,10 +429,15 @@ export async function loadListeningMonthlyStatusTable(
 
       let completedCount = 0;
       let totalCount = 0;
+      const missedDates: string[] = [];
       for (const cell of days) {
         if (!cell.isStudyDay || cell.taskDate > todayIso) continue;
         totalCount += 1;
-        if (cell.symbol === "complete") completedCount += 1;
+        if (cell.symbol === "complete") {
+          completedCount += 1;
+        } else if (cell.symbol === "missing" || cell.symbol === "partial") {
+          missedDates.push(cell.taskDate);
+        }
       }
 
       const executionRate =
@@ -418,6 +450,11 @@ export async function loadListeningMonthlyStatusTable(
             ? assignments[0]!.title
             : `듣기학습 (${assignments.length}개 과제)`;
 
+      const accuracy = accuracyByStudent.get(student.id) ?? {
+        correctCount: 0,
+        answeredCount: 0,
+      };
+
       return {
         studentId: student.id,
         studentName: student.name,
@@ -427,6 +464,9 @@ export async function loadListeningMonthlyStatusTable(
         completedCount,
         totalCount,
         executionRate,
+        correctCount: accuracy.correctCount,
+        answeredCount: accuracy.answeredCount,
+        missedDates,
       };
     })
   );
