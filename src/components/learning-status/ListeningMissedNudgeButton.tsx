@@ -7,6 +7,7 @@ import {
   loadKakaoSdkForReports,
   shareReportViaKakao,
 } from "@/lib/kakao/share-report";
+import { getPublicSiteUrl, toPublicShareUrl } from "@/lib/kakao/share-url";
 import type { ListeningStatusRow } from "@/lib/learning-status/types";
 
 interface ListeningMissedNudgeButtonProps {
@@ -26,8 +27,8 @@ export function ListeningMissedNudgeButton({
   const kakaoConfigured = isKakaoShareConfigured();
 
   const monthLabel = `${year}년 ${month}월`;
-  const siteUrl =
-    typeof window !== "undefined" ? window.location.origin : undefined;
+  const siteUrl = getPublicSiteUrl();
+  const shareUrl = toPublicShareUrl("/student/listening");
 
   const message = useMemo(
     () =>
@@ -73,7 +74,6 @@ export function ListeningMissedNudgeButton({
     }
     setBusy(true);
     setStatus(null);
-    const shareUrl = `${window.location.origin}/student/listening`;
     try {
       const result = await shareReportViaKakao({
         studentName: row.studentName,

@@ -7,6 +7,7 @@ import { buildKakaoPasteMessage } from "@/lib/kakao/paste-message";
 import {
   KAKAO_PRODUCT_LINK_HINT,
   normalizeShareUrl,
+  toPublicShareUrl,
   validateShareUrlForKakao,
 } from "@/lib/kakao/share-url";
 
@@ -185,7 +186,8 @@ function trySend(fn: () => void): { ok: true } | { ok: false; error?: unknown } 
 export async function shareReportViaKakao(
   params: KakaoShareParams
 ): Promise<KakaoShareResult> {
-  const shareUrl = normalizeShareUrl(params.shareUrl);
+  // www / apex 혼용을 NEXT_PUBLIC_SITE_URL 기준으로 맞춤 (리포트·독촉 공통)
+  const shareUrl = toPublicShareUrl(params.shareUrl);
   const validation = validateShareUrlForKakao(shareUrl);
   if (!validation.ok && validation.warning) {
     return { ok: false, fallback: false, message: validation.warning };

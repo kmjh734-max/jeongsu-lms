@@ -26,6 +26,38 @@ export function getExpectedShareHostname(): string | null {
   }
 }
 
+/** www.engcore.co.kr ↔ engcore.co.kr 처럼 apex/www는 동일 사이트로 본다 */
+export function hostnamesMatchForShare(a: string, b: string): boolean {
+  const norm = (h: string) => h.toLowerCase().replace(/^www\./, "");
+  return norm(a) === norm(b);
+}
+
+/**
+ * 공유 링크를 NEXT_PUBLIC_SITE_URL 기준으로 맞춘다.
+ * (브라우저가 www로 열려 있어도 카카오·리포트와 동일 도메인 사용)
+ */
+export function toPublicShareUrl(pathOrUrl: string): string {
+  const base = getPublicSiteUrl();
+  try {
+    if (/^https?:\/\//i.test(pathOrUrl)) {
+      const u = new URL(pathOrUrl);
+      const expected = getExpectedShareHostname();
+      if (expected && hostnamesMatchForShare(u.hostname, expected)) {
+        const pub = new URL(base);
+        pub.pathname = u.pathname;
+        pub.search = u.search;
+        pub.hash = u.hash;
+        return normalizeShareUrl(pub.href);
+      }
+      return normalizeShareUrl(u.href);
+    }
+  } catch {
+    /* fall through */
+  }
+  const path = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  return normalizeShareUrl(`${base}${path}`);
+}
+
 export type ShareUrlValidation = {
   ok: boolean;
   warning?: string;
@@ -50,7 +82,7 @@ export function validateShareUrlForKakao(url: string): ShareUrlValidation {
       };
     }
     const expected = getExpectedShareHostname();
-    if (expected && u.hostname !== expected) {
+    if (expected && !hostnamesMatchForShare(u.hostname, expected)) {
       return {
         ok: false,
         warning: `링크 도메인(${u.hostname})이 NEXT_PUBLIC_SITE_URL(${expected})과 다릅니다. Kakao 제품 링크·플랫폼 Web 도메인을 동일하게 맞춰 주세요.`,
