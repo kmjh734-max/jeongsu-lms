@@ -140,21 +140,25 @@ export function ListeningScheduleManageClient({
   }, [items, viewFilter, filterClassId, filterStudentId]);
 
   const activeCount = items.filter((i) => i.isActive).length;
+  const pausedCount = items.length - activeCount;
   const initialLoading = refreshing && items.length === 0;
 
-  async function setActive(id: string, isActive: boolean, title: string) {
-    const msg = isActive
-      ? `「${title}」 스케줄 과제를 다시 활성화할까요?`
-      : `「${title}」 스케줄 배정을 취소(비활성화)할까요?\n학생에게 더 이상 새 과제가 배정되지 않습니다.`;
+  async function setPaused(id: string, pause: boolean, title: string) {
+    const msg = pause
+      ? `「${title}」 듣기 과제를 일시정지할까요?\n\n시험 기간 등 동안 학생에게 과제가 보이지 않습니다.\n완료한 기록은 유지되며, 재개하면 멈춘 위치부터 이어집니다.`
+      : `「${title}」 듣기 과제를 재개할까요?\n\n오늘부터 다시 배정됩니다.`;
     if (!window.confirm(msg)) return;
 
     setBusyId(id);
     const res = await fetch(`/api/listening/schedule-assignments/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive }),
+      body: JSON.stringify({ isActive: !pause }),
     });
-    const data = (await res.json()) as { ok?: boolean; message?: string };
+    const data = (await res.json()) as {
+      ok?: boolean;
+      message?: string;
+    };
     setBusyId(null);
     if (!data.ok) {
       setError(data.message ?? "처리 실패");
@@ -225,7 +229,8 @@ export function ListeningScheduleManageClient({
           <div>
             <h2 className="text-2xl font-bold text-slate-900">스케줄 과제 관리</h2>
             <p className="mt-1 text-sm text-slate-600">
-              반·학생별 듣기 과제를 배정하고 취소합니다. 활성 {activeCount}건
+              반·학생별 듣기 과제를 배정합니다. 활성 {activeCount}건
+              {pausedCount > 0 ? ` · 일시정지 ${pausedCount}건` : ""}
               {refreshing && items.length > 0 ? " · 업데이트 중…" : ""}
             </p>
           </div>
@@ -457,9 +462,9 @@ export function ListeningScheduleManageClient({
                   </td>
                   <td>
                     {a.isActive ? (
-                      <span className="font-medium text-emerald-700">활성</span>
+                      <span className="font-medium text-emerald-700">진행 중</span>
                     ) : (
-                      <span className="font-medium text-slate-500">취소됨</span>
+                      <span className="font-medium text-amber-700">일시정지</span>
                     )}
                   </td>
                   <td>
@@ -468,19 +473,19 @@ export function ListeningScheduleManageClient({
                         <button
                           type="button"
                           disabled={busyId === a.id}
-                          onClick={() => void setActive(a.id, false, a.title)}
+                          onClick={() => void setPaused(a.id, true, a.title)}
                           className="rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
                         >
-                          배정 취소
+                          일시정지
                         </button>
                       ) : (
                         <button
                           type="button"
                           disabled={busyId === a.id}
-                          onClick={() => void setActive(a.id, true, a.title)}
+                          onClick={() => void setPaused(a.id, false, a.title)}
                           className="rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-800 hover:bg-emerald-100 disabled:opacity-50"
                         >
-                          다시 활성화
+                          재개
                         </button>
                       )}
                       <button

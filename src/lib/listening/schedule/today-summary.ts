@@ -215,6 +215,7 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   const missedTasks: StudentDailyTaskView[] = [];
   for (const row of missedRows ?? []) {
     const assignmentId = row.assignment_id as string;
+    if (!activeAssignmentIds.has(assignmentId)) continue;
     const effectiveStart =
       effectiveStartByAssignment.get(assignmentId) ?? "0000-01-01";
     if ((row.task_date as string) < effectiveStart) continue;
@@ -231,6 +232,7 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   }
 
   const assignmentById = new Map(assignments.map((a) => [a.id, a]));
+  const activeAssignmentIds = new Set(assignments.map((a) => a.id));
   let todayTask: StudentDailyTaskView | null = null;
   let nextStudyDate: string | null = null;
 

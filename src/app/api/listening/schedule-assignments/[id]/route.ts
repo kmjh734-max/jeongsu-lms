@@ -1,6 +1,9 @@
 import { after, NextResponse } from "next/server";
 import { bootstrapDailyTasksForAssignment } from "@/lib/listening/schedule/generate-daily-tasks";
 import { teacherCanManageAssignment } from "@/lib/listening/schedule/list-assignments";
+import {
+  pauseScheduleAssignment,
+} from "@/lib/listening/schedule/pause-assignment";
 import { sortSetIdsByRound } from "@/lib/listening/schedule/question-queue";
 import {
   assertScheduleManager,
@@ -32,6 +35,8 @@ export async function PATCH(
 
     const body = (await request.json()) as {
       isActive?: boolean;
+      /** isActive와 동일 — 일시정지(false) / 재개(true) */
+      isPaused?: boolean;
       addSetIds?: string[];
     };
 
@@ -118,21 +123,58 @@ export async function PATCH(
       });
     }
 
-    const patch: { is_active?: boolean; updated_at: string } = {
-      updated_at: new Date().toISOString(),
-    };
-    if (typeof body.isActive === "boolean") {
-      patch.is_active = body.isActive;
+    const nextActive =
+      typeof body.isActive === "boolean"
+        ? body.isActive
+        : typeof body.isPaused === "boolean"
+          ? !body.isPaused
+          : undefined;
+
+    if (typeof nextActive === "boolean") {
+      if (!nextActive) {
+        const { clearedTasks } = await pauseScheduleAssignment(
+          access.admin,
+          id
+        );
+        return NextResponse.json({
+          ok: true,
+          isActive: false,
+          clearedTasks,
+          message: "듣기 과제를 일시정지했습니다. 재개하면 이어서 배정됩니다.",
+        });
+      }
+
+      const { data: assignment } = await access.admin
+        .from("listening_schedule_assignments")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!assignment) return jsonError("과제를 찾을 수 없습니다.", 404);
+
+      await access.admin
+        .from("listening_schedule_assignments")
+        .update({
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      after(() => {
+        void bootstrapDailyTasksForAssignment(
+          access.admin,
+          assignment as ScheduleAssignmentRow
+        ).catch(() => undefined);
+      });
+
+      return NextResponse.json({
+        ok: true,
+        isActive: true,
+        message: "듣기 과제를 재개했습니다. 학습 진행 위치부터 이어집니다.",
+      });
     }
 
-    const { error } = await access.admin
-      .from("listening_schedule_assignments")
-      .update(patch)
-      .eq("id", id);
-
-    if (error) return jsonError(error.message);
-
-    return NextResponse.json({ ok: true });
+    return jsonError("변경할 상태(isActive)를 지정해 주세요.");
   } catch (e) {
     const message = e instanceof Error ? e.message : "수정 오류";
     return jsonError(message);
