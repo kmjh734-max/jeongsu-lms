@@ -212,6 +212,9 @@ export async function getStudentScheduleTodaySummaryReadOnly(
   ];
   const orderById = await loadQuestionOrderIndexes(admin, questionIdsForLabels);
 
+  const assignmentById = new Map(assignments.map((a) => [a.id, a]));
+  const activeAssignmentIds = new Set(assignments.map((a) => a.id));
+
   const missedTasks: StudentDailyTaskView[] = [];
   for (const row of missedRows ?? []) {
     const assignmentId = row.assignment_id as string;
@@ -231,8 +234,6 @@ export async function getStudentScheduleTodaySummaryReadOnly(
     );
   }
 
-  const assignmentById = new Map(assignments.map((a) => [a.id, a]));
-  const activeAssignmentIds = new Set(assignments.map((a) => a.id));
   let todayTask: StudentDailyTaskView | null = null;
   let nextStudyDate: string | null = null;
 
