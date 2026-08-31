@@ -40,11 +40,18 @@ export function VocabStage1Study({
 }: VocabStage1StudyProps) {
   const router = useRouter();
   const hub = hubHref ?? "/student/vocab";
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(() => {
+    if (stage1Completed) return 0;
+    const seen = new Set(initialSeenIds);
+    const firstUnseen = items.findIndex((it) => !seen.has(it.id));
+    return firstUnseen >= 0 ? firstUnseen : 0;
+  });
   const [flipped, setFlipped] = useState(false);
   const [seenIds, setSeenIds] = useState<Set<string>>(
     () => new Set(stage1Completed ? [] : initialSeenIds)
   );
+  const seenIdsRef = useRef(seenIds);
+  seenIdsRef.current = seenIds;
   const [message, setMessage] = useState<string | null>(null);
   const lastHandledRef = useRef<string | null>(null);
   const speechOk = isSpeechSupported();
@@ -57,6 +64,7 @@ export function VocabStage1Study({
 
   const goTo = useCallback((next: number) => {
     stopSpeaking();
+    lastHandledRef.current = null;
     setIndex(next);
     setFlipped(false);
     setMessage(null);
@@ -85,19 +93,23 @@ export function VocabStage1Study({
     const itemId = current.id;
     const currentIndex = index;
 
+    const nextSeen = new Set(seenIdsRef.current);
+    if (!stage1Completed) nextSeen.add(itemId);
+    seenIdsRef.current = nextSeen;
     if (!stage1Completed) {
-      setSeenIds((prev) => new Set([...prev, itemId]));
+      setSeenIds(nextSeen);
     }
 
-    const nextSeen = new Set(seenIds);
-    if (!stage1Completed) nextSeen.add(itemId);
     const allSeenNow = !stage1Completed && nextSeen.size >= total;
     const atLastCard = currentIndex >= total - 1;
 
-    if (allSeenNow || (stage1Completed && atLastCard)) {
+    if ((allSeenNow && atLastCard) || (stage1Completed && atLastCard)) {
       finishToHub();
-    } else if (currentIndex < total - 1) {
+    } else if (!atLastCard) {
       goTo(currentIndex + 1);
+    } else {
+      const firstUnseen = items.findIndex((it) => !nextSeen.has(it.id));
+      if (firstUnseen >= 0) goTo(firstUnseen);
     }
 
     if (guestMode) {
