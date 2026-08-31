@@ -1,5 +1,5 @@
-import { LineInterpretationWorkbench } from "@/components/lesson-materials/LineInterpretationWorkbench";
+import { redirect } from "next/navigation";
 
-export default function TeacherLessonMaterialsPage() {
-  return <LineInterpretationWorkbench />;
+export default function TeacherLessonMaterialsIndexPage() {
+  redirect("/teacher/lesson-materials/projects");
 }
