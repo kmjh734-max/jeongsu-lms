@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/teacher/vocab", label: "단어학습", group: "학습" },
   { href: "/teacher/listening", label: "듣기학습", group: "학습" },
   { href: "/teacher/question-generator", label: "AI 변형문제", group: "학습" },
+  { href: "/teacher/lesson-materials", label: "수업자료", group: "학습" },
   { href: "/teacher/classes", label: "반 관리", group: "수업 운영" },
   { href: "/teacher/students", label: "학생 관리", group: "수업 운영" },
   { href: "/teacher/progress", label: "수강 현황", group: "수업 운영" },
