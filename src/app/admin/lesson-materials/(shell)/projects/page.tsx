@@ -5,7 +5,7 @@ export default function AdminLessonMaterialsProjectsPage() {
     <LessonMaterialsListClient
       role="admin"
       title="전체 자료"
-      description="지문을 입력한 뒤 탭별로 한줄해석·어휘·분석 등을 차례로 만듭니다."
+      description="교재·단원별 자료함을 만들고, 안에 지문을 추가해 한줄해석 등을 제작합니다."
     />
   );
 }

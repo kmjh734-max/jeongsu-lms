@@ -5,25 +5,24 @@ import { LineInterpretationExportActions } from "@/components/lesson-materials/L
 import { LineInterpretationPreview } from "@/components/lesson-materials/LineInterpretationPreview";
 import { defaultDisplaySettings } from "@/lib/lesson-materials/display-settings";
 import { sanitizeFilename } from "@/lib/lesson-materials/export-line-interpretation";
-import type { LessonMaterialProjectDetail } from "@/lib/lesson-materials/load-project";
+import type { LessonMaterialItemDetail } from "@/lib/lesson-materials/load-items";
 
 export function LessonMaterialExportTab({
-  project,
+  item,
 }: {
-  project: LessonMaterialProjectDetail;
+  item: LessonMaterialItemDetail;
 }) {
-  const settings =
-    project.content.displaySettings ?? defaultDisplaySettings();
-  const result = project.content.lineInterpretation ?? null;
+  const settings = item.content.displaySettings ?? defaultDisplaySettings();
+  const result = item.content.lineInterpretation ?? null;
 
   const exportBaseName = useMemo(() => {
     const title =
       settings.headerTitle.trim() ||
       result?.passageTitle ||
-      project.title ||
+      item.title ||
       "lesson-material";
     return sanitizeFilename(title);
-  }, [project.title, result?.passageTitle, settings.headerTitle]);
+  }, [item.title, result?.passageTitle, settings.headerTitle]);
 
   return (
     <div className="space-y-5">
@@ -62,10 +61,6 @@ export function LessonMaterialExportTab({
             </div>
           </>
         )}
-      </section>
-
-      <section className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
-        어휘·분석, 워크북 통합 내보내기는 이후 단계에서 추가됩니다.
       </section>
     </div>
   );

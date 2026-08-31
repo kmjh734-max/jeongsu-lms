@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LessonMaterialProjectWorkspace } from "@/components/lesson-materials/LessonMaterialProjectWorkspace";
+import { loadLessonMaterialItems } from "@/lib/lesson-materials/load-items";
 import { loadLessonMaterialProject } from "@/lib/lesson-materials/load-project";
 
 interface PageProps {
@@ -13,12 +14,19 @@ export default async function TeacherLessonMaterialProjectPage({
 }: PageProps) {
   const { projectId } = await params;
   const supabase = await createClient();
-  const project = await loadLessonMaterialProject(supabase, projectId);
+  const [project, items] = await Promise.all([
+    loadLessonMaterialProject(supabase, projectId),
+    loadLessonMaterialItems(supabase, projectId),
+  ]);
   if (!project) notFound();
 
   return (
     <Suspense fallback={<p className="text-sm text-slate-500">불러오는 중…</p>}>
-      <LessonMaterialProjectWorkspace role="teacher" project={project} />
+      <LessonMaterialProjectWorkspace
+        role="teacher"
+        project={project}
+        items={items}
+      />
     </Suspense>
   );
 }

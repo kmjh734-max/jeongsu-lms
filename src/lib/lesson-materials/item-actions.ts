@@ -29,43 +29,50 @@ async function requireRole(role: Role) {
   return { profile, error: null };
 }
 
-export async function createLessonMaterialProject(
+async function nextItemOrderIndex(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  projectId: string
+) {
+  const { data } = await supabase
+    .from("lesson_material_items")
+    .select("order_index")
+    .eq("project_id", projectId)
+    .order("order_index", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return ((data?.order_index as number | undefined) ?? -1) + 1;
+}
+
+export async function createLessonMaterialItem(
   role: Role,
+  projectId: string,
   input: {
     title?: string;
+    label?: string;
+    summary?: string;
     sourcePassage?: string;
-    lessonLabel?: string;
-    folderId?: string | null;
-    teacherId?: string;
   }
-): Promise<ActionResult & { projectId?: string }> {
-  const { profile, error } = await requireRole(role);
+): Promise<ActionResult & { itemId?: string }> {
+  const { error } = await requireRole(role);
   if (error) return error;
 
-  const academyId = profile!.academy_id;
-  if (!academyId) {
-    return actionError(
-      "소속 학원 정보가 없습니다. EngCore Admin에서 학원에 연결해 주세요."
-    );
-  }
-
-  const sourcePassage = input.sourcePassage?.trim() ?? "";
+  const passage = input.sourcePassage?.trim() ?? "";
   const title =
     input.title?.trim() ||
-    (sourcePassage ? defaultProjectTitle(sourcePassage) : "새 자료함");
-  const folderId = input.folderId?.trim() || null;
+    (passage ? defaultProjectTitle(passage) : "새 지문");
 
   const supabase = await createClient();
+  const orderIndex = await nextItemOrderIndex(supabase, projectId);
+
   const { data, error: insertError } = await supabase
-    .from("lesson_material_projects")
+    .from("lesson_material_items")
     .insert({
+      project_id: projectId,
       title,
-      lesson_label: input.lessonLabel?.trim() || null,
-      source_passage: sourcePassage || null,
-      folder_id: folderId,
-      teacher_id: role === "teacher" ? profile!.id : input.teacherId || null,
-      created_by: profile!.id,
-      academy_id: academyId,
+      label: input.label?.trim() || null,
+      summary: input.summary?.trim() || null,
+      source_passage: passage || null,
+      order_index: orderIndex,
       content: {},
     })
     .select("id")
@@ -73,21 +80,23 @@ export async function createLessonMaterialProject(
 
   if (insertError) return actionError(insertError.message);
 
-  revalidateLessonMaterialPaths(role, { folderId: folderId ?? undefined, projectId: data.id });
-  return {
-    ...actionSuccess("수업자료가 생성되었습니다."),
-    projectId: data.id,
-  };
+  await supabase
+    .from("lesson_material_projects")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", projectId);
+
+  revalidateLessonMaterialPaths(role, { projectId, itemId: data.id });
+  return { ...actionSuccess("지문이 추가되었습니다."), itemId: data.id };
 }
 
-export async function updateLessonMaterialProject(
+export async function updateLessonMaterialItem(
   role: Role,
-  projectId: string,
+  itemId: string,
   input: {
     title?: string;
-    lessonLabel?: string;
+    label?: string;
+    summary?: string;
     sourcePassage?: string;
-    folderId?: string | null;
     contentPatch?: Partial<LessonMaterialProjectContent>;
   }
 ): Promise<ActionResult> {
@@ -95,7 +104,6 @@ export async function updateLessonMaterialProject(
   if (error) return error;
 
   const supabase = await createClient();
-
   const updates: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
@@ -105,72 +113,77 @@ export async function updateLessonMaterialProject(
     if (!title) return actionError("제목을 입력해 주세요.");
     updates.title = title;
   }
-  if (input.lessonLabel !== undefined) {
-    updates.lesson_label = input.lessonLabel.trim() || null;
-  }
+  if (input.label !== undefined) updates.label = input.label.trim() || null;
+  if (input.summary !== undefined) updates.summary = input.summary.trim() || null;
   if (input.sourcePassage !== undefined) {
     updates.source_passage = input.sourcePassage.trim() || null;
-  }
-  if (input.folderId !== undefined) {
-    updates.folder_id = input.folderId?.trim() || null;
   }
 
   if (input.contentPatch) {
     const { data: row, error: fetchError } = await supabase
-      .from("lesson_material_projects")
+      .from("lesson_material_items")
       .select("content")
-      .eq("id", projectId)
+      .eq("id", itemId)
       .maybeSingle();
-
     if (fetchError) return actionError(fetchError.message);
-    if (!row) return actionError("자료를 찾을 수 없습니다.");
-
-    const merged = mergeProjectContent(
+    if (!row) return actionError("지문을 찾을 수 없습니다.");
+    updates.content = mergeProjectContent(
       parseProjectContent(row.content),
       input.contentPatch
     );
-    updates.content = merged;
   }
 
   const { data: updated, error: updateError } = await supabase
-    .from("lesson_material_projects")
+    .from("lesson_material_items")
     .update(updates)
-    .eq("id", projectId)
-    .select("folder_id")
+    .eq("id", itemId)
+    .select("project_id")
     .single();
 
   if (updateError) return actionError(updateError.message);
 
+  await supabase
+    .from("lesson_material_projects")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", updated.project_id as string);
+
   revalidateLessonMaterialPaths(role, {
-    folderId: (updated.folder_id as string | null) ?? undefined,
-    projectId,
+    projectId: updated.project_id as string,
+    itemId,
   });
   return actionSuccess("저장되었습니다.");
 }
 
-export async function deleteLessonMaterialProject(
+export async function deleteLessonMaterialItems(
   role: Role,
-  projectId: string
+  itemIds: string[]
 ): Promise<ActionResult> {
   const { error } = await requireRole(role);
   if (error) return error;
+  if (itemIds.length === 0) return actionError("삭제할 항목을 선택해 주세요.");
 
   const supabase = await createClient();
-  const { data: row } = await supabase
-    .from("lesson_material_projects")
-    .select("folder_id")
-    .eq("id", projectId)
-    .maybeSingle();
+  const { data: rows } = await supabase
+    .from("lesson_material_items")
+    .select("project_id")
+    .in("id", itemIds)
+    .limit(1);
+
+  const projectId = rows?.[0]?.project_id as string | undefined;
 
   const { error: deleteError } = await supabase
-    .from("lesson_material_projects")
+    .from("lesson_material_items")
     .delete()
-    .eq("id", projectId);
+    .in("id", itemIds);
 
   if (deleteError) return actionError(deleteError.message);
 
-  revalidateLessonMaterialPaths(role, {
-    folderId: (row?.folder_id as string | null) ?? undefined,
-  });
-  return actionSuccess("자료가 삭제되었습니다.");
+  if (projectId) {
+    await supabase
+      .from("lesson_material_projects")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", projectId);
+    revalidateLessonMaterialPaths(role, { projectId });
+  }
+  return actionSuccess(`${itemIds.length}개 지문을 삭제했습니다.`);
 }

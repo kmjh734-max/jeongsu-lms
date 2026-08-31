@@ -5,6 +5,11 @@ import {
   deleteLessonMaterialFolder as deleteFolderLib,
 } from "@/lib/lesson-materials/folder-actions";
 import {
+  createLessonMaterialItem as createItemLib,
+  deleteLessonMaterialItems as deleteItemsLib,
+  updateLessonMaterialItem as updateItemLib,
+} from "@/lib/lesson-materials/item-actions";
+import {
   createLessonMaterialProject as createProjectLib,
   deleteLessonMaterialProject as deleteProjectLib,
   updateLessonMaterialProject as updateProjectLib,
@@ -23,7 +28,6 @@ export async function deleteLessonMaterialFolder(folderId: string) {
 
 export async function createLessonMaterialProject(input: {
   title?: string;
-  sourcePassage?: string;
   lessonLabel?: string;
   folderId?: string | null;
 }) {
@@ -35,7 +39,6 @@ export async function updateLessonMaterialProject(
   input: {
     title?: string;
     lessonLabel?: string;
-    sourcePassage?: string;
     folderId?: string | null;
     contentPatch?: Partial<LessonMaterialProjectContent>;
   }
@@ -45,4 +48,33 @@ export async function updateLessonMaterialProject(
 
 export async function deleteLessonMaterialProject(projectId: string) {
   return deleteProjectLib(ROLE, projectId);
+}
+
+export async function createLessonMaterialItem(
+  projectId: string,
+  input: {
+    title?: string;
+    label?: string;
+    summary?: string;
+    sourcePassage?: string;
+  }
+) {
+  return createItemLib(ROLE, projectId, input);
+}
+
+export async function updateLessonMaterialItem(
+  itemId: string,
+  input: {
+    title?: string;
+    label?: string;
+    summary?: string;
+    sourcePassage?: string;
+    contentPatch?: Partial<LessonMaterialProjectContent>;
+  }
+) {
+  return updateItemLib(ROLE, itemId, input);
+}
+
+export async function deleteLessonMaterialItems(itemIds: string[]) {
+  return deleteItemsLib(ROLE, itemIds);
 }

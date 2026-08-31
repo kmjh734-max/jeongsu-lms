@@ -18,7 +18,7 @@ import {
   buildLineInterpretationRtf,
   downloadTextFile,
 } from "@/lib/lesson-materials/export-line-interpretation";
-import type { LessonMaterialProjectDetail } from "@/lib/lesson-materials/load-project";
+import type { LessonMaterialItemDetail } from "@/lib/lesson-materials/load-items";
 import type {
   LessonMaterialBackground,
   LessonMaterialFontFamily,
@@ -90,22 +90,22 @@ function SelectField<T extends string>({
 
 export function LineInterpretationTab({
   role,
-  project,
+  item,
 }: {
   role: "admin" | "teacher";
-  project: LessonMaterialProjectDetail;
+  item: LessonMaterialItemDetail;
 }) {
   const router = useRouter();
   const actions = role === "admin" ? adminActions : teacherActions;
 
   const initialSettings =
-    project.content.displaySettings ?? defaultDisplaySettings();
+    item.content.displaySettings ?? defaultDisplaySettings();
 
   const [passageTitleHint, setPassageTitleHint] = useState(
-    project.content.passageTitleHint ?? ""
+    item.content.passageTitleHint ?? ""
   );
   const [result, setResult] = useState<LineInterpretationResult | null>(
-    project.content.lineInterpretation ?? null
+    item.content.lineInterpretation ?? null
   );
   const [settings, setSettings] =
     useState<LineInterpretationDisplaySettings>(initialSettings);
@@ -114,8 +114,8 @@ export function LineInterpretationTab({
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const passage = project.source_passage?.trim() ?? "";
-  const lessonLabel = project.lesson_label?.trim() ?? "";
+  const passage = item.source_passage?.trim() ?? "";
+  const lessonLabel = item.label?.trim() || item.project_title;
 
   const updateSettings = useCallback(
     (patch: Partial<LineInterpretationDisplaySettings>) => {
@@ -129,7 +129,7 @@ export function LineInterpretationTab({
     displaySettings?: LineInterpretationDisplaySettings;
     passageTitleHint?: string;
   }) {
-    return actions.updateLessonMaterialProject(project.id, {
+    return actions.updateLessonMaterialItem(item.id, {
       contentPatch: patch,
     });
   }

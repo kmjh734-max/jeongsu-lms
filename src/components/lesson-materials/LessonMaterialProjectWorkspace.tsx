@@ -2,37 +2,38 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import * as adminActions from "@/app/admin/lesson-materials/actions";
 import * as teacherActions from "@/app/teacher/lesson-materials/actions";
 import { LessonMaterialComingSoonTab } from "@/components/lesson-materials/LessonMaterialComingSoonTab";
-import { LessonMaterialExportTab } from "@/components/lesson-materials/LessonMaterialExportTab";
-import { LessonMaterialPassageTab } from "@/components/lesson-materials/LessonMaterialPassageTab";
-import { LineInterpretationTab } from "@/components/lesson-materials/LineInterpretationTab";
+import { LessonMaterialItemsTab } from "@/components/lesson-materials/LessonMaterialItemsTab";
 import { Button } from "@/components/ui/Button";
+import type { LessonMaterialItemRow } from "@/lib/lesson-materials/load-items";
 import type { LessonMaterialProjectDetail } from "@/lib/lesson-materials/load-project";
 
 const TABS = [
-  { id: "passage", label: "자료" },
-  { id: "line", label: "한줄해석" },
-  { id: "vocab", label: "어휘·분석" },
+  { id: "materials", label: "자료" },
+  { id: "analysis", label: "분석 및 요약서" },
+  { id: "questions", label: "변형 문제" },
   { id: "workbook", label: "워크북" },
-  { id: "export", label: "내보내기" },
+  { id: "final", label: "최종 통합자료" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
 
 function parseTab(raw: string | null): TabId {
   if (TABS.some((t) => t.id === raw)) return raw as TabId;
-  return "passage";
+  return "materials";
 }
 
 export function LessonMaterialProjectWorkspace({
   role,
   project,
+  items,
 }: {
   role: "admin" | "teacher";
   project: LessonMaterialProjectDetail;
+  items: LessonMaterialItemRow[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,6 +42,9 @@ export function LessonMaterialProjectWorkspace({
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const actions = role === "admin" ? adminActions : teacherActions;
 
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(project.title);
+
   const setTab = useCallback(
     (next: TabId) => {
       router.replace(`${base}/project/${project.id}?tab=${next}`);
@@ -48,8 +52,23 @@ export function LessonMaterialProjectWorkspace({
     [base, project.id, router]
   );
 
+  async function saveTitle() {
+    const next = titleDraft.trim();
+    if (!next) return;
+    const res = await actions.updateLessonMaterialProject(project.id, {
+      title: next,
+    });
+    if (!res.ok) {
+      window.alert(res.message);
+      return;
+    }
+    setEditingTitle(false);
+    router.refresh();
+  }
+
   async function handleDelete() {
-    if (!window.confirm(`「${project.title}」 자료를 삭제할까요?`)) return;
+    if (!window.confirm(`「${project.title}」 자료함과 안의 지문을 모두 삭제할까요?`))
+      return;
     const result = await actions.deleteLessonMaterialProject(project.id);
     if (!result.ok) {
       window.alert(result.message);
@@ -60,28 +79,8 @@ export function LessonMaterialProjectWorkspace({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <Link
-            href={`${base}/projects`}
-            className="text-sm text-brand-600 hover:underline"
-          >
-            ← 전체 자료
-          </Link>
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">
-            {project.title}
-          </h1>
-          {project.lesson_label ? (
-            <p className="mt-1 text-sm text-slate-500">{project.lesson_label}</p>
-          ) : null}
-        </div>
-        <Button type="button" variant="danger" size="sm" onClick={() => void handleDelete()}>
-          자료 삭제
-        </Button>
-      </div>
-
-      <nav className="flex gap-1 overflow-x-auto border-b border-slate-200 pb-px">
+    <div className="space-y-0">
+      <nav className="-mx-4 flex gap-6 overflow-x-auto border-b border-slate-200 px-4 sm:mx-0 sm:px-0">
         {TABS.map((item) => {
           const active = tab === item.id;
           return (
@@ -89,10 +88,10 @@ export function LessonMaterialProjectWorkspace({
               key={item.id}
               type="button"
               onClick={() => setTab(item.id)}
-              className={`shrink-0 rounded-t-lg px-4 py-2.5 text-sm font-medium transition ${
+              className={`shrink-0 border-b-2 pb-3 text-sm font-medium transition ${
                 active
-                  ? "border border-b-white border-slate-200 bg-white text-brand-700"
-                  : "text-slate-600 hover:bg-white/70 hover:text-slate-900"
+                  ? "border-brand-600 text-brand-700"
+                  : "border-transparent text-slate-600 hover:text-slate-900"
               }`}
             >
               {item.label}
@@ -101,27 +100,81 @@ export function LessonMaterialProjectWorkspace({
         })}
       </nav>
 
-      <div className="rounded-b-xl rounded-tr-xl border border-slate-200 bg-white p-4 sm:p-6">
-        {tab === "passage" ? (
-          <LessonMaterialPassageTab role={role} project={project} />
+      <div className="pt-6">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <Link
+              href={`${base}/projects`}
+              className="text-sm text-brand-600 hover:underline"
+            >
+              ← 전체 자료
+            </Link>
+            {editingTitle ? (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input
+                  className="h-10 rounded-md border border-slate-300 px-3 text-lg font-bold"
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                />
+                <Button type="button" size="sm" onClick={() => void saveTitle()}>
+                  저장
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setTitleDraft(project.title);
+                    setEditingTitle(false);
+                  }}
+                >
+                  취소
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="mt-2 flex items-center gap-2 text-left text-2xl font-bold text-slate-900 hover:text-brand-700"
+                onClick={() => setEditingTitle(true)}
+              >
+                {project.title}
+                <span className="text-base text-slate-400" aria-hidden>
+                  ✏️
+                </span>
+              </button>
+            )}
+          </div>
+          <Button type="button" variant="danger" size="sm" onClick={() => void handleDelete()}>
+            자료함 삭제
+          </Button>
+        </div>
+
+        {tab === "materials" ? (
+          <LessonMaterialItemsTab role={role} project={project} items={items} />
         ) : null}
-        {tab === "line" ? (
-          <LineInterpretationTab role={role} project={project} />
-        ) : null}
-        {tab === "vocab" ? (
+        {tab === "analysis" ? (
           <LessonMaterialComingSoonTab
-            title="어휘·분석"
-            description="어휘표, 동의어·반의어, 지문 핵심 정리(제목·주제·요지)를 이 탭에서 작업합니다."
+            title="분석 및 요약서"
+            description="지문 핵심 정리, 한줄해석, 어휘 분석을 모아 요약서 형태로 제작합니다. 개별 지문에서 「수업용 자료 제작」으로 먼저 작업할 수 있습니다."
+          />
+        ) : null}
+        {tab === "questions" ? (
+          <LessonMaterialComingSoonTab
+            title="변형 문제"
+            description="기존 AI 변형문제와 연동해 이 자료함의 지문으로 문제를 생성합니다."
           />
         ) : null}
         {tab === "workbook" ? (
           <LessonMaterialComingSoonTab
             title="워크북"
-            description="삽화, 한눈에 정리 등 수업용 워크북 레이아웃을 구성합니다."
+            description="삽화, 한눈에 정리 등 워크북 레이아웃을 구성합니다."
           />
         ) : null}
-        {tab === "export" ? (
-          <LessonMaterialExportTab project={project} />
+        {tab === "final" ? (
+          <LessonMaterialComingSoonTab
+            title="최종 통합자료"
+            description="자료·분석·문제·워크북을 하나의 PDF/HTML로 묶어 내보냅니다."
+          />
         ) : null}
       </div>
     </div>

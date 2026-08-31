@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 
 export function revalidateLessonMaterialPaths(
   role: "admin" | "teacher",
-  opts?: { folderId?: string; projectId?: string }
+  opts?: { folderId?: string; projectId?: string; itemId?: string }
 ) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
@@ -11,5 +11,11 @@ export function revalidateLessonMaterialPaths(
   revalidatePath(`${base}/projects`);
   revalidatePath(`${base}/unfiled`);
   if (opts?.folderId) revalidatePath(`${base}/folder/${opts.folderId}`);
-  if (opts?.projectId) revalidatePath(`${base}/project/${opts.projectId}`);
+  if (opts?.projectId) {
+    revalidatePath(`${base}/project/${opts.projectId}`);
+    revalidatePath(`${base}/project/${opts.projectId}/new`);
+  }
+  if (opts?.itemId && opts?.projectId) {
+    revalidatePath(`${base}/project/${opts.projectId}/item/${opts.itemId}`);
+  }
 }

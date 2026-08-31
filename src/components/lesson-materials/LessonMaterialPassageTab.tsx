@@ -7,24 +7,21 @@ import * as teacherActions from "@/app/teacher/lesson-materials/actions";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { defaultProjectTitle } from "@/lib/lesson-materials/project-content";
-import type { LessonMaterialProjectDetail } from "@/lib/lesson-materials/load-project";
-import { useLessonMaterialsSidebar } from "@/components/lesson-materials/LessonMaterialsSidebarContext";
+import type { LessonMaterialItemDetail } from "@/lib/lesson-materials/load-items";
 
 export function LessonMaterialPassageTab({
   role,
-  project,
+  item,
 }: {
   role: "admin" | "teacher";
-  project: LessonMaterialProjectDetail;
+  item: LessonMaterialItemDetail;
 }) {
   const router = useRouter();
-  const { folders } = useLessonMaterialsSidebar();
   const actions = role === "admin" ? adminActions : teacherActions;
 
-  const [title, setTitle] = useState(project.title);
-  const [lessonLabel, setLessonLabel] = useState(project.lesson_label ?? "");
-  const [passage, setPassage] = useState(project.source_passage ?? "");
-  const [folderId, setFolderId] = useState(project.folder_id ?? "");
+  const [label, setLabel] = useState(item.label ?? "");
+  const [title, setTitle] = useState(item.title);
+  const [passage, setPassage] = useState(item.source_passage ?? "");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,13 +33,12 @@ export function LessonMaterialPassageTab({
 
     const nextTitle =
       title.trim() ||
-      (passage.trim() ? defaultProjectTitle(passage) : "새 수업자료");
+      (passage.trim() ? defaultProjectTitle(passage) : "새 지문");
 
-    const result = await actions.updateLessonMaterialProject(project.id, {
+    const result = await actions.updateLessonMaterialItem(item.id, {
       title: nextTitle,
-      lessonLabel,
+      label,
       sourcePassage: passage,
-      folderId: folderId || null,
     });
 
     setBusy(false);
@@ -53,23 +49,14 @@ export function LessonMaterialPassageTab({
     setTitle(nextTitle);
     setMessage("저장되었습니다.");
     router.refresh();
-  }, [
-    actions,
-    folderId,
-    lessonLabel,
-    passage,
-    project.id,
-    router,
-    title,
-  ]);
+  }, [actions, item.id, label, passage, router, title]);
 
   return (
     <div className="space-y-5">
       <div>
         <h2 className="text-lg font-semibold text-slate-900">자료</h2>
         <p className="mt-1 text-sm text-slate-600">
-          지문과 기본 정보를 입력·저장한 뒤, 다른 탭에서 한줄해석 등을
-          생성하세요.
+          지문과 라벨을 수정·저장한 뒤 다른 탭에서 한줄해석 등을 생성하세요.
         </p>
       </div>
 
@@ -78,48 +65,30 @@ export function LessonMaterialPassageTab({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-xs text-slate-600">
-          <span className="font-medium">자료 제목</span>
+          <span className="font-medium">구분 라벨</span>
+          <input
+            type="text"
+            className="h-10 rounded-md border border-slate-300 px-3 text-sm"
+            placeholder="예: 미디어영어 5과 본문1-1"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-xs text-slate-600">
+          <span className="font-medium">제목</span>
           <input
             type="text"
             className="h-10 rounded-md border border-slate-300 px-3 text-sm"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="비우면 지문 첫 줄로 자동 입력"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-slate-600">
-          <span className="font-medium">단원·과 라벨</span>
-          <input
-            type="text"
-            className="h-10 rounded-md border border-slate-300 px-3 text-sm"
-            value={lessonLabel}
-            onChange={(e) => setLessonLabel(e.target.value)}
-            placeholder="예: 영어독해와 작문 미래엔 1과"
           />
         </label>
       </div>
 
       <label className="flex flex-col gap-1 text-xs text-slate-600">
-        <span className="font-medium">폴더</span>
-        <select
-          className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-          value={folderId}
-          onChange={(e) => setFolderId(e.target.value)}
-        >
-          <option value="">미분류</option>
-          {folders.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.name}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className="flex flex-col gap-1 text-xs text-slate-600">
         <span className="font-medium">영어 지문</span>
         <textarea
           className="min-h-[320px] w-full rounded-md border border-slate-300 px-3 py-2 text-sm leading-relaxed text-slate-800"
-          placeholder="교과서·모의고사 지문을 붙여 넣으세요."
           value={passage}
           onChange={(e) => setPassage(e.target.value)}
         />
