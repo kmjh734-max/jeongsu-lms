@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/student-records/extract": pdfTracePaths,
     "/api/student-records/analyze": pdfTracePaths,
-    // Server Actions for lesson-material comics (Hangul speech bubbles)
+    "/api/lesson-materials/illustration": comicTracePaths,
     "/admin/lesson-materials/input": comicTracePaths,
     "/teacher/lesson-materials/input": comicTracePaths,
     "/admin/lesson-materials/project/[projectId]": comicTracePaths,

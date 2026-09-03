@@ -6,12 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { LessonMaterialsStepTop } from "@/components/lesson-materials/LessonMaterialsStepTop";
 import {
-  generateLessonMaterialsIllustrationAction as generateAdminIllustration,
   generateLessonMaterialsOrganizationDraftAction as generateAdminOrganizationDraft,
   saveLessonMaterialsFromWizard as saveAdminLessonMaterialsFromWizard,
 } from "@/app/admin/lesson-materials/actions";
 import {
-  generateLessonMaterialsIllustrationAction as generateTeacherIllustration,
   generateLessonMaterialsOrganizationDraftAction as generateTeacherOrganizationDraft,
   saveLessonMaterialsFromWizard as saveTeacherLessonMaterialsFromWizard,
 } from "@/app/teacher/lesson-materials/actions";
@@ -103,9 +101,6 @@ export function LessonMaterialsInputWizard({
     role === "admin"
       ? generateAdminOrganizationDraft
       : generateTeacherOrganizationDraft;
-
-  const generateIllustrationAction =
-    role === "admin" ? generateAdminIllustration : generateTeacherIllustration;
 
   const totalEnCount = useMemo(
     () => passages.reduce((sum, p) => sum + (p.english?.length ?? 0), 0),
@@ -276,16 +271,39 @@ export function LessonMaterialsInputWizard({
     patchWorkbench(index, { generatingIllustration: true });
     setError(null);
     try {
-      const img = await generateIllustrationAction({
-        illustrationPrompt: prompt,
-        passageHint: cur.english.slice(0, 800),
-        captions,
+      const res = await fetch("/api/lesson-materials/illustration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          illustrationPrompt: prompt,
+          passageHint: cur.english.slice(0, 800),
+          captions,
+        }),
       });
-      if (!img.ok) {
-        setError(img.message);
+      let img: { ok: true; url: string } | { ok: false; message: string };
+      try {
+        img = (await res.json()) as typeof img;
+      } catch {
+        setError(
+          `삽화 응답을 읽지 못했습니다 (HTTP ${res.status}). 잠시 후 다시 시도해 주세요.`
+        );
+        return;
+      }
+      if (!res.ok || !img.ok) {
+        setError(
+          !img.ok
+            ? img.message
+            : `삽화 생성 실패 (HTTP ${res.status})`
+        );
         return;
       }
       patchWorkbench(index, { illustrationUrl: img.url });
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? `삽화 생성 중 오류: ${e.message}`
+          : "삽화 생성 중 오류가 발생했습니다."
+      );
     } finally {
       patchWorkbench(index, { generatingIllustration: false });
     }
@@ -758,7 +776,7 @@ export function LessonMaterialsInputWizard({
                   ) : null}
                 </h3>
                 <p className="mt-1 text-xs text-slate-500">
-                  「삽화 만들기」를 누르면 그림에 한글 말풍선이 함께 들어갑니다.
+                  「삽화 만들기」를 누르면 OpenAI가 한글 말풍선이 들어간 4컷을 그립니다. (최대 약 1~2분)
                 </p>
                 <div className="mt-3">
                   <LessonMaterialComicFrame

@@ -1,5 +1,4 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { composeComicCaptionsOnImage } from "@/lib/lesson-materials/compose-comic-captions";
 
 const BUCKET = "listening-images";
 
@@ -9,12 +8,11 @@ function imageModelCandidates(): string[] {
   const push = (m?: string) => {
     if (m && !out.includes(m)) out.push(m);
   };
-  // Prefer models with better multilingual / comic text when available
+  // gpt-image-2 renders Hangul speech bubbles reliably
   push(dedicated);
   push("gpt-image-2");
   push("gpt-image-1.5");
   push("gpt-image-1");
-  push("dall-e-3");
   return out;
 }
 
@@ -31,32 +29,28 @@ function normalizeCaptions(captions?: string[]): string[] {
   });
 }
 
-/** Art only — Hangul is burned in afterward so it never breaks. */
+/** Ask the image model to draw Hangul bubbles (gpt-image-2). */
 function buildComicImagePrompt(
   sourcePrompt: string,
   passageHint: string,
   captions: string[]
 ): string {
-  const body = sourcePrompt.trim() || passageHint.trim();
-  return `Create ONE educational 2x2 four-panel manhwa illustration as a single continuous short story.
+  const body = (sourcePrompt.trim() || passageHint.trim()).slice(0, 1200);
+  return `Create ONE educational 2x2 four-panel manhwa comic as a single continuous short story.
 
-CRITICAL — TEXT AND BUBBLES:
-- Do NOT draw any letters, Hangul, English words, numbers, logos, signs, UI text, or speech/thought bubbles.
-- Leave the UPPER ~20% of each panel clear (sky / wall / blank space) for bubbles to be added later.
-- Empty bubbles are forbidden.
+Layout: panel 1 top-left, panel 2 top-right, panel 3 bottom-left, panel 4 bottom-right. Clear panel borders.
 
-Layout: panel 1 top-left → 2 top-right → 3 bottom-left → 4 bottom-right. Clear panel borders.
+CRITICAL TEXT — each panel MUST have a white speech bubble with CLEAR, readable Korean Hangul.
+Use EXACTLY these quoted strings (do not translate to English, do not garble characters):
+Panel 1 bubble: "${captions[0]}"
+Panel 2 bubble: "${captions[1]}"
+Panel 3 bubble: "${captions[2]}"
+Panel 4 bubble: "${captions[3]}"
 
-Storytelling (smooth flow, same characters in every panel):
-1) ${captions[0]} — show the situation / assumption
-2) ${captions[1]} — show the hidden problem
-3) ${captions[2]} — characters struggle / realize
-4) ${captions[3]} — warm resolution / understanding
+Same characters in every panel. Bright clean colorful educational manhwa, soft friendly mood, flat colors, clean line art, no photorealism, no watermark, no extra English labels.
 
-Style: bright clean colorful educational manhwa, soft friendly mood, flat colors, clean line art, no photorealism, no watermark.
-
-Scene to illustrate (do not write these words in the picture):
-${body}`.slice(0, 3200);
+Story / scene idea (illustrate, do not print this paragraph as text):
+${body}`.slice(0, 3000);
 }
 
 async function generateImagePngBytes(prompt: string): Promise<Buffer> {
@@ -70,26 +64,37 @@ async function generateImagePngBytes(prompt: string): Promise<Buffer> {
       prompt,
       n: 1,
       size: "1024x1024",
+      // medium is much faster on Vercel time limits; still sharp enough for classroom use
+      quality: "medium",
     };
-    if (model.startsWith("dall-e")) {
-      body.response_format = "b64_json";
-      body.quality = "hd";
-      body.style = "vivid";
-    } else {
-      body.quality = "high";
-    }
 
-    const res = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 90_000);
+    let res: Response;
+    try {
+      res = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } catch (e) {
+      clearTimeout(timer);
+      if (e instanceof Error && e.name === "AbortError") {
+        lastErr = `이미지 생성 시간 초과 (${model})`;
+        continue;
+      }
+      lastErr = e instanceof Error ? e.message : `이미지 생성 실패 (${model})`;
+      continue;
+    }
+    clearTimeout(timer);
+
     const text = await res.text();
     if (!res.ok) {
-      lastErr = `이미지 생성 실패 (${model}, HTTP ${res.status})`;
+      lastErr = `이미지 생성 실패 (${model}, HTTP ${res.status}): ${text.slice(0, 180)}`;
       continue;
     }
 
@@ -128,18 +133,7 @@ export async function generateLessonMaterialComicIllustration(input: {
     input.passageHint ?? "",
     captions
   );
-  let bytes = await generateImagePngBytes(prompt);
-
-  // Always burn Hangul with sharp+SVG (Noto). Never rely on the image model for Korean.
-  try {
-    bytes = await composeComicCaptionsOnImage(bytes, captions);
-  } catch (e) {
-    throw new Error(
-      e instanceof Error
-        ? `한글 말풍선 합성 실패: ${e.message}`
-        : "한글 말풍선 합성 실패"
-    );
-  }
+  const bytes = await generateImagePngBytes(prompt);
 
   const admin = createAdminClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
