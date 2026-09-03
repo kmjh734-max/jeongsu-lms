@@ -318,7 +318,7 @@ export function LessonMaterialsInputWizard({
           </div>
 
           <p className="text-xs text-slate-500">
-            role={role} 기준으로 UI만 우선 구성합니다. (생성/저장은 다음 단계에서 연결)
+            Step 1은 자료 입력만 진행하고, Step 2에서 분석/삽화 프롬프트 생성 후 저장합니다.
           </p>
         </div>
       ) : null}
