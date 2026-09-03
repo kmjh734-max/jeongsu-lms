@@ -15,7 +15,15 @@ import {
   generateLessonMaterialsOrganizationDraftAction as generateTeacherOrganizationDraft,
   saveLessonMaterialsFromWizard as saveTeacherLessonMaterialsFromWizard,
 } from "@/app/teacher/lesson-materials/actions";
+import { LessonMaterialLogicalFlow } from "@/components/lesson-materials/LessonMaterialLogicalFlow";
+import { LessonMaterialComicFrame } from "@/components/lesson-materials/LessonMaterialComicFrame";
 import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
+import { translateLessonMaterialLinesAction } from "@/lib/lesson-materials/line-actions";
+import {
+  splitEnglishSentences,
+  splitKoreanSentences,
+  splitPassageIntoLinePairs,
+} from "@/lib/lesson-materials/split-sentences";
 
 type PassageDraft = {
   english: string;
@@ -37,7 +45,12 @@ export function LessonMaterialsInputWizard({
   const [passages, setPassages] = useState<PassageDraft[]>([
     { english: "", korean: "" },
   ]);
+  const [lines, setLines] = useState<PassageDraft[]>([]);
   const [selected, setSelected] = useState<Set<number>>(new Set([0]));
+  const [editingEnglish, setEditingEnglish] = useState<Set<number>>(
+    new Set()
+  );
+  const [translating, setTranslating] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -49,6 +62,7 @@ export function LessonMaterialsInputWizard({
   >(null);
   const [illustrationPrompt, setIllustrationPrompt] = useState<string>("");
   const [illustrationUrl, setIllustrationUrl] = useState<string | null>(null);
+  const [comicCaptions, setComicCaptions] = useState<string[]>([]);
   const [generatingOrganization, setGeneratingOrganization] = useState(false);
   const [generatingIllustration, setGeneratingIllustration] = useState(false);
 
@@ -76,6 +90,42 @@ export function LessonMaterialsInputWizard({
       next[index] = { ...next[index], ...patch };
       return next;
     });
+  }
+
+  function updateLine(index: number, patch: Partial<PassageDraft>) {
+    setLines((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], ...patch };
+      return next;
+    });
+  }
+
+  function selectAllLineIndexes(count: number) {
+    setSelected(new Set(Array.from({ length: count }, (_, i) => i)));
+  }
+
+  async function fillKoreanForLines(current: PassageDraft[]) {
+    const needIdx = current
+      .map((l, i) => ({ i, english: l.english.trim(), korean: l.korean.trim() }))
+      .filter((x) => x.english.length > 0 && x.korean.length === 0);
+    if (needIdx.length === 0) return current;
+
+    setTranslating(true);
+    try {
+      const res = await translateLessonMaterialLinesAction({
+        lines: needIdx.map((x) => x.english),
+      });
+      if (!res.ok) {
+        setError(res.message);
+        return current;
+      }
+      const byNeed = new Map(needIdx.map((x, j) => [x.i, res.korean[j] ?? ""]));
+      return current.map((l, i) =>
+        byNeed.has(i) ? { ...l, korean: byNeed.get(i) ?? l.korean } : l
+      );
+    } finally {
+      setTranslating(false);
+    }
   }
 
   function addPassage() {
@@ -127,11 +177,12 @@ export function LessonMaterialsInputWizard({
     }
   }
 
-  async function runOrganization(items: Array<{ english: string; korean: string }>) {
+  async function runOrganization(
+    items: Array<{ english: string; korean: string }>
+  ) {
     setGeneratingOrganization(true);
     setError(null);
     setAnalysisCards(null);
-    setIllustrationUrl(null);
     try {
       const res = await generateAction({ items });
       if (!res.ok) {
@@ -140,13 +191,19 @@ export function LessonMaterialsInputWizard({
       }
       setAnalysisCards(res.analysisCards);
       setIllustrationPrompt(res.illustrationPrompt);
-      await runIllustration(
-        res.illustrationPrompt,
-        items.map((it) => it.english).join("\n\n").slice(0, 800)
-      );
+      setComicCaptions(res.comicCaptions ?? []);
+      // 삽화는 버튼으로만 생성 (자동 생성하지 않음)
     } finally {
       setGeneratingOrganization(false);
     }
+  }
+
+  async function handleRegenerateFlow() {
+    const filled = itemsForOrganization();
+    if (filled.length === 0) return;
+    await runOrganization(
+      filled.map((it) => ({ english: it.english, korean: it.korean }))
+    );
   }
 
   async function handleNext() {
@@ -156,11 +213,100 @@ export function LessonMaterialsInputWizard({
       return;
     }
     const filled = itemsForOrganization();
-    setSelected(new Set(filled.map((it) => it.idx)));
+    const splitLines = filled.flatMap((it) =>
+      splitPassageIntoLinePairs({
+        english: it.english,
+        korean: it.korean,
+      })
+    );
+    if (splitLines.length === 0) {
+      setError("문장으로 나눌 영어 지문이 없습니다.");
+      return;
+    }
+
     setStep(2);
+    setEditingEnglish(new Set());
+    selectAllLineIndexes(splitLines.length);
+    setLines(splitLines);
+
+    const withKorean = await fillKoreanForLines(splitLines);
+    setLines(withKorean);
+    selectAllLineIndexes(withKorean.length);
+
     await runOrganization(
       filled.map((it) => ({ english: it.english, korean: it.korean }))
     );
+  }
+
+  function splitLineCard(idx: number) {
+    const target = lines[idx];
+    if (!target) return;
+    const parts = splitEnglishSentences(target.english);
+    if (parts.length <= 1) {
+      setError("더 나눌 문장이 없습니다. 이미 한 줄입니다.");
+      return;
+    }
+    const krParts = splitKoreanSentences(target.korean);
+    const inserts = parts.map((english, i) => ({
+      english,
+      korean:
+        krParts.length === parts.length
+          ? (krParts[i] ?? "")
+          : i === 0
+            ? target.korean
+            : "",
+    }));
+    setLines((prev) => {
+      const next = [...prev];
+      next.splice(idx, 1, ...inserts);
+      selectAllLineIndexes(next.length);
+      return next;
+    });
+    setEditingEnglish((prev) => {
+      const next = new Set<number>();
+      for (const i of prev) {
+        if (i < idx) next.add(i);
+        else if (i > idx) next.add(i + inserts.length - 1);
+      }
+      return next;
+    });
+  }
+
+  async function translateOneLine(idx: number) {
+    const target = lines[idx];
+    if (!target?.english.trim()) return;
+    setTranslating(true);
+    setError(null);
+    try {
+      const res = await translateLessonMaterialLinesAction({
+        lines: [target.english],
+      });
+      if (!res.ok) {
+        setError(res.message);
+        return;
+      }
+      updateLine(idx, { korean: res.korean[0] ?? "" });
+    } finally {
+      setTranslating(false);
+    }
+  }
+
+  function insertLineAfter(idx: number) {
+    setLines((prev) => {
+      const next = [...prev];
+      next.splice(idx + 1, 0, { english: "", korean: "" });
+      selectAllLineIndexes(next.length);
+      return next;
+    });
+    setEditingEnglish((prev) => {
+      const next = new Set<number>();
+      for (const i of prev) {
+        if (i <= idx) next.add(i);
+        else next.add(i + 1);
+      }
+      next.add(idx + 1);
+      return next;
+    });
   }
 
   async function handleRegenerateOrganization() {
@@ -181,7 +327,7 @@ export function LessonMaterialsInputWizard({
     try {
       const selectedSorted = [...selected].sort((a, b) => a - b);
       const items = selectedSorted
-        .map((idx) => passages[idx]!)
+        .map((idx) => lines[idx]!)
         .map((p) => ({
           english: p.english,
           korean: p.korean,
@@ -194,6 +340,8 @@ export function LessonMaterialsInputWizard({
         illustrationPrompt:
           illustrationPrompt.trim().length > 0 ? illustrationPrompt : null,
         illustrationUrl,
+        illustrationCaptions:
+          comicCaptions.length > 0 ? comicCaptions : null,
       });
       if (!res.ok) {
         setError(res.message);
@@ -326,85 +474,63 @@ export function LessonMaterialsInputWizard({
             자료 정리하기
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            입력한 지문을 분석하고, 교육용 4컷 만화 삽화를 생성합니다.
+            지문을 한 줄(문장) 단위로 나누고, 각 줄의 한글 해석을 붙입니다.
           </p>
           {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
 
           <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_420px]">
-            <section className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-bold text-slate-900">
-                  분석 &amp; 요약
-                </h3>
-                <div className="text-xs text-slate-400">
-                  {generatingOrganization ? "생성 중…" : "지문 기준"}
-                </div>
-              </div>
-              <div className="mt-3 space-y-4">
-                {generatingOrganization && !analysisCards ? (
-                  <div className="rounded-lg bg-slate-50 p-6 text-sm text-slate-500">
-                    지문을 읽고 분석을 만드는 중입니다.
-                  </div>
-                ) : null}
-                {(analysisCards ?? []).map((row, i) => (
-                  <div key={i} className="rounded-lg bg-slate-50 p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-100 text-xs font-bold text-brand-700">
-                        {i + 1}
-                      </div>
-                      <div className="text-sm font-semibold text-slate-900">
-                        {row.title}
-                      </div>
-                    </div>
-                    <div className="mt-2 text-sm text-slate-600">
-                      {row.desc}
-                    </div>
-                  </div>
-                ))}
-                {!generatingOrganization && !analysisCards ? (
-                  <div className="rounded-lg bg-slate-50 p-6 text-sm text-slate-500">
-                    아직 분석이 없습니다. 다시 생성을 눌러 주세요.
-                  </div>
-                ) : null}
-              </div>
-            </section>
+            <LessonMaterialLogicalFlow
+              cards={analysisCards}
+              loading={generatingOrganization && !analysisCards}
+              regenerating={generatingOrganization}
+              onRegenerate={() => void handleRegenerateFlow()}
+            />
 
             <section className="rounded-xl border border-slate-200 bg-white p-4">
               <h3 className="text-sm font-bold text-slate-900">4컷 만화 삽화</h3>
-              <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-                {illustrationUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={illustrationUrl}
-                    alt="수업자료 4컷 삽화"
-                    className="aspect-square w-full object-contain bg-white"
-                  />
-                ) : (
-                  <div className="flex aspect-square flex-col items-center justify-center gap-3 p-4">
-                    <div className="text-xs text-slate-400">
-                      {generatingIllustration || generatingOrganization
-                        ? "4컷 만화를 그리는 중입니다. 최대 1분 정도 걸릴 수 있습니다."
-                        : "이미지 없음"}
-                    </div>
-                  </div>
-                )}
+              <p className="mt-1 text-xs text-slate-500">
+                한글은 이미지에 그리지 않고, 아래 말풍선 문구를 화면에 올립니다.
+              </p>
+              <div className="mt-3">
+                <LessonMaterialComicFrame
+                  imageUrl={illustrationUrl}
+                  captions={comicCaptions}
+                  emptyHint={
+                    generatingIllustration
+                      ? "4컷 만화를 그리는 중입니다. 최대 1분 정도 걸릴 수 있습니다."
+                      : "「삽화 만들기」를 누르면 생성됩니다."
+                  }
+                />
               </div>
+              {comicCaptions.length > 0 ? (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {comicCaptions.map((c, i) => (
+                    <input
+                      key={i}
+                      className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800"
+                      style={{
+                        fontFamily:
+                          '"Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif',
+                      }}
+                      value={c}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setComicCaptions((prev) => {
+                          const next = [...prev];
+                          next[i] = v;
+                          return next;
+                        });
+                      }}
+                      placeholder={`${i + 1}컷 한글 대사`}
+                    />
+                  ))}
+                </div>
+              ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
                   type="button"
                   size="sm"
                   className="bg-brand-600 hover:bg-brand-700"
-                  disabled={generatingOrganization || generatingIllustration}
-                  onClick={() => void handleRegenerateOrganization()}
-                >
-                  {generatingOrganization || generatingIllustration
-                    ? "생성 중…"
-                    : "분석·삽화 다시 만들기"}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
                   disabled={
                     generatingIllustration ||
                     generatingOrganization ||
@@ -417,13 +543,26 @@ export function LessonMaterialsInputWizard({
                     )
                   }
                 >
-                  삽화만 다시 그리기
+                  {generatingIllustration
+                    ? "생성 중…"
+                    : illustrationUrl
+                      ? "삽화만 다시 그리기"
+                      : "삽화 만들기"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={generatingOrganization || generatingIllustration}
+                  onClick={() => void handleRegenerateOrganization()}
+                >
+                  {generatingOrganization ? "생성 중…" : "논리 흐름만 다시 만들기"}
                 </Button>
               </div>
 
               <div className="mt-3">
                 <div className="text-xs font-semibold text-slate-600">
-                  삽화 프롬프트 (수정 후 다시 만들기)
+                  삽화 프롬프트 (수정 후 삽화 만들기)
                 </div>
                 <textarea
                   className="mt-2 min-h-[88px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800"
@@ -436,8 +575,9 @@ export function LessonMaterialsInputWizard({
 
           {/* 하단: 문장 카드 목록 */}
           <section className="mt-5 space-y-3">
-            {passages.map((p, idx) => {
+            {lines.map((p, idx) => {
               const isChecked = selected.has(idx);
+              const isEditing = editingEnglish.has(idx);
               return (
                 <div
                   key={idx}
@@ -450,7 +590,7 @@ export function LessonMaterialsInputWizard({
                           문장 {idx + 1}
                         </span>
                         <span className="text-xs text-slate-500">
-                          영어/한글 입력
+                          한줄해석
                         </span>
                       </div>
 
@@ -459,9 +599,21 @@ export function LessonMaterialsInputWizard({
                           <div className="text-xs font-bold text-rose-600">
                             영어
                           </div>
-                          <div className="mt-1 whitespace-pre-wrap text-sm text-rose-900">
-                            {p.english?.trim() ? p.english : "영어 지문이 비어 있습니다."}
-                          </div>
+                          {isEditing ? (
+                            <textarea
+                              className="mt-1 min-h-[56px] w-full resize-y rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm leading-relaxed text-rose-900"
+                              value={p.english}
+                              onChange={(e) =>
+                                updateLine(idx, { english: e.target.value })
+                              }
+                            />
+                          ) : (
+                            <div className="mt-1 whitespace-pre-wrap text-sm text-rose-900">
+                              {p.english?.trim()
+                                ? p.english
+                                : "영어 지문이 비어 있습니다."}
+                            </div>
+                          )}
                         </div>
 
                         <div className="rounded-xl border border-slate-200 bg-white p-3">
@@ -469,11 +621,11 @@ export function LessonMaterialsInputWizard({
                             한국어 해석
                           </div>
                           <textarea
-                            className="mt-2 min-h-[72px] w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800"
+                            className="mt-2 min-h-[56px] w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm leading-relaxed text-slate-800"
                             placeholder="자동 번역 버튼을 누르거나 직접 입력"
                             value={p.korean}
                             onChange={(e) =>
-                              updatePassage(idx, { korean: e.target.value })
+                              updateLine(idx, { korean: e.target.value })
                             }
                           />
                         </div>
@@ -499,28 +651,36 @@ export function LessonMaterialsInputWizard({
                         <button
                           type="button"
                           className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600"
-                          onClick={() => {}}
+                          onClick={() => {
+                            setEditingEnglish((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(idx)) next.delete(idx);
+                              else next.add(idx);
+                              return next;
+                            });
+                          }}
                         >
-                          ✏️ 영어 편집하기
+                          ✏️ {isEditing ? "영어 편집 완료" : "영어 편집하기"}
                         </button>
                         <button
                           type="button"
                           className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600"
-                          onClick={() => {}}
+                          onClick={() => splitLineCard(idx)}
                         >
                           ✂️ 영어 나누기
                         </button>
                         <button
                           type="button"
-                          className="rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs text-brand-700"
-                          onClick={() => {}}
+                          className="rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs text-brand-700 disabled:opacity-50"
+                          disabled={translating || !p.english.trim()}
+                          onClick={() => void translateOneLine(idx)}
                         >
                           🇰🇷 한글 해석 (자동)
                         </button>
                         <button
                           type="button"
                           className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600"
-                          onClick={() => {}}
+                          onClick={() => insertLineAfter(idx)}
                         >
                           🧩 정리 추가하기
                         </button>
@@ -539,9 +699,12 @@ export function LessonMaterialsInputWizard({
               variant="ghost"
               onClick={() => {
                 setStep(1);
+                setLines([]);
+                setEditingEnglish(new Set());
                 setAnalysisCards(null);
                 setIllustrationPrompt("");
                 setIllustrationUrl(null);
+                setComicCaptions([]);
               }}
             >
               ← 이전 단계
@@ -553,6 +716,7 @@ export function LessonMaterialsInputWizard({
                 saving ||
                 generatingOrganization ||
                 generatingIllustration ||
+                translating ||
                 selected.size === 0
               }
               onClick={() => void handleSave()}
@@ -568,8 +732,7 @@ export function LessonMaterialsInputWizard({
         <div className="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-bold text-slate-900">저장 완료</h2>
           <p className="mt-2 text-sm text-slate-600">
-            이제 다음에 “한줄해석 생성” 화면(생성 버튼/미리보기/내보내기)을
-            이 자료에 연결하면 됩니다.
+            한줄해석으로 나눠 저장했습니다. 자료함에서 확인할 수 있습니다.
           </p>
           {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
 
@@ -581,9 +744,12 @@ export function LessonMaterialsInputWizard({
                 setStep(1);
                 setSavedProjectId(null);
                 setSavedItemsCount(0);
+                setLines([]);
+                setEditingEnglish(new Set());
                 setAnalysisCards(null);
                 setIllustrationPrompt("");
                 setIllustrationUrl(null);
+                setComicCaptions([]);
               }}
             >
               다시 입력

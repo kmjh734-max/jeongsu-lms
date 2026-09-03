@@ -24,6 +24,7 @@ export async function saveLessonMaterialsFromWizard(input: {
   analysisCards?: LessonMaterialAnalysisCard[];
   illustrationPrompt?: string | null;
   illustrationUrl?: string | null;
+  illustrationCaptions?: string[] | null;
 }): Promise<ActionResult & { projectId?: string }> {
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
@@ -90,6 +91,9 @@ export async function saveLessonMaterialsFromWizard(input: {
       illustration_url: input.illustrationUrl?.trim()
         ? input.illustrationUrl
         : null,
+      illustration_captions: input.illustrationCaptions?.length
+        ? input.illustrationCaptions
+        : null,
     })
     .select("id")
     .single();
@@ -124,7 +128,12 @@ export async function saveLessonMaterialsFromWizard(input: {
 export async function generateLessonMaterialsOrganizationDraftAction(input: {
   items: PassageInput[];
 }): Promise<
-  | { ok: true; analysisCards: LessonMaterialAnalysisCard[]; illustrationPrompt: string }
+  | {
+      ok: true;
+      analysisCards: LessonMaterialAnalysisCard[];
+      illustrationPrompt: string;
+      comicCaptions: string[];
+    }
   | { ok: false; message: string }
 > {
   const profile = await getCurrentProfile();
@@ -146,6 +155,7 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
       ok: true,
       analysisCards: draft.analysisCards,
       illustrationPrompt: draft.illustrationPrompt,
+      comicCaptions: draft.comicCaptions,
     };
   } catch (e) {
     return {

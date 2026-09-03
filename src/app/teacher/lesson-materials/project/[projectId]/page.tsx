@@ -17,6 +17,7 @@ type LessonMaterialProjectRow = {
   analysis_json: unknown;
   illustration_prompt: string | null;
   illustration_url: string | null;
+  illustration_captions: string[] | null;
 };
 
 export default async function TeacherLessonMaterialProjectPage({
@@ -29,7 +30,9 @@ export default async function TeacherLessonMaterialProjectPage({
 
   const { data: project, error: projectErr } = await supabase
     .from("lesson_material_projects")
-    .select("id,title,analysis_json,illustration_prompt,illustration_url")
+    .select(
+      "id,title,analysis_json,illustration_prompt,illustration_url,illustration_captions"
+    )
     .eq("id", projectId)
     .maybeSingle();
 
@@ -52,6 +55,9 @@ export default async function TeacherLessonMaterialProjectPage({
         (project as LessonMaterialProjectRow).illustration_prompt
       }
       illustration_url={(project as LessonMaterialProjectRow).illustration_url}
+      illustration_captions={
+        (project as LessonMaterialProjectRow).illustration_captions
+      }
     />
   );
 }

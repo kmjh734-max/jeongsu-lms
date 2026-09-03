@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { LessonMaterialLogicalFlow } from "@/components/lesson-materials/LessonMaterialLogicalFlow";
+import { LessonMaterialComicFrame } from "@/components/lesson-materials/LessonMaterialComicFrame";
 import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
 
 import {
@@ -29,6 +31,7 @@ export function LessonMaterialProjectWorkspace({
   analysis_json,
   illustration_prompt,
   illustration_url,
+  illustration_captions,
 }: {
   role: "admin" | "teacher";
   project: { id: string; title: string };
@@ -36,6 +39,7 @@ export function LessonMaterialProjectWorkspace({
   analysis_json?: unknown;
   illustration_prompt?: string | null;
   illustration_url?: string | null;
+  illustration_captions?: string[] | null;
 }) {
   const saveAction =
     role === "admin" ? updateAdminItems : updateTeacherItems;
@@ -113,47 +117,16 @@ export function LessonMaterialProjectWorkspace({
 
       {/* Step 2는 아직 연결 전이므로 placeholder만 표시 */}
       <section className="grid gap-4 lg:grid-cols-[1fr_420px]">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-bold text-slate-900">분석 & 요약</h2>
-          {analysisCards.length > 0 ? (
-            <div className="mt-3 space-y-3">
-              {analysisCards.map((c, idx) => (
-                <div key={idx} className="rounded-lg bg-slate-50 p-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-100 text-xs font-bold text-brand-700">
-                      {idx + 1}
-                    </div>
-                    <div className="text-sm font-semibold text-slate-900">
-                      {c.title}
-                    </div>
-                  </div>
-                  <div className="mt-2 text-sm text-slate-600">
-                    {c.desc}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-slate-600">
-              아직 분석 결과가 없습니다. (Step 2 저장 후 생성됩니다.)
-            </p>
-          )}
-        </div>
+        <LessonMaterialLogicalFlow
+          cards={analysisCards.length > 0 ? analysisCards : null}
+        />
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="text-sm font-bold text-slate-900">4컷 만화 삽화</h2>
-          <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-            {illustration_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={illustration_url}
-                alt="수업자료 4컷 삽화"
-                className="aspect-square w-full object-contain bg-white"
-              />
-            ) : (
-              <div className="flex aspect-square items-center justify-center text-xs text-slate-400">
-                이미지 없음
-              </div>
-            )}
+          <div className="mt-3">
+            <LessonMaterialComicFrame
+              imageUrl={illustration_url}
+              captions={illustration_captions ?? []}
+            />
           </div>
           {illustration_prompt?.trim() ? (
             <div className="mt-3 rounded-lg bg-slate-50 p-3">

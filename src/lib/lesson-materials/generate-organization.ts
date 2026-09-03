@@ -1,3 +1,5 @@
+type InputItem = { english: string; korean?: string | null };
+
 export type LessonMaterialAnalysisCard = {
   title: string;
   desc: string;
@@ -6,9 +8,14 @@ export type LessonMaterialAnalysisCard = {
 export type LessonMaterialOrganizationDraft = {
   analysisCards: LessonMaterialAnalysisCard[];
   illustrationPrompt: string;
+  comicCaptions: string[];
 };
 
-type InputItem = { english: string; korean?: string | null };
+function oneKoreanSentence(text: string): string {
+  const t = text.replace(/\s+/g, " ").trim();
+  const m = t.match(/^.+?[.。!?]/);
+  return (m ? m[0] : t).trim();
+}
 
 function parseJsonSafe<T>(text: string): T | null {
   try {
@@ -27,27 +34,28 @@ function parseJsonSafe<T>(text: string): T | null {
   }
 }
 
-const SYSTEM_PROMPT = `너는 한국 중·고등 영어 수업용 교재 편집자다.
-입력된 영어 지문(과 한글 해석이 있으면 함께)을 읽고, 그 지문의 실제 내용만으로 분석한다.
+const SYSTEM_PROMPT = `너는 한국 중·고등 영어 지문의 논리 흐름(Logical Flow)을 3단계로 정리하는 편집자다.
+입력된 영어 지문(과 한글 해석이 있으면 함께)만 근거로 쓴다.
 
 반드시 JSON만 반환:
 {
   "analysisCards": [
-    { "title": "지문의 핵심 주장", "desc": "..." },
-    { "title": "논리 전개", "desc": "..." },
-    { "title": "수업에서 짚을 포인트", "desc": "..." }
+    { "title": "지문에서 뽑은 짧은 제목1", "desc": "한 문장." },
+    { "title": "지문에서 뽑은 짧은 제목2", "desc": "한 문장." },
+    { "title": "지문에서 뽑은 짧은 제목3", "desc": "한 문장." }
   ],
+  "comicCaptions": ["1컷 대사", "2컷 대사", "3컷 대사", "4컷 대사"],
   "illustrationPrompt": "..."
 }
 
 규칙:
-- title은 위 3개를 그대로 쓴다.
-- desc는 반드시 이 지문의 구체적 내용(인물, 개념, 주장, 반례)을 한국어로 2~3문장 쓴다.
-- 일반론("핵심을 정리합니다")만 쓰지 말고, 지문에 나온 단어를 포함해 요약한다.
-- illustrationPrompt는 영어 지문의 핵심을 가르치는 교육용 4컷 만화(2x2) 이미지 생성용 상세 영어 프롬프트다.
-- 만화 스타일: bright clean educational manhwa/manga for students, consistent characters (a boy, a girl, optionally a scientist/teacher), speech bubbles with short Korean text, icons and diagrams, no photorealism, no watermark.
-- 4컷 서사: (1) 흔한 오해/문제 제기 (2) 기존 설명 (3) 반박/과학적 교정 (4) 올바른 결론. 지문 내용에 맞춰 장면을 구체적으로 적는다.
-- 한 장의 이미지 안에 2x2 패널이 모두 들어가게 지시한다.`;
+- analysisCards는 정확히 3개, 지문의 논리 순서(문제/오해 → 원인·전개 → 결론·전체 관점).
+- title은 이 지문 내용에서 만든 짧은 한국어 제목. 예: "구성의 오류에 대한 오해".
+- 금지 제목: "수업에서 짚을 포인트", "지문의 핵심 주장", "논리 전개", "분석", "요약".
+- desc는 한국어 한 문장만.
+- comicCaptions는 정확히 4개, 각 컷 말풍선용 짧은 한국어(20자 내외).
+- illustrationPrompt는 영어. 그림 안에는 한글/한자/가나 글자를 절대 그리지 말라고 명시한다.
+  말풍선은 빈 흰 타원만. 아이콘·그림으로 설명. 2x2 4컷. bright educational manhwa.`;
 
 export async function generateLessonMaterialsOrganizationDraft(input: {
   items: InputItem[];
@@ -85,7 +93,7 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
           { role: "system", content: SYSTEM_PROMPT },
           {
             role: "user",
-            content: `아래 지문을 분석하고 4컷 만화 삽화 프롬프트를 만들어라.\n\n${itemsText}`,
+            content: `아래 지문의 논리 흐름과 4컷 대사·그림 프롬프트를 만들어라.\n\n${itemsText}`,
           },
         ],
       }),
@@ -103,24 +111,47 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
     const parsed = parseJsonSafe<{
       analysisCards?: LessonMaterialAnalysisCard[];
       illustrationPrompt?: string;
+      comicCaptions?: unknown;
     }>(content);
 
     const cards = (parsed?.analysisCards ?? [])
       .map((c) => ({
         title: String(c.title ?? "").trim(),
-        desc: String(c.desc ?? "").trim(),
+        desc: oneKoreanSentence(String(c.desc ?? "").trim()),
       }))
-      .filter((c) => c.title && c.desc);
+      .filter((c) => c.title && c.desc)
+      .filter(
+        (c) =>
+          !/수업에서 짚을 포인트|지문의 핵심 주장|^논리 전개$|^분석$|^요약$/.test(
+            c.title
+          )
+      );
 
     const illustrationPrompt = String(parsed?.illustrationPrompt ?? "").trim();
+    const comicCaptions = Array.isArray(parsed?.comicCaptions)
+      ? parsed.comicCaptions.map((v) => String(v ?? "").trim()).filter(Boolean)
+      : [];
 
-    if (cards.length < 3 || illustrationPrompt.length < 40) {
+    if (cards.length < 3) {
       throw new Error("분석 결과를 해석하지 못했습니다. 다시 시도해 주세요.");
     }
 
+    const captions =
+      comicCaptions.length >= 4
+        ? comicCaptions.slice(0, 4)
+        : [
+            cards[0]?.title ?? "문제 제기",
+            cards[1]?.title ?? "원인",
+            cards[2]?.title ?? "교정",
+            cards[2]?.desc ?? "결론",
+          ];
+
     return {
       analysisCards: cards.slice(0, 3),
-      illustrationPrompt,
+      illustrationPrompt:
+        illustrationPrompt ||
+        "2x2 educational manhwa comic, no text letters of any language, empty white speech bubbles only, icons and characters, bright flat colors",
+      comicCaptions: captions,
     };
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {

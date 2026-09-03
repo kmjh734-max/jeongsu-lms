@@ -17,29 +17,27 @@ function imageModelCandidates(): string[] {
 
 function buildComicImagePrompt(sourcePrompt: string, passageHint: string): string {
   const body = sourcePrompt.trim() || passageHint.trim();
-  return `Create ONE educational comic illustration as a single image.
+  return `Create ONE educational 2x2 four-panel manhwa illustration (single image).
 
-Layout: exactly a 2x2 four-panel manhwa/manga grid (panel 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right). Clear black panel borders.
+CRITICAL TEXT RULE:
+- Draw ZERO written language. No Korean Hangul, no Chinese, no Japanese, no English letters, no numbers as words.
+- Speech bubbles must be EMPTY white ovals with a tail. Do not put glyphs inside bubbles.
+- Icons, diagrams, arrows, and facial expressions only. Labels as pictures not letters.
 
-Style: bright, clean, colorful educational manhwa for Korean middle/high school students. Flat colors, clean line art, no photorealism, no 3D, no watermark, no English UI chrome.
+Layout: panel 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right. Thick black borders.
 
-Characters stay consistent across all 4 panels (a boy, a girl, and a teacher/scientist if needed).
+Style: bright clean colorful educational manhwa, flat colors, clean line art, no photorealism, no watermark.
 
-Each panel has short Korean speech bubbles and simple diagrams/icons that teach the passage idea.
+Characters consistent (boy, girl, teacher/scientist).
 
-Narrative:
-1) Introduce a common misconception or the problem from the passage
-2) Show the old/wrong explanation with a labeled diagram
-3) A scientist/teacher corrects it
-4) Show the true conclusion clearly
+Narrative in pictures only:
+1) misconception / overconfidence
+2) explanation with icons
+3) conflict or correction
+4) correct conclusion with teamwork icons
 
-Content to illustrate:
-${body}
-
-VERIFY: 4 panels visible in one image; Korean bubbles readable; educational, not decorative.`.slice(
-    0,
-    3200
-  );
+Scene notes (for drawing, do not write these words in the picture):
+${body}`.slice(0, 3200);
 }
 
 async function generateImagePngBytes(prompt: string): Promise<Buffer> {
