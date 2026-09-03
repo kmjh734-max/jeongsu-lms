@@ -29,9 +29,7 @@ export function LessonMaterialProjectWorkspace({
   project,
   items,
   analysis_json,
-  illustration_prompt,
   illustration_url,
-  illustration_captions,
 }: {
   role: "admin" | "teacher";
   project: { id: string; title: string };
@@ -123,21 +121,8 @@ export function LessonMaterialProjectWorkspace({
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <h2 className="text-sm font-bold text-slate-900">4컷 만화 삽화</h2>
           <div className="mt-3">
-            <LessonMaterialComicFrame
-              imageUrl={illustration_url}
-              captions={illustration_captions ?? []}
-            />
+            <LessonMaterialComicFrame imageUrl={illustration_url} />
           </div>
-          {illustration_prompt?.trim() ? (
-            <div className="mt-3 rounded-lg bg-slate-50 p-3">
-              <div className="text-xs font-bold text-slate-600">
-                삽화 프롬프트
-              </div>
-              <div className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
-                {illustration_prompt}
-              </div>
-            </div>
-          ) : null}
         </div>
       </section>
 

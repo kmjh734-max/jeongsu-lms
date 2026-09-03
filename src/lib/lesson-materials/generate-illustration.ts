@@ -17,26 +17,23 @@ function imageModelCandidates(): string[] {
 
 function buildComicImagePrompt(sourcePrompt: string, passageHint: string): string {
   const body = sourcePrompt.trim() || passageHint.trim();
-  return `Create ONE educational 2x2 four-panel manhwa illustration (single image).
+  return `Create ONE educational 2x2 four-panel manhwa illustration as a single continuous short story.
 
-CRITICAL TEXT RULE:
-- Draw ZERO written language. No Korean Hangul, no Chinese, no Japanese, no English letters, no numbers as words.
-- Speech bubbles must be EMPTY white ovals with a tail. Do not put glyphs inside bubbles.
-- Icons, diagrams, arrows, and facial expressions only. Labels as pictures not letters.
+CRITICAL — NO TEXT AT ALL:
+- Do not draw any letters, Hangul, English, numbers, logos, or speech bubbles.
+- Tell the story only with faces, gestures, body language, props, and simple icons.
 
-Layout: panel 1 top-left, 2 top-right, 3 bottom-left, 4 bottom-right. Thick black borders.
+Layout: panel 1 top-left → 2 top-right → 3 bottom-left → 4 bottom-right. Clear panel borders.
 
-Style: bright clean colorful educational manhwa, flat colors, clean line art, no photorealism, no watermark.
+Storytelling (smooth flow, same characters in every panel):
+1) Introduce the situation / common assumption calmly
+2) Show the hidden problem emerging
+3) Characters struggle or realize the conflict
+4) Warm resolution / better understanding together
 
-Characters consistent (boy, girl, teacher/scientist).
+Style: bright clean colorful educational manhwa, soft friendly mood, flat colors, clean line art, no photorealism, no watermark.
 
-Narrative in pictures only:
-1) misconception / overconfidence
-2) explanation with icons
-3) conflict or correction
-4) correct conclusion with teamwork icons
-
-Scene notes (for drawing, do not write these words in the picture):
+Scene to illustrate (do not write these words in the picture):
 ${body}`.slice(0, 3200);
 }
 

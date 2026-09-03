@@ -11,10 +11,8 @@ export type LessonMaterialOrganizationDraft = {
   comicCaptions: string[];
 };
 
-function oneKoreanSentence(text: string): string {
-  const t = text.replace(/\s+/g, " ").trim();
-  const m = t.match(/^.+?[.。!?]/);
-  return (m ? m[0] : t).trim();
+function normalizeFlowDesc(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function parseJsonSafe<T>(text: string): T | null {
@@ -34,28 +32,29 @@ function parseJsonSafe<T>(text: string): T | null {
   }
 }
 
-const SYSTEM_PROMPT = `너는 한국 중·고등 영어 지문의 논리 흐름(Logical Flow)을 3단계로 정리하는 편집자다.
+const SYSTEM_PROMPT = `너는 한국 중·고등 영어 지문의 논리 흐름(Logical Flow)을 정리하는 편집자다.
 입력된 영어 지문(과 한글 해석이 있으면 함께)만 근거로 쓴다.
 
 반드시 JSON만 반환:
 {
   "analysisCards": [
-    { "title": "지문에서 뽑은 짧은 제목1", "desc": "한 문장." },
-    { "title": "지문에서 뽑은 짧은 제목2", "desc": "한 문장." },
-    { "title": "지문에서 뽑은 짧은 제목3", "desc": "한 문장." }
+    { "title": "지문에서 뽑은 짧은 제목1", "desc": "2문장 설명." },
+    { "title": "지문에서 뽑은 짧은 제목2", "desc": "2문장 설명." },
+    { "title": "지문에서 뽑은 짧은 제목3", "desc": "2문장 설명." }
   ],
-  "comicCaptions": ["1컷 대사", "2컷 대사", "3컷 대사", "4컷 대사"],
+  "comicCaptions": ["1컷", "2컷", "3컷", "4컷"],
   "illustrationPrompt": "..."
 }
 
 규칙:
-- analysisCards는 정확히 3개, 지문의 논리 순서(문제/오해 → 원인·전개 → 결론·전체 관점).
+- analysisCards는 정확히 3개. 순서: 문제/오해 → 원인·전개 → 결론·전체 관점.
 - title은 이 지문 내용에서 만든 짧은 한국어 제목. 예: "구성의 오류에 대한 오해".
 - 금지 제목: "수업에서 짚을 포인트", "지문의 핵심 주장", "논리 전개", "분석", "요약".
-- desc는 한국어 한 문장만.
-- comicCaptions는 정확히 4개, 각 컷 말풍선용 짧은 한국어(20자 내외).
-- illustrationPrompt는 영어. 그림 안에는 한글/한자/가나 글자를 절대 그리지 말라고 명시한다.
-  말풍선은 빈 흰 타원만. 아이콘·그림으로 설명. 2x2 4컷. bright educational manhwa.`;
+- desc는 한국어 2문장 정도. 지문의 구체적 개념·예시·반례를 넣어 한 문장짜리보다 조금 자세히 쓴다. 너무 길지 않게(각 60~110자).
+- comicCaptions는 4개(내부용). 화면에는 안 쓴다.
+- illustrationPrompt는 영어. 한 편의 짧은 스토리처럼 4컷이 부드럽게 이어지게 장면을 상세히 적는다.
+  그림 안에는 어떤 언어의 글자도, 말풍선도 넣지 말라고 명시한다. 표정·제스처·아이콘으로만 이야기한다.
+  컷1→2→3→4가 같은 인물로 이어지는 연속 장면이어야 한다.`;
 
 export async function generateLessonMaterialsOrganizationDraft(input: {
   items: InputItem[];
@@ -87,13 +86,13 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
       signal: controller.signal,
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        temperature: 0.3,
+        temperature: 0.35,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
           {
             role: "user",
-            content: `아래 지문의 논리 흐름과 4컷 대사·그림 프롬프트를 만들어라.\n\n${itemsText}`,
+            content: `아래 지문의 논리 흐름(조금 자세히)과 부드럽게 이어지는 4컷 그림 프롬프트를 만들어라.\n\n${itemsText}`,
           },
         ],
       }),
@@ -117,7 +116,7 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
     const cards = (parsed?.analysisCards ?? [])
       .map((c) => ({
         title: String(c.title ?? "").trim(),
-        desc: oneKoreanSentence(String(c.desc ?? "").trim()),
+        desc: normalizeFlowDesc(String(c.desc ?? "").trim()),
       }))
       .filter((c) => c.title && c.desc)
       .filter(
@@ -136,22 +135,15 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
       throw new Error("분석 결과를 해석하지 못했습니다. 다시 시도해 주세요.");
     }
 
-    const captions =
-      comicCaptions.length >= 4
-        ? comicCaptions.slice(0, 4)
-        : [
-            cards[0]?.title ?? "문제 제기",
-            cards[1]?.title ?? "원인",
-            cards[2]?.title ?? "교정",
-            cards[2]?.desc ?? "결론",
-          ];
-
     return {
       analysisCards: cards.slice(0, 3),
       illustrationPrompt:
         illustrationPrompt ||
-        "2x2 educational manhwa comic, no text letters of any language, empty white speech bubbles only, icons and characters, bright flat colors",
-      comicCaptions: captions,
+        "One continuous 2x2 educational manhwa story about the passage idea. Same characters in all panels. Soft narrative arc from misconception to understanding. No text, no speech bubbles, expressions and icons only, bright flat colors",
+      comicCaptions:
+        comicCaptions.length >= 4
+          ? comicCaptions.slice(0, 4)
+          : ["", "", "", ""],
     };
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
