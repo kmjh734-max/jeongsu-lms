@@ -775,9 +775,6 @@ export function LessonMaterialsInputWizard({
                     </span>
                   ) : null}
                 </h3>
-                <p className="mt-1 text-xs text-slate-500">
-                  「삽화 만들기」를 누르면 OpenAI가 한글 말풍선이 들어간 4컷을 그립니다. (최대 약 1~2분)
-                </p>
                 <div className="mt-3">
                   <LessonMaterialComicFrame
                     imageUrl={wb.illustrationUrl}
