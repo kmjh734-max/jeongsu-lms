@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { LessonMaterialsStepTop } from "@/components/lesson-materials/LessonMaterialsStepTop";
 import { saveLessonMaterialsFromWizard as saveAdminLessonMaterialsFromWizard } from "@/app/admin/lesson-materials/actions";
 import { saveLessonMaterialsFromWizard as saveTeacherLessonMaterialsFromWizard } from "@/app/teacher/lesson-materials/actions";
+import {
+  generateLessonMaterialsOrganizationDraftAction as generateAdminOrganizationDraft,
+} from "@/app/admin/lesson-materials/actions";
+import {
+  generateLessonMaterialsOrganizationDraftAction as generateTeacherOrganizationDraft,
+} from "@/app/teacher/lesson-materials/actions";
+import type {
+  LessonMaterialAnalysisCard,
+} from "@/lib/lesson-materials/generate-organization";
 
 type PassageDraft = {
   english: string;
@@ -35,15 +44,37 @@ export function LessonMaterialsInputWizard({
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
   const [savedItemsCount, setSavedItemsCount] = useState<number>(0);
 
+  const [analysisCards, setAnalysisCards] = useState<
+    LessonMaterialAnalysisCard[] | null
+  >(null);
+  const [illustrationPrompt, setIllustrationPrompt] = useState<string>("");
+  const [generatingOrganization, setGeneratingOrganization] =
+    useState(false);
+  const [hasGeneratedOrganization, setHasGeneratedOrganization] =
+    useState(false);
+
   const saveAction =
     role === "admin"
       ? saveAdminLessonMaterialsFromWizard
       : saveTeacherLessonMaterialsFromWizard;
 
+  const generateAction =
+    role === "admin"
+      ? generateAdminOrganizationDraft
+      : generateTeacherOrganizationDraft;
+
   const totalEnCount = useMemo(
     () => passages.reduce((sum, p) => sum + (p.english?.length ?? 0), 0),
     [passages]
   );
+
+  const selectedItemsForOrganization = useMemo(() => {
+    const selectedSorted = [...selected].sort((a, b) => a - b);
+    return selectedSorted
+      .map((idx) => passages[idx]!)
+      .map((p) => ({ english: p.english, korean: p.korean }))
+      .filter((it) => it.english.trim().length > 0);
+  }, [passages, selected]);
 
   function updatePassage(index: number, patch: Partial<PassageDraft>) {
     setPassages((prev) => {
@@ -87,6 +118,67 @@ export function LessonMaterialsInputWizard({
     setStep(2);
   }
 
+  useEffect(() => {
+    if (step !== 2) return;
+    if (hasGeneratedOrganization) return;
+    if (selectedItemsForOrganization.length === 0) return;
+
+    let cancelled = false;
+
+    (async () => {
+      setGeneratingOrganization(true);
+      setError(null);
+      try {
+        const res = await generateAction({
+          items: selectedItemsForOrganization,
+        });
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setError(res.message);
+          return;
+        }
+
+        setAnalysisCards(res.analysisCards);
+        setIllustrationPrompt(res.illustrationPrompt);
+        setHasGeneratedOrganization(true);
+      } finally {
+        if (!cancelled) setGeneratingOrganization(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    step,
+    hasGeneratedOrganization,
+    selectedItemsForOrganization,
+    generateAction,
+  ]);
+
+  async function handleRegenerateOrganization() {
+    if (selectedItemsForOrganization.length === 0) return;
+
+    setGeneratingOrganization(true);
+    setError(null);
+    try {
+      const res = await generateAction({
+        items: selectedItemsForOrganization,
+      });
+      if (!res.ok) {
+        setError(res.message);
+        return;
+      }
+
+      setAnalysisCards(res.analysisCards);
+      setIllustrationPrompt(res.illustrationPrompt);
+      setHasGeneratedOrganization(true);
+    } finally {
+      setGeneratingOrganization(false);
+    }
+  }
+
   async function handleSave() {
     setSaving(true);
     setError(null);
@@ -100,7 +192,12 @@ export function LessonMaterialsInputWizard({
         }))
         .filter((it) => it.english.trim().length > 0);
 
-      const res = await saveAction({ items });
+      const res = await saveAction({
+        items,
+        analysisCards: analysisCards ?? undefined,
+        illustrationPrompt:
+          illustrationPrompt.trim().length > 0 ? illustrationPrompt : null,
+      });
       if (!res.ok) {
         setError(res.message);
         return;
@@ -232,7 +329,7 @@ export function LessonMaterialsInputWizard({
             자료 정리하기
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            아래 UI는 참고 화면 흐름에 맞춰 “문장 단위 정리” 형태로 구성했습니다. (AI/저장 로직은 다음 단계에서 연결)
+            선택한 문장을 바탕으로 “분석 & 요약”과 “삽화 프롬프트”를 생성한 뒤 저장합니다.
           </p>
           {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
 
@@ -246,7 +343,7 @@ export function LessonMaterialsInputWizard({
                 <div className="text-xs text-slate-400">논리 흐름(예)</div>
               </div>
               <div className="mt-3 space-y-4">
-                {[
+                {(analysisCards ?? [
                   {
                     title: "구성의 이유에 대한 요해",
                     desc: "유용한 개념 요소를 구상하며 전체를 단락 단위로 정리한 뒤, 강조 지점을 잡아갑니다.",
@@ -259,7 +356,7 @@ export function LessonMaterialsInputWizard({
                     title: "전체 관계의 중요성",
                     desc: "상황정리/표현 전개를 통해 전체적 스토리 흐름과 의미 연결을 이해합니다.",
                   },
-                ].map((row, i) => (
+                ]).map((row, i) => (
                   <div key={i} className="rounded-lg bg-slate-50 p-3">
                     <div className="flex items-center gap-2">
                       <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-100 text-xs font-bold text-brand-700">
@@ -284,8 +381,14 @@ export function LessonMaterialsInputWizard({
               <div className="mt-3 aspect-[4/3] rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
                 <div className="flex h-full flex-col items-center justify-center gap-3">
                   <div className="text-xs text-slate-400">이미지 없음</div>
-                  <Button type="button" size="sm" className="bg-brand-600 hover:bg-brand-700">
-                    삽화 재생성(샘플)
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="bg-brand-600 hover:bg-brand-700"
+                    disabled={generatingOrganization}
+                    onClick={() => void handleRegenerateOrganization()}
+                  >
+                    {generatingOrganization ? "생성 중…" : "삽화 재생성(샘플)"}
                   </Button>
                 </div>
               </div>
@@ -298,8 +401,15 @@ export function LessonMaterialsInputWizard({
                   <input
                     className="ui-input flex-1"
                     placeholder="여기에 삽화 프롬프트를 입력하세요."
+                    value={illustrationPrompt}
+                    onChange={(e) => setIllustrationPrompt(e.target.value)}
                   />
-                  <Button type="button" size="sm" variant="secondary">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled
+                  >
                     편집
                   </Button>
                 </div>
@@ -407,13 +517,22 @@ export function LessonMaterialsInputWizard({
 
           {/* 하단 액션 바 */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <Button type="button" variant="ghost" onClick={() => setStep(1)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setStep(1);
+                setHasGeneratedOrganization(false);
+                setAnalysisCards(null);
+                setIllustrationPrompt("");
+              }}
+            >
               ← 이전 단계
             </Button>
             <Button
               type="button"
               variant="primary"
-              disabled={saving || selected.size === 0}
+              disabled={saving || generatingOrganization || selected.size === 0}
               onClick={() => void handleSave()}
               className="min-w-[220px]"
             >
@@ -440,6 +559,9 @@ export function LessonMaterialsInputWizard({
                 setStep(1);
                 setSavedProjectId(null);
                 setSavedItemsCount(0);
+                setHasGeneratedOrganization(false);
+                setAnalysisCards(null);
+                setIllustrationPrompt("");
               }}
             >
               다시 입력
@@ -451,6 +573,21 @@ export function LessonMaterialsInputWizard({
               자료함으로 이동
             </Link>
           </div>
+
+          {savedProjectId ? (
+            <div className="mt-3">
+              <Link
+                href={
+                  role === "admin"
+                    ? `/admin/lesson-materials/project/${savedProjectId}`
+                    : `/teacher/lesson-materials/project/${savedProjectId}`
+                }
+                className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800"
+              >
+                프로젝트 열기 →
+              </Link>
+            </div>
+          ) : null}
 
           {savedProjectId ? (
             <p className="mt-4 text-xs text-slate-500">

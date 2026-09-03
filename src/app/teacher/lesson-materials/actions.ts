@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { actionError, actionSuccess, type ActionResult } from "@/lib/vocab/actions-shared";
+import {
+  generateLessonMaterialsOrganizationDraft,
+  type LessonMaterialAnalysisCard,
+} from "@/lib/lesson-materials/generate-organization";
 
 type PassageInput = { english: string; korean?: string };
 
@@ -16,6 +20,8 @@ function snippetTitle(text: string) {
 
 export async function saveLessonMaterialsFromWizard(input: {
   items: PassageInput[];
+  analysisCards?: LessonMaterialAnalysisCard[];
+  illustrationPrompt?: string | null;
 }): Promise<ActionResult & { projectId?: string }> {
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
@@ -75,6 +81,10 @@ export async function saveLessonMaterialsFromWizard(input: {
       created_by: profile.id,
       academy_id: academyId,
       order_index: 0,
+      analysis_json: input.analysisCards?.length ? input.analysisCards : null,
+      illustration_prompt: input.illustrationPrompt?.trim()
+        ? input.illustrationPrompt
+        : null,
     })
     .select("id")
     .single();
@@ -104,5 +114,84 @@ export async function saveLessonMaterialsFromWizard(input: {
     ...actionSuccess("자료가 저장되었습니다."),
     projectId,
   };
+}
+
+export async function generateLessonMaterialsOrganizationDraftAction(input: {
+  items: PassageInput[];
+}): Promise<
+  | { ok: true; analysisCards: LessonMaterialAnalysisCard[]; illustrationPrompt: string }
+  | { ok: false; message: string }
+> {
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "teacher") {
+    return { ok: false, message: "강사 권한이 필요합니다." };
+  }
+  if (profile.is_active === false) {
+    return { ok: false, message: "비활성화된 계정입니다." };
+  }
+
+  const items = (input.items ?? []).filter((it) => (it.english ?? "").trim().length > 0);
+  if (items.length === 0) {
+    return { ok: false, message: "분석할 지문이 없습니다." };
+  }
+
+  try {
+    const draft = await generateLessonMaterialsOrganizationDraft({ items });
+    return {
+      ok: true,
+      analysisCards: draft.analysisCards,
+      illustrationPrompt: draft.illustrationPrompt,
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "AI 생성에 실패했습니다.",
+    };
+  }
+}
+
+export async function updateLessonMaterialItemsKoreanText(input: {
+  items: Array<{ id: string; korean: string }>;
+}): Promise<ActionResult> {
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "teacher") {
+    return actionError("강사 권한이 필요합니다.");
+  }
+  if (profile.is_active === false) {
+    return actionError("비활성화된 계정입니다.");
+  }
+
+  const supabase = await createClient();
+
+  const itemIds = (input.items ?? []).map((row) => row.id);
+  const { data: itemProjectRows } = await supabase
+    .from("lesson_material_items")
+    .select("project_id")
+    .in("id", itemIds);
+
+  const projectIds = Array.from(
+    new Set((itemProjectRows ?? []).map((r) => r.project_id).filter(Boolean))
+  );
+
+  const updates = (input.items ?? []).map(async (row) => {
+    const korean = row.korean?.trim() ?? "";
+    const koreanText = korean.length > 0 ? korean : null;
+    const { error } = await supabase
+      .from("lesson_material_items")
+      .update({ korean_text: koreanText })
+      .eq("id", row.id);
+    if (error) throw new Error(error.message);
+  });
+
+  try {
+    await Promise.all(updates);
+    for (const pid of projectIds) {
+      revalidatePath(`/teacher/lesson-materials/project/${pid}`);
+    }
+    revalidatePath("/teacher/lesson-materials");
+    return actionSuccess("한글 해석이 저장되었습니다.");
+  } catch (err) {
+    return actionError(err instanceof Error ? err.message : "저장 실패");
+  }
 }
 

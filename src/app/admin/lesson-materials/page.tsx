@@ -80,9 +80,12 @@ export default async function AdminLessonMaterialsPage() {
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-slate-900">
+                      <Link
+                        href={`/admin/lesson-materials/project/${p.id}`}
+                        className="truncate font-semibold text-slate-900 hover:text-brand-700"
+                      >
                         {p.title}
-                      </p>
+                      </Link>
                       <p className="mt-1 text-xs text-slate-500">
                         updated_at: {p.updated_at}
                       </p>
@@ -115,9 +118,12 @@ export default async function AdminLessonMaterialsPage() {
                       >
                         <div className="flex items-center justify-between gap-4">
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-slate-900">
+                            <Link
+                              href={`/admin/lesson-materials/project/${p.id}`}
+                              className="truncate font-semibold text-slate-900 hover:text-brand-700"
+                            >
                               {p.title}
-                            </p>
+                            </Link>
                             <p className="mt-1 text-xs text-slate-500">
                               updated_at: {p.updated_at}
                             </p>
