@@ -108,10 +108,9 @@ export async function generateLessonMaterialComicIllustration(input: {
   );
   let bytes = await generateImagePngBytes(prompt);
 
+  // Always burn speech bubbles (Korean font). Empty slots use safe fallbacks.
   const captions = (input.captions ?? []).map((c) => String(c ?? "").trim());
-  if (captions.some((c) => c.length > 0)) {
-    bytes = await composeComicCaptionsOnImage(bytes, captions);
-  }
+  bytes = await composeComicCaptionsOnImage(bytes, captions);
 
   const admin = createAdminClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();

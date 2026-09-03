@@ -6,6 +6,7 @@ export type LessonMaterialAnalysisCard = {
 };
 
 export type LessonMaterialOrganizationDraft = {
+  passageTitle: string;
   analysisCards: LessonMaterialAnalysisCard[];
   illustrationPrompt: string;
   comicCaptions: string[];
@@ -37,6 +38,7 @@ const SYSTEM_PROMPT = `너는 한국 중·고등 영어 지문의 논리 흐름(
 
 반드시 JSON만 반환:
 {
+  "passageTitle": "지문 전체를 요약한 짧은 한국어 제목",
   "analysisCards": [
     { "title": "지문에서 뽑은 짧은 제목1", "desc": "2문장 설명." },
     { "title": "지문에서 뽑은 짧은 제목2", "desc": "2문장 설명." },
@@ -47,6 +49,7 @@ const SYSTEM_PROMPT = `너는 한국 중·고등 영어 지문의 논리 흐름(
 }
 
 규칙:
+- passageTitle은 지문 핵심을 담은 한국어 제목 1개(18~36자). 예: "부분의 합이 전체의 성과를 보장하지 않는 이유".
 - analysisCards는 정확히 3개. 순서: 문제/오해 → 원인·전개 → 결론·전체 관점.
 - title은 이 지문 내용에서 만든 짧은 한국어 제목. 예: "구성의 오류에 대한 오해".
 - 금지 제목: "수업에서 짚을 포인트", "지문의 핵심 주장", "논리 전개", "분석", "요약".
@@ -106,10 +109,13 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
     }>(bodyText);
     const content = envelope?.choices?.[0]?.message?.content ?? bodyText;
     const parsed = parseJsonSafe<{
+      passageTitle?: string;
       analysisCards?: LessonMaterialAnalysisCard[];
       illustrationPrompt?: string;
       comicCaptions?: unknown;
     }>(content);
+
+    const passageTitle = String(parsed?.passageTitle ?? "").trim();
 
     const cards = (parsed?.analysisCards ?? [])
       .map((c) => ({
@@ -134,6 +140,10 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
     }
 
     return {
+      passageTitle:
+        passageTitle ||
+        cards[0]?.title ||
+        "지문 핵심 정리",
       analysisCards: cards.slice(0, 3),
       illustrationPrompt:
         illustrationPrompt ||
@@ -141,7 +151,12 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
       comicCaptions:
         comicCaptions.length >= 4
           ? comicCaptions.slice(0, 4)
-          : ["", "", "", ""],
+          : [
+              "이게 정말 맞을까?",
+              "잠깐, 문제가 보이네",
+              "다시 생각해 보자",
+              "이제 이해가 됐어!",
+            ],
     };
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {

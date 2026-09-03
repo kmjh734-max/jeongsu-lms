@@ -21,6 +21,7 @@ function snippetTitle(text: string) {
 
 export async function saveLessonMaterialsFromWizard(input: {
   items: PassageInput[];
+  projectTitle?: string | null;
   analysisCards?: LessonMaterialAnalysisCard[];
   illustrationPrompt?: string | null;
   illustrationUrl?: string | null;
@@ -73,7 +74,8 @@ export async function saveLessonMaterialsFromWizard(input: {
     folderId = folderInsert?.id as string | undefined;
   }
 
-  const projectTitle = snippetTitle(items[0]!.english);
+  const projectTitle =
+    input.projectTitle?.trim() || snippetTitle(items[0]!.english);
 
   const { data: projectInsert, error: projectInsertErr } = await supabase
     .from("lesson_material_projects")
@@ -130,6 +132,7 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
 }): Promise<
   | {
       ok: true;
+      passageTitle: string;
       analysisCards: LessonMaterialAnalysisCard[];
       illustrationPrompt: string;
       comicCaptions: string[];
@@ -153,6 +156,7 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
     const draft = await generateLessonMaterialsOrganizationDraft({ items });
     return {
       ok: true,
+      passageTitle: draft.passageTitle,
       analysisCards: draft.analysisCards,
       illustrationPrompt: draft.illustrationPrompt,
       comicCaptions: draft.comicCaptions,

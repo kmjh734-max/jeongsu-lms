@@ -6,6 +6,12 @@ const pdfTracePaths = [
   "./node_modules/@napi-rs/canvas/**/*",
 ];
 
+const comicTracePaths = [
+  "./assets/fonts/**/*",
+  "./public/fonts/**/*",
+  "./node_modules/@napi-rs/canvas/**/*",
+];
+
 const nextConfig: NextConfig = {
   serverExternalPackages: [
     "@ffmpeg-installer/ffmpeg",
@@ -16,6 +22,11 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/student-records/extract": pdfTracePaths,
     "/api/student-records/analyze": pdfTracePaths,
+    // Server Actions for lesson-material comics (Hangul speech bubbles)
+    "/admin/lesson-materials/input": comicTracePaths,
+    "/teacher/lesson-materials/input": comicTracePaths,
+    "/admin/lesson-materials/project/[projectId]": comicTracePaths,
+    "/teacher/lesson-materials/project/[projectId]": comicTracePaths,
   },
   images: {
     remotePatterns: [

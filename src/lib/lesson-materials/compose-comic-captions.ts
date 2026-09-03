@@ -1,18 +1,38 @@
+import fs from "fs";
 import path from "path";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 
-let fontReady = false;
+let fontFamily: string | null = null;
 
-function ensureKoreanFont() {
-  if (fontReady) return;
-  const fontPath = path.join(
-    process.cwd(),
-    "assets",
-    "fonts",
-    "NotoSansKR-Regular.otf"
+function candidateFontPaths(): string[] {
+  const cwd = process.cwd();
+  return [
+    path.join(cwd, "assets", "fonts", "NotoSansKR-Regular.otf"),
+    path.join(cwd, "public", "fonts", "NotoSansKR-Regular.otf"),
+    // Vercel / Next traced bundle layouts
+    path.join(cwd, ".next", "server", "assets", "fonts", "NotoSansKR-Regular.otf"),
+    path.join("/var/task", "assets", "fonts", "NotoSansKR-Regular.otf"),
+  ];
+}
+
+function ensureKoreanFont(): string {
+  if (fontFamily && GlobalFonts.has(fontFamily)) return fontFamily;
+
+  const tried: string[] = [];
+  for (const fontPath of candidateFontPaths()) {
+    tried.push(fontPath);
+    if (!fs.existsSync(fontPath)) continue;
+    const family = "NotoSansKR";
+    const ok = GlobalFonts.registerFromPath(fontPath, family);
+    if (ok || GlobalFonts.has(family)) {
+      fontFamily = family;
+      return family;
+    }
+  }
+
+  throw new Error(
+    `한글 폰트를 불러오지 못했습니다. 확인 경로: ${tried.join(" | ")}`
   );
-  GlobalFonts.registerFromPath(fontPath, "NotoSansKR");
-  fontReady = true;
 }
 
 function wrapText(
@@ -44,18 +64,26 @@ function drawSpeechBubble(
     cy: number;
     text: string;
     maxWidth: number;
+    fontFamily: string;
   }
 ) {
-  const { cx, cy, text, maxWidth } = opts;
+  const { cx, cy, text, maxWidth, fontFamily } = opts;
   if (!text.trim()) return;
 
-  const fontSize = 22;
-  ctx.font = `600 ${fontSize}px "NotoSansKR"`;
+  const fontSize = Math.max(18, Math.round(opts.maxWidth / 18));
+  // Regular OTF only — avoid synthetic bold weight that may drop glyphs.
+  ctx.font = `${fontSize}px "${fontFamily}"`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
   const lines = wrapText(ctx, text, maxWidth - 28);
   if (lines.length === 0) return;
+
+  // Sanity: Hangul must measure > 0 when font loaded
+  const sampleW = ctx.measureText(lines.join("")).width;
+  if (sampleW < 1) {
+    throw new Error("한글 글자 폭이 0입니다. 폰트 로드를 확인하세요.");
+  }
 
   const lineHeight = fontSize * 1.35;
   const padX = 16;
@@ -69,7 +97,6 @@ function drawSpeechBubble(
   const y = cy - contentH / 2;
   const r = 16;
 
-  // bubble body
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + contentW, y, x + contentW, y + contentH, r);
@@ -83,7 +110,6 @@ function drawSpeechBubble(
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
-  // tail
   const tailX = cx;
   const tailY = y + contentH;
   ctx.beginPath();
@@ -95,7 +121,6 @@ function drawSpeechBubble(
   ctx.fill();
   ctx.strokeStyle = "#334155";
   ctx.stroke();
-  // cover stroke through top of tail
   ctx.fillStyle = "rgba(255,255,255,0.96)";
   ctx.fillRect(tailX - 9, tailY - 4, 20, 6);
 
@@ -106,12 +131,19 @@ function drawSpeechBubble(
   });
 }
 
+const FALLBACK_CAPTIONS = [
+  "이게 정말 맞을까?",
+  "잠깐, 문제가 보이네",
+  "다시 생각해 보자",
+  "이제 이해가 됐어!",
+];
+
 /** Burn Korean speech-bubble captions into a 2x2 comic PNG. */
 export async function composeComicCaptionsOnImage(
   pngBytes: Buffer,
   captions: string[]
 ): Promise<Buffer> {
-  ensureKoreanFont();
+  const family = ensureKoreanFont();
 
   const img = await loadImage(pngBytes);
   const w = img.width || 1024;
@@ -120,7 +152,11 @@ export async function composeComicCaptionsOnImage(
   const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0, w, h);
 
-  const caps = [0, 1, 2, 3].map((i) => String(captions[i] ?? "").trim());
+  const caps = [0, 1, 2, 3].map((i) => {
+    const raw = String(captions[i] ?? "").trim();
+    return raw || FALLBACK_CAPTIONS[i]!;
+  });
+
   const panelW = w / 2;
   const panelH = h / 2;
   const positions = [
@@ -136,6 +172,7 @@ export async function composeComicCaptionsOnImage(
       cy: pos.cy,
       text: caps[i] ?? "",
       maxWidth: panelW * 0.82,
+      fontFamily: family,
     });
   });
 
