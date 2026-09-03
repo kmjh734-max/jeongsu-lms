@@ -168,6 +168,7 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
 export async function generateLessonMaterialsIllustrationAction(input: {
   illustrationPrompt: string;
   passageHint?: string;
+  captions?: string[];
 }): Promise<{ ok: true; url: string; prompt: string } | { ok: false; message: string }> {
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
@@ -189,6 +190,7 @@ export async function generateLessonMaterialsIllustrationAction(input: {
       academyId,
       illustrationPrompt: prompt,
       passageHint: input.passageHint,
+      captions: input.captions,
     });
     return { ok: true, url: out.url, prompt: out.prompt };
   } catch (e) {

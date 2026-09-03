@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { composeComicCaptionsOnImage } from "@/lib/lesson-materials/compose-comic-captions";
 
 const BUCKET = "listening-images";
 
@@ -19,9 +20,10 @@ function buildComicImagePrompt(sourcePrompt: string, passageHint: string): strin
   const body = sourcePrompt.trim() || passageHint.trim();
   return `Create ONE educational 2x2 four-panel manhwa illustration as a single continuous short story.
 
-CRITICAL — NO TEXT AT ALL:
-- Do not draw any letters, Hangul, English, numbers, logos, or speech bubbles.
-- Tell the story only with faces, gestures, body language, props, and simple icons.
+CRITICAL TEXT RULE:
+- Do NOT draw any letters, Hangul, English words, numbers, logos, signs, or UI text.
+- Leave the UPPER area of each panel relatively clear (sky/wall/blank space) so speech bubbles can be added later.
+- Do NOT draw speech bubbles yourself.
 
 Layout: panel 1 top-left → 2 top-right → 3 bottom-left → 4 bottom-right. Clear panel borders.
 
@@ -98,12 +100,18 @@ export async function generateLessonMaterialComicIllustration(input: {
   academyId: string;
   illustrationPrompt: string;
   passageHint?: string;
+  captions?: string[];
 }): Promise<{ url: string; prompt: string }> {
   const prompt = buildComicImagePrompt(
     input.illustrationPrompt,
     input.passageHint ?? ""
   );
-  const bytes = await generateImagePngBytes(prompt);
+  let bytes = await generateImagePngBytes(prompt);
+
+  const captions = (input.captions ?? []).map((c) => String(c ?? "").trim());
+  if (captions.some((c) => c.length > 0)) {
+    bytes = await composeComicCaptionsOnImage(bytes, captions);
+  }
 
   const admin = createAdminClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();

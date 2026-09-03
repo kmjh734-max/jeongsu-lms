@@ -166,6 +166,7 @@ export function LessonMaterialsInputWizard({
       const img = await generateIllustrationAction({
         illustrationPrompt: prompt,
         passageHint,
+        captions: comicCaptions,
       });
       if (!img.ok) {
         setError(img.message);
@@ -489,7 +490,7 @@ export function LessonMaterialsInputWizard({
             <section className="rounded-xl border border-slate-200 bg-white p-4">
               <h3 className="text-sm font-bold text-slate-900">4컷 만화 삽화</h3>
               <p className="mt-1 text-xs text-slate-500">
-                필요할 때만 「삽화 만들기」로 생성합니다. (글자·말풍선 없이 그림만)
+                「삽화 만들기」를 누르면 그림에 한글 말풍선이 함께 들어갑니다.
               </p>
               <div className="mt-3">
                 <LessonMaterialComicFrame
@@ -501,6 +502,31 @@ export function LessonMaterialsInputWizard({
                   }
                 />
               </div>
+              {comicCaptions.length > 0 ? (
+                <div className="mt-3 space-y-2">
+                  <div className="text-xs font-semibold text-slate-600">
+                    말풍선 대사 (수정 후 삽화 만들기)
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {comicCaptions.map((c, i) => (
+                      <input
+                        key={i}
+                        className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800"
+                        value={c}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setComicCaptions((prev) => {
+                            const next = [...prev];
+                            next[i] = v;
+                            return next;
+                          });
+                        }}
+                        placeholder={`${i + 1}컷 대사`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
                   type="button"
