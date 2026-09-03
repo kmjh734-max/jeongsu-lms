@@ -25,7 +25,6 @@ export function LessonMaterialLogicalFlow({
             {regenerating ? "생성 중…" : "논리 흐름 재생성"}
           </button>
         ) : null}
-        <span className="text-xs text-slate-500">Logical Flow (논리 흐름)</span>
       </div>
 
       <div className="mt-4 space-y-5">
