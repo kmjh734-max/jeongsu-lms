@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { LessonMaterialsStepTop } from "@/components/lesson-materials/LessonMaterialsStepTop";
+import { saveLessonMaterialsFromWizard as saveAdminLessonMaterialsFromWizard } from "@/app/admin/lesson-materials/actions";
+import { saveLessonMaterialsFromWizard as saveTeacherLessonMaterialsFromWizard } from "@/app/teacher/lesson-materials/actions";
 
 type PassageDraft = {
   english: string;
@@ -29,6 +32,13 @@ export function LessonMaterialsInputWizard({
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
+  const [savedItemsCount, setSavedItemsCount] = useState<number>(0);
+
+  const saveAction =
+    role === "admin"
+      ? saveAdminLessonMaterialsFromWizard
+      : saveTeacherLessonMaterialsFromWizard;
 
   const totalEnCount = useMemo(
     () => passages.reduce((sum, p) => sum + (p.english?.length ?? 0), 0),
@@ -48,7 +58,17 @@ export function LessonMaterialsInputWizard({
   }
 
   function removeLastPassage() {
-    setPassages((prev) => (prev.length <= 1 ? prev : prev.slice(0, -1)));
+    if (passages.length <= 1) return;
+    const lastIdx = passages.length - 1;
+
+    // 마지막 문장을 제거할 때 체크 상태도 함께 정리합니다.
+    setSelected((prevSelected) => {
+      const next = new Set(prevSelected);
+      next.delete(lastIdx);
+      return next;
+    });
+
+    setPassages((prev) => prev.slice(0, -1));
   }
 
   function canGoNext() {
@@ -68,11 +88,25 @@ export function LessonMaterialsInputWizard({
   }
 
   async function handleSave() {
-    // 현재 단계는 UI 골격만 구현
     setSaving(true);
+    setError(null);
     try {
-      // TODO: DB 저장/생성으로 연결
-      await new Promise((r) => setTimeout(r, 600));
+      const selectedSorted = [...selected].sort((a, b) => a - b);
+      const items = selectedSorted
+        .map((idx) => passages[idx]!)
+        .map((p) => ({
+          english: p.english,
+          korean: p.korean,
+        }))
+        .filter((it) => it.english.trim().length > 0);
+
+      const res = await saveAction({ items });
+      if (!res.ok) {
+        setError(res.message);
+        return;
+      }
+      setSavedProjectId(res.projectId ?? null);
+      setSavedItemsCount(items.length);
       setStep(3);
     } finally {
       setSaving(false);
@@ -200,6 +234,7 @@ export function LessonMaterialsInputWizard({
           <p className="mt-2 text-sm text-slate-600">
             아래 UI는 참고 화면 흐름에 맞춰 “문장 단위 정리” 형태로 구성했습니다. (AI/저장 로직은 다음 단계에서 연결)
           </p>
+          {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
 
           {/* 상단: 분석&요약 / 삽화(placeholder) */}
           <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_420px]">
@@ -395,11 +430,33 @@ export function LessonMaterialsInputWizard({
             이제 다음에 “한줄해석 생성” 화면(생성 버튼/미리보기/내보내기)을
             이 자료에 연결하면 됩니다.
           </p>
-          <div className="mt-5">
-            <Button type="button" variant="secondary" onClick={() => setStep(1)}>
-              처음으로
+          {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
+
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setStep(1);
+                setSavedProjectId(null);
+                setSavedItemsCount(0);
+              }}
+            >
+              다시 입력
             </Button>
+            <Link
+              href={role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials"}
+              className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700"
+            >
+              자료함으로 이동
+            </Link>
           </div>
+
+          {savedProjectId ? (
+            <p className="mt-4 text-xs text-slate-500">
+              savedProjectId: {savedProjectId} / saved items: {savedItemsCount}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>
