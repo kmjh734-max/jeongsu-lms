@@ -132,6 +132,7 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
   | {
       ok: true;
       passageTitle: string;
+      passageTitleEn: string;
       analysisCards: LessonMaterialAnalysisCard[];
       illustrationPrompt: string;
       comicCaptions: string[];
@@ -153,6 +154,7 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
     return {
       ok: true,
       passageTitle: draft.passageTitle,
+      passageTitleEn: draft.passageTitleEn,
       analysisCards: draft.analysisCards,
       illustrationPrompt: draft.illustrationPrompt,
       comicCaptions: draft.comicCaptions,

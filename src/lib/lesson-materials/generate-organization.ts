@@ -7,6 +7,7 @@ export type LessonMaterialAnalysisCard = {
 
 export type LessonMaterialOrganizationDraft = {
   passageTitle: string;
+  passageTitleEn: string;
   analysisCards: LessonMaterialAnalysisCard[];
   illustrationPrompt: string;
   comicCaptions: string[];
@@ -39,6 +40,7 @@ const SYSTEM_PROMPT = `너는 한국 중·고등 영어 지문의 논리 흐름(
 반드시 JSON만 반환:
 {
   "passageTitle": "지문 전체를 요약한 짧은 한국어 제목",
+  "passageTitleEn": "Short English title for the same passage",
   "analysisCards": [
     { "title": "지문에서 뽑은 짧은 제목1", "desc": "2문장 설명." },
     { "title": "지문에서 뽑은 짧은 제목2", "desc": "2문장 설명." },
@@ -50,6 +52,7 @@ const SYSTEM_PROMPT = `너는 한국 중·고등 영어 지문의 논리 흐름(
 
 규칙:
 - passageTitle은 지문 핵심을 담은 한국어 제목 1개(18~36자). 예: "부분의 합이 전체의 성과를 보장하지 않는 이유".
+- passageTitleEn은 같은 내용의 영어 제목 1개(6~14 words). 예: "Why the Sum of Parts Is Not the Whole". Title Case 선호.
 - analysisCards는 정확히 3개. 순서: 문제/오해 → 원인·전개 → 결론·전체 관점.
 - title은 이 지문 내용에서 만든 짧은 한국어 제목. 예: "구성의 오류에 대한 오해".
 - 금지 제목: "수업에서 짚을 포인트", "지문의 핵심 주장", "논리 전개", "분석", "요약".
@@ -110,12 +113,14 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
     const content = envelope?.choices?.[0]?.message?.content ?? bodyText;
     const parsed = parseJsonSafe<{
       passageTitle?: string;
+      passageTitleEn?: string;
       analysisCards?: LessonMaterialAnalysisCard[];
       illustrationPrompt?: string;
       comicCaptions?: unknown;
     }>(content);
 
     const passageTitle = String(parsed?.passageTitle ?? "").trim();
+    const passageTitleEn = String(parsed?.passageTitleEn ?? "").trim();
 
     const cards = (parsed?.analysisCards ?? [])
       .map((c) => ({
@@ -144,6 +149,9 @@ export async function generateLessonMaterialsOrganizationDraft(input: {
         passageTitle ||
         cards[0]?.title ||
         "지문 핵심 정리",
+      passageTitleEn:
+        passageTitleEn ||
+        "Understanding the Passage",
       analysisCards: cards.slice(0, 3),
       illustrationPrompt:
         illustrationPrompt ||

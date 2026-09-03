@@ -32,6 +32,7 @@ type PassageWorkbench = {
   english: string;
   korean: string;
   title: string;
+  titleEn: string;
   source: string;
   lines: PassageDraft[];
   selected: number[];
@@ -55,6 +56,7 @@ function emptyWorkbench(english = "", korean = ""): PassageWorkbench {
     english,
     korean,
     title: "",
+    titleEn: "",
     source: "",
     lines: [],
     selected: [],
@@ -185,6 +187,7 @@ export function LessonMaterialsInputWizard({
     const english = cur?.english?.trim() || "";
     const korean = cur?.korean?.trim() || "";
     const prevTitle = cur?.title || "";
+    const prevTitleEn = cur?.titleEn || "";
     if (!english) {
       setError("지문 영어가 비어 있습니다.");
       return null;
@@ -203,6 +206,7 @@ export function LessonMaterialsInputWizard({
       const comicCaptions = res.comicCaptions ?? [];
       patchWorkbench(index, {
         title: res.passageTitle || prevTitle || "",
+        titleEn: res.passageTitleEn || prevTitleEn || "",
         analysisCards: res.analysisCards,
         illustrationPrompt: res.illustrationPrompt,
         comicCaptions,
@@ -367,6 +371,7 @@ export function LessonMaterialsInputWizard({
           boards[i] = {
             ...boards[i]!,
             title: res.passageTitle || "",
+            titleEn: res.passageTitleEn || "",
             analysisCards: res.analysisCards,
             illustrationPrompt: res.illustrationPrompt,
             comicCaptions: res.comicCaptions ?? [],
@@ -716,8 +721,21 @@ export function LessonMaterialsInputWizard({
                 onChange={(e) =>
                   patchWorkbench(activePassage, { title: e.target.value })
                 }
-                placeholder="지문 제목"
+                placeholder="한국어 제목"
               />
+              <div className="mt-2 flex items-center gap-2">
+                <span className="shrink-0 text-[10px] font-bold tracking-wider text-slate-400">
+                  EN
+                </span>
+                <input
+                  className="w-full border-0 bg-transparent text-base font-semibold text-slate-700 outline-none placeholder:text-slate-300"
+                  value={wb.titleEn}
+                  onChange={(e) =>
+                    patchWorkbench(activePassage, { titleEn: e.target.value })
+                  }
+                  placeholder="English title"
+                />
+              </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="text-xs font-semibold text-slate-500">
                   출처
