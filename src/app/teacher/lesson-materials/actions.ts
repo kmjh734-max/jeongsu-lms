@@ -8,6 +8,7 @@ import {
   generateLessonMaterialsOrganizationDraft,
   type LessonMaterialAnalysisCard,
 } from "@/lib/lesson-materials/generate-organization";
+import { generateLessonMaterialComicIllustration } from "@/lib/lesson-materials/generate-illustration";
 
 type PassageInput = { english: string; korean?: string };
 
@@ -22,6 +23,7 @@ export async function saveLessonMaterialsFromWizard(input: {
   items: PassageInput[];
   analysisCards?: LessonMaterialAnalysisCard[];
   illustrationPrompt?: string | null;
+  illustrationUrl?: string | null;
 }): Promise<ActionResult & { projectId?: string }> {
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "teacher") {
@@ -85,6 +87,9 @@ export async function saveLessonMaterialsFromWizard(input: {
       illustration_prompt: input.illustrationPrompt?.trim()
         ? input.illustrationPrompt
         : null,
+      illustration_url: input.illustrationUrl?.trim()
+        ? input.illustrationUrl
+        : null,
     })
     .select("id")
     .single();
@@ -146,6 +151,40 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
     return {
       ok: false,
       message: e instanceof Error ? e.message : "AI 생성에 실패했습니다.",
+    };
+  }
+}
+
+export async function generateLessonMaterialsIllustrationAction(input: {
+  illustrationPrompt: string;
+  passageHint?: string;
+}): Promise<{ ok: true; url: string; prompt: string } | { ok: false; message: string }> {
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "teacher") {
+    return { ok: false, message: "강사 권한이 필요합니다." };
+  }
+  if (profile.is_active === false) {
+    return { ok: false, message: "비활성화된 계정입니다." };
+  }
+  const academyId = profile.academy_id;
+  if (!academyId) return { ok: false, message: "소속 학원 정보가 없습니다." };
+
+  const prompt = input.illustrationPrompt?.trim() ?? "";
+  if (prompt.length < 8) {
+    return { ok: false, message: "삽화 프롬프트가 비어 있습니다." };
+  }
+
+  try {
+    const out = await generateLessonMaterialComicIllustration({
+      academyId,
+      illustrationPrompt: prompt,
+      passageHint: input.passageHint,
+    });
+    return { ok: true, url: out.url, prompt: out.prompt };
+  } catch (e) {
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "삽화 생성에 실패했습니다.",
     };
   }
 }

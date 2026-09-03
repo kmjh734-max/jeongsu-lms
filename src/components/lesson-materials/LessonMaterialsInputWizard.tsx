@@ -1,21 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { LessonMaterialsStepTop } from "@/components/lesson-materials/LessonMaterialsStepTop";
-import { saveLessonMaterialsFromWizard as saveAdminLessonMaterialsFromWizard } from "@/app/admin/lesson-materials/actions";
-import { saveLessonMaterialsFromWizard as saveTeacherLessonMaterialsFromWizard } from "@/app/teacher/lesson-materials/actions";
 import {
+  generateLessonMaterialsIllustrationAction as generateAdminIllustration,
   generateLessonMaterialsOrganizationDraftAction as generateAdminOrganizationDraft,
+  saveLessonMaterialsFromWizard as saveAdminLessonMaterialsFromWizard,
 } from "@/app/admin/lesson-materials/actions";
 import {
+  generateLessonMaterialsIllustrationAction as generateTeacherIllustration,
   generateLessonMaterialsOrganizationDraftAction as generateTeacherOrganizationDraft,
+  saveLessonMaterialsFromWizard as saveTeacherLessonMaterialsFromWizard,
 } from "@/app/teacher/lesson-materials/actions";
-import type {
-  LessonMaterialAnalysisCard,
-} from "@/lib/lesson-materials/generate-organization";
+import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
 
 type PassageDraft = {
   english: string;
@@ -48,10 +48,9 @@ export function LessonMaterialsInputWizard({
     LessonMaterialAnalysisCard[] | null
   >(null);
   const [illustrationPrompt, setIllustrationPrompt] = useState<string>("");
-  const [generatingOrganization, setGeneratingOrganization] =
-    useState(false);
-  const [hasGeneratedOrganization, setHasGeneratedOrganization] =
-    useState(false);
+  const [illustrationUrl, setIllustrationUrl] = useState<string | null>(null);
+  const [generatingOrganization, setGeneratingOrganization] = useState(false);
+  const [generatingIllustration, setGeneratingIllustration] = useState(false);
 
   const saveAction =
     role === "admin"
@@ -63,18 +62,13 @@ export function LessonMaterialsInputWizard({
       ? generateAdminOrganizationDraft
       : generateTeacherOrganizationDraft;
 
+  const generateIllustrationAction =
+    role === "admin" ? generateAdminIllustration : generateTeacherIllustration;
+
   const totalEnCount = useMemo(
     () => passages.reduce((sum, p) => sum + (p.english?.length ?? 0), 0),
     [passages]
   );
-
-  const selectedItemsForOrganization = useMemo(() => {
-    const selectedSorted = [...selected].sort((a, b) => a - b);
-    return selectedSorted
-      .map((idx) => passages[idx]!)
-      .map((p) => ({ english: p.english, korean: p.korean }))
-      .filter((it) => it.english.trim().length > 0);
-  }, [passages, selected]);
 
   function updatePassage(index: number, patch: Partial<PassageDraft>) {
     setPassages((prev) => {
@@ -109,74 +103,76 @@ export function LessonMaterialsInputWizard({
     return validEnglish;
   }
 
-  function handleNext() {
+  function itemsForOrganization() {
+    const filled = passages
+      .map((p, idx) => ({ idx, english: p.english, korean: p.korean }))
+      .filter((it) => it.english.trim().length > 0);
+    return filled;
+  }
+
+  async function runIllustration(prompt: string, passageHint: string) {
+    setGeneratingIllustration(true);
+    try {
+      const img = await generateIllustrationAction({
+        illustrationPrompt: prompt,
+        passageHint,
+      });
+      if (!img.ok) {
+        setError(img.message);
+        return;
+      }
+      setIllustrationUrl(img.url);
+    } finally {
+      setGeneratingIllustration(false);
+    }
+  }
+
+  async function runOrganization(items: Array<{ english: string; korean: string }>) {
+    setGeneratingOrganization(true);
+    setError(null);
+    setAnalysisCards(null);
+    setIllustrationUrl(null);
+    try {
+      const res = await generateAction({ items });
+      if (!res.ok) {
+        setError(res.message);
+        return;
+      }
+      setAnalysisCards(res.analysisCards);
+      setIllustrationPrompt(res.illustrationPrompt);
+      await runIllustration(
+        res.illustrationPrompt,
+        items.map((it) => it.english).join("\n\n").slice(0, 800)
+      );
+    } finally {
+      setGeneratingOrganization(false);
+    }
+  }
+
+  async function handleNext() {
     setError(null);
     if (!canGoNext()) {
       setError("영어 지문을 최소 30자 이상 입력해 주세요.");
       return;
     }
+    const filled = itemsForOrganization();
+    setSelected(new Set(filled.map((it) => it.idx)));
     setStep(2);
+    await runOrganization(
+      filled.map((it) => ({ english: it.english, korean: it.korean }))
+    );
   }
 
-  useEffect(() => {
-    if (step !== 2) return;
-    if (hasGeneratedOrganization) return;
-    if (selectedItemsForOrganization.length === 0) return;
-
-    let cancelled = false;
-
-    (async () => {
-      setGeneratingOrganization(true);
-      setError(null);
-      try {
-        const res = await generateAction({
-          items: selectedItemsForOrganization,
-        });
-        if (cancelled) return;
-
-        if (!res.ok) {
-          setError(res.message);
-          return;
-        }
-
-        setAnalysisCards(res.analysisCards);
-        setIllustrationPrompt(res.illustrationPrompt);
-        setHasGeneratedOrganization(true);
-      } finally {
-        if (!cancelled) setGeneratingOrganization(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    step,
-    hasGeneratedOrganization,
-    selectedItemsForOrganization,
-    generateAction,
-  ]);
-
   async function handleRegenerateOrganization() {
-    if (selectedItemsForOrganization.length === 0) return;
-
-    setGeneratingOrganization(true);
-    setError(null);
-    try {
-      const res = await generateAction({
-        items: selectedItemsForOrganization,
-      });
-      if (!res.ok) {
-        setError(res.message);
-        return;
-      }
-
-      setAnalysisCards(res.analysisCards);
-      setIllustrationPrompt(res.illustrationPrompt);
-      setHasGeneratedOrganization(true);
-    } finally {
-      setGeneratingOrganization(false);
-    }
+    const filled = itemsForOrganization().filter((it) => selected.has(it.idx));
+    const items =
+      filled.length > 0
+        ? filled
+        : itemsForOrganization();
+    if (items.length === 0) return;
+    await runOrganization(
+      items.map((it) => ({ english: it.english, korean: it.korean }))
+    );
   }
 
   async function handleSave() {
@@ -197,6 +193,7 @@ export function LessonMaterialsInputWizard({
         analysisCards: analysisCards ?? undefined,
         illustrationPrompt:
           illustrationPrompt.trim().length > 0 ? illustrationPrompt : null,
+        illustrationUrl,
       });
       if (!res.ok) {
         setError(res.message);
@@ -309,7 +306,7 @@ export function LessonMaterialsInputWizard({
                 type="button"
                 size="md"
                 variant="secondary"
-                onClick={handleNext}
+                onClick={() => void handleNext()}
                 disabled={!canGoNext()}
               >
                 다음 단계로 →
@@ -329,34 +326,27 @@ export function LessonMaterialsInputWizard({
             자료 정리하기
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            선택한 문장을 바탕으로 “분석 & 요약”과 “삽화 프롬프트”를 생성한 뒤 저장합니다.
+            입력한 지문을 분석하고, 교육용 4컷 만화 삽화를 생성합니다.
           </p>
           {error ? <Alert variant="error" className="mt-4">{error}</Alert> : null}
 
-          {/* 상단: 분석&요약 / 삽화(placeholder) */}
           <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_420px]">
             <section className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-sm font-bold text-slate-900">
                   분석 &amp; 요약
                 </h3>
-                <div className="text-xs text-slate-400">논리 흐름(예)</div>
+                <div className="text-xs text-slate-400">
+                  {generatingOrganization ? "생성 중…" : "지문 기준"}
+                </div>
               </div>
               <div className="mt-3 space-y-4">
-                {(analysisCards ?? [
-                  {
-                    title: "구성의 이유에 대한 요해",
-                    desc: "유용한 개념 요소를 구상하며 전체를 단락 단위로 정리한 뒤, 강조 지점을 잡아갑니다.",
-                  },
-                  {
-                    title: "상황과 요거주 핵심 결합의 관계",
-                    desc: "구선에 간 인용과 관련된 내용을 분석하고, 핵심 요소를 요약해 단락의 역할을 정리합니다.",
-                  },
-                  {
-                    title: "전체 관계의 중요성",
-                    desc: "상황정리/표현 전개를 통해 전체적 스토리 흐름과 의미 연결을 이해합니다.",
-                  },
-                ]).map((row, i) => (
+                {generatingOrganization && !analysisCards ? (
+                  <div className="rounded-lg bg-slate-50 p-6 text-sm text-slate-500">
+                    지문을 읽고 분석을 만드는 중입니다.
+                  </div>
+                ) : null}
+                {(analysisCards ?? []).map((row, i) => (
                   <div key={i} className="rounded-lg bg-slate-50 p-3">
                     <div className="flex items-center gap-2">
                       <div className="flex h-7 w-7 items-center justify-center rounded bg-brand-100 text-xs font-bold text-brand-700">
@@ -371,48 +361,75 @@ export function LessonMaterialsInputWizard({
                     </div>
                   </div>
                 ))}
+                {!generatingOrganization && !analysisCards ? (
+                  <div className="rounded-lg bg-slate-50 p-6 text-sm text-slate-500">
+                    아직 분석이 없습니다. 다시 생성을 눌러 주세요.
+                  </div>
+                ) : null}
               </div>
             </section>
 
             <section className="rounded-xl border border-slate-200 bg-white p-4">
-              <h3 className="text-sm font-bold text-slate-900">
-                삽화(placeholder)
-              </h3>
-              <div className="mt-3 aspect-[4/3] rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
-                <div className="flex h-full flex-col items-center justify-center gap-3">
-                  <div className="text-xs text-slate-400">이미지 없음</div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="bg-brand-600 hover:bg-brand-700"
-                    disabled={generatingOrganization}
-                    onClick={() => void handleRegenerateOrganization()}
-                  >
-                    {generatingOrganization ? "생성 중…" : "삽화 재생성(샘플)"}
-                  </Button>
-                </div>
+              <h3 className="text-sm font-bold text-slate-900">4컷 만화 삽화</h3>
+              <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                {illustrationUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={illustrationUrl}
+                    alt="수업자료 4컷 삽화"
+                    className="aspect-square w-full object-contain bg-white"
+                  />
+                ) : (
+                  <div className="flex aspect-square flex-col items-center justify-center gap-3 p-4">
+                    <div className="text-xs text-slate-400">
+                      {generatingIllustration || generatingOrganization
+                        ? "4컷 만화를 그리는 중입니다. 최대 1분 정도 걸릴 수 있습니다."
+                        : "이미지 없음"}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="bg-brand-600 hover:bg-brand-700"
+                  disabled={generatingOrganization || generatingIllustration}
+                  onClick={() => void handleRegenerateOrganization()}
+                >
+                  {generatingOrganization || generatingIllustration
+                    ? "생성 중…"
+                    : "분석·삽화 다시 만들기"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={
+                    generatingIllustration ||
+                    generatingOrganization ||
+                    illustrationPrompt.trim().length < 8
+                  }
+                  onClick={() =>
+                    void runIllustration(
+                      illustrationPrompt,
+                      passages.map((p) => p.english).join("\n\n").slice(0, 800)
+                    )
+                  }
+                >
+                  삽화만 다시 그리기
+                </Button>
               </div>
 
               <div className="mt-3">
                 <div className="text-xs font-semibold text-slate-600">
-                  프롬프트 편집 후 엔터 (예: A cute cat reading,…)
+                  삽화 프롬프트 (수정 후 다시 만들기)
                 </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    className="ui-input flex-1"
-                    placeholder="여기에 삽화 프롬프트를 입력하세요."
-                    value={illustrationPrompt}
-                    onChange={(e) => setIllustrationPrompt(e.target.value)}
-                  />
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    disabled
-                  >
-                    편집
-                  </Button>
-                </div>
+                <textarea
+                  className="mt-2 min-h-[88px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800"
+                  value={illustrationPrompt}
+                  onChange={(e) => setIllustrationPrompt(e.target.value)}
+                />
               </div>
             </section>
           </div>
@@ -522,9 +539,9 @@ export function LessonMaterialsInputWizard({
               variant="ghost"
               onClick={() => {
                 setStep(1);
-                setHasGeneratedOrganization(false);
                 setAnalysisCards(null);
                 setIllustrationPrompt("");
+                setIllustrationUrl(null);
               }}
             >
               ← 이전 단계
@@ -532,7 +549,12 @@ export function LessonMaterialsInputWizard({
             <Button
               type="button"
               variant="primary"
-              disabled={saving || generatingOrganization || selected.size === 0}
+              disabled={
+                saving ||
+                generatingOrganization ||
+                generatingIllustration ||
+                selected.size === 0
+              }
               onClick={() => void handleSave()}
               className="min-w-[220px]"
             >
@@ -559,9 +581,9 @@ export function LessonMaterialsInputWizard({
                 setStep(1);
                 setSavedProjectId(null);
                 setSavedItemsCount(0);
-                setHasGeneratedOrganization(false);
                 setAnalysisCards(null);
                 setIllustrationPrompt("");
+                setIllustrationUrl(null);
               }}
             >
               다시 입력

@@ -28,13 +28,14 @@ export function LessonMaterialProjectWorkspace({
   items,
   analysis_json,
   illustration_prompt,
+  illustration_url,
 }: {
   role: "admin" | "teacher";
   project: { id: string; title: string };
   items: LessonMaterialItemDraft[];
-  // NOTE: Step 2에서 analysis/illustration을 연결하면서 확장합니다.
   analysis_json?: unknown;
   illustration_prompt?: string | null;
+  illustration_url?: string | null;
 }) {
   const saveAction =
     role === "admin" ? updateAdminItems : updateTeacherItems;
@@ -139,11 +140,20 @@ export function LessonMaterialProjectWorkspace({
           )}
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-bold text-slate-900">삽화</h2>
-          <div className="mt-3 aspect-[4/3] rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4">
-            <div className="flex h-full items-center justify-center text-xs text-slate-400">
-              이미지 없음
-            </div>
+          <h2 className="text-sm font-bold text-slate-900">4컷 만화 삽화</h2>
+          <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+            {illustration_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={illustration_url}
+                alt="수업자료 4컷 삽화"
+                className="aspect-square w-full object-contain bg-white"
+              />
+            ) : (
+              <div className="flex aspect-square items-center justify-center text-xs text-slate-400">
+                이미지 없음
+              </div>
+            )}
           </div>
           {illustration_prompt?.trim() ? (
             <div className="mt-3 rounded-lg bg-slate-50 p-3">

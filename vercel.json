@@ -17,6 +17,12 @@
     },
     "src/app/api/student-records/share/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/admin/lesson-materials/input/page.tsx": {
+      "maxDuration": 120
+    },
+    "src/app/teacher/lesson-materials/input/page.tsx": {
+      "maxDuration": 120
     }
   }
 }
