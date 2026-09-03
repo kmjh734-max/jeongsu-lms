@@ -10,12 +10,15 @@ const comicTracePaths = [
   "./assets/fonts/**/*",
   "./public/fonts/**/*",
   "./node_modules/@napi-rs/canvas/**/*",
+  "./node_modules/sharp/**/*",
+  "./node_modules/@img/**/*",
 ];
 
 const nextConfig: NextConfig = {
   serverExternalPackages: [
     "@ffmpeg-installer/ffmpeg",
     "@napi-rs/canvas",
+    "sharp",
     "pdf-parse",
     "pdfjs-dist",
   ],

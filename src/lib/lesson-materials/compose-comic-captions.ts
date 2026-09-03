@@ -1,135 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
-
-let fontFamily: string | null = null;
-
-function candidateFontPaths(): string[] {
-  const cwd = process.cwd();
-  return [
-    path.join(cwd, "assets", "fonts", "NotoSansKR-Regular.otf"),
-    path.join(cwd, "public", "fonts", "NotoSansKR-Regular.otf"),
-    // Vercel / Next traced bundle layouts
-    path.join(cwd, ".next", "server", "assets", "fonts", "NotoSansKR-Regular.otf"),
-    path.join("/var/task", "assets", "fonts", "NotoSansKR-Regular.otf"),
-  ];
-}
-
-function ensureKoreanFont(): string {
-  if (fontFamily && GlobalFonts.has(fontFamily)) return fontFamily;
-
-  const tried: string[] = [];
-  for (const fontPath of candidateFontPaths()) {
-    tried.push(fontPath);
-    if (!fs.existsSync(fontPath)) continue;
-    const family = "NotoSansKR";
-    const ok = GlobalFonts.registerFromPath(fontPath, family);
-    if (ok || GlobalFonts.has(family)) {
-      fontFamily = family;
-      return family;
-    }
-  }
-
-  throw new Error(
-    `한글 폰트를 불러오지 못했습니다. 확인 경로: ${tried.join(" | ")}`
-  );
-}
-
-function wrapText(
-  ctx: ReturnType<ReturnType<typeof createCanvas>["getContext"]>,
-  text: string,
-  maxWidth: number
-): string[] {
-  const chars = [...text.trim()];
-  if (chars.length === 0) return [];
-  const lines: string[] = [];
-  let cur = "";
-  for (const ch of chars) {
-    const trial = cur + ch;
-    if (ctx.measureText(trial).width > maxWidth && cur) {
-      lines.push(cur);
-      cur = ch;
-    } else {
-      cur = trial;
-    }
-  }
-  if (cur) lines.push(cur);
-  return lines.slice(0, 3);
-}
-
-function drawSpeechBubble(
-  ctx: ReturnType<ReturnType<typeof createCanvas>["getContext"]>,
-  opts: {
-    cx: number;
-    cy: number;
-    text: string;
-    maxWidth: number;
-    fontFamily: string;
-  }
-) {
-  const { cx, cy, text, maxWidth, fontFamily } = opts;
-  if (!text.trim()) return;
-
-  const fontSize = Math.max(18, Math.round(opts.maxWidth / 18));
-  // Regular OTF only — avoid synthetic bold weight that may drop glyphs.
-  ctx.font = `${fontSize}px "${fontFamily}"`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  const lines = wrapText(ctx, text, maxWidth - 28);
-  if (lines.length === 0) return;
-
-  // Sanity: Hangul must measure > 0 when font loaded
-  const sampleW = ctx.measureText(lines.join("")).width;
-  if (sampleW < 1) {
-    throw new Error("한글 글자 폭이 0입니다. 폰트 로드를 확인하세요.");
-  }
-
-  const lineHeight = fontSize * 1.35;
-  const padX = 16;
-  const padY = 12;
-  const contentW = Math.min(
-    maxWidth,
-    Math.max(...lines.map((l) => ctx.measureText(l).width)) + padX * 2
-  );
-  const contentH = lines.length * lineHeight + padY * 2;
-  const x = cx - contentW / 2;
-  const y = cy - contentH / 2;
-  const r = 16;
-
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + contentW, y, x + contentW, y + contentH, r);
-  ctx.arcTo(x + contentW, y + contentH, x, y + contentH, r);
-  ctx.arcTo(x, y + contentH, x, y, r);
-  ctx.arcTo(x, y, x + contentW, y, r);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(255,255,255,0.96)";
-  ctx.fill();
-  ctx.strokeStyle = "#334155";
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-
-  const tailX = cx;
-  const tailY = y + contentH;
-  ctx.beginPath();
-  ctx.moveTo(tailX - 10, tailY - 2);
-  ctx.lineTo(tailX, tailY + 16);
-  ctx.lineTo(tailX + 12, tailY - 2);
-  ctx.closePath();
-  ctx.fillStyle = "rgba(255,255,255,0.96)";
-  ctx.fill();
-  ctx.strokeStyle = "#334155";
-  ctx.stroke();
-  ctx.fillStyle = "rgba(255,255,255,0.96)";
-  ctx.fillRect(tailX - 9, tailY - 4, 20, 6);
-
-  ctx.fillStyle = "#0f172a";
-  lines.forEach((line, i) => {
-    const ty = y + padY + lineHeight * (i + 0.5);
-    ctx.fillText(line, cx, ty);
-  });
-}
+import sharp from "sharp";
 
 const FALLBACK_CAPTIONS = [
   "이게 정말 맞을까?",
@@ -138,43 +9,145 @@ const FALLBACK_CAPTIONS = [
   "이제 이해가 됐어!",
 ];
 
-/** Burn Korean speech-bubble captions into a 2x2 comic PNG. */
+function candidateFontPaths(): string[] {
+  const cwd = process.cwd();
+  return [
+    path.join(cwd, "public", "fonts", "NotoSansKR-Regular.otf"),
+    path.join(cwd, "assets", "fonts", "NotoSansKR-Regular.otf"),
+    path.join(cwd, ".next", "server", "chunks", "public", "fonts", "NotoSansKR-Regular.otf"),
+    path.join("/var/task", "public", "fonts", "NotoSansKR-Regular.otf"),
+    path.join("/var/task", "assets", "fonts", "NotoSansKR-Regular.otf"),
+  ];
+}
+
+function loadKoreanFontBase64(): string {
+  const tried: string[] = [];
+  for (const fontPath of candidateFontPaths()) {
+    tried.push(fontPath);
+    if (!fs.existsSync(fontPath)) continue;
+    return fs.readFileSync(fontPath).toString("base64");
+  }
+  throw new Error(
+    `한글 폰트 파일을 찾지 못했습니다: ${tried.join(" | ")}`
+  );
+}
+
+function wrapByChars(text: string, maxChars: number): string[] {
+  const chars = [...text.trim()];
+  if (chars.length === 0) return [];
+  const lines: string[] = [];
+  for (let i = 0; i < chars.length; i += maxChars) {
+    lines.push(chars.slice(i, i + maxChars).join(""));
+  }
+  return lines.slice(0, 3);
+}
+
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildBubbleSvg(opts: {
+  width: number;
+  height: number;
+  captions: string[];
+  fontBase64: string;
+}): string {
+  const { width, height, captions, fontBase64 } = opts;
+  const panelW = width / 2;
+  const panelH = height / 2;
+  const positions = [
+    { cx: panelW * 0.5, cy: panelH * 0.2 },
+    { cx: panelW * 1.5, cy: panelH * 0.2 },
+    { cx: panelW * 0.5, cy: panelH * 1.2 },
+    { cx: panelW * 1.5, cy: panelH * 1.2 },
+  ];
+
+  const fontSize = Math.max(20, Math.round(panelW / 16));
+  const lineHeight = fontSize * 1.35;
+  const maxChars = Math.max(8, Math.floor(panelW / (fontSize * 0.95)));
+
+  const bubbles = positions
+    .map((pos, i) => {
+      const text = captions[i] ?? "";
+      if (!text.trim()) return "";
+      const lines = wrapByChars(text, maxChars);
+      const padX = 18;
+      const padY = 14;
+      const approxCharW = fontSize * 0.95;
+      const contentW = Math.min(
+        panelW * 0.86,
+        Math.max(...lines.map((l) => [...l].length * approxCharW)) + padX * 2
+      );
+      const contentH = lines.length * lineHeight + padY * 2;
+      const x = pos.cx - contentW / 2;
+      const y = pos.cy - contentH / 2;
+      const r = 16;
+      const tailX = pos.cx;
+      const tailY = y + contentH;
+
+      const textNodes = lines
+        .map((line, li) => {
+          const ty = y + padY + lineHeight * (li + 0.72);
+          return `<text x="${pos.cx}" y="${ty}" text-anchor="middle" font-family="NotoSansKR" font-size="${fontSize}" fill="#0f172a">${escapeXml(line)}</text>`;
+        })
+        .join("\n");
+
+      return `
+      <g>
+        <rect x="${x}" y="${y}" width="${contentW}" height="${contentH}" rx="${r}" ry="${r}" fill="rgba(255,255,255,0.97)" stroke="#334155" stroke-width="3"/>
+        <polygon points="${tailX - 10},${tailY - 1} ${tailX},${tailY + 16} ${tailX + 12},${tailY - 1}" fill="rgba(255,255,255,0.97)" stroke="#334155" stroke-width="3"/>
+        <rect x="${tailX - 9}" y="${tailY - 5}" width="20" height="8" fill="rgba(255,255,255,0.97)"/>
+        ${textNodes}
+      </g>`;
+    })
+    .join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+  <defs>
+    <style>
+      @font-face {
+        font-family: "NotoSansKR";
+        src: url("data:font/otf;base64,${fontBase64}");
+      }
+    </style>
+  </defs>
+  ${bubbles}
+</svg>`;
+}
+
+/**
+ * Burn Korean speech-bubble captions into a 2x2 comic PNG using sharp + SVG.
+ * Avoids @napi-rs/canvas native/font issues on Vercel.
+ */
 export async function composeComicCaptionsOnImage(
   pngBytes: Buffer,
   captions: string[]
 ): Promise<Buffer> {
-  const family = ensureKoreanFont();
-
-  const img = await loadImage(pngBytes);
-  const w = img.width || 1024;
-  const h = img.height || 1024;
-  const canvas = createCanvas(w, h);
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0, w, h);
+  const fontBase64 = loadKoreanFontBase64();
+  const meta = await sharp(pngBytes).metadata();
+  const width = meta.width || 1024;
+  const height = meta.height || 1024;
 
   const caps = [0, 1, 2, 3].map((i) => {
     const raw = String(captions[i] ?? "").trim();
     return raw || FALLBACK_CAPTIONS[i]!;
   });
 
-  const panelW = w / 2;
-  const panelH = h / 2;
-  const positions = [
-    { cx: panelW * 0.5, cy: panelH * 0.18 },
-    { cx: panelW * 1.5, cy: panelH * 0.18 },
-    { cx: panelW * 0.5, cy: panelH * 1.18 },
-    { cx: panelW * 1.5, cy: panelH * 1.18 },
-  ];
-
-  positions.forEach((pos, i) => {
-    drawSpeechBubble(ctx, {
-      cx: pos.cx,
-      cy: pos.cy,
-      text: caps[i] ?? "",
-      maxWidth: panelW * 0.82,
-      fontFamily: family,
-    });
+  const svg = buildBubbleSvg({
+    width,
+    height,
+    captions: caps,
+    fontBase64,
   });
 
-  return canvas.toBuffer("image/png");
+  const overlay = await sharp(Buffer.from(svg)).png().toBuffer();
+  return sharp(pngBytes)
+    .composite([{ input: overlay, top: 0, left: 0 }])
+    .png()
+    .toBuffer();
 }

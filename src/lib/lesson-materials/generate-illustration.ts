@@ -9,29 +9,49 @@ function imageModelCandidates(): string[] {
   const push = (m?: string) => {
     if (m && !out.includes(m)) out.push(m);
   };
+  // Prefer models with better multilingual / comic text when available
   push(dedicated);
+  push("gpt-image-2");
   push("gpt-image-1.5");
   push("gpt-image-1");
   push("dall-e-3");
   return out;
 }
 
-function buildComicImagePrompt(sourcePrompt: string, passageHint: string): string {
+function normalizeCaptions(captions?: string[]): string[] {
+  const fallback = [
+    "이게 정말 맞을까?",
+    "잠깐, 문제가 보이네",
+    "다시 생각해 보자",
+    "이제 이해가 됐어!",
+  ];
+  return [0, 1, 2, 3].map((i) => {
+    const raw = String(captions?.[i] ?? "").trim();
+    return raw || fallback[i]!;
+  });
+}
+
+/** Art only — Hangul is burned in afterward so it never breaks. */
+function buildComicImagePrompt(
+  sourcePrompt: string,
+  passageHint: string,
+  captions: string[]
+): string {
   const body = sourcePrompt.trim() || passageHint.trim();
   return `Create ONE educational 2x2 four-panel manhwa illustration as a single continuous short story.
 
-CRITICAL TEXT RULE:
-- Do NOT draw any letters, Hangul, English words, numbers, logos, signs, or UI text.
-- Leave the UPPER area of each panel relatively clear (sky/wall/blank space) so speech bubbles can be added later.
-- Do NOT draw speech bubbles yourself.
+CRITICAL — TEXT AND BUBBLES:
+- Do NOT draw any letters, Hangul, English words, numbers, logos, signs, UI text, or speech/thought bubbles.
+- Leave the UPPER ~20% of each panel clear (sky / wall / blank space) for bubbles to be added later.
+- Empty bubbles are forbidden.
 
 Layout: panel 1 top-left → 2 top-right → 3 bottom-left → 4 bottom-right. Clear panel borders.
 
 Storytelling (smooth flow, same characters in every panel):
-1) Introduce the situation / common assumption calmly
-2) Show the hidden problem emerging
-3) Characters struggle or realize the conflict
-4) Warm resolution / better understanding together
+1) ${captions[0]} — show the situation / assumption
+2) ${captions[1]} — show the hidden problem
+3) ${captions[2]} — characters struggle / realize
+4) ${captions[3]} — warm resolution / understanding
 
 Style: bright clean colorful educational manhwa, soft friendly mood, flat colors, clean line art, no photorealism, no watermark.
 
@@ -102,15 +122,24 @@ export async function generateLessonMaterialComicIllustration(input: {
   passageHint?: string;
   captions?: string[];
 }): Promise<{ url: string; prompt: string }> {
+  const captions = normalizeCaptions(input.captions);
   const prompt = buildComicImagePrompt(
     input.illustrationPrompt,
-    input.passageHint ?? ""
+    input.passageHint ?? "",
+    captions
   );
   let bytes = await generateImagePngBytes(prompt);
 
-  // Always burn speech bubbles (Korean font). Empty slots use safe fallbacks.
-  const captions = (input.captions ?? []).map((c) => String(c ?? "").trim());
-  bytes = await composeComicCaptionsOnImage(bytes, captions);
+  // Always burn Hangul with sharp+SVG (Noto). Never rely on the image model for Korean.
+  try {
+    bytes = await composeComicCaptionsOnImage(bytes, captions);
+  } catch (e) {
+    throw new Error(
+      e instanceof Error
+        ? `한글 말풍선 합성 실패: ${e.message}`
+        : "한글 말풍선 합성 실패"
+    );
+  }
 
   const admin = createAdminClient();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();

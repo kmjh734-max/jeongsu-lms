@@ -186,24 +186,16 @@ export function LessonMaterialsInputWizard({
     illustrationPrompt: string;
     comicCaptions: string[];
   } | null> {
-    let english = "";
-    let korean = "";
-    let prevTitle = "";
-    setWorkbenches((prev) => {
-      const cur = prev[index];
-      english = cur?.english?.trim() || "";
-      korean = cur?.korean?.trim() || "";
-      prevTitle = cur?.title || "";
-      if (!cur) return prev;
-      const next = [...prev];
-      next[index] = { ...cur, generatingOrganization: true };
-      return next;
-    });
+    const cur = workbenches[index];
+    const english = cur?.english?.trim() || "";
+    const korean = cur?.korean?.trim() || "";
+    const prevTitle = cur?.title || "";
     if (!english) {
-      patchWorkbench(index, { generatingOrganization: false });
+      setError("지문 영어가 비어 있습니다.");
       return null;
     }
 
+    patchWorkbench(index, { generatingOrganization: true });
     setError(null);
     try {
       const res = await generateAction({
@@ -219,58 +211,74 @@ export function LessonMaterialsInputWizard({
         analysisCards: res.analysisCards,
         illustrationPrompt: res.illustrationPrompt,
         comicCaptions,
+        generatingOrganization: false,
       });
       return {
         illustrationPrompt: res.illustrationPrompt,
         comicCaptions,
       };
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "분석 생성에 실패했습니다.");
+      return null;
     } finally {
       patchWorkbench(index, { generatingOrganization: false });
     }
+  }
+
+  function resolveIllustrationPrompt(board: PassageWorkbench): string {
+    const direct = board.illustrationPrompt.trim();
+    if (direct.length >= 8) return direct;
+    const hint = board.english.trim().slice(0, 600);
+    if (hint.length >= 20) {
+      return `One continuous 2x2 educational manhwa about this passage idea. Same characters in all panels. Soft narrative arc. No text, no speech bubbles in the art. Passage: ${hint}`;
+    }
+    return "";
   }
 
   async function runIllustrationForIndex(
     index: number,
     overrides?: { illustrationPrompt?: string; comicCaptions?: string[] }
   ) {
-    let prompt = overrides?.illustrationPrompt?.trim() ?? "";
-    let english = "";
-    let captions = overrides?.comicCaptions
-      ? [...overrides.comicCaptions]
-      : [];
-
-    setWorkbenches((prev) => {
-      const cur = prev[index];
-      if (!cur) return prev;
-      if (!prompt) prompt = cur.illustrationPrompt.trim();
-      english = cur.english;
-      if (captions.length === 0) {
-        captions =
-          cur.comicCaptions.length > 0
-            ? [...cur.comicCaptions]
-            : [
-                "이게 정말 맞을까?",
-                "잠깐, 문제가 보이네",
-                "다시 생각해 보자",
-                "이제 이해가 됐어!",
-              ];
-      }
-      const next = [...prev];
-      next[index] = { ...cur, generatingIllustration: true };
-      return next;
-    });
-
-    if (prompt.length < 8) {
-      patchWorkbench(index, { generatingIllustration: false });
-      setError("먼저 논리 흐름을 생성해 주세요.");
+    const cur = workbenches[index];
+    if (!cur) {
+      setError("지문 정보가 없습니다. 이전 단계로 돌아가 다시 시도해 주세요.");
       return;
     }
 
+    const prompt = (
+      overrides?.illustrationPrompt?.trim() ||
+      resolveIllustrationPrompt(cur)
+    ).trim();
+    const captions =
+      overrides?.comicCaptions && overrides.comicCaptions.length > 0
+        ? [...overrides.comicCaptions]
+        : cur.comicCaptions.length > 0
+          ? [...cur.comicCaptions]
+          : [
+              "이게 정말 맞을까?",
+              "잠깐, 문제가 보이네",
+              "다시 생각해 보자",
+              "이제 이해가 됐어!",
+            ];
+
+    if (prompt.length < 8) {
+      setError(
+        "삽화에 쓸 내용이 없습니다. 「논리 흐름 재생성」을 한 뒤 다시 눌러 주세요."
+      );
+      return;
+    }
+
+    // Persist resolved prompt so later clicks keep working
+    if (!cur.illustrationPrompt.trim() && prompt) {
+      patchWorkbench(index, { illustrationPrompt: prompt });
+    }
+
+    patchWorkbench(index, { generatingIllustration: true });
     setError(null);
     try {
       const img = await generateIllustrationAction({
         illustrationPrompt: prompt,
-        passageHint: english.slice(0, 800),
+        passageHint: cur.english.slice(0, 800),
         captions,
       });
       if (!img.ok) {
@@ -795,10 +803,16 @@ export function LessonMaterialsInputWizard({
                     disabled={
                       wb.generatingIllustration ||
                       wb.generatingOrganization ||
-                      wb.illustrationPrompt.trim().length < 8 ||
-                      bulkBusy
+                      bulkBusy ||
+                      (!wb.illustrationPrompt.trim() &&
+                        wb.english.trim().length < 20)
                     }
-                    onClick={() => void runIllustrationForIndex(activePassage)}
+                    onClick={() =>
+                      void runIllustrationForIndex(activePassage, {
+                        illustrationPrompt: wb.illustrationPrompt,
+                        comicCaptions: wb.comicCaptions,
+                      })
+                    }
                   >
                     {wb.generatingIllustration
                       ? "생성 중…"
