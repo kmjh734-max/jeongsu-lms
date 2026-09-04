@@ -196,7 +196,6 @@ export async function generateAnalysisReport(input: {
   lines: InputLine[];
   title?: string;
   headerLabel?: string;
-  grade?: string | null;
 }): Promise<AnalysisReportData> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
@@ -216,7 +215,6 @@ export async function generateAnalysisReport(input: {
   try {
     const userContent = buildAnalysisReportUserPrompt({
       title: input.title,
-      grade: input.grade,
       lines,
     });
 
