@@ -17,6 +17,7 @@ import {
   restoreLessonMaterialProjects,
   trashLessonMaterialProjects,
 } from "@/lib/lesson-materials/library-ops";
+import { LessonMaterialsSelectionBar } from "@/components/lesson-materials/LessonMaterialsSelectionBar";
 
 type FolderFilter = "all" | "unfiled" | "trash" | string;
 
@@ -162,7 +163,7 @@ export function LessonMaterialsLibrary({
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-6 pb-28">
       <aside className="w-72 shrink-0 rounded-2xl border border-slate-200 bg-white p-4">
         <div className="mb-3 flex items-start justify-between">
           <div>
@@ -596,6 +597,14 @@ export function LessonMaterialsLibrary({
           )}
         </ul>
       </main>
+
+      {!inTrash ? (
+        <LessonMaterialsSelectionBar
+          role={role}
+          selectedCount={selectedCount}
+          selectedIds={selectedIds}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,0 +1,146 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import {
+  generateLessonPackVocab,
+  type LessonPackData,
+  type LessonPackVocabItem,
+} from "@/lib/lesson-materials/generate-lesson-pack";
+
+type Role = "admin" | "teacher";
+
+async function requireRole(role: Role) {
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== role) {
+    return { profile: null as null, error: "권한이 없습니다." };
+  }
+  if (role === "teacher" && profile.is_active === false) {
+    return { profile: null as null, error: "비활성화된 계정입니다." };
+  }
+  if (!profile.academy_id) {
+    return { profile: null as null, error: "소속 학원 정보가 없습니다." };
+  }
+  return { profile, error: null as null };
+}
+
+export async function generateAndSaveLessonPackVocabAction(
+  role: Role,
+  input: { projectId: string }
+): Promise<
+  | { ok: true; vocab: LessonPackVocabItem[]; headerLabel: string }
+  | { ok: false; message: string }
+> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+
+  const projectId = input.projectId?.trim();
+  if (!projectId) return { ok: false, message: "프로젝트 ID가 없습니다." };
+
+  const supabase = await createClient();
+  let pq = supabase
+    .from("lesson_material_projects")
+    .select("id,title,lesson_pack_json")
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null);
+  if (role === "teacher") {
+    pq = pq.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { data: project, error: pErr } = await pq.maybeSingle();
+  if (pErr || !project) {
+    return { ok: false, message: "프로젝트를 찾을 수 없습니다." };
+  }
+
+  const { data: items, error: iErr } = await supabase
+    .from("lesson_material_items")
+    .select("english_text,korean_text,order_index")
+    .eq("project_id", projectId)
+    .order("order_index", { ascending: true });
+  if (iErr) return { ok: false, message: iErr.message };
+
+  const english = (items ?? []).map((it) => it.english_text).join("\n");
+  const korean = (items ?? [])
+    .map((it) => it.korean_text ?? "")
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    const vocab = await generateLessonPackVocab({
+      englishPassage: english,
+      koreanPassage: korean,
+      title: project.title,
+    });
+    const prev = (project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+    const pack: LessonPackData = {
+      headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
+      vocab,
+      updatedAt: new Date().toISOString(),
+    };
+    const { error: uErr } = await supabase
+      .from("lesson_material_projects")
+      .update({
+        lesson_pack_json: pack,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", projectId);
+    if (uErr) return { ok: false, message: uErr.message };
+
+    revalidatePath(`/${role}/lesson-materials`);
+    revalidatePath(`/${role}/lesson-materials/lesson-pack`);
+    revalidatePath(`/${role}/lesson-materials/project/${projectId}`);
+    return { ok: true, vocab, headerLabel: pack.headerLabel };
+  } catch (e) {
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "어휘 생성 실패",
+    };
+  }
+}
+
+export async function saveLessonPackAction(
+  role: Role,
+  input: {
+    projectId: string;
+    headerLabel?: string;
+    vocab: LessonPackVocabItem[];
+    titleEn?: string | null;
+  }
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+
+  const projectId = input.projectId?.trim();
+  if (!projectId) return { ok: false, message: "프로젝트 ID가 없습니다." };
+
+  const supabase = await createClient();
+  const pack: LessonPackData = {
+    headerLabel: (input.headerLabel ?? "26년도 1학기 중간고사 대비").trim(),
+    vocab: input.vocab,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const patch: Record<string, unknown> = {
+    lesson_pack_json: pack,
+    updated_at: new Date().toISOString(),
+  };
+  if (input.titleEn !== undefined) {
+    patch.title_en = input.titleEn?.trim() || null;
+  }
+
+  let q = supabase
+    .from("lesson_material_projects")
+    .update(patch)
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!);
+  if (role === "teacher") {
+    q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { error: uErr } = await q;
+  if (uErr) return { ok: false, message: uErr.message };
+
+  revalidatePath(`/${role}/lesson-materials/lesson-pack`);
+  revalidatePath(`/${role}/lesson-materials/project/${projectId}`);
+  return { ok: true };
+}
