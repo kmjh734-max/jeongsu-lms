@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -41,7 +41,10 @@ const FONT_OPTIONS = [
 /** A4 sheet */
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
-const A4_PAD = "10mm";
+const A4_PAD_MM = 10;
+const A4_PAD = `${A4_PAD_MM}mm`;
+/** Usable body height inside padding (mm) */
+const A4_BODY_MM = 297 - A4_PAD_MM * 2;
 
 function A4Sheet({
   children,
@@ -138,6 +141,16 @@ export function LessonPackWorkbench({
   const [zoom, setZoom] = useState(70);
 
   const project = projects[activeIdx] ?? null;
+
+  const sortedLessonItems = useMemo(() => {
+    if (!project) return [];
+    return project.items
+      .slice()
+      .sort((a, b) => a.order_index - b.order_index);
+  }, [project]);
+
+  const lessonMeasureRef = useRef<HTMLDivElement>(null);
+  const [lessonPageChunks, setLessonPageChunks] = useState<number[][]>([[]]);
 
   // Auto-shuffle once when vocab content changes (no manual reshuffle)
   const vocabFingerprint = useMemo(
@@ -319,6 +332,59 @@ export function LessonPackWorkbench({
     };
   }, [fontSizePx, lineHeightPct]);
 
+  // Pack lesson sentences into A4 pages without splitting a sentence mid-way.
+  useLayoutEffect(() => {
+    if (!project) {
+      setLessonPageChunks([[]]);
+      return;
+    }
+    const root = lessonMeasureRef.current;
+    if (!root) return;
+
+    const nodes = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-lesson-measure-item]")
+    );
+    if (nodes.length === 0) {
+      setLessonPageChunks([[]]);
+      return;
+    }
+
+    const widthPx = root.offsetWidth || 1;
+    const pxPerMm = widthPx / 210;
+    const pageBodyPx = A4_BODY_MM * pxPerMm;
+    // Header budgets: first page has title + passage bar; continuations are shorter
+    const headerFirst = Math.max(64, pageBodyPx * 0.1);
+    const headerCont = Math.max(40, pageBodyPx * 0.055);
+    const gapPx = Math.max(8, fontSizePx * 0.85);
+
+    const heights = nodes.map((n) => n.offsetHeight);
+    const pages: number[][] = [];
+    let cur: number[] = [];
+    let used = headerFirst;
+
+    heights.forEach((h, i) => {
+      const add = (cur.length > 0 ? gapPx : 0) + h;
+      if (cur.length > 0 && used + add > pageBodyPx - 4) {
+        pages.push(cur);
+        cur = [i];
+        used = headerCont + h;
+      } else {
+        used += add;
+        cur.push(i);
+      }
+    });
+    if (cur.length > 0) pages.push(cur);
+    setLessonPageChunks(pages.length > 0 ? pages : [[]]);
+  }, [
+    project,
+    sortedLessonItems,
+    fontSizePx,
+    lineHeightPct,
+    showKorean,
+    boldLessonBody,
+    themeColor,
+  ]);
+
   const titleSizes = {
     headerLabel: 14,
     docTitle: 24,
@@ -335,6 +401,40 @@ export function LessonPackWorkbench({
             ← 자료함으로
           </Link>
         </div>
+      </div>
+    );
+  }
+
+  const lessonPageCount = Math.max(1, lessonPageChunks.length);
+  const totalPages = 1 + lessonPageCount + 1;
+
+  function renderLessonRow(
+    it: (typeof sortedLessonItems)[number],
+    displayIdx: number
+  ) {
+    return (
+      <div
+        key={it.id}
+        className={`break-inside-avoid grid gap-2 border-b border-slate-100 pb-2 ${
+          showKorean ? "grid-cols-[22px_3fr_1fr]" : "grid-cols-[22px_1fr]"
+        }`}
+      >
+        <div className="font-bold" style={{ color: themeColor }}>
+          {displayIdx + 1}
+        </div>
+        <div style={{ fontWeight: boldLessonBody ? 700 : 400 }}>
+          {markVocabInEnglish(it.english_text, project!.vocab, themeColor)}
+        </div>
+        {showKorean ? (
+          <div
+            className="text-slate-700"
+            style={{ fontSize: "0.92em", fontWeight: 400 }}
+          >
+            {it.korean_text?.trim() || (
+              <span className="text-slate-400">—</span>
+            )}
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -588,7 +688,9 @@ export function LessonPackWorkbench({
           >
             +
           </button>
-          <span className="mx-1 text-xs text-slate-400">A4 · 스크롤 · 3쪽 구성</span>
+          <span className="mx-1 text-xs text-slate-400">
+            A4 · 스크롤 · {totalPages}쪽
+          </span>
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700"
@@ -616,7 +718,7 @@ export function LessonPackWorkbench({
             }}
           >
             {/* ===== PAGE 1: 단어정리 + 동반의어 TEST (compact) ===== */}
-            <A4Sheet label="1 / 3 · 단어·동반의어">
+            <A4Sheet label={`1 / ${totalPages} · 단어·동반의어`}>
               <div
                 className="font-semibold leading-snug"
                 style={{ color: themeColor, fontSize: 12 }}
@@ -856,66 +958,51 @@ export function LessonPackWorkbench({
               </section>
             </A4Sheet>
 
-            {/* ===== PAGE 2: 수업용자료 ===== */}
-            <A4Sheet label="2 / 3 · 수업용자료">
-              <h2
-                className="mb-3 font-bold leading-snug"
-                style={{ color: themeColor, fontSize: titleSizes.section }}
+            {/* ===== PAGE 2+: 수업용자료 (문장 단위로 다음 장 이어짐) ===== */}
+            {lessonPageChunks.map((chunk, pageI) => (
+              <A4Sheet
+                key={`lesson-page-${pageI}`}
+                label={`${pageI + 2} / ${totalPages} · 수업용자료${
+                  pageI > 0 ? " (계속)" : ""
+                }`}
               >
-                3. 수업용자료
-              </h2>
-              <div className="mb-3 rounded-lg bg-slate-100 px-3 py-2">
-                <div
-                  className="font-bold text-slate-900"
-                  style={{ fontSize: 13 }}
+                <h2
+                  className="mb-2 font-bold leading-snug"
+                  style={{ color: themeColor, fontSize: titleSizes.section }}
                 >
-                  {String(activeIdx + 1).padStart(2, "0")} {project.title}
-                </div>
-              </div>
-              <div className="space-y-3" style={bodyStyle}>
-                {project.items
-                  .slice()
-                  .sort((a, b) => a.order_index - b.order_index)
-                  .map((it, idx) => (
+                  3. 수업용자료
+                  {pageI > 0 ? (
+                    <span className="ml-2 text-sm font-semibold text-slate-500">
+                      (계속)
+                    </span>
+                  ) : null}
+                </h2>
+                {pageI === 0 ? (
+                  <div className="mb-3 rounded-lg bg-slate-100 px-3 py-2">
                     <div
-                      key={it.id}
-                      className={`grid gap-2 border-b border-slate-100 pb-2 ${
-                        showKorean
-                          ? "grid-cols-[22px_3fr_1fr]"
-                          : "grid-cols-[22px_1fr]"
-                      }`}
+                      className="font-bold text-slate-900"
+                      style={{ fontSize: 13 }}
                     >
-                      <div className="font-bold" style={{ color: themeColor }}>
-                        {idx + 1}
-                      </div>
-                      <div
-                        style={{
-                          fontWeight: boldLessonBody ? 700 : 400,
-                        }}
-                      >
-                        {markVocabInEnglish(
-                          it.english_text,
-                          project.vocab,
-                          themeColor
-                        )}
-                      </div>
-                      {showKorean ? (
-                        <div
-                          className="text-slate-700"
-                          style={{ fontSize: "0.92em", fontWeight: 400 }}
-                        >
-                          {it.korean_text?.trim() || (
-                            <span className="text-slate-400">—</span>
-                          )}
-                        </div>
-                      ) : null}
+                      {String(activeIdx + 1).padStart(2, "0")} {project.title}
                     </div>
-                  ))}
-              </div>
-            </A4Sheet>
+                  </div>
+                ) : (
+                  <p className="mb-3 text-xs text-slate-500">
+                    ← 이전 장에서 이어집니다
+                  </p>
+                )}
+                <div className="space-y-3" style={bodyStyle}>
+                  {chunk.map((itemIdx) => {
+                    const it = sortedLessonItems[itemIdx];
+                    if (!it) return null;
+                    return renderLessonRow(it, itemIdx);
+                  })}
+                </div>
+              </A4Sheet>
+            ))}
 
-            {/* ===== PAGE 3: 논리흐름 + 삽화 ===== */}
-            <A4Sheet label="3 / 3 · 논리흐름·삽화">
+            {/* ===== LAST: 논리흐름 + 삽화 ===== */}
+            <A4Sheet label={`${totalPages} / ${totalPages} · 논리흐름·삽화`}>
               <h2
                 className="mb-4 font-bold leading-snug"
                 style={{ color: themeColor, fontSize: titleSizes.section }}
@@ -951,7 +1038,7 @@ export function LessonPackWorkbench({
                     </div>
                     <ol className="mt-3 space-y-2.5">
                       {project.analysisCards.map((c, i) => (
-                        <li key={`${i}-${c.title}`}>
+                        <li key={`${i}-${c.title}`} className="break-inside-avoid">
                           <div className="font-bold text-slate-900">
                             <span style={{ color: themeColor }}>{i + 1}.</span>{" "}
                             {c.title}
@@ -976,6 +1063,46 @@ export function LessonPackWorkbench({
                 ) : null}
               </div>
             </A4Sheet>
+
+            {/* Off-screen measure: same width/styles as lesson body */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0"
+              style={{ padding: A4_PAD, ...previewStyle }}
+            >
+              <div
+                ref={lessonMeasureRef}
+                className="space-y-3"
+                style={bodyStyle}
+              >
+                {sortedLessonItems.map((it, idx) => (
+                  <div
+                    key={`m-${it.id}`}
+                    data-lesson-measure-item
+                    className={`grid gap-2 border-b border-slate-100 pb-2 ${
+                      showKorean
+                        ? "grid-cols-[22px_3fr_1fr]"
+                        : "grid-cols-[22px_1fr]"
+                    }`}
+                  >
+                    <div className="font-bold">{idx + 1}</div>
+                    <div
+                      style={{ fontWeight: boldLessonBody ? 700 : 400 }}
+                    >
+                      {it.english_text}
+                    </div>
+                    {showKorean ? (
+                      <div
+                        className="text-slate-700"
+                        style={{ fontSize: "0.92em", fontWeight: 400 }}
+                      >
+                        {it.korean_text?.trim() || "—"}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </main>
