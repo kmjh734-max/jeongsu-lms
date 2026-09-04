@@ -757,35 +757,53 @@ export function LessonPackWorkbench({
                           </td>
                           <td className="py-2 pr-1">
                             <textarea
-                              className="min-h-[40px] w-full resize-y border-0 bg-transparent outline-none"
-                              style={{ fontSize: "inherit", lineHeight: "inherit" }}
+                              className="w-full resize-none overflow-hidden border-0 bg-transparent outline-none"
+                              style={{
+                                fontSize: "0.85em",
+                                lineHeight: 1.35,
+                              }}
                               value={v.meaning}
                               onChange={(e) =>
                                 updateVocab(i, { meaning: e.target.value })
                               }
-                              rows={2}
+                              rows={Math.max(
+                                1,
+                                Math.ceil(v.meaning.length / 18)
+                              )}
                             />
                           </td>
                           <td className="py-2 pr-1">
                             <textarea
-                              className="min-h-[40px] w-full resize-y break-words border-0 bg-transparent text-slate-600 outline-none"
-                              style={{ fontSize: "inherit", lineHeight: "inherit" }}
+                              className="w-full resize-none overflow-hidden break-words border-0 bg-transparent text-slate-600 outline-none"
+                              style={{
+                                fontSize: "0.78em",
+                                lineHeight: 1.35,
+                              }}
                               value={v.synonyms.join(", ")}
                               onChange={(e) =>
                                 updateVocabListField(i, "synonyms", e.target.value)
                               }
-                              rows={2}
+                              rows={Math.max(
+                                1,
+                                Math.ceil(v.synonyms.join(", ").length / 22)
+                              )}
                             />
                           </td>
                           <td className="py-2 pr-1">
                             <textarea
-                              className="min-h-[40px] w-full resize-y break-words border-0 bg-transparent text-slate-600 outline-none"
-                              style={{ fontSize: "inherit", lineHeight: "inherit" }}
+                              className="w-full resize-none overflow-hidden break-words border-0 bg-transparent text-slate-600 outline-none"
+                              style={{
+                                fontSize: "0.78em",
+                                lineHeight: 1.35,
+                              }}
                               value={v.antonyms.join(", ")}
                               onChange={(e) =>
                                 updateVocabListField(i, "antonyms", e.target.value)
                               }
-                              rows={2}
+                              rows={Math.max(
+                                1,
+                                Math.ceil(v.antonyms.join(", ").length / 22)
+                              )}
                             />
                           </td>
                           <td className="py-2 print:hidden">
