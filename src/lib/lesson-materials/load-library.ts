@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export interface LessonMaterialFolderRow {
   id: string;
   name: string;
+  parent_id: string | null;
   created_at: string;
 }
 
@@ -38,7 +39,7 @@ export async function loadLessonMaterialsLibraryData(
   const [foldersRes, projectsRes, itemsRes] = await Promise.all([
     supabase
       .from("lesson_material_folders")
-      .select("id,name,created_at")
+      .select("id,name,parent_id,created_at")
       .order("created_at", { ascending: false }),
     supabase
       .from("lesson_material_projects")

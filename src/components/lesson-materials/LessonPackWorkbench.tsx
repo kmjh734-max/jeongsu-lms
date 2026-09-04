@@ -22,6 +22,7 @@ export type LessonPackProjectInput = {
   analysisCards: LessonMaterialAnalysisCard[];
   headerLabel: string;
   vocab: LessonPackVocabItem[];
+  illustrationUrl: string | null;
   items: Array<{
     id: string;
     english_text: string;
@@ -29,8 +30,6 @@ export type LessonPackProjectInput = {
     order_index: number;
   }>;
 };
-
-type Tab = "vocab" | "test" | "lesson";
 
 const FONT_OPTIONS = [
   { value: '"Noto Sans KR", "Malgun Gothic", sans-serif', label: "Noto Sans KR" },
@@ -83,7 +82,6 @@ export function LessonPackWorkbench({
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
-  const [tab, setTab] = useState<Tab>("vocab");
   const [activeIdx, setActiveIdx] = useState(0);
   const [projects, setProjects] = useState(initialProjects);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +89,7 @@ export function LessonPackWorkbench({
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showAnswers, setShowAnswers] = useState(false);
+  const [showKorean, setShowKorean] = useState(true);
 
   // Document settings
   const [docTitle, setDocTitle] = useState(() => {
@@ -104,7 +103,7 @@ export function LessonPackWorkbench({
   const [fontFamily, setFontFamily] = useState(FONT_OPTIONS[0]!.value);
   const [fontSizePx, setFontSizePx] = useState(14);
   const [themeColor, setThemeColor] = useState("#DC2626");
-  const [zoom, setZoom] = useState(90);
+  const [zoom, setZoom] = useState(85);
 
   const project = projects[activeIdx] ?? null;
 
@@ -220,12 +219,6 @@ export function LessonPackWorkbench({
       ["--pack-accent" as string]: themeColor,
     };
   }, [fontFamily, fontSizePx, lineHeightPct, themeColor]);
-
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "vocab", label: "단어정리" },
-    { id: "test", label: "동/반의어 TEST" },
-    { id: "lesson", label: "수업용자료 & 흐름" },
-  ];
 
   if (!project) {
     return (
@@ -370,24 +363,24 @@ export function LessonPackWorkbench({
             />
           </div>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
-            <span className="text-xs font-bold text-slate-500">미리보기 탭</span>
-            <div className="grid gap-1.5">
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setTab(t.id)}
-                  className={`rounded-lg px-3 py-2 text-left text-xs font-semibold ${
-                    tab === t.id
-                      ? "bg-violet-600 text-white"
-                      : "bg-slate-50 text-slate-700 hover:bg-slate-100"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
+          <div className="space-y-1.5 border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500">한글 해석 표시</span>
+              <button
+                type="button"
+                onClick={() => setShowKorean((v) => !v)}
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  showKorean
+                    ? "bg-violet-600 text-white"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {showKorean ? "ON" : "OFF"}
+              </button>
             </div>
+            <p className="text-[11px] text-slate-400">
+              수업용 자료에서 한글 칸을 보이거나 숨깁니다.
+            </p>
           </div>
 
           {projects.length > 1 ? (
@@ -472,22 +465,27 @@ export function LessonPackWorkbench({
           >
             +
           </button>
-          {tab === "test" ? (
-            <button
-              type="button"
-              className="ml-2 rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
-              onClick={() => setShowAnswers((v) => !v)}
-            >
-              {showAnswers ? "정답 숨기기" : "정답 보기"}
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
+            onClick={() => setShowAnswers((v) => !v)}
+          >
+            {showAnswers ? "동반의어 정답 숨기기" : "동반의어 정답 보기"}
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700"
+            onClick={() => setShowKorean((v) => !v)}
+          >
+            한글 해석 {showKorean ? "숨기기" : "보이기"}
+          </button>
         </div>
 
         <div className="flex justify-center p-6 print:p-0">
           <div
             className="origin-top bg-white shadow-xl print:shadow-none"
             style={{
-              width: 794,
+              width: 920,
               transform: `scale(${zoom / 100})`,
               transformOrigin: "top center",
             }}
@@ -513,215 +511,252 @@ export function LessonPackWorkbench({
                 ) : null}
               </div>
 
-              {tab === "vocab" ? (
-                <div className="mt-6">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-xs text-slate-500">
-                        <th className="py-2 pr-2">No.</th>
-                        <th className="py-2 pr-2">영어</th>
-                        <th className="py-2 pr-2">뜻</th>
-                        <th className="py-2 pr-2">동의어</th>
-                        <th className="py-2 pr-2">반의어</th>
-                        <th className="py-2 print:hidden" />
+              {/* 1. 단어정리 */}
+              <section className="mt-8 break-inside-avoid">
+                <h2
+                  className="mb-3 text-base font-bold"
+                  style={{ color: themeColor }}
+                >
+                  1. 단어정리
+                </h2>
+                <table className="w-full table-fixed text-left">
+                  <colgroup>
+                    <col className="w-[6%]" />
+                    <col className="w-[16%]" />
+                    <col className="w-[22%]" />
+                    <col className="w-[26%]" />
+                    <col className="w-[26%]" />
+                    <col className="w-[4%] print:hidden" />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-slate-200 text-xs text-slate-500">
+                      <th className="py-2 pr-1">No.</th>
+                      <th className="py-2 pr-1">영어</th>
+                      <th className="py-2 pr-1">뜻</th>
+                      <th className="py-2 pr-1">동의어</th>
+                      <th className="py-2 pr-1">반의어</th>
+                      <th className="py-2 print:hidden" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {project.vocab.map((v, i) => (
+                      <tr key={i} className="border-b border-slate-100 align-top">
+                        <td className="py-2 pr-1 text-slate-400">{i + 1}</td>
+                        <td className="py-2 pr-1">
+                          <input
+                            className="w-full border-0 bg-transparent font-bold outline-none"
+                            style={{ color: themeColor }}
+                            value={v.word}
+                            onChange={(e) =>
+                              updateVocab(i, { word: e.target.value })
+                            }
+                          />
+                        </td>
+                        <td className="py-2 pr-1">
+                          <textarea
+                            className="min-h-[40px] w-full resize-y border-0 bg-transparent outline-none"
+                            value={v.meaning}
+                            onChange={(e) =>
+                              updateVocab(i, { meaning: e.target.value })
+                            }
+                            rows={2}
+                          />
+                        </td>
+                        <td className="py-2 pr-1">
+                          <textarea
+                            className="min-h-[40px] w-full resize-y break-words border-0 bg-transparent text-slate-600 outline-none"
+                            value={v.synonyms.join(", ")}
+                            onChange={(e) =>
+                              updateVocabListField(i, "synonyms", e.target.value)
+                            }
+                            rows={2}
+                          />
+                        </td>
+                        <td className="py-2 pr-1">
+                          <textarea
+                            className="min-h-[40px] w-full resize-y break-words border-0 bg-transparent text-slate-600 outline-none"
+                            value={v.antonyms.join(", ")}
+                            onChange={(e) =>
+                              updateVocabListField(i, "antonyms", e.target.value)
+                            }
+                            rows={2}
+                          />
+                        </td>
+                        <td className="py-2 print:hidden">
+                          <button
+                            type="button"
+                            className="text-rose-400"
+                            onClick={() => removeVocabRow(i)}
+                          >
+                            ✕
+                          </button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {project.vocab.map((v, i) => (
-                        <tr key={i} className="border-b border-slate-100">
-                          <td className="py-2 pr-2 align-top text-slate-400">
-                            {i + 1}
-                          </td>
-                          <td className="py-2 pr-2 align-top">
-                            <input
-                              className="w-full border-0 bg-transparent font-bold outline-none"
-                              style={{ color: themeColor }}
-                              value={v.word}
-                              onChange={(e) =>
-                                updateVocab(i, { word: e.target.value })
-                              }
-                            />
-                          </td>
-                          <td className="py-2 pr-2 align-top">
-                            <input
-                              className="w-full border-0 bg-transparent outline-none"
-                              value={v.meaning}
-                              onChange={(e) =>
-                                updateVocab(i, { meaning: e.target.value })
-                              }
-                            />
-                          </td>
-                          <td className="py-2 pr-2 align-top">
-                            <input
-                              className="w-full border-0 bg-transparent text-slate-600 outline-none"
-                              value={v.synonyms.join(", ")}
-                              onChange={(e) =>
-                                updateVocabListField(
-                                  i,
-                                  "synonyms",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="py-2 pr-2 align-top">
-                            <input
-                              className="w-full border-0 bg-transparent text-slate-600 outline-none"
-                              value={v.antonyms.join(", ")}
-                              onChange={(e) =>
-                                updateVocabListField(
-                                  i,
-                                  "antonyms",
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </td>
-                          <td className="py-2 align-top print:hidden">
-                            <button
-                              type="button"
-                              className="text-rose-400"
-                              onClick={() => removeVocabRow(i)}
-                            >
-                              ✕
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {generating ? (
-                    <p className="mt-4 text-slate-500">단어를 생성하는 중…</p>
-                  ) : null}
-                  <div className="mt-4 flex justify-center print:hidden">
-                    <button
-                      type="button"
-                      onClick={addVocabRow}
-                      className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-600"
-                    >
-                      + 단어 추가
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              {tab === "test" ? (
-                <div className="mt-6">
-                  <h3
-                    className="text-xl font-bold"
-                    style={{ color: themeColor === "#DC2626" ? "#5b21b6" : themeColor }}
+                    ))}
+                  </tbody>
+                </table>
+                {generating ? (
+                  <p className="mt-3 text-slate-500">단어를 생성하는 중…</p>
+                ) : null}
+                <div className="mt-3 flex justify-center print:hidden">
+                  <button
+                    type="button"
+                    onClick={addVocabRow}
+                    className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-600"
                   >
-                    동/반의어 TEST
-                  </h3>
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-xl border border-violet-200">
-                      <div className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 text-xs font-semibold text-violet-800">
-                        <span className="truncate">[{project.title}]</span>
-                        <span>동의어 찾기</span>
-                      </div>
-                      <ol className="space-y-3 p-4">
-                        {project.vocab.map((v, i) => (
-                          <li key={`syn-${i}`}>
-                            <span className="font-bold">
-                              {String(i + 1).padStart(2, "0")} {v.word}
-                            </span>
-                            {" : "}
-                            {buildChoiceList(v.synonyms, v.antonyms).join(" / ")}
-                            {showAnswers ? (
-                              <div className="mt-1 text-xs text-emerald-700">
-                                정답: {v.synonyms.join(", ") || "-"}
-                              </div>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ol>
+                    + 단어 추가
+                  </button>
+                </div>
+              </section>
+
+              {/* 2. 동/반의어 TEST */}
+              <section className="mt-10 break-inside-avoid">
+                <h2
+                  className="mb-3 text-base font-bold"
+                  style={{
+                    color:
+                      themeColor === "#DC2626" ? "#5b21b6" : themeColor,
+                  }}
+                >
+                  2. 동/반의어 TEST
+                </h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-xl border border-violet-200">
+                    <div className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 text-xs font-semibold text-violet-800">
+                      <span className="truncate">[{project.title}]</span>
+                      <span>동의어 찾기</span>
                     </div>
-                    <div className="rounded-xl border border-violet-200">
-                      <div className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 text-xs font-semibold text-violet-800">
-                        <span className="truncate">[{project.title}]</span>
-                        <span>반의어 찾기</span>
-                      </div>
-                      <ol className="space-y-3 p-4">
-                        {project.vocab.map((v, i) => (
-                          <li key={`ant-${i}`}>
-                            <span className="font-bold">
-                              {String(i + 1).padStart(2, "0")} {v.word}
-                            </span>
-                            {" : "}
-                            {buildChoiceList(v.antonyms, v.synonyms).join(" / ")}
-                            {showAnswers ? (
-                              <div className="mt-1 text-xs text-emerald-700">
-                                정답: {v.antonyms.join(", ") || "-"}
-                              </div>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ol>
+                    <ol className="space-y-3 p-4 text-[0.95em]">
+                      {project.vocab.map((v, i) => (
+                        <li key={`syn-${i}`} className="break-words">
+                          <span className="font-bold">
+                            {String(i + 1).padStart(2, "0")} {v.word}
+                          </span>
+                          {" : "}
+                          {buildChoiceList(v.synonyms, v.antonyms).join(" / ")}
+                          {showAnswers ? (
+                            <div className="mt-1 text-xs text-emerald-700">
+                              정답: {v.synonyms.join(", ") || "-"}
+                            </div>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                  <div className="rounded-xl border border-violet-200">
+                    <div className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 text-xs font-semibold text-violet-800">
+                      <span className="truncate">[{project.title}]</span>
+                      <span>반의어 찾기</span>
                     </div>
+                    <ol className="space-y-3 p-4 text-[0.95em]">
+                      {project.vocab.map((v, i) => (
+                        <li key={`ant-${i}`} className="break-words">
+                          <span className="font-bold">
+                            {String(i + 1).padStart(2, "0")} {v.word}
+                          </span>
+                          {" : "}
+                          {buildChoiceList(v.antonyms, v.synonyms).join(" / ")}
+                          {showAnswers ? (
+                            <div className="mt-1 text-xs text-emerald-700">
+                              정답: {v.antonyms.join(", ") || "-"}
+                            </div>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
                   </div>
                 </div>
-              ) : null}
+              </section>
 
-              {tab === "lesson" ? (
-                <div className="mt-6 space-y-8">
-                  <div className="space-y-5">
-                    {project.items
-                      .slice()
-                      .sort((a, b) => a.order_index - b.order_index)
-                      .map((it, idx) => (
-                        <div
-                          key={it.id}
-                          className="grid gap-3 border-b border-slate-100 pb-4 md:grid-cols-[28px_1fr_1fr]"
-                        >
-                          <div className="font-bold" style={{ color: themeColor }}>
-                            {idx + 1}
-                          </div>
-                          <div>
-                            {markVocabInEnglish(
-                              it.english_text,
-                              project.vocab,
-                              themeColor
-                            )}
-                          </div>
-                          <div className="text-slate-700">
-                            {it.korean_text?.trim() || (
-                              <span className="text-slate-400">한글 해석 없음</span>
-                            )}
-                          </div>
+              {/* 3. 수업용자료 & 흐름 */}
+              <section className="mt-10">
+                <h2
+                  className="mb-3 text-base font-bold"
+                  style={{ color: themeColor }}
+                >
+                  3. 수업용자료 &amp; 흐름
+                </h2>
+                <div className="space-y-4">
+                  {project.items
+                    .slice()
+                    .sort((a, b) => a.order_index - b.order_index)
+                    .map((it, idx) => (
+                      <div
+                        key={it.id}
+                        className={`grid gap-3 border-b border-slate-100 pb-3 ${
+                          showKorean
+                            ? "grid-cols-[24px_3fr_1fr]"
+                            : "grid-cols-[24px_1fr]"
+                        }`}
+                      >
+                        <div className="font-bold" style={{ color: themeColor }}>
+                          {idx + 1}
                         </div>
-                      ))}
-                  </div>
+                        <div>
+                          {markVocabInEnglish(
+                            it.english_text,
+                            project.vocab,
+                            themeColor
+                          )}
+                        </div>
+                        {showKorean ? (
+                          <div className="text-[0.92em] text-slate-700">
+                            {it.korean_text?.trim() || (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                </div>
 
+                <div
+                  className={`mt-6 grid gap-4 ${
+                    project.illustrationUrl
+                      ? "md:grid-cols-[1.1fr_1fr]"
+                      : "grid-cols-1"
+                  }`}
+                >
                   {project.analysisCards.length > 0 ? (
-                    <div className="rounded-2xl bg-slate-100 p-5">
+                    <div className="rounded-xl bg-slate-100 p-4 text-[0.9em]">
                       <div className="flex items-center gap-2">
                         <span
-                          className="h-5 w-1 rounded"
+                          className="h-4 w-1 rounded"
                           style={{ backgroundColor: themeColor }}
                         />
-                        <h3 className="text-sm font-bold tracking-wide text-slate-900">
+                        <h3 className="text-xs font-bold tracking-wide text-slate-900">
                           LOGICAL FLOW (논리 흐름)
                         </h3>
                       </div>
-                      <ol className="mt-4 space-y-4">
+                      <ol className="mt-3 space-y-2.5">
                         {project.analysisCards.map((c, i) => (
                           <li key={`${i}-${c.title}`}>
                             <div className="font-bold text-slate-900">
                               <span style={{ color: themeColor }}>{i + 1}.</span>{" "}
                               {c.title}
                             </div>
-                            <p className="mt-1 text-slate-600">{c.desc}</p>
+                            <p className="mt-0.5 text-slate-600">{c.desc}</p>
                           </li>
                         ))}
                       </ol>
                     </div>
                   ) : (
-                    <p className="text-slate-500">
-                      논리 흐름이 없습니다. 프로젝트에서 먼저 생성해 주세요.
+                    <p className="text-sm text-slate-500">
+                      논리 흐름이 없습니다.
                     </p>
                   )}
+                  {project.illustrationUrl ? (
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={project.illustrationUrl}
+                        alt="4컷 삽화"
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
+              </section>
             </div>
           </div>
         </div>

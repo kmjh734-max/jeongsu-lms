@@ -32,7 +32,7 @@ async function requireRole(role: Role) {
 
 export async function createLessonMaterialFolder(
   role: Role,
-  input: { name: string }
+  input: { name: string; parentId?: string | null }
 ): Promise<ActionResult & { folderId?: string }> {
   const { profile, error } = await requireRole(role);
   if (error) return error;
@@ -43,11 +43,24 @@ export async function createLessonMaterialFolder(
     return actionError("예약된 폴더 이름은 사용할 수 없습니다.");
   }
 
+  const parentId = input.parentId?.trim() || null;
   const supabase = await createClient();
+
+  if (parentId) {
+    const { data: parent } = await supabase
+      .from("lesson_material_folders")
+      .select("id")
+      .eq("id", parentId)
+      .eq("academy_id", profile!.academy_id!)
+      .maybeSingle();
+    if (!parent) return actionError("상위 폴더를 찾을 수 없습니다.");
+  }
+
   const { data, error: insertError } = await supabase
     .from("lesson_material_folders")
     .insert({
       name,
+      parent_id: parentId,
       teacher_id: role === "teacher" ? profile!.id : null,
       created_by: profile!.id,
       academy_id: profile!.academy_id,
@@ -59,6 +72,60 @@ export async function createLessonMaterialFolder(
   if (insertError) return actionError(insertError.message);
   revalidateLibrary(role);
   return { ...actionSuccess("폴더가 생성되었습니다."), folderId: data.id };
+}
+
+export async function renameLessonMaterialFolder(
+  role: Role,
+  input: { folderId: string; name: string }
+): Promise<ActionResult> {
+  const { profile, error } = await requireRole(role);
+  if (error) return error;
+
+  const name = input.name.trim();
+  if (!name) return actionError("폴더 이름을 입력해 주세요.");
+  if (name === "미분류" || name === "휴지통") {
+    return actionError("예약된 폴더 이름은 사용할 수 없습니다.");
+  }
+
+  const supabase = await createClient();
+  let q = supabase
+    .from("lesson_material_folders")
+    .update({ name, updated_at: new Date().toISOString() })
+    .eq("id", input.folderId)
+    .eq("academy_id", profile!.academy_id!);
+
+  if (role === "teacher") {
+    q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+
+  const { error: updateError } = await q;
+  if (updateError) return actionError(updateError.message);
+  revalidateLibrary(role);
+  return actionSuccess("폴더 이름을 수정했습니다.");
+}
+
+export async function deleteLessonMaterialFolder(
+  role: Role,
+  input: { folderId: string }
+): Promise<ActionResult> {
+  const { profile, error } = await requireRole(role);
+  if (error) return error;
+
+  const supabase = await createClient();
+  let q = supabase
+    .from("lesson_material_folders")
+    .delete()
+    .eq("id", input.folderId)
+    .eq("academy_id", profile!.academy_id!);
+
+  if (role === "teacher") {
+    q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+
+  const { error: deleteError } = await q;
+  if (deleteError) return actionError(deleteError.message);
+  revalidateLibrary(role);
+  return actionSuccess("폴더를 삭제했습니다. 하위 자료는 미분류로 이동합니다.");
 }
 
 export async function moveLessonMaterialProjects(

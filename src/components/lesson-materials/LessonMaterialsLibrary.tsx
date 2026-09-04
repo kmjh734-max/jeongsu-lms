@@ -12,12 +12,15 @@ import {
 import {
   copyLessonMaterialProjects,
   createLessonMaterialFolder,
+  deleteLessonMaterialFolder,
   moveLessonMaterialProjects,
   permanentlyDeleteLessonMaterialProjects,
+  renameLessonMaterialFolder,
   restoreLessonMaterialProjects,
   trashLessonMaterialProjects,
 } from "@/lib/lesson-materials/library-ops";
 import { LessonMaterialsSelectionBar } from "@/components/lesson-materials/LessonMaterialsSelectionBar";
+import type { LessonMaterialFolderRow } from "@/lib/lesson-materials/load-library";
 
 type FolderFilter = "all" | "unfiled" | "trash" | string;
 
@@ -53,8 +56,15 @@ export function LessonMaterialsLibrary({
   const [pending, startTransition] = useTransition();
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [folderName, setFolderName] = useState("");
+  const [createParentId, setCreateParentId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [menuFolderId, setMenuFolderId] = useState<string | null>(null);
   const [moveOpen, setMoveOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    () => new Set(data.folders.map((f) => f.id))
+  );
   const lastClicked = useRef<string | null>(null);
 
   const folderNameById = useMemo(() => {
@@ -63,19 +73,58 @@ export function LessonMaterialsLibrary({
     return m;
   }, [data.folders]);
 
+  const childrenByParent = useMemo(() => {
+    const m = new Map<string | null, LessonMaterialFolderRow[]>();
+    for (const f of data.folders) {
+      const key = f.parent_id ?? null;
+      const list = m.get(key) ?? [];
+      list.push(f);
+      m.set(key, list);
+    }
+    return m;
+  }, [data.folders]);
+
+  function folderProjectCount(folderId: string): number {
+    return data.projects.filter((p) => p.folder_id === folderId).length;
+  }
+
+  function collectDescendantIds(folderId: string): string[] {
+    const out = [folderId];
+    const kids = childrenByParent.get(folderId) ?? [];
+    for (const k of kids) out.push(...collectDescendantIds(k.id));
+    return out;
+  }
+
+  const foldersFlat = useMemo(() => {
+    const out: Array<{ folder: LessonMaterialFolderRow; depth: number }> = [];
+    function walk(parentId: string | null, depth: number) {
+      for (const f of childrenByParent.get(parentId) ?? []) {
+        out.push({ folder: f, depth });
+        walk(f.id, depth + 1);
+      }
+    }
+    walk(null, 0);
+    return out;
+  }, [childrenByParent]);
+
   const activeProjects = useMemo(() => {
     return [...data.unfiledProjects, ...data.projects];
   }, [data.unfiledProjects, data.projects]);
 
   const visibleProjects = useMemo(() => {
-    const list =
-      folderFilter === "trash"
-        ? [...data.trashedProjects]
-        : folderFilter === "all"
-          ? [...activeProjects]
-          : folderFilter === "unfiled"
-            ? [...data.unfiledProjects]
-            : data.projects.filter((p) => p.folder_id === folderFilter);
+    let list: typeof activeProjects;
+    if (folderFilter === "trash") {
+      list = [...data.trashedProjects];
+    } else if (folderFilter === "all") {
+      list = [...activeProjects];
+    } else if (folderFilter === "unfiled") {
+      list = [...data.unfiledProjects];
+    } else {
+      const ids = new Set(collectDescendantIds(folderFilter));
+      list = data.projects.filter(
+        (p) => p.folder_id && ids.has(p.folder_id)
+      );
+    }
 
     list.sort((a, b) => {
       const ta = new Date(a.updated_at).getTime();
@@ -83,7 +132,8 @@ export function LessonMaterialsLibrary({
       return sortNewest ? tb - ta : ta - tb;
     });
     return list;
-  }, [folderFilter, data, activeProjects, sortNewest]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderFilter, data, activeProjects, sortNewest, childrenByParent]);
 
   const totalActive = activeProjects.length;
   const selectedIds = [...selected];
@@ -152,14 +202,165 @@ export function LessonMaterialsLibrary({
       return;
     }
     runAction(async () => {
-      const res = await createLessonMaterialFolder(role, { name });
+      const res = await createLessonMaterialFolder(role, {
+        name,
+        parentId: createParentId,
+      });
       if (res.ok) {
         setFolderName("");
         setCreatingFolder(false);
-        if (res.folderId) setFolderFilter(res.folderId);
+        setCreateParentId(null);
+        if (res.folderId) {
+          setFolderFilter(res.folderId);
+          if (createParentId) {
+            setExpandedFolders((prev) => new Set([...prev, createParentId]));
+          }
+        }
       }
       return res;
     });
+  }
+
+  function startRename(folder: LessonMaterialFolderRow) {
+    setRenamingId(folder.id);
+    setRenameValue(folder.name);
+    setMenuFolderId(null);
+  }
+
+  function commitRename() {
+    if (!renamingId) return;
+    const name = renameValue.trim();
+    if (!name) return;
+    runAction(async () => {
+      const res = await renameLessonMaterialFolder(role, {
+        folderId: renamingId,
+        name,
+      });
+      if (res.ok) setRenamingId(null);
+      return res;
+    });
+  }
+
+  function renderFolderRow(folder: LessonMaterialFolderRow, depth: number) {
+    const kids = childrenByParent.get(folder.id) ?? [];
+    const expanded = expandedFolders.has(folder.id);
+    const count = folderProjectCount(folder.id);
+    const isActive = folderFilter === folder.id;
+
+    return (
+      <div key={folder.id}>
+        <div
+          className={`group flex w-full items-center gap-1 rounded-xl px-2 py-1.5 text-left text-sm ${
+            isActive
+              ? "bg-violet-100 font-semibold text-violet-800"
+              : "text-slate-700 hover:bg-slate-50"
+          }`}
+          style={{ paddingLeft: 8 + depth * 14 }}
+        >
+          {kids.length > 0 ? (
+            <button
+              type="button"
+              className="h-5 w-5 shrink-0 text-xs text-slate-400"
+              onClick={() =>
+                setExpandedFolders((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(folder.id)) next.delete(folder.id);
+                  else next.add(folder.id);
+                  return next;
+                })
+              }
+            >
+              {expanded ? "▾" : "▸"}
+            </button>
+          ) : (
+            <span className="inline-block h-5 w-5 shrink-0" />
+          )}
+          {renamingId === folder.id ? (
+            <input
+              className="min-w-0 flex-1 rounded border border-violet-300 px-2 py-0.5 text-sm"
+              value={renameValue}
+              autoFocus
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitRename();
+                if (e.key === "Escape") setRenamingId(null);
+              }}
+              onBlur={() => commitRename()}
+            />
+          ) : (
+            <button
+              type="button"
+              className="min-w-0 flex-1 truncate text-left"
+              onClick={() => {
+                setFolderFilter(folder.id);
+                setSelected(new Set());
+                setMenuFolderId(null);
+              }}
+            >
+              {folder.name}
+            </button>
+          )}
+          <span className="text-xs text-slate-500">{count}</span>
+          <div className="relative">
+            <button
+              type="button"
+              className="rounded px-1 text-xs text-slate-400 opacity-0 group-hover:opacity-100"
+              onClick={() =>
+                setMenuFolderId((id) => (id === folder.id ? null : folder.id))
+              }
+            >
+              ⋯
+            </button>
+            {menuFolderId === folder.id ? (
+              <div className="absolute right-0 z-30 mt-1 w-36 rounded-xl border border-slate-200 bg-white py-1 shadow-lg">
+                <button
+                  type="button"
+                  className="block w-full px-3 py-1.5 text-left text-xs hover:bg-slate-50"
+                  onClick={() => startRename(folder)}
+                >
+                  이름 수정
+                </button>
+                <button
+                  type="button"
+                  className="block w-full px-3 py-1.5 text-left text-xs hover:bg-slate-50"
+                  onClick={() => {
+                    setCreateParentId(folder.id);
+                    setCreatingFolder(true);
+                    setFolderName("");
+                    setMenuFolderId(null);
+                    setExpandedFolders((prev) => new Set([...prev, folder.id]));
+                  }}
+                >
+                  하위 폴더 추가
+                </button>
+                <button
+                  type="button"
+                  className="block w-full px-3 py-1.5 text-left text-xs text-rose-600 hover:bg-rose-50"
+                  onClick={() => {
+                    if (
+                      !confirm(
+                        `"${folder.name}" 폴더를 삭제할까요?\n하위 폴더도 함께 삭제되고, 자료는 미분류로 이동합니다.`
+                      )
+                    ) {
+                      return;
+                    }
+                    setMenuFolderId(null);
+                    runAction(() =>
+                      deleteLessonMaterialFolder(role, { folderId: folder.id })
+                    );
+                  }}
+                >
+                  폴더 삭제
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+        {expanded
+          ? kids.map((child) => renderFolderRow(child, depth + 1))
+          : null}
+      </div>
+    );
   }
 
   return (
@@ -193,6 +394,7 @@ export function LessonMaterialsLibrary({
           type="button"
           onClick={() => {
             setCreatingFolder((v) => !v);
+            setCreateParentId(null);
             setError(null);
           }}
           className="mb-3 flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-violet-300 bg-violet-50 py-2.5 text-sm font-semibold text-violet-700 hover:bg-violet-100"
@@ -202,9 +404,14 @@ export function LessonMaterialsLibrary({
 
         {creatingFolder ? (
           <div className="mb-3 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            {createParentId ? (
+              <p className="text-xs text-slate-500">
+                상위: {folderNameById.get(createParentId) ?? "폴더"}
+              </p>
+            ) : null}
             <input
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              placeholder="폴더 이름"
+              placeholder={createParentId ? "하위 폴더 이름" : "폴더 이름"}
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
               onKeyDown={(e) => {
@@ -224,7 +431,10 @@ export function LessonMaterialsLibrary({
                 type="button"
                 size="sm"
                 variant="ghost"
-                onClick={() => setCreatingFolder(false)}
+                onClick={() => {
+                  setCreatingFolder(false);
+                  setCreateParentId(null);
+                }}
               >
                 취소
               </Button>
@@ -272,28 +482,9 @@ export function LessonMaterialsLibrary({
             </span>
           </button>
 
-          {data.folders.map((f) => {
-            const count = data.projects.filter((p) => p.folder_id === f.id)
-              .length;
-            return (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => {
-                  setFolderFilter(f.id);
-                  setSelected(new Set());
-                }}
-                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
-                  folderFilter === f.id
-                    ? "bg-violet-100 font-semibold text-violet-800"
-                    : "text-slate-700 hover:bg-slate-50"
-                }`}
-              >
-                <span className="truncate">{f.name}</span>
-                <span className="text-xs text-slate-500">{count}</span>
-              </button>
-            );
-          })}
+          {(childrenByParent.get(null) ?? []).map((f) =>
+            renderFolderRow(f, 0)
+          )}
         </div>
 
         <div className="mt-4">
@@ -371,11 +562,12 @@ export function LessonMaterialsLibrary({
                       >
                         미분류
                       </button>
-                      {data.folders.map((f) => (
+                      {foldersFlat.map(({ folder: f, depth }) => (
                         <button
                           key={f.id}
                           type="button"
                           className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50"
+                          style={{ paddingLeft: 12 + depth * 12 }}
                           onClick={() =>
                             runAction(() =>
                               moveLessonMaterialProjects(role, {
@@ -420,11 +612,12 @@ export function LessonMaterialsLibrary({
                       >
                         미분류로 복사
                       </button>
-                      {data.folders.map((f) => (
+                      {foldersFlat.map(({ folder: f, depth }) => (
                         <button
                           key={f.id}
                           type="button"
                           className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50"
+                          style={{ paddingLeft: 12 + depth * 12 }}
                           onClick={() =>
                             runAction(() =>
                               copyLessonMaterialProjects(role, {

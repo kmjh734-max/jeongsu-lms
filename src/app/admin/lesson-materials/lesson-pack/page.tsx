@@ -36,7 +36,7 @@ export default async function AdminLessonPackPage({
   const { data: projects } = await supabase
     .from("lesson_material_projects")
     .select(
-      "id,title,title_en,folder_id,analysis_json,lesson_pack_json,deleted_at"
+      "id,title,title_en,folder_id,analysis_json,illustration_url,lesson_pack_json,deleted_at"
     )
     .in("id", ids)
     .is("deleted_at", null);
@@ -94,6 +94,7 @@ export default async function AdminLessonPackPage({
       analysisCards: analysis,
       headerLabel: pack.headerLabel || "26년도 1학기 중간고사 대비",
       vocab,
+      illustrationUrl: (p!.illustration_url as string | null) ?? null,
       items: (itemsByProject.get(p!.id) ?? []).map((it) => ({
         id: it.id,
         english_text: it.english_text,
