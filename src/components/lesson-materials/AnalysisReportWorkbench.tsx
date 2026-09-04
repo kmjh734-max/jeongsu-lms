@@ -38,23 +38,6 @@ const ROLE_STYLE: Record<
   other: { bg: "#f1f5f9", text: "#334155" },
 };
 
-function priorityBadge(priority?: string) {
-  if (!priority) return null;
-  const color =
-    priority === "최우선"
-      ? "bg-rose-100 text-rose-700"
-      : priority === "핵심"
-        ? "bg-sky-100 text-sky-800"
-        : "bg-amber-100 text-amber-800";
-  return (
-    <span
-      className={`mr-1.5 inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold ${color}`}
-    >
-      {priority}
-    </span>
-  );
-}
-
 function GrammarPointItem({
   point,
   index,
@@ -63,59 +46,29 @@ function GrammarPointItem({
   index: number;
 }) {
   const mark = ["①", "②", "③", "④", "⑤"][index] ?? `${index + 1}.`;
+  const title = (point.title || point.category || "").replace(
+    /^(최우선|핵심|중요\s*구문)\s*[·•\-–—:]\s*/u,
+    ""
+  );
+  const structure =
+    point.sentenceStructure ||
+    (point.detail && !point.detail.includes("학생용") && !point.detail.includes("교사용")
+      ? point.detail
+      : "");
+
   return (
     <li className="space-y-1 text-[12.5px] leading-relaxed text-slate-800">
       <div>
         <span className="mr-1 font-bold text-rose-600">{mark}</span>
-        {priorityBadge(point.priority)}
-        <span className="font-bold text-slate-900">{point.title}</span>
+        <span className="font-bold text-slate-900">{title}</span>
         {point.example ? (
           <span className="text-violet-700"> ({point.example})</span>
         ) : null}
       </div>
-      {point.sentenceStructure ? (
+      {structure ? (
         <p className="text-slate-600">
           <span className="font-semibold text-slate-700">구조 · </span>
-          {point.sentenceStructure}
-        </p>
-      ) : null}
-      {point.restoredStructure ? (
-        <p className="text-slate-600">
-          <span className="font-semibold text-slate-700">복원 · </span>
-          {point.restoredStructure}
-        </p>
-      ) : null}
-      {point.decisionRule && !point.teacherExplanation ? (
-        <p className="text-slate-600">
-          <span className="font-semibold text-slate-700">판단 · </span>
-          {point.decisionRule}
-        </p>
-      ) : null}
-      {point.studentSummary ? (
-        <p className="rounded bg-white/80 px-2 py-1 text-slate-800">
-          <span className="font-bold text-emerald-700">학생용 · </span>
-          {point.studentSummary}
-        </p>
-      ) : null}
-      {point.teacherExplanation ? (
-        <p className="text-slate-700">
-          <span className="font-bold text-sky-800">교사용 · </span>
-          {point.teacherExplanation}
-        </p>
-      ) : null}
-      {!point.studentSummary &&
-      !point.teacherExplanation &&
-      !point.sentenceStructure &&
-      point.detail ? (
-        <p className="whitespace-pre-line text-slate-700">{point.detail}</p>
-      ) : null}
-      {point.wrongForms && point.wrongForms.length > 0 ? (
-        <p className="text-slate-600">
-          <span className="font-semibold text-rose-700">오답 예 · </span>
-          {point.wrongForms.join(" / ")}
-          {point.wrongReasons && point.wrongReasons.length > 0
-            ? ` — ${point.wrongReasons.join(" / ")}`
-            : ""}
+          {structure}
         </p>
       ) : null}
     </li>
@@ -139,15 +92,6 @@ function ImportantConstructionBlock({
             </p>
             {c.structure ? (
               <p className="text-slate-600">구조 · {c.structure}</p>
-            ) : null}
-            {c.restoredElements ? (
-              <p className="text-slate-600">복원 · {c.restoredElements}</p>
-            ) : null}
-            {c.translation ? (
-              <p className="text-slate-700">해석 · {c.translation}</p>
-            ) : null}
-            {c.readingTip ? (
-              <p className="text-amber-900">독해 팁 · {c.readingTip}</p>
             ) : null}
           </li>
         ))}
@@ -232,6 +176,9 @@ function SentenceBlock({
     text,
     role: sentence.enChunks[i]?.role ?? ("other" as AnalysisChunkRole),
   }));
+  const contextNote =
+    (sentence.contextNote ?? "").trim() ||
+    (sentence.easyUnderstanding ?? "").trim();
 
   return (
     <section className="break-inside-avoid border-b border-slate-200 pb-5 pt-4 last:border-b-0">
@@ -248,21 +195,25 @@ function SentenceBlock({
         </div>
       </div>
 
-      <div className="mt-3 rounded-lg border-l-4 border-orange-400 bg-orange-50 px-3 py-2.5">
-        <p className="text-[13px] leading-relaxed text-slate-800">
-          <span className="font-bold text-orange-600">[쉬운 이해]</span>{" "}
-          {sentence.easyUnderstanding}
-        </p>
-      </div>
-
       {sentence.grammarPoints.length > 0 ? (
-        <div className="mt-2 rounded-lg border border-sky-200 bg-sky-50/60 px-3 py-2.5">
+        <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50/60 px-3 py-2.5 print:bg-sky-50">
           <p className="mb-1.5 text-[13px] font-bold text-sky-800">[문법 분석]</p>
           <ol className="space-y-2.5">
             {sentence.grammarPoints.map((g, gi) => (
               <GrammarPointItem key={gi} point={g} index={gi} />
             ))}
           </ol>
+        </div>
+      ) : null}
+
+      {contextNote ? (
+        <div
+          className="analysis-context-note mt-2 rounded-r-md border-l-4 border-[#1e3a5f] bg-[#e8eef6] px-3.5 py-2.5 print:bg-[#e8eef6]"
+          style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
+        >
+          <p className="text-[12.5px] leading-relaxed text-slate-800">
+            {contextNote}
+          </p>
         </div>
       ) : null}
     </section>

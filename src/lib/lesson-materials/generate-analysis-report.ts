@@ -17,16 +17,17 @@ export type AnalysisEnChunk = {
   role: AnalysisChunkRole;
 };
 
-export type AnalysisGrammarPriority = "최우선" | "핵심" | "중요 구문";
-
 export type AnalysisGrammarPoint = {
+  /** Accurate grammar term */
   title: string;
+  /** Structure analysis (or legacy combined text) */
   detail: string;
+  /** Target expression from the original sentence */
   example?: string;
-  /** Extended CSAT-style fields (optional for older saved reports) */
-  priority?: AnalysisGrammarPriority | string;
   category?: string;
   sentenceStructure?: string;
+  /** @deprecated kept for older saved reports */
+  priority?: string;
   restoredStructure?: string;
   decisionRule?: string;
   wrongForms?: string[];
@@ -50,7 +51,12 @@ export type AnalysisSentence = {
   itemId: string;
   enChunks: AnalysisEnChunk[];
   koChunks: string[];
-  easyUnderstanding: string;
+  /** @deprecated prefer contextNote; kept for older saved reports */
+  easyUnderstanding?: string;
+  /** Passage-role / meaning note (not translation, not grammar) */
+  contextNote?: string;
+  discourseRole?: string;
+  connectionType?: string;
   grammarPoints: AnalysisGrammarPoint[];
 };
 
@@ -98,15 +104,10 @@ function normRole(raw: unknown): AnalysisChunkRole {
   return "other";
 }
 
-function normPriority(raw: unknown): AnalysisGrammarPriority | undefined {
-  const p = String(raw ?? "").trim();
-  if (p === "최우선" || p === "핵심" || p === "중요 구문") return p;
-  return undefined;
-}
-
-function toStringList(v: unknown): string[] {
-  if (!Array.isArray(v)) return [];
-  return v.map((x) => String(x ?? "").trim()).filter(Boolean);
+function stripPriorityLabel(text: string): string {
+  return text
+    .replace(/^(최우선|핵심|중요\s*구문)\s*[·•\-–—:]\s*/u, "")
+    .trim();
 }
 
 function mapRawGrammarPoint(raw: {
@@ -127,51 +128,34 @@ function mapRawGrammarPoint(raw: {
   detail?: unknown;
   example?: unknown;
 }): AnalysisGrammarPoint | null {
-  const priority = normPriority(raw.priority);
-  const category = String(raw.category ?? "").trim();
+  const category = stripPriorityLabel(String(raw.category ?? "").trim());
   const targetExpression = String(
     raw.targetExpression ?? raw.example ?? ""
   ).trim();
   const title =
-    String(raw.title ?? "").trim() ||
-    [priority, category].filter(Boolean).join(" · ") ||
+    stripPriorityLabel(String(raw.title ?? "").trim()) ||
+    category ||
     targetExpression ||
-    "핵심 어법";
+    "어법";
 
   const sentenceStructure = String(raw.sentenceStructure ?? "").trim();
   const restoredStructure = String(raw.restoredStructure ?? "").trim();
-  const decisionRule = String(raw.decisionRule ?? "").trim();
-  const contextualExplanation = String(
-    raw.contextualExplanation ?? ""
-  ).trim();
-  const wrongForms = toStringList(raw.wrongForms);
-  const wrongReasons = toStringList(raw.wrongReasons);
-  const translationConnection = String(
-    raw.translationConnection ?? ""
-  ).trim();
-  const studentSummary = String(raw.studentSummary ?? "").trim();
-  const teacherExplanation = String(raw.teacherExplanation ?? "").trim();
-
-  const detailParts = [
-    sentenceStructure ? `구조: ${sentenceStructure}` : "",
-    restoredStructure ? `복원: ${restoredStructure}` : "",
-    decisionRule ? `판단 원리: ${decisionRule}` : "",
-    contextualExplanation ? `원문 적용: ${contextualExplanation}` : "",
-    wrongForms.length
-      ? `출제 가능 오답: ${wrongForms.join(" / ")}`
-      : "",
-    wrongReasons.length ? `오답 이유: ${wrongReasons.join(" / ")}` : "",
-    translationConnection ? `해석 연결: ${translationConnection}` : "",
-    String(raw.detail ?? "").trim(),
-  ].filter(Boolean);
-
+  // Prefer structure-only detail; fold legacy restore into structure text if needed
   const detail =
-    detailParts.join("\n") ||
-    teacherExplanation ||
-    studentSummary ||
-    contextualExplanation;
+    sentenceStructure ||
+    [
+      restoredStructure ? `(구조) ${restoredStructure}` : "",
+      String(raw.detail ?? "").trim(),
+      String(raw.decisionRule ?? "").trim(),
+      String(raw.contextualExplanation ?? "").trim(),
+      String(raw.teacherExplanation ?? "").trim(),
+      String(raw.studentSummary ?? "").trim(),
+    ]
+      .filter(Boolean)
+      .join("\n") ||
+    "";
 
-  if (!title && !detail && !studentSummary && !teacherExplanation) {
+  if (!title && !detail && !targetExpression) {
     return null;
   }
 
@@ -179,16 +163,8 @@ function mapRawGrammarPoint(raw: {
     title,
     detail,
     example: targetExpression || undefined,
-    priority,
     category: category || undefined,
-    sentenceStructure: sentenceStructure || undefined,
-    restoredStructure: restoredStructure || undefined,
-    decisionRule: decisionRule || undefined,
-    wrongForms: wrongForms.length ? wrongForms : undefined,
-    wrongReasons: wrongReasons.length ? wrongReasons : undefined,
-    translationConnection: translationConnection || undefined,
-    studentSummary: studentSummary || undefined,
-    teacherExplanation: teacherExplanation || undefined,
+    sentenceStructure: sentenceStructure || detail || undefined,
   };
 }
 
@@ -316,11 +292,23 @@ export async function generateAnalysisReport(input: {
         enChunks?: Array<{ text?: string; role?: string }>;
         koChunks?: unknown;
         easyUnderstanding?: string;
+        contextNote?: string;
+        discourseRole?: string;
+        connectionType?: string;
         grammarPoints?: Array<{
           title?: string;
           detail?: string;
           example?: string;
+          category?: string;
+          sentenceStructure?: string;
         }>;
+      }>;
+      sentenceNotes?: Array<{
+        sentenceId?: string;
+        sentenceNumber?: number;
+        discourseRole?: string;
+        connectionType?: string;
+        contextNote?: string;
       }>;
       hasKeyGrammarPoints?: boolean;
       analysisSummary?: string;
@@ -360,14 +348,31 @@ export async function generateAnalysisReport(input: {
       (parsed?.sentences ?? []).map((s) => [String(s.itemId ?? ""), s] as const)
     );
 
+    const notesById = new Map<
+      string,
+      { contextNote: string; discourseRole?: string; connectionType?: string }
+    >();
+    for (const n of parsed?.sentenceNotes ?? []) {
+      let id = String(n.sentenceId ?? "").trim();
+      if (!id && typeof n.sentenceNumber === "number") {
+        id = lines[Math.max(0, Math.floor(n.sentenceNumber) - 1)]?.id ?? "";
+      }
+      if (!id) continue;
+      const note = String(n.contextNote ?? "").trim();
+      if (!note) continue;
+      notesById.set(id, {
+        contextNote: note,
+        discourseRole: String(n.discourseRole ?? "").trim() || undefined,
+        connectionType: String(n.connectionType ?? "").trim() || undefined,
+      });
+    }
+
     const grammarByItemId = new Map<string, AnalysisGrammarPoint[]>();
     const passageGrammar = (parsed?.grammarPoints ?? []).slice(0, 8);
 
     for (const raw of passageGrammar) {
       const mapped = mapRawGrammarPoint(raw);
       if (!mapped) continue;
-      // Skip "중요 구문" from sentence grammar boxes — they go to importantConstructions
-      if (mapped.priority === "중요 구문") continue;
 
       let itemId = String(raw.itemId ?? "").trim();
       if (!itemId && typeof raw.sentenceNumber === "number") {
@@ -375,7 +380,6 @@ export async function generateAnalysisReport(input: {
         itemId = lines[idx]?.id ?? "";
       }
       if (!itemId) {
-        // Fallback: match original sentence text
         const orig = String(raw.originalSentence ?? "").trim().toLowerCase();
         if (orig) {
           const hit = lines.find(
@@ -387,13 +391,14 @@ export async function generateAnalysisReport(input: {
       if (!itemId) continue;
 
       const list = grammarByItemId.get(itemId) ?? [];
-      if (list.length >= 2) continue; // max 2 per sentence
+      if (list.length >= 2) continue;
       list.push(mapped);
       grammarByItemId.set(itemId, list);
     }
 
     const sentences: AnalysisSentence[] = lines.map((line) => {
       const raw = byId.get(line.id);
+      const noteExtra = notesById.get(line.id);
       const enChunks = (raw?.enChunks ?? [])
         .map((c) => ({
           text: String(c.text ?? "").trim(),
@@ -419,8 +424,6 @@ export async function generateAnalysisReport(input: {
         );
       }
 
-      // Prefer passage-level selected grammar; fall back to per-sentence only if
-      // model still returned legacy inline points and no passage points exist.
       let grammarPoints = grammarByItemId.get(line.id) ?? [];
       if (grammarPoints.length === 0 && passageGrammar.length === 0) {
         grammarPoints = (raw?.grammarPoints ?? [])
@@ -429,51 +432,47 @@ export async function generateAnalysisReport(input: {
           .slice(0, 2);
       }
 
+      const contextNote =
+        String(raw?.contextNote ?? "").trim() ||
+        noteExtra?.contextNote ||
+        String(raw?.easyUnderstanding ?? "").trim() ||
+        "";
+
       return {
         itemId: line.id,
         enChunks,
         koChunks,
-        easyUnderstanding:
-          String(raw?.easyUnderstanding ?? "").trim() ||
-          "이 문장이 지문에서 하는 역할을 생각하며 읽어 보세요.",
+        easyUnderstanding: contextNote,
+        contextNote,
+        discourseRole:
+          String(raw?.discourseRole ?? "").trim() ||
+          noteExtra?.discourseRole ||
+          undefined,
+        connectionType:
+          String(raw?.connectionType ?? "").trim() ||
+          noteExtra?.connectionType ||
+          undefined,
         grammarPoints,
       };
     });
 
-    const importantFromPriority = passageGrammar
-      .filter((g) => normPriority(g.priority) === "중요 구문")
-      .map((g) => ({
-        itemId: String(g.itemId ?? "").trim() || undefined,
-        originalSentence: String(g.originalSentence ?? "").trim(),
-        targetConstruction: String(g.targetExpression ?? "").trim(),
-        structure: String(g.sentenceStructure ?? "").trim(),
-        restoredElements: String(g.restoredStructure ?? "").trim() || undefined,
-        translation: String(g.translationConnection ?? "").trim() || undefined,
-        readingTip: String(g.studentSummary ?? g.teacherExplanation ?? "").trim() || undefined,
+    const importantConstructions: AnalysisImportantConstruction[] = (
+      parsed?.importantConstructions ?? []
+    )
+      .map((c) => ({
+        itemId: String(c.itemId ?? "").trim() || undefined,
+        originalSentence: String(c.originalSentence ?? "").trim(),
+        targetConstruction: String(c.targetConstruction ?? "").trim(),
+        structure: String(c.structure ?? "").trim(),
       }))
-      .filter((c) => c.originalSentence || c.targetConstruction);
-
-    const importantConstructions: AnalysisImportantConstruction[] = [
-      ...importantFromPriority,
-      ...(parsed?.importantConstructions ?? [])
-        .map((c) => ({
-          itemId: String(c.itemId ?? "").trim() || undefined,
-          originalSentence: String(c.originalSentence ?? "").trim(),
-          targetConstruction: String(c.targetConstruction ?? "").trim(),
-          structure: String(c.structure ?? "").trim(),
-          restoredElements: String(c.restoredElements ?? "").trim() || undefined,
-          translation: String(c.translation ?? "").trim() || undefined,
-          readingTip: String(c.readingTip ?? "").trim() || undefined,
-        }))
-        .filter((c) => c.originalSentence || c.targetConstruction),
-    ].slice(0, 6);
+      .filter((c) => c.originalSentence || c.targetConstruction)
+      .slice(0, 6);
 
     const hasAnyGrammar = sentences.some((s) => s.grammarPoints.length > 0);
-    const noPointMessage =
-      !hasAnyGrammar
-        ? String(parsed?.noPointMessage ?? "").trim() ||
-          "이 지문에는 별도로 강조할 만한 고등학교 핵심 어법이 없습니다."
-        : undefined;
+    const noPointMessage = !hasAnyGrammar
+      ? String(parsed?.noPointMessage ?? "").trim() ||
+        "이 지문에는 별도로 강조할 만한 고등학교 핵심 어법이 없습니다."
+      : undefined;
 
     return {
       headerLabel: input.headerLabel?.trim() || "26년도 1학기 중간고사 대비",

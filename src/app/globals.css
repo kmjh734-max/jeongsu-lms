@@ -2252,6 +2252,13 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     print-color-adjust: exact !important;
   }
 
+  #analysis-report-print-root .analysis-context-note {
+    background-color: #e8eef6 !important;
+    border-left-color: #1e3a5f !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   #lesson-pack-print-root,
   #analysis-report-print-root {
     width: 210mm !important;
