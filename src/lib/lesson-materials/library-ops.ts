@@ -468,3 +468,40 @@ export async function saveLessonMaterialProjectWorkspace(
   revalidateLibrary(role);
   return actionSuccess("저장되었습니다.");
 }
+
+export async function reorderLessonMaterialProjects(
+  role: Role,
+  input: { orderedIds: string[] }
+): Promise<ActionResult> {
+  const { profile, error } = await requireRole(role);
+  if (error) return error;
+
+  const orderedIds = input.orderedIds
+    .map((id) => id.trim())
+    .filter(Boolean);
+  if (orderedIds.length === 0) {
+    return actionError("순서 정보가 없습니다.");
+  }
+
+  const supabase = await createClient();
+
+  for (let i = 0; i < orderedIds.length; i++) {
+    const id = orderedIds[i]!;
+    let q = supabase
+      .from("lesson_material_projects")
+      .update({ order_index: i })
+      .eq("id", id)
+      .eq("academy_id", profile!.academy_id!)
+      .is("deleted_at", null);
+
+    if (role === "teacher") {
+      q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+    }
+
+    const { error: updateErr } = await q;
+    if (updateErr) return actionError(updateErr.message);
+  }
+
+  revalidateLibrary(role);
+  return actionSuccess("순서가 저장되었습니다.");
+}

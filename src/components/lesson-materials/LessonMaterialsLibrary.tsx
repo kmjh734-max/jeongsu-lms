@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
   type LessonMaterialLibraryData,
+  type LessonMaterialProjectRow,
 } from "@/lib/lesson-materials/load-library";
 import {
   copyLessonMaterialProjects,
@@ -15,6 +16,7 @@ import {
   moveLessonMaterialProjects,
   permanentlyDeleteLessonMaterialProjects,
   renameLessonMaterialFolder,
+  reorderLessonMaterialProjects,
   restoreLessonMaterialProjects,
   trashLessonMaterialProjects,
 } from "@/lib/lesson-materials/library-ops";
@@ -40,6 +42,22 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "questions", label: "변형문제" },
   { id: "integrated", label: "최종통합자료" },
 ];
+
+function reorderProjects(
+  items: LessonMaterialProjectRow[],
+  fromId: string,
+  toId: string
+): LessonMaterialProjectRow[] {
+  if (fromId === toId) return items;
+  const fromIndex = items.findIndex((p) => p.id === fromId);
+  const toIndex = items.findIndex((p) => p.id === toId);
+  if (fromIndex < 0 || toIndex < 0) return items;
+  const next = [...items];
+  const [removed] = next.splice(fromIndex, 1);
+  if (!removed) return items;
+  next.splice(toIndex, 0, removed);
+  return next;
+}
 
 export function LessonMaterialsLibrary({
   role,
@@ -142,6 +160,8 @@ export function LessonMaterialsLibrary({
     }
 
     list.sort((a, b) => {
+      const oi = (a.order_index ?? 0) - (b.order_index ?? 0);
+      if (oi !== 0) return oi;
       const ta = new Date(a.updated_at).getTime();
       const tb = new Date(b.updated_at).getTime();
       return sortNewest ? tb - ta : ta - tb;
@@ -189,6 +209,51 @@ export function LessonMaterialsLibrary({
               ? "최종통합자료는 준비 중입니다."
               : "자료가 없습니다.";
 
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
+  const [orderedProjects, setOrderedProjects] =
+    useState<LessonMaterialProjectRow[]>(visibleProjects);
+
+  useEffect(() => {
+    setOrderedProjects(visibleProjects);
+  }, [visibleProjects]);
+
+  const canReorder =
+    !inTrash &&
+    !tabComingSoon &&
+    (libraryTab === "materials" || libraryTab === "lesson");
+
+  async function persistOrder(next: LessonMaterialProjectRow[]) {
+    setReordering(true);
+    setError(null);
+    try {
+      const res = await reorderLessonMaterialProjects(role, {
+        orderedIds: next.map((p) => p.id),
+      });
+      if (!res.ok) {
+        setError(res.message);
+        setOrderedProjects(visibleProjects);
+        return;
+      }
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "순서 저장에 실패했습니다.");
+      setOrderedProjects(visibleProjects);
+    } finally {
+      setReordering(false);
+      setDraggingId(null);
+      setDragOverId(null);
+    }
+  }
+
+  function handleDropOn(targetId: string) {
+    if (!canReorder || !draggingId || draggingId === targetId) return;
+    const next = reorderProjects(orderedProjects, draggingId, targetId);
+    setOrderedProjects(next);
+    void persistOrder(next);
+  }
+
   function projectOpenHref(projectId: string) {
     if (libraryTab === "lesson") {
       return `${base}/lesson-pack?ids=${encodeURIComponent(projectId)}`;
@@ -200,7 +265,7 @@ export function LessonMaterialsLibrary({
     setSelected((prev) => {
       const next = new Set(prev);
       if (shiftKey && lastClicked.current) {
-        const ids = visibleProjects.map((p) => p.id);
+        const ids = orderedProjects.map((p) => p.id);
         const a = ids.indexOf(lastClicked.current);
         const b = ids.indexOf(id);
         if (a >= 0 && b >= 0) {
@@ -222,7 +287,7 @@ export function LessonMaterialsLibrary({
       setSelected(new Set());
       return;
     }
-    setSelected(new Set(visibleProjects.map((p) => p.id)));
+    setSelected(new Set(orderedProjects.map((p) => p.id)));
   }
 
   function runAction(fn: () => Promise<{ ok: boolean; message: string }>) {
@@ -773,43 +838,84 @@ export function LessonMaterialsLibrary({
             <input
               type="checkbox"
               checked={
-                visibleProjects.length > 0 &&
-                visibleProjects.every((p) => selected.has(p.id))
+                orderedProjects.length > 0 &&
+                orderedProjects.every((p) => selected.has(p.id))
               }
               onChange={(e) => selectAllVisible(e.target.checked)}
             />
             전체 선택
           </label>
           <span className="text-xs text-slate-400">
-            Shift + 클릭으로 범위 선택
+            {canReorder
+              ? "⠿ 손잡이를 끌어 순서를 바꾸세요 · Shift + 클릭으로 범위 선택"
+              : "Shift + 클릭으로 범위 선택"}
           </span>
         </div>
         ) : null}
 
-        <ul className="mt-3 space-y-2">
-          {tabComingSoon || visibleProjects.length === 0 ? (
+        <ul
+          className={`mt-3 space-y-2 ${reordering ? "pointer-events-none opacity-70" : ""}`}
+        >
+          {tabComingSoon || orderedProjects.length === 0 ? (
             <li className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
               {tabEmptyMessage}
             </li>
           ) : (
-            visibleProjects.map((p) => {
+            orderedProjects.map((p) => {
               const checked = selected.has(p.id);
               const openHref = inTrash
                 ? undefined
                 : projectOpenHref(p.id);
+              const isDragging = draggingId === p.id;
+              const isOver = dragOverId === p.id && draggingId !== p.id;
               return (
                 <li
                   key={p.id}
+                  onDragOver={(e) => {
+                    if (!canReorder || !draggingId || draggingId === p.id) return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                    setDragOverId(p.id);
+                  }}
+                  onDragLeave={() => {
+                    setDragOverId((cur) => (cur === p.id ? null : cur));
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleDropOn(p.id);
+                  }}
                   className={`rounded-xl border px-4 py-3 ${
                     checked
                       ? "border-violet-300 bg-violet-50"
                       : "border-slate-200 bg-white"
+                  } ${isDragging ? "opacity-50" : ""} ${
+                    isOver ? "ring-2 ring-violet-400 ring-offset-1" : ""
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="cursor-grab text-slate-300" aria-hidden>
-                      ⠿
-                    </span>
+                    {canReorder ? (
+                      <span
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData("text/project-id", p.id);
+                          e.dataTransfer.effectAllowed = "move";
+                          setDraggingId(p.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggingId(null);
+                          setDragOverId(null);
+                        }}
+                        className="shrink-0 cursor-grab select-none px-0.5 text-slate-400 hover:text-slate-600 active:cursor-grabbing"
+                        title="드래그하여 순서 변경"
+                        aria-label={`${p.title} 순서 변경`}
+                      >
+                        ⠿
+                      </span>
+                    ) : (
+                      <span className="text-slate-300" aria-hidden>
+                        ⠿
+                      </span>
+                    )}
                     <input
                       type="checkbox"
                       checked={checked}

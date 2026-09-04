@@ -15,6 +15,7 @@ export interface LessonMaterialProjectRow {
   folder_id: string | null;
   updated_at: string;
   deleted_at: string | null;
+  order_index: number;
   analysis_json?: unknown;
   /** True when logical-flow analysis exists */
   has_analysis: boolean;
@@ -63,8 +64,9 @@ export async function loadLessonMaterialsLibraryData(
     supabase
       .from("lesson_material_projects")
       .select(
-        "id,title,title_en,source,folder_id,updated_at,deleted_at,analysis_json,lesson_pack_json"
+        "id,title,title_en,source,folder_id,updated_at,deleted_at,order_index,analysis_json,lesson_pack_json"
       )
+      .order("order_index", { ascending: true })
       .order("updated_at", { ascending: false }),
     supabase
       .from("lesson_material_items")
@@ -76,6 +78,7 @@ export async function loadLessonMaterialsLibraryData(
   const rawProjects = (projectsRes.data ?? []) as Array<
     Omit<LessonMaterialProjectRow, "has_analysis" | "has_lesson_pack"> & {
       lesson_pack_json?: unknown;
+      order_index?: number | null;
     }
   >;
 
@@ -83,6 +86,7 @@ export async function loadLessonMaterialsLibraryData(
     const { lesson_pack_json, ...rest } = p;
     return {
       ...rest,
+      order_index: typeof p.order_index === "number" ? p.order_index : 0,
       has_analysis: hasAnalysis(p.analysis_json),
       has_lesson_pack: hasLessonPack(lesson_pack_json),
     };
