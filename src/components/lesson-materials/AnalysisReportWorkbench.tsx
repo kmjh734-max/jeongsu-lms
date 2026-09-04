@@ -11,7 +11,6 @@ import {
 import type {
   AnalysisChunkRole,
   AnalysisGrammarPoint,
-  AnalysisImportantConstruction,
   AnalysisReportData,
   AnalysisSentence,
 } from "@/lib/lesson-materials/generate-analysis-report";
@@ -72,31 +71,6 @@ function GrammarPointItem({
         </p>
       ) : null}
     </li>
-  );
-}
-
-function ImportantConstructionBlock({
-  items,
-}: {
-  items: AnalysisImportantConstruction[];
-}) {
-  if (items.length === 0) return null;
-  return (
-    <section className="mt-5 break-inside-avoid rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5">
-      <p className="mb-2 text-[13px] font-bold text-amber-900">[중요 구문]</p>
-      <ol className="space-y-2">
-        {items.map((c, i) => (
-          <li key={i} className="text-[12.5px] leading-relaxed text-slate-800">
-            <p className="font-bold text-slate-900">
-              {c.targetConstruction || c.originalSentence}
-            </p>
-            {c.structure ? (
-              <p className="text-slate-600">구조 · {c.structure}</p>
-            ) : null}
-          </li>
-        ))}
-      </ol>
-    </section>
   );
 }
 
@@ -549,24 +523,6 @@ export function AnalysisReportWorkbench({
                   />
                 ))}
               </div>
-
-              {report?.analysisSummary ? (
-                <section className="mt-5 break-inside-avoid rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-                  <p className="mb-1 text-[13px] font-bold text-slate-800">
-                    [문법 요약]
-                  </p>
-                  <p className="text-[12.5px] leading-relaxed text-slate-700">
-                    {report.analysisSummary}
-                  </p>
-                </section>
-              ) : null}
-
-              {report?.importantConstructions &&
-              report.importantConstructions.length > 0 ? (
-                <ImportantConstructionBlock
-                  items={report.importantConstructions}
-                />
-              ) : null}
 
               {report?.noPointMessage ? (
                 <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">

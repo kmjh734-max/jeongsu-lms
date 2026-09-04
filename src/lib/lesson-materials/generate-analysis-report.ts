@@ -456,18 +456,6 @@ export async function generateAnalysisReport(input: {
       };
     });
 
-    const importantConstructions: AnalysisImportantConstruction[] = (
-      parsed?.importantConstructions ?? []
-    )
-      .map((c) => ({
-        itemId: String(c.itemId ?? "").trim() || undefined,
-        originalSentence: String(c.originalSentence ?? "").trim(),
-        targetConstruction: String(c.targetConstruction ?? "").trim(),
-        structure: String(c.structure ?? "").trim(),
-      }))
-      .filter((c) => c.originalSentence || c.targetConstruction)
-      .slice(0, 6);
-
     const hasAnyGrammar = sentences.some((s) => s.grammarPoints.length > 0);
     const noPointMessage = !hasAnyGrammar
       ? String(parsed?.noPointMessage ?? "").trim() ||
@@ -477,9 +465,6 @@ export async function generateAnalysisReport(input: {
     return {
       headerLabel: input.headerLabel?.trim() || "26년도 1학기 중간고사 대비",
       sentences,
-      analysisSummary: String(parsed?.analysisSummary ?? "").trim() || undefined,
-      importantConstructions:
-        importantConstructions.length > 0 ? importantConstructions : undefined,
       noPointMessage,
       updatedAt: new Date().toISOString(),
     };
