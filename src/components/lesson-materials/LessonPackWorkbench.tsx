@@ -54,13 +54,11 @@ function A4Sheet({
   children,
   label,
   style,
-  logoSrc,
   className,
 }: {
   children: ReactNode;
   label: string;
   style?: CSSProperties;
-  logoSrc?: string | null;
   className?: string;
 }) {
   return (
@@ -73,14 +71,6 @@ function A4Sheet({
         ...style,
       }}
     >
-      {logoSrc ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={logoSrc}
-          alt=""
-          className="pointer-events-none absolute right-[10mm] top-[8mm] z-10 h-9 w-auto max-w-[34mm] object-contain"
-        />
-      ) : null}
       {children}
       <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
         {label}
@@ -715,23 +705,33 @@ export function LessonPackWorkbench({
 
     if (parsed.kind === "doc-header") {
       return (
-        <div style={{ paddingRight: showLogo && logoSrc ? 40 : 0 }}>
-          <div
-            className="font-semibold leading-snug"
-            style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
-          >
-            {headerLabel}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div
+              className="font-semibold leading-snug"
+              style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
+            >
+              {headerLabel}
+            </div>
+            <h1
+              className="mt-1 font-bold leading-tight text-slate-900"
+              style={{ fontSize: titleSizes.docTitle }}
+            >
+              {docTitle}
+            </h1>
+            <div
+              className="mt-2 h-1 w-full"
+              style={{ backgroundColor: themeColor }}
+            />
           </div>
-          <h1
-            className="mt-1 font-bold leading-tight text-slate-900"
-            style={{ fontSize: titleSizes.docTitle }}
-          >
-            {docTitle}
-          </h1>
-          <div
-            className="mt-2 h-1 w-full"
-            style={{ backgroundColor: themeColor }}
-          />
+          {showLogo && logoSrc ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoSrc}
+              alt=""
+              className="mt-0.5 h-12 w-auto max-w-[38mm] shrink-0 object-contain"
+            />
+          ) : null}
         </div>
       );
     }
@@ -838,9 +838,10 @@ export function LessonPackWorkbench({
           <div className="pr-1">
             {interactive ? (
               <input
-                className="w-full border-0 bg-transparent font-bold outline-none"
+                className="w-full border-0 bg-transparent font-bold outline-none placeholder:text-slate-300"
                 style={{ color: themeColor, fontSize: "inherit" }}
                 value={v.word}
+                placeholder="단어"
                 onChange={(e) =>
                   updateVocabAt(pi, i, { word: e.target.value })
                 }
@@ -921,8 +922,12 @@ export function LessonPackWorkbench({
         <div className="mt-2 flex justify-center print:hidden">
           <button
             type="button"
-            onClick={() => addVocabRowAt(pi)}
-            className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              addVocabRowAt(pi);
+            }}
+            className="relative z-20 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800"
           >
             + 단어 추가
           </button>
@@ -1372,7 +1377,7 @@ export function LessonPackWorkbench({
               </button>
             </div>
             <p className="text-[11px] text-slate-400">
-              홈페이지와 같은 학원 로고를 각 페이지 우측 상단에 표시합니다.
+              문서 제목 옆에 학원 로고를 표시합니다.
             </p>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500">한글 해석 표시</span>
@@ -1491,7 +1496,6 @@ export function LessonPackWorkbench({
               <A4Sheet
                 key={`pack-page-${pageI}`}
                 label={`${pageI + 1} / ${pages.length}`}
-                logoSrc={showLogo ? logoSrc : null}
                 className={
                   pageI === pages.length - 1
                     ? "lesson-pack-a4-sheet--last"
