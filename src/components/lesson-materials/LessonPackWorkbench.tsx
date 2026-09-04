@@ -76,10 +76,10 @@ function A4Sheet({
         <img
           src={logoSrc}
           alt=""
-          className="pointer-events-none absolute right-[10mm] top-[8mm] z-10 h-11 w-auto max-w-[42mm] object-contain"
+          className="pointer-events-none absolute right-[10mm] top-[8mm] z-10 h-9 w-auto max-w-[34mm] object-contain"
         />
       ) : null}
-      <div className={logoSrc ? "pr-[46mm]" : undefined}>{children}</div>
+      {children}
       <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
         {label}
       </span>
@@ -616,7 +616,7 @@ export function LessonPackWorkbench({
   const titleSizes = {
     headerLabel: 14,
     docTitle: 22,
-    passageTitle: 15,
+    passageTitle: 18,
     section: 15,
   } as const;
 
@@ -706,7 +706,7 @@ export function LessonPackWorkbench({
 
     if (parsed.kind === "doc-header") {
       return (
-        <div>
+        <div style={{ paddingRight: showLogo && logoSrc ? 40 : 0 }}>
           <div
             className="font-semibold leading-snug"
             style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
@@ -737,94 +737,31 @@ export function LessonPackWorkbench({
 
     if (parsed.kind === "passage-bar") {
       return (
-        <div className={pi === 0 ? "mt-2" : "mt-1"}>
-          {interactive ? (
-            <div className="space-y-2 rounded-xl bg-slate-100 px-3 py-3">
-              <label className="block space-y-1">
-                <span
-                  className="font-semibold"
-                  style={{ color: themeColor, fontSize: 11 }}
-                >
-                  출처
-                </span>
-                <input
-                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 outline-none"
-                  value={board.source ?? ""}
-                  placeholder="예: 2024 수능특강 / H1_2503_31"
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setProjects((prev) =>
-                      prev.map((row, i) =>
-                        i === pi ? { ...row, source: v } : row
-                      )
-                    );
-                  }}
-                />
-              </label>
-              <label className="block space-y-1">
-                <span className="text-[11px] font-bold text-slate-500">
-                  지문 제목
-                </span>
-                <div className="flex items-start gap-2">
-                  <span
-                    className="mt-1.5 shrink-0 font-bold text-slate-900"
-                    style={{ fontSize: 16 }}
-                  >
-                    {String(pi + 1).padStart(2, "0")}
-                  </span>
-                  <input
-                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-bold text-slate-900 outline-none"
-                    style={{ fontSize: 16 }}
-                    value={board.title}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setProjects((prev) =>
-                        prev.map((row, i) =>
-                          i === pi ? { ...row, title: v } : row
-                        )
-                      );
-                    }}
-                  />
-                </div>
-              </label>
-              {board.titleEn?.trim() ? (
-                <p className="pl-8 text-sm text-slate-600">
-                  {board.titleEn.trim()}
-                </p>
-              ) : (
-                <p className="pl-8 text-[11px] text-slate-400">
-                  영어 제목은 AI가 자동으로 표시합니다
-                </p>
-              )}
+        <div className="mt-4">
+          {board.source?.trim() ? (
+            <div
+              className="mb-1.5 font-semibold"
+              style={{ color: themeColor, fontSize: 12 }}
+            >
+              {board.source.trim()}
             </div>
-          ) : (
-            <div>
-              {board.source?.trim() ? (
-                <div
-                  className="mb-1.5 font-semibold"
-                  style={{ color: themeColor, fontSize: 12 }}
-                >
-                  {board.source.trim()}
-                </div>
-              ) : null}
-              <div className="rounded-xl bg-slate-100 px-4 py-3">
-                <div
-                  className="font-bold leading-snug text-slate-900"
-                  style={{ fontSize: 17 }}
-                >
-                  {String(pi + 1).padStart(2, "0")} {board.title}
-                </div>
-                {board.titleEn?.trim() ? (
-                  <div
-                    className="mt-1.5 text-slate-600"
-                    style={{ fontSize: 13, lineHeight: 1.4 }}
-                  >
-                    {board.titleEn.trim()}
-                  </div>
-                ) : null}
+          ) : null}
+          <div className="rounded-xl bg-slate-100 px-4 py-3">
+            <div
+              className="font-bold leading-snug text-slate-900"
+              style={{ fontSize: titleSizes.passageTitle }}
+            >
+              {String(pi + 1).padStart(2, "0")} {board.title}
+            </div>
+            {board.titleEn?.trim() ? (
+              <div
+                className="mt-1.5 text-slate-600"
+                style={{ fontSize: 13.5, lineHeight: 1.4 }}
+              >
+                {board.titleEn.trim()}
               </div>
-            </div>
-          )}
+            ) : null}
+          </div>
         </div>
       );
     }
