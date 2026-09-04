@@ -25,6 +25,21 @@ import type { LessonMaterialFolderRow } from "@/lib/lesson-materials/load-librar
 
 type FolderFilter = "all" | "unfiled" | "trash" | string;
 
+type LibraryTab =
+  | "materials"
+  | "analysis"
+  | "questions"
+  | "workbook"
+  | "integrated";
+
+const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
+  { id: "materials", label: "자료" },
+  { id: "analysis", label: "분석 및 요약서" },
+  { id: "questions", label: "변형 문제" },
+  { id: "workbook", label: "워크북" },
+  { id: "integrated", label: "최종 통합자료" },
+];
+
 function formatUpdatedAt(iso: string) {
   try {
     const d = new Date(iso);
@@ -50,6 +65,7 @@ export function LessonMaterialsLibrary({
   const router = useRouter();
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [folderFilter, setFolderFilter] = useState<FolderFilter>("all");
+  const [libraryTab, setLibraryTab] = useState<LibraryTab>("materials");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sortNewest, setSortNewest] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -128,6 +144,14 @@ export function LessonMaterialsLibrary({
       );
     }
 
+    if (libraryTab === "analysis") {
+      list = list.filter((p) => p.has_analysis);
+    } else if (libraryTab === "integrated") {
+      list = list.filter((p) => p.has_lesson_pack);
+    } else if (libraryTab === "questions" || libraryTab === "workbook") {
+      list = [];
+    }
+
     list.sort((a, b) => {
       const ta = new Date(a.updated_at).getTime();
       const tb = new Date(b.updated_at).getTime();
@@ -135,12 +159,21 @@ export function LessonMaterialsLibrary({
     });
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [folderFilter, data, activeProjects, sortNewest, childrenByParent]);
+  }, [
+    folderFilter,
+    libraryTab,
+    data,
+    activeProjects,
+    sortNewest,
+    childrenByParent,
+  ]);
 
   const totalActive = activeProjects.length;
   const selectedIds = [...selected];
   const selectedCount = selectedIds.length;
   const inTrash = folderFilter === "trash";
+  const tabComingSoon =
+    libraryTab === "questions" || libraryTab === "workbook";
 
   const currentFolderLabel =
     folderFilter === "all"
@@ -150,6 +183,24 @@ export function LessonMaterialsLibrary({
         : folderFilter === "trash"
           ? "휴지통"
           : (folderNameById.get(folderFilter) ?? "폴더");
+
+  const tabEmptyMessage =
+    libraryTab === "analysis"
+      ? "이 폴더에 분석·요약서가 없습니다. 자료를 열어 논리 흐름을 만든 뒤 저장하세요."
+      : libraryTab === "integrated"
+        ? "저장된 수업용 자료가 없습니다. 자료를 선택한 뒤 「수업용 자료 제작」에서 저장하세요."
+        : libraryTab === "questions"
+          ? "변형 문제 모음은 준비 중입니다."
+          : libraryTab === "workbook"
+            ? "워크북 모음은 준비 중입니다."
+            : "자료가 없습니다.";
+
+  function projectOpenHref(projectId: string) {
+    if (libraryTab === "integrated") {
+      return `${base}/lesson-pack?ids=${encodeURIComponent(projectId)}`;
+    }
+    return `${base}/project/${projectId}`;
+  }
 
   function toggleSelect(id: string, shiftKey: boolean) {
     setSelected((prev) => {
@@ -497,14 +548,43 @@ export function LessonMaterialsLibrary({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-4">
+      <main className="min-w-0 flex-1 space-y-3">
+        <nav
+          className="flex flex-wrap gap-1 border-b border-slate-200 bg-white px-1"
+          aria-label="자료 종류"
+        >
+          {LIBRARY_TABS.map((tab) => {
+            const active = libraryTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setLibraryTab(tab.id);
+                  setSelected(new Set());
+                }}
+                className={`-mb-px border-b-2 px-3 py-2.5 text-sm transition-colors ${
+                  active
+                    ? "border-violet-600 font-bold text-slate-900"
+                    : "border-transparent font-medium text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <h1 className="text-lg font-bold text-slate-900">
+            <h1 className="text-lg font-bold text-violet-700">
               {currentFolderLabel}
             </h1>
             <p className="mt-1 text-sm text-slate-600">
-              {visibleProjects.length}개의 자료가 있습니다
+              {tabComingSoon
+                ? "준비 중"
+                : `${visibleProjects.length}개의 자료가 있습니다.`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -693,6 +773,7 @@ export function LessonMaterialsLibrary({
           </Alert>
         ) : null}
 
+        {!tabComingSoon ? (
         <div className="mt-3 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
           <label className="inline-flex items-center gap-2 font-semibold">
             <input
@@ -709,11 +790,12 @@ export function LessonMaterialsLibrary({
             Shift + 클릭으로 범위 선택
           </span>
         </div>
+        ) : null}
 
         <ul className="mt-3 space-y-2">
-          {visibleProjects.length === 0 ? (
+          {tabComingSoon || visibleProjects.length === 0 ? (
             <li className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-              자료가 없습니다.
+              {tabEmptyMessage}
             </li>
           ) : (
             visibleProjects.map((p) => {
@@ -724,6 +806,9 @@ export function LessonMaterialsLibrary({
                 : p.folder_id
                   ? (folderNameById.get(p.folder_id) ?? "폴더")
                   : "미분류";
+              const openHref = inTrash
+                ? undefined
+                : projectOpenHref(p.id);
               return (
                 <li
                   key={p.id}
@@ -814,8 +899,16 @@ export function LessonMaterialsLibrary({
                       ) : (
                         <div className="flex items-start gap-1.5">
                           <Link
-                            href={`${base}/project/${p.id}`}
+                            href={openHref ?? `${base}/project/${p.id}`}
                             className="min-w-0 flex-1 truncate font-semibold text-slate-900 hover:text-violet-700"
+                            target={
+                              libraryTab === "integrated" ? "_blank" : undefined
+                            }
+                            rel={
+                              libraryTab === "integrated"
+                                ? "noopener noreferrer"
+                                : undefined
+                            }
                           >
                             {p.title}
                           </Link>
@@ -850,9 +943,18 @@ export function LessonMaterialsLibrary({
                           출처: {p.source}
                         </p>
                       ) : null}
-                      {snippet ? (
+                      {libraryTab === "integrated" ? (
+                        <p className="mt-1 text-xs font-semibold text-violet-600">
+                          수업용 자료 · 클릭하여 열기
+                        </p>
+                      ) : snippet ? (
                         <p className="mt-1 line-clamp-1 text-sm text-slate-500">
                           {snippet}
+                        </p>
+                      ) : null}
+                      {libraryTab === "materials" && p.has_lesson_pack ? (
+                        <p className="mt-1 text-xs text-violet-600">
+                          최종 통합자료 저장됨
                         </p>
                       ) : null}
                     </div>
@@ -869,6 +971,7 @@ export function LessonMaterialsLibrary({
             })
           )}
         </ul>
+        </div>
       </main>
 
       {!inTrash ? (
