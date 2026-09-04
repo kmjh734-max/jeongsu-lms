@@ -26,6 +26,7 @@ import {
 type PassageDraft = {
   english: string;
   korean: string;
+  source: string;
 };
 
 type PassageWorkbench = {
@@ -81,7 +82,7 @@ export function LessonMaterialsInputWizard({
 }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [passages, setPassages] = useState<PassageDraft[]>([
-    { english: "", korean: "" },
+    { english: "", korean: "", source: "" },
   ]);
   const [workbenches, setWorkbenches] = useState<PassageWorkbench[]>([]);
   const [activePassage, setActivePassage] = useState(0);
@@ -169,7 +170,7 @@ export function LessonMaterialsInputWizard({
   }
 
   function addPassage() {
-    setPassages((prev) => [...prev, { english: "", korean: "" }]);
+    setPassages((prev) => [...prev, { english: "", korean: "", source: "" }]);
   }
 
   function removeLastPassage() {
@@ -326,6 +327,7 @@ export function LessonMaterialsInputWizard({
       .map((p) => ({
         english: p.english.trim(),
         korean: p.korean.trim(),
+        source: p.source.trim(),
       }))
       .filter((p) => p.english.length > 0);
 
@@ -338,6 +340,7 @@ export function LessonMaterialsInputWizard({
       const lines = splitPassageIntoLinePairs(p);
       return {
         ...emptyWorkbench(p.english, p.korean),
+        source: p.source,
         lines,
         selected: allIndexes(lines.length),
       };
@@ -660,8 +663,8 @@ export function LessonMaterialsInputWizard({
                       영어 지문
                     </div>
                     <textarea
-                      className="min-h-[240px] w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-800"
-                      placeholder="영어 텍스트를 입력하세요."
+                      className="min-h-[240px] w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-800"
+                      placeholder="영어 텍스트를 입력하세요. (이미지 파일 및 PDF 드래그앤드롭 가능)"
                       value={p.english}
                       onChange={(e) =>
                         updatePassage(idx, {
@@ -674,19 +677,30 @@ export function LessonMaterialsInputWizard({
                     </div>
                   </label>
 
-                  <label className="block">
-                    <div className="mb-2 text-xs font-semibold text-slate-600">
-                      한글 해석 (선택)
+                  <div className="block">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-slate-600">
+                        한글 해석 (선택)
+                      </span>
+                      <input
+                        className="w-full max-w-[220px] rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-violet-300 focus:ring-2 focus:ring-violet-100 sm:w-auto"
+                        value={p.source}
+                        onChange={(e) =>
+                          updatePassage(idx, { source: e.target.value })
+                        }
+                        placeholder="출처 입력 (예: H1_2503_31)"
+                        aria-label="출처"
+                      />
                     </div>
                     <textarea
-                      className="min-h-[240px] w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-relaxed text-slate-800"
-                      placeholder="없다면 비워두세요."
+                      className="min-h-[240px] w-full resize-y rounded-xl border border-violet-100 bg-violet-50/40 px-4 py-3 text-sm leading-relaxed text-slate-800"
+                      placeholder="한글 해석본을 넣어주세요. 없다면 비워주셔도 괜찮습니다."
                       value={p.korean}
                       onChange={(e) =>
                         updatePassage(idx, { korean: e.target.value })
                       }
                     />
-                  </label>
+                  </div>
                 </div>
               </section>
             );
