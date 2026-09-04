@@ -27,17 +27,19 @@ type FolderFilter = "all" | "unfiled" | "trash" | string;
 
 type LibraryTab =
   | "materials"
+  | "lesson"
   | "analysis"
-  | "questions"
   | "workbook"
+  | "questions"
   | "integrated";
 
 const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
-  { id: "materials", label: "자료" },
-  { id: "analysis", label: "분석 및 요약서" },
-  { id: "questions", label: "변형 문제" },
+  { id: "materials", label: "지문자료" },
+  { id: "lesson", label: "수업용자료" },
+  { id: "analysis", label: "분석서" },
   { id: "workbook", label: "워크북" },
-  { id: "integrated", label: "최종 통합자료" },
+  { id: "questions", label: "변형문제" },
+  { id: "integrated", label: "최종통합자료" },
 ];
 
 function formatUpdatedAt(iso: string) {
@@ -146,9 +148,13 @@ export function LessonMaterialsLibrary({
 
     if (libraryTab === "analysis") {
       list = list.filter((p) => p.has_analysis);
-    } else if (libraryTab === "integrated") {
+    } else if (libraryTab === "lesson") {
       list = list.filter((p) => p.has_lesson_pack);
-    } else if (libraryTab === "questions" || libraryTab === "workbook") {
+    } else if (
+      libraryTab === "questions" ||
+      libraryTab === "workbook" ||
+      libraryTab === "integrated"
+    ) {
       list = [];
     }
 
@@ -173,7 +179,9 @@ export function LessonMaterialsLibrary({
   const selectedCount = selectedIds.length;
   const inTrash = folderFilter === "trash";
   const tabComingSoon =
-    libraryTab === "questions" || libraryTab === "workbook";
+    libraryTab === "questions" ||
+    libraryTab === "workbook" ||
+    libraryTab === "integrated";
 
   const currentFolderLabel =
     folderFilter === "all"
@@ -186,17 +194,19 @@ export function LessonMaterialsLibrary({
 
   const tabEmptyMessage =
     libraryTab === "analysis"
-      ? "이 폴더에 분석·요약서가 없습니다. 자료를 열어 논리 흐름을 만든 뒤 저장하세요."
-      : libraryTab === "integrated"
-        ? "저장된 수업용 자료가 없습니다. 자료를 선택한 뒤 「수업용 자료 제작」에서 저장하세요."
+      ? "이 폴더에 분석서가 없습니다. 자료를 열어 논리 흐름을 만든 뒤 저장하세요."
+      : libraryTab === "lesson"
+        ? "저장된 수업용 자료가 없습니다. 지문자료를 선택한 뒤 「수업용 자료 제작」에서 저장하세요."
         : libraryTab === "questions"
-          ? "변형 문제 모음은 준비 중입니다."
+          ? "변형문제는 준비 중입니다."
           : libraryTab === "workbook"
-            ? "워크북 모음은 준비 중입니다."
-            : "자료가 없습니다.";
+            ? "워크북은 준비 중입니다."
+            : libraryTab === "integrated"
+              ? "최종통합자료는 준비 중입니다."
+              : "자료가 없습니다.";
 
   function projectOpenHref(projectId: string) {
-    if (libraryTab === "integrated") {
+    if (libraryTab === "lesson") {
       return `${base}/lesson-pack?ids=${encodeURIComponent(projectId)}`;
     }
     return `${base}/project/${projectId}`;
@@ -902,10 +912,10 @@ export function LessonMaterialsLibrary({
                             href={openHref ?? `${base}/project/${p.id}`}
                             className="min-w-0 flex-1 truncate font-semibold text-slate-900 hover:text-violet-700"
                             target={
-                              libraryTab === "integrated" ? "_blank" : undefined
+                              libraryTab === "lesson" ? "_blank" : undefined
                             }
                             rel={
-                              libraryTab === "integrated"
+                              libraryTab === "lesson"
                                 ? "noopener noreferrer"
                                 : undefined
                             }
@@ -943,7 +953,7 @@ export function LessonMaterialsLibrary({
                           출처: {p.source}
                         </p>
                       ) : null}
-                      {libraryTab === "integrated" ? (
+                      {libraryTab === "lesson" ? (
                         <p className="mt-1 text-xs font-semibold text-violet-600">
                           수업용 자료 · 클릭하여 열기
                         </p>
@@ -954,7 +964,7 @@ export function LessonMaterialsLibrary({
                       ) : null}
                       {libraryTab === "materials" && p.has_lesson_pack ? (
                         <p className="mt-1 text-xs text-violet-600">
-                          최종 통합자료 저장됨
+                          수업용자료 저장됨
                         </p>
                       ) : null}
                     </div>
