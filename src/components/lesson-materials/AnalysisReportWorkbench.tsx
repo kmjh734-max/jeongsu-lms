@@ -9,7 +9,6 @@ import {
   saveAnalysisReportAction,
 } from "@/lib/lesson-materials/analysis-report-actions";
 import type {
-  AnalysisChunkRole,
   AnalysisGrammarPoint,
   AnalysisReportData,
   AnalysisSentence,
@@ -25,17 +24,9 @@ export type AnalysisReportProjectInput = {
   report: AnalysisReportData | null;
 };
 
-const ROLE_STYLE: Record<
-  AnalysisChunkRole,
-  { bg: string; text: string }
-> = {
-  s: { bg: "#d1fae5", text: "#065f46" },
-  v: { bg: "#dbeafe", text: "#1e3a8a" },
-  o: { bg: "#ffedd5", text: "#9a3412" },
-  c: { bg: "#ede9fe", text: "#5b21b6" },
-  M: { bg: "#f3e8ff", text: "#6b21a8" },
-  other: { bg: "#f1f5f9", text: "#334155" },
-};
+function joinChunks(texts: string[], sep = " / ") {
+  return texts.map((t) => t.trim()).filter(Boolean).join(sep);
+}
 
 function GrammarPointItem({
   point,
@@ -49,89 +40,15 @@ function GrammarPointItem({
     /^(최우선|핵심|중요\s*구문)\s*[·•\-–—:]\s*/u,
     ""
   );
-  const structure =
-    point.sentenceStructure ||
-    (point.detail && !point.detail.includes("학생용") && !point.detail.includes("교사용")
-      ? point.detail
-      : "");
 
   return (
-    <li className="space-y-1 text-[12.5px] leading-relaxed text-slate-800">
-      <div>
-        <span className="mr-1 font-bold text-rose-600">{mark}</span>
-        <span className="font-bold text-slate-900">{title}</span>
-        {point.example ? (
-          <span className="text-violet-700"> ({point.example})</span>
-        ) : null}
-      </div>
-      {structure ? (
-        <p className="text-slate-600">
-          <span className="font-semibold text-slate-700">구조 · </span>
-          {structure}
-        </p>
+    <li className="text-[12.5px] leading-relaxed text-slate-800">
+      <span className="mr-1 font-bold text-rose-600">{mark}</span>
+      <span className="font-bold text-slate-900">{title}</span>
+      {point.example ? (
+        <span className="text-violet-700"> ({point.example})</span>
       ) : null}
     </li>
-  );
-}
-
-function ChunkRow({
-  chunks,
-  kind,
-  showRoles,
-}: {
-  chunks: Array<{ text: string; role: AnalysisChunkRole }>;
-  kind: "en" | "ko";
-  showRoles: boolean;
-}) {
-  if (!showRoles) {
-    const joined = chunks
-      .map((c) => c.text.trim())
-      .filter(Boolean)
-      .join(kind === "en" ? " / " : " / ");
-    return (
-      <p
-        className={`leading-relaxed text-slate-800 ${
-          kind === "en" ? "text-[13px] font-semibold" : "text-[12px]"
-        }`}
-      >
-        {joined || "\u00a0"}
-      </p>
-    );
-  }
-
-  return (
-    <div className="flex flex-wrap items-end gap-x-1 gap-y-2">
-      {chunks.map((c, i) => {
-        const style = ROLE_STYLE[c.role] ?? ROLE_STYLE.other;
-        return (
-          <div key={`${kind}-${i}`} className="inline-flex items-end gap-1">
-            {i > 0 ? (
-              <span className="mb-1 text-slate-300" aria-hidden>
-                /
-              </span>
-            ) : null}
-            <div className="inline-flex flex-col items-center">
-              <span
-                className={`rounded px-1.5 py-0.5 leading-snug ${
-                  kind === "en" ? "text-[13px] font-semibold" : "text-[12px]"
-                }`}
-                style={{ backgroundColor: style.bg, color: style.text }}
-              >
-                {c.text || "\u00a0"}
-              </span>
-              {kind === "en" ? (
-                <span
-                  className="mt-0.5 text-[10px] font-bold italic"
-                  style={{ color: style.text }}
-                >
-                  {c.role === "other" ? "" : c.role}
-                </span>
-              ) : null}
-            </div>
-          </div>
-        );
-      })}
-    </div>
   );
 }
 
@@ -139,20 +56,35 @@ function SentenceBlock({
   sentence,
   index,
   accent,
-  showRoles,
 }: {
   sentence: AnalysisSentence;
   index: number;
   accent: string;
-  showRoles: boolean;
 }) {
-  const koChunks = sentence.koChunks.map((text, i) => ({
-    text,
-    role: sentence.enChunks[i]?.role ?? ("other" as AnalysisChunkRole),
-  }));
+  const enText = joinChunks(sentence.enChunks.map((c) => c.text));
+  const koText = joinChunks(sentence.koChunks);
   const contextNote =
     (sentence.contextNote ?? "").trim() ||
     (sentence.easyUnderstanding ?? "").trim();
+
+  const structures = sentence.grammarPoints
+    .map((g) => {
+      const s = (g.sentenceStructure || "").trim();
+      if (s) return s;
+      const d = (g.detail || "").trim();
+      if (
+        d &&
+        !d.includes("학생용") &&
+        !d.includes("교사용") &&
+        !d.includes("오답")
+      ) {
+        return d;
+      }
+      return "";
+    })
+    .filter(Boolean)
+    // de-dupe identical structure lines
+    .filter((s, i, arr) => arr.indexOf(s) === i);
 
   return (
     <section className="break-inside-avoid border-b border-slate-200 pb-5 pt-4 last:border-b-0">
@@ -163,16 +95,29 @@ function SentenceBlock({
         >
           {index + 1}
         </span>
-        <div className="min-w-0 flex-1 space-y-2">
-          <ChunkRow chunks={sentence.enChunks} kind="en" showRoles={showRoles} />
-          <ChunkRow chunks={koChunks} kind="ko" showRoles={showRoles} />
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <p className="text-[13px] font-semibold leading-relaxed text-slate-800">
+            {enText || "\u00a0"}
+          </p>
+          <p className="text-[12px] leading-relaxed text-slate-700">
+            {koText || "\u00a0"}
+          </p>
+          {structures.map((s, i) => (
+            <p
+              key={i}
+              className="text-[12px] leading-relaxed text-slate-500"
+            >
+              <span className="font-semibold text-slate-600">구조 · </span>
+              {s}
+            </p>
+          ))}
         </div>
       </div>
 
       {sentence.grammarPoints.length > 0 ? (
         <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50/60 px-3 py-2.5 print:bg-sky-50">
           <p className="mb-1.5 text-[13px] font-bold text-sky-800">[문법 분석]</p>
-          <ol className="space-y-2.5">
+          <ol className="space-y-1.5">
             {sentence.grammarPoints.map((g, gi) => (
               <GrammarPointItem key={gi} point={g} index={gi} />
             ))}
@@ -217,7 +162,6 @@ export function AnalysisReportWorkbench({
   const [prepLoading, setPrepLoading] = useState(() =>
     initialProjects.some((p) => !p.report?.sentences?.length)
   );
-  const [showRoles, setShowRoles] = useState(true);
 
   const project = projects[active];
 
@@ -418,28 +362,6 @@ export function AnalysisReportWorkbench({
             />
           </label>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <p className="text-xs font-bold text-slate-700">S V O M 표시</p>
-                <p className="mt-0.5 text-[11px] text-slate-500">
-                  색·품사 표기를 켜거나 끕니다
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowRoles((v) => !v)}
-                className={`rounded-full px-3 py-1 text-xs font-bold ${
-                  showRoles
-                    ? "bg-violet-600 text-white"
-                    : "bg-white text-slate-500 ring-1 ring-slate-200"
-                }`}
-              >
-                {showRoles ? "ON" : "OFF"}
-              </button>
-            </div>
-          </div>
-
           <p className="text-xs text-slate-500">{project.title}</p>
           {project.source?.trim() ? (
             <p className="text-[11px] text-slate-400">출처: {project.source}</p>
@@ -519,7 +441,6 @@ export function AnalysisReportWorkbench({
                     sentence={s}
                     index={i}
                     accent={accent}
-                    showRoles={showRoles}
                   />
                 ))}
               </div>
