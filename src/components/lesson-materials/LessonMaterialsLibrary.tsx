@@ -53,7 +53,6 @@ export function LessonMaterialsLibrary({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sortNewest, setSortNewest] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [folderName, setFolderName] = useState("");
@@ -183,14 +182,12 @@ export function LessonMaterialsLibrary({
 
   function runAction(fn: () => Promise<{ ok: boolean; message: string }>) {
     setError(null);
-    setMessage(null);
     startTransition(async () => {
       const res = await fn();
       if (!res.ok) {
         setError(res.message);
         return;
       }
-      setMessage(res.message);
       setSelected(new Set());
       setMoveOpen(false);
       setCopyOpen(false);
@@ -695,11 +692,6 @@ export function LessonMaterialsLibrary({
             {error}
           </Alert>
         ) : null}
-        {message ? (
-          <Alert variant="success" className="mt-3">
-            {message}
-          </Alert>
-        ) : null}
 
         <div className="mt-3 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
           <label className="inline-flex items-center gap-2 font-semibold">
@@ -785,12 +777,7 @@ export function LessonMaterialsLibrary({
                                       { projectId: p.id, title: name }
                                     );
                                   if (res.ok) setEditingMetaId(null);
-                                  return res.ok
-                                    ? {
-                                        ok: true,
-                                        message: "이름을 변경했습니다.",
-                                      }
-                                    : res;
+                                  return res;
                                 });
                               }
                             }}
@@ -809,12 +796,7 @@ export function LessonMaterialsLibrary({
                                     title: name,
                                   });
                                 if (res.ok) setEditingMetaId(null);
-                                return res.ok
-                                  ? {
-                                      ok: true,
-                                      message: "이름을 변경했습니다.",
-                                    }
-                                  : res;
+                                return res;
                               });
                             }}
                           >
