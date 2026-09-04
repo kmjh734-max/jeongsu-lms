@@ -68,7 +68,7 @@ export function LessonMaterialsLibrary({
   }, [data.unfiledProjects, data.projects]);
 
   const visibleProjects = useMemo(() => {
-    let list =
+    const list =
       folderFilter === "trash"
         ? [...data.trashedProjects]
         : folderFilter === "all"
