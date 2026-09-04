@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -38,12 +38,37 @@ const FONT_OPTIONS = [
   { value: "Arial, Helvetica, sans-serif", label: "Arial" },
 ];
 
-/** A4 at CSS mm */
+/** A4 sheet */
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
-const A4_PAD = "12mm";
-/** Printable body height inside one A4 page (297 − 12×2) */
-const A4_CONTENT_H_MM = 273;
+const A4_PAD = "10mm";
+
+function A4Sheet({
+  children,
+  label,
+  style,
+}: {
+  children: ReactNode;
+  label: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <article
+      className="lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none"
+      style={{
+        width: A4_WIDTH,
+        minHeight: A4_HEIGHT,
+        padding: A4_PAD,
+        ...style,
+      }}
+    >
+      <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
+        {label}
+      </span>
+      {children}
+    </article>
+  );
+}
 
 function markVocabInEnglish(
   english: string,
@@ -97,9 +122,6 @@ export function LessonPackWorkbench({
   const [saving, setSaving] = useState(false);
   const [showKorean, setShowKorean] = useState(true);
   const [boldLessonBody, setBoldLessonBody] = useState(true);
-  const [pageIdx, setPageIdx] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
-  const pageInnerRef = useRef<HTMLDivElement>(null);
 
   // Document settings
   const [docTitle, setDocTitle] = useState(() => {
@@ -162,53 +184,6 @@ export function LessonPackWorkbench({
         };
       });
   }, [project, vocabFingerprint]);
-
-  const layoutKey = useMemo(
-    () =>
-      [
-        vocabFingerprint,
-        fontSizePx,
-        lineHeightPct,
-        showKorean,
-        boldLessonBody,
-        docTitle,
-        headerLabel,
-        project?.title,
-        project?.titleEn,
-        project?.items.map((it) => it.id).join(","),
-        project?.illustrationUrl ?? "",
-        project?.analysisCards.length ?? 0,
-        synTests.length,
-        antTests.length,
-      ].join("|"),
-    [
-      vocabFingerprint,
-      fontSizePx,
-      lineHeightPct,
-      showKorean,
-      boldLessonBody,
-      docTitle,
-      headerLabel,
-      project,
-      synTests.length,
-      antTests.length,
-    ]
-  );
-
-  useLayoutEffect(() => {
-    const el = pageInnerRef.current;
-    if (!el) return;
-    const widthPx = el.offsetWidth || 1;
-    const pxPerMm = widthPx / 210;
-    const pageBodyPx = A4_CONTENT_H_MM * pxPerMm;
-    const pages = Math.max(1, Math.ceil(el.scrollHeight / pageBodyPx));
-    setPageCount(pages);
-    setPageIdx((p) => Math.min(p, pages - 1));
-  }, [layoutKey]);
-
-  useEffect(() => {
-    setPageIdx(0);
-  }, [project?.id]);
 
   useEffect(() => {
     const id = "lesson-pack-print-page-size-style";
@@ -588,7 +563,7 @@ export function LessonPackWorkbench({
         </div>
       </aside>
 
-      {/* Preview canvas */}
+      {/* Preview canvas — scrollable A4 sheets (logical page splits) */}
       <main className="relative min-w-0 flex-1 overflow-auto print:overflow-visible">
         <div className="sticky top-0 z-10 flex flex-wrap items-center justify-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 py-2 backdrop-blur print:hidden">
           <button
@@ -613,30 +588,7 @@ export function LessonPackWorkbench({
           >
             +
           </button>
-          <span className="mx-1 text-xs text-slate-400">A4 · {pageCount}쪽</span>
-          <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-1.5 py-0.5">
-            <button
-              type="button"
-              className="rounded px-2 py-0.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
-              disabled={pageIdx <= 0}
-              onClick={() => setPageIdx((p) => Math.max(0, p - 1))}
-            >
-              ‹
-            </button>
-            <span className="min-w-[3.5rem] text-center text-xs font-semibold text-slate-600">
-              {pageIdx + 1} / {pageCount}
-            </span>
-            <button
-              type="button"
-              className="rounded px-2 py-0.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
-              disabled={pageIdx >= pageCount - 1}
-              onClick={() =>
-                setPageIdx((p) => Math.min(pageCount - 1, p + 1))
-              }
-            >
-              ›
-            </button>
-          </div>
+          <span className="mx-1 text-xs text-slate-400">A4 · 스크롤 · 3쪽 구성</span>
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700"
@@ -655,214 +607,187 @@ export function LessonPackWorkbench({
 
         <div className="flex justify-center p-6 print:p-0">
           <div
-            className="origin-top print:!transform-none"
+            id="lesson-pack-print-root"
+            className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
             style={{
               transform: `scale(${zoom / 100})`,
               transformOrigin: "top center",
+              ...previewStyle,
             }}
           >
-            <div
-              className="lesson-pack-a4-clip relative box-border overflow-hidden bg-white shadow-xl print:overflow-visible print:shadow-none"
-              style={{
-                width: A4_WIDTH,
-                height: A4_HEIGHT,
-              }}
-            >
-              <div
-                id="lesson-pack-print-root"
-                ref={pageInnerRef}
-                className="box-border"
-                style={{
-                  width: A4_WIDTH,
-                  padding: A4_PAD,
-                  transform: `translateY(-${pageIdx * A4_CONTENT_H_MM}mm)`,
-                  ...previewStyle,
-                }}
-              >
+            {/* ===== PAGE 1: 단어정리 + 동반의어 TEST (compact) ===== */}
+            <A4Sheet label="1 / 3 · 단어·동반의어">
               <div
                 className="font-semibold leading-snug"
-                style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
+                style={{ color: themeColor, fontSize: 12 }}
               >
                 {headerLabel}
               </div>
               <h1
-                className="mt-1 font-bold leading-tight text-slate-900"
-                style={{ fontSize: titleSizes.docTitle }}
+                className="mt-0.5 font-bold leading-tight text-slate-900"
+                style={{ fontSize: 18 }}
               >
                 {docTitle}
               </h1>
               <div
-                className="mt-2 h-1 w-full"
+                className="mt-1.5 h-0.5 w-full"
                 style={{ backgroundColor: themeColor }}
               />
 
-              <div className="mt-4 rounded-xl bg-slate-100 px-4 py-3">
+              <div className="mt-2 rounded-lg bg-slate-100 px-3 py-1.5">
                 <div
                   className="font-bold leading-snug text-slate-900"
-                  style={{ fontSize: titleSizes.passageTitle }}
+                  style={{ fontSize: 13 }}
                 >
                   {String(activeIdx + 1).padStart(2, "0")} {project.title}
                 </div>
                 {project.titleEn ? (
-                  <div
-                    className="mt-1 leading-snug text-slate-600"
-                    style={{ fontSize: 13 }}
-                  >
+                  <div className="mt-0.5 text-slate-600" style={{ fontSize: 11 }}>
                     ({project.titleEn})
                   </div>
                 ) : null}
               </div>
 
-              {/* 1. 단어정리 */}
-              <section className="mt-8 break-inside-avoid">
+              <section className="mt-3">
                 <h2
-                  className="mb-3 font-bold leading-snug"
-                  style={{ color: themeColor, fontSize: titleSizes.section }}
+                  className="mb-1.5 font-bold leading-snug"
+                  style={{ color: themeColor, fontSize: 13 }}
                 >
                   1. 단어정리
                 </h2>
-                <div style={bodyStyle}>
-                  <table className="w-full table-fixed text-left">
-                    <colgroup>
-                      <col className="w-[6%]" />
-                      <col className="w-[16%]" />
-                      <col className="w-[22%]" />
-                      <col className="w-[26%]" />
-                      <col className="w-[26%]" />
-                      <col className="w-[4%] print:hidden" />
-                    </colgroup>
-                    <thead>
-                      <tr className="border-b border-slate-200 text-[0.85em] text-slate-500">
-                        <th className="py-2 pr-1">No.</th>
-                        <th className="py-2 pr-1">영어</th>
-                        <th className="py-2 pr-1">뜻</th>
-                        <th className="py-2 pr-1">동의어</th>
-                        <th className="py-2 pr-1">반의어</th>
-                        <th className="py-2 print:hidden" />
+                <table
+                  className="w-full table-fixed text-left"
+                  style={{ fontSize: 10.5, lineHeight: 1.3 }}
+                >
+                  <colgroup>
+                    <col className="w-[5%]" />
+                    <col className="w-[15%]" />
+                    <col className="w-[22%]" />
+                    <col className="w-[27%]" />
+                    <col className="w-[27%]" />
+                    <col className="w-[4%] print:hidden" />
+                  </colgroup>
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500">
+                      <th className="py-1 pr-1 font-semibold">No.</th>
+                      <th className="py-1 pr-1 font-semibold">영어</th>
+                      <th className="py-1 pr-1 font-semibold">뜻</th>
+                      <th className="py-1 pr-1 font-semibold">동의어</th>
+                      <th className="py-1 pr-1 font-semibold">반의어</th>
+                      <th className="py-1 print:hidden" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {project.vocab.map((v, i) => (
+                      <tr key={i} className="border-b border-slate-100 align-top">
+                        <td className="py-1 pr-1 text-slate-400">{i + 1}</td>
+                        <td className="py-1 pr-1">
+                          <input
+                            className="w-full border-0 bg-transparent font-bold outline-none"
+                            style={{ color: themeColor, fontSize: "inherit" }}
+                            value={v.word}
+                            onChange={(e) =>
+                              updateVocab(i, { word: e.target.value })
+                            }
+                          />
+                        </td>
+                        <td className="py-1 pr-1">
+                          <textarea
+                            className="w-full resize-none overflow-hidden border-0 bg-transparent outline-none"
+                            style={{ fontSize: "0.95em", lineHeight: 1.25 }}
+                            value={v.meaning}
+                            onChange={(e) =>
+                              updateVocab(i, { meaning: e.target.value })
+                            }
+                            rows={Math.max(1, Math.ceil(v.meaning.length / 20))}
+                          />
+                        </td>
+                        <td className="py-1 pr-1">
+                          <textarea
+                            className="w-full resize-none overflow-hidden break-words border-0 bg-transparent text-slate-600 outline-none"
+                            style={{ fontSize: "0.88em", lineHeight: 1.25 }}
+                            value={v.synonyms.join(", ")}
+                            onChange={(e) =>
+                              updateVocabListField(i, "synonyms", e.target.value)
+                            }
+                            rows={Math.max(
+                              1,
+                              Math.ceil(v.synonyms.join(", ").length / 26)
+                            )}
+                          />
+                        </td>
+                        <td className="py-1 pr-1">
+                          <textarea
+                            className="w-full resize-none overflow-hidden break-words border-0 bg-transparent text-slate-600 outline-none"
+                            style={{ fontSize: "0.88em", lineHeight: 1.25 }}
+                            value={v.antonyms.join(", ")}
+                            onChange={(e) =>
+                              updateVocabListField(i, "antonyms", e.target.value)
+                            }
+                            rows={Math.max(
+                              1,
+                              Math.ceil(v.antonyms.join(", ").length / 26)
+                            )}
+                          />
+                        </td>
+                        <td className="py-1 print:hidden">
+                          <button
+                            type="button"
+                            className="text-rose-400"
+                            onClick={() => removeVocabRow(i)}
+                          >
+                            ✕
+                          </button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {project.vocab.map((v, i) => (
-                        <tr key={i} className="border-b border-slate-100 align-top">
-                          <td className="py-2 pr-1 text-slate-400">{i + 1}</td>
-                          <td className="py-2 pr-1">
-                            <input
-                              className="w-full border-0 bg-transparent font-bold outline-none"
-                              style={{ color: themeColor, fontSize: "inherit" }}
-                              value={v.word}
-                              onChange={(e) =>
-                                updateVocab(i, { word: e.target.value })
-                              }
-                            />
-                          </td>
-                          <td className="py-2 pr-1">
-                            <textarea
-                              className="w-full resize-none overflow-hidden border-0 bg-transparent outline-none"
-                              style={{
-                                fontSize: "0.85em",
-                                lineHeight: 1.35,
-                              }}
-                              value={v.meaning}
-                              onChange={(e) =>
-                                updateVocab(i, { meaning: e.target.value })
-                              }
-                              rows={Math.max(
-                                1,
-                                Math.ceil(v.meaning.length / 18)
-                              )}
-                            />
-                          </td>
-                          <td className="py-2 pr-1">
-                            <textarea
-                              className="w-full resize-none overflow-hidden break-words border-0 bg-transparent text-slate-600 outline-none"
-                              style={{
-                                fontSize: "0.78em",
-                                lineHeight: 1.35,
-                              }}
-                              value={v.synonyms.join(", ")}
-                              onChange={(e) =>
-                                updateVocabListField(i, "synonyms", e.target.value)
-                              }
-                              rows={Math.max(
-                                1,
-                                Math.ceil(v.synonyms.join(", ").length / 22)
-                              )}
-                            />
-                          </td>
-                          <td className="py-2 pr-1">
-                            <textarea
-                              className="w-full resize-none overflow-hidden break-words border-0 bg-transparent text-slate-600 outline-none"
-                              style={{
-                                fontSize: "0.78em",
-                                lineHeight: 1.35,
-                              }}
-                              value={v.antonyms.join(", ")}
-                              onChange={(e) =>
-                                updateVocabListField(i, "antonyms", e.target.value)
-                              }
-                              rows={Math.max(
-                                1,
-                                Math.ceil(v.antonyms.join(", ").length / 22)
-                              )}
-                            />
-                          </td>
-                          <td className="py-2 print:hidden">
-                            <button
-                              type="button"
-                              className="text-rose-400"
-                              onClick={() => removeVocabRow(i)}
-                            >
-                              ✕
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
                 {generating ? (
-                  <p className="mt-3 text-sm text-slate-500">단어를 생성하는 중…</p>
+                  <p className="mt-2 text-xs text-slate-500">단어를 생성하는 중…</p>
                 ) : null}
-                <div className="mt-3 flex justify-center print:hidden">
+                <div className="mt-2 flex justify-center print:hidden">
                   <button
                     type="button"
                     onClick={addVocabRow}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-600"
+                    className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600"
                   >
                     + 단어 추가
                   </button>
                 </div>
               </section>
 
-              {/* 2. 동/반의어 TEST */}
-              <section className="mt-10">
+              <section className="mt-3">
                 <h2
-                  className="mb-3 font-bold leading-snug"
+                  className="mb-1.5 font-bold leading-snug"
                   style={{
                     color:
                       themeColor === "#DC2626" ? "#5b21b6" : themeColor,
-                    fontSize: titleSizes.section,
+                    fontSize: 13,
                   }}
                 >
                   2. 동/반의어 TEST
                 </h2>
                 {synTests.length === 0 && antTests.length === 0 ? (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-xs text-slate-500">
                     동반의어가 있는 단어가 없어 테스트를 생략합니다.
                   </p>
                 ) : (
                   <>
-                    <div className="grid gap-4 md:grid-cols-2" style={bodyStyle}>
+                    <div
+                      className="grid gap-2 md:grid-cols-2"
+                      style={{ fontSize: 10, lineHeight: 1.35 }}
+                    >
                       {synTests.length > 0 ? (
-                        <div className="break-inside-avoid rounded-xl border border-violet-200">
+                        <div className="rounded-lg border border-violet-200">
                           <div
-                            className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
-                            style={{ fontSize: 12 }}
+                            className="flex items-center justify-between gap-2 rounded-t-lg bg-violet-100 px-2 py-1 font-semibold text-violet-800"
+                            style={{ fontSize: 10 }}
                           >
                             <span className="truncate">[{project.title}]</span>
                             <span>동의어 찾기</span>
                           </div>
-                          <ol className="space-y-3 p-4">
+                          <ol className="space-y-1 px-2 py-1.5">
                             {synTests.map((row, i) => (
                               <li key={`syn-${i}`} className="break-words">
                                 <span className="font-bold">
@@ -876,15 +801,15 @@ export function LessonPackWorkbench({
                         </div>
                       ) : null}
                       {antTests.length > 0 ? (
-                        <div className="break-inside-avoid rounded-xl border border-violet-200">
+                        <div className="rounded-lg border border-violet-200">
                           <div
-                            className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
-                            style={{ fontSize: 12 }}
+                            className="flex items-center justify-between gap-2 rounded-t-lg bg-violet-100 px-2 py-1 font-semibold text-violet-800"
+                            style={{ fontSize: 10 }}
                           >
                             <span className="truncate">[{project.title}]</span>
                             <span>반의어 찾기</span>
                           </div>
-                          <ol className="space-y-3 p-4">
+                          <ol className="space-y-1 px-2 py-1.5">
                             {antTests.map((row, i) => (
                               <li key={`ant-${i}`} className="break-words">
                                 <span className="font-bold">
@@ -898,12 +823,11 @@ export function LessonPackWorkbench({
                         </div>
                       ) : null}
                     </div>
-
                     <div
-                      className="mt-3 break-inside-avoid rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-emerald-900"
-                      style={{ fontSize: 9, lineHeight: 1.35 }}
+                      className="mt-2 rounded border border-emerald-100 bg-emerald-50/50 px-2 py-1.5 text-emerald-900"
+                      style={{ fontSize: 8.5, lineHeight: 1.3 }}
                     >
-                      <div className="mb-1 font-bold tracking-wide">정답</div>
+                      <div className="mb-0.5 font-bold">정답</div>
                       {synTests.length > 0 ? (
                         <p className="break-words">
                           <span className="font-semibold">동의어</span>{" "}
@@ -930,120 +854,132 @@ export function LessonPackWorkbench({
                   </>
                 )}
               </section>
+            </A4Sheet>
 
-              {/* 3. 수업용자료 & 흐름 */}
-              <section className="mt-10">
-                <h2
-                  className="mb-3 font-bold leading-snug"
-                  style={{ color: themeColor, fontSize: titleSizes.section }}
+            {/* ===== PAGE 2: 수업용자료 ===== */}
+            <A4Sheet label="2 / 3 · 수업용자료">
+              <h2
+                className="mb-3 font-bold leading-snug"
+                style={{ color: themeColor, fontSize: titleSizes.section }}
+              >
+                3. 수업용자료
+              </h2>
+              <div className="mb-3 rounded-lg bg-slate-100 px-3 py-2">
+                <div
+                  className="font-bold text-slate-900"
+                  style={{ fontSize: 13 }}
                 >
-                  3. 수업용자료 &amp; 흐름
-                </h2>
-                <div className="space-y-4" style={bodyStyle}>
-                  {project.items
-                    .slice()
-                    .sort((a, b) => a.order_index - b.order_index)
-                    .map((it, idx) => (
+                  {String(activeIdx + 1).padStart(2, "0")} {project.title}
+                </div>
+              </div>
+              <div className="space-y-3" style={bodyStyle}>
+                {project.items
+                  .slice()
+                  .sort((a, b) => a.order_index - b.order_index)
+                  .map((it, idx) => (
+                    <div
+                      key={it.id}
+                      className={`grid gap-2 border-b border-slate-100 pb-2 ${
+                        showKorean
+                          ? "grid-cols-[22px_3fr_1fr]"
+                          : "grid-cols-[22px_1fr]"
+                      }`}
+                    >
+                      <div className="font-bold" style={{ color: themeColor }}>
+                        {idx + 1}
+                      </div>
                       <div
-                        key={it.id}
-                        className={`grid gap-3 border-b border-slate-100 pb-3 ${
-                          showKorean
-                            ? "grid-cols-[24px_3fr_1fr]"
-                            : "grid-cols-[24px_1fr]"
-                        }`}
+                        style={{
+                          fontWeight: boldLessonBody ? 700 : 400,
+                        }}
                       >
-                        <div className="font-bold" style={{ color: themeColor }}>
-                          {idx + 1}
-                        </div>
+                        {markVocabInEnglish(
+                          it.english_text,
+                          project.vocab,
+                          themeColor
+                        )}
+                      </div>
+                      {showKorean ? (
                         <div
-                          style={{
-                            fontWeight: boldLessonBody ? 700 : 400,
-                          }}
+                          className="text-slate-700"
+                          style={{ fontSize: "0.92em", fontWeight: 400 }}
                         >
-                          {markVocabInEnglish(
-                            it.english_text,
-                            project.vocab,
-                            themeColor
+                          {it.korean_text?.trim() || (
+                            <span className="text-slate-400">—</span>
                           )}
                         </div>
-                        {showKorean ? (
-                          <div
-                            className="text-slate-700"
-                            style={{
-                              fontSize: "0.92em",
-                              fontWeight: 400,
-                            }}
-                          >
-                            {it.korean_text?.trim() || (
-                              <span className="text-slate-400">—</span>
-                            )}
-                          </div>
-                        ) : null}
-                      </div>
-                    ))}
-                </div>
+                      ) : null}
+                    </div>
+                  ))}
+              </div>
+            </A4Sheet>
 
-                <div
-                  className={`mt-6 grid gap-4 ${
-                    project.illustrationUrl
-                      ? "md:grid-cols-[1.1fr_1fr]"
-                      : "grid-cols-1"
-                  }`}
-                >
-                  {project.analysisCards.length > 0 ? (
-                    <div
-                      className="rounded-xl bg-slate-100 p-4"
-                      style={{
-                        fontSize: Math.max(11, fontSizePx - 1),
-                        lineHeight: `${lineHeightPct / 100}`,
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="h-4 w-1 rounded"
-                          style={{ backgroundColor: themeColor }}
-                        />
-                        <h3
-                          className="font-bold tracking-wide text-slate-900"
-                          style={{ fontSize: 12 }}
-                        >
-                          LOGICAL FLOW (논리 흐름)
-                        </h3>
-                      </div>
-                      <ol className="mt-3 space-y-2.5">
-                        {project.analysisCards.map((c, i) => (
-                          <li key={`${i}-${c.title}`}>
-                            <div className="font-bold text-slate-900">
-                              <span style={{ color: themeColor }}>{i + 1}.</span>{" "}
-                              {c.title}
-                            </div>
-                            <p className="mt-0.5 text-slate-600">{c.desc}</p>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-slate-500">
-                      논리 흐름이 없습니다.
-                    </p>
-                  )}
-                  {project.illustrationUrl ? (
-                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={project.illustrationUrl}
-                        alt="4컷 삽화"
-                        className="h-full w-full object-contain"
+            {/* ===== PAGE 3: 논리흐름 + 삽화 ===== */}
+            <A4Sheet label="3 / 3 · 논리흐름·삽화">
+              <h2
+                className="mb-4 font-bold leading-snug"
+                style={{ color: themeColor, fontSize: titleSizes.section }}
+              >
+                4. 논리 흐름 &amp; 삽화
+              </h2>
+              <div
+                className={`grid gap-4 ${
+                  project.illustrationUrl
+                    ? "grid-cols-1 md:grid-cols-2"
+                    : "grid-cols-1"
+                }`}
+              >
+                {project.analysisCards.length > 0 ? (
+                  <div
+                    className="rounded-xl bg-slate-100 p-4"
+                    style={{
+                      fontSize: Math.max(11, fontSizePx - 1),
+                      lineHeight: `${lineHeightPct / 100}`,
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-4 w-1 rounded"
+                        style={{ backgroundColor: themeColor }}
                       />
+                      <h3
+                        className="font-bold tracking-wide text-slate-900"
+                        style={{ fontSize: 12 }}
+                      >
+                        LOGICAL FLOW (논리 흐름)
+                      </h3>
                     </div>
-                  ) : null}
-                </div>
-              </section>
-            </div>
-            </div>
+                    <ol className="mt-3 space-y-2.5">
+                      {project.analysisCards.map((c, i) => (
+                        <li key={`${i}-${c.title}`}>
+                          <div className="font-bold text-slate-900">
+                            <span style={{ color: themeColor }}>{i + 1}.</span>{" "}
+                            {c.title}
+                          </div>
+                          <p className="mt-0.5 text-slate-600">{c.desc}</p>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-500">논리 흐름이 없습니다.</p>
+                )}
+                {project.illustrationUrl ? (
+                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={project.illustrationUrl}
+                      alt="4컷 삽화"
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                ) : null}
+              </div>
+            </A4Sheet>
           </div>
         </div>
       </main>
     </div>
   );
+
 }

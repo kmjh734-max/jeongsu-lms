@@ -2253,11 +2253,15 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     transform: none !important;
   }
 
-  .lesson-pack-a4-clip {
-    overflow: visible !important;
-    height: auto !important;
-    width: 210mm !important;
-    max-width: 210mm !important;
+  .lesson-pack-a4-sheet {
+    box-shadow: none !important;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .lesson-pack-a4-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
 
   #lesson-pack-print-root .print\:hidden {
