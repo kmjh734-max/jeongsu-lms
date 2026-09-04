@@ -28,6 +28,46 @@ function parseJsonSafe<T>(text: string): T | null {
   }
 }
 
+function toList(v: unknown): string[] {
+  if (Array.isArray(v)) {
+    return v.map((s) => String(s ?? "").trim()).filter(Boolean);
+  }
+  if (typeof v === "string" && v.trim()) {
+    return v
+      .split(/[,/|；;]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
+function parseVocabRows(raw: unknown[]): LessonPackVocabItem[] {
+  return raw
+    .map((row) => {
+      const r = row as Record<string, unknown>;
+      const word = String(r.word ?? "").trim();
+      const meaning = String(r.meaning ?? "").trim();
+      const synonyms = toList(r.synonyms ?? r.synonym);
+      const antonyms = toList(
+        r.antonyms ?? r.antonym ?? r.opposites ?? r.opposite
+      );
+      return { word, meaning, synonyms, antonyms };
+    })
+    .filter((v) => v.word && v.meaning);
+}
+
+/** True when vocab exists but antonyms look like the old empty-AI output. */
+export function vocabNeedsAntonymRefresh(vocab: LessonPackVocabItem[]): boolean {
+  if (!vocab.length) return true;
+  const withAnt = vocab.filter((v) => v.antonyms.length > 0).length;
+  const withSyn = vocab.filter((v) => v.synonyms.length > 0).length;
+  // Synonyms filled but antonyms almost empty → regenerate
+  if (withSyn >= 3 && withAnt < Math.max(2, Math.ceil(vocab.length * 0.4))) {
+    return true;
+  }
+  return false;
+}
+
 const SYSTEM = `너는 한국 중·고등 영어 지문에서 수업용 어휘를 정리하는 편집자다.
 반드시 JSON만 반환:
 {
@@ -36,21 +76,96 @@ const SYSTEM = `너는 한국 중·고등 영어 지문에서 수업용 어휘�
       "word": "fallacy",
       "meaning": "n. 오류, 잘못된 생각",
       "synonyms": ["falsehood", "illusion"],
-      "antonyms": ["truth"]
+      "antonyms": ["truth", "fact"]
     }
   ]
 }
 
 규칙:
 - vocab는 지문에서 실제로 나온(또는 파생형으로 나온) 단어 8~14개.
-- 핵심·중급 단어뿐 아니라, 수업에서 짚을 만한 쉬운/기초 단어도 적절히 포함해도 된다. (관사·대명사·be동사·아주 기초 접속사 the/a/is/and 등은 제외)
 - word는 기본형(lemma) 영어 단어.
 - meaning은 품사 약어(a./n./v./ad. 등) + 한국어 뜻.
-- synonyms는 가능하면 1~3개(짧고 시험에 쓸 수 있는 단어).
-- antonyms도 가능하면 1~3개. 형용사·동사·명사처럼 대립 개념이 분명하면 반드시 넣는다.
-  예: innovative↔conventional, demand↔supply, sensitive↔insensitive.
-  정말 자연스러운 반의어가 없을 때만 [].
-- synonyms / antonyms 키 이름은 반드시 배열로 둘 것.`;
+- synonyms는 각 단어마다 1~3개(필수에 가깝게).
+- antonyms는 각 단어마다 1~3개(필수). 형용사·동사·명사 모두 대립어를 찾아 넣는다.
+  예: assert↔deny, advance↔retreat, assume↔know, expect↔doubt, mechanically↔naturally,
+  civilization↔barbarism, coupon↔(full price), response↔question.
+- 반의어 열이 비어 있으면 안 된다. 정말 불가능한 경우만 전체 vocab 중 최대 1~2개만 antonyms: [].
+- synonyms / antonyms 키는 반드시 문자열 배열.`;
+
+const ANTONYM_FILL_SYSTEM = `너는 영어 어휘 반의어를 채우는 편집자다.
+입력 vocab에서 antonyms가 비어 있는 항목만 채워 JSON으로 반환:
+{ "vocab": [ { "word": "...", "antonyms": ["..."] } ] }
+규칙:
+- 입력에 있는 word만 다룰 것.
+- antonyms는 1~3개 영어 단어.
+- 거의 모든 단어에 반의어를 넣을 것. 불가능하면만 [].`;
+
+async function openAiJson(
+  apiKey: string,
+  system: string,
+  user: string,
+  signal: AbortSignal
+): Promise<unknown> {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    signal,
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.35,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+  const bodyText = await res.text();
+  if (!res.ok) throw new Error(`어휘 생성 실패 (HTTP ${res.status})`);
+  const envelope = parseJsonSafe<{
+    choices?: { message?: { content?: string } }[];
+  }>(bodyText);
+  const content = envelope?.choices?.[0]?.message?.content ?? bodyText;
+  return parseJsonSafe(content);
+}
+
+async function fillEmptyAntonyms(
+  apiKey: string,
+  vocab: LessonPackVocabItem[],
+  signal: AbortSignal
+): Promise<LessonPackVocabItem[]> {
+  const empty = vocab.filter((v) => v.antonyms.length === 0);
+  if (empty.length === 0) return vocab;
+
+  const parsed = (await openAiJson(
+    apiKey,
+    ANTONYM_FILL_SYSTEM,
+    `다음 단어들의 반의어를 채워라:\n${JSON.stringify(
+      empty.map((v) => ({ word: v.word, meaning: v.meaning }))
+    )}`,
+    signal
+  )) as { vocab?: unknown } | null;
+
+  const filled = Array.isArray(parsed?.vocab) ? parsed!.vocab : [];
+  const byWord = new Map<string, string[]>();
+  for (const row of filled) {
+    const r = row as Record<string, unknown>;
+    const word = String(r.word ?? "")
+      .trim()
+      .toLowerCase();
+    if (!word) continue;
+    byWord.set(word, toList(r.antonyms ?? r.antonym));
+  }
+
+  return vocab.map((v) => {
+    if (v.antonyms.length > 0) return v;
+    const extra = byWord.get(v.word.toLowerCase()) ?? [];
+    return extra.length ? { ...v, antonyms: extra } : v;
+  });
+}
 
 export async function generateLessonPackVocab(input: {
   englishPassage: string;
@@ -64,72 +179,39 @@ export async function generateLessonPackVocab(input: {
   if (passage.length < 20) throw new Error("지문이 너무 짧습니다.");
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 60_000);
+  const timer = setTimeout(() => controller.abort(), 90_000);
 
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.3,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM },
-          {
-            role: "user",
-            content: `제목: ${input.title ?? "(없음)"}\n\nEN:\n${passage}\n\nKR:\n${
-              (input.koreanPassage ?? "").trim() || "(없음)"
-            }\n\n위 지문으로 수업용 단어 목록을 만들어라.`,
-          },
-        ],
-      }),
-    });
+    const user = `제목: ${input.title ?? "(없음)"}\n\nEN:\n${passage}\n\nKR:\n${
+      (input.koreanPassage ?? "").trim() || "(없음)"
+    }\n\n위 지문으로 수업용 단어 목록을 만들어라. synonyms와 antonyms를 모두 채워라. 반의어 빈 칸이 있으면 안 된다.`;
 
-    const bodyText = await res.text();
-    if (!res.ok) throw new Error(`어휘 생성 실패 (HTTP ${res.status})`);
-
-    const envelope = parseJsonSafe<{
-      choices?: { message?: { content?: string } }[];
-    }>(bodyText);
-    const content = envelope?.choices?.[0]?.message?.content ?? bodyText;
-    const parsed = parseJsonSafe<{ vocab?: unknown }>(content);
-    const raw = Array.isArray(parsed?.vocab) ? parsed!.vocab : [];
-
-    const toList = (v: unknown): string[] => {
-      if (Array.isArray(v)) {
-        return v.map((s) => String(s ?? "").trim()).filter(Boolean);
-      }
-      if (typeof v === "string" && v.trim()) {
-        return v
-          .split(/[,/|]/)
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-      return [];
-    };
-
-    const vocab: LessonPackVocabItem[] = raw
-      .map((row) => {
-        const r = row as Record<string, unknown>;
-        const word = String(r.word ?? "").trim();
-        const meaning = String(r.meaning ?? "").trim();
-        const synonyms = toList(r.synonyms ?? r.synonym);
-        const antonyms = toList(
-          r.antonyms ?? r.antonym ?? r.opposites ?? r.opposite
-        );
-        return { word, meaning, synonyms, antonyms };
-      })
-      .filter((v) => v.word && v.meaning);
+    let vocab: LessonPackVocabItem[] = [];
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const parsed = (await openAiJson(
+        apiKey,
+        SYSTEM,
+        attempt === 0
+          ? user
+          : `${user}\n\n이전 결과에 반의어가 너무 비어 있었다. 이번에는 각 단어 antonyms를 반드시 1개 이상 넣어라.`,
+        controller.signal
+      )) as { vocab?: unknown } | null;
+      const raw = Array.isArray(parsed?.vocab) ? parsed!.vocab : [];
+      vocab = parseVocabRows(raw);
+      if (vocab.length < 3) continue;
+      const withAnt = vocab.filter((v) => v.antonyms.length > 0).length;
+      if (withAnt >= Math.ceil(vocab.length * 0.6)) break;
+    }
 
     if (vocab.length < 3) {
       throw new Error("어휘를 충분히 만들지 못했습니다. 다시 시도해 주세요.");
     }
-    return vocab.slice(0, 16);
+
+    vocab = vocab.slice(0, 16);
+    if (vocabNeedsAntonymRefresh(vocab)) {
+      vocab = await fillEmptyAntonyms(apiKey, vocab, controller.signal);
+    }
+    return vocab;
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
       throw new Error("어휘 생성 시간이 초과되었습니다.");

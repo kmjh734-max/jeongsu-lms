@@ -32,7 +32,12 @@ export function LessonMaterialProjectWorkspace({
   illustration_captions,
 }: {
   role: "admin" | "teacher";
-  project: { id: string; title: string };
+  project: {
+    id: string;
+    title: string;
+    titleEn?: string | null;
+    source?: string | null;
+  };
   items: LessonMaterialItemDraft[];
   analysis_json?: unknown;
   illustration_prompt?: string | null;
@@ -46,6 +51,8 @@ export function LessonMaterialProjectWorkspace({
       : generateTeacherOrganizationDraft;
 
   const [title, setTitle] = useState(project.title);
+  const [titleEn, setTitleEn] = useState(project.titleEn ?? "");
+  const [source, setSource] = useState(project.source ?? "");
   const [itemsDraft, setItemsDraft] = useState(() =>
     items.map((it) => ({
       id: it.id,
@@ -106,10 +113,14 @@ export function LessonMaterialProjectWorkspace({
     illustrationUrl?: string | null;
     comicCaptions?: string[];
     title?: string;
+    titleEn?: string;
+    source?: string;
   }) {
     const res = await saveLessonMaterialProjectWorkspace(role, {
       projectId: project.id,
       title: extra?.title ?? title,
+      titleEn: extra?.titleEn ?? titleEn,
+      source: extra?.source ?? source,
       analysisCards: extra?.analysisCards ?? analysisCards,
       illustrationPrompt: extra?.illustrationPrompt ?? illustrationPrompt,
       illustrationUrl:
@@ -162,12 +173,14 @@ export function LessonMaterialProjectWorkspace({
       setIllustrationPrompt(res.illustrationPrompt);
       setComicCaptions(res.comicCaptions ?? []);
       if (res.passageTitle) setTitle(res.passageTitle);
+      if (res.passageTitleEn) setTitleEn(res.passageTitleEn);
 
       const saved = await persist({
         analysisCards: res.analysisCards,
         illustrationPrompt: res.illustrationPrompt,
         comicCaptions: res.comicCaptions ?? [],
         title: res.passageTitle || title,
+        titleEn: res.passageTitleEn || titleEn,
       });
       if (!saved.ok) {
         setError(saved.message);
@@ -263,13 +276,35 @@ export function LessonMaterialProjectWorkspace({
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <input
-            className="w-full border-0 bg-transparent text-2xl font-bold text-slate-900 outline-none"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <p className="mt-1 text-sm text-slate-600">
+        <div className="min-w-0 flex-1 space-y-2">
+          <label className="block space-y-1">
+            <span className="text-xs font-bold text-slate-500">출처</span>
+            <input
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-violet-300"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+              placeholder="예: 2024 수능특강 / OO고 기출 / 26년도 1학기 중간고사 대비"
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-xs font-bold text-slate-500">한국어 제목</span>
+            <input
+              className="w-full border-0 bg-transparent text-2xl font-bold text-slate-900 outline-none"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="한국어 제목"
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-xs font-bold text-slate-500">영어 제목</span>
+            <input
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-violet-300"
+              value={titleEn}
+              onChange={(e) => setTitleEn(e.target.value)}
+              placeholder="English title"
+            />
+          </label>
+          <p className="text-sm text-slate-600">
             {totalCount}개 문장 • 한글 입력 {koreanCount}개
           </p>
         </div>
@@ -426,6 +461,8 @@ export function LessonMaterialProjectWorkspace({
           disabled={saving || generatingOrganization || generatingIllustration}
           onClick={() => {
             setTitle(project.title);
+            setTitleEn(project.titleEn ?? "");
+            setSource(project.source ?? "");
             setItemsDraft(
               items.map((it) => ({
                 id: it.id,

@@ -5,9 +5,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import {
   generateLessonPackVocab,
+  vocabNeedsAntonymRefresh,
   type LessonPackData,
   type LessonPackVocabItem,
 } from "@/lib/lesson-materials/generate-lesson-pack";
+import { generateLessonMaterialsOrganizationDraft } from "@/lib/lesson-materials/generate-organization";
 
 type Role = "admin" | "teacher";
 
@@ -29,7 +31,12 @@ export async function generateAndSaveLessonPackVocabAction(
   role: Role,
   input: { projectId: string }
 ): Promise<
-  | { ok: true; vocab: LessonPackVocabItem[]; headerLabel: string }
+  | {
+      ok: true;
+      vocab: LessonPackVocabItem[];
+      headerLabel: string;
+      titleEn: string | null;
+    }
   | { ok: false; message: string }
 > {
   const { profile, error } = await requireRole(role);
@@ -41,7 +48,7 @@ export async function generateAndSaveLessonPackVocabAction(
   const supabase = await createClient();
   let pq = supabase
     .from("lesson_material_projects")
-    .select("id,title,lesson_pack_json")
+    .select("id,title,title_en,lesson_pack_json")
     .eq("id", projectId)
     .eq("academy_id", profile!.academy_id!)
     .is("deleted_at", null);
@@ -78,19 +85,43 @@ export async function generateAndSaveLessonPackVocabAction(
       vocab,
       updatedAt: new Date().toISOString(),
     };
+
+    let titleEn = ((project.title_en as string | null) ?? "").trim() || null;
+    if (!titleEn && (items ?? []).length > 0) {
+      try {
+        const org = await generateLessonMaterialsOrganizationDraft({
+          items: (items ?? []).map((it) => ({
+            english: it.english_text,
+            korean: it.korean_text,
+          })),
+        });
+        titleEn = org.passageTitleEn?.trim() || null;
+      } catch {
+        // title backfill is best-effort; vocab save still proceeds
+      }
+    }
+
+    const patch: Record<string, unknown> = {
+      lesson_pack_json: pack,
+      updated_at: new Date().toISOString(),
+    };
+    if (titleEn) patch.title_en = titleEn;
+
     const { error: uErr } = await supabase
       .from("lesson_material_projects")
-      .update({
-        lesson_pack_json: pack,
-        updated_at: new Date().toISOString(),
-      })
+      .update(patch)
       .eq("id", projectId);
     if (uErr) return { ok: false, message: uErr.message };
 
     revalidatePath(`/${role}/lesson-materials`);
     revalidatePath(`/${role}/lesson-materials/lesson-pack`);
     revalidatePath(`/${role}/lesson-materials/project/${projectId}`);
-    return { ok: true, vocab, headerLabel: pack.headerLabel };
+    return {
+      ok: true,
+      vocab,
+      headerLabel: pack.headerLabel,
+      titleEn: titleEn ?? ((project.title_en as string | null) ?? null),
+    };
   } catch (e) {
     return {
       ok: false,
@@ -98,6 +129,8 @@ export async function generateAndSaveLessonPackVocabAction(
     };
   }
 }
+
+export { vocabNeedsAntonymRefresh };
 
 export async function saveLessonPackAction(
   role: Role,

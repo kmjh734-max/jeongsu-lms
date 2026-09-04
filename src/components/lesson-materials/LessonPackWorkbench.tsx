@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
   buildChoiceList,
+  vocabNeedsAntonymRefresh,
   type LessonPackVocabItem,
 } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
@@ -118,17 +119,26 @@ export function LessonPackWorkbench({
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
-  const [activeIdx, setActiveIdx] = useState(0);
   const [projects, setProjects] = useState(initialProjects);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [prepLoading, setPrepLoading] = useState(() =>
-    initialProjects.some((p) => p.vocab.length === 0)
+    initialProjects.some(
+      (p) => p.vocab.length === 0 || vocabNeedsAntonymRefresh(p.vocab) || !p.titleEn?.trim()
+    )
   );
   const [prepProgress, setPrepProgress] = useState({
     done: 0,
-    total: Math.max(1, initialProjects.filter((p) => p.vocab.length === 0).length),
+    total: Math.max(
+      1,
+      initialProjects.filter(
+        (p) =>
+          p.vocab.length === 0 ||
+          vocabNeedsAntonymRefresh(p.vocab) ||
+          !p.titleEn?.trim()
+      ).length
+    ),
   });
   const [prepRetryKey, setPrepRetryKey] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -149,7 +159,7 @@ export function LessonPackWorkbench({
   const [themeColor, setThemeColor] = useState("#DC2626");
   const [zoom, setZoom] = useState(70);
 
-  const project = projects[activeIdx] ?? null;
+  const project = projects[0] ?? null;
 
   type TestRow = {
     word: string;
@@ -263,6 +273,7 @@ export function LessonPackWorkbench({
         id: `p${pi}:lesson-heading`,
         keepTogether: true,
         stickToNext: true,
+        forceNewPage: true,
       });
       for (let i = 0; i < items.length; i++) {
         blocks.push({ id: `p${pi}:lesson-item:${i}`, keepTogether: true });
@@ -288,11 +299,16 @@ export function LessonPackWorkbench({
     };
   }, []);
 
-  // Auto-generate vocab for every selected passage that has none (gate UI until done)
+  // Auto-generate/refresh vocab (+ missing English title) before showing pack
   useEffect(() => {
     const pending = projects
       .map((p, i) => ({ p, i }))
-      .filter(({ p }) => p.vocab.length === 0);
+      .filter(
+        ({ p }) =>
+          p.vocab.length === 0 ||
+          vocabNeedsAntonymRefresh(p.vocab) ||
+          !p.titleEn?.trim()
+      );
     if (pending.length === 0) {
       setPrepLoading(false);
       return;
@@ -320,7 +336,12 @@ export function LessonPackWorkbench({
             setProjects((prev) =>
               prev.map((row, idx) =>
                 idx === i
-                  ? { ...row, vocab: res.vocab, headerLabel: res.headerLabel }
+                  ? {
+                      ...row,
+                      vocab: res.vocab,
+                      headerLabel: res.headerLabel,
+                      titleEn: res.titleEn ?? row.titleEn,
+                    }
                   : row
               )
             );
@@ -338,7 +359,6 @@ export function LessonPackWorkbench({
       }
       if (!cancelled) {
         if (failed) {
-          // Stay on loading gate until retry succeeds — incomplete pack must not flash
           return;
         }
         setPrepLoading(false);
@@ -366,7 +386,12 @@ export function LessonPackWorkbench({
       setProjects((prev) =>
         prev.map((p, i) =>
           i === idx
-            ? { ...p, vocab: res.vocab, headerLabel: res.headerLabel }
+            ? {
+                ...p,
+                vocab: res.vocab,
+                headerLabel: res.headerLabel,
+                titleEn: res.titleEn ?? p.titleEn,
+              }
             : p
         )
       );
@@ -516,32 +541,20 @@ export function LessonPackWorkbench({
         flush();
       }
       const h = heightById.get(block.id) ?? 24;
-      let need = (cur.length > 0 ? gapPx : 0) + h;
+      const next = block.stickToNext ? packBlocks[i + 1] : undefined;
+      const nh = next ? (heightById.get(next.id) ?? 24) : 0;
 
-      if (block.stickToNext) {
-        const next = packBlocks[i + 1];
-        if (next) {
-          const nh = heightById.get(next.id) ?? 24;
-          // Keep heading with at least the next block when possible
-          need = (cur.length > 0 ? gapPx : 0) + h + gapPx + Math.min(nh, pageBodyPx * 0.35);
-        }
+      // Keep heading with the full next block when that next block fits on one page.
+      // Otherwise the title would sit alone at the bottom while content moves on.
+      let placeHeight = h;
+      if (next && nh <= pageBodyPx - 2) {
+        placeHeight = h + gapPx + nh;
       }
 
-      if (cur.length > 0 && used + need > pageBodyPx - 2) {
+      const leadingGap = cur.length > 0 ? gapPx : 0;
+      if (cur.length > 0 && used + leadingGap + placeHeight > pageBodyPx - 2) {
         flush();
-        need = h;
-        if (block.stickToNext) {
-          const next = packBlocks[i + 1];
-          if (next) {
-            const nh = heightById.get(next.id) ?? 24;
-            need = h; // place heading; next iteration handles next block
-            void nh;
-          }
-        }
-      }
-
-      // If a keepTogether block is taller than a page, still place it alone
-      if (cur.length > 0 && used + (cur.length > 0 ? gapPx : 0) + h > pageBodyPx - 2) {
+      } else if (cur.length > 0 && used + leadingGap + h > pageBodyPx - 2) {
         flush();
       }
 
@@ -1007,12 +1020,24 @@ export function LessonPackWorkbench({
 
     if (parsed.kind === "lesson-heading") {
       return (
-        <h2
-          className="mt-6 font-bold leading-snug"
-          style={{ color: themeColor, fontSize: titleSizes.section }}
-        >
-          3. 수업용자료
-        </h2>
+        <div className="mt-2">
+          <div
+            className="font-semibold"
+            style={{ color: themeColor, fontSize: 12 }}
+          >
+            {headerLabel}
+          </div>
+          <h2
+            className="mt-1 font-bold leading-tight text-slate-900"
+            style={{ fontSize: 20 }}
+          >
+            3. 수업용자료
+          </h2>
+          <div
+            className="mt-2 h-0.5 w-full"
+            style={{ backgroundColor: themeColor }}
+          />
+        </div>
       );
     }
 
@@ -1151,55 +1176,67 @@ export function LessonPackWorkbench({
             />
           </label>
 
-          <label className="block space-y-1.5">
-            <span className="text-xs font-bold text-slate-500">지문 한국어 제목</span>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2"
-              value={project.title}
-              onChange={(e) => {
-                const v = e.target.value;
-                setProjects((prev) =>
-                  prev.map((p, i) =>
-                    i === activeIdx ? { ...p, title: v } : p
-                  )
-                );
-              }}
-            />
-          </label>
-
-          <label className="block space-y-1.5">
-            <span className="text-xs font-bold text-slate-500">지문 영어 제목</span>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2"
-              value={project.titleEn ?? ""}
-              placeholder="English title"
-              onChange={(e) => {
-                const v = e.target.value;
-                setProjects((prev) =>
-                  prev.map((p, i) =>
-                    i === activeIdx ? { ...p, titleEn: v } : p
-                  )
-                );
-              }}
-            />
-          </label>
-
-          <label className="block space-y-1.5">
-            <span className="text-xs font-bold text-slate-500">출처</span>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2"
-              value={project.source ?? ""}
-              placeholder="예: 2024 수능특강 / OO고 기출"
-              onChange={(e) => {
-                const v = e.target.value;
-                setProjects((prev) =>
-                  prev.map((p, i) =>
-                    i === activeIdx ? { ...p, source: v } : p
-                  )
-                );
-              }}
-            />
-          </label>
+          {projects.map((p, pi) => (
+            <div
+              key={p.id}
+              className="space-y-2 rounded-xl border border-slate-100 bg-slate-50/80 p-3"
+            >
+              <p className="text-[11px] font-bold text-slate-500">
+                지문 {String(pi + 1).padStart(2, "0")}
+              </p>
+              <label className="block space-y-1">
+                <span className="text-[11px] font-bold text-slate-500">
+                  한국어 제목
+                </span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={p.title}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setProjects((prev) =>
+                      prev.map((row, i) =>
+                        i === pi ? { ...row, title: v } : row
+                      )
+                    );
+                  }}
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-[11px] font-bold text-slate-500">
+                  영어 제목
+                </span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={p.titleEn ?? ""}
+                  placeholder="English title"
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setProjects((prev) =>
+                      prev.map((row, i) =>
+                        i === pi ? { ...row, titleEn: v } : row
+                      )
+                    );
+                  }}
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-[11px] font-bold text-slate-500">출처</span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={p.source ?? ""}
+                  placeholder="예: 2024 수능특강"
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setProjects((prev) =>
+                      prev.map((row, i) =>
+                        i === pi ? { ...row, source: v } : row
+                      )
+                    );
+                  }}
+                />
+              </label>
+            </div>
+          ))}
 
           <div className="space-y-1.5">
             <span className="text-xs font-bold text-slate-500">테마 색상</span>
@@ -1304,28 +1341,6 @@ export function LessonPackWorkbench({
             </p>
           </div>
 
-          {projects.length > 1 ? (
-            <div className="space-y-2 border-t border-slate-100 pt-4">
-              <span className="text-xs font-bold text-slate-500">지문 선택</span>
-              <div className="space-y-1">
-                {projects.map((p, i) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setActiveIdx(i)}
-                    className={`block w-full truncate rounded-lg px-3 py-2 text-left text-xs ${
-                      i === activeIdx
-                        ? "bg-slate-900 text-white"
-                        : "bg-slate-50 text-slate-700"
-                    }`}
-                  >
-                    {String(i + 1).padStart(2, "0")} {p.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
           {error ? <Alert variant="error">{error}</Alert> : null}
           {message ? <Alert variant="success">{message}</Alert> : null}
         </div>
@@ -1337,7 +1352,13 @@ export function LessonPackWorkbench({
             variant="secondary"
             className="w-full"
             disabled={generating}
-            onClick={() => void autoGenerate(project.id, activeIdx)}
+            onClick={() => {
+              void (async () => {
+                for (let i = 0; i < projects.length; i++) {
+                  await autoGenerate(projects[i]!.id, i);
+                }
+              })();
+            }}
           >
             {generating ? "단어 생성 중…" : "단어 AI 재생성"}
           </Button>

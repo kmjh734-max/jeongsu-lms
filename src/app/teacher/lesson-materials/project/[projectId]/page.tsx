@@ -31,7 +31,7 @@ export default async function TeacherLessonMaterialProjectPage({
   const { data: project, error: projectErr } = await supabase
     .from("lesson_material_projects")
     .select(
-      "id,title,analysis_json,illustration_prompt,illustration_url,illustration_captions"
+      "id,title,title_en,source,analysis_json,illustration_prompt,illustration_url,illustration_captions"
     )
     .eq("id", projectId)
     .maybeSingle();
@@ -48,7 +48,12 @@ export default async function TeacherLessonMaterialProjectPage({
   return (
     <LessonMaterialProjectWorkspace
       role="teacher"
-      project={{ id: project.id, title: project.title }}
+      project={{
+        id: project.id,
+        title: project.title,
+        titleEn: (project as { title_en?: string | null }).title_en ?? null,
+        source: (project as { source?: string | null }).source ?? null,
+      }}
       items={(items ?? []) as LessonMaterialItemRow[]}
       analysis_json={(project as LessonMaterialProjectRow).analysis_json}
       illustration_prompt={

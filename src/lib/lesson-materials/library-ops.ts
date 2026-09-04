@@ -383,6 +383,8 @@ export async function saveLessonMaterialProjectWorkspace(
   input: {
     projectId: string;
     title?: string;
+    titleEn?: string | null;
+    source?: string | null;
     analysisCards?: Array<{ title: string; desc: string }> | null;
     illustrationPrompt?: string | null;
     illustrationUrl?: string | null;
@@ -417,6 +419,12 @@ export async function saveLessonMaterialProjectWorkspace(
   if (typeof input.title === "string") {
     const t = input.title.trim();
     if (t) patch.title = t;
+  }
+  if (input.titleEn !== undefined) {
+    patch.title_en = input.titleEn?.trim() || null;
+  }
+  if (input.source !== undefined) {
+    patch.source = input.source?.trim() || null;
   }
   if (input.analysisCards !== undefined) {
     patch.analysis_json = input.analysisCards?.length
