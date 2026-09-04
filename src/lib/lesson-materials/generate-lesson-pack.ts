@@ -82,14 +82,17 @@ const SYSTEM = `너는 한국 중·고등 영어 지문에서 수업용 어휘�
 }
 
 규칙:
-- vocab는 지문에서 실제로 나온(또는 파생형으로 나온) 단어 8~14개.
+- vocab는 지문에서 실제로 나온(또는 파생형으로 나온) 단어 10~14개.
+- 난이도 섞기(중요): 목록의 약 40~50%는 중·고등 수업에서 자주 다루는 쉬운/기초 단어,
+  나머지는 핵심·중급 단어. 너무 어려운 단어만 모으지 말 것.
+  예: advance, assume, response, strain 같은 쉬운 단어도 지문에 있으면 반드시 포함.
+- 제외: 관사·대명사·be동사·아주 기초 접속사(the/a/is/and/of/to 등).
 - word는 기본형(lemma) 영어 단어.
-- meaning은 품사 약어(a./n./v./ad. 등) + 한국어 뜻.
-- synonyms는 각 단어마다 1~3개(필수에 가깝게).
-- antonyms는 각 단어마다 1~3개(필수). 형용사·동사·명사 모두 대립어를 찾아 넣는다.
-  예: assert↔deny, advance↔retreat, assume↔know, expect↔doubt, mechanically↔naturally,
-  civilization↔barbarism, coupon↔(full price), response↔question.
-- 반의어 열이 비어 있으면 안 된다. 정말 불가능한 경우만 전체 vocab 중 최대 1~2개만 antonyms: [].
+- meaning은 품사 약어(a./n./v./ad. 등) + 한국어 뜻(쉽고 짧게).
+- synonyms는 각 단어마다 1~3개.
+- antonyms는 각 단어마다 1~3개. 대립 개념이 분명하면 반드시 넣는다.
+  예: assert↔deny, advance↔retreat, assume↔know, expect↔doubt.
+- 반의어가 정말 없을 때만 []. 전체 중 최대 1~2개만 빈 배열 허용.
 - synonyms / antonyms 키는 반드시 문자열 배열.`;
 
 const ANTONYM_FILL_SYSTEM = `너는 영어 어휘 반의어를 채우는 편집자다.
@@ -184,7 +187,7 @@ export async function generateLessonPackVocab(input: {
   try {
     const user = `제목: ${input.title ?? "(없음)"}\n\nEN:\n${passage}\n\nKR:\n${
       (input.koreanPassage ?? "").trim() || "(없음)"
-    }\n\n위 지문으로 수업용 단어 목록을 만들어라. synonyms와 antonyms를 모두 채워라. 반의어 빈 칸이 있으면 안 된다.`;
+    }\n\n위 지문으로 수업용 단어 목록을 만들어라. 쉬운 단어와 핵심 단어를 함께 넣고, synonyms와 antonyms를 모두 채워라. 반의어 빈 칸이 있으면 안 된다.`;
 
     let vocab: LessonPackVocabItem[] = [];
     for (let attempt = 0; attempt < 2; attempt++) {

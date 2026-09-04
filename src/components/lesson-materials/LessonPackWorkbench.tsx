@@ -278,7 +278,6 @@ export function LessonPackWorkbench({
       for (let i = 0; i < p.vocab.length; i++) {
         blocks.push({ id: `p${pi}:vocab-row:${i}`, keepTogether: true });
       }
-      blocks.push({ id: `p${pi}:vocab-add`, keepTogether: true });
 
       blocks.push({
         id: `p${pi}:test-heading`,
@@ -479,22 +478,6 @@ export function LessonPackWorkbench({
     updateVocabAt(pi, index, { [field]: list });
   }
 
-  function addVocabRowAt(pi: number) {
-    setProjects((prev) =>
-      prev.map((p, i) =>
-        i === pi
-          ? {
-              ...p,
-              vocab: [
-                ...p.vocab,
-                { word: "", meaning: "", synonyms: [], antonyms: [] },
-              ],
-            }
-          : p
-      )
-    );
-  }
-
   function removeVocabRowAt(pi: number, index: number) {
     setProjects((prev) =>
       prev.map((p, i) =>
@@ -561,7 +544,9 @@ export function LessonPackWorkbench({
 
     const widthPx = root.offsetWidth || 1;
     const pxPerMm = widthPx / 210;
-    const pageBodyPx = A4_BODY_MM * pxPerMm;
+    // Extra bottom padding when footer logo is on (16mm vs 10mm)
+    const bodyMm = showLogo ? 297 - A4_PAD_MM - 16 : A4_BODY_MM;
+    const pageBodyPx = bodyMm * pxPerMm;
     const gapPx = 10;
 
     const heightById = new Map<string, number>();
@@ -720,33 +705,23 @@ export function LessonPackWorkbench({
 
     if (parsed.kind === "doc-header") {
       return (
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div
-              className="font-semibold leading-snug"
-              style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
-            >
-              {headerLabel}
-            </div>
-            <h1
-              className="mt-1 font-bold leading-tight text-slate-900"
-              style={{ fontSize: titleSizes.docTitle }}
-            >
-              {docTitle}
-            </h1>
-            <div
-              className="mt-2 h-1 w-full"
-              style={{ backgroundColor: themeColor }}
-            />
+        <div>
+          <div
+            className="font-semibold leading-snug"
+            style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
+          >
+            {headerLabel}
           </div>
-          {showLogo && logoSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoSrc}
-              alt=""
-              className="mt-0.5 h-12 w-auto max-w-[38mm] shrink-0 object-contain"
-            />
-          ) : null}
+          <h1
+            className="mt-1 font-bold leading-tight text-slate-900"
+            style={{ fontSize: titleSizes.docTitle }}
+          >
+            {docTitle}
+          </h1>
+          <div
+            className="mt-2 h-1 w-full"
+            style={{ backgroundColor: themeColor }}
+          />
         </div>
       );
     }
@@ -927,25 +902,6 @@ export function LessonPackWorkbench({
               </button>
             </div>
           ) : null}
-        </div>
-      );
-    }
-
-    if (parsed.kind === "vocab-add") {
-      if (!interactive) return <div className="h-1" />;
-      return (
-        <div className="mt-2 flex justify-center print:hidden">
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              addVocabRowAt(pi);
-            }}
-            className="relative z-20 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:border-violet-300 hover:bg-violet-50 hover:text-violet-800"
-          >
-            + 단어 추가
-          </button>
         </div>
       );
     }
@@ -1289,13 +1245,6 @@ export function LessonPackWorkbench({
                   영어 제목은 AI가 자동으로 채웁니다
                 </p>
               )}
-              <button
-                type="button"
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-violet-300 hover:bg-violet-50"
-                onClick={() => addVocabRowAt(pi)}
-              >
-                + 단어 행 추가
-              </button>
               <label className="block space-y-1">
                 <span className="text-[11px] font-bold text-slate-500">출처</span>
                 <input
@@ -1400,7 +1349,7 @@ export function LessonPackWorkbench({
               </button>
             </div>
             <p className="text-[11px] text-slate-400">
-              문서 제목 옆에 학원 로고를 표시합니다.
+              각 페이지 하단(꼬리말)에 학원 로고를 표시합니다.
             </p>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500">한글 해석 표시</span>
@@ -1519,6 +1468,7 @@ export function LessonPackWorkbench({
               <A4Sheet
                 key={`pack-page-${pageI}`}
                 label={`${pageI + 1} / ${pages.length}`}
+                footerLogoSrc={showLogo ? logoSrc : null}
                 className={
                   pageI === pages.length - 1
                     ? "lesson-pack-a4-sheet--last"
