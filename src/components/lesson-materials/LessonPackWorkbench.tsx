@@ -38,6 +38,11 @@ const FONT_OPTIONS = [
   { value: "Arial, Helvetica, sans-serif", label: "Arial" },
 ];
 
+/** A4 at 96dpi-ish CSS mm mapping */
+const A4_WIDTH = "210mm";
+const A4_MIN_HEIGHT = "297mm";
+const A4_PAD = "12mm";
+
 function markVocabInEnglish(
   english: string,
   vocab: LessonPackVocabItem[],
@@ -91,6 +96,7 @@ export function LessonPackWorkbench({
   const [showAnswers, setShowAnswers] = useState(false);
   const [showKorean, setShowKorean] = useState(true);
   const [boldLessonBody, setBoldLessonBody] = useState(true);
+  const [choiceSeed, setChoiceSeed] = useState(0);
 
   // Document settings
   const [docTitle, setDocTitle] = useState(() => {
@@ -104,9 +110,50 @@ export function LessonPackWorkbench({
   const [fontFamily, setFontFamily] = useState(FONT_OPTIONS[0]!.value);
   const [fontSizePx, setFontSizePx] = useState(14);
   const [themeColor, setThemeColor] = useState("#DC2626");
-  const [zoom, setZoom] = useState(85);
+  const [zoom, setZoom] = useState(70);
 
   const project = projects[activeIdx] ?? null;
+
+  // Stable shuffled choices until vocab content or seed changes
+  const vocabFingerprint = useMemo(
+    () =>
+      (project?.vocab ?? [])
+        .map(
+          (v) =>
+            `${v.word}|${v.synonyms.join(",")}|${v.antonyms.join(",")}`
+        )
+        .join(";"),
+    [project?.vocab]
+  );
+
+  const shuffledTests = useMemo(() => {
+    if (!project) return [];
+    // choiceSeed / fingerprint intentionally force reshuffle
+    void choiceSeed;
+    void vocabFingerprint;
+    return project.vocab.map((v) => ({
+      word: v.word,
+      synChoices: buildChoiceList(v.synonyms, v.antonyms),
+      antChoices: buildChoiceList(v.antonyms, v.synonyms),
+      synAnswers: v.synonyms,
+      antAnswers: v.antonyms,
+    }));
+  }, [project, choiceSeed, vocabFingerprint]);
+
+  useEffect(() => {
+    const id = "lesson-pack-print-page-size-style";
+    let el = document.getElementById(id) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement("style");
+      el.id = id;
+    }
+    el.textContent =
+      "@media print { @page { size: 210mm 297mm; margin: 0; } @page app-print-a4 { size: 210mm 297mm; margin: 0; } }";
+    document.body.appendChild(el);
+    return () => {
+      el?.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (!project) return;
@@ -479,12 +526,12 @@ export function LessonPackWorkbench({
             className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
             onClick={() => setZoom(100)}
           >
-            맞춤
+            100%
           </button>
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
-            onClick={() => setZoom((z) => Math.max(50, z - 10))}
+            onClick={() => setZoom((z) => Math.max(40, z - 10))}
           >
             −
           </button>
@@ -492,16 +539,24 @@ export function LessonPackWorkbench({
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
-            onClick={() => setZoom((z) => Math.min(140, z + 10))}
+            onClick={() => setZoom((z) => Math.min(120, z + 10))}
           >
             +
+          </button>
+          <span className="mx-1 text-xs text-slate-400">A4</span>
+          <button
+            type="button"
+            className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
+            onClick={() => setChoiceSeed((s) => s + 1)}
+          >
+            선택지 다시 섞기
           </button>
           <button
             type="button"
             className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
             onClick={() => setShowAnswers((v) => !v)}
           >
-            {showAnswers ? "동반의어 정답 숨기기" : "동반의어 정답 보기"}
+            {showAnswers ? "정답 숨기기" : "정답 보기"}
           </button>
           <button
             type="button"
@@ -521,14 +576,22 @@ export function LessonPackWorkbench({
 
         <div className="flex justify-center p-6 print:p-0">
           <div
-            className="origin-top bg-white shadow-xl print:shadow-none"
+            className="origin-top print:!transform-none"
             style={{
-              width: 920,
               transform: `scale(${zoom / 100})`,
               transformOrigin: "top center",
             }}
           >
-            <div className="p-10" style={previewStyle}>
+            <div
+              id="lesson-pack-print-root"
+              className="box-border bg-white shadow-xl print:shadow-none"
+              style={{
+                width: A4_WIDTH,
+                minHeight: A4_MIN_HEIGHT,
+                padding: A4_PAD,
+                ...previewStyle,
+              }}
+            >
               <div
                 className="font-semibold leading-snug"
                 style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
@@ -667,7 +730,7 @@ export function LessonPackWorkbench({
               </section>
 
               {/* 2. 동/반의어 TEST */}
-              <section className="mt-10 break-inside-avoid">
+              <section className="mt-10">
                 <h2
                   className="mb-3 font-bold leading-snug"
                   style={{
@@ -679,7 +742,7 @@ export function LessonPackWorkbench({
                   2. 동/반의어 TEST
                 </h2>
                 <div className="grid gap-4 md:grid-cols-2" style={bodyStyle}>
-                  <div className="rounded-xl border border-violet-200">
+                  <div className="break-inside-avoid rounded-xl border border-violet-200">
                     <div
                       className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
                       style={{ fontSize: 12 }}
@@ -688,26 +751,18 @@ export function LessonPackWorkbench({
                       <span>동의어 찾기</span>
                     </div>
                     <ol className="space-y-3 p-4">
-                      {project.vocab.map((v, i) => (
+                      {shuffledTests.map((row, i) => (
                         <li key={`syn-${i}`} className="break-words">
                           <span className="font-bold">
-                            {String(i + 1).padStart(2, "0")} {v.word}
+                            {String(i + 1).padStart(2, "0")} {row.word}
                           </span>
                           {" : "}
-                          {buildChoiceList(v.synonyms, v.antonyms).join(" / ")}
-                          {showAnswers ? (
-                            <div
-                              className="mt-1 text-emerald-700"
-                              style={{ fontSize: 12 }}
-                            >
-                              정답: {v.synonyms.join(", ") || "-"}
-                            </div>
-                          ) : null}
+                          {row.synChoices.join(" / ")}
                         </li>
                       ))}
                     </ol>
                   </div>
-                  <div className="rounded-xl border border-violet-200">
+                  <div className="break-inside-avoid rounded-xl border border-violet-200">
                     <div
                       className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
                       style={{ fontSize: 12 }}
@@ -716,26 +771,72 @@ export function LessonPackWorkbench({
                       <span>반의어 찾기</span>
                     </div>
                     <ol className="space-y-3 p-4">
-                      {project.vocab.map((v, i) => (
+                      {shuffledTests.map((row, i) => (
                         <li key={`ant-${i}`} className="break-words">
                           <span className="font-bold">
-                            {String(i + 1).padStart(2, "0")} {v.word}
+                            {String(i + 1).padStart(2, "0")} {row.word}
                           </span>
                           {" : "}
-                          {buildChoiceList(v.antonyms, v.synonyms).join(" / ")}
-                          {showAnswers ? (
-                            <div
-                              className="mt-1 text-emerald-700"
-                              style={{ fontSize: 12 }}
-                            >
-                              정답: {v.antonyms.join(", ") || "-"}
-                            </div>
-                          ) : null}
+                          {row.antChoices.join(" / ")}
                         </li>
                       ))}
                     </ol>
                   </div>
                 </div>
+
+                {showAnswers ? (
+                  <div
+                    className="mt-5 break-inside-avoid rounded-xl border border-emerald-200 bg-emerald-50/60 p-4"
+                    style={bodyStyle}
+                  >
+                    <h3
+                      className="mb-3 font-bold text-emerald-900"
+                      style={{ fontSize: 13 }}
+                    >
+                      정답
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <div
+                          className="mb-2 font-semibold text-emerald-800"
+                          style={{ fontSize: 12 }}
+                        >
+                          동의어
+                        </div>
+                        <ol className="space-y-1.5 text-emerald-900">
+                          {shuffledTests.map((row, i) => (
+                            <li key={`syn-ans-${i}`} className="break-words">
+                              <span className="font-bold">
+                                {String(i + 1).padStart(2, "0")} {row.word}
+                              </span>
+                              {" — "}
+                              {row.synAnswers.join(", ") || "-"}
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                      <div>
+                        <div
+                          className="mb-2 font-semibold text-emerald-800"
+                          style={{ fontSize: 12 }}
+                        >
+                          반의어
+                        </div>
+                        <ol className="space-y-1.5 text-emerald-900">
+                          {shuffledTests.map((row, i) => (
+                            <li key={`ant-ans-${i}`} className="break-words">
+                              <span className="font-bold">
+                                {String(i + 1).padStart(2, "0")} {row.word}
+                              </span>
+                              {" — "}
+                              {row.antAnswers.join(", ") || "-"}
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </section>
 
               {/* 3. 수업용자료 & 흐름 */}

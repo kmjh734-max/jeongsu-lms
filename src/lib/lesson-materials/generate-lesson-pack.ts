@@ -125,7 +125,19 @@ export async function generateLessonPackVocab(input: {
   }
 }
 
-/** Build mixed choices for synonym/antonym tests. */
+/** Fisher–Yates shuffle (non-mutating). */
+export function shuffleArray<T>(items: T[]): T[] {
+  const a = [...items];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i]!;
+    a[i] = a[j]!;
+    a[j] = tmp;
+  }
+  return a;
+}
+
+/** Build mixed choices for synonym/antonym tests (order randomized). */
 export function buildChoiceList(
   primary: string[],
   secondary: string[],
@@ -133,8 +145,8 @@ export function buildChoiceList(
 ): string[] {
   const set = new Set<string>();
   for (const w of [...primary, ...secondary, ...extra]) {
-    const t = w.trim().toLowerCase();
-    if (t) set.add(w.trim());
+    const t = w.trim();
+    if (t) set.add(t);
   }
-  return [...set].slice(0, 6);
+  return shuffleArray([...set]).slice(0, 6);
 }

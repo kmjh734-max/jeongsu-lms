@@ -2148,7 +2148,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #a4-print-root,
   #shared-report-print-root,
   #student-record-print-root,
-  #nelt-print-root {
+  #nelt-print-root,
+  #lesson-pack-print-root {
     page: app-print-a4;
   }
 
@@ -2186,7 +2187,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #student-record-print-root,
   #vocab-print-root,
   #nelt-print-root,
-  #qg-print-root {
+  #qg-print-root,
+  #lesson-pack-print-root {
     visibility: visible;
   }
 
@@ -2203,7 +2205,9 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #nelt-print-root,
   #nelt-print-root *,
   #qg-print-root,
-  #qg-print-root * {
+  #qg-print-root *,
+  #lesson-pack-print-root,
+  #lesson-pack-print-root * {
     visibility: visible;
   }
 
@@ -2231,7 +2235,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #shared-report-print-root,
   #listening-print-root,
   #student-record-print-root,
-  #nelt-print-root {
+  #nelt-print-root,
+  #lesson-pack-print-root {
     position: absolute;
     left: 0;
     top: 0;
@@ -2240,6 +2245,15 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     margin: 0 auto !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+
+  #lesson-pack-print-root {
+    width: 210mm !important;
+    max-width: 210mm !important;
+  }
+
+  #lesson-pack-print-root .print\:hidden {
+    display: none !important;
   }
 
   /* NELT 성장 리포트: 인쇄 시 컨트롤/공유 영역 숨김 */
