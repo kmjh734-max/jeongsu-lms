@@ -28,25 +28,26 @@ function parseJsonSafe<T>(text: string): T | null {
   }
 }
 
-const SYSTEM = `너는 한국 중·고등 영어 지문에서 수업용 핵심 어휘를 뽑는 편집자다.
+const SYSTEM = `너는 한국 중·고등 영어 지문에서 수업용 어휘를 정리하는 편집자다.
 반드시 JSON만 반환:
 {
   "vocab": [
     {
       "word": "fallacy",
       "meaning": "n. 오류, 잘못된 생각",
-      "synonyms": ["falsehood", "illusion", "myth"],
-      "antonyms": ["truth", "fact", "certainty"]
+      "synonyms": ["falsehood", "illusion"],
+      "antonyms": ["truth"]
     }
   ]
 }
 
 규칙:
-- vocab는 지문에서 실제로 나온(또는 파생형으로 나온) 중요 단어 6~12개.
+- vocab는 지문에서 실제로 나온(또는 파생형으로 나온) 단어 8~14개.
+- 핵심·중급 단어뿐 아니라, 수업에서 짚을 만한 쉬운/기초 단어도 적절히 포함해도 된다. (관사·대명사·be동사·아주 기초 접속사 the/a/is/and 등은 제외)
 - word는 기본형(lemma) 영어 단어.
 - meaning은 품사 약어(a./n./v./ad. 등) + 한국어 뜻.
-- synonyms/antonyms는 영어 단어 3~5개씩. 시험 선택지로 쓸 수 있게 짧은 단어 위주.
-- 너무 쉬운 기초 단어(the, make, good 등)는 제외.`;
+- synonyms / antonyms는 자연스러운 것만 넣는다. 없으면 빈 배열 []로 두고, 억지로 만들지 말 것.
+- 동의어·반의어가 있으면 1~4개, 짧고 시험에 쓸 수 있는 단어 위주.`;
 
 export async function generateLessonPackVocab(input: {
   englishPassage: string;

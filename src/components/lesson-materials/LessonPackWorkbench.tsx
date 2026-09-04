@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -38,10 +38,12 @@ const FONT_OPTIONS = [
   { value: "Arial, Helvetica, sans-serif", label: "Arial" },
 ];
 
-/** A4 at 96dpi-ish CSS mm mapping */
+/** A4 at CSS mm */
 const A4_WIDTH = "210mm";
-const A4_MIN_HEIGHT = "297mm";
+const A4_HEIGHT = "297mm";
 const A4_PAD = "12mm";
+/** Printable body height inside one A4 page (297 − 12×2) */
+const A4_CONTENT_H_MM = 273;
 
 function markVocabInEnglish(
   english: string,
@@ -93,10 +95,11 @@ export function LessonPackWorkbench({
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [showAnswers, setShowAnswers] = useState(false);
   const [showKorean, setShowKorean] = useState(true);
   const [boldLessonBody, setBoldLessonBody] = useState(true);
-  const [choiceSeed, setChoiceSeed] = useState(0);
+  const [pageIdx, setPageIdx] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
+  const pageInnerRef = useRef<HTMLDivElement>(null);
 
   // Document settings
   const [docTitle, setDocTitle] = useState(() => {
@@ -114,7 +117,7 @@ export function LessonPackWorkbench({
 
   const project = projects[activeIdx] ?? null;
 
-  // Stable shuffled choices until vocab content or seed changes
+  // Auto-shuffle once when vocab content changes (no manual reshuffle)
   const vocabFingerprint = useMemo(
     () =>
       (project?.vocab ?? [])
@@ -126,19 +129,86 @@ export function LessonPackWorkbench({
     [project?.vocab]
   );
 
-  const shuffledTests = useMemo(() => {
+  const synTests = useMemo(() => {
     if (!project) return [];
-    // choiceSeed / fingerprint intentionally force reshuffle
-    void choiceSeed;
     void vocabFingerprint;
-    return project.vocab.map((v) => ({
-      word: v.word,
-      synChoices: buildChoiceList(v.synonyms, v.antonyms),
-      antChoices: buildChoiceList(v.antonyms, v.synonyms),
-      synAnswers: v.synonyms,
-      antAnswers: v.antonyms,
-    }));
-  }, [project, choiceSeed, vocabFingerprint]);
+    return project.vocab
+      .filter((v) => v.synonyms.length > 0)
+      .map((v) => {
+        const pool = project.vocab
+          .filter((o) => o.word !== v.word)
+          .flatMap((o) => [...o.synonyms, ...o.antonyms, o.word]);
+        return {
+          word: v.word,
+          choices: buildChoiceList(v.synonyms, v.antonyms, pool),
+          answers: v.synonyms,
+        };
+      });
+  }, [project, vocabFingerprint]);
+
+  const antTests = useMemo(() => {
+    if (!project) return [];
+    void vocabFingerprint;
+    return project.vocab
+      .filter((v) => v.antonyms.length > 0)
+      .map((v) => {
+        const pool = project.vocab
+          .filter((o) => o.word !== v.word)
+          .flatMap((o) => [...o.synonyms, ...o.antonyms, o.word]);
+        return {
+          word: v.word,
+          choices: buildChoiceList(v.antonyms, v.synonyms, pool),
+          answers: v.antonyms,
+        };
+      });
+  }, [project, vocabFingerprint]);
+
+  const layoutKey = useMemo(
+    () =>
+      [
+        vocabFingerprint,
+        fontSizePx,
+        lineHeightPct,
+        showKorean,
+        boldLessonBody,
+        docTitle,
+        headerLabel,
+        project?.title,
+        project?.titleEn,
+        project?.items.map((it) => it.id).join(","),
+        project?.illustrationUrl ?? "",
+        project?.analysisCards.length ?? 0,
+        synTests.length,
+        antTests.length,
+      ].join("|"),
+    [
+      vocabFingerprint,
+      fontSizePx,
+      lineHeightPct,
+      showKorean,
+      boldLessonBody,
+      docTitle,
+      headerLabel,
+      project,
+      synTests.length,
+      antTests.length,
+    ]
+  );
+
+  useLayoutEffect(() => {
+    const el = pageInnerRef.current;
+    if (!el) return;
+    const widthPx = el.offsetWidth || 1;
+    const pxPerMm = widthPx / 210;
+    const pageBodyPx = A4_CONTENT_H_MM * pxPerMm;
+    const pages = Math.max(1, Math.ceil(el.scrollHeight / pageBodyPx));
+    setPageCount(pages);
+    setPageIdx((p) => Math.min(p, pages - 1));
+  }, [layoutKey]);
+
+  useEffect(() => {
+    setPageIdx(0);
+  }, [project?.id]);
 
   useEffect(() => {
     const id = "lesson-pack-print-page-size-style";
@@ -543,21 +613,30 @@ export function LessonPackWorkbench({
           >
             +
           </button>
-          <span className="mx-1 text-xs text-slate-400">A4</span>
-          <button
-            type="button"
-            className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
-            onClick={() => setChoiceSeed((s) => s + 1)}
-          >
-            선택지 다시 섞기
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-semibold text-violet-700"
-            onClick={() => setShowAnswers((v) => !v)}
-          >
-            {showAnswers ? "정답 숨기기" : "정답 보기"}
-          </button>
+          <span className="mx-1 text-xs text-slate-400">A4 · {pageCount}쪽</span>
+          <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-1.5 py-0.5">
+            <button
+              type="button"
+              className="rounded px-2 py-0.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
+              disabled={pageIdx <= 0}
+              onClick={() => setPageIdx((p) => Math.max(0, p - 1))}
+            >
+              ‹
+            </button>
+            <span className="min-w-[3.5rem] text-center text-xs font-semibold text-slate-600">
+              {pageIdx + 1} / {pageCount}
+            </span>
+            <button
+              type="button"
+              className="rounded px-2 py-0.5 text-xs font-semibold text-slate-700 disabled:opacity-40"
+              disabled={pageIdx >= pageCount - 1}
+              onClick={() =>
+                setPageIdx((p) => Math.min(pageCount - 1, p + 1))
+              }
+            >
+              ›
+            </button>
+          </div>
           <button
             type="button"
             className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700"
@@ -583,15 +662,23 @@ export function LessonPackWorkbench({
             }}
           >
             <div
-              id="lesson-pack-print-root"
-              className="box-border bg-white shadow-xl print:shadow-none"
+              className="lesson-pack-a4-clip relative box-border overflow-hidden bg-white shadow-xl print:overflow-visible print:shadow-none"
               style={{
                 width: A4_WIDTH,
-                minHeight: A4_MIN_HEIGHT,
-                padding: A4_PAD,
-                ...previewStyle,
+                height: A4_HEIGHT,
               }}
             >
+              <div
+                id="lesson-pack-print-root"
+                ref={pageInnerRef}
+                className="box-border"
+                style={{
+                  width: A4_WIDTH,
+                  padding: A4_PAD,
+                  transform: `translateY(-${pageIdx * A4_CONTENT_H_MM}mm)`,
+                  ...previewStyle,
+                }}
+              >
               <div
                 className="font-semibold leading-snug"
                 style={{ color: themeColor, fontSize: titleSizes.headerLabel }}
@@ -741,102 +828,89 @@ export function LessonPackWorkbench({
                 >
                   2. 동/반의어 TEST
                 </h2>
-                <div className="grid gap-4 md:grid-cols-2" style={bodyStyle}>
-                  <div className="break-inside-avoid rounded-xl border border-violet-200">
-                    <div
-                      className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
-                      style={{ fontSize: 12 }}
-                    >
-                      <span className="truncate">[{project.title}]</span>
-                      <span>동의어 찾기</span>
+                {synTests.length === 0 && antTests.length === 0 ? (
+                  <p className="text-sm text-slate-500">
+                    동반의어가 있는 단어가 없어 테스트를 생략합니다.
+                  </p>
+                ) : (
+                  <>
+                    <div className="grid gap-4 md:grid-cols-2" style={bodyStyle}>
+                      {synTests.length > 0 ? (
+                        <div className="break-inside-avoid rounded-xl border border-violet-200">
+                          <div
+                            className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
+                            style={{ fontSize: 12 }}
+                          >
+                            <span className="truncate">[{project.title}]</span>
+                            <span>동의어 찾기</span>
+                          </div>
+                          <ol className="space-y-3 p-4">
+                            {synTests.map((row, i) => (
+                              <li key={`syn-${i}`} className="break-words">
+                                <span className="font-bold">
+                                  {String(i + 1).padStart(2, "0")} {row.word}
+                                </span>
+                                {" : "}
+                                {row.choices.join(" / ")}
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      ) : null}
+                      {antTests.length > 0 ? (
+                        <div className="break-inside-avoid rounded-xl border border-violet-200">
+                          <div
+                            className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
+                            style={{ fontSize: 12 }}
+                          >
+                            <span className="truncate">[{project.title}]</span>
+                            <span>반의어 찾기</span>
+                          </div>
+                          <ol className="space-y-3 p-4">
+                            {antTests.map((row, i) => (
+                              <li key={`ant-${i}`} className="break-words">
+                                <span className="font-bold">
+                                  {String(i + 1).padStart(2, "0")} {row.word}
+                                </span>
+                                {" : "}
+                                {row.choices.join(" / ")}
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      ) : null}
                     </div>
-                    <ol className="space-y-3 p-4">
-                      {shuffledTests.map((row, i) => (
-                        <li key={`syn-${i}`} className="break-words">
-                          <span className="font-bold">
-                            {String(i + 1).padStart(2, "0")} {row.word}
-                          </span>
-                          {" : "}
-                          {row.synChoices.join(" / ")}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                  <div className="break-inside-avoid rounded-xl border border-violet-200">
-                    <div
-                      className="flex items-center justify-between gap-2 rounded-t-xl bg-violet-100 px-3 py-2 font-semibold text-violet-800"
-                      style={{ fontSize: 12 }}
-                    >
-                      <span className="truncate">[{project.title}]</span>
-                      <span>반의어 찾기</span>
-                    </div>
-                    <ol className="space-y-3 p-4">
-                      {shuffledTests.map((row, i) => (
-                        <li key={`ant-${i}`} className="break-words">
-                          <span className="font-bold">
-                            {String(i + 1).padStart(2, "0")} {row.word}
-                          </span>
-                          {" : "}
-                          {row.antChoices.join(" / ")}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </div>
 
-                {showAnswers ? (
-                  <div
-                    className="mt-5 break-inside-avoid rounded-xl border border-emerald-200 bg-emerald-50/60 p-4"
-                    style={bodyStyle}
-                  >
-                    <h3
-                      className="mb-3 font-bold text-emerald-900"
-                      style={{ fontSize: 13 }}
+                    <div
+                      className="mt-3 break-inside-avoid rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2 text-emerald-900"
+                      style={{ fontSize: 9, lineHeight: 1.35 }}
                     >
-                      정답
-                    </h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <div
-                          className="mb-2 font-semibold text-emerald-800"
-                          style={{ fontSize: 12 }}
-                        >
-                          동의어
-                        </div>
-                        <ol className="space-y-1.5 text-emerald-900">
-                          {shuffledTests.map((row, i) => (
-                            <li key={`syn-ans-${i}`} className="break-words">
-                              <span className="font-bold">
-                                {String(i + 1).padStart(2, "0")} {row.word}
-                              </span>
-                              {" — "}
-                              {row.synAnswers.join(", ") || "-"}
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
-                      <div>
-                        <div
-                          className="mb-2 font-semibold text-emerald-800"
-                          style={{ fontSize: 12 }}
-                        >
-                          반의어
-                        </div>
-                        <ol className="space-y-1.5 text-emerald-900">
-                          {shuffledTests.map((row, i) => (
-                            <li key={`ant-ans-${i}`} className="break-words">
-                              <span className="font-bold">
-                                {String(i + 1).padStart(2, "0")} {row.word}
-                              </span>
-                              {" — "}
-                              {row.antAnswers.join(", ") || "-"}
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
+                      <div className="mb-1 font-bold tracking-wide">정답</div>
+                      {synTests.length > 0 ? (
+                        <p className="break-words">
+                          <span className="font-semibold">동의어</span>{" "}
+                          {synTests
+                            .map(
+                              (row, i) =>
+                                `${i + 1}.${row.word}(${row.answers.join("/")})`
+                            )
+                            .join(" · ")}
+                        </p>
+                      ) : null}
+                      {antTests.length > 0 ? (
+                        <p className="mt-0.5 break-words">
+                          <span className="font-semibold">반의어</span>{" "}
+                          {antTests
+                            .map(
+                              (row, i) =>
+                                `${i + 1}.${row.word}(${row.answers.join("/")})`
+                            )
+                            .join(" · ")}
+                        </p>
+                      ) : null}
                     </div>
-                  </div>
-                ) : null}
+                  </>
+                )}
               </section>
 
               {/* 3. 수업용자료 & 흐름 */}
@@ -947,6 +1021,7 @@ export function LessonPackWorkbench({
                   ) : null}
                 </div>
               </section>
+            </div>
             </div>
           </div>
         </div>

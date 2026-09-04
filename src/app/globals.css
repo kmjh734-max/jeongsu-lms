@@ -2250,6 +2250,14 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #lesson-pack-print-root {
     width: 210mm !important;
     max-width: 210mm !important;
+    transform: none !important;
+  }
+
+  .lesson-pack-a4-clip {
+    overflow: visible !important;
+    height: auto !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
   }
 
   #lesson-pack-print-root .print\:hidden {
