@@ -10,6 +10,8 @@ import {
 } from "@/lib/lesson-materials/analysis-report-actions";
 import type {
   AnalysisChunkRole,
+  AnalysisGrammarPoint,
+  AnalysisImportantConstruction,
   AnalysisReportData,
   AnalysisSentence,
 } from "@/lib/lesson-materials/generate-analysis-report";
@@ -35,6 +37,124 @@ const ROLE_STYLE: Record<
   M: { bg: "#f3e8ff", text: "#6b21a8" },
   other: { bg: "#f1f5f9", text: "#334155" },
 };
+
+function priorityBadge(priority?: string) {
+  if (!priority) return null;
+  const color =
+    priority === "최우선"
+      ? "bg-rose-100 text-rose-700"
+      : priority === "핵심"
+        ? "bg-sky-100 text-sky-800"
+        : "bg-amber-100 text-amber-800";
+  return (
+    <span
+      className={`mr-1.5 inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold ${color}`}
+    >
+      {priority}
+    </span>
+  );
+}
+
+function GrammarPointItem({
+  point,
+  index,
+}: {
+  point: AnalysisGrammarPoint;
+  index: number;
+}) {
+  const mark = ["①", "②", "③", "④", "⑤"][index] ?? `${index + 1}.`;
+  return (
+    <li className="space-y-1 text-[12.5px] leading-relaxed text-slate-800">
+      <div>
+        <span className="mr-1 font-bold text-rose-600">{mark}</span>
+        {priorityBadge(point.priority)}
+        <span className="font-bold text-slate-900">{point.title}</span>
+        {point.example ? (
+          <span className="text-violet-700"> ({point.example})</span>
+        ) : null}
+      </div>
+      {point.sentenceStructure ? (
+        <p className="text-slate-600">
+          <span className="font-semibold text-slate-700">구조 · </span>
+          {point.sentenceStructure}
+        </p>
+      ) : null}
+      {point.restoredStructure ? (
+        <p className="text-slate-600">
+          <span className="font-semibold text-slate-700">복원 · </span>
+          {point.restoredStructure}
+        </p>
+      ) : null}
+      {point.decisionRule && !point.teacherExplanation ? (
+        <p className="text-slate-600">
+          <span className="font-semibold text-slate-700">판단 · </span>
+          {point.decisionRule}
+        </p>
+      ) : null}
+      {point.studentSummary ? (
+        <p className="rounded bg-white/80 px-2 py-1 text-slate-800">
+          <span className="font-bold text-emerald-700">학생용 · </span>
+          {point.studentSummary}
+        </p>
+      ) : null}
+      {point.teacherExplanation ? (
+        <p className="text-slate-700">
+          <span className="font-bold text-sky-800">교사용 · </span>
+          {point.teacherExplanation}
+        </p>
+      ) : null}
+      {!point.studentSummary &&
+      !point.teacherExplanation &&
+      !point.sentenceStructure &&
+      point.detail ? (
+        <p className="whitespace-pre-line text-slate-700">{point.detail}</p>
+      ) : null}
+      {point.wrongForms && point.wrongForms.length > 0 ? (
+        <p className="text-slate-600">
+          <span className="font-semibold text-rose-700">오답 예 · </span>
+          {point.wrongForms.join(" / ")}
+          {point.wrongReasons && point.wrongReasons.length > 0
+            ? ` — ${point.wrongReasons.join(" / ")}`
+            : ""}
+        </p>
+      ) : null}
+    </li>
+  );
+}
+
+function ImportantConstructionBlock({
+  items,
+}: {
+  items: AnalysisImportantConstruction[];
+}) {
+  if (items.length === 0) return null;
+  return (
+    <section className="mt-5 break-inside-avoid rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2.5">
+      <p className="mb-2 text-[13px] font-bold text-amber-900">[중요 구문]</p>
+      <ol className="space-y-2">
+        {items.map((c, i) => (
+          <li key={i} className="text-[12.5px] leading-relaxed text-slate-800">
+            <p className="font-bold text-slate-900">
+              {c.targetConstruction || c.originalSentence}
+            </p>
+            {c.structure ? (
+              <p className="text-slate-600">구조 · {c.structure}</p>
+            ) : null}
+            {c.restoredElements ? (
+              <p className="text-slate-600">복원 · {c.restoredElements}</p>
+            ) : null}
+            {c.translation ? (
+              <p className="text-slate-700">해석 · {c.translation}</p>
+            ) : null}
+            {c.readingTip ? (
+              <p className="text-amber-900">독해 팁 · {c.readingTip}</p>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 function ChunkRow({
   chunks,
@@ -138,24 +258,9 @@ function SentenceBlock({
       {sentence.grammarPoints.length > 0 ? (
         <div className="mt-2 rounded-lg border border-sky-200 bg-sky-50/60 px-3 py-2.5">
           <p className="mb-1.5 text-[13px] font-bold text-sky-800">[문법 분석]</p>
-          <ol className="space-y-1.5">
+          <ol className="space-y-2.5">
             {sentence.grammarPoints.map((g, gi) => (
-              <li key={gi} className="text-[12.5px] leading-relaxed text-slate-800">
-                <span className="mr-1 font-bold text-rose-600">
-                  {["①", "②", "③", "④", "⑤"][gi] ?? `${gi + 1}.`}
-                </span>
-                {g.title ? (
-                  <span className="font-bold text-slate-900">{g.title}</span>
-                ) : null}
-                {g.title && g.detail ? " · " : null}
-                {g.detail ? <span>{g.detail}</span> : null}
-                {g.example ? (
-                  <span className="text-violet-700">
-                    {" "}
-                    ({g.example})
-                  </span>
-                ) : null}
-              </li>
+              <GrammarPointItem key={gi} point={g} index={gi} />
             ))}
           </ol>
         </div>
@@ -493,6 +598,30 @@ export function AnalysisReportWorkbench({
                   />
                 ))}
               </div>
+
+              {report?.analysisSummary ? (
+                <section className="mt-5 break-inside-avoid rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
+                  <p className="mb-1 text-[13px] font-bold text-slate-800">
+                    [문법 요약]
+                  </p>
+                  <p className="text-[12.5px] leading-relaxed text-slate-700">
+                    {report.analysisSummary}
+                  </p>
+                </section>
+              ) : null}
+
+              {report?.importantConstructions &&
+              report.importantConstructions.length > 0 ? (
+                <ImportantConstructionBlock
+                  items={report.importantConstructions}
+                />
+              ) : null}
+
+              {report?.noPointMessage ? (
+                <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
+                  {report.noPointMessage}
+                </p>
+              ) : null}
 
               {logoSrc ? (
                 <div className="pointer-events-none absolute bottom-[6mm] left-[12mm] right-[12mm] flex justify-center border-t border-slate-200 pt-2 print:flex">
