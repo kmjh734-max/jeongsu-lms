@@ -458,16 +458,8 @@ export function LessonMaterialsInputWizard({
     try {
       const count = workbenches.length;
       for (let pi = 0; pi < count; pi++) {
-        const draft = await runOrganizationForIndex(pi);
-        await runIllustrationForIndex(
-          pi,
-          draft
-            ? {
-                illustrationPrompt: draft.illustrationPrompt,
-                comicCaptions: draft.comicCaptions,
-              }
-            : undefined
-        );
+        // 삽화만 생성 — 제목·논리흐름은 재생성하지 않음
+        await runIllustrationForIndex(pi);
       }
     } finally {
       setBulkBusy(false);
