@@ -87,6 +87,8 @@ export function LessonMaterialsInputWizard({
   const [activePassage, setActivePassage] = useState(0);
   const [translating, setTranslating] = useState(false);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [prepLoading, setPrepLoading] = useState(false);
+  const [prepProgress, setPrepProgress] = useState({ done: 0, total: 0, label: "" });
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -341,48 +343,77 @@ export function LessonMaterialsInputWizard({
       };
     });
 
+    // Stay on step 1 with loading until AI (title/flow) finishes for all passages
+    setPrepLoading(true);
+    setPrepProgress({
+      done: 0,
+      total: boards.length,
+      label: "지문 분석·제목 생성 중…",
+    });
     setWorkbenches(boards);
     setActivePassage(0);
-    setStep(2);
 
-    for (let i = 0; i < boards.length; i++) {
-      const withKorean = await fillKoreanForLines(boards[i]!.lines);
-      boards[i] = {
-        ...boards[i]!,
-        lines: withKorean,
-        selected: allIndexes(withKorean.length),
-        generatingOrganization: true,
-      };
-      setWorkbenches(boards.map((b) => ({ ...b })));
-
-      try {
-        const res = await generateAction({
-          items: [
-            {
-              english: boards[i]!.english,
-              korean: boards[i]!.korean,
-            },
-          ],
+    let failed = false;
+    try {
+      for (let i = 0; i < boards.length; i++) {
+        setPrepProgress({
+          done: i,
+          total: boards.length,
+          label: `지문 ${i + 1}/${boards.length} · 번역·분석 중…`,
         });
-        if (!res.ok) {
-          setError(res.message);
+
+        const withKorean = await fillKoreanForLines(boards[i]!.lines);
+        boards[i] = {
+          ...boards[i]!,
+          lines: withKorean,
+          selected: allIndexes(withKorean.length),
+          generatingOrganization: true,
+        };
+
+        try {
+          const res = await generateAction({
+            items: [
+              {
+                english: boards[i]!.english,
+                korean: boards[i]!.korean,
+              },
+            ],
+          });
+          if (!res.ok) {
+            failed = true;
+            setError(res.message);
+            boards[i] = { ...boards[i]!, generatingOrganization: false };
+          } else {
+            boards[i] = {
+              ...boards[i]!,
+              title: res.passageTitle || "",
+              titleEn: res.passageTitleEn || "",
+              analysisCards: res.analysisCards,
+              illustrationPrompt: res.illustrationPrompt,
+              comicCaptions: res.comicCaptions ?? [],
+              generatingOrganization: false,
+            };
+          }
+        } catch (e) {
+          failed = true;
+          setError(e instanceof Error ? e.message : "분석 생성 실패");
           boards[i] = { ...boards[i]!, generatingOrganization: false };
-        } else {
-          boards[i] = {
-            ...boards[i]!,
-            title: res.passageTitle || "",
-            titleEn: res.passageTitleEn || "",
-            analysisCards: res.analysisCards,
-            illustrationPrompt: res.illustrationPrompt,
-            comicCaptions: res.comicCaptions ?? [],
-            generatingOrganization: false,
-          };
         }
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "분석 생성 실패");
-        boards[i] = { ...boards[i]!, generatingOrganization: false };
+
+        setPrepProgress({
+          done: i + 1,
+          total: boards.length,
+          label: `지문 ${i + 1}/${boards.length} 완료`,
+        });
       }
+
       setWorkbenches(boards.map((b) => ({ ...b })));
+      // Only open the editor when every passage has AI titles/flow ready
+      if (!failed) {
+        setStep(2);
+      }
+    } finally {
+      setPrepLoading(false);
     }
   }
 
@@ -499,6 +530,7 @@ export function LessonMaterialsInputWizard({
         const res = await saveAction({
           items,
           projectTitle: board.title.trim() || null,
+          projectTitleEn: board.titleEn.trim() || null,
           analysisCards: board.analysisCards ?? undefined,
           illustrationPrompt:
             board.illustrationPrompt.trim().length > 0
@@ -540,8 +572,44 @@ export function LessonMaterialsInputWizard({
   }
 
   return (
-    <div className="px-4">
+    <div className="relative px-4">
       <LessonMaterialsStepTop current={step} />
+
+      {prepLoading ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-200">
+          <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+            <p className="text-center text-lg font-bold text-slate-900">
+              AI 자료 준비 중
+            </p>
+            <p className="mt-2 text-center text-sm text-slate-600">
+              {prepProgress.label || "잠시만 기다려 주세요…"}
+            </p>
+            <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-violet-600 transition-all duration-300"
+                style={{
+                  width: `${
+                    prepProgress.total > 0
+                      ? Math.round(
+                          (prepProgress.done / prepProgress.total) * 100
+                        )
+                      : 0
+                  }%`,
+                }}
+              />
+            </div>
+            <p className="mt-3 text-center text-2xl font-bold text-violet-700">
+              {prepProgress.total > 0
+                ? Math.round((prepProgress.done / prepProgress.total) * 100)
+                : 0}
+              %
+            </p>
+            <p className="mt-1 text-center text-xs text-slate-400">
+              완료된 뒤에 편집 화면으로 이동합니다
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {step === 1 ? (
         <div className="mx-auto max-w-6xl space-y-6">
@@ -638,9 +706,9 @@ export function LessonMaterialsInputWizard({
                 size="md"
                 variant="secondary"
                 onClick={() => void handleNext()}
-                disabled={!canGoNext()}
+                disabled={!canGoNext() || prepLoading}
               >
-                다음 단계로 →
+                {prepLoading ? "AI 준비 중…" : "다음 단계로 →"}
               </Button>
             </div>
           </div>

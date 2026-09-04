@@ -122,6 +122,14 @@ export function LessonPackWorkbench({
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [prepLoading, setPrepLoading] = useState(() =>
+    initialProjects.some((p) => p.vocab.length === 0)
+  );
+  const [prepProgress, setPrepProgress] = useState({
+    done: 0,
+    total: Math.max(1, initialProjects.filter((p) => p.vocab.length === 0).length),
+  });
+  const [prepRetryKey, setPrepRetryKey] = useState(0);
   const [saving, setSaving] = useState(false);
   const [showKorean, setShowKorean] = useState(true);
   const [boldLessonBody, setBoldLessonBody] = useState(true);
@@ -142,97 +150,125 @@ export function LessonPackWorkbench({
 
   const project = projects[activeIdx] ?? null;
 
-  const sortedLessonItems = useMemo(() => {
-    if (!project) return [];
-    return project.items
-      .slice()
-      .sort((a, b) => a.order_index - b.order_index);
-  }, [project]);
+  type TestRow = {
+    word: string;
+    choices: string[];
+    answers: string[];
+  };
+
+  const testsByProject = useMemo(() => {
+    return projects.map((p) => {
+      const poolBase = p.vocab.flatMap((v) => [
+        ...v.synonyms,
+        ...v.antonyms,
+        v.word,
+      ]);
+      const syn: TestRow[] = p.vocab
+        .filter((v) => v.synonyms.length > 0)
+        .map((v) => {
+          const pool = p.vocab
+            .filter((o) => o.word !== v.word)
+            .flatMap((o) => [...o.synonyms, ...o.antonyms, o.word]);
+          return {
+            word: v.word,
+            choices: buildChoiceList(v.synonyms, v.antonyms, pool),
+            answers: v.synonyms,
+          };
+        });
+      const ant: TestRow[] = p.vocab
+        .filter((v) => v.antonyms.length > 0)
+        .map((v) => {
+          const pool = p.vocab
+            .filter((o) => o.word !== v.word)
+            .flatMap((o) => [...o.synonyms, ...o.antonyms, o.word]);
+          return {
+            word: v.word,
+            choices: buildChoiceList(v.antonyms, v.synonyms, pool),
+            answers: v.antonyms,
+          };
+        });
+      void poolBase;
+      return { syn, ant };
+    });
+  }, [projects]);
 
   const packMeasureRef = useRef<HTMLDivElement>(null);
   const [pageChunks, setPageChunks] = useState<string[][]>([[]]);
 
-  // Auto-shuffle once when vocab content changes (no manual reshuffle)
   const vocabFingerprint = useMemo(
     () =>
-      (project?.vocab ?? [])
-        .map(
-          (v) =>
-            `${v.word}|${v.synonyms.join(",")}|${v.antonyms.join(",")}`
+      projects
+        .map((p) =>
+          p.vocab
+            .map(
+              (v) =>
+                `${v.word}|${v.synonyms.join(",")}|${v.antonyms.join(",")}`
+            )
+            .join(";")
         )
-        .join(";"),
-    [project?.vocab]
+        .join("||"),
+    [projects]
   );
 
-  const synTests = useMemo(() => {
-    if (!project) return [];
-    void vocabFingerprint;
-    return project.vocab
-      .filter((v) => v.synonyms.length > 0)
-      .map((v) => {
-        const pool = project.vocab
-          .filter((o) => o.word !== v.word)
-          .flatMap((o) => [...o.synonyms, ...o.antonyms, o.word]);
-        return {
-          word: v.word,
-          choices: buildChoiceList(v.synonyms, v.antonyms, pool),
-          answers: v.synonyms,
-        };
-      });
-  }, [project, vocabFingerprint]);
-
-  const antTests = useMemo(() => {
-    if (!project) return [];
-    void vocabFingerprint;
-    return project.vocab
-      .filter((v) => v.antonyms.length > 0)
-      .map((v) => {
-        const pool = project.vocab
-          .filter((o) => o.word !== v.word)
-          .flatMap((o) => [...o.synonyms, ...o.antonyms, o.word]);
-        return {
-          word: v.word,
-          choices: buildChoiceList(v.antonyms, v.synonyms, pool),
-          answers: v.antonyms,
-        };
-      });
-  }, [project, vocabFingerprint]);
-
-  /** Continuous section flow — page breaks fall between these blocks. */
+  /** All passages in selection order, continuous flow. */
   const packBlocks = useMemo(() => {
-    if (!project) {
-      return [] as Array<{
-        id: string;
-        keepTogether: boolean;
-        stickToNext?: boolean;
-      }>;
-    }
     const blocks: Array<{
       id: string;
       keepTogether: boolean;
       stickToNext?: boolean;
-    }> = [
-      { id: "doc-header", keepTogether: true },
-      { id: "vocab-heading", keepTogether: true, stickToNext: true },
-      { id: "vocab-table-head", keepTogether: true, stickToNext: true },
-    ];
-    for (let i = 0; i < project.vocab.length; i++) {
-      blocks.push({ id: `vocab-row-${i}`, keepTogether: true });
-    }
-    blocks.push({ id: "vocab-add", keepTogether: true });
-    blocks.push({ id: "test-heading", keepTogether: true, stickToNext: true });
-    blocks.push({
-      id: synTests.length || antTests.length ? "test-body" : "test-empty",
-      keepTogether: true,
+    }> = [{ id: "doc-header", keepTogether: true }];
+
+    projects.forEach((p, pi) => {
+      const tests = testsByProject[pi] ?? { syn: [], ant: [] };
+      const items = p.items
+        .slice()
+        .sort((a, b) => a.order_index - b.order_index);
+
+      blocks.push({
+        id: `p${pi}:passage-bar`,
+        keepTogether: true,
+        stickToNext: true,
+      });
+      blocks.push({
+        id: `p${pi}:vocab-heading`,
+        keepTogether: true,
+        stickToNext: true,
+      });
+      blocks.push({
+        id: `p${pi}:vocab-head`,
+        keepTogether: true,
+        stickToNext: true,
+      });
+      for (let i = 0; i < p.vocab.length; i++) {
+        blocks.push({ id: `p${pi}:vocab-row:${i}`, keepTogether: true });
+      }
+      blocks.push({ id: `p${pi}:vocab-add`, keepTogether: true });
+
+      blocks.push({
+        id: `p${pi}:test-heading`,
+        keepTogether: true,
+        stickToNext: true,
+      });
+      if (tests.syn.length > 0 || tests.ant.length > 0) {
+        blocks.push({ id: `p${pi}:test-questions`, keepTogether: true });
+        blocks.push({ id: `p${pi}:test-answers`, keepTogether: true });
+      } else {
+        blocks.push({ id: `p${pi}:test-empty`, keepTogether: true });
+      }
+
+      blocks.push({
+        id: `p${pi}:lesson-heading`,
+        keepTogether: true,
+        stickToNext: true,
+      });
+      for (let i = 0; i < items.length; i++) {
+        blocks.push({ id: `p${pi}:lesson-item:${i}`, keepTogether: true });
+      }
+      blocks.push({ id: `p${pi}:flow`, keepTogether: true });
     });
-    blocks.push({ id: "lesson-heading", keepTogether: true, stickToNext: true });
-    blocks.push({ id: "lesson-passage", keepTogether: true, stickToNext: true });
-    for (let i = 0; i < sortedLessonItems.length; i++) {
-      blocks.push({ id: `lesson-item-${i}`, keepTogether: true });
-    }
-    blocks.push({ id: "flow-block", keepTogether: true });
+
     return blocks;
-  }, [project, synTests.length, antTests.length, sortedLessonItems]);
+  }, [projects, testsByProject]);
 
   useEffect(() => {
     const id = "lesson-pack-print-page-size-style";
@@ -249,12 +285,69 @@ export function LessonPackWorkbench({
     };
   }, []);
 
+  // Auto-generate vocab for every selected passage that has none (gate UI until done)
   useEffect(() => {
-    if (!project) return;
-    if (project.vocab.length > 0) return;
-    void autoGenerate(project.id, activeIdx);
+    const pending = projects
+      .map((p, i) => ({ p, i }))
+      .filter(({ p }) => p.vocab.length === 0);
+    if (pending.length === 0) {
+      setPrepLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setPrepLoading(true);
+    setError(null);
+    setPrepProgress({ done: 0, total: pending.length });
+
+    void (async () => {
+      let failed = false;
+      for (let n = 0; n < pending.length; n++) {
+        if (cancelled) return;
+        const { p, i } = pending[n]!;
+        setGenerating(true);
+        try {
+          const res = await generateAndSaveLessonPackVocabAction(role, {
+            projectId: p.id,
+          });
+          if (!res.ok) {
+            failed = true;
+            setError(res.message);
+          } else {
+            setProjects((prev) =>
+              prev.map((row, idx) =>
+                idx === i
+                  ? { ...row, vocab: res.vocab, headerLabel: res.headerLabel }
+                  : row
+              )
+            );
+            if (i === 0) setHeaderLabel(res.headerLabel);
+          }
+        } catch (e) {
+          failed = true;
+          setError(e instanceof Error ? e.message : "단어 생성 실패");
+        } finally {
+          setGenerating(false);
+        }
+        if (!cancelled) {
+          setPrepProgress({ done: n + 1, total: pending.length });
+        }
+      }
+      if (!cancelled) {
+        if (failed) {
+          // Stay on loading gate until retry succeeds — incomplete pack must not flash
+          return;
+        }
+        setPrepLoading(false);
+        setMessage("단어를 자동으로 정리했습니다.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project?.id]);
+  }, [projects.map((p) => p.id).join(","), prepRetryKey]);
 
   async function autoGenerate(projectId: string, idx: number) {
     setGenerating(true);
@@ -281,10 +374,14 @@ export function LessonPackWorkbench({
     }
   }
 
-  function updateVocab(index: number, patch: Partial<LessonPackVocabItem>) {
+  function updateVocabAt(
+    pi: number,
+    index: number,
+    patch: Partial<LessonPackVocabItem>
+  ) {
     setProjects((prev) =>
-      prev.map((p, pi) => {
-        if (pi !== activeIdx) return p;
+      prev.map((p, i) => {
+        if (i !== pi) return p;
         const vocab = p.vocab.map((v, vi) =>
           vi === index ? { ...v, ...patch } : v
         );
@@ -293,7 +390,8 @@ export function LessonPackWorkbench({
     );
   }
 
-  function updateVocabListField(
+  function updateVocabListFieldAt(
+    pi: number,
     index: number,
     field: "synonyms" | "antonyms",
     text: string
@@ -302,13 +400,13 @@ export function LessonPackWorkbench({
       .split(/[,/|]/)
       .map((s) => s.trim())
       .filter(Boolean);
-    updateVocab(index, { [field]: list });
+    updateVocabAt(pi, index, { [field]: list });
   }
 
-  function addVocabRow() {
+  function addVocabRowAt(pi: number) {
     setProjects((prev) =>
-      prev.map((p, pi) =>
-        pi === activeIdx
+      prev.map((p, i) =>
+        i === pi
           ? {
               ...p,
               vocab: [
@@ -321,33 +419,38 @@ export function LessonPackWorkbench({
     );
   }
 
-  function removeVocabRow(index: number) {
+  function removeVocabRowAt(pi: number, index: number) {
     setProjects((prev) =>
-      prev.map((p, pi) =>
-        pi === activeIdx
-          ? { ...p, vocab: p.vocab.filter((_, i) => i !== index) }
+      prev.map((p, i) =>
+        i === pi
+          ? { ...p, vocab: p.vocab.filter((_, vi) => vi !== index) }
           : p
       )
     );
   }
 
   async function handleSave() {
-    if (!project) return;
     setSaving(true);
     setError(null);
     setMessage(null);
     try {
-      const res = await saveLessonPackAction(role, {
-        projectId: project.id,
-        headerLabel,
-        vocab: project.vocab.filter((v) => v.word.trim()),
-        titleEn: project.titleEn,
-      });
-      if (!res.ok) {
-        setError(res.message);
-        return;
+      for (const p of projects) {
+        const res = await saveLessonPackAction(role, {
+          projectId: p.id,
+          headerLabel,
+          vocab: p.vocab.filter((v) => v.word.trim()),
+          titleEn: p.titleEn,
+        });
+        if (!res.ok) {
+          setError(res.message);
+          return;
+        }
       }
-      setMessage("저장되었습니다.");
+      setMessage(
+        projects.length > 1
+          ? `${projects.length}개 지문을 저장했습니다.`
+          : "저장되었습니다."
+      );
     } finally {
       setSaving(false);
     }
@@ -371,7 +474,7 @@ export function LessonPackWorkbench({
   // Pack continuous blocks onto A4 pages. keepTogether → move whole block to next page
   // rather than clipping; stickToNext → don't leave a heading alone at page bottom.
   useLayoutEffect(() => {
-    if (!project) {
+    if (projects.length === 0) {
       setPageChunks([[]]);
       return;
     }
@@ -440,7 +543,7 @@ export function LessonPackWorkbench({
     flush();
     setPageChunks(pages.length > 0 ? pages : [[]]);
   }, [
-    project,
+    projects,
     packBlocks,
     vocabFingerprint,
     fontSizePx,
@@ -450,8 +553,7 @@ export function LessonPackWorkbench({
     themeColor,
     docTitle,
     headerLabel,
-    synTests,
-    antTests,
+    testsByProject,
   ]);
 
   const titleSizes = {
@@ -474,10 +576,78 @@ export function LessonPackWorkbench({
     );
   }
 
+  if (prepLoading) {
+    const pct =
+      prepProgress.total > 0
+        ? Math.round((prepProgress.done / prepProgress.total) * 100)
+        : 0;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-200">
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
+          <p className="text-center text-lg font-bold text-slate-900">
+            수업용 자료 준비 중
+          </p>
+          <p className="mt-2 text-center text-sm text-slate-600">
+            단어·동반의어를 생성하고 있습니다…
+          </p>
+          <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-violet-600 transition-all duration-300"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="mt-3 text-center text-2xl font-bold text-violet-700">
+            {pct}%
+          </p>
+          <p className="mt-1 text-center text-xs text-slate-400">
+            {prepProgress.done}/{prepProgress.total} 지문 · 완료 후 미리보기가
+            열립니다
+          </p>
+          {error ? (
+            <div className="mt-4 space-y-3 text-center">
+              <p className="text-sm text-rose-600">{error}</p>
+              <button
+                type="button"
+                className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+                onClick={() => {
+                  setError(null);
+                  setPrepRetryKey((k) => k + 1);
+                }}
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   const totalPages = Math.max(1, pageChunks.length);
 
+  function parseBlockId(blockId: string): {
+    pi: number;
+    kind: string;
+    sub: string | null;
+  } | null {
+    if (blockId === "doc-header") return { pi: -1, kind: "doc-header", sub: null };
+    const m = /^p(\d+):([^:]+)(?::(.+))?$/.exec(blockId);
+    if (!m) return null;
+    return {
+      pi: Number(m[1]),
+      kind: m[2]!,
+      sub: m[3] ?? null,
+    };
+  }
+
   function renderPackBlock(blockId: string, interactive: boolean): ReactNode {
-    if (blockId === "doc-header") {
+    const parsed = parseBlockId(blockId);
+    if (!parsed) return null;
+
+    const accentTest =
+      themeColor === "#DC2626" ? "#5b21b6" : themeColor;
+
+    if (parsed.kind === "doc-header") {
       return (
         <div>
           <div
@@ -496,27 +666,43 @@ export function LessonPackWorkbench({
             className="mt-2 h-1 w-full"
             style={{ backgroundColor: themeColor }}
           />
-          <div className="mt-3 rounded-lg bg-slate-100 px-3 py-2">
-            <div
-              className="font-bold text-slate-900"
-              style={{ fontSize: titleSizes.passageTitle }}
-            >
-              {String(activeIdx + 1).padStart(2, "0")} {project!.title}
-            </div>
-            {project!.titleEn ? (
-              <div className="mt-0.5 text-slate-600" style={{ fontSize: 12 }}>
-                ({project!.titleEn})
-              </div>
-            ) : null}
-          </div>
+          <p className="mt-2 text-xs text-slate-500">
+            총 {projects.length}지문 · 선택 순서대로 이어집니다
+          </p>
         </div>
       );
     }
 
-    if (blockId === "vocab-heading") {
+    const board = projects[parsed.pi];
+    if (!board) return null;
+    const tests = testsByProject[parsed.pi] ?? { syn: [], ant: [] };
+    const lessonItems = board.items
+      .slice()
+      .sort((a, b) => a.order_index - b.order_index);
+    const pi = parsed.pi;
+
+    if (parsed.kind === "passage-bar") {
+      return (
+        <div className="mt-4 rounded-lg bg-slate-100 px-3 py-2">
+          <div
+            className="font-bold text-slate-900"
+            style={{ fontSize: titleSizes.passageTitle }}
+          >
+            {String(pi + 1).padStart(2, "0")} {board.title}
+          </div>
+          {board.titleEn ? (
+            <div className="mt-0.5 text-slate-600" style={{ fontSize: 12 }}>
+              ({board.titleEn})
+            </div>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (parsed.kind === "vocab-heading") {
       return (
         <h2
-          className="mt-6 font-bold leading-snug"
+          className="mt-4 font-bold leading-snug"
           style={{ color: themeColor, fontSize: titleSizes.section }}
         >
           1. 단어정리
@@ -524,10 +710,10 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId === "vocab-table-head") {
+    if (parsed.kind === "vocab-head") {
       return (
         <div
-          className="mt-2 grid table-fixed border-b border-slate-200 pb-1 text-slate-500"
+          className="mt-2 grid border-b border-slate-200 pb-1 text-slate-500"
           style={{
             fontSize: 10.5,
             gridTemplateColumns: interactive
@@ -545,9 +731,9 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId.startsWith("vocab-row-")) {
-      const i = Number(blockId.slice("vocab-row-".length));
-      const v = project!.vocab[i];
+    if (parsed.kind === "vocab-row") {
+      const i = Number(parsed.sub);
+      const v = board.vocab[i];
       if (!v) return null;
       return (
         <div
@@ -567,7 +753,9 @@ export function LessonPackWorkbench({
                 className="w-full border-0 bg-transparent font-bold outline-none"
                 style={{ color: themeColor, fontSize: "inherit" }}
                 value={v.word}
-                onChange={(e) => updateVocab(i, { word: e.target.value })}
+                onChange={(e) =>
+                  updateVocabAt(pi, i, { word: e.target.value })
+                }
               />
             ) : (
               <span className="font-bold" style={{ color: themeColor }}>
@@ -581,7 +769,9 @@ export function LessonPackWorkbench({
                 className="w-full resize-none overflow-hidden border-0 bg-transparent outline-none"
                 style={{ fontSize: "0.95em", lineHeight: 1.25 }}
                 value={v.meaning}
-                onChange={(e) => updateVocab(i, { meaning: e.target.value })}
+                onChange={(e) =>
+                  updateVocabAt(pi, i, { meaning: e.target.value })
+                }
                 rows={Math.max(1, Math.ceil(v.meaning.length / 20))}
               />
             ) : (
@@ -595,7 +785,7 @@ export function LessonPackWorkbench({
                 style={{ fontSize: "0.88em", lineHeight: 1.25 }}
                 value={v.synonyms.join(", ")}
                 onChange={(e) =>
-                  updateVocabListField(i, "synonyms", e.target.value)
+                  updateVocabListFieldAt(pi, i, "synonyms", e.target.value)
                 }
                 rows={Math.max(1, Math.ceil(v.synonyms.join(", ").length / 26))}
               />
@@ -612,7 +802,7 @@ export function LessonPackWorkbench({
                 style={{ fontSize: "0.88em", lineHeight: 1.25 }}
                 value={v.antonyms.join(", ")}
                 onChange={(e) =>
-                  updateVocabListField(i, "antonyms", e.target.value)
+                  updateVocabListFieldAt(pi, i, "antonyms", e.target.value)
                 }
                 rows={Math.max(1, Math.ceil(v.antonyms.join(", ").length / 26))}
               />
@@ -627,7 +817,7 @@ export function LessonPackWorkbench({
               <button
                 type="button"
                 className="text-rose-400"
-                onClick={() => removeVocabRow(i)}
+                onClick={() => removeVocabRowAt(pi, i)}
               >
                 ✕
               </button>
@@ -637,19 +827,13 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId === "vocab-add") {
-      if (!interactive) {
-        return generating ? (
-          <p className="mt-2 text-xs text-slate-500">단어를 생성하는 중…</p>
-        ) : (
-          <div className="h-2" />
-        );
-      }
+    if (parsed.kind === "vocab-add") {
+      if (!interactive) return <div className="h-1" />;
       return (
         <div className="mt-2 flex justify-center print:hidden">
           <button
             type="button"
-            onClick={addVocabRow}
+            onClick={() => addVocabRowAt(pi)}
             className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600"
           >
             + 단어 추가
@@ -658,21 +842,30 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId === "test-heading") {
+    if (parsed.kind === "test-heading") {
       return (
-        <h2
-          className="mt-6 font-bold leading-snug"
-          style={{
-            color: themeColor === "#DC2626" ? "#5b21b6" : themeColor,
-            fontSize: titleSizes.section,
-          }}
-        >
-          2. 동/반의어 TEST
-        </h2>
+        <div className="mt-6">
+          <div
+            className="font-semibold"
+            style={{ color: accentTest, fontSize: 12 }}
+          >
+            {headerLabel}
+          </div>
+          <h2
+            className="mt-1 font-bold leading-tight text-slate-900"
+            style={{ fontSize: 20 }}
+          >
+            동/반의어 TEST
+          </h2>
+          <div
+            className="mt-2 h-0.5 w-full"
+            style={{ backgroundColor: accentTest }}
+          />
+        </div>
       );
     }
 
-    if (blockId === "test-empty") {
+    if (parsed.kind === "test-empty") {
       return (
         <p className="mt-2 text-xs text-slate-500">
           동반의어가 있는 단어가 없어 테스트를 생략합니다.
@@ -680,79 +873,113 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId === "test-body") {
+    if (parsed.kind === "test-questions") {
       return (
-        <div className="mt-2">
+        <div
+          className="mt-3 grid gap-3 md:grid-cols-2"
+          style={{ fontSize: 11, lineHeight: 1.45 }}
+        >
+          {tests.syn.length > 0 ? (
+            <div className="overflow-hidden rounded-xl border border-violet-200">
+              <div className="flex items-center justify-between gap-2 bg-violet-100 px-3 py-2 text-[11px] font-semibold text-violet-900">
+                <span className="min-w-0 truncate">[{board.title}]</span>
+                <span className="shrink-0">동의어 찾기</span>
+              </div>
+              <ol className="space-y-2 px-3 py-2.5">
+                {tests.syn.map((row, i) => (
+                  <li key={`syn-q-${pi}-${i}`} className="break-words">
+                    <span className="font-bold">
+                      {String(i + 1).padStart(2, "0")} {row.word}
+                    </span>
+                    {" : "}
+                    {row.choices.join(" / ")}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+          {tests.ant.length > 0 ? (
+            <div className="overflow-hidden rounded-xl border border-violet-200">
+              <div className="flex items-center justify-between gap-2 bg-violet-100 px-3 py-2 text-[11px] font-semibold text-violet-900">
+                <span className="min-w-0 truncate">[{board.title}]</span>
+                <span className="shrink-0">반의어 찾기</span>
+              </div>
+              <ol className="space-y-2 px-3 py-2.5">
+                {tests.ant.map((row, i) => (
+                  <li key={`ant-q-${pi}-${i}`} className="break-words">
+                    <span className="font-bold">
+                      {String(i + 1).padStart(2, "0")} {row.word}
+                    </span>
+                    {" : "}
+                    {row.choices.join(" / ")}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (parsed.kind === "test-answers") {
+      return (
+        <div className="mt-5">
           <div
-            className="grid gap-2 md:grid-cols-2"
-            style={{ fontSize: 10, lineHeight: 1.35 }}
+            className="font-semibold"
+            style={{ color: accentTest, fontSize: 12 }}
           >
-            {synTests.length > 0 ? (
-              <div className="rounded-lg border border-violet-200">
-                <div
-                  className="flex items-center justify-between gap-2 rounded-t-lg bg-violet-100 px-2 py-1 font-semibold text-violet-800"
-                  style={{ fontSize: 10 }}
-                >
-                  <span className="truncate">[{project!.title}]</span>
-                  <span>동의어 찾기</span>
+            {headerLabel}
+          </div>
+          <h3
+            className="mt-1 font-bold leading-tight text-slate-900"
+            style={{ fontSize: 18 }}
+          >
+            동/반의어 TEST 정답
+          </h3>
+          <div
+            className="mt-2 h-0.5 w-full"
+            style={{ backgroundColor: accentTest }}
+          />
+          <div
+            className="mt-3 grid gap-3 md:grid-cols-2"
+            style={{ fontSize: 11, lineHeight: 1.45 }}
+          >
+            {tests.syn.length > 0 ? (
+              <div className="overflow-hidden rounded-xl border border-violet-200">
+                <div className="flex items-center justify-between gap-2 bg-violet-100 px-3 py-2 text-[11px] font-semibold text-violet-900">
+                  <span className="min-w-0 truncate">[{board.title}]</span>
+                  <span className="shrink-0">동의어</span>
                 </div>
-                <ol className="space-y-1 px-2 py-1.5">
-                  {synTests.map((row, i) => (
-                    <li key={`syn-${i}`} className="break-words">
+                <ol className="space-y-1.5 px-3 py-2.5">
+                  {tests.syn.map((row, i) => (
+                    <li key={`syn-a-${pi}-${i}`} className="break-words">
                       <span className="font-bold">
                         {String(i + 1).padStart(2, "0")} {row.word}
                       </span>
-                      {" : "}
-                      {row.choices.join(" / ")}
+                      {": "}
+                      {row.answers.join(", ")}
                     </li>
                   ))}
                 </ol>
-                <div
-                  className="border-t border-violet-100 bg-emerald-50/70 px-2 py-1.5 text-emerald-900"
-                  style={{ fontSize: 8.5, lineHeight: 1.3 }}
-                >
-                  <span className="font-bold">정답 </span>
-                  {synTests
-                    .map(
-                      (row, i) =>
-                        `${i + 1}.${row.word}(${row.answers.join("/")})`
-                    )
-                    .join(" · ")}
-                </div>
               </div>
             ) : null}
-            {antTests.length > 0 ? (
-              <div className="rounded-lg border border-violet-200">
-                <div
-                  className="flex items-center justify-between gap-2 rounded-t-lg bg-violet-100 px-2 py-1 font-semibold text-violet-800"
-                  style={{ fontSize: 10 }}
-                >
-                  <span className="truncate">[{project!.title}]</span>
-                  <span>반의어 찾기</span>
+            {tests.ant.length > 0 ? (
+              <div className="overflow-hidden rounded-xl border border-violet-200">
+                <div className="flex items-center justify-between gap-2 bg-violet-100 px-3 py-2 text-[11px] font-semibold text-violet-900">
+                  <span className="min-w-0 truncate">[{board.title}]</span>
+                  <span className="shrink-0">반의어</span>
                 </div>
-                <ol className="space-y-1 px-2 py-1.5">
-                  {antTests.map((row, i) => (
-                    <li key={`ant-${i}`} className="break-words">
+                <ol className="space-y-1.5 px-3 py-2.5">
+                  {tests.ant.map((row, i) => (
+                    <li key={`ant-a-${pi}-${i}`} className="break-words">
                       <span className="font-bold">
                         {String(i + 1).padStart(2, "0")} {row.word}
                       </span>
-                      {" : "}
-                      {row.choices.join(" / ")}
+                      {": "}
+                      {row.answers.join(", ")}
                     </li>
                   ))}
                 </ol>
-                <div
-                  className="border-t border-violet-100 bg-emerald-50/70 px-2 py-1.5 text-emerald-900"
-                  style={{ fontSize: 8.5, lineHeight: 1.3 }}
-                >
-                  <span className="font-bold">정답 </span>
-                  {antTests
-                    .map(
-                      (row, i) =>
-                        `${i + 1}.${row.word}(${row.answers.join("/")})`
-                    )
-                    .join(" · ")}
-                </div>
               </div>
             ) : null}
           </div>
@@ -760,7 +987,7 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId === "lesson-heading") {
+    if (parsed.kind === "lesson-heading") {
       return (
         <h2
           className="mt-6 font-bold leading-snug"
@@ -771,23 +998,13 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId === "lesson-passage") {
-      return (
-        <div className="mt-2 mb-2 rounded-lg bg-slate-100 px-3 py-2">
-          <div className="font-bold text-slate-900" style={{ fontSize: 13 }}>
-            {String(activeIdx + 1).padStart(2, "0")} {project!.title}
-          </div>
-        </div>
-      );
-    }
-
-    if (blockId.startsWith("lesson-item-")) {
-      const idx = Number(blockId.slice("lesson-item-".length));
-      const it = sortedLessonItems[idx];
+    if (parsed.kind === "lesson-item") {
+      const idx = Number(parsed.sub);
+      const it = lessonItems[idx];
       if (!it) return null;
       return (
         <div
-          className={`grid gap-2 border-b border-slate-100 pb-2 ${
+          className={`mt-1 grid gap-2 border-b border-slate-100 pb-2 ${
             showKorean ? "grid-cols-[22px_3fr_1fr]" : "grid-cols-[22px_1fr]"
           }`}
           style={bodyStyle}
@@ -797,7 +1014,7 @@ export function LessonPackWorkbench({
           </div>
           <div style={{ fontWeight: boldLessonBody ? 700 : 400 }}>
             {interactive
-              ? markVocabInEnglish(it.english_text, project!.vocab, themeColor)
+              ? markVocabInEnglish(it.english_text, board.vocab, themeColor)
               : it.english_text}
           </div>
           {showKorean ? (
@@ -814,7 +1031,7 @@ export function LessonPackWorkbench({
       );
     }
 
-    if (blockId === "flow-block") {
+    if (parsed.kind === "flow") {
       return (
         <div className="mt-6">
           <h2
@@ -825,17 +1042,17 @@ export function LessonPackWorkbench({
           </h2>
           <div
             className={`grid gap-4 ${
-              project!.illustrationUrl
+              board.illustrationUrl
                 ? "grid-cols-1 md:grid-cols-2"
                 : "grid-cols-1"
             }`}
           >
-            {project!.analysisCards.length > 0 ? (
+            {board.analysisCards.length > 0 ? (
               <div
                 className="rounded-xl bg-slate-100 p-4"
                 style={{
                   fontSize: Math.max(11, fontSizePx - 1),
-                  lineHeight: `${lineHeightPct / 100}`,
+                  lineHeight: 1.45,
                 }}
               >
                 <div className="flex items-center gap-2">
@@ -851,7 +1068,7 @@ export function LessonPackWorkbench({
                   </h3>
                 </div>
                 <ol className="mt-3 space-y-2.5">
-                  {project!.analysisCards.map((c, i) => (
+                  {board.analysisCards.map((c, i) => (
                     <li key={`${i}-${c.title}`} className="break-inside-avoid">
                       <div className="font-bold text-slate-900">
                         <span style={{ color: themeColor }}>{i + 1}.</span>{" "}
@@ -865,11 +1082,11 @@ export function LessonPackWorkbench({
             ) : (
               <p className="text-sm text-slate-500">논리 흐름이 없습니다.</p>
             )}
-            {project!.illustrationUrl ? (
+            {board.illustrationUrl ? (
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={project!.illustrationUrl}
+                  src={board.illustrationUrl}
                   alt="4컷 삽화"
                   className="h-full w-full object-contain"
                 />
@@ -968,7 +1185,9 @@ export function LessonPackWorkbench({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">본문 줄간격</span>
+              <span className="text-xs font-bold text-slate-500">
+                수업용자료 본문 줄간격
+              </span>
               <span className="text-xs text-slate-500">{lineHeightPct}%</span>
             </div>
             <input
