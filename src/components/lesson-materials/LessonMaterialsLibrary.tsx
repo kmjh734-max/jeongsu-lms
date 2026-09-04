@@ -61,8 +61,7 @@ export function LessonMaterialsLibrary({
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [editingMetaId, setEditingMetaId] = useState<string | null>(null);
-  const [editTitleEn, setEditTitleEn] = useState("");
-  const [editSource, setEditSource] = useState("");
+  const [editTitle, setEditTitle] = useState("");
   const [menuFolderId, setMenuFolderId] = useState<string | null>(null);
   const [moveOpen, setMoveOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
@@ -766,13 +765,98 @@ export function LessonMaterialsLibrary({
                         <div className="truncate font-semibold text-slate-900">
                           {p.title}
                         </div>
+                      ) : editingMetaId === p.id ? (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <input
+                            className="min-w-0 flex-1 rounded-lg border border-violet-300 px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-violet-200"
+                            value={editTitle}
+                            autoFocus
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape") setEditingMetaId(null);
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const name = editTitle.trim();
+                                if (!name) return;
+                                runAction(async () => {
+                                  const res =
+                                    await updateLessonMaterialProjectMeta(
+                                      role,
+                                      { projectId: p.id, title: name }
+                                    );
+                                  if (res.ok) setEditingMetaId(null);
+                                  return res.ok
+                                    ? {
+                                        ok: true,
+                                        message: "이름을 변경했습니다.",
+                                      }
+                                    : res;
+                                });
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={pending || !editTitle.trim()}
+                            onClick={() => {
+                              const name = editTitle.trim();
+                              if (!name) return;
+                              runAction(async () => {
+                                const res =
+                                  await updateLessonMaterialProjectMeta(role, {
+                                    projectId: p.id,
+                                    title: name,
+                                  });
+                                if (res.ok) setEditingMetaId(null);
+                                return res.ok
+                                  ? {
+                                      ok: true,
+                                      message: "이름을 변경했습니다.",
+                                    }
+                                  : res;
+                              });
+                            }}
+                          >
+                            저장
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setEditingMetaId(null)}
+                          >
+                            취소
+                          </Button>
+                        </div>
                       ) : (
-                        <Link
-                          href={`${base}/project/${p.id}`}
-                          className="truncate font-semibold text-slate-900 hover:text-violet-700"
-                        >
-                          {p.title}
-                        </Link>
+                        <div className="flex items-start gap-1.5">
+                          <Link
+                            href={`${base}/project/${p.id}`}
+                            className="min-w-0 flex-1 truncate font-semibold text-slate-900 hover:text-violet-700"
+                          >
+                            {p.title}
+                          </Link>
+                          <button
+                            type="button"
+                            title="이름 변경"
+                            aria-label="이름 변경"
+                            className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-violet-50 hover:text-violet-700"
+                            onClick={() => {
+                              setEditingMetaId(p.id);
+                              setEditTitle(p.title);
+                            }}
+                          >
+                            <svg
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                              className="h-4 w-4"
+                              aria-hidden
+                            >
+                              <path d="M13.586 3.586a2 2 0 1 1 2.828 2.828l-.793.793-2.828-2.828.793-.793ZM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828Z" />
+                            </svg>
+                          </button>
+                        </div>
                       )}
                       {p.title_en?.trim() ? (
                         <p className="mt-0.5 truncate text-xs text-slate-500">
@@ -789,63 +873,6 @@ export function LessonMaterialsLibrary({
                           {snippet}
                         </p>
                       ) : null}
-                      {!inTrash && editingMetaId === p.id ? (
-                        <div className="mt-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                          <label className="block space-y-1">
-                            <span className="text-[11px] font-bold text-slate-500">
-                              영어 제목
-                            </span>
-                            <input
-                              className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-                              value={editTitleEn}
-                              onChange={(e) => setEditTitleEn(e.target.value)}
-                              placeholder="English title"
-                            />
-                          </label>
-                          <label className="block space-y-1">
-                            <span className="text-[11px] font-bold text-slate-500">
-                              출처
-                            </span>
-                            <input
-                              className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
-                              value={editSource}
-                              onChange={(e) => setEditSource(e.target.value)}
-                              placeholder="예: 2024 수능특강"
-                            />
-                          </label>
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              size="sm"
-                              disabled={pending}
-                              onClick={() => {
-                                runAction(async () => {
-                                  const res = await updateLessonMaterialProjectMeta(
-                                    role,
-                                    {
-                                      projectId: p.id,
-                                      titleEn: editTitleEn,
-                                      source: editSource,
-                                    }
-                                  );
-                                  if (res.ok) setEditingMetaId(null);
-                                  return res;
-                                });
-                              }}
-                            >
-                              저장
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => setEditingMetaId(null)}
-                            >
-                              취소
-                            </Button>
-                          </div>
-                        </div>
-                      ) : null}
                     </div>
                     <div className="shrink-0 text-right text-xs text-slate-500">
                       <div>{formatUpdatedAt(p.updated_at)}</div>
@@ -853,19 +880,6 @@ export function LessonMaterialsLibrary({
                         문장 {data.itemCountByProjectId[p.id] ?? 0}개 ·{" "}
                         {folderLabel}
                       </div>
-                      {!inTrash ? (
-                        <button
-                          type="button"
-                          className="mt-2 text-violet-700 hover:underline"
-                          onClick={() => {
-                            setEditingMetaId(p.id);
-                            setEditTitleEn(p.title_en ?? "");
-                            setEditSource(p.source ?? "");
-                          }}
-                        >
-                          출처·영어제목
-                        </button>
-                      ) : null}
                     </div>
                   </div>
                 </li>
