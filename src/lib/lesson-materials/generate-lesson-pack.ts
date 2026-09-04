@@ -138,16 +138,46 @@ export function shuffleArray<T>(items: T[]): T[] {
   return a;
 }
 
-/** Build mixed choices for synonym/antonym tests (order randomized). */
+/** Build mixed choices for synonym/antonym tests (order randomized).
+ * Always keeps every `primary` answer in the list; fills the rest with distractors.
+ */
 export function buildChoiceList(
   primary: string[],
   secondary: string[],
-  extra: string[] = []
+  extra: string[] = [],
+  maxChoices = 6
 ): string[] {
-  const set = new Set<string>();
-  for (const w of [...primary, ...secondary, ...extra]) {
-    const t = w.trim();
-    if (t) set.add(t);
+  const clean = (w: string) => w.trim();
+  const answers: string[] = [];
+  const answerLower = new Set<string>();
+  for (const w of primary) {
+    const t = clean(w);
+    if (!t) continue;
+    const low = t.toLowerCase();
+    if (answerLower.has(low)) continue;
+    answerLower.add(low);
+    answers.push(t);
   }
-  return shuffleArray([...set]).slice(0, 6);
+
+  const distractors: string[] = [];
+  const seen = new Set(answerLower);
+  for (const w of [...secondary, ...extra]) {
+    const t = clean(w);
+    if (!t) continue;
+    const low = t.toLowerCase();
+    if (seen.has(low)) continue;
+    seen.add(low);
+    distractors.push(t);
+  }
+
+  if (answers.length === 0) {
+    return shuffleArray(distractors).slice(0, maxChoices);
+  }
+
+  if (answers.length >= maxChoices) {
+    return shuffleArray(answers).slice(0, maxChoices);
+  }
+
+  const filler = shuffleArray(distractors).slice(0, maxChoices - answers.length);
+  return shuffleArray([...answers, ...filler]);
 }
