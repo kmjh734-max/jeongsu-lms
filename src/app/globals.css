@@ -2255,11 +2255,17 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 
   .lesson-pack-a4-sheet {
     box-shadow: none !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
     break-after: page;
     page-break-after: always;
   }
 
-  .lesson-pack-a4-sheet:last-child {
+  .lesson-pack-a4-sheet:last-child,
+  .lesson-pack-a4-sheet.lesson-pack-a4-sheet--last {
     break-after: auto;
     page-break-after: auto;
   }
@@ -2494,15 +2500,18 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     page-break-before: always;
   }
 
-  /* Lesson pack: fixed 297mm + break creates blank pages in Chrome */
+  /* Lesson pack: fixed A4 box (same as preview) so footer logo stays at page bottom */
   .lesson-pack-a4-sheet {
-    min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
     box-shadow: none !important;
-    overflow: visible !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
     page-break-after: always !important;
     break-after: page !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .lesson-pack-a4-sheet.lesson-pack-a4-sheet--last {

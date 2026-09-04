@@ -65,18 +65,20 @@ function A4Sheet({
 }) {
   return (
     <article
-      className={`lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none ${className ?? ""}`.trim()}
+      className={`lesson-pack-a4-sheet relative box-border flex flex-col overflow-hidden bg-white shadow-xl print:shadow-none ${className ?? ""}`.trim()}
       style={{
         width: A4_WIDTH,
+        height: A4_HEIGHT,
         minHeight: A4_HEIGHT,
+        maxHeight: A4_HEIGHT,
         padding: A4_PAD,
-        paddingBottom: footerLogoSrc ? "16mm" : A4_PAD,
+        paddingBottom: footerLogoSrc ? "8mm" : A4_PAD,
         ...style,
       }}
     >
-      {children}
+      <div className="min-h-0 flex-1">{children}</div>
       {footerLogoSrc ? (
-        <div className="pointer-events-none absolute bottom-[6mm] left-[10mm] right-[10mm] flex items-center justify-center border-t border-slate-200 pt-2">
+        <div className="lesson-pack-footer-logo mt-auto flex shrink-0 items-center justify-center border-t border-slate-200 pt-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={footerLogoSrc}
@@ -313,12 +315,10 @@ export function LessonPackWorkbench({
       el = document.createElement("style");
       el.id = id;
     }
-    el.textContent =
     el.textContent = `
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
   @page app-print-a4 { size: 210mm 297mm; margin: 0; }
-  aside, .print\\:hidden { }
   #lesson-pack-print-root { transform: none !important; gap: 0 !important; }
 }
 `;
@@ -409,7 +409,6 @@ export function LessonPackWorkbench({
           return;
         }
         setPrepLoading(false);
-        setMessage("자료를 자동으로 준비했습니다.");
       }
     })();
 
