@@ -348,67 +348,67 @@ export function LessonMaterialsInputWizard({
     setPrepProgress({
       done: 0,
       total: boards.length,
-      label: "지문 분석·제목 생성 중…",
+      label: "지문 번역·분석 중…",
     });
     setWorkbenches(boards);
     setActivePassage(0);
 
     let failed = false;
+    let completed = 0;
     try {
-      for (let i = 0; i < boards.length; i++) {
-        setPrepProgress({
-          done: i,
-          total: boards.length,
-          label: `지문 ${i + 1}/${boards.length} · 번역·분석 중…`,
-        });
+      // Parallel per-passage: line translation + organization can run together,
+      // and multiple passages run concurrently for faster prep.
+      await Promise.all(
+        boards.map(async (_board, i) => {
+          try {
+            const [withKorean, orgRes] = await Promise.all([
+              fillKoreanForLines(boards[i]!.lines),
+              generateAction({
+                items: [
+                  {
+                    english: boards[i]!.english,
+                    korean: boards[i]!.korean,
+                  },
+                ],
+              }),
+            ]);
 
-        const withKorean = await fillKoreanForLines(boards[i]!.lines);
-        boards[i] = {
-          ...boards[i]!,
-          lines: withKorean,
-          selected: allIndexes(withKorean.length),
-          generatingOrganization: true,
-        };
-
-        try {
-          const res = await generateAction({
-            items: [
-              {
-                english: boards[i]!.english,
-                korean: boards[i]!.korean,
-              },
-            ],
-          });
-          if (!res.ok) {
-            failed = true;
-            setError(res.message);
-            boards[i] = { ...boards[i]!, generatingOrganization: false };
-          } else {
             boards[i] = {
               ...boards[i]!,
-              title: res.passageTitle || "",
-              titleEn: res.passageTitleEn || "",
-              analysisCards: res.analysisCards,
-              illustrationPrompt: res.illustrationPrompt,
-              comicCaptions: res.comicCaptions ?? [],
+              lines: withKorean,
+              selected: allIndexes(withKorean.length),
               generatingOrganization: false,
             };
-          }
-        } catch (e) {
-          failed = true;
-          setError(e instanceof Error ? e.message : "분석 생성 실패");
-          boards[i] = { ...boards[i]!, generatingOrganization: false };
-        }
 
-        setPrepProgress({
-          done: i + 1,
-          total: boards.length,
-          label: `지문 ${i + 1}/${boards.length} 완료`,
-        });
-      }
+            if (!orgRes.ok) {
+              failed = true;
+              setError(orgRes.message);
+            } else {
+              boards[i] = {
+                ...boards[i]!,
+                title: orgRes.passageTitle || "",
+                titleEn: orgRes.passageTitleEn || "",
+                analysisCards: orgRes.analysisCards,
+                illustrationPrompt: orgRes.illustrationPrompt,
+                comicCaptions: orgRes.comicCaptions ?? [],
+              };
+            }
+          } catch (e) {
+            failed = true;
+            setError(e instanceof Error ? e.message : "분석 생성 실패");
+            boards[i] = { ...boards[i]!, generatingOrganization: false };
+          } finally {
+            completed += 1;
+            setPrepProgress({
+              done: completed,
+              total: boards.length,
+              label: `지문 ${completed}/${boards.length} 준비됨`,
+            });
+          }
+        })
+      );
 
       setWorkbenches(boards.map((b) => ({ ...b })));
-      // Only open the editor when every passage has AI titles/flow ready
       if (!failed) {
         setStep(2);
       }
