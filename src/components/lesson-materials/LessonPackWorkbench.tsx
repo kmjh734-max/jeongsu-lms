@@ -55,11 +55,13 @@ function A4Sheet({
   label,
   style,
   className,
+  footerLogoSrc,
 }: {
   children: ReactNode;
   label: string;
   style?: CSSProperties;
   className?: string;
+  footerLogoSrc?: string | null;
 }) {
   return (
     <article
@@ -68,10 +70,21 @@ function A4Sheet({
         width: A4_WIDTH,
         minHeight: A4_HEIGHT,
         padding: A4_PAD,
+        paddingBottom: footerLogoSrc ? "16mm" : A4_PAD,
         ...style,
       }}
     >
       {children}
+      {footerLogoSrc ? (
+        <div className="pointer-events-none absolute bottom-[6mm] left-[10mm] right-[10mm] flex items-center justify-center border-t border-slate-200 pt-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={footerLogoSrc}
+            alt=""
+            className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
+          />
+        </div>
+      ) : null}
       <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
         {label}
       </span>
