@@ -39,10 +39,28 @@ const ROLE_STYLE: Record<
 function ChunkRow({
   chunks,
   kind,
+  showRoles,
 }: {
   chunks: Array<{ text: string; role: AnalysisChunkRole }>;
   kind: "en" | "ko";
+  showRoles: boolean;
 }) {
+  if (!showRoles) {
+    const joined = chunks
+      .map((c) => c.text.trim())
+      .filter(Boolean)
+      .join(kind === "en" ? " / " : " / ");
+    return (
+      <p
+        className={`leading-relaxed text-slate-800 ${
+          kind === "en" ? "text-[13px] font-semibold" : "text-[12px]"
+        }`}
+      >
+        {joined || "\u00a0"}
+      </p>
+    );
+  }
+
   return (
     <div className="flex flex-wrap items-end gap-x-1 gap-y-2">
       {chunks.map((c, i) => {
@@ -83,10 +101,12 @@ function SentenceBlock({
   sentence,
   index,
   accent,
+  showRoles,
 }: {
   sentence: AnalysisSentence;
   index: number;
   accent: string;
+  showRoles: boolean;
 }) {
   const koChunks = sentence.koChunks.map((text, i) => ({
     text,
@@ -103,8 +123,8 @@ function SentenceBlock({
           {index + 1}
         </span>
         <div className="min-w-0 flex-1 space-y-2">
-          <ChunkRow chunks={sentence.enChunks} kind="en" />
-          <ChunkRow chunks={koChunks} kind="ko" />
+          <ChunkRow chunks={sentence.enChunks} kind="en" showRoles={showRoles} />
+          <ChunkRow chunks={koChunks} kind="ko" showRoles={showRoles} />
         </div>
       </div>
 
@@ -122,7 +142,7 @@ function SentenceBlock({
             {sentence.grammarPoints.map((g, gi) => (
               <li key={gi} className="text-[12.5px] leading-relaxed text-slate-800">
                 <span className="mr-1 font-bold text-rose-600">
-                  {["①", "②", "③", "④"][gi] ?? `${gi + 1}.`}
+                  {["①", "②", "③", "④", "⑤"][gi] ?? `${gi + 1}.`}
                 </span>
                 {g.title ? (
                   <span className="font-bold text-slate-900">{g.title}</span>
@@ -167,6 +187,7 @@ export function AnalysisReportWorkbench({
   const [prepLoading, setPrepLoading] = useState(() =>
     initialProjects.some((p) => !p.report?.sentences?.length)
   );
+  const [showRoles, setShowRoles] = useState(true);
 
   const project = projects[active];
 
@@ -366,6 +387,29 @@ export function AnalysisReportWorkbench({
               onChange={(e) => setHeaderLabel(e.target.value)}
             />
           </label>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-bold text-slate-700">S V O M 표시</p>
+                <p className="mt-0.5 text-[11px] text-slate-500">
+                  색·품사 표기를 켜거나 끕니다
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRoles((v) => !v)}
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  showRoles
+                    ? "bg-violet-600 text-white"
+                    : "bg-white text-slate-500 ring-1 ring-slate-200"
+                }`}
+              >
+                {showRoles ? "ON" : "OFF"}
+              </button>
+            </div>
+          </div>
+
           <p className="text-xs text-slate-500">{project.title}</p>
           {project.source?.trim() ? (
             <p className="text-[11px] text-slate-400">출처: {project.source}</p>
@@ -445,6 +489,7 @@ export function AnalysisReportWorkbench({
                     sentence={s}
                     index={i}
                     accent={accent}
+                    showRoles={showRoles}
                   />
                 ))}
               </div>

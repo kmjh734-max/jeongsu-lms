@@ -1,3 +1,11 @@
+import {
+  isGpt5FamilyModel,
+  isModelUnavailableError,
+  isUnsupportedParameterError,
+  isUnsupportedTemperatureError,
+  studentRecordModelSupportsTemperature,
+} from "@/lib/student-records/model";
+
 export type AnalysisChunkRole = "s" | "v" | "o" | "c" | "M" | "other";
 
 export type AnalysisEnChunk = {
@@ -124,7 +132,7 @@ export async function generateAnalysisReport(input: {
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120_000);
+  const timer = setTimeout(() => controller.abort(), 180_000);
 
   try {
     const payload = lines
@@ -136,36 +144,100 @@ export async function generateAnalysisReport(input: {
       })
       .join("\n\n");
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: "gpt-4o",
-        temperature: 0.35,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: SYSTEM },
-          {
-            role: "user",
-            content: `제목: ${input.title?.trim() || "(없음)"}
+    const userContent = `제목: ${input.title?.trim() || "(없음)"}
 
 아래는 한 지문의 문장들이다. 전체 흐름을 먼저 파악한 뒤 문장별 분석서를 만들어라.
 - easyUnderstanding은 해석이 아니라 흐름·의미·필요 시 배경지식 설명
 - grammarPoints는 쉬운 문법 제외, 관계사·수동태 등은 종류까지 자세히
 
-${payload}`,
-          },
-        ],
-      }),
-    });
+${payload}`;
 
-    const bodyText = await res.text();
-    if (!res.ok) {
-      throw new Error(`분석서 생성 실패 (HTTP ${res.status})`);
+    const configured = process.env.OPENAI_MODEL_ANALYSIS_REPORT?.trim();
+    const candidates = configured
+      ? configured === "gpt-5.5"
+        ? ["gpt-5.5", "gpt-5"]
+        : [configured]
+      : ["gpt-5.5", "gpt-5"];
+
+    let bodyText = "";
+    let lastErr = "";
+    let ok = false;
+
+    for (const model of candidates) {
+      let includeTemperature = studentRecordModelSupportsTemperature(model);
+      let includeReasoningEffort = isGpt5FamilyModel(model);
+      let includeJsonMode = true;
+
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const body: Record<string, unknown> = {
+          model,
+          messages: [
+            { role: "system", content: SYSTEM },
+            { role: "user", content: userContent },
+          ],
+        };
+        if (includeJsonMode) {
+          body.response_format = { type: "json_object" };
+        }
+        if (includeTemperature) {
+          body.temperature = 0.35;
+        } else {
+          delete body.temperature;
+        }
+        if (isGpt5FamilyModel(model)) {
+          body.max_completion_tokens = 16_384;
+          if (includeReasoningEffort) body.reasoning_effort = "medium";
+          else delete body.reasoning_effort;
+        } else {
+          body.max_tokens = 8192;
+        }
+
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          signal: controller.signal,
+          body: JSON.stringify(body),
+        });
+        bodyText = await res.text();
+        if (res.ok) {
+          ok = true;
+          break;
+        }
+        if (includeTemperature && isUnsupportedTemperatureError(bodyText)) {
+          includeTemperature = false;
+          continue;
+        }
+        if (
+          includeReasoningEffort &&
+          isUnsupportedParameterError(bodyText, "reasoning_effort")
+        ) {
+          includeReasoningEffort = false;
+          continue;
+        }
+        if (
+          includeJsonMode &&
+          isUnsupportedParameterError(bodyText, "response_format")
+        ) {
+          includeJsonMode = false;
+          continue;
+        }
+        if (isModelUnavailableError(res.status, bodyText)) {
+          lastErr = bodyText.slice(0, 200);
+          break;
+        }
+        lastErr = bodyText.slice(0, 200);
+        break;
+      }
+      if (ok) break;
+    }
+
+    if (!ok) {
+      throw new Error(
+        `분석서 생성 실패${lastErr ? `: ${lastErr}` : ""}`.slice(0, 180)
+      );
     }
 
     const envelope = parseJsonSafe<{
