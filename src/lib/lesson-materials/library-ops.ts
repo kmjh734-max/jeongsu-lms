@@ -290,7 +290,7 @@ export async function copyLessonMaterialProjects(
   let projectQuery = supabase
     .from("lesson_material_projects")
     .select(
-      "id,title,analysis_json,illustration_prompt,illustration_url,illustration_captions,teacher_id"
+      "id,title,title_en,source,analysis_json,illustration_prompt,illustration_url,illustration_captions,teacher_id,lesson_pack_json"
     )
     .in("id", ids)
     .eq("academy_id", profile!.academy_id!)
@@ -332,6 +332,8 @@ export async function copyLessonMaterialProjects(
       .insert({
         folder_id: input.folderId,
         title: `${src.title} 복사본`,
+        title_en: src.title_en ?? null,
+        source: src.source ?? null,
         teacher_id:
           role === "teacher" ? profile!.id : (src.teacher_id ?? null),
         created_by: profile!.id,
@@ -341,6 +343,7 @@ export async function copyLessonMaterialProjects(
         illustration_prompt: src.illustration_prompt ?? null,
         illustration_url: src.illustration_url ?? null,
         illustration_captions: src.illustration_captions ?? null,
+        lesson_pack_json: src.lesson_pack_json ?? null,
         deleted_at: null,
       })
       .select("id")

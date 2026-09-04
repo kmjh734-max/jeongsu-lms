@@ -23,6 +23,7 @@ export async function saveLessonMaterialsFromWizard(input: {
   items: PassageInput[];
   projectTitle?: string | null;
   projectTitleEn?: string | null;
+  projectSource?: string | null;
   analysisCards?: LessonMaterialAnalysisCard[];
   illustrationPrompt?: string | null;
   illustrationUrl?: string | null;
@@ -75,6 +76,7 @@ export async function saveLessonMaterialsFromWizard(input: {
   const projectTitle =
     input.projectTitle?.trim() || snippetTitle(items[0]!.english);
   const projectTitleEn = input.projectTitleEn?.trim() || null;
+  const projectSource = input.projectSource?.trim() || null;
 
   const { data: projectInsert, error: projectInsertErr } = await supabase
     .from("lesson_material_projects")
@@ -82,6 +84,7 @@ export async function saveLessonMaterialsFromWizard(input: {
       folder_id: folderId ?? null,
       title: projectTitle,
       title_en: projectTitleEn,
+      source: projectSource,
       teacher_id: null,
       created_by: profile.id,
       academy_id: academyId,

@@ -105,7 +105,9 @@ export async function saveLessonPackAction(
     projectId: string;
     headerLabel?: string;
     vocab: LessonPackVocabItem[];
+    title?: string | null;
     titleEn?: string | null;
+    source?: string | null;
   }
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const { profile, error } = await requireRole(role);
@@ -125,8 +127,15 @@ export async function saveLessonPackAction(
     lesson_pack_json: pack,
     updated_at: new Date().toISOString(),
   };
+  if (input.title !== undefined) {
+    const t = input.title?.trim();
+    if (t) patch.title = t;
+  }
   if (input.titleEn !== undefined) {
     patch.title_en = input.titleEn?.trim() || null;
+  }
+  if (input.source !== undefined) {
+    patch.source = input.source?.trim() || null;
   }
 
   let q = supabase
@@ -142,5 +151,53 @@ export async function saveLessonPackAction(
 
   revalidatePath(`/${role}/lesson-materials/lesson-pack`);
   revalidatePath(`/${role}/lesson-materials/project/${projectId}`);
+  revalidatePath(`/${role}/lesson-materials`);
   return { ok: true };
+}
+
+export async function updateLessonMaterialProjectMeta(
+  role: Role,
+  input: {
+    projectId: string;
+    title?: string;
+    titleEn?: string | null;
+    source?: string | null;
+  }
+): Promise<{ ok: true; message: string } | { ok: false; message: string }> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+
+  const projectId = input.projectId?.trim();
+  if (!projectId) return { ok: false, message: "프로젝트 ID가 없습니다." };
+
+  const patch: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+  if (typeof input.title === "string") {
+    const t = input.title.trim();
+    if (t) patch.title = t;
+  }
+  if (input.titleEn !== undefined) {
+    patch.title_en = input.titleEn?.trim() || null;
+  }
+  if (input.source !== undefined) {
+    patch.source = input.source?.trim() || null;
+  }
+
+  const supabase = await createClient();
+  let q = supabase
+    .from("lesson_material_projects")
+    .update(patch)
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!);
+  if (role === "teacher") {
+    q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { error: uErr } = await q;
+  if (uErr) return { ok: false, message: uErr.message };
+
+  revalidatePath(`/${role}/lesson-materials`);
+  revalidatePath(`/${role}/lesson-materials/project/${projectId}`);
+  revalidatePath(`/${role}/lesson-materials/lesson-pack`);
+  return { ok: true, message: "출처·영어 제목을 저장했습니다." };
 }

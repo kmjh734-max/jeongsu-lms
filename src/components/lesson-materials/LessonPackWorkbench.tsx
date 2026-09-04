@@ -18,6 +18,7 @@ export type LessonPackProjectInput = {
   id: string;
   title: string;
   titleEn: string | null;
+  source: string | null;
   folderName: string;
   analysisCards: LessonMaterialAnalysisCard[];
   headerLabel: string;
@@ -210,12 +211,13 @@ export function LessonPackWorkbench({
     [projects]
   );
 
-  /** All passages in selection order, continuous flow. */
+  /** All passages in selection order. New passages start on a fresh page. */
   const packBlocks = useMemo(() => {
     const blocks: Array<{
       id: string;
       keepTogether: boolean;
       stickToNext?: boolean;
+      forceNewPage?: boolean;
     }> = [{ id: "doc-header", keepTogether: true }];
 
     projects.forEach((p, pi) => {
@@ -228,6 +230,7 @@ export function LessonPackWorkbench({
         id: `p${pi}:passage-bar`,
         keepTogether: true,
         stickToNext: true,
+        forceNewPage: pi > 0,
       });
       blocks.push({
         id: `p${pi}:vocab-heading`,
@@ -439,7 +442,9 @@ export function LessonPackWorkbench({
           projectId: p.id,
           headerLabel,
           vocab: p.vocab.filter((v) => v.word.trim()),
+          title: p.title,
           titleEn: p.titleEn,
+          source: p.source,
         });
         if (!res.ok) {
           setError(res.message);
@@ -507,6 +512,9 @@ export function LessonPackWorkbench({
 
     for (let i = 0; i < packBlocks.length; i++) {
       const block = packBlocks[i]!;
+      if (block.forceNewPage && cur.length > 0) {
+        flush();
+      }
       const h = heightById.get(block.id) ?? 24;
       let need = (cur.length > 0 ? gapPx : 0) + h;
 
@@ -666,9 +674,6 @@ export function LessonPackWorkbench({
             className="mt-2 h-1 w-full"
             style={{ backgroundColor: themeColor }}
           />
-          <p className="mt-2 text-xs text-slate-500">
-            총 {projects.length}지문 · 선택 순서대로 이어집니다
-          </p>
         </div>
       );
     }
@@ -683,18 +688,31 @@ export function LessonPackWorkbench({
 
     if (parsed.kind === "passage-bar") {
       return (
-        <div className="mt-4 rounded-lg bg-slate-100 px-3 py-2">
-          <div
-            className="font-bold text-slate-900"
-            style={{ fontSize: titleSizes.passageTitle }}
-          >
-            {String(pi + 1).padStart(2, "0")} {board.title}
-          </div>
-          {board.titleEn ? (
-            <div className="mt-0.5 text-slate-600" style={{ fontSize: 12 }}>
-              ({board.titleEn})
+        <div className="mt-4">
+          {board.source?.trim() ? (
+            <div
+              className="mb-1.5 text-slate-500"
+              style={{ fontSize: 11, lineHeight: 1.35 }}
+            >
+              출처: {board.source.trim()}
             </div>
           ) : null}
+          <div className="rounded-lg bg-slate-100 px-3 py-2">
+            <div
+              className="font-bold text-slate-900"
+              style={{ fontSize: titleSizes.passageTitle }}
+            >
+              {String(pi + 1).padStart(2, "0")} {board.title}
+            </div>
+            {board.titleEn?.trim() ? (
+              <div
+                className="mt-1 font-medium text-slate-700"
+                style={{ fontSize: 12.5, lineHeight: 1.35 }}
+              >
+                {board.titleEn.trim()}
+              </div>
+            ) : null}
+          </div>
         </div>
       );
     }
@@ -1166,6 +1184,23 @@ export function LessonPackWorkbench({
             />
           </label>
 
+          <label className="block space-y-1.5">
+            <span className="text-xs font-bold text-slate-500">출처</span>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2"
+              value={project.source ?? ""}
+              placeholder="예: 2024 수능특강 / OO고 기출"
+              onChange={(e) => {
+                const v = e.target.value;
+                setProjects((prev) =>
+                  prev.map((p, i) =>
+                    i === activeIdx ? { ...p, source: v } : p
+                  )
+                );
+              }}
+            />
+          </label>
+
           <div className="space-y-1.5">
             <span className="text-xs font-bold text-slate-500">테마 색상</span>
             <div className="flex items-center gap-2">
@@ -1350,23 +1385,6 @@ export function LessonPackWorkbench({
             onClick={() => setZoom((z) => Math.min(120, z + 10))}
           >
             +
-          </button>
-          <span className="mx-1 text-xs text-slate-400">
-            A4 · 스크롤 · {totalPages}쪽
-          </span>
-          <button
-            type="button"
-            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700"
-            onClick={() => setShowKorean((v) => !v)}
-          >
-            한글 해석 {showKorean ? "숨기기" : "보이기"}
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700"
-            onClick={() => setBoldLessonBody((v) => !v)}
-          >
-            영어 Bold {boldLessonBody ? "ON" : "OFF"}
           </button>
         </div>
 

@@ -46,8 +46,11 @@ const SYSTEM = `너는 한국 중·고등 영어 지문에서 수업용 어휘�
 - 핵심·중급 단어뿐 아니라, 수업에서 짚을 만한 쉬운/기초 단어도 적절히 포함해도 된다. (관사·대명사·be동사·아주 기초 접속사 the/a/is/and 등은 제외)
 - word는 기본형(lemma) 영어 단어.
 - meaning은 품사 약어(a./n./v./ad. 등) + 한국어 뜻.
-- synonyms / antonyms는 자연스러운 것만 넣는다. 없으면 빈 배열 []로 두고, 억지로 만들지 말 것.
-- 동의어·반의어가 있으면 1~4개, 짧고 시험에 쓸 수 있는 단어 위주.`;
+- synonyms는 가능하면 1~3개(짧고 시험에 쓸 수 있는 단어).
+- antonyms도 가능하면 1~3개. 형용사·동사·명사처럼 대립 개념이 분명하면 반드시 넣는다.
+  예: innovative↔conventional, demand↔supply, sensitive↔insensitive.
+  정말 자연스러운 반의어가 없을 때만 [].
+- synonyms / antonyms 키 이름은 반드시 배열로 둘 것.`;
 
 export async function generateLessonPackVocab(input: {
   englishPassage: string;
@@ -97,17 +100,28 @@ export async function generateLessonPackVocab(input: {
     const parsed = parseJsonSafe<{ vocab?: unknown }>(content);
     const raw = Array.isArray(parsed?.vocab) ? parsed!.vocab : [];
 
+    const toList = (v: unknown): string[] => {
+      if (Array.isArray(v)) {
+        return v.map((s) => String(s ?? "").trim()).filter(Boolean);
+      }
+      if (typeof v === "string" && v.trim()) {
+        return v
+          .split(/[,/|]/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+      }
+      return [];
+    };
+
     const vocab: LessonPackVocabItem[] = raw
       .map((row) => {
         const r = row as Record<string, unknown>;
         const word = String(r.word ?? "").trim();
         const meaning = String(r.meaning ?? "").trim();
-        const synonyms = Array.isArray(r.synonyms)
-          ? r.synonyms.map((s) => String(s ?? "").trim()).filter(Boolean)
-          : [];
-        const antonyms = Array.isArray(r.antonyms)
-          ? r.antonyms.map((s) => String(s ?? "").trim()).filter(Boolean)
-          : [];
+        const synonyms = toList(r.synonyms ?? r.synonym);
+        const antonyms = toList(
+          r.antonyms ?? r.antonym ?? r.opposites ?? r.opposite
+        );
         return { word, meaning, synonyms, antonyms };
       })
       .filter((v) => v.word && v.meaning);

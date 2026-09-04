@@ -10,6 +10,8 @@ export interface LessonMaterialFolderRow {
 export interface LessonMaterialProjectRow {
   id: string;
   title: string;
+  title_en: string | null;
+  source: string | null;
   folder_id: string | null;
   updated_at: string;
   deleted_at: string | null;
@@ -43,7 +45,7 @@ export async function loadLessonMaterialsLibraryData(
       .order("created_at", { ascending: false }),
     supabase
       .from("lesson_material_projects")
-      .select("id,title,folder_id,updated_at,deleted_at,analysis_json")
+      .select("id,title,title_en,source,folder_id,updated_at,deleted_at,analysis_json")
       .order("updated_at", { ascending: false }),
     supabase
       .from("lesson_material_items")

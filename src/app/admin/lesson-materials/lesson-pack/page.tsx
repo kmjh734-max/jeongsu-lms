@@ -36,7 +36,7 @@ export default async function AdminLessonPackPage({
   const { data: projects } = await supabase
     .from("lesson_material_projects")
     .select(
-      "id,title,title_en,folder_id,analysis_json,illustration_url,lesson_pack_json,deleted_at"
+      "id,title,title_en,source,folder_id,analysis_json,illustration_url,lesson_pack_json,deleted_at"
     )
     .in("id", ids)
     .is("deleted_at", null);
@@ -88,6 +88,7 @@ export default async function AdminLessonPackPage({
       id: p!.id,
       title: p!.title,
       titleEn: (p!.title_en as string | null) ?? null,
+      source: (p!.source as string | null) ?? null,
       folderName: p!.folder_id
         ? (folderNameById.get(p!.folder_id) ?? "폴더")
         : "미분류",

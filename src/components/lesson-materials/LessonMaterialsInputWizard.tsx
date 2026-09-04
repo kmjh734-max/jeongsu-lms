@@ -531,6 +531,7 @@ export function LessonMaterialsInputWizard({
           items,
           projectTitle: board.title.trim() || null,
           projectTitleEn: board.titleEn.trim() || null,
+          projectSource: board.source.trim() || null,
           analysisCards: board.analysisCards ?? undefined,
           illustrationPrompt:
             board.illustrationPrompt.trim().length > 0

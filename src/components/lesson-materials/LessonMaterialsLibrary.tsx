@@ -19,6 +19,7 @@ import {
   restoreLessonMaterialProjects,
   trashLessonMaterialProjects,
 } from "@/lib/lesson-materials/library-ops";
+import { updateLessonMaterialProjectMeta } from "@/lib/lesson-materials/lesson-pack-actions";
 import { LessonMaterialsSelectionBar } from "@/components/lesson-materials/LessonMaterialsSelectionBar";
 import type { LessonMaterialFolderRow } from "@/lib/lesson-materials/load-library";
 
@@ -59,6 +60,9 @@ export function LessonMaterialsLibrary({
   const [createParentId, setCreateParentId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+  const [editingMetaId, setEditingMetaId] = useState<string | null>(null);
+  const [editTitleEn, setEditTitleEn] = useState("");
+  const [editSource, setEditSource] = useState("");
   const [menuFolderId, setMenuFolderId] = useState<string | null>(null);
   const [moveOpen, setMoveOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
@@ -770,10 +774,77 @@ export function LessonMaterialsLibrary({
                           {p.title}
                         </Link>
                       )}
+                      {p.title_en?.trim() ? (
+                        <p className="mt-0.5 truncate text-xs text-slate-500">
+                          {p.title_en}
+                        </p>
+                      ) : null}
+                      {p.source?.trim() ? (
+                        <p className="mt-0.5 truncate text-xs text-slate-400">
+                          출처: {p.source}
+                        </p>
+                      ) : null}
                       {snippet ? (
                         <p className="mt-1 line-clamp-1 text-sm text-slate-500">
                           {snippet}
                         </p>
+                      ) : null}
+                      {!inTrash && editingMetaId === p.id ? (
+                        <div className="mt-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                          <label className="block space-y-1">
+                            <span className="text-[11px] font-bold text-slate-500">
+                              영어 제목
+                            </span>
+                            <input
+                              className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
+                              value={editTitleEn}
+                              onChange={(e) => setEditTitleEn(e.target.value)}
+                              placeholder="English title"
+                            />
+                          </label>
+                          <label className="block space-y-1">
+                            <span className="text-[11px] font-bold text-slate-500">
+                              출처
+                            </span>
+                            <input
+                              className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm"
+                              value={editSource}
+                              onChange={(e) => setEditSource(e.target.value)}
+                              placeholder="예: 2024 수능특강"
+                            />
+                          </label>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              disabled={pending}
+                              onClick={() => {
+                                runAction(async () => {
+                                  const res = await updateLessonMaterialProjectMeta(
+                                    role,
+                                    {
+                                      projectId: p.id,
+                                      titleEn: editTitleEn,
+                                      source: editSource,
+                                    }
+                                  );
+                                  if (res.ok) setEditingMetaId(null);
+                                  return res;
+                                });
+                              }}
+                            >
+                              저장
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              onClick={() => setEditingMetaId(null)}
+                            >
+                              취소
+                            </Button>
+                          </div>
+                        </div>
                       ) : null}
                     </div>
                     <div className="shrink-0 text-right text-xs text-slate-500">
@@ -782,6 +853,19 @@ export function LessonMaterialsLibrary({
                         문장 {data.itemCountByProjectId[p.id] ?? 0}개 ·{" "}
                         {folderLabel}
                       </div>
+                      {!inTrash ? (
+                        <button
+                          type="button"
+                          className="mt-2 text-violet-700 hover:underline"
+                          onClick={() => {
+                            setEditingMetaId(p.id);
+                            setEditTitleEn(p.title_en ?? "");
+                            setEditSource(p.source ?? "");
+                          }}
+                        >
+                          출처·영어제목
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </li>
