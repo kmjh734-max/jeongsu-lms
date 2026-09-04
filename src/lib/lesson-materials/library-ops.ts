@@ -290,7 +290,7 @@ export async function copyLessonMaterialProjects(
   let projectQuery = supabase
     .from("lesson_material_projects")
     .select(
-      "id,title,title_en,source,analysis_json,illustration_prompt,illustration_url,illustration_captions,teacher_id,lesson_pack_json"
+      "id,title,title_en,source,analysis_json,illustration_prompt,illustration_url,illustration_captions,teacher_id,lesson_pack_json,analysis_report_json"
     )
     .in("id", ids)
     .eq("academy_id", profile!.academy_id!)
@@ -344,6 +344,7 @@ export async function copyLessonMaterialProjects(
         illustration_url: src.illustration_url ?? null,
         illustration_captions: src.illustration_captions ?? null,
         lesson_pack_json: src.lesson_pack_json ?? null,
+        analysis_report_json: src.analysis_report_json ?? null,
         deleted_at: null,
       })
       .select("id")

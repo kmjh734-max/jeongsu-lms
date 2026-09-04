@@ -21,6 +21,8 @@ export interface LessonMaterialProjectRow {
   has_analysis: boolean;
   /** True when 수업용 자료(lesson pack) was saved */
   has_lesson_pack: boolean;
+  /** True when 분석서 was saved */
+  has_analysis_report: boolean;
 }
 
 export interface LessonMaterialLibraryData {
@@ -53,6 +55,14 @@ function hasLessonPack(lesson_pack_json: unknown): boolean {
   );
 }
 
+function hasAnalysisReport(analysis_report_json: unknown): boolean {
+  if (!analysis_report_json || typeof analysis_report_json !== "object") {
+    return false;
+  }
+  const report = analysis_report_json as { sentences?: unknown };
+  return Array.isArray(report.sentences) && report.sentences.length > 0;
+}
+
 export async function loadLessonMaterialsLibraryData(
   supabase: SupabaseClient
 ): Promise<LessonMaterialLibraryData> {
@@ -64,7 +74,7 @@ export async function loadLessonMaterialsLibraryData(
     supabase
       .from("lesson_material_projects")
       .select(
-        "id,title,title_en,source,folder_id,updated_at,deleted_at,order_index,analysis_json,lesson_pack_json"
+        "id,title,title_en,source,folder_id,updated_at,deleted_at,order_index,analysis_json,lesson_pack_json,analysis_report_json"
       )
       .order("order_index", { ascending: true })
       .order("updated_at", { ascending: false }),
@@ -76,19 +86,24 @@ export async function loadLessonMaterialsLibraryData(
 
   const folders = (foldersRes.data ?? []) as LessonMaterialFolderRow[];
   const rawProjects = (projectsRes.data ?? []) as Array<
-    Omit<LessonMaterialProjectRow, "has_analysis" | "has_lesson_pack"> & {
+    Omit<
+      LessonMaterialProjectRow,
+      "has_analysis" | "has_lesson_pack" | "has_analysis_report"
+    > & {
       lesson_pack_json?: unknown;
+      analysis_report_json?: unknown;
       order_index?: number | null;
     }
   >;
 
   const projects: LessonMaterialProjectRow[] = rawProjects.map((p) => {
-    const { lesson_pack_json, ...rest } = p;
+    const { lesson_pack_json, analysis_report_json, ...rest } = p;
     return {
       ...rest,
       order_index: typeof p.order_index === "number" ? p.order_index : 0,
       has_analysis: hasAnalysis(p.analysis_json),
       has_lesson_pack: hasLessonPack(lesson_pack_json),
+      has_analysis_report: hasAnalysisReport(analysis_report_json),
     };
   });
 

@@ -150,8 +150,9 @@ export function LessonMaterialsLibrary({
 
     if (libraryTab === "lesson") {
       list = list.filter((p) => p.has_lesson_pack);
+    } else if (libraryTab === "analysis") {
+      list = list.filter((p) => p.has_analysis_report);
     } else if (
-      libraryTab === "analysis" ||
       libraryTab === "questions" ||
       libraryTab === "workbook" ||
       libraryTab === "integrated"
@@ -182,7 +183,6 @@ export function LessonMaterialsLibrary({
   const selectedCount = selectedIds.length;
   const inTrash = folderFilter === "trash";
   const tabComingSoon =
-    libraryTab === "analysis" ||
     libraryTab === "questions" ||
     libraryTab === "workbook" ||
     libraryTab === "integrated";
@@ -200,7 +200,7 @@ export function LessonMaterialsLibrary({
     libraryTab === "lesson"
       ? "저장된 수업용 자료가 없습니다. 지문자료를 선택한 뒤 「수업용 자료 제작」에서 저장하세요."
       : libraryTab === "analysis"
-        ? "분석서는 준비 중입니다."
+        ? "저장된 분석서가 없습니다. 지문자료를 선택한 뒤 「지문 분석서 제작」으로 만드세요."
         : libraryTab === "questions"
           ? "변형문제는 준비 중입니다."
           : libraryTab === "workbook"
@@ -222,7 +222,9 @@ export function LessonMaterialsLibrary({
   const canReorder =
     !inTrash &&
     !tabComingSoon &&
-    (libraryTab === "materials" || libraryTab === "lesson");
+    (libraryTab === "materials" ||
+      libraryTab === "lesson" ||
+      libraryTab === "analysis");
 
   async function persistOrder(next: LessonMaterialProjectRow[]) {
     setReordering(true);
@@ -257,6 +259,9 @@ export function LessonMaterialsLibrary({
   function projectOpenHref(projectId: string) {
     if (libraryTab === "lesson") {
       return `${base}/lesson-pack?ids=${encodeURIComponent(projectId)}`;
+    }
+    if (libraryTab === "analysis") {
+      return `${base}/analysis-report?ids=${encodeURIComponent(projectId)}`;
     }
     return `${base}/project/${projectId}`;
   }
@@ -995,10 +1000,14 @@ export function LessonMaterialsLibrary({
                             href={openHref ?? `${base}/project/${p.id}`}
                             className="min-w-0 flex-1 truncate font-semibold text-slate-900 hover:text-violet-700"
                             target={
-                              libraryTab === "lesson" ? "_blank" : undefined
+                              libraryTab === "lesson" ||
+                              libraryTab === "analysis"
+                                ? "_blank"
+                                : undefined
                             }
                             rel={
-                              libraryTab === "lesson"
+                              libraryTab === "lesson" ||
+                              libraryTab === "analysis"
                                 ? "noopener noreferrer"
                                 : undefined
                             }

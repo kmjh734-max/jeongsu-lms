@@ -2149,7 +2149,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #shared-report-print-root,
   #student-record-print-root,
   #nelt-print-root,
-  #lesson-pack-print-root {
+  #lesson-pack-print-root,
+  #analysis-report-print-root {
     page: app-print-a4;
   }
 
@@ -2188,7 +2189,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #vocab-print-root,
   #nelt-print-root,
   #qg-print-root,
-  #lesson-pack-print-root {
+  #lesson-pack-print-root,
+  #analysis-report-print-root {
     visibility: visible;
   }
 
@@ -2207,7 +2209,9 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #qg-print-root,
   #qg-print-root *,
   #lesson-pack-print-root,
-  #lesson-pack-print-root * {
+  #lesson-pack-print-root *,
+  #analysis-report-print-root,
+  #analysis-report-print-root * {
     visibility: visible;
   }
 
@@ -2236,7 +2240,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #listening-print-root,
   #student-record-print-root,
   #nelt-print-root,
-  #lesson-pack-print-root {
+  #lesson-pack-print-root,
+  #analysis-report-print-root {
     position: absolute;
     left: 0;
     top: 0;
@@ -2247,7 +2252,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     print-color-adjust: exact !important;
   }
 
-  #lesson-pack-print-root {
+  #lesson-pack-print-root,
+  #analysis-report-print-root {
     width: 210mm !important;
     max-width: 210mm !important;
     transform: none !important;

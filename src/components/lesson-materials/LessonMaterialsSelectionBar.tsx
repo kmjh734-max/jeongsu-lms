@@ -21,6 +21,9 @@ export function LessonMaterialsSelectionBar({
   const packHref = `${base}/lesson-pack?ids=${encodeURIComponent(
     selectedIds.join(",")
   )}`;
+  const analysisHref = `${base}/analysis-report?ids=${encodeURIComponent(
+    selectedIds.join(",")
+  )}`;
   const singleEditHref =
     selectedIds.length === 1
       ? `${base}/project/${selectedIds[0]}`
@@ -51,9 +54,14 @@ export function LessonMaterialsSelectionBar({
           <Link href={packHref} className={btn} target="_blank" rel="noopener noreferrer">
             ✦ 수업용 자료 제작
           </Link>
-          <button type="button" className={btn} disabled title="준비 중">
+          <Link
+            href={analysisHref}
+            className={btn}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             📄 지문 분석서 제작
-          </button>
+          </Link>
           <button type="button" className={btn} disabled title="준비 중">
             ✒ 문제 제작
           </button>
