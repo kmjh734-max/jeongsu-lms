@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
-  analysisSnippet,
   type LessonMaterialLibraryData,
 } from "@/lib/lesson-materials/load-library";
 import {
@@ -41,21 +40,6 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "questions", label: "변형문제" },
   { id: "integrated", label: "최종통합자료" },
 ];
-
-function formatUpdatedAt(iso: string) {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString("ko-KR", {
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
-}
 
 export function LessonMaterialsLibrary({
   role,
@@ -146,11 +130,10 @@ export function LessonMaterialsLibrary({
       );
     }
 
-    if (libraryTab === "analysis") {
-      list = list.filter((p) => p.has_analysis);
-    } else if (libraryTab === "lesson") {
+    if (libraryTab === "lesson") {
       list = list.filter((p) => p.has_lesson_pack);
     } else if (
+      libraryTab === "analysis" ||
       libraryTab === "questions" ||
       libraryTab === "workbook" ||
       libraryTab === "integrated"
@@ -179,6 +162,7 @@ export function LessonMaterialsLibrary({
   const selectedCount = selectedIds.length;
   const inTrash = folderFilter === "trash";
   const tabComingSoon =
+    libraryTab === "analysis" ||
     libraryTab === "questions" ||
     libraryTab === "workbook" ||
     libraryTab === "integrated";
@@ -193,10 +177,10 @@ export function LessonMaterialsLibrary({
           : (folderNameById.get(folderFilter) ?? "폴더");
 
   const tabEmptyMessage =
-    libraryTab === "analysis"
-      ? "이 폴더에 분석서가 없습니다. 자료를 열어 논리 흐름을 만든 뒤 저장하세요."
-      : libraryTab === "lesson"
-        ? "저장된 수업용 자료가 없습니다. 지문자료를 선택한 뒤 「수업용 자료 제작」에서 저장하세요."
+    libraryTab === "lesson"
+      ? "저장된 수업용 자료가 없습니다. 지문자료를 선택한 뒤 「수업용 자료 제작」에서 저장하세요."
+      : libraryTab === "analysis"
+        ? "분석서는 준비 중입니다."
         : libraryTab === "questions"
           ? "변형문제는 준비 중입니다."
           : libraryTab === "workbook"
@@ -810,12 +794,6 @@ export function LessonMaterialsLibrary({
           ) : (
             visibleProjects.map((p) => {
               const checked = selected.has(p.id);
-              const snippet = analysisSnippet(p.analysis_json);
-              const folderLabel = p.deleted_at
-                ? "휴지통"
-                : p.folder_id
-                  ? (folderNameById.get(p.folder_id) ?? "폴더")
-                  : "미분류";
               const openHref = inTrash
                 ? undefined
                 : projectOpenHref(p.id);
@@ -828,13 +806,12 @@ export function LessonMaterialsLibrary({
                       : "border-slate-200 bg-white"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="mt-1 cursor-grab text-slate-300" aria-hidden>
+                  <div className="flex items-center gap-3">
+                    <span className="cursor-grab text-slate-300" aria-hidden>
                       ⠿
                     </span>
                     <input
                       type="checkbox"
-                      className="mt-1.5"
                       checked={checked}
                       onChange={(e) =>
                         toggleSelect(p.id, (e.nativeEvent as MouseEvent).shiftKey)
@@ -907,7 +884,7 @@ export function LessonMaterialsLibrary({
                           </Button>
                         </div>
                       ) : (
-                        <div className="flex items-start gap-1.5">
+                        <div className="flex items-center gap-1.5">
                           <Link
                             href={openHref ?? `${base}/project/${p.id}`}
                             className="min-w-0 flex-1 truncate font-semibold text-slate-900 hover:text-violet-700"
@@ -926,7 +903,7 @@ export function LessonMaterialsLibrary({
                             type="button"
                             title="이름 변경"
                             aria-label="이름 변경"
-                            className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-violet-50 hover:text-violet-700"
+                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-violet-50 hover:text-violet-700"
                             onClick={() => {
                               setEditingMetaId(p.id);
                               setEditTitle(p.title);
@@ -943,37 +920,11 @@ export function LessonMaterialsLibrary({
                           </button>
                         </div>
                       )}
-                      {p.title_en?.trim() ? (
-                        <p className="mt-0.5 truncate text-xs text-slate-500">
-                          {p.title_en}
-                        </p>
-                      ) : null}
                       {p.source?.trim() ? (
-                        <p className="mt-0.5 truncate text-xs text-slate-400">
+                        <p className="mt-0.5 truncate text-xs text-slate-500">
                           출처: {p.source}
                         </p>
                       ) : null}
-                      {libraryTab === "lesson" ? (
-                        <p className="mt-1 text-xs font-semibold text-violet-600">
-                          수업용 자료 · 클릭하여 열기
-                        </p>
-                      ) : snippet ? (
-                        <p className="mt-1 line-clamp-1 text-sm text-slate-500">
-                          {snippet}
-                        </p>
-                      ) : null}
-                      {libraryTab === "materials" && p.has_lesson_pack ? (
-                        <p className="mt-1 text-xs text-violet-600">
-                          수업용자료 저장됨
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="shrink-0 text-right text-xs text-slate-500">
-                      <div>{formatUpdatedAt(p.updated_at)}</div>
-                      <div className="mt-1">
-                        문장 {data.itemCountByProjectId[p.id] ?? 0}개 ·{" "}
-                        {folderLabel}
-                      </div>
                     </div>
                   </div>
                 </li>
