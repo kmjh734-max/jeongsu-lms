@@ -11,13 +11,25 @@ export interface LessonMaterialProjectRow {
   title: string;
   folder_id: string | null;
   updated_at: string;
+  deleted_at: string | null;
+  analysis_json?: unknown;
 }
 
 export interface LessonMaterialLibraryData {
   folders: LessonMaterialFolderRow[];
+  /** Active (not trashed) projects with a folder */
+  projects: LessonMaterialProjectRow[];
+  /** Active projects with no folder */
   unfiledProjects: LessonMaterialProjectRow[];
-  projects: LessonMaterialProjectRow[]; // includes filed ones
+  /** Soft-deleted projects */
+  trashedProjects: LessonMaterialProjectRow[];
   itemCountByProjectId: Record<string, number>;
+}
+
+function analysisSnippet(analysis_json: unknown): string {
+  if (!Array.isArray(analysis_json) || analysis_json.length === 0) return "";
+  const first = analysis_json[0] as { desc?: string; title?: string };
+  return String(first?.desc ?? first?.title ?? "").trim();
 }
 
 export async function loadLessonMaterialsLibraryData(
@@ -30,7 +42,7 @@ export async function loadLessonMaterialsLibraryData(
       .order("created_at", { ascending: false }),
     supabase
       .from("lesson_material_projects")
-      .select("id,title,folder_id,updated_at")
+      .select("id,title,folder_id,updated_at,deleted_at,analysis_json")
       .order("updated_at", { ascending: false }),
     supabase
       .from("lesson_material_items")
@@ -49,11 +61,16 @@ export async function loadLessonMaterialsLibraryData(
       (itemCountByProjectId[row.project_id] ?? 0) + 1;
   }
 
+  const active = projects.filter((p) => !p.deleted_at);
+  const trashed = projects.filter((p) => !!p.deleted_at);
+
   return {
     folders,
-    projects: projects.filter((p) => p.folder_id !== null),
-    unfiledProjects: projects.filter((p) => p.folder_id === null),
+    projects: active.filter((p) => p.folder_id !== null),
+    unfiledProjects: active.filter((p) => p.folder_id === null),
+    trashedProjects: trashed,
     itemCountByProjectId,
   };
 }
 
+export { analysisSnippet };
