@@ -29,13 +29,18 @@ type PassageDraft = {
   source: string;
 };
 
+type PassageLine = {
+  english: string;
+  korean: string;
+};
+
 type PassageWorkbench = {
   english: string;
   korean: string;
   title: string;
   titleEn: string;
   source: string;
-  lines: PassageDraft[];
+  lines: PassageLine[];
   selected: number[];
   editingEnglish: number[];
   analysisCards: LessonMaterialAnalysisCard[] | null;
@@ -145,7 +150,7 @@ export function LessonMaterialsInputWizard({
     });
   }
 
-  async function fillKoreanForLines(current: PassageDraft[]) {
+  async function fillKoreanForLines(current: PassageLine[]) {
     const needIdx = current
       .map((l, i) => ({ i, english: l.english.trim(), korean: l.korean.trim() }))
       .filter((x) => x.english.length > 0 && x.korean.length === 0);
