@@ -65,20 +65,18 @@ function A4Sheet({
 }) {
   return (
     <article
-      className={`lesson-pack-a4-sheet relative box-border flex flex-col overflow-hidden bg-white shadow-xl print:shadow-none ${className ?? ""}`.trim()}
+      className={`lesson-pack-a4-sheet relative box-border overflow-hidden bg-white shadow-xl print:shadow-none ${className ?? ""}`.trim()}
       style={{
         width: A4_WIDTH,
-        height: A4_HEIGHT,
         minHeight: A4_HEIGHT,
-        maxHeight: A4_HEIGHT,
         padding: A4_PAD,
-        paddingBottom: footerLogoSrc ? "8mm" : A4_PAD,
+        paddingBottom: footerLogoSrc ? "16mm" : A4_PAD,
         ...style,
       }}
     >
-      <div className="min-h-0 flex-1">{children}</div>
+      {children}
       {footerLogoSrc ? (
-        <div className="lesson-pack-footer-logo mt-auto flex shrink-0 items-center justify-center border-t border-slate-200 pt-2">
+        <div className="lesson-pack-footer-logo pointer-events-none absolute bottom-[6mm] left-[10mm] right-[10mm] flex items-center justify-center border-t border-slate-200 pt-2 print:hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={footerLogoSrc}
@@ -442,7 +440,6 @@ export function LessonPackWorkbench({
         )
       );
       if (idx === 0) setHeaderLabel(res.headerLabel);
-      setMessage("단어를 자동으로 정리했습니다.");
     } finally {
       setGenerating(false);
     }
@@ -1483,6 +1480,20 @@ export function LessonPackWorkbench({
                 </div>
               </A4Sheet>
             ))}
+
+            {showLogo && logoSrc ? (
+              <div
+                aria-hidden
+                className="lesson-pack-print-logo-fixed hidden print:flex"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoSrc}
+                  alt=""
+                  className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
+                />
+              </div>
+            ) : null}
 
             {/* Off-screen measure — must match on-screen interactive heights */}
             <div
