@@ -12,8 +12,10 @@ import {
 import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
 import {
   generateAndSaveLessonPackVocabAction,
+  ensureLessonMaterialTitleEnAction,
   saveLessonPackAction,
 } from "@/lib/lesson-materials/lesson-pack-actions";
+import { LOGO_SRC } from "@/lib/branding";
 
 export type LessonPackProjectInput = {
   id: string;
@@ -52,10 +54,12 @@ function A4Sheet({
   children,
   label,
   style,
+  logoSrc,
 }: {
   children: ReactNode;
   label: string;
   style?: CSSProperties;
+  logoSrc?: string | null;
 }) {
   return (
     <article
@@ -67,10 +71,18 @@ function A4Sheet({
         ...style,
       }}
     >
+      {logoSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoSrc}
+          alt=""
+          className="pointer-events-none absolute right-[10mm] top-[8mm] z-10 h-11 w-auto max-w-[42mm] object-contain"
+        />
+      ) : null}
+      <div className={logoSrc ? "pr-[46mm]" : undefined}>{children}</div>
       <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
         {label}
       </span>
-      {children}
     </article>
   );
 }
@@ -113,9 +125,11 @@ function markVocabInEnglish(
 export function LessonPackWorkbench({
   role,
   projects: initialProjects,
+  logoSrc = LOGO_SRC,
 }: {
   role: "admin" | "teacher";
   projects: LessonPackProjectInput[];
+  logoSrc?: string;
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
@@ -125,7 +139,10 @@ export function LessonPackWorkbench({
   const [generating, setGenerating] = useState(false);
   const [prepLoading, setPrepLoading] = useState(() =>
     initialProjects.some(
-      (p) => p.vocab.length === 0 || vocabNeedsAntonymRefresh(p.vocab) || !p.titleEn?.trim()
+      (p) =>
+        p.vocab.length === 0 ||
+        vocabNeedsAntonymRefresh(p.vocab) ||
+        !p.titleEn?.trim()
     )
   );
   const [prepProgress, setPrepProgress] = useState({
@@ -144,6 +161,7 @@ export function LessonPackWorkbench({
   const [saving, setSaving] = useState(false);
   const [showKorean, setShowKorean] = useState(true);
   const [boldLessonBody, setBoldLessonBody] = useState(true);
+  const [showLogo, setShowLogo] = useState(true);
 
   // Document settings
   const [docTitle, setDocTitle] = useState(() => {
@@ -299,7 +317,7 @@ export function LessonPackWorkbench({
     };
   }, []);
 
-  // Auto-generate/refresh vocab (+ missing English title) before showing pack
+  // Auto-generate/refresh vocab; backfill English title without wiping good vocab
   useEffect(() => {
     const pending = projects
       .map((p, i) => ({ p, i }))
@@ -326,30 +344,48 @@ export function LessonPackWorkbench({
         const { p, i } = pending[n]!;
         setGenerating(true);
         try {
-          const res = await generateAndSaveLessonPackVocabAction(role, {
-            projectId: p.id,
-          });
-          if (!res.ok) {
-            failed = true;
-            setError(res.message);
-          } else {
-            setProjects((prev) =>
-              prev.map((row, idx) =>
-                idx === i
-                  ? {
-                      ...row,
-                      vocab: res.vocab,
-                      headerLabel: res.headerLabel,
-                      titleEn: res.titleEn ?? row.titleEn,
-                    }
-                  : row
-              )
-            );
-            if (i === 0) setHeaderLabel(res.headerLabel);
+          const needsVocab =
+            p.vocab.length === 0 || vocabNeedsAntonymRefresh(p.vocab);
+          if (needsVocab) {
+            const res = await generateAndSaveLessonPackVocabAction(role, {
+              projectId: p.id,
+            });
+            if (!res.ok) {
+              failed = true;
+              setError(res.message);
+            } else {
+              setProjects((prev) =>
+                prev.map((row, idx) =>
+                  idx === i
+                    ? {
+                        ...row,
+                        vocab: res.vocab,
+                        headerLabel: res.headerLabel,
+                        titleEn: res.titleEn ?? row.titleEn,
+                      }
+                    : row
+                )
+              );
+              if (i === 0) setHeaderLabel(res.headerLabel);
+            }
+          } else if (!p.titleEn?.trim()) {
+            const res = await ensureLessonMaterialTitleEnAction(role, {
+              projectId: p.id,
+            });
+            if (!res.ok) {
+              failed = true;
+              setError(res.message);
+            } else {
+              setProjects((prev) =>
+                prev.map((row, idx) =>
+                  idx === i ? { ...row, titleEn: res.titleEn } : row
+                )
+              );
+            }
           }
         } catch (e) {
           failed = true;
-          setError(e instanceof Error ? e.message : "단어 생성 실패");
+          setError(e instanceof Error ? e.message : "준비 실패");
         } finally {
           setGenerating(false);
         }
@@ -362,7 +398,7 @@ export function LessonPackWorkbench({
           return;
         }
         setPrepLoading(false);
-        setMessage("단어를 자동으로 정리했습니다.");
+        setMessage("자료를 자동으로 준비했습니다.");
       }
     })();
 
@@ -701,43 +737,118 @@ export function LessonPackWorkbench({
 
     if (parsed.kind === "passage-bar") {
       return (
-        <div className="mt-4">
-          {board.source?.trim() ? (
-            <div
-              className="mb-1.5 text-slate-500"
-              style={{ fontSize: 11, lineHeight: 1.35 }}
-            >
-              출처: {board.source.trim()}
+        <div className={pi === 0 ? "mt-2" : "mt-1"}>
+          {interactive ? (
+            <div className="space-y-2 rounded-xl bg-slate-100 px-3 py-3">
+              <label className="block space-y-1">
+                <span
+                  className="font-semibold"
+                  style={{ color: themeColor, fontSize: 11 }}
+                >
+                  출처
+                </span>
+                <input
+                  className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 outline-none"
+                  value={board.source ?? ""}
+                  placeholder="예: 2024 수능특강 / H1_2503_31"
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setProjects((prev) =>
+                      prev.map((row, i) =>
+                        i === pi ? { ...row, source: v } : row
+                      )
+                    );
+                  }}
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-[11px] font-bold text-slate-500">
+                  지문 제목
+                </span>
+                <div className="flex items-start gap-2">
+                  <span
+                    className="mt-1.5 shrink-0 font-bold text-slate-900"
+                    style={{ fontSize: 16 }}
+                  >
+                    {String(pi + 1).padStart(2, "0")}
+                  </span>
+                  <input
+                    className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-bold text-slate-900 outline-none"
+                    style={{ fontSize: 16 }}
+                    value={board.title}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setProjects((prev) =>
+                        prev.map((row, i) =>
+                          i === pi ? { ...row, title: v } : row
+                        )
+                      );
+                    }}
+                  />
+                </div>
+              </label>
+              {board.titleEn?.trim() ? (
+                <p className="pl-8 text-sm text-slate-600">
+                  {board.titleEn.trim()}
+                </p>
+              ) : (
+                <p className="pl-8 text-[11px] text-slate-400">
+                  영어 제목은 AI가 자동으로 표시합니다
+                </p>
+              )}
             </div>
-          ) : null}
-          <div className="rounded-lg bg-slate-100 px-3 py-2">
-            <div
-              className="font-bold text-slate-900"
-              style={{ fontSize: titleSizes.passageTitle }}
-            >
-              {String(pi + 1).padStart(2, "0")} {board.title}
-            </div>
-            {board.titleEn?.trim() ? (
-              <div
-                className="mt-1 font-medium text-slate-700"
-                style={{ fontSize: 12.5, lineHeight: 1.35 }}
-              >
-                {board.titleEn.trim()}
+          ) : (
+            <div>
+              {board.source?.trim() ? (
+                <div
+                  className="mb-1.5 font-semibold"
+                  style={{ color: themeColor, fontSize: 12 }}
+                >
+                  {board.source.trim()}
+                </div>
+              ) : null}
+              <div className="rounded-xl bg-slate-100 px-4 py-3">
+                <div
+                  className="font-bold leading-snug text-slate-900"
+                  style={{ fontSize: 17 }}
+                >
+                  {String(pi + 1).padStart(2, "0")} {board.title}
+                </div>
+                {board.titleEn?.trim() ? (
+                  <div
+                    className="mt-1.5 text-slate-600"
+                    style={{ fontSize: 13, lineHeight: 1.4 }}
+                  >
+                    {board.titleEn.trim()}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
+            </div>
+          )}
         </div>
       );
     }
 
     if (parsed.kind === "vocab-heading") {
       return (
-        <h2
-          className="mt-4 font-bold leading-snug"
-          style={{ color: themeColor, fontSize: titleSizes.section }}
-        >
-          1. 단어정리
-        </h2>
+        <div className="mt-5">
+          <div
+            className="font-semibold"
+            style={{ color: themeColor, fontSize: 12 }}
+          >
+            {headerLabel}
+          </div>
+          <h2
+            className="mt-1 font-bold leading-tight text-slate-900"
+            style={{ fontSize: 20 }}
+          >
+            1. 단어정리
+          </h2>
+          <div
+            className="mt-2 h-0.5 w-full"
+            style={{ backgroundColor: themeColor }}
+          />
+        </div>
       );
     }
 
@@ -1201,24 +1312,16 @@ export function LessonPackWorkbench({
                   }}
                 />
               </label>
-              <label className="block space-y-1">
-                <span className="text-[11px] font-bold text-slate-500">
-                  영어 제목
-                </span>
-                <input
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-                  value={p.titleEn ?? ""}
-                  placeholder="English title"
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setProjects((prev) =>
-                      prev.map((row, i) =>
-                        i === pi ? { ...row, titleEn: v } : row
-                      )
-                    );
-                  }}
-                />
-              </label>
+              {p.titleEn?.trim() ? (
+                <p className="text-xs text-slate-600">
+                  <span className="font-bold text-slate-500">영어 제목 · </span>
+                  {p.titleEn}
+                </p>
+              ) : (
+                <p className="text-[11px] text-slate-400">
+                  영어 제목은 AI가 자동으로 채웁니다
+                </p>
+              )}
               <label className="block space-y-1">
                 <span className="text-[11px] font-bold text-slate-500">출처</span>
                 <input
@@ -1308,6 +1411,23 @@ export function LessonPackWorkbench({
           </div>
 
           <div className="space-y-3 border-t border-slate-100 pt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500">학원 로고</span>
+              <button
+                type="button"
+                onClick={() => setShowLogo((v) => !v)}
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  showLogo
+                    ? "bg-violet-600 text-white"
+                    : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {showLogo ? "ON" : "OFF"}
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              홈페이지와 같은 학원 로고를 각 페이지 우측 상단에 표시합니다.
+            </p>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500">한글 해석 표시</span>
               <button
@@ -1423,6 +1543,7 @@ export function LessonPackWorkbench({
               <A4Sheet
                 key={`pack-page-${pageI}`}
                 label={`${pageI + 1} / ${totalPages}`}
+                logoSrc={showLogo ? logoSrc : null}
               >
                 <div className="flex flex-col gap-2.5">
                   {chunk.map((blockId) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import { LessonMaterialComicFrame } from "@/components/lesson-materials/LessonMa
 import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
 import { translateLessonMaterialLinesAction } from "@/lib/lesson-materials/line-actions";
 import { saveLessonMaterialProjectWorkspace } from "@/lib/lesson-materials/library-ops";
+import { ensureLessonMaterialTitleEnAction } from "@/lib/lesson-materials/lesson-pack-actions";
 import { generateLessonMaterialsOrganizationDraftAction as generateAdminOrganizationDraft } from "@/app/admin/lesson-materials/actions";
 import { generateLessonMaterialsOrganizationDraftAction as generateTeacherOrganizationDraft } from "@/app/teacher/lesson-materials/actions";
 
@@ -53,6 +54,9 @@ export function LessonMaterialProjectWorkspace({
   const [title, setTitle] = useState(project.title);
   const [titleEn, setTitleEn] = useState(project.titleEn ?? "");
   const [source, setSource] = useState(project.source ?? "");
+  const [ensuringTitleEn, setEnsuringTitleEn] = useState(
+    () => !(project.titleEn ?? "").trim()
+  );
   const [itemsDraft, setItemsDraft] = useState(() =>
     items.map((it) => ({
       id: it.id,
@@ -97,6 +101,31 @@ export function LessonMaterialProjectWorkspace({
 
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
+
+  // English title is AI-generated — backfill if missing (no manual typing)
+  useEffect(() => {
+    if (titleEn.trim()) {
+      setEnsuringTitleEn(false);
+      return;
+    }
+    let cancelled = false;
+    setEnsuringTitleEn(true);
+    void (async () => {
+      const res = await ensureLessonMaterialTitleEnAction(role, {
+        projectId: project.id,
+      });
+      if (cancelled) return;
+      if (res.ok) {
+        setTitleEn(res.titleEn);
+        router.refresh();
+      }
+      setEnsuringTitleEn(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [project.id]);
 
   function updateItem(
     id: string,
@@ -295,15 +324,15 @@ export function LessonMaterialProjectWorkspace({
               placeholder="한국어 제목"
             />
           </label>
-          <label className="block space-y-1">
-            <span className="text-xs font-bold text-slate-500">영어 제목</span>
-            <input
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-violet-300"
-              value={titleEn}
-              onChange={(e) => setTitleEn(e.target.value)}
-              placeholder="English title"
-            />
-          </label>
+          {titleEn.trim() ? (
+            <p className="text-base font-medium text-slate-600">{titleEn}</p>
+          ) : ensuringTitleEn ? (
+            <p className="text-sm text-slate-400">영어 제목 준비 중…</p>
+          ) : (
+            <p className="text-sm text-slate-400">
+              영어 제목은 자료 생성 시 자동으로 붙습니다
+            </p>
+          )}
           <p className="text-sm text-slate-600">
             {totalCount}개 문장 • 한글 입력 {koreanCount}개
           </p>
