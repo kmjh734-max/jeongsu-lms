@@ -60,8 +60,8 @@ function normRole(raw: unknown): AnalysisChunkRole {
   return "other";
 }
 
-const SYSTEM = `너는 한국 중·고등 영어 문장 분석서 편집자다.
-입력된 각 영어 문장(과 한글 해석)만 근거로, 수업용 분석서 JSON을 만든다.
+const SYSTEM = `너는 한국 고등 영어(수능·내신) 문장 분석서 전문 편집자다.
+입력된 지문 전체의 흐름을 보면서, 각 문장마다 수업용 분석서 JSON을 만든다.
 
 반드시 JSON만 반환:
 {
@@ -74,11 +74,11 @@ const SYSTEM = `너는 한국 중·고등 영어 문장 분석서 편집자다.
         { "text": "how the parts interact", "role": "o" }
       ],
       "koChunks": ["구성의 오류는", "고려하지 못한다", "부분들이 어떻게 상호작용하는지를"],
-      "easyUnderstanding": "문장이 말하려는 핵심을 쉽게 풀어 쓴 한국어 2~3문장.",
+      "easyUnderstanding": "앞에서 부분의 성과를 더하면 전체가 된다고 오해할 수 있는데, 이 문장은 그 오해가 왜 틀리는지 짚는다. 부분끼리 서로 영향을 준다는 점을 놓치면 전체 성과를 잘못 예측하게 된다.",
       "grammarPoints": [
         {
-          "title": "간접의문문이 전치사의 목적어",
-          "detail": "전치사 뒤에서 how/what 절이 목적어로 온다.",
+          "title": "전치사 + 간접의문절(how절)",
+          "detail": "allow for 뒤의 how절은 전치사 for의 목적어 역할을 하는 간접의문문이다. how는 의문사이면서 절을 이끈다.",
           "example": "fails to allow for how the parts interact"
         }
       ]
@@ -86,13 +86,25 @@ const SYSTEM = `너는 한국 중·고등 영어 문장 분석서 편집자다.
   ]
 }
 
-규칙:
-- sentences 배열 길이는 입력 문장 수와 같게. itemId는 입력 id를 그대로.
-- enChunks: 의미 단위로 /로 나눌 덩어리. role은 s|v|o|c|M 중 하나(기타면 M).
-- koChunks: enChunks와 같은 개수·같은 순서로 대응되는 한국어.
-- easyUnderstanding: 쉽고 짧게(40~90자). 라벨 문구는 넣지 말 것.
-- grammarPoints: 1~3개. title은 짧은 문법 포인트명, detail은 쉬운 설명, example은 문장에서 해당 영어 조각.
-- 너무 어려운 용어만 나열하지 말 것. 수업용으로 명확하게.`;
+공통 규칙:
+- sentences 길이는 입력 문장 수와 같게. itemId는 입력 id를 그대로 쓴다.
+- enChunks: 의미 단위로 나눈 영어 덩어리. role은 s|v|o|c|M (주어/동사/목적어/보어/수식어).
+- koChunks: enChunks와 같은 개수·순서로 대응되는 한국어 해석 조각.
+
+easyUnderstanding ([쉬운 이해]) — 매우 중요:
+- 절대 단순 해석·직역·번역 요약이 아니다. (예: "~이다/~한다"만 반복 금지)
+- 이 문장이 지문 흐름에서 하는 역할과 의미를 구체적으로 설명한다.
+- 앞 문장과의 연결(반박·예시·원인·결론 등), 필자가 말하려는 포인트, 학생이 헷갈리기 쉬운 뉘앙스를 풀어 쓴다.
+- 배경지식(경제·심리·과학·사회 개념 등)이 이해에 필요하면 1~2문장으로 쉽게 보충한다.
+- 한국어 2~4문장, 자연스럽고 구체적(권장 80~180자). 라벨 문구([쉬운 이해] 등)는 본문에 넣지 말 것.
+
+grammarPoints ([문법 분석]) — 자세히, 선별적으로:
+- 너무 쉬운 문법은 생략한다. (단순 be동사, 일반 현재/과거, 기본 형용사 수식, 쉬운 and/but 등)
+- 수업에서 짚을 만한 구문만 1~4개. 없으면 []도 허용.
+- 관계사: 관계대명사(who/which/that/what)인지 관계부사(when/where/why/how)인지 명시. 선행사, 주격/목적격/소유격, 생략 여부, 전치사+관계대명사(in which, to whom 등)를 구분해 설명한다.
+- 수동태: be+p.p. / get+p.p. / have+목적어+p.p. / 전치사 수동(be known for 등)처럼 종류를 밝히고, 능동 대응이나 의미 차이를 적는다.
+- 기타: 가주어-진주어, 분사구문, 가정법, 도치, 강조, 명사절/부사절, 부정사·동명사 역할, 부분부정, 비교구문 등도 해당될 때만 자세히.
+- title: 문법 포인트명(구체적). detail: 왜 그렇게 읽히는지 설명이 충분할 것(2~4문장 분량 가능). example: 문장에서 해당 영어 조각.`;
 
 export async function generateAnalysisReport(input: {
   lines: InputLine[];
@@ -112,7 +124,7 @@ export async function generateAnalysisReport(input: {
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 90_000);
+  const timer = setTimeout(() => controller.abort(), 120_000);
 
   try {
     const payload = lines
@@ -132,14 +144,20 @@ export async function generateAnalysisReport(input: {
       },
       signal: controller.signal,
       body: JSON.stringify({
-        model: "gpt-4o-mini",
-        temperature: 0.3,
+        model: "gpt-4o",
+        temperature: 0.35,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: SYSTEM },
           {
             role: "user",
-            content: `제목: ${input.title?.trim() || "(없음)"}\n\n아래 문장들로 분석서를 만들어라.\n\n${payload}`,
+            content: `제목: ${input.title?.trim() || "(없음)"}
+
+아래는 한 지문의 문장들이다. 전체 흐름을 먼저 파악한 뒤 문장별 분석서를 만들어라.
+- easyUnderstanding은 해석이 아니라 흐름·의미·필요 시 배경지식 설명
+- grammarPoints는 쉬운 문법 제외, 관계사·수동태 등은 종류까지 자세히
+
+${payload}`,
           },
         ],
       }),
@@ -206,7 +224,7 @@ export async function generateAnalysisReport(input: {
           example: String(g.example ?? "").trim() || undefined,
         }))
         .filter((g) => g.title || g.detail)
-        .slice(0, 4);
+        .slice(0, 5);
 
       return {
         itemId: line.id,
@@ -214,7 +232,7 @@ export async function generateAnalysisReport(input: {
         koChunks,
         easyUnderstanding:
           String(raw?.easyUnderstanding ?? "").trim() ||
-          "이 문장의 핵심을 쉽게 이해해 보세요.",
+          "이 문장이 지문에서 하는 역할을 생각하며 읽어 보세요.",
         grammarPoints,
       };
     });
