@@ -610,6 +610,8 @@ export function LessonPackWorkbench({
     docTitle,
     headerLabel,
     testsByProject,
+    showLogo,
+    logoSrc,
   ]);
 
   const titleSizes = {
@@ -1109,9 +1111,7 @@ export function LessonPackWorkbench({
       if (!it) return null;
       return (
         <div
-          className={`mt-1 grid gap-2 border-b border-slate-100 pb-2 ${
-            showKorean ? "grid-cols-[22px_3fr_1fr]" : "grid-cols-[22px_1fr]"
-          }`}
+          className="mt-1 grid grid-cols-[22px_3fr_1fr] gap-2 border-b border-slate-100 pb-2"
           style={bodyStyle}
         >
           <div className="font-bold" style={{ color: themeColor }}>
@@ -1122,16 +1122,19 @@ export function LessonPackWorkbench({
               ? markVocabInEnglish(it.english_text, board.vocab, themeColor)
               : it.english_text}
           </div>
-          {showKorean ? (
-            <div
-              className="text-slate-700"
-              style={{ fontSize: "0.92em", fontWeight: 400 }}
-            >
-              {it.korean_text?.trim() || (
-                <span className="text-slate-400">—</span>
-              )}
-            </div>
-          ) : null}
+          <div
+            className="text-slate-700"
+            style={{
+              fontSize: "0.92em",
+              fontWeight: 400,
+              visibility: showKorean ? "visible" : "hidden",
+            }}
+            aria-hidden={!showKorean}
+          >
+            {it.korean_text?.trim() || (
+              <span className="text-slate-400">—</span>
+            )}
+          </div>
         </div>
       );
     }
@@ -1273,6 +1276,13 @@ export function LessonPackWorkbench({
                   영어 제목은 AI가 자동으로 채웁니다
                 </p>
               )}
+              <button
+                type="button"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-violet-300 hover:bg-violet-50"
+                onClick={() => addVocabRowAt(pi)}
+              >
+                + 단어 행 추가
+              </button>
               <label className="block space-y-1">
                 <span className="text-[11px] font-bold text-slate-500">출처</span>
                 <input
