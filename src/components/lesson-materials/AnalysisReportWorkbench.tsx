@@ -40,13 +40,57 @@ function GrammarPointItem({
     /^(최우선|핵심|중요\s*구문)\s*[·•\-–—:]\s*/u,
     ""
   );
+  const classification =
+    point.classificationLabel ||
+    (point.primaryClassification
+      ? [
+          point.primaryClassification.unitNumber != null
+            ? `Unit ${String(point.primaryClassification.unitNumber).padStart(2, "0")} ${point.primaryClassification.unitTitle}`
+            : point.primaryClassification.unitTitle,
+          point.primaryClassification.chapterNumber
+            ? `CHAPTER ${String(point.primaryClassification.chapterNumber).padStart(2, "0")} ${point.primaryClassification.chapterTitle}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : "");
+  const related =
+    point.relatedUnits
+      ?.map((u) =>
+        u.unitNumber != null
+          ? `Unit ${String(u.unitNumber).padStart(2, "0")} ${u.unitTitle}`
+          : u.unitTitle
+      )
+      .filter(Boolean)
+      .join(", ") || "";
+  const terms = point.bookTerms?.filter(Boolean).join(" · ") || "";
 
   return (
-    <li className="text-[12.5px] leading-relaxed text-slate-800">
-      <span className="mr-1 font-bold text-rose-600">{mark}</span>
-      <span className="font-bold text-slate-900">{title}</span>
-      {point.example ? (
-        <span className="text-violet-700"> ({point.example})</span>
+    <li className="space-y-0.5 text-[12.5px] leading-relaxed text-slate-800">
+      <div>
+        <span className="mr-1 font-bold text-rose-600">{mark}</span>
+        <span className="font-bold text-slate-900">{title}</span>
+        {point.example ? (
+          <span className="text-violet-700"> ({point.example})</span>
+        ) : null}
+      </div>
+      {classification ? (
+        <p className="text-[11.5px] text-slate-500">
+          <span className="font-semibold text-slate-600">천일문 · </span>
+          {classification}
+        </p>
+      ) : null}
+      {related ? (
+        <p className="text-[11.5px] text-slate-500">
+          <span className="font-semibold text-slate-600">관련 · </span>
+          {related}
+        </p>
+      ) : null}
+      {terms ? (
+        <p className="text-[11.5px] text-slate-500">
+          <span className="font-semibold text-slate-600">용어 · </span>
+          {terms}
+        </p>
       ) : null}
     </li>
   );

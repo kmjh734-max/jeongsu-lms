@@ -9,8 +9,22 @@ import {
   ANALYSIS_REPORT_SYSTEM_PROMPT,
   buildAnalysisReportUserPrompt,
 } from "@/lib/lesson-materials/analysis-report-grammar-prompt";
+import {
+  formatCheonilmunClassification,
+  resolveCheonilmunUnit,
+  type CheonilmunClassification,
+} from "@/lib/lesson-materials/cheonilmun-basic-taxonomy";
 
-export type AnalysisChunkRole = "s" | "v" | "o" | "c" | "M" | "other";
+export type AnalysisChunkRole =
+  | "s"
+  | "v"
+  | "o"
+  | "c"
+  | "M"
+  | "a"
+  | "io"
+  | "do"
+  | "other";
 
 export type AnalysisEnChunk = {
   text: string;
@@ -18,7 +32,7 @@ export type AnalysisEnChunk = {
 };
 
 export type AnalysisGrammarPoint = {
-  /** Accurate grammar term */
+  /** Accurate grammar term (Cheonilmun-preferred) */
   title: string;
   /** Structure analysis (or legacy combined text) */
   detail: string;
@@ -26,10 +40,17 @@ export type AnalysisGrammarPoint = {
   example?: string;
   category?: string;
   sentenceStructure?: string;
+  senseGroups?: string;
+  sentencePattern?: string;
+  innerStructure?: string;
+  bookTerms?: string[];
+  primaryClassification?: CheonilmunClassification;
+  relatedUnits?: CheonilmunClassification[];
+  decisionRule?: string;
+  classificationLabel?: string;
   /** @deprecated kept for older saved reports */
   priority?: string;
   restoredStructure?: string;
-  decisionRule?: string;
   wrongForms?: string[];
   wrongReasons?: string[];
   translationConnection?: string;
@@ -101,6 +122,9 @@ function normRole(raw: unknown): AnalysisChunkRole {
   if (r === "o" || r === "object") return "o";
   if (r === "c" || r === "complement") return "c";
   if (r === "m" || r === "modifier" || r === "mod") return "M";
+  if (r === "a" || r === "adverbial") return "a";
+  if (r === "io" || r === "indirect") return "io";
+  if (r === "do" || r === "direct") return "do";
   return "other";
 }
 
@@ -110,14 +134,45 @@ function stripPriorityLabel(text: string): string {
     .trim();
 }
 
+function toStringList(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.map((x) => String(x ?? "").trim()).filter(Boolean);
+}
+
+function mapClassification(raw: unknown): CheonilmunClassification | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const unitNumber = o.unitNumber;
+  const unitTitle = String(o.unitTitle ?? "").trim();
+  const resolved = resolveCheonilmunUnit(unitNumber, unitTitle);
+  if (resolved) return resolved;
+  if (unitTitle.includes("목차 외") || unitNumber == null) {
+    return {
+      partNumber: 0,
+      partTitle: "",
+      chapterNumber: 0,
+      chapterTitle: "",
+      unitNumber: null,
+      unitTitle: unitTitle || "목차 외 보충",
+      isOffCatalog: true,
+    };
+  }
+  return null;
+}
+
 function mapRawGrammarPoint(raw: {
   priority?: unknown;
   category?: unknown;
   originalSentence?: unknown;
   targetExpression?: unknown;
   sentenceStructure?: unknown;
+  outerStructure?: unknown;
+  senseGroups?: unknown;
+  sentencePattern?: unknown;
+  innerStructure?: unknown;
   restoredStructure?: unknown;
   decisionRule?: unknown;
+  correctReason?: unknown;
   contextualExplanation?: unknown;
   wrongForms?: unknown;
   wrongReasons?: unknown;
@@ -127,44 +182,86 @@ function mapRawGrammarPoint(raw: {
   title?: unknown;
   detail?: unknown;
   example?: unknown;
+  bookTerms?: unknown;
+  primaryClassification?: unknown;
+  relatedUnits?: unknown;
 }): AnalysisGrammarPoint | null {
   const category = stripPriorityLabel(String(raw.category ?? "").trim());
   const targetExpression = String(
     raw.targetExpression ?? raw.example ?? ""
   ).trim();
+  const primaryClassification = mapClassification(raw.primaryClassification);
+  const relatedUnits = Array.isArray(raw.relatedUnits)
+    ? raw.relatedUnits
+        .map((u) => mapClassification(u))
+        .filter((u): u is CheonilmunClassification => !!u)
+        .slice(0, 3)
+    : [];
+
+  const titleFromUnit =
+    primaryClassification && !primaryClassification.isOffCatalog
+      ? `Unit ${String(primaryClassification.unitNumber).padStart(2, "0")} ${
+          primaryClassification.unitTitle
+        }`
+      : "";
+
   const title =
     stripPriorityLabel(String(raw.title ?? "").trim()) ||
     category ||
+    titleFromUnit ||
     targetExpression ||
     "어법";
 
-  const sentenceStructure = String(raw.sentenceStructure ?? "").trim();
+  const sentenceStructure = String(
+    raw.sentenceStructure ?? raw.outerStructure ?? ""
+  ).trim();
+  const innerStructure = String(raw.innerStructure ?? "").trim();
+  const senseGroups = String(raw.senseGroups ?? "").trim();
+  const sentencePattern = String(raw.sentencePattern ?? "").trim();
   const restoredStructure = String(raw.restoredStructure ?? "").trim();
-  // Prefer structure-only detail; fold legacy restore into structure text if needed
+  const decisionRule = String(
+    raw.decisionRule ?? raw.correctReason ?? raw.contextualExplanation ?? ""
+  ).trim();
+  const bookTerms = toStringList(raw.bookTerms);
+
+  const structureParts = [
+    sentencePattern ? `문형 ${sentencePattern}` : "",
+    senseGroups ? `의미 단위: ${senseGroups}` : "",
+    sentenceStructure,
+    innerStructure ? `내부: ${innerStructure}` : "",
+    restoredStructure && !sentenceStructure.includes(restoredStructure)
+      ? restoredStructure
+      : "",
+    decisionRule ? `판단: ${decisionRule}` : "",
+  ].filter(Boolean);
+
   const detail =
-    sentenceStructure ||
-    [
-      restoredStructure ? `(구조) ${restoredStructure}` : "",
-      String(raw.detail ?? "").trim(),
-      String(raw.decisionRule ?? "").trim(),
-      String(raw.contextualExplanation ?? "").trim(),
-      String(raw.teacherExplanation ?? "").trim(),
-      String(raw.studentSummary ?? "").trim(),
-    ]
-      .filter(Boolean)
-      .join("\n") ||
+    structureParts.join(" · ") ||
+    String(raw.detail ?? "").trim() ||
     "";
 
   if (!title && !detail && !targetExpression) {
     return null;
   }
 
+  const classificationLabel = primaryClassification
+    ? formatCheonilmunClassification(primaryClassification)
+    : undefined;
+
   return {
     title,
     detail,
     example: targetExpression || undefined,
     category: category || undefined,
-    sentenceStructure: sentenceStructure || detail || undefined,
+    sentenceStructure: structureParts.join(" · ") || detail || undefined,
+    senseGroups: senseGroups || undefined,
+    sentencePattern: sentencePattern || undefined,
+    innerStructure: innerStructure || undefined,
+    bookTerms: bookTerms.length ? bookTerms : undefined,
+    primaryClassification: primaryClassification || undefined,
+    relatedUnits: relatedUnits.length ? relatedUnits : undefined,
+    decisionRule: decisionRule || undefined,
+    classificationLabel,
   };
 }
 
@@ -320,9 +417,17 @@ export async function generateAnalysisReport(input: {
         originalSentence?: string;
         targetExpression?: string;
         sentenceStructure?: string;
+        outerStructure?: string;
+        senseGroups?: string;
+        sentencePattern?: string;
+        innerStructure?: string;
         restoredStructure?: string;
         decisionRule?: string;
+        correctReason?: string;
         contextualExplanation?: string;
+        bookTerms?: unknown;
+        primaryClassification?: unknown;
+        relatedUnits?: unknown;
         wrongForms?: unknown;
         wrongReasons?: unknown;
         translationConnection?: string;
