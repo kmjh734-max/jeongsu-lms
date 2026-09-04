@@ -55,15 +55,17 @@ function A4Sheet({
   label,
   style,
   logoSrc,
+  className,
 }: {
   children: ReactNode;
   label: string;
   style?: CSSProperties;
   logoSrc?: string | null;
+  className?: string;
 }) {
   return (
     <article
-      className="lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none"
+      className={`lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none ${className ?? ""}`.trim()}
       style={{
         width: A4_WIDTH,
         minHeight: A4_HEIGHT,
@@ -310,7 +312,14 @@ export function LessonPackWorkbench({
       el.id = id;
     }
     el.textContent =
-      "@media print { @page { size: 210mm 297mm; margin: 0; } @page app-print-a4 { size: 210mm 297mm; margin: 0; } }";
+    el.textContent = `
+@media print {
+  @page { size: 210mm 297mm; margin: 0; }
+  @page app-print-a4 { size: 210mm 297mm; margin: 0; }
+  aside, .print\\:hidden { }
+  #lesson-pack-print-root { transform: none !important; gap: 0 !important; }
+}
+`;
     document.body.appendChild(el);
     return () => {
       el?.remove();
@@ -1476,11 +1485,18 @@ export function LessonPackWorkbench({
               ...previewStyle,
             }}
           >
-            {pageChunks.map((chunk, pageI) => (
+            {pageChunks
+              .filter((chunk) => chunk.length > 0)
+              .map((chunk, pageI, pages) => (
               <A4Sheet
                 key={`pack-page-${pageI}`}
-                label={`${pageI + 1} / ${totalPages}`}
+                label={`${pageI + 1} / ${pages.length}`}
                 logoSrc={showLogo ? logoSrc : null}
+                className={
+                  pageI === pages.length - 1
+                    ? "lesson-pack-a4-sheet--last"
+                    : undefined
+                }
               >
                 <div className="flex flex-col gap-2.5">
                   {chunk.map((blockId) => (
@@ -1492,16 +1508,16 @@ export function LessonPackWorkbench({
               </A4Sheet>
             ))}
 
-            {/* Off-screen measure for continuous block packing */}
+            {/* Off-screen measure — must match on-screen interactive heights */}
             <div
               aria-hidden
-              className="pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0"
+              className="lesson-pack-measure pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0 print:hidden"
               style={{ padding: A4_PAD, ...previewStyle }}
             >
               <div ref={packMeasureRef} className="flex flex-col gap-2.5">
                 {packBlocks.map((b) => (
                   <div key={`m-${b.id}`} data-pack-block={b.id}>
-                    {renderPackBlock(b.id, false)}
+                    {renderPackBlock(b.id, true)}
                   </div>
                 ))}
               </div>

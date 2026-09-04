@@ -2493,5 +2493,25 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     break-before: page;
     page-break-before: always;
   }
+
+  /* Lesson pack: fixed 297mm + break creates blank pages in Chrome */
+  .lesson-pack-a4-sheet {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .lesson-pack-a4-sheet.lesson-pack-a4-sheet--last {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
+  .lesson-pack-measure {
+    display: none !important;
+  }
 }
 
