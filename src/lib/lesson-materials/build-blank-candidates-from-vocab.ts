@@ -5,6 +5,8 @@ import {
   tokenizeWords,
 } from "@/lib/lesson-materials/validate-workbook-blank";
 import {
+  computeBlankFinalScore,
+  inferGradeFromScores,
   isSoftEasyWord,
   normalizeWordFamily,
   synthesizeScoresForLemma,
@@ -69,6 +71,8 @@ export function buildHeuristicBlankCandidates(input: {
       titleText: input.titleText,
       semanticRole: "academic",
     });
+    const grade = inferGradeFromScores(scores);
+    if (grade === "C") continue;
     out.push({
       candidateId: `heur-${i + 1}`,
       sentenceId: h.sentenceId,
@@ -78,6 +82,7 @@ export function buildHeuristicBlankCandidates(input: {
       wordFamily: normalizeWordFamily(h.lemma),
       partOfSpeech: "noun" as BlankPartOfSpeech,
       meaningKo: h.lemma,
+      grade,
       semanticRole: "academic",
       competitionGroup: null,
       scores,
@@ -168,20 +173,12 @@ export function buildBlankCandidatesFromVocab(input: {
       });
       return { h, scores };
     })
-    .sort((a, b) => {
-      const fa =
-        a.scores.centrality * 4 +
-        a.scores.learningValue * 3 -
-        a.scores.commonnessPenalty * 3;
-      const fb =
-        b.scores.centrality * 4 +
-        b.scores.learningValue * 3 -
-        b.scores.commonnessPenalty * 3;
-      return fb - fa;
-    });
+    .sort((a, b) => computeBlankFinalScore(b.scores) - computeBlankFinalScore(a.scores));
 
   for (let i = 0; i < ranked.length && out.length < max; i++) {
     const { h, scores } = ranked[i]!;
+    const grade = inferGradeFromScores(scores);
+    if (grade === "C") continue;
     out.push({
       candidateId: `vocab-${i + 1}`,
       id: `vocab-${i + 1}`,
@@ -192,6 +189,7 @@ export function buildBlankCandidatesFromVocab(input: {
       wordFamily: normalizeWordFamily(h.lemma),
       partOfSpeech: h.partOfSpeech,
       meaningKo: h.meaningKo,
+      grade,
       semanticRole: "academic",
       competitionGroup: null,
       scores,

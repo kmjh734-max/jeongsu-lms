@@ -16,7 +16,7 @@ import {
   flattenPassageTokens,
 } from "@/lib/lesson-materials/insert-workbook-blanks";
 import {
-  selectBlankCandidates,
+  selectBlankCandidatesByDensity,
   validateBlankCandidates,
   type ValidatedBlankCandidate,
 } from "@/lib/lesson-materials/validate-workbook-blank";
@@ -39,6 +39,7 @@ import {
   computeBlankTargetCount,
   countEnglishWords,
   formatWorkbookPassage,
+  getBlankTargetRange,
   getMaxBlanksForSentence,
   joinWorkbookPassageLines,
   type WorkbookBlankFillOptions,
@@ -110,8 +111,8 @@ export async function callBlankOpenAI(input: {
     required: [
       "centrality",
       "learningValue",
-      "contextualImportance",
-      "reusability",
+      "contextImportance",
+      "examUsefulness",
       "collocationValue",
       "commonnessPenalty",
       "redundancyPenalty",
@@ -119,8 +120,8 @@ export async function callBlankOpenAI(input: {
     properties: {
       centrality: { type: "integer" },
       learningValue: { type: "integer" },
-      contextualImportance: { type: "integer" },
-      reusability: { type: "integer" },
+      contextImportance: { type: "integer" },
+      examUsefulness: { type: "integer" },
       collocationValue: { type: "integer" },
       commonnessPenalty: { type: "integer" },
       redundancyPenalty: { type: "integer" },
@@ -153,14 +154,15 @@ export async function callBlankOpenAI(input: {
           body.response_format = {
             type: "json_schema",
             json_schema: {
-              name: "workbook_blank_candidates_v3",
+              name: "workbook_blank_candidates_v4",
               strict: true,
               schema: {
                 type: "object",
                 additionalProperties: false,
-                required: ["passageId", "coreSentenceIds", "candidates"],
+                required: ["passageId", "topic", "coreSentenceIds", "candidates"],
                 properties: {
                   passageId: { type: "string" },
+                  topic: { type: "string" },
                   coreSentenceIds: {
                     type: "array",
                     items: { type: "string" },
@@ -179,6 +181,7 @@ export async function callBlankOpenAI(input: {
                         "wordFamily",
                         "partOfSpeech",
                         "meaningKo",
+                        "grade",
                         "semanticRole",
                         "competitionGroup",
                         "scores",
@@ -196,6 +199,10 @@ export async function callBlankOpenAI(input: {
                           enum: ["noun", "verb", "adjective", "adverb"],
                         },
                         meaningKo: { type: "string" },
+                        grade: {
+                          type: "string",
+                          enum: ["A", "B"],
+                        },
                         semanticRole: {
                           type: "string",
                           enum: [
@@ -309,6 +316,7 @@ function storedToRawCandidates(pool: StoredBlankCandidate[]): unknown[] {
     wordFamily: c.wordFamily,
     partOfSpeech: c.partOfSpeech,
     meaningKo: c.meaningKo,
+    grade: c.grade,
     semanticRole: c.semanticRole ?? null,
     competitionGroup: c.competitionGroup ?? null,
     scores: c.scores,
@@ -345,6 +353,7 @@ function validatedToStored(
       competitionGroup: c.competitionGroup,
       scores: c.scores,
       finalScore: c.finalScore ?? computeBlankFinalScore(c.scores),
+      grade: c.grade,
     })),
   };
 }
@@ -431,15 +440,31 @@ export async function generateWorkbookBlankFill(input: {
       hintType: input.options.hintType,
       showTranslation: input.options.showTranslation,
     });
-    // Ask AI for a richer pool than final target when generating fresh
-    const poolTarget = Math.min(24, Math.max(recommended + 6, 20));
+    const standardTarget = computeBlankTargetCount({
+      englishWordCount: wordCount,
+      density: "standard",
+      hintType: input.options.hintType,
+      showTranslation: input.options.showTranslation,
+    });
+    const highTarget = computeBlankTargetCount({
+      englishWordCount: wordCount,
+      density: "high",
+      hintType: input.options.hintType,
+      showTranslation: input.options.showTranslation,
+    });
+    // One shared pool sized for 난이도 UP upper bound (+ headroom)
+    const highRange = getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "high",
+    });
+    const poolTarget = Math.min(48, Math.max(highRange.high + 10, 28));
     const sentenceWordCounts = new Map(
       sentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
     );
     const maxPerSentence = Math.max(
       1,
       ...[...sentenceWordCounts.values()].map((wc) =>
-        getMaxBlanksForSentence(wc, density)
+        getMaxBlanksForSentence(wc, "high")
       )
     );
     const vocabLemmas = new Set(
@@ -457,9 +482,9 @@ export async function generateWorkbookBlankFill(input: {
       coreSentenceIds = p.blankPool.coreSentenceIds ?? [];
       usedCache = true;
     } else {
-      // v3: always evaluate full passage via OpenAI once (vocab is reference only)
+      // v4: evaluate full passage via OpenAI once; density modes share the pool
       statusNotes.push(
-        `「${p.title}」핵심 어휘 후보(v3)를 준비합니다. 이후 동일 원문은 캐시를 사용합니다.`
+        `「${p.title}」핵심 어휘 후보(v4)를 준비합니다. 이후 동일 원문은 캐시를 사용합니다.`
       );
       try {
         openAiRequestCount += 1;
@@ -611,16 +636,14 @@ export async function generateWorkbookBlankFill(input: {
       }
     }
 
-    let { selected, shortfallReason } = selectBlankCandidates(
-      valid,
-      recommended,
-      {
-        density,
-        sentenceWordCounts,
-        coreSentenceIds,
-        sentenceOrder: sentences.map((s) => s.id),
-      }
-    );
+    let { selected, shortfallReason } = selectBlankCandidatesByDensity(valid, {
+      density,
+      standardTarget,
+      highTarget: recommended,
+      sentenceWordCounts,
+      coreSentenceIds,
+      sentenceOrder: sentences.map((s) => s.id),
+    });
 
     if (
       !usedCache &&
@@ -664,11 +687,12 @@ export async function generateWorkbookBlankFill(input: {
           coreSentenceIds = again.coreSentenceIds.length
             ? again.coreSentenceIds
             : coreSentenceIds;
-          ({ selected, shortfallReason } = selectBlankCandidates(
+          ({ selected, shortfallReason } = selectBlankCandidatesByDensity(
             valid,
-            recommended,
             {
               density,
+              standardTarget,
+              highTarget: recommended,
               sentenceWordCounts,
               coreSentenceIds,
               sentenceOrder: sentences.map((s) => s.id),
@@ -702,15 +726,13 @@ export async function generateWorkbookBlankFill(input: {
         titleText: p.title,
       });
       valid = last.valid;
-      ({ selected, shortfallReason } = selectBlankCandidates(
-        valid,
-        recommended,
-        {
-          density,
-          sentenceWordCounts,
-          sentenceOrder: sentences.map((s) => s.id),
-        }
-      ));
+      ({ selected, shortfallReason } = selectBlankCandidatesByDensity(valid, {
+        density,
+        standardTarget,
+        highTarget: recommended,
+        sentenceWordCounts,
+        sentenceOrder: sentences.map((s) => s.id),
+      }));
       if (selected.length === 0 && valid.length > 0) {
         selected = valid.slice(0, Math.min(recommended, valid.length));
       }
@@ -722,16 +744,16 @@ export async function generateWorkbookBlankFill(input: {
       );
     }
 
-    // Persist ranked pool (full valid capped) for next 0-OpenAI runs
+    // Persist full eligible pool (not density-trimmed) for 0-OpenAI reruns
     if (!usedCache) {
-      const poolSelected = selectBlankCandidates(valid, poolTarget, {
-        density,
-        sentenceWordCounts,
-        coreSentenceIds,
-        sentenceOrder: sentences.map((s) => s.id),
-      }).selected;
+      const poolCandidates = [...valid]
+        .sort((a, b) => {
+          if (a.grade !== b.grade) return a.grade === "A" ? -1 : 1;
+          return b.finalScore - a.finalScore;
+        })
+        .slice(0, Math.min(valid.length, poolTarget));
       const pool = validatedToStored(
-        poolSelected.length ? poolSelected : selected,
+        poolCandidates.length ? poolCandidates : selected,
         p.projectId,
         sourceHash,
         coreSentenceIds

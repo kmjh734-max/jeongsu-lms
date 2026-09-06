@@ -502,10 +502,6 @@ export function WorkbookWorkbench({
       <div className="flex h-[80vh] flex-col items-center justify-center gap-3 bg-slate-100 px-4">
         <div className="rounded-2xl bg-white px-8 py-6 text-center shadow">
           <p className="text-sm font-semibold text-slate-800">{status}</p>
-          <p className="mt-2 text-xs text-slate-500">
-            해석은 수업용자료에 저장된 내용을 재사용합니다. 저장 데이터가 있으면
-            빈칸은 OpenAI 없이 바로 구성됩니다.
-          </p>
         </div>
         <Link href={base} className="text-xs font-semibold text-violet-700">
           ← 자료함으로 돌아가기

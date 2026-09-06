@@ -3,11 +3,12 @@ import { formatWorkbookPassage } from "@/lib/lesson-materials/workbook-types";
 import type { BlankPartOfSpeech } from "@/lib/lesson-materials/workbook-types";
 import type {
   BlankCandidateScore,
+  BlankGrade,
   BlankSemanticRole,
 } from "@/lib/lesson-materials/blank-concept-score";
 
 /** Bump when blank selection prompt / scoring / algorithm changes. */
-export const BLANK_POOL_ALGORITHM_VERSION = "blank-selection-v3";
+export const BLANK_POOL_ALGORITHM_VERSION = "blank-selection-v4";
 /** Alias matching product naming */
 export const BLANK_SELECTION_ALGORITHM_VERSION = BLANK_POOL_ALGORITHM_VERSION;
 
@@ -26,6 +27,7 @@ export type StoredBlankCandidate = {
   competitionGroup?: string | null;
   scores?: BlankCandidateScore;
   finalScore?: number;
+  grade?: BlankGrade;
 };
 
 export type StoredBlankCandidatePool = {

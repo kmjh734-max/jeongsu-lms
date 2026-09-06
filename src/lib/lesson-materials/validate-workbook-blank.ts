@@ -4,18 +4,21 @@ import type {
   GeneratedBlankCandidate,
 } from "@/lib/lesson-materials/workbook-types";
 import {
-  countEnglishWords,
   getMaxBlanksForSentence,
 } from "@/lib/lesson-materials/workbook-types";
 import {
   computeBlankFinalScore,
   conflictsWithNearSynonym,
   DEGREE_ADVERBS,
+  inferGradeFromScores,
+  isBlankCandidateEligible,
   isSoftEasyWord,
   normalizeBlankScores,
   normalizeWordFamily,
+  parseBlankGrade,
   synthesizeScoresForLemma,
   type BlankCandidateScore,
+  type BlankGrade,
   type BlankSemanticRole,
 } from "@/lib/lesson-materials/blank-concept-score";
 
@@ -217,6 +220,8 @@ export type ValidatedBlankCandidate = GeneratedBlankCandidate & {
   semanticRole: BlankSemanticRole | null;
   competitionGroup: string | null;
   scores: BlankCandidateScore;
+  grade: BlankGrade;
+  eligible: boolean;
 };
 
 function parseScores(row: Record<string, unknown>): BlankCandidateScore | null {
@@ -224,15 +229,21 @@ function parseScores(row: Record<string, unknown>): BlankCandidateScore | null {
   if (nested && typeof nested === "object") {
     return normalizeBlankScores(nested as Partial<BlankCandidateScore>);
   }
-  // Flat fields (legacy / vocab)
   if (
     row.centrality != null ||
     row.learningValue != null ||
-    row.priority != null
+    row.contextImportance != null ||
+    row.contextualImportance != null ||
+    row.examUsefulness != null ||
+    row.reusability != null
   ) {
-    return null;
+    return normalizeBlankScores(row as Partial<BlankCandidateScore>);
   }
   return null;
+}
+
+function candidatePosKey(c: { sentenceId: string; start: number }): string {
+  return `${c.sentenceId}:${c.start}`;
 }
 
 export function validateBlankCandidates(input: {
@@ -259,12 +270,9 @@ export function validateBlankCandidates(input: {
 
   const byId = new Map(input.sentences.map((s) => [s.id, s] as const));
   const sentenceOffsets = new Map<string, number>();
-  const sentenceWordCounts = new Map<string, number>();
   let running = 0;
   for (const s of input.sentences) {
     sentenceOffsets.set(s.id, running);
-    const wc = countEnglishWords(s.english);
-    sentenceWordCounts.set(s.id, wc);
     running += tokenizeWords(s.english).length + 1;
   }
 
@@ -286,12 +294,16 @@ export function validateBlankCandidates(input: {
     const row = raw as Record<string, unknown>;
     const sentenceIdRaw = String(row.sentenceId ?? "").trim();
     const sentenceId = resolveBlankSentenceId(sentenceIdRaw, input.sentences);
-    const answerText = String(row.answerText ?? "").trim();
-    const lemma = String(row.lemma ?? "").trim().toLowerCase() || answerText.toLowerCase();
+    const answerText = String(
+      row.answerText ?? row.originalText ?? row.token ?? ""
+    ).trim();
+    const lemma =
+      String(row.lemma ?? "").trim().toLowerCase() ||
+      answerText.toLowerCase();
     const meaningKo =
       String(row.meaningKo ?? "").trim() || lemma || answerText;
     const selectionReasonKo = String(
-      row.reasonKo ?? row.selectionReasonKo ?? ""
+      row.reasonKo ?? row.reason ?? row.selectionReasonKo ?? ""
     ).trim();
     const partOfSpeechRaw = String(row.partOfSpeech ?? "").trim().toLowerCase();
     const partOfSpeech = (
@@ -347,19 +359,41 @@ export function validateBlankCandidates(input: {
         vocabLemmas: input.vocabLemmas,
         titleText: input.titleText,
         semanticRole,
+        grade: parseBlankGrade(row.grade),
       });
     }
 
-    // Soft-exclude easy words unless high centrality / main claim
-    if (
-      isSoftEasyWord(lemma) &&
-      scores.centrality < 4 &&
-      semanticRole !== "main_claim" &&
-      semanticRole !== "theme"
-    ) {
-      rejected.push({ reason: `쉬운 어휘 후순위 제외: ${answerText}`, raw });
+    // Soft-easy words: raise commonness unless clearly core
+    if (isSoftEasyWord(lemma)) {
+      const coreish =
+        scores.centrality >= 4 ||
+        semanticRole === "main_claim" ||
+        semanticRole === "theme";
+      scores = normalizeBlankScores({
+        ...scores,
+        commonnessPenalty: coreish
+          ? Math.min(scores.commonnessPenalty, 2)
+          : Math.max(scores.commonnessPenalty, 3),
+        learningValue: coreish
+          ? scores.learningValue
+          : Math.min(scores.learningValue, 2),
+      });
+    }
+
+    let grade =
+      parseBlankGrade(row.grade) ?? inferGradeFromScores(scores);
+    if (grade === "C") {
+      rejected.push({ reason: `C등급 제외: ${answerText}`, raw });
       continue;
     }
+
+    const eligible = isBlankCandidateEligible(scores);
+    if (!eligible) {
+      rejected.push({ reason: `자격 미달: ${answerText}`, raw });
+      continue;
+    }
+    // Re-infer after soft adjustments
+    grade = parseBlankGrade(row.grade) ?? inferGradeFromScores(scores);
 
     const sentence = byId.get(sentenceId)!;
     let hits = findExactWordOccurrences(sentence.english, answerText);
@@ -409,6 +443,8 @@ export function validateBlankCandidates(input: {
       semanticRole,
       competitionGroup,
       scores,
+      grade,
+      eligible: true,
     });
   }
 
@@ -422,8 +458,8 @@ export type SelectBlankResult = {
 
 /**
  * Final blank selection in code (AI order is not used as-is).
- * 1 validate positions already done
- * 2–10: score, core sentences, word family, competition, adjacency, caps, distribution
+ * A-grade first, then B; eligibility already filtered in validate.
+ * Optional mustInclude seeds (standard ⊆ high).
  */
 export function selectBlankCandidates(
   valid: ValidatedBlankCandidate[],
@@ -433,23 +469,31 @@ export function selectBlankCandidates(
     sentenceWordCounts?: Map<string, number>;
     coreSentenceIds?: string[];
     sentenceOrder?: string[];
+    mustInclude?: ValidatedBlankCandidate[];
   }
 ): SelectBlankResult {
   const density = options?.density ?? "standard";
   const target = Math.max(1, recommendedCount);
-  const minGapPreferred = density === "high" ? 4 : 5;
+  const minGapPreferred = density === "high" ? 3 : 4;
   const coreSet = new Set(options?.coreSentenceIds ?? []);
 
-  const sorted = [...valid].sort((a, b) => {
+  const pool = valid.filter((c) => c.eligible && c.grade !== "C");
+
+  const sortKey = (a: ValidatedBlankCandidate, b: ValidatedBlankCandidate) => {
+    const ga = a.grade === "A" ? 0 : 1;
+    const gb = b.grade === "A" ? 0 : 1;
+    if (ga !== gb) return ga - gb;
     if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
     if (b.priority !== a.priority) return b.priority - a.priority;
     return a.globalWordIndex - b.globalWordIndex;
-  });
+  };
+
+  const sorted = [...pool].sort(sortKey);
 
   const picked: ValidatedBlankCandidate[] = [];
-  const usedFamilies = new Set<string>();
+  const usedFamilies = new Map<string, number>();
   const usedCompetition = new Set<string>();
-  const usedLemmas = new Set<string>();
+  const usedLemmas = new Map<string, number>();
   const perSentence = new Map<string, number>();
   let hitSentenceCap = false;
   let hitGapCap = false;
@@ -460,12 +504,48 @@ export function selectBlankCandidates(
       density
     );
 
+  const alreadyPicked = (c: ValidatedBlankCandidate) =>
+    picked.some((p) => candidatePosKey(p) === candidatePosKey(c));
+
+  const higherNeighborUnpicked = (c: ValidatedBlankCandidate): boolean => {
+    for (const d of pool) {
+      if (candidatePosKey(d) === candidatePosKey(c)) continue;
+      if (alreadyPicked(d)) continue;
+      if (d.finalScore <= c.finalScore) continue;
+      const sameSentence = d.sentenceId === c.sentenceId;
+      const nearWords =
+        sameSentence && Math.abs(d.wordIndex - c.wordIndex) <= 2;
+      const samePhrase =
+        Boolean(c.competitionGroup) &&
+        c.competitionGroup === d.competitionGroup;
+      if (nearWords || samePhrase) return true;
+    }
+    return false;
+  };
+
   const conflicts = (
     c: ValidatedBlankCandidate,
     minGap: number
-  ): "family" | "competition" | "gap" | "adjacent" | "cap" | "lemma" | null => {
-    if (usedLemmas.has(c.lemma)) return "lemma";
-    if (usedFamilies.has(c.wordFamily)) return "family";
+  ):
+    | "family"
+    | "competition"
+    | "gap"
+    | "adjacent"
+    | "cap"
+    | "lemma"
+    | "neighbor"
+    | null => {
+    if (higherNeighborUnpicked(c)) return "neighbor";
+    const lemmaCount = usedLemmas.get(c.lemma) ?? 0;
+    const allowLemmaDup =
+      lemmaCount === 1 &&
+      (c.scores.centrality >= 5 ||
+        c.semanticRole === "theme" ||
+        c.semanticRole === "main_claim");
+    if (lemmaCount >= 1 && !allowLemmaDup) return "lemma";
+    if (lemmaCount >= 2) return "lemma";
+    const famCount = usedFamilies.get(c.wordFamily) ?? 0;
+    if (famCount >= 1) return "family";
     if (c.competitionGroup && usedCompetition.has(c.competitionGroup)) {
       return "competition";
     }
@@ -477,7 +557,6 @@ export function selectBlankCandidates(
       const dist = Math.abs(p.globalWordIndex - c.globalWordIndex);
       if (dist < 2) return "adjacent";
       if (dist < minGap) return "gap";
-      // same sentence adjacent surface words
       if (
         p.sentenceId === c.sentenceId &&
         Math.abs(p.wordIndex - c.wordIndex) <= 1
@@ -494,6 +573,7 @@ export function selectBlankCandidates(
     allowFamilyDup = false
   ): boolean => {
     if (picked.length >= target) return false;
+    if (alreadyPicked(c)) return false;
     const reason = conflicts(c, minGap);
     if (reason === "cap") {
       hitSentenceCap = true;
@@ -503,21 +583,33 @@ export function selectBlankCandidates(
       hitGapCap = true;
       return false;
     }
-    if (reason === "family" && !allowFamilyDup) return false;
-    if (reason && reason !== "family") return false;
+    if (reason === "neighbor") return false;
     if (reason === "family" && allowFamilyDup) {
-      // only when pool is thin
+      // thin pool only
     } else if (reason) return false;
 
     picked.push(c);
-    usedLemmas.add(c.lemma);
-    usedFamilies.add(c.wordFamily);
+    usedLemmas.set(c.lemma, (usedLemmas.get(c.lemma) ?? 0) + 1);
+    usedFamilies.set(c.wordFamily, (usedFamilies.get(c.wordFamily) ?? 0) + 1);
     if (c.competitionGroup) usedCompetition.add(c.competitionGroup);
     perSentence.set(c.sentenceId, (perSentence.get(c.sentenceId) ?? 0) + 1);
     return true;
   };
 
-  // 4. Ensure at least one blank from each core sentence (best candidate)
+  // Seed mustInclude (normal ⊆ hard)
+  for (const seed of options?.mustInclude ?? []) {
+    const match =
+      pool.find((c) => candidatePosKey(c) === candidatePosKey(seed)) ??
+      pool.find(
+        (c) =>
+          c.sentenceId === seed.sentenceId &&
+          c.lemma === seed.lemma &&
+          c.occurrenceIndex === seed.occurrenceIndex
+      );
+    if (match) tryPick(match, 2, true);
+  }
+
+  // Core sentences: best eligible candidate each
   for (const sid of coreSet) {
     if (picked.length >= target) break;
     if (picked.some((p) => p.sentenceId === sid)) continue;
@@ -525,24 +617,20 @@ export function selectBlankCandidates(
     if (best) tryPick(best, minGapPreferred);
   }
 
-  // 5–10. Score order with tightening gaps
-  for (const gap of [minGapPreferred, 3, 2]) {
-    for (const c of sorted) {
-      if (
-        picked.some(
-          (p) => p.sentenceId === c.sentenceId && p.start === c.start
-        )
-      ) {
-        continue;
+  // A then B by score, relaxing gaps
+  for (const grade of ["A", "B"] as const) {
+    const gradePool = sorted.filter((c) => c.grade === grade);
+    for (const gap of [minGapPreferred, 3, 2]) {
+      for (const c of gradePool) {
+        tryPick(c, gap);
       }
-      tryPick(c, gap);
+      if (picked.length >= Math.min(target, pool.length)) break;
     }
-    if (picked.length >= Math.min(target, valid.length)) break;
   }
 
-  // Distribution: prefer covering early / mid / late thirds if short
-  if (picked.length > 0 && sorted.length > picked.length) {
-    const maxGlobal = Math.max(...valid.map((v) => v.globalWordIndex), 1);
+  // Light distribution fill with remaining eligible only
+  if (picked.length < target && sorted.length > picked.length) {
+    const maxGlobal = Math.max(...pool.map((v) => v.globalWordIndex), 1);
     const thirds = [
       { lo: 0, hi: maxGlobal * 0.33 },
       { lo: maxGlobal * 0.33, hi: maxGlobal * 0.66 },
@@ -558,43 +646,28 @@ export function selectBlankCandidates(
         (c) =>
           c.globalWordIndex >= band.lo &&
           c.globalWordIndex < band.hi &&
-          !picked.some(
-            (p) => p.sentenceId === c.sentenceId && p.start === c.start
-          )
+          !alreadyPicked(c)
       );
       if (cand) tryPick(cand, 2);
     }
   }
 
-  // Do not pad with low-value easy words to hit target — but never wipe the whole set
-  let selected = picked
-    .filter((c) => {
-      if (
-        isSoftEasyWord(c.lemma) &&
-        c.scores.centrality < 4 &&
-        c.semanticRole !== "main_claim" &&
-        c.semanticRole !== "theme"
-      ) {
-        return false;
+  let selected = [...picked].sort((a, b) => {
+    if (a.sentenceId !== b.sentenceId) {
+      const order = options?.sentenceOrder;
+      if (order) {
+        const ia = order.indexOf(a.sentenceId);
+        const ib = order.indexOf(b.sentenceId);
+        if (ia >= 0 && ib >= 0 && ia !== ib) return ia - ib;
       }
-      return true;
-    })
-    .sort((a, b) => {
-      if (a.sentenceId !== b.sentenceId) {
-        const order = options?.sentenceOrder;
-        if (order) {
-          const ia = order.indexOf(a.sentenceId);
-          const ib = order.indexOf(b.sentenceId);
-          if (ia >= 0 && ib >= 0 && ia !== ib) return ia - ib;
-        }
-        return a.sentenceId.localeCompare(b.sentenceId, undefined, {
-          numeric: true,
-        });
-      }
-      return a.start - b.start;
-    });
+      return a.sentenceId.localeCompare(b.sentenceId, undefined, {
+        numeric: true,
+      });
+    }
+    return a.start - b.start;
+  });
 
-  // Emergency: constraints left nothing — take top scored with minimal gap
+  // Emergency: still empty — top eligible with minimal constraints
   if (selected.length === 0 && sorted.length > 0) {
     const emergency: ValidatedBlankCandidate[] = [];
     const fam = new Set<string>();
@@ -623,9 +696,43 @@ export function selectBlankCandidates(
     });
   }
 
+  // Ensure mustInclude survived sorting (re-add if emergency wiped)
+  if (options?.mustInclude?.length) {
+    const keys = new Set(selected.map(candidatePosKey));
+    for (const seed of options.mustInclude) {
+      const key = candidatePosKey(seed);
+      if (keys.has(key)) continue;
+      const match =
+        pool.find((c) => candidatePosKey(c) === key) ??
+        pool.find(
+          (c) =>
+            c.sentenceId === seed.sentenceId &&
+            c.lemma === seed.lemma
+        );
+      if (match) {
+        selected.push(match);
+        keys.add(candidatePosKey(match));
+      }
+    }
+    selected = selected.sort((a, b) => {
+      if (a.sentenceId !== b.sentenceId) {
+        const order = options?.sentenceOrder;
+        if (order) {
+          const ia = order.indexOf(a.sentenceId);
+          const ib = order.indexOf(b.sentenceId);
+          if (ia >= 0 && ib >= 0 && ia !== ib) return ia - ib;
+        }
+        return a.sentenceId.localeCompare(b.sentenceId, undefined, {
+          numeric: true,
+        });
+      }
+      return a.start - b.start;
+    });
+  }
+
   let shortfallReason: string | null = null;
   if (selected.length < target) {
-    if (valid.length < target) {
+    if (pool.length < target) {
       shortfallReason = "학습 가치 있는 핵심 어휘 후보 부족";
     } else if (hitSentenceCap) {
       shortfallReason = "문장별 최대 빈칸 제한 적용";
@@ -637,4 +744,32 @@ export function selectBlankCandidates(
   }
 
   return { selected, shortfallReason };
+}
+
+/** Select standard then expand for high so normal ⊆ hard. */
+export function selectBlankCandidatesByDensity(
+  valid: ValidatedBlankCandidate[],
+  options: {
+    density: BlankDensity;
+    standardTarget: number;
+    highTarget: number;
+    sentenceWordCounts?: Map<string, number>;
+    coreSentenceIds?: string[];
+    sentenceOrder?: string[];
+  }
+): SelectBlankResult {
+  const standard = selectBlankCandidates(valid, options.standardTarget, {
+    density: "standard",
+    sentenceWordCounts: options.sentenceWordCounts,
+    coreSentenceIds: options.coreSentenceIds,
+    sentenceOrder: options.sentenceOrder,
+  });
+  if (options.density === "standard") return standard;
+  return selectBlankCandidates(valid, options.highTarget, {
+    density: "high",
+    sentenceWordCounts: options.sentenceWordCounts,
+    coreSentenceIds: options.coreSentenceIds,
+    sentenceOrder: options.sentenceOrder,
+    mustInclude: standard.selected,
+  });
 }

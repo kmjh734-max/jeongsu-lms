@@ -8,67 +8,85 @@ export type BlankSemanticRole =
   | "context"
   | "collocation";
 
+export type BlankGrade = "A" | "B" | "C";
+
 export type BlankCandidateScore = {
   centrality: number;
   learningValue: number;
-  contextualImportance: number;
-  reusability: number;
+  /** Alias accepted from AI: contextImportance */
+  contextImportance: number;
+  examUsefulness: number;
   collocationValue: number;
   commonnessPenalty: number;
   redundancyPenalty: number;
 };
 
-export const BLANK_SCORE_KEYS = [
-  "centrality",
-  "learningValue",
-  "contextualImportance",
-  "reusability",
-  "collocationValue",
-  "commonnessPenalty",
-  "redundancyPenalty",
-] as const;
-
-export function clampScore1to5(n: number): number {
-  if (!Number.isFinite(n)) return 1;
-  return Math.min(5, Math.max(1, Math.round(n)));
+export function clampScore0to5(n: number): number {
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(5, Math.max(0, Math.round(n)));
 }
 
 export function normalizeBlankScores(
-  raw: Partial<BlankCandidateScore> | null | undefined
+  raw: Partial<BlankCandidateScore> & {
+    contextualImportance?: number;
+    reusability?: number;
+  } | null | undefined
 ): BlankCandidateScore {
+  const contextImportance = clampScore0to5(
+    Number(
+      raw?.contextImportance ??
+        raw?.contextualImportance ??
+        3
+    )
+  );
+  const examUsefulness = clampScore0to5(
+    Number(raw?.examUsefulness ?? raw?.reusability ?? 3)
+  );
   return {
-    centrality: clampScore1to5(Number(raw?.centrality ?? 3)),
-    learningValue: clampScore1to5(Number(raw?.learningValue ?? 3)),
-    contextualImportance: clampScore1to5(
-      Number(raw?.contextualImportance ?? 3)
-    ),
-    reusability: clampScore1to5(Number(raw?.reusability ?? 3)),
-    collocationValue: clampScore1to5(Number(raw?.collocationValue ?? 2)),
-    commonnessPenalty: clampScore1to5(Number(raw?.commonnessPenalty ?? 2)),
-    redundancyPenalty: clampScore1to5(Number(raw?.redundancyPenalty ?? 1)),
+    centrality: clampScore0to5(Number(raw?.centrality ?? 3)),
+    learningValue: clampScore0to5(Number(raw?.learningValue ?? 3)),
+    contextImportance,
+    examUsefulness,
+    collocationValue: clampScore0to5(Number(raw?.collocationValue ?? 2)),
+    commonnessPenalty: clampScore0to5(Number(raw?.commonnessPenalty ?? 2)),
+    redundancyPenalty: clampScore0to5(Number(raw?.redundancyPenalty ?? 1)),
   };
 }
 
-/** finalScore = weighted positives − penalties */
+/** v4 score formula */
 export function computeBlankFinalScore(scores: BlankCandidateScore): number {
   const s = normalizeBlankScores(scores);
   return (
     s.centrality * 4 +
     s.learningValue * 3 +
-    s.contextualImportance * 3 +
-    s.reusability * 2 +
+    s.contextImportance * 3 +
+    s.examUsefulness * 2 +
     s.collocationValue * 2 -
-    s.commonnessPenalty * 3 -
+    s.commonnessPenalty * 4 -
     s.redundancyPenalty * 4
   );
 }
 
-/** Near-synonym / competition clusters (fallback when AI omits competitionGroup). */
+/** Hard gate — low-value / too-common words never fill the quota. */
+export function isBlankCandidateEligible(scores: BlankCandidateScore): boolean {
+  const s = normalizeBlankScores(scores);
+  const strong =
+    s.centrality >= 3 || s.learningValue >= 4 || s.contextImportance >= 4;
+  return strong && s.commonnessPenalty <= 2 && s.redundancyPenalty <= 3;
+}
+
+export function parseBlankGrade(raw: unknown): BlankGrade | null {
+  const g = String(raw ?? "").trim().toUpperCase();
+  if (g === "A" || g === "B" || g === "C") return g;
+  return null;
+}
+
 export const BLANK_NEAR_SYNONYM_GROUPS: string[][] = [
   ["worthy", "deserving", "enough", "lovable"],
   ["powerful", "strong", "extreme", "extremely"],
-  ["belief", "believe", "faith", "conviction"],
-  ["attract", "attraction", "attractor", "magnetic", "attractive"],
+  ["belief", "believe", "beliefs", "faith", "conviction"],
+  ["attract", "attraction", "attractor", "attractive"],
+  ["magnetic", "magnetism"],
   ["affirm", "affirmation", "affirmations"],
   ["desire", "desires", "want", "wants"],
   ["limit", "limiting", "limited"],
@@ -77,10 +95,11 @@ export const BLANK_NEAR_SYNONYM_GROUPS: string[][] = [
   ["visualize", "visualization", "visualizing"],
   ["manifest", "manifestation"],
   ["movement", "move", "moving"],
-  ["anxiety", "anxious", "depression", "depressed"],
+  ["anxiety", "anxious", "depression", "depressed", "disease", "diseases"],
   ["run", "skip", "climb", "walk", "jump"],
   ["cues", "cue", "signal", "signals"],
   ["repertoire", "range", "set"],
+  ["everywhere", "nowhere", "anywhere"],
 ];
 
 export const DEGREE_ADVERBS = new Set([
@@ -100,9 +119,12 @@ export const DEGREE_ADVERBS = new Set([
   "absolutely",
   "especially",
   "particularly",
+  "more",
+  "most",
+  "many",
 ]);
 
-/** Soft-exclude unless AI marks high centrality (≥4) / main_claim. */
+/** Soft / typically low-value — raises commonnessPenalty in heuristics, not a hard ban list. */
 export const EASY_WORDS_SOFT = new Set([
   "very",
   "extremely",
@@ -122,6 +144,22 @@ export const EASY_WORDS_SOFT = new Set([
   "physical",
   "system",
   "systems",
+  "kids",
+  "play",
+  "life",
+  "create",
+  "negative",
+  "level",
+  "more",
+  "many",
+  "same",
+  "today",
+  "everywhere",
+  "nowhere",
+  "anywhere",
+  "emotionally",
+  "common",
+  "powerful",
 ]);
 
 const WORD_FAMILY_ROOTS: Array<{ root: string; members: string[] }> = [
@@ -154,8 +192,11 @@ const WORD_FAMILY_ROOTS: Array<{ root: string; members: string[] }> = [
       "attractive",
       "attractor",
       "attractors",
-      "magnetic",
     ],
+  },
+  {
+    root: "magnetic",
+    members: ["magnetic", "magnetism", "magnetically"],
   },
   {
     root: "visualize",
@@ -171,9 +212,21 @@ const WORD_FAMILY_ROOTS: Array<{ root: string; members: string[] }> = [
   },
   { root: "limit", members: ["limit", "limits", "limited", "limiting"] },
   { root: "social", members: ["social", "socialize", "socializing", "socialized"] },
-  { root: "communicate", members: ["communicate", "communicates", "communicated", "communicating", "communication"] },
+  {
+    root: "communicate",
+    members: [
+      "communicate",
+      "communicates",
+      "communicated",
+      "communicating",
+      "communication",
+    ],
+  },
   { root: "occupy", members: ["occupy", "occupies", "occupied", "occupying"] },
-  { root: "participate", members: ["participate", "participates", "participated", "participating"] },
+  {
+    root: "participate",
+    members: ["participate", "participates", "participated", "participating"],
+  },
   { root: "mature", members: ["mature", "matures", "matured", "maturing"] },
 ];
 
@@ -186,7 +239,6 @@ export function normalizeWordFamily(
   for (const fam of WORD_FAMILY_ROOTS) {
     if (fam.members.includes(L)) return fam.root;
   }
-  // light stemming fallback
   return L
     .replace(/tions$/, "t")
     .replace(/tion$/, "t")
@@ -215,22 +267,31 @@ export function isSoftEasyWord(lemma: string): boolean {
   return EASY_WORDS_SOFT.has(L) || DEGREE_ADVERBS.has(L);
 }
 
-/** Heuristic scores when AI scores are missing (vocab / legacy cache). */
+export function inferGradeFromScores(scores: BlankCandidateScore): BlankGrade {
+  const s = normalizeBlankScores(scores);
+  if (!isBlankCandidateEligible(s)) return "C";
+  if (s.centrality >= 4 || s.learningValue >= 4 || s.contextImportance >= 4) {
+    return "A";
+  }
+  return "B";
+}
+
 export function synthesizeScoresForLemma(input: {
   lemma: string;
   partOfSpeech: BlankPartOfSpeech | string;
   vocabLemmas?: Set<string>;
   titleText?: string;
   semanticRole?: BlankSemanticRole | null;
+  grade?: BlankGrade | null;
 }): BlankCandidateScore {
   const lemma = input.lemma.toLowerCase();
   let centrality = 3;
   let learningValue = 3;
-  let contextualImportance = 3;
-  const reusability = 3;
+  let contextImportance = 3;
+  let examUsefulness = 3;
   let collocationValue = 2;
-  let commonnessPenalty = 2;
-  const redundancyPenalty = 1;
+  let commonnessPenalty = 1;
+  let redundancyPenalty = 1;
 
   if (input.partOfSpeech === "noun") {
     centrality += 1;
@@ -244,40 +305,48 @@ export function synthesizeScoresForLemma(input: {
   if (input.titleText?.toLowerCase().includes(lemma)) centrality += 1;
   if (input.semanticRole === "main_claim" || input.semanticRole === "theme") {
     centrality = 5;
-    contextualImportance = 5;
+    contextImportance = 5;
   }
-  if (DEGREE_ADVERBS.has(lemma)) {
-    commonnessPenalty = 5;
-    learningValue = 1;
-    centrality = 1;
-  }
-  if (EASY_WORDS_SOFT.has(lemma)) {
-    commonnessPenalty = Math.max(commonnessPenalty, 4);
+  if (DEGREE_ADVERBS.has(lemma) || isSoftEasyWord(lemma)) {
+    commonnessPenalty = 4;
     learningValue = Math.min(learningValue, 2);
+    centrality = Math.min(centrality, 2);
   }
-  // Prefer head nouns in known collocations
-  if (["cues", "repertoire", "belief", "attractor", "vibration", "design"].includes(lemma)) {
+  if (
+    ["cues", "repertoire", "belief", "beliefs", "attractor", "vibration", "design", "flaw", "manifest"].includes(
+      lemma
+    )
+  ) {
     collocationValue = 5;
     centrality = Math.max(centrality, 4);
     learningValue = Math.max(learningValue, 4);
+    commonnessPenalty = 0;
   }
-  if (["physical", "system", "powerful", "movement"].includes(lemma)) {
+  if (["physical", "system", "powerful", "common", "level", "create"].includes(lemma)) {
     commonnessPenalty = Math.max(commonnessPenalty, 3);
     collocationValue = Math.min(collocationValue, 2);
+  }
+  if (input.grade === "A") {
+    centrality = Math.max(centrality, 4);
+    learningValue = Math.max(learningValue, 4);
+    commonnessPenalty = Math.min(commonnessPenalty, 1);
+  }
+  if (input.grade === "C") {
+    commonnessPenalty = Math.max(commonnessPenalty, 4);
   }
 
   return normalizeBlankScores({
     centrality,
     learningValue,
-    contextualImportance,
-    reusability,
+    contextImportance,
+    examUsefulness,
     collocationValue,
     commonnessPenalty,
     redundancyPenalty,
   });
 }
 
-/** @deprecated — maps to finalScore for older call sites */
+/** @deprecated */
 export function computeConceptScore(input: {
   lemma: string;
   partOfSpeech: string;
@@ -295,8 +364,18 @@ export function computeConceptScore(input: {
 }
 
 export function conflictsWithNearSynonym(
-  a: { lemma: string; globalWordIndex: number; sentenceId: string; competitionGroup?: string | null },
-  b: { lemma: string; globalWordIndex: number; sentenceId: string; competitionGroup?: string | null },
+  a: {
+    lemma: string;
+    globalWordIndex: number;
+    sentenceId: string;
+    competitionGroup?: string | null;
+  },
+  b: {
+    lemma: string;
+    globalWordIndex: number;
+    sentenceId: string;
+    competitionGroup?: string | null;
+  },
   maxWordDistance = 25
 ): boolean {
   if (

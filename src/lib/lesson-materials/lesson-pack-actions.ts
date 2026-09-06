@@ -18,7 +18,6 @@ import {
 import { callBlankOpenAI } from "@/lib/lesson-materials/generate-workbook-blank";
 import { buildBlankCandidatesFromVocab } from "@/lib/lesson-materials/build-blank-candidates-from-vocab";
 import {
-  selectBlankCandidates,
   validateBlankCandidates,
 } from "@/lib/lesson-materials/validate-workbook-blank";
 import {
@@ -234,45 +233,41 @@ export async function generateAndSaveLessonPackVocabAction(
           responsePassageId: projectId,
           sentences,
           generatedCandidates: raw,
-          recommendedCount: 22,
+          recommendedCount: 32,
           density: "high",
           vocabLemmas: vocabSet,
           titleText: project.title,
         });
-        const { selected } = selectBlankCandidates(valid, 22, {
-          density: "high",
-          sentenceWordCounts: new Map(
-            sentences.map((s) => [
-              s.id,
-              s.english.split(/\s+/).filter(Boolean).length,
-            ])
-          ),
-          coreSentenceIds,
-          sentenceOrder: sentences.map((s) => s.id),
-        });
-        if (selected.length) {
+        if (valid.length) {
           blankCandidatePool = {
             passageId: projectId,
             sourceHash,
             algorithmVersion: BLANK_POOL_ALGORITHM_VERSION,
             createdAt: new Date().toISOString(),
             coreSentenceIds,
-            candidates: selected.map((c) => ({
-              sentenceId: c.sentenceId,
-              answerText: c.answerText,
-              occurrenceIndex: c.occurrenceIndex,
-              lemma: c.lemma,
-              partOfSpeech: c.partOfSpeech,
-              meaningKo: c.meaningKo,
-              priority: c.priority,
-              conceptScore: c.finalScore ?? c.conceptScore,
-              selectionReasonKo: c.selectionReasonKo,
-              wordFamily: c.wordFamily,
-              semanticRole: c.semanticRole,
-              competitionGroup: c.competitionGroup,
-              scores: c.scores,
-              finalScore: c.finalScore,
-            })),
+            candidates: valid
+              .sort((a, b) => {
+                if (a.grade !== b.grade) return a.grade === "A" ? -1 : 1;
+                return b.finalScore - a.finalScore;
+              })
+              .slice(0, 48)
+              .map((c) => ({
+                sentenceId: c.sentenceId,
+                answerText: c.answerText,
+                occurrenceIndex: c.occurrenceIndex,
+                lemma: c.lemma,
+                partOfSpeech: c.partOfSpeech,
+                meaningKo: c.meaningKo,
+                priority: c.priority,
+                conceptScore: c.finalScore ?? c.conceptScore,
+                selectionReasonKo: c.selectionReasonKo,
+                wordFamily: c.wordFamily,
+                semanticRole: c.semanticRole,
+                competitionGroup: c.competitionGroup,
+                scores: c.scores,
+                finalScore: c.finalScore,
+                grade: c.grade,
+              })),
           };
         }
       } catch {
