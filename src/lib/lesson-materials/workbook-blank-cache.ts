@@ -8,7 +8,7 @@ import type {
 } from "@/lib/lesson-materials/blank-concept-score";
 
 /** Bump when blank selection prompt / scoring / algorithm changes. */
-export const BLANK_POOL_ALGORITHM_VERSION = "blank-selection-v4";
+export const BLANK_POOL_ALGORITHM_VERSION = "blank-selection-v5-density-trace";
 /** Alias matching product naming */
 export const BLANK_SELECTION_ALGORITHM_VERSION = BLANK_POOL_ALGORITHM_VERSION;
 
@@ -28,6 +28,7 @@ export type StoredBlankCandidate = {
   scores?: BlankCandidateScore;
   finalScore?: number;
   grade?: BlankGrade;
+  sources?: Array<"ai" | "saved-vocabulary" | "deterministic-fallback">;
 };
 
 export type StoredBlankCandidatePool = {

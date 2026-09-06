@@ -319,42 +319,12 @@ export function computeBlankTargetCount(input: {
   hintType: BlankHintType;
   showTranslation: boolean;
 }): number {
-  const n = Math.max(0, input.englishWordCount);
-  // Mid of target range by passage length (v4). hint/translation only nudge slightly.
-  let low: number;
-  let high: number;
-  if (input.density === "standard") {
-    if (n < 100) {
-      low = 10;
-      high = 13;
-    } else if (n < 150) {
-      low = 14;
-      high = 17;
-    } else if (n < 200) {
-      low = 17;
-      high = 20;
-    } else {
-      low = 20;
-      high = 24;
-    }
-  } else {
-    // high = 많이 / 난이도 UP
-    if (n < 100) {
-      low = 14;
-      high = 18;
-    } else if (n < 150) {
-      low = 18;
-      high = 22;
-    } else if (n < 200) {
-      low = 22;
-      high = 26;
-    } else {
-      low = 26;
-      high = 32;
-    }
-  }
-  let target = Math.round((low + high) / 2);
-  // Slightly fewer when no hint / no translation (harder task)
+  const { low, high } = getBlankTargetRange({
+    englishWordCount: input.englishWordCount,
+    density: input.density,
+  });
+  // Prefer upper-mid of range so density expands when good content words exist
+  let target = Math.round(low + (high - low) * 0.7);
   if (input.hintType === "none") target = Math.max(low, target - 1);
   if (!input.showTranslation) target = Math.max(low, target - 1);
   return Math.min(high, Math.max(low, target));
@@ -366,15 +336,22 @@ export function getBlankTargetRange(input: {
 }): { low: number; high: number } {
   const n = Math.max(0, input.englishWordCount);
   if (input.density === "standard") {
-    if (n < 100) return { low: 10, high: 13 };
-    if (n < 150) return { low: 14, high: 17 };
-    if (n < 200) return { low: 17, high: 20 };
-    return { low: 20, high: 24 };
+    if (n < 100) return { low: 12, high: 15 };
+    if (n < 150) return { low: 17, high: 20 };
+    if (n < 200) return { low: 21, high: 25 };
+    if (n < 250) return { low: 25, high: 30 };
+    const low = Math.max(25, Math.round(n * 0.11));
+    const high = Math.max(low + 1, Math.round(n * 0.13));
+    return { low, high };
   }
-  if (n < 100) return { low: 14, high: 18 };
-  if (n < 150) return { low: 18, high: 22 };
-  if (n < 200) return { low: 22, high: 26 };
-  return { low: 26, high: 32 };
+  // high = 많이 / 난이도 UP
+  if (n < 100) return { low: 16, high: 20 };
+  if (n < 150) return { low: 21, high: 25 };
+  if (n < 200) return { low: 26, high: 31 };
+  if (n < 250) return { low: 31, high: 37 };
+  const low = Math.max(31, Math.round(n * 0.14));
+  const high = Math.max(low + 1, Math.round(n * 0.16));
+  return { low, high };
 }
 
 export function getMaxBlanksForSentence(
@@ -382,15 +359,16 @@ export function getMaxBlanksForSentence(
   density: BlankDensity
 ): number {
   if (density === "standard") {
-    if (sentenceWordCount <= 12) return 1;
-    if (sentenceWordCount <= 24) return 2;
-    return 3;
+    if (sentenceWordCount <= 8) return 2;
+    if (sentenceWordCount <= 16) return 3;
+    if (sentenceWordCount <= 26) return 4;
+    return 5;
   }
-  // high / 난이도 UP — allow 2 blanks on short claim sentences
-  if (sentenceWordCount <= 8) return 1;
-  if (sentenceWordCount <= 16) return 2;
-  if (sentenceWordCount <= 28) return 3;
-  return 4;
+  if (sentenceWordCount <= 8) return 2;
+  if (sentenceWordCount <= 14) return 3;
+  if (sentenceWordCount <= 22) return 4;
+  if (sentenceWordCount <= 32) return 5;
+  return 6;
 }
 
 export function parseBlankHintType(raw: string | null | undefined): BlankHintType {

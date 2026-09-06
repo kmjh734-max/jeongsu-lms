@@ -6,6 +6,7 @@ import {
 } from "@/lib/lesson-materials/validate-workbook-blank";
 import {
   computeBlankFinalScore,
+  DEGREE_ADVERBS,
   inferGradeFromScores,
   isSoftEasyWord,
   normalizeWordFamily,
@@ -14,23 +15,25 @@ import {
 import type { BlankPartOfSpeech } from "@/lib/lesson-materials/workbook-types";
 
 /**
- * Last-resort: pick content words from the passage itself (no OpenAI).
- * Prefer longer / less-common looking tokens; skip function words & easy fillers.
+ * Deterministic content-word candidates from the passage (no OpenAI).
+ * Includes A/B/C content words; skips function words & bare degree adverbs.
  */
 export function buildHeuristicBlankCandidates(input: {
   sentences: Array<{ id: string; english: string }>;
   titleText?: string;
   maxCandidates?: number;
 }): unknown[] {
-  const max = input.maxCandidates ?? 24;
+  const max = input.maxCandidates ?? 48;
   const out: unknown[] = [];
-  const usedLemma = new Set<string>();
+  const usedPos = new Set<string>();
 
   type Hit = {
     sentenceId: string;
     answerText: string;
     occurrenceIndex: number;
     lemma: string;
+    start: number;
+    end: number;
     score: number;
   };
   const hits: Hit[] = [];
@@ -39,9 +42,11 @@ export function buildHeuristicBlankCandidates(input: {
     const tokens = tokenizeWords(s.english);
     for (const tok of tokens) {
       const lemma = tok.text.toLowerCase();
-      if (usedLemma.has(lemma)) continue;
-      if (isExcludedBlankWord(tok.text) || isSoftEasyWord(lemma)) continue;
-      if (lemma.length < 4) continue;
+      const posKey = `${s.id}:${tok.start}:${tok.end}`;
+      if (usedPos.has(posKey)) continue;
+      if (isExcludedBlankWord(tok.text)) continue;
+      if (DEGREE_ADVERBS.has(lemma)) continue;
+      if (lemma.length < 3) continue;
       const occs = findExactWordOccurrences(s.english, tok.text);
       const occurrenceIndex = occs.findIndex(
         (h) => h.start === tok.start && h.end === tok.end
@@ -50,14 +55,17 @@ export function buildHeuristicBlankCandidates(input: {
       let score = lemma.length;
       if (lemma.length >= 7) score += 3;
       if (input.titleText?.toLowerCase().includes(lemma)) score += 4;
+      if (isSoftEasyWord(lemma)) score -= 4;
       hits.push({
         sentenceId: s.id,
         answerText: tok.text,
         occurrenceIndex,
         lemma,
+        start: tok.start,
+        end: tok.end,
         score,
       });
-      usedLemma.add(lemma);
+      usedPos.add(posKey);
     }
   }
 
@@ -69,10 +77,16 @@ export function buildHeuristicBlankCandidates(input: {
       lemma: h.lemma,
       partOfSpeech: "noun",
       titleText: input.titleText,
-      semanticRole: "academic",
+      semanticRole: "context",
+      grade: "C",
     });
-    const grade = inferGradeFromScores(scores);
-    if (grade === "C") continue;
+    // Deterministic fillers default to B/C — never auto-promote to A unless title hit
+    let grade = inferGradeFromScores(scores);
+    if (grade === "A" && !input.titleText?.toLowerCase().includes(h.lemma)) {
+      grade = "B";
+      scores.centrality = Math.min(scores.centrality, 3);
+      scores.learningValue = Math.min(scores.learningValue, 3);
+    }
     out.push({
       candidateId: `heur-${i + 1}`,
       sentenceId: h.sentenceId,
@@ -83,11 +97,21 @@ export function buildHeuristicBlankCandidates(input: {
       partOfSpeech: "noun" as BlankPartOfSpeech,
       meaningKo: h.lemma,
       grade,
-      semanticRole: "academic",
+      semanticRole: "context",
       competitionGroup: null,
-      scores,
+      scores: {
+        ...scores,
+        commonnessPenalty: Math.max(
+          scores.commonnessPenalty,
+          isSoftEasyWord(h.lemma) ? 3 : 2
+        ),
+      },
       reasonKo: "지문 내용어 폴백",
-      priority: 3,
+      priority: grade === "A" ? 4 : grade === "B" ? 3 : 2,
+      tokenStartIndex: h.start,
+      tokenEndIndex: h.end,
+      start: h.start,
+      end: h.end,
     });
   }
 
@@ -100,7 +124,7 @@ export function buildBlankCandidatesFromVocab(input: {
   titleText?: string;
   maxCandidates?: number;
 }): unknown[] {
-  const max = input.maxCandidates ?? 24;
+  const max = input.maxCandidates ?? 48;
   const vocabLemmas = new Set(
     input.vocab.map((v) => v.word.toLowerCase().trim()).filter(Boolean)
   );
@@ -114,6 +138,8 @@ export function buildBlankCandidatesFromVocab(input: {
     lemma: string;
     partOfSpeech: BlankPartOfSpeech;
     meaningKo: string;
+    start: number;
+    end: number;
   };
   const hits: Hit[] = [];
 
@@ -155,6 +181,8 @@ export function buildBlankCandidatesFromVocab(input: {
           lemma,
           partOfSpeech: pos,
           meaningKo,
+          start: tok.start,
+          end: tok.end,
         });
         usedLemma.add(lemma);
         break;
@@ -170,6 +198,7 @@ export function buildBlankCandidatesFromVocab(input: {
         partOfSpeech: h.partOfSpeech,
         vocabLemmas,
         titleText: input.titleText,
+        semanticRole: "academic",
       });
       return { h, scores };
     })
@@ -178,7 +207,6 @@ export function buildBlankCandidatesFromVocab(input: {
   for (let i = 0; i < ranked.length && out.length < max; i++) {
     const { h, scores } = ranked[i]!;
     const grade = inferGradeFromScores(scores);
-    if (grade === "C") continue;
     out.push({
       candidateId: `vocab-${i + 1}`,
       id: `vocab-${i + 1}`,
@@ -193,9 +221,13 @@ export function buildBlankCandidatesFromVocab(input: {
       semanticRole: "academic",
       competitionGroup: null,
       scores,
-      reasonKo: "수업용자료 핵심 어휘(폴백)",
-      selectionReasonKo: "수업용자료 핵심 어휘(폴백)",
+      reasonKo: "수업용자료 핵심 어휘",
+      selectionReasonKo: "수업용자료 핵심 어휘",
       priority: 4,
+      tokenStartIndex: h.start,
+      tokenEndIndex: h.end,
+      start: h.start,
+      end: h.end,
     });
   }
 

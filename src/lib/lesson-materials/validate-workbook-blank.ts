@@ -1,17 +1,14 @@
-import type {
+﻿import type {
   BlankDensity,
   BlankPartOfSpeech,
   GeneratedBlankCandidate,
 } from "@/lib/lesson-materials/workbook-types";
 import {
-  getMaxBlanksForSentence,
-} from "@/lib/lesson-materials/workbook-types";
-import {
   computeBlankFinalScore,
-  conflictsWithNearSynonym,
   DEGREE_ADVERBS,
   inferGradeFromScores,
   isBlankCandidateEligible,
+  isBlankCandidateEligibleC,
   isSoftEasyWord,
   normalizeBlankScores,
   normalizeWordFamily,
@@ -21,6 +18,7 @@ import {
   type BlankGrade,
   type BlankSemanticRole,
 } from "@/lib/lesson-materials/blank-concept-score";
+import type { BlankCandidateSource } from "@/lib/lesson-materials/blank-selection-diagnostics";
 
 const EXCLUDED_LOWER = new Set([
   "a",
@@ -105,6 +103,92 @@ const EXCLUDED_LOWER = new Set([
   "not",
   "no",
   "yes",
+  "perhaps",
+  "maybe",
+  "without",
+  "between",
+  "among",
+  "across",
+  "through",
+  "during",
+  "before",
+  "after",
+  "while",
+  "when",
+  "where",
+  "how",
+  "why",
+  "because",
+  "although",
+  "though",
+  "whether",
+  "if",
+  "then",
+  "than",
+  "also",
+  "just",
+  "only",
+  "even",
+  "still",
+  "already",
+  "always",
+  "never",
+  "often",
+  "sometimes",
+  "such",
+  "other",
+  "another",
+  "same",
+  "own",
+  "each",
+  "every",
+  "both",
+  "few",
+  "much",
+  "most",
+  "more",
+  "less",
+  "many",
+  "some",
+  "any",
+  "all",
+  "one",
+  "two",
+  "first",
+  "second",
+  "there",
+  "here",
+  "once",
+  "upon",
+  "within",
+  "along",
+  "against",
+  "toward",
+  "towards",
+  "around",
+  "above",
+  "below",
+  "out",
+  "up",
+  "down",
+  "off",
+  "again",
+  "further",
+  "rather",
+  "quite",
+  "almost",
+  "enough",
+  "however",
+  "therefore",
+  "thus",
+  "law",
+  "spoken",
+  "states",
+  "daily",
+  "inner",
+  "fear",
+  "work",
+  "begins",
 ]);
 
 const POS_OK = new Set<BlankPartOfSpeech>([
@@ -166,7 +250,7 @@ export function findExactWordOccurrences(
   return hits;
 }
 
-/** Map AI aliases (s0, s1, 1, …) onto real sentence ids. */
+/** Map AI aliases (s0, s1, 1, ?? onto real sentence ids. */
 export function resolveBlankSentenceId(
   rawId: string,
   sentences: BlankSourceSentence[]
@@ -222,6 +306,7 @@ export type ValidatedBlankCandidate = GeneratedBlankCandidate & {
   scores: BlankCandidateScore;
   grade: BlankGrade;
   eligible: boolean;
+  sources: Array<"ai" | "saved-vocabulary" | "deterministic-fallback">;
 };
 
 function parseScores(row: Record<string, unknown>): BlankCandidateScore | null {
@@ -242,10 +327,6 @@ function parseScores(row: Record<string, unknown>): BlankCandidateScore | null {
   return null;
 }
 
-function candidatePosKey(c: { sentenceId: string; start: number }): string {
-  return `${c.sentenceId}:${c.start}`;
-}
-
 export function validateBlankCandidates(input: {
   passageId: string;
   responsePassageId: string;
@@ -258,10 +339,10 @@ export function validateBlankCandidates(input: {
   coreSentenceIds?: string[];
 }): {
   valid: ValidatedBlankCandidate[];
-  rejected: Array<{ reason: string; raw?: unknown }>;
+  rejected: Array<{ reason: string; raw?: unknown; code?: string }>;
   coreSentenceIds: string[];
 } {
-  const rejected: Array<{ reason: string; raw?: unknown }> = [];
+  const rejected: Array<{ reason: string; raw?: unknown; code?: string }> = [];
   if (input.responsePassageId && input.responsePassageId !== input.passageId) {
     rejected.push({
       reason: `passageId 불일치 (${input.responsePassageId})`,
@@ -280,7 +361,7 @@ export function validateBlankCandidates(input: {
     ? input.generatedCandidates
     : [];
   if (!Array.isArray(input.generatedCandidates)) {
-    rejected.push({ reason: "candidates가 배열이 아님" });
+    rejected.push({ reason: "candidates媛 諛곗뿴???꾨떂" });
   }
 
   const coreSentenceIds = (input.coreSentenceIds ?? [])
@@ -335,19 +416,19 @@ export function validateBlankCandidates(input: {
     }
 
     if (!sentenceId) {
-      rejected.push({ reason: `sentenceId 없음: ${sentenceIdRaw}`, raw });
+      rejected.push({ reason: `sentenceId ?놁쓬: ${sentenceIdRaw}`, raw });
       continue;
     }
     if (!answerText || !/^[A-Za-z]+(?:'[A-Za-z]+)?$/.test(answerText)) {
-      rejected.push({ reason: `answerText 단일어 아님: ${answerText}`, raw });
+      rejected.push({ reason: `answerText ?⑥씪???꾨떂: ${answerText}`, raw });
       continue;
     }
     if (!lemma) {
-      rejected.push({ reason: "lemma 비어 있음", raw });
+      rejected.push({ reason: "lemma 鍮꾩뼱 ?덉쓬", raw });
       continue;
     }
     if (isExcludedBlankWord(answerText)) {
-      rejected.push({ reason: `제외 어휘: ${answerText}`, raw });
+      rejected.push({ reason: `?쒖쇅 ?댄쐶: ${answerText}`, raw });
       continue;
     }
 
@@ -382,18 +463,52 @@ export function validateBlankCandidates(input: {
 
     let grade =
       parseBlankGrade(row.grade) ?? inferGradeFromScores(scores);
-    if (grade === "C") {
-      rejected.push({ reason: `C등급 제외: ${answerText}`, raw });
+    // Re-infer after soft adjustments when AI grade missing
+    if (!parseBlankGrade(row.grade)) {
+      grade = inferGradeFromScores(scores);
+    }
+
+    const eligibleAb = isBlankCandidateEligible(scores);
+    const eligibleC = isBlankCandidateEligibleC(scores);
+    if (grade === "A" || grade === "B") {
+      if (!eligibleAb && eligibleC) grade = "C";
+      else if (!eligibleAb && !eligibleC) {
+        rejected.push({
+          reason: `?먭꺽 誘몃떖: ${answerText}`,
+          raw,
+          code: "TOO_COMMON" as const,
+        });
+        continue;
+      }
+    } else if (grade === "C" && !eligibleC) {
+      rejected.push({
+        reason: `C?깃툒 ?먭꺽 誘몃떖: ${answerText}`,
+        raw,
+        code: "TOO_COMMON" as const,
+      });
       continue;
     }
 
-    const eligible = isBlankCandidateEligible(scores);
-    if (!eligible) {
-      rejected.push({ reason: `자격 미달: ${answerText}`, raw });
-      continue;
+    const sourcesRaw = row.sources ?? row.source;
+    let sources: BlankCandidateSource[] = [];
+    if (Array.isArray(sourcesRaw)) {
+      sources = sourcesRaw
+        .map((s) => String(s))
+        .filter((s): s is BlankCandidateSource =>
+          s === "ai" ||
+          s === "saved-vocabulary" ||
+          s === "deterministic-fallback"
+        );
+    } else if (typeof sourcesRaw === "string") {
+      if (
+        sourcesRaw === "ai" ||
+        sourcesRaw === "saved-vocabulary" ||
+        sourcesRaw === "deterministic-fallback"
+      ) {
+        sources = [sourcesRaw];
+      }
     }
-    // Re-infer after soft adjustments
-    grade = parseBlankGrade(row.grade) ?? inferGradeFromScores(scores);
+    if (sources.length === 0) sources = ["ai"];
 
     const sentence = byId.get(sentenceId)!;
     let hits = findExactWordOccurrences(sentence.english, answerText);
@@ -408,15 +523,16 @@ export function validateBlankCandidates(input: {
     }
     if (!hits[occurrenceIndex]) {
       rejected.push({
-        reason: `occurrence 없음: ${answerText}#${occurrenceIndex}`,
+        reason: `occurrence ?놁쓬: ${answerText}#${occurrenceIndex}`,
         raw,
+        code: "TOKEN_MAPPING_FAILED" as const,
       });
       continue;
     }
     const hit = hits[occurrenceIndex]!;
     const posKey = `${sentenceId}:${hit.start}:${hit.end}`;
     if (usedPositions.has(posKey)) {
-      rejected.push({ reason: `위치 중복: ${posKey}`, raw });
+      rejected.push({ reason: `?꾩튂 以묐났: ${posKey}`, raw });
       continue;
     }
 
@@ -431,7 +547,7 @@ export function validateBlankCandidates(input: {
       lemma,
       partOfSpeech,
       meaningKo,
-      selectionReasonKo: selectionReasonKo || "핵심 어휘",
+      selectionReasonKo: selectionReasonKo || "?듭떖 ?댄쐶",
       priority,
       start: hit.start,
       end: hit.end,
@@ -444,332 +560,17 @@ export function validateBlankCandidates(input: {
       competitionGroup,
       scores,
       grade,
-      eligible: true,
+      eligible: grade === "C" ? eligibleC : eligibleAb,
+      sources,
     });
   }
 
   return { valid, rejected, coreSentenceIds };
 }
 
-export type SelectBlankResult = {
-  selected: ValidatedBlankCandidate[];
-  shortfallReason: string | null;
-};
+export type { SelectBlankResult } from "@/lib/lesson-materials/select-workbook-blanks";
+export {
+  selectBlankCandidates,
+  selectBlankCandidatesByDensity,
+} from "@/lib/lesson-materials/select-workbook-blanks";
 
-/**
- * Final blank selection in code (AI order is not used as-is).
- * A-grade first, then B; eligibility already filtered in validate.
- * Optional mustInclude seeds (standard ⊆ high).
- */
-export function selectBlankCandidates(
-  valid: ValidatedBlankCandidate[],
-  recommendedCount: number,
-  options?: {
-    density?: BlankDensity;
-    sentenceWordCounts?: Map<string, number>;
-    coreSentenceIds?: string[];
-    sentenceOrder?: string[];
-    mustInclude?: ValidatedBlankCandidate[];
-  }
-): SelectBlankResult {
-  const density = options?.density ?? "standard";
-  const target = Math.max(1, recommendedCount);
-  const minGapPreferred = density === "high" ? 3 : 4;
-  const coreSet = new Set(options?.coreSentenceIds ?? []);
-
-  const pool = valid.filter((c) => c.eligible && c.grade !== "C");
-
-  const sortKey = (a: ValidatedBlankCandidate, b: ValidatedBlankCandidate) => {
-    const ga = a.grade === "A" ? 0 : 1;
-    const gb = b.grade === "A" ? 0 : 1;
-    if (ga !== gb) return ga - gb;
-    if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
-    if (b.priority !== a.priority) return b.priority - a.priority;
-    return a.globalWordIndex - b.globalWordIndex;
-  };
-
-  const sorted = [...pool].sort(sortKey);
-
-  const picked: ValidatedBlankCandidate[] = [];
-  const usedFamilies = new Map<string, number>();
-  const usedCompetition = new Set<string>();
-  const usedLemmas = new Map<string, number>();
-  const perSentence = new Map<string, number>();
-  let hitSentenceCap = false;
-  let hitGapCap = false;
-
-  const maxFor = (sentenceId: string) =>
-    getMaxBlanksForSentence(
-      options?.sentenceWordCounts?.get(sentenceId) ?? 20,
-      density
-    );
-
-  const alreadyPicked = (c: ValidatedBlankCandidate) =>
-    picked.some((p) => candidatePosKey(p) === candidatePosKey(c));
-
-  const higherNeighborUnpicked = (c: ValidatedBlankCandidate): boolean => {
-    for (const d of pool) {
-      if (candidatePosKey(d) === candidatePosKey(c)) continue;
-      if (alreadyPicked(d)) continue;
-      if (d.finalScore <= c.finalScore) continue;
-      const sameSentence = d.sentenceId === c.sentenceId;
-      const nearWords =
-        sameSentence && Math.abs(d.wordIndex - c.wordIndex) <= 2;
-      const samePhrase =
-        Boolean(c.competitionGroup) &&
-        c.competitionGroup === d.competitionGroup;
-      if (nearWords || samePhrase) return true;
-    }
-    return false;
-  };
-
-  const conflicts = (
-    c: ValidatedBlankCandidate,
-    minGap: number
-  ):
-    | "family"
-    | "competition"
-    | "gap"
-    | "adjacent"
-    | "cap"
-    | "lemma"
-    | "neighbor"
-    | null => {
-    if (higherNeighborUnpicked(c)) return "neighbor";
-    const lemmaCount = usedLemmas.get(c.lemma) ?? 0;
-    const allowLemmaDup =
-      lemmaCount === 1 &&
-      (c.scores.centrality >= 5 ||
-        c.semanticRole === "theme" ||
-        c.semanticRole === "main_claim");
-    if (lemmaCount >= 1 && !allowLemmaDup) return "lemma";
-    if (lemmaCount >= 2) return "lemma";
-    const famCount = usedFamilies.get(c.wordFamily) ?? 0;
-    if (famCount >= 1) return "family";
-    if (c.competitionGroup && usedCompetition.has(c.competitionGroup)) {
-      return "competition";
-    }
-    if ((perSentence.get(c.sentenceId) ?? 0) >= maxFor(c.sentenceId)) {
-      return "cap";
-    }
-    for (const p of picked) {
-      if (conflictsWithNearSynonym(c, p)) return "competition";
-      const dist = Math.abs(p.globalWordIndex - c.globalWordIndex);
-      if (dist < 2) return "adjacent";
-      if (dist < minGap) return "gap";
-      if (
-        p.sentenceId === c.sentenceId &&
-        Math.abs(p.wordIndex - c.wordIndex) <= 1
-      ) {
-        return "adjacent";
-      }
-    }
-    return null;
-  };
-
-  const tryPick = (
-    c: ValidatedBlankCandidate,
-    minGap: number,
-    allowFamilyDup = false
-  ): boolean => {
-    if (picked.length >= target) return false;
-    if (alreadyPicked(c)) return false;
-    const reason = conflicts(c, minGap);
-    if (reason === "cap") {
-      hitSentenceCap = true;
-      return false;
-    }
-    if (reason === "gap") {
-      hitGapCap = true;
-      return false;
-    }
-    if (reason === "neighbor") return false;
-    if (reason === "family" && allowFamilyDup) {
-      // thin pool only
-    } else if (reason) return false;
-
-    picked.push(c);
-    usedLemmas.set(c.lemma, (usedLemmas.get(c.lemma) ?? 0) + 1);
-    usedFamilies.set(c.wordFamily, (usedFamilies.get(c.wordFamily) ?? 0) + 1);
-    if (c.competitionGroup) usedCompetition.add(c.competitionGroup);
-    perSentence.set(c.sentenceId, (perSentence.get(c.sentenceId) ?? 0) + 1);
-    return true;
-  };
-
-  // Seed mustInclude (normal ⊆ hard)
-  for (const seed of options?.mustInclude ?? []) {
-    const match =
-      pool.find((c) => candidatePosKey(c) === candidatePosKey(seed)) ??
-      pool.find(
-        (c) =>
-          c.sentenceId === seed.sentenceId &&
-          c.lemma === seed.lemma &&
-          c.occurrenceIndex === seed.occurrenceIndex
-      );
-    if (match) tryPick(match, 2, true);
-  }
-
-  // Core sentences: best eligible candidate each
-  for (const sid of coreSet) {
-    if (picked.length >= target) break;
-    if (picked.some((p) => p.sentenceId === sid)) continue;
-    const best = sorted.find((c) => c.sentenceId === sid);
-    if (best) tryPick(best, minGapPreferred);
-  }
-
-  // A then B by score, relaxing gaps
-  for (const grade of ["A", "B"] as const) {
-    const gradePool = sorted.filter((c) => c.grade === grade);
-    for (const gap of [minGapPreferred, 3, 2]) {
-      for (const c of gradePool) {
-        tryPick(c, gap);
-      }
-      if (picked.length >= Math.min(target, pool.length)) break;
-    }
-  }
-
-  // Light distribution fill with remaining eligible only
-  if (picked.length < target && sorted.length > picked.length) {
-    const maxGlobal = Math.max(...pool.map((v) => v.globalWordIndex), 1);
-    const thirds = [
-      { lo: 0, hi: maxGlobal * 0.33 },
-      { lo: maxGlobal * 0.33, hi: maxGlobal * 0.66 },
-      { lo: maxGlobal * 0.66, hi: maxGlobal + 1 },
-    ];
-    for (const band of thirds) {
-      if (picked.length >= target) break;
-      const has = picked.some(
-        (p) => p.globalWordIndex >= band.lo && p.globalWordIndex < band.hi
-      );
-      if (has) continue;
-      const cand = sorted.find(
-        (c) =>
-          c.globalWordIndex >= band.lo &&
-          c.globalWordIndex < band.hi &&
-          !alreadyPicked(c)
-      );
-      if (cand) tryPick(cand, 2);
-    }
-  }
-
-  let selected = [...picked].sort((a, b) => {
-    if (a.sentenceId !== b.sentenceId) {
-      const order = options?.sentenceOrder;
-      if (order) {
-        const ia = order.indexOf(a.sentenceId);
-        const ib = order.indexOf(b.sentenceId);
-        if (ia >= 0 && ib >= 0 && ia !== ib) return ia - ib;
-      }
-      return a.sentenceId.localeCompare(b.sentenceId, undefined, {
-        numeric: true,
-      });
-    }
-    return a.start - b.start;
-  });
-
-  // Emergency: still empty — top eligible with minimal constraints
-  if (selected.length === 0 && sorted.length > 0) {
-    const emergency: ValidatedBlankCandidate[] = [];
-    const fam = new Set<string>();
-    for (const c of sorted) {
-      if (emergency.length >= Math.min(target, sorted.length)) break;
-      if (fam.has(c.wordFamily)) continue;
-      if (
-        emergency.some(
-          (p) =>
-            p.sentenceId === c.sentenceId &&
-            Math.abs(p.wordIndex - c.wordIndex) <= 1
-        )
-      ) {
-        continue;
-      }
-      emergency.push(c);
-      fam.add(c.wordFamily);
-    }
-    selected = emergency.sort((a, b) => {
-      if (a.sentenceId !== b.sentenceId) {
-        return a.sentenceId.localeCompare(b.sentenceId, undefined, {
-          numeric: true,
-        });
-      }
-      return a.start - b.start;
-    });
-  }
-
-  // Ensure mustInclude survived sorting (re-add if emergency wiped)
-  if (options?.mustInclude?.length) {
-    const keys = new Set(selected.map(candidatePosKey));
-    for (const seed of options.mustInclude) {
-      const key = candidatePosKey(seed);
-      if (keys.has(key)) continue;
-      const match =
-        pool.find((c) => candidatePosKey(c) === key) ??
-        pool.find(
-          (c) =>
-            c.sentenceId === seed.sentenceId &&
-            c.lemma === seed.lemma
-        );
-      if (match) {
-        selected.push(match);
-        keys.add(candidatePosKey(match));
-      }
-    }
-    selected = selected.sort((a, b) => {
-      if (a.sentenceId !== b.sentenceId) {
-        const order = options?.sentenceOrder;
-        if (order) {
-          const ia = order.indexOf(a.sentenceId);
-          const ib = order.indexOf(b.sentenceId);
-          if (ia >= 0 && ib >= 0 && ia !== ib) return ia - ib;
-        }
-        return a.sentenceId.localeCompare(b.sentenceId, undefined, {
-          numeric: true,
-        });
-      }
-      return a.start - b.start;
-    });
-  }
-
-  let shortfallReason: string | null = null;
-  if (selected.length < target) {
-    if (pool.length < target) {
-      shortfallReason = "학습 가치 있는 핵심 어휘 후보 부족";
-    } else if (hitSentenceCap) {
-      shortfallReason = "문장별 최대 빈칸 제한 적용";
-    } else if (hitGapCap) {
-      shortfallReason = "인접 빈칸 방지 규칙 적용";
-    } else {
-      shortfallReason = "품질 기준을 충족하는 후보만 선정";
-    }
-  }
-
-  return { selected, shortfallReason };
-}
-
-/** Select standard then expand for high so normal ⊆ hard. */
-export function selectBlankCandidatesByDensity(
-  valid: ValidatedBlankCandidate[],
-  options: {
-    density: BlankDensity;
-    standardTarget: number;
-    highTarget: number;
-    sentenceWordCounts?: Map<string, number>;
-    coreSentenceIds?: string[];
-    sentenceOrder?: string[];
-  }
-): SelectBlankResult {
-  const standard = selectBlankCandidates(valid, options.standardTarget, {
-    density: "standard",
-    sentenceWordCounts: options.sentenceWordCounts,
-    coreSentenceIds: options.coreSentenceIds,
-    sentenceOrder: options.sentenceOrder,
-  });
-  if (options.density === "standard") return standard;
-  return selectBlankCandidates(valid, options.highTarget, {
-    density: "high",
-    sentenceWordCounts: options.sentenceWordCounts,
-    coreSentenceIds: options.coreSentenceIds,
-    sentenceOrder: options.sentenceOrder,
-    mustInclude: standard.selected,
-  });
-}

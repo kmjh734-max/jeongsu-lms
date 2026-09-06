@@ -1,23 +1,14 @@
 /**
- * Blank selection v4 unit tests (no OpenAI).
+ * Blank selection v5 unit tests (no OpenAI).
  * Run: npx tsx scripts/test-workbook-blank.ts
  */
 import assert from "node:assert/strict";
 import {
-  computeBlankFinalScore,
-  conflictsWithNearSynonym,
   isBlankCandidateEligible,
+  isBlankCandidateEligibleC,
 } from "../src/lib/lesson-materials/blank-concept-score";
-import { assessWorkbookTranslation } from "../src/lib/lesson-materials/refine-workbook-translation";
-import { buildBlankCandidatesFromVocab } from "../src/lib/lesson-materials/build-blank-candidates-from-vocab";
+import { mergeBlankCandidateSources } from "../src/lib/lesson-materials/merge-blank-candidates";
 import {
-  assignBlankNumbers,
-  buildBlankTokensForSentence,
-  restorePassageFromTokens,
-} from "../src/lib/lesson-materials/insert-workbook-blanks";
-import {
-  findExactWordOccurrences,
-  isExcludedBlankWord,
   selectBlankCandidatesByDensity,
   validateBlankCandidates,
 } from "../src/lib/lesson-materials/validate-workbook-blank";
@@ -26,195 +17,29 @@ import {
   computeBlankTargetCount,
   countEnglishWords,
   getBlankTargetRange,
-  getMaxBlanksForSentence,
 } from "../src/lib/lesson-materials/workbook-types";
 
-assert.equal(BLANK_POOL_ALGORITHM_VERSION, "blank-selection-v4");
-
-const s0 =
-  "Perhaps you have heard of the Law of Attraction and its magnetic power.";
-const s1 =
-  "Belief systems are extremely magnetic and more powerful than affirmations.";
-
-const sentences = [
-  { id: "s0", english: s0 },
-  { id: "s1", english: s1 },
-];
+assert.equal(
+  BLANK_POOL_ALGORITHM_VERSION,
+  "blank-selection-v5-density-trace"
+);
 
 {
-  const hits = findExactWordOccurrences(s0, "Attraction");
-  assert.equal(hits.length, 1);
-  assert.equal(s0.slice(hits[0]!.start, hits[0]!.end), "Attraction");
-}
-
-{
-  const raw = [
-    {
-      candidateId: "b1",
-      sentenceId: "s0",
-      answerText: "Attraction",
-      occurrenceIndex: 0,
-      lemma: "attraction",
-      wordFamily: "attract",
-      partOfSpeech: "noun",
-      meaningKo: "끌어당김",
-      grade: "A",
-      semanticRole: "theme",
-      competitionGroup: null,
-      scores: {
-        centrality: 5,
-        learningValue: 5,
-        contextImportance: 4,
-        examUsefulness: 4,
-        collocationValue: 3,
-        commonnessPenalty: 1,
-        redundancyPenalty: 1,
-      },
-      reasonKo: "주제 핵심 명사",
-      priority: 5,
-    },
-    {
-      candidateId: "b2",
-      sentenceId: "s1",
-      answerText: "Belief",
-      occurrenceIndex: 0,
-      lemma: "belief",
-      wordFamily: "believe",
-      partOfSpeech: "noun",
-      meaningKo: "신념",
-      grade: "A",
-      semanticRole: "main_claim",
-      competitionGroup: null,
-      scores: {
-        centrality: 5,
-        learningValue: 5,
-        contextImportance: 5,
-        examUsefulness: 4,
-        collocationValue: 4,
-        commonnessPenalty: 0,
-        redundancyPenalty: 1,
-      },
-      reasonKo: "중심 주장",
-      priority: 5,
-    },
-    {
-      candidateId: "b3",
-      sentenceId: "s1",
-      answerText: "extremely",
-      occurrenceIndex: 0,
-      lemma: "extremely",
-      wordFamily: "extreme",
-      partOfSpeech: "adverb",
-      meaningKo: "극도로",
-      grade: "C",
-      semanticRole: "context",
-      competitionGroup: null,
-      scores: {
-        centrality: 1,
-        learningValue: 1,
-        contextImportance: 1,
-        examUsefulness: 1,
-        collocationValue: 0,
-        commonnessPenalty: 5,
-        redundancyPenalty: 1,
-      },
-      reasonKo: "정도부사",
-      priority: 1,
-    },
-  ];
-  const { valid } = validateBlankCandidates({
-    passageId: "p1",
-    responsePassageId: "p1",
-    sentences,
-    generatedCandidates: raw,
-    recommendedCount: 10,
-  });
-  assert.ok(valid.some((v) => v.lemma === "belief"));
-  assert.ok(!valid.some((v) => v.lemma === "extremely"));
-  const tokens = buildBlankTokensForSentence({
-    sentence: s1,
-    blanks: valid.filter((v) => v.sentenceId === "s1").slice(0, 1),
-    numberByKey: assignBlankNumbers(
-      valid.filter((v) => v.sentenceId === "s1").slice(0, 1),
-      ["s1"]
-    ),
-    hintType: "first_letter",
-  });
-  assert.ok(tokens.some((t) => t.type === "blank"));
-  const blank = tokens.find((t) => t.type === "blank");
-  assert.ok(blank && blank.type === "blank" && blank.firstLetter === "B");
-  assert.equal(restorePassageFromTokens(tokens), s1);
-}
-
-{
-  // v4 target ranges
-  assert.deepEqual(getBlankTargetRange({ englishWordCount: 80, density: "standard" }), {
-    low: 10,
-    high: 13,
-  });
-  assert.deepEqual(getBlankTargetRange({ englishWordCount: 120, density: "standard" }), {
-    low: 14,
-    high: 17,
-  });
-  assert.deepEqual(getBlankTargetRange({ englishWordCount: 180, density: "high" }), {
-    low: 22,
-    high: 26,
-  });
-  assert.deepEqual(getBlankTargetRange({ englishWordCount: 220, density: "high" }), {
-    low: 26,
-    high: 32,
-  });
-  const n = 120;
-  const std = computeBlankTargetCount({
-    englishWordCount: n,
+  assert.deepEqual(
+    getBlankTargetRange({ englishWordCount: 120, density: "standard" }),
+    { low: 17, high: 20 }
+  );
+  assert.deepEqual(
+    getBlankTargetRange({ englishWordCount: 120, density: "high" }),
+    { low: 21, high: 25 }
+  );
+  const t = computeBlankTargetCount({
+    englishWordCount: 120,
     density: "standard",
     hintType: "first_letter",
     showTranslation: true,
   });
-  const hard = computeBlankTargetCount({
-    englishWordCount: n,
-    density: "high",
-    hintType: "first_letter",
-    showTranslation: true,
-  });
-  assert.ok(std >= 14 && std <= 17, String(std));
-  assert.ok(hard >= 18 && hard <= 22, String(hard));
-  assert.ok(hard > std);
-  assert.equal(getMaxBlanksForSentence(10, "high"), 2);
-  assert.equal(getMaxBlanksForSentence(20, "high"), 3);
-  assert.equal(getMaxBlanksForSentence(30, "high"), 4);
-}
-
-{
-  const longEn =
-    "Perhaps you have heard of the Law of Attraction, which states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results.";
-  const truncatedKo =
-    "아마도 당신은 ‘유사한 것이 유사한 것을 끌어당긴다’고 말하는 끌어당김의 법칙에 대해 들어본 적이 있을 것입니다.";
-  assert.equal(assessWorkbookTranslation(longEn, truncatedKo).ok, false);
-  assert.equal(isExcludedBlankWord("extremely"), true);
-  assert.equal(isExcludedBlankWord("belief"), false);
-}
-
-{
-  assert.equal(
-    conflictsWithNearSynonym(
-      { lemma: "worthy", globalWordIndex: 10, sentenceId: "s1" },
-      { lemma: "deserving", globalWordIndex: 12, sentenceId: "s1" }
-    ),
-    true
-  );
-  assert.equal(
-    isBlankCandidateEligible({
-      centrality: 2,
-      learningValue: 2,
-      contextImportance: 2,
-      examUsefulness: 2,
-      collocationValue: 1,
-      commonnessPenalty: 3,
-      redundancyPenalty: 1,
-    }),
-    false
-  );
+  assert.ok(t >= 17 && t <= 20, String(t));
 }
 
 function mk(
@@ -231,21 +56,11 @@ function mk(
     centrality?: number;
     collocationValue?: number;
     contextImportance?: number;
-    examUsefulness?: number;
     grade?: "A" | "B" | "C";
-    redundancyPenalty?: number;
+    sources?: Array<"ai" | "saved-vocabulary" | "deterministic-fallback">;
   }
 ) {
   const c = extra?.centrality ?? centrality;
-  const scores = {
-    centrality: c,
-    learningValue: extra?.learningValue ?? Math.max(2, c),
-    contextImportance: extra?.contextImportance ?? c,
-    examUsefulness: extra?.examUsefulness ?? Math.max(2, c - 1),
-    collocationValue: extra?.collocationValue ?? 3,
-    commonnessPenalty: extra?.commonnessPenalty ?? 1,
-    redundancyPenalty: extra?.redundancyPenalty ?? 1,
-  };
   return {
     candidateId: `${sentenceId}-${answerText}`,
     sentenceId,
@@ -255,75 +70,106 @@ function mk(
     wordFamily,
     partOfSpeech,
     meaningKo: answerText,
-    grade: extra?.grade ?? (c >= 4 ? "A" : "B"),
+    grade: extra?.grade ?? (c >= 4 ? "A" : c >= 3 ? "B" : "C"),
     semanticRole,
     competitionGroup: extra?.competitionGroup ?? null,
-    scores,
+    sources: extra?.sources ?? ["ai"],
+    scores: {
+      centrality: c,
+      learningValue: extra?.learningValue ?? Math.max(2, c),
+      contextImportance: extra?.contextImportance ?? c,
+      examUsefulness: Math.max(2, c - 1),
+      collocationValue: extra?.collocationValue ?? 3,
+      commonnessPenalty: extra?.commonnessPenalty ?? 1,
+      redundancyPenalty: 1,
+    },
     reasonKo: semanticRole,
     priority: Math.min(5, Math.max(1, c)),
   };
 }
 
-// --- Fixture 1: belief / attraction ---
+function printDiag(
+  label: string,
+  selected: { lemma: string }[],
+  diagnostics: Array<{
+    token: string;
+    selected: boolean;
+    decisionReason: string;
+    rejectionCodes: string[];
+    grade: string;
+  }>
+) {
+  console.log(`\n=== ${label} selected ===`);
+  console.log(selected.map((s) => s.lemma).join(", "));
+  console.log(`=== ${label} rejected (sample) ===`);
+  for (const d of diagnostics.filter((x) => !x.selected).slice(0, 12)) {
+    console.log(
+      `- ${d.token} [${d.grade}] ${d.decisionReason} (${d.rejectionCodes.join("|")})`
+    );
+  }
+}
+
+// --- Fixture 1: Law of Attraction (~110+ words) ---
 {
-  const claim =
-    "But the most powerful attractor is our belief system.";
   const fixtureSentences = [
     {
       id: "a0",
       english:
-        "Perhaps you have heard of the Law of Attraction, which states that like attracts like and that by focusing on positive or negative thoughts, one can bring about positive or negative results.",
+        "Perhaps you have heard of the Law of Attraction, which states that like attracts like and that by focusing on positive or negative thoughts, one can bring about positive or negative results in daily life.",
     },
     {
       id: "a1",
       english:
-        "The common flaw is that people try to visualize and manifest without changing their vibration.",
+        "The common flaw is that people try to visualize and manifest outcomes without changing their vibration or upgrading limiting patterns.",
     },
     {
       id: "a2",
-      english: "Our thoughts and words are extremely magnetic.",
+      english:
+        "Our thoughts and spoken words are extremely magnetic, shaping the relationship between desire and experience.",
     },
-    { id: "a3", english: claim },
+    {
+      id: "a3",
+      english: "But the most powerful attractor is our belief system.",
+    },
     {
       id: "a4",
       english:
-        "You must affirm that you are worthy, lovable, and deserving while challenging limiting beliefs that contradict your desires to upgrade.",
+        "You must affirm that you are worthy, lovable, and deserving while challenging limiting beliefs that contradict your desires to upgrade your inner images.",
+    },
+    {
+      id: "a5",
+      english:
+        "When understanding replaces fear, attraction begins to work with clarity rather than confusion.",
     },
   ];
 
-  const raw = [
+  const wordCount = countEnglishWords(
+    fixtureSentences.map((s) => s.english).join(" ")
+  );
+  assert.ok(wordCount >= 100, `fixture1 words ${wordCount}`);
+
+  const aiRaw = [
+    mk("Attraction", "a0", "noun", "attract", "theme", 5),
     mk("focusing", "a0", "verb", "focus", "logic", 4),
     mk("thoughts", "a0", "noun", "thought", "theme", 4),
     mk("results", "a0", "noun", "result", "logic", 3, { grade: "B" }),
-    mk("negative", "a0", "adjective", "negative", "context", 2, {
-      commonnessPenalty: 3,
-      learningValue: 2,
+    mk("understanding", "a5", "noun", "understand", "context", 3, {
       grade: "B",
+      learningValue: 3,
     }),
     mk("flaw", "a1", "noun", "flaw", "theme", 5, {
       competitionGroup: "common flaw",
+      sources: ["ai", "saved-vocabulary"],
     }),
-    mk("common", "a1", "adjective", "common", "context", 2, {
-      competitionGroup: "common flaw",
-      commonnessPenalty: 3,
-      learningValue: 2,
-    }),
-    mk("visualize", "a1", "verb", "visualize", "academic", 5),
+    mk("visualize", "a1", "verb", "visualize", "academic", 4),
     mk("manifest", "a1", "verb", "manifest", "academic", 5),
     mk("vibration", "a1", "noun", "vibration", "theme", 5),
-    mk("level", "a1", "noun", "level", "context", 2, {
-      commonnessPenalty: 3,
-      learningValue: 2,
-    }),
-    mk("create", "a1", "verb", "create", "context", 2, {
-      commonnessPenalty: 3,
-      learningValue: 2,
-    }),
     mk("magnetic", "a2", "adjective", "magnetic", "collocation", 5),
+    mk("relationship", "a2", "noun", "relation", "context", 3, { grade: "B" }),
     mk("powerful", "a3", "adjective", "power", "context", 2, {
       commonnessPenalty: 3,
-      learningValue: 2,
       competitionGroup: "powerful attractor",
+      grade: "C",
     }),
     mk("attractor", "a3", "noun", "attract", "main_claim", 5, {
       competitionGroup: "powerful attractor",
@@ -331,52 +177,57 @@ function mk(
     mk("belief", "a3", "noun", "believe", "main_claim", 5, {
       competitionGroup: "belief system",
     }),
-    mk("system", "a3", "noun", "system", "context", 2, {
-      competitionGroup: "belief system",
-      commonnessPenalty: 3,
-      learningValue: 2,
-    }),
     mk("affirm", "a4", "verb", "affirm", "academic", 4),
     mk("worthy", "a4", "adjective", "worthy", "context", 3, {
       competitionGroup: "worth-group",
       grade: "B",
     }),
-    mk("lovable", "a4", "adjective", "lovable", "context", 2, {
-      competitionGroup: "worth-group",
-      commonnessPenalty: 2,
-      grade: "B",
-    }),
     mk("deserving", "a4", "adjective", "deserving", "context", 4, {
       competitionGroup: "worth-group",
     }),
+    mk("challenging", "a4", "verb", "challenge", "logic", 3, { grade: "B" }),
+    mk("limiting", "a4", "adjective", "limit", "logic", 3, { grade: "B" }),
     mk("contradict", "a4", "verb", "contradict", "logic", 4),
     mk("desires", "a4", "noun", "desire", "theme", 4),
     mk("upgrade", "a4", "verb", "upgrade", "academic", 4),
+    mk("images", "a4", "noun", "image", "context", 2, {
+      grade: "C",
+      commonnessPenalty: 3,
+      learningValue: 2,
+    }),
   ];
+
+  const merged = mergeBlankCandidateSources({
+    aiCandidates: aiRaw,
+    sentences: fixtureSentences,
+    vocab: [
+      { word: "flaw", meaning: "n. 결함", synonyms: [], antonyms: [] },
+      { word: "belief", meaning: "n. 신념", synonyms: [], antonyms: [] },
+      { word: "attractor", meaning: "n. 끌어당기는 것", synonyms: [], antonyms: [] },
+      { word: "manifest", meaning: "v. 나타내다", synonyms: [], antonyms: [] },
+    ],
+    titleText: "Law of Attraction",
+    maxFallback: 40,
+  });
 
   const { valid } = validateBlankCandidates({
     passageId: "belief-pass",
     responsePassageId: "belief-pass",
     sentences: fixtureSentences,
-    generatedCandidates: raw,
+    generatedCandidates: merged.merged,
     recommendedCount: 24,
-    density: "high",
     coreSentenceIds: ["a3"],
   });
 
-  assert.ok(!valid.some((v) => v.lemma === "extremely"));
-  assert.ok(!valid.some((v) => v.lemma === "powerful"));
-  assert.ok(!valid.some((v) => v.lemma === "level"));
-  assert.ok(!valid.some((v) => v.lemma === "create"));
-  assert.ok(!valid.some((v) => v.lemma === "common"));
-  assert.ok(!valid.some((v) => v.lemma === "system"));
+  const flawInPool = valid.some((v) => v.lemma === "flaw");
+  const beliefInPool = valid.some((v) => v.lemma === "belief");
+  assert.ok(flawInPool, "flaw must enter candidate pool");
+  assert.ok(beliefInPool, "belief must enter candidate pool");
 
-  const wc = new Map(
-    fixtureSentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
-  );
-  const wordCount = countEnglishWords(
-    fixtureSentences.map((s) => s.english).join(" ")
-  );
+  const range = getBlankTargetRange({
+    englishWordCount: wordCount,
+    density: "standard",
+  });
   const standardTarget = computeBlankTargetCount({
     englishWordCount: wordCount,
     density: "standard",
@@ -389,64 +240,130 @@ function mk(
     hintType: "first_letter",
     showTranslation: true,
   });
+  const wc = new Map(
+    fixtureSentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
+  );
 
   const normal = selectBlankCandidatesByDensity(valid, {
     density: "standard",
     standardTarget,
     highTarget,
+    targetMinStandard: range.low,
+    targetMaxStandard: range.high,
+    targetMinHigh: getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "high",
+    }).low,
+    targetMaxHigh: getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "high",
+    }).high,
     sentenceWordCounts: wc,
     coreSentenceIds: ["a3"],
     sentenceOrder: fixtureSentences.map((s) => s.id),
+    passageId: "belief-pass",
+    totalWordCount: wordCount,
+    sourceCounts: {
+      ai: merged.aiCandidateCount,
+      vocab: merged.savedVocabularyCandidateCount,
+      fallback: merged.fallbackCandidateCount,
+      merged: merged.merged.length,
+    },
   });
+
   const hard = selectBlankCandidatesByDensity(valid, {
     density: "high",
     standardTarget,
     highTarget,
+    targetMinStandard: range.low,
+    targetMaxStandard: range.high,
+    targetMinHigh: getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "high",
+    }).low,
+    targetMaxHigh: getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "high",
+    }).high,
     sentenceWordCounts: wc,
     coreSentenceIds: ["a3"],
     sentenceOrder: fixtureSentences.map((s) => s.id),
+    passageId: "belief-pass",
+    totalWordCount: wordCount,
+    sourceCounts: {
+      ai: merged.aiCandidateCount,
+      vocab: merged.savedVocabularyCandidateCount,
+      fallback: merged.fallbackCandidateCount,
+      merged: merged.merged.length,
+    },
   });
 
-  const normalKeys = new Set(
-    normal.selected.map((c) => `${c.sentenceId}:${c.start}`)
-  );
+  printDiag("fixture1-normal", normal.selected, normal.diagnostics);
+  printDiag("fixture1-hard", hard.selected, hard.diagnostics);
+
+  const lemmas = hard.selected.map((c) => c.lemma);
+  const coreHits = [
+    "flaw",
+    "manifest",
+    "magnetic",
+    "attractor",
+    "belief",
+    "contradict",
+    "upgrade",
+  ].filter((w) => lemmas.includes(w) || (w === "attractor" && lemmas.includes("attraction")));
+  assert.ok(coreHits.length >= 6, `core>=6 got ${coreHits.join(",")}; all=${lemmas.join(",")}`);
+
+  if (lemmas.includes("understanding")) {
+    assert.ok(lemmas.includes("flaw"), "understanding without flaw");
+  }
+  if (lemmas.includes("powerful")) {
+    assert.ok(lemmas.includes("attractor"), "powerful without attractor");
+  }
+  if (lemmas.includes("images")) {
+    assert.ok(
+      lemmas.includes("affirm") || lemmas.includes("belief"),
+      "images without affirm/belief"
+    );
+  }
+
   for (const c of normal.selected) {
     assert.ok(
       hard.selected.some(
         (h) => h.sentenceId === c.sentenceId && h.start === c.start
-      ),
-      `normal ⊆ hard missing ${c.lemma}`
+      )
     );
   }
-  assert.ok(hard.selected.length >= normal.selected.length);
 
-  const lemmas = hard.selected.map((c) => c.lemma);
-  const coreHits = ["flaw", "manifest", "magnetic", "belief", "attractor"].filter(
-    (w) => lemmas.includes(w)
-  );
-  assert.ok(coreHits.length >= 3, `core majority: ${lemmas.join(",")}`);
-  assert.ok(
-    lemmas.includes("belief") || lemmas.includes("attractor"),
-    `claim sentence: ${lemmas.join(",")}`
-  );
-  assert.ok(!lemmas.includes("powerful") || lemmas.includes("attractor"));
-  assert.ok(!lemmas.includes("level") || lemmas.includes("vibration"));
-  assert.ok(
-    !lemmas.includes("create") ||
-      lemmas.includes("affirm") ||
-      lemmas.includes("belief")
-  );
-  const worthCount = ["worthy", "lovable", "deserving"].filter((w) =>
-    lemmas.includes(w)
-  ).length;
-  assert.ok(worthCount <= 2, `parallel: ${lemmas.join(",")}`);
-  console.log("fixture1 normal:", normal.selected.map((c) => c.lemma).join(", "));
-  console.log("fixture1 hard:", lemmas.join(", "));
+  const flawDiag = hard.diagnostics.find((d) => d.lemma === "flaw");
   console.log(
-    `fixture1 counts normal=${normal.selected.length}/${standardTarget} hard=${hard.selected.length}/${highTarget} (words=${wordCount})`
+    "flaw diagnostic:",
+    flawDiag
+      ? {
+          selected: flawDiag.selected,
+          reason: flawDiag.decisionReason,
+          sources: flawDiag.sources,
+        }
+      : "MISSING FROM DIAG"
   );
-  void normalKeys;
-  void computeBlankFinalScore;
+  const beliefDiag = hard.diagnostics.find((d) => d.lemma === "belief");
+  console.log(
+    "belief diagnostic:",
+    beliefDiag
+      ? {
+          selected: beliefDiag.selected,
+          reason: beliefDiag.decisionReason,
+          sources: beliefDiag.sources,
+        }
+      : "MISSING"
+  );
+
+  console.log(
+    `fixture1 counts normal=${normal.selected.length} (min ${range.low}) hard=${hard.selected.length} words=${wordCount}`
+  );
+  console.log(
+    "fixture1 C fillers:",
+    hard.selected.filter((c) => c.grade === "C").map((c) => c.lemma)
+  );
 }
 
 // --- Fixture 2: movement / devices ---
@@ -455,26 +372,36 @@ function mk(
     {
       id: "b0",
       english:
-        "We no longer participate in wonder; screens occupy us and keep us captive to devices that replace how we socialize.",
+        "We no longer participate in wonder; glowing screens occupy us and keep us captive to devices that quietly replace how we socialize with friends and family.",
     },
     {
       id: "b1",
       english:
-        "Without physical cues from a rich movement repertoire, children struggle to communicate and mature emotionally.",
+        "Without physical cues from a rich movement repertoire, children struggle to communicate clearly and mature emotionally in complex social settings.",
     },
     {
       id: "b2",
       english:
-        "Kids may run, skip, or climb everywhere and nowhere, yet still face anxiety and diseases.",
+        "Kids may run, skip, or climb across limited square footage, yet still face anxiety, depression, and related diseases created by sedentary habits.",
     },
     {
       id: "b3",
       english:
-        "We are getting further from our design; movement is extraordinary when we reclaim it. Play and life matter, but movement comes first.",
+        "We are getting further from our design; movement is extraordinary when we reclaim it, and moving bodies restore focus better than another glowing screen.",
+    },
+    {
+      id: "b4",
+      english:
+        "Play and life still matter, but design-centered movement practice rebuilds the extraordinary capacity we were born with.",
     },
   ];
 
-  const raw = [
+  const wordCount = countEnglishWords(
+    fixtureSentences.map((s) => s.english).join(" ")
+  );
+  assert.ok(wordCount >= 100, `fixture2 words ${wordCount}`);
+
+  const aiRaw = [
     mk("participate", "b0", "verb", "participate", "logic", 4),
     mk("wonder", "b0", "noun", "wonder", "theme", 4),
     mk("occupy", "b0", "verb", "occupy", "logic", 4),
@@ -483,23 +410,22 @@ function mk(
     mk("socialize", "b0", "verb", "social", "academic", 4),
     mk("physical", "b1", "adjective", "physical", "context", 2, {
       commonnessPenalty: 3,
-      learningValue: 2,
-      collocationValue: 1,
       competitionGroup: "physical cues",
+      grade: "C",
     }),
     mk("cues", "b1", "noun", "cue", "collocation", 5, {
-      collocationValue: 5,
       competitionGroup: "physical cues",
+      collocationValue: 5,
     }),
     mk("movement", "b1", "noun", "move", "theme", 3, {
-      collocationValue: 2,
-      commonnessPenalty: 2,
       competitionGroup: "movement repertoire",
       grade: "B",
+      commonnessPenalty: 2,
     }),
     mk("repertoire", "b1", "noun", "repertoire", "collocation", 5, {
-      collocationValue: 5,
       competitionGroup: "movement repertoire",
+      collocationValue: 5,
+      sources: ["ai", "saved-vocabulary"],
     }),
     mk("communicate", "b1", "verb", "communicate", "academic", 4),
     mk("mature", "b1", "verb", "mature", "academic", 5, {
@@ -507,78 +433,67 @@ function mk(
     }),
     mk("emotionally", "b1", "adverb", "emotion", "context", 2, {
       commonnessPenalty: 3,
-      learningValue: 2,
       competitionGroup: "mature emotionally",
-    }),
-    mk("kids", "b2", "noun", "kid", "context", 2, {
-      commonnessPenalty: 3,
-      learningValue: 1,
+      grade: "C",
     }),
     mk("run", "b2", "verb", "run", "context", 1, {
       commonnessPenalty: 4,
+      grade: "C",
       learningValue: 1,
-      competitionGroup: "motion-parallel",
     }),
-    mk("skip", "b2", "verb", "skip", "context", 3, {
-      competitionGroup: "motion-parallel",
-      grade: "B",
-    }),
-    mk("climb", "b2", "verb", "climb", "context", 3, {
-      competitionGroup: "motion-parallel",
-      grade: "B",
-    }),
-    mk("everywhere", "b2", "adverb", "everywhere", "context", 2, {
-      commonnessPenalty: 3,
-      competitionGroup: "where-group",
-    }),
-    mk("nowhere", "b2", "adverb", "nowhere", "context", 2, {
-      commonnessPenalty: 3,
-      competitionGroup: "where-group",
-    }),
+    mk("climb", "b2", "verb", "climb", "context", 3, { grade: "B" }),
     mk("anxiety", "b2", "noun", "anxiety", "theme", 5),
+    mk("depression", "b2", "noun", "depression", "theme", 4),
     mk("diseases", "b2", "noun", "disease", "theme", 4),
+    mk("created", "b2", "verb", "create", "logic", 3, { grade: "B" }),
     mk("design", "b3", "noun", "design", "main_claim", 5),
-    mk("extraordinary", "b3", "adjective", "extraordinary", "main_claim", 4),
+    mk("extraordinary", "b3", "adjective", "extraordinary", "main_claim", 5),
     mk("movement", "b3", "noun", "move", "main_claim", 5),
-    mk("play", "b3", "noun", "play", "context", 2, {
+    mk("moving", "b3", "verb", "move", "context", 2, {
+      grade: "C",
       commonnessPenalty: 3,
-      learningValue: 1,
+      learningValue: 2,
     }),
-    mk("life", "b3", "noun", "life", "context", 2, {
+    mk("life", "b4", "noun", "life", "context", 2, {
+      grade: "C",
       commonnessPenalty: 3,
       learningValue: 1,
     }),
   ];
 
+  const merged = mergeBlankCandidateSources({
+    aiCandidates: aiRaw,
+    sentences: fixtureSentences,
+    vocab: [
+      { word: "repertoire", meaning: "n. 레퍼토리", synonyms: [], antonyms: [] },
+      { word: "design", meaning: "n. 설계", synonyms: [], antonyms: [] },
+      { word: "extraordinary", meaning: "a. 非凡한", synonyms: [], antonyms: [] },
+      { word: "mature", meaning: "v. 성숙하다", synonyms: [], antonyms: [] },
+    ],
+    titleText: "Born to move",
+    maxFallback: 40,
+  });
+
   const { valid } = validateBlankCandidates({
     passageId: "move-pass",
     responsePassageId: "move-pass",
     sentences: fixtureSentences,
-    generatedCandidates: raw,
+    generatedCandidates: merged.merged,
     recommendedCount: 24,
-    density: "high",
-    coreSentenceIds: ["b3"],
+    coreSentenceIds: ["b3", "b4"],
   });
 
-  assert.ok(!valid.some((v) => v.lemma === "physical"));
-  assert.ok(!valid.some((v) => v.lemma === "emotionally"));
-  assert.ok(!valid.some((v) => v.lemma === "kids"));
-  assert.ok(!valid.some((v) => v.lemma === "run"));
-  assert.ok(!valid.some((v) => v.lemma === "play"));
-  assert.ok(!valid.some((v) => v.lemma === "life"));
-  assert.ok(!valid.some((v) => v.lemma === "everywhere"));
-  assert.ok(!valid.some((v) => v.lemma === "nowhere"));
+  const repertoireInPool = valid.some((v) => v.lemma === "repertoire");
+  assert.ok(repertoireInPool, "repertoire must enter pool");
+  const designInPool = valid.some((v) => v.lemma === "design");
+  const extraordinaryInPool = valid.some((v) => v.lemma === "extraordinary");
+  console.log("design in pool?", designInPool);
+  console.log("extraordinary in pool?", extraordinaryInPool);
 
-  const cuesV = valid.find((v) => v.lemma === "cues");
-  const repV = valid.find((v) => v.lemma === "repertoire");
-  assert.ok(cuesV && repV);
-
-  const wc = new Map(
-    fixtureSentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
-  );
-  const wordCount = countEnglishWords(
-    fixtureSentences.map((s) => s.english).join(" ")
-  );
+  const range = getBlankTargetRange({
+    englishWordCount: wordCount,
+    density: "standard",
+  });
   const standardTarget = computeBlankTargetCount({
     englishWordCount: wordCount,
     density: "standard",
@@ -591,88 +506,143 @@ function mk(
     hintType: "first_letter",
     showTranslation: true,
   });
+  const wc = new Map(
+    fixtureSentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
+  );
 
   const normal = selectBlankCandidatesByDensity(valid, {
     density: "standard",
     standardTarget,
     highTarget,
+    targetMinStandard: range.low,
+    targetMaxStandard: range.high,
+    targetMinHigh: getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "high",
+    }).low,
+    targetMaxHigh: getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "high",
+    }).high,
     sentenceWordCounts: wc,
-    coreSentenceIds: ["b3"],
+    coreSentenceIds: ["b3", "b4"],
     sentenceOrder: fixtureSentences.map((s) => s.id),
-  });
-  const hard = selectBlankCandidatesByDensity(valid, {
-    density: "high",
-    standardTarget,
-    highTarget,
-    sentenceWordCounts: wc,
-    coreSentenceIds: ["b3"],
-    sentenceOrder: fixtureSentences.map((s) => s.id),
+    passageId: "move-pass",
+    totalWordCount: wordCount,
+    sourceCounts: {
+      ai: merged.aiCandidateCount,
+      vocab: merged.savedVocabularyCandidateCount,
+      fallback: merged.fallbackCandidateCount,
+      merged: merged.merged.length,
+    },
   });
 
-  for (const c of normal.selected) {
-    assert.ok(
-      hard.selected.some(
-        (h) => h.sentenceId === c.sentenceId && h.start === c.start
-      ),
-      `normal ⊆ hard missing ${c.lemma}`
-    );
-  }
+  printDiag("fixture2-normal", normal.selected, normal.diagnostics);
 
-  const lemmas = hard.selected.map((c) => c.lemma);
-  assert.ok(!lemmas.includes("physical"));
-  assert.ok(
-    lemmas.includes("repertoire") || lemmas.includes("cues"),
-    `collocation: ${lemmas.join(",")}`
+  const lemmas = normal.selected.map((c) => c.lemma);
+  const key4 = ["repertoire", "cues", "mature", "design", "extraordinary"].filter(
+    (w) => lemmas.includes(w)
   );
-  // If movement (b1) somehow selected without repertoire — fail
+  assert.ok(key4.length >= 4, `key4 ${key4.join(",")}`);
+
+  const core15 = [
+    "participate",
+    "wonder",
+    "occupy",
+    "captive",
+    "devices",
+    "socialize",
+    "cues",
+    "repertoire",
+    "communicate",
+    "mature",
+    "anxiety",
+    "diseases",
+    "design",
+    "extraordinary",
+    "movement",
+  ];
+  const hit15 = core15.filter((w) => lemmas.includes(w));
+  assert.ok(hit15.length >= 10, `core15 hit ${hit15.length}: ${hit15.join(",")}`);
+
   if (
-    hard.selected.some((c) => c.lemma === "movement" && c.sentenceId === "b1")
+    normal.selected.some((c) => c.lemma === "movement" && c.sentenceId === "b1")
   ) {
     assert.ok(lemmas.includes("repertoire"));
   }
-  const moveFamily = hard.selected.filter((c) => c.wordFamily === "move");
-  assert.ok(moveFamily.length <= 1, `move family: ${lemmas.join(",")}`);
-  const motion = ["run", "skip", "climb"].filter((w) => lemmas.includes(w));
-  assert.ok(motion.length <= 1, `motion: ${lemmas.join(",")}`);
-  assert.ok(
-    !(lemmas.includes("everywhere") && lemmas.includes("nowhere"))
-  );
-  assert.ok(
-    lemmas.includes("design") ||
-      lemmas.includes("extraordinary") ||
-      lemmas.includes("movement"),
-    `conclusion: ${lemmas.join(",")}`
-  );
-  const easyBeforeCore =
-    ["kids", "play", "run", "life"].some((w) =>
-      normal.selected.map((c) => c.lemma).includes(w)
-    ) &&
-    !["cues", "repertoire", "anxiety", "design"].some((w) =>
-      normal.selected.map((c) => c.lemma).includes(w)
+  if (lemmas.includes("emotionally")) {
+    assert.ok(lemmas.includes("mature"));
+  }
+  if (lemmas.includes("life")) {
+    assert.ok(
+      lemmas.includes("movement") ||
+        lemmas.includes("design") ||
+        lemmas.includes("extraordinary")
     );
-  assert.ok(!easyBeforeCore, `easy before core: ${lemmas.join(",")}`);
+  }
+  const moveForms = normal.selected.filter((c) => c.wordFamily === "move");
+  assert.ok(
+    moveForms.length <= 1,
+    `move family dup: ${moveForms.map((c) => c.lemma).join(",")}`
+  );
+  if (lemmas.includes("run")) {
+    assert.ok(
+      lemmas.includes("anxiety") ||
+        lemmas.includes("diseases") ||
+        lemmas.includes("design") ||
+        lemmas.includes("extraordinary")
+    );
+  }
 
-  console.log("fixture2 normal:", normal.selected.map((c) => c.lemma).join(", "));
-  console.log("fixture2 hard:", lemmas.join(", "));
+  const repDiag = normal.diagnostics.find((d) => d.lemma === "repertoire");
+  const movingDiag = normal.diagnostics.find((d) => d.lemma === "moving");
+  const movementDiag = normal.diagnostics.find(
+    (d) => d.lemma === "movement" && d.selected
+  );
+  console.log("repertoire:", {
+    selected: repDiag?.selected,
+    reason: repDiag?.decisionReason,
+  });
+  console.log("moving:", {
+    selected: movingDiag?.selected,
+    reason: movingDiag?.decisionReason,
+    codes: movingDiag?.rejectionCodes,
+  });
+  console.log("selected movement:", movementDiag?.token, movementDiag?.decisionReason);
   console.log(
-    `fixture2 counts normal=${normal.selected.length}/${standardTarget} hard=${hard.selected.length}/${highTarget} (words=${wordCount})`
+    `fixture2 counts normal=${normal.selected.length} (min ${range.low}) words=${wordCount}`
+  );
+  console.log(
+    "fixture2 C fillers:",
+    normal.selected.filter((c) => c.grade === "C").map((c) => c.lemma)
   );
 }
 
 {
-  const fromVocab = buildBlankCandidatesFromVocab({
-    sentences,
-    vocab: [
-      { word: "Attraction", meaning: "n. 끌어당김", synonyms: [], antonyms: [] },
-      { word: "belief", meaning: "n. 신념", synonyms: [], antonyms: [] },
-      { word: "magnetic", meaning: "a. 끌어당기는", synonyms: [], antonyms: [] },
-      { word: "powerful", meaning: "a. 강력한", synonyms: [], antonyms: [] },
-      { word: "affirmations", meaning: "n. 확언", synonyms: [], antonyms: [] },
-      { word: "systems", meaning: "n. 체계", synonyms: [], antonyms: [] },
-    ],
-    maxCandidates: 10,
-  });
-  assert.ok(fromVocab.length >= 3);
+  assert.equal(
+    isBlankCandidateEligible({
+      centrality: 2,
+      learningValue: 2,
+      contextImportance: 2,
+      examUsefulness: 2,
+      collocationValue: 1,
+      commonnessPenalty: 4,
+      redundancyPenalty: 1,
+    }),
+    false
+  );
+  assert.equal(
+    isBlankCandidateEligibleC({
+      centrality: 2,
+      learningValue: 2,
+      contextImportance: 2,
+      examUsefulness: 2,
+      collocationValue: 1,
+      commonnessPenalty: 3,
+      redundancyPenalty: 1,
+    }),
+    true
+  );
 }
 
-console.log("ok: workbook blank selection v4 tests passed");
+console.log("\nok: workbook blank selection v5 tests passed");

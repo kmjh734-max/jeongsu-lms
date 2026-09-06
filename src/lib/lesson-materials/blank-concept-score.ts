@@ -67,18 +67,39 @@ export function computeBlankFinalScore(scores: BlankCandidateScore): number {
   );
 }
 
-/** Hard gate — low-value / too-common words never fill the quota. */
+/** A/B: learning-value gate. C fillers use isBlankCandidateEligibleC. */
 export function isBlankCandidateEligible(scores: BlankCandidateScore): boolean {
   const s = normalizeBlankScores(scores);
   const strong =
-    s.centrality >= 3 || s.learningValue >= 4 || s.contextImportance >= 4;
-  return strong && s.commonnessPenalty <= 2 && s.redundancyPenalty <= 3;
+    s.centrality >= 3 || s.learningValue >= 3 || s.contextImportance >= 3;
+  return strong && s.commonnessPenalty <= 3 && s.redundancyPenalty <= 3;
+}
+
+/** C-grade filler: content words only; never function-word level commons. */
+export function isBlankCandidateEligibleC(scores: BlankCandidateScore): boolean {
+  const s = normalizeBlankScores(scores);
+  if (s.commonnessPenalty >= 5) return false;
+  return (
+    s.learningValue >= 2 ||
+    s.contextImportance >= 2 ||
+    s.centrality >= 2
+  );
 }
 
 export function parseBlankGrade(raw: unknown): BlankGrade | null {
   const g = String(raw ?? "").trim().toUpperCase();
   if (g === "A" || g === "B" || g === "C") return g;
   return null;
+}
+
+export function inferGradeFromScores(scores: BlankCandidateScore): BlankGrade {
+  const s = normalizeBlankScores(scores);
+  if (s.centrality >= 4 || s.learningValue >= 4 || s.contextImportance >= 4) {
+    if (s.commonnessPenalty <= 3) return "A";
+  }
+  if (isBlankCandidateEligible(s) && s.commonnessPenalty <= 2) return "B";
+  if (isBlankCandidateEligibleC(s)) return "C";
+  return "C";
 }
 
 export const BLANK_NEAR_SYNONYM_GROUPS: string[][] = [
@@ -95,7 +116,9 @@ export const BLANK_NEAR_SYNONYM_GROUPS: string[][] = [
   ["visualize", "visualization", "visualizing"],
   ["manifest", "manifestation"],
   ["movement", "move", "moving"],
-  ["anxiety", "anxious", "depression", "depressed", "disease", "diseases"],
+  ["anxiety", "anxious"],
+  ["depression", "depressed"],
+  ["disease", "diseases"],
   ["run", "skip", "climb", "walk", "jump"],
   ["cues", "cue", "signal", "signals"],
   ["repertoire", "range", "set"],
@@ -267,15 +290,6 @@ export function isSoftEasyWord(lemma: string): boolean {
   return EASY_WORDS_SOFT.has(L) || DEGREE_ADVERBS.has(L);
 }
 
-export function inferGradeFromScores(scores: BlankCandidateScore): BlankGrade {
-  const s = normalizeBlankScores(scores);
-  if (!isBlankCandidateEligible(s)) return "C";
-  if (s.centrality >= 4 || s.learningValue >= 4 || s.contextImportance >= 4) {
-    return "A";
-  }
-  return "B";
-}
-
 export function synthesizeScoresForLemma(input: {
   lemma: string;
   partOfSpeech: BlankPartOfSpeech | string;
@@ -312,17 +326,43 @@ export function synthesizeScoresForLemma(input: {
     learningValue = Math.min(learningValue, 2);
     centrality = Math.min(centrality, 2);
   }
+  // Prefer canonical noun forms within a family when scoring heuristically
+  if (lemma === "moving" || lemma === "move") {
+    commonnessPenalty = Math.max(commonnessPenalty, 3);
+    learningValue = Math.min(learningValue, 3);
+  }
+  if (lemma === "movement" || lemma === "movements") {
+    centrality = Math.max(centrality, 4);
+    learningValue = Math.max(learningValue, 4);
+    commonnessPenalty = Math.min(commonnessPenalty, 1);
+  }
   if (
-    ["cues", "repertoire", "belief", "beliefs", "attractor", "vibration", "design", "flaw", "manifest"].includes(
-      lemma
-    )
+    [
+      "cues",
+      "repertoire",
+      "belief",
+      "beliefs",
+      "attractor",
+      "vibration",
+      "design",
+      "flaw",
+      "manifest",
+      "extraordinary",
+      "mature",
+      "contradict",
+      "upgrade",
+    ].includes(lemma)
   ) {
     collocationValue = 5;
     centrality = Math.max(centrality, 4);
     learningValue = Math.max(learningValue, 4);
     commonnessPenalty = 0;
   }
-  if (["physical", "system", "powerful", "common", "level", "create"].includes(lemma)) {
+  if (
+    ["physical", "system", "powerful", "common", "level", "create", "nowhere", "everywhere", "run", "life"].includes(
+      lemma
+    )
+  ) {
     commonnessPenalty = Math.max(commonnessPenalty, 3);
     collocationValue = Math.min(collocationValue, 2);
   }
@@ -332,7 +372,7 @@ export function synthesizeScoresForLemma(input: {
     commonnessPenalty = Math.min(commonnessPenalty, 1);
   }
   if (input.grade === "C") {
-    commonnessPenalty = Math.max(commonnessPenalty, 4);
+    commonnessPenalty = Math.max(commonnessPenalty, 2);
   }
 
   return normalizeBlankScores({

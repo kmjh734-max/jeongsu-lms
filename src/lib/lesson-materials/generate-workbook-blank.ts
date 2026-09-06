@@ -29,6 +29,7 @@ import {
 } from "@/lib/lesson-materials/workbook-blank-cache";
 import { computeBlankFinalScore } from "@/lib/lesson-materials/blank-concept-score";
 import { buildBlankCandidatesFromVocab, buildHeuristicBlankCandidates } from "@/lib/lesson-materials/build-blank-candidates-from-vocab";
+import { mergeBlankCandidateSources } from "@/lib/lesson-materials/merge-blank-candidates";
 import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import {
   readTranslationMeta,
@@ -201,7 +202,7 @@ export async function callBlankOpenAI(input: {
                         meaningKo: { type: "string" },
                         grade: {
                           type: "string",
-                          enum: ["A", "B"],
+                          enum: ["A", "B", "C"],
                         },
                         semanticRole: {
                           type: "string",
@@ -323,6 +324,7 @@ function storedToRawCandidates(pool: StoredBlankCandidate[]): unknown[] {
     reasonKo: c.selectionReasonKo,
     selectionReasonKo: c.selectionReasonKo,
     priority: c.priority,
+    sources: c.sources ?? ["ai"],
   }));
 }
 
@@ -354,6 +356,7 @@ function validatedToStored(
       scores: c.scores,
       finalScore: c.finalScore ?? computeBlankFinalScore(c.scores),
       grade: c.grade,
+      sources: c.sources,
     })),
   };
 }
@@ -466,23 +469,34 @@ export async function generateWorkbookBlankFill(input: {
     );
 
     const tBlank = Date.now();
-    let rawCandidates: unknown[] = [];
+    let rawAi: unknown[] = [];
     let coreSentenceIds: string[] = [];
     let usedCache = false;
     let fromVocabFallback = false;
+    let sourceCounts = {
+      ai: 0,
+      vocab: 0,
+      fallback: 0,
+      merged: 0,
+    };
 
     if (isBlankPoolFresh(p.blankPool, p.projectId, sourceHash)) {
-      rawCandidates = storedToRawCandidates(p.blankPool.candidates);
+      rawAi = storedToRawCandidates(p.blankPool.candidates);
       coreSentenceIds = p.blankPool.coreSentenceIds ?? [];
       usedCache = true;
+      sourceCounts = {
+        ai: rawAi.length,
+        vocab: 0,
+        fallback: 0,
+        merged: rawAi.length,
+      };
     } else {
-      // v4: evaluate full passage via OpenAI once; density modes share the pool
+      // v5: one AI call, then merge with vocab + deterministic content words
       statusNotes.push(
-        `「${p.title}」핵심 어휘 후보(v4)를 준비합니다. 이후 동일 원문은 캐시를 사용합니다.`
+        `「${p.title}」핵심 어휘 후보(v5)를 준비합니다. 이후 동일 원문은 캐시를 사용합니다.`
       );
       try {
         openAiRequestCount += 1;
-        // Use short s0/s1 ids in the prompt — UUID ids confuse the model
         const aliasSentences = sentences.map((s, i) => ({
           id: `s${i}`,
           english: s.english,
@@ -499,19 +513,17 @@ export async function generateWorkbookBlankFill(input: {
             meaningKo: v.meaning,
           })),
         });
-        rawCandidates = ai.candidates;
-        // Remap coreSentenceIds via validate resolver (s0 → real id)
+        rawAi = ai.candidates;
         coreSentenceIds = ai.coreSentenceIds;
       } catch {
-        // Fallback: vocab-located candidates with heuristic scores
         if ((p.vocab?.length ?? 0) >= 4) {
-          rawCandidates = buildBlankCandidatesFromVocab({
+          rawAi = buildBlankCandidatesFromVocab({
             sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
             vocab: p.vocab!,
             titleText: p.title,
             maxCandidates: poolTarget,
           });
-          fromVocabFallback = rawCandidates.length >= 4;
+          fromVocabFallback = rawAi.length >= 4;
           if (fromVocabFallback) {
             statusNotes.push(
               `「${p.title}」AI 후보 생성 실패 → 수업용자료 어휘로 대체했습니다.`
@@ -519,7 +531,7 @@ export async function generateWorkbookBlankFill(input: {
           }
         }
         if (!fromVocabFallback) {
-          rawCandidates = buildHeuristicBlankCandidates({
+          rawAi = buildHeuristicBlankCandidates({
             sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
             titleText: p.title,
             maxCandidates: poolTarget,
@@ -530,6 +542,33 @@ export async function generateWorkbookBlankFill(input: {
         }
       }
     }
+
+    let rawCandidates = rawAi;
+    if (!usedCache) {
+      const merged = mergeBlankCandidateSources({
+        aiCandidates: rawAi,
+        sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+        vocab: p.vocab,
+        titleText: p.title,
+        maxFallback: poolTarget,
+      });
+      rawCandidates = merged.merged;
+      sourceCounts = {
+        ai: merged.aiCandidateCount,
+        vocab: merged.savedVocabularyCandidateCount,
+        fallback: merged.fallbackCandidateCount,
+        merged: merged.merged.length,
+      };
+    }
+
+    const targetRange = getBlankTargetRange({
+      englishWordCount: wordCount,
+      density,
+    });
+    const standardRange = getBlankTargetRange({
+      englishWordCount: wordCount,
+      density: "standard",
+    });
 
     const firstPass = validateBlankCandidates({
       passageId: p.projectId,
@@ -634,10 +673,18 @@ export async function generateWorkbookBlankFill(input: {
       density,
       standardTarget,
       highTarget: recommended,
+      targetMinStandard: standardRange.low,
+      targetMaxStandard: standardRange.high,
+      targetMinHigh: highRange.low,
+      targetMaxHigh: highRange.high,
       sentenceWordCounts,
       coreSentenceIds,
       sentenceOrder: sentences.map((s) => s.id),
+      passageId: p.projectId,
+      totalWordCount: wordCount,
+      sourceCounts,
     });
+    void targetRange;
 
     if (
       !usedCache &&
@@ -687,9 +734,16 @@ export async function generateWorkbookBlankFill(input: {
               density,
               standardTarget,
               highTarget: recommended,
+              targetMinStandard: standardRange.low,
+              targetMaxStandard: standardRange.high,
+              targetMinHigh: highRange.low,
+              targetMaxHigh: highRange.high,
               sentenceWordCounts,
               coreSentenceIds,
               sentenceOrder: sentences.map((s) => s.id),
+              passageId: p.projectId,
+              totalWordCount: wordCount,
+              sourceCounts,
             }
           ));
         }
@@ -724,8 +778,15 @@ export async function generateWorkbookBlankFill(input: {
         density,
         standardTarget,
         highTarget: recommended,
+        targetMinStandard: standardRange.low,
+        targetMaxStandard: standardRange.high,
+        targetMinHigh: highRange.low,
+        targetMaxHigh: highRange.high,
         sentenceWordCounts,
         sentenceOrder: sentences.map((s) => s.id),
+        passageId: p.projectId,
+        totalWordCount: wordCount,
+        sourceCounts,
       }));
       if (selected.length === 0 && valid.length > 0) {
         selected = valid.slice(0, Math.min(recommended, valid.length));
