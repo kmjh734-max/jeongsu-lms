@@ -416,19 +416,19 @@ export function validateBlankCandidates(input: {
     }
 
     if (!sentenceId) {
-      rejected.push({ reason: `sentenceId ?놁쓬: ${sentenceIdRaw}`, raw });
+      rejected.push({ reason: `sentenceId 없음: ${sentenceIdRaw}`, raw });
       continue;
     }
     if (!answerText || !/^[A-Za-z]+(?:'[A-Za-z]+)?$/.test(answerText)) {
-      rejected.push({ reason: `answerText ?⑥씪???꾨떂: ${answerText}`, raw });
+      rejected.push({ reason: `answerText 단일어 아님: ${answerText}`, raw });
       continue;
     }
     if (!lemma) {
-      rejected.push({ reason: "lemma 鍮꾩뼱 ?덉쓬", raw });
+      rejected.push({ reason: "lemma 비어 있음", raw });
       continue;
     }
     if (isExcludedBlankWord(answerText)) {
-      rejected.push({ reason: `?쒖쇅 ?댄쐶: ${answerText}`, raw });
+      rejected.push({ reason: `제외 어휘: ${answerText}`, raw });
       continue;
     }
 
@@ -474,7 +474,7 @@ export function validateBlankCandidates(input: {
       if (!eligibleAb && eligibleC) grade = "C";
       else if (!eligibleAb && !eligibleC) {
         rejected.push({
-          reason: `?먭꺽 誘몃떖: ${answerText}`,
+          reason: `자격 미달: ${answerText}`,
           raw,
           code: "TOO_COMMON" as const,
         });
@@ -482,7 +482,7 @@ export function validateBlankCandidates(input: {
       }
     } else if (grade === "C" && !eligibleC) {
       rejected.push({
-        reason: `C?깃툒 ?먭꺽 誘몃떖: ${answerText}`,
+        reason: `C등급 자격 미달: ${answerText}`,
         raw,
         code: "TOO_COMMON" as const,
       });
@@ -523,7 +523,7 @@ export function validateBlankCandidates(input: {
     }
     if (!hits[occurrenceIndex]) {
       rejected.push({
-        reason: `occurrence ?놁쓬: ${answerText}#${occurrenceIndex}`,
+        reason: `occurrence 없음: ${answerText}#${occurrenceIndex}`,
         raw,
         code: "TOKEN_MAPPING_FAILED" as const,
       });
@@ -532,7 +532,7 @@ export function validateBlankCandidates(input: {
     const hit = hits[occurrenceIndex]!;
     const posKey = `${sentenceId}:${hit.start}:${hit.end}`;
     if (usedPositions.has(posKey)) {
-      rejected.push({ reason: `?꾩튂 以묐났: ${posKey}`, raw });
+      rejected.push({ reason: `위치 중복: ${posKey}`, raw });
       continue;
     }
 
@@ -547,7 +547,7 @@ export function validateBlankCandidates(input: {
       lemma,
       partOfSpeech,
       meaningKo,
-      selectionReasonKo: selectionReasonKo || "?듭떖 ?댄쐶",
+      selectionReasonKo: selectionReasonKo || "핵심 어휘",
       priority,
       start: hit.start,
       end: hit.end,
