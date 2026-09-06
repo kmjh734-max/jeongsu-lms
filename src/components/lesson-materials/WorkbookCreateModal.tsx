@@ -1,35 +1,70 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { generateWorkbookAction } from "@/lib/lesson-materials/workbook-actions";
 import {
   DEFAULT_WORKBOOK_TF_OPTIONS,
   WORKBOOK_TYPE_CATALOG,
   clampTfCount,
   defaultWorkbookTitle,
+  type WorkbookData,
   type WorkbookTfOptions,
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
-const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v1";
+export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v1";
+export const WORKBOOK_PENDING_KEY = "lesson-materials-workbook-pending-v1";
 
-export function saveWorkbookToSession(workbook: unknown) {
+export type WorkbookPendingPayload = {
+  projectIds: string[];
+  selectedTypes: WorkbookTypeId[];
+  tfOptions: WorkbookTfOptions;
+  title: string;
+};
+
+export function saveWorkbookToSession(workbook: WorkbookData) {
   try {
     sessionStorage.setItem(WORKBOOK_SESSION_KEY, JSON.stringify(workbook));
   } catch {
-    /* ignore quota */
+    /* ignore */
   }
 }
 
-export function loadWorkbookFromSession<T = unknown>(): T | null {
+export function loadWorkbookFromSession(): WorkbookData | null {
   try {
     const raw = sessionStorage.getItem(WORKBOOK_SESSION_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as T;
+    return JSON.parse(raw) as WorkbookData;
   } catch {
     return null;
+  }
+}
+
+export function saveWorkbookPending(payload: WorkbookPendingPayload) {
+  try {
+    sessionStorage.setItem(WORKBOOK_PENDING_KEY, JSON.stringify(payload));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function loadWorkbookPending(): WorkbookPendingPayload | null {
+  try {
+    const raw = sessionStorage.getItem(WORKBOOK_PENDING_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as WorkbookPendingPayload;
+  } catch {
+    return null;
+  }
+}
+
+export function clearWorkbookPending() {
+  try {
+    sessionStorage.removeItem(WORKBOOK_PENDING_KEY);
+  } catch {
+    /* ignore */
   }
 }
 
@@ -46,6 +81,7 @@ export function WorkbookCreateModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("types");
   const [selected, setSelected] = useState<Set<WorkbookTypeId>>(
     () => new Set(["tf"])
@@ -55,7 +91,7 @@ export function WorkbookCreateModal({
   );
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [error, setError] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   const readySelected = useMemo(
     () => [...selected].filter((id) => id === "tf"),
@@ -98,31 +134,33 @@ export function WorkbookCreateModal({
     setStep("options");
   }
 
-  async function handleGenerate() {
+  function handleStart() {
     setError(null);
-    setGenerating(true);
-    try {
-      const res = await generateWorkbookAction(role, {
-        projectIds,
-        selectedTypes: readySelected,
-        tfOptions,
-        title,
-      });
-      if (!res.ok) {
-        setError(res.message);
-        return;
-      }
-      saveWorkbookToSession(res.workbook);
-      const base =
-        role === "admin"
-          ? "/admin/lesson-materials/workbook"
-          : "/teacher/lesson-materials/workbook";
-      window.open(base, "_blank", "noopener,noreferrer");
-      onClose();
-      setStep("types");
-    } finally {
-      setGenerating(false);
+    if (projectIds.length === 0) {
+      setError("선택된 자료가 없습니다.");
+      return;
     }
+    setStarting(true);
+    const payload: WorkbookPendingPayload = {
+      projectIds: [...projectIds],
+      selectedTypes: readySelected,
+      tfOptions: {
+        ...tfOptions,
+        count: clampTfCount(tfOptions.count),
+      },
+      title: title.trim() || defaultWorkbookTitle(),
+    };
+    saveWorkbookPending(payload);
+    const base =
+      role === "admin"
+        ? "/admin/lesson-materials/workbook"
+        : "/teacher/lesson-materials/workbook";
+    const href = `${base}?ids=${encodeURIComponent(projectIds.join(","))}`;
+    // Same-tab navigation avoids popup blockers after async work
+    router.push(href);
+    onClose();
+    setStep("types");
+    setStarting(false);
   }
 
   return (
@@ -299,7 +337,7 @@ export function WorkbookCreateModal({
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={generating}
+                disabled={starting}
                 onClick={() => setStep("types")}
               >
                 ← 이전
@@ -307,10 +345,10 @@ export function WorkbookCreateModal({
               <Button
                 type="button"
                 size="sm"
-                disabled={generating}
-                onClick={() => void handleGenerate()}
+                disabled={starting}
+                onClick={handleStart}
               >
-                {generating ? "생성 중…" : "워크북 생성"}
+                {starting ? "이동 중…" : "워크북 생성"}
               </Button>
             </>
           )}
