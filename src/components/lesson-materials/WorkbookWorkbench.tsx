@@ -1,10 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
-import { loadWorkbookFromSession } from "@/components/lesson-materials/WorkbookCreateModal";
+import {
+  clearWorkbookPending,
+  loadWorkbookFromSession,
+  loadWorkbookPending,
+  saveWorkbookToSession,
+} from "@/components/lesson-materials/WorkbookCreateModal";
+import { generateWorkbookAction } from "@/lib/lesson-materials/workbook-actions";
 import type { WorkbookData } from "@/lib/lesson-materials/workbook-types";
 
 const A4_WIDTH = "210mm";
@@ -74,16 +86,78 @@ export function WorkbookWorkbench({
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [workbook, setWorkbook] = useState<WorkbookData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(true);
+  const [status, setStatus] = useState("워크북을 준비하고 있습니다…");
   const [zoom, setZoom] = useState(85);
 
   useEffect(() => {
-    const data = loadWorkbookFromSession<WorkbookData>();
-    if (!data?.sections?.length) {
-      setError("생성된 워크북이 없습니다. 자료함에서 다시 만들어 주세요.");
-      return;
-    }
-    setWorkbook(data);
-  }, []);
+    let cancelled = false;
+    (async () => {
+      setGenerating(true);
+      setError(null);
+
+      const cached = loadWorkbookFromSession();
+      const pending = loadWorkbookPending();
+
+      if (cached?.sections?.length && !pending) {
+        if (!cancelled) {
+          setWorkbook(cached);
+          setGenerating(false);
+        }
+        return;
+      }
+
+      if (!pending?.projectIds?.length) {
+        if (cached?.sections?.length) {
+          if (!cancelled) {
+            setWorkbook(cached);
+            setGenerating(false);
+          }
+          return;
+        }
+        if (!cancelled) {
+          setError(
+            "생성된 워크북이 없습니다. 자료함에서 다시 만들어 주세요."
+          );
+          setGenerating(false);
+        }
+        return;
+      }
+
+      setStatus(
+        `T/F 문제를 생성하고 있습니다… (지문 ${pending.projectIds.length}개)`
+      );
+      try {
+        const res = await generateWorkbookAction(role, {
+          projectIds: pending.projectIds,
+          selectedTypes: pending.selectedTypes,
+          tfOptions: pending.tfOptions,
+          title: pending.title,
+        });
+        if (cancelled) return;
+        if (!res.ok) {
+          setError(res.message);
+          setGenerating(false);
+          return;
+        }
+        saveWorkbookToSession(res.workbook);
+        clearWorkbookPending();
+        setWorkbook(res.workbook);
+        setGenerating(false);
+      } catch (e) {
+        if (cancelled) return;
+        setError(
+          e instanceof Error
+            ? e.message
+            : "워크북 생성 중 오류가 발생했습니다."
+        );
+        setGenerating(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [role]);
 
   useEffect(() => {
     const id = "workbook-print-page-size-style";
@@ -115,8 +189,6 @@ export function WorkbookWorkbench({
       kind: "a" as const,
       sectionIndex: i,
     }));
-    // One answers block after all questions (or per section if many)
-    // Spec: questions then 정답 및 해설 — for multiple passages, all Q then all A
     return [...q, ...a];
   }, [workbook]);
 
@@ -127,6 +199,22 @@ export function WorkbookWorkbench({
     }),
     [zoom]
   );
+
+  if (generating) {
+    return (
+      <div className="flex h-[80vh] flex-col items-center justify-center gap-3 bg-slate-100 px-4">
+        <div className="rounded-2xl bg-white px-8 py-6 text-center shadow">
+          <p className="text-sm font-semibold text-slate-800">{status}</p>
+          <p className="mt-2 text-xs text-slate-500">
+            지문마다 AI가 T/F를 만들므로 잠시 걸릴 수 있습니다.
+          </p>
+        </div>
+        <Link href={base} className="text-xs font-semibold text-violet-700">
+          ← 자료함으로 돌아가기
+        </Link>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -229,32 +317,32 @@ export function WorkbookWorkbench({
                     typeTitle={`${typeOrder}. T/F 문제`}
                     isLast={isLast}
                   >
-                      {workbook.sections.length > 1 ? (
-                        <p className="mb-2 text-[12px] font-semibold text-slate-500">
-                          {section.title}
-                          {section.source?.trim()
-                            ? ` · ${section.source.trim()}`
-                            : ""}
-                        </p>
-                      ) : null}
-                      <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-900">
-                        {section.passage}
+                    {workbook.sections.length > 1 ? (
+                      <p className="mb-2 text-[12px] font-semibold text-slate-500">
+                        {section.title}
+                        {section.source?.trim()
+                          ? ` · ${section.source.trim()}`
+                          : ""}
                       </p>
-                      <div className="my-4 h-px w-full bg-slate-200" />
-                      <ol className="space-y-3">
-                        {section.items.map((it) => (
-                          <li
-                            key={it.index}
-                            className="break-inside-avoid text-[13px] leading-relaxed text-slate-900"
-                          >
-                            <span className="font-semibold">({it.index})</span>{" "}
-                            {it.statement}{" "}
-                            <span className="ml-1 font-bold text-slate-500">
-                              [ T / F ]
-                            </span>
-                          </li>
-                        ))}
-                      </ol>
+                    ) : null}
+                    <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-900">
+                      {section.passage}
+                    </p>
+                    <div className="my-4 h-px w-full bg-slate-200" />
+                    <ol className="space-y-3">
+                      {section.items.map((it) => (
+                        <li
+                          key={it.index}
+                          className="break-inside-avoid text-[13px] leading-relaxed text-slate-900"
+                        >
+                          <span className="font-semibold">({it.index})</span>{" "}
+                          {it.statement}{" "}
+                          <span className="ml-1 font-bold text-slate-500">
+                            [ T / F ]
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
                   </PageShell>
                 );
               }
@@ -269,42 +357,42 @@ export function WorkbookWorkbench({
                   typeTitle="정답 및 해설"
                   isLast={isLast}
                 >
-                    <h3
-                      className="mb-3 text-[16px] font-black"
-                      style={{ color: ACCENT }}
-                    >
-                      {typeOrder}. T/F 문제
-                      {workbook.sections.length > 1
-                        ? ` · ${section.title}`
-                        : ""}
-                    </h3>
-                    <p className="mb-4 text-[13px] font-semibold text-slate-800">
-                      정답:{" "}
-                      {section.items
-                        .map((it) => `(${it.index}) ${it.answer}`)
-                        .join("  ")}
-                    </p>
-                    <ol className="space-y-4">
-                      {section.items.map((it) => (
-                        <li
-                          key={it.index}
-                          className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
-                        >
-                          <p className="font-bold">
-                            ({it.index}) {it.answer}
+                  <h3
+                    className="mb-3 text-[16px] font-black"
+                    style={{ color: ACCENT }}
+                  >
+                    {typeOrder}. T/F 문제
+                    {workbook.sections.length > 1
+                      ? ` · ${section.title}`
+                      : ""}
+                  </h3>
+                  <p className="mb-4 text-[13px] font-semibold text-slate-800">
+                    정답:{" "}
+                    {section.items
+                      .map((it) => `(${it.index}) ${it.answer}`)
+                      .join("  ")}
+                  </p>
+                  <ol className="space-y-4">
+                    {section.items.map((it) => (
+                      <li
+                        key={it.index}
+                        className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+                      >
+                        <p className="font-bold">
+                          ({it.index}) {it.answer}
+                        </p>
+                        <p className="mt-1 text-slate-700">{it.explanation}</p>
+                        {it.answer === "F" && it.correctedStatement ? (
+                          <p className="mt-1 text-slate-700">
+                            <span className="font-semibold text-rose-700">
+                              바르게 고친 문장 ·{" "}
+                            </span>
+                            {it.correctedStatement}
                           </p>
-                          <p className="mt-1 text-slate-700">{it.explanation}</p>
-                          {it.answer === "F" && it.correctedStatement ? (
-                            <p className="mt-1 text-slate-700">
-                              <span className="font-semibold text-rose-700">
-                                바르게 고친 문장 ·{" "}
-                              </span>
-                              {it.correctedStatement}
-                            </p>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ol>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ol>
                 </PageShell>
               );
             })}
