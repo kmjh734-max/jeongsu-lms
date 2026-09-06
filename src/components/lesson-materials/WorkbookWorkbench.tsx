@@ -392,11 +392,9 @@ export function WorkbookWorkbench({
       const wantBlank = types.includes("blank_fill");
       const wantTf = types.includes("tf");
       if (wantBlank && wantTf) {
-        setStatus("저장된 해석·빈칸 후보로 워크북을 구성하고 T/F를 생성합니다…");
+        setStatus("워크북을 만들고 있습니다…");
       } else if (wantBlank) {
-        setStatus(
-          "저장된 해석·빈칸 후보를 불러와 배치합니다… (캐시가 없으면 한 번만 준비)"
-        );
+        setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
       } else {
         setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
       }
