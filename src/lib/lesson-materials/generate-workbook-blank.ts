@@ -15,17 +15,18 @@ import {
   buildBlankTokensForSentence,
   flattenPassageTokens,
 } from "@/lib/lesson-materials/insert-workbook-blanks";
-import { translateEnglishLinesToKorean } from "@/lib/lesson-materials/translate-lines";
+import { resolveWorkbookTranslations } from "@/lib/lesson-materials/refine-workbook-translation";
 import {
   selectBlankCandidates,
   validateBlankCandidates,
   type ValidatedBlankCandidate,
 } from "@/lib/lesson-materials/validate-workbook-blank";
 import {
+  computeBlankTargetCount,
   countEnglishWords,
   formatWorkbookPassage,
+  getMaxBlanksForSentence,
   joinWorkbookPassageLines,
-  recommendedBlankCount,
   type WorkbookBlankFillOptions,
   type WorkbookBlankSection,
   type WorkbookBlankSentence,
@@ -52,6 +53,7 @@ async function callBlankOpenAI(input: {
   passageId: string;
   title?: string;
   targetCount: number;
+  maxPerSentence: number;
   sentences: Array<{ id: string; english: string }>;
 }): Promise<unknown[]> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -218,58 +220,45 @@ async function callBlankOpenAI(input: {
 }
 
 async function resolveKoreanLines(
+  sentenceIds: string[],
   english: string[],
   existingKorean: Array<string | null | undefined>
-): Promise<{ korean: string[]; warning?: string }> {
-  const korean = english.map((_, i) =>
-    String(existingKorean[i] ?? "").trim()
-  );
-  const missingIdx = korean
-    .map((k, i) => (k ? -1 : i))
-    .filter((i) => i >= 0);
-  if (missingIdx.length === 0) {
-    if (korean.length !== english.length) {
-      return {
-        korean,
-        warning: "영어 문장 수와 한국어 해석 수가 다릅니다.",
-      };
-    }
-    return { korean };
-  }
-
-  const toTranslate = missingIdx.map((i) => english[i]!);
-  const translated = await translateEnglishLinesToKorean(toTranslate);
-  missingIdx.forEach((sentenceIdx, j) => {
-    korean[sentenceIdx] = translated[j] ?? "";
+): Promise<{
+  korean: string[];
+  warning?: string;
+  translations: Awaited<
+    ReturnType<typeof resolveWorkbookTranslations>
+  >["translations"];
+}> {
+  return resolveWorkbookTranslations({
+    sentenceIds,
+    english,
+    existingKorean,
   });
-  if (korean.some((k) => !k.trim())) {
-    return {
-      korean,
-      warning: "일부 문장의 한국어 해석을 만들지 못했습니다.",
-    };
-  }
-  return { korean };
 }
 
 function pickCandidatesWithRetryPayload(
   passageId: string,
   sentences: Array<{ id: string; english: string }>,
   rawCandidates: unknown[],
-  recommended: number
-): ValidatedBlankCandidate[] {
+  recommended: number,
+  density: WorkbookBlankFillOptions["density"]
+): { selected: ValidatedBlankCandidate[]; shortfallReason: string | null } {
+  const sentenceWordCounts = new Map(
+    sentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
+  );
   const { valid } = validateBlankCandidates({
     passageId,
     responsePassageId: passageId,
     sentences,
     generatedCandidates: rawCandidates,
     recommendedCount: recommended,
+    density,
   });
-  // Also accept AI passageId mismatches by re-validating with actual id only
-  let selected = selectBlankCandidates(valid, recommended);
-  if (selected.length < Math.min(recommended, 3) && valid.length > selected.length) {
-    selected = selectBlankCandidates(valid, Math.min(recommended, valid.length));
-  }
-  return selected;
+  return selectBlankCandidates(valid, recommended, {
+    density,
+    sentenceWordCounts,
+  });
 }
 
 export async function generateWorkbookBlankFill(input: {
@@ -286,6 +275,7 @@ export async function generateWorkbookBlankFill(input: {
   options: WorkbookBlankFillOptions;
 }): Promise<WorkbookBlankSection[]> {
   const sections: WorkbookBlankSection[] = [];
+  const density = input.options.density ?? "high";
 
   for (const p of input.passages) {
     const sentences = p.sentences
@@ -304,41 +294,62 @@ export async function generateWorkbookBlankFill(input: {
       sentences.map((s) => s.english)
     );
     const wordCount = countEnglishWords(sourcePassage);
-    let recommended = recommendedBlankCount(wordCount);
-    // Cap by available content words roughly
-    recommended = Math.min(recommended, Math.max(1, Math.floor(wordCount / 4)));
+    const recommended = computeBlankTargetCount({
+      englishWordCount: wordCount,
+      density,
+      hintType: input.options.hintType,
+      showTranslation: input.options.showTranslation,
+    });
+    const sentenceWordCounts = new Map(
+      sentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
+    );
+    const maxPerSentence = Math.max(
+      1,
+      ...[...sentenceWordCounts.values()].map((wc) =>
+        getMaxBlanksForSentence(wc, density)
+      )
+    );
 
     let raw = await callBlankOpenAI({
       passageId: p.projectId,
       title: p.title,
       targetCount: recommended,
+      maxPerSentence,
       sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
     });
 
-    // Attach response passageId check via validate
     const validatedOnce = validateBlankCandidates({
       passageId: p.projectId,
       responsePassageId: p.projectId,
       sentences,
       generatedCandidates: raw,
       recommendedCount: recommended,
+      density,
     });
 
-    let selected = selectBlankCandidates(validatedOnce.valid, recommended);
+    let { selected, shortfallReason } = selectBlankCandidates(
+      validatedOnce.valid,
+      recommended,
+      { density, sentenceWordCounts }
+    );
 
     if (selected.length < Math.min(4, recommended)) {
       raw = await callBlankOpenAI({
         passageId: p.projectId,
         title: p.title,
         targetCount: recommended,
+        maxPerSentence,
         sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
       });
-      selected = pickCandidatesWithRetryPayload(
+      const retried = pickCandidatesWithRetryPayload(
         p.projectId,
         sentences,
         raw,
-        recommended
+        recommended,
+        density
       );
+      selected = retried.selected;
+      shortfallReason = retried.shortfallReason;
     }
 
     if (selected.length === 0) {
@@ -347,7 +358,6 @@ export async function generateWorkbookBlankFill(input: {
       );
     }
 
-    // Never pad with low-value words — use actual selected count
     const sentenceOrder = sentences.map((s) => s.id);
     const numberByKey = assignBlankNumbers(selected, sentenceOrder);
 
@@ -371,19 +381,25 @@ export async function generateWorkbookBlankFill(input: {
       sentenceRows.push({
         id: s.id,
         english: s.english,
-        korean: "", // filled below
+        korean: "",
         tokens,
       });
       tokenRows.push(tokens);
     }
 
     let translationWarning: string | undefined;
+    let translations = undefined as
+      | Awaited<ReturnType<typeof resolveKoreanLines>>["translations"]
+      | undefined;
+
     if (input.options.showTranslation) {
       const resolved = await resolveKoreanLines(
+        sentences.map((s) => s.id),
         sentences.map((s) => s.english),
         sentences.map((s) => s.korean)
       );
       translationWarning = resolved.warning;
+      translations = resolved.translations;
       sentenceRows.forEach((row, i) => {
         row.korean = resolved.korean[i] ?? "";
       });
@@ -396,7 +412,6 @@ export async function generateWorkbookBlankFill(input: {
           "영어 문장과 한국어 해석 개수가 일치하지 않거나 비어 있습니다.";
       }
     } else {
-      // Still prefer existing teacher translations for answer meanings only — answers use AI meaningKo
       sentenceRows.forEach((row, i) => {
         row.korean = String(sentences[i]?.korean ?? "").trim();
       });
@@ -410,12 +425,6 @@ export async function generateWorkbookBlankFill(input: {
     const answers = buildAnswersFromSelected(selected, numberByKey);
     const passageTokens = flattenPassageTokens(tokenRows);
 
-    // Full passage restore check (joined)
-    const restoredJoined = sentenceRows.map((s) => s.english).join(" ");
-    if (formatWorkbookPassage(restoredJoined) !== formatWorkbookPassage(sourcePassage)) {
-      // sentences were individually formatWorkbookPassage'd already — allow space-join equality
-    }
-
     sections.push({
       projectId: p.projectId,
       title: p.title,
@@ -426,6 +435,15 @@ export async function generateWorkbookBlankFill(input: {
       answers,
       fullKorean,
       translationWarning,
+      translations,
+      generation: {
+        englishWordCount: wordCount,
+        density,
+        targetBlankCount: recommended,
+        actualBlankCount: selected.length,
+        shortfallReason:
+          selected.length < recommended ? shortfallReason : null,
+      },
     });
   }
 

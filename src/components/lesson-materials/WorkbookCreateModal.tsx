@@ -9,6 +9,7 @@ import {
   WORKBOOK_TYPE_CATALOG,
   clampTfCount,
   defaultWorkbookTitle,
+  estimateBlankCountPreview,
   sortWorkbookTypesByPrintOrder,
   type WorkbookBlankFillOptions,
   type WorkbookData,
@@ -61,6 +62,7 @@ export function buildWorkbookHref(
   params.set("blankHint", opts.blankOptions.hintType);
   params.set("blankTr", opts.blankOptions.showTranslation ? "1" : "0");
   params.set("blankLayout", opts.blankOptions.translationLayout);
+  params.set("blankDensity", opts.blankOptions.density ?? "high");
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   return `${base}?${params.toString()}`;
 }
@@ -250,6 +252,45 @@ export function WorkbookCreateModal({
 
               {wantBlank ? (
                 <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-900">
+                    빈칸 채우기 개수
+                  </p>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <OptionRow tone="violet" label="밀도">
+                      <div className="space-y-2">
+                        <TogglePair
+                          tone="violet"
+                          left={{ id: "standard", label: "기본" }}
+                          right={{ id: "high", label: "많이" }}
+                          value={blankOptions.density}
+                          onChange={(density) =>
+                            setBlankOptions((o) => ({
+                              ...o,
+                              density: density as "standard" | "high",
+                            }))
+                          }
+                        />
+                        <p className="text-[11px] text-violet-600">
+                          지문 길이와 힌트 설정에 따라 빈칸 수가 자동으로
+                          조절됩니다.
+                        </p>
+                        {(() => {
+                          const { low, high } =
+                            estimateBlankCountPreview(blankOptions);
+                          return (
+                            <p className="text-[11px] font-semibold text-slate-600">
+                              {projectIds.length > 1
+                                ? `지문별 길이에 따라 약 ${low}~${high}개의 빈칸이 생성됩니다.`
+                                : low === high
+                                  ? `선택한 지문에는 약 ${low}개의 빈칸이 생성됩니다.`
+                                  : `선택한 지문에는 약 ${low}~${high}개의 빈칸이 생성됩니다.`}
+                            </p>
+                          );
+                        })()}
+                      </div>
+                    </OptionRow>
+                  </div>
+
                   <p className="text-sm font-bold text-slate-900">
                     빈칸 채우기 힌트 설정
                   </p>

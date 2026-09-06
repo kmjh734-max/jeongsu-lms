@@ -22,6 +22,7 @@ import {
   clampTfCount,
   defaultWorkbookTitle,
   formatWorkbookPassage,
+  parseBlankDensity,
   parseBlankHintType,
   parseBlankTranslationLayout,
   sortWorkbookTypesByPrintOrder,
@@ -353,6 +354,7 @@ export function WorkbookWorkbench({
         translationLayout: parseBlankTranslationLayout(
           searchParams.get("blankLayout")
         ),
+        density: parseBlankDensity(searchParams.get("blankDensity")),
       };
       const title =
         searchParams.get("title")?.trim() || defaultWorkbookTitle();

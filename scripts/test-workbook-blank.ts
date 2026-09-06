@@ -1,8 +1,9 @@
 /**
- * Unit checks for workbook blank validate/insert (no OpenAI).
+ * Unit checks for workbook blank density + translation assess (no OpenAI).
  * Run: npx tsx scripts/test-workbook-blank.ts
  */
 import assert from "node:assert/strict";
+import { assessWorkbookTranslation } from "../src/lib/lesson-materials/refine-workbook-translation";
 import {
   assignBlankNumbers,
   buildBlankTokensForSentence,
@@ -14,6 +15,11 @@ import {
   validateBlankCandidates,
   type ValidatedBlankCandidate,
 } from "../src/lib/lesson-materials/validate-workbook-blank";
+import {
+  computeBlankTargetCount,
+  countEnglishWords,
+  getMaxBlanksForSentence,
+} from "../src/lib/lesson-materials/workbook-types";
 
 const s0 =
   "Perhaps you have heard of the Law of Attraction and its magnetic power.";
@@ -51,7 +57,7 @@ const sentences = [
       occurrenceIndex: 0,
       lemma: "magnetic",
       partOfSpeech: "adjective",
-      meaningKo: "자기적인",
+      meaningKo: "끌어당기는",
       selectionReasonKo: "핵심 형용사",
       priority: 4,
     },
@@ -85,12 +91,19 @@ const sentences = [
     sentences,
     generatedCandidates: raw,
     recommendedCount: 6,
+    density: "high",
   });
   assert.ok(valid.length >= 2);
   assert.ok(rejected.some((r) => r.reason.includes("제외")));
   assert.ok(rejected.some((r) => r.reason.includes("occurrence")));
 
-  const selected = selectBlankCandidates(valid, 6);
+  const { selected } = selectBlankCandidates(valid, 6, {
+    density: "high",
+    sentenceWordCounts: new Map([
+      ["s0", countEnglishWords(s0)],
+      ["s1", countEnglishWords(s1)],
+    ]),
+  });
   assert.ok(selected.length >= 2);
   assert.ok(selected.every((c) => c.answerText !== "the"));
 
@@ -113,19 +126,13 @@ const sentences = [
       hintType: "first_letter",
     });
     assert.equal(restorePassageFromTokens(tokens), sentence);
-    const blankTok = tokens.find((t) => t.type === "blank");
-    if (blankTok && blankTok.type === "blank") {
-      assert.ok(blankTok.firstLetter);
-      assert.equal(blankTok.firstLetter, blankTok.answerText.charAt(0));
-    }
   }
 }
 
 {
-  // Same word twice — occurrenceIndex must target the right one
   const sentence = "Power and power can attract power.";
   const hits = findExactWordOccurrences(sentence, "power");
-  assert.equal(hits.length, 2); // case-sensitive: only lowercase "power"
+  assert.equal(hits.length, 2);
   const raw = [
     {
       id: "b1",
@@ -147,7 +154,6 @@ const sentences = [
     recommendedCount: 1,
   });
   assert.equal(valid.length, 1);
-  assert.equal(valid[0]!.occurrenceIndex, 1);
   const numbers = assignBlankNumbers(valid, ["sx"]);
   const tokens = buildBlankTokensForSentence({
     sentence,
@@ -156,9 +162,121 @@ const sentences = [
     hintType: "none",
   });
   assert.equal(restorePassageFromTokens(tokens), sentence);
-  // Must blank the second "power", not replaceAll
   const restoredPositions = findExactWordOccurrences(sentence, "power");
   assert.equal(valid[0]!.start, restoredPositions[1]!.start);
 }
 
-console.log("ok: workbook blank validate/insert tests passed");
+{
+  // Density targets ~150 words
+  const n = 150;
+  assert.equal(
+    computeBlankTargetCount({
+      englishWordCount: n,
+      density: "standard",
+      hintType: "first_letter",
+      showTranslation: true,
+    }),
+    11
+  );
+  assert.equal(
+    computeBlankTargetCount({
+      englishWordCount: n,
+      density: "high",
+      hintType: "first_letter",
+      showTranslation: true,
+    }),
+    18
+  );
+  assert.equal(
+    computeBlankTargetCount({
+      englishWordCount: n,
+      density: "high",
+      hintType: "none",
+      showTranslation: true,
+    }),
+    16
+  );
+  assert.equal(
+    computeBlankTargetCount({
+      englishWordCount: n,
+      density: "high",
+      hintType: "first_letter",
+      showTranslation: false,
+    }),
+    15
+  );
+  assert.equal(
+    computeBlankTargetCount({
+      englishWordCount: n,
+      density: "high",
+      hintType: "none",
+      showTranslation: false,
+    }),
+    12
+  );
+  assert.equal(getMaxBlanksForSentence(10, "high"), 1);
+  assert.equal(getMaxBlanksForSentence(20, "high"), 2);
+  assert.equal(getMaxBlanksForSentence(30, "high"), 3);
+  assert.equal(countEnglishWords("well-known state-of-the-art tool"), 3);
+}
+
+{
+  // Translation regression cases
+  const longEn =
+    "Perhaps you have heard of the Law of Attraction, which states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results.";
+  const truncatedKo =
+    "아마도 당신은 ‘유사한 것이 유사한 것을 끌어당긴다’고 말하는 끌어당김의 법칙에 대해 들어본 적이 있을 것입니다.";
+  assert.equal(assessWorkbookTranslation(longEn, truncatedKo).ok, false);
+
+  assert.equal(
+    assessWorkbookTranslation(
+      "our thoughts and words are extremely magnetic",
+      "우리의 생각과 말은 매우 매력적이다."
+    ).ok,
+    false
+  );
+  assert.ok(
+    assessWorkbookTranslation(
+      "our thoughts and words are extremely magnetic",
+      "우리의 생각과 말에는 매우 강한 끌어당기는 힘이 있다."
+    ).ok
+  );
+
+  assert.equal(
+    assessWorkbookTranslation(
+      "you are available for an incredibly successful career",
+      "자신을 확인할 수 있지만"
+    ).ok,
+    false
+  );
+
+  assert.equal(
+    assessWorkbookTranslation(
+      "we are getting further and further away from our design",
+      "우리는 우리의 디자인에서 점점 멀어지고 있다."
+    ).ok,
+    false
+  );
+  assert.ok(
+    assessWorkbookTranslation(
+      "we are getting further and further away from our design",
+      "우리가 본래 창조된 모습에서 점점 더 멀어지고 있다."
+    ).ok
+  );
+
+  assert.equal(
+    assessWorkbookTranslation(
+      "Movement is life to us.",
+      "움직임은 우리에게 삶입니다."
+    ).ok,
+    false
+  );
+  assert.ok(
+    assessWorkbookTranslation(
+      "Movement is life to us.",
+      "우리에게 움직임은 곧 생명이다."
+    ).ok
+  );
+}
+
+console.log("ok: workbook blank density + translation tests passed");

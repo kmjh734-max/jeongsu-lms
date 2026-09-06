@@ -153,17 +153,36 @@ export const DEFAULT_WORKBOOK_TF_OPTIONS: WorkbookTfOptions = {
 
 export type BlankHintType = "first_letter" | "none";
 export type BlankTranslationLayout = "chunk" | "sentence_pair";
+export type BlankDensity = "standard" | "high";
 
 export type WorkbookBlankFillOptions = {
   hintType: BlankHintType;
   showTranslation: boolean;
   translationLayout: BlankTranslationLayout;
+  density: BlankDensity;
 };
 
 export const DEFAULT_WORKBOOK_BLANK_OPTIONS: WorkbookBlankFillOptions = {
   hintType: "first_letter",
   showTranslation: true,
   translationLayout: "chunk",
+  density: "high",
+};
+
+export type BlankGenerationMetadata = {
+  englishWordCount: number;
+  density: BlankDensity;
+  targetBlankCount: number;
+  actualBlankCount: number;
+  shortfallReason: string | null;
+};
+
+export type WorkbookTranslation = {
+  sentenceId: string;
+  english: string;
+  korean: string;
+  source: "teacher" | "stored" | "refined" | "generated";
+  validated: boolean;
 };
 
 export type WorkbookMetadata = {
@@ -241,6 +260,8 @@ export type WorkbookBlankSection = {
   answers: WorkbookBlankAnswer[];
   fullKorean: string;
   translationWarning?: string;
+  generation?: BlankGenerationMetadata;
+  translations?: WorkbookTranslation[];
 };
 
 export type WorkbookData = {
@@ -265,12 +286,51 @@ export function clampTfCount(n: unknown): number {
 }
 
 export function countEnglishWords(text: string): number {
-  const m = formatWorkbookPassage(text).match(/[A-Za-z]+(?:'[A-Za-z]+)?/g);
+  // Hyphenated compounds count as one; drop pure numbers / punctuation-only.
+  const m = formatWorkbookPassage(text).match(
+    /[A-Za-z]+(?:-[A-Za-z]+)*(?:'[A-Za-z]+)?/g
+  );
   return m?.length ?? 0;
 }
 
+/** @deprecated use computeBlankTargetCount — kept as standard-density alias */
 export function recommendedBlankCount(englishWordCount: number): number {
-  return Math.min(12, Math.max(6, Math.round(englishWordCount / 14)));
+  return computeBlankTargetCount({
+    englishWordCount,
+    density: "standard",
+    hintType: "first_letter",
+    showTranslation: true,
+  });
+}
+
+export function computeBlankTargetCount(input: {
+  englishWordCount: number;
+  density: BlankDensity;
+  hintType: BlankHintType;
+  showTranslation: boolean;
+}): number {
+  const n = Math.max(0, input.englishWordCount);
+  if (input.density === "standard") {
+    return Math.min(12, Math.max(6, Math.round(n / 14)));
+  }
+  const hasHint = input.hintType === "first_letter";
+  const hasTr = input.showTranslation;
+  if (hasTr && hasHint) return Math.min(18, Math.max(6, Math.round(n / 8.5)));
+  if (hasTr && !hasHint) return Math.min(16, Math.max(6, Math.round(n / 9.5)));
+  if (!hasTr && hasHint) return Math.min(15, Math.max(6, Math.round(n / 10)));
+  return Math.min(12, Math.max(6, Math.round(n / 12.5)));
+}
+
+export function getMaxBlanksForSentence(
+  sentenceWordCount: number,
+  density: BlankDensity
+): number {
+  if (density === "standard") {
+    return Math.min(2, Math.max(1, Math.floor(sentenceWordCount / 8)));
+  }
+  if (sentenceWordCount <= 12) return 1;
+  if (sentenceWordCount <= 24) return 2;
+  return 3;
 }
 
 export function parseBlankHintType(raw: string | null | undefined): BlankHintType {
@@ -281,6 +341,30 @@ export function parseBlankTranslationLayout(
   raw: string | null | undefined
 ): BlankTranslationLayout {
   return raw === "sentence_pair" ? "sentence_pair" : "chunk";
+}
+
+export function parseBlankDensity(raw: string | null | undefined): BlankDensity {
+  return raw === "standard" ? "standard" : "high";
+}
+
+export function estimateBlankCountPreview(options: WorkbookBlankFillOptions): {
+  low: number;
+  high: number;
+} {
+  return {
+    low: computeBlankTargetCount({
+      englishWordCount: 120,
+      density: options.density,
+      hintType: options.hintType,
+      showTranslation: options.showTranslation,
+    }),
+    high: computeBlankTargetCount({
+      englishWordCount: 160,
+      density: options.density,
+      hintType: options.hintType,
+      showTranslation: options.showTranslation,
+    }),
+  };
 }
 
 /**

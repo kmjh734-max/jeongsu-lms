@@ -1,6 +1,11 @@
 import type {
+  BlankDensity,
   BlankPartOfSpeech,
   GeneratedBlankCandidate,
+} from "@/lib/lesson-materials/workbook-types";
+import {
+  countEnglishWords,
+  getMaxBlanksForSentence,
 } from "@/lib/lesson-materials/workbook-types";
 
 const EXCLUDED_LOWER = new Set([
@@ -175,10 +180,12 @@ export function validateBlankCandidates(input: {
   sentences: BlankSourceSentence[];
   generatedCandidates: unknown;
   recommendedCount: number;
+  density?: BlankDensity;
 }): {
   valid: ValidatedBlankCandidate[];
   rejected: Array<{ reason: string; raw?: unknown }>;
 } {
+  const density = input.density ?? "standard";
   const rejected: Array<{ reason: string; raw?: unknown }> = [];
   if (input.responsePassageId && input.responsePassageId !== input.passageId) {
     rejected.push({
@@ -188,10 +195,13 @@ export function validateBlankCandidates(input: {
 
   const byId = new Map(input.sentences.map((s) => [s.id, s] as const));
   const sentenceOffsets = new Map<string, number>();
+  const sentenceWordCounts = new Map<string, number>();
   let running = 0;
   for (const s of input.sentences) {
     sentenceOffsets.set(s.id, running);
-    running += tokenizeWords(s.english).length + 1; // +gap between sentences
+    const wc = countEnglishWords(s.english);
+    sentenceWordCounts.set(s.id, wc);
+    running += tokenizeWords(s.english).length + 1;
   }
 
   const list = Array.isArray(input.generatedCandidates)
@@ -270,8 +280,12 @@ export function validateBlankCandidates(input: {
       rejected.push({ reason: `표제어 중복: ${lemma}`, raw });
       continue;
     }
+    const maxForSentence = getMaxBlanksForSentence(
+      sentenceWordCounts.get(sentenceId) ?? 0,
+      density
+    );
     const sc = perSentence.get(sentenceId) ?? 0;
-    if (sc >= 2) {
+    if (sc >= maxForSentence) {
       rejected.push({ reason: `문장당 초과: ${sentenceId}`, raw });
       continue;
     }
@@ -300,12 +314,23 @@ export function validateBlankCandidates(input: {
   return { valid, rejected };
 }
 
+export type SelectBlankResult = {
+  selected: ValidatedBlankCandidate[];
+  shortfallReason: string | null;
+};
+
 /** Pick up to recommendedCount with distribution / spacing constraints. */
 export function selectBlankCandidates(
   valid: ValidatedBlankCandidate[],
-  recommendedCount: number
-): ValidatedBlankCandidate[] {
+  recommendedCount: number,
+  options?: {
+    density?: BlankDensity;
+    sentenceWordCounts?: Map<string, number>;
+  }
+): SelectBlankResult {
+  const density = options?.density ?? "standard";
   const target = Math.max(1, recommendedCount);
+  const minGapPreferred = density === "high" ? 4 : 5;
   const sorted = [...valid].sort((a, b) => {
     if (b.priority !== a.priority) return b.priority - a.priority;
     return a.globalWordIndex - b.globalWordIndex;
@@ -314,13 +339,30 @@ export function selectBlankCandidates(
   const picked: ValidatedBlankCandidate[] = [];
   const lemma = new Set<string>();
   const perSentence = new Map<string, number>();
+  let hitSentenceCap = false;
+  let hitGapCap = false;
+
+  const maxFor = (sentenceId: string) =>
+    getMaxBlanksForSentence(
+      options?.sentenceWordCounts?.get(sentenceId) ?? 20,
+      density
+    );
 
   const tryPick = (c: ValidatedBlankCandidate, minGap: number): boolean => {
     if (picked.length >= target) return false;
     if (lemma.has(c.lemma)) return false;
-    if ((perSentence.get(c.sentenceId) ?? 0) >= 2) return false;
+    const maxS = maxFor(c.sentenceId);
+    if ((perSentence.get(c.sentenceId) ?? 0) >= maxS) {
+      hitSentenceCap = true;
+      return false;
+    }
     for (const p of picked) {
-      if (Math.abs(p.globalWordIndex - c.globalWordIndex) < minGap) return false;
+      if (Math.abs(p.globalWordIndex - c.globalWordIndex) < minGap) {
+        hitGapCap = true;
+        return false;
+      }
+      // Adjacent words (gap < 2) never
+      if (Math.abs(p.globalWordIndex - c.globalWordIndex) < 2) return false;
     }
     picked.push(c);
     lemma.add(c.lemma);
@@ -328,10 +370,8 @@ export function selectBlankCandidates(
     return true;
   };
 
-  // Prefer gap of 5 words; relax if needed
-  for (const gap of [5, 3, 1]) {
+  for (const gap of [minGapPreferred, 3, 2]) {
     for (const c of sorted) {
-      if (picked.some((p) => p.id === c.id && p.start === c.start)) continue;
       if (picked.some((p) => p.sentenceId === c.sentenceId && p.start === c.start))
         continue;
       tryPick(c, gap);
@@ -339,7 +379,6 @@ export function selectBlankCandidates(
     if (picked.length >= Math.min(target, valid.length)) break;
   }
 
-  // Prefer covering latter part of passage
   if (picked.length > 0 && sorted.length > picked.length) {
     const maxGlobal = Math.max(...valid.map((v) => v.globalWordIndex), 1);
     const hasLate = picked.some((p) => p.globalWordIndex >= maxGlobal * 0.6);
@@ -347,12 +386,15 @@ export function selectBlankCandidates(
       const late = sorted.find(
         (c) =>
           c.globalWordIndex >= maxGlobal * 0.6 &&
-          !picked.some((p) => p.start === c.start && p.sentenceId === c.sentenceId) &&
+          !picked.some(
+            (p) => p.start === c.start && p.sentenceId === c.sentenceId
+          ) &&
           !lemma.has(c.lemma)
       );
       if (late && picked.length >= target) {
-        // swap lowest priority early item
-        picked.sort((a, b) => a.priority - b.priority || a.globalWordIndex - b.globalWordIndex);
+        picked.sort(
+          (a, b) => a.priority - b.priority || a.globalWordIndex - b.globalWordIndex
+        );
         const drop = picked[0];
         if (drop && drop.priority <= late.priority) {
           lemma.delete(drop.lemma);
@@ -361,15 +403,15 @@ export function selectBlankCandidates(
             Math.max(0, (perSentence.get(drop.sentenceId) ?? 1) - 1)
           );
           picked.shift();
-          tryPick(late, 1);
+          tryPick(late, 2);
         }
       } else if (late) {
-        tryPick(late, 1);
+        tryPick(late, 2);
       }
     }
   }
 
-  return picked.sort((a, b) => {
+  const selected = picked.sort((a, b) => {
     if (a.sentenceId !== b.sentenceId) {
       return a.sentenceId.localeCompare(b.sentenceId, undefined, {
         numeric: true,
@@ -377,4 +419,19 @@ export function selectBlankCandidates(
     }
     return a.start - b.start;
   });
+
+  let shortfallReason: string | null = null;
+  if (selected.length < target) {
+    if (valid.length < target) {
+      shortfallReason = "중복되지 않는 핵심 어휘 후보 부족";
+    } else if (hitSentenceCap) {
+      shortfallReason = "문장별 최대 빈칸 제한 적용";
+    } else if (hitGapCap) {
+      shortfallReason = "인접 빈칸 방지 규칙 적용";
+    } else {
+      shortfallReason = "중복되지 않는 핵심 어휘 후보 부족";
+    }
+  }
+
+  return { selected, shortfallReason };
 }

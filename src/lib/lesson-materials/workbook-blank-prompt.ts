@@ -13,6 +13,7 @@ export const WORKBOOK_BLANK_SYSTEM_PROMPT = `당신은 대한민국 고등학교
 같은 단어나 같은 표제어를 반복해서 선정하지 않는다.
 한 문장에 빈칸을 과도하게 몰아넣지 않는다.
 정답은 반드시 원문에 실제로 존재하는 한 단어여야 한다.
+목표 개수를 채우기 위해 가치 없는 단어를 억지로 넣지 않는다.
 
 answerText에는 원문에 나타난 활용형을 정확히 반환한다.
 lemma에는 표제어를 반환한다.
@@ -47,17 +48,19 @@ export function buildWorkbookBlankUserPrompt(input: {
   passageId: string;
   title?: string;
   targetCount: number;
+  maxPerSentence: number;
   sentences: Array<{ id: string; english: string }>;
 }): string {
   const sentenceBlock = input.sentences
     .map((s) => `[${s.id}] ${s.english}`)
     .join("\n");
+  const upper = Math.min(input.targetCount + 5, Math.max(input.targetCount, 18));
   return `<blank_request>
 purpose: high-school English reading workbook blank-fill
 passageId: ${input.passageId}
 title: ${input.title?.trim() || "(없음)"}
 targetCount: ${input.targetCount}
-maxPerSentence: 2
+maxPerSentence: ${input.maxPerSentence}
 oneWordOnly: true
 </blank_request>
 
@@ -66,9 +69,6 @@ ${sentenceBlock}
 </sentences>
 
 위 문장 ID만 사용하라.
-원문을 수정·재작성하지 말고, 빈칸 후보를 약 ${input.targetCount}~${Math.min(
-    12,
-    input.targetCount + 4
-  )}개 선정하라.
+원문을 수정·재작성하지 말고, 빈칸 후보를 약 ${input.targetCount}~${upper}개 선정하라.
 candidates만 JSON으로 반환한다.`;
 }

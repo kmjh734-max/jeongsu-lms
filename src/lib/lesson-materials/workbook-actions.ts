@@ -12,6 +12,7 @@ import {
   defaultWorkbookTitle,
   parseBlankHintType,
   parseBlankTranslationLayout,
+  parseBlankDensity,
   sortWorkbookTypesByPrintOrder,
   type WorkbookBlankFillOptions,
   type WorkbookData,
@@ -100,6 +101,7 @@ export async function generateWorkbookAction(
     translationLayout: parseBlankTranslationLayout(
       input.blankOptions?.translationLayout
     ),
+    density: parseBlankDensity(input.blankOptions?.density),
   };
 
   const supabase = await createClient();
