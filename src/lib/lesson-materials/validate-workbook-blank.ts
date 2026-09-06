@@ -142,7 +142,8 @@ export function findExactWordOccurrences(
 ): WordSpan[] {
   const target = answerText.trim();
   if (!target) return [];
-  const re = new RegExp(`\\b${escapeRegExp(target)}\\b`, "g");
+  // Case-insensitive match, but keep original surface casing from the sentence
+  const re = new RegExp(`\\b${escapeRegExp(target)}\\b`, "gi");
   const allWords = tokenizeWords(sentence);
   const hits: WordSpan[] = [];
   let m: RegExpExecArray | null;
@@ -153,13 +154,31 @@ export function findExactWordOccurrences(
       allWords.find((w) => w.start === start && w.end === end)?.wordIndex ??
       allWords.findIndex((w) => w.start <= start && w.end >= end);
     hits.push({
-      text: m[0],
+      text: sentence.slice(start, end),
       start,
       end,
       wordIndex: wordIndex >= 0 ? wordIndex : hits.length,
     });
   }
   return hits;
+}
+
+/** Map AI aliases (s0, s1, 1, …) onto real sentence ids. */
+export function resolveBlankSentenceId(
+  rawId: string,
+  sentences: BlankSourceSentence[]
+): string | null {
+  const id = rawId.trim();
+  if (!id) return null;
+  if (sentences.some((s) => s.id === id)) return id;
+  const m = /^(?:s|S|sentence)?(\d+)$/.exec(id);
+  if (m) {
+    const n = Number(m[1]);
+    // accept 0-based and 1-based
+    if (sentences[n]) return sentences[n]!.id;
+    if (n >= 1 && sentences[n - 1]) return sentences[n - 1]!.id;
+  }
+  return null;
 }
 
 export function tokenizeWords(sentence: string): WordSpan[] {
@@ -256,26 +275,31 @@ export function validateBlankCandidates(input: {
     rejected.push({ reason: "candidates가 배열이 아님" });
   }
 
-  const coreSentenceIds = (input.coreSentenceIds ?? []).filter((id) =>
-    byId.has(id)
-  );
+  const coreSentenceIds = (input.coreSentenceIds ?? [])
+    .map((id) => resolveBlankSentenceId(String(id), input.sentences))
+    .filter((id): id is string => Boolean(id));
 
   const valid: ValidatedBlankCandidate[] = [];
   const usedPositions = new Set<string>();
 
   for (const raw of list) {
     const row = raw as Record<string, unknown>;
-    const sentenceId = String(row.sentenceId ?? "").trim();
+    const sentenceIdRaw = String(row.sentenceId ?? "").trim();
+    const sentenceId = resolveBlankSentenceId(sentenceIdRaw, input.sentences);
     const answerText = String(row.answerText ?? "").trim();
-    const lemma = String(row.lemma ?? "").trim().toLowerCase();
-    const meaningKo = String(row.meaningKo ?? "").trim();
+    const lemma = String(row.lemma ?? "").trim().toLowerCase() || answerText.toLowerCase();
+    const meaningKo =
+      String(row.meaningKo ?? "").trim() || lemma || answerText;
     const selectionReasonKo = String(
       row.reasonKo ?? row.selectionReasonKo ?? ""
     ).trim();
-    const partOfSpeech = String(
-      row.partOfSpeech ?? ""
-    ).trim() as BlankPartOfSpeech;
-    const occurrenceIndex = Number(row.occurrenceIndex);
+    const partOfSpeechRaw = String(row.partOfSpeech ?? "").trim().toLowerCase();
+    const partOfSpeech = (
+      POS_OK.has(partOfSpeechRaw as BlankPartOfSpeech)
+        ? partOfSpeechRaw
+        : "noun"
+    ) as BlankPartOfSpeech;
+    let occurrenceIndex = Number(row.occurrenceIndex);
     const id =
       String(row.candidateId ?? row.id ?? "").trim() ||
       `auto-${valid.length + 1}`;
@@ -298,8 +322,8 @@ export function validateBlankCandidates(input: {
       priority = 3;
     }
 
-    if (!sentenceId || !byId.has(sentenceId)) {
-      rejected.push({ reason: `sentenceId 없음: ${sentenceId}`, raw });
+    if (!sentenceId) {
+      rejected.push({ reason: `sentenceId 없음: ${sentenceIdRaw}`, raw });
       continue;
     }
     if (!answerText || !/^[A-Za-z]+(?:'[A-Za-z]+)?$/.test(answerText)) {
@@ -308,18 +332,6 @@ export function validateBlankCandidates(input: {
     }
     if (!lemma) {
       rejected.push({ reason: "lemma 비어 있음", raw });
-      continue;
-    }
-    if (!meaningKo) {
-      rejected.push({ reason: "meaningKo 비어 있음", raw });
-      continue;
-    }
-    if (!POS_OK.has(partOfSpeech)) {
-      rejected.push({ reason: `품사 불가: ${partOfSpeech}`, raw });
-      continue;
-    }
-    if (!Number.isInteger(occurrenceIndex) || occurrenceIndex < 0) {
-      rejected.push({ reason: `occurrenceIndex 오류: ${occurrenceIndex}`, raw });
       continue;
     }
     if (isExcludedBlankWord(answerText)) {
@@ -350,7 +362,16 @@ export function validateBlankCandidates(input: {
     }
 
     const sentence = byId.get(sentenceId)!;
-    const hits = findExactWordOccurrences(sentence.english, answerText);
+    let hits = findExactWordOccurrences(sentence.english, answerText);
+    if (!hits.length && lemma !== answerText.toLowerCase()) {
+      hits = findExactWordOccurrences(sentence.english, lemma);
+    }
+    if (!Number.isInteger(occurrenceIndex) || occurrenceIndex < 0) {
+      occurrenceIndex = 0;
+    }
+    if (!hits[occurrenceIndex] && hits.length > 0) {
+      occurrenceIndex = 0;
+    }
     if (!hits[occurrenceIndex]) {
       rejected.push({
         reason: `occurrence 없음: ${answerText}#${occurrenceIndex}`,
@@ -545,13 +566,14 @@ export function selectBlankCandidates(
     }
   }
 
-  // Do not pad with low-value easy words to hit target
-  const selected = picked
+  // Do not pad with low-value easy words to hit target — but never wipe the whole set
+  let selected = picked
     .filter((c) => {
       if (
         isSoftEasyWord(c.lemma) &&
         c.scores.centrality < 4 &&
-        c.semanticRole !== "main_claim"
+        c.semanticRole !== "main_claim" &&
+        c.semanticRole !== "theme"
       ) {
         return false;
       }
@@ -571,6 +593,35 @@ export function selectBlankCandidates(
       }
       return a.start - b.start;
     });
+
+  // Emergency: constraints left nothing — take top scored with minimal gap
+  if (selected.length === 0 && sorted.length > 0) {
+    const emergency: ValidatedBlankCandidate[] = [];
+    const fam = new Set<string>();
+    for (const c of sorted) {
+      if (emergency.length >= Math.min(target, sorted.length)) break;
+      if (fam.has(c.wordFamily)) continue;
+      if (
+        emergency.some(
+          (p) =>
+            p.sentenceId === c.sentenceId &&
+            Math.abs(p.wordIndex - c.wordIndex) <= 1
+        )
+      ) {
+        continue;
+      }
+      emergency.push(c);
+      fam.add(c.wordFamily);
+    }
+    selected = emergency.sort((a, b) => {
+      if (a.sentenceId !== b.sentenceId) {
+        return a.sentenceId.localeCompare(b.sentenceId, undefined, {
+          numeric: true,
+        });
+      }
+      return a.start - b.start;
+    });
+  }
 
   let shortfallReason: string | null = null;
   if (selected.length < target) {

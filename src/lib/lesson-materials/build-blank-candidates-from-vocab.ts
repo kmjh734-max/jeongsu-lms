@@ -5,31 +5,90 @@ import {
   tokenizeWords,
 } from "@/lib/lesson-materials/validate-workbook-blank";
 import {
+  isSoftEasyWord,
   normalizeWordFamily,
   synthesizeScoresForLemma,
 } from "@/lib/lesson-materials/blank-concept-score";
 import type { BlankPartOfSpeech } from "@/lib/lesson-materials/workbook-types";
 
-function parsePosFromMeaning(meaning: string): BlankPartOfSpeech {
-  const m = meaning.trim().toLowerCase();
-  if (/^ad\b|^adv\b|^부/.test(m)) return "adverb";
-  if (/^a\b|^adj\b|^형/.test(m)) return "adjective";
-  if (/^v\b|^동/.test(m)) return "verb";
-  if (/^n\b|^명/.test(m)) return "noun";
-  return "noun";
-}
-
-function meaningKoOnly(meaning: string): string {
-  return (
-    meaning.replace(/^(n|v|a|ad|adj|adv|명|동|형|부)\.?\s*/i, "").trim() ||
-    meaning.trim()
-  );
-}
-
 /**
- * Locate vocab lemmas in passage — fallback only when OpenAI fails.
- * Emits score fields so v3 selection can rank them.
+ * Last-resort: pick content words from the passage itself (no OpenAI).
+ * Prefer longer / less-common looking tokens; skip function words & easy fillers.
  */
+export function buildHeuristicBlankCandidates(input: {
+  sentences: Array<{ id: string; english: string }>;
+  titleText?: string;
+  maxCandidates?: number;
+}): unknown[] {
+  const max = input.maxCandidates ?? 24;
+  const out: unknown[] = [];
+  const usedLemma = new Set<string>();
+
+  type Hit = {
+    sentenceId: string;
+    answerText: string;
+    occurrenceIndex: number;
+    lemma: string;
+    score: number;
+  };
+  const hits: Hit[] = [];
+
+  for (const s of input.sentences) {
+    const tokens = tokenizeWords(s.english);
+    for (const tok of tokens) {
+      const lemma = tok.text.toLowerCase();
+      if (usedLemma.has(lemma)) continue;
+      if (isExcludedBlankWord(tok.text) || isSoftEasyWord(lemma)) continue;
+      if (lemma.length < 4) continue;
+      const occs = findExactWordOccurrences(s.english, tok.text);
+      const occurrenceIndex = occs.findIndex(
+        (h) => h.start === tok.start && h.end === tok.end
+      );
+      if (occurrenceIndex < 0) continue;
+      let score = lemma.length;
+      if (lemma.length >= 7) score += 3;
+      if (input.titleText?.toLowerCase().includes(lemma)) score += 4;
+      hits.push({
+        sentenceId: s.id,
+        answerText: tok.text,
+        occurrenceIndex,
+        lemma,
+        score,
+      });
+      usedLemma.add(lemma);
+    }
+  }
+
+  hits.sort((a, b) => b.score - a.score);
+
+  for (let i = 0; i < hits.length && out.length < max; i++) {
+    const h = hits[i]!;
+    const scores = synthesizeScoresForLemma({
+      lemma: h.lemma,
+      partOfSpeech: "noun",
+      titleText: input.titleText,
+      semanticRole: "academic",
+    });
+    out.push({
+      candidateId: `heur-${i + 1}`,
+      sentenceId: h.sentenceId,
+      answerText: h.answerText,
+      occurrenceIndex: h.occurrenceIndex,
+      lemma: h.lemma,
+      wordFamily: normalizeWordFamily(h.lemma),
+      partOfSpeech: "noun" as BlankPartOfSpeech,
+      meaningKo: h.lemma,
+      semanticRole: "academic",
+      competitionGroup: null,
+      scores,
+      reasonKo: "지문 내용어 폴백",
+      priority: 3,
+    });
+  }
+
+  return out;
+}
+
 export function buildBlankCandidatesFromVocab(input: {
   sentences: Array<{ id: string; english: string }>;
   vocab: LessonPackVocabItem[];
@@ -56,9 +115,18 @@ export function buildBlankCandidatesFromVocab(input: {
   for (const v of input.vocab) {
     const lemma = v.word.trim().toLowerCase();
     if (!lemma || usedLemma.has(lemma) || isExcludedBlankWord(lemma)) continue;
-    const pos = parsePosFromMeaning(v.meaning);
-    const meaningKo = meaningKoOnly(v.meaning);
-    if (!meaningKo) continue;
+    const meaning = v.meaning.trim();
+    const posMatch = /^(n|v|a|ad|adj|adv|명|동|형|부)\.?/i.exec(meaning);
+    const pos: BlankPartOfSpeech = /^ad|^adv|^부/i.test(posMatch?.[1] ?? "")
+      ? "adverb"
+      : /^a|^adj|^형/i.test(posMatch?.[1] ?? "")
+        ? "adjective"
+        : /^v|^동/i.test(posMatch?.[1] ?? "")
+          ? "verb"
+          : "noun";
+    const meaningKo =
+      meaning.replace(/^(n|v|a|ad|adj|adv|명|동|형|부)\.?\s*/i, "").trim() ||
+      lemma;
 
     for (const s of input.sentences) {
       const tokens = tokenizeWords(s.english);

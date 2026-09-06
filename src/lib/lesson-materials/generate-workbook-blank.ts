@@ -28,7 +28,7 @@ import {
   type StoredBlankCandidatePool,
 } from "@/lib/lesson-materials/workbook-blank-cache";
 import { computeBlankFinalScore } from "@/lib/lesson-materials/blank-concept-score";
-import { buildBlankCandidatesFromVocab } from "@/lib/lesson-materials/build-blank-candidates-from-vocab";
+import { buildBlankCandidatesFromVocab, buildHeuristicBlankCandidates } from "@/lib/lesson-materials/build-blank-candidates-from-vocab";
 import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import {
   readTranslationMeta,
@@ -463,12 +463,17 @@ export async function generateWorkbookBlankFill(input: {
       );
       try {
         openAiRequestCount += 1;
+        // Use short s0/s1 ids in the prompt — UUID ids confuse the model
+        const aliasSentences = sentences.map((s, i) => ({
+          id: `s${i}`,
+          english: s.english,
+        }));
         const ai = await callBlankOpenAI({
           passageId: p.projectId,
           title: p.title,
           targetCount: poolTarget,
           maxPerSentence,
-          sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+          sentences: aliasSentences,
           existingVocabulary: (p.vocab ?? []).map((v) => ({
             word: v.word,
             lemma: v.word,
@@ -476,6 +481,7 @@ export async function generateWorkbookBlankFill(input: {
           })),
         });
         rawCandidates = ai.candidates;
+        // Remap coreSentenceIds via validate resolver (s0 → real id)
         coreSentenceIds = ai.coreSentenceIds;
       } catch {
         // Fallback: vocab-located candidates with heuristic scores
@@ -491,13 +497,17 @@ export async function generateWorkbookBlankFill(input: {
             statusNotes.push(
               `「${p.title}」AI 후보 생성 실패 → 수업용자료 어휘로 대체했습니다.`
             );
-          } else {
-            throw new Error(
-              `「${p.title}」빈칸 후보를 생성하지 못했습니다.`
-            );
           }
-        } else {
-          throw new Error(`「${p.title}」빈칸 후보를 생성하지 못했습니다.`);
+        }
+        if (!fromVocabFallback) {
+          rawCandidates = buildHeuristicBlankCandidates({
+            sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+            titleText: p.title,
+            maxCandidates: poolTarget,
+          });
+          statusNotes.push(
+            `「${p.title}」지문 내용어로 빈칸 후보를 구성했습니다.`
+          );
         }
       }
     }
@@ -518,6 +528,89 @@ export async function generateWorkbookBlankFill(input: {
       coreSentenceIds = firstPass.coreSentenceIds;
     }
 
+    // If AI/cache candidates all failed validation, try vocab / heuristic before giving up
+    if (valid.length === 0) {
+      if (usedCache) {
+        usedCache = false;
+        statusNotes.push(
+          `「${p.title}」이전 빈칸 캐시를 사용할 수 없어 다시 준비합니다.`
+        );
+      }
+      const fallbackRaw =
+        (p.vocab?.length ?? 0) >= 4
+          ? buildBlankCandidatesFromVocab({
+              sentences: sentences.map((s) => ({
+                id: s.id,
+                english: s.english,
+              })),
+              vocab: p.vocab!,
+              titleText: p.title,
+              maxCandidates: poolTarget,
+            })
+          : buildHeuristicBlankCandidates({
+              sentences: sentences.map((s) => ({
+                id: s.id,
+                english: s.english,
+              })),
+              titleText: p.title,
+              maxCandidates: poolTarget,
+            });
+      const fb = validateBlankCandidates({
+        passageId: p.projectId,
+        responsePassageId: p.projectId,
+        sentences,
+        generatedCandidates: fallbackRaw,
+        recommendedCount: poolTarget,
+        density,
+        vocabLemmas,
+        titleText: p.title,
+      });
+      valid = fb.valid;
+      if (valid.length === 0) {
+        // try AI even if we thought we had cache
+        try {
+          openAiRequestCount += 1;
+          const aliasSentences = sentences.map((s, i) => ({
+            id: `s${i}`,
+            english: s.english,
+          }));
+          const ai = await callBlankOpenAI({
+            passageId: p.projectId,
+            title: p.title,
+            targetCount: poolTarget,
+            maxPerSentence,
+            sentences: aliasSentences,
+            existingVocabulary: (p.vocab ?? []).map((v) => ({
+              word: v.word,
+              lemma: v.word,
+              meaningKo: v.meaning,
+            })),
+          });
+          const again = validateBlankCandidates({
+            passageId: p.projectId,
+            responsePassageId: p.projectId,
+            sentences,
+            generatedCandidates: ai.candidates,
+            recommendedCount: poolTarget,
+            density,
+            vocabLemmas,
+            titleText: p.title,
+            coreSentenceIds: ai.coreSentenceIds,
+          });
+          valid = again.valid;
+          if (again.coreSentenceIds.length) {
+            coreSentenceIds = again.coreSentenceIds;
+          }
+        } catch {
+          /* keep empty — last resort below */
+        }
+      } else {
+        statusNotes.push(
+          `「${p.title}」대체 후보로 빈칸을 구성했습니다.`
+        );
+      }
+    }
+
     let { selected, shortfallReason } = selectBlankCandidates(
       valid,
       recommended,
@@ -532,49 +625,100 @@ export async function generateWorkbookBlankFill(input: {
     if (
       !usedCache &&
       !fromVocabFallback &&
-      selected.length < Math.min(4, recommended)
+      selected.length < Math.min(4, recommended) &&
+      valid.length < Math.min(4, recommended)
     ) {
-      openAiRequestCount += 1;
-      const ai = await callBlankOpenAI({
-        passageId: p.projectId,
-        title: p.title,
-        targetCount: poolTarget,
-        maxPerSentence,
+      try {
+        openAiRequestCount += 1;
+        const aliasSentences = sentences.map((s, i) => ({
+          id: `s${i}`,
+          english: s.english,
+        }));
+        const ai = await callBlankOpenAI({
+          passageId: p.projectId,
+          title: p.title,
+          targetCount: poolTarget,
+          maxPerSentence,
+          sentences: aliasSentences,
+          existingVocabulary: (p.vocab ?? []).map((v) => ({
+            word: v.word,
+            lemma: v.word,
+            meaningKo: v.meaning,
+          })),
+        });
+        rawCandidates = ai.candidates;
+        coreSentenceIds = ai.coreSentenceIds;
+        const again = validateBlankCandidates({
+          passageId: p.projectId,
+          responsePassageId: p.projectId,
+          sentences,
+          generatedCandidates: rawCandidates,
+          recommendedCount: poolTarget,
+          density,
+          vocabLemmas,
+          titleText: p.title,
+          coreSentenceIds,
+        });
+        if (again.valid.length > valid.length) {
+          valid = again.valid;
+          coreSentenceIds = again.coreSentenceIds.length
+            ? again.coreSentenceIds
+            : coreSentenceIds;
+          ({ selected, shortfallReason } = selectBlankCandidates(
+            valid,
+            recommended,
+            {
+              density,
+              sentenceWordCounts,
+              coreSentenceIds,
+              sentenceOrder: sentences.map((s) => s.id),
+            }
+          ));
+        }
+      } catch {
+        /* keep prior selection */
+      }
+    }
+
+    if (selected.length === 0 && valid.length > 0) {
+      selected = valid.slice(0, Math.min(recommended, valid.length));
+      shortfallReason = "완화된 선정 규칙 적용";
+    }
+
+    if (selected.length === 0) {
+      const lastRaw = buildHeuristicBlankCandidates({
         sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
-        existingVocabulary: (p.vocab ?? []).map((v) => ({
-          word: v.word,
-          lemma: v.word,
-          meaningKo: v.meaning,
-        })),
+        titleText: p.title,
+        maxCandidates: poolTarget,
       });
-      rawCandidates = ai.candidates;
-      coreSentenceIds = ai.coreSentenceIds;
-      const again = validateBlankCandidates({
+      const last = validateBlankCandidates({
         passageId: p.projectId,
         responsePassageId: p.projectId,
         sentences,
-        generatedCandidates: rawCandidates,
+        generatedCandidates: lastRaw,
         recommendedCount: poolTarget,
         density,
         vocabLemmas,
         titleText: p.title,
-        coreSentenceIds,
       });
-      valid = again.valid;
-      coreSentenceIds = again.coreSentenceIds.length
-        ? again.coreSentenceIds
-        : coreSentenceIds;
-      ({ selected, shortfallReason } = selectBlankCandidates(valid, recommended, {
-        density,
-        sentenceWordCounts,
-        coreSentenceIds,
-        sentenceOrder: sentences.map((s) => s.id),
-      }));
+      valid = last.valid;
+      ({ selected, shortfallReason } = selectBlankCandidates(
+        valid,
+        recommended,
+        {
+          density,
+          sentenceWordCounts,
+          sentenceOrder: sentences.map((s) => s.id),
+        }
+      ));
+      if (selected.length === 0 && valid.length > 0) {
+        selected = valid.slice(0, Math.min(recommended, valid.length));
+      }
     }
 
     if (selected.length === 0) {
       throw new Error(
-        `「${p.title}」에서 유효한 빈칸 후보를 선정하지 못했습니다.`
+        `「${p.title}」에서 유효한 빈칸 후보를 선정하지 못했습니다. 지문 문장을 확인한 뒤 다시 시도해 주세요.`
       );
     }
 
