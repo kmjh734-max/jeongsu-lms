@@ -1,4 +1,4 @@
-/** Lesson-materials workbook types (T/F + blank fill; other cards are placeholders). */
+/** Lesson-materials workbook types (T/F + blank fill + sentence order; other cards are placeholders). */
 
 export type WorkbookTypeId =
   | "grammar_choice"
@@ -75,7 +75,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "sentence_order",
     title: "문장 순서 배열",
     subtitle: "글의 흐름에 맞게 문장 순서 배열하기",
-    ready: false,
+    ready: true,
     displayOrder: 7,
     printOrder: 7,
   },
@@ -273,6 +273,44 @@ export type WorkbookGenerationTiming = {
   openAiRequestCount: number;
 };
 
+/** Sentence-order workbook question (deterministic shuffle stored once). */
+export type WorkbookSentenceOrderItem = {
+  label: string;
+  sentenceId: string;
+  english: string;
+  englishDisplay: string;
+  originalOrderIndex: number;
+};
+
+export type WorkbookSentenceOrderQuestion = {
+  questionId: string;
+  passageId: string;
+  title: string;
+  source: string | null;
+  setIndex: number;
+  passageOrdinal: number;
+  seed: string;
+  pinFirstSentence: boolean;
+  givenSentence: {
+    sentenceId: string;
+    english: string;
+    englishDisplay: string;
+    originalOrderIndex: number;
+  } | null;
+  originalSentenceIds: string[];
+  originalEnglish: string[];
+  shuffledSentenceIds: string[];
+  shuffledItems: WorkbookSentenceOrderItem[];
+  answerLabels: string[];
+  restoredPassagePreview: string;
+};
+
+export type WorkbookSentenceOrderSkip = {
+  projectId: string;
+  title: string;
+  reason: string;
+};
+
 export type WorkbookData = {
   metadata: WorkbookMetadata;
   selectedTypes: WorkbookTypeId[];
@@ -282,6 +320,10 @@ export type WorkbookData = {
   sections: WorkbookPassageSection[];
   /** Blank-fill sections (empty when blank_fill not selected) */
   blankSections: WorkbookBlankSection[];
+  /** Sentence-order questions (empty when sentence_order not selected) */
+  sentenceOrderQuestions?: WorkbookSentenceOrderQuestion[];
+  /** Passages skipped for sentence-order (too few sentences / restore fail) */
+  sentenceOrderSkipped?: WorkbookSentenceOrderSkip[];
   timing?: WorkbookGenerationTiming;
 };
 

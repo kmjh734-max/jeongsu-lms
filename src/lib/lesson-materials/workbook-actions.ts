@@ -3,7 +3,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateWorkbookBlankFill } from "@/lib/lesson-materials/generate-workbook-blank";
+import { generateWorkbookSentenceOrder } from "@/lib/lesson-materials/generate-workbook-sentence-order";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
+import { SENTENCE_ORDER_SKIP_TOO_FEW } from "@/lib/lesson-materials/sentence-order-constants";
 import type { LessonPackData, LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
 import {
@@ -67,7 +69,8 @@ export async function generateWorkbookAction(
   if (types.length === 0) {
     return {
       ok: false,
-      message: "생성 가능한 문제 유형을 선택해 주세요. (T/F, 빈칸 채우기)",
+      message:
+        "생성 가능한 문제 유형을 선택해 주세요. (T/F, 빈칸 채우기, 문장 순서 배열)",
     };
   }
   const unknown = (input.selectedTypes ?? []).filter(
@@ -77,12 +80,13 @@ export async function generateWorkbookAction(
     return {
       ok: false,
       message:
-        "준비 중인 유형이 포함되어 있습니다. T/F와 빈칸 채우기만 선택해 주세요.",
+        "준비 중인 유형이 포함되어 있습니다. T/F, 빈칸 채우기, 문장 순서 배열만 선택해 주세요.",
     };
   }
 
   const wantTf = types.includes("tf");
   const wantBlank = types.includes("blank_fill");
+  const wantSentenceOrder = types.includes("sentence_order");
 
   const tfOptions: WorkbookTfOptions = {
     count: clampTfCount(
@@ -181,7 +185,10 @@ export async function generateWorkbookAction(
     blankOptions,
     sections: [],
     blankSections: [],
+    sentenceOrderQuestions: [],
+    sentenceOrderSkipped: [],
   };
+  const workbookId = `${workbook.metadata.title}|${workbook.metadata.createdAt}`;
 
   try {
     let openAiFromBlank = 0;
@@ -261,11 +268,52 @@ export async function generateWorkbookAction(
       }
     }
 
+    if (wantSentenceOrder) {
+      const so = generateWorkbookSentenceOrder({
+        workbookId,
+        passages: passages.map((p) => ({
+          projectId: p.projectId,
+          title: p.title,
+          source: p.source,
+          sentences: p.sentences,
+        })),
+      });
+      workbook.sentenceOrderQuestions = so.questions;
+      workbook.sentenceOrderSkipped = so.skipped;
+      if (!workbook.timing) {
+        workbook.timing = {
+          dataLoadMs,
+          translationLookupMs: 0,
+          blankSelectionMs: 0,
+          pdfRenderMs: 0,
+          totalMs: dataLoadMs,
+          openAiRequestCount: 0,
+        };
+      }
+      // Sentence order never calls OpenAI; keep existing count from blank/tf
+      if (wantSentenceOrder && !wantBlank && !wantTf) {
+        workbook.timing.openAiRequestCount = 0;
+      }
+    }
+
     if (wantBlank && workbook.blankSections.length === 0) {
       return { ok: false, message: "빈칸 채우기 결과를 만들지 못했습니다." };
     }
     if (wantTf && workbook.sections.length === 0) {
       return { ok: false, message: "T/F 결과를 만들지 못했습니다." };
+    }
+    if (
+      wantSentenceOrder &&
+      (workbook.sentenceOrderQuestions?.length ?? 0) === 0
+    ) {
+      const detail =
+        workbook.sentenceOrderSkipped
+          ?.map((s) => `「${s.title}」 ${s.reason}`)
+          .join(" ") ?? SENTENCE_ORDER_SKIP_TOO_FEW;
+      return {
+        ok: false,
+        message: detail || "문장 순서 배열 결과를 만들지 못했습니다.",
+      };
     }
 
     return { ok: true, workbook };

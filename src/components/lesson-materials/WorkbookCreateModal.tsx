@@ -17,7 +17,7 @@ import {
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
-export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v1";
+export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v2";
 
 export function saveWorkbookToSession(workbook: WorkbookData) {
   try {
@@ -111,6 +111,7 @@ export function WorkbookCreateModal({
   );
   const wantTf = selected.has("tf");
   const wantBlank = selected.has("blank_fill");
+  const wantSentenceOrder = selected.has("sentence_order");
 
   if (!open) return null;
 
@@ -132,7 +133,7 @@ export function WorkbookCreateModal({
     }
     if (hasPendingSelected) {
       setError(
-        "준비 중인 유형이 포함되어 있습니다. T/F와 빈칸 채우기만 선택해 주세요."
+        "준비 중인 유형이 포함되어 있습니다. T/F, 빈칸 채우기, 문장 순서 배열만 선택해 주세요."
       );
       return;
     }
@@ -432,6 +433,19 @@ export function WorkbookCreateModal({
                       />
                     </OptionRow>
                   </div>
+                </div>
+              ) : null}
+
+              {wantSentenceOrder ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <p className="text-sm font-bold text-slate-900">
+                    문장 순서 배열
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+                    저장된 원문 문장을 그대로 섞어 출제합니다. AI 호출 없이
+                    즉시 생성되며, 문제지에 한글 해석은 표시되지 않습니다.
+                    문장이 2개 이하인 지문은 자동으로 제외됩니다.
+                  </p>
                 </div>
               ) : null}
             </div>

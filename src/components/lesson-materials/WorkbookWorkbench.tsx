@@ -31,8 +31,10 @@ import {
   type WorkbookBlankSection,
   type WorkbookData,
   type WorkbookPassageSection,
+  type WorkbookSentenceOrderQuestion,
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
+import { formatAnswerLabelSequence } from "@/lib/lesson-materials/sentence-order-shuffle";
 
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
@@ -289,6 +291,96 @@ function TfAnswerBody({
   );
 }
 
+function sentenceOrderHeading(
+  typeOrder: number,
+  q: WorkbookSentenceOrderQuestion,
+  all: WorkbookSentenceOrderQuestion[]
+): string {
+  const samePassage = all.filter((x) => x.passageId === q.passageId);
+  if (samePassage.length > 1) {
+    return `${typeOrder}-${q.setIndex}. 문장 순서 배열`;
+  }
+  return `${typeOrder}. 문장 순서 배열`;
+}
+
+function SentenceOrderQuestionBody({
+  question,
+  showPassageMeta,
+}: {
+  question: WorkbookSentenceOrderQuestion;
+  showPassageMeta: boolean;
+}) {
+  const blanks = question.answerLabels
+    .map(() => "(      )")
+    .join(" → ");
+
+  return (
+    <>
+      {showPassageMeta ? (
+        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+          {question.title}
+          {question.source?.trim() ? ` · ${question.source.trim()}` : ""}
+        </p>
+      ) : null}
+      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        다음 문장들을 글의 흐름에 맞게 배열하세요.
+      </p>
+      {question.pinFirstSentence && question.givenSentence ? (
+        <div className="mb-4 break-inside-avoid">
+          <p className="mb-1 text-[12px] font-bold text-slate-600">주어진 문장</p>
+          <p className="text-[13px] leading-relaxed text-slate-900">
+            {question.givenSentence.englishDisplay}
+          </p>
+        </div>
+      ) : null}
+      <ol className="space-y-3">
+        {question.shuffledItems.map((it) => (
+          <li
+            key={`${question.questionId}-${it.label}`}
+            className="break-inside-avoid text-[13px] leading-relaxed text-slate-900"
+            style={{ pageBreakInside: "avoid" }}
+          >
+            <span className="font-semibold">({it.label})</span>{" "}
+            {it.englishDisplay}
+          </li>
+        ))}
+      </ol>
+      <div className="mt-6 break-inside-avoid">
+        <p className="mb-2 text-[13px] font-bold text-slate-800">정답 순서:</p>
+        <p className="text-[13px] leading-relaxed tracking-wide text-slate-700 whitespace-normal break-words">
+          {blanks}
+        </p>
+      </div>
+    </>
+  );
+}
+
+function SentenceOrderAnswerBody({
+  question,
+  typeOrder,
+  all,
+}: {
+  question: WorkbookSentenceOrderQuestion;
+  typeOrder: number;
+  all: WorkbookSentenceOrderQuestion[];
+}) {
+  const samePassage = all.filter((x) => x.passageId === question.passageId);
+  const label =
+    samePassage.length > 1
+      ? `${typeOrder}-${question.setIndex}`
+      : `${typeOrder}`;
+  return (
+    <div className="break-inside-avoid">
+      <p className="text-[13px] font-semibold text-slate-800">
+        <span className="font-black" style={{ color: ACCENT }}>
+          {label}.
+        </span>{" "}
+        {formatAnswerLabelSequence(question.answerLabels)}
+      </p>
+    </div>
+  );
+}
+
 function parseTypes(raw: string | null): WorkbookTypeId[] {
   if (!raw?.trim()) return ["tf"];
   const list = raw
@@ -310,9 +402,15 @@ type WorkbookPage =
       typeOrder: number;
     }
   | {
+      kind: "sentence_order_q";
+      questionIndex: number;
+      typeOrder: number;
+    }
+  | {
       kind: "answers";
       typeOrderBlank: number | null;
       typeOrderTf: number | null;
+      typeOrderSentenceOrder: number | null;
     };
 
 export function WorkbookWorkbench({
@@ -368,13 +466,16 @@ export function WorkbookWorkbench({
         if (
           cached &&
           ((cached.sections?.length ?? 0) > 0 ||
-            (cached.blankSections?.length ?? 0) > 0)
+            (cached.blankSections?.length ?? 0) > 0 ||
+            (cached.sentenceOrderQuestions?.length ?? 0) > 0)
         ) {
           if (!cancelled) {
             setWorkbook({
               ...cached,
               blankSections: cached.blankSections ?? [],
               blankOptions: cached.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
+              sentenceOrderQuestions: cached.sentenceOrderQuestions ?? [],
+              sentenceOrderSkipped: cached.sentenceOrderSkipped ?? [],
             });
             setGenerating(false);
           }
@@ -391,10 +492,13 @@ export function WorkbookWorkbench({
 
       const wantBlank = types.includes("blank_fill");
       const wantTf = types.includes("tf");
+      const wantSentenceOrder = types.includes("sentence_order");
       if (wantBlank && wantTf) {
         setStatus("워크북을 만들고 있습니다…");
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
+      } else if (wantSentenceOrder && !wantTf) {
+        setStatus("문장 순서 배열 워크북을 만들고 있습니다…");
       } else {
         setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
       }
@@ -466,6 +570,7 @@ export function WorkbookWorkbench({
     if (!workbook) return [] as WorkbookPage[];
     const out: WorkbookPage[] = [];
     const types = workbook.selectedTypes;
+    const soQuestions = workbook.sentenceOrderQuestions ?? [];
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
       if (t === "blank_fill") {
@@ -478,12 +583,22 @@ export function WorkbookWorkbench({
           out.push({ kind: "tf_q", sectionIndex: i, typeOrder: order });
         });
       }
+      if (t === "sentence_order") {
+        soQuestions.forEach((_, i) => {
+          out.push({
+            kind: "sentence_order_q",
+            questionIndex: i,
+            typeOrder: order,
+          });
+        });
+      }
     }
     if (types.length > 0) {
       out.push({
         kind: "answers",
         typeOrderBlank: typeOrders.get("blank_fill") ?? null,
         typeOrderTf: typeOrders.get("tf") ?? null,
+        typeOrderSentenceOrder: typeOrders.get("sentence_order") ?? null,
       });
     }
     return out;
@@ -574,6 +689,8 @@ export function WorkbookWorkbench({
   const title = workbook.metadata.title;
   const total = pages.length;
   const blankOpts = workbook.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS;
+  const soQuestions = workbook.sentenceOrderQuestions ?? [];
+  const soSkipped = workbook.sentenceOrderSkipped ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -691,6 +808,30 @@ export function WorkbookWorkbench({
                 );
               }
 
+              if (page.kind === "sentence_order_q") {
+                const question = soQuestions[page.questionIndex]!;
+                return (
+                  <PageShell
+                    key={`so-q-${question.questionId}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={sentenceOrderHeading(
+                      page.typeOrder,
+                      question,
+                      soQuestions
+                    )}
+                    isLast={isLast}
+                  >
+                    <SentenceOrderQuestionBody
+                      question={question}
+                      showPassageMeta
+                    />
+                  </PageShell>
+                );
+              }
+
               // answers
               return (
                 <PageShell
@@ -730,6 +871,35 @@ export function WorkbookWorkbench({
                           </div>
                         ))
                       : null}
+                    {page.typeOrderSentenceOrder != null ? (
+                      <div>
+                        <h3
+                          className="mb-3 text-[16px] font-black"
+                          style={{ color: ACCENT }}
+                        >
+                          {page.typeOrderSentenceOrder}. 문장 순서 배열
+                        </h3>
+                        <div className="space-y-3">
+                          {soQuestions.map((q) => (
+                            <SentenceOrderAnswerBody
+                              key={`soa-${q.questionId}`}
+                              question={q}
+                              typeOrder={page.typeOrderSentenceOrder!}
+                              all={soQuestions}
+                            />
+                          ))}
+                        </div>
+                        {soSkipped.length > 0 ? (
+                          <ul className="mt-4 space-y-1 text-[11px] text-amber-700">
+                            {soSkipped.map((s) => (
+                              <li key={`sos-${s.projectId}`}>
+                                「{s.title}」 {s.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                 </PageShell>
               );
