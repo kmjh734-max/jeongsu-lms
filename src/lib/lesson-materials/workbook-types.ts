@@ -275,7 +275,7 @@ export type WorkbookGenerationTiming = {
 
 /** Sentence-order workbook question (deterministic shuffle stored once). */
 export type WorkbookSentenceOrderItem = {
-  label: string;
+  displayNumber: number;
   sentenceId: string;
   english: string;
   englishDisplay: string;
@@ -301,7 +301,7 @@ export type WorkbookSentenceOrderQuestion = {
   originalEnglish: string[];
   shuffledSentenceIds: string[];
   shuffledItems: WorkbookSentenceOrderItem[];
-  answerLabels: string[];
+  answerOrderNumbers: number[];
   restoredPassagePreview: string;
 };
 

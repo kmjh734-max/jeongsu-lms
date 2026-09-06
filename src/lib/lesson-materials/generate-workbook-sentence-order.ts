@@ -4,9 +4,9 @@ import {
 } from "@/lib/lesson-materials/sentence-order-constants";
 import {
   buildSentenceOrderSeed,
-  formatAnswerLabelSequence,
+  displayNumberForIndex,
+  formatAnswerOrderSequence,
   hashSeedToUint32,
-  labelForIndex,
   planSentenceOrderSetSizes,
   shuffleSentenceIds,
   stripLeadingSentenceMarkers,
@@ -175,7 +175,7 @@ function buildQuestion(input: {
   const shuffledItems = shuffledIds.map((id, i) => {
     const s = byId.get(id)!;
     return {
-      label: labelForIndex(i),
+      displayNumber: displayNumberForIndex(i),
       sentenceId: s.sentenceId,
       english: s.english,
       englishDisplay: s.englishDisplay,
@@ -183,10 +183,12 @@ function buildQuestion(input: {
     };
   });
 
-  const labelBySentenceId = new Map(
-    shuffledItems.map((it) => [it.sentenceId, it.label] as const)
+  const numberBySentenceId = new Map(
+    shuffledItems.map((it) => [it.sentenceId, it.displayNumber] as const)
   );
-  const answerLabels = shuffleIds.map((id) => labelBySentenceId.get(id)!);
+  const answerOrderNumbers = shuffleIds.map(
+    (id) => numberBySentenceId.get(id)!
+  );
 
   const questionId = computeSourceHash([
     seed,
@@ -215,7 +217,7 @@ function buildQuestion(input: {
     originalEnglish,
     shuffledSentenceIds: shuffledIds,
     shuffledItems,
-    answerLabels,
+    answerOrderNumbers,
     restoredPassagePreview: originalEnglish.join(" "),
   };
 
@@ -329,4 +331,4 @@ export function generateWorkbookSentenceOrder(
   return { questions, skipped, openAiRequestCount: 0 };
 }
 
-export { formatAnswerLabelSequence };
+export { formatAnswerOrderSequence };

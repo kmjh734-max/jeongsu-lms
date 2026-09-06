@@ -1,6 +1,5 @@
 import {
   SENTENCE_ORDER_ALGORITHM_VERSION,
-  SENTENCE_ORDER_LABELS,
   SENTENCE_ORDER_MAX_ADJACENT_PAIR_RATIO,
   SENTENCE_ORDER_MAX_SAME_POSITION_RATIO,
   SENTENCE_ORDER_MAX_SHUFFLE_ATTEMPTS,
@@ -15,7 +14,8 @@ export type SentenceOrderSourceSentence = {
 };
 
 export type SentenceOrderShuffledItem = {
-  label: string;
+  /** 1-based choice number in shuffled presentation order (not original order) */
+  displayNumber: number;
   sentenceId: string;
   english: string;
   englishDisplay: string;
@@ -43,8 +43,8 @@ export type SentenceOrderQuestion = {
   originalEnglish: string[];
   shuffledSentenceIds: string[];
   shuffledItems: SentenceOrderShuffledItem[];
-  /** Answer labels in original order for the shuffled (non-pinned) items */
-  answerLabels: string[];
+  /** Display numbers in original order for the shuffled (non-pinned) items */
+  answerOrderNumbers: number[];
   /** Full original English joined for optional answer-key expansion */
   restoredPassagePreview: string;
 };
@@ -247,46 +247,16 @@ export function shuffleSentenceIds(
 }
 
 /**
- * Split n sentences into set sizes of 5–8 when n>=11; keep 3–10 as one set.
- * Never leaves a remainder of 1–2 sentences.
+ * One passage → one question (all sentences). Numbers scale past 10 freely.
  */
 export function planSentenceOrderSetSizes(count: number): number[] {
   if (count < 3) return [];
-  if (count <= 10) return [count];
-
-  let setCount = Math.ceil(count / 8);
-  for (let guard = 0; guard < 20; guard++) {
-    const base = Math.floor(count / setCount);
-    const rem = count % setCount;
-    const sizes = Array.from({ length: setCount }, (_, i) =>
-      i < rem ? base + 1 : base
-    );
-    if (sizes.every((s) => s >= 5 && s <= 8)) return sizes;
-    if (sizes.some((s) => s > 8)) {
-      setCount += 1;
-      continue;
-    }
-    // some < 5: try fewer sets
-    if (setCount > 1) {
-      setCount -= 1;
-      continue;
-    }
-    return sizes;
-  }
-
-  // Balanced fallback
-  const setCount2 = Math.max(2, Math.ceil(count / 7));
-  const base = Math.floor(count / setCount2);
-  const rem = count % setCount2;
-  return Array.from({ length: setCount2 }, (_, i) =>
-    i < rem ? base + 1 : base
-  );
+  return [count];
 }
 
-export function labelForIndex(i: number): string {
-  if (i < SENTENCE_ORDER_LABELS.length) return SENTENCE_ORDER_LABELS[i]!;
-  // Beyond J (should not happen with max 8 choices when pinned, 10 max set)
-  return String.fromCharCode(65 + i);
+/** Shuffled presentation index → 1-based display number */
+export function displayNumberForIndex(shuffledIndex: number): number {
+  return shuffledIndex + 1;
 }
 
 export function validateSentenceOrderQuestion(
@@ -296,8 +266,14 @@ export function validateSentenceOrderQuestion(
   if (new Set(shuffledIds).size !== shuffledIds.length) {
     return { ok: false, reason: "중복된 sentenceId" };
   }
-  if (new Set(q.shuffledItems.map((x) => x.label)).size !== q.shuffledItems.length) {
-    return { ok: false, reason: "중복된 라벨" };
+  const numbers = q.shuffledItems.map((x) => x.displayNumber);
+  if (new Set(numbers).size !== numbers.length) {
+    return { ok: false, reason: "중복된 보기 번호" };
+  }
+  for (let i = 0; i < q.shuffledItems.length; i++) {
+    if (q.shuffledItems[i]!.displayNumber !== i + 1) {
+      return { ok: false, reason: "보기 번호는 위에서부터 1..n 이어야 합니다" };
+    }
   }
 
   const expectedShuffleCount = q.pinFirstSentence
@@ -306,25 +282,25 @@ export function validateSentenceOrderQuestion(
   if (q.shuffledItems.length !== expectedShuffleCount) {
     return { ok: false, reason: "보기 문장 수 불일치" };
   }
-  if (q.answerLabels.length !== expectedShuffleCount) {
-    return { ok: false, reason: "정답 라벨 수 불일치" };
+  if (q.answerOrderNumbers.length !== expectedShuffleCount) {
+    return { ok: false, reason: "정답 번호 수 불일치" };
   }
 
-  for (const label of q.answerLabels) {
-    if (!q.shuffledItems.some((it) => it.label === label)) {
-      return { ok: false, reason: `정답 라벨 없음: ${label}` };
+  for (const n of q.answerOrderNumbers) {
+    if (!q.shuffledItems.some((it) => it.displayNumber === n)) {
+      return { ok: false, reason: `정답 번호 없음: ${n}` };
     }
   }
 
-  const restoredFromAnswers = q.answerLabels.map((label) => {
-    const item = q.shuffledItems.find((it) => it.label === label);
+  const restoredFromAnswers = q.answerOrderNumbers.map((n) => {
+    const item = q.shuffledItems.find((it) => it.displayNumber === n);
     return item?.sentenceId ?? "";
   });
   const expectedIds = q.pinFirstSentence
     ? q.originalSentenceIds.slice(1)
     : q.originalSentenceIds;
   if (restoredFromAnswers.join("|") !== expectedIds.join("|")) {
-    return { ok: false, reason: "정답 라벨로 복원한 sentenceId 불일치" };
+    return { ok: false, reason: "정답 번호로 복원한 sentenceId 불일치" };
   }
 
   if (
@@ -354,6 +330,7 @@ export function validateSentenceOrderQuestion(
   return { ok: true };
 }
 
-export function formatAnswerLabelSequence(labels: string[]): string {
-  return labels.map((l) => `(${l})`).join(" → ");
+/** Answer key: `2 → 4 → 3 → 1` (no parentheses) */
+export function formatAnswerOrderSequence(numbers: number[]): string {
+  return numbers.join(" → ");
 }

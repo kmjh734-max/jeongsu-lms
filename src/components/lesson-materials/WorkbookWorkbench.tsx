@@ -34,7 +34,7 @@ import {
   type WorkbookSentenceOrderQuestion,
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
-import { formatAnswerLabelSequence } from "@/lib/lesson-materials/sentence-order-shuffle";
+import { formatAnswerOrderSequence } from "@/lib/lesson-materials/sentence-order-shuffle";
 
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
@@ -310,9 +310,7 @@ function SentenceOrderQuestionBody({
   question: WorkbookSentenceOrderQuestion;
   showPassageMeta: boolean;
 }) {
-  const blanks = question.answerLabels
-    .map(() => "(      )")
-    .join(" → ");
+  const answerBoxCount = question.shuffledItems.length;
 
   return (
     <>
@@ -336,20 +334,36 @@ function SentenceOrderQuestionBody({
       <ol className="space-y-3">
         {question.shuffledItems.map((it) => (
           <li
-            key={`${question.questionId}-${it.label}`}
-            className="break-inside-avoid text-[13px] leading-relaxed text-slate-900"
+            key={`${question.questionId}-${it.displayNumber}`}
+            className="sentence-order-choice break-inside-avoid text-[13px] leading-relaxed text-slate-900"
             style={{ pageBreakInside: "avoid" }}
           >
-            <span className="font-semibold">({it.label})</span>{" "}
-            {it.englishDisplay}
+            <span className="sentence-order-choice-num">
+              ({it.displayNumber})
+            </span>
+            <span className="sentence-order-choice-text">
+              {it.englishDisplay}
+            </span>
           </li>
         ))}
       </ol>
       <div className="mt-6 break-inside-avoid">
-        <p className="mb-2 text-[13px] font-bold text-slate-800">정답 순서:</p>
-        <p className="text-[13px] leading-relaxed tracking-wide text-slate-700 whitespace-normal break-words">
-          {blanks}
-        </p>
+        <p className="mb-3 text-[13px] font-bold text-slate-800">정답 순서:</p>
+        <div className="sentence-order-answer-row flex flex-wrap items-center gap-y-2">
+          {Array.from({ length: answerBoxCount }, (_, i) => (
+            <span
+              key={`ab-${question.questionId}-${i}`}
+              className="sentence-order-answer-unit inline-flex items-center"
+            >
+              {i > 0 ? (
+                <span className="sentence-order-answer-arrow px-1.5 text-[13px] text-slate-500">
+                  →
+                </span>
+              ) : null}
+              <span className="sentence-order-answer-box" aria-hidden />
+            </span>
+          ))}
+        </div>
       </div>
     </>
   );
@@ -365,7 +379,7 @@ function SentenceOrderAnswerBody({
   all: WorkbookSentenceOrderQuestion[];
 }) {
   const samePassage = all.filter((x) => x.passageId === question.passageId);
-  const label =
+  const heading =
     samePassage.length > 1
       ? `${typeOrder}-${question.setIndex}`
       : `${typeOrder}`;
@@ -373,9 +387,9 @@ function SentenceOrderAnswerBody({
     <div className="break-inside-avoid">
       <p className="text-[13px] font-semibold text-slate-800">
         <span className="font-black" style={{ color: ACCENT }}>
-          {label}.
+          {heading}.
         </span>{" "}
-        {formatAnswerLabelSequence(question.answerLabels)}
+        {formatAnswerOrderSequence(question.answerOrderNumbers)}
       </p>
     </div>
   );
@@ -547,10 +561,48 @@ export function WorkbookWorkbench({
       el.id = id;
     }
     el.textContent = `
+.sentence-order-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.sentence-order-choice-num {
+  flex: 0 0 auto;
+  font-weight: 800;
+  color: #1e3a5f;
+  white-space: nowrap;
+}
+.sentence-order-choice-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sentence-order-answer-unit {
+  white-space: nowrap;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.sentence-order-answer-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 38px;
+  border: 1.5px solid #64748b;
+  border-radius: 5px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
   @page app-print-a4 { size: 210mm 297mm; margin: 0; }
   #workbook-print-root { transform: none !important; gap: 0 !important; }
+  .sentence-order-answer-box {
+    width: 13mm;
+    height: 10mm;
+    border: 0.45mm solid #64748b;
+  }
 }
 `;
     document.body.appendChild(el);

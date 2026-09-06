@@ -1,5 +1,5 @@
 /**
- * Sentence-order workbook unit tests (no OpenAI).
+ * Sentence-order workbook unit tests (numeric display numbers, no OpenAI).
  * Run: npx tsx scripts/test-workbook-sentence-order.ts
  */
 import assert from "node:assert/strict";
@@ -14,7 +14,7 @@ import {
 import {
   adjacentPairKeepRatio,
   buildSentenceOrderSeed,
-  formatAnswerLabelSequence,
+  formatAnswerOrderSequence,
   isAcceptableShuffle,
   isExactReverse,
   planSentenceOrderSetSizes,
@@ -27,7 +27,7 @@ import {
   splitEnglishPassageIntoSentences,
 } from "../src/lib/lesson-materials/split-english-sentences";
 
-assert.equal(SENTENCE_ORDER_ALGORITHM_VERSION, "sentence-order-v1");
+assert.equal(SENTENCE_ORDER_ALGORITHM_VERSION, "sentence-order-v2-numeric");
 
 function mkSentences(n: number, prefix = "S") {
   return Array.from({ length: n }, (_, i) => ({
@@ -36,20 +36,17 @@ function mkSentences(n: number, prefix = "S") {
   }));
 }
 
-// --- set size planning ---
+// --- set size: one passage → one question ---
 {
   assert.deepEqual(planSentenceOrderSetSizes(2), []);
   assert.deepEqual(planSentenceOrderSetSizes(3), [3]);
+  assert.deepEqual(planSentenceOrderSetSizes(6), [6]);
   assert.deepEqual(planSentenceOrderSetSizes(10), [10]);
-  assert.deepEqual(planSentenceOrderSetSizes(11), [6, 5]);
-  assert.deepEqual(planSentenceOrderSetSizes(12), [6, 6]);
-  assert.deepEqual(planSentenceOrderSetSizes(13), [7, 6]);
-  assert.deepEqual(planSentenceOrderSetSizes(14), [7, 7]);
-  assert.deepEqual(planSentenceOrderSetSizes(15), [8, 7]);
-  assert.deepEqual(planSentenceOrderSetSizes(16), [8, 8]);
+  assert.deepEqual(planSentenceOrderSetSizes(11), [11]);
+  assert.deepEqual(planSentenceOrderSetSizes(16), [16]);
 }
 
-// --- 3-sentence passage ---
+// --- 3-sentence ---
 {
   const result = generateWorkbookSentenceOrder({
     workbookId: "wb-test|2026",
@@ -67,6 +64,10 @@ function mkSentences(n: number, prefix = "S") {
   const q = result.questions[0]!;
   assert.equal(q.pinFirstSentence, false);
   assert.equal(q.shuffledItems.length, 3);
+  assert.deepEqual(
+    q.shuffledItems.map((x) => x.displayNumber),
+    [1, 2, 3]
+  );
   assert.notEqual(
     q.shuffledSentenceIds.join("|"),
     q.originalSentenceIds.join("|")
@@ -74,14 +75,10 @@ function mkSentences(n: number, prefix = "S") {
   assert.ok(!isExactReverse(q.originalSentenceIds, q.shuffledSentenceIds));
   const check = validateSentenceOrderQuestion(q);
   assert.equal(check.ok, true, check.ok ? "" : check.reason);
-  console.log("3-sentence answer:", formatAnswerLabelSequence(q.answerLabels));
-  console.log(
-    "3-sentence shuffled:",
-    q.shuffledItems.map((x) => `(${x.label}) ${x.sentenceId}`).join(" | ")
-  );
+  console.log("3-sentence answer:", formatAnswerOrderSequence(q.answerOrderNumbers));
 }
 
-// --- 6-sentence passage ---
+// --- 6-sentence: (1)~(6), 6 answer boxes ---
 {
   const result = generateWorkbookSentenceOrder({
     workbookId: "wb-test|2026",
@@ -94,8 +91,15 @@ function mkSentences(n: number, prefix = "S") {
       },
     ],
   });
+  assert.equal(result.questions.length, 1);
   const q = result.questions[0]!;
   assert.equal(q.pinFirstSentence, false);
+  assert.equal(q.shuffledItems.length, 6);
+  assert.equal(q.answerOrderNumbers.length, 6);
+  assert.deepEqual(
+    q.shuffledItems.map((x) => x.displayNumber),
+    [1, 2, 3, 4, 5, 6]
+  );
   assert.ok(samePositionRatio(q.originalSentenceIds, q.shuffledSentenceIds) < 0.3);
   assert.ok(
     adjacentPairKeepRatio(q.originalSentenceIds, q.shuffledSentenceIds) < 0.4
@@ -104,6 +108,13 @@ function mkSentences(n: number, prefix = "S") {
     isAcceptableShuffle(q.originalSentenceIds, q.shuffledSentenceIds)
   );
   assert.equal(validateSentenceOrderQuestion(q).ok, true);
+
+  const restored = q.answerOrderNumbers.map(
+    (n) =>
+      q.shuffledItems.find((it) => it.displayNumber === n)?.sentenceId ?? ""
+  );
+  assert.equal(restored.join("|"), q.originalSentenceIds.join("|"));
+  console.log("6-sentence answer:", formatAnswerOrderSequence(q.answerOrderNumbers));
 }
 
 // --- 8-sentence: pin first ---
@@ -124,14 +135,21 @@ function mkSentences(n: number, prefix = "S") {
   assert.ok(q.givenSentence);
   assert.equal(q.givenSentence!.sentenceId, "S1");
   assert.equal(q.shuffledItems.length, 7);
-  assert.equal(q.answerLabels.length, 7);
+  assert.equal(q.answerOrderNumbers.length, 7);
+  assert.deepEqual(
+    q.shuffledItems.map((x) => x.displayNumber),
+    [1, 2, 3, 4, 5, 6, 7]
+  );
   assert.ok(!q.shuffledItems.some((it) => it.sentenceId === "S1"));
   const check = validateSentenceOrderQuestion(q);
   assert.equal(check.ok, true, check.ok ? "" : check.reason);
-  console.log("8-sentence (pinned) answer:", formatAnswerLabelSequence(q.answerLabels));
+  console.log(
+    "8-sentence (pinned) answer:",
+    formatAnswerOrderSequence(q.answerOrderNumbers)
+  );
 }
 
-// --- 11-sentence: split 6+5, no pin ---
+// --- 11-sentence: single question (1)~(11), no split ---
 {
   const result = generateWorkbookSentenceOrder({
     workbookId: "wb-test|2026",
@@ -144,22 +162,24 @@ function mkSentences(n: number, prefix = "S") {
       },
     ],
   });
-  assert.equal(result.questions.length, 2);
-  assert.equal(result.questions[0]!.originalSentenceIds.length, 6);
-  assert.equal(result.questions[1]!.originalSentenceIds.length, 5);
-  assert.equal(result.questions[0]!.pinFirstSentence, false);
-  assert.equal(result.questions[1]!.pinFirstSentence, false);
-  const allIds = result.questions.flatMap((q) => q.originalSentenceIds);
-  assert.equal(allIds.length, 11);
-  assert.equal(new Set(allIds).size, 11);
-  for (const q of result.questions) {
-    assert.equal(validateSentenceOrderQuestion(q).ok, true);
-  }
+  assert.equal(result.questions.length, 1, "must not split into multiple questions");
+  const q = result.questions[0]!;
+  assert.equal(q.pinFirstSentence, false);
+  assert.equal(q.shuffledItems.length, 11);
+  assert.equal(q.answerOrderNumbers.length, 11);
+  assert.deepEqual(
+    q.shuffledItems.map((x) => x.displayNumber),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  );
+  assert.equal(validateSentenceOrderQuestion(q).ok, true);
+  const restored = q.answerOrderNumbers.map(
+    (n) =>
+      q.shuffledItems.find((it) => it.displayNumber === n)?.sentenceId ?? ""
+  );
+  assert.equal(restored.join("|"), q.originalSentenceIds.join("|"));
   console.log(
-    "11-sentence answers:",
-    result.questions
-      .map((q) => `${q.setIndex}: ${formatAnswerLabelSequence(q.answerLabels)}`)
-      .join(" / ")
+    "11-sentence answer:",
+    formatAnswerOrderSequence(q.answerOrderNumbers)
   );
 }
 
@@ -222,6 +242,12 @@ function mkSentences(n: number, prefix = "S") {
   assert.notDeepEqual(s1, other);
 }
 
+// --- answer key has no parentheses ---
+{
+  assert.equal(formatAnswerOrderSequence([2, 4, 3, 1]), "2 → 4 → 3 → 1");
+  assert.ok(!formatAnswerOrderSequence([1, 2]).includes("("));
+}
+
 // --- too few sentences skipped ---
 {
   const result = generateWorkbookSentenceOrder({
@@ -247,4 +273,26 @@ function mkSentences(n: number, prefix = "S") {
   assert.equal(result.questions[0]!.passageId, "p4");
 }
 
-console.log("\nAll sentence-order tests passed.");
+// No alphabet leftovers in generated payload
+{
+  const result = generateWorkbookSentenceOrder({
+    workbookId: "wb",
+    passages: [
+      {
+        projectId: "p",
+        title: "T",
+        source: null,
+        sentences: mkSentences(4),
+      },
+    ],
+  });
+  const q = result.questions[0]! as Record<string, unknown>;
+  assert.equal("answerLabels" in q, false);
+  assert.ok(Array.isArray(q.answerOrderNumbers));
+  for (const it of q.shuffledItems as Array<Record<string, unknown>>) {
+    assert.equal("label" in it, false);
+    assert.equal(typeof it.displayNumber, "number");
+  }
+}
+
+console.log("\nAll sentence-order numeric tests passed.");

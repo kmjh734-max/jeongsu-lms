@@ -17,7 +17,7 @@ import {
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
-export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v2";
+export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v3";
 
 export function saveWorkbookToSession(workbook: WorkbookData) {
   try {
