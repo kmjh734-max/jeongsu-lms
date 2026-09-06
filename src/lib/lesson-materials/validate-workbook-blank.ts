@@ -14,7 +14,6 @@ import {
   isSoftEasyWord,
   normalizeBlankScores,
   normalizeWordFamily,
-  sameWordFamily,
   synthesizeScoresForLemma,
   type BlankCandidateScore,
   type BlankSemanticRole,
@@ -232,7 +231,6 @@ export function validateBlankCandidates(input: {
   rejected: Array<{ reason: string; raw?: unknown }>;
   coreSentenceIds: string[];
 } {
-  const density = input.density ?? "standard";
   const rejected: Array<{ reason: string; raw?: unknown }> = [];
   if (input.responsePassageId && input.responsePassageId !== input.passageId) {
     rejected.push({

@@ -227,10 +227,10 @@ export function synthesizeScoresForLemma(input: {
   let centrality = 3;
   let learningValue = 3;
   let contextualImportance = 3;
-  let reusability = 3;
+  const reusability = 3;
   let collocationValue = 2;
   let commonnessPenalty = 2;
-  let redundancyPenalty = 1;
+  const redundancyPenalty = 1;
 
   if (input.partOfSpeech === "noun") {
     centrality += 1;

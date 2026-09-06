@@ -502,7 +502,7 @@ export async function generateWorkbookBlankFill(input: {
       }
     }
 
-    let { valid, coreSentenceIds: validatedCore } = validateBlankCandidates({
+    const firstPass = validateBlankCandidates({
       passageId: p.projectId,
       responsePassageId: p.projectId,
       sentences,
@@ -513,7 +513,10 @@ export async function generateWorkbookBlankFill(input: {
       titleText: p.title,
       coreSentenceIds,
     });
-    coreSentenceIds = validatedCore.length ? validatedCore : coreSentenceIds;
+    let valid = firstPass.valid;
+    if (firstPass.coreSentenceIds.length) {
+      coreSentenceIds = firstPass.coreSentenceIds;
+    }
 
     let { selected, shortfallReason } = selectBlankCandidates(
       valid,
