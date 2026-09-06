@@ -20,6 +20,7 @@ import {
   DEFAULT_WORKBOOK_TF_OPTIONS,
   clampTfCount,
   defaultWorkbookTitle,
+  formatWorkbookPassage,
   type WorkbookData,
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
@@ -89,11 +90,6 @@ function parseTypes(raw: string | null): WorkbookTypeId[] {
     .map((s) => s.trim())
     .filter(Boolean) as WorkbookTypeId[];
   return list.length ? list : ["tf"];
-}
-
-/** OCR/import hard wraps → one flowing paragraph. */
-function asParagraph(text: string) {
-  return text.replace(/\s+/g, " ").trim();
 }
 
 export function WorkbookWorkbench({
@@ -351,8 +347,8 @@ export function WorkbookWorkbench({
                           : ""}
                       </p>
                     ) : null}
-                    <p className="text-[13px] leading-relaxed text-slate-900">
-                      {asParagraph(section.passage)}
+                    <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">
+                      {formatWorkbookPassage(section.passage)}
                     </p>
                     <div className="my-4 h-px w-full bg-slate-200" />
                     <ol className="space-y-3">
@@ -363,7 +359,14 @@ export function WorkbookWorkbench({
                         >
                           <span className="font-semibold">({it.index})</span>{" "}
                           {it.statement}{" "}
-                          <span className="ml-1 font-bold text-slate-500">
+                          <span
+                            className="workbook-tf-mark ml-1 font-bold text-slate-500"
+                            style={{
+                              display: "inline-block",
+                              whiteSpace: "nowrap",
+                              wordBreak: "keep-all",
+                            }}
+                          >
                             [ T / F ]
                           </span>
                         </li>

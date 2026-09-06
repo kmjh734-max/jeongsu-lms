@@ -142,3 +142,38 @@ export function clampTfCount(n: unknown): number {
   if (!Number.isFinite(v)) return 4;
   return Math.min(8, Math.max(1, Math.floor(v)));
 }
+
+/**
+ * Collapse OCR/import hard wraps (and blank lines) into one flowing paragraph.
+ */
+export function formatWorkbookPassage(text: string): string {
+  const cleaned = String(text ?? "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/?p[^>]*>/gi, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/[\u00ad\u200b\u200c\u200d\ufeff]/g, "")
+    .replace(/[\r\n\u0085\u2028\u2029]+/g, " ")
+    .replace(/[\t\f\v\u00a0\u1680\u2000-\u200a\u202f\u205f\u3000]+/g, " ")
+    .replace(/ {2,}/g, " ")
+    .trim();
+  // De-hyphenate line-wrap artifacts: "attrac- tion" → "attraction"
+  return cleaned.replace(/(\w)-\s+(\w)/g, "$1$2");
+}
+
+/** Join sentence/line rows into a single continuous passage. */
+export function joinWorkbookPassageLines(lines: string[]): string {
+  const parts = lines
+    .map((l) => formatWorkbookPassage(l))
+    .filter(Boolean);
+  if (parts.length === 0) return "";
+  let out = parts[0]!;
+  for (let i = 1; i < parts.length; i++) {
+    const next = parts[i]!;
+    if (out.endsWith("-") && /^[a-z]/.test(next)) {
+      out = `${out.slice(0, -1)}${next}`;
+    } else {
+      out = `${out} ${next}`;
+    }
+  }
+  return formatWorkbookPassage(out);
+}

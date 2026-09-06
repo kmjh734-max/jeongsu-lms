@@ -22,6 +22,20 @@
     @apply appearance-none;
   }
 
+  .workbook-passage {
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word;
+    text-align: justify;
+    text-justify: inter-word;
+  }
+
+  .workbook-tf-mark {
+    display: inline-block;
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+
   .ui-select {
     @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }
