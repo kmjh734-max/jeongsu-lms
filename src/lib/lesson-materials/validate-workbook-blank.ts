@@ -10,6 +10,7 @@ import {
 import {
   computeConceptScore,
   conflictsWithNearSynonym,
+  DEGREE_ADVERBS,
 } from "@/lib/lesson-materials/blank-concept-score";
 
 const EXCLUDED_LOWER = new Set([
@@ -167,6 +168,7 @@ export function isExcludedBlankWord(answerText: string): boolean {
   const bare = answerText.replace(/[^A-Za-z']/g, "").toLowerCase();
   if (!bare) return true;
   if (EXCLUDED_LOWER.has(bare)) return true;
+  if (DEGREE_ADVERBS.has(bare)) return true;
   if (/^\d+$/.test(bare)) return true;
   return false;
 }

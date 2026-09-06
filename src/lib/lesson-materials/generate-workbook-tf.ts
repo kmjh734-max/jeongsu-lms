@@ -115,14 +115,15 @@ async function callTfOpenAI(input: {
   });
 
   const configured = process.env.OPENAI_MODEL_WORKBOOK?.trim();
+  // Prefer fast models for workbook T/F. gpt-5 + medium reasoning was too slow.
   const candidates = configured
-    ? configured === "gpt-5.5"
-      ? ["gpt-5.5", "gpt-5"]
+    ? configured.startsWith("gpt-5")
+      ? [configured, "gpt-4o"]
       : [configured]
-    : ["gpt-5.5", "gpt-5"];
+    : ["gpt-4o", "gpt-4o-mini"];
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120_000);
+  const timer = setTimeout(() => controller.abort(), 90_000);
 
   try {
     let bodyText = "";
@@ -147,7 +148,8 @@ async function callTfOpenAI(input: {
         else delete body.temperature;
         if (isGpt5FamilyModel(model)) {
           body.max_completion_tokens = 8_192;
-          if (includeReasoningEffort) body.reasoning_effort = "medium";
+          // low > medium: large latency win for T/F stems
+          if (includeReasoningEffort) body.reasoning_effort = "low";
           else delete body.reasoning_effort;
         } else {
           body.max_tokens = 4096;

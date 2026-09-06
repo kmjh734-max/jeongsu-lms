@@ -13,6 +13,7 @@ import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate
 import {
   generateAndSaveLessonPackVocabAction,
   ensureLessonMaterialTitleEnAction,
+  regenerateLessonPackTranslationsAction,
   saveLessonPackAction,
 } from "@/lib/lesson-materials/lesson-pack-actions";
 import { LOGO_SRC } from "@/lib/branding";
@@ -1400,6 +1401,60 @@ export function LessonPackWorkbench({
             }}
           >
             {generating ? "단어 생성 중…" : "단어 AI 재생성"}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            className="w-full"
+            disabled={generating}
+            onClick={() => {
+              void (async () => {
+                setGenerating(true);
+                setError(null);
+                setMessage(null);
+                try {
+                  let total = 0;
+                  let skipped = 0;
+                  for (const p of projects) {
+                    const res = await regenerateLessonPackTranslationsAction(
+                      role,
+                      { projectId: p.id }
+                    );
+                    if (!res.ok) {
+                      setError(res.message);
+                      return;
+                    }
+                    total += res.regenerated;
+                    skipped += res.skippedTeacher;
+                    // Refresh korean in local state from server via router would be ideal;
+                    // update items if we have them on project
+                    setProjects((prev) =>
+                      prev.map((row) =>
+                        row.id === p.id
+                          ? {
+                              ...row,
+                              items: row.items.map((it) => it),
+                            }
+                          : row
+                      )
+                    );
+                  }
+                  setMessage(
+                    `해석 ${total}문장 재생성 완료` +
+                      (skipped > 0
+                        ? ` (교사 수정 ${skipped}문장 제외)`
+                        : "") +
+                      ". 미리보기를 새로고침하면 반영됩니다."
+                  );
+                  window.location.reload();
+                } finally {
+                  setGenerating(false);
+                }
+              })();
+            }}
+          >
+            {generating ? "해석 생성 중…" : "해석 다시 생성"}
           </Button>
           <Button
             type="button"

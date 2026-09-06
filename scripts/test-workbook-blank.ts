@@ -7,6 +7,7 @@ import {
   conflictsWithNearSynonym,
 } from "../src/lib/lesson-materials/blank-concept-score";
 import { assessWorkbookTranslation } from "../src/lib/lesson-materials/refine-workbook-translation";
+import { buildBlankCandidatesFromVocab } from "../src/lib/lesson-materials/build-blank-candidates-from-vocab";
 import {
   assignBlankNumbers,
   buildBlankTokensForSentence,
@@ -14,6 +15,7 @@ import {
 } from "../src/lib/lesson-materials/insert-workbook-blanks";
 import {
   findExactWordOccurrences,
+  isExcludedBlankWord,
   selectBlankCandidates,
   validateBlankCandidates,
   type ValidatedBlankCandidate,
@@ -231,6 +233,11 @@ const sentences = [
     "아마도 당신은 ‘유사한 것이 유사한 것을 끌어당긴다’고 말하는 끌어당김의 법칙에 대해 들어본 적이 있을 것입니다.";
   assert.equal(assessWorkbookTranslation(longEn, truncatedKo).ok, false);
 
+  // Screenshot-style truncated translation (no focusing / results clause)
+  const screenshotKo =
+    "아마도 당신은 '유사한 것이 유사한 것을 끌어당긴다'고 말하는 끌어당김의 법칙에 대해 들어본 적이 있을 것입니다.";
+  assert.equal(assessWorkbookTranslation(longEn, screenshotKo).ok, false);
+
   assert.equal(
     assessWorkbookTranslation(
       "our thoughts and words are extremely magnetic",
@@ -298,6 +305,29 @@ const sentences = [
     ),
     false
   );
+}
+
+{
+  // Degree adverb exclusion
+  assert.equal(isExcludedBlankWord("extremely"), true);
+  assert.equal(isExcludedBlankWord("belief"), false);
+}
+
+{
+  // Vocab → blank candidates without OpenAI
+  const fromVocab = buildBlankCandidatesFromVocab({
+    sentences,
+    vocab: [
+      { word: "Attraction", meaning: "n. 끌어당김", synonyms: [], antonyms: [] },
+      { word: "belief", meaning: "n. 신념", synonyms: [], antonyms: [] },
+      { word: "magnetic", meaning: "a. 끌어당기는", synonyms: [], antonyms: [] },
+      { word: "powerful", meaning: "a. 강력한", synonyms: [], antonyms: [] },
+      { word: "affirmations", meaning: "n. 확언", synonyms: [], antonyms: [] },
+      { word: "systems", meaning: "n. 체계", synonyms: [], antonyms: [] },
+    ],
+    maxCandidates: 10,
+  });
+  assert.ok(fromVocab.length >= 4);
 }
 
 console.log("ok: workbook blank density + translation tests passed");

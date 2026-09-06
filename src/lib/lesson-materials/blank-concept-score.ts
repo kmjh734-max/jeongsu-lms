@@ -39,6 +39,26 @@ const GENERIC_ADJECTIVES = new Set([
   "challenging",
 ]);
 
+/** Simple degree / intensifier adverbs — exclude from blanks. */
+export const DEGREE_ADVERBS = new Set([
+  "very",
+  "extremely",
+  "really",
+  "quite",
+  "rather",
+  "fairly",
+  "highly",
+  "so",
+  "too",
+  "pretty",
+  "incredibly",
+  "totally",
+  "completely",
+  "absolutely",
+  "especially",
+  "particularly",
+]);
+
 const CONCEPT_NOUN_BOOST = new Set([
   "belief",
   "attraction",
@@ -80,6 +100,9 @@ export function computeConceptScore(input: {
   if (input.titleText?.toLowerCase().includes(lemma)) score += 1.5;
   if (GENERIC_ADJECTIVES.has(lemma) && input.partOfSpeech === "adjective") {
     score -= 2;
+  }
+  if (DEGREE_ADVERBS.has(lemma)) {
+    score -= 8;
   }
   return score;
 }

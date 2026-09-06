@@ -1,4 +1,5 @@
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
+import type { StoredSentenceTranslation } from "@/lib/lesson-materials/translation-meta";
 
 export type LessonPackVocabItem = {
   word: string;
@@ -14,6 +15,8 @@ export type LessonPackData = {
   /** Ranked blank-fill candidates for workbook reuse (no OpenAI on cache hit) */
   blankCandidatePool?: StoredBlankCandidatePool | null;
   passageSourceHash?: string;
+  /** Per-sentence translation metadata (source / hash); korean lives on items */
+  sentenceTranslations?: StoredSentenceTranslation[];
 };
 
 function parseJsonSafe<T>(text: string): T | null {

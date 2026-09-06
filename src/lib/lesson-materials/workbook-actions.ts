@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateWorkbookBlankFill } from "@/lib/lesson-materials/generate-workbook-blank";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
-import type { LessonPackData } from "@/lib/lesson-materials/generate-lesson-pack";
+import type { LessonPackData, LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
 import {
   DEFAULT_WORKBOOK_TF_OPTIONS,
@@ -53,7 +53,8 @@ export async function generateWorkbookAction(
     title?: string;
   }
 ): Promise<
-  { ok: true; workbook: WorkbookData } | { ok: false; message: string }
+  | { ok: true; workbook: WorkbookData }
+  | { ok: false; message: string; code?: "MISSING_TRANSLATION" }
 > {
   const tLoad0 = Date.now();
   const { profile, error } = await requireRole(role);
@@ -138,6 +139,8 @@ export async function generateWorkbookAction(
     englishLines: string[];
     blankPool: StoredBlankCandidatePool | null;
     vocabLemmas: string[];
+    vocab: LessonPackVocabItem[];
+    sentenceTranslations: import("@/lib/lesson-materials/translation-meta").StoredSentenceTranslation[];
   }> = [];
 
   for (const p of ordered) {
@@ -161,6 +164,8 @@ export async function generateWorkbookAction(
       englishLines: sentences.map((s) => s.english),
       blankPool: (pack.blankCandidatePool as StoredBlankCandidatePool) ?? null,
       vocabLemmas: (pack.vocab ?? []).map((v) => v.word),
+      vocab: pack.vocab ?? [],
+      sentenceTranslations: pack.sentenceTranslations ?? [],
     });
   }
   const dataLoadMs = Date.now() - tLoad0;
@@ -189,6 +194,8 @@ export async function generateWorkbookAction(
           sentences: p.sentences,
           blankPool: p.blankPool,
           vocabLemmas: p.vocabLemmas,
+          vocab: p.vocab,
+          sentenceTranslations: p.sentenceTranslations,
         })),
         options: blankOptions,
       });
@@ -210,6 +217,7 @@ export async function generateWorkbookAction(
           updatedAt: new Date().toISOString(),
           blankCandidatePool: pool,
           passageSourceHash: pool.sourceHash,
+          sentenceTranslations: prev.sentenceTranslations,
         };
         await supabase
           .from("lesson_material_projects")
@@ -262,9 +270,16 @@ export async function generateWorkbookAction(
 
     return { ok: true, workbook };
   } catch (e) {
+    const code =
+      e && typeof e === "object" && "code" in e
+        ? String((e as { code?: string }).code)
+        : undefined;
     return {
       ok: false,
       message: e instanceof Error ? e.message : "워크북 생성 실패",
+      ...(code === "MISSING_TRANSLATION"
+        ? { code: "MISSING_TRANSLATION" as const }
+        : {}),
     };
   }
 }

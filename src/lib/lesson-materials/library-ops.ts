@@ -451,17 +451,92 @@ export async function saveLessonMaterialProjectWorkspace(
   if (updateErr) return actionError(updateErr.message);
 
   if (input.items?.length) {
+    const { data: packRow } = await supabase
+      .from("lesson_material_projects")
+      .select("lesson_pack_json")
+      .eq("id", projectId)
+      .maybeSingle();
+    const prev = (packRow?.lesson_pack_json ?? {}) as {
+      headerLabel?: string;
+      vocab?: unknown[];
+      blankCandidatePool?: unknown;
+      passageSourceHash?: string;
+      sentenceTranslations?: Array<{
+        sentenceId: string;
+        order: number;
+        english: string;
+        koreanTranslation: string;
+        sourceHash: string;
+        translationSource: string;
+        updatedAt: string;
+      }>;
+      updatedAt?: string;
+    };
+    const { data: existingItems } = await supabase
+      .from("lesson_material_items")
+      .select("id,korean_text")
+      .eq("project_id", projectId);
+    const prevKo = new Map(
+      (existingItems ?? []).map((r) => [
+        r.id as string,
+        String(r.korean_text ?? "").trim(),
+      ])
+    );
+
+    const { computeSentenceSourceHash } = await import(
+      "@/lib/lesson-materials/translation-meta"
+    );
+
+    let sentenceTranslations = [...(prev.sentenceTranslations ?? [])];
+    let metaChanged = false;
+
     for (const row of input.items) {
+      const nextKo = row.korean.trim();
       const { error: itemErr } = await supabase
         .from("lesson_material_items")
         .update({
           english_text: row.english.trim(),
-          korean_text: row.korean.trim() || null,
+          korean_text: nextKo || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", row.id)
         .eq("project_id", projectId);
       if (itemErr) return actionError(itemErr.message);
+
+      const before = prevKo.get(row.id) ?? "";
+      if (nextKo && nextKo !== before) {
+        // Manual edit relative to last saved value → teacher lock
+        const stored = {
+          sentenceId: row.id,
+          order: 0,
+          english: row.english.trim(),
+          koreanTranslation: nextKo,
+          sourceHash: computeSentenceSourceHash(row.english.trim()),
+          translationSource: "teacher" as const,
+          updatedAt: new Date().toISOString(),
+        };
+        sentenceTranslations = [
+          ...sentenceTranslations.filter((t) => t.sentenceId !== row.id),
+          stored,
+        ];
+        metaChanged = true;
+      }
+    }
+
+    if (metaChanged) {
+      await supabase
+        .from("lesson_material_projects")
+        .update({
+          lesson_pack_json: {
+            ...prev,
+            headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
+            vocab: prev.vocab ?? [],
+            sentenceTranslations,
+            updatedAt: new Date().toISOString(),
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", projectId);
     }
   }
 

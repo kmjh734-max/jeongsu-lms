@@ -28,6 +28,13 @@ import {
   type StoredBlankCandidatePool,
 } from "@/lib/lesson-materials/workbook-blank-cache";
 import { computeConceptScore } from "@/lib/lesson-materials/blank-concept-score";
+import { buildBlankCandidatesFromVocab } from "@/lib/lesson-materials/build-blank-candidates-from-vocab";
+import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
+import {
+  readTranslationMeta,
+  translationsReadyForWorkbook,
+} from "@/lib/lesson-materials/translation-meta";
+import type { StoredSentenceTranslation } from "@/lib/lesson-materials/translation-meta";
 import {
   computeBlankTargetCount,
   countEnglishWords,
@@ -57,6 +64,10 @@ function parseJsonSafe<T>(text: string): T | null {
   }
 }
 
+/**
+ * Blank-candidate OpenAI — intentionally uses a fast model (gpt-4o-mini).
+ * Do NOT use gpt-5.* + reasoning here; that was the main workbook latency bottleneck.
+ */
 export async function callBlankOpenAI(input: {
   passageId: string;
   title?: string;
@@ -68,15 +79,14 @@ export async function callBlankOpenAI(input: {
   if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
 
   const userContent = buildWorkbookBlankUserPrompt(input);
-  const configured = process.env.OPENAI_MODEL_WORKBOOK?.trim();
+  const configured = process.env.OPENAI_MODEL_WORKBOOK_BLANK?.trim();
+  // Prefer fast models only. Ignore OPENAI_MODEL_WORKBOOK (gpt-5) for blanks.
   const candidates = configured
-    ? configured === "gpt-5.5"
-      ? ["gpt-5.5", "gpt-5"]
-      : [configured]
-    : ["gpt-5.5", "gpt-5"];
+    ? [configured]
+    : ["gpt-4o-mini", "gpt-4o"];
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120_000);
+  const timer = setTimeout(() => controller.abort(), 60_000);
 
   try {
     let bodyText = "";
@@ -84,17 +94,17 @@ export async function callBlankOpenAI(input: {
 
     for (const model of candidates) {
       let includeTemperature = studentRecordModelSupportsTemperature(model);
-      let includeReasoningEffort = isGpt5FamilyModel(model);
       let includeJsonMode = true;
       let useJsonSchema = true;
 
-      for (let attempt = 0; attempt < 5; attempt++) {
+      for (let attempt = 0; attempt < 4; attempt++) {
         const body: Record<string, unknown> = {
           model,
           messages: [
             { role: "system", content: WORKBOOK_BLANK_SYSTEM_PROMPT },
             { role: "user", content: userContent },
           ],
+          max_tokens: 4096,
         };
 
         if (useJsonSchema) {
@@ -151,12 +161,11 @@ export async function callBlankOpenAI(input: {
 
         if (includeTemperature) body.temperature = 0.3;
         else delete body.temperature;
+
+        // Never attach reasoning_effort for blank extraction
         if (isGpt5FamilyModel(model)) {
-          body.max_completion_tokens = 8_192;
-          if (includeReasoningEffort) body.reasoning_effort = "medium";
-          else delete body.reasoning_effort;
-        } else {
-          body.max_tokens = 4096;
+          delete body.max_tokens;
+          body.max_completion_tokens = 4_096;
         }
 
         const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -184,13 +193,6 @@ export async function callBlankOpenAI(input: {
         }
         if (includeTemperature && isUnsupportedTemperatureError(bodyText)) {
           includeTemperature = false;
-          continue;
-        }
-        if (
-          includeReasoningEffort &&
-          isUnsupportedParameterError(bodyText, "reasoning_effort")
-        ) {
-          includeReasoningEffort = false;
           continue;
         }
         if (
@@ -277,6 +279,9 @@ export type BlankFillPassageInput = {
   /** Cached pool from lesson_pack_json */
   blankPool?: StoredBlankCandidatePool | null;
   vocabLemmas?: string[];
+  /** Full lesson-pack vocab (preferred over OpenAI for blank pool) */
+  vocab?: LessonPackVocabItem[];
+  sentenceTranslations?: StoredSentenceTranslation[];
 };
 
 export type BlankFillResult = {
@@ -318,10 +323,16 @@ export async function generateWorkbookBlankFill(input: {
 
     const tTr = Date.now();
     if (input.options.showTranslation) {
-      const missing = sentences.filter((s) => !s.korean);
-      if (missing.length > 0) {
-        throw new Error(
-          `「${p.title}」에 저장된 한글 해석이 없거나 원문이 변경되었습니다. 수업용자료에서 해석을 먼저 생성하거나 ‘해석 미제공’을 선택해 주세요.`
+      const meta = readTranslationMeta({
+        sentenceTranslations: p.sentenceTranslations,
+      });
+      const ready = translationsReadyForWorkbook({ sentences, meta });
+      if (!ready.ok) {
+        throw Object.assign(
+          new Error(
+            "저장된 한글 해석이 없거나 영어 원문이 변경되었습니다. 수업용자료에서 해석을 먼저 생성하거나 ‘해석 미제공’을 선택해 주세요."
+          ),
+          { code: "MISSING_TRANSLATION" as const }
         );
       }
     }
@@ -356,11 +367,27 @@ export async function generateWorkbookBlankFill(input: {
     const tBlank = Date.now();
     let rawCandidates: unknown[] = [];
     let usedCache = false;
+    let fromVocab = false;
 
     if (isBlankPoolFresh(p.blankPool, p.projectId, sourceHash)) {
       rawCandidates = storedToRawCandidates(p.blankPool.candidates);
       usedCache = true;
-    } else {
+    } else if ((p.vocab?.length ?? 0) >= 6) {
+      rawCandidates = buildBlankCandidatesFromVocab({
+        sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+        vocab: p.vocab!,
+        titleText: p.title,
+        maxCandidates: poolTarget,
+      });
+      fromVocab = rawCandidates.length >= Math.min(8, recommended);
+      if (fromVocab) {
+        statusNotes.push(
+          `「${p.title}」수업용자료 핵심 어휘로 빈칸을 구성했습니다.`
+        );
+      }
+    }
+
+    if (!usedCache && !fromVocab) {
       statusNotes.push(
         `「${p.title}」핵심 어휘를 처음 준비하고 있습니다. 완료 후 다음 제작부터는 저장된 결과를 사용합니다.`
       );
@@ -405,7 +432,11 @@ export async function generateWorkbookBlankFill(input: {
       { density, sentenceWordCounts }
     );
 
-    if (!usedCache && selected.length < Math.min(4, recommended)) {
+    if (
+      !usedCache &&
+      !fromVocab &&
+      selected.length < Math.min(4, recommended)
+    ) {
       openAiRequestCount += 1;
       rawCandidates = await callBlankOpenAI({
         passageId: p.projectId,
