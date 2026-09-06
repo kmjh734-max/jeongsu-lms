@@ -288,10 +288,10 @@ export function synthesizeScoresForLemma(input: {
   let centrality = 3;
   let learningValue = 3;
   let contextImportance = 3;
-  let examUsefulness = 3;
+  const examUsefulness = 3;
   let collocationValue = 2;
   let commonnessPenalty = 1;
-  let redundancyPenalty = 1;
+  const redundancyPenalty = 1;
 
   if (input.partOfSpeech === "noun") {
     centrality += 1;

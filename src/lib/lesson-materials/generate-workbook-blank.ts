@@ -446,12 +446,6 @@ export async function generateWorkbookBlankFill(input: {
       hintType: input.options.hintType,
       showTranslation: input.options.showTranslation,
     });
-    const highTarget = computeBlankTargetCount({
-      englishWordCount: wordCount,
-      density: "high",
-      hintType: input.options.hintType,
-      showTranslation: input.options.showTranslation,
-    });
     // One shared pool sized for 난이도 UP upper bound (+ headroom)
     const highRange = getBlankTargetRange({
       englishWordCount: wordCount,
