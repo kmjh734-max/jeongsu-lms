@@ -2,11 +2,18 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { generateWorkbookBlankFill } from "@/lib/lesson-materials/generate-workbook-blank";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
 import {
+  DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
+  READY_WORKBOOK_TYPE_IDS,
   clampTfCount,
   defaultWorkbookTitle,
+  parseBlankHintType,
+  parseBlankTranslationLayout,
+  sortWorkbookTypesByPrintOrder,
+  type WorkbookBlankFillOptions,
   type WorkbookData,
   type WorkbookTfOptions,
   type WorkbookTypeId,
@@ -28,12 +35,19 @@ async function requireRole(role: Role) {
   return { profile, error: null as null };
 }
 
+function normalizeSelectedTypes(raw: WorkbookTypeId[]): WorkbookTypeId[] {
+  const ready = new Set(READY_WORKBOOK_TYPE_IDS);
+  const filtered = [...new Set(raw)].filter((id) => ready.has(id));
+  return sortWorkbookTypesByPrintOrder(filtered);
+}
+
 export async function generateWorkbookAction(
   role: Role,
   input: {
     projectIds: string[];
     selectedTypes: WorkbookTypeId[];
     tfOptions?: Partial<WorkbookTfOptions>;
+    blankOptions?: Partial<WorkbookBlankFillOptions>;
     title?: string;
   }
 ): Promise<
@@ -45,19 +59,25 @@ export async function generateWorkbookAction(
   const ids = (input.projectIds ?? []).map((s) => s.trim()).filter(Boolean);
   if (ids.length === 0) return { ok: false, message: "선택된 자료가 없습니다." };
 
-  const types = input.selectedTypes ?? [];
-  if (!types.includes("tf")) {
+  const types = normalizeSelectedTypes(input.selectedTypes ?? []);
+  if (types.length === 0) {
     return {
       ok: false,
-      message: "현재는 T/F 문제만 생성할 수 있습니다.",
+      message: "생성 가능한 문제 유형을 선택해 주세요. (T/F, 빈칸 채우기)",
     };
   }
-  if (types.some((t) => t !== "tf")) {
+  const unknown = (input.selectedTypes ?? []).filter(
+    (t) => !READY_WORKBOOK_TYPE_IDS.includes(t) && t
+  );
+  if (unknown.length) {
     return {
       ok: false,
-      message: "준비 중인 유형이 포함되어 있습니다. T/F만 선택해 주세요.",
+      message: "준비 중인 유형이 포함되어 있습니다. T/F와 빈칸 채우기만 선택해 주세요.",
     };
   }
+
+  const wantTf = types.includes("tf");
+  const wantBlank = types.includes("blank_fill");
 
   const tfOptions: WorkbookTfOptions = {
     count: clampTfCount(
@@ -71,6 +91,15 @@ export async function generateWorkbookAction(
       input.tfOptions?.difficulty === "hard"
         ? "hard"
         : DEFAULT_WORKBOOK_TF_OPTIONS.difficulty,
+  };
+
+  const blankOptions: WorkbookBlankFillOptions = {
+    hintType: parseBlankHintType(input.blankOptions?.hintType),
+    showTranslation:
+      input.blankOptions?.showTranslation === false ? false : true,
+    translationLayout: parseBlankTranslationLayout(
+      input.blankOptions?.translationLayout
+    ),
   };
 
   const supabase = await createClient();
@@ -96,30 +125,82 @@ export async function generateWorkbookAction(
     projectId: string;
     title: string;
     source: string | null;
+    sentences: Array<{
+      id: string;
+      english: string;
+      korean: string | null;
+    }>;
     englishLines: string[];
   }> = [];
 
   for (const p of ordered) {
     const { data: items, error: iErr } = await supabase
       .from("lesson_material_items")
-      .select("english_text,order_index")
+      .select("id,english_text,korean_text,order_index")
       .eq("project_id", p!.id)
       .order("order_index", { ascending: true });
     if (iErr) return { ok: false, message: iErr.message };
+    const sentences = (items ?? []).map((it, idx) => ({
+      id: String(it.id ?? `s${idx}`),
+      english: String(it.english_text ?? ""),
+      korean: (it.korean_text as string | null) ?? null,
+    }));
     passages.push({
       projectId: p!.id,
       title: p!.title,
       source: (p!.source as string | null) ?? null,
-      englishLines: (items ?? []).map((it) => String(it.english_text ?? "")),
+      sentences,
+      englishLines: sentences.map((s) => s.english),
     });
   }
 
+  const now = new Date();
+  const workbook: WorkbookData = {
+    metadata: {
+      title: input.title?.trim() || defaultWorkbookTitle(now),
+      createdAt: now.toISOString(),
+    },
+    selectedTypes: types,
+    tfOptions,
+    blankOptions,
+    sections: [],
+    blankSections: [],
+  };
+
   try {
-    const workbook = await generateWorkbookTf({
-      title: input.title?.trim() || defaultWorkbookTitle(),
-      passages,
-      options: tfOptions,
-    });
+    if (wantBlank) {
+      workbook.blankSections = await generateWorkbookBlankFill({
+        passages: passages.map((p) => ({
+          projectId: p.projectId,
+          title: p.title,
+          source: p.source,
+          sentences: p.sentences,
+        })),
+        options: blankOptions,
+      });
+    }
+
+    if (wantTf) {
+      const tf = await generateWorkbookTf({
+        title: workbook.metadata.title,
+        passages: passages.map((p) => ({
+          projectId: p.projectId,
+          title: p.title,
+          source: p.source,
+          englishLines: p.englishLines,
+        })),
+        options: tfOptions,
+      });
+      workbook.sections = tf.sections;
+    }
+
+    if (wantBlank && workbook.blankSections.length === 0) {
+      return { ok: false, message: "빈칸 채우기 결과를 만들지 못했습니다." };
+    }
+    if (wantTf && workbook.sections.length === 0) {
+      return { ok: false, message: "T/F 결과를 만들지 못했습니다." };
+    }
+
     return { ok: true, workbook };
   } catch (e) {
     return {

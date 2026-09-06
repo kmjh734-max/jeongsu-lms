@@ -36,6 +36,49 @@
     word-break: keep-all;
   }
 
+  .workbook-blank-unit {
+    display: inline-flex;
+    align-items: baseline;
+    white-space: nowrap;
+    break-inside: avoid;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    margin: 0 0.12em;
+    max-width: 100%;
+    vertical-align: baseline;
+  }
+
+  .blank-number {
+    font-size: 0.65em;
+    font-weight: 700;
+    line-height: 1;
+    margin-right: 0.15em;
+    color: #334155;
+  }
+
+  .blank-answer-area {
+    display: inline-flex;
+    align-items: flex-end;
+    white-space: nowrap;
+    gap: 0.05em;
+  }
+
+  .blank-first-letter {
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .blank-line {
+    display: inline-block;
+    min-width: 2.4em;
+    max-width: 5.5em;
+    width: 3.6em;
+    border-bottom: 1.5px solid #0f172a;
+    height: 0.85em;
+    margin: 0 0.05em;
+    vertical-align: baseline;
+  }
+
   .ui-select {
     @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100;
   }

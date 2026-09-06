@@ -4,10 +4,13 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
+  DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
   WORKBOOK_TYPE_CATALOG,
   clampTfCount,
   defaultWorkbookTitle,
+  sortWorkbookTypesByPrintOrder,
+  type WorkbookBlankFillOptions,
   type WorkbookData,
   type WorkbookTfOptions,
   type WorkbookTypeId,
@@ -40,6 +43,7 @@ export function buildWorkbookHref(
     projectIds: string[];
     selectedTypes: WorkbookTypeId[];
     tfOptions: WorkbookTfOptions;
+    blankOptions: WorkbookBlankFillOptions;
     title: string;
   }
 ) {
@@ -47,12 +51,16 @@ export function buildWorkbookHref(
     role === "admin"
       ? "/admin/lesson-materials/workbook"
       : "/teacher/lesson-materials/workbook";
+  const types = sortWorkbookTypesByPrintOrder(opts.selectedTypes);
   const params = new URLSearchParams();
   params.set("ids", opts.projectIds.join(","));
-  params.set("types", opts.selectedTypes.join(","));
+  params.set("types", types.join(","));
   params.set("count", String(clampTfCount(opts.tfOptions.count)));
   params.set("lang", opts.tfOptions.language);
   params.set("diff", opts.tfOptions.difficulty);
+  params.set("blankHint", opts.blankOptions.hintType);
+  params.set("blankTr", opts.blankOptions.showTranslation ? "1" : "0");
+  params.set("blankLayout", opts.blankOptions.translationLayout);
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   return `${base}?${params.toString()}`;
 }
@@ -77,11 +85,19 @@ export function WorkbookCreateModal({
   const [tfOptions, setTfOptions] = useState<WorkbookTfOptions>(
     DEFAULT_WORKBOOK_TF_OPTIONS
   );
+  const [blankOptions, setBlankOptions] = useState<WorkbookBlankFillOptions>(
+    DEFAULT_WORKBOOK_BLANK_OPTIONS
+  );
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [error, setError] = useState<string | null>(null);
 
   const readySelected = useMemo(
-    () => [...selected].filter((id) => id === "tf"),
+    () =>
+      sortWorkbookTypesByPrintOrder(
+        [...selected].filter(
+          (id) => WORKBOOK_TYPE_CATALOG.find((c) => c.id === id)?.ready
+        )
+      ),
     [selected]
   );
   const hasPendingSelected = useMemo(
@@ -91,6 +107,8 @@ export function WorkbookCreateModal({
       ),
     [selected]
   );
+  const wantTf = selected.has("tf");
+  const wantBlank = selected.has("blank_fill");
 
   if (!open) return null;
 
@@ -111,11 +129,13 @@ export function WorkbookCreateModal({
       return;
     }
     if (hasPendingSelected) {
-      setError("준비 중인 유형이 포함되어 있습니다. T/F만 선택해 주세요.");
+      setError(
+        "준비 중인 유형이 포함되어 있습니다. T/F와 빈칸 채우기만 선택해 주세요."
+      );
       return;
     }
-    if (!selected.has("tf")) {
-      setError("현재는 T/F 문제만 생성할 수 있습니다.");
+    if (readySelected.length === 0) {
+      setError("생성 가능한 유형을 선택해 주세요.");
       return;
     }
     setStep("options");
@@ -134,9 +154,9 @@ export function WorkbookCreateModal({
         ...tfOptions,
         count: clampTfCount(tfOptions.count),
       },
+      blankOptions,
       title: title.trim() || defaultWorkbookTitle(),
     });
-    // Open synchronously on click (same pattern as lesson-pack / analysis-report)
     const win = window.open(href, "_blank", "noopener,noreferrer");
     if (!win) {
       setError(
@@ -216,7 +236,7 @@ export function WorkbookCreateModal({
               })}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <label className="block space-y-1">
                 <span className="text-xs font-bold text-slate-600">
                   워크북 제목
@@ -228,69 +248,151 @@ export function WorkbookCreateModal({
                 />
               </label>
 
-              <p className="text-sm font-bold text-slate-900">옵션 설정</p>
-
-              <div className="space-y-0 overflow-hidden rounded-xl border border-slate-200">
-                <OptionRow tone="coral" label="T/F 선택지 갯수">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <input
-                      type="number"
-                      min={1}
-                      max={8}
-                      className="w-16 rounded border border-slate-200 px-2 py-1 text-sm"
-                      value={tfOptions.count}
-                      onChange={(e) =>
-                        setTfOptions((o) => ({
-                          ...o,
-                          count: clampTfCount(e.target.value),
-                        }))
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="rounded-md bg-rose-500 px-2.5 py-1 text-[11px] font-bold text-white"
-                      onClick={() =>
-                        setTfOptions((o) => ({ ...o, count: 8 }))
-                      }
-                    >
-                      최대 갯수
-                    </button>
-                    <span className="text-[11px] text-rose-600">
-                      지문 1개당 T/F 선택지 {tfOptions.count}개
-                    </span>
+              {wantBlank ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-900">
+                    빈칸 채우기 힌트 설정
+                  </p>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <OptionRow tone="violet" label="힌트">
+                      <TogglePair
+                        tone="violet"
+                        left={{ id: "first_letter", label: "첫 스펠링 표기" }}
+                        right={{ id: "none", label: "힌트 없음" }}
+                        value={blankOptions.hintType}
+                        onChange={(hintType) =>
+                          setBlankOptions((o) => ({
+                            ...o,
+                            hintType: hintType as "first_letter" | "none",
+                          }))
+                        }
+                      />
+                    </OptionRow>
                   </div>
-                </OptionRow>
 
-                <OptionRow tone="coral" label="T/F 선택지 언어">
-                  <TogglePair
-                    tone="coral"
-                    left={{ id: "en", label: "English" }}
-                    right={{ id: "ko", label: "한국어" }}
-                    value={tfOptions.language}
-                    onChange={(language) =>
-                      setTfOptions((o) => ({
-                        ...o,
-                        language: language as "en" | "ko",
-                      }))
-                    }
-                  />
-                </OptionRow>
+                  <p className="text-sm font-bold text-slate-900">
+                    빈칸 채우기 해설 설정
+                  </p>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <OptionRow tone="violet" label="해석">
+                      <div className="space-y-2">
+                        <TogglePair
+                          tone="violet"
+                          left={{ id: "on", label: "해석 제공" }}
+                          right={{ id: "off", label: "해석 미제공" }}
+                          value={blankOptions.showTranslation ? "on" : "off"}
+                          onChange={(v) =>
+                            setBlankOptions((o) => ({
+                              ...o,
+                              showTranslation: v === "on",
+                            }))
+                          }
+                        />
+                        <p className="text-[11px] text-violet-600">
+                          문제 하단에 한글 해석 표시
+                        </p>
+                      </div>
+                    </OptionRow>
+                  </div>
 
-                <OptionRow tone="coral" label="T/F 문제 난이도">
-                  <TogglePair
-                    tone="coral"
-                    left={{ id: "normal", label: "일반" }}
-                    right={{ id: "hard", label: "난이도 UP" }}
-                    value={tfOptions.difficulty}
-                    onChange={(difficulty) =>
-                      setTfOptions((o) => ({
-                        ...o,
-                        difficulty: difficulty as "normal" | "hard",
-                      }))
-                    }
-                  />
-                </OptionRow>
-              </div>
+                  <p className="text-sm font-bold text-slate-900">
+                    빈칸 채우기 레이아웃
+                  </p>
+                  <div
+                    className={`overflow-hidden rounded-xl border border-slate-200 ${
+                      !blankOptions.showTranslation
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }`}
+                  >
+                    <OptionRow tone="violet" label="배치">
+                      <TogglePair
+                        tone="violet"
+                        left={{ id: "chunk", label: "영어, 한글별 청크 배치" }}
+                        right={{
+                          id: "sentence_pair",
+                          label: "영어, 한글 1줄씩 배치",
+                        }}
+                        value={blankOptions.translationLayout}
+                        onChange={(translationLayout) =>
+                          setBlankOptions((o) => ({
+                            ...o,
+                            translationLayout:
+                              translationLayout as WorkbookBlankFillOptions["translationLayout"],
+                          }))
+                        }
+                      />
+                    </OptionRow>
+                  </div>
+                </div>
+              ) : null}
+
+              {wantTf ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-900">T/F 옵션</p>
+                  <div className="space-y-0 overflow-hidden rounded-xl border border-slate-200">
+                    <OptionRow tone="coral" label="T/F 선택지 갯수">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          max={8}
+                          className="w-16 rounded border border-slate-200 px-2 py-1 text-sm"
+                          value={tfOptions.count}
+                          onChange={(e) =>
+                            setTfOptions((o) => ({
+                              ...o,
+                              count: clampTfCount(e.target.value),
+                            }))
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="rounded-md bg-rose-500 px-2.5 py-1 text-[11px] font-bold text-white"
+                          onClick={() =>
+                            setTfOptions((o) => ({ ...o, count: 8 }))
+                          }
+                        >
+                          최대 갯수
+                        </button>
+                        <span className="text-[11px] text-rose-600">
+                          지문 1개당 T/F 선택지 {tfOptions.count}개
+                        </span>
+                      </div>
+                    </OptionRow>
+
+                    <OptionRow tone="coral" label="T/F 선택지 언어">
+                      <TogglePair
+                        tone="coral"
+                        left={{ id: "en", label: "English" }}
+                        right={{ id: "ko", label: "한국어" }}
+                        value={tfOptions.language}
+                        onChange={(language) =>
+                          setTfOptions((o) => ({
+                            ...o,
+                            language: language as "en" | "ko",
+                          }))
+                        }
+                      />
+                    </OptionRow>
+
+                    <OptionRow tone="coral" label="T/F 문제 난이도">
+                      <TogglePair
+                        tone="coral"
+                        left={{ id: "normal", label: "일반" }}
+                        right={{ id: "hard", label: "난이도 UP" }}
+                        value={tfOptions.difficulty}
+                        onChange={(difficulty) =>
+                          setTfOptions((o) => ({
+                            ...o,
+                            difficulty: difficulty as "normal" | "hard",
+                          }))
+                        }
+                      />
+                    </OptionRow>
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
 

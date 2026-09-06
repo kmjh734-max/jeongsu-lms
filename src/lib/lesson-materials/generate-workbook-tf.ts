@@ -12,6 +12,7 @@ import {
 import {
   clampTfCount,
   defaultWorkbookTitle,
+  DEFAULT_WORKBOOK_BLANK_OPTIONS,
   joinWorkbookPassageLines,
   type WorkbookData,
   type WorkbookPassageSection,
@@ -256,6 +257,8 @@ export async function generateWorkbookTf(input: {
     },
     selectedTypes: ["tf"],
     tfOptions: options,
+    blankOptions: DEFAULT_WORKBOOK_BLANK_OPTIONS,
     sections,
+    blankSections: [],
   };
 }

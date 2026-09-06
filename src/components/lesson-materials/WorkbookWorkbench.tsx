@@ -17,11 +17,19 @@ import {
 } from "@/components/lesson-materials/WorkbookCreateModal";
 import { generateWorkbookAction } from "@/lib/lesson-materials/workbook-actions";
 import {
+  DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
   clampTfCount,
   defaultWorkbookTitle,
   formatWorkbookPassage,
+  parseBlankHintType,
+  parseBlankTranslationLayout,
+  sortWorkbookTypesByPrintOrder,
+  workbookTypeDisplayTitle,
+  type BlankRenderToken,
+  type WorkbookBlankSection,
   type WorkbookData,
+  type WorkbookPassageSection,
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
@@ -83,14 +91,228 @@ function PageShell({
   );
 }
 
+function BlankInline({ token }: { token: Extract<BlankRenderToken, { type: "blank" }> }) {
+  return (
+    <span className="workbook-blank-unit">
+      <sup className="blank-number">{token.number}</sup>
+      <span className="blank-answer-area">
+        {token.firstLetter != null ? (
+          <span className="blank-first-letter">{token.firstLetter}</span>
+        ) : null}
+        <span className="blank-line" aria-hidden />
+      </span>
+    </span>
+  );
+}
+
+function renderTokens(tokens: BlankRenderToken[]) {
+  return tokens.map((t, i) =>
+    t.type === "text" ? (
+      <span key={`t-${i}`}>{t.text}</span>
+    ) : (
+      <BlankInline key={`b-${t.blankId}-${t.number}`} token={t} />
+    )
+  );
+}
+
+function BlankQuestionBody({
+  section,
+  showTranslation,
+  layout,
+}: {
+  section: WorkbookBlankSection;
+  showTranslation: boolean;
+  layout: "chunk" | "sentence_pair";
+}) {
+  if (!showTranslation) {
+    return (
+      <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">
+        {renderTokens(section.passageTokens)}
+      </p>
+    );
+  }
+
+  if (layout === "sentence_pair") {
+    return (
+      <div className="space-y-4">
+        {section.sentences.map((s) => (
+          <div key={s.id} className="break-inside-avoid">
+            <p className="text-[13px] leading-relaxed text-slate-900">
+              {renderTokens(s.tokens)}
+            </p>
+            <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+              {s.korean || "—"}
+            </p>
+          </div>
+        ))}
+        {section.translationWarning ? (
+          <p className="text-[11px] text-amber-700">{section.translationWarning}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">
+        {renderTokens(section.passageTokens)}
+      </p>
+      <div>
+        <p
+          className="mb-2 text-[14px] font-black"
+          style={{ color: ACCENT }}
+        >
+          [해석]
+        </p>
+        <p className="workbook-passage text-[12.5px] leading-relaxed text-slate-700">
+          {section.fullKorean || "—"}
+        </p>
+        {section.translationWarning ? (
+          <p className="mt-2 text-[11px] text-amber-700">
+            {section.translationWarning}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function BlankAnswerBody({ section }: { section: WorkbookBlankSection }) {
+  return (
+    <ol className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+      {section.answers.map((a) => {
+        const showLemma =
+          a.lemma &&
+          a.lemma.toLowerCase() !== a.answerText.toLowerCase();
+        return (
+          <li
+            key={a.number}
+            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+          >
+            <span className="font-bold">{a.number}.</span> {a.answerText}
+            {showLemma ? (
+              <span className="text-slate-500"> ({a.lemma})</span>
+            ) : null}{" "}
+            — {a.meaningKo}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function TfQuestionBody({
+  section,
+  multi,
+}: {
+  section: WorkbookPassageSection;
+  multi: boolean;
+}) {
+  return (
+    <>
+      {multi ? (
+        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+          {section.title}
+          {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
+        </p>
+      ) : null}
+      <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">
+        {formatWorkbookPassage(section.passage)}
+      </p>
+      <div className="my-4 h-px w-full bg-slate-200" />
+      <ol className="space-y-3">
+        {section.items.map((it) => (
+          <li
+            key={it.index}
+            className="break-inside-avoid text-[13px] leading-relaxed text-slate-900"
+          >
+            <span className="font-semibold">({it.index})</span> {it.statement}{" "}
+            <span
+              className="workbook-tf-mark ml-1 font-bold text-slate-500"
+              style={{
+                display: "inline-block",
+                whiteSpace: "nowrap",
+                wordBreak: "keep-all",
+              }}
+            >
+              [ T / F ]
+            </span>
+          </li>
+        ))}
+      </ol>
+    </>
+  );
+}
+
+function TfAnswerBody({
+  section,
+  typeOrder,
+  multi,
+}: {
+  section: WorkbookPassageSection;
+  typeOrder: number;
+  multi: boolean;
+}) {
+  return (
+    <>
+      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+        {typeOrder}. T/F 문제
+        {multi ? ` · ${section.title}` : ""}
+      </h3>
+      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        정답:{" "}
+        {section.items.map((it) => `(${it.index}) ${it.answer}`).join("  ")}
+      </p>
+      <ol className="space-y-4">
+        {section.items.map((it) => (
+          <li
+            key={it.index}
+            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+          >
+            <p className="font-bold">
+              ({it.index}) {it.answer}
+            </p>
+            <p className="mt-1 text-slate-700">{it.explanation}</p>
+            {it.answer === "F" && it.correctedStatement ? (
+              <p className="mt-1 text-slate-700">
+                <span className="font-semibold text-rose-700">
+                  바르게 고친 문장 ·{" "}
+                </span>
+                {it.correctedStatement}
+              </p>
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </>
+  );
+}
+
 function parseTypes(raw: string | null): WorkbookTypeId[] {
   if (!raw?.trim()) return ["tf"];
   const list = raw
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean) as WorkbookTypeId[];
-  return list.length ? list : ["tf"];
+  return sortWorkbookTypesByPrintOrder(list.length ? list : ["tf"]);
 }
+
+type WorkbookPage =
+  | {
+      kind: "blank_q";
+      sectionIndex: number;
+      typeOrder: number;
+    }
+  | {
+      kind: "tf_q";
+      sectionIndex: number;
+      typeOrder: number;
+    }
+  | {
+      kind: "answers";
+      typeOrderBlank: number | null;
+      typeOrderTf: number | null;
+    };
 
 export function WorkbookWorkbench({
   role,
@@ -123,18 +345,31 @@ export function WorkbookWorkbench({
       const count = clampTfCount(
         searchParams.get("count") ?? DEFAULT_WORKBOOK_TF_OPTIONS.count
       );
-      const langRaw = searchParams.get("lang");
-      const language = langRaw === "ko" ? "ko" : "en";
-      const diffRaw = searchParams.get("diff");
-      const difficulty = diffRaw === "hard" ? "hard" : "normal";
+      const language = searchParams.get("lang") === "ko" ? "ko" : "en";
+      const difficulty = searchParams.get("diff") === "hard" ? "hard" : "normal";
+      const blankOptions = {
+        hintType: parseBlankHintType(searchParams.get("blankHint")),
+        showTranslation: searchParams.get("blankTr") !== "0",
+        translationLayout: parseBlankTranslationLayout(
+          searchParams.get("blankLayout")
+        ),
+      };
       const title =
         searchParams.get("title")?.trim() || defaultWorkbookTitle();
 
       if (ids.length === 0) {
         const cached = loadWorkbookFromSession();
-        if (cached?.sections?.length) {
+        if (
+          cached &&
+          ((cached.sections?.length ?? 0) > 0 ||
+            (cached.blankSections?.length ?? 0) > 0)
+        ) {
           if (!cancelled) {
-            setWorkbook(cached);
+            setWorkbook({
+              ...cached,
+              blankSections: cached.blankSections ?? [],
+              blankOptions: cached.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
+            });
             setGenerating(false);
           }
           return;
@@ -148,12 +383,26 @@ export function WorkbookWorkbench({
         return;
       }
 
-      setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
+      const wantBlank = types.includes("blank_fill");
+      const wantTf = types.includes("tf");
+      if (wantBlank && wantTf) {
+        setStatus(
+          "핵심 어휘 선정 → 빈칸 구성 → T/F 생성 → PDF 구성 중…"
+        );
+      } else if (wantBlank) {
+        setStatus(
+          "핵심 어휘 선정 중 → 빈칸 위치 확인 → 지문·정답 구성 중…"
+        );
+      } else {
+        setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
+      }
+
       try {
         const res = await generateWorkbookAction(role, {
           projectIds: ids,
           selectedTypes: types,
           tfOptions: { count, language, difficulty },
+          blankOptions,
           title,
         });
         if (cancelled) return;
@@ -201,18 +450,39 @@ export function WorkbookWorkbench({
     };
   }, []);
 
+  const typeOrders = useMemo(() => {
+    const types = workbook?.selectedTypes ?? [];
+    const map = new Map<WorkbookTypeId, number>();
+    types.forEach((t, i) => map.set(t, i + 1));
+    return map;
+  }, [workbook?.selectedTypes]);
+
   const pages = useMemo(() => {
-    if (!workbook) return [] as Array<{ kind: "q" | "a"; sectionIndex: number }>;
-    const q = workbook.sections.map((_, i) => ({
-      kind: "q" as const,
-      sectionIndex: i,
-    }));
-    const a = workbook.sections.map((_, i) => ({
-      kind: "a" as const,
-      sectionIndex: i,
-    }));
-    return [...q, ...a];
-  }, [workbook]);
+    if (!workbook) return [] as WorkbookPage[];
+    const out: WorkbookPage[] = [];
+    const types = workbook.selectedTypes;
+    for (const t of types) {
+      const order = typeOrders.get(t) ?? 1;
+      if (t === "blank_fill") {
+        workbook.blankSections.forEach((_, i) => {
+          out.push({ kind: "blank_q", sectionIndex: i, typeOrder: order });
+        });
+      }
+      if (t === "tf") {
+        workbook.sections.forEach((_, i) => {
+          out.push({ kind: "tf_q", sectionIndex: i, typeOrder: order });
+        });
+      }
+    }
+    if (types.length > 0) {
+      out.push({
+        kind: "answers",
+        typeOrderBlank: typeOrders.get("blank_fill") ?? null,
+        typeOrderTf: typeOrders.get("tf") ?? null,
+      });
+    }
+    return out;
+  }, [workbook, typeOrders]);
 
   const previewStyle = useMemo(
     (): CSSProperties => ({
@@ -228,7 +498,8 @@ export function WorkbookWorkbench({
         <div className="rounded-2xl bg-white px-8 py-6 text-center shadow">
           <p className="text-sm font-semibold text-slate-800">{status}</p>
           <p className="mt-2 text-xs text-slate-500">
-            지문마다 AI가 T/F를 만들므로 잠시 걸릴 수 있습니다.
+            지문마다 AI 작업이 있어 잠시 걸릴 수 있습니다. 실패 시 오류가
+            표시되며 불완전한 PDF는 만들지 않습니다.
           </p>
         </div>
         <Link href={base} className="text-xs font-semibold text-violet-700">
@@ -259,6 +530,7 @@ export function WorkbookWorkbench({
 
   const title = workbook.metadata.title;
   const total = pages.length;
+  const blankOpts = workbook.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS;
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -270,8 +542,9 @@ export function WorkbookWorkbench({
           <h1 className="text-base font-bold text-slate-900">워크북</h1>
           <p className="text-xs text-slate-500">{title}</p>
           <p className="text-[11px] text-slate-400">
-            T/F · 지문 {workbook.sections.length}개 · 문항/지문{" "}
-            {workbook.tfOptions.count}개
+            {workbook.selectedTypes
+              .map((t) => workbookTypeDisplayTitle(t))
+              .join(" · ")}
           </p>
         </div>
         <div className="mt-auto space-y-2 border-t border-slate-100 p-4">
@@ -323,23 +596,22 @@ export function WorkbookWorkbench({
             style={previewStyle}
           >
             {pages.map((page, pageI) => {
-              const section = workbook.sections[page.sectionIndex]!;
               const pageNo = pageI + 1;
               const isLast = pageI === total - 1;
-              const typeOrder = 1;
 
-              if (page.kind === "q") {
+              if (page.kind === "blank_q") {
+                const section = workbook.blankSections[page.sectionIndex]!;
                 return (
                   <PageShell
-                    key={`q-${page.sectionIndex}`}
+                    key={`blank-q-${page.sectionIndex}`}
                     pageNo={pageNo}
                     total={total}
                     workbookTitle={title}
                     showTypeTitle
-                    typeTitle={`${typeOrder}. T/F 문제`}
+                    typeTitle={`${page.typeOrder}. 빈칸 채우기`}
                     isLast={isLast}
                   >
-                    {workbook.sections.length > 1 ? (
+                    {workbook.blankSections.length > 1 ? (
                       <p className="mb-2 text-[12px] font-semibold text-slate-500">
                         {section.title}
                         {section.source?.trim()
@@ -347,38 +619,39 @@ export function WorkbookWorkbench({
                           : ""}
                       </p>
                     ) : null}
-                    <p className="workbook-passage text-[13px] leading-relaxed text-slate-900">
-                      {formatWorkbookPassage(section.passage)}
-                    </p>
-                    <div className="my-4 h-px w-full bg-slate-200" />
-                    <ol className="space-y-3">
-                      {section.items.map((it) => (
-                        <li
-                          key={it.index}
-                          className="break-inside-avoid text-[13px] leading-relaxed text-slate-900"
-                        >
-                          <span className="font-semibold">({it.index})</span>{" "}
-                          {it.statement}{" "}
-                          <span
-                            className="workbook-tf-mark ml-1 font-bold text-slate-500"
-                            style={{
-                              display: "inline-block",
-                              whiteSpace: "nowrap",
-                              wordBreak: "keep-all",
-                            }}
-                          >
-                            [ T / F ]
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
+                    <BlankQuestionBody
+                      section={section}
+                      showTranslation={blankOpts.showTranslation}
+                      layout={blankOpts.translationLayout}
+                    />
                   </PageShell>
                 );
               }
 
+              if (page.kind === "tf_q") {
+                const section = workbook.sections[page.sectionIndex]!;
+                return (
+                  <PageShell
+                    key={`tf-q-${page.sectionIndex}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={`${page.typeOrder}. T/F 문제`}
+                    isLast={isLast}
+                  >
+                    <TfQuestionBody
+                      section={section}
+                      multi={workbook.sections.length > 1}
+                    />
+                  </PageShell>
+                );
+              }
+
+              // answers
               return (
                 <PageShell
-                  key={`a-${page.sectionIndex}`}
+                  key="answers"
                   pageNo={pageNo}
                   total={total}
                   workbookTitle={title}
@@ -386,42 +659,35 @@ export function WorkbookWorkbench({
                   typeTitle="정답 및 해설"
                   isLast={isLast}
                 >
-                  <h3
-                    className="mb-3 text-[16px] font-black"
-                    style={{ color: ACCENT }}
-                  >
-                    {typeOrder}. T/F 문제
-                    {workbook.sections.length > 1
-                      ? ` · ${section.title}`
-                      : ""}
-                  </h3>
-                  <p className="mb-4 text-[13px] font-semibold text-slate-800">
-                    정답:{" "}
-                    {section.items
-                      .map((it) => `(${it.index}) ${it.answer}`)
-                      .join("  ")}
-                  </p>
-                  <ol className="space-y-4">
-                    {section.items.map((it) => (
-                      <li
-                        key={it.index}
-                        className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
-                      >
-                        <p className="font-bold">
-                          ({it.index}) {it.answer}
-                        </p>
-                        <p className="mt-1 text-slate-700">{it.explanation}</p>
-                        {it.answer === "F" && it.correctedStatement ? (
-                          <p className="mt-1 text-slate-700">
-                            <span className="font-semibold text-rose-700">
-                              바르게 고친 문장 ·{" "}
-                            </span>
-                            {it.correctedStatement}
-                          </p>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ol>
+                  <div className="space-y-8">
+                    {page.typeOrderBlank != null
+                      ? workbook.blankSections.map((section, i) => (
+                          <div key={`ba-${section.projectId}-${i}`}>
+                            <h3
+                              className="mb-3 text-[16px] font-black"
+                              style={{ color: ACCENT }}
+                            >
+                              {page.typeOrderBlank}. 빈칸 채우기
+                              {workbook.blankSections.length > 1
+                                ? ` · ${section.title}`
+                                : ""}
+                            </h3>
+                            <BlankAnswerBody section={section} />
+                          </div>
+                        ))
+                      : null}
+                    {page.typeOrderTf != null
+                      ? workbook.sections.map((section, i) => (
+                          <div key={`ta-${section.projectId}-${i}`}>
+                            <TfAnswerBody
+                              section={section}
+                              typeOrder={page.typeOrderTf!}
+                              multi={workbook.sections.length > 1}
+                            />
+                          </div>
+                        ))
+                      : null}
+                  </div>
                 </PageShell>
               );
             })}
