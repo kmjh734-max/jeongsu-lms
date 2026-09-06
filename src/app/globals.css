@@ -2190,7 +2190,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #nelt-print-root,
   #qg-print-root,
   #lesson-pack-print-root,
-  #analysis-report-print-root {
+  #analysis-report-print-root,
+  #workbook-print-root {
     visibility: visible;
   }
 
@@ -2211,7 +2212,9 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #lesson-pack-print-root,
   #lesson-pack-print-root *,
   #analysis-report-print-root,
-  #analysis-report-print-root * {
+  #analysis-report-print-root *,
+  #workbook-print-root,
+  #workbook-print-root * {
     visibility: visible;
   }
 
@@ -2241,7 +2244,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   #student-record-print-root,
   #nelt-print-root,
   #lesson-pack-print-root,
-  #analysis-report-print-root {
+  #analysis-report-print-root,
+  #workbook-print-root {
     position: absolute;
     left: 0;
     top: 0;
@@ -2260,7 +2264,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   }
 
   #lesson-pack-print-root,
-  #analysis-report-print-root {
+  #analysis-report-print-root,
+  #workbook-print-root {
     width: 210mm !important;
     max-width: 210mm !important;
     transform: none !important;
