@@ -42,29 +42,6 @@ function joinChunks(texts: string[], sep = " / ") {
   return texts.map((t) => t.trim()).filter(Boolean).join(sep);
 }
 
-function compactStructure(raw: string): string {
-  let s = raw.trim();
-  if (!s) return "";
-  s = s
-    .replace(/(?:^|\s*·\s*)문형\s+[A-Z/]+/giu, " · ")
-    .replace(/(?:^|\s*·\s*)의미\s*단위\s*:[^·]*/giu, " · ")
-    .replace(/(?:^|\s*·\s*)내부\s*:[^·]*/giu, " · ")
-    .replace(/(?:^|\s*·\s*)판단\s*:[^·]*(?:·|$)/giu, " · ")
-    .replace(/(?:^|\s*·\s*)복원\s*:[^·]*/giu, " · ")
-    .replace(/^\s*·\s*/u, "")
-    .replace(/\s*·\s*$/u, "")
-    .replace(/\s*·\s*·\s*/gu, " · ")
-    .trim();
-  const ju = s.match(/주절\s*:[^\n]+/u);
-  if (ju && s.length > 180) return ju[0].trim();
-  if (s.length > 200) {
-    const cut = s.slice(0, 200);
-    const last = Math.max(cut.lastIndexOf(" + "), cut.lastIndexOf(" · "));
-    return `${(last > 80 ? cut.slice(0, last) : cut).trim()}…`;
-  }
-  return s;
-}
-
 function GrammarPointItem({
   point,
   index,
@@ -77,24 +54,13 @@ function GrammarPointItem({
     /^(최우선|핵심|중요\s*구문)\s*[·•\-–—:]\s*/u,
     ""
   );
-  const structure = compactStructure(
-    point.sentenceStructure || point.detail || ""
-  );
 
   return (
-    <li className="space-y-0.5 text-[12.5px] leading-relaxed text-slate-800">
-      <div>
-        <span className="mr-1 font-bold text-rose-600">{mark}</span>
-        <span className="font-bold text-slate-900">{title}</span>
-        {point.example ? (
-          <span className="text-violet-700"> ({point.example})</span>
-        ) : null}
-      </div>
-      {structure ? (
-        <p className="text-[12px] leading-relaxed text-slate-600">
-          <span className="font-semibold text-slate-700">구조 · </span>
-          {structure}
-        </p>
+    <li className="text-[12.5px] leading-relaxed text-slate-800">
+      <span className="mr-1 font-bold text-rose-600">{mark}</span>
+      <span className="font-bold text-slate-900">{title}</span>
+      {point.example ? (
+        <span className="text-violet-700"> ({point.example})</span>
       ) : null}
     </li>
   );
@@ -224,7 +190,7 @@ function ReportHeader({
         <div className="min-w-0 flex-1">
           {source?.trim() ? (
             <p className="text-[11px] font-medium leading-snug text-slate-400">
-              출처: {source.trim()}
+              {source.trim()}
             </p>
           ) : null}
           <p
