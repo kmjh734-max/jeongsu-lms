@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   useEffect,
   useMemo,
@@ -11,13 +12,17 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
-  clearWorkbookPending,
   loadWorkbookFromSession,
-  loadWorkbookPending,
   saveWorkbookToSession,
 } from "@/components/lesson-materials/WorkbookCreateModal";
 import { generateWorkbookAction } from "@/lib/lesson-materials/workbook-actions";
-import type { WorkbookData } from "@/lib/lesson-materials/workbook-types";
+import {
+  DEFAULT_WORKBOOK_TF_OPTIONS,
+  clampTfCount,
+  defaultWorkbookTitle,
+  type WorkbookData,
+  type WorkbookTypeId,
+} from "@/lib/lesson-materials/workbook-types";
 
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
@@ -77,11 +82,21 @@ function PageShell({
   );
 }
 
+function parseTypes(raw: string | null): WorkbookTypeId[] {
+  if (!raw?.trim()) return ["tf"];
+  const list = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean) as WorkbookTypeId[];
+  return list.length ? list : ["tf"];
+}
+
 export function WorkbookWorkbench({
   role,
 }: {
   role: "admin" | "teacher";
 }) {
+  const searchParams = useSearchParams();
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [workbook, setWorkbook] = useState<WorkbookData | null>(null);
@@ -90,24 +105,32 @@ export function WorkbookWorkbench({
   const [status, setStatus] = useState("워크북을 준비하고 있습니다…");
   const [zoom, setZoom] = useState(85);
 
+  const requestKey = searchParams.toString();
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setGenerating(true);
       setError(null);
+      setWorkbook(null);
 
-      const cached = loadWorkbookFromSession();
-      const pending = loadWorkbookPending();
+      const ids = (searchParams.get("ids") ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const types = parseTypes(searchParams.get("types"));
+      const count = clampTfCount(
+        searchParams.get("count") ?? DEFAULT_WORKBOOK_TF_OPTIONS.count
+      );
+      const langRaw = searchParams.get("lang");
+      const language = langRaw === "ko" ? "ko" : "en";
+      const diffRaw = searchParams.get("diff");
+      const difficulty = diffRaw === "hard" ? "hard" : "normal";
+      const title =
+        searchParams.get("title")?.trim() || defaultWorkbookTitle();
 
-      if (cached?.sections?.length && !pending) {
-        if (!cancelled) {
-          setWorkbook(cached);
-          setGenerating(false);
-        }
-        return;
-      }
-
-      if (!pending?.projectIds?.length) {
+      if (ids.length === 0) {
+        const cached = loadWorkbookFromSession();
         if (cached?.sections?.length) {
           if (!cancelled) {
             setWorkbook(cached);
@@ -124,15 +147,13 @@ export function WorkbookWorkbench({
         return;
       }
 
-      setStatus(
-        `T/F 문제를 생성하고 있습니다… (지문 ${pending.projectIds.length}개)`
-      );
+      setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
       try {
         const res = await generateWorkbookAction(role, {
-          projectIds: pending.projectIds,
-          selectedTypes: pending.selectedTypes,
-          tfOptions: pending.tfOptions,
-          title: pending.title,
+          projectIds: ids,
+          selectedTypes: types,
+          tfOptions: { count, language, difficulty },
+          title,
         });
         if (cancelled) return;
         if (!res.ok) {
@@ -141,7 +162,6 @@ export function WorkbookWorkbench({
           return;
         }
         saveWorkbookToSession(res.workbook);
-        clearWorkbookPending();
         setWorkbook(res.workbook);
         setGenerating(false);
       } catch (e) {
@@ -157,7 +177,8 @@ export function WorkbookWorkbench({
     return () => {
       cancelled = true;
     };
-  }, [role]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- requestKey captures query
+  }, [role, requestKey]);
 
   useEffect(() => {
     const id = "workbook-print-page-size-style";
