@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateWorkbookBlankFill } from "@/lib/lesson-materials/generate-workbook-blank";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
+import type { LessonPackData } from "@/lib/lesson-materials/generate-lesson-pack";
+import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
 import {
   DEFAULT_WORKBOOK_TF_OPTIONS,
   READY_WORKBOOK_TYPE_IDS,
@@ -53,6 +55,7 @@ export async function generateWorkbookAction(
 ): Promise<
   { ok: true; workbook: WorkbookData } | { ok: false; message: string }
 > {
+  const tLoad0 = Date.now();
   const { profile, error } = await requireRole(role);
   if (error) return { ok: false, message: error };
 
@@ -72,7 +75,8 @@ export async function generateWorkbookAction(
   if (unknown.length) {
     return {
       ok: false,
-      message: "준비 중인 유형이 포함되어 있습니다. T/F와 빈칸 채우기만 선택해 주세요.",
+      message:
+        "준비 중인 유형이 포함되어 있습니다. T/F와 빈칸 채우기만 선택해 주세요.",
     };
   }
 
@@ -106,7 +110,7 @@ export async function generateWorkbookAction(
   const supabase = await createClient();
   let pq = supabase
     .from("lesson_material_projects")
-    .select("id,title,source,deleted_at")
+    .select("id,title,source,lesson_pack_json,deleted_at")
     .in("id", ids)
     .eq("academy_id", profile!.academy_id!)
     .is("deleted_at", null);
@@ -132,6 +136,8 @@ export async function generateWorkbookAction(
       korean: string | null;
     }>;
     englishLines: string[];
+    blankPool: StoredBlankCandidatePool | null;
+    vocabLemmas: string[];
   }> = [];
 
   for (const p of ordered) {
@@ -146,14 +152,18 @@ export async function generateWorkbookAction(
       english: String(it.english_text ?? ""),
       korean: (it.korean_text as string | null) ?? null,
     }));
+    const pack = (p!.lesson_pack_json ?? {}) as Partial<LessonPackData>;
     passages.push({
       projectId: p!.id,
       title: p!.title,
       source: (p!.source as string | null) ?? null,
       sentences,
       englishLines: sentences.map((s) => s.english),
+      blankPool: (pack.blankCandidatePool as StoredBlankCandidatePool) ?? null,
+      vocabLemmas: (pack.vocab ?? []).map((v) => v.word),
     });
   }
+  const dataLoadMs = Date.now() - tLoad0;
 
   const now = new Date();
   const workbook: WorkbookData = {
@@ -169,16 +179,60 @@ export async function generateWorkbookAction(
   };
 
   try {
+    let openAiFromBlank = 0;
     if (wantBlank) {
-      workbook.blankSections = await generateWorkbookBlankFill({
+      const blankResult = await generateWorkbookBlankFill({
         passages: passages.map((p) => ({
           projectId: p.projectId,
           title: p.title,
           source: p.source,
           sentences: p.sentences,
+          blankPool: p.blankPool,
+          vocabLemmas: p.vocabLemmas,
         })),
         options: blankOptions,
       });
+      workbook.blankSections = blankResult.sections;
+      openAiFromBlank = blankResult.timing.openAiRequestCount;
+      workbook.timing = {
+        ...blankResult.timing,
+        dataLoadMs,
+        totalMs: dataLoadMs + blankResult.timing.totalMs,
+      };
+
+      // Persist newly generated pools for next time (0 OpenAI)
+      for (const { projectId, pool } of blankResult.poolsToSave) {
+        const proj = byId.get(projectId);
+        const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+        const next: LessonPackData = {
+          headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
+          vocab: prev.vocab ?? [],
+          updatedAt: new Date().toISOString(),
+          blankCandidatePool: pool,
+          passageSourceHash: pool.sourceHash,
+        };
+        await supabase
+          .from("lesson_material_projects")
+          .update({
+            lesson_pack_json: next,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", projectId);
+      }
+
+      if (blankResult.statusNotes.length && process.env.NODE_ENV !== "production") {
+        console.info("[workbook-blank]", blankResult.statusNotes.join(" | "));
+      }
+      console.info(
+        "[workbook-timing]",
+        JSON.stringify({
+          openAiRequestCount: openAiFromBlank,
+          dataLoadMs,
+          translationLookupMs: blankResult.timing.translationLookupMs,
+          blankSelectionMs: blankResult.timing.blankSelectionMs,
+          totalMs: workbook.timing.totalMs,
+        })
+      );
     }
 
     if (wantTf) {
@@ -193,6 +247,10 @@ export async function generateWorkbookAction(
         options: tfOptions,
       });
       workbook.sections = tf.sections;
+      // TF still uses OpenAI — timing note only for blank path when TF absent
+      if (workbook.timing && !wantBlank) {
+        workbook.timing.openAiRequestCount = passages.length;
+      }
     }
 
     if (wantBlank && workbook.blankSections.length === 0) {

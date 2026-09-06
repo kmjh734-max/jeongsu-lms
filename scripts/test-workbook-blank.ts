@@ -3,6 +3,9 @@
  * Run: npx tsx scripts/test-workbook-blank.ts
  */
 import assert from "node:assert/strict";
+import {
+  conflictsWithNearSynonym,
+} from "../src/lib/lesson-materials/blank-concept-score";
 import { assessWorkbookTranslation } from "../src/lib/lesson-materials/refine-workbook-translation";
 import {
   assignBlankNumbers,
@@ -53,13 +56,13 @@ const sentences = [
     {
       id: "b2",
       sentenceId: "s1",
-      answerText: "magnetic",
+      answerText: "Belief",
       occurrenceIndex: 0,
-      lemma: "magnetic",
-      partOfSpeech: "adjective",
-      meaningKo: "끌어당기는",
-      selectionReasonKo: "핵심 형용사",
-      priority: 4,
+      lemma: "belief",
+      partOfSpeech: "noun",
+      meaningKo: "신념",
+      selectionReasonKo: "핵심 명사",
+      priority: 5,
     },
     {
       id: "bad",
@@ -276,6 +279,24 @@ const sentences = [
       "Movement is life to us.",
       "우리에게 움직임은 곧 생명이다."
     ).ok
+  );
+}
+
+{
+  // Near-synonym conflict: worthy vs deserving
+  assert.equal(
+    conflictsWithNearSynonym(
+      { lemma: "worthy", globalWordIndex: 10, sentenceId: "s1" },
+      { lemma: "deserving", globalWordIndex: 12, sentenceId: "s1" }
+    ),
+    true
+  );
+  assert.equal(
+    conflictsWithNearSynonym(
+      { lemma: "belief", globalWordIndex: 5, sentenceId: "s0" },
+      { lemma: "focusing", globalWordIndex: 8, sentenceId: "s0" }
+    ),
+    false
   );
 }
 

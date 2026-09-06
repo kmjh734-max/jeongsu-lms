@@ -15,12 +15,19 @@ import {
   buildBlankTokensForSentence,
   flattenPassageTokens,
 } from "@/lib/lesson-materials/insert-workbook-blanks";
-import { resolveWorkbookTranslations } from "@/lib/lesson-materials/refine-workbook-translation";
 import {
   selectBlankCandidates,
   validateBlankCandidates,
   type ValidatedBlankCandidate,
 } from "@/lib/lesson-materials/validate-workbook-blank";
+import {
+  BLANK_POOL_ALGORITHM_VERSION,
+  computePassageSourceHash,
+  isBlankPoolFresh,
+  type StoredBlankCandidate,
+  type StoredBlankCandidatePool,
+} from "@/lib/lesson-materials/workbook-blank-cache";
+import { computeConceptScore } from "@/lib/lesson-materials/blank-concept-score";
 import {
   computeBlankTargetCount,
   countEnglishWords,
@@ -30,6 +37,7 @@ import {
   type WorkbookBlankFillOptions,
   type WorkbookBlankSection,
   type WorkbookBlankSentence,
+  type WorkbookGenerationTiming,
 } from "@/lib/lesson-materials/workbook-types";
 
 function parseJsonSafe<T>(text: string): T | null {
@@ -49,7 +57,7 @@ function parseJsonSafe<T>(text: string): T | null {
   }
 }
 
-async function callBlankOpenAI(input: {
+export async function callBlankOpenAI(input: {
   passageId: string;
   title?: string;
   targetCount: number;
@@ -219,61 +227,79 @@ async function callBlankOpenAI(input: {
   }
 }
 
-async function resolveKoreanLines(
-  sentenceIds: string[],
-  english: string[],
-  existingKorean: Array<string | null | undefined>
-): Promise<{
-  korean: string[];
-  warning?: string;
-  translations: Awaited<
-    ReturnType<typeof resolveWorkbookTranslations>
-  >["translations"];
-}> {
-  return resolveWorkbookTranslations({
-    sentenceIds,
-    english,
-    existingKorean,
-  });
+function storedToRawCandidates(pool: StoredBlankCandidate[]): unknown[] {
+  return pool.map((c, i) => ({
+    id: `cached-${i + 1}`,
+    sentenceId: c.sentenceId,
+    answerText: c.answerText,
+    occurrenceIndex: c.occurrenceIndex,
+    lemma: c.lemma,
+    partOfSpeech: c.partOfSpeech,
+    meaningKo: c.meaningKo,
+    selectionReasonKo: c.selectionReasonKo,
+    priority: c.priority,
+  }));
 }
 
-function pickCandidatesWithRetryPayload(
+function validatedToStored(
+  selected: ValidatedBlankCandidate[],
   passageId: string,
-  sentences: Array<{ id: string; english: string }>,
-  rawCandidates: unknown[],
-  recommended: number,
-  density: WorkbookBlankFillOptions["density"]
-): { selected: ValidatedBlankCandidate[]; shortfallReason: string | null } {
-  const sentenceWordCounts = new Map(
-    sentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
-  );
-  const { valid } = validateBlankCandidates({
+  sourceHash: string
+): StoredBlankCandidatePool {
+  return {
     passageId,
-    responsePassageId: passageId,
-    sentences,
-    generatedCandidates: rawCandidates,
-    recommendedCount: recommended,
-    density,
-  });
-  return selectBlankCandidates(valid, recommended, {
-    density,
-    sentenceWordCounts,
-  });
+    sourceHash,
+    algorithmVersion: BLANK_POOL_ALGORITHM_VERSION,
+    createdAt: new Date().toISOString(),
+    candidates: selected.map((c) => ({
+      sentenceId: c.sentenceId,
+      answerText: c.answerText,
+      occurrenceIndex: c.occurrenceIndex,
+      lemma: c.lemma,
+      partOfSpeech: c.partOfSpeech,
+      meaningKo: c.meaningKo,
+      priority: c.priority,
+      conceptScore: c.conceptScore,
+      selectionReasonKo: c.selectionReasonKo,
+    })),
+  };
 }
+
+export type BlankFillPassageInput = {
+  projectId: string;
+  title: string;
+  source?: string | null;
+  sentences: Array<{
+    id: string;
+    english: string;
+    korean?: string | null;
+  }>;
+  /** Cached pool from lesson_pack_json */
+  blankPool?: StoredBlankCandidatePool | null;
+  vocabLemmas?: string[];
+};
+
+export type BlankFillResult = {
+  sections: WorkbookBlankSection[];
+  /** Pools that were newly generated and should be persisted */
+  poolsToSave: Array<{ projectId: string; pool: StoredBlankCandidatePool }>;
+  timing: WorkbookGenerationTiming;
+  statusNotes: string[];
+};
 
 export async function generateWorkbookBlankFill(input: {
-  passages: Array<{
-    projectId: string;
-    title: string;
-    source?: string | null;
-    sentences: Array<{
-      id: string;
-      english: string;
-      korean?: string | null;
-    }>;
-  }>;
+  passages: BlankFillPassageInput[];
   options: WorkbookBlankFillOptions;
-}): Promise<WorkbookBlankSection[]> {
+}): Promise<BlankFillResult> {
+  const t0 = Date.now();
+  let translationLookupMs = 0;
+  let blankSelectionMs = 0;
+  let openAiRequestCount = 0;
+  const statusNotes: string[] = [];
+  const poolsToSave: Array<{
+    projectId: string;
+    pool: StoredBlankCandidatePool;
+  }> = [];
   const sections: WorkbookBlankSection[] = [];
   const density = input.options.density ?? "high";
 
@@ -282,7 +308,7 @@ export async function generateWorkbookBlankFill(input: {
       .map((s) => ({
         id: s.id,
         english: formatWorkbookPassage(s.english),
-        korean: s.korean,
+        korean: String(s.korean ?? "").trim(),
       }))
       .filter((s) => s.english);
 
@@ -290,9 +316,21 @@ export async function generateWorkbookBlankFill(input: {
       throw new Error(`「${p.title}」에 영어 지문이 없습니다.`);
     }
 
+    const tTr = Date.now();
+    if (input.options.showTranslation) {
+      const missing = sentences.filter((s) => !s.korean);
+      if (missing.length > 0) {
+        throw new Error(
+          `「${p.title}」에 저장된 한글 해석이 없거나 원문이 변경되었습니다. 수업용자료에서 해석을 먼저 생성하거나 ‘해석 미제공’을 선택해 주세요.`
+        );
+      }
+    }
+    translationLookupMs += Date.now() - tTr;
+
     const sourcePassage = joinWorkbookPassageLines(
       sentences.map((s) => s.english)
     );
+    const sourceHash = computePassageSourceHash(sentences.map((s) => s.english));
     const wordCount = countEnglishWords(sourcePassage);
     const recommended = computeBlankTargetCount({
       englishWordCount: wordCount,
@@ -300,6 +338,8 @@ export async function generateWorkbookBlankFill(input: {
       hintType: input.options.hintType,
       showTranslation: input.options.showTranslation,
     });
+    // Ask AI for a richer pool than final target when generating fresh
+    const poolTarget = Math.min(24, Math.max(recommended + 6, 20));
     const sentenceWordCounts = new Map(
       sentences.map((s) => [s.id, countEnglishWords(s.english)] as const)
     );
@@ -309,47 +349,86 @@ export async function generateWorkbookBlankFill(input: {
         getMaxBlanksForSentence(wc, density)
       )
     );
+    const vocabLemmas = new Set(
+      (p.vocabLemmas ?? []).map((w) => w.toLowerCase().trim()).filter(Boolean)
+    );
 
-    let raw = await callBlankOpenAI({
-      passageId: p.projectId,
-      title: p.title,
-      targetCount: recommended,
-      maxPerSentence,
-      sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
-    });
+    const tBlank = Date.now();
+    let rawCandidates: unknown[] = [];
+    let usedCache = false;
 
-    const validatedOnce = validateBlankCandidates({
+    if (isBlankPoolFresh(p.blankPool, p.projectId, sourceHash)) {
+      rawCandidates = storedToRawCandidates(p.blankPool.candidates);
+      usedCache = true;
+    } else {
+      statusNotes.push(
+        `「${p.title}」핵심 어휘를 처음 준비하고 있습니다. 완료 후 다음 제작부터는 저장된 결과를 사용합니다.`
+      );
+      openAiRequestCount += 1;
+      rawCandidates = await callBlankOpenAI({
+        passageId: p.projectId,
+        title: p.title,
+        targetCount: poolTarget,
+        maxPerSentence,
+        sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+      });
+    }
+
+    let { valid } = validateBlankCandidates({
       passageId: p.projectId,
       responsePassageId: p.projectId,
       sentences,
-      generatedCandidates: raw,
-      recommendedCount: recommended,
+      generatedCandidates: rawCandidates,
+      recommendedCount: poolTarget,
       density,
+      vocabLemmas,
+      titleText: p.title,
     });
 
+    // Enrich concept scores if missing from cache path
+    valid = valid.map((c) => ({
+      ...c,
+      conceptScore:
+        c.conceptScore ||
+        computeConceptScore({
+          lemma: c.lemma,
+          partOfSpeech: c.partOfSpeech,
+          priority: c.priority,
+          vocabLemmas,
+          titleText: p.title,
+        }),
+    }));
+
     let { selected, shortfallReason } = selectBlankCandidates(
-      validatedOnce.valid,
+      valid,
       recommended,
       { density, sentenceWordCounts }
     );
 
-    if (selected.length < Math.min(4, recommended)) {
-      raw = await callBlankOpenAI({
+    if (!usedCache && selected.length < Math.min(4, recommended)) {
+      openAiRequestCount += 1;
+      rawCandidates = await callBlankOpenAI({
         passageId: p.projectId,
         title: p.title,
-        targetCount: recommended,
+        targetCount: poolTarget,
         maxPerSentence,
         sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
       });
-      const retried = pickCandidatesWithRetryPayload(
-        p.projectId,
+      const again = validateBlankCandidates({
+        passageId: p.projectId,
+        responsePassageId: p.projectId,
         sentences,
-        raw,
-        recommended,
-        density
-      );
-      selected = retried.selected;
-      shortfallReason = retried.shortfallReason;
+        generatedCandidates: rawCandidates,
+        recommendedCount: poolTarget,
+        density,
+        vocabLemmas,
+        titleText: p.title,
+      });
+      valid = again.valid;
+      ({ selected, shortfallReason } = selectBlankCandidates(valid, recommended, {
+        density,
+        sentenceWordCounts,
+      }));
     }
 
     if (selected.length === 0) {
@@ -358,9 +437,24 @@ export async function generateWorkbookBlankFill(input: {
       );
     }
 
+    // Persist a ranked pool (prefer full valid list capped, not only selected)
+    if (!usedCache) {
+      const poolSelected = selectBlankCandidates(valid, poolTarget, {
+        density,
+        sentenceWordCounts,
+      }).selected;
+      const pool = validatedToStored(
+        poolSelected.length ? poolSelected : selected,
+        p.projectId,
+        sourceHash
+      );
+      poolsToSave.push({ projectId: p.projectId, pool });
+    }
+
+    blankSelectionMs += Date.now() - tBlank;
+
     const sentenceOrder = sentences.map((s) => s.id);
     const numberByKey = assignBlankNumbers(selected, sentenceOrder);
-
     const blankBySentence = new Map<string, ValidatedBlankCandidate[]>();
     for (const c of selected) {
       const list = blankBySentence.get(c.sentenceId) ?? [];
@@ -369,7 +463,7 @@ export async function generateWorkbookBlankFill(input: {
     }
 
     const sentenceRows: WorkbookBlankSentence[] = [];
-    const tokenRows = [];
+    const tokenRows: ReturnType<typeof buildBlankTokensForSentence>[] = [];
     for (const s of sentences) {
       const blanks = blankBySentence.get(s.id) ?? [];
       const tokens = buildBlankTokensForSentence({
@@ -381,40 +475,10 @@ export async function generateWorkbookBlankFill(input: {
       sentenceRows.push({
         id: s.id,
         english: s.english,
-        korean: "",
+        korean: s.korean,
         tokens,
       });
       tokenRows.push(tokens);
-    }
-
-    let translationWarning: string | undefined;
-    let translations = undefined as
-      | Awaited<ReturnType<typeof resolveKoreanLines>>["translations"]
-      | undefined;
-
-    if (input.options.showTranslation) {
-      const resolved = await resolveKoreanLines(
-        sentences.map((s) => s.id),
-        sentences.map((s) => s.english),
-        sentences.map((s) => s.korean)
-      );
-      translationWarning = resolved.warning;
-      translations = resolved.translations;
-      sentenceRows.forEach((row, i) => {
-        row.korean = resolved.korean[i] ?? "";
-      });
-      if (
-        resolved.korean.length !== sentences.length ||
-        resolved.korean.some((k) => !k.trim())
-      ) {
-        translationWarning =
-          translationWarning ||
-          "영어 문장과 한국어 해석 개수가 일치하지 않거나 비어 있습니다.";
-      }
-    } else {
-      sentenceRows.forEach((row, i) => {
-        row.korean = String(sentences[i]?.korean ?? "").trim();
-      });
     }
 
     const fullKorean = sentenceRows
@@ -422,20 +486,15 @@ export async function generateWorkbookBlankFill(input: {
       .filter(Boolean)
       .join(" ");
 
-    const answers = buildAnswersFromSelected(selected, numberByKey);
-    const passageTokens = flattenPassageTokens(tokenRows);
-
     sections.push({
       projectId: p.projectId,
       title: p.title,
       source: p.source ?? null,
       sourcePassage,
       sentences: sentenceRows,
-      passageTokens,
-      answers,
+      passageTokens: flattenPassageTokens(tokenRows),
+      answers: buildAnswersFromSelected(selected, numberByKey),
       fullKorean,
-      translationWarning,
-      translations,
       generation: {
         englishWordCount: wordCount,
         density,
@@ -447,5 +506,14 @@ export async function generateWorkbookBlankFill(input: {
     });
   }
 
-  return sections;
+  const timing: WorkbookGenerationTiming = {
+    dataLoadMs: 0,
+    translationLookupMs,
+    blankSelectionMs,
+    pdfRenderMs: 0,
+    totalMs: Date.now() - t0,
+    openAiRequestCount,
+  };
+
+  return { sections, poolsToSave, timing, statusNotes };
 }

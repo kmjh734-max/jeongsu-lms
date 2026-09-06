@@ -264,6 +264,15 @@ export type WorkbookBlankSection = {
   translations?: WorkbookTranslation[];
 };
 
+export type WorkbookGenerationTiming = {
+  dataLoadMs: number;
+  translationLookupMs: number;
+  blankSelectionMs: number;
+  pdfRenderMs: number;
+  totalMs: number;
+  openAiRequestCount: number;
+};
+
 export type WorkbookData = {
   metadata: WorkbookMetadata;
   selectedTypes: WorkbookTypeId[];
@@ -273,6 +282,7 @@ export type WorkbookData = {
   sections: WorkbookPassageSection[];
   /** Blank-fill sections (empty when blank_fill not selected) */
   blankSections: WorkbookBlankSection[];
+  timing?: WorkbookGenerationTiming;
 };
 
 export function defaultWorkbookTitle(d = new Date()): string {

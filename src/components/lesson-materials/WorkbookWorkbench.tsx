@@ -388,12 +388,10 @@ export function WorkbookWorkbench({
       const wantBlank = types.includes("blank_fill");
       const wantTf = types.includes("tf");
       if (wantBlank && wantTf) {
-        setStatus(
-          "핵심 어휘 선정 → 빈칸 구성 → T/F 생성 → PDF 구성 중…"
-        );
+        setStatus("저장된 해석·빈칸 후보로 워크북을 구성하고 T/F를 생성합니다…");
       } else if (wantBlank) {
         setStatus(
-          "핵심 어휘 선정 중 → 빈칸 위치 확인 → 지문·정답 구성 중…"
+          "저장된 해석·빈칸 후보를 불러와 배치합니다… (캐시가 없으면 한 번만 준비)"
         );
       } else {
         setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
@@ -500,8 +498,8 @@ export function WorkbookWorkbench({
         <div className="rounded-2xl bg-white px-8 py-6 text-center shadow">
           <p className="text-sm font-semibold text-slate-800">{status}</p>
           <p className="mt-2 text-xs text-slate-500">
-            지문마다 AI 작업이 있어 잠시 걸릴 수 있습니다. 실패 시 오류가
-            표시되며 불완전한 PDF는 만들지 않습니다.
+            해석은 수업용자료에 저장된 내용을 재사용합니다. 저장 데이터가 있으면
+            빈칸은 OpenAI 없이 바로 구성됩니다.
           </p>
         </div>
         <Link href={base} className="text-xs font-semibold text-violet-700">

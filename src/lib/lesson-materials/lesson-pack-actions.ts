@@ -10,6 +10,19 @@ import {
   type LessonPackVocabItem,
 } from "@/lib/lesson-materials/generate-lesson-pack";
 import { generateLessonMaterialsOrganizationDraft } from "@/lib/lesson-materials/generate-organization";
+import { translateEnglishLinesToKorean } from "@/lib/lesson-materials/translate-lines";
+import { callBlankOpenAI } from "@/lib/lesson-materials/generate-workbook-blank";
+import {
+  selectBlankCandidates,
+  validateBlankCandidates,
+} from "@/lib/lesson-materials/validate-workbook-blank";
+import {
+  BLANK_POOL_ALGORITHM_VERSION,
+  computePassageSourceHash,
+  isBlankPoolFresh,
+  type StoredBlankCandidatePool,
+} from "@/lib/lesson-materials/workbook-blank-cache";
+import { formatWorkbookPassage } from "@/lib/lesson-materials/workbook-types";
 
 type Role = "admin" | "teacher";
 
@@ -62,10 +75,40 @@ export async function generateAndSaveLessonPackVocabAction(
 
   const { data: items, error: iErr } = await supabase
     .from("lesson_material_items")
-    .select("english_text,korean_text,order_index")
+    .select("id,english_text,korean_text,order_index")
     .eq("project_id", projectId)
     .order("order_index", { ascending: true });
   if (iErr) return { ok: false, message: iErr.message };
+
+  // Fill missing Korean translations once (batch) — workbook will reuse these.
+  const needTr = (items ?? []).filter(
+    (it) => !String(it.korean_text ?? "").trim() && String(it.english_text ?? "").trim()
+  );
+  if (needTr.length > 0) {
+    try {
+      const translated = await translateEnglishLinesToKorean(
+        needTr.map((it) => String(it.english_text))
+      );
+      for (let i = 0; i < needTr.length; i++) {
+        const row = needTr[i]!;
+        const ko = translated[i] ?? "";
+        if (!ko) continue;
+        await supabase
+          .from("lesson_material_items")
+          .update({ korean_text: ko, updated_at: new Date().toISOString() })
+          .eq("id", row.id);
+        row.korean_text = ko;
+      }
+    } catch (e) {
+      return {
+        ok: false,
+        message:
+          e instanceof Error
+            ? `일부 문장의 해석을 생성하지 못했습니다. ${e.message}`
+            : "일부 문장의 해석을 생성하지 못했습니다.",
+      };
+    }
+  }
 
   const english = (items ?? []).map((it) => it.english_text).join("\n");
   const korean = (items ?? [])
@@ -80,10 +123,73 @@ export async function generateAndSaveLessonPackVocabAction(
       title: project.title,
     });
     const prev = (project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+
+    const sentences = (items ?? []).map((it, idx) => ({
+      id: String(it.id ?? `s${idx}`),
+      english: formatWorkbookPassage(String(it.english_text ?? "")),
+    })).filter((s) => s.english);
+    const sourceHash = computePassageSourceHash(sentences.map((s) => s.english));
+    let blankCandidatePool: StoredBlankCandidatePool | null =
+      (prev.blankCandidatePool as StoredBlankCandidatePool) ?? null;
+
+    if (!isBlankPoolFresh(blankCandidatePool, projectId, sourceHash) && sentences.length) {
+      try {
+        const raw = await callBlankOpenAI({
+          passageId: projectId,
+          title: project.title,
+          targetCount: 22,
+          maxPerSentence: 3,
+          sentences,
+        });
+        const { valid } = validateBlankCandidates({
+          passageId: projectId,
+          responsePassageId: projectId,
+          sentences,
+          generatedCandidates: raw,
+          recommendedCount: 22,
+          density: "high",
+          vocabLemmas: new Set(vocab.map((v) => v.word.toLowerCase())),
+          titleText: project.title,
+        });
+        const { selected } = selectBlankCandidates(valid, 22, {
+          density: "high",
+          sentenceWordCounts: new Map(
+            sentences.map((s) => [
+              s.id,
+              s.english.split(/\s+/).filter(Boolean).length,
+            ])
+          ),
+        });
+        if (selected.length) {
+          blankCandidatePool = {
+            passageId: projectId,
+            sourceHash,
+            algorithmVersion: BLANK_POOL_ALGORITHM_VERSION,
+            createdAt: new Date().toISOString(),
+            candidates: selected.map((c) => ({
+              sentenceId: c.sentenceId,
+              answerText: c.answerText,
+              occurrenceIndex: c.occurrenceIndex,
+              lemma: c.lemma,
+              partOfSpeech: c.partOfSpeech,
+              meaningKo: c.meaningKo,
+              priority: c.priority,
+              conceptScore: c.conceptScore,
+              selectionReasonKo: c.selectionReasonKo,
+            })),
+          };
+        }
+      } catch {
+        // Best-effort; vocab still saves
+      }
+    }
+
     const pack: LessonPackData = {
       headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
       vocab,
       updatedAt: new Date().toISOString(),
+      blankCandidatePool,
+      passageSourceHash: sourceHash,
     };
 
     let titleEn = ((project.title_en as string | null) ?? "").trim() || null;
@@ -235,10 +341,24 @@ export async function saveLessonPackAction(
   if (!projectId) return { ok: false, message: "프로젝트 ID가 없습니다." };
 
   const supabase = await createClient();
+  let pq = supabase
+    .from("lesson_material_projects")
+    .select("id,lesson_pack_json")
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null);
+  if (role === "teacher") {
+    pq = pq.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { data: existing } = await pq.maybeSingle();
+  const prev = (existing?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+
   const pack: LessonPackData = {
     headerLabel: (input.headerLabel ?? "26년도 1학기 중간고사 대비").trim(),
     vocab: input.vocab,
     updatedAt: new Date().toISOString(),
+    blankCandidatePool: prev.blankCandidatePool ?? null,
+    passageSourceHash: prev.passageSourceHash,
   };
 
   const patch: Record<string, unknown> = {

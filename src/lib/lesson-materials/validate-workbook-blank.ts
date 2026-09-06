@@ -7,6 +7,10 @@ import {
   countEnglishWords,
   getMaxBlanksForSentence,
 } from "@/lib/lesson-materials/workbook-types";
+import {
+  computeConceptScore,
+  conflictsWithNearSynonym,
+} from "@/lib/lesson-materials/blank-concept-score";
 
 const EXCLUDED_LOWER = new Set([
   "a",
@@ -172,6 +176,7 @@ export type ValidatedBlankCandidate = GeneratedBlankCandidate & {
   end: number;
   wordIndex: number;
   globalWordIndex: number;
+  conceptScore: number;
 };
 
 export function validateBlankCandidates(input: {
@@ -181,6 +186,8 @@ export function validateBlankCandidates(input: {
   generatedCandidates: unknown;
   recommendedCount: number;
   density?: BlankDensity;
+  vocabLemmas?: Set<string>;
+  titleText?: string;
 }): {
   valid: ValidatedBlankCandidate[];
   rejected: Array<{ reason: string; raw?: unknown }>;
@@ -308,6 +315,13 @@ export function validateBlankCandidates(input: {
       end: hit.end,
       wordIndex: hit.wordIndex,
       globalWordIndex: base + hit.wordIndex,
+      conceptScore: computeConceptScore({
+        lemma,
+        partOfSpeech,
+        priority,
+        vocabLemmas: input.vocabLemmas,
+        titleText: input.titleText,
+      }),
     });
   }
 
@@ -332,6 +346,7 @@ export function selectBlankCandidates(
   const target = Math.max(1, recommendedCount);
   const minGapPreferred = density === "high" ? 4 : 5;
   const sorted = [...valid].sort((a, b) => {
+    if (b.conceptScore !== a.conceptScore) return b.conceptScore - a.conceptScore;
     if (b.priority !== a.priority) return b.priority - a.priority;
     return a.globalWordIndex - b.globalWordIndex;
   });
@@ -357,11 +372,11 @@ export function selectBlankCandidates(
       return false;
     }
     for (const p of picked) {
+      if (conflictsWithNearSynonym(c, p)) return false;
       if (Math.abs(p.globalWordIndex - c.globalWordIndex) < minGap) {
         hitGapCap = true;
         return false;
       }
-      // Adjacent words (gap < 2) never
       if (Math.abs(p.globalWordIndex - c.globalWordIndex) < 2) return false;
     }
     picked.push(c);

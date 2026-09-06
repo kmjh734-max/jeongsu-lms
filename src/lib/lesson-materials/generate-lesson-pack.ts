@@ -1,3 +1,5 @@
+import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
+
 export type LessonPackVocabItem = {
   word: string;
   meaning: string; // e.g. "a. 생산적인"
@@ -9,6 +11,9 @@ export type LessonPackData = {
   headerLabel: string;
   vocab: LessonPackVocabItem[];
   updatedAt?: string;
+  /** Ranked blank-fill candidates for workbook reuse (no OpenAI on cache hit) */
+  blankCandidatePool?: StoredBlankCandidatePool | null;
+  passageSourceHash?: string;
 };
 
 function parseJsonSafe<T>(text: string): T | null {
