@@ -497,7 +497,7 @@ export function AnalysisReportWorkbench({
 
           <p className="text-xs text-slate-500">{project.title}</p>
           {project.source?.trim() ? (
-            <p className="text-[11px] text-slate-400">출처: {project.source}</p>
+            <p className="text-[11px] text-slate-400">{project.source}</p>
           ) : null}
           {error ? <Alert variant="error">{error}</Alert> : null}
         </div>
