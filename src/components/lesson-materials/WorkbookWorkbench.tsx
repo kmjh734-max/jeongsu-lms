@@ -91,6 +91,11 @@ function parseTypes(raw: string | null): WorkbookTypeId[] {
   return list.length ? list : ["tf"];
 }
 
+/** OCR/import hard wraps → one flowing paragraph. */
+function asParagraph(text: string) {
+  return text.replace(/\s+/g, " ").trim();
+}
+
 export function WorkbookWorkbench({
   role,
 }: {
@@ -346,8 +351,8 @@ export function WorkbookWorkbench({
                           : ""}
                       </p>
                     ) : null}
-                    <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-900">
-                      {section.passage}
+                    <p className="text-[13px] leading-relaxed text-slate-900">
+                      {asParagraph(section.passage)}
                     </p>
                     <div className="my-4 h-px w-full bg-slate-200" />
                     <ol className="space-y-3">

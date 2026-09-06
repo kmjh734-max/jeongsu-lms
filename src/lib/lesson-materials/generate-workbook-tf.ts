@@ -229,7 +229,13 @@ export async function generateWorkbookTf(input: {
 
   const sections: WorkbookPassageSection[] = [];
   for (const p of input.passages) {
-    const passage = p.englishLines.map((l) => l.trim()).filter(Boolean).join(" ");
+    // Collapse hard line breaks from OCR/import so the passage reads as one paragraph.
+    const passage = p.englishLines
+      .map((l) => l.replace(/\s+/g, " ").trim())
+      .filter(Boolean)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
     if (!passage) {
       throw new Error(`「${p.title}」에 영어 지문이 없습니다.`);
     }
