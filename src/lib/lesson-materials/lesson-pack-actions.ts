@@ -200,22 +200,36 @@ export async function generateAndSaveLessonPackVocabAction(
     if (!isBlankPoolFresh(blankCandidatePool, projectId, sourceHash) && sentences.length) {
       try {
         const vocabSet = new Set(vocab.map((v) => v.word.toLowerCase()));
-        let raw = buildBlankCandidatesFromVocab({
+        let raw = await callBlankOpenAI({
+          passageId: projectId,
+          title: project.title,
+          targetCount: 22,
+          maxPerSentence: 3,
           sentences,
-          vocab,
-          titleText: project.title,
-          maxCandidates: 22,
-        });
-        if (raw.length < 8) {
-          raw = await callBlankOpenAI({
-            passageId: projectId,
-            title: project.title,
-            targetCount: 22,
-            maxPerSentence: 3,
+          existingVocabulary: vocab.map((v) => ({
+            word: v.word,
+            lemma: v.word,
+            meaningKo: v.meaning,
+          })),
+        }).then((r) => r.candidates).catch(async () => {
+          return buildBlankCandidatesFromVocab({
             sentences,
+            vocab,
+            titleText: project.title,
+            maxCandidates: 22,
           });
+        });
+        // Prefer AI; if AI returned empty, fall back
+        if (!Array.isArray(raw) || raw.length < 8) {
+          const fromVocab = buildBlankCandidatesFromVocab({
+            sentences,
+            vocab,
+            titleText: project.title,
+            maxCandidates: 22,
+          });
+          if (fromVocab.length > (raw?.length ?? 0)) raw = fromVocab;
         }
-        const { valid } = validateBlankCandidates({
+        const { valid, coreSentenceIds } = validateBlankCandidates({
           passageId: projectId,
           responsePassageId: projectId,
           sentences,
@@ -233,6 +247,8 @@ export async function generateAndSaveLessonPackVocabAction(
               s.english.split(/\s+/).filter(Boolean).length,
             ])
           ),
+          coreSentenceIds,
+          sentenceOrder: sentences.map((s) => s.id),
         });
         if (selected.length) {
           blankCandidatePool = {
@@ -240,6 +256,7 @@ export async function generateAndSaveLessonPackVocabAction(
             sourceHash,
             algorithmVersion: BLANK_POOL_ALGORITHM_VERSION,
             createdAt: new Date().toISOString(),
+            coreSentenceIds,
             candidates: selected.map((c) => ({
               sentenceId: c.sentenceId,
               answerText: c.answerText,
@@ -248,8 +265,13 @@ export async function generateAndSaveLessonPackVocabAction(
               partOfSpeech: c.partOfSpeech,
               meaningKo: c.meaningKo,
               priority: c.priority,
-              conceptScore: c.conceptScore,
+              conceptScore: c.finalScore ?? c.conceptScore,
               selectionReasonKo: c.selectionReasonKo,
+              wordFamily: c.wordFamily,
+              semanticRole: c.semanticRole,
+              competitionGroup: c.competitionGroup,
+              scores: c.scores,
+              finalScore: c.finalScore,
             })),
           };
         }

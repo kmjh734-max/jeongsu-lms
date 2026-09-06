@@ -27,7 +27,7 @@ import {
   type StoredBlankCandidate,
   type StoredBlankCandidatePool,
 } from "@/lib/lesson-materials/workbook-blank-cache";
-import { computeConceptScore } from "@/lib/lesson-materials/blank-concept-score";
+import { computeBlankFinalScore } from "@/lib/lesson-materials/blank-concept-score";
 import { buildBlankCandidatesFromVocab } from "@/lib/lesson-materials/build-blank-candidates-from-vocab";
 import type { LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import {
@@ -71,19 +71,61 @@ function parseJsonSafe<T>(text: string): T | null {
 export async function callBlankOpenAI(input: {
   passageId: string;
   title?: string;
+  topicKo?: string;
+  summaryKo?: string;
   targetCount: number;
   maxPerSentence: number;
   sentences: Array<{ id: string; english: string }>;
-}): Promise<unknown[]> {
+  existingVocabulary?: Array<{
+    word: string;
+    lemma?: string;
+    meaningKo?: string;
+  }>;
+}): Promise<{ candidates: unknown[]; coreSentenceIds: string[] }> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
 
-  const userContent = buildWorkbookBlankUserPrompt(input);
+  const userContent = buildWorkbookBlankUserPrompt({
+    passageId: input.passageId,
+    titleKo: input.title,
+    topicKo: input.topicKo,
+    summaryKo: input.summaryKo,
+    targetCount: input.targetCount,
+    maxPerSentence: input.maxPerSentence,
+    sentences: input.sentences.map((s, i) => ({
+      sentenceId: s.id,
+      order: i + 1,
+      english: s.english,
+    })),
+    existingVocabulary: input.existingVocabulary,
+  });
   const configured = process.env.OPENAI_MODEL_WORKBOOK_BLANK?.trim();
-  // Prefer fast models only. Ignore OPENAI_MODEL_WORKBOOK (gpt-5) for blanks.
-  const candidates = configured
+  const modelCandidates = configured
     ? [configured]
     : ["gpt-4o-mini", "gpt-4o"];
+
+  const scoreProps = {
+    type: "object",
+    additionalProperties: false,
+    required: [
+      "centrality",
+      "learningValue",
+      "contextualImportance",
+      "reusability",
+      "collocationValue",
+      "commonnessPenalty",
+      "redundancyPenalty",
+    ],
+    properties: {
+      centrality: { type: "integer" },
+      learningValue: { type: "integer" },
+      contextualImportance: { type: "integer" },
+      reusability: { type: "integer" },
+      collocationValue: { type: "integer" },
+      commonnessPenalty: { type: "integer" },
+      redundancyPenalty: { type: "integer" },
+    },
+  };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 60_000);
@@ -92,7 +134,7 @@ export async function callBlankOpenAI(input: {
     let bodyText = "";
     let ok = false;
 
-    for (const model of candidates) {
+    for (const model of modelCandidates) {
       let includeTemperature = studentRecordModelSupportsTemperature(model);
       let includeJsonMode = true;
       let useJsonSchema = true;
@@ -104,50 +146,70 @@ export async function callBlankOpenAI(input: {
             { role: "system", content: WORKBOOK_BLANK_SYSTEM_PROMPT },
             { role: "user", content: userContent },
           ],
-          max_tokens: 4096,
+          max_tokens: 6_144,
         };
 
         if (useJsonSchema) {
           body.response_format = {
             type: "json_schema",
             json_schema: {
-              name: "workbook_blank_candidates",
+              name: "workbook_blank_candidates_v3",
               strict: true,
               schema: {
                 type: "object",
                 additionalProperties: false,
-                required: ["passageId", "candidates"],
+                required: ["passageId", "coreSentenceIds", "candidates"],
                 properties: {
                   passageId: { type: "string" },
+                  coreSentenceIds: {
+                    type: "array",
+                    items: { type: "string" },
+                  },
                   candidates: {
                     type: "array",
                     items: {
                       type: "object",
                       additionalProperties: false,
                       required: [
-                        "id",
+                        "candidateId",
                         "sentenceId",
                         "answerText",
                         "occurrenceIndex",
                         "lemma",
+                        "wordFamily",
                         "partOfSpeech",
                         "meaningKo",
-                        "selectionReasonKo",
-                        "priority",
+                        "semanticRole",
+                        "competitionGroup",
+                        "scores",
+                        "reasonKo",
                       ],
                       properties: {
-                        id: { type: "string" },
+                        candidateId: { type: "string" },
                         sentenceId: { type: "string" },
                         answerText: { type: "string" },
                         occurrenceIndex: { type: "integer" },
                         lemma: { type: "string" },
+                        wordFamily: { type: "string" },
                         partOfSpeech: {
                           type: "string",
                           enum: ["noun", "verb", "adjective", "adverb"],
                         },
                         meaningKo: { type: "string" },
-                        selectionReasonKo: { type: "string" },
-                        priority: { type: "integer" },
+                        semanticRole: {
+                          type: "string",
+                          enum: [
+                            "theme",
+                            "main_claim",
+                            "logic",
+                            "academic",
+                            "context",
+                            "collocation",
+                          ],
+                        },
+                        competitionGroup: { type: "string" },
+                        scores: scoreProps,
+                        reasonKo: { type: "string" },
                       },
                     },
                   },
@@ -159,13 +221,12 @@ export async function callBlankOpenAI(input: {
           body.response_format = { type: "json_object" };
         }
 
-        if (includeTemperature) body.temperature = 0.3;
+        if (includeTemperature) body.temperature = 0.25;
         else delete body.temperature;
 
-        // Never attach reasoning_effort for blank extraction
         if (isGpt5FamilyModel(model)) {
           delete body.max_tokens;
-          body.max_completion_tokens = 4_096;
+          body.max_completion_tokens = 6_144;
         }
 
         const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -186,6 +247,7 @@ export async function callBlankOpenAI(input: {
           useJsonSchema &&
           (bodyText.includes("json_schema") ||
             bodyText.includes("response_format") ||
+            bodyText.includes("competitionGroup") ||
             res.status === 400)
         ) {
           useJsonSchema = false;
@@ -221,9 +283,16 @@ export async function callBlankOpenAI(input: {
     const parsed = parseJsonSafe<{
       passageId?: string;
       candidates?: unknown;
+      coreSentenceIds?: unknown;
     }>(content);
     if (!parsed) throw new Error("빈칸 후보 JSON 파싱 실패");
-    return Array.isArray(parsed.candidates) ? parsed.candidates : [];
+    const coreSentenceIds = Array.isArray(parsed.coreSentenceIds)
+      ? parsed.coreSentenceIds.map((x) => String(x))
+      : [];
+    return {
+      candidates: Array.isArray(parsed.candidates) ? parsed.candidates : [],
+      coreSentenceIds,
+    };
   } finally {
     clearTimeout(timer);
   }
@@ -231,13 +300,19 @@ export async function callBlankOpenAI(input: {
 
 function storedToRawCandidates(pool: StoredBlankCandidate[]): unknown[] {
   return pool.map((c, i) => ({
+    candidateId: `cached-${i + 1}`,
     id: `cached-${i + 1}`,
     sentenceId: c.sentenceId,
     answerText: c.answerText,
     occurrenceIndex: c.occurrenceIndex,
     lemma: c.lemma,
+    wordFamily: c.wordFamily,
     partOfSpeech: c.partOfSpeech,
     meaningKo: c.meaningKo,
+    semanticRole: c.semanticRole ?? null,
+    competitionGroup: c.competitionGroup ?? null,
+    scores: c.scores,
+    reasonKo: c.selectionReasonKo,
     selectionReasonKo: c.selectionReasonKo,
     priority: c.priority,
   }));
@@ -246,13 +321,15 @@ function storedToRawCandidates(pool: StoredBlankCandidate[]): unknown[] {
 function validatedToStored(
   selected: ValidatedBlankCandidate[],
   passageId: string,
-  sourceHash: string
+  sourceHash: string,
+  coreSentenceIds: string[]
 ): StoredBlankCandidatePool {
   return {
     passageId,
     sourceHash,
     algorithmVersion: BLANK_POOL_ALGORITHM_VERSION,
     createdAt: new Date().toISOString(),
+    coreSentenceIds,
     candidates: selected.map((c) => ({
       sentenceId: c.sentenceId,
       answerText: c.answerText,
@@ -261,8 +338,13 @@ function validatedToStored(
       partOfSpeech: c.partOfSpeech,
       meaningKo: c.meaningKo,
       priority: c.priority,
-      conceptScore: c.conceptScore,
+      conceptScore: c.finalScore ?? c.conceptScore,
       selectionReasonKo: c.selectionReasonKo,
+      wordFamily: c.wordFamily,
+      semanticRole: c.semanticRole,
+      competitionGroup: c.competitionGroup,
+      scores: c.scores,
+      finalScore: c.finalScore ?? computeBlankFinalScore(c.scores),
     })),
   };
 }
@@ -366,42 +448,61 @@ export async function generateWorkbookBlankFill(input: {
 
     const tBlank = Date.now();
     let rawCandidates: unknown[] = [];
+    let coreSentenceIds: string[] = [];
     let usedCache = false;
-    let fromVocab = false;
+    let fromVocabFallback = false;
 
     if (isBlankPoolFresh(p.blankPool, p.projectId, sourceHash)) {
       rawCandidates = storedToRawCandidates(p.blankPool.candidates);
+      coreSentenceIds = p.blankPool.coreSentenceIds ?? [];
       usedCache = true;
-    } else if ((p.vocab?.length ?? 0) >= 6) {
-      rawCandidates = buildBlankCandidatesFromVocab({
-        sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
-        vocab: p.vocab!,
-        titleText: p.title,
-        maxCandidates: poolTarget,
-      });
-      fromVocab = rawCandidates.length >= Math.min(8, recommended);
-      if (fromVocab) {
-        statusNotes.push(
-          `「${p.title}」수업용자료 핵심 어휘로 빈칸을 구성했습니다.`
-        );
+    } else {
+      // v3: always evaluate full passage via OpenAI once (vocab is reference only)
+      statusNotes.push(
+        `「${p.title}」핵심 어휘 후보(v3)를 준비합니다. 이후 동일 원문은 캐시를 사용합니다.`
+      );
+      try {
+        openAiRequestCount += 1;
+        const ai = await callBlankOpenAI({
+          passageId: p.projectId,
+          title: p.title,
+          targetCount: poolTarget,
+          maxPerSentence,
+          sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+          existingVocabulary: (p.vocab ?? []).map((v) => ({
+            word: v.word,
+            lemma: v.word,
+            meaningKo: v.meaning,
+          })),
+        });
+        rawCandidates = ai.candidates;
+        coreSentenceIds = ai.coreSentenceIds;
+      } catch {
+        // Fallback: vocab-located candidates with heuristic scores
+        if ((p.vocab?.length ?? 0) >= 4) {
+          rawCandidates = buildBlankCandidatesFromVocab({
+            sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+            vocab: p.vocab!,
+            titleText: p.title,
+            maxCandidates: poolTarget,
+          });
+          fromVocabFallback = rawCandidates.length >= 4;
+          if (fromVocabFallback) {
+            statusNotes.push(
+              `「${p.title}」AI 후보 생성 실패 → 수업용자료 어휘로 대체했습니다.`
+            );
+          } else {
+            throw new Error(
+              `「${p.title}」빈칸 후보를 생성하지 못했습니다.`
+            );
+          }
+        } else {
+          throw new Error(`「${p.title}」빈칸 후보를 생성하지 못했습니다.`);
+        }
       }
     }
 
-    if (!usedCache && !fromVocab) {
-      statusNotes.push(
-        `「${p.title}」핵심 어휘를 처음 준비하고 있습니다. 완료 후 다음 제작부터는 저장된 결과를 사용합니다.`
-      );
-      openAiRequestCount += 1;
-      rawCandidates = await callBlankOpenAI({
-        passageId: p.projectId,
-        title: p.title,
-        targetCount: poolTarget,
-        maxPerSentence,
-        sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
-      });
-    }
-
-    let { valid } = validateBlankCandidates({
+    let { valid, coreSentenceIds: validatedCore } = validateBlankCandidates({
       passageId: p.projectId,
       responsePassageId: p.projectId,
       sentences,
@@ -410,41 +511,41 @@ export async function generateWorkbookBlankFill(input: {
       density,
       vocabLemmas,
       titleText: p.title,
+      coreSentenceIds,
     });
-
-    // Enrich concept scores if missing from cache path
-    valid = valid.map((c) => ({
-      ...c,
-      conceptScore:
-        c.conceptScore ||
-        computeConceptScore({
-          lemma: c.lemma,
-          partOfSpeech: c.partOfSpeech,
-          priority: c.priority,
-          vocabLemmas,
-          titleText: p.title,
-        }),
-    }));
+    coreSentenceIds = validatedCore.length ? validatedCore : coreSentenceIds;
 
     let { selected, shortfallReason } = selectBlankCandidates(
       valid,
       recommended,
-      { density, sentenceWordCounts }
+      {
+        density,
+        sentenceWordCounts,
+        coreSentenceIds,
+        sentenceOrder: sentences.map((s) => s.id),
+      }
     );
 
     if (
       !usedCache &&
-      !fromVocab &&
+      !fromVocabFallback &&
       selected.length < Math.min(4, recommended)
     ) {
       openAiRequestCount += 1;
-      rawCandidates = await callBlankOpenAI({
+      const ai = await callBlankOpenAI({
         passageId: p.projectId,
         title: p.title,
         targetCount: poolTarget,
         maxPerSentence,
         sentences: sentences.map((s) => ({ id: s.id, english: s.english })),
+        existingVocabulary: (p.vocab ?? []).map((v) => ({
+          word: v.word,
+          lemma: v.word,
+          meaningKo: v.meaning,
+        })),
       });
+      rawCandidates = ai.candidates;
+      coreSentenceIds = ai.coreSentenceIds;
       const again = validateBlankCandidates({
         passageId: p.projectId,
         responsePassageId: p.projectId,
@@ -454,11 +555,17 @@ export async function generateWorkbookBlankFill(input: {
         density,
         vocabLemmas,
         titleText: p.title,
+        coreSentenceIds,
       });
       valid = again.valid;
+      coreSentenceIds = again.coreSentenceIds.length
+        ? again.coreSentenceIds
+        : coreSentenceIds;
       ({ selected, shortfallReason } = selectBlankCandidates(valid, recommended, {
         density,
         sentenceWordCounts,
+        coreSentenceIds,
+        sentenceOrder: sentences.map((s) => s.id),
       }));
     }
 
@@ -468,16 +575,19 @@ export async function generateWorkbookBlankFill(input: {
       );
     }
 
-    // Persist a ranked pool (prefer full valid list capped, not only selected)
+    // Persist ranked pool (full valid capped) for next 0-OpenAI runs
     if (!usedCache) {
       const poolSelected = selectBlankCandidates(valid, poolTarget, {
         density,
         sentenceWordCounts,
+        coreSentenceIds,
+        sentenceOrder: sentences.map((s) => s.id),
       }).selected;
       const pool = validatedToStored(
         poolSelected.length ? poolSelected : selected,
         p.projectId,
-        sourceHash
+        sourceHash,
+        coreSentenceIds
       );
       poolsToSave.push({ projectId: p.projectId, pool });
     }

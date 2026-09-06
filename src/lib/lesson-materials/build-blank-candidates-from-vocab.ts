@@ -4,7 +4,10 @@ import {
   isExcludedBlankWord,
   tokenizeWords,
 } from "@/lib/lesson-materials/validate-workbook-blank";
-import { computeConceptScore } from "@/lib/lesson-materials/blank-concept-score";
+import {
+  normalizeWordFamily,
+  synthesizeScoresForLemma,
+} from "@/lib/lesson-materials/blank-concept-score";
 import type { BlankPartOfSpeech } from "@/lib/lesson-materials/workbook-types";
 
 function parsePosFromMeaning(meaning: string): BlankPartOfSpeech {
@@ -17,14 +20,15 @@ function parsePosFromMeaning(meaning: string): BlankPartOfSpeech {
 }
 
 function meaningKoOnly(meaning: string): string {
-  return meaning
-    .replace(/^(n|v|a|ad|adj|adv|명|동|형|부)\.?\s*/i, "")
-    .trim() || meaning.trim();
+  return (
+    meaning.replace(/^(n|v|a|ad|adj|adv|명|동|형|부)\.?\s*/i, "").trim() ||
+    meaning.trim()
+  );
 }
 
 /**
- * Locate vocab lemmas (and close surface forms) in passage sentences.
- * Pure code path — no OpenAI.
+ * Locate vocab lemmas in passage — fallback only when OpenAI fails.
+ * Emits score fields so v3 selection can rank them.
  */
 export function buildBlankCandidatesFromVocab(input: {
   sentences: Array<{ id: string; english: string }>;
@@ -46,8 +50,6 @@ export function buildBlankCandidatesFromVocab(input: {
     lemma: string;
     partOfSpeech: BlankPartOfSpeech;
     meaningKo: string;
-    priority: number;
-    conceptScore: number;
   };
   const hits: Hit[] = [];
 
@@ -73,14 +75,6 @@ export function buildBlankCandidatesFromVocab(input: {
           (h) => h.start === tok.start && h.end === tok.end
         );
         if (occurrenceIndex < 0) continue;
-        const priority = 5;
-        const conceptScore = computeConceptScore({
-          lemma,
-          partOfSpeech: pos,
-          priority,
-          vocabLemmas,
-          titleText: input.titleText,
-        });
         hits.push({
           sentenceId: s.id,
           answerText: tok.text,
@@ -88,8 +82,6 @@ export function buildBlankCandidatesFromVocab(input: {
           lemma,
           partOfSpeech: pos,
           meaningKo,
-          priority,
-          conceptScore,
         });
         usedLemma.add(lemma);
         break;
@@ -98,20 +90,46 @@ export function buildBlankCandidatesFromVocab(input: {
     }
   }
 
-  hits.sort((a, b) => b.conceptScore - a.conceptScore || b.priority - a.priority);
+  const ranked = hits
+    .map((h) => {
+      const scores = synthesizeScoresForLemma({
+        lemma: h.lemma,
+        partOfSpeech: h.partOfSpeech,
+        vocabLemmas,
+        titleText: input.titleText,
+      });
+      return { h, scores };
+    })
+    .sort((a, b) => {
+      const fa =
+        a.scores.centrality * 4 +
+        a.scores.learningValue * 3 -
+        a.scores.commonnessPenalty * 3;
+      const fb =
+        b.scores.centrality * 4 +
+        b.scores.learningValue * 3 -
+        b.scores.commonnessPenalty * 3;
+      return fb - fa;
+    });
 
-  for (let i = 0; i < hits.length && out.length < max; i++) {
-    const h = hits[i]!;
+  for (let i = 0; i < ranked.length && out.length < max; i++) {
+    const { h, scores } = ranked[i]!;
     out.push({
+      candidateId: `vocab-${i + 1}`,
       id: `vocab-${i + 1}`,
       sentenceId: h.sentenceId,
       answerText: h.answerText,
       occurrenceIndex: h.occurrenceIndex,
       lemma: h.lemma,
+      wordFamily: normalizeWordFamily(h.lemma),
       partOfSpeech: h.partOfSpeech,
       meaningKo: h.meaningKo,
-      selectionReasonKo: "수업용자료 핵심 어휘",
-      priority: h.priority,
+      semanticRole: "academic",
+      competitionGroup: null,
+      scores,
+      reasonKo: "수업용자료 핵심 어휘(폴백)",
+      selectionReasonKo: "수업용자료 핵심 어휘(폴백)",
+      priority: 4,
     });
   }
 
