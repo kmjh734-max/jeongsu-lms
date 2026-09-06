@@ -5,7 +5,6 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateWorkbookBlankFill } from "@/lib/lesson-materials/generate-workbook-blank";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
 import {
-  DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
   READY_WORKBOOK_TYPE_IDS,
   clampTfCount,

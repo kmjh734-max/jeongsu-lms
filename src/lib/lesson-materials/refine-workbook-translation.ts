@@ -234,7 +234,7 @@ export async function resolveWorkbookTranslations(input: {
       toGenerate.map((i) => english[i]!)
     );
     toGenerate.forEach((idx, j) => {
-      let ko = generated[j] ?? "";
+      const ko = generated[j] ?? "";
       const check = assessWorkbookTranslation(english[idx]!, ko);
       if (!check.ok) {
         toRefine.push(idx);
