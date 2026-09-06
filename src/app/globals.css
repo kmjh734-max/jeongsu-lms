@@ -2279,8 +2279,21 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     page-break-after: always;
   }
 
+  .analysis-report-a4-sheet {
+    box-shadow: none !important;
+    width: 210mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding-bottom: 18mm !important;
+    break-after: page;
+    page-break-after: always;
+  }
+
   .lesson-pack-a4-sheet:last-child,
-  .lesson-pack-a4-sheet.lesson-pack-a4-sheet--last {
+  .lesson-pack-a4-sheet.lesson-pack-a4-sheet--last,
+  .analysis-report-a4-sheet.lesson-pack-a4-sheet--last {
     break-after: auto;
     page-break-after: auto;
   }

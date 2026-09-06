@@ -1,7 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
@@ -24,8 +32,37 @@ export type AnalysisReportProjectInput = {
   report: AnalysisReportData | null;
 };
 
+const A4_WIDTH = "210mm";
+const A4_HEIGHT = "297mm";
+const A4_PAD_MM = 12;
+const A4_PAD = `${A4_PAD_MM}mm`;
+const A4_FOOTER_MM = 16;
+
 function joinChunks(texts: string[], sep = " / ") {
   return texts.map((t) => t.trim()).filter(Boolean).join(sep);
+}
+
+function compactStructure(raw: string): string {
+  let s = raw.trim();
+  if (!s) return "";
+  s = s
+    .replace(/(?:^|\s*·\s*)문형\s+[A-Z/]+/giu, " · ")
+    .replace(/(?:^|\s*·\s*)의미\s*단위\s*:[^·]*/giu, " · ")
+    .replace(/(?:^|\s*·\s*)내부\s*:[^·]*/giu, " · ")
+    .replace(/(?:^|\s*·\s*)판단\s*:[^·]*(?:·|$)/giu, " · ")
+    .replace(/(?:^|\s*·\s*)복원\s*:[^·]*/giu, " · ")
+    .replace(/^\s*·\s*/u, "")
+    .replace(/\s*·\s*$/u, "")
+    .replace(/\s*·\s*·\s*/gu, " · ")
+    .trim();
+  const ju = s.match(/주절\s*:[^\n]+/u);
+  if (ju && s.length > 180) return ju[0].trim();
+  if (s.length > 200) {
+    const cut = s.slice(0, 200);
+    const last = Math.max(cut.lastIndexOf(" + "), cut.lastIndexOf(" · "));
+    return `${(last > 80 ? cut.slice(0, last) : cut).trim()}…`;
+  }
+  return s;
 }
 
 function GrammarPointItem({
@@ -40,30 +77,9 @@ function GrammarPointItem({
     /^(최우선|핵심|중요\s*구문)\s*[·•\-–—:]\s*/u,
     ""
   );
-  const classification =
-    point.classificationLabel ||
-    (point.primaryClassification
-      ? [
-          point.primaryClassification.unitNumber != null
-            ? `Unit ${String(point.primaryClassification.unitNumber).padStart(2, "0")} ${point.primaryClassification.unitTitle}`
-            : point.primaryClassification.unitTitle,
-          point.primaryClassification.chapterNumber
-            ? `CHAPTER ${String(point.primaryClassification.chapterNumber).padStart(2, "0")} ${point.primaryClassification.chapterTitle}`
-            : "",
-        ]
-          .filter(Boolean)
-          .join(" · ")
-      : "");
-  const related =
-    point.relatedUnits
-      ?.map((u) =>
-        u.unitNumber != null
-          ? `Unit ${String(u.unitNumber).padStart(2, "0")} ${u.unitTitle}`
-          : u.unitTitle
-      )
-      .filter(Boolean)
-      .join(", ") || "";
-  const terms = point.bookTerms?.filter(Boolean).join(" · ") || "";
+  const structure = compactStructure(
+    point.sentenceStructure || point.detail || ""
+  );
 
   return (
     <li className="space-y-0.5 text-[12.5px] leading-relaxed text-slate-800">
@@ -74,22 +90,10 @@ function GrammarPointItem({
           <span className="text-violet-700"> ({point.example})</span>
         ) : null}
       </div>
-      {classification ? (
-        <p className="text-[11.5px] text-slate-500">
-          <span className="font-semibold text-slate-600">천일문 · </span>
-          {classification}
-        </p>
-      ) : null}
-      {related ? (
-        <p className="text-[11.5px] text-slate-500">
-          <span className="font-semibold text-slate-600">관련 · </span>
-          {related}
-        </p>
-      ) : null}
-      {terms ? (
-        <p className="text-[11.5px] text-slate-500">
-          <span className="font-semibold text-slate-600">용어 · </span>
-          {terms}
+      {structure ? (
+        <p className="text-[12px] leading-relaxed text-slate-600">
+          <span className="font-semibold text-slate-700">구조 · </span>
+          {structure}
         </p>
       ) : null}
     </li>
@@ -111,27 +115,11 @@ function SentenceBlock({
     (sentence.contextNote ?? "").trim() ||
     (sentence.easyUnderstanding ?? "").trim();
 
-  const structures = sentence.grammarPoints
-    .map((g) => {
-      const s = (g.sentenceStructure || "").trim();
-      if (s) return s;
-      const d = (g.detail || "").trim();
-      if (
-        d &&
-        !d.includes("학생용") &&
-        !d.includes("교사용") &&
-        !d.includes("오답")
-      ) {
-        return d;
-      }
-      return "";
-    })
-    .filter(Boolean)
-    // de-dupe identical structure lines
-    .filter((s, i, arr) => arr.indexOf(s) === i);
-
   return (
-    <section className="break-inside-avoid border-b border-slate-200 pb-5 pt-4 last:border-b-0">
+    <section
+      data-analysis-block={`s-${index}`}
+      className="break-inside-avoid border-b border-slate-200 pb-5 pt-4 last:border-b-0"
+    >
       <div className="mb-2 flex items-start gap-3">
         <span
           className="shrink-0 text-3xl font-black italic leading-none"
@@ -146,22 +134,13 @@ function SentenceBlock({
           <p className="text-[12px] leading-relaxed text-slate-700">
             {koText || "\u00a0"}
           </p>
-          {structures.map((s, i) => (
-            <p
-              key={i}
-              className="text-[12px] leading-relaxed text-slate-500"
-            >
-              <span className="font-semibold text-slate-600">구조 · </span>
-              {s}
-            </p>
-          ))}
         </div>
       </div>
 
       {sentence.grammarPoints.length > 0 ? (
         <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50/60 px-3 py-2.5 print:bg-sky-50">
           <p className="mb-1.5 text-[13px] font-bold text-sky-800">[문법 분석]</p>
-          <ol className="space-y-1.5">
+          <ol className="space-y-2">
             {sentence.grammarPoints.map((g, gi) => (
               <GrammarPointItem key={gi} point={g} index={gi} />
             ))}
@@ -180,6 +159,93 @@ function SentenceBlock({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function A4Sheet({
+  children,
+  label,
+  isLast,
+  footerLogoSrc,
+}: {
+  children: ReactNode;
+  label: string;
+  isLast?: boolean;
+  footerLogoSrc?: string | null;
+}) {
+  return (
+    <article
+      className={`analysis-report-a4-sheet lesson-pack-a4-sheet relative box-border overflow-hidden bg-white shadow-xl print:shadow-none ${
+        isLast ? "lesson-pack-a4-sheet--last" : ""
+      }`}
+      style={{
+        width: A4_WIDTH,
+        minHeight: A4_HEIGHT,
+        height: A4_HEIGHT,
+        padding: A4_PAD,
+        paddingBottom: footerLogoSrc ? `${A4_FOOTER_MM}mm` : A4_PAD,
+        boxSizing: "border-box",
+      }}
+    >
+      {children}
+      {footerLogoSrc ? (
+        <div className="pointer-events-none absolute bottom-[6mm] left-[12mm] right-[12mm] flex items-center justify-center border-t border-slate-200 pt-2 print:hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={footerLogoSrc}
+            alt=""
+            className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
+          />
+        </div>
+      ) : null}
+      <span className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-slate-400 print:hidden">
+        {label}
+      </span>
+    </article>
+  );
+}
+
+function ReportHeader({
+  headerLabel,
+  source,
+  title,
+  pageNo,
+  accent,
+}: {
+  headerLabel: string;
+  source?: string | null;
+  title: string;
+  pageNo: string;
+  accent: string;
+}) {
+  return (
+    <header className="mb-4" data-analysis-block="header">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          {source?.trim() ? (
+            <p className="text-[11px] font-medium leading-snug text-slate-400">
+              출처: {source.trim()}
+            </p>
+          ) : null}
+          <p
+            className={`text-sm font-semibold ${source?.trim() ? "mt-1" : ""}`}
+            style={{ color: accent }}
+          >
+            {headerLabel}
+          </p>
+          <h1 className="mt-1 text-[22px] font-black leading-snug text-slate-900">
+            {title}
+          </h1>
+        </div>
+        <div
+          className="shrink-0 text-4xl font-black tabular-nums"
+          style={{ color: accent }}
+        >
+          {pageNo}
+        </div>
+      </div>
+      <div className="mt-3 h-1 w-full" style={{ backgroundColor: accent }} />
+    </header>
   );
 }
 
@@ -206,8 +272,13 @@ export function AnalysisReportWorkbench({
   const [prepLoading, setPrepLoading] = useState(() =>
     initialProjects.some((p) => !p.report?.sentences?.length)
   );
+  const [zoom, setZoom] = useState(85);
+  const [pageChunks, setPageChunks] = useState<number[][]>([[]]);
+  const measureRef = useRef<HTMLDivElement>(null);
 
   const project = projects[active];
+  const report = project?.report;
+  const sentences = report?.sentences ?? [];
 
   useEffect(() => {
     const id = "analysis-report-print-page-size-style";
@@ -276,7 +347,55 @@ export function AnalysisReportWorkbench({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects.map((p) => p.id).join(",")]);
 
-  const report = project?.report;
+  // Pack sentences onto A4 pages (header only on first page)
+  useLayoutEffect(() => {
+    const root = measureRef.current;
+    if (!root || sentences.length === 0) {
+      setPageChunks(sentences.length ? [sentences.map((_, i) => i)] : [[]]);
+      return;
+    }
+    const widthPx = root.offsetWidth || 1;
+    const pxPerMm = widthPx / 210;
+    const bodyMm = 297 - A4_PAD_MM - A4_FOOTER_MM;
+    const pageBodyPx = bodyMm * pxPerMm;
+    const gapPx = 8;
+
+    const headerEl = root.querySelector(
+      '[data-analysis-block="header"]'
+    ) as HTMLElement | null;
+    const headerH = headerEl?.offsetHeight ?? 0;
+
+    const heights = sentences.map((_, i) => {
+      const el = root.querySelector(
+        `[data-analysis-block="s-${i}"]`
+      ) as HTMLElement | null;
+      return el?.offsetHeight ?? 120;
+    });
+
+    const pages: number[][] = [];
+    let current: number[] = [];
+    let used = 0;
+
+    heights.forEach((h, i) => {
+      const topPad = current.length === 0 ? (pages.length === 0 ? headerH + gapPx : 0) : gapPx;
+      const need = topPad + h;
+      if (current.length > 0 && used + need > pageBodyPx) {
+        pages.push(current);
+        current = [];
+        used = 0;
+      }
+      const firstPad =
+        current.length === 0
+          ? pages.length === 0
+            ? headerH + gapPx
+            : 0
+          : gapPx;
+      used += firstPad + h;
+      current.push(i);
+    });
+    if (current.length) pages.push(current);
+    setPageChunks(pages.length ? pages : [[]]);
+  }, [sentences, headerLabel, project?.title, project?.source, active]);
 
   async function handleRegen() {
     if (!project) return;
@@ -334,14 +453,12 @@ export function AnalysisReportWorkbench({
     }
   }
 
-  const sheetStyle = useMemo(
+  const previewStyle = useMemo(
     (): CSSProperties => ({
-      width: "210mm",
-      minHeight: "297mm",
-      padding: "12mm 12mm 16mm",
-      boxSizing: "border-box",
+      transform: `scale(${zoom / 100})`,
+      transformOrigin: "top center",
     }),
-    []
+    [zoom]
   );
 
   if (!project) {
@@ -364,6 +481,12 @@ export function AnalysisReportWorkbench({
       </div>
     );
   }
+
+  const pageNo = String(active + 1).padStart(2, "0");
+  const pages =
+    pageChunks.filter((c) => c.length > 0).length > 0
+      ? pageChunks.filter((c) => c.length > 0)
+      : [sentences.map((_, i) => i)];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -445,68 +568,107 @@ export function AnalysisReportWorkbench({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 overflow-auto print:overflow-visible">
-        <div className="flex justify-center p-6 print:p-0">
-          <div id="analysis-report-print-root" className="flex flex-col gap-6 print:gap-0">
-            <article
-              className="analysis-report-a4-sheet relative bg-white shadow-xl print:shadow-none"
-              style={sheetStyle}
-            >
-              <header className="mb-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className="text-sm font-semibold"
-                      style={{ color: accent }}
-                    >
-                      {headerLabel}
-                    </p>
-                    <h1 className="mt-1 text-[22px] font-black leading-snug text-slate-900">
-                      {project.title}
-                    </h1>
-                  </div>
-                  <div
-                    className="shrink-0 text-4xl font-black tabular-nums"
-                    style={{ color: accent }}
-                  >
-                    {String(active + 1).padStart(2, "0")}
-                  </div>
-                </div>
-                <div
-                  className="mt-3 h-1 w-full"
-                  style={{ backgroundColor: accent }}
-                />
-              </header>
+      <main className="relative min-w-0 flex-1 overflow-auto print:overflow-visible">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 py-2 backdrop-blur print:hidden">
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
+            onClick={() => setZoom(100)}
+          >
+            100%
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
+            onClick={() => setZoom((z) => Math.max(40, z - 10))}
+          >
+            −
+          </button>
+          <span className="text-xs font-semibold text-slate-600">{zoom}%</span>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
+            onClick={() => setZoom((z) => Math.min(120, z + 10))}
+          >
+            +
+          </button>
+        </div>
 
-              <div className="space-y-1">
-                {(report?.sentences ?? []).map((s, i) => (
-                  <SentenceBlock
-                    key={s.itemId || i}
-                    sentence={s}
-                    index={i}
+        <div className="flex justify-center p-6 print:p-0">
+          <div
+            id="analysis-report-print-root"
+            className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
+            style={previewStyle}
+          >
+            {pages.map((chunk, pageI) => (
+              <A4Sheet
+                key={`analysis-page-${pageI}`}
+                label={`${pageI + 1} / ${pages.length}`}
+                isLast={pageI === pages.length - 1}
+                footerLogoSrc={logoSrc}
+              >
+                {pageI === 0 ? (
+                  <ReportHeader
+                    headerLabel={headerLabel}
+                    source={project.source}
+                    title={project.title}
+                    pageNo={pageNo}
                     accent={accent}
                   />
-                ))}
-              </div>
-
-              {report?.noPointMessage ? (
-                <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
-                  {report.noPointMessage}
-                </p>
-              ) : null}
-
-              {logoSrc ? (
-                <div className="pointer-events-none absolute bottom-[6mm] left-[12mm] right-[12mm] flex justify-center border-t border-slate-200 pt-2 print:flex">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={logoSrc}
-                    alt=""
-                    className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
-                  />
+                ) : null}
+                <div className="space-y-1">
+                  {chunk.map((si) => (
+                    <SentenceBlock
+                      key={sentences[si]?.itemId || si}
+                      sentence={sentences[si]!}
+                      index={si}
+                      accent={accent}
+                    />
+                  ))}
                 </div>
-              ) : null}
-            </article>
+                {pageI === pages.length - 1 && report?.noPointMessage ? (
+                  <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
+                    {report.noPointMessage}
+                  </p>
+                ) : null}
+              </A4Sheet>
+            ))}
+
+            {logoSrc ? (
+              <div className="lesson-pack-print-logo-fixed hidden print:flex">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoSrc}
+                  alt=""
+                  className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
+                />
+              </div>
+            ) : null}
           </div>
+        </div>
+
+        {/* Off-screen measure sheet */}
+        <div
+          ref={measureRef}
+          className="pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0 print:hidden"
+          style={{ padding: A4_PAD }}
+          aria-hidden
+        >
+          <ReportHeader
+            headerLabel={headerLabel}
+            source={project.source}
+            title={project.title}
+            pageNo={pageNo}
+            accent={accent}
+          />
+          {sentences.map((s, i) => (
+            <SentenceBlock
+              key={`m-${s.itemId || i}`}
+              sentence={s}
+              index={i}
+              accent={accent}
+            />
+          ))}
         </div>
       </main>
     </div>

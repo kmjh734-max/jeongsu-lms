@@ -51,16 +51,15 @@ to-v, v(원형부정사), v-ing, p.p.
 - object complement → 목적격보어
 책에 없는 용어를 천일문 용어인 것처럼 만들지 말 것. 필요 시만 일반 용어를 괄호 보조.
 
-# UNIT 분류
-- primaryClassification: 가장 직접적인 UNIT 하나 (unitNumber 1∼101, 제목은 분류표와 일치)
-- relatedUnits: 관련 UNIT 최대 3개 (약한 연결 금지)
-- 목차에 없으면 unitNumber null, unitTitle "목차 외 보충". UNIT 번호를 추측·창작하지 말 것.
-- bookTerms: 책의 핵심 용어 배열
-- sentencePattern: SV/SVA/SVC/SVO/SVOA/SVOO/SVOC 중 해당 시
-- senseGroups: 의미 단위 표시 ( / 사용)
-- sentenceStructure(outerStructure): 바깥 문장 구조
-- innerStructure: 종속절·준동사구 내부 (없으면 "")
-필요하면 구조 안에 복원·판단 원리를 짧게 포함하되, 별도 학생용/교사용/오답/중요도 필드는 출력하지 말 것.
+# 각 grammarPoint 작성
+- title: 구체적 문법 항목명(천일문 용어 가능, UI에는 UNIT 경로를 표시하지 않음)
+- targetExpression: 핵심 표현만
+- sentenceStructure: 반드시 한 줄 요약. 예:
+  주절: you(S) have heard of(V) the Law of Attraction(O) + 관계사절: which(S) states(V) [that절1 and that절2](O)
+  금지: 문형·의미 단위·내부·판단을 장황하게 나열하는 구조 설명
+- primaryClassification / relatedUnits / bookTerms: 분류용(있으면). 추측 UNIT 번호 금지
+- senseGroups / innerStructure / decisionRule: 비워 두거나 매우 짧게. sentenceStructure에 중복하지 말 것
+문체·선호만으로 which/that 등을 오류로 단정하지 않는다.
 
 # 분석 방법 요약
 문형 확인 → 구/절 구분 → 준동사(형태·역할·의미상의 주어·태·시간) → 관계사(선행사·완전/불완전·수식 vs 보충 설명) → 분사(형용사적 수식 vs 분사구문) → 수동태(문형 전환·조동사/시제 결합) → it 구분 → 병렬(A/B/C 제시) → 특수구문(도치 일반어순 복원 등).
@@ -96,30 +95,17 @@ role은 s|v|o|c|M|a|io|do (가능하면). koChunks는 해석이며 contextNote�
       "sentenceNumber": 1,
       "originalSentence": "원문 그대로",
       "targetExpression": "핵심 표현",
-      "senseGroups": "의미 단위 / 표시",
-      "sentencePattern": "SVOC",
-      "sentenceStructure": "바깥 구조 (S/V/O/A/M 및 S′ 등)",
-      "innerStructure": "내부 구조(없으면 빈 문자열)",
-      "bookTerms": ["선행사", "주격 관계대명사", "불완전한 구조"],
+      "sentenceStructure": "주절: you(S) have heard of(V) the Law of Attraction(O) + 관계사절: which(S) states(V) [that절1 and that절2](O)",
       "primaryClassification": {
         "partNumber": 4,
         "partTitle": "문장의 확장",
         "chapterNumber": 12,
         "chapterTitle": "관계사절",
-        "unitNumber": 69,
-        "unitTitle": "명사절을 이끄는 관계대명사 what"
+        "unitNumber": 71,
+        "unitTitle": "선행사를 보충 설명하는 관계사절Ⅰ"
       },
-      "relatedUnits": [
-        {
-          "partNumber": 1,
-          "partTitle": "문장의 구성",
-          "chapterNumber": 2,
-          "chapterTitle": "주어의 이해",
-          "unitNumber": 9,
-          "unitTitle": "명사절 주어Ⅰ"
-        }
-      ],
-      "decisionRule": "일반화 가능한 판단 원리 한두 문장"
+      "relatedUnits": [],
+      "bookTerms": []
     }
   ],
   "noPointMessage": "이 지문에는 별도로 강조할 만한 고등학교 핵심 어법이 없습니다."

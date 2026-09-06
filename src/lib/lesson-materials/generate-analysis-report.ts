@@ -198,46 +198,25 @@ function mapRawGrammarPoint(raw: {
         .slice(0, 3)
     : [];
 
-  const titleFromUnit =
-    primaryClassification && !primaryClassification.isOffCatalog
-      ? `Unit ${String(primaryClassification.unitNumber).padStart(2, "0")} ${
-          primaryClassification.unitTitle
-        }`
-      : "";
-
   const title =
     stripPriorityLabel(String(raw.title ?? "").trim()) ||
     category ||
-    titleFromUnit ||
     targetExpression ||
     "어법";
 
-  const sentenceStructure = String(
+  const sentenceStructureRaw = String(
     raw.sentenceStructure ?? raw.outerStructure ?? ""
   ).trim();
-  const innerStructure = String(raw.innerStructure ?? "").trim();
-  const senseGroups = String(raw.senseGroups ?? "").trim();
-  const sentencePattern = String(raw.sentencePattern ?? "").trim();
-  const restoredStructure = String(raw.restoredStructure ?? "").trim();
+  const sentenceStructure = compactStructureLine(sentenceStructureRaw);
   const decisionRule = String(
     raw.decisionRule ?? raw.correctReason ?? raw.contextualExplanation ?? ""
   ).trim();
   const bookTerms = toStringList(raw.bookTerms);
 
-  const structureParts = [
-    sentencePattern ? `문형 ${sentencePattern}` : "",
-    senseGroups ? `의미 단위: ${senseGroups}` : "",
-    sentenceStructure,
-    innerStructure ? `내부: ${innerStructure}` : "",
-    restoredStructure && !sentenceStructure.includes(restoredStructure)
-      ? restoredStructure
-      : "",
-    decisionRule ? `판단: ${decisionRule}` : "",
-  ].filter(Boolean);
-
+  // Prefer the short one-line structure only (no 문형/의미단위/내부/판단 dump)
   const detail =
-    structureParts.join(" · ") ||
-    String(raw.detail ?? "").trim() ||
+    sentenceStructure ||
+    compactStructureLine(String(raw.detail ?? "").trim()) ||
     "";
 
   if (!title && !detail && !targetExpression) {
@@ -253,16 +232,42 @@ function mapRawGrammarPoint(raw: {
     detail,
     example: targetExpression || undefined,
     category: category || undefined,
-    sentenceStructure: structureParts.join(" · ") || detail || undefined,
-    senseGroups: senseGroups || undefined,
-    sentencePattern: sentencePattern || undefined,
-    innerStructure: innerStructure || undefined,
+    sentenceStructure: detail || undefined,
+    senseGroups: undefined,
+    sentencePattern: String(raw.sentencePattern ?? "").trim() || undefined,
+    innerStructure: undefined,
     bookTerms: bookTerms.length ? bookTerms : undefined,
     primaryClassification: primaryClassification || undefined,
     relatedUnits: relatedUnits.length ? relatedUnits : undefined,
     decisionRule: decisionRule || undefined,
     classificationLabel,
   };
+}
+
+function compactStructureLine(raw: string): string {
+  let s = raw.trim();
+  if (!s) return "";
+  // Drop verbose labeled sections often concatenated with " · "
+  s = s
+    .replace(/(?:^|\s*·\s*)문형\s+[A-Z/]+/giu, " · ")
+    .replace(/(?:^|\s*·\s*)의미\s*단위\s*:[^·]*/giu, " · ")
+    .replace(/(?:^|\s*·\s*)내부\s*:[^·]*/giu, " · ")
+    .replace(/(?:^|\s*·\s*)판단\s*:[^·]*(?:·|$)/giu, " · ")
+    .replace(/(?:^|\s*·\s*)복원\s*:[^·]*/giu, " · ");
+  s = s
+    .replace(/^\s*·\s*/u, "")
+    .replace(/\s*·\s*$/u, "")
+    .replace(/\s*·\s*·\s*/gu, " · ")
+    .trim();
+  // Prefer the clause starting with 주절: if present amid leftover noise
+  const ju = s.match(/주절\s*:[^\n]+/u);
+  if (ju && s.length > 180) return ju[0].trim();
+  if (s.length > 220) {
+    const cut = s.slice(0, 220);
+    const last = Math.max(cut.lastIndexOf(" + "), cut.lastIndexOf(" · "));
+    return (last > 80 ? cut.slice(0, last) : cut).trim() + "…";
+  }
+  return s;
 }
 
 export async function generateAnalysisReport(input: {
