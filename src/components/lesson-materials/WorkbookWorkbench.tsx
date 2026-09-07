@@ -956,6 +956,10 @@ export function WorkbookWorkbench({
 
   useEffect(() => {
     let cancelled = false;
+    const timers: {
+      status: ReturnType<typeof setTimeout> | null;
+      elapsed: ReturnType<typeof setInterval> | null;
+    } = { status: null, elapsed: null };
     (async () => {
       setGenerating(true);
       setError(null);
@@ -1049,7 +1053,9 @@ export function WorkbookWorkbench({
       if (multiReady) {
         setStatus("워크북을 만들고 있습니다…");
       } else if (wantGrammarChoice) {
-        setStatus("1/3 어법 후보를 생성하고 있습니다.");
+        setStatus(
+          "1/3 어법 후보를 생성하고 있습니다. AI 생성·검수라 1~3분 걸릴 수 있습니다."
+        );
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
       } else if (wantWordOrder) {
@@ -1065,19 +1071,33 @@ export function WorkbookWorkbench({
       }
 
       try {
-        let statusTimer: ReturnType<typeof setTimeout> | null = null;
-        let statusTimer2: ReturnType<typeof setTimeout> | null = null;
+        const startedAt = Date.now();
         if (wantGrammarChoice) {
-          statusTimer = setTimeout(() => {
+          // Server action is one round-trip: generate then review.
+          // Do NOT jump to "3/3" on a wall-clock timer — that feels stuck.
+          const passageCount = Math.max(1, ids.length);
+          const switchToReviewMs = Math.min(
+            90_000,
+            35_000 + passageCount * 15_000
+          );
+          timers.status = setTimeout(() => {
             if (!cancelled) {
-              setStatus("2/3 문항의 정답과 오답을 검수하고 있습니다.");
+              setStatus(
+                "2/3 문항의 정답과 오답을 검수하고 있습니다. (지문이 많으면 2~3분 걸릴 수 있습니다)"
+              );
             }
-          }, 12_000);
-          statusTimer2 = setTimeout(() => {
-            if (!cancelled) {
-              setStatus("3/3 워크북을 구성하고 있습니다.");
-            }
-          }, 45_000);
+          }, switchToReviewMs);
+          timers.elapsed = setInterval(() => {
+            if (cancelled) return;
+            const sec = Math.floor((Date.now() - startedAt) / 1000);
+            const phase =
+              Date.now() - startedAt < switchToReviewMs
+                ? "1/3 어법 후보를 생성하고 있습니다."
+                : "2/3 문항의 정답과 오답을 검수하고 있습니다.";
+            setStatus(
+              `${phase} ${sec}초 경과 · AI 생성·검수라 1~3분 걸릴 수 있습니다.`
+            );
+          }, 5_000);
         }
         const res = await generateWorkbookAction(role, {
           projectIds: ids,
@@ -1087,8 +1107,10 @@ export function WorkbookWorkbench({
           title,
           lineTranslationExcludeIds: ltExclude,
         });
-        if (statusTimer) clearTimeout(statusTimer);
-        if (statusTimer2) clearTimeout(statusTimer2);
+        if (timers.status) clearTimeout(timers.status);
+        if (timers.elapsed) clearInterval(timers.elapsed);
+        timers.status = null;
+        timers.elapsed = null;
         if (cancelled) return;
         if (!res.ok) {
           setError(res.message);
@@ -1103,10 +1125,17 @@ export function WorkbookWorkbench({
           setGenerating(false);
           return;
         }
+        if (wantGrammarChoice) {
+          setStatus("3/3 워크북을 구성하고 있습니다.");
+        }
         saveWorkbookToSession(res.workbook);
         setWorkbook(res.workbook);
         setGenerating(false);
       } catch (e) {
+        if (timers.status) clearTimeout(timers.status);
+        if (timers.elapsed) clearInterval(timers.elapsed);
+        timers.status = null;
+        timers.elapsed = null;
         if (cancelled) return;
         setError(
           e instanceof Error
@@ -1118,6 +1147,8 @@ export function WorkbookWorkbench({
     })();
     return () => {
       cancelled = true;
+      if (timers.status) clearTimeout(timers.status);
+      if (timers.elapsed) clearInterval(timers.elapsed);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- requestKey captures query
   }, [role, requestKey]);
@@ -1662,10 +1693,23 @@ export function WorkbookWorkbench({
   );
 
   if (generating) {
+    const grammarHint =
+      status.includes("어법") ||
+      status.includes("1/3") ||
+      status.includes("2/3") ||
+      status.includes("3/3");
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-3 bg-slate-100 px-4">
-        <div className="rounded-2xl bg-white px-8 py-6 text-center shadow">
-          <p className="text-sm font-semibold text-slate-800">{status}</p>
+        <div className="max-w-md rounded-2xl bg-white px-8 py-6 text-center shadow">
+          <p className="text-sm font-semibold leading-relaxed text-slate-800">
+            {status}
+          </p>
+          {grammarHint ? (
+            <p className="mt-3 text-xs leading-relaxed text-slate-500">
+              화면이 멈춘 것이 아닙니다. 서버에서 AI로 후보를 만들고 검수하는
+              중이며, 보통 1~3분 걸립니다.
+            </p>
+          ) : null}
         </div>
         <Link href={base} className="text-xs font-semibold text-violet-700">
           ← 자료함으로 돌아가기

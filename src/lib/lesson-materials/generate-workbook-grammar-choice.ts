@@ -132,53 +132,73 @@ export async function generateWorkbookGrammarChoice(input: {
   >();
 
   if (needAi.length > 0) {
-    // One generate call per passage so the model fills ~2× target candidates
-    // (batching many passages under-fills). One shared review batch follows.
-    // If a passage returns <75% of the quota, one retry generate is allowed.
-    for (const ctx of needAi) {
-      const desired = desiredCandidateCount(ctx.range.max);
-      const passagePayload = {
-        passageId: ctx.p.projectId,
-        title: ctx.p.title,
-        sourceText: ctx.sourcePassage,
-        sentences: ctx.sentenceRows.map((s, i) => ({
-          sentenceId: s.id,
-          sentenceIndex: i,
-          originalText: s.english,
-        })),
-        analysisHints: ctx.hints,
-        desiredCandidateCount: desired,
-      };
-      let gen = await callGrammarChoiceGenerator({
-        passages: [passagePayload],
-      });
-      let passageGenCalls = gen.openAiRequestCount;
-      generateCalls += gen.openAiRequestCount;
-      generatorModelUsed = gen.modelUsed;
-      let cands = gen.byPassageId.get(ctx.p.projectId) ?? [];
-      const minAcceptable = Math.ceil(desired * 0.75);
-      if (cands.length < minAcceptable) {
-        gen = await callGrammarChoiceGenerator({
-          passages: [
-            {
-              ...passagePayload,
-              desiredCandidateCount: desired,
-            },
-          ],
+    // Parallel per-passage generate (wall-clock ≈ slowest passage, not sum).
+    // One shared review batch follows. Retry only under-filled passages.
+    const firstPass = await Promise.all(
+      needAi.map(async (ctx) => {
+        const desired = desiredCandidateCount(ctx.range.max);
+        const passagePayload = {
+          passageId: ctx.p.projectId,
+          title: ctx.p.title,
+          sourceText: ctx.sourcePassage,
+          sentences: ctx.sentenceRows.map((s, i) => ({
+            sentenceId: s.id,
+            sentenceIndex: i,
+            originalText: s.english,
+          })),
+          analysisHints: ctx.hints,
+          desiredCandidateCount: desired,
+        };
+        const gen = await callGrammarChoiceGenerator({
+          passages: [passagePayload],
         });
-        passageGenCalls += gen.openAiRequestCount;
+        return {
+          ctx,
+          desired,
+          passagePayload,
+          gen,
+          cands: gen.byPassageId.get(ctx.p.projectId) ?? [],
+        };
+      })
+    );
+
+    for (const row of firstPass) {
+      generateCalls += row.gen.openAiRequestCount;
+      generatorModelUsed = row.gen.modelUsed;
+      generateCallsByPassage.set(
+        row.ctx.p.projectId,
+        row.gen.openAiRequestCount
+      );
+      generatedByPassage.set(row.ctx.p.projectId, row.cands);
+    }
+
+    const needRetry = firstPass.filter(
+      (row) => row.cands.length < Math.ceil(row.desired * 0.75)
+    );
+    if (needRetry.length > 0) {
+      const retries = await Promise.all(
+        needRetry.map(async (row) => {
+          const gen = await callGrammarChoiceGenerator({
+            passages: [row.passagePayload],
+          });
+          return { row, gen };
+        })
+      );
+      for (const { row, gen } of retries) {
         generateCalls += gen.openAiRequestCount;
         generatorModelUsed = gen.modelUsed;
-        const retry = gen.byPassageId.get(ctx.p.projectId) ?? [];
-        // Prefer the larger set; merge unique by candidateId
-        const byId = new Map<string, (typeof cands)[number]>();
-        for (const c of [...cands, ...retry]) {
+        generateCallsByPassage.set(
+          row.ctx.p.projectId,
+          (generateCallsByPassage.get(row.ctx.p.projectId) ?? 0) +
+            gen.openAiRequestCount
+        );
+        const retry = gen.byPassageId.get(row.ctx.p.projectId) ?? [];
+        const byId = new Map<string, (typeof row.cands)[number]>();
+        for (const c of [...row.cands, ...retry]) {
           byId.set(c.candidateId, c);
         }
-        cands = [...byId.values()];
+        generatedByPassage.set(row.ctx.p.projectId, [...byId.values()]);
       }
-      generateCallsByPassage.set(ctx.p.projectId, passageGenCalls);
-      generatedByPassage.set(ctx.p.projectId, cands);
     }
   }
 
