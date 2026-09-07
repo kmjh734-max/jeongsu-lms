@@ -4,6 +4,11 @@ import {
 } from "@/lib/lesson-materials/word-order-tokenize";
 import type { GrammarChoiceCandidate } from "@/lib/lesson-materials/workbook-types";
 import { surfacesEqual } from "@/lib/lesson-materials/grammar-choice-repair";
+import {
+  GRAMMAR_CHOICE_MAX_CHARS,
+  GRAMMAR_CHOICE_MAX_WORDS,
+  findCharSpanInSource,
+} from "@/lib/lesson-materials/grammar-choice-minimize";
 
 export type GrammarChoiceRejectReason =
   | "missing_sentence"
@@ -20,7 +25,8 @@ export type GrammarChoiceRejectReason =
   | "empty_meta"
   | "ambiguous_pair"
   | "too_easy_agreement"
-  | "vocab_collocation";
+  | "vocab_collocation"
+  | "span_too_long";
 
 const AMBIGUOUS_PAIR_PATTERNS: Array<[RegExp, RegExp]> = [
   [/^(to\s+)?\w+$/i, /ing$/i], // handled more carefully below
@@ -153,19 +159,29 @@ export function validateGrammarChoiceCandidate(
   }
 
   const span = spanTextFromTokens(tokens, start, end);
-  if (!surfacesEqual(span, candidate.originalText)) {
+  const spanBare = span.replace(/[.,;:!?]+$/g, "");
+  const originalBare = candidate.originalText.replace(/[.,;:!?]+$/g, "");
+  const correctBare = candidate.correctText.replace(/[.,;:!?]+$/g, "");
+  if (
+    !surfacesEqual(span, candidate.originalText) &&
+    !surfacesEqual(spanBare, originalBare)
+  ) {
     return { ok: false, reason: "original_mismatch" };
   }
-  if (!surfacesEqual(candidate.correctText, candidate.originalText)) {
+  if (!surfacesEqual(correctBare, originalBare)) {
     return { ok: false, reason: "correct_not_original" };
   }
 
-  const restored = restoreSentenceWithChoice(
-    english,
-    start,
-    end,
-    candidate.correctText
-  );
+  const charHit =
+    findCharSpanInSource(english, correctBare) ||
+    findCharSpanInSource(english, candidate.correctText);
+  if (!charHit) {
+    return { ok: false, reason: "restore_failed" };
+  }
+  const restored =
+    english.slice(0, charHit.start) +
+    charHit.text +
+    english.slice(charHit.end);
   if (!surfacesEqual(restored, english)) {
     return { ok: false, reason: "restore_failed" };
   }
@@ -175,6 +191,15 @@ export function validateGrammarChoiceCandidate(
   }
   if (surfacesEqual(candidate.correctText, candidate.incorrectText)) {
     return { ok: false, reason: "same_as_incorrect" };
+  }
+
+  const spanWords = tokenizeForWordOrder(candidate.correctText).length;
+  if (
+    spanWords > GRAMMAR_CHOICE_MAX_WORDS ||
+    candidate.correctText.length > GRAMMAR_CHOICE_MAX_CHARS ||
+    candidate.incorrectText.length > GRAMMAR_CHOICE_MAX_CHARS
+  ) {
+    return { ok: false, reason: "span_too_long" };
   }
 
   if (candidate.ambiguityRisk !== "low") {
@@ -253,7 +278,7 @@ export function validateAndFilterCandidates(
     const n = perSentence.get(c.sentenceId) ?? 0;
     const eng = sentenceMap.get(c.sentenceId) ?? "";
     const wordCount = tokenizeForWordOrder(eng).length;
-    const maxPerSentence = wordCount >= 28 ? 2 : 1;
+    const maxPerSentence = wordCount >= 28 ? 3 : wordCount >= 16 ? 2 : 1;
     if (n >= maxPerSentence) {
       rejected.push({ candidate: c, reason: "overlap" });
       continue;

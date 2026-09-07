@@ -424,6 +424,9 @@ export type WorkbookGrammarChoiceItem = {
   sentenceId: string;
   startTokenIndex: number;
   endTokenIndex: number;
+  /** Inclusive start / exclusive end in sourcePassage */
+  startCharIndex: number;
+  endCharIndex: number;
   originalText: string;
   correctText: string;
   incorrectText: string;

@@ -24,9 +24,10 @@ import {
 import { selectFinalGrammarChoices } from "@/lib/lesson-materials/grammar-choice-select";
 import {
   buildGrammarChoiceItems,
-  buildPassageSegments,
+  buildPassageSegmentsFromSource,
 } from "@/lib/lesson-materials/grammar-choice-display";
 import { repairCandidateAgainstPassage } from "@/lib/lesson-materials/grammar-choice-repair";
+import { minimizeAndRelocateCandidate } from "@/lib/lesson-materials/grammar-choice-minimize";
 import { buildHeuristicGrammarCandidates } from "@/lib/lesson-materials/grammar-choice-fallback";
 import { tokenizeForWordOrder } from "@/lib/lesson-materials/word-order-tokenize";
 import {
@@ -435,7 +436,7 @@ export async function generateWorkbookGrammarChoice(input: {
           title: p.title,
           source: p.source,
           softTargetMin: range.min,
-          softTargetMax: range.max,
+          softTargetMax: range.max + 4,
           sentences: p.sentences.map((s, i) => {
             const tokens = tokenizeForWordOrder(s.english).map((t) => t.surface);
             return {
@@ -479,14 +480,33 @@ export async function generateWorkbookGrammarChoice(input: {
     const repaired: GrammarChoiceCandidate[] = [];
     for (const c of raw) {
       const fixed = repairCandidateAgainstPassage(c, sentenceRows);
-      if (fixed) repaired.push(fixed);
-      else {
+      if (!fixed) {
         rejectedAll.push({
           passageId: p.projectId,
           reason: "repair_failed",
           choiceId: c.choiceId,
         });
+        continue;
       }
+      const eng = sentenceMap.get(fixed.sentenceId);
+      if (!eng) {
+        rejectedAll.push({
+          passageId: p.projectId,
+          reason: "missing_sentence",
+          choiceId: c.choiceId,
+        });
+        continue;
+      }
+      const minimized = minimizeAndRelocateCandidate(fixed, eng);
+      if (!minimized) {
+        rejectedAll.push({
+          passageId: p.projectId,
+          reason: "minimize_failed",
+          choiceId: c.choiceId,
+        });
+        continue;
+      }
+      repaired.push(minimized);
     }
 
     const firstPass = validateAndFilterCandidates(repaired, sentenceMap);
@@ -499,12 +519,12 @@ export async function generateWorkbookGrammarChoice(input: {
       });
     }
 
-    // Deterministic heuristics fill gaps when AI/cache yields too few
+    // Always merge deterministic heuristics (non-overlapping)
     const english = joinWorkbookPassageLines(
       p.sentences.map((s) => s.english)
     );
     const range = getGrammarChoiceTargetRange(countEnglishWords(english));
-    if (accepted.length < range.min) {
+    {
       const heuristics = buildHeuristicGrammarCandidates({
         passageId: p.projectId,
         sentences: sentenceRows,
@@ -531,7 +551,16 @@ export async function generateWorkbookGrammarChoice(input: {
             !(c.endTokenIndex < o.start || c.startTokenIndex > o.end)
         );
         if (overlaps) continue;
-        if (merged.some((m) => m.choiceId === c.choiceId)) continue;
+        if (
+          merged.some(
+            (m) =>
+              m.sentenceId === c.sentenceId &&
+              m.startTokenIndex === c.startTokenIndex &&
+              m.endTokenIndex === c.endTokenIndex
+          )
+        ) {
+          continue;
+        }
         merged.push(c);
         occupied.push({
           sentenceId: c.sentenceId,
@@ -590,15 +619,38 @@ export async function generateWorkbookGrammarChoice(input: {
       return a.startTokenIndex - b.startTokenIndex;
     });
 
+    const sourcePassage = formatWorkbookPassage(english);
     const seedKey = `${p.projectId}|${sourceHash}|${GRAMMAR_CHOICE_PROMPT_VERSION}`;
-    const items = buildGrammarChoiceItems(selected, seedKey);
-    const segments = buildPassageSegments(sentenceRows, items);
+    const sentenceOrder = sentenceRows.map((s) => s.id);
+    const items = buildGrammarChoiceItems(
+      selected,
+      seedKey,
+      sourcePassage,
+      sentenceOrder
+    );
+    if (!items) {
+      skipped.push({
+        projectId: p.projectId,
+        title: p.title,
+        reason: "원문 문자 위치 검증에 실패했습니다.",
+      });
+      continue;
+    }
+    const segments = buildPassageSegmentsFromSource(sourcePassage, items);
+    if (!segments) {
+      skipped.push({
+        projectId: p.projectId,
+        title: p.title,
+        reason: "원문 슬라이스 렌더링 검증에 실패했습니다.",
+      });
+      continue;
+    }
 
     sections.push({
       projectId: p.projectId,
       title: p.title,
       source: p.source,
-      sourcePassage: formatWorkbookPassage(english),
+      sourcePassage,
       segments,
       items,
       algorithmVersion: GRAMMAR_CHOICE_PROMPT_VERSION,

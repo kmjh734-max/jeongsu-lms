@@ -331,16 +331,16 @@ function GrammarChoiceQuestionBody({
       <p className="mb-4 text-[13px] font-semibold text-slate-800">
         다음 글의 번호별 선택지에서 문법상 알맞은 표현을 고르세요.
       </p>
-      <p className="workbook-passage text-[13px] leading-[1.85] text-slate-900">
+      <p className="grammar-passage text-[13px] text-slate-900">
         {section.segments.map((seg, i) =>
           seg.type === "text" ? (
             <span key={`gct-${i}`}>{seg.text}</span>
           ) : (
             <span
               key={`gcc-${seg.number}-${i}`}
-              className="grammar-choice-inline"
+              className="grammar-choice"
             >
-              {circledNumber(seg.number)} [{seg.leftText} / {seg.rightText}]
+              {circledNumber(seg.number)}[{seg.leftText} / {seg.rightText}]
             </span>
           )
         )}
@@ -1077,17 +1077,27 @@ export function WorkbookWorkbench({
       document.body.appendChild(el);
     }
     el.textContent = `
-.grammar-choice-inline {
-  display: inline-flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  column-gap: 0.15em;
-  white-space: nowrap;
-  break-inside: avoid;
-  page-break-inside: avoid;
-  font-weight: 600;
-  color: #1e3a5f;
+.grammar-passage {
+  display: block;
+  width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  white-space: normal;
+  word-spacing: normal;
+  letter-spacing: normal;
+  line-height: 1.8;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.grammar-choice {
+  display: inline;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  font-weight: 700;
+  color: #1e3a5f;
 }
 .sentence-order-choice {
   display: flex;

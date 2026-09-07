@@ -4,7 +4,10 @@ import type {
   GrammarChoiceRenderSegment,
   WorkbookGrammarChoiceItem,
 } from "@/lib/lesson-materials/workbook-types";
-import { tokenizeForWordOrder } from "@/lib/lesson-materials/word-order-tokenize";
+import {
+  assignPassageCharIndices,
+} from "@/lib/lesson-materials/grammar-choice-minimize";
+import { surfacesEqual } from "@/lib/lesson-materials/grammar-choice-repair";
 
 export type DisplayGrammarChoice = {
   leftText: string;
@@ -26,11 +29,6 @@ function seedFromKey(key: string): number {
   return Number.parseInt(hex, 16) >>> 0;
 }
 
-/**
- * Deterministic left/right placement.
- * - left/right correct counts differ by at most 1
- * - no 3 identical correctSide in a row
- */
 export function assignDisplaySides(
   candidates: GrammarChoiceCandidate[],
   seedKey: string
@@ -53,9 +51,7 @@ export function assignDisplaySides(
       prefer = recent[recent.length - 1] === "left" ? "right" : "left";
     }
 
-    let side: "left" | "right";
-    if (prefer) side = prefer;
-    else side = rand() < 0.5 ? "left" : "right";
+    const side: "left" | "right" = prefer ?? (rand() < 0.5 ? "left" : "right");
 
     if (side === "left") {
       leftCorrect += 1;
@@ -81,22 +77,51 @@ export function assignDisplaySides(
 
 export function buildGrammarChoiceItems(
   candidates: GrammarChoiceCandidate[],
-  seedKey: string
-): WorkbookGrammarChoiceItem[] {
+  seedKey: string,
+  sourcePassage: string,
+  sentenceOrder: string[]
+): WorkbookGrammarChoiceItem[] | null {
   const displays = assignDisplaySides(candidates, seedKey);
-  return candidates.map((c, i) => {
+  const charSpans = assignPassageCharIndices(
+    sourcePassage,
+    candidates.map((c) => ({
+      correctText: c.correctText,
+      sentenceId: c.sentenceId,
+    })),
+    sentenceOrder
+  );
+
+  const items: WorkbookGrammarChoiceItem[] = [];
+  for (let i = 0; i < candidates.length; i++) {
+    const c = candidates[i]!;
     const d = displays[i]!;
-    return {
+    const span = charSpans[i];
+    if (!span) return null;
+    const exactCorrect = sourcePassage.slice(
+      span.startCharIndex,
+      span.endCharIndex
+    );
+    if (
+      !surfacesEqual(exactCorrect, c.correctText) &&
+      !surfacesEqual(exactCorrect, c.originalText)
+    ) {
+      return null;
+    }
+    items.push({
       number: i + 1,
       choiceId: c.choiceId,
       sentenceId: c.sentenceId,
       startTokenIndex: c.startTokenIndex,
       endTokenIndex: c.endTokenIndex,
-      originalText: c.originalText,
-      correctText: c.correctText,
+      startCharIndex: span.startCharIndex,
+      endCharIndex: span.endCharIndex,
+      originalText: exactCorrect,
+      correctText: exactCorrect,
       incorrectText: c.incorrectText,
-      leftText: d.leftText,
-      rightText: d.rightText,
+      leftText:
+        d.correctSide === "left" ? exactCorrect : c.incorrectText,
+      rightText:
+        d.correctSide === "right" ? exactCorrect : c.incorrectText,
       correctSide: d.correctSide,
       grammarCategoryId: c.grammarCategoryId,
       grammarCategoryName: c.grammarCategoryName,
@@ -105,53 +130,55 @@ export function buildGrammarChoiceItems(
       incorrectReasonKo: c.incorrectReasonKo,
       difficulty: c.difficulty,
       learningValue: c.learningValue,
-    };
-  });
+    });
+  }
+  return items;
 }
 
-export function buildPassageSegments(
-  sentences: Array<{ id: string; english: string }>,
+/**
+ * Build render segments by slicing the original passage string.
+ * Does NOT re-tokenize / re-join words (preserves spacing & punctuation).
+ */
+export function buildPassageSegmentsFromSource(
+  sourcePassage: string,
   items: WorkbookGrammarChoiceItem[]
-): GrammarChoiceRenderSegment[] {
-  const bySentence = new Map<string, WorkbookGrammarChoiceItem[]>();
-  for (const it of items) {
-    const list = bySentence.get(it.sentenceId) ?? [];
-    list.push(it);
-    bySentence.set(it.sentenceId, list);
-  }
-  for (const list of bySentence.values()) {
-    list.sort((a, b) => a.startTokenIndex - b.startTokenIndex);
+): GrammarChoiceRenderSegment[] | null {
+  const ordered = [...items].sort(
+    (a, b) => a.startCharIndex - b.startCharIndex
+  );
+  for (let i = 0; i < ordered.length; i++) {
+    const it = ordered[i]!;
+    if (it.startCharIndex < 0 || it.endCharIndex > sourcePassage.length) {
+      return null;
+    }
+    if (it.startCharIndex >= it.endCharIndex) return null;
+    const slice = sourcePassage.slice(it.startCharIndex, it.endCharIndex);
+    if (slice !== it.correctText) return null;
+    if (i > 0 && it.startCharIndex < ordered[i - 1]!.endCharIndex) return null;
   }
 
   const segments: GrammarChoiceRenderSegment[] = [];
-  sentences.forEach((s, si) => {
-    if (si > 0) segments.push({ type: "text", text: " " });
-    const tokens = tokenizeForWordOrder(s.english).map((t) => t.surface);
-    const choices = bySentence.get(s.id) ?? [];
-    let cursor = 0;
-    for (const ch of choices) {
-      if (ch.startTokenIndex > cursor) {
-        const before = tokens.slice(cursor, ch.startTokenIndex).join(" ");
-        segments.push({ type: "text", text: `${before} ` });
-      }
-      segments.push({
-        type: "choice",
-        number: ch.number,
-        leftText: ch.leftText,
-        rightText: ch.rightText,
-      });
-      cursor = ch.endTokenIndex + 1;
-      if (cursor < tokens.length) {
-        segments.push({ type: "text", text: " " });
-      }
-    }
-    if (cursor < tokens.length) {
+  let cursor = 0;
+  for (const it of ordered) {
+    if (cursor < it.startCharIndex) {
       segments.push({
         type: "text",
-        text: tokens.slice(cursor).join(" "),
+        text: sourcePassage.slice(cursor, it.startCharIndex),
       });
     }
-  });
-
+    segments.push({
+      type: "choice",
+      number: it.number,
+      leftText: it.leftText,
+      rightText: it.rightText,
+    });
+    cursor = it.endCharIndex;
+  }
+  if (cursor < sourcePassage.length) {
+    segments.push({
+      type: "text",
+      text: sourcePassage.slice(cursor),
+    });
+  }
   return segments;
 }
