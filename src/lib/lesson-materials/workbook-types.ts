@@ -107,7 +107,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "word_order_writing",
     title: "어순배열 영작",
     subtitle: "제시된 단어를 배열하여 문장 만들기",
-    ready: false,
+    ready: true,
     displayOrder: 11,
     printOrder: 11,
   },
@@ -353,6 +353,34 @@ export type WorkbookFullEnWritingSection = {
   algorithmVersion: string;
 };
 
+export type WorkbookWordOrderToken = {
+  tokenId: string;
+  surface: string;
+  originalIndex: number;
+};
+
+export type WorkbookWordOrderWritingItem = {
+  questionId: string;
+  passageId: string;
+  sentenceId: string;
+  orderIndex: number;
+  korean: string;
+  originalEnglish: string;
+  originalTokens: WorkbookWordOrderToken[];
+  shuffledTokens: WorkbookWordOrderToken[];
+  seed: string;
+  sourceHash: string;
+  answerLineCount: number;
+};
+
+export type WorkbookWordOrderWritingSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  items: WorkbookWordOrderWritingItem[];
+  algorithmVersion: string;
+};
+
 export type WorkbookData = {
   metadata: WorkbookMetadata;
   selectedTypes: WorkbookTypeId[];
@@ -372,6 +400,9 @@ export type WorkbookData = {
   /** Full-sentence English writing (Korean prompt → English answer) */
   fullEnWritingSections?: WorkbookFullEnWritingSection[];
   fullEnWritingSkipped?: WorkbookLineTranslationSkip[];
+  /** Word-order writing (Korean + scrambled tokens → English) */
+  wordOrderWritingSections?: WorkbookWordOrderWritingSection[];
+  wordOrderWritingSkipped?: WorkbookLineTranslationSkip[];
   timing?: WorkbookGenerationTiming;
 };
 

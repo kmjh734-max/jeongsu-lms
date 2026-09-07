@@ -37,6 +37,7 @@ import {
   type WorkbookPassageSection,
   type WorkbookSentenceOrderQuestion,
   type WorkbookTypeId,
+  type WorkbookWordOrderWritingSection,
 } from "@/lib/lesson-materials/workbook-types";
 import { formatAnswerOrderSequence } from "@/lib/lesson-materials/sentence-order-shuffle";
 
@@ -619,6 +620,127 @@ function FullEnWritingAnswerBody({
   );
 }
 
+function WordOrderQuestionBody({
+  section,
+  itemIndices,
+  continued,
+}: {
+  section: WorkbookWordOrderWritingSection;
+  itemIndices?: number[];
+  continued?: boolean;
+}) {
+  const items =
+    itemIndices != null
+      ? itemIndices.map((i) => section.items[i]!).filter(Boolean)
+      : section.items;
+
+  return (
+    <>
+      <p className="mb-1 text-[12px] font-semibold text-slate-500">
+        {section.title}
+        {continued ? " (계속)" : ""}
+      </p>
+      {section.source?.trim() ? (
+        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+          · {section.source.trim()}
+        </p>
+      ) : (
+        <div className="mb-3" />
+      )}
+      {!continued ? (
+        <p className="mb-4 text-[13px] font-semibold text-slate-800">
+          우리말 뜻과 일치하도록 주어진 영어 어절을 올바르게 배열하여 완전한
+          문장을 쓰세요.
+        </p>
+      ) : null}
+      <div>
+        {items.map((it) => (
+          <section
+            key={it.questionId}
+            className="word-order-item"
+            data-wb-item={`wo-${section.projectId}-${it.orderIndex}`}
+          >
+            <div className="word-order-prompt">
+              <span className="word-order-number">{it.orderIndex}.</span>
+              <div className="word-order-korean">{it.korean}</div>
+            </div>
+            <div className="word-order-bank" aria-label="섞인 영어 어절">
+              {it.shuffledTokens.map((token, index) => (
+                <span key={token.tokenId} className="word-order-token-unit">
+                  <span>{token.surface}</span>
+                  {index < it.shuffledTokens.length - 1 ? (
+                    <span className="word-order-separator">/</span>
+                  ) : null}
+                </span>
+              ))}
+            </div>
+            <div className="word-order-answer-area">
+              {Array.from({ length: it.answerLineCount }, (_, i) => (
+                <div
+                  key={`woal-${it.questionId}-${i}`}
+                  className="word-order-answer-line"
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function WordOrderAnswerBody({
+  section,
+  typeOrder,
+  multi,
+}: {
+  section: WorkbookWordOrderWritingSection;
+  typeOrder: number;
+  multi: boolean;
+}) {
+  return (
+    <div className="word-order-answer-key">
+      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+        {typeOrder}. 어순배열 영작
+        {multi ? ` · ${section.title}` : ""}
+      </h3>
+      {!multi ? (
+        <>
+          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+            {section.title}
+          </p>
+          {section.source?.trim() ? (
+            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+              · {section.source.trim()}
+            </p>
+          ) : null}
+        </>
+      ) : section.source?.trim() ? (
+        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+          · {section.source.trim()}
+        </p>
+      ) : null}
+      <div className="space-y-4">
+        {section.items.map((it) => (
+          <div
+            key={`woa-${it.questionId}`}
+            className="break-inside-avoid"
+            style={{ pageBreakInside: "avoid" }}
+          >
+            <p className="word-order-answer-key-korean">
+              <span className="font-bold text-slate-700">{it.orderIndex}.</span>{" "}
+              {it.korean}
+            </p>
+            <p className="word-order-answer-key-english">
+              {it.originalEnglish}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function parseTypes(raw: string | null): WorkbookTypeId[] {
   if (!raw?.trim()) return ["tf"];
   const list = raw
@@ -659,12 +781,20 @@ type WorkbookPage =
       continued?: boolean;
     }
   | {
+      kind: "word_order_q";
+      sectionIndex: number;
+      typeOrder: number;
+      itemIndices?: number[];
+      continued?: boolean;
+    }
+  | {
       kind: "answers";
       typeOrderBlank: number | null;
       typeOrderTf: number | null;
       typeOrderSentenceOrder: number | null;
       typeOrderLineKo: number | null;
       typeOrderFullEn: number | null;
+      typeOrderWordOrder: number | null;
     };
 
 export function WorkbookWorkbench({
@@ -730,7 +860,8 @@ export function WorkbookWorkbench({
             (cached.blankSections?.length ?? 0) > 0 ||
             (cached.sentenceOrderQuestions?.length ?? 0) > 0 ||
             (cached.lineTranslationSections?.length ?? 0) > 0 ||
-            (cached.fullEnWritingSections?.length ?? 0) > 0)
+            (cached.fullEnWritingSections?.length ?? 0) > 0 ||
+            (cached.wordOrderWritingSections?.length ?? 0) > 0)
         ) {
           if (!cancelled) {
             setWorkbook({
@@ -743,6 +874,8 @@ export function WorkbookWorkbench({
               lineTranslationSkipped: cached.lineTranslationSkipped ?? [],
               fullEnWritingSections: cached.fullEnWritingSections ?? [],
               fullEnWritingSkipped: cached.fullEnWritingSkipped ?? [],
+              wordOrderWritingSections: cached.wordOrderWritingSections ?? [],
+              wordOrderWritingSkipped: cached.wordOrderWritingSkipped ?? [],
             });
             setGenerating(false);
           }
@@ -762,18 +895,26 @@ export function WorkbookWorkbench({
       const wantSentenceOrder = types.includes("sentence_order");
       const wantLineKo = types.includes("one_line_ko");
       const wantFullEn = types.includes("full_en_writing");
+      const wantWordOrder = types.includes("word_order_writing");
       const ltExclude = (searchParams.get("ltExclude") ?? "")
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
       const multiReady =
-        [wantBlank, wantTf, wantSentenceOrder, wantLineKo, wantFullEn].filter(
-          Boolean
-        ).length > 1;
+        [
+          wantBlank,
+          wantTf,
+          wantSentenceOrder,
+          wantLineKo,
+          wantFullEn,
+          wantWordOrder,
+        ].filter(Boolean).length > 1;
       if (multiReady) {
         setStatus("워크북을 만들고 있습니다…");
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
+      } else if (wantWordOrder) {
+        setStatus("어순배열 영작 워크북을 만들고 있습니다…");
       } else if (wantFullEn) {
         setStatus("통문장 영작 워크북을 만들고 있습니다…");
       } else if (wantLineKo) {
@@ -960,6 +1101,78 @@ export function WorkbookWorkbench({
   color: #172033;
   font-weight: 500;
 }
+.word-order-item {
+  margin-bottom: 24px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.word-order-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.word-order-number {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 15px;
+  color: #172033;
+}
+.word-order-korean {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.word-order-bank {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 12px 16px;
+  margin-top: 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #172033;
+}
+.word-order-token-unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.word-order-separator {
+  color: #64748b;
+  font-weight: 500;
+}
+.word-order-answer-area {
+  margin-top: 8px;
+  padding-left: 1.5rem;
+}
+.word-order-answer-line {
+  height: 34px;
+  border-bottom: 1px solid #94a3b8;
+}
+.word-order-answer-key-korean {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #64748b;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.word-order-answer-key-english {
+  margin-top: 5px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #172033;
+  font-weight: 500;
+}
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
   @page app-print-a4 { size: 210mm 297mm; margin: 0; }
@@ -974,6 +1187,10 @@ export function WorkbookWorkbench({
     border-bottom: 0.3mm solid #94a3b8;
   }
   .full-writing-answer-line {
+    height: 9mm;
+    border-bottom: 0.3mm solid #94a3b8;
+  }
+  .word-order-answer-line {
     height: 9mm;
     border-bottom: 0.3mm solid #94a3b8;
   }
@@ -1002,6 +1219,7 @@ export function WorkbookWorkbench({
     const soQuestions = workbook.sentenceOrderQuestions ?? [];
     const ltSections = workbook.lineTranslationSections ?? [];
     const feSections = workbook.fullEnWritingSections ?? [];
+    const woSections = workbook.wordOrderWritingSections ?? [];
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
       if (t === "blank_fill") {
@@ -1061,6 +1279,25 @@ export function WorkbookWorkbench({
           });
         });
       }
+      if (t === "word_order_writing") {
+        woSections.forEach((section, i) => {
+          const key = `wo-q-${i}`;
+          const chunks =
+            a4Chunks[key] ??
+            (section.items.length
+              ? [section.items.map((_, idx) => idx)]
+              : [[]]);
+          chunks.forEach((itemIndices, ci) => {
+            out.push({
+              kind: "word_order_q",
+              sectionIndex: i,
+              typeOrder: order,
+              itemIndices,
+              continued: ci > 0,
+            });
+          });
+        });
+      }
     }
     if (types.length > 0) {
       out.push({
@@ -1070,6 +1307,7 @@ export function WorkbookWorkbench({
         typeOrderSentenceOrder: typeOrders.get("sentence_order") ?? null,
         typeOrderLineKo: typeOrders.get("one_line_ko") ?? null,
         typeOrderFullEn: typeOrders.get("full_en_writing") ?? null,
+        typeOrderWordOrder: typeOrders.get("word_order_writing") ?? null,
       });
     }
     return out;
@@ -1089,7 +1327,13 @@ export function WorkbookWorkbench({
     const root = measureRef.current;
     const ltSections = workbook.lineTranslationSections ?? [];
     const feSections = workbook.fullEnWritingSections ?? [];
-    if (!root || (ltSections.length === 0 && feSections.length === 0)) {
+    const woSections = workbook.wordOrderWritingSections ?? [];
+    if (
+      !root ||
+      (ltSections.length === 0 &&
+        feSections.length === 0 &&
+        woSections.length === 0)
+    ) {
       setA4Chunks({});
       return;
     }
@@ -1155,6 +1399,15 @@ export function WorkbookWorkbench({
         `[data-wb-measure="fe-intro-${si}"]`,
         `[data-wb-measure="fe-cont-${si}"]`,
         (i) => `[data-wb-measure="fe-item-${si}-${i}"]`
+      );
+    });
+    woSections.forEach((sec, si) => {
+      packSection(
+        `wo-q-${si}`,
+        sec.items.length,
+        `[data-wb-measure="wo-intro-${si}"]`,
+        `[data-wb-measure="wo-cont-${si}"]`,
+        (i) => `[data-wb-measure="wo-item-${si}-${i}"]`
       );
     });
 
@@ -1298,6 +1551,8 @@ export function WorkbookWorkbench({
   const ltSkipped = workbook.lineTranslationSkipped ?? [];
   const feSections = workbook.fullEnWritingSections ?? [];
   const feSkipped = workbook.fullEnWritingSkipped ?? [];
+  const woSections = workbook.wordOrderWritingSections ?? [];
+  const woSkipped = workbook.wordOrderWritingSkipped ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -1481,6 +1736,27 @@ export function WorkbookWorkbench({
                 );
               }
 
+              if (page.kind === "word_order_q") {
+                const section = woSections[page.sectionIndex]!;
+                return (
+                  <PageShell
+                    key={`wo-q-${section.projectId}-${page.continued ? "c" : "0"}-${(page.itemIndices ?? []).join("-")}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={`${page.typeOrder}. 어순배열 영작`}
+                    isLast={isLast}
+                  >
+                    <WordOrderQuestionBody
+                      section={section}
+                      itemIndices={page.itemIndices}
+                      continued={page.continued}
+                    />
+                  </PageShell>
+                );
+              }
+
               // answers
               return (
                 <PageShell
@@ -1584,6 +1860,27 @@ export function WorkbookWorkbench({
                           <ul className="space-y-1 text-[11px] text-amber-700">
                             {feSkipped.map((s) => (
                               <li key={`fes-${s.projectId}`}>
+                                「{s.title}」 {s.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {page.typeOrderWordOrder != null ? (
+                      <div className="space-y-8">
+                        {woSections.map((section) => (
+                          <WordOrderAnswerBody
+                            key={`woa-${section.projectId}`}
+                            section={section}
+                            typeOrder={page.typeOrderWordOrder!}
+                            multi={woSections.length > 1}
+                          />
+                        ))}
+                        {woSkipped.length > 0 ? (
+                          <ul className="space-y-1 text-[11px] text-amber-700">
+                            {woSkipped.map((s) => (
+                              <li key={`wos-${s.projectId}`}>
                                 「{s.title}」 {s.reason}
                               </li>
                             ))}
@@ -1721,6 +2018,71 @@ export function WorkbookWorkbench({
                       <div
                         key={`m-fwal-${it.sentenceId}-${i}`}
                         className="full-writing-answer-line"
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ))}
+          {woSections.map((section, si) => (
+            <div key={`m-wo-${section.projectId}`}>
+              <div data-wb-measure={`wo-intro-${si}`}>
+                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                  {section.title}
+                </p>
+                {section.source?.trim() ? (
+                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                    · {section.source.trim()}
+                  </p>
+                ) : (
+                  <div className="mb-3" />
+                )}
+                <p className="mb-4 text-[13px] font-semibold text-slate-800">
+                  우리말 뜻과 일치하도록 주어진 영어 어절을 올바르게 배열하여
+                  완전한 문장을 쓰세요.
+                </p>
+              </div>
+              <div data-wb-measure={`wo-cont-${si}`}>
+                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                  {section.title} (계속)
+                </p>
+                {section.source?.trim() ? (
+                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                    · {section.source.trim()}
+                  </p>
+                ) : (
+                  <div className="mb-3" />
+                )}
+              </div>
+              {section.items.map((it, ii) => (
+                <section
+                  key={`m-wo-item-${it.questionId}`}
+                  className="word-order-item"
+                  data-wb-measure={`wo-item-${si}-${ii}`}
+                >
+                  <div className="word-order-prompt">
+                    <span className="word-order-number">{it.orderIndex}.</span>
+                    <div className="word-order-korean">{it.korean}</div>
+                  </div>
+                  <div className="word-order-bank">
+                    {it.shuffledTokens.map((token, index) => (
+                      <span
+                        key={token.tokenId}
+                        className="word-order-token-unit"
+                      >
+                        <span>{token.surface}</span>
+                        {index < it.shuffledTokens.length - 1 ? (
+                          <span className="word-order-separator">/</span>
+                        ) : null}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="word-order-answer-area">
+                    {Array.from({ length: it.answerLineCount }, (_, i) => (
+                      <div
+                        key={`m-woal-${it.questionId}-${i}`}
+                        className="word-order-answer-line"
                       />
                     ))}
                   </div>

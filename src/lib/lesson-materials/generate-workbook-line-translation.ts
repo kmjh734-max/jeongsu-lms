@@ -298,7 +298,7 @@ export function buildLineTranslationItems(
   return items;
 }
 
-/** Shared bilingual rows (한줄해석 / 통문장 영작). */
+/** Shared bilingual rows (한줄해석 / 통문장 영작 / 어순배열 영작). */
 export type BilingualSentenceItem = {
   passageId: string;
   sentenceId: string;

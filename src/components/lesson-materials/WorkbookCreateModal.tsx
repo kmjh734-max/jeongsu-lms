@@ -17,7 +17,7 @@ import {
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
-export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v4";
+export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v5";
 
 export function saveWorkbookToSession(workbook: WorkbookData) {
   try {
@@ -114,6 +114,7 @@ export function WorkbookCreateModal({
   const wantSentenceOrder = selected.has("sentence_order");
   const wantLineKo = selected.has("one_line_ko");
   const wantFullEn = selected.has("full_en_writing");
+  const wantWordOrder = selected.has("word_order_writing");
 
   if (!open) return null;
 
@@ -469,6 +470,19 @@ export function WorkbookCreateModal({
                     저장된 한글 해석을 제시하고 학생이 영어 원문 전체를
                     씁니다. 한줄해석과 같은 해석 데이터를 재사용하며 AI 호출은
                     없습니다.
+                  </p>
+                </div>
+              ) : null}
+
+              {wantWordOrder ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <p className="text-sm font-bold text-slate-900">
+                    어순배열 영작
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+                    저장된 한글 해석과 섞인 영어 어절을 보고 완전한 영어
+                    문장을 씁니다. 공백 기준 토큰화·코드 셔플만 사용하며 AI
+                    호출은 없습니다.
                   </p>
                 </div>
               ) : null}

@@ -7,6 +7,7 @@ import { mapLineTranslationToFullEnWriting } from "@/lib/lesson-materials/genera
 import { generateWorkbookLineTranslation } from "@/lib/lesson-materials/generate-workbook-line-translation";
 import { generateWorkbookSentenceOrder } from "@/lib/lesson-materials/generate-workbook-sentence-order";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
+import { mapLineTranslationToWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
 import { SENTENCE_ORDER_SKIP_TOO_FEW } from "@/lib/lesson-materials/sentence-order-constants";
 import type { LessonPackData, LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
@@ -79,7 +80,7 @@ export async function generateWorkbookAction(
     return {
       ok: false,
       message:
-        "생성 가능한 문제 유형을 선택해 주세요. (T/F, 빈칸 채우기, 문장 순서 배열, 한줄해석)",
+        "생성 가능한 문제 유형을 선택해 주세요. (T/F, 빈칸 채우기, 문장 순서 배열, 한줄해석, 통문장 영작, 어순배열 영작)",
     };
   }
   const unknown = (input.selectedTypes ?? []).filter(
@@ -98,7 +99,8 @@ export async function generateWorkbookAction(
   const wantSentenceOrder = types.includes("sentence_order");
   const wantLineKo = types.includes("one_line_ko");
   const wantFullEn = types.includes("full_en_writing");
-  const wantBilingual = wantLineKo || wantFullEn;
+  const wantWordOrder = types.includes("word_order_writing");
+  const wantBilingual = wantLineKo || wantFullEn || wantWordOrder;
   const lineTranslationExcludeIds = [
     ...new Set(
       (input.lineTranslationExcludeIds ?? [])
@@ -210,6 +212,8 @@ export async function generateWorkbookAction(
     lineTranslationSkipped: [],
     fullEnWritingSections: [],
     fullEnWritingSkipped: [],
+    wordOrderWritingSections: [],
+    wordOrderWritingSkipped: [],
   };
   const workbookId = `${workbook.metadata.title}|${workbook.metadata.createdAt}`;
 
@@ -357,6 +361,13 @@ export async function generateWorkbookAction(
           mapLineTranslationToFullEnWriting(bilingual.sections);
         workbook.fullEnWritingSkipped = skipped;
       }
+      if (wantWordOrder) {
+        workbook.wordOrderWritingSections = mapLineTranslationToWordOrderWriting(
+          bilingual.sections,
+          workbookId
+        );
+        workbook.wordOrderWritingSkipped = skipped;
+      }
 
       if (!workbook.timing) {
         workbook.timing = {
@@ -410,6 +421,16 @@ export async function generateWorkbookAction(
         ok: false,
         message:
           "통문장 영작 결과를 만들지 못했습니다. 해석이 있는 지문을 선택해 주세요.",
+      };
+    }
+    if (
+      wantWordOrder &&
+      (workbook.wordOrderWritingSections?.length ?? 0) === 0
+    ) {
+      return {
+        ok: false,
+        message:
+          "어순배열 영작 결과를 만들지 못했습니다. 해석이 있는 지문을 선택해 주세요.",
       };
     }
 
