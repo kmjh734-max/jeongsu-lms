@@ -292,7 +292,7 @@ export function convertAnalysisPointLocally(input: {
   if (!correct || correct.length > 60) return null;
 
   let incorrect: string | null = null;
-  let incorrectReason =
+  const incorrectReason =
     `${input.point.wrongReasons[0] || ""}`.trim() ||
     `이 문맥의 ${input.point.bookTerm || input.point.title} 구조에 맞지 않는다.`;
 
