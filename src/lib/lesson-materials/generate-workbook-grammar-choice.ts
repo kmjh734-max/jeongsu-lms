@@ -489,11 +489,9 @@ export async function generateWorkbookGrammarChoice(input: {
       }
     }
 
-    let { accepted, rejected } = validateAndFilterCandidates(
-      repaired,
-      sentenceMap
-    );
-    for (const r of rejected) {
+    const firstPass = validateAndFilterCandidates(repaired, sentenceMap);
+    let accepted = firstPass.accepted;
+    for (const r of firstPass.rejected) {
       rejectedAll.push({
         passageId: p.projectId,
         reason: r.reason,
