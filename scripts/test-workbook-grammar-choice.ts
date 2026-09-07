@@ -18,7 +18,7 @@ import { WORKBOOK_TYPE_CATALOG } from "../src/lib/lesson-materials/workbook-type
 import type { GrammarChoiceCandidate } from "../src/lib/lesson-materials/workbook-types";
 import { GRAMMAR_CHOICE_PROMPT_VERSION } from "../src/lib/lesson-materials/grammar-choice-constants";
 
-assert.equal(GRAMMAR_CHOICE_PROMPT_VERSION, "grammar-choice-v1");
+assert.equal(GRAMMAR_CHOICE_PROMPT_VERSION, "grammar-choice-v2");
 assert.ok(!WORKBOOK_TYPE_CATALOG.some((t) => t.id === "vocab_example"));
 assert.ok(WORKBOOK_TYPE_CATALOG.some((t) => t.id === "vocab_choice"));
 assert.ok(WORKBOOK_TYPE_CATALOG.some((t) => t.id === "vocab_fix"));

@@ -1,5 +1,5 @@
 /** Prompt / selection algorithm version for grammar-choice workbook. */
-export const GRAMMAR_CHOICE_PROMPT_VERSION = "grammar-choice-v1";
+export const GRAMMAR_CHOICE_PROMPT_VERSION = "grammar-choice-v2";
 
 /** Fallback when no analysis report is attached. */
 export const GRAMMAR_ANALYSIS_VERSION_NONE = "no-analysis";

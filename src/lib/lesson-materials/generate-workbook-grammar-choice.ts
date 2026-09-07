@@ -26,6 +26,8 @@ import {
   buildGrammarChoiceItems,
   buildPassageSegments,
 } from "@/lib/lesson-materials/grammar-choice-display";
+import { repairCandidateAgainstPassage } from "@/lib/lesson-materials/grammar-choice-repair";
+import { buildHeuristicGrammarCandidates } from "@/lib/lesson-materials/grammar-choice-fallback";
 import { tokenizeForWordOrder } from "@/lib/lesson-materials/word-order-tokenize";
 import {
   countEnglishWords,
@@ -419,42 +421,53 @@ export async function generateWorkbookGrammarChoice(input: {
     }
   }
 
-  let aiByPassage = new Map<string, GrammarChoiceCandidate[]>();
-  if (needAi.length > 0) {
-    const promptPassages = needAi.map((p) => {
-      const english = joinWorkbookPassageLines(
-        p.sentences.map((s) => s.english)
-      );
-      const wc = countEnglishWords(english);
-      const range = getGrammarChoiceTargetRange(wc);
-      const points = extractGrammarPointsFromReport(p.analysisReport);
-      return {
-        passageId: p.projectId,
-        title: p.title,
-        source: p.source,
-        softTargetMin: range.min,
-        softTargetMax: range.max,
-        sentences: p.sentences.map((s, i) => {
-          const tokens = tokenizeForWordOrder(s.english).map((t) => t.surface);
-          return {
-            sentenceId: s.id,
-            order: i + 1,
-            english: formatWorkbookPassage(s.english),
-            tokenCount: tokens.length,
-            tokens,
-          };
-        }),
-        existingGrammarPoints: points,
-      };
-    });
-    const ai = await callGrammarChoiceOpenAI({ passages: promptPassages });
-    openAiRequestCount += ai.openAiRequestCount;
-    aiByPassage = ai.byPassageId;
-  }
+    let aiByPassage = new Map<string, GrammarChoiceCandidate[]>();
+    if (needAi.length > 0) {
+      const promptPassages = needAi.map((p) => {
+        const english = joinWorkbookPassageLines(
+          p.sentences.map((s) => s.english)
+        );
+        const wc = countEnglishWords(english);
+        const range = getGrammarChoiceTargetRange(wc);
+        const points = extractGrammarPointsFromReport(p.analysisReport);
+        return {
+          passageId: p.projectId,
+          title: p.title,
+          source: p.source,
+          softTargetMin: range.min,
+          softTargetMax: range.max,
+          sentences: p.sentences.map((s, i) => {
+            const tokens = tokenizeForWordOrder(s.english).map((t) => t.surface);
+            return {
+              sentenceId: s.id,
+              order: i + 1,
+              english: formatWorkbookPassage(s.english),
+              tokenCount: tokens.length,
+              tokens,
+            };
+          }),
+          existingGrammarPoints: points,
+        };
+      });
+      try {
+        const ai = await callGrammarChoiceOpenAI({ passages: promptPassages });
+        openAiRequestCount += ai.openAiRequestCount;
+        aiByPassage = ai.byPassageId;
+      } catch (err) {
+        console.warn(
+          "[workbook-grammar-choice] OpenAI failed; using heuristics",
+          err instanceof Error ? err.message : err
+        );
+      }
+    }
 
   for (const p of input.passages) {
+    const sentenceRows = p.sentences.map((s) => ({
+      id: s.id,
+      english: formatWorkbookPassage(s.english),
+    }));
     const sentenceMap = new Map(
-      p.sentences.map((s) => [s.id, formatWorkbookPassage(s.english)] as const)
+      sentenceRows.map((s) => [s.id, s.english] as const)
     );
     const sourceHash = sourceHashes.get(p.projectId)!;
     const analysisVersion = analysisVersions.get(p.projectId)!;
@@ -463,8 +476,21 @@ export async function generateWorkbookGrammarChoice(input: {
       aiByPassage.get(p.projectId) ??
       [];
 
-    const { accepted, rejected } = validateAndFilterCandidates(
-      raw,
+    const repaired: GrammarChoiceCandidate[] = [];
+    for (const c of raw) {
+      const fixed = repairCandidateAgainstPassage(c, sentenceRows);
+      if (fixed) repaired.push(fixed);
+      else {
+        rejectedAll.push({
+          passageId: p.projectId,
+          reason: "repair_failed",
+          choiceId: c.choiceId,
+        });
+      }
+    }
+
+    let { accepted, rejected } = validateAndFilterCandidates(
+      repaired,
       sentenceMap
     );
     for (const r of rejected) {
@@ -474,7 +500,62 @@ export async function generateWorkbookGrammarChoice(input: {
         choiceId: r.candidate.choiceId,
       });
     }
+
+    // Deterministic heuristics fill gaps when AI/cache yields too few
+    const english = joinWorkbookPassageLines(
+      p.sentences.map((s) => s.english)
+    );
+    const range = getGrammarChoiceTargetRange(countEnglishWords(english));
+    if (accepted.length < range.min) {
+      const heuristics = buildHeuristicGrammarCandidates({
+        passageId: p.projectId,
+        sentences: sentenceRows,
+      });
+      const merged = [...accepted];
+      const occupied = accepted.map((c) => ({
+        sentenceId: c.sentenceId,
+        start: c.startTokenIndex,
+        end: c.endTokenIndex,
+      }));
+      const { accepted: more, rejected: moreRejected } =
+        validateAndFilterCandidates(heuristics, sentenceMap);
+      for (const r of moreRejected) {
+        rejectedAll.push({
+          passageId: p.projectId,
+          reason: `heur:${r.reason}`,
+          choiceId: r.candidate.choiceId,
+        });
+      }
+      for (const c of more) {
+        const overlaps = occupied.some(
+          (o) =>
+            o.sentenceId === c.sentenceId &&
+            !(c.endTokenIndex < o.start || c.startTokenIndex > o.end)
+        );
+        if (overlaps) continue;
+        if (merged.some((m) => m.choiceId === c.choiceId)) continue;
+        merged.push(c);
+        occupied.push({
+          sentenceId: c.sentenceId,
+          start: c.startTokenIndex,
+          end: c.endTokenIndex,
+        });
+      }
+      accepted = merged;
+    }
+
     acceptedCounts[p.projectId] = accepted.length;
+
+    console.info("[workbook-grammar-choice]", {
+      passageId: p.projectId,
+      title: p.title,
+      raw: raw.length,
+      repaired: repaired.length,
+      accepted: accepted.length,
+      rejectedSample: rejectedAll
+        .filter((r) => r.passageId === p.projectId)
+        .slice(0, 8),
+    });
 
     // Cache validated candidates (not only final selection) so re-runs are stable
     if (!cachedResults.has(p.projectId) && accepted.length > 0) {
@@ -490,10 +571,6 @@ export async function generateWorkbookGrammarChoice(input: {
       cachesToSave.push({ projectId: p.projectId, cache: next });
     }
 
-    const english = joinWorkbookPassageLines(
-      p.sentences.map((s) => s.english)
-    );
-    const range = getGrammarChoiceTargetRange(countEnglishWords(english));
     const selected = selectFinalGrammarChoices(accepted, range.max);
     selectedCounts[p.projectId] = selected.length;
 
@@ -517,13 +594,7 @@ export async function generateWorkbookGrammarChoice(input: {
 
     const seedKey = `${p.projectId}|${sourceHash}|${GRAMMAR_CHOICE_PROMPT_VERSION}`;
     const items = buildGrammarChoiceItems(selected, seedKey);
-    const segments = buildPassageSegments(
-      p.sentences.map((s) => ({
-        id: s.id,
-        english: formatWorkbookPassage(s.english),
-      })),
-      items
-    );
+    const segments = buildPassageSegments(sentenceRows, items);
 
     sections.push({
       projectId: p.projectId,

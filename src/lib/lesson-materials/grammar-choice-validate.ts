@@ -3,6 +3,7 @@ import {
   normalizeWhitespace,
 } from "@/lib/lesson-materials/word-order-tokenize";
 import type { GrammarChoiceCandidate } from "@/lib/lesson-materials/workbook-types";
+import { surfacesEqual } from "@/lib/lesson-materials/grammar-choice-repair";
 
 export type GrammarChoiceRejectReason =
   | "missing_sentence"
@@ -152,13 +153,10 @@ export function validateGrammarChoiceCandidate(
   }
 
   const span = spanTextFromTokens(tokens, start, end);
-  if (normalizeWhitespace(span) !== normalizeWhitespace(candidate.originalText)) {
+  if (!surfacesEqual(span, candidate.originalText)) {
     return { ok: false, reason: "original_mismatch" };
   }
-  if (
-    normalizeWhitespace(candidate.correctText) !==
-    normalizeWhitespace(candidate.originalText)
-  ) {
+  if (!surfacesEqual(candidate.correctText, candidate.originalText)) {
     return { ok: false, reason: "correct_not_original" };
   }
 
@@ -168,25 +166,14 @@ export function validateGrammarChoiceCandidate(
     end,
     candidate.correctText
   );
-  if (normalizeWhitespace(restored) !== normalizeWhitespace(english)) {
-    // If token count of correct equals span, restore must match; else fail
-    const corrTokens = normalizeWhitespace(candidate.correctText)
-      .split(" ")
-      .filter(Boolean);
-    if (corrTokens.length === end - start + 1) {
-      return { ok: false, reason: "restore_failed" };
-    }
-    // Multi-token mismatch length — still require correct === original span
+  if (!surfacesEqual(restored, english)) {
     return { ok: false, reason: "restore_failed" };
   }
 
   if (!candidate.incorrectText.trim()) {
     return { ok: false, reason: "empty_incorrect" };
   }
-  if (
-    normalizeWhitespace(candidate.correctText) ===
-    normalizeWhitespace(candidate.incorrectText)
-  ) {
+  if (surfacesEqual(candidate.correctText, candidate.incorrectText)) {
     return { ok: false, reason: "same_as_incorrect" };
   }
 
