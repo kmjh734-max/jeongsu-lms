@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type ReactNode,
@@ -40,7 +42,9 @@ import { formatAnswerOrderSequence } from "@/lib/lesson-materials/sentence-order
 
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
-const A4_PAD = "14mm";
+const A4_PAD_MM = 14;
+const A4_FOOTER_MM = 18;
+const A4_PAD = `${A4_PAD_MM}mm`;
 const ACCENT = "#F07167";
 
 function PageShell({
@@ -69,11 +73,11 @@ function PageShell({
         width: A4_WIDTH,
         minHeight: A4_HEIGHT,
         padding: A4_PAD,
-        paddingBottom: "18mm",
+        paddingBottom: `${A4_FOOTER_MM}mm`,
         boxSizing: "border-box",
       }}
     >
-      <header className="mb-4">
+      <header className="mb-4" data-wb-block="sheet-header">
         <p className="text-[13px] font-bold text-slate-800">{workbookTitle}</p>
         <div className="mt-1.5 h-px w-full" style={{ backgroundColor: ACCENT }} />
         {showTypeTitle && typeTitle ? (
@@ -85,7 +89,7 @@ function PageShell({
           </h2>
         ) : null}
       </header>
-      <div>{children}</div>
+      <div className="workbook-a4-body">{children}</div>
       <p className="pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
         - {pageNo} -
       </p>
@@ -399,13 +403,23 @@ function SentenceOrderAnswerBody({
 
 function LineTranslationQuestionBody({
   section,
+  itemIndices,
+  continued,
 }: {
   section: WorkbookLineTranslationSection;
+  itemIndices?: number[];
+  continued?: boolean;
 }) {
+  const items =
+    itemIndices != null
+      ? itemIndices.map((i) => section.items[i]!).filter(Boolean)
+      : section.items;
+
   return (
     <>
       <p className="mb-1 text-[12px] font-semibold text-slate-500">
         {section.title}
+        {continued ? " (계속)" : ""}
       </p>
       {section.source?.trim() ? (
         <p className="mb-3 text-[12px] font-semibold text-slate-500">
@@ -414,14 +428,17 @@ function LineTranslationQuestionBody({
       ) : (
         <div className="mb-3" />
       )}
-      <p className="mb-4 text-[13px] font-semibold text-slate-800">
-        다음 영어 문장을 우리말로 해석하세요.
-      </p>
-      <div className="space-y-0">
-        {section.items.map((it) => (
+      {!continued ? (
+        <p className="mb-4 text-[13px] font-semibold text-slate-800">
+          다음 영어 문장을 우리말로 해석하세요.
+        </p>
+      ) : null}
+      <div>
+        {items.map((it) => (
           <div
             key={`${section.projectId}-${it.sentenceId}`}
             className="line-translation-item"
+            data-wb-item={`lt-${section.projectId}-${it.orderIndex}`}
           >
             <div className="line-translation-question">
               <span className="line-translation-number">{it.orderIndex}.</span>
@@ -494,13 +511,23 @@ function LineTranslationAnswerBody({
 
 function FullEnWritingQuestionBody({
   section,
+  itemIndices,
+  continued,
 }: {
   section: WorkbookFullEnWritingSection;
+  itemIndices?: number[];
+  continued?: boolean;
 }) {
+  const items =
+    itemIndices != null
+      ? itemIndices.map((i) => section.items[i]!).filter(Boolean)
+      : section.items;
+
   return (
     <>
       <p className="mb-1 text-[12px] font-semibold text-slate-500">
         {section.title}
+        {continued ? " (계속)" : ""}
       </p>
       {section.source?.trim() ? (
         <p className="mb-3 text-[12px] font-semibold text-slate-500">
@@ -509,14 +536,17 @@ function FullEnWritingQuestionBody({
       ) : (
         <div className="mb-3" />
       )}
-      <p className="mb-4 text-[13px] font-semibold text-slate-800">
-        다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
-      </p>
+      {!continued ? (
+        <p className="mb-4 text-[13px] font-semibold text-slate-800">
+          다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
+        </p>
+      ) : null}
       <div>
-        {section.items.map((it) => (
+        {items.map((it) => (
           <section
             key={`${section.projectId}-${it.sentenceId}`}
             className="full-writing-item"
+            data-wb-item={`fe-${section.projectId}-${it.orderIndex}`}
           >
             <div className="full-writing-prompt">
               <span className="full-writing-number">{it.orderIndex}.</span>
@@ -618,11 +648,15 @@ type WorkbookPage =
       kind: "line_ko_q";
       sectionIndex: number;
       typeOrder: number;
+      itemIndices?: number[];
+      continued?: boolean;
     }
   | {
       kind: "full_en_q";
       sectionIndex: number;
       typeOrder: number;
+      itemIndices?: number[];
+      continued?: boolean;
     }
   | {
       kind: "answers";
@@ -652,6 +686,9 @@ export function WorkbookWorkbench({
   const [generating, setGenerating] = useState(true);
   const [status, setStatus] = useState("워크북을 준비하고 있습니다…");
   const [zoom, setZoom] = useState(85);
+  /** Measured A4 item chunks: key → pages of item indices */
+  const [a4Chunks, setA4Chunks] = useState<Record<string, number[][]>>({});
+  const measureRef = useRef<HTMLDivElement>(null);
 
   const requestKey = searchParams.toString();
 
@@ -789,12 +826,13 @@ export function WorkbookWorkbench({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- requestKey captures query
   }, [role, requestKey]);
 
-  useEffect(() => {
+  const ensureWorkbookPrintStyles = () => {
     const id = "workbook-print-page-size-style";
     let el = document.getElementById(id) as HTMLStyleElement | null;
     if (!el) {
       el = document.createElement("style");
       el.id = id;
+      document.body.appendChild(el);
     }
     el.textContent = `
 .sentence-order-choice {
@@ -941,9 +979,12 @@ export function WorkbookWorkbench({
   }
 }
 `;
-    document.body.appendChild(el);
+  };
+
+  useEffect(() => {
+    ensureWorkbookPrintStyles();
     return () => {
-      el?.remove();
+      document.getElementById("workbook-print-page-size-style")?.remove();
     };
   }, []);
 
@@ -983,13 +1024,41 @@ export function WorkbookWorkbench({
         });
       }
       if (t === "one_line_ko") {
-        ltSections.forEach((_, i) => {
-          out.push({ kind: "line_ko_q", sectionIndex: i, typeOrder: order });
+        ltSections.forEach((section, i) => {
+          const key = `lt-q-${i}`;
+          const chunks =
+            a4Chunks[key] ??
+            (section.items.length
+              ? [section.items.map((_, idx) => idx)]
+              : [[]]);
+          chunks.forEach((itemIndices, ci) => {
+            out.push({
+              kind: "line_ko_q",
+              sectionIndex: i,
+              typeOrder: order,
+              itemIndices,
+              continued: ci > 0,
+            });
+          });
         });
       }
       if (t === "full_en_writing") {
-        feSections.forEach((_, i) => {
-          out.push({ kind: "full_en_q", sectionIndex: i, typeOrder: order });
+        feSections.forEach((section, i) => {
+          const key = `fe-q-${i}`;
+          const chunks =
+            a4Chunks[key] ??
+            (section.items.length
+              ? [section.items.map((_, idx) => idx)]
+              : [[]]);
+          chunks.forEach((itemIndices, ci) => {
+            out.push({
+              kind: "full_en_q",
+              sectionIndex: i,
+              typeOrder: order,
+              itemIndices,
+              continued: ci > 0,
+            });
+          });
         });
       }
     }
@@ -1004,7 +1073,100 @@ export function WorkbookWorkbench({
       });
     }
     return out;
-  }, [workbook, typeOrders]);
+  }, [workbook, typeOrders, a4Chunks]);
+
+  useLayoutEffect(() => {
+    ensureWorkbookPrintStyles();
+  }, []);
+
+  // Measure long bilingual sections into true A4 pages (preview === print).
+  useLayoutEffect(() => {
+    ensureWorkbookPrintStyles();
+    if (!workbook) {
+      setA4Chunks({});
+      return;
+    }
+    const root = measureRef.current;
+    const ltSections = workbook.lineTranslationSections ?? [];
+    const feSections = workbook.fullEnWritingSections ?? [];
+    if (!root || (ltSections.length === 0 && feSections.length === 0)) {
+      setA4Chunks({});
+      return;
+    }
+
+    const widthPx = root.offsetWidth || 1;
+    const pxPerMm = widthPx / 210;
+    const pageBodyPx = (297 - A4_PAD_MM - A4_FOOTER_MM) * pxPerMm;
+    const sheetHeaderH =
+      (root.querySelector('[data-wb-measure="sheet-header"]') as HTMLElement | null)
+        ?.offsetHeight ?? 72;
+    const gapPx = 8;
+    const next: Record<string, number[][]> = {};
+
+    const packSection = (
+      key: string,
+      itemCount: number,
+      introSel: string,
+      contSel: string,
+      itemSel: (i: number) => string
+    ) => {
+      const introH =
+        (root.querySelector(introSel) as HTMLElement | null)?.offsetHeight ?? 70;
+      const contH =
+        (root.querySelector(contSel) as HTMLElement | null)?.offsetHeight ?? 40;
+      const heights = Array.from({ length: itemCount }, (_, i) => {
+        const el = root.querySelector(itemSel(i)) as HTMLElement | null;
+        return el?.offsetHeight ?? 120;
+      });
+      const firstBudget = Math.max(80, pageBodyPx - sheetHeaderH - introH);
+      const contBudget = Math.max(80, pageBodyPx - sheetHeaderH - contH);
+      const packed: number[][] = [];
+      let current: number[] = [];
+      let used = 0;
+      let budget = firstBudget;
+      heights.forEach((h, i) => {
+        const pad = current.length === 0 ? 0 : gapPx;
+        if (current.length > 0 && used + pad + h > budget) {
+          packed.push(current);
+          current = [];
+          used = 0;
+          budget = contBudget;
+        }
+        used += (current.length === 0 ? 0 : gapPx) + h;
+        current.push(i);
+      });
+      if (current.length) packed.push(current);
+      next[key] = packed.length ? packed : [[]];
+    };
+
+    ltSections.forEach((sec, si) => {
+      packSection(
+        `lt-q-${si}`,
+        sec.items.length,
+        `[data-wb-measure="lt-intro-${si}"]`,
+        `[data-wb-measure="lt-cont-${si}"]`,
+        (i) => `[data-wb-measure="lt-item-${si}-${i}"]`
+      );
+    });
+    feSections.forEach((sec, si) => {
+      packSection(
+        `fe-q-${si}`,
+        sec.items.length,
+        `[data-wb-measure="fe-intro-${si}"]`,
+        `[data-wb-measure="fe-cont-${si}"]`,
+        (i) => `[data-wb-measure="fe-item-${si}-${i}"]`
+      );
+    });
+
+    setA4Chunks((prev) => {
+      const same =
+        Object.keys(next).length === Object.keys(prev).length &&
+        Object.keys(next).every(
+          (k) => JSON.stringify(next[k]) === JSON.stringify(prev[k])
+        );
+      return same ? prev : next;
+    });
+  }, [workbook]);
 
   const previewStyle = useMemo(
     (): CSSProperties => ({
@@ -1281,7 +1443,7 @@ export function WorkbookWorkbench({
                 const section = ltSections[page.sectionIndex]!;
                 return (
                   <PageShell
-                    key={`lt-q-${section.projectId}`}
+                    key={`lt-q-${section.projectId}-${page.continued ? "c" : "0"}-${(page.itemIndices ?? []).join("-")}`}
                     pageNo={pageNo}
                     total={total}
                     workbookTitle={title}
@@ -1289,7 +1451,11 @@ export function WorkbookWorkbench({
                     typeTitle={`${page.typeOrder}. 한줄해석`}
                     isLast={isLast}
                   >
-                    <LineTranslationQuestionBody section={section} />
+                    <LineTranslationQuestionBody
+                      section={section}
+                      itemIndices={page.itemIndices}
+                      continued={page.continued}
+                    />
                   </PageShell>
                 );
               }
@@ -1298,7 +1464,7 @@ export function WorkbookWorkbench({
                 const section = feSections[page.sectionIndex]!;
                 return (
                   <PageShell
-                    key={`fe-q-${section.projectId}`}
+                    key={`fe-q-${section.projectId}-${page.continued ? "c" : "0"}-${(page.itemIndices ?? []).join("-")}`}
                     pageNo={pageNo}
                     total={total}
                     workbookTitle={title}
@@ -1306,7 +1472,11 @@ export function WorkbookWorkbench({
                     typeTitle={`${page.typeOrder}. 통문장 영작`}
                     isLast={isLast}
                   >
-                    <FullEnWritingQuestionBody section={section} />
+                    <FullEnWritingQuestionBody
+                      section={section}
+                      itemIndices={page.itemIndices}
+                      continued={page.continued}
+                    />
                   </PageShell>
                 );
               }
@@ -1426,6 +1596,138 @@ export function WorkbookWorkbench({
               );
             })}
           </div>
+        </div>
+
+        {/* Off-screen measure tree: packs long bilingual sections into real A4 pages */}
+        <div
+          ref={measureRef}
+          className="pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0 print:hidden"
+          style={{
+            padding: A4_PAD,
+            paddingBottom: `${A4_FOOTER_MM}mm`,
+            boxSizing: "border-box",
+          }}
+          aria-hidden
+        >
+          <header className="mb-4" data-wb-measure="sheet-header">
+            <p className="text-[13px] font-bold text-slate-800">{title}</p>
+            <div
+              className="mt-1.5 h-px w-full"
+              style={{ backgroundColor: ACCENT }}
+            />
+            <h2
+              className="mt-4 text-[18px] font-black tracking-tight"
+              style={{ color: ACCENT }}
+            >
+              1. 한줄해석
+            </h2>
+          </header>
+          {ltSections.map((section, si) => (
+            <div key={`m-lt-${section.projectId}`}>
+              <div data-wb-measure={`lt-intro-${si}`}>
+                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                  {section.title}
+                </p>
+                {section.source?.trim() ? (
+                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                    · {section.source.trim()}
+                  </p>
+                ) : (
+                  <div className="mb-3" />
+                )}
+                <p className="mb-4 text-[13px] font-semibold text-slate-800">
+                  다음 영어 문장을 우리말로 해석하세요.
+                </p>
+              </div>
+              <div data-wb-measure={`lt-cont-${si}`}>
+                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                  {section.title} (계속)
+                </p>
+                {section.source?.trim() ? (
+                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                    · {section.source.trim()}
+                  </p>
+                ) : (
+                  <div className="mb-3" />
+                )}
+              </div>
+              {section.items.map((it, ii) => (
+                <div
+                  key={`m-lt-item-${it.sentenceId}`}
+                  className="line-translation-item"
+                  data-wb-measure={`lt-item-${si}-${ii}`}
+                >
+                  <div className="line-translation-question">
+                    <span className="line-translation-number">
+                      {it.orderIndex}.
+                    </span>
+                    <p className="line-translation-english">
+                      {it.englishDisplay}
+                    </p>
+                  </div>
+                  <div className="line-translation-answer">
+                    {Array.from({ length: it.answerLineCount }, (_, i) => (
+                      <div
+                        key={`m-al-${it.sentenceId}-${i}`}
+                        className="translation-answer-line"
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+          {feSections.map((section, si) => (
+            <div key={`m-fe-${section.projectId}`}>
+              <div data-wb-measure={`fe-intro-${si}`}>
+                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                  {section.title}
+                </p>
+                {section.source?.trim() ? (
+                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                    · {section.source.trim()}
+                  </p>
+                ) : (
+                  <div className="mb-3" />
+                )}
+                <p className="mb-4 text-[13px] font-semibold text-slate-800">
+                  다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
+                </p>
+              </div>
+              <div data-wb-measure={`fe-cont-${si}`}>
+                <p className="mb-1 text-[12px] font-semibold text-slate-500">
+                  {section.title} (계속)
+                </p>
+                {section.source?.trim() ? (
+                  <p className="mb-3 text-[12px] font-semibold text-slate-500">
+                    · {section.source.trim()}
+                  </p>
+                ) : (
+                  <div className="mb-3" />
+                )}
+              </div>
+              {section.items.map((it, ii) => (
+                <section
+                  key={`m-fe-item-${it.sentenceId}`}
+                  className="full-writing-item"
+                  data-wb-measure={`fe-item-${si}-${ii}`}
+                >
+                  <div className="full-writing-prompt">
+                    <span className="full-writing-number">{it.orderIndex}.</span>
+                    <div className="full-writing-korean">{it.korean}</div>
+                  </div>
+                  <div className="full-writing-answer-area">
+                    {Array.from({ length: it.answerLineCount }, (_, i) => (
+                      <div
+                        key={`m-fwal-${it.sentenceId}-${i}`}
+                        className="full-writing-answer-line"
+                      />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          ))}
         </div>
       </main>
     </div>
