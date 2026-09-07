@@ -380,15 +380,10 @@ function GrammarChoiceAnswerBody({
             {it.structureSummary ? (
               <p className="mt-1 text-slate-700">구조: {it.structureSummary}</p>
             ) : null}
-            <p className="mt-1 text-slate-700">
-              설명: {it.explanationKo}
-            </p>
+            <p className="mt-1 text-slate-700">설명: {it.explanationKo}</p>
             <p className="mt-1 text-slate-700">
               오답 이유: {it.incorrectText}
               {it.incorrectReasonKo ? ` — ${it.incorrectReasonKo}` : ""}
-            </p>
-            <p className="mt-1 text-[11px] text-slate-500 print:hidden">
-              분석 출처: {it.analysisOriginLabel || "—"}
             </p>
           </li>
         ))}
@@ -398,53 +393,30 @@ function GrammarChoiceAnswerBody({
           <p className="font-bold text-slate-800">진단</p>
           <ul className="mt-1 space-y-0.5">
             <li>전체 문장 수: {d.sentenceCount}</li>
-            <li>분석 완료 문장 수: {d.analyzedSentenceCount}</li>
-            <li>
-              문장 분석률: {Math.round(d.sentenceAnalysisRate * 100)}%
-            </li>
-            <li>기존 분석지 문법 수: {d.formalAnalysisPointCount}</li>
-            <li>내부 보충 문법 수: {d.internalSupplementPointCount}</li>
-            <li>전체 문법 포인트 수: {d.analysisPointCount}</li>
-            <li>핵심 문법 포인트 수: {d.corePointCount}</li>
-            <li>선택형 변환 가능 수: {d.convertibleCount}</li>
-            <li>실제 출제 수: {d.finalCount}</li>
-            <li>
-              출제 가능한 핵심 문법 반영률:{" "}
-              {Math.round(d.coreReflectionRate * 100)}%
-            </li>
-            <li>선택지가 없는 문장 수: {d.sentencesWithoutChoices.length}</li>
-            <li>모호성 제외: {d.bothPossibleCount}</li>
-            <li>원문 불일치 제외: {d.originalMismatchCount}</li>
-            <li>중복 범위 제외: {d.overlapExcludedCount}</li>
-            <li>저품질 제외: {d.lowQualityExcludedCount}</li>
-            <li>어휘·숙어 제외: {d.lexicalExcludedCount}</li>
+            <li>분석 힌트 수: {d.analysisHintCount}</li>
+            <li>후보 생성 수: {d.generatedCandidateCount}</li>
+            <li>1차 코드 검증 통과 수: {d.codeValidatedCount}</li>
+            <li>원문 불일치 탈락 수: {d.originalMismatchCount}</li>
+            <li>범위 오류 탈락 수: {d.rangeErrorCount}</li>
+            <li>중복·겹침 탈락 수: {d.overlapDuplicateCount}</li>
+            <li>검수 AI 전달 수: {d.reviewSubmittedCount}</li>
+            <li>검수 AI 승인 수: {d.reviewAcceptedCount}</li>
+            <li>양쪽 가능성 탈락 수: {d.bothPossibleRejectCount}</li>
+            <li>어휘·숙어 탈락 수: {d.lexicalRejectCount}</li>
+            <li>저급 오답 탈락 수: {d.trivialRejectCount}</li>
+            <li>최종 문항 수: {d.finalCount}</li>
+            <li>문법 범주 수: {d.grammarCategoryCount}</li>
+            <li>평균 품질 점수: {d.averageQualityScore}</li>
             <li>원문 완전 복원: {d.passageRestored ? "예" : "아니오"}</li>
-            <li>분석 캐시: {d.blueprintCacheHit ? "예" : "아니오"}</li>
-            <li>선택지 캐시: {d.cacheHit ? "예" : "아니오"}</li>
-            <li>분석 완전성: {d.analysisCompleteness}</li>
-            <li>분석 출처: {d.analysisSource}</li>
-            <li>모델: {d.modelUsed || "—"}</li>
-            <li>OpenAI 호출 횟수: {d.openAiRequestCount}</li>
+            <li>생성 모델: {d.generatorModel}</li>
+            <li>검수 모델: {d.reviewerModel}</li>
+            <li>생성 API 호출: {d.generateApiCalls}</li>
+            <li>검수 API 호출: {d.reviewApiCalls}</li>
+            <li>캐시 사용: {d.cacheHit ? "예" : "아니오"}</li>
+            {d.underTargetReason ? (
+              <li>부족 사유: {d.underTargetReason}</li>
+            ) : null}
           </ul>
-          {d.sentencesWithoutChoices.length > 0 ? (
-            <ul className="mt-2 space-y-0.5">
-              {d.sentencesWithoutChoices.slice(0, 8).map((s) => (
-                <li key={s.sentenceId}>
-                  무선택지 문장: {s.reason}
-                  {s.preview ? ` · ${s.preview}` : ""}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {d.exclusions.length > 0 ? (
-            <ul className="mt-2 space-y-0.5">
-              {d.exclusions.slice(0, 12).map((e) => (
-                <li key={`${e.analysisPointId}-${e.reason}`}>
-                  제외: {e.title || e.analysisPointId} · {e.reason}
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </div>
       ) : null}
     </>
@@ -1077,7 +1049,7 @@ export function WorkbookWorkbench({
       if (multiReady) {
         setStatus("워크북을 만들고 있습니다…");
       } else if (wantGrammarChoice) {
-        setStatus("어법 선택 워크북을 만들고 있습니다…");
+        setStatus("1/3 어법 후보를 생성하고 있습니다.");
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
       } else if (wantWordOrder) {
@@ -1093,6 +1065,20 @@ export function WorkbookWorkbench({
       }
 
       try {
+        let statusTimer: ReturnType<typeof setTimeout> | null = null;
+        let statusTimer2: ReturnType<typeof setTimeout> | null = null;
+        if (wantGrammarChoice) {
+          statusTimer = setTimeout(() => {
+            if (!cancelled) {
+              setStatus("2/3 문항의 정답과 오답을 검수하고 있습니다.");
+            }
+          }, 12_000);
+          statusTimer2 = setTimeout(() => {
+            if (!cancelled) {
+              setStatus("3/3 워크북을 구성하고 있습니다.");
+            }
+          }, 45_000);
+        }
         const res = await generateWorkbookAction(role, {
           projectIds: ids,
           selectedTypes: types,
@@ -1101,6 +1087,8 @@ export function WorkbookWorkbench({
           title,
           lineTranslationExcludeIds: ltExclude,
         });
+        if (statusTimer) clearTimeout(statusTimer);
+        if (statusTimer2) clearTimeout(statusTimer2);
         if (cancelled) return;
         if (!res.ok) {
           setError(res.message);

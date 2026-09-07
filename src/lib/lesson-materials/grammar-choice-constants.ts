@@ -1,11 +1,21 @@
 export const GRAMMAR_BLUEPRINT_VERSION =
   "grammar-blueprint-v1-complete-sentence";
 
-/** Prompt / selection algorithm version for grammar-choice workbook. */
-export const GRAMMAR_CHOICE_PROMPT_VERSION =
+/** @deprecated legacy — not used by v5 pipeline */
+export const GRAMMAR_CHOICE_PROMPT_VERSION_LEGACY =
   "grammar-choice-v4-blueprint-first";
 
-/** Fallback when no analysis report is attached. */
+export const GRAMMAR_CHOICE_GENERATOR_VERSION =
+  "grammar-choice-generator-v5";
+export const GRAMMAR_CHOICE_REVIEWER_VERSION =
+  "grammar-choice-reviewer-v1";
+/** Prompt/pipeline revision — invalidates final-item cache without renaming v5/v1 ids */
+export const GRAMMAR_CHOICE_PIPELINE_REVISION = "r3";
+
+/** Active algorithm version stamped on workbook sections / final cache */
+export const GRAMMAR_CHOICE_PROMPT_VERSION =
+  `${GRAMMAR_CHOICE_GENERATOR_VERSION}+${GRAMMAR_CHOICE_REVIEWER_VERSION}+${GRAMMAR_CHOICE_PIPELINE_REVISION}`;
+
 export const GRAMMAR_ANALYSIS_VERSION_NONE = "no-analysis";
 
 export const CIRCLED_NUMBERS = [

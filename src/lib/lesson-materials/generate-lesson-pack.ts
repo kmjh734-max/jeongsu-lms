@@ -20,10 +20,12 @@ export type LessonPackData = {
   sentenceTranslations?: StoredSentenceTranslation[];
   /** Semantic chunks for word-order writing (cache hit → 0 OpenAI) */
   wordOrderChunkCache?: StoredWordOrderChunkCache | null;
-  /** Grammar-choice candidates (cache hit → 0 OpenAI) */
+  /** Grammar-choice candidates (legacy v3/v4 — unused by v5 pipeline) */
   grammarChoiceCache?: import("@/lib/lesson-materials/grammar-choice-cache").StoredGrammarChoiceCache | null;
-  /** Internal GrammarBlueprint for grammar-choice (not student-facing analysis report) */
+  /** Internal GrammarBlueprint (preserved; not used as direct choice source) */
   grammarBlueprintCache?: import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache | null;
+  /** Final reviewed grammar-choice items (v5) */
+  grammarChoiceV5Cache?: import("@/lib/lesson-materials/grammar-choice-v5-cache").StoredGrammarChoiceV5Cache | null;
 };
 
 function parseJsonSafe<T>(text: string): T | null {

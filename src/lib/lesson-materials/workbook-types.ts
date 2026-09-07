@@ -414,6 +414,7 @@ export type GrammarChoiceCandidate = {
   ambiguityRisk: GrammarChoiceAmbiguityRisk;
   sourceType?: GrammarChoiceSourceType;
   analysisPointId?: string | null;
+  structureSummary?: string;
 };
 
 export type GrammarChoiceRenderSegment =
@@ -455,35 +456,33 @@ export type WorkbookGrammarChoiceItem = {
 
 export type WorkbookGrammarChoiceDiagnostics = {
   sentenceCount: number;
-  analyzedSentenceCount: number;
-  sentenceAnalysisRate: number;
-  formalAnalysisPointCount: number;
-  internalSupplementPointCount: number;
-  analysisPointCount: number;
-  corePointCount: number;
-  convertibleCount: number;
-  analysisBasedCount: number;
-  aiSupplementCount: number;
-  finalCount: number;
-  coreReflectionRate: number;
-  sentencesWithoutChoices: Array<{
-    sentenceId: string;
-    reason: string;
-    preview?: string;
-  }>;
-  exclusions: Array<{ analysisPointId: string; reason: string; title?: string }>;
+  analysisHintCount: number;
+  generatedCandidateCount: number;
+  codeValidatedCount: number;
   originalMismatchCount: number;
-  bothPossibleCount: number;
-  lexicalExcludedCount: number;
-  overlapExcludedCount: number;
-  lowQualityExcludedCount: number;
+  rangeErrorCount: number;
+  overlapDuplicateCount: number;
+  reviewSubmittedCount: number;
+  reviewAcceptedCount: number;
+  bothPossibleRejectCount: number;
+  lexicalRejectCount: number;
+  trivialRejectCount: number;
+  finalCount: number;
+  grammarCategoryCount: number;
+  averageQualityScore: number;
   passageRestored: boolean;
   cacheHit: boolean;
-  blueprintCacheHit: boolean;
-  analysisCompleteness: string;
-  analysisSource: string;
-  openAiRequestCount: number;
-  modelUsed: string | null;
+  generatorModel: string;
+  reviewerModel: string;
+  generateApiCalls: number;
+  reviewApiCalls: number;
+  underTargetReason: string | null;
+  reviewRejectSamples: Array<{ candidateId: string; reasons: string[] }>;
+  codeRejectSamples: Array<{
+    candidateId: string;
+    reason: string;
+    pair: string;
+  }>;
 };
 
 export type WorkbookGrammarChoiceSection = {
@@ -536,11 +535,11 @@ export function getGrammarChoiceTargetRange(englishWordCount: number): {
   min: number;
   max: number;
 } {
-  if (englishWordCount < 80) return { min: 4, max: 5 };
-  if (englishWordCount < 120) return { min: 5, max: 7 };
-  if (englishWordCount < 160) return { min: 7, max: 8 };
-  if (englishWordCount < 200) return { min: 8, max: 10 };
-  return { min: 10, max: 12 };
+  // Kept for legacy imports; v5 uses getGrammarChoiceFinalTargetRange
+  if (englishWordCount < 80) return { min: 4, max: 6 };
+  if (englishWordCount < 120) return { min: 6, max: 8 };
+  if (englishWordCount < 180) return { min: 8, max: 12 };
+  return { min: 10, max: 14 };
 }
 
 export function defaultWorkbookTitle(d = new Date()): string {

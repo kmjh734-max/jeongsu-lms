@@ -1,51 +1,32 @@
 /**
- * Grammar-choice blueprint-first tests (no OpenAI when formal report present).
+ * Grammar-choice v5 tests + live LOA/Movement pipeline report.
  * Run: npx tsx --env-file=.env.local scripts/test-workbook-grammar-choice.ts
  */
 import assert from "node:assert/strict";
-import { generateWorkbookGrammarChoice } from "../src/lib/lesson-materials/generate-workbook-grammar-choice";
-import { ensureGrammarBlueprint } from "../src/lib/lesson-materials/ensure-grammar-blueprint";
-import { assessAnalysisCompleteness } from "../src/lib/lesson-materials/grammar-blueprint-completeness";
-import { buildPassageSentenceSpans } from "../src/lib/lesson-materials/grammar-blueprint-sentences";
+import { writeFileSync } from "node:fs";
 import {
   BLOCKED_PAIR_FIXTURES,
   isBlockedLowQualityPair,
 } from "../src/lib/lesson-materials/grammar-choice-quality-block";
-import { minimizeChoicePair } from "../src/lib/lesson-materials/grammar-choice-minimize";
-import {
-  WORKBOOK_TYPE_CATALOG,
-  formatWorkbookPassage,
-} from "../src/lib/lesson-materials/workbook-types";
-import {
-  GRAMMAR_BLUEPRINT_VERSION,
-  GRAMMAR_CHOICE_PROMPT_VERSION,
-} from "../src/lib/lesson-materials/grammar-choice-constants";
+import { generateWorkbookGrammarChoice } from "../src/lib/lesson-materials/generate-workbook-grammar-choice";
+import { GRAMMAR_CHOICE_PROMPT_VERSION } from "../src/lib/lesson-materials/grammar-choice-constants";
+import { circledNumber } from "../src/lib/lesson-materials/grammar-choice-constants";
+import { formatWorkbookPassage } from "../src/lib/lesson-materials/workbook-types";
 import type { AnalysisReportData } from "../src/lib/lesson-materials/generate-analysis-report";
+import type { StoredGrammarChoiceV5Cache } from "../src/lib/lesson-materials/grammar-choice-v5-cache";
 
-assert.equal(
-  GRAMMAR_CHOICE_PROMPT_VERSION,
-  "grammar-choice-v4-blueprint-first"
+assert.ok(
+  GRAMMAR_CHOICE_PROMPT_VERSION.includes("grammar-choice-generator-v5")
 );
-assert.equal(
-  GRAMMAR_BLUEPRINT_VERSION,
-  "grammar-blueprint-v1-complete-sentence"
-);
-assert.ok(!WORKBOOK_TYPE_CATALOG.some((t) => t.id === "vocab_example"));
 
 for (const [a, b] of BLOCKED_PAIR_FIXTURES) {
-  assert.equal(isBlockedLowQualityPair(a, b).blocked, true, `${a}/${b}`);
-}
-console.log("blocked low-quality fixtures ok");
-
-{
-  const m = minimizeChoicePair(
-    "the very thing that will help them learn",
-    "the very thing what will help them learn"
+  assert.equal(
+    isBlockedLowQualityPair(a, b).blocked,
+    true,
+    `should block ${a} / ${b}`
   );
-  assert.ok(m);
-  assert.equal(m!.correctText, "that");
-  assert.equal(m!.incorrectText, "what");
 }
+console.log("blocked failure-case fixtures: ALL PASS");
 
 const loaSentences = [
   {
@@ -84,32 +65,30 @@ const moveSentences = [
   {
     id: "mov-4",
     english:
-      "Bodies were never meant to have so much square footage, We were made to move, and humans are meant to live extraordinary lives.",
+      "Bodies were never meant to have so much square footage. We were made to move, and humans are meant to live extraordinary lives.",
   },
 ].map((s) => ({ id: s.id, english: formatWorkbookPassage(s.english) }));
 
-function gp(
-  title: string,
-  detail: string,
-  example: string,
-  bookTerms: string[],
-  wrongForms: string[] = [],
-  wrongReasons: string[] = []
-) {
-  return { title, detail, example, bookTerms, wrongForms, wrongReasons };
-}
-
 const loaReport = {
-  headerLabel: "Law of Attraction",
+  headerLabel: "LoA",
   sentences: [
     {
       itemId: "loa-1",
       enChunks: [{ text: loaSentences[0]!.english, role: "other" }],
       koChunks: [],
       grammarPoints: [
-        gp("계속적 용법의 관계대명사", "선행사 LoA", "which states", ["계속적 용법의 관계대명사"], ["that states"], ["that 불가"]),
-        gp("전치사 뒤 동명사", "by focusing", "focusing", ["전치사 뒤 동명사"], ["focused"]),
-        gp("that절 병렬", "that ... and that ...", "that", ["명사절 that"], [], []),
+        {
+          title: "계속적 용법의 관계대명사",
+          detail: "which states",
+          example: "which states",
+          bookTerms: ["계속적 용법의 관계대명사"],
+        },
+        {
+          title: "전치사 뒤 동명사",
+          detail: "by focusing",
+          example: "focusing",
+          bookTerms: ["전치사 뒤 동명사"],
+        },
       ],
     },
     {
@@ -117,9 +96,12 @@ const loaReport = {
       enChunks: [{ text: loaSentences[1]!.english, role: "other" }],
       koChunks: [],
       grammarPoints: [
-        gp("유사분열문", "is think", "think", ["유사분열문"], ["thinking"]),
-        gp("병렬구조", "think about or visualize", "visualize", ["병렬구조"], ["visualizing"]),
-        gp("to부정사", "to manifest", "to manifest", ["to부정사"], ["manifesting"]),
+        {
+          title: "유사분열문",
+          detail: "is think",
+          example: "think",
+          bookTerms: ["유사분열문"],
+        },
       ],
     },
     {
@@ -127,12 +109,18 @@ const loaReport = {
       enChunks: [{ text: loaSentences[2]!.english, role: "other" }],
       koChunks: [],
       grammarPoints: [
-        gp("가주어·진주어", "It is true that", "It", ["가주어·진주어"], ["There"]),
-        gp("동명사구 주어", "attracting", "attracting", ["동명사구 주어"], ["attracted"]),
-        gp("간접의문문", "what limiting beliefs", "what", ["간접의문문"], ["which"]),
-        gp("관계대명사절 수일치", "that contradict", "contradict", ["수일치"], ["contradicts"]),
-        gp("관계대명사 that", "that are", "that", ["관계대명사"], ["what"]),
-        gp("관계대명사 what", "what you want", "what you want", ["관계대명사 what"], ["which you want"]),
+        {
+          title: "가주어·진주어",
+          detail: "It is true that",
+          example: "It",
+          bookTerms: ["가주어·진주어"],
+        },
+        {
+          title: "관계대명사 what",
+          detail: "what you want",
+          example: "what you want",
+          bookTerms: ["관계대명사 what"],
+        },
       ],
     },
   ],
@@ -146,9 +134,12 @@ const moveReport = {
       enChunks: [{ text: moveSentences[0]!.english, role: "other" }],
       koChunks: [],
       grammarPoints: [
-        gp("allow O to V", "to participate", "to participate", ["allow O to V"], ["participating"]),
-        gp("전치사+관계대명사", "which", "which", ["전치사+관계대명사"], ["that"]),
-        gp("수동태", "were created", "were created", ["수동태"], ["created"]),
+        {
+          title: "allow O to V",
+          detail: "to participate",
+          example: "to participate",
+          bookTerms: ["allow O to V"],
+        },
       ],
     },
     {
@@ -156,8 +147,12 @@ const moveReport = {
       enChunks: [{ text: moveSentences[1]!.english, role: "other" }],
       koChunks: [],
       grammarPoints: [
-        gp("전치사 뒤 동명사", "moving", "moving", ["전치사 뒤 동명사"], ["move"]),
-        gp("진행형 수동태", "are being held", "are being held", ["진행형 수동태"], ["are holding"]),
+        {
+          title: "진행형 수동태",
+          detail: "are being held",
+          example: "are being held",
+          bookTerms: ["진행형 수동태"],
+        },
       ],
     },
     {
@@ -165,9 +160,12 @@ const moveReport = {
       enChunks: [{ text: moveSentences[2]!.english, role: "other" }],
       koChunks: [],
       grammarPoints: [
-        gp("의문사+to부정사", "how to socialize", "how to socialize", ["의문사+to부정사"], ["how socializing"]),
-        gp("관계대명사", "that", "that", ["관계대명사"], ["what"]),
-        gp("help O + 동사원형", "learn", "learn", ["help O + 동사원형"], ["to learn"]),
+        {
+          title: "help O + 동사원형",
+          detail: "learn",
+          example: "learn",
+          bookTerms: ["help O + 동사원형"],
+        },
       ],
     },
     {
@@ -175,57 +173,30 @@ const moveReport = {
       enChunks: [{ text: moveSentences[3]!.english, role: "other" }],
       koChunks: [],
       grammarPoints: [
-        gp("be meant to V", "to have", "to have", ["be meant to V"], ["having"]),
-        gp("be made to V", "to move", "to move", ["be made to V"], ["moving"]),
-        gp("be meant to V", "to live", "to live", ["be meant to V"], ["living"]),
+        {
+          title: "be made to V",
+          detail: "to move",
+          example: "to move",
+          bookTerms: ["be made to V"],
+        },
+        {
+          title: "be meant to V",
+          detail: "to live",
+          example: "to live",
+          bookTerms: ["be meant to V"],
+        },
       ],
     },
   ],
 } as AnalysisReportData;
 
-{
-  const { spans } = buildPassageSentenceSpans(loaSentences);
-  const c = assessAnalysisCompleteness({ spans, report: loaReport });
-  assert.equal(c.completeness, "COMPLETE");
-  assert.equal(c.missingSentenceIds.length, 0);
-}
-
 async function main() {
-  for (const [title, sentences, report] of [
-    ["Law of Attraction", loaSentences, loaReport],
-    ["Movement", moveSentences, moveReport],
-  ] as const) {
-    const ensured = await ensureGrammarBlueprint({
-      passageId: `fix-${title}`,
-      sentences,
-      analysisReport: report,
-      blueprintCache: null,
-    });
-    assert.equal(ensured.openAiRequestCount, 0, `${title} should use formal only`);
-    assert.equal(ensured.blueprint.sentenceCount, sentences.length);
-    assert.equal(
-      ensured.blueprint.analyzedSentenceCount,
-      sentences.length,
-      `${title} analysis rate`
-    );
-    assert.equal(ensured.blueprint.completeness, "COMPLETE");
+  let report = "";
+  const cacheBag: { current: StoredGrammarChoiceV5Cache | null } = {
+    current: null,
+  };
 
-    const points = ensured.blueprint.sentences.flatMap((s) =>
-      s.grammarPoints.map((p) => `${s.sentenceId}:${p.bookTerm}:${p.targetText}`)
-    );
-    console.log(`\n=== ${title} blueprint points (${points.length}) ===`);
-    for (const line of points) console.log(" -", line);
-
-    if (title === "Movement") {
-      const hay = points.join(" | ").toLowerCase();
-      assert.ok(/allow/.test(hay), "allow O to V analyzed");
-      assert.ok(/help/.test(hay), "help O analyzed");
-      assert.ok(/made/.test(hay), "be made to V analyzed");
-      assert.ok(/meant/.test(hay), "be meant to V analyzed");
-    }
-  }
-
-  const result = await generateWorkbookGrammarChoice({
+  const first = await generateWorkbookGrammarChoice({
     passages: [
       {
         projectId: "fixture-loa",
@@ -233,8 +204,7 @@ async function main() {
         source: "fixture",
         sentences: loaSentences,
         analysisReport: loaReport,
-        grammarChoiceCache: null,
-        grammarBlueprintCache: null,
+        grammarChoiceV5Cache: null,
       },
       {
         projectId: "fixture-mov",
@@ -242,50 +212,87 @@ async function main() {
         source: "fixture",
         sentences: moveSentences,
         analysisReport: moveReport,
-        grammarChoiceCache: null,
-        grammarBlueprintCache: null,
+        grammarChoiceV5Cache: null,
       },
     ],
   });
 
-  assert.equal(result.skipped.length, 0);
-  for (const section of result.sections) {
-    const d = section.diagnostics!;
-    console.log(`\n=== ${section.title} diagnostics ===`);
-    console.log({
-      sentenceAnalysisRate: `${Math.round(d.sentenceAnalysisRate * 100)}%`,
-      coreReflectionRate: `${Math.round(d.coreReflectionRate * 100)}%`,
-      finalCount: d.finalCount,
-      formal: d.formalAnalysisPointCount,
-      openAi: d.openAiRequestCount,
-      restored: d.passageRestored,
-      mismatch: d.originalMismatchCount,
-      both: d.bothPossibleCount,
-    });
-    assert.equal(d.sentenceAnalysisRate, 1);
-    assert.equal(d.coreReflectionRate, 1);
-    assert.equal(d.passageRestored, true);
-    assert.equal(d.originalMismatchCount, 0);
-    assert.equal(d.openAiRequestCount, 0);
-
-    console.log("\n학생용:");
-    let passage = "";
-    for (const seg of section.segments) {
-      if (seg.type === "text") passage += seg.text;
-      else
-        passage += `${seg.number}[${seg.leftText}/${seg.rightText}]`;
-    }
-    console.log(passage);
-
-    console.log("\n정답:");
-    for (const it of section.items) {
-      console.log(
-        `${it.number}. ${it.correctText} | ${it.bookTerm} | ${it.analysisOriginLabel}`
-      );
-    }
+  assert.ok(first.timing.openAiRequestCount >= 3, "expected ≥2 generate + 1 review");
+  for (const { projectId, cache } of first.cachesToSave) {
+    cacheBag.current = cache;
+    void projectId;
+  }
+  // merge caches
+  let merged: StoredGrammarChoiceV5Cache | null = null;
+  for (const { cache } of first.cachesToSave) {
+    merged = {
+      algorithmVersion: cache.algorithmVersion,
+      byPassageId: {
+        ...(merged?.byPassageId ?? {}),
+        ...cache.byPassageId,
+      },
+    };
   }
 
-  console.log("\nALL grammar-choice blueprint-first tests passed");
+  for (const section of first.sections) {
+    const d = section.diagnostics!;
+    report += `\n======== ${section.title} (1st run) ========\n`;
+    report += `생성후보=${d.generatedCandidateCount} 코드통과=${d.codeValidatedCount} 검수승인=${d.reviewAcceptedCount} 최종=${d.finalCount}\n`;
+    report += `생성모델=${d.generatorModel} 검수모델=${d.reviewerModel} genAPI=${d.generateApiCalls} revAPI=${d.reviewApiCalls} 캐시=${d.cacheHit}\n`;
+    report += `코드탈락: ${JSON.stringify(d.codeRejectSamples)}\n`;
+    report += `검수탈락: ${JSON.stringify(d.reviewRejectSamples)}\n`;
+    report += `\n【학생용】\n`;
+    for (const seg of section.segments) {
+      if (seg.type === "text") report += seg.text;
+      else
+        report += `${circledNumber(seg.number)}[${seg.leftText} / ${seg.rightText}]`;
+    }
+    report += `\n\n【정답】\n`;
+    for (const it of section.items) {
+      report += `${circledNumber(it.number)} 정답: ${it.correctText}\n문법: ${it.bookTerm}\n`;
+      if (it.structureSummary) report += `구조: ${it.structureSummary}\n`;
+      report += `설명: ${it.explanationKo}\n오답 이유: ${it.incorrectText} — ${it.incorrectReasonKo}\n\n`;
+    }
+    assert.equal(d.passageRestored, true);
+    assert.equal(d.originalMismatchCount, 0);
+    assert.ok(d.generateApiCalls >= 1 || d.cacheHit);
+  }
+
+  const second = await generateWorkbookGrammarChoice({
+    passages: [
+      {
+        projectId: "fixture-loa",
+        title: "Law of Attraction",
+        source: "fixture",
+        sentences: loaSentences,
+        analysisReport: loaReport,
+        grammarChoiceV5Cache: merged,
+      },
+      {
+        projectId: "fixture-mov",
+        title: "Movement",
+        source: "fixture",
+        sentences: moveSentences,
+        analysisReport: moveReport,
+        grammarChoiceV5Cache: merged,
+      },
+    ],
+  });
+
+  assert.equal(
+    second.timing.openAiRequestCount,
+    0,
+    "cache hit must use 0 OpenAI"
+  );
+  report += `\n======== cache re-run ========\nOpenAI=${second.timing.openAiRequestCount}\n`;
+  for (const s of second.sections) {
+    report += `${s.title}: cacheHit=${s.diagnostics?.cacheHit} final=${s.diagnostics?.finalCount}\n`;
+    assert.equal(s.diagnostics?.cacheHit, true);
+  }
+
+  writeFileSync("scripts/_gc-v5-report.txt", report, "utf8");
+  console.log(report);
+  console.log("\nALL grammar-choice v5 tests passed");
 }
 
 main().catch((e) => {

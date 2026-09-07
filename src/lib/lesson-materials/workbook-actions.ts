@@ -10,6 +10,7 @@ import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf"
 import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
 import { generateWorkbookGrammarChoice } from "@/lib/lesson-materials/generate-workbook-grammar-choice";
 import type { StoredGrammarChoiceCache } from "@/lib/lesson-materials/grammar-choice-cache";
+import type { StoredGrammarChoiceV5Cache } from "@/lib/lesson-materials/grammar-choice-v5-cache";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import { SENTENCE_ORDER_SKIP_TOO_FEW } from "@/lib/lesson-materials/sentence-order-constants";
@@ -175,6 +176,7 @@ export async function generateWorkbookAction(
     wordOrderChunkCache: StoredWordOrderChunkCache | null;
     grammarChoiceCache: StoredGrammarChoiceCache | null;
     grammarBlueprintCache: import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache | null;
+    grammarChoiceV5Cache: StoredGrammarChoiceV5Cache | null;
     analysisReport: AnalysisReportData | null;
   }> = [];
 
@@ -216,6 +218,8 @@ export async function generateWorkbookAction(
       grammarBlueprintCache:
         (pack.grammarBlueprintCache as import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache) ??
         null,
+      grammarChoiceV5Cache:
+        (pack.grammarChoiceV5Cache as StoredGrammarChoiceV5Cache) ?? null,
       analysisReport,
     });
   }
@@ -257,8 +261,7 @@ export async function generateWorkbookAction(
           source: p.source,
           sentences: p.sentences,
           analysisReport: p.analysisReport,
-          grammarChoiceCache: p.grammarChoiceCache,
-          grammarBlueprintCache: p.grammarBlueprintCache,
+          grammarChoiceV5Cache: p.grammarChoiceV5Cache,
         })),
       });
       workbook.grammarChoiceSections = gc.sections;
@@ -271,7 +274,7 @@ export async function generateWorkbookAction(
         openAiRequestCount: openAiFromGrammar,
       };
 
-      for (const { projectId, cache, blueprintCache } of gc.cachesToSave) {
+      for (const { projectId, cache } of gc.cachesToSave) {
         const proj = byId.get(projectId);
         const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
         const next: LessonPackData = {
@@ -282,9 +285,9 @@ export async function generateWorkbookAction(
           passageSourceHash: prev.passageSourceHash,
           sentenceTranslations: prev.sentenceTranslations,
           wordOrderChunkCache: prev.wordOrderChunkCache,
-          grammarChoiceCache: cache,
-          grammarBlueprintCache:
-            blueprintCache ?? prev.grammarBlueprintCache ?? null,
+          grammarChoiceCache: prev.grammarChoiceCache,
+          grammarBlueprintCache: prev.grammarBlueprintCache,
+          grammarChoiceV5Cache: cache,
         };
         await supabase
           .from("lesson_material_projects")
@@ -338,6 +341,7 @@ export async function generateWorkbookAction(
           wordOrderChunkCache: prev.wordOrderChunkCache,
           grammarChoiceCache: prev.grammarChoiceCache,
           grammarBlueprintCache: prev.grammarBlueprintCache,
+          grammarChoiceV5Cache: prev.grammarChoiceV5Cache,
         };
         await supabase
           .from("lesson_material_projects")
@@ -479,6 +483,7 @@ export async function generateWorkbookAction(
             wordOrderChunkCache: cache,
             grammarChoiceCache: prev.grammarChoiceCache,
             grammarBlueprintCache: prev.grammarBlueprintCache,
+            grammarChoiceV5Cache: prev.grammarChoiceV5Cache,
           };
           await supabase
             .from("lesson_material_projects")
