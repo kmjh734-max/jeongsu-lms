@@ -1,109 +1,87 @@
+import type { ExtractedAnalysisPoint } from "@/lib/lesson-materials/grammar-choice-analysis-extract";
+
 export const WORKBOOK_GRAMMAR_CHOICE_SYSTEM_PROMPT = `너는 대한민국 고등학교 영어 내신·수능 어법 문항을
-검수하는 전문 출제자다.
+검수·변환하는 전문 출제자다.
 
-목표는 영어 지문의 핵심 문법 구조를 활용하여
-[A/B] 어법 선택 문제를 만드는 것이다.
+네 역할은 문법을 처음부터 새로 분석하는 것이 아니다.
+이미 제공된 지문 분석지 문법 포인트(requiredGrammarPointIds)를
+2지선다 어법 선택 문제로 변환하는 것이다.
 
-어휘 의미, 숙어, 철자, 문체 선호를 묻지 않는다.
+규칙:
+1. 각 requiredGrammarPointId에 대해 analysisResults에 반드시 한 행을 반환한다.
+2. 변환 가능하면 convertible=true 와 candidate를 채운다.
+3. 불가능하면 convertible=false 와 exclusionReason을 채운다. candidate는 빈 문자열 필드의 객체로 둔다(스키마상 null 불가).
+4. originalText(정답)는 반드시 원문에 있는 표현이다. 원문에 없는 형태를 정답으로 쓰지 않는다.
+5. incorrectText는 정답에서 문법 요소 하나만 최소 변경한다.
+6. 선택 범위는 문법적으로 달라지는 최소 표현만(보통 1~6단어, 최대 7단어, 60자 이하).
+7. 공통 주어·목적어·긴 수식어·문장부호를 선택지에 넣지 않는다.
+8. 어휘·숙어·철자·문체 선호 문제는 제외한다.
+9. 둘 다 가능한 쌍(is think/is to think, begin to/begin -ing 등)은 제외한다.
+10. 분석지 title/bookTerm/explanation을 가능한 한 그대로 재사용한다.
+11. 부족한 개수만 supplementalCandidates에 추가한다. 보충 문제가 필수 분석 포인트를 대체하지 않는다.
+12. focus on/at, are being hold 같은 조악한 오답 금지.
 
-정답은 반드시 원문 표현이어야 한다.
-오답은 정답에서 문법 요소 하나만 최소한으로 변경한다.
+exclusionReason 값:
+NONE | NO_EXACT_SOURCE_SPAN | BOTH_OPTIONS_POSSIBLE | LEXICAL_ONLY |
+CANNOT_CREATE_MINIMAL_PAIR | DUPLICATE_GRAMMAR_POINT | PUNCTUATION_ONLY | NOT_TEST_WORTHY
 
-선택지는 문장 전체가 아니라 문법적으로 달라지는 최소 표현만 반환한다.
-공통 주어, 목적어, 수식어, 문장부호를 두 선택지 안에 반복하지 않는다.
-일반적으로 각 선택지는 1~6단어로 구성한다.
-문법 구조상 꼭 필요한 경우에만 최대 7단어를 허용한다.
-하나의 선택지가 60자를 초과하면 반환하지 않는다.
-마침표, 쉼표 등 문장부호를 선택 범위에 포함하지 않는다.
-
-좋은 예:
-- which / that
-- focusing / focused
-- are being held / are holding
-- that / what
-- to socialize / socializing
-- which states / which state
-
-나쁜 예:
-- the wonder for which we were created. / the wonder for that we were created.
-- Many kids today are being held captive by … / Many kids today are holding captive by …
-- the very thing that will help them learn / the very thing what will help them learn
-
-정답을 넣으면 원문이 정확히 복원되어야 한다.
-오답을 넣으면 문맥상 명백한 문법 오류가 생겨야 한다.
-
-두 표현이 모두 가능한 경우에는 후보를 반환하지 않는다.
-확신이 부족하거나 설명이 복잡하면 후보를 반환하지 않는다.
-
-너무 쉬운 문제보다 문장 구조를 분석해야 풀 수 있는
-고등학교 수준의 포인트를 우선한다.
-
-각 후보에는 정확한 문법 항목, 천일문식 용어,
-정답 이유, 오답 이유, 난도, 학습 가치,
-애매성 위험도를 반환한다.
-
-설명하지 말고 지정된 JSON Schema만 출력한다.
-
-금지 예:
-- begin to work / begin working
-- like to read / like reading
-- continue to study / continue studying
-- remember to call / remember calling
-- stop to smoke / stop smoking
-- is think / is to think (둘 다 허용될 수 있음)
-- focus on / focus at (어휘·연어)
-- that/which를 제한적 관계절에서 절대 규칙처럼 출제
-- 바로 옆 단수 주어의 단순 is/are
-
-한 문장에는 원칙적으로 후보 1개(아주 긴 문장만 최대 2~3개).
-startTokenIndex/endTokenIndex는 해당 문장 토큰(공백 분리) 0-based inclusive 인덱스이다.
-originalText와 correctText는 해당 토큰을 공백으로 이은 원문과 정확히 같아야 한다.`;
+설명하지 말고 지정된 JSON Schema만 출력한다.`;
 
 export function buildWorkbookGrammarChoiceUserPrompt(input: {
   passages: Array<{
     passageId: string;
     title?: string;
     source?: string | null;
+    sourceText: string;
     softTargetMin: number;
     softTargetMax: number;
     sentences: Array<{
       sentenceId: string;
-      order: number;
-      english: string;
-      tokenCount: number;
-      tokens: string[];
+      text: string;
+      grammarPoints: Array<{
+        analysisPointId: string;
+        categoryId: string;
+        categoryName: string;
+        bookTerm: string;
+        targetExpression: string;
+        explanationKo: string;
+        importance: "core" | "supporting";
+      }>;
     }>;
-    existingGrammarPoints?: Array<{
-      sentenceId: string;
-      title: string;
-      detail?: string;
-      example?: string;
-      bookTerm?: string;
-      unitLabel?: string;
-    }>;
+    requiredGrammarPointIds: string[];
+    supplementalNeeded: number;
   }>;
 }): string {
   return [
-    "아래 지문들에 대해 어법 선택 후보를 생성하라.",
-    "지문마다 softTargetMin~softTargetMax 개를 목표로 하되, softTargetMax보다 최대 4개까지 더 반환해도 된다.",
-    "코드에서 검증·선별하므로 다소 넉넉히 내되, 품질이 부족하면 억지로 채우지 마라.",
-    "선택지는 반드시 최소 문법 차이 구간만 반환한다.",
-    "기존 문법 분석이 있으면 후보 선정에 재사용하되, 분석에 없는 좋은 포인트도 추가할 수 있다.",
+    "지문 분석지 문법을 우선하여 어법 선택 후보를 변환·생성하라.",
+    "각 지문의 requiredGrammarPointIds 전부 analysisResults에 응답해야 한다.",
+    "supplementalNeeded > 0일 때만 supplementalCandidates를 채운다.",
     "",
-    JSON.stringify(
-      {
-        passages: input.passages.map((p) => ({
-          passageId: p.passageId,
-          title: p.title ?? "",
-          source: p.source ?? "",
-          softTargetMin: p.softTargetMin,
-          softTargetMax: p.softTargetMax + 4,
-          sentences: p.sentences,
-          existingGrammarPoints: p.existingGrammarPoints ?? [],
-        })),
-      },
-      null,
-      2
-    ),
+    JSON.stringify({ passages: input.passages }, null, 2),
   ].join("\n");
+}
+
+export function buildAnalysisPromptSentences(
+  sentences: Array<{ id: string; english: string }>,
+  points: ExtractedAnalysisPoint[]
+) {
+  const bySentence = new Map<string, ExtractedAnalysisPoint[]>();
+  for (const p of points) {
+    const list = bySentence.get(p.sentenceId) ?? [];
+    list.push(p);
+    bySentence.set(p.sentenceId, list);
+  }
+  return sentences.map((s) => ({
+    sentenceId: s.id,
+    text: s.english,
+    grammarPoints: (bySentence.get(s.id) ?? []).map((p) => ({
+      analysisPointId: p.analysisPointId,
+      categoryId: p.categoryId,
+      categoryName: p.categoryName,
+      bookTerm: p.bookTerm,
+      targetExpression: p.targetExpression,
+      explanationKo: p.explanationKo,
+      importance: p.importance,
+    })),
+  }));
 }

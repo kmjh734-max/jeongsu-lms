@@ -77,41 +77,54 @@ export function selectFinalGrammarChoices(
   softMax: number
 ): GrammarChoiceCandidate[] {
   if (candidates.length === 0) return [];
-  const remaining = [...candidates];
+
+  const analysis = candidates.filter(
+    (c) => c.sourceType === "analysis_required"
+  );
+  const supplements = candidates.filter(
+    (c) => c.sourceType !== "analysis_required"
+  );
+
   const selected: GrammarChoiceCandidate[] = [];
   const categoryCounts = new Map<string, number>();
   const sentenceCounts = new Map<string, number>();
 
-  while (selected.length < softMax && remaining.length > 0) {
-    remaining.sort(
-      (a, b) =>
-        scoreGrammarChoiceCandidate(b, { categoryCounts, sentenceCounts }) -
-        scoreGrammarChoiceCandidate(a, { categoryCounts, sentenceCounts })
-    );
-    const next = remaining.shift()!;
-    const catKey = next.grammarCategoryId || next.bookTerm;
-    const catCount = categoryCounts.get(catKey) ?? 0;
-    if (catCount >= 2) continue;
-    selected.push(next);
-    categoryCounts.set(catKey, catCount + 1);
-    sentenceCounts.set(
-      next.sentenceId,
-      (sentenceCounts.get(next.sentenceId) ?? 0) + 1
-    );
-  }
-
-  // Prefer diversity when we have 6+ and fewer than 4 categories — drop lowest
-  // only if we still have enough; never add weak fillers.
-  if (selected.length >= 6) {
-    const cats = new Set(
-      selected.map((c) => c.grammarCategoryId || c.bookTerm)
-    );
-    if (cats.size < 4) {
-      // keep as-is; do not invent more
+  const take = (pool: GrammarChoiceCandidate[], limit: number) => {
+    const remaining = [...pool];
+    while (selected.length < limit && remaining.length > 0) {
+      remaining.sort(
+        (a, b) =>
+          scoreGrammarChoiceCandidate(b, { categoryCounts, sentenceCounts }) -
+          scoreGrammarChoiceCandidate(a, { categoryCounts, sentenceCounts })
+      );
+      const next = remaining.shift()!;
+      const catKey = next.grammarCategoryId || next.bookTerm;
+      const catCount = categoryCounts.get(catKey) ?? 0;
+      // Analysis-required: allow up to 2; never drop solely for softMax until all analysis in
+      if (next.sourceType !== "analysis_required" && catCount >= 2) continue;
+      if (
+        next.sourceType === "analysis_required" &&
+        catCount >= 2 &&
+        selected.some((s) => (s.grammarCategoryId || s.bookTerm) === catKey)
+      ) {
+        // still allow second analysis point of same category
+      }
+      selected.push(next);
+      categoryCounts.set(catKey, catCount + 1);
+      sentenceCounts.set(
+        next.sentenceId,
+        (sentenceCounts.get(next.sentenceId) ?? 0) + 1
+      );
     }
+  };
+
+  // 1) All validated analysis-required first (may exceed softMax)
+  take(analysis, Math.max(softMax, analysis.length));
+  // 2) Fill to softMax with supplements only
+  if (selected.length < softMax) {
+    take(supplements, softMax);
   }
 
-  // Stable order by passage appearance: sentence order then token index
   return selected.sort((a, b) => {
     if (a.sentenceId !== b.sentenceId) {
       return a.sentenceId.localeCompare(b.sentenceId);

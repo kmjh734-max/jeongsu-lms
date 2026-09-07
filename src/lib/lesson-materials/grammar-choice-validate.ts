@@ -279,7 +279,8 @@ export function validateAndFilterCandidates(
     const eng = sentenceMap.get(c.sentenceId) ?? "";
     const wordCount = tokenizeForWordOrder(eng).length;
     const maxPerSentence = wordCount >= 28 ? 3 : wordCount >= 16 ? 2 : 1;
-    if (n >= maxPerSentence) {
+    // Analysis-required items must not be dropped by soft per-sentence caps
+    if (c.sourceType !== "analysis_required" && n >= maxPerSentence) {
       rejected.push({ candidate: c, reason: "overlap" });
       continue;
     }

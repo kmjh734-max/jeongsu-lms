@@ -390,6 +390,11 @@ export type WorkbookWordOrderWritingSection = {
 
 export type GrammarChoiceAmbiguityRisk = "low" | "medium" | "high";
 
+export type GrammarChoiceSourceType =
+  | "analysis_required"
+  | "ai_supplement"
+  | "heuristic_supplement";
+
 export type GrammarChoiceCandidate = {
   choiceId: string;
   passageId: string;
@@ -407,6 +412,8 @@ export type GrammarChoiceCandidate = {
   difficulty: 1 | 2 | 3 | 4 | 5;
   learningValue: 1 | 2 | 3 | 4 | 5;
   ambiguityRisk: GrammarChoiceAmbiguityRisk;
+  sourceType?: GrammarChoiceSourceType;
+  analysisPointId?: string | null;
 };
 
 export type GrammarChoiceRenderSegment =
@@ -440,6 +447,25 @@ export type WorkbookGrammarChoiceItem = {
   incorrectReasonKo: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
   learningValue: 1 | 2 | 3 | 4 | 5;
+  sourceType?: GrammarChoiceSourceType;
+  analysisPointId?: string | null;
+};
+
+export type WorkbookGrammarChoiceDiagnostics = {
+  analysisPointCount: number;
+  corePointCount: number;
+  convertibleCount: number;
+  analysisBasedCount: number;
+  aiSupplementCount: number;
+  coreReflectionRate: number;
+  exclusions: Array<{ analysisPointId: string; reason: string; title?: string }>;
+  originalMismatchCount: number;
+  bothPossibleCount: number;
+  lexicalExcludedCount: number;
+  finalCount: number;
+  passageRestored: boolean;
+  cacheHit: boolean;
+  openAiRequestCount: number;
 };
 
 export type WorkbookGrammarChoiceSection = {
@@ -450,6 +476,7 @@ export type WorkbookGrammarChoiceSection = {
   segments: GrammarChoiceRenderSegment[];
   items: WorkbookGrammarChoiceItem[];
   algorithmVersion: string;
+  diagnostics?: WorkbookGrammarChoiceDiagnostics;
 };
 
 export type WorkbookGrammarChoiceSkip = {

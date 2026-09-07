@@ -5,7 +5,6 @@ import {
 import {
   surfacesEqual,
   normalizeGrammarSurface,
-  findTokenSpan,
 } from "@/lib/lesson-materials/grammar-choice-repair";
 import type { GrammarChoiceCandidate } from "@/lib/lesson-materials/workbook-types";
 
@@ -135,6 +134,9 @@ export function minimizeChoicePair(
     suf < iTok.length - pre &&
     surfacesEqual(cTok[cTok.length - 1 - suf]!, iTok[iTok.length - 1 - suf]!)
   ) {
+    // Never strip a shared suffix if it would empty either mid span
+    if (cTok.length - pre - (suf + 1) <= 0) break;
+    if (iTok.length - pre - (suf + 1) <= 0) break;
     suf += 1;
   }
 
@@ -221,21 +223,44 @@ export function minimizeAndRelocateCandidate(
   let start = candidate.startTokenIndex + minimized.prefixTokenCount;
   let end = candidate.endTokenIndex - minimized.suffixTokenCount;
 
-  // Prefer locating minimized correct text in the sentence tokens
-  const found = findTokenSpan(tokens, minimized.correctText);
-  if (found) {
-    start = found.start;
-    end = found.end;
-  } else if (
-    start < 0 ||
-    end >= tokens.length ||
-    start > end ||
-    !surfacesEqual(
-      tokens.slice(start, end + 1).join(" "),
-      minimized.correctText
-    )
-  ) {
-    return null;
+  const windowOk =
+    start >= 0 &&
+    end < tokens.length &&
+    start <= end &&
+    surfacesEqual(
+      tokens
+        .slice(start, end + 1)
+        .join(" ")
+        .replace(/[.,;:!?]+$/g, ""),
+      minimized.correctText.replace(/[.,;:!?]+$/g, "")
+    );
+
+  if (!windowOk) {
+    // Prefer occurrence nearest the original span (avoid relocating to an earlier "that"/"what")
+    const want = tokenizeForWordOrder(minimized.correctText).map((t) => t.surface);
+    let best: { start: number; end: number; dist: number } | null = null;
+    if (want.length > 0) {
+      for (let i = 0; i <= tokens.length - want.length; i++) {
+        let ok = true;
+        for (let j = 0; j < want.length; j++) {
+          if (!surfacesEqual(tokens[i + j]!, want[j]!)) {
+            ok = false;
+            break;
+          }
+        }
+        if (!ok) continue;
+        const dist = Math.abs(i - candidate.startTokenIndex);
+        if (!best || dist < best.dist) {
+          best = { start: i, end: i + want.length - 1, dist };
+        }
+      }
+    }
+    if (best) {
+      start = best.start;
+      end = best.end;
+    } else {
+      return null;
+    }
   }
 
   const exactRaw = tokens.slice(start, end + 1).join(" ");
@@ -243,11 +268,30 @@ export function minimizeAndRelocateCandidate(
   const exact = exactRaw.replace(/[.,;:!?]+$/g, "");
   if (!exact || surfacesEqual(exact, "")) return null;
 
-  // Relocate bare exact in tokens if punctuation was stripped from last token
-  const foundBare = findTokenSpan(tokens, exact);
-  if (foundBare) {
-    start = foundBare.start;
-    end = foundBare.end;
+  // Only re-find if current window still has trailing punct on last token
+  if (!surfacesEqual(exactRaw.replace(/[.,;:!?]+$/g, ""), exactRaw)) {
+    const want = tokenizeForWordOrder(exact).map((t) => t.surface);
+    let best: { start: number; end: number; dist: number } | null = null;
+    for (let i = 0; i <= tokens.length - want.length; i++) {
+      let ok = true;
+      for (let j = 0; j < want.length; j++) {
+        const a = tokens[i + j]!.replace(/[.,;:!?]+$/g, "");
+        const b = want[j]!.replace(/[.,;:!?]+$/g, "");
+        if (!surfacesEqual(a, b)) {
+          ok = false;
+          break;
+        }
+      }
+      if (!ok) continue;
+      const dist = Math.abs(i - start);
+      if (!best || dist < best.dist) {
+        best = { start: i, end: i + want.length - 1, dist };
+      }
+    }
+    if (best) {
+      start = best.start;
+      end = best.end;
+    }
   }
 
   const finalText = tokens

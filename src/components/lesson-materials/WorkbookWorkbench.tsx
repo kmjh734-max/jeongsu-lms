@@ -358,6 +358,7 @@ function GrammarChoiceAnswerBody({
   typeOrder: number;
   multi: boolean;
 }) {
+  const d = section.diagnostics;
   return (
     <>
       <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
@@ -371,16 +372,62 @@ function GrammarChoiceAnswerBody({
             className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
           >
             <p className="font-bold">
-              {circledNumber(it.number)} {it.correctText}
+              {circledNumber(it.number)} 정답: {it.correctText}
             </p>
             <p className="mt-1 text-[12px] font-semibold text-slate-600">
-              {it.bookTerm || it.grammarCategoryName}
+              문법: {it.bookTerm || it.grammarCategoryName}
             </p>
-            <p className="mt-1 text-slate-700">{it.explanationKo}</p>
-            <p className="mt-1 text-slate-700">{it.incorrectReasonKo}</p>
+            <p className="mt-1 text-slate-700">
+              근거: {it.explanationKo}
+            </p>
+            <p className="mt-1 text-slate-700">
+              오답: {it.incorrectText}
+              {it.incorrectReasonKo ? ` — ${it.incorrectReasonKo}` : ""}
+            </p>
+            <p className="mt-1 text-[11px] text-slate-500 print:hidden">
+              출처:{" "}
+              {it.sourceType === "analysis_required"
+                ? "지문 분석지"
+                : it.sourceType === "heuristic_supplement"
+                  ? "휴리스틱 보충"
+                  : "AI 보충"}
+            </p>
           </li>
         ))}
       </ol>
+      {d ? (
+        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600 print:hidden">
+          <p className="font-bold text-slate-800">진단</p>
+          <ul className="mt-1 space-y-0.5">
+            <li>분석지 문법 포인트 수: {d.analysisPointCount}</li>
+            <li>핵심 문법 포인트 수: {d.corePointCount}</li>
+            <li>선택형 변환 가능 수: {d.convertibleCount}</li>
+            <li>분석지 기반 실제 출제 수: {d.analysisBasedCount}</li>
+            <li>AI 보충 출제 수: {d.aiSupplementCount}</li>
+            <li>
+              분석지 핵심 문법 반영률:{" "}
+              {Math.round(d.coreReflectionRate * 100)}%
+            </li>
+            <li>원문 정답 불일치 후보 수: {d.originalMismatchCount}</li>
+            <li>양쪽 모두 가능한 후보 수: {d.bothPossibleCount}</li>
+            <li>어휘·숙어 후보 제외 수: {d.lexicalExcludedCount}</li>
+            <li>최종 문제 수: {d.finalCount}</li>
+            <li>원문 완전 복원: {d.passageRestored ? "예" : "아니오"}</li>
+            <li>캐시 사용: {d.cacheHit ? "예" : "아니오"}</li>
+            <li>OpenAI 호출 횟수: {d.openAiRequestCount}</li>
+            <li>제외된 포인트 수: {d.exclusions.length}</li>
+          </ul>
+          {d.exclusions.length > 0 ? (
+            <ul className="mt-2 space-y-0.5">
+              {d.exclusions.slice(0, 12).map((e) => (
+                <li key={`${e.analysisPointId}-${e.reason}`}>
+                  제외: {e.title || e.analysisPointId} · {e.reason}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
     </>
   );
 }

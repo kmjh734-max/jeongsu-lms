@@ -130,6 +130,8 @@ export function buildGrammarChoiceItems(
       incorrectReasonKo: c.incorrectReasonKo,
       difficulty: c.difficulty,
       learningValue: c.learningValue,
+      sourceType: c.sourceType,
+      analysisPointId: c.analysisPointId ?? null,
     });
   }
   return items;

@@ -1,5 +1,6 @@
 /** Prompt / selection algorithm version for grammar-choice workbook. */
-export const GRAMMAR_CHOICE_PROMPT_VERSION = "grammar-choice-v3-min-span";
+export const GRAMMAR_CHOICE_PROMPT_VERSION =
+  "grammar-choice-v3-analysis-first";
 
 /** Fallback when no analysis report is attached. */
 export const GRAMMAR_ANALYSIS_VERSION_NONE = "no-analysis";
