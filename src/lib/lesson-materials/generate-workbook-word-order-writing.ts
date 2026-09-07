@@ -13,6 +13,7 @@ import {
   type WordOrderChunk,
   type WordOrderChunkSource,
 } from "@/lib/lesson-materials/word-order-chunking";
+import { refineSemanticChunks } from "@/lib/lesson-materials/word-order-chunk-refine";
 import {
   getCachedSentenceChunks,
   upsertSentenceChunks,
@@ -58,6 +59,21 @@ export function getWordOrderWritingLineCount(english: string): number {
   return 4;
 }
 
+function finalizeChunks(
+  english: string,
+  chunks: WordOrderChunk[]
+): WordOrderChunk[] | null {
+  // Refine in original order, then validate — never shuffle first.
+  const refined = refineSemanticChunks(chunks, english);
+  const v = validateWordOrderChunksDetailed(english, refined);
+  if (!v.ok) {
+    // Fall back to pre-refine if refine broke validation
+    const v0 = validateWordOrderChunksDetailed(english, chunks);
+    return v0.ok ? chunks : null;
+  }
+  return refined;
+}
+
 function resolveChunks(input: {
   passageId: string;
   sentenceId: string;
@@ -77,8 +93,8 @@ function resolveChunks(input: {
     input.english
   );
   if (stored) {
-    const v = validateWordOrderChunksDetailed(input.english, stored);
-    if (v.ok) return { chunks: stored, source: "stored-syntax" };
+    const finalized = finalizeChunks(input.english, stored);
+    if (finalized) return { chunks: finalized, source: "stored-syntax" };
   }
 
   const cached = getCachedSentenceChunks(
@@ -96,14 +112,16 @@ function resolveChunks(input: {
           sentenceId: input.sentenceId,
         });
       } else {
-        return { chunks: cached, source: "cached-ai" };
+        // v4 cache already refined; still run refine (idempotent merges)
+        const finalized = finalizeChunks(input.english, cached);
+        if (finalized) return { chunks: finalized, source: "cached-ai" };
       }
     }
   }
 
   if (input.aiChunks) {
-    const v = validateWordOrderChunksDetailed(input.english, input.aiChunks);
-    if (v.ok) return { chunks: input.aiChunks, source: "new-ai" };
+    const finalized = finalizeChunks(input.english, input.aiChunks);
+    if (finalized) return { chunks: finalized, source: "new-ai" };
   }
 
   const fallback = buildFallbackWordOrderChunks(
@@ -122,17 +140,16 @@ function resolveChunks(input: {
       reason: "fallback-failed",
     };
   }
-  const v = validateWordOrderChunksDetailed(input.english, fallback);
-  if (!v.ok) {
-    console.warn("[WordOrderChunks] fallback rejected", {
+  const finalized = finalizeChunks(input.english, fallback);
+  if (!finalized) {
+    console.warn("[WordOrderChunks] fallback rejected after refine", {
       passageId: input.passageId,
       sentenceId: input.sentenceId,
-      issues: v.issues,
     });
     return {
       chunks: null,
       source: "deterministic-fallback",
-      reason: v.reason,
+      reason: "fallback-invalid-after-refine",
     };
   }
   console.warn("[WordOrderChunks] fallback used", {
@@ -141,7 +158,7 @@ function resolveChunks(input: {
     reason: "no-stored-cache-or-valid-ai",
   });
   return {
-    chunks: fallback,
+    chunks: finalized,
     source: "deterministic-fallback",
     reason: "no-stored-cache-or-valid-ai",
   };
@@ -158,6 +175,7 @@ export function createWordOrderQuestion(input: {
   chunks: WordOrderChunk[];
   chunkSource: WordOrderChunkSource;
 }): WordOrderWritingItem | null {
+  // Chunks must already be refined in original order before this call.
   const check = validateWordOrderChunksDetailed(input.english, input.chunks);
   if (!check.ok) return null;
 
@@ -167,6 +185,7 @@ export function createWordOrderQuestion(input: {
     sentenceId: input.sentenceId,
     sourceHash: input.sourceHash,
   });
+  // Shuffle only after refine + validate.
   const shuffledChunks = shuffleWordOrderChunks(input.chunks, seed);
 
   return {
@@ -389,7 +408,9 @@ export function mapLineTranslationToWordOrderWriting(
   for (const s of sections) {
     const items: WordOrderWritingItem[] = [];
     for (const it of s.items) {
-      const chunks = buildFallbackWordOrderChunks(it.sentenceId, it.english);
+      const raw = buildFallbackWordOrderChunks(it.sentenceId, it.english);
+      if (!raw) continue;
+      const chunks = finalizeChunks(it.english, raw);
       if (!chunks) continue;
       const q = createWordOrderQuestion({
         workbookId,

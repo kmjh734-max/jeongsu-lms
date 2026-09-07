@@ -1,6 +1,6 @@
 /** Semantic chunk + shuffle rules for word-order English writing. */
 export const WORD_ORDER_CHUNK_ALGORITHM_VERSION =
-  "word-order-semantic-chunks-v3";
+  "word-order-semantic-chunks-v4-final";
 
 /** Kept for seed / display versioning alongside chunk algo. */
 export const WORD_ORDER_WRITING_ALGORITHM_VERSION =
