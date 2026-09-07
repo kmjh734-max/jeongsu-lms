@@ -757,6 +757,8 @@ export function WorkbookWorkbench({
   margin-top: 4px;
   color: #475569;
   white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
