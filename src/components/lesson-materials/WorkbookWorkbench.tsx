@@ -30,6 +30,7 @@ import {
   type BlankRenderToken,
   type WorkbookBlankSection,
   type WorkbookData,
+  type WorkbookLineTranslationSection,
   type WorkbookPassageSection,
   type WorkbookSentenceOrderQuestion,
   type WorkbookTypeId,
@@ -395,6 +396,101 @@ function SentenceOrderAnswerBody({
   );
 }
 
+function LineTranslationQuestionBody({
+  section,
+}: {
+  section: WorkbookLineTranslationSection;
+}) {
+  return (
+    <>
+      <p className="mb-1 text-[12px] font-semibold text-slate-500">
+        {section.title}
+      </p>
+      {section.source?.trim() ? (
+        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+          · {section.source.trim()}
+        </p>
+      ) : (
+        <div className="mb-3" />
+      )}
+      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        다음 영어 문장을 우리말로 해석하세요.
+      </p>
+      <div className="space-y-0">
+        {section.items.map((it) => (
+          <div
+            key={`${section.projectId}-${it.sentenceId}`}
+            className="line-translation-item"
+          >
+            <div className="line-translation-question">
+              <span className="line-translation-number">{it.orderIndex}.</span>
+              <p className="line-translation-english">{it.englishDisplay}</p>
+            </div>
+            <div className="line-translation-answer">
+              {Array.from({ length: it.answerLineCount }, (_, i) => (
+                <div
+                  key={`al-${it.sentenceId}-${i}`}
+                  className="translation-answer-line"
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function LineTranslationAnswerBody({
+  section,
+  typeOrder,
+  multi,
+}: {
+  section: WorkbookLineTranslationSection;
+  typeOrder: number;
+  multi: boolean;
+}) {
+  return (
+    <div className="line-translation-answer-key">
+      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+        {typeOrder}. 한줄해석
+        {multi ? ` · ${section.title}` : ""}
+      </h3>
+      {!multi ? (
+        <>
+          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+            {section.title}
+          </p>
+          {section.source?.trim() ? (
+            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+              · {section.source.trim()}
+            </p>
+          ) : null}
+        </>
+      ) : section.source?.trim() ? (
+        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+          · {section.source.trim()}
+        </p>
+      ) : null}
+      <div className="space-y-4">
+        {section.items.map((it) => (
+          <div
+            key={`lta-${section.projectId}-${it.sentenceId}`}
+            className="break-inside-avoid"
+            style={{ pageBreakInside: "avoid" }}
+          >
+            <p className="line-translation-answer-key-english">
+              <span className="font-bold">{it.orderIndex}.</span>{" "}
+              {it.englishDisplay}
+            </p>
+            <p className="line-translation-answer-key-korean">{it.korean}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function parseTypes(raw: string | null): WorkbookTypeId[] {
   if (!raw?.trim()) return ["tf"];
   const list = raw
@@ -421,10 +517,16 @@ type WorkbookPage =
       typeOrder: number;
     }
   | {
+      kind: "line_ko_q";
+      sectionIndex: number;
+      typeOrder: number;
+    }
+  | {
       kind: "answers";
       typeOrderBlank: number | null;
       typeOrderTf: number | null;
       typeOrderSentenceOrder: number | null;
+      typeOrderLineKo: number | null;
     };
 
 export function WorkbookWorkbench({
@@ -437,9 +539,12 @@ export function WorkbookWorkbench({
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [workbook, setWorkbook] = useState<WorkbookData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [errorCode, setErrorCode] = useState<"MISSING_TRANSLATION" | null>(
-    null
-  );
+  const [errorCode, setErrorCode] = useState<
+    "MISSING_TRANSLATION" | "MISSING_LINE_TRANSLATION" | null
+  >(null);
+  const [lineTranslationExcludeIds, setLineTranslationExcludeIds] = useState<
+    string[]
+  >([]);
   const [generating, setGenerating] = useState(true);
   const [status, setStatus] = useState("워크북을 준비하고 있습니다…");
   const [zoom, setZoom] = useState(85);
@@ -452,6 +557,7 @@ export function WorkbookWorkbench({
       setGenerating(true);
       setError(null);
       setErrorCode(null);
+      setLineTranslationExcludeIds([]);
       setWorkbook(null);
 
       const ids = (searchParams.get("ids") ?? "")
@@ -481,7 +587,8 @@ export function WorkbookWorkbench({
           cached &&
           ((cached.sections?.length ?? 0) > 0 ||
             (cached.blankSections?.length ?? 0) > 0 ||
-            (cached.sentenceOrderQuestions?.length ?? 0) > 0)
+            (cached.sentenceOrderQuestions?.length ?? 0) > 0 ||
+            (cached.lineTranslationSections?.length ?? 0) > 0)
         ) {
           if (!cancelled) {
             setWorkbook({
@@ -490,6 +597,8 @@ export function WorkbookWorkbench({
               blankOptions: cached.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
               sentenceOrderQuestions: cached.sentenceOrderQuestions ?? [],
               sentenceOrderSkipped: cached.sentenceOrderSkipped ?? [],
+              lineTranslationSections: cached.lineTranslationSections ?? [],
+              lineTranslationSkipped: cached.lineTranslationSkipped ?? [],
             });
             setGenerating(false);
           }
@@ -507,10 +616,17 @@ export function WorkbookWorkbench({
       const wantBlank = types.includes("blank_fill");
       const wantTf = types.includes("tf");
       const wantSentenceOrder = types.includes("sentence_order");
-      if (wantBlank && wantTf) {
+      const wantLineKo = types.includes("one_line_ko");
+      const ltExclude = (searchParams.get("ltExclude") ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (wantBlank && (wantTf || wantSentenceOrder || wantLineKo)) {
         setStatus("워크북을 만들고 있습니다…");
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
+      } else if (wantLineKo && !wantTf && !wantSentenceOrder) {
+        setStatus("한줄해석 워크북을 만들고 있습니다…");
       } else if (wantSentenceOrder && !wantTf) {
         setStatus("문장 순서 배열 워크북을 만들고 있습니다…");
       } else {
@@ -524,13 +640,19 @@ export function WorkbookWorkbench({
           tfOptions: { count, language, difficulty },
           blankOptions,
           title,
+          lineTranslationExcludeIds: ltExclude,
         });
         if (cancelled) return;
         if (!res.ok) {
           setError(res.message);
-          setErrorCode(
-            res.code === "MISSING_TRANSLATION" ? "MISSING_TRANSLATION" : null
-          );
+          if (res.code === "MISSING_TRANSLATION") {
+            setErrorCode("MISSING_TRANSLATION");
+          } else if (res.code === "MISSING_LINE_TRANSLATION") {
+            setErrorCode("MISSING_LINE_TRANSLATION");
+            setLineTranslationExcludeIds(res.lineTranslationExcludeIds ?? []);
+          } else {
+            setErrorCode(null);
+          }
           setGenerating(false);
           return;
         }
@@ -594,6 +716,48 @@ export function WorkbookWorkbench({
   background: #ffffff;
   box-sizing: border-box;
 }
+.line-translation-item {
+  margin-bottom: 22px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.line-translation-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.line-translation-number {
+  font-weight: 700;
+  flex-shrink: 0;
+  color: #172033;
+}
+.line-translation-english {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #172033;
+  margin: 0;
+}
+.line-translation-answer {
+  margin-top: 8px;
+  margin-left: 1.25rem;
+}
+.translation-answer-line {
+  height: 34px;
+  border-bottom: 1px solid #94a3b8;
+}
+.line-translation-answer-key-english {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #1e3a5f;
+  margin: 0;
+}
+.line-translation-answer-key-korean {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-top: 4px;
+  color: #475569;
+  white-space: pre-wrap;
+}
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
   @page app-print-a4 { size: 210mm 297mm; margin: 0; }
@@ -602,6 +766,10 @@ export function WorkbookWorkbench({
     width: 13mm;
     height: 10mm;
     border: 0.45mm solid #64748b;
+  }
+  .translation-answer-line {
+    height: 9mm;
+    border-bottom: 0.3mm solid #94a3b8;
   }
 }
 `;
@@ -623,6 +791,7 @@ export function WorkbookWorkbench({
     const out: WorkbookPage[] = [];
     const types = workbook.selectedTypes;
     const soQuestions = workbook.sentenceOrderQuestions ?? [];
+    const ltSections = workbook.lineTranslationSections ?? [];
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
       if (t === "blank_fill") {
@@ -644,6 +813,11 @@ export function WorkbookWorkbench({
           });
         });
       }
+      if (t === "one_line_ko") {
+        ltSections.forEach((_, i) => {
+          out.push({ kind: "line_ko_q", sectionIndex: i, typeOrder: order });
+        });
+      }
     }
     if (types.length > 0) {
       out.push({
@@ -651,6 +825,7 @@ export function WorkbookWorkbench({
         typeOrderBlank: typeOrders.get("blank_fill") ?? null,
         typeOrderTf: typeOrders.get("tf") ?? null,
         typeOrderSentenceOrder: typeOrders.get("sentence_order") ?? null,
+        typeOrderLineKo: typeOrders.get("one_line_ko") ?? null,
       });
     }
     return out;
@@ -691,6 +866,20 @@ export function WorkbookWorkbench({
           : "/teacher/lesson-materials/workbook"
       }?${params.toString()}`;
     };
+    const continueWithoutMissingLineKo = () => {
+      const params = new URLSearchParams(searchParams.toString());
+      const prev = (params.get("ltExclude") ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const merged = [...new Set([...prev, ...lineTranslationExcludeIds])];
+      if (merged.length) params.set("ltExclude", merged.join(","));
+      window.location.href = `${
+        role === "admin"
+          ? "/admin/lesson-materials/workbook"
+          : "/teacher/lesson-materials/workbook"
+      }?${params.toString()}`;
+    };
     const lessonPackHref =
       ids.length > 0
         ? `${base}/lesson-pack?ids=${encodeURIComponent(ids.join(","))}`
@@ -698,7 +887,9 @@ export function WorkbookWorkbench({
 
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4">
-        <Alert variant="error">{error}</Alert>
+        <Alert variant="error">
+          <span className="whitespace-pre-wrap">{error}</span>
+        </Alert>
         {errorCode === "MISSING_TRANSLATION" ? (
           <div className="flex flex-wrap items-center justify-center gap-2">
             <Link
@@ -713,6 +904,29 @@ export function WorkbookWorkbench({
               onClick={continueWithoutTr}
             >
               해석 미제공으로 계속
+            </button>
+            <Link
+              href={base}
+              className="inline-flex rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+            >
+              취소
+            </Link>
+          </div>
+        ) : errorCode === "MISSING_LINE_TRANSLATION" ? (
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href={lessonPackHref}
+              className="inline-flex rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700"
+            >
+              수업용 자료로 이동
+            </Link>
+            <button
+              type="button"
+              className="inline-flex rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              onClick={continueWithoutMissingLineKo}
+              disabled={lineTranslationExcludeIds.length === 0}
+            >
+              해석 누락 지문 제외하고 계속
             </button>
             <Link
               href={base}
@@ -743,6 +957,8 @@ export function WorkbookWorkbench({
   const blankOpts = workbook.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS;
   const soQuestions = workbook.sentenceOrderQuestions ?? [];
   const soSkipped = workbook.sentenceOrderSkipped ?? [];
+  const ltSections = workbook.lineTranslationSections ?? [];
+  const ltSkipped = workbook.lineTranslationSkipped ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -884,6 +1100,23 @@ export function WorkbookWorkbench({
                 );
               }
 
+              if (page.kind === "line_ko_q") {
+                const section = ltSections[page.sectionIndex]!;
+                return (
+                  <PageShell
+                    key={`lt-q-${section.projectId}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={`${page.typeOrder}. 한줄해석`}
+                    isLast={isLast}
+                  >
+                    <LineTranslationQuestionBody section={section} />
+                  </PageShell>
+                );
+              }
+
               // answers
               return (
                 <PageShell
@@ -945,6 +1178,27 @@ export function WorkbookWorkbench({
                           <ul className="mt-4 space-y-1 text-[11px] text-amber-700">
                             {soSkipped.map((s) => (
                               <li key={`sos-${s.projectId}`}>
+                                「{s.title}」 {s.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {page.typeOrderLineKo != null ? (
+                      <div className="space-y-8">
+                        {ltSections.map((section) => (
+                          <LineTranslationAnswerBody
+                            key={`lta-${section.projectId}`}
+                            section={section}
+                            typeOrder={page.typeOrderLineKo!}
+                            multi={ltSections.length > 1}
+                          />
+                        ))}
+                        {ltSkipped.length > 0 ? (
+                          <ul className="space-y-1 text-[11px] text-amber-700">
+                            {ltSkipped.map((s) => (
+                              <li key={`lts-${s.projectId}`}>
                                 「{s.title}」 {s.reason}
                               </li>
                             ))}

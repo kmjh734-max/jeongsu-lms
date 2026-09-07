@@ -17,7 +17,7 @@ import {
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
-export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v3";
+export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v4";
 
 export function saveWorkbookToSession(workbook: WorkbookData) {
   try {
@@ -112,6 +112,7 @@ export function WorkbookCreateModal({
   const wantTf = selected.has("tf");
   const wantBlank = selected.has("blank_fill");
   const wantSentenceOrder = selected.has("sentence_order");
+  const wantLineKo = selected.has("one_line_ko");
 
   if (!open) return null;
 
@@ -133,7 +134,7 @@ export function WorkbookCreateModal({
     }
     if (hasPendingSelected) {
       setError(
-        "준비 중인 유형이 포함되어 있습니다. T/F, 빈칸 채우기, 문장 순서 배열만 선택해 주세요."
+        "준비 중인 유형이 포함되어 있습니다. 준비된 유형만 선택해 주세요."
       );
       return;
     }
@@ -445,6 +446,17 @@ export function WorkbookCreateModal({
                     저장된 원문 문장을 그대로 섞어 출제합니다. AI 호출 없이
                     즉시 생성되며, 문제지에 한글 해석은 표시되지 않습니다.
                     문장이 2개 이하인 지문은 자동으로 제외됩니다.
+                  </p>
+                </div>
+              ) : null}
+
+              {wantLineKo ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <p className="text-sm font-bold text-slate-900">한줄해석</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+                    수업용 자료에 저장된 문장별 한글 해석을 그대로 사용합니다.
+                    새 번역을 만들지 않으며, 해석이 없거나 원문이 바뀐 문장이
+                    있으면 안내 후 선택할 수 있습니다.
                   </p>
                 </div>
               ) : null}

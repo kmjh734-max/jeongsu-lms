@@ -91,7 +91,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "one_line_ko",
     title: "한줄해석",
     subtitle: "영어 문장을 한국어로 해석하기",
-    ready: false,
+    ready: true,
     displayOrder: 9,
     printOrder: 9,
   },
@@ -311,6 +311,30 @@ export type WorkbookSentenceOrderSkip = {
   reason: string;
 };
 
+export type WorkbookLineTranslationItem = {
+  sentenceId: string;
+  orderIndex: number;
+  english: string;
+  englishDisplay: string;
+  korean: string;
+  sourceHash: string;
+  answerLineCount: number;
+};
+
+export type WorkbookLineTranslationSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  items: WorkbookLineTranslationItem[];
+  algorithmVersion: string;
+};
+
+export type WorkbookLineTranslationSkip = {
+  projectId: string;
+  title: string;
+  reason: string;
+};
+
 export type WorkbookData = {
   metadata: WorkbookMetadata;
   selectedTypes: WorkbookTypeId[];
@@ -324,6 +348,9 @@ export type WorkbookData = {
   sentenceOrderQuestions?: WorkbookSentenceOrderQuestion[];
   /** Passages skipped for sentence-order (too few sentences / restore fail) */
   sentenceOrderSkipped?: WorkbookSentenceOrderSkip[];
+  /** One-line Korean translation sections */
+  lineTranslationSections?: WorkbookLineTranslationSection[];
+  lineTranslationSkipped?: WorkbookLineTranslationSkip[];
   timing?: WorkbookGenerationTiming;
 };
 
