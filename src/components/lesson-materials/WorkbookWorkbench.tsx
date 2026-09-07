@@ -377,20 +377,18 @@ function GrammarChoiceAnswerBody({
             <p className="mt-1 text-[12px] font-semibold text-slate-600">
               문법: {it.bookTerm || it.grammarCategoryName}
             </p>
+            {it.structureSummary ? (
+              <p className="mt-1 text-slate-700">구조: {it.structureSummary}</p>
+            ) : null}
             <p className="mt-1 text-slate-700">
-              근거: {it.explanationKo}
+              설명: {it.explanationKo}
             </p>
             <p className="mt-1 text-slate-700">
-              오답: {it.incorrectText}
+              오답 이유: {it.incorrectText}
               {it.incorrectReasonKo ? ` — ${it.incorrectReasonKo}` : ""}
             </p>
             <p className="mt-1 text-[11px] text-slate-500 print:hidden">
-              출처:{" "}
-              {it.sourceType === "analysis_required"
-                ? "지문 분석지"
-                : it.sourceType === "heuristic_supplement"
-                  ? "휴리스틱 보충"
-                  : "AI 보충"}
+              분석 출처: {it.analysisOriginLabel || "—"}
             </p>
           </li>
         ))}
@@ -399,24 +397,45 @@ function GrammarChoiceAnswerBody({
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600 print:hidden">
           <p className="font-bold text-slate-800">진단</p>
           <ul className="mt-1 space-y-0.5">
-            <li>분석지 문법 포인트 수: {d.analysisPointCount}</li>
+            <li>전체 문장 수: {d.sentenceCount}</li>
+            <li>분석 완료 문장 수: {d.analyzedSentenceCount}</li>
+            <li>
+              문장 분석률: {Math.round(d.sentenceAnalysisRate * 100)}%
+            </li>
+            <li>기존 분석지 문법 수: {d.formalAnalysisPointCount}</li>
+            <li>내부 보충 문법 수: {d.internalSupplementPointCount}</li>
+            <li>전체 문법 포인트 수: {d.analysisPointCount}</li>
             <li>핵심 문법 포인트 수: {d.corePointCount}</li>
             <li>선택형 변환 가능 수: {d.convertibleCount}</li>
-            <li>분석지 기반 실제 출제 수: {d.analysisBasedCount}</li>
-            <li>AI 보충 출제 수: {d.aiSupplementCount}</li>
+            <li>실제 출제 수: {d.finalCount}</li>
             <li>
-              분석지 핵심 문법 반영률:{" "}
+              출제 가능한 핵심 문법 반영률:{" "}
               {Math.round(d.coreReflectionRate * 100)}%
             </li>
-            <li>원문 정답 불일치 후보 수: {d.originalMismatchCount}</li>
-            <li>양쪽 모두 가능한 후보 수: {d.bothPossibleCount}</li>
-            <li>어휘·숙어 후보 제외 수: {d.lexicalExcludedCount}</li>
-            <li>최종 문제 수: {d.finalCount}</li>
+            <li>선택지가 없는 문장 수: {d.sentencesWithoutChoices.length}</li>
+            <li>모호성 제외: {d.bothPossibleCount}</li>
+            <li>원문 불일치 제외: {d.originalMismatchCount}</li>
+            <li>중복 범위 제외: {d.overlapExcludedCount}</li>
+            <li>저품질 제외: {d.lowQualityExcludedCount}</li>
+            <li>어휘·숙어 제외: {d.lexicalExcludedCount}</li>
             <li>원문 완전 복원: {d.passageRestored ? "예" : "아니오"}</li>
-            <li>캐시 사용: {d.cacheHit ? "예" : "아니오"}</li>
+            <li>분석 캐시: {d.blueprintCacheHit ? "예" : "아니오"}</li>
+            <li>선택지 캐시: {d.cacheHit ? "예" : "아니오"}</li>
+            <li>분석 완전성: {d.analysisCompleteness}</li>
+            <li>분석 출처: {d.analysisSource}</li>
+            <li>모델: {d.modelUsed || "—"}</li>
             <li>OpenAI 호출 횟수: {d.openAiRequestCount}</li>
-            <li>제외된 포인트 수: {d.exclusions.length}</li>
           </ul>
+          {d.sentencesWithoutChoices.length > 0 ? (
+            <ul className="mt-2 space-y-0.5">
+              {d.sentencesWithoutChoices.slice(0, 8).map((s) => (
+                <li key={s.sentenceId}>
+                  무선택지 문장: {s.reason}
+                  {s.preview ? ` · ${s.preview}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {d.exclusions.length > 0 ? (
             <ul className="mt-2 space-y-0.5">
               {d.exclusions.slice(0, 12).map((e) => (

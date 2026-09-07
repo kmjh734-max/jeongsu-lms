@@ -22,6 +22,8 @@ export type LessonPackData = {
   wordOrderChunkCache?: StoredWordOrderChunkCache | null;
   /** Grammar-choice candidates (cache hit → 0 OpenAI) */
   grammarChoiceCache?: import("@/lib/lesson-materials/grammar-choice-cache").StoredGrammarChoiceCache | null;
+  /** Internal GrammarBlueprint for grammar-choice (not student-facing analysis report) */
+  grammarBlueprintCache?: import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache | null;
 };
 
 function parseJsonSafe<T>(text: string): T | null {

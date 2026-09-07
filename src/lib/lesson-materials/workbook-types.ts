@@ -449,23 +449,41 @@ export type WorkbookGrammarChoiceItem = {
   learningValue: 1 | 2 | 3 | 4 | 5;
   sourceType?: GrammarChoiceSourceType;
   analysisPointId?: string | null;
+  structureSummary?: string;
+  analysisOriginLabel?: string;
 };
 
 export type WorkbookGrammarChoiceDiagnostics = {
+  sentenceCount: number;
+  analyzedSentenceCount: number;
+  sentenceAnalysisRate: number;
+  formalAnalysisPointCount: number;
+  internalSupplementPointCount: number;
   analysisPointCount: number;
   corePointCount: number;
   convertibleCount: number;
   analysisBasedCount: number;
   aiSupplementCount: number;
+  finalCount: number;
   coreReflectionRate: number;
+  sentencesWithoutChoices: Array<{
+    sentenceId: string;
+    reason: string;
+    preview?: string;
+  }>;
   exclusions: Array<{ analysisPointId: string; reason: string; title?: string }>;
   originalMismatchCount: number;
   bothPossibleCount: number;
   lexicalExcludedCount: number;
-  finalCount: number;
+  overlapExcludedCount: number;
+  lowQualityExcludedCount: number;
   passageRestored: boolean;
   cacheHit: boolean;
+  blueprintCacheHit: boolean;
+  analysisCompleteness: string;
+  analysisSource: string;
   openAiRequestCount: number;
+  modelUsed: string | null;
 };
 
 export type WorkbookGrammarChoiceSection = {

@@ -174,6 +174,7 @@ export async function generateWorkbookAction(
     packJson: Partial<LessonPackData>;
     wordOrderChunkCache: StoredWordOrderChunkCache | null;
     grammarChoiceCache: StoredGrammarChoiceCache | null;
+    grammarBlueprintCache: import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache | null;
     analysisReport: AnalysisReportData | null;
   }> = [];
 
@@ -212,6 +213,9 @@ export async function generateWorkbookAction(
         (pack.wordOrderChunkCache as StoredWordOrderChunkCache) ?? null,
       grammarChoiceCache:
         (pack.grammarChoiceCache as StoredGrammarChoiceCache) ?? null,
+      grammarBlueprintCache:
+        (pack.grammarBlueprintCache as import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache) ??
+        null,
       analysisReport,
     });
   }
@@ -254,6 +258,7 @@ export async function generateWorkbookAction(
           sentences: p.sentences,
           analysisReport: p.analysisReport,
           grammarChoiceCache: p.grammarChoiceCache,
+          grammarBlueprintCache: p.grammarBlueprintCache,
         })),
       });
       workbook.grammarChoiceSections = gc.sections;
@@ -266,7 +271,7 @@ export async function generateWorkbookAction(
         openAiRequestCount: openAiFromGrammar,
       };
 
-      for (const { projectId, cache } of gc.cachesToSave) {
+      for (const { projectId, cache, blueprintCache } of gc.cachesToSave) {
         const proj = byId.get(projectId);
         const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
         const next: LessonPackData = {
@@ -278,6 +283,8 @@ export async function generateWorkbookAction(
           sentenceTranslations: prev.sentenceTranslations,
           wordOrderChunkCache: prev.wordOrderChunkCache,
           grammarChoiceCache: cache,
+          grammarBlueprintCache:
+            blueprintCache ?? prev.grammarBlueprintCache ?? null,
         };
         await supabase
           .from("lesson_material_projects")
@@ -330,6 +337,7 @@ export async function generateWorkbookAction(
           sentenceTranslations: prev.sentenceTranslations,
           wordOrderChunkCache: prev.wordOrderChunkCache,
           grammarChoiceCache: prev.grammarChoiceCache,
+          grammarBlueprintCache: prev.grammarBlueprintCache,
         };
         await supabase
           .from("lesson_material_projects")
@@ -470,6 +478,7 @@ export async function generateWorkbookAction(
             sentenceTranslations: prev.sentenceTranslations,
             wordOrderChunkCache: cache,
             grammarChoiceCache: prev.grammarChoiceCache,
+            grammarBlueprintCache: prev.grammarBlueprintCache,
           };
           await supabase
             .from("lesson_material_projects")
