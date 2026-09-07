@@ -8,6 +8,9 @@ import { generateWorkbookLineTranslation } from "@/lib/lesson-materials/generate
 import { generateWorkbookSentenceOrder } from "@/lib/lesson-materials/generate-workbook-sentence-order";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
 import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
+import { generateWorkbookGrammarChoice } from "@/lib/lesson-materials/generate-workbook-grammar-choice";
+import type { StoredGrammarChoiceCache } from "@/lib/lesson-materials/grammar-choice-cache";
+import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import { SENTENCE_ORDER_SKIP_TOO_FEW } from "@/lib/lesson-materials/sentence-order-constants";
 import type { LessonPackData, LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
@@ -81,7 +84,7 @@ export async function generateWorkbookAction(
     return {
       ok: false,
       message:
-        "생성 가능한 문제 유형을 선택해 주세요. (T/F, 빈칸 채우기, 문장 순서 배열, 한줄해석, 통문장 영작, 어순배열 영작)",
+        "생성 가능한 문제 유형을 선택해 주세요. (어법 선택, T/F, 빈칸 채우기, 문장 순서 배열, 한줄해석, 통문장 영작, 어순배열 영작)",
     };
   }
   const unknown = (input.selectedTypes ?? []).filter(
@@ -97,6 +100,7 @@ export async function generateWorkbookAction(
 
   const wantTf = types.includes("tf");
   const wantBlank = types.includes("blank_fill");
+  const wantGrammarChoice = types.includes("grammar_choice");
   const wantSentenceOrder = types.includes("sentence_order");
   const wantLineKo = types.includes("one_line_ko");
   const wantFullEn = types.includes("full_en_writing");
@@ -137,7 +141,7 @@ export async function generateWorkbookAction(
   const supabase = await createClient();
   let pq = supabase
     .from("lesson_material_projects")
-    .select("id,title,source,lesson_pack_json,deleted_at")
+    .select("id,title,source,lesson_pack_json,analysis_report_json,deleted_at")
     .in("id", ids)
     .eq("academy_id", profile!.academy_id!)
     .is("deleted_at", null);
@@ -169,6 +173,8 @@ export async function generateWorkbookAction(
     sentenceTranslations: import("@/lib/lesson-materials/translation-meta").StoredSentenceTranslation[];
     packJson: Partial<LessonPackData>;
     wordOrderChunkCache: StoredWordOrderChunkCache | null;
+    grammarChoiceCache: StoredGrammarChoiceCache | null;
+    analysisReport: AnalysisReportData | null;
   }> = [];
 
   for (const p of ordered) {
@@ -184,6 +190,13 @@ export async function generateWorkbookAction(
       korean: (it.korean_text as string | null) ?? null,
     }));
     const pack = (p!.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+    const analysisReport =
+      (p as { analysis_report_json?: unknown }).analysis_report_json &&
+      typeof (p as { analysis_report_json?: unknown }).analysis_report_json ===
+        "object"
+        ? ((p as { analysis_report_json: AnalysisReportData })
+            .analysis_report_json as AnalysisReportData)
+        : null;
     passages.push({
       projectId: p!.id,
       title: p!.title,
@@ -197,6 +210,9 @@ export async function generateWorkbookAction(
       packJson: pack,
       wordOrderChunkCache:
         (pack.wordOrderChunkCache as StoredWordOrderChunkCache) ?? null,
+      grammarChoiceCache:
+        (pack.grammarChoiceCache as StoredGrammarChoiceCache) ?? null,
+      analysisReport,
     });
   }
   const dataLoadMs = Date.now() - tLoad0;
@@ -212,6 +228,8 @@ export async function generateWorkbookAction(
     blankOptions,
     sections: [],
     blankSections: [],
+    grammarChoiceSections: [],
+    grammarChoiceSkipped: [],
     sentenceOrderQuestions: [],
     sentenceOrderSkipped: [],
     lineTranslationSections: [],
@@ -225,6 +243,52 @@ export async function generateWorkbookAction(
 
   try {
     let openAiFromBlank = 0;
+    let openAiFromGrammar = 0;
+
+    if (wantGrammarChoice) {
+      const gc = await generateWorkbookGrammarChoice({
+        passages: passages.map((p) => ({
+          projectId: p.projectId,
+          title: p.title,
+          source: p.source,
+          sentences: p.sentences,
+          analysisReport: p.analysisReport,
+          grammarChoiceCache: p.grammarChoiceCache,
+        })),
+      });
+      workbook.grammarChoiceSections = gc.sections;
+      workbook.grammarChoiceSkipped = gc.skipped;
+      openAiFromGrammar = gc.timing.openAiRequestCount;
+      workbook.timing = {
+        ...gc.timing,
+        dataLoadMs,
+        totalMs: dataLoadMs + gc.timing.totalMs,
+        openAiRequestCount: openAiFromGrammar,
+      };
+
+      for (const { projectId, cache } of gc.cachesToSave) {
+        const proj = byId.get(projectId);
+        const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+        const next: LessonPackData = {
+          headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
+          vocab: prev.vocab ?? [],
+          updatedAt: new Date().toISOString(),
+          blankCandidatePool: prev.blankCandidatePool,
+          passageSourceHash: prev.passageSourceHash,
+          sentenceTranslations: prev.sentenceTranslations,
+          wordOrderChunkCache: prev.wordOrderChunkCache,
+          grammarChoiceCache: cache,
+        };
+        await supabase
+          .from("lesson_material_projects")
+          .update({
+            lesson_pack_json: next,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", projectId);
+      }
+    }
+
     if (wantBlank) {
       const blankResult = await generateWorkbookBlankFill({
         passages: passages.map((p) => ({
@@ -241,10 +305,16 @@ export async function generateWorkbookAction(
       });
       workbook.blankSections = blankResult.sections;
       openAiFromBlank = blankResult.timing.openAiRequestCount;
+      const prevOpenAi = workbook.timing?.openAiRequestCount ?? 0;
       workbook.timing = {
         ...blankResult.timing,
         dataLoadMs,
-        totalMs: dataLoadMs + blankResult.timing.totalMs,
+        totalMs:
+          dataLoadMs +
+          blankResult.timing.totalMs +
+          (workbook.timing?.totalMs ?? dataLoadMs) -
+          dataLoadMs,
+        openAiRequestCount: prevOpenAi + openAiFromBlank,
       };
 
       // Persist newly generated pools for next time (0 OpenAI)
@@ -258,6 +328,8 @@ export async function generateWorkbookAction(
           blankCandidatePool: pool,
           passageSourceHash: pool.sourceHash,
           sentenceTranslations: prev.sentenceTranslations,
+          wordOrderChunkCache: prev.wordOrderChunkCache,
+          grammarChoiceCache: prev.grammarChoiceCache,
         };
         await supabase
           .from("lesson_material_projects")
@@ -397,6 +469,7 @@ export async function generateWorkbookAction(
             passageSourceHash: prev.passageSourceHash,
             sentenceTranslations: prev.sentenceTranslations,
             wordOrderChunkCache: cache,
+            grammarChoiceCache: prev.grammarChoiceCache,
           };
           await supabase
             .from("lesson_material_projects")
@@ -437,6 +510,21 @@ export async function generateWorkbookAction(
       }
     }
 
+    if (
+      wantGrammarChoice &&
+      (workbook.grammarChoiceSections?.length ?? 0) === 0
+    ) {
+      const detail =
+        workbook.grammarChoiceSkipped
+          ?.map((s) => `「${s.title}」 ${s.reason}`)
+          .join(" ") ?? "";
+      return {
+        ok: false,
+        message:
+          detail ||
+          "어법 선택 결과를 만들지 못했습니다. 지문의 핵심 어법 포인트를 확인해 주세요.",
+      };
+    }
     if (wantBlank && workbook.blankSections.length === 0) {
       return { ok: false, message: "빈칸 채우기 결과를 만들지 못했습니다." };
     }

@@ -33,6 +33,7 @@ import {
   type WorkbookBlankSection,
   type WorkbookData,
   type WorkbookFullEnWritingSection,
+  type WorkbookGrammarChoiceSection,
   type WorkbookLineTranslationSection,
   type WorkbookPassageSection,
   type WorkbookSentenceOrderQuestion,
@@ -40,6 +41,7 @@ import {
   type WorkbookWordOrderWritingSection,
 } from "@/lib/lesson-materials/workbook-types";
 import { formatAnswerOrderSequence } from "@/lib/lesson-materials/sentence-order-shuffle";
+import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
 
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
@@ -291,6 +293,91 @@ function TfAnswerBody({
                 {it.correctedStatement}
               </p>
             ) : null}
+          </li>
+        ))}
+      </ol>
+    </>
+  );
+}
+
+function GrammarChoiceQuestionBody({
+  section,
+  multi,
+}: {
+  section: WorkbookGrammarChoiceSection;
+  multi: boolean;
+}) {
+  return (
+    <>
+      {multi ? (
+        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+          {section.title}
+          {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
+        </p>
+      ) : (
+        <>
+          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+            {section.title}
+          </p>
+          {section.source?.trim() ? (
+            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+              · {section.source.trim()}
+            </p>
+          ) : (
+            <div className="mb-3" />
+          )}
+        </>
+      )}
+      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        다음 글의 번호별 선택지에서 문법상 알맞은 표현을 고르세요.
+      </p>
+      <p className="workbook-passage text-[13px] leading-[1.85] text-slate-900">
+        {section.segments.map((seg, i) =>
+          seg.type === "text" ? (
+            <span key={`gct-${i}`}>{seg.text}</span>
+          ) : (
+            <span
+              key={`gcc-${seg.number}-${i}`}
+              className="grammar-choice-inline"
+            >
+              {circledNumber(seg.number)} [{seg.leftText} / {seg.rightText}]
+            </span>
+          )
+        )}
+      </p>
+    </>
+  );
+}
+
+function GrammarChoiceAnswerBody({
+  section,
+  typeOrder,
+  multi,
+}: {
+  section: WorkbookGrammarChoiceSection;
+  typeOrder: number;
+  multi: boolean;
+}) {
+  return (
+    <>
+      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+        {typeOrder}. 어법 선택
+        {multi ? ` · ${section.title}` : ""}
+      </h3>
+      <ol className="space-y-4">
+        {section.items.map((it) => (
+          <li
+            key={it.choiceId}
+            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+          >
+            <p className="font-bold">
+              {circledNumber(it.number)} {it.correctText}
+            </p>
+            <p className="mt-1 text-[12px] font-semibold text-slate-600">
+              {it.bookTerm || it.grammarCategoryName}
+            </p>
+            <p className="mt-1 text-slate-700">{it.explanationKo}</p>
+            <p className="mt-1 text-slate-700">{it.incorrectReasonKo}</p>
           </li>
         ))}
       </ol>
@@ -746,7 +833,8 @@ function parseTypes(raw: string | null): WorkbookTypeId[] {
   const list = raw
     .split(",")
     .map((s) => s.trim())
-    .filter(Boolean) as WorkbookTypeId[];
+    .filter(Boolean)
+    .filter((id) => id !== "vocab_example") as WorkbookTypeId[];
   return sortWorkbookTypesByPrintOrder(list.length ? list : ["tf"]);
 }
 
@@ -758,6 +846,11 @@ type WorkbookPage =
     }
   | {
       kind: "tf_q";
+      sectionIndex: number;
+      typeOrder: number;
+    }
+  | {
+      kind: "grammar_choice_q";
       sectionIndex: number;
       typeOrder: number;
     }
@@ -790,6 +883,7 @@ type WorkbookPage =
   | {
       kind: "answers";
       typeOrderBlank: number | null;
+      typeOrderGrammarChoice: number | null;
       typeOrderTf: number | null;
       typeOrderSentenceOrder: number | null;
       typeOrderLineKo: number | null;
@@ -858,6 +952,7 @@ export function WorkbookWorkbench({
           cached &&
           ((cached.sections?.length ?? 0) > 0 ||
             (cached.blankSections?.length ?? 0) > 0 ||
+            (cached.grammarChoiceSections?.length ?? 0) > 0 ||
             (cached.sentenceOrderQuestions?.length ?? 0) > 0 ||
             (cached.lineTranslationSections?.length ?? 0) > 0 ||
             (cached.fullEnWritingSections?.length ?? 0) > 0 ||
@@ -868,6 +963,8 @@ export function WorkbookWorkbench({
               ...cached,
               blankSections: cached.blankSections ?? [],
               blankOptions: cached.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
+              grammarChoiceSections: cached.grammarChoiceSections ?? [],
+              grammarChoiceSkipped: cached.grammarChoiceSkipped ?? [],
               sentenceOrderQuestions: cached.sentenceOrderQuestions ?? [],
               sentenceOrderSkipped: cached.sentenceOrderSkipped ?? [],
               lineTranslationSections: cached.lineTranslationSections ?? [],
@@ -892,6 +989,7 @@ export function WorkbookWorkbench({
 
       const wantBlank = types.includes("blank_fill");
       const wantTf = types.includes("tf");
+      const wantGrammarChoice = types.includes("grammar_choice");
       const wantSentenceOrder = types.includes("sentence_order");
       const wantLineKo = types.includes("one_line_ko");
       const wantFullEn = types.includes("full_en_writing");
@@ -904,6 +1002,7 @@ export function WorkbookWorkbench({
         [
           wantBlank,
           wantTf,
+          wantGrammarChoice,
           wantSentenceOrder,
           wantLineKo,
           wantFullEn,
@@ -911,6 +1010,8 @@ export function WorkbookWorkbench({
         ].filter(Boolean).length > 1;
       if (multiReady) {
         setStatus("워크북을 만들고 있습니다…");
+      } else if (wantGrammarChoice) {
+        setStatus("어법 선택 워크북을 만들고 있습니다…");
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
       } else if (wantWordOrder) {
@@ -976,6 +1077,18 @@ export function WorkbookWorkbench({
       document.body.appendChild(el);
     }
     el.textContent = `
+.grammar-choice-inline {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  column-gap: 0.15em;
+  white-space: nowrap;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  font-weight: 600;
+  color: #1e3a5f;
+  max-width: 100%;
+}
 .sentence-order-choice {
   display: flex;
   align-items: flex-start;
@@ -1264,8 +1377,18 @@ export function WorkbookWorkbench({
     const ltSections = workbook.lineTranslationSections ?? [];
     const feSections = workbook.fullEnWritingSections ?? [];
     const woSections = workbook.wordOrderWritingSections ?? [];
+    const gcSections = workbook.grammarChoiceSections ?? [];
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
+      if (t === "grammar_choice") {
+        gcSections.forEach((_, i) => {
+          out.push({
+            kind: "grammar_choice_q",
+            sectionIndex: i,
+            typeOrder: order,
+          });
+        });
+      }
       if (t === "blank_fill") {
         workbook.blankSections.forEach((_, i) => {
           out.push({ kind: "blank_q", sectionIndex: i, typeOrder: order });
@@ -1347,6 +1470,7 @@ export function WorkbookWorkbench({
       out.push({
         kind: "answers",
         typeOrderBlank: typeOrders.get("blank_fill") ?? null,
+        typeOrderGrammarChoice: typeOrders.get("grammar_choice") ?? null,
         typeOrderTf: typeOrders.get("tf") ?? null,
         typeOrderSentenceOrder: typeOrders.get("sentence_order") ?? null,
         typeOrderLineKo: typeOrders.get("one_line_ko") ?? null,
@@ -1597,6 +1721,8 @@ export function WorkbookWorkbench({
   const feSkipped = workbook.fullEnWritingSkipped ?? [];
   const woSections = workbook.wordOrderWritingSections ?? [];
   const woSkipped = workbook.wordOrderWritingSkipped ?? [];
+  const gcSections = workbook.grammarChoiceSections ?? [];
+  const gcSkipped = workbook.grammarChoiceSkipped ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -1689,6 +1815,26 @@ export function WorkbookWorkbench({
                       section={section}
                       showTranslation={blankOpts.showTranslation}
                       layout={blankOpts.translationLayout}
+                    />
+                  </PageShell>
+                );
+              }
+
+              if (page.kind === "grammar_choice_q") {
+                const section = gcSections[page.sectionIndex]!;
+                return (
+                  <PageShell
+                    key={`gc-q-${page.sectionIndex}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={`${page.typeOrder}. 어법 선택`}
+                    isLast={isLast}
+                  >
+                    <GrammarChoiceQuestionBody
+                      section={section}
+                      multi={gcSections.length > 1}
                     />
                   </PageShell>
                 );
@@ -1826,6 +1972,26 @@ export function WorkbookWorkbench({
                                 : ""}
                             </h3>
                             <BlankAnswerBody section={section} />
+                          </div>
+                        ))
+                      : null}
+                    {page.typeOrderGrammarChoice != null
+                      ? gcSections.map((section, i) => (
+                          <div key={`gca-${section.projectId}-${i}`}>
+                            <GrammarChoiceAnswerBody
+                              section={section}
+                              typeOrder={page.typeOrderGrammarChoice!}
+                              multi={gcSections.length > 1}
+                            />
+                            {i === gcSections.length - 1 && gcSkipped.length > 0 ? (
+                              <ul className="mt-4 space-y-1 text-[11px] text-amber-700">
+                                {gcSkipped.map((s) => (
+                                  <li key={`gcs-${s.projectId}`}>
+                                    「{s.title}」 {s.reason}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : null}
                           </div>
                         ))
                       : null}

@@ -1,4 +1,4 @@
-/** Lesson-materials workbook types (T/F + blank fill + sentence order; other cards are placeholders). */
+/** Lesson-materials workbook types (ready + placeholder cards). */
 
 export type WorkbookTypeId =
   | "grammar_choice"
@@ -8,6 +8,7 @@ export type WorkbookTypeId =
   | "blank_fill"
   | "tf"
   | "sentence_order"
+  /** @deprecated removed from catalog; kept for old session payloads */
   | "vocab_example"
   | "one_line_ko"
   | "full_en_writing"
@@ -27,7 +28,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "grammar_choice",
     title: "어법 선택",
     subtitle: "[A/B] 중 어법상 알맞은 것을 고르기",
-    ready: false,
+    ready: true,
     displayOrder: 1,
     printOrder: 1,
   },
@@ -80,36 +81,28 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     printOrder: 7,
   },
   {
-    id: "vocab_example",
-    title: "어휘 테스트 (예문)",
-    subtitle: "예문의 빈칸에 알맞은 단어 고르기",
-    ready: false,
-    displayOrder: 8,
-    printOrder: 8,
-  },
-  {
     id: "one_line_ko",
     title: "한줄해석",
     subtitle: "영어 문장을 한국어로 해석하기",
     ready: true,
-    displayOrder: 9,
-    printOrder: 9,
+    displayOrder: 8,
+    printOrder: 8,
   },
   {
     id: "full_en_writing",
     title: "통문장 영작",
     subtitle: "한글 해석을 보고 영어 통문장 쓰기",
     ready: true,
-    displayOrder: 10,
-    printOrder: 10,
+    displayOrder: 9,
+    printOrder: 9,
   },
   {
     id: "word_order_writing",
     title: "어순배열 영작",
     subtitle: "제시된 단어를 배열하여 문장 만들기",
     ready: true,
-    displayOrder: 11,
-    printOrder: 11,
+    displayOrder: 10,
+    printOrder: 10,
   },
 ];
 
@@ -133,6 +126,7 @@ export function sortWorkbookTypesByPrintOrder(
 }
 
 export function workbookTypeDisplayTitle(id: WorkbookTypeId): string {
+  if (id === "vocab_example") return "어휘 테스트 (예문)";
   return getWorkbookTypeMeta(id)?.title ?? id;
 }
 
@@ -394,6 +388,73 @@ export type WorkbookWordOrderWritingSection = {
   algorithmVersion: string;
 };
 
+export type GrammarChoiceAmbiguityRisk = "low" | "medium" | "high";
+
+export type GrammarChoiceCandidate = {
+  choiceId: string;
+  passageId: string;
+  sentenceId: string;
+  startTokenIndex: number;
+  endTokenIndex: number;
+  originalText: string;
+  correctText: string;
+  incorrectText: string;
+  grammarCategoryId: string;
+  grammarCategoryName: string;
+  bookTerm: string;
+  explanationKo: string;
+  incorrectReasonKo: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  learningValue: 1 | 2 | 3 | 4 | 5;
+  ambiguityRisk: GrammarChoiceAmbiguityRisk;
+};
+
+export type GrammarChoiceRenderSegment =
+  | { type: "text"; text: string }
+  | {
+      type: "choice";
+      number: number;
+      leftText: string;
+      rightText: string;
+    };
+
+export type WorkbookGrammarChoiceItem = {
+  number: number;
+  choiceId: string;
+  sentenceId: string;
+  startTokenIndex: number;
+  endTokenIndex: number;
+  originalText: string;
+  correctText: string;
+  incorrectText: string;
+  leftText: string;
+  rightText: string;
+  correctSide: "left" | "right";
+  grammarCategoryId: string;
+  grammarCategoryName: string;
+  bookTerm: string;
+  explanationKo: string;
+  incorrectReasonKo: string;
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  learningValue: 1 | 2 | 3 | 4 | 5;
+};
+
+export type WorkbookGrammarChoiceSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  sourcePassage: string;
+  segments: GrammarChoiceRenderSegment[];
+  items: WorkbookGrammarChoiceItem[];
+  algorithmVersion: string;
+};
+
+export type WorkbookGrammarChoiceSkip = {
+  projectId: string;
+  title: string;
+  reason: string;
+};
+
 export type WorkbookData = {
   metadata: WorkbookMetadata;
   selectedTypes: WorkbookTypeId[];
@@ -403,6 +464,9 @@ export type WorkbookData = {
   sections: WorkbookPassageSection[];
   /** Blank-fill sections (empty when blank_fill not selected) */
   blankSections: WorkbookBlankSection[];
+  /** Grammar-choice sections */
+  grammarChoiceSections?: WorkbookGrammarChoiceSection[];
+  grammarChoiceSkipped?: WorkbookGrammarChoiceSkip[];
   /** Sentence-order questions (empty when sentence_order not selected) */
   sentenceOrderQuestions?: WorkbookSentenceOrderQuestion[];
   /** Passages skipped for sentence-order (too few sentences / restore fail) */
@@ -418,6 +482,18 @@ export type WorkbookData = {
   wordOrderWritingSkipped?: WorkbookLineTranslationSkip[];
   timing?: WorkbookGenerationTiming;
 };
+
+/** Soft target range for grammar-choice count by passage length. */
+export function getGrammarChoiceTargetRange(englishWordCount: number): {
+  min: number;
+  max: number;
+} {
+  if (englishWordCount < 80) return { min: 4, max: 5 };
+  if (englishWordCount < 120) return { min: 5, max: 7 };
+  if (englishWordCount < 160) return { min: 7, max: 8 };
+  if (englishWordCount < 200) return { min: 8, max: 10 };
+  return { min: 10, max: 12 };
+}
 
 export function defaultWorkbookTitle(d = new Date()): string {
   return `워크북_${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;

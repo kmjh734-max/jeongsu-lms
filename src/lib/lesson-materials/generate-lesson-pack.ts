@@ -20,6 +20,8 @@ export type LessonPackData = {
   sentenceTranslations?: StoredSentenceTranslation[];
   /** Semantic chunks for word-order writing (cache hit → 0 OpenAI) */
   wordOrderChunkCache?: StoredWordOrderChunkCache | null;
+  /** Grammar-choice candidates (cache hit → 0 OpenAI) */
+  grammarChoiceCache?: import("@/lib/lesson-materials/grammar-choice-cache").StoredGrammarChoiceCache | null;
 };
 
 function parseJsonSafe<T>(text: string): T | null {
