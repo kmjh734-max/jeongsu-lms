@@ -298,6 +298,35 @@ export function buildLineTranslationItems(
   return items;
 }
 
+/** Shared bilingual rows (한줄해석 / 통문장 영작). */
+export type BilingualSentenceItem = {
+  passageId: string;
+  sentenceId: string;
+  orderIndex: number;
+  english: string;
+  englishDisplay: string;
+  korean: string;
+  sourceHash: string;
+};
+
+export function buildBilingualSentenceItems(
+  passageId: string,
+  sentences: Array<{ id: string; english: string }>,
+  savedTranslations: StoredSentenceTranslation[]
+): BilingualSentenceItem[] | null {
+  const items = buildLineTranslationItems(sentences, savedTranslations);
+  if (!items) return null;
+  return items.map((it) => ({
+    passageId,
+    sentenceId: it.sentenceId,
+    orderIndex: it.orderIndex,
+    english: it.english,
+    englishDisplay: it.englishDisplay,
+    korean: it.korean,
+    sourceHash: it.sourceHash,
+  }));
+}
+
 export function formatLineTranslationIssueMessage(
   title: string,
   issues: LineTranslationIssue[]

@@ -30,6 +30,7 @@ import {
   type BlankRenderToken,
   type WorkbookBlankSection,
   type WorkbookData,
+  type WorkbookFullEnWritingSection,
   type WorkbookLineTranslationSection,
   type WorkbookPassageSection,
   type WorkbookSentenceOrderQuestion,
@@ -491,6 +492,103 @@ function LineTranslationAnswerBody({
   );
 }
 
+function FullEnWritingQuestionBody({
+  section,
+}: {
+  section: WorkbookFullEnWritingSection;
+}) {
+  return (
+    <>
+      <p className="mb-1 text-[12px] font-semibold text-slate-500">
+        {section.title}
+      </p>
+      {section.source?.trim() ? (
+        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+          · {section.source.trim()}
+        </p>
+      ) : (
+        <div className="mb-3" />
+      )}
+      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        다음 우리말 뜻에 맞도록 영어 문장 전체를 쓰세요.
+      </p>
+      <div>
+        {section.items.map((it) => (
+          <section
+            key={`${section.projectId}-${it.sentenceId}`}
+            className="full-writing-item"
+          >
+            <div className="full-writing-prompt">
+              <span className="full-writing-number">{it.orderIndex}.</span>
+              <div className="full-writing-korean">{it.korean}</div>
+            </div>
+            <div className="full-writing-answer-area">
+              {Array.from({ length: it.answerLineCount }, (_, i) => (
+                <div
+                  key={`fwal-${it.sentenceId}-${i}`}
+                  className="full-writing-answer-line"
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function FullEnWritingAnswerBody({
+  section,
+  typeOrder,
+  multi,
+}: {
+  section: WorkbookFullEnWritingSection;
+  typeOrder: number;
+  multi: boolean;
+}) {
+  return (
+    <div className="full-writing-answer-key">
+      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+        {typeOrder}. 통문장 영작
+        {multi ? ` · ${section.title}` : ""}
+      </h3>
+      {!multi ? (
+        <>
+          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+            {section.title}
+          </p>
+          {section.source?.trim() ? (
+            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+              · {section.source.trim()}
+            </p>
+          ) : null}
+        </>
+      ) : section.source?.trim() ? (
+        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+          · {section.source.trim()}
+        </p>
+      ) : null}
+      <div className="space-y-4">
+        {section.items.map((it) => (
+          <div
+            key={`fwa-${section.projectId}-${it.sentenceId}`}
+            className="break-inside-avoid"
+            style={{ pageBreakInside: "avoid" }}
+          >
+            <p className="full-writing-answer-key-korean">
+              <span className="font-bold text-slate-700">{it.orderIndex}.</span>{" "}
+              {it.korean}
+            </p>
+            <p className="full-writing-answer-key-english">
+              {it.englishDisplay}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function parseTypes(raw: string | null): WorkbookTypeId[] {
   if (!raw?.trim()) return ["tf"];
   const list = raw
@@ -522,11 +620,17 @@ type WorkbookPage =
       typeOrder: number;
     }
   | {
+      kind: "full_en_q";
+      sectionIndex: number;
+      typeOrder: number;
+    }
+  | {
       kind: "answers";
       typeOrderBlank: number | null;
       typeOrderTf: number | null;
       typeOrderSentenceOrder: number | null;
       typeOrderLineKo: number | null;
+      typeOrderFullEn: number | null;
     };
 
 export function WorkbookWorkbench({
@@ -588,7 +692,8 @@ export function WorkbookWorkbench({
           ((cached.sections?.length ?? 0) > 0 ||
             (cached.blankSections?.length ?? 0) > 0 ||
             (cached.sentenceOrderQuestions?.length ?? 0) > 0 ||
-            (cached.lineTranslationSections?.length ?? 0) > 0)
+            (cached.lineTranslationSections?.length ?? 0) > 0 ||
+            (cached.fullEnWritingSections?.length ?? 0) > 0)
         ) {
           if (!cancelled) {
             setWorkbook({
@@ -599,6 +704,8 @@ export function WorkbookWorkbench({
               sentenceOrderSkipped: cached.sentenceOrderSkipped ?? [],
               lineTranslationSections: cached.lineTranslationSections ?? [],
               lineTranslationSkipped: cached.lineTranslationSkipped ?? [],
+              fullEnWritingSections: cached.fullEnWritingSections ?? [],
+              fullEnWritingSkipped: cached.fullEnWritingSkipped ?? [],
             });
             setGenerating(false);
           }
@@ -617,17 +724,24 @@ export function WorkbookWorkbench({
       const wantTf = types.includes("tf");
       const wantSentenceOrder = types.includes("sentence_order");
       const wantLineKo = types.includes("one_line_ko");
+      const wantFullEn = types.includes("full_en_writing");
       const ltExclude = (searchParams.get("ltExclude") ?? "")
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
-      if (wantBlank && (wantTf || wantSentenceOrder || wantLineKo)) {
+      const multiReady =
+        [wantBlank, wantTf, wantSentenceOrder, wantLineKo, wantFullEn].filter(
+          Boolean
+        ).length > 1;
+      if (multiReady) {
         setStatus("워크북을 만들고 있습니다…");
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
-      } else if (wantLineKo && !wantTf && !wantSentenceOrder) {
+      } else if (wantFullEn) {
+        setStatus("통문장 영작 워크북을 만들고 있습니다…");
+      } else if (wantLineKo) {
         setStatus("한줄해석 워크북을 만들고 있습니다…");
-      } else if (wantSentenceOrder && !wantTf) {
+      } else if (wantSentenceOrder) {
         setStatus("문장 순서 배열 워크북을 만들고 있습니다…");
       } else {
         setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
@@ -760,6 +874,54 @@ export function WorkbookWorkbench({
   word-break: keep-all;
   overflow-wrap: break-word;
 }
+.full-writing-item {
+  margin-bottom: 24px;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.full-writing-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.full-writing-number {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 15px;
+  color: #172033;
+}
+.full-writing-korean {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #334155;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.full-writing-answer-area {
+  margin-top: 8px;
+  padding-left: 1.5rem;
+}
+.full-writing-answer-line {
+  height: 34px;
+  border-bottom: 1px solid #94a3b8;
+}
+.full-writing-answer-key-korean {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #64748b;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.full-writing-answer-key-english {
+  margin-top: 5px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: #172033;
+  font-weight: 500;
+}
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
   @page app-print-a4 { size: 210mm 297mm; margin: 0; }
@@ -770,6 +932,10 @@ export function WorkbookWorkbench({
     border: 0.45mm solid #64748b;
   }
   .translation-answer-line {
+    height: 9mm;
+    border-bottom: 0.3mm solid #94a3b8;
+  }
+  .full-writing-answer-line {
     height: 9mm;
     border-bottom: 0.3mm solid #94a3b8;
   }
@@ -794,6 +960,7 @@ export function WorkbookWorkbench({
     const types = workbook.selectedTypes;
     const soQuestions = workbook.sentenceOrderQuestions ?? [];
     const ltSections = workbook.lineTranslationSections ?? [];
+    const feSections = workbook.fullEnWritingSections ?? [];
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
       if (t === "blank_fill") {
@@ -820,6 +987,11 @@ export function WorkbookWorkbench({
           out.push({ kind: "line_ko_q", sectionIndex: i, typeOrder: order });
         });
       }
+      if (t === "full_en_writing") {
+        feSections.forEach((_, i) => {
+          out.push({ kind: "full_en_q", sectionIndex: i, typeOrder: order });
+        });
+      }
     }
     if (types.length > 0) {
       out.push({
@@ -828,6 +1000,7 @@ export function WorkbookWorkbench({
         typeOrderTf: typeOrders.get("tf") ?? null,
         typeOrderSentenceOrder: typeOrders.get("sentence_order") ?? null,
         typeOrderLineKo: typeOrders.get("one_line_ko") ?? null,
+        typeOrderFullEn: typeOrders.get("full_en_writing") ?? null,
       });
     }
     return out;
@@ -961,6 +1134,8 @@ export function WorkbookWorkbench({
   const soSkipped = workbook.sentenceOrderSkipped ?? [];
   const ltSections = workbook.lineTranslationSections ?? [];
   const ltSkipped = workbook.lineTranslationSkipped ?? [];
+  const feSections = workbook.fullEnWritingSections ?? [];
+  const feSkipped = workbook.fullEnWritingSkipped ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -1119,6 +1294,23 @@ export function WorkbookWorkbench({
                 );
               }
 
+              if (page.kind === "full_en_q") {
+                const section = feSections[page.sectionIndex]!;
+                return (
+                  <PageShell
+                    key={`fe-q-${section.projectId}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={`${page.typeOrder}. 통문장 영작`}
+                    isLast={isLast}
+                  >
+                    <FullEnWritingQuestionBody section={section} />
+                  </PageShell>
+                );
+              }
+
               // answers
               return (
                 <PageShell
@@ -1201,6 +1393,27 @@ export function WorkbookWorkbench({
                           <ul className="space-y-1 text-[11px] text-amber-700">
                             {ltSkipped.map((s) => (
                               <li key={`lts-${s.projectId}`}>
+                                「{s.title}」 {s.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {page.typeOrderFullEn != null ? (
+                      <div className="space-y-8">
+                        {feSections.map((section) => (
+                          <FullEnWritingAnswerBody
+                            key={`fea-${section.projectId}`}
+                            section={section}
+                            typeOrder={page.typeOrderFullEn!}
+                            multi={feSections.length > 1}
+                          />
+                        ))}
+                        {feSkipped.length > 0 ? (
+                          <ul className="space-y-1 text-[11px] text-amber-700">
+                            {feSkipped.map((s) => (
+                              <li key={`fes-${s.projectId}`}>
                                 「{s.title}」 {s.reason}
                               </li>
                             ))}

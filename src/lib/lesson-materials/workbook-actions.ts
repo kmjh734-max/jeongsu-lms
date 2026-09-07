@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateWorkbookBlankFill } from "@/lib/lesson-materials/generate-workbook-blank";
+import { mapLineTranslationToFullEnWriting } from "@/lib/lesson-materials/generate-workbook-full-en-writing";
 import { generateWorkbookLineTranslation } from "@/lib/lesson-materials/generate-workbook-line-translation";
 import { generateWorkbookSentenceOrder } from "@/lib/lesson-materials/generate-workbook-sentence-order";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
@@ -96,6 +97,8 @@ export async function generateWorkbookAction(
   const wantBlank = types.includes("blank_fill");
   const wantSentenceOrder = types.includes("sentence_order");
   const wantLineKo = types.includes("one_line_ko");
+  const wantFullEn = types.includes("full_en_writing");
+  const wantBilingual = wantLineKo || wantFullEn;
   const lineTranslationExcludeIds = [
     ...new Set(
       (input.lineTranslationExcludeIds ?? [])
@@ -205,6 +208,8 @@ export async function generateWorkbookAction(
     sentenceOrderSkipped: [],
     lineTranslationSections: [],
     lineTranslationSkipped: [],
+    fullEnWritingSections: [],
+    fullEnWritingSkipped: [],
   };
   const workbookId = `${workbook.metadata.title}|${workbook.metadata.createdAt}`;
 
@@ -313,8 +318,8 @@ export async function generateWorkbookAction(
       }
     }
 
-    if (wantLineKo) {
-      const lt = generateWorkbookLineTranslation({
+    if (wantBilingual) {
+      const bilingual = generateWorkbookLineTranslation({
         passages: passages.map((p) => ({
           projectId: p.projectId,
           title: p.title,
@@ -325,24 +330,34 @@ export async function generateWorkbookAction(
         excludeProjectIds: lineTranslationExcludeIds,
       });
 
-      if (lt.blocking.length > 0) {
-        const message = lt.blocking.map((b) => b.reason).join("\n");
+      if (bilingual.blocking.length > 0) {
+        const message = bilingual.blocking.map((b) => b.reason).join("\n");
         return {
           ok: false,
           message:
             message ||
             "저장된 한글 해석이 없거나 영어 원문이 변경되었습니다. 수업용자료에서 해석을 확인해 주세요.",
           code: "MISSING_LINE_TRANSLATION",
-          lineTranslationExcludeIds: lt.blocking.map((b) => b.projectId),
+          lineTranslationExcludeIds: bilingual.blocking.map((b) => b.projectId),
         };
       }
 
-      workbook.lineTranslationSections = lt.sections;
-      workbook.lineTranslationSkipped = lt.skipped.map((s) => ({
+      const skipped = bilingual.skipped.map((s) => ({
         projectId: s.projectId,
         title: s.title,
         reason: s.reason,
       }));
+
+      if (wantLineKo) {
+        workbook.lineTranslationSections = bilingual.sections;
+        workbook.lineTranslationSkipped = skipped;
+      }
+      if (wantFullEn) {
+        workbook.fullEnWritingSections =
+          mapLineTranslationToFullEnWriting(bilingual.sections);
+        workbook.fullEnWritingSkipped = skipped;
+      }
+
       if (!workbook.timing) {
         workbook.timing = {
           dataLoadMs,
@@ -385,6 +400,16 @@ export async function generateWorkbookAction(
         ok: false,
         message:
           "한줄해석 결과를 만들지 못했습니다. 해석이 있는 지문을 선택해 주세요.",
+      };
+    }
+    if (
+      wantFullEn &&
+      (workbook.fullEnWritingSections?.length ?? 0) === 0
+    ) {
+      return {
+        ok: false,
+        message:
+          "통문장 영작 결과를 만들지 못했습니다. 해석이 있는 지문을 선택해 주세요.",
       };
     }
 

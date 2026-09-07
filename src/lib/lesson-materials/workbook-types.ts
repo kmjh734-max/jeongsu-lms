@@ -99,7 +99,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "full_en_writing",
     title: "통문장 영작",
     subtitle: "한글 해석을 보고 영어 통문장 쓰기",
-    ready: false,
+    ready: true,
     displayOrder: 10,
     printOrder: 10,
   },
@@ -335,6 +335,24 @@ export type WorkbookLineTranslationSkip = {
   reason: string;
 };
 
+export type WorkbookFullEnWritingItem = {
+  sentenceId: string;
+  orderIndex: number;
+  english: string;
+  englishDisplay: string;
+  korean: string;
+  sourceHash: string;
+  answerLineCount: number;
+};
+
+export type WorkbookFullEnWritingSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  items: WorkbookFullEnWritingItem[];
+  algorithmVersion: string;
+};
+
 export type WorkbookData = {
   metadata: WorkbookMetadata;
   selectedTypes: WorkbookTypeId[];
@@ -351,6 +369,9 @@ export type WorkbookData = {
   /** One-line Korean translation sections */
   lineTranslationSections?: WorkbookLineTranslationSection[];
   lineTranslationSkipped?: WorkbookLineTranslationSkip[];
+  /** Full-sentence English writing (Korean prompt → English answer) */
+  fullEnWritingSections?: WorkbookFullEnWritingSection[];
+  fullEnWritingSkipped?: WorkbookLineTranslationSkip[];
   timing?: WorkbookGenerationTiming;
 };
 

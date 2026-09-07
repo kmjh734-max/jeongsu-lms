@@ -113,6 +113,7 @@ export function WorkbookCreateModal({
   const wantBlank = selected.has("blank_fill");
   const wantSentenceOrder = selected.has("sentence_order");
   const wantLineKo = selected.has("one_line_ko");
+  const wantFullEn = selected.has("full_en_writing");
 
   if (!open) return null;
 
@@ -457,6 +458,17 @@ export function WorkbookCreateModal({
                     수업용 자료에 저장된 문장별 한글 해석을 그대로 사용합니다.
                     새 번역을 만들지 않으며, 해석이 없거나 원문이 바뀐 문장이
                     있으면 안내 후 선택할 수 있습니다.
+                  </p>
+                </div>
+              ) : null}
+
+              {wantFullEn ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <p className="text-sm font-bold text-slate-900">통문장 영작</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+                    저장된 한글 해석을 제시하고 학생이 영어 원문 전체를
+                    씁니다. 한줄해석과 같은 해석 데이터를 재사용하며 AI 호출은
+                    없습니다.
                   </p>
                 </div>
               ) : null}
