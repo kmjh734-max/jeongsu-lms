@@ -8,7 +8,8 @@ import { WORD_ORDER_WRITING_ALGORITHM_VERSION } from "@/lib/lesson-materials/wor
 import {
   buildFallbackWordOrderChunks,
   extractStoredChunksFromPack,
-  validateWordOrderChunks,
+  looksLikeFixedWidthSplit,
+  validateWordOrderChunksDetailed,
   type WordOrderChunk,
   type WordOrderChunkSource,
 } from "@/lib/lesson-materials/word-order-chunking";
@@ -38,6 +39,7 @@ export type WordOrderWritingItem = {
   sourceHash: string;
   answerLineCount: number;
   chunkSource: WordOrderChunkSource;
+  chunkValidationPassed: boolean;
 };
 
 export type WorkbookWordOrderWritingSection = {
@@ -64,15 +66,19 @@ function resolveChunks(input: {
   packJson?: unknown;
   cache?: StoredWordOrderChunkCache | null;
   aiChunks?: WordOrderChunk[] | null;
-}): { chunks: WordOrderChunk[]; source: WordOrderChunkSource; reason?: string } {
+}): {
+  chunks: WordOrderChunk[] | null;
+  source: WordOrderChunkSource;
+  reason?: string;
+} {
   const stored = extractStoredChunksFromPack(
     input.packJson,
     input.sentenceId,
     input.english
   );
   if (stored) {
-    const v = validateWordOrderChunks(input.english, stored);
-    if (v.ok) return { chunks: stored, source: "stored" };
+    const v = validateWordOrderChunksDetailed(input.english, stored);
+    if (v.ok) return { chunks: stored, source: "stored-syntax" };
   }
 
   const cached = getCachedSentenceChunks(
@@ -82,34 +88,63 @@ function resolveChunks(input: {
     input.sourceHash
   );
   if (cached) {
-    const v = validateWordOrderChunks(input.english, cached);
-    if (v.ok) return { chunks: cached, source: "cache" };
+    const v = validateWordOrderChunksDetailed(input.english, cached);
+    if (v.ok) {
+      if (looksLikeFixedWidthSplit(cached)) {
+        console.warn("[WordOrderChunks] rejecting fixed-width cache", {
+          passageId: input.passageId,
+          sentenceId: input.sentenceId,
+        });
+      } else {
+        return { chunks: cached, source: "cached-ai" };
+      }
+    }
   }
 
   if (input.aiChunks) {
-    const v = validateWordOrderChunks(input.english, input.aiChunks);
-    if (v.ok) return { chunks: input.aiChunks, source: "openai" };
+    const v = validateWordOrderChunksDetailed(input.english, input.aiChunks);
+    if (v.ok) return { chunks: input.aiChunks, source: "new-ai" };
   }
 
   const fallback = buildFallbackWordOrderChunks(
     input.sentenceId,
     input.english
   );
-  const v = validateWordOrderChunks(input.english, fallback);
-  const reason = v.ok
-    ? "no-stored-cache-or-valid-ai"
-    : `fallback-invalid:${v.ok === false ? v.reason : ""}`;
+  if (!fallback) {
+    console.warn("[WordOrderChunks] no valid chunks", {
+      passageId: input.passageId,
+      sentenceId: input.sentenceId,
+      reason: "fallback-failed-or-invalid",
+    });
+    return {
+      chunks: null,
+      source: "deterministic-fallback",
+      reason: "fallback-failed",
+    };
+  }
+  const v = validateWordOrderChunksDetailed(input.english, fallback);
+  if (!v.ok) {
+    console.warn("[WordOrderChunks] fallback rejected", {
+      passageId: input.passageId,
+      sentenceId: input.sentenceId,
+      issues: v.issues,
+    });
+    return {
+      chunks: null,
+      source: "deterministic-fallback",
+      reason: v.reason,
+    };
+  }
   console.warn("[WordOrderChunks] fallback used", {
     passageId: input.passageId,
     sentenceId: input.sentenceId,
-    reason,
+    reason: "no-stored-cache-or-valid-ai",
   });
-  if (!v.ok) {
-    // Last resort: pair tokens (still not all singles when n>=2)
-    const paired = buildFallbackWordOrderChunks(input.sentenceId, input.english);
-    return { chunks: paired, source: "fallback", reason };
-  }
-  return { chunks: fallback, source: "fallback", reason };
+  return {
+    chunks: fallback,
+    source: "deterministic-fallback",
+    reason: "no-stored-cache-or-valid-ai",
+  };
 }
 
 export function createWordOrderQuestion(input: {
@@ -123,7 +158,7 @@ export function createWordOrderQuestion(input: {
   chunks: WordOrderChunk[];
   chunkSource: WordOrderChunkSource;
 }): WordOrderWritingItem | null {
-  const check = validateWordOrderChunks(input.english, input.chunks);
+  const check = validateWordOrderChunksDetailed(input.english, input.chunks);
   if (!check.ok) return null;
 
   const seed = buildWordOrderSeed({
@@ -147,7 +182,21 @@ export function createWordOrderQuestion(input: {
     sourceHash: input.sourceHash,
     answerLineCount: getWordOrderWritingLineCount(input.english),
     chunkSource: input.chunkSource,
+    chunkValidationPassed: true,
   };
+}
+
+function logChunkDiagnostics(items: WordOrderWritingItem[]) {
+  if (process.env.NODE_ENV === "production") return;
+  console.table(
+    items.map((question) => ({
+      sentenceId: question.sentenceId,
+      source: question.chunkSource,
+      chunkCount: question.originalChunks.length,
+      chunks: question.originalChunks.map((chunk) => chunk.text).join(" / "),
+      validationPassed: question.chunkValidationPassed,
+    }))
+  );
 }
 
 /**
@@ -212,6 +261,7 @@ export async function generateWorkbookWordOrderWriting(input: {
     cache: StoredWordOrderChunkCache;
   }> = [];
   const sections: WorkbookWordOrderWritingSection[] = [];
+  const failedSentences: string[] = [];
 
   for (const s of bilingualSections) {
     const passage = packByProject.get(s.projectId);
@@ -231,10 +281,11 @@ export async function generateWorkbookWordOrderWriting(input: {
         it.sourceHash
       );
       const storedOk = stored
-        ? validateWordOrderChunks(it.english, stored).ok
+        ? validateWordOrderChunksDetailed(it.english, stored).ok
         : false;
       const cachedOk = cached
-        ? validateWordOrderChunks(it.english, cached).ok
+        ? validateWordOrderChunksDetailed(it.english, cached).ok &&
+          !looksLikeFixedWidthSplit(cached)
         : false;
       if (!storedOk && !cachedOk) {
         needAi.push({ sentenceId: it.sentenceId, english: it.english });
@@ -259,6 +310,14 @@ export async function generateWorkbookWordOrderWriting(input: {
         cache,
         aiChunks: aiById.get(it.sentenceId) ?? null,
       });
+      if (!resolved.chunks) {
+        failedSentences.push(it.sentenceId);
+        console.error(
+          "[WordOrderChunks] 이 문장은 의미 단위 배열 데이터를 생성하지 못했습니다.",
+          { passageId: s.projectId, sentenceId: it.sentenceId }
+        );
+        continue;
+      }
       const q = createWordOrderQuestion({
         workbookId: input.workbookId,
         passageId: s.projectId,
@@ -270,9 +329,15 @@ export async function generateWorkbookWordOrderWriting(input: {
         chunks: resolved.chunks,
         chunkSource: resolved.source,
       });
-      if (!q) continue;
+      if (!q) {
+        failedSentences.push(it.sentenceId);
+        continue;
+      }
       items.push(q);
-      if (resolved.source === "openai" || resolved.source === "fallback") {
+      if (
+        resolved.source === "new-ai" ||
+        resolved.source === "deterministic-fallback"
+      ) {
         cache = upsertSentenceChunks(
           cache,
           s.projectId,
@@ -282,6 +347,8 @@ export async function generateWorkbookWordOrderWriting(input: {
         );
       }
     }
+
+    logChunkDiagnostics(items);
 
     if (cache && items.length) {
       cachesToSave.push({ projectId: s.projectId, cache });
@@ -295,6 +362,13 @@ export async function generateWorkbookWordOrderWriting(input: {
       algorithmVersion: WORD_ORDER_WRITING_ALGORITHM_VERSION,
       items,
     });
+  }
+
+  if (failedSentences.length && sections.length === 0) {
+    console.error(
+      "[WordOrderChunks] all sentences failed semantic chunking",
+      failedSentences
+    );
   }
 
   return {
@@ -316,6 +390,7 @@ export function mapLineTranslationToWordOrderWriting(
     const items: WordOrderWritingItem[] = [];
     for (const it of s.items) {
       const chunks = buildFallbackWordOrderChunks(it.sentenceId, it.english);
+      if (!chunks) continue;
       const q = createWordOrderQuestion({
         workbookId,
         passageId: s.projectId,
@@ -325,10 +400,11 @@ export function mapLineTranslationToWordOrderWriting(
         korean: it.korean,
         sourceHash: it.sourceHash,
         chunks,
-        chunkSource: "fallback",
+        chunkSource: "deterministic-fallback",
       });
       if (q) items.push(q);
     }
+    logChunkDiagnostics(items);
     if (!items.length) continue;
     out.push({
       projectId: s.projectId,

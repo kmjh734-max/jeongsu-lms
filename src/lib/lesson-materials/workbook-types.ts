@@ -373,7 +373,17 @@ export type WorkbookWordOrderWritingItem = {
   seed: string;
   sourceHash: string;
   answerLineCount: number;
-  chunkSource?: "stored" | "cache" | "openai" | "fallback";
+  chunkSource?:
+    | "stored-syntax"
+    | "cached-ai"
+    | "new-ai"
+    | "deterministic-fallback"
+    | "legacy-word-groups"
+    | "stored"
+    | "cache"
+    | "openai"
+    | "fallback";
+  chunkValidationPassed?: boolean;
 };
 
 export type WorkbookWordOrderWritingSection = {
