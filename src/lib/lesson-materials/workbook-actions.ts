@@ -7,7 +7,8 @@ import { mapLineTranslationToFullEnWriting } from "@/lib/lesson-materials/genera
 import { generateWorkbookLineTranslation } from "@/lib/lesson-materials/generate-workbook-line-translation";
 import { generateWorkbookSentenceOrder } from "@/lib/lesson-materials/generate-workbook-sentence-order";
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
-import { mapLineTranslationToWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
+import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
+import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import { SENTENCE_ORDER_SKIP_TOO_FEW } from "@/lib/lesson-materials/sentence-order-constants";
 import type { LessonPackData, LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
@@ -166,6 +167,8 @@ export async function generateWorkbookAction(
     vocabLemmas: string[];
     vocab: LessonPackVocabItem[];
     sentenceTranslations: import("@/lib/lesson-materials/translation-meta").StoredSentenceTranslation[];
+    packJson: Partial<LessonPackData>;
+    wordOrderChunkCache: StoredWordOrderChunkCache | null;
   }> = [];
 
   for (const p of ordered) {
@@ -191,6 +194,9 @@ export async function generateWorkbookAction(
       vocabLemmas: (pack.vocab ?? []).map((v) => v.word),
       vocab: pack.vocab ?? [],
       sentenceTranslations: pack.sentenceTranslations ?? [],
+      packJson: pack,
+      wordOrderChunkCache:
+        (pack.wordOrderChunkCache as StoredWordOrderChunkCache) ?? null,
     });
   }
   const dataLoadMs = Date.now() - tLoad0;
@@ -362,11 +368,58 @@ export async function generateWorkbookAction(
         workbook.fullEnWritingSkipped = skipped;
       }
       if (wantWordOrder) {
-        workbook.wordOrderWritingSections = mapLineTranslationToWordOrderWriting(
-          bilingual.sections,
-          workbookId
-        );
+        const wo = await generateWorkbookWordOrderWriting({
+          workbookId,
+          passages: passages.map((p) => ({
+            projectId: p.projectId,
+            title: p.title,
+            source: p.source,
+            sentences: p.sentences,
+            sentenceTranslations: p.sentenceTranslations,
+            packJson: p.packJson,
+            wordOrderChunkCache: p.wordOrderChunkCache,
+          })),
+          prebuiltLineSections: bilingual.sections,
+          prebuiltSkipped: bilingual.skipped,
+          prebuiltBlocking: [],
+        });
+        workbook.wordOrderWritingSections = wo.sections;
         workbook.wordOrderWritingSkipped = skipped;
+
+        for (const { projectId, cache } of wo.cachesToSave) {
+          const proj = byId.get(projectId);
+          const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+          const next: LessonPackData = {
+            headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
+            vocab: prev.vocab ?? [],
+            updatedAt: new Date().toISOString(),
+            blankCandidatePool: prev.blankCandidatePool,
+            passageSourceHash: prev.passageSourceHash,
+            sentenceTranslations: prev.sentenceTranslations,
+            wordOrderChunkCache: cache,
+          };
+          await supabase
+            .from("lesson_material_projects")
+            .update({
+              lesson_pack_json: next,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", projectId);
+        }
+
+        if (!workbook.timing) {
+          workbook.timing = {
+            dataLoadMs,
+            translationLookupMs: 0,
+            blankSelectionMs: 0,
+            pdfRenderMs: 0,
+            totalMs: dataLoadMs,
+            openAiRequestCount: wo.openAiRequestCount,
+          };
+        } else {
+          workbook.timing.openAiRequestCount =
+            (workbook.timing.openAiRequestCount ?? 0) + wo.openAiRequestCount;
+        }
       }
 
       if (!workbook.timing) {
@@ -379,7 +432,7 @@ export async function generateWorkbookAction(
           openAiRequestCount: 0,
         };
       }
-      if (!wantBlank && !wantTf) {
+      if (!wantBlank && !wantTf && !wantWordOrder) {
         workbook.timing.openAiRequestCount = 0;
       }
     }

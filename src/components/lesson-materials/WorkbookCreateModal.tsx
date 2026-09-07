@@ -17,7 +17,7 @@ import {
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
-export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v5";
+export const WORKBOOK_SESSION_KEY = "lesson-materials-workbook-v6";
 
 export function saveWorkbookToSession(workbook: WorkbookData) {
   try {
@@ -480,9 +480,9 @@ export function WorkbookCreateModal({
                     어순배열 영작
                   </p>
                   <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
-                    저장된 한글 해석과 섞인 영어 어절을 보고 완전한 영어
-                    문장을 씁니다. 공백 기준 토큰화·코드 셔플만 사용하며 AI
-                    호출은 없습니다.
+                    저장된 한글 해석과 의미 단위(구·절)로 묶인 영어 청크를 보고
+                    완전한 영어 문장을 씁니다. 청크는 캐시되며, 없을 때만
+                    지문당 최대 1회 AI로 생성합니다.
                   </p>
                 </div>
               ) : null}

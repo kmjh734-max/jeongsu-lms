@@ -635,20 +635,20 @@ function WordOrderQuestionBody({
       : section.items;
 
   return (
-    <>
-      <p className="mb-1 text-[12px] font-semibold text-slate-500">
+    <div className="word-order-sheet">
+      <p className="word-order-passage-title mb-1 font-semibold text-slate-500">
         {section.title}
         {continued ? " (계속)" : ""}
       </p>
       {section.source?.trim() ? (
-        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+        <p className="word-order-source mb-2 font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : (
-        <div className="mb-3" />
+        <div className="mb-2" />
       )}
       {!continued ? (
-        <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        <p className="word-order-instruction mb-3 font-semibold text-slate-800">
           우리말 뜻과 일치하도록 주어진 영어 어절을 올바르게 배열하여 완전한
           문장을 쓰세요.
         </p>
@@ -664,11 +664,11 @@ function WordOrderQuestionBody({
               <span className="word-order-number">{it.orderIndex}.</span>
               <div className="word-order-korean">{it.korean}</div>
             </div>
-            <div className="word-order-bank" aria-label="섞인 영어 어절">
-              {it.shuffledTokens.map((token, index) => (
-                <span key={token.tokenId} className="word-order-token-unit">
-                  <span>{token.surface}</span>
-                  {index < it.shuffledTokens.length - 1 ? (
+            <div className="word-order-bank" aria-label="섞인 영어 의미 단위">
+              {(it.shuffledChunks ?? []).map((chunk, index) => (
+                <span key={chunk.chunkId} className="word-order-chunk-unit">
+                  <span>{chunk.text}</span>
+                  {index < (it.shuffledChunks?.length ?? 0) - 1 ? (
                     <span className="word-order-separator">/</span>
                   ) : null}
                 </span>
@@ -685,7 +685,7 @@ function WordOrderQuestionBody({
           </section>
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -699,28 +699,28 @@ function WordOrderAnswerBody({
   multi: boolean;
 }) {
   return (
-    <div className="word-order-answer-key">
-      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+    <div className="word-order-answer-key word-order-sheet">
+      <h3 className="word-order-title mb-3 font-black" style={{ color: ACCENT }}>
         {typeOrder}. 어순배열 영작
         {multi ? ` · ${section.title}` : ""}
       </h3>
       {!multi ? (
         <>
-          <p className="mb-1 text-[12px] font-semibold text-slate-500">
+          <p className="word-order-passage-title mb-1 font-semibold text-slate-500">
             {section.title}
           </p>
           {section.source?.trim() ? (
-            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+            <p className="word-order-source mb-3 font-semibold text-slate-500">
               · {section.source.trim()}
             </p>
           ) : null}
         </>
       ) : section.source?.trim() ? (
-        <p className="mb-3 text-[12px] font-semibold text-slate-500">
+        <p className="word-order-source mb-3 font-semibold text-slate-500">
           · {section.source.trim()}
         </p>
       ) : null}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {section.items.map((it) => (
           <div
             key={`woa-${it.questionId}`}
@@ -1102,14 +1102,29 @@ export function WorkbookWorkbench({
   font-weight: 500;
 }
 .word-order-item {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   break-inside: avoid;
   page-break-inside: avoid;
 }
 .word-order-prompt {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
+}
+.word-order-title {
+  font-size: 22px;
+  line-height: 1.3;
+}
+.word-order-passage-title {
+  font-size: 14px;
+  line-height: 1.45;
+}
+.word-order-source {
+  font-size: 12px;
+}
+.word-order-instruction {
+  font-size: 13px;
+  line-height: 1.5;
 }
 .word-order-number {
   flex-shrink: 0;
@@ -1119,30 +1134,32 @@ export function WorkbookWorkbench({
 }
 .word-order-korean {
   font-size: 15px;
-  line-height: 1.75;
+  line-height: 1.65;
   color: #334155;
   white-space: pre-wrap;
   word-break: keep-all;
   overflow-wrap: break-word;
+  margin-bottom: 5px;
 }
 .word-order-bank {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 8px;
-  padding: 12px 16px;
-  margin-top: 9px;
+  gap: 4px 6px;
+  padding: 8px 12px;
+  margin-top: 6px;
+  margin-bottom: 7px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #f8fafc;
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.55;
   color: #172033;
 }
-.word-order-token-unit {
+.word-order-chunk-unit {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
 }
 .word-order-separator {
@@ -1150,16 +1167,16 @@ export function WorkbookWorkbench({
   font-weight: 500;
 }
 .word-order-answer-area {
-  margin-top: 8px;
-  padding-left: 1.5rem;
+  margin-top: 6px;
+  padding-left: 1.25rem;
 }
 .word-order-answer-line {
-  height: 34px;
+  height: 29px;
   border-bottom: 1px solid #94a3b8;
 }
 .word-order-answer-key-korean {
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.55;
   color: #64748b;
   margin: 0;
   white-space: pre-wrap;
@@ -1167,11 +1184,16 @@ export function WorkbookWorkbench({
   overflow-wrap: break-word;
 }
 .word-order-answer-key-english {
-  margin-top: 5px;
-  font-size: 15px;
-  line-height: 1.65;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.55;
   color: #172033;
   font-weight: 500;
+}
+.word-order-sheet .workbook-a4-body > h2,
+.workbook-a4-sheet:has(.word-order-sheet) h2 {
+  font-size: 22px;
+  line-height: 1.3;
 }
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
@@ -1190,9 +1212,31 @@ export function WorkbookWorkbench({
     height: 9mm;
     border-bottom: 0.3mm solid #94a3b8;
   }
+  .word-order-title {
+    font-size: 16pt;
+  }
+  .word-order-passage-title {
+    font-size: 10.5pt;
+  }
+  .word-order-source {
+    font-size: 9.5pt;
+  }
+  .word-order-instruction {
+    font-size: 10pt;
+  }
+  .word-order-number,
+  .word-order-korean {
+    font-size: 10.5pt;
+  }
+  .word-order-bank {
+    font-size: 10pt;
+  }
   .word-order-answer-line {
-    height: 9mm;
+    height: 7.5mm;
     border-bottom: 0.3mm solid #94a3b8;
+  }
+  .workbook-a4-sheet:has(.word-order-sheet) h2 {
+    font-size: 16pt;
   }
 }
 `;
@@ -2066,13 +2110,13 @@ export function WorkbookWorkbench({
                     <div className="word-order-korean">{it.korean}</div>
                   </div>
                   <div className="word-order-bank">
-                    {it.shuffledTokens.map((token, index) => (
+                    {(it.shuffledChunks ?? []).map((chunk, index) => (
                       <span
-                        key={token.tokenId}
-                        className="word-order-token-unit"
+                        key={chunk.chunkId}
+                        className="word-order-chunk-unit"
                       >
-                        <span>{token.surface}</span>
-                        {index < it.shuffledTokens.length - 1 ? (
+                        <span>{chunk.text}</span>
+                        {index < (it.shuffledChunks?.length ?? 0) - 1 ? (
                           <span className="word-order-separator">/</span>
                         ) : null}
                       </span>

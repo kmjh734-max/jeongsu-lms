@@ -1,9 +1,9 @@
 /**
- * Word-order writing workbook tests (reuses bilingual matching, no OpenAI).
+ * Word-order semantic chunk tests.
  * Run: npx tsx scripts/test-workbook-word-order-writing.ts
  */
 import assert from "node:assert/strict";
-import { WORD_ORDER_WRITING_ALGORITHM_VERSION } from "../src/lib/lesson-materials/word-order-writing-constants";
+import { WORD_ORDER_CHUNK_ALGORITHM_VERSION } from "../src/lib/lesson-materials/word-order-writing-constants";
 import {
   createWordOrderQuestion,
   generateWorkbookWordOrderWriting,
@@ -13,19 +13,24 @@ import {
 } from "../src/lib/lesson-materials/generate-workbook-word-order-writing";
 import { generateWorkbookLineTranslation } from "../src/lib/lesson-materials/generate-workbook-line-translation";
 import {
-  isRestorableToOriginal,
-  tokenizeForWordOrder,
-  validateWordOrderTokens,
-} from "../src/lib/lesson-materials/word-order-tokenize";
+  buildFallbackWordOrderChunks,
+  restoreEnglishFromChunks,
+  validateWordOrderChunks,
+  wordCountInChunk,
+} from "../src/lib/lesson-materials/word-order-chunking";
+import { tokenizeForWordOrder } from "../src/lib/lesson-materials/word-order-tokenize";
 import {
   buildWordOrderSeed,
-  shuffleWordOrderTokens,
+  shuffleWordOrderChunks,
 } from "../src/lib/lesson-materials/word-order-shuffle";
 import { computeSentenceSourceHash } from "../src/lib/lesson-materials/translation-meta";
 import type { StoredSentenceTranslation } from "../src/lib/lesson-materials/translation-meta";
 import { formatWorkbookPassage } from "../src/lib/lesson-materials/workbook-types";
 
-assert.equal(WORD_ORDER_WRITING_ALGORITHM_VERSION, "word-order-writing-v1");
+assert.equal(
+  WORD_ORDER_CHUNK_ALGORITHM_VERSION,
+  "word-order-semantic-chunks-v2"
+);
 
 function stored(
   id: string,
@@ -45,235 +50,233 @@ function stored(
   };
 }
 
-function mkPassage(
-  sentences: Array<{ id: string; english: string; korean: string }>
-) {
-  const sentenceTranslations = sentences.map((s, i) =>
-    stored(s.id, i + 1, s.english, s.korean)
-  );
-  return { sentences, sentenceTranslations };
+const S1 =
+  "Perhaps you have heard of the Law of Attraction, which states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results.";
+const S2 =
+  "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it.";
+
+// line counts
+{
+  assert.equal(getWordOrderWritingLineCount("Movement is life to us."), 2);
+  const mid = Array.from({ length: 25 }, (_, i) => `word${i}`).join(" ");
+  assert.equal(getWordOrderWritingLineCount(mid), 3);
+  const long = Array.from({ length: 45 }, (_, i) => `word${i}`).join(" ");
+  assert.equal(getWordOrderWritingLineCount(long), 4);
 }
 
-// --- short sentence ---
+// --- sentence 1: semantic chunks, not word soup ---
+{
+  const tokens = tokenizeForWordOrder(S1);
+  assert.ok(tokens.length >= 30, `token count ${tokens.length}`);
+  const chunks = buildFallbackWordOrderChunks("s1", S1);
+  const v = validateWordOrderChunks(S1, chunks);
+  assert.equal(v.ok, true, v.ok === false ? v.reason : "");
+  assert.ok(
+    chunks.length >= 8 && chunks.length <= 12,
+    `chunk count ${chunks.length}: ${chunks.map((c) => c.text).join(" | ")}`
+  );
+  assert.ok(chunks.length < tokens.length * 0.5, "still too word-like");
+  assert.ok(
+    chunks.some((c) => /Law of Attraction/i.test(c.text)),
+    "Law of Attraction should stay together"
+  );
+  assert.ok(
+    chunks.some((c) => /bring about/i.test(c.text)),
+    "bring about intact"
+  );
+  assert.equal(
+    restoreEnglishFromChunks(chunks),
+    formatWorkbookPassage(S1)
+  );
+  console.log(
+    "S1 chunks (" + chunks.length + "):",
+    chunks.map((c) => c.text)
+  );
+}
+
+// --- sentence 2 ---
+{
+  const tokens = tokenizeForWordOrder(S2);
+  const chunks = buildFallbackWordOrderChunks("s2", S2);
+  const v = validateWordOrderChunks(S2, chunks);
+  assert.equal(v.ok, true, v.ok === false ? v.reason : "");
+  assert.ok(chunks.length >= 8 && chunks.length <= 12, String(chunks.length));
+  assert.ok(chunks.some((c) => /think about/i.test(c.text)));
+  assert.ok(chunks.some((c) => /to manifest it/i.test(c.text)));
+  assert.ok(chunks.some((c) => /^is$/i.test(c.text.trim()) || c.text === "is"));
+  assert.equal(restoreEnglishFromChunks(chunks), formatWorkbookPassage(S2));
+  console.log(
+    "S2 chunks (" + chunks.length + "):",
+    chunks.map((c) => c.text)
+  );
+}
+
+// --- phrasal verbs / contractions ---
+{
+  const en = "We don't allow ourselves to participate.";
+  const chunks = buildFallbackWordOrderChunks("s", en);
+  assert.equal(validateWordOrderChunks(en, chunks).ok, true);
+  assert.ok(chunks.some((c) => c.text.includes("don't")));
+  assert.ok(!chunks.some((c) => c.text === "don" || c.text === "'t"));
+}
+
+{
+  const en = "A person's long-term memory can change.";
+  const chunks = buildFallbackWordOrderChunks("s", en);
+  assert.equal(validateWordOrderChunks(en, chunks).ok, true);
+  const blob = chunks.map((c) => c.text).join(" ");
+  assert.ok(blob.includes("person's"));
+  assert.ok(blob.includes("long-term"));
+}
+
+// --- not all singles ---
 {
   const en = "Movement is life to us.";
-  const tokens = tokenizeForWordOrder(en);
-  assert.equal(tokens.length, 5);
-  assert.ok(isRestorableToOriginal(en, tokens));
-  assert.equal(getWordOrderWritingLineCount(en), 2);
-  const seed = buildWordOrderSeed({
-    workbookId: "wb",
+  const chunks = buildFallbackWordOrderChunks("s", en);
+  assert.ok(chunks.length >= 2);
+  assert.ok(chunks.some((c) => wordCountInChunk(c.text) >= 2));
+}
+
+// --- deterministic chunk shuffle ---
+{
+  const chunks = buildFallbackWordOrderChunks("s1", S1);
+  const seedA = buildWordOrderSeed({
+    workbookId: "wb1",
     passageId: "p",
     sentenceId: "s1",
     sourceHash: "h",
   });
-  const shuffled = shuffleWordOrderTokens(tokens, seed);
-  assert.notEqual(
-    shuffled.map((t) => t.tokenId).join("|"),
-    tokens.map((t) => t.tokenId).join("|")
-  );
-  assert.equal(validateWordOrderTokens(en, tokens, shuffled).ok, true);
-  console.log("short sentence ok");
-}
-
-// --- contraction ---
-{
-  const en = "We don't allow ourselves to participate.";
-  const tokens = tokenizeForWordOrder(en);
-  assert.ok(tokens.some((t) => t.surface === "don't"));
-  assert.ok(!tokens.some((t) => t.surface === "don"));
-  assert.ok(isRestorableToOriginal(en, tokens));
-  console.log("contraction ok");
-}
-
-// --- possessive + hyphen ---
-{
-  const en = "A person's long-term memory can change.";
-  const tokens = tokenizeForWordOrder(en);
-  assert.ok(tokens.some((t) => t.surface === "person's"));
-  assert.ok(tokens.some((t) => t.surface === "long-term"));
-  assert.ok(isRestorableToOriginal(en, tokens));
-  console.log("possessive/hyphen ok");
-}
-
-// --- duplicate words ---
-{
-  const en = "We believe that that belief matters.";
-  const tokens = tokenizeForWordOrder(en);
-  const thats = tokens.filter((t) => t.surface === "that");
-  assert.equal(thats.length, 2);
-  assert.notEqual(thats[0]!.tokenId, thats[1]!.tokenId);
-  assert.equal(new Set(tokens.map((t) => t.tokenId)).size, tokens.length);
-  console.log("duplicate that ok");
-}
-
-// --- long sentence line count ---
-{
-  const long = Array.from({ length: 45 }, (_, i) => `word${i}`).join(" ");
-  assert.equal(getWordOrderWritingLineCount(long), 5);
-  const tokens = tokenizeForWordOrder(long);
-  assert.equal(tokens.length, 45);
-  console.log("long sentence ok");
-}
-
-// --- quotes / semicolon ---
-{
-  const en =
-    "Perhaps you heard ‘like attracts like’; results follow.";
-  const tokens = tokenizeForWordOrder(en);
-  assert.ok(tokens.some((t) => t.surface.includes("‘like") || t.surface === "‘like"));
-  assert.ok(
-    tokens.some(
-      (t) => t.surface.endsWith(";") || t.surface.includes("like’;")
-    ) || tokens.some((t) => t.surface.includes(";"))
-  );
-  assert.ok(isRestorableToOriginal(en, tokens));
-  // punctuation stays attached — no lone "." token
-  assert.ok(!tokens.some((t) => t.surface === "." || t.surface === ";"));
-  console.log("quotes/semicolon ok", tokens.map((t) => t.surface).join(" | "));
-}
-
-// --- deterministic shuffle ---
-{
-  const en = "Our thoughts and words are extremely magnetic.";
-  const tokens = tokenizeForWordOrder(en);
-  const seedA = buildWordOrderSeed({
-    workbookId: "wb1",
-    passageId: "p1",
-    sentenceId: "s1",
-    sourceHash: computeSentenceSourceHash(formatWorkbookPassage(en)),
-  });
   const seedB = buildWordOrderSeed({
     workbookId: "wb2",
-    passageId: "p1",
+    passageId: "p",
     sentenceId: "s1",
-    sourceHash: computeSentenceSourceHash(formatWorkbookPassage(en)),
+    sourceHash: "h",
   });
-  const a1 = shuffleWordOrderTokens(tokens, seedA)
-    .map((t) => t.tokenId)
+  const a1 = shuffleWordOrderChunks(chunks, seedA)
+    .map((c) => c.chunkId)
     .join("|");
-  const a2 = shuffleWordOrderTokens(tokens, seedA)
-    .map((t) => t.tokenId)
+  const a2 = shuffleWordOrderChunks(chunks, seedA)
+    .map((c) => c.chunkId)
     .join("|");
-  const b1 = shuffleWordOrderTokens(tokens, seedB)
-    .map((t) => t.tokenId)
+  const b1 = shuffleWordOrderChunks(chunks, seedB)
+    .map((c) => c.chunkId)
     .join("|");
   assert.equal(a1, a2);
   assert.notEqual(a1, b1);
-  console.log("deterministic shuffle ok");
 }
 
-// --- create question + no answer leak ---
+// --- question + no leak ---
 {
-  const en = "Our thoughts and words are extremely magnetic.";
-  const ko = "우리의 생각과 말은 매우 끌어당기는 힘이 있습니다.";
-  const hash = computeSentenceSourceHash(formatWorkbookPassage(en));
+  const chunks = buildFallbackWordOrderChunks("s1", S1);
   const q = createWordOrderQuestion({
     workbookId: "wb",
     passageId: "p",
     sentenceId: "s1",
     orderIndex: 1,
-    english: en,
-    korean: ko,
-    sourceHash: hash,
+    english: S1,
+    korean: "해석",
+    sourceHash: "h",
+    chunks,
+    chunkSource: "fallback",
   });
   assert.ok(q);
-  assert.equal(q!.originalEnglish, formatWorkbookPassage(en));
-  assert.equal(q!.answerLineCount, 2);
-  assert.notEqual(
-    q!.shuffledTokens.map((t) => t.surface).join(" "),
-    q!.originalEnglish
-  );
+  assert.equal(q!.answerLineCount, 3); // ~35 words → 3 lines
+  assert.ok(q!.shuffledChunks.length >= 8);
   const section = {
     projectId: "p",
     title: "T",
     source: null,
-    algorithmVersion: WORD_ORDER_WRITING_ALGORITHM_VERSION,
+    algorithmVersion: WORD_ORDER_CHUNK_ALGORITHM_VERSION,
     items: [q!],
   };
   assert.equal(problemSheetLeaksOriginalEnglish(section), false);
-  console.log("question / no leak ok");
   console.log(
-    "problem sample:",
-    `1. ${q!.korean}\n[ ${q!.shuffledTokens.map((t) => t.surface).join(" / ")} ]`
+    "problem bank:",
+    q!.shuffledChunks.map((c) => c.text).join(" / ")
   );
-  console.log("answer sample:", `1. ${q!.korean}\n   ${q!.originalEnglish}`);
 }
 
-// --- full generate, OpenAI 0 ---
-{
-  const { sentences, sentenceTranslations } = mkPassage([
-    {
-      id: "s1",
-      english: "Movement is life to us.",
-      korean: "움직임은 우리에게 생명입니다.",
-    },
-    {
-      id: "s2",
-      english: "We don't allow ourselves to participate.",
-      korean: "우리는 스스로 참여하는 것을 허용하지 않습니다.",
-    },
-    {
-      id: "s3",
-      english: "A person's long-term memory can change.",
-      korean: "사람의 장기 기억은 변할 수 있습니다.",
-    },
-    {
-      id: "s4",
-      english: "We believe that that belief matters.",
-      korean: "우리는 그 믿음이 중요하다고 믿습니다.",
-    },
-  ]);
-  const t0 = Date.now();
-  const result = generateWorkbookWordOrderWriting({
-    workbookId: "wb-test|2026",
-    passages: [
+async function main() {
+  // --- async generate without forcing OpenAI ---
+  {
+    const sentences = [
       {
-        projectId: "p1",
-        title: "긍정적 사고의 한계와 믿음의 힘",
-        source: "2026년 고2 6월 22번",
-        sentences,
-        sentenceTranslations,
+        id: "s1",
+        english: S1,
+        korean: "끌어당김의 법칙에 대해 들어본 적이 있을 것입니다.",
       },
-    ],
-  });
-  const ms = Date.now() - t0;
-  assert.equal(result.openAiRequestCount, 0);
-  assert.equal(result.blocking.length, 0);
-  assert.equal(result.sections.length, 1);
-  assert.equal(result.sections[0]!.items.length, 4);
-  for (let i = 0; i < 4; i++) {
-    assert.equal(result.sections[0]!.items[i]!.orderIndex, i + 1);
+      {
+        id: "s2",
+        english: S2,
+        korean: "이 법칙에 대한 이해의 공통적인 결함입니다.",
+      },
+    ];
+    const sentenceTranslations = sentences.map((s, i) =>
+      stored(s.id, i + 1, s.english, s.korean)
+    );
+    const t0 = Date.now();
+    const result = await generateWorkbookWordOrderWriting({
+      workbookId: "wb|test",
+      passages: [
+        {
+          projectId: "p1",
+          title: "긍정적 사고",
+          source: "2026년 고2 6월 22번",
+          sentences,
+          sentenceTranslations,
+          wordOrderChunkCache: null,
+        },
+      ],
+    });
+    const ms = Date.now() - t0;
+    assert.equal(result.blocking.length, 0);
+    assert.equal(result.sections.length, 1);
+    assert.equal(result.sections[0]!.items.length, 2);
+    assert.ok(result.sections[0]!.items[0]!.originalChunks.length < 20);
+    assert.ok(result.sections[0]!.items[0]!.originalChunks.length >= 8);
+    assert.ok(result.openAiRequestCount <= 1);
+    assert.ok(ms < 90_000, String(ms));
+    console.log(
+      "generate ok ms=",
+      ms,
+      "openAi=",
+      result.openAiRequestCount,
+      "sources=",
+      result.sections[0]!.items.map((i) => i.chunkSource)
+    );
   }
-  assert.equal(problemSheetLeaksOriginalEnglish(result.sections[0]!), false);
-  assert.ok(ms < 500, String(ms));
-  console.log("generate 4 sentences ok, ms=", ms, "openAi=", result.openAiRequestCount);
-}
 
-// --- shared bilingual with line translation ---
-{
-  const { sentences, sentenceTranslations } = mkPassage([
-    {
-      id: "s1",
-      english: "Movement is life to us.",
-      korean: "움직임은 우리에게 생명입니다.",
-    },
-  ]);
-  const lt = generateWorkbookLineTranslation({
-    passages: [
+  // shared bilingual map
+  {
+    const sentences = [
       {
-        projectId: "p",
-        title: "T",
-        source: null,
-        sentences,
-        sentenceTranslations,
+        id: "s1",
+        english: "Movement is life to us.",
+        korean: "움직임은 생명입니다.",
       },
-    ],
-  });
-  const wo = mapLineTranslationToWordOrderWriting(lt.sections, "wb|shared");
-  assert.equal(wo[0]!.items.length, 1);
-  assert.equal(wo[0]!.items[0]!.korean, sentences[0]!.korean);
-  console.log("shared bilingual ok");
+    ];
+    const sentenceTranslations = sentences.map((s, i) =>
+      stored(s.id, i + 1, s.english, s.korean)
+    );
+    const lt = generateWorkbookLineTranslation({
+      passages: [
+        {
+          projectId: "p",
+          title: "T",
+          source: null,
+          sentences,
+          sentenceTranslations,
+        },
+      ],
+    });
+    const wo = mapLineTranslationToWordOrderWriting(lt.sections, "wb|x");
+    assert.equal(wo[0]!.items[0]!.originalChunks.length >= 2, true);
+  }
+
+  console.log("ALL word-order semantic chunk tests passed");
 }
 
-console.log("ALL word-order writing tests passed");
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

@@ -353,10 +353,12 @@ export type WorkbookFullEnWritingSection = {
   algorithmVersion: string;
 };
 
-export type WorkbookWordOrderToken = {
-  tokenId: string;
-  surface: string;
+export type WorkbookWordOrderChunk = {
+  chunkId: string;
+  text: string;
   originalIndex: number;
+  startTokenIndex: number;
+  endTokenIndex: number;
 };
 
 export type WorkbookWordOrderWritingItem = {
@@ -366,11 +368,12 @@ export type WorkbookWordOrderWritingItem = {
   orderIndex: number;
   korean: string;
   originalEnglish: string;
-  originalTokens: WorkbookWordOrderToken[];
-  shuffledTokens: WorkbookWordOrderToken[];
+  originalChunks: WorkbookWordOrderChunk[];
+  shuffledChunks: WorkbookWordOrderChunk[];
   seed: string;
   sourceHash: string;
   answerLineCount: number;
+  chunkSource?: "stored" | "cache" | "openai" | "fallback";
 };
 
 export type WorkbookWordOrderWritingSection = {

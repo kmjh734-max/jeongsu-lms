@@ -4,7 +4,7 @@ import {
   WORD_ORDER_MAX_SHUFFLE_ATTEMPTS,
   WORD_ORDER_WRITING_ALGORITHM_VERSION,
 } from "@/lib/lesson-materials/word-order-writing-constants";
-import type { WordOrderToken } from "@/lib/lesson-materials/word-order-tokenize";
+import type { WordOrderChunk } from "@/lib/lesson-materials/word-order-chunking";
 import {
   adjacentPairKeepRatio,
   createSeededRng,
@@ -40,7 +40,7 @@ export function buildWordOrderSeed(input: {
   return hexHash(raw, 3);
 }
 
-function isAcceptableTokenShuffle(
+function isAcceptableChunkShuffle(
   originalIds: string[],
   shuffledIds: string[]
 ): boolean {
@@ -67,22 +67,17 @@ type AttemptScore = {
   ids: string[];
   samePos: number;
   adjacent: number;
-  identity: boolean;
-  reverse: boolean;
 };
 
-/**
- * Deterministic Fisher–Yates with quality gates.
- * Short sentences only need a non-identity order when possible.
- */
-export function shuffleWordOrderTokens(
-  tokens: WordOrderToken[],
+/** Deterministic Fisher–Yates over semantic chunks. */
+export function shuffleWordOrderChunks(
+  chunks: WordOrderChunk[],
   seed: string
-): WordOrderToken[] {
-  if (tokens.length <= 1) return [...tokens];
+): WordOrderChunk[] {
+  if (chunks.length <= 1) return [...chunks];
 
-  const byId = new Map(tokens.map((t) => [t.tokenId, t] as const));
-  const originalIds = tokens.map((t) => t.tokenId);
+  const byId = new Map(chunks.map((c) => [c.chunkId, c] as const));
+  const originalIds = chunks.map((c) => c.chunkId);
   const rng = createSeededRng(seed);
   let best: AttemptScore | null = null;
 
@@ -95,7 +90,7 @@ export function shuffleWordOrderTokens(
     const adjacent = adjacentPairKeepRatio(originalIds, shuffledIds);
     const identity = originalIds.join("|") === shuffledIds.join("|");
     const reverse = isExactReverse(originalIds, shuffledIds);
-    if (isAcceptableTokenShuffle(originalIds, shuffledIds)) {
+    if (isAcceptableChunkShuffle(originalIds, shuffledIds)) {
       return shuffledIds.map((id) => byId.get(id)!);
     }
     if (
@@ -103,14 +98,29 @@ export function shuffleWordOrderTokens(
       !reverse &&
       (best == null || samePos + adjacent < best.samePos + best.adjacent)
     ) {
-      best = { ids: shuffledIds, samePos, adjacent, identity, reverse };
+      best = { ids: shuffledIds, samePos, adjacent };
     }
   }
 
-  if (best) {
-    return best.ids.map((id) => byId.get(id)!);
-  }
-
+  if (best) return best.ids.map((id) => byId.get(id)!);
   const rotatedIds = [...originalIds.slice(1), originalIds[0]!];
   return rotatedIds.map((id) => byId.get(id)!);
+}
+
+/** @deprecated token shuffle kept for older tests — prefer shuffleWordOrderChunks */
+export function shuffleWordOrderTokens<T extends { tokenId: string }>(
+  tokens: T[],
+  seed: string
+): T[] {
+  if (tokens.length <= 1) return [...tokens];
+  const asChunks: WordOrderChunk[] = tokens.map((t, i) => ({
+    chunkId: t.tokenId,
+    text: t.tokenId,
+    originalIndex: i,
+    startTokenIndex: i,
+    endTokenIndex: i,
+  }));
+  const shuffled = shuffleWordOrderChunks(asChunks, seed);
+  const byId = new Map(tokens.map((t) => [t.tokenId, t] as const));
+  return shuffled.map((c) => byId.get(c.chunkId)!);
 }

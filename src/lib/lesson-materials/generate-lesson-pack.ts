@@ -1,4 +1,5 @@
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
+import type { StoredWordOrderChunkCache } from "@/lib/lesson-materials/word-order-chunk-cache";
 import type { StoredSentenceTranslation } from "@/lib/lesson-materials/translation-meta";
 
 export type LessonPackVocabItem = {
@@ -17,6 +18,8 @@ export type LessonPackData = {
   passageSourceHash?: string;
   /** Per-sentence translation metadata (source / hash); korean lives on items */
   sentenceTranslations?: StoredSentenceTranslation[];
+  /** Semantic chunks for word-order writing (cache hit → 0 OpenAI) */
+  wordOrderChunkCache?: StoredWordOrderChunkCache | null;
 };
 
 function parseJsonSafe<T>(text: string): T | null {
