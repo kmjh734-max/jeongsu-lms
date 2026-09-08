@@ -64,6 +64,7 @@ export function buildWorkbookHref(
   params.set("blankLayout", opts.blankOptions.translationLayout);
   params.set("blankDensity", opts.blankOptions.density ?? "high");
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
+  params.set("fresh", "1");
   return `${base}?${params.toString()}`;
 }
 

@@ -965,7 +965,12 @@ export function WorkbookWorkbench({
     string[]
   >([]);
   const [generating, setGenerating] = useState(true);
-  const [status, setStatus] = useState("워크북을 준비하고 있습니다…");
+  const [status, setStatus] = useState(
+    searchParams.get("ids")
+      ? "새로 만들고 있습니다…"
+      : "기존 워크북을 불러오고 있습니다…"
+  );
+  const [sourceNote, setSourceNote] = useState<"new" | "existing" | null>(null);
   const [zoom, setZoom] = useState(85);
   /** Measured A4 item chunks: key → pages of item indices */
   const [a4Chunks, setA4Chunks] = useState<Record<string, number[][]>>({});
@@ -1008,6 +1013,7 @@ export function WorkbookWorkbench({
         searchParams.get("title")?.trim() || defaultWorkbookTitle();
 
       if (ids.length === 0) {
+        setStatus("기존 워크북을 불러오고 있습니다…");
         const cached = loadWorkbookFromSession();
         if (
           cached &&
@@ -1020,6 +1026,7 @@ export function WorkbookWorkbench({
             (cached.wordOrderWritingSections?.length ?? 0) > 0)
         ) {
           if (!cancelled) {
+            setSourceNote("existing");
             setWorkbook({
               ...cached,
               blankSections: cached.blankSections ?? [],
@@ -1069,22 +1076,51 @@ export function WorkbookWorkbench({
           wantFullEn,
           wantWordOrder,
         ].filter(Boolean).length > 1;
+      const creatingNew = searchParams.get("fresh") === "1";
       if (multiReady) {
-        setStatus("워크북을 만들고 있습니다…");
+        setStatus(
+          creatingNew
+            ? "새로 만들고 있습니다…"
+            : "워크북을 만들고 있습니다…"
+        );
       } else if (wantGrammarChoice) {
-        setStatus("4%");
+        setStatus(creatingNew ? "새로 만들고 있습니다 · 4%" : "4%");
       } else if (wantBlank) {
-        setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
+        setStatus(
+          creatingNew
+            ? "새로 만들고 있습니다…"
+            : "빈칸 채우기 워크북을 만들고 있습니다…"
+        );
       } else if (wantWordOrder) {
-        setStatus("어순배열 영작 워크북을 만들고 있습니다…");
+        setStatus(
+          creatingNew
+            ? "새로 만들고 있습니다…"
+            : "어순배열 영작 워크북을 만들고 있습니다…"
+        );
       } else if (wantFullEn) {
-        setStatus("통문장 영작 워크북을 만들고 있습니다…");
+        setStatus(
+          creatingNew
+            ? "새로 만들고 있습니다…"
+            : "통문장 영작 워크북을 만들고 있습니다…"
+        );
       } else if (wantLineKo) {
-        setStatus("한줄해석 워크북을 만들고 있습니다…");
+        setStatus(
+          creatingNew
+            ? "새로 만들고 있습니다…"
+            : "한줄해석 워크북을 만들고 있습니다…"
+        );
       } else if (wantSentenceOrder) {
-        setStatus("문장 순서 배열 워크북을 만들고 있습니다…");
+        setStatus(
+          creatingNew
+            ? "새로 만들고 있습니다…"
+            : "문장 순서 배열 워크북을 만들고 있습니다…"
+        );
       } else {
-        setStatus(`T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`);
+        setStatus(
+          creatingNew
+            ? `새로 만들고 있습니다… (지문 ${ids.length}개)`
+            : `T/F 문제를 생성하고 있습니다… (지문 ${ids.length}개)`
+        );
       }
 
       try {
@@ -1099,7 +1135,9 @@ export function WorkbookWorkbench({
               96,
               Math.max(4, Math.round((elapsed / expectedMs) * 96))
             );
-            setStatus(`${pct}%`);
+            setStatus(
+              creatingNew ? `새로 만들고 있습니다 · ${pct}%` : `${pct}%`
+            );
           };
           tick();
           timers.elapsed = setInterval(tick, 500);
@@ -1111,7 +1149,10 @@ export function WorkbookWorkbench({
           blankOptions,
           title,
           lineTranslationExcludeIds: ltExclude,
-          forceRegenerate: wantGrammarChoice && searchParams.get("forceRegen") === "1",
+          forceRegenerate:
+            wantGrammarChoice &&
+            (searchParams.get("fresh") === "1" ||
+              searchParams.get("forceRegen") === "1"),
         });
         if (timers.status) clearTimeout(timers.status);
         if (timers.elapsed) clearInterval(timers.elapsed);
@@ -1132,8 +1173,11 @@ export function WorkbookWorkbench({
           return;
         }
         if (wantGrammarChoice) {
-          setStatus("100%");
+          setStatus(
+            creatingNew ? "새로 만들고 있습니다 · 100%" : "100%"
+          );
         }
+        setSourceNote(creatingNew ? "new" : "existing");
         saveWorkbookToSession(res.workbook);
         setWorkbook(res.workbook);
         setGenerating(false);
@@ -1815,7 +1859,11 @@ export function WorkbookWorkbench({
   if (!workbook) {
     return (
       <div className="flex h-[80vh] items-center justify-center bg-slate-100">
-        <p className="text-sm text-slate-600">워크북을 불러오는 중…</p>
+        <p className="text-sm text-slate-600">
+          {searchParams.get("ids")
+            ? "새로 만들고 있습니다…"
+            : "기존 워크북을 불러오고 있습니다…"}
+        </p>
       </div>
     );
   }
@@ -1841,6 +1889,13 @@ export function WorkbookWorkbench({
             ← 자료함
           </Link>
           <h1 className="text-base font-bold text-slate-900">워크북</h1>
+          <p className="text-xs font-semibold text-slate-700">
+            {sourceNote === "new"
+              ? "새로 만들었습니다"
+              : sourceNote === "existing"
+                ? "기존 워크북을 불러왔습니다"
+                : "새로 만들었습니다"}
+          </p>
           <p className="text-xs text-slate-500">{title}</p>
           <p className="text-[11px] text-slate-400">
             {workbook.selectedTypes
