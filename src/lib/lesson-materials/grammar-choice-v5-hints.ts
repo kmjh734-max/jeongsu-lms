@@ -88,7 +88,7 @@ export function computeTopUpCandidateBudget(missingCount: number): number {
 
 /** Independent non-overlapping points may all be used. Word count is not a quota. */
 export function maxQuestionsForSentence(_wordCount: number): number {
-  return 6;
+  return 24;
 }
 
 export function getGrammarChoiceFinalTargetRange(englishWordCount: number): {

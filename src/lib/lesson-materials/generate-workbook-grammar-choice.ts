@@ -163,7 +163,7 @@ export async function generateWorkbookGrammarChoice(input: {
     // One shared review batch follows. Retry only under-filled passages.
     const firstPass = await Promise.all(
       needAi.map(async (ctx) => {
-        const desired = Math.min(24, Math.max(6, ctx.sentenceRows.length * 2));
+        const desired = 24;
         const passagePayload = {
           passageId: ctx.p.projectId,
           title: ctx.p.title,
@@ -381,7 +381,7 @@ export async function generateWorkbookGrammarChoice(input: {
       );
       const selected = selectFinalReviewedCandidates(
         accepted,
-        Math.max(accepted.length, 1),
+        24,
         sentenceWordCounts
       );
       finalCandidates = selected.map(toGrammarChoiceCandidate);

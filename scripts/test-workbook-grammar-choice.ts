@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import {
+  ALLOWED_CLEAR_PAIRS,
   BLOCKED_PAIR_FIXTURES,
   isBlockedLowQualityPair,
 } from "../src/lib/lesson-materials/grammar-choice-quality-block";
@@ -16,8 +17,16 @@ import type { AnalysisReportData } from "../src/lib/lesson-materials/generate-an
 import type { StoredGrammarChoiceV5Cache } from "../src/lib/lesson-materials/grammar-choice-v5-cache";
 
 assert.ok(
-  GRAMMAR_CHOICE_PROMPT_VERSION.includes("grammar-choice-generator-v8")
+  GRAMMAR_CHOICE_PROMPT_VERSION.includes("grammar-choice-generator-v9")
 );
+
+for (const [a, b] of ALLOWED_CLEAR_PAIRS) {
+  assert.equal(
+    isBlockedLowQualityPair(a, b).blocked,
+    false,
+    `should allow clear pair ${a} / ${b}`
+  );
+}
 
 for (const row of BLOCKED_PAIR_FIXTURES) {
   const a = Array.isArray(row) ? row[0] : row.correct;
@@ -266,7 +275,9 @@ async function main() {
       report += `설명: ${it.explanationKo}\n오답 이유: ${it.incorrectText} — ${it.incorrectReasonKo}\n\n`;
     }
     assert.equal(d.passageRestored, true);
-    assert.equal(d.originalMismatchCount, 0);
+    assert.equal(d.countMismatch, false);
+    assert.equal(d.finalQuestionCount, d.renderedQuestionCount);
+    assert.equal(d.finalQuestionCount, section.items.length);
     assert.ok(d.generateApiCalls >= 1 || d.cacheHit);
   }
 

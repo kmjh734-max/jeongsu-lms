@@ -393,6 +393,10 @@ function GrammarChoiceAnswerBody({
           <p className="font-bold text-slate-800">진단</p>
           <ul className="mt-1 space-y-0.5">
             <li>전체 문장 수: {d.sentenceCount}</li>
+            <li>발견 포인트: {d.discoveredGrammarPointCount ?? "—"} {d.sentencePointCounts ? `(${d.sentencePointCounts.map((s) => s.count).join("/")})` : ""}</li>
+            <li>최종/화면/정답지: {d.finalQuestionCount ?? d.finalCount} / {d.renderedQuestionCount ?? d.finalCount} / {d.renderedQuestionCount ?? d.finalCount}</li>
+            <li>난이도: {d.difficultyMix ? `BASIC ${d.difficultyMix.BASIC} · CORE ${d.difficultyMix.CORE} · ADVANCED ${d.difficultyMix.ADVANCED}` : "—"}</li>
+            <li>탈락 사유: {d.rejectReasonCounts ? JSON.stringify(d.rejectReasonCounts) : "—"}</li>
             <li>분석 힌트 수: {d.analysisHintCount}</li>
             <li>후보 생성 수: {d.generatedCandidateCount}</li>
             <li>1차 코드 검증 통과 수: {d.codeValidatedCount}</li>

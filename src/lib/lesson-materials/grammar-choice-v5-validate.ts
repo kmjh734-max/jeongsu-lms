@@ -1,13 +1,13 @@
 import { tokenizeForWordOrder } from "@/lib/lesson-materials/word-order-tokenize";
 import { findTokenSpan } from "@/lib/lesson-materials/grammar-choice-repair";
-import { isBlockedLowQualityPair } from "@/lib/lesson-materials/grammar-choice-quality-block";
+import { classifyLowQualityPair } from "@/lib/lesson-materials/grammar-choice-quality-block";
 import type {
   CodeValidateRejectReason,
   GeneratedGrammarCandidate,
   ValidatedGrammarCandidate,
 } from "@/lib/lesson-materials/grammar-choice-v5-types";
 
-const MAX_WORDS = 7;
+const MAX_WORDS = 5;
 
 function wordCount(text: string): number {
   return tokenizeForWordOrder(text).length;
@@ -101,9 +101,12 @@ export function validateGeneratedGrammarCandidates(
       continue;
     }
 
-    const blocked = isBlockedLowQualityPair(c.correctText, c.incorrectText);
-    if (blocked.blocked) {
-      rejected.push({ candidate: c, reason: "blocked_low_quality" });
+    const blocked = classifyLowQualityPair(c.correctText, c.incorrectText);
+    if (blocked.blocked && blocked.rejectionCode) {
+      rejected.push({
+        candidate: c,
+        reason: blocked.rejectionCode,
+      });
       stats.lowQuality += 1;
       continue;
     }
@@ -137,7 +140,15 @@ export function validateGeneratedGrammarCandidates(
 
     const slice = sentence.slice(loc.start, loc.end);
     if (slice !== c.correctText) {
-      rejected.push({ candidate: c, reason: "correct_not_in_sentence" });
+      rejected.push({ candidate: c, reason: "SOURCE_MISMATCH" });
+      stats.originalMismatch += 1;
+      continue;
+    }
+    const before = loc.start > 0 ? sentence[loc.start - 1] : "";
+    const after = loc.end < sentence.length ? sentence[loc.end] : "";
+    const wordChar = (ch: string) => /[A-Za-z0-9'’]/.test(ch);
+    if ((before && wordChar(before)) || (after && wordChar(after))) {
+      rejected.push({ candidate: c, reason: "SOURCE_MISMATCH" });
       stats.originalMismatch += 1;
       continue;
     }

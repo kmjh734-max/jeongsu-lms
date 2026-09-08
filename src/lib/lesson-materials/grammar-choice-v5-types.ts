@@ -105,7 +105,14 @@ export type CodeValidateRejectReason =
   | "cross_sentence_mix"
   | "overlap"
   | "duplicate"
-  | "blocked_low_quality"
+  | "BOTH_GRAMMATICAL"
+  | "MEANING_ONLY_CONTRAST"
+  | "LEXICAL_ONLY"
+  | "UNNATURAL_DISTRACTOR"
+  | "MECHANICAL_INFINITIVE_MARKER"
+  | "MECHANICAL_MODAL_FORM"
+  | "NOT_GRAMMAR_POINT"
+  | "SOURCE_MISMATCH"
   | "token_span_failed";
 
 export type ValidatedGrammarCandidate = GeneratedGrammarCandidate & {
