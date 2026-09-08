@@ -134,8 +134,8 @@ export async function generateWorkbookGrammarChoice(input: {
   let reviewerModelUsed = reviewerModelPreferred;
   let generatorResponseModel = "—";
   let reviewerResponseModel = "—";
-  let generatorReasoningEffort = generatorReasoningPreferred;
-  let reviewerReasoningEffort = reviewerReasoningPreferred;
+  let generatorReasoningEffort: string = generatorReasoningPreferred;
+  let reviewerReasoningEffort: string = reviewerReasoningPreferred;
   let generateCalls = 0;
   let reviewCalls = 0;
   const apiCalls: Array<{
