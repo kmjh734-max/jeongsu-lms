@@ -273,7 +273,7 @@ export async function generateWorkbookGrammarChoice(input: {
   }
 
   const allValidated = pending.flatMap((p) => p.validated);
-  let reviewsById = new Map<
+  const reviewsById = new Map<
     string,
     Awaited<ReturnType<typeof callGrammarChoiceReviewer>>["reviews"][number]
   >();
