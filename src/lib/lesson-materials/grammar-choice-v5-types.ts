@@ -106,6 +106,8 @@ export type CodeValidateRejectReason =
   | "overlap"
   | "duplicate"
   | "BOTH_GRAMMATICAL"
+  | "BOTH_UNGRAMMATICAL"
+  | "SEMANTIC_CONTRAST"
   | "MEANING_ONLY_CONTRAST"
   | "LEXICAL_ONLY"
   | "UNNATURAL_DISTRACTOR"
