@@ -1,4 +1,6 @@
+import { maxQuestionsForSentence } from "@/lib/lesson-materials/grammar-choice-v5-hints";
 import type {
+  DifficultyLevel,
   GrammarCandidateReview,
   ValidatedGrammarCandidate,
 } from "@/lib/lesson-materials/grammar-choice-v5-types";
@@ -123,9 +125,18 @@ export function pairReviewsWithCandidates(
   return { accepted, rejectedReviews };
 }
 
+function difficultyBand(c: ReviewedAcceptedCandidate): DifficultyLevel {
+  if (c.validated.difficultyLevel) return c.validated.difficultyLevel;
+  const score = c.difficultyScore || c.validated.estimatedDifficulty || 3;
+  if (score <= 2) return "BASIC";
+  if (score >= 4) return "ADVANCED";
+  return "CORE";
+}
+
 export function selectFinalReviewedCandidates(
   accepted: ReviewedAcceptedCandidate[],
-  softMax: number
+  softMax: number,
+  sentenceWordCounts: Map<string, number> = new Map()
 ): ReviewedAcceptedCandidate[] {
   if (accepted.length === 0) return [];
 
@@ -135,32 +146,31 @@ export function selectFinalReviewedCandidates(
   const sentenceCounts = new Map<string, number>();
   const occupied: Array<{ sentenceId: string; start: number; end: number }> =
     [];
+  const keepAllValid = accepted.length <= softMax;
 
   const score = (c: ReviewedAcceptedCandidate) => {
     const cat = c.validated.grammarCategory;
     const catCount = categoryCounts.get(cat) ?? 0;
     const sentCount = sentenceCounts.get(c.validated.sentenceId) ?? 0;
+    const band = difficultyBand(c);
+    const bandBoost = band === "ADVANCED" ? 4 : band === "CORE" ? 3 : 1;
     return (
-      c.qualityScore * 5 +
-      c.learningValue * 3 +
-      c.difficultyScore * 2 +
-      c.hintBoost * 2 -
-      catCount * 3 -
-      sentCount * 2
+      c.qualityScore * 2 +
+      c.learningValue * 2 +
+      bandBoost * 3 +
+      c.hintBoost -
+      catCount -
+      sentCount * 4
     );
   };
 
-  while (selected.length < softMax && remaining.length > 0) {
+  while (remaining.length > 0 && (keepAllValid || selected.length < softMax)) {
     remaining.sort((a, b) => score(b) - score(a));
     const next = remaining.shift()!;
-    const cat = next.validated.grammarCategory;
-    const catCount = categoryCounts.get(cat) ?? 0;
-    if (catCount >= 2 && selected.length >= Math.min(softMax, 6)) {
-      // allow up to 3 only if still early and high quality
-      if (!(catCount < 3 && next.qualityScore >= 5 && next.hintBoost)) {
-        continue;
-      }
-    }
+    const sentWords = sentenceWordCounts.get(next.validated.sentenceId) ?? 30;
+    const sentCap = maxQuestionsForSentence(sentWords);
+    const sentCount = sentenceCounts.get(next.validated.sentenceId) ?? 0;
+    if (sentCount >= sentCap) continue;
     const overlaps = occupied.some(
       (o) =>
         o.sentenceId === next.validated.sentenceId &&
@@ -172,11 +182,11 @@ export function selectFinalReviewedCandidates(
     if (overlaps) continue;
 
     selected.push(next);
-    categoryCounts.set(cat, catCount + 1);
-    sentenceCounts.set(
-      next.validated.sentenceId,
-      (sentenceCounts.get(next.validated.sentenceId) ?? 0) + 1
+    categoryCounts.set(
+      next.validated.grammarCategory,
+      (categoryCounts.get(next.validated.grammarCategory) ?? 0) + 1
     );
+    sentenceCounts.set(next.validated.sentenceId, sentCount + 1);
     occupied.push({
       sentenceId: next.validated.sentenceId,
       start: next.validated.startTokenIndex,

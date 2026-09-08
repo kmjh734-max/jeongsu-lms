@@ -9,11 +9,11 @@ import {
 } from "@/lib/lesson-materials/grammar-choice-v5-select";
 import {
   buildAnalysisHints,
-  desiredCandidateCount,
   formatSentencesForGrammarChoice,
   getGrammarChoiceFinalTargetRange,
   hashAnalysisHints,
 } from "@/lib/lesson-materials/grammar-choice-v5-hints";
+import type { SentenceGrammarSurvey } from "@/lib/lesson-materials/grammar-choice-v5-types";
 import {
   getCachedGrammarChoiceV5,
   hashEnglishLines,
@@ -146,6 +146,7 @@ export async function generateWorkbookGrammarChoice(input: {
     reasoningEffort: string;
   }> = [];
   const generateCallsByPassage = new Map<string, number>();
+  const surveysByPassage = new Map<string, SentenceGrammarSurvey[]>();
 
   const generatedByPassage = new Map<
     string,
@@ -162,7 +163,7 @@ export async function generateWorkbookGrammarChoice(input: {
     // One shared review batch follows. Retry only under-filled passages.
     const firstPass = await Promise.all(
       needAi.map(async (ctx) => {
-        const desired = desiredCandidateCount(ctx.range.max);
+        const desired = Math.min(24, Math.max(6, ctx.sentenceRows.length * 2));
         const passagePayload = {
           passageId: ctx.p.projectId,
           title: ctx.p.title,
@@ -204,43 +205,10 @@ export async function generateWorkbookGrammarChoice(input: {
         row.gen.openAiRequestCount
       );
       generatedByPassage.set(row.ctx.p.projectId, row.cands);
-    }
-
-    const needRetry = firstPass.filter(
-      (row) => row.cands.length < Math.ceil(row.desired * 0.75)
-    );
-    if (needRetry.length > 0) {
-      const retries = await Promise.all(
-        needRetry.map(async (row) => {
-          const gen = await callGrammarChoiceGenerator({
-            passages: [row.passagePayload],
-          });
-          return { row, gen };
-        })
-      );
-      for (const { row, gen } of retries) {
-        generateCalls += gen.openAiRequestCount;
-        generatorModelUsed = gen.modelUsed;
-        generatorResponseModel = gen.responseModel;
-        generatorReasoningEffort = gen.reasoningEffort;
-        apiCalls.push({
-          stage: "GENERATOR_TOP_UP",
-          requestedModel: gen.modelUsed,
-          actualResponseModel: gen.responseModel,
-          reasoningEffort: gen.reasoningEffort,
-        });
-        generateCallsByPassage.set(
-          row.ctx.p.projectId,
-          (generateCallsByPassage.get(row.ctx.p.projectId) ?? 0) +
-            gen.openAiRequestCount
-        );
-        const retry = gen.byPassageId.get(row.ctx.p.projectId) ?? [];
-        const byId = new Map<string, (typeof row.cands)[number]>();
-        for (const c of [...row.cands, ...retry]) {
-          byId.set(c.candidateId, c);
-        }
-        generatedByPassage.set(row.ctx.p.projectId, [...byId.values()]);
-      }
+      const prevSurveys = surveysByPassage.get(row.ctx.p.projectId) ?? [];
+      const nextSurveys =
+        row.gen.surveysByPassageId.get(row.ctx.p.projectId) ?? [];
+      surveysByPassage.set(row.ctx.p.projectId, [...prevSurveys, ...nextSurveys]);
     }
   }
 
@@ -278,7 +246,7 @@ export async function generateWorkbookGrammarChoice(input: {
     Awaited<ReturnType<typeof callGrammarChoiceReviewer>>["reviews"][number]
   >();
 
-  const reviewChunkSize = 6;
+  const reviewChunkSize = 10;
   const reviewChunks: Array<typeof allValidated> = [];
   for (let i = 0; i < allValidated.length; i += reviewChunkSize) {
     reviewChunks.push(allValidated.slice(i, i + reviewChunkSize));
@@ -408,7 +376,14 @@ export async function generateWorkbookGrammarChoice(input: {
         accepted = fallback;
         rejectedReviews = reviewFailed ? [] : rejectedReviews;
       }
-      const selected = selectFinalReviewedCandidates(accepted, ctx.range.max);
+      const sentenceWordCounts = new Map(
+        ctx.sentenceRows.map((s) => [s.id, countEnglishWords(s.english)] as const)
+      );
+      const selected = selectFinalReviewedCandidates(
+        accepted,
+        Math.max(accepted.length, 1),
+        sentenceWordCounts
+      );
       finalCandidates = selected.map(toGrammarChoiceCandidate);
 
       const bothPossible = rejectedReviews.filter((r) =>

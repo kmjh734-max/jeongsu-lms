@@ -58,21 +58,30 @@ export function resolveGrammarReviewerModelCandidates(): string[] {
   return [resolveGrammarReviewerModel()];
 }
 
+const HARD_REVIEW_REJECT = new Set<GrammarReviewRejectionReason>([
+  "CORRECT_NOT_ORIGINAL",
+  "CORRECT_UNGRAMMATICAL",
+  "BOTH_OPTIONS_POSSIBLE",
+  "WRONG_ONLY_SEMANTICALLY_AWKWARD",
+  "LEXICAL_OR_COLLOCATION",
+  "IMPLAUSIBLE_DISTRACTOR",
+  "DUPLICATED_CONTEXT",
+]);
+
 export function isReviewAcceptedByCode(
   r: GrammarCandidateReview
 ): boolean {
+  if (r.rejectionReasons.some((reason) => HARD_REVIEW_REJECT.has(reason))) {
+    return false;
+  }
+  if (r.ambiguityRisk === "high" && !r.onlyOneAnswerPossible) return false;
   return (
     r.correctMatchesOriginal &&
     r.correctSentenceIsGrammatical &&
     r.incorrectSentenceIsUngrammatical &&
     r.onlyOneAnswerPossible &&
     r.testsGrammarNotVocabulary &&
-    r.distractorIsPlausible &&
-    r.selectionRangeIsMinimal &&
-    r.suitableForHighSchoolExam &&
-    r.ambiguityRisk === "low" &&
-    r.qualityScore >= 4 &&
-    r.accepted
+    r.distractorIsPlausible
   );
 }
 
@@ -177,7 +186,7 @@ export async function callGrammarChoiceReviewer(input: {
         ],
       };
       if (isGpt5FamilyModel(requestedModel)) {
-        body.max_completion_tokens = 16_000;
+        body.max_completion_tokens = 8_000;
       } else {
         body.max_tokens = 10_000;
       }

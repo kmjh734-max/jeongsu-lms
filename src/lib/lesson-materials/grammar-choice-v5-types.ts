@@ -21,6 +21,24 @@ export type GrammarChoiceCategory =
   | "special_construction"
   | "other";
 
+export type DifficultyLevel = "BASIC" | "CORE" | "ADVANCED";
+
+export type SentenceGrammarPoint = {
+  sourceSpan: string;
+  category: string;
+  rule: string;
+  difficultyLevel: DifficultyLevel;
+  canCreateUniqueChoice: boolean;
+  reasonIfUnavailable: string | null;
+};
+
+export type SentenceGrammarSurvey = {
+  sentenceId: string;
+  originalSentence: string;
+  wordCount: number;
+  grammarPoints: SentenceGrammarPoint[];
+};
+
 export type GeneratedGrammarCandidate = {
   candidateId: string;
   passageId: string;
@@ -38,6 +56,7 @@ export type GeneratedGrammarCandidate = {
   learningValue: number;
   estimatedDifficulty: number;
   confidence: number;
+  difficultyLevel?: DifficultyLevel;
 };
 
 export type GrammarReviewRejectionReason =

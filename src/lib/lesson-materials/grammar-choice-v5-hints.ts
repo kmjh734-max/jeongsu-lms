@@ -59,17 +59,44 @@ export function hashAnalysisHints(hints: AnalysisHint[]): string {
 }
 
 export function desiredCandidateCount(finalTargetMax: number): number {
-  return Math.max(8, finalTargetMax * 2);
+  return computeCandidateBudget(finalTargetMax, 1);
+}
+
+function clampCount(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
+}
+
+/** Target student items. Not a license to pad with invalid questions. */
+export function computeDesiredQuestionCount(englishWordCount: number): number {
+  if (englishWordCount < 80) return 8;
+  return clampCount(Math.round(englishWordCount / 9), 12, 20);
+}
+
+export function computeCandidateBudget(
+  desiredCount: number,
+  sentenceCount: number
+): number {
+  return Math.min(
+    Math.max(desiredCount * 4, Math.max(1, sentenceCount) * 3),
+    72
+  );
+}
+
+export function computeTopUpCandidateBudget(missingCount: number): number {
+  return Math.max(missingCount * 4, 12);
+}
+
+/** Independent non-overlapping points may all be used. Word count is not a quota. */
+export function maxQuestionsForSentence(_wordCount: number): number {
+  return 6;
 }
 
 export function getGrammarChoiceFinalTargetRange(englishWordCount: number): {
   min: number;
   max: number;
 } {
-  if (englishWordCount < 80) return { min: 4, max: 6 };
-  if (englishWordCount < 120) return { min: 6, max: 8 };
-  if (englishWordCount < 180) return { min: 8, max: 12 };
-  return { min: 10, max: 14 };
+  const desired = computeDesiredQuestionCount(englishWordCount);
+  return { min: desired, max: desired };
 }
 
 export function formatSentencesForGrammarChoice(

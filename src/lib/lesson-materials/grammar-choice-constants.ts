@@ -6,11 +6,11 @@ export const GRAMMAR_CHOICE_PROMPT_VERSION_LEGACY =
   "grammar-choice-v4-blueprint-first";
 
 export const GRAMMAR_CHOICE_GENERATOR_VERSION =
-  "grammar-choice-generator-v7";
+  "grammar-choice-generator-v8";
 export const GRAMMAR_CHOICE_REVIEWER_VERSION =
-  "grammar-choice-reviewer-v3";
+  "grammar-choice-reviewer-v4";
 /** Prompt/pipeline revision — invalidates final-item cache */
-export const GRAMMAR_CHOICE_PIPELINE_REVISION = "strict-topup";
+export const GRAMMAR_CHOICE_PIPELINE_REVISION = "grammar-points";
 
 /** Active algorithm version stamped on workbook sections / final cache */
 export const GRAMMAR_CHOICE_PROMPT_VERSION =

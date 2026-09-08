@@ -497,6 +497,16 @@ export type WorkbookGrammarChoiceDiagnostics = {
   generatorActualModel: string;
   reviewerActualModel: string;
   newQuestionCount: number;
+  desiredQuestionCount?: number;
+  discoveredGrammarPointCount?: number;
+  initialCandidateCount?: number;
+  initialApprovedCount?: number;
+  topUpRoundCount?: number;
+  topUpCandidateCount?: number;
+  topUpApprovedCount?: number;
+  finalQuestionCount?: number;
+  renderedQuestionCount?: number;
+  countMismatch?: boolean;
   generateApiCalls: number;
   reviewApiCalls: number;
   underTargetReason: string | null;

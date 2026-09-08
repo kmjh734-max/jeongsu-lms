@@ -11,10 +11,13 @@ import {
   GRAMMAR_CHOICE_GENERATOR_SYSTEM_PROMPT,
   buildGrammarChoiceGeneratorUserPrompt,
 } from "@/lib/lesson-materials/grammar-choice-v5-prompts";
+import type { GrammarChoiceTopUpBrief } from "@/lib/lesson-materials/grammar-choice-v5-prompts";
 import type {
   AnalysisHint,
+  DifficultyLevel,
   GeneratedGrammarCandidate,
   GrammarChoiceCategory,
+  SentenceGrammarSurvey,
 } from "@/lib/lesson-materials/grammar-choice-v5-types";
 
 function parseJsonSafe<T>(text: string): T | null {
@@ -72,9 +75,11 @@ export async function callGrammarChoiceGenerator(input: {
     }>;
     analysisHints: AnalysisHint[];
     desiredCandidateCount: number;
+    topUp?: GrammarChoiceTopUpBrief | null;
   }>;
 }): Promise<{
   byPassageId: Map<string, GeneratedGrammarCandidate[]>;
+  surveysByPassageId: Map<string, SentenceGrammarSurvey[]>;
   modelUsed: string;
   responseModel: string;
   reasoningEffort: string;
@@ -107,6 +112,7 @@ export async function callGrammarChoiceGenerator(input: {
       "learningValue",
       "estimatedDifficulty",
       "confidence",
+      "difficultyLevel",
     ],
     properties: {
       candidateId: { type: "string" },
@@ -125,6 +131,7 @@ export async function callGrammarChoiceGenerator(input: {
       learningValue: { type: "number" },
       estimatedDifficulty: { type: "number" },
       confidence: { type: "number" },
+      difficultyLevel: { type: "string", enum: ["BASIC", "CORE", "ADVANCED"] },
     },
   } as const;
 
@@ -150,7 +157,7 @@ export async function callGrammarChoiceGenerator(input: {
         ],
       };
       if (isGpt5FamilyModel(requestedModel)) {
-        body.max_completion_tokens = 16_000;
+        body.max_completion_tokens = 12_000;
       } else {
         body.max_tokens = 16_000;
       }
@@ -269,14 +276,44 @@ export async function callGrammarChoiceGenerator(input: {
     const parsed = parseJsonSafe<{
       passages?: Array<{
         passageId?: string;
+        sentenceSurveys?: Array<Record<string, unknown>>;
         candidates?: Array<Record<string, unknown>>;
       }>;
     }>(content);
 
     const byPassageId = new Map<string, GeneratedGrammarCandidate[]>();
+    const surveysByPassageId = new Map<string, SentenceGrammarSurvey[]>();
+    const levels: DifficultyLevel[] = ["BASIC", "CORE", "ADVANCED"];
     for (const p of parsed?.passages ?? []) {
       const passageId = String(p.passageId ?? "").trim();
       if (!passageId) continue;
+      const surveys: SentenceGrammarSurvey[] = [];
+      for (const rawSurvey of p.sentenceSurveys ?? []) {
+        const points = Array.isArray(rawSurvey.grammarPoints)
+          ? rawSurvey.grammarPoints
+          : [];
+        surveys.push({
+          sentenceId: String(rawSurvey.sentenceId ?? ""),
+          originalSentence: String(rawSurvey.originalSentence ?? ""),
+          wordCount: Math.max(0, Number(rawSurvey.wordCount) || 0),
+          grammarPoints: points.map((pt) => {
+            const row = pt as Record<string, unknown>;
+            const level = String(row.difficultyLevel ?? "CORE");
+            return {
+              sourceSpan: String(row.sourceSpan ?? ""),
+              category: String(row.category ?? ""),
+              rule: String(row.rule ?? ""),
+              difficultyLevel: levels.includes(level as DifficultyLevel)
+                ? (level as DifficultyLevel)
+                : "CORE",
+              canCreateUniqueChoice: Boolean(row.canCreateUniqueChoice),
+              reasonIfUnavailable:
+                String(row.reasonIfUnavailable ?? "").trim() || null,
+            };
+          }),
+        });
+      }
+      surveysByPassageId.set(passageId, surveys);
       const list: GeneratedGrammarCandidate[] = [];
       for (const raw of p.candidates ?? []) {
         const grammarCategory = String(
@@ -307,6 +344,11 @@ export async function callGrammarChoiceGenerator(input: {
           learningValue: clamp15(raw.learningValue, 4),
           estimatedDifficulty: clamp15(raw.estimatedDifficulty, 3),
           confidence: clamp15(raw.confidence, 3),
+          difficultyLevel: levels.includes(
+            String(raw.difficultyLevel ?? "") as DifficultyLevel
+          )
+            ? (String(raw.difficultyLevel) as DifficultyLevel)
+            : undefined,
         });
       }
       byPassageId.set(passageId, list);
@@ -314,6 +356,7 @@ export async function callGrammarChoiceGenerator(input: {
 
     return {
       byPassageId,
+      surveysByPassageId,
       modelUsed,
       responseModel,
       reasoningEffort,
