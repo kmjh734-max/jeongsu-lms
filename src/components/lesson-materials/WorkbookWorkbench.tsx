@@ -409,12 +409,16 @@ function GrammarChoiceAnswerBody({
             <li>평균 품질 점수: {d.averageQualityScore}</li>
             <li>원문 완전 복원: {d.passageRestored ? "예" : "아니오"}</li>
             <li>generatorModel: {d.generatorModel}</li>
+            <li>generatorActualResponseModel: {d.generatorActualResponseModel ?? d.generatorResponseModel ?? "—"}</li>
+            <li>generatorReasoningEffort: {d.generatorReasoningEffort ?? "—"}</li>
             <li>reviewerModel: {d.reviewerModel}</li>
-            <li>response.model: 생성 {d.generatorResponseModel ?? "—"} / 검수 {d.reviewerResponseModel ?? "—"}</li>
-            <li>reasoningEffort: {d.reasoningEffort ?? "none"}</li>
+            <li>reviewerActualResponseModel: {d.reviewerActualResponseModel ?? d.reviewerResponseModel ?? "—"}</li>
+            <li>reviewerReasoningEffort: {d.reviewerReasoningEffort ?? "—"}</li>
             <li>openAICallCount: {d.openAICallCount ?? (d.generateApiCalls ?? 0) + (d.reviewApiCalls ?? 0)}</li>
             <li>cacheHit: {d.cacheHit ? "true" : "false"}</li>
             <li>localFallbackUsed: {d.localFallbackUsed ? "true" : "false"}</li>
+            <li>generatorVersion: {d.generatorVersion ?? "—"}</li>
+            <li>reviewerVersion: {d.reviewerVersion ?? "—"}</li>
             <li>생성 API 호출: {d.generateApiCalls}</li>
             <li>검수 API 호출: {d.reviewApiCalls}</li>
             {d.underTargetReason ? (

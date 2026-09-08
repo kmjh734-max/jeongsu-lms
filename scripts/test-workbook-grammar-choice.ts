@@ -16,10 +16,12 @@ import type { AnalysisReportData } from "../src/lib/lesson-materials/generate-an
 import type { StoredGrammarChoiceV5Cache } from "../src/lib/lesson-materials/grammar-choice-v5-cache";
 
 assert.ok(
-  GRAMMAR_CHOICE_PROMPT_VERSION.includes("grammar-choice-generator-v5")
+  GRAMMAR_CHOICE_PROMPT_VERSION.includes("grammar-choice-generator-v7")
 );
 
-for (const [a, b] of BLOCKED_PAIR_FIXTURES) {
+for (const row of BLOCKED_PAIR_FIXTURES) {
+  const a = Array.isArray(row) ? row[0] : row.correct;
+  const b = Array.isArray(row) ? row[1] : row.incorrect;
   assert.equal(
     isBlockedLowQualityPair(a, b).blocked,
     true,
@@ -238,7 +240,11 @@ async function main() {
     const d = section.diagnostics!;
     report += `\n======== ${section.title} (1st run) ========\n`;
     report += `생성후보=${d.generatedCandidateCount} 코드통과=${d.codeValidatedCount} 검수승인=${d.reviewAcceptedCount} 최종=${d.finalCount}\n`;
-    report += `생성모델=${d.generatorModel} 검수모델=${d.reviewerModel} genAPI=${d.generateApiCalls} revAPI=${d.reviewApiCalls} 캐시=${d.cacheHit}\n`;
+    report += `생성모델=${d.generatorModel} actual=${d.generatorActualResponseModel} effort=${d.generatorReasoningEffort}\n`;
+    report += `검수모델=${d.reviewerModel} actual=${d.reviewerActualResponseModel} effort=${d.reviewerReasoningEffort}\n`;
+    report += `openAICallCount=${d.openAICallCount} cacheHit=${d.cacheHit} localFallbackUsed=${d.localFallbackUsed}\n`;
+    report += `versions=${d.generatorVersion}+${d.reviewerVersion}\n`;
+    report += `apiCalls=${JSON.stringify(d.apiCalls)}\n`;
     report += `코드탈락: ${JSON.stringify(d.codeRejectSamples)}\n`;
     report += `검수탈락: ${JSON.stringify(d.reviewRejectSamples)}\n`;
     report += `\n【학생용】\n`;

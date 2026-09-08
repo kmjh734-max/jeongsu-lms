@@ -40,8 +40,10 @@ import {
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 import {
   resolveGrammarGeneratorModel,
-} from "@/lib/lesson-materials/grammar-choice-v5-generate";
-import { resolveGrammarReviewerModel } from "@/lib/lesson-materials/grammar-choice-v5-review";
+  resolveGrammarGeneratorReasoningEffort,
+  resolveGrammarReviewerModel,
+  resolveGrammarReviewerReasoningEffort,
+} from "@/lib/lesson-materials/grammar-choice-model";
 
 export async function generateWorkbookGrammarChoice(input: {
   passages: Array<{
@@ -70,8 +72,10 @@ export async function generateWorkbookGrammarChoice(input: {
     cache: StoredGrammarChoiceV5Cache;
   }> = [];
 
-  const generatorModelPreferred = resolveGrammarGeneratorModel()[0]!;
-  const reviewerModelPreferred = resolveGrammarReviewerModel()[0]!;
+  const generatorModelPreferred = resolveGrammarGeneratorModel();
+  const reviewerModelPreferred = resolveGrammarReviewerModel();
+  const generatorReasoningPreferred = resolveGrammarGeneratorReasoningEffort();
+  const reviewerReasoningPreferred = resolveGrammarReviewerReasoningEffort();
 
   type Ctx = {
     p: (typeof input.passages)[number];
@@ -101,6 +105,8 @@ export async function generateWorkbookGrammarChoice(input: {
       analysisHintHash: hintHash,
       generatorModel: generatorModelPreferred,
       reviewerModel: reviewerModelPreferred,
+      generatorReasoningEffort: generatorReasoningPreferred,
+      reviewerReasoningEffort: reviewerReasoningPreferred,
     });
     return {
       p,
@@ -119,9 +125,16 @@ export async function generateWorkbookGrammarChoice(input: {
   let reviewerModelUsed = reviewerModelPreferred;
   let generatorResponseModel = "—";
   let reviewerResponseModel = "—";
-  let reasoningEffort = "none";
+  let generatorReasoningEffort = generatorReasoningPreferred;
+  let reviewerReasoningEffort = reviewerReasoningPreferred;
   let generateCalls = 0;
   let reviewCalls = 0;
+  const apiCalls: Array<{
+    stage: "GENERATOR_INITIAL" | "GENERATOR_TOP_UP" | "REVIEWER";
+    requestedModel: string;
+    actualResponseModel: string;
+    reasoningEffort: string;
+  }> = [];
   const generateCallsByPassage = new Map<string, number>();
 
   const generatedByPassage = new Map<
@@ -169,7 +182,13 @@ export async function generateWorkbookGrammarChoice(input: {
       generateCalls += row.gen.openAiRequestCount;
       generatorModelUsed = row.gen.modelUsed;
       generatorResponseModel = row.gen.responseModel;
-      reasoningEffort = row.gen.reasoningEffort;
+      generatorReasoningEffort = row.gen.reasoningEffort;
+      apiCalls.push({
+        stage: "GENERATOR_INITIAL",
+        requestedModel: row.gen.modelUsed,
+        actualResponseModel: row.gen.responseModel,
+        reasoningEffort: row.gen.reasoningEffort,
+      });
       generateCallsByPassage.set(
         row.ctx.p.projectId,
         row.gen.openAiRequestCount
@@ -193,7 +212,13 @@ export async function generateWorkbookGrammarChoice(input: {
         generateCalls += gen.openAiRequestCount;
         generatorModelUsed = gen.modelUsed;
         generatorResponseModel = gen.responseModel;
-        reasoningEffort = gen.reasoningEffort;
+        generatorReasoningEffort = gen.reasoningEffort;
+        apiCalls.push({
+          stage: "GENERATOR_TOP_UP",
+          requestedModel: gen.modelUsed,
+          actualResponseModel: gen.responseModel,
+          reasoningEffort: gen.reasoningEffort,
+        });
         generateCallsByPassage.set(
           row.ctx.p.projectId,
           (generateCallsByPassage.get(row.ctx.p.projectId) ?? 0) +
@@ -248,9 +273,13 @@ export async function generateWorkbookGrammarChoice(input: {
     reviewCalls += rev.openAiRequestCount;
     reviewerModelUsed = rev.modelUsed;
     reviewerResponseModel = rev.responseModel;
-    if (rev.reasoningEffort && rev.reasoningEffort !== "none") {
-      reasoningEffort = rev.reasoningEffort;
-    }
+    reviewerReasoningEffort = rev.reasoningEffort;
+    apiCalls.push({
+      stage: "REVIEWER",
+      requestedModel: rev.modelUsed,
+      actualResponseModel: rev.responseModel,
+      reasoningEffort: rev.reasoningEffort,
+    });
     reviewsById = new Map(rev.reviews.map((r) => [r.candidateId, r]));
   }
 
@@ -286,14 +315,38 @@ export async function generateWorkbookGrammarChoice(input: {
         generatorModel: ctx.cacheRow.generatorModel,
         reviewerModel: ctx.cacheRow.reviewerModel,
         generatorResponseModel:
+          ctx.cacheRow.diagnostics?.generatorActualResponseModel ??
           ctx.cacheRow.diagnostics?.generatorResponseModel ??
           ctx.cacheRow.generatorModel,
         reviewerResponseModel:
+          ctx.cacheRow.diagnostics?.reviewerActualResponseModel ??
           ctx.cacheRow.diagnostics?.reviewerResponseModel ??
           ctx.cacheRow.reviewerModel,
-        reasoningEffort: ctx.cacheRow.diagnostics?.reasoningEffort ?? "none",
+        generatorActualResponseModel:
+          ctx.cacheRow.diagnostics?.generatorActualResponseModel ??
+          ctx.cacheRow.diagnostics?.generatorResponseModel ??
+          ctx.cacheRow.generatorModel,
+        reviewerActualResponseModel:
+          ctx.cacheRow.diagnostics?.reviewerActualResponseModel ??
+          ctx.cacheRow.diagnostics?.reviewerResponseModel ??
+          ctx.cacheRow.reviewerModel,
+        generatorReasoningEffort:
+          ctx.cacheRow.generatorReasoningEffort ??
+          ctx.cacheRow.diagnostics?.generatorReasoningEffort ??
+          generatorReasoningPreferred,
+        reviewerReasoningEffort:
+          ctx.cacheRow.reviewerReasoningEffort ??
+          ctx.cacheRow.diagnostics?.reviewerReasoningEffort ??
+          reviewerReasoningPreferred,
+        reasoningEffort:
+          ctx.cacheRow.diagnostics?.reviewerReasoningEffort ??
+          ctx.cacheRow.reviewerReasoningEffort ??
+          reviewerReasoningPreferred,
         openAICallCount: 0,
         localFallbackUsed: false,
+        generatorVersion: ctx.cacheRow.generatorVersion,
+        reviewerVersion: ctx.cacheRow.reviewerVersion,
+        apiCalls: [],
         generateApiCalls: 0,
         reviewApiCalls: 0,
         underTargetReason: null,
@@ -361,9 +414,16 @@ export async function generateWorkbookGrammarChoice(input: {
         reviewerModel: reviewerModelUsed,
         generatorResponseModel,
         reviewerResponseModel,
-        reasoningEffort,
+        generatorActualResponseModel: generatorResponseModel,
+        reviewerActualResponseModel: reviewerResponseModel,
+        generatorReasoningEffort,
+        reviewerReasoningEffort,
+        reasoningEffort: reviewerReasoningEffort,
         openAICallCount: generateCalls + reviewCalls,
         localFallbackUsed: false,
+        generatorVersion: GRAMMAR_CHOICE_GENERATOR_VERSION,
+        reviewerVersion: GRAMMAR_CHOICE_REVIEWER_VERSION,
+        apiCalls,
         generateApiCalls: generateCallsByPassage.get(ctx.p.projectId) ?? 0,
         reviewApiCalls: reviewCalls > 0 ? 1 : 0,
         underTargetReason,
@@ -387,6 +447,8 @@ export async function generateWorkbookGrammarChoice(input: {
             analysisHintHash: ctx.hintHash,
             generatorModel: generatorModelUsed,
             reviewerModel: reviewerModelUsed,
+            generatorReasoningEffort,
+            reviewerReasoningEffort,
             generatorVersion: GRAMMAR_CHOICE_GENERATOR_VERSION,
             reviewerVersion: GRAMMAR_CHOICE_REVIEWER_VERSION,
             candidates: finalCandidates,

@@ -477,11 +477,21 @@ export type WorkbookGrammarChoiceDiagnostics = {
   /** OpenAI 응답 JSON의 model 필드 (요청명과 다를 수 있음) */
   generatorResponseModel: string;
   reviewerResponseModel: string;
-  /** 실제 요청에 넣은 reasoning_effort. gpt-4o 등은 none */
+  generatorActualResponseModel: string;
+  reviewerActualResponseModel: string;
+  generatorReasoningEffort: string;
+  reviewerReasoningEffort: string;
   reasoningEffort: string;
   openAICallCount: number;
-  /** 로컬 규칙으로 문항을 만들지 않음. 항상 false */
   localFallbackUsed: false;
+  generatorVersion: string;
+  reviewerVersion: string;
+  apiCalls: Array<{
+    stage: "GENERATOR_INITIAL" | "GENERATOR_TOP_UP" | "REVIEWER";
+    requestedModel: string;
+    actualResponseModel: string;
+    reasoningEffort: string;
+  }>;
   generateApiCalls: number;
   reviewApiCalls: number;
   underTargetReason: string | null;

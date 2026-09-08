@@ -1,10 +1,12 @@
 import {
   isGpt5FamilyModel,
-  isModelUnavailableError,
   isUnsupportedParameterError,
-  isUnsupportedTemperatureError,
-  studentRecordModelSupportsTemperature,
 } from "@/lib/student-records/model";
+import {
+  GrammarChoiceModelError,
+  resolveGrammarGeneratorModel,
+  resolveGrammarGeneratorReasoningEffort,
+} from "@/lib/lesson-materials/grammar-choice-model";
 import {
   GRAMMAR_CHOICE_GENERATOR_SYSTEM_PROMPT,
   buildGrammarChoiceGeneratorUserPrompt,
@@ -54,12 +56,8 @@ function clamp15(n: unknown, fallback: number): number {
   return Math.min(5, Math.max(1, Math.round(v)));
 }
 
-export function resolveGrammarGeneratorModel(): string[] {
-  const configured =
-    process.env.OPENAI_GRAMMAR_GENERATOR_MODEL?.trim() ||
-    process.env.OPENAI_MODEL_WORKBOOK?.trim();
-  if (configured) return [configured];
-  return ["gpt-4o"];
+export function resolveGrammarGeneratorModelCandidates(): string[] {
+  return [resolveGrammarGeneratorModel()];
 }
 
 export async function callGrammarChoiceGenerator(input: {
@@ -85,7 +83,8 @@ export async function callGrammarChoiceGenerator(input: {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
 
-  const modelCandidates = resolveGrammarGeneratorModel();
+  const requestedModel = resolveGrammarGeneratorModel();
+  const requestedReasoningEffort = resolveGrammarGeneratorReasoningEffort();
   const userContent = buildGrammarChoiceGeneratorUserPrompt(input);
 
   const CANDIDATE_SCHEMA = {
@@ -130,45 +129,38 @@ export async function callGrammarChoiceGenerator(input: {
   } as const;
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120_000);
+  const timer = setTimeout(() => controller.abort(), 180_000);
 
   try {
     let bodyText = "";
     let ok = false;
-    let modelUsed = modelCandidates[0]!;
-    let responseModel = modelCandidates[0]!;
-    let reasoningEffort = "none";
+    let modelUsed = requestedModel;
+    let responseModel = requestedModel;
+    let reasoningEffort = requestedReasoningEffort;
+    let reasoningField: "effort" | "object" = "effort";
+    let useJsonSchema = true;
+    let includeJsonMode = true;
 
-    for (const model of modelCandidates) {
-      let includeTemperature = studentRecordModelSupportsTemperature(model);
-      let useJsonSchema = true;
-      let includeJsonMode = true;
-      let includeReasoningEffort = isGpt5FamilyModel(model);
-
-      for (let attempt = 0; attempt < 4; attempt++) {
-        const body: Record<string, unknown> = {
-          model,
-          messages: [
-            { role: "system", content: GRAMMAR_CHOICE_GENERATOR_SYSTEM_PROMPT },
-            { role: "user", content: userContent },
-          ],
-        };
-        if (isGpt5FamilyModel(model)) {
-          body.max_completion_tokens = 16_000;
-          if (includeReasoningEffort) {
-            body.reasoning_effort = "medium";
-            reasoningEffort = "medium";
-          } else {
-            reasoningEffort = "none";
-          }
-        } else {
-          body.max_tokens = 16_000;
-          reasoningEffort = "none";
-        }
-        if (includeTemperature && !isGpt5FamilyModel(model)) {
-          body.temperature = 0.45;
-        }
-        if (useJsonSchema) {
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const body: Record<string, unknown> = {
+        model: requestedModel,
+        messages: [
+          { role: "system", content: GRAMMAR_CHOICE_GENERATOR_SYSTEM_PROMPT },
+          { role: "user", content: userContent },
+        ],
+      };
+      if (isGpt5FamilyModel(requestedModel)) {
+        body.max_completion_tokens = 16_000;
+      } else {
+        body.max_tokens = 16_000;
+      }
+      if (reasoningField === "object") {
+        body.reasoning = { effort: requestedReasoningEffort };
+      } else {
+        body.reasoning_effort = requestedReasoningEffort;
+      }
+      reasoningEffort = requestedReasoningEffort;
+      if (useJsonSchema) {
           body.response_format = {
             type: "json_schema",
             json_schema: {
@@ -214,9 +206,9 @@ export async function callGrammarChoiceGenerator(input: {
         bodyText = await res.text();
         ok = res.ok;
         if (ok) {
-          modelUsed = model;
+          modelUsed = requestedModel;
           const envelope = parseJsonSafe<{ model?: string }>(bodyText);
-          responseModel = String(envelope?.model ?? model);
+          responseModel = String(envelope?.model ?? requestedModel);
           break;
         }
         let errMsg = bodyText;
@@ -225,17 +217,11 @@ export async function callGrammarChoiceGenerator(input: {
         } catch {
           /* */
         }
-        if (isModelUnavailableError(res.status, errMsg)) break;
-        if (isUnsupportedTemperatureError(errMsg) && includeTemperature) {
-          includeTemperature = false;
-          continue;
-        }
         if (
-          includeReasoningEffort &&
+          reasoningField === "effort" &&
           isUnsupportedParameterError(errMsg, "reasoning_effort")
         ) {
-          includeReasoningEffort = false;
-          reasoningEffort = "none";
+          reasoningField = "object";
           continue;
         }
         if (isUnsupportedParameterError(errMsg, "response_format")) {
@@ -248,15 +234,23 @@ export async function callGrammarChoiceGenerator(input: {
             continue;
           }
         }
-        break;
+        throw new GrammarChoiceModelError({
+          stage: "GENERATOR",
+          requestedModel,
+          requestedReasoningEffort,
+          errorCode: `HTTP_${res.status}`,
+          errorMessage: errMsg.slice(0, 500) || "unknown",
+        });
       }
-      if (ok) break;
-    }
 
     if (!ok) {
-      throw new Error(
-        `어법 후보 생성 실패: ${bodyText.slice(0, 400) || "unknown"}`
-      );
+      throw new GrammarChoiceModelError({
+        stage: "GENERATOR",
+        requestedModel,
+        requestedReasoningEffort,
+        errorCode: "GENERATOR_FAILED",
+        errorMessage: bodyText.slice(0, 500) || "unknown",
+      });
     }
 
     const json = parseJsonSafe<{

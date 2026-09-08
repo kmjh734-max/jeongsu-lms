@@ -14,6 +14,8 @@ export type StoredGrammarChoiceV5Row = {
   analysisHintHash: string;
   generatorModel: string;
   reviewerModel: string;
+  generatorReasoningEffort: string;
+  reviewerReasoningEffort: string;
   generatorVersion: string;
   reviewerVersion: string;
   candidates: GrammarChoiceCandidate[];
@@ -34,6 +36,8 @@ export function getCachedGrammarChoiceV5(
     analysisHintHash: string;
     generatorModel: string;
     reviewerModel: string;
+    generatorReasoningEffort: string;
+    reviewerReasoningEffort: string;
   }
 ): StoredGrammarChoiceV5Row | null {
   if (!cache || cache.algorithmVersion !== GRAMMAR_CHOICE_PROMPT_VERSION) {
@@ -45,6 +49,8 @@ export function getCachedGrammarChoiceV5(
   if (row.analysisHintHash !== key.analysisHintHash) return null;
   if (row.generatorModel !== key.generatorModel) return null;
   if (row.reviewerModel !== key.reviewerModel) return null;
+  if (row.generatorReasoningEffort !== key.generatorReasoningEffort) return null;
+  if (row.reviewerReasoningEffort !== key.reviewerReasoningEffort) return null;
   if (row.generatorVersion !== GRAMMAR_CHOICE_GENERATOR_VERSION) return null;
   if (row.reviewerVersion !== GRAMMAR_CHOICE_REVIEWER_VERSION) return null;
   if (!Array.isArray(row.candidates) || row.candidates.length === 0) return null;
