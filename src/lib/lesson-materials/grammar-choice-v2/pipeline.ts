@@ -27,6 +27,7 @@ import type {
 import { buildPassageSegmentsFromSource } from "@/lib/lesson-materials/grammar-choice-display";
 import type {
   GrammarChoiceCandidate,
+  WorkbookGrammarChoiceDiagnostics,
   WorkbookGrammarChoiceItem,
   WorkbookGrammarChoiceSection,
 } from "@/lib/lesson-materials/workbook-types";
@@ -49,7 +50,7 @@ export type FinalizeInput = {
   candidates: GrammarCandidate[];
   audits?: AuditResult[];
   seedKey: string;
-  diagnosticsBase: WorkbookGrammarChoiceSection["diagnostics"];
+  diagnosticsBase: WorkbookGrammarChoiceDiagnostics;
 };
 
 export function resolveAndFilter(input: {
@@ -309,6 +310,30 @@ export function finalizeV2Passage(input: FinalizeInput): {
   const mix = { BASIC: 0, CORE: 0, ADVANCED: 0 };
   for (const item of numbered) mix[item.difficulty] += 1;
 
+  const diagnostics: WorkbookGrammarChoiceDiagnostics = {
+    ...input.diagnosticsBase,
+    generatedCandidateCount: input.candidates.length,
+    codeValidatedCount: filtered.resolved.length,
+    originalMismatchCount: rejected.filter((r) =>
+      r.reason.startsWith("SOURCE_")
+    ).length,
+    overlapDuplicateCount: rejected.filter((r) =>
+      r.reason.includes("OVERLAP") || r.reason.includes("DUPLICATE")
+    ).length,
+    reviewSubmittedCount: expandAuditItems(filtered.resolved).length,
+    reviewAcceptedCount: ranked.kept.length,
+    finalCount: items.length,
+    finalQuestionCount: items.length,
+    renderedQuestionCount: items.length,
+    newQuestionCount: items.length,
+    grammarCategoryCount: new Set(items.map((i) => i.grammarCategoryId)).size,
+    passageRestored: true,
+    countMismatch: false,
+    difficultyMix: mix,
+    rejectReasonCounts,
+    underTargetReason: null,
+  };
+
   const section: WorkbookGrammarChoiceSection = {
     projectId: input.projectId,
     title: input.title,
@@ -317,34 +342,11 @@ export function finalizeV2Passage(input: FinalizeInput): {
     items,
     segments,
     algorithmVersion: "grammar-choice-v2",
-    diagnostics: {
-      ...input.diagnosticsBase,
-      generatedCandidateCount: input.candidates.length,
-      codeValidatedCount: filtered.resolved.length,
-      originalMismatchCount: rejected.filter((r) =>
-        r.reason.startsWith("SOURCE_")
-      ).length,
-      overlapDuplicateCount: rejected.filter((r) =>
-        r.reason.includes("OVERLAP") || r.reason.includes("DUPLICATE")
-      ).length,
-      reviewSubmittedCount: expandAuditItems(filtered.resolved).length,
-      reviewAcceptedCount: ranked.kept.length,
-      finalCount: items.length,
-      finalQuestionCount: items.length,
-      renderedQuestionCount: items.length,
-      newQuestionCount: items.length,
-      grammarCategoryCount: new Set(items.map((i) => i.grammarCategoryId)).size,
-      passageRestored: true,
-      countMismatch: false,
-      difficultyMix: mix,
-      rejectReasonCounts,
-      underTargetReason: null,
-      desiredQuestionCount: undefined,
-    },
+    diagnostics,
   };
 
   if (
-    section.diagnostics.finalQuestionCount !== items.length ||
+    diagnostics.finalQuestionCount !== items.length ||
     section.items.length !== items.length
   ) {
     return { ok: false, rejected, missingMandatory: [], reason: "개수 불일치" };

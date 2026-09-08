@@ -80,7 +80,6 @@ function hintsFromReport(report: AnalysisReportData | null | undefined): Analysi
 
 function emptyDiagnostics(input: {
   sentenceCount: number;
-  wordCount: number;
   cacheHit: boolean;
   forceRegenerate: boolean;
   analyzerModel: string;
@@ -264,7 +263,13 @@ export async function generateWorkbookGrammarChoiceV2(input: {
       analysisHints: row.hints,
       localMandatoryHints: localMandatory,
     });
-    return { row, analyzedRow, localMandatory, fromCache: false as const };
+    return {
+      row,
+      analyzedRow,
+      localMandatory,
+      fromCache: false as const,
+      cachedAudits: [] as import("@/lib/lesson-materials/grammar-choice-v2/types").AuditResult[],
+    };
   });
   generateCalls += fresh.length;
   openAi += fresh.length;

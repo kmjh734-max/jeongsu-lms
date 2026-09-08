@@ -71,7 +71,7 @@ export function assignSeededSides(
     incorrectReasonKo: "",
     difficulty: 3,
     learningValue: 3,
-    ambiguityRisk: "LOW",
+    ambiguityRisk: "low",
   }));
   return assignDisplaySides(asCandidates, seedKey);
 }
