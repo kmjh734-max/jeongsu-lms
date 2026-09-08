@@ -63,6 +63,8 @@ export async function generateWorkbookAction(
     title?: string;
     /** Exclude these project IDs from one-line translation only */
     lineTranslationExcludeIds?: string[];
+    /** 어법 선택 캐시를 무시하고 새 모델로 다시 생성 */
+    forceRegenerate?: boolean;
   }
 ): Promise<
   | { ok: true; workbook: WorkbookData }
@@ -255,13 +257,16 @@ export async function generateWorkbookAction(
 
     if (wantGrammarChoice) {
       const gc = await generateWorkbookGrammarChoice({
+        forceRegenerate: input.forceRegenerate === true,
         passages: passages.map((p) => ({
           projectId: p.projectId,
           title: p.title,
           source: p.source,
           sentences: p.sentences,
           analysisReport: p.analysisReport,
-          grammarChoiceV5Cache: p.grammarChoiceV5Cache,
+          grammarChoiceV5Cache: input.forceRegenerate
+            ? null
+            : p.grammarChoiceV5Cache,
         })),
       });
       workbook.grammarChoiceSections = gc.sections;

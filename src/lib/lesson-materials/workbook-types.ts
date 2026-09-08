@@ -492,6 +492,11 @@ export type WorkbookGrammarChoiceDiagnostics = {
     actualResponseModel: string;
     reasoningEffort: string;
   }>;
+  forceRegenerate: boolean;
+  oldQuestionReuseCount: number;
+  generatorActualModel: string;
+  reviewerActualModel: string;
+  newQuestionCount: number;
   generateApiCalls: number;
   reviewApiCalls: number;
   underTargetReason: string | null;

@@ -416,6 +416,11 @@ function GrammarChoiceAnswerBody({
             <li>reviewerReasoningEffort: {d.reviewerReasoningEffort ?? "—"}</li>
             <li>openAICallCount: {d.openAICallCount ?? (d.generateApiCalls ?? 0) + (d.reviewApiCalls ?? 0)}</li>
             <li>cacheHit: {d.cacheHit ? "true" : "false"}</li>
+            <li>forceRegenerate: {d.forceRegenerate ? "true" : "false"}</li>
+            <li>oldQuestionReuseCount: {d.oldQuestionReuseCount ?? 0}</li>
+            <li>generatorActualModel: {d.generatorActualModel ?? d.generatorActualResponseModel ?? "—"}</li>
+            <li>reviewerActualModel: {d.reviewerActualModel ?? d.reviewerActualResponseModel ?? "—"}</li>
+            <li>newQuestionCount: {d.newQuestionCount ?? d.finalCount}</li>
             <li>localFallbackUsed: {d.localFallbackUsed ? "true" : "false"}</li>
             <li>generatorVersion: {d.generatorVersion ?? "—"}</li>
             <li>reviewerVersion: {d.reviewerVersion ?? "—"}</li>
@@ -1114,6 +1119,7 @@ export function WorkbookWorkbench({
           blankOptions,
           title,
           lineTranslationExcludeIds: ltExclude,
+          forceRegenerate: wantGrammarChoice && searchParams.get("forceRegen") === "1",
         });
         if (timers.status) clearTimeout(timers.status);
         if (timers.elapsed) clearInterval(timers.elapsed);

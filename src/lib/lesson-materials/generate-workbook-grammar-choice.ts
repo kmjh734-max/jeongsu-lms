@@ -55,6 +55,11 @@ export async function generateWorkbookGrammarChoice(input: {
     /** v5 final-item cache (not blueprint / not legacy choice cache) */
     grammarChoiceV5Cache?: StoredGrammarChoiceV5Cache | null;
   }>;
+  /**
+   * true면 저장된 어법 선택 캐시를 읽지 않고,
+   * 새로 생성·검수한 문항만 final 캐시에 덮어쓴다.
+   */
+  forceRegenerate?: boolean;
 }): Promise<{
   sections: WorkbookGrammarChoiceSection[];
   skipped: WorkbookGrammarChoiceSkip[];
@@ -88,6 +93,8 @@ export async function generateWorkbookGrammarChoice(input: {
     cacheRow: ReturnType<typeof getCachedGrammarChoiceV5>;
   };
 
+  const forceRegenerate = input.forceRegenerate === true;
+
   const contexts: Ctx[] = input.passages.map((p) => {
     const sentenceRows = formatSentencesForGrammarChoice(p.sentences);
     const sourcePassage = joinWorkbookPassageLines(
@@ -99,15 +106,17 @@ export async function generateWorkbookGrammarChoice(input: {
     const range = getGrammarChoiceFinalTargetRange(
       countEnglishWords(sourcePassage)
     );
-    const cacheRow = getCachedGrammarChoiceV5(p.grammarChoiceV5Cache, {
-      passageId: p.projectId,
-      sourceHash,
-      analysisHintHash: hintHash,
-      generatorModel: generatorModelPreferred,
-      reviewerModel: reviewerModelPreferred,
-      generatorReasoningEffort: generatorReasoningPreferred,
-      reviewerReasoningEffort: reviewerReasoningPreferred,
-    });
+    const cacheRow = forceRegenerate
+      ? null
+      : getCachedGrammarChoiceV5(p.grammarChoiceV5Cache, {
+          passageId: p.projectId,
+          sourceHash,
+          analysisHintHash: hintHash,
+          generatorModel: generatorModelPreferred,
+          reviewerModel: reviewerModelPreferred,
+          generatorReasoningEffort: generatorReasoningPreferred,
+          reviewerReasoningEffort: reviewerReasoningPreferred,
+        });
     return {
       p,
       sentenceRows,
@@ -347,6 +356,17 @@ export async function generateWorkbookGrammarChoice(input: {
         generatorVersion: ctx.cacheRow.generatorVersion,
         reviewerVersion: ctx.cacheRow.reviewerVersion,
         apiCalls: [],
+        forceRegenerate: false,
+        oldQuestionReuseCount: 0,
+        generatorActualModel:
+          ctx.cacheRow.diagnostics?.generatorActualModel ??
+          ctx.cacheRow.diagnostics?.generatorActualResponseModel ??
+          ctx.cacheRow.generatorModel,
+        reviewerActualModel:
+          ctx.cacheRow.diagnostics?.reviewerActualModel ??
+          ctx.cacheRow.diagnostics?.reviewerResponseModel ??
+          ctx.cacheRow.reviewerModel,
+        newQuestionCount: 0,
         generateApiCalls: 0,
         reviewApiCalls: 0,
         underTargetReason: null,
@@ -424,6 +444,11 @@ export async function generateWorkbookGrammarChoice(input: {
         generatorVersion: GRAMMAR_CHOICE_GENERATOR_VERSION,
         reviewerVersion: GRAMMAR_CHOICE_REVIEWER_VERSION,
         apiCalls,
+        forceRegenerate,
+        oldQuestionReuseCount: 0,
+        generatorActualModel: generatorResponseModel,
+        reviewerActualModel: reviewerResponseModel,
+        newQuestionCount: finalCandidates.length,
         generateApiCalls: generateCallsByPassage.get(ctx.p.projectId) ?? 0,
         reviewApiCalls: reviewCalls > 0 ? 1 : 0,
         underTargetReason,
@@ -441,7 +466,9 @@ export async function generateWorkbookGrammarChoice(input: {
       if (finalCandidates.length > 0) {
         cachesToSave.push({
           projectId: ctx.p.projectId,
-          cache: upsertGrammarChoiceV5Cache(ctx.p.grammarChoiceV5Cache, {
+          cache: upsertGrammarChoiceV5Cache(
+            forceRegenerate ? null : ctx.p.grammarChoiceV5Cache,
+            {
             passageId: ctx.p.projectId,
             sourceHash: ctx.sourceHash,
             analysisHintHash: ctx.hintHash,
