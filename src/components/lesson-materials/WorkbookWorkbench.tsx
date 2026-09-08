@@ -408,11 +408,15 @@ function GrammarChoiceAnswerBody({
             <li>문법 범주 수: {d.grammarCategoryCount}</li>
             <li>평균 품질 점수: {d.averageQualityScore}</li>
             <li>원문 완전 복원: {d.passageRestored ? "예" : "아니오"}</li>
-            <li>생성 모델: {d.generatorModel}</li>
-            <li>검수 모델: {d.reviewerModel}</li>
+            <li>generatorModel: {d.generatorModel}</li>
+            <li>reviewerModel: {d.reviewerModel}</li>
+            <li>response.model: 생성 {d.generatorResponseModel ?? "—"} / 검수 {d.reviewerResponseModel ?? "—"}</li>
+            <li>reasoningEffort: {d.reasoningEffort ?? "none"}</li>
+            <li>openAICallCount: {d.openAICallCount ?? (d.generateApiCalls ?? 0) + (d.reviewApiCalls ?? 0)}</li>
+            <li>cacheHit: {d.cacheHit ? "true" : "false"}</li>
+            <li>localFallbackUsed: {d.localFallbackUsed ? "true" : "false"}</li>
             <li>생성 API 호출: {d.generateApiCalls}</li>
             <li>검수 API 호출: {d.reviewApiCalls}</li>
-            <li>캐시 사용: {d.cacheHit ? "예" : "아니오"}</li>
             {d.underTargetReason ? (
               <li>부족 사유: {d.underTargetReason}</li>
             ) : null}

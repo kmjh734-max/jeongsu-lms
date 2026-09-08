@@ -117,6 +117,9 @@ export async function generateWorkbookGrammarChoice(input: {
   const needAi = contexts.filter((c) => !c.cacheRow);
   let generatorModelUsed = generatorModelPreferred;
   let reviewerModelUsed = reviewerModelPreferred;
+  let generatorResponseModel = "—";
+  let reviewerResponseModel = "—";
+  let reasoningEffort = "none";
   let generateCalls = 0;
   let reviewCalls = 0;
   const generateCallsByPassage = new Map<string, number>();
@@ -165,6 +168,8 @@ export async function generateWorkbookGrammarChoice(input: {
     for (const row of firstPass) {
       generateCalls += row.gen.openAiRequestCount;
       generatorModelUsed = row.gen.modelUsed;
+      generatorResponseModel = row.gen.responseModel;
+      reasoningEffort = row.gen.reasoningEffort;
       generateCallsByPassage.set(
         row.ctx.p.projectId,
         row.gen.openAiRequestCount
@@ -187,6 +192,8 @@ export async function generateWorkbookGrammarChoice(input: {
       for (const { row, gen } of retries) {
         generateCalls += gen.openAiRequestCount;
         generatorModelUsed = gen.modelUsed;
+        generatorResponseModel = gen.responseModel;
+        reasoningEffort = gen.reasoningEffort;
         generateCallsByPassage.set(
           row.ctx.p.projectId,
           (generateCallsByPassage.get(row.ctx.p.projectId) ?? 0) +
@@ -240,6 +247,10 @@ export async function generateWorkbookGrammarChoice(input: {
     const rev = await callGrammarChoiceReviewer({ candidates: allValidated });
     reviewCalls += rev.openAiRequestCount;
     reviewerModelUsed = rev.modelUsed;
+    reviewerResponseModel = rev.responseModel;
+    if (rev.reasoningEffort && rev.reasoningEffort !== "none") {
+      reasoningEffort = rev.reasoningEffort;
+    }
     reviewsById = new Map(rev.reviews.map((r) => [r.candidateId, r]));
   }
 
@@ -274,6 +285,15 @@ export async function generateWorkbookGrammarChoice(input: {
         cacheHit: true,
         generatorModel: ctx.cacheRow.generatorModel,
         reviewerModel: ctx.cacheRow.reviewerModel,
+        generatorResponseModel:
+          ctx.cacheRow.diagnostics?.generatorResponseModel ??
+          ctx.cacheRow.generatorModel,
+        reviewerResponseModel:
+          ctx.cacheRow.diagnostics?.reviewerResponseModel ??
+          ctx.cacheRow.reviewerModel,
+        reasoningEffort: ctx.cacheRow.diagnostics?.reasoningEffort ?? "none",
+        openAICallCount: 0,
+        localFallbackUsed: false,
         generateApiCalls: 0,
         reviewApiCalls: 0,
         underTargetReason: null,
@@ -339,6 +359,11 @@ export async function generateWorkbookGrammarChoice(input: {
         cacheHit: false,
         generatorModel: generatorModelUsed,
         reviewerModel: reviewerModelUsed,
+        generatorResponseModel,
+        reviewerResponseModel,
+        reasoningEffort,
+        openAICallCount: generateCalls + reviewCalls,
+        localFallbackUsed: false,
         generateApiCalls: generateCallsByPassage.get(ctx.p.projectId) ?? 0,
         reviewApiCalls: reviewCalls > 0 ? 1 : 0,
         underTargetReason,

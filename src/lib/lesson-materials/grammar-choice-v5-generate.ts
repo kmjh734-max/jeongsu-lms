@@ -59,7 +59,7 @@ export function resolveGrammarGeneratorModel(): string[] {
     process.env.OPENAI_GRAMMAR_GENERATOR_MODEL?.trim() ||
     process.env.OPENAI_MODEL_WORKBOOK?.trim();
   if (configured) return [configured];
-  return ["gpt-4o", "gpt-4o-mini"];
+  return ["gpt-4o"];
 }
 
 export async function callGrammarChoiceGenerator(input: {
@@ -78,6 +78,8 @@ export async function callGrammarChoiceGenerator(input: {
 }): Promise<{
   byPassageId: Map<string, GeneratedGrammarCandidate[]>;
   modelUsed: string;
+  responseModel: string;
+  reasoningEffort: string;
   openAiRequestCount: number;
 }> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
@@ -134,11 +136,14 @@ export async function callGrammarChoiceGenerator(input: {
     let bodyText = "";
     let ok = false;
     let modelUsed = modelCandidates[0]!;
+    let responseModel = modelCandidates[0]!;
+    let reasoningEffort = "none";
 
     for (const model of modelCandidates) {
       let includeTemperature = studentRecordModelSupportsTemperature(model);
       let useJsonSchema = true;
       let includeJsonMode = true;
+      let includeReasoningEffort = isGpt5FamilyModel(model);
 
       for (let attempt = 0; attempt < 4; attempt++) {
         const body: Record<string, unknown> = {
@@ -147,8 +152,19 @@ export async function callGrammarChoiceGenerator(input: {
             { role: "system", content: GRAMMAR_CHOICE_GENERATOR_SYSTEM_PROMPT },
             { role: "user", content: userContent },
           ],
-          max_tokens: 16_000,
         };
+        if (isGpt5FamilyModel(model)) {
+          body.max_completion_tokens = 16_000;
+          if (includeReasoningEffort) {
+            body.reasoning_effort = "medium";
+            reasoningEffort = "medium";
+          } else {
+            reasoningEffort = "none";
+          }
+        } else {
+          body.max_tokens = 16_000;
+          reasoningEffort = "none";
+        }
         if (includeTemperature && !isGpt5FamilyModel(model)) {
           body.temperature = 0.45;
         }
@@ -199,6 +215,8 @@ export async function callGrammarChoiceGenerator(input: {
         ok = res.ok;
         if (ok) {
           modelUsed = model;
+          const envelope = parseJsonSafe<{ model?: string }>(bodyText);
+          responseModel = String(envelope?.model ?? model);
           break;
         }
         let errMsg = bodyText;
@@ -210,6 +228,14 @@ export async function callGrammarChoiceGenerator(input: {
         if (isModelUnavailableError(res.status, errMsg)) break;
         if (isUnsupportedTemperatureError(errMsg) && includeTemperature) {
           includeTemperature = false;
+          continue;
+        }
+        if (
+          includeReasoningEffort &&
+          isUnsupportedParameterError(errMsg, "reasoning_effort")
+        ) {
+          includeReasoningEffort = false;
+          reasoningEffort = "none";
           continue;
         }
         if (isUnsupportedParameterError(errMsg, "response_format")) {
@@ -292,7 +318,13 @@ export async function callGrammarChoiceGenerator(input: {
       byPassageId.set(passageId, list);
     }
 
-    return { byPassageId, modelUsed, openAiRequestCount: 1 };
+    return {
+      byPassageId,
+      modelUsed,
+      responseModel,
+      reasoningEffort,
+      openAiRequestCount: 1,
+    };
   } finally {
     clearTimeout(timer);
   }
