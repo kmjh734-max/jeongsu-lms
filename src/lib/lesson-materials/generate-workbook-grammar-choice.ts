@@ -403,6 +403,42 @@ export async function generateWorkbookGrammarChoice(input: {
           ? 0
           : selected.reduce((s, x) => s + x.qualityScore, 0) / selected.length;
 
+      const surveys = surveysByPassage.get(ctx.p.projectId) ?? [];
+      const surveyPointCount = surveys.reduce(
+        (n, s) => n + s.grammarPoints.length,
+        0
+      );
+      const generatedPoints = new Map<string, Set<string>>();
+      for (const c of generatedByPassage.get(ctx.p.projectId) ?? []) {
+        const key = c.sentenceId;
+        const set = generatedPoints.get(key) ?? new Set<string>();
+        set.add(c.correctText.trim().toLowerCase());
+        generatedPoints.set(key, set);
+      }
+      const discoveredGrammarPointCount =
+        surveyPointCount ||
+        [...generatedPoints.values()].reduce((n, set) => n + set.size, 0);
+      const difficultyMix = { BASIC: 0, CORE: 0, ADVANCED: 0 };
+      for (const row of selected) {
+        const level =
+          row.validated.difficultyLevel ??
+          (row.difficultyScore <= 2
+            ? "BASIC"
+            : row.difficultyScore >= 4
+              ? "ADVANCED"
+              : "CORE");
+        difficultyMix[level] += 1;
+      }
+      const rejectReasonCounts: Record<string, number> = {};
+      for (const r of rejectedReviews) {
+        const reasons = r.rejectionReasons.length ? r.rejectionReasons : ["OTHER"];
+        for (const reason of reasons) {
+          rejectReasonCounts[reason] = (rejectReasonCounts[reason] ?? 0) + 1;
+        }
+      }
+      for (const r of pend.codeRejected) {
+        rejectReasonCounts[r.reason] = (rejectReasonCounts[r.reason] ?? 0) + 1;
+      }
       const underTargetReason: string | null = null;
 
       diagnostics = {
@@ -444,6 +480,21 @@ export async function generateWorkbookGrammarChoice(input: {
         generatorActualModel: generatorResponseModel,
         reviewerActualModel: reviewerResponseModel,
         newQuestionCount: finalCandidates.length,
+        desiredQuestionCount: discoveredGrammarPointCount,
+        discoveredGrammarPointCount,
+        initialCandidateCount: pend.generatedCount,
+        initialApprovedCount: accepted.length,
+        topUpRoundCount: 0,
+        topUpCandidateCount: 0,
+        topUpApprovedCount: 0,
+        finalQuestionCount: finalCandidates.length,
+        renderedQuestionCount: finalCandidates.length,
+        countMismatch: false,
+        difficultyMix,
+        sentencePointCounts: [...generatedPoints.entries()].map(
+          ([sentenceId, set]) => ({ sentenceId, count: set.size })
+        ),
+        rejectReasonCounts,
         generateApiCalls: generateCallsByPassage.get(ctx.p.projectId) ?? 0,
         reviewApiCalls: reviewCalls > 0 ? 1 : 0,
         underTargetReason,
@@ -543,7 +594,14 @@ export async function generateWorkbookGrammarChoice(input: {
       else rebuilt += items.find((x) => x.number === seg.number)!.correctText;
     }
     const passageRestored = rebuilt === ctx.sourcePassage;
-    if (diagnostics) diagnostics.passageRestored = passageRestored;
+    if (diagnostics) {
+      diagnostics.passageRestored = passageRestored;
+      diagnostics.renderedQuestionCount = items.length;
+      diagnostics.finalQuestionCount = finalCandidates.length;
+      diagnostics.newQuestionCount = items.length;
+      diagnostics.finalCount = items.length;
+      diagnostics.countMismatch = items.length !== finalCandidates.length;
+    }
 
     console.info("[workbook-grammar-choice-v5]", {
       title: ctx.p.title,

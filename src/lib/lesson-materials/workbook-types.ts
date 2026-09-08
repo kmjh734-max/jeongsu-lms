@@ -507,6 +507,9 @@ export type WorkbookGrammarChoiceDiagnostics = {
   finalQuestionCount?: number;
   renderedQuestionCount?: number;
   countMismatch?: boolean;
+  difficultyMix?: { BASIC: number; CORE: number; ADVANCED: number };
+  sentencePointCounts?: Array<{ sentenceId: string; count: number }>;
+  rejectReasonCounts?: Record<string, number>;
   generateApiCalls: number;
   reviewApiCalls: number;
   underTargetReason: string | null;

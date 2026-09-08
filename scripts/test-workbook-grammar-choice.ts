@@ -16,7 +16,7 @@ import type { AnalysisReportData } from "../src/lib/lesson-materials/generate-an
 import type { StoredGrammarChoiceV5Cache } from "../src/lib/lesson-materials/grammar-choice-v5-cache";
 
 assert.ok(
-  GRAMMAR_CHOICE_PROMPT_VERSION.includes("grammar-choice-generator-v7")
+  GRAMMAR_CHOICE_PROMPT_VERSION.includes("grammar-choice-generator-v8")
 );
 
 for (const row of BLOCKED_PAIR_FIXTURES) {
@@ -199,6 +199,7 @@ async function main() {
   };
 
   const first = await generateWorkbookGrammarChoice({
+    forceRegenerate: true,
     passages: [
       {
         projectId: "fixture-loa",
@@ -239,7 +240,12 @@ async function main() {
   for (const section of first.sections) {
     const d = section.diagnostics!;
     report += `\n======== ${section.title} (1st run) ========\n`;
+    report += `desired=${d.desiredQuestionCount} discovered=${d.discoveredGrammarPointCount} sentencePoints=${JSON.stringify(d.sentencePointCounts)}\n`;
+    report += `initialCandidates=${d.initialCandidateCount} initialApproved=${d.initialApprovedCount} topUpRounds=${d.topUpRoundCount} topUpCandidates=${d.topUpCandidateCount} topUpApproved=${d.topUpApprovedCount}\n`;
+    report += `final=${d.finalQuestionCount} rendered=${d.renderedQuestionCount} mismatch=${d.countMismatch} mix=${JSON.stringify(d.difficultyMix)}\n`;
+    report += `rejectReasons=${JSON.stringify(d.rejectReasonCounts)}\n`;
     report += `생성후보=${d.generatedCandidateCount} 코드통과=${d.codeValidatedCount} 검수승인=${d.reviewAcceptedCount} 최종=${d.finalCount}\n`;
+    report += `forceRegenerate=${d.forceRegenerate} oldReuse=${d.oldQuestionReuseCount} generatorActual=${d.generatorActualModel} reviewerActual=${d.reviewerActualModel}\n`;
     report += `생성모델=${d.generatorModel} actual=${d.generatorActualResponseModel} effort=${d.generatorReasoningEffort}\n`;
     report += `검수모델=${d.reviewerModel} actual=${d.reviewerActualResponseModel} effort=${d.reviewerReasoningEffort}\n`;
     report += `openAICallCount=${d.openAICallCount} cacheHit=${d.cacheHit} localFallbackUsed=${d.localFallbackUsed}\n`;
