@@ -1,0 +1,362 @@
+export const GRAMMAR_CHOICE_V2_ENGINE = "grammar-choice-v2";
+export const GRAMMAR_CHOICE_V2_ONTOLOGY = "high-school-grammar-v1";
+export const GRAMMAR_CHOICE_V2_PROMPT = "scan-generate-v1";
+export const GRAMMAR_CHOICE_V2_VALIDATOR = "local-gate-v1";
+export const GRAMMAR_CHOICE_V2_AUDITOR = "risk-audit-v1";
+
+export type GrammarPriority = "MANDATORY" | "CORE" | "BASIC";
+export type Questionability = "SAFE" | "RISKY" | "NOT_SUITABLE";
+export type DifficultyBand = "BASIC" | "CORE" | "ADVANCED";
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
+
+export type GrammarChapter =
+  | "C01"
+  | "C02"
+  | "C03"
+  | "C04"
+  | "C05"
+  | "C06"
+  | "C07"
+  | "C08"
+  | "C09"
+  | "C10"
+  | "C11"
+  | "C12"
+  | "C13"
+  | "C14";
+
+export type GrammarPointCode =
+  | "SENTENCE_SV"
+  | "SENTENCE_SVC"
+  | "SENTENCE_SVO"
+  | "SENTENCE_SVOO"
+  | "SENTENCE_SVOC"
+  | "VERB_TRANSITIVE_INTRANSITIVE"
+  | "SUBJECT_COMPLEMENT"
+  | "OBJECT_COMPLEMENT_NOUN_ADJ"
+  | "OBJECT_COMPLEMENT_TO_V"
+  | "OBJECT_COMPLEMENT_BARE_V"
+  | "OBJECT_COMPLEMENT_VING"
+  | "OBJECT_COMPLEMENT_PP"
+  | "CAUSATIVE_ACTIVE"
+  | "CAUSATIVE_PASSIVE"
+  | "PERCEPTION_COMPLEMENT"
+  | "DUMMY_IT_SUBJECT"
+  | "DUMMY_IT_OBJECT"
+  | "THERE_BE_STRUCTURE"
+  | "AGREEMENT_LONG_SUBJECT"
+  | "AGREEMENT_PREPOSITIONAL_MODIFIER"
+  | "AGREEMENT_RELATIVE_ANTECEDENT"
+  | "AGREEMENT_CLAUSE_SUBJECT"
+  | "AGREEMENT_GERUND_SUBJECT"
+  | "AGREEMENT_ONE_OF"
+  | "AGREEMENT_ONE_OF_RELATIVE"
+  | "AGREEMENT_NUMBER_OF"
+  | "AGREEMENT_PARTITIVE"
+  | "AGREEMENT_EACH_EVERY"
+  | "AGREEMENT_CORRELATIVE"
+  | "AGREEMENT_THERE_BE"
+  | "AGREEMENT_INVERSION"
+  | "AGREEMENT_DISTANCE"
+  | "TENSE_EXPLICIT_TIME_MARKER"
+  | "TENSE_PRESENT_PAST"
+  | "TENSE_PRESENT_PERFECT_PAST"
+  | "TENSE_PAST_PERFECT"
+  | "TENSE_FUTURE_PERFECT"
+  | "TENSE_PROGRESSIVE"
+  | "TENSE_SEQUENCE"
+  | "TENSE_REPORTED_SPEECH"
+  | "TENSE_UNIVERSAL_TRUTH"
+  | "TENSE_TIME_CONDITION_CLAUSE"
+  | "TENSE_SINCE_FOR"
+  | "TENSE_BY_THE_TIME"
+  | "VOICE_ACTIVE_PASSIVE"
+  | "VOICE_PROGRESSIVE_PASSIVE"
+  | "VOICE_PERFECT_PASSIVE"
+  | "VOICE_MODAL_PASSIVE"
+  | "VOICE_PHRASAL_VERB_PASSIVE"
+  | "VOICE_SVOO_PASSIVE"
+  | "VOICE_SVOC_PASSIVE"
+  | "VOICE_NONFINITE_PASSIVE"
+  | "VOICE_CAUSATIVE_HAVE_GET"
+  | "VOICE_BE_MADE_TO"
+  | "VOICE_BE_SEEN_TO"
+  | "MODAL_MEANING"
+  | "MODAL_HAVE_PP"
+  | "MODAL_PAST_INFERENCE"
+  | "MODAL_REGRET_CRITICISM"
+  | "SHOULD_SPECIAL_USE"
+  | "MANDATIVE_SHOULD"
+  | "SUBSTITUTE_DO"
+  | "USED_TO"
+  | "WOULD_PAST_HABIT"
+  | "HAD_BETTER"
+  | "WOULD_RATHER"
+  | "CONDITIONAL_SECOND"
+  | "CONDITIONAL_THIRD"
+  | "CONDITIONAL_MIXED"
+  | "CONDITIONAL_IF_SHOULD"
+  | "CONDITIONAL_IF_WERE_TO"
+  | "CONDITIONAL_INVERTED_WERE"
+  | "CONDITIONAL_INVERTED_HAD"
+  | "CONDITIONAL_INVERTED_SHOULD"
+  | "WISH_PAST"
+  | "WISH_PAST_PERFECT"
+  | "AS_IF_PAST"
+  | "AS_IF_PAST_PERFECT"
+  | "WITHOUT_IF_CONDITION"
+  | "MANDATIVE_SUBJUNCTIVE"
+  | "IT_IS_TIME_SUBJUNCTIVE"
+  | "INFINITIVE_NOUN_ROLE"
+  | "INFINITIVE_ADJECTIVE_ROLE"
+  | "INFINITIVE_ADVERB_ROLE"
+  | "INFINITIVE_DUMMY_IT"
+  | "INFINITIVE_OBJECT_COMPLEMENT"
+  | "INFINITIVE_LOGICAL_SUBJECT"
+  | "INFINITIVE_PERFECT"
+  | "INFINITIVE_PASSIVE"
+  | "GERUND_SUBJECT"
+  | "GERUND_COMPLEMENT"
+  | "GERUND_VERB_OBJECT"
+  | "GERUND_PREPOSITION_OBJECT"
+  | "GERUND_LOGICAL_SUBJECT"
+  | "GERUND_PERFECT"
+  | "GERUND_PASSIVE"
+  | "VERB_COMPLEMENT_MEANING_CHANGE"
+  | "GERUND_FIXED_CONSTRUCTION"
+  | "PARTICIPLE_NOUN_MODIFIER"
+  | "PARTICIPLE_ACTIVE_PASSIVE"
+  | "PARTICIPLE_EMOTION"
+  | "PARTICIPLE_SUBJECT_COMPLEMENT"
+  | "PARTICIPLE_OBJECT_COMPLEMENT"
+  | "PARTICIPLE_REDUCED_RELATIVE"
+  | "PARTICIPIAL_CLAUSE_ACTIVE"
+  | "PARTICIPIAL_CLAUSE_PASSIVE"
+  | "PARTICIPIAL_CLAUSE_PERFECT"
+  | "PARTICIPIAL_CLAUSE_NEGATIVE"
+  | "PARTICIPIAL_CLAUSE_WITH_CONJUNCTION"
+  | "ABSOLUTE_PARTICIPLE"
+  | "WITH_OBJECT_PARTICIPLE"
+  | "DANGLING_PARTICIPLE"
+  | "NOUN_CLAUSE_THAT"
+  | "NOUN_CLAUSE_WHETHER_IF"
+  | "NOUN_CLAUSE_WH_WORD"
+  | "INDIRECT_QUESTION_ORDER"
+  | "APPOSITIVE_THAT"
+  | "REPEATED_THAT"
+  | "ADVERB_CLAUSE_TIME"
+  | "ADVERB_CLAUSE_CONDITION"
+  | "ADVERB_CLAUSE_REASON"
+  | "ADVERB_CLAUSE_CONCESSION"
+  | "ADVERB_CLAUSE_PURPOSE"
+  | "ADVERB_CLAUSE_RESULT"
+  | "CONJUNCTION_PREPOSITION_CONTRAST"
+  | "CORRELATIVE_CONJUNCTION"
+  | "RELATIVE_SUBJECT"
+  | "RELATIVE_OBJECT"
+  | "RELATIVE_POSSESSIVE"
+  | "RELATIVE_WHO_WHOM"
+  | "RELATIVE_WHAT"
+  | "RELATIVE_PREPOSITION_WHICH"
+  | "RELATIVE_PREPOSITION_WHOM"
+  | "RELATIVE_ADVERB_WHERE"
+  | "RELATIVE_ADVERB_WHEN"
+  | "RELATIVE_ADVERB_WHY"
+  | "RELATIVE_RESTRICTIVE"
+  | "RELATIVE_NONRESTRICTIVE"
+  | "RELATIVE_OMISSION"
+  | "RELATIVE_COMPOUND"
+  | "RELATIVE_ANTECEDENT_DISTANCE"
+  | "RELATIVE_AGREEMENT"
+  | "PARALLEL_AND_OR_BUT"
+  | "PARALLEL_VERBS"
+  | "PARALLEL_NOUN_PHRASES"
+  | "PARALLEL_ADJECTIVES"
+  | "PARALLEL_NONFINITE"
+  | "PARALLEL_CLAUSES"
+  | "PARALLEL_SHARED_AUXILIARY"
+  | "PARALLEL_SHARED_TO"
+  | "PARALLEL_REPEATED_THAT"
+  | "CORRELATIVE_BOTH_AND"
+  | "CORRELATIVE_EITHER_OR"
+  | "CORRELATIVE_NEITHER_NOR"
+  | "CORRELATIVE_NOT_ONLY_BUT_ALSO"
+  | "FROM_A_TO_B"
+  | "COMPARISON_PARALLEL"
+  | "PRONOUN_SUBJECT_OBJECT_CASE"
+  | "PRONOUN_REFLEXIVE"
+  | "PRONOUN_ANTECEDENT"
+  | "DUMMY_REFERENTIAL_IT"
+  | "ONE_ONES"
+  | "ANOTHER_OTHER_THE_OTHER"
+  | "EACH_ALL_BOTH"
+  | "EITHER_NEITHER"
+  | "COUNTABLE_UNCOUNTABLE"
+  | "SINGULAR_PLURAL_NOUN"
+  | "ARTICLE"
+  | "POSSESSIVE"
+  | "ITS_IT_IS"
+  | "QUANTIFIER"
+  | "ADJECTIVE_NOUN_MODIFIER"
+  | "ADJECTIVE_SUBJECT_COMPLEMENT"
+  | "ADJECTIVE_OBJECT_COMPLEMENT"
+  | "ADVERB_VERB_MODIFIER"
+  | "ADVERB_ADJECTIVE_MODIFIER"
+  | "ADVERB_SENTENCE_MODIFIER"
+  | "LINKING_VERB_COMPLEMENT"
+  | "CONFUSABLE_ADVERB"
+  | "SO_SUCH"
+  | "TOO_ENOUGH"
+  | "COMPARATIVE"
+  | "SUPERLATIVE"
+  | "AS_AS"
+  | "THE_COMPARATIVE"
+  | "COMPARATIVE_AND_COMPARATIVE"
+  | "MULTIPLICATIVE_COMPARISON"
+  | "ONE_OF_SUPERLATIVE"
+  | "COMPARISON_TARGET"
+  | "INVERSION_NEGATIVE"
+  | "INVERSION_ONLY"
+  | "INVERSION_PLACE_DIRECTION"
+  | "INVERSION_COMPLEMENT"
+  | "INVERSION_SO_NEITHER"
+  | "CLEFT_IT_THAT"
+  | "EMPHATIC_DO"
+  | "ELLIPSIS_COMMON_ELEMENT"
+  | "ELLIPSIS_SUBSTITUTION"
+  | "APPOSITION"
+  | "INSERTION"
+  | "NEGATION_SCOPE"
+  | "PARTIAL_NEGATION"
+  | "DOUBLE_NEGATION"
+  | "IT_TAKES_TO"
+  | "TOO_TO"
+  | "ENOUGH_TO"
+  | "SO_AS_TO";
+
+export type GrammarTransformCode =
+  | "FORM_SWAP"
+  | "NUMBER_SWAP"
+  | "TENSE_SWAP"
+  | "VOICE_SWAP"
+  | "WORD_ORDER"
+  | "CLAUSE_MARKER"
+  | "NONFINITE_SWAP"
+  | "CASE_SWAP"
+  | "PARALLEL_FORM"
+  | "CONDITIONAL_FORM"
+  | "RELATIVE_CHOICE"
+  | "ADJ_ADV";
+
+export type OmissionReason =
+  | "NO_UNIQUE_DISTRACTOR"
+  | "OVERLAPPING_HIGHER_PRIORITY_POINT"
+  | "OVERLAP_WITH_HIGHER_PRIORITY"
+  | "SOURCE_FORM_NOT_EDITABLE"
+  | "DUPLICATE_SUBTYPE"
+  | "NOT_PEDAGOGICALLY_USEFUL";
+
+export type LocalRejectCode =
+  | "SOURCE_SPAN_NOT_FOUND"
+  | "SOURCE_ANSWER_MISMATCH"
+  | "OVERLAPPING_SPAN"
+  | "DUPLICATE_EXACT_PAIR"
+  | "DUPLICATE_SUBTYPE"
+  | "TOO_TRIVIAL_SHORT_AGREEMENT"
+  | "MECHANICAL_INFINITIVE_MARKER"
+  | "MECHANICAL_MODAL_FORM"
+  | "TRIVIAL_IMPERATIVE_INFLECTION"
+  | "IMPLAUSIBLE_DISTRACTOR"
+  | "BOTH_GRAMMATICAL"
+  | "MEANING_ONLY_CONTRAST"
+  | "AMBIGUOUS_TENSE"
+  | "AMBIGUOUS_REFERENCE"
+  | "MISSING_MANDATORY_GRAMMAR_POINT";
+
+export type ExactSentence = {
+  sentenceId: string;
+  text: string;
+  passageStart: number;
+  passageEnd: number;
+};
+
+export type GrammarPointDefinition = {
+  code: GrammarPointCode;
+  chapter: GrammarChapter;
+  labelKo: string;
+  priority: GrammarPriority;
+  detectionHints: string[];
+  allowedTransforms: GrammarTransformCode[];
+  forbiddenTransforms: GrammarTransformCode[];
+  requiresWholeSentenceContext: boolean;
+  requiresPassageContext: boolean;
+  maxPerPassage?: number;
+  explanationTemplateId: string;
+};
+
+export type DetectedGrammarPoint = {
+  sentenceId: string;
+  pointCode: GrammarPointCode;
+  sourceSpan: string;
+  occurrenceIndex: number;
+  priority: GrammarPriority;
+  questionability: Questionability;
+  evidence: string;
+  omissionReason?: OmissionReason;
+};
+
+export type GrammarCandidate = {
+  candidateId: string;
+  sentenceId: string;
+  pointCode: GrammarPointCode;
+  sourceSpan: string;
+  occurrenceIndex: number;
+  correctAnswer: string;
+  distractors: string[];
+  transformCode: GrammarTransformCode;
+  priority: GrammarPriority;
+  difficulty: DifficultyBand;
+  evidence: string;
+  ruleSummaryKo: string;
+  riskLevel: RiskLevel;
+};
+
+export type ResolvedCandidate = GrammarCandidate & {
+  passageStart: number;
+  passageEnd: number;
+  subtypeKey: string;
+};
+
+export type SentenceCoverageReport = {
+  sentenceId: string;
+  detectedPointCodes: GrammarPointCode[];
+  mandatoryPointCodes: GrammarPointCode[];
+  generatedQuestionPointCodes: GrammarPointCode[];
+  omittedPoints: Array<{
+    pointCode: GrammarPointCode;
+    reason: OmissionReason;
+  }>;
+};
+
+export type AuditResult = {
+  candidateId: string;
+  decision: "PASS" | "REJECT";
+  uniqueInContext: boolean;
+  plausibleLearnerError: boolean;
+  singleGrammarAxis: boolean;
+  rejectionCode?: string;
+  correctedRuleCode?: GrammarPointCode;
+};
+
+export type AnalysisHintV2 = {
+  sentenceId?: string;
+  targetText: string;
+  label?: string;
+};
+
+export type LocalMandatoryHint = {
+  sentenceId: string;
+  pointCode: GrammarPointCode;
+  sourceSpan: string;
+  occurrenceIndex: number;
+};

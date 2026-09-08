@@ -427,6 +427,8 @@ function GrammarChoiceAnswerBody({
             <li>newQuestionCount: {d.newQuestionCount ?? d.finalCount}</li>
             <li>localFallbackUsed: {d.localFallbackUsed ? "true" : "false"}</li>
             <li>generatorVersion: {d.generatorVersion ?? "—"}</li>
+            <li>engine: {d.generatorVersion?.startsWith("grammar-choice-v2") ? "v2" : "v1"}</li>
+            {d.staffCompareNote ? <li>staffCompare: {d.staffCompareNote}</li> : null}
             <li>reviewerVersion: {d.reviewerVersion ?? "—"}</li>
             <li>생성 API 호출: {d.generateApiCalls}</li>
             <li>검토 호출: {d.reviewApiCalls}</li>

@@ -9,6 +9,11 @@ import { generateWorkbookSentenceOrder } from "@/lib/lesson-materials/generate-w
 import { generateWorkbookTf } from "@/lib/lesson-materials/generate-workbook-tf";
 import { generateWorkbookWordOrderWriting } from "@/lib/lesson-materials/generate-workbook-word-order-writing";
 import { generateWorkbookGrammarChoice } from "@/lib/lesson-materials/generate-workbook-grammar-choice";
+import {
+  generateWorkbookGrammarChoiceV2,
+  resolveGrammarChoiceEngineVersion,
+} from "@/lib/lesson-materials/grammar-choice-v2/generate";
+import type { StoredGrammarChoiceV2Cache } from "@/lib/lesson-materials/grammar-choice-v2/cache";
 import type { StoredGrammarChoiceCache } from "@/lib/lesson-materials/grammar-choice-cache";
 import type { StoredGrammarChoiceV5Cache } from "@/lib/lesson-materials/grammar-choice-v5-cache";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
@@ -179,6 +184,7 @@ export async function generateWorkbookAction(
     grammarChoiceCache: StoredGrammarChoiceCache | null;
     grammarBlueprintCache: import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache | null;
     grammarChoiceV5Cache: StoredGrammarChoiceV5Cache | null;
+    grammarChoiceV2Cache: StoredGrammarChoiceV2Cache | null;
     analysisReport: AnalysisReportData | null;
   }> = [];
 
@@ -222,6 +228,8 @@ export async function generateWorkbookAction(
         null,
       grammarChoiceV5Cache:
         (pack.grammarChoiceV5Cache as StoredGrammarChoiceV5Cache) ?? null,
+      grammarChoiceV2Cache:
+        (pack.grammarChoiceV2Cache as StoredGrammarChoiceV2Cache) ?? null,
       analysisReport,
     });
   }
@@ -256,21 +264,60 @@ export async function generateWorkbookAction(
     let openAiFromGrammar = 0;
 
     if (wantGrammarChoice) {
-      const gc = await generateWorkbookGrammarChoice({
-        forceRegenerate: input.forceRegenerate === true,
-        passages: passages.map((p) => ({
-          projectId: p.projectId,
-          title: p.title,
-          source: p.source,
-          sentences: p.sentences,
-          analysisReport: p.analysisReport,
-          grammarChoiceV5Cache: input.forceRegenerate
-            ? null
-            : p.grammarChoiceV5Cache,
-        })),
-      });
+      const engine = resolveGrammarChoiceEngineVersion();
+      const gc =
+        engine === "v2"
+          ? await generateWorkbookGrammarChoiceV2({
+              forceRegenerate: input.forceRegenerate === true,
+              passages: passages.map((p) => ({
+                projectId: p.projectId,
+                title: p.title,
+                source: p.source,
+                sentences: p.sentences,
+                analysisReport: p.analysisReport,
+                grammarChoiceV2Cache: input.forceRegenerate
+                  ? null
+                  : p.grammarChoiceV2Cache,
+              })),
+            })
+          : await generateWorkbookGrammarChoice({
+              forceRegenerate: input.forceRegenerate === true,
+              passages: passages.map((p) => ({
+                projectId: p.projectId,
+                title: p.title,
+                source: p.source,
+                sentences: p.sentences,
+                analysisReport: p.analysisReport,
+                grammarChoiceV5Cache: input.forceRegenerate
+                  ? null
+                  : p.grammarChoiceV5Cache,
+              })),
+            });
       workbook.grammarChoiceSections = gc.sections;
       workbook.grammarChoiceSkipped = gc.skipped;
+      if (
+        engine === "v2" &&
+        process.env.GRAMMAR_CHOICE_ENGINE_COMPARE === "1"
+      ) {
+        const v1 = await generateWorkbookGrammarChoice({
+          forceRegenerate: false,
+          passages: passages.map((p) => ({
+            projectId: p.projectId,
+            title: p.title,
+            source: p.source,
+            sentences: p.sentences,
+            analysisReport: p.analysisReport,
+            grammarChoiceV5Cache: p.grammarChoiceV5Cache,
+          })),
+        });
+        const note = `v2=${gc.sections.reduce((n, s) => n + s.items.length, 0)} v1=${v1.sections.reduce((n, s) => n + s.items.length, 0)}`;
+        workbook.grammarChoiceSections = gc.sections.map((section) => ({
+          ...section,
+          diagnostics: section.diagnostics
+            ? { ...section.diagnostics, staffCompareNote: note }
+            : section.diagnostics,
+        }));
+      }
       openAiFromGrammar = gc.timing.openAiRequestCount;
       workbook.timing = {
         ...gc.timing,
@@ -292,7 +339,14 @@ export async function generateWorkbookAction(
           wordOrderChunkCache: prev.wordOrderChunkCache,
           grammarChoiceCache: prev.grammarChoiceCache,
           grammarBlueprintCache: prev.grammarBlueprintCache,
-          grammarChoiceV5Cache: cache,
+          grammarChoiceV5Cache:
+            engine === "v2"
+              ? prev.grammarChoiceV5Cache
+              : (cache as StoredGrammarChoiceV5Cache),
+          grammarChoiceV2Cache:
+            engine === "v2"
+              ? (cache as StoredGrammarChoiceV2Cache)
+              : prev.grammarChoiceV2Cache,
         };
         await supabase
           .from("lesson_material_projects")
@@ -347,6 +401,7 @@ export async function generateWorkbookAction(
           grammarChoiceCache: prev.grammarChoiceCache,
           grammarBlueprintCache: prev.grammarBlueprintCache,
           grammarChoiceV5Cache: prev.grammarChoiceV5Cache,
+          grammarChoiceV2Cache: prev.grammarChoiceV2Cache,
         };
         await supabase
           .from("lesson_material_projects")
@@ -485,10 +540,11 @@ export async function generateWorkbookAction(
             blankCandidatePool: prev.blankCandidatePool,
             passageSourceHash: prev.passageSourceHash,
             sentenceTranslations: prev.sentenceTranslations,
-            wordOrderChunkCache: cache,
-            grammarChoiceCache: prev.grammarChoiceCache,
-            grammarBlueprintCache: prev.grammarBlueprintCache,
-            grammarChoiceV5Cache: prev.grammarChoiceV5Cache,
+          wordOrderChunkCache: cache,
+          grammarChoiceCache: prev.grammarChoiceCache,
+          grammarBlueprintCache: prev.grammarBlueprintCache,
+          grammarChoiceV5Cache: prev.grammarChoiceV5Cache,
+          grammarChoiceV2Cache: prev.grammarChoiceV2Cache,
           };
           await supabase
             .from("lesson_material_projects")

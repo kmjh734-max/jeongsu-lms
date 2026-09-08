@@ -513,6 +513,8 @@ export type WorkbookGrammarChoiceDiagnostics = {
   generateApiCalls: number;
   reviewApiCalls: number;
   underTargetReason: string | null;
+  /** Teacher-only. Set only when GRAMMAR_CHOICE_ENGINE_COMPARE=1. */
+  staffCompareNote?: string;
   reviewRejectSamples: Array<{ candidateId: string; reasons: string[] }>;
   codeRejectSamples: Array<{
     candidateId: string;

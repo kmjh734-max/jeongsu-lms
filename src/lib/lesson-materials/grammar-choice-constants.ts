@@ -40,6 +40,10 @@ export const CIRCLED_NUMBERS = [
   "⑱",
   "⑲",
   "⑳",
+  "㉑",
+  "㉒",
+  "㉓",
+  "㉔",
 ] as const;
 
 export function circledNumber(n: number): string {

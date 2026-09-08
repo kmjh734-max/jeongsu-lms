@@ -26,6 +26,8 @@ export type LessonPackData = {
   grammarBlueprintCache?: import("@/lib/lesson-materials/grammar-blueprint-cache").StoredGrammarBlueprintCache | null;
   /** Final reviewed grammar-choice items (v5) */
   grammarChoiceV5Cache?: import("@/lib/lesson-materials/grammar-choice-v5-cache").StoredGrammarChoiceV5Cache | null;
+  /** Grammar Choice V2 cache. Never copy V1 items into this field. */
+  grammarChoiceV2Cache?: import("@/lib/lesson-materials/grammar-choice-v2/cache").StoredGrammarChoiceV2Cache | null;
 };
 
 function parseJsonSafe<T>(text: string): T | null {
