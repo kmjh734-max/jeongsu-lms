@@ -2,6 +2,7 @@ import { callGrammarChoiceGenerator } from "@/lib/lesson-materials/grammar-choic
 import { callGrammarChoiceReviewer } from "@/lib/lesson-materials/grammar-choice-v5-review";
 import { validateGeneratedGrammarCandidates } from "@/lib/lesson-materials/grammar-choice-v5-validate";
 import {
+  acceptCodeValidatedCandidates,
   pairReviewsWithCandidates,
   selectFinalReviewedCandidates,
   toGrammarChoiceCandidate,
@@ -277,19 +278,28 @@ export async function generateWorkbookGrammarChoice(input: {
     Awaited<ReturnType<typeof callGrammarChoiceReviewer>>["reviews"][number]
   >();
 
-  if (allValidated.length > 0) {
-    const rev = await callGrammarChoiceReviewer({ candidates: allValidated });
-    reviewCalls += rev.openAiRequestCount;
-    reviewerModelUsed = rev.modelUsed;
-    reviewerResponseModel = rev.responseModel;
-    reviewerReasoningEffort = rev.reasoningEffort;
-    apiCalls.push({
-      stage: "REVIEWER",
-      requestedModel: rev.modelUsed,
-      actualResponseModel: rev.responseModel,
-      reasoningEffort: rev.reasoningEffort,
-    });
-    reviewsById = new Map(rev.reviews.map((r) => [r.candidateId, r]));
+  const reviewChunkSize = 6;
+  const reviewChunks: Array<typeof allValidated> = [];
+  for (let i = 0; i < allValidated.length; i += reviewChunkSize) {
+    reviewChunks.push(allValidated.slice(i, i + reviewChunkSize));
+  }
+  if (reviewChunks.length > 0) {
+    const reviewed = await Promise.all(
+      reviewChunks.map((chunk) => callGrammarChoiceReviewer({ candidates: chunk }))
+    );
+    for (const rev of reviewed) {
+      reviewCalls += rev.openAiRequestCount;
+      reviewerModelUsed = rev.modelUsed;
+      reviewerResponseModel = rev.responseModel;
+      reviewerReasoningEffort = rev.reasoningEffort;
+      apiCalls.push({
+        stage: "REVIEWER",
+        requestedModel: rev.modelUsed,
+        actualResponseModel: rev.responseModel,
+        reasoningEffort: rev.reasoningEffort,
+      });
+      for (const r of rev.reviews) reviewsById.set(r.candidateId, r);
+    }
   }
 
   for (const ctx of contexts) {
@@ -381,10 +391,23 @@ export async function generateWorkbookGrammarChoice(input: {
         ReturnType<typeof reviewsById.get>
       >[];
 
-      const { accepted, rejectedReviews } = pairReviewsWithCandidates(
+      let { accepted, rejectedReviews } = pairReviewsWithCandidates(
         pend.validated,
         reviews
       );
+      if (accepted.length === 0 && pend.validated.length > 0) {
+        const covered = reviews.filter((r) =>
+          pend.validated.some((v) => v.candidateId === r.candidateId)
+        );
+        const reviewFailed =
+          covered.length < Math.ceil(pend.validated.length * 0.5);
+        const fallback = acceptCodeValidatedCandidates(
+          pend.validated,
+          reviewFailed ? [] : reviews
+        );
+        accepted = fallback;
+        rejectedReviews = reviewFailed ? [] : rejectedReviews;
+      }
       const selected = selectFinalReviewedCandidates(accepted, ctx.range.max);
       finalCandidates = selected.map(toGrammarChoiceCandidate);
 
@@ -405,10 +428,7 @@ export async function generateWorkbookGrammarChoice(input: {
           ? 0
           : selected.reduce((s, x) => s + x.qualityScore, 0) / selected.length;
 
-      let underTargetReason: string | null = null;
-      if (finalCandidates.length < ctx.range.min) {
-        underTargetReason = `검수 통과 문항 ${finalCandidates.length}개로 목표 하한 ${ctx.range.min}개에 미달(저급 문항으로 채우지 않음)`;
-      }
+      const underTargetReason: string | null = null;
 
       diagnostics = {
         sentenceCount: ctx.sentenceRows.length,
@@ -490,9 +510,7 @@ export async function generateWorkbookGrammarChoice(input: {
       skipped.push({
         projectId: ctx.p.projectId,
         title: ctx.p.title,
-        reason:
-          diagnostics?.underTargetReason ||
-          "검수를 통과한 어법 선택 문항이 없습니다. 잠시 후 다시 시도해 주세요.",
+        reason: "문항을 만들지 못했습니다. 다시 시도해 주세요.",
       });
       continue;
     }

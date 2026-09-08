@@ -177,7 +177,7 @@ export async function callGrammarChoiceReviewer(input: {
         ],
       };
       if (isGpt5FamilyModel(requestedModel)) {
-        body.max_completion_tokens = 10_000;
+        body.max_completion_tokens = 16_000;
       } else {
         body.max_tokens = 10_000;
       }

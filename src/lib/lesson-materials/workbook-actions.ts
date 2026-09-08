@@ -533,15 +533,9 @@ export async function generateWorkbookAction(
       wantGrammarChoice &&
       (workbook.grammarChoiceSections?.length ?? 0) === 0
     ) {
-      const detail =
-        workbook.grammarChoiceSkipped
-          ?.map((s) => `「${s.title}」 ${s.reason}`)
-          .join(" ") ?? "";
       return {
         ok: false,
-        message:
-          detail ||
-          "어법 선택 결과를 만들지 못했습니다. 지문의 핵심 어법 포인트를 확인해 주세요.",
+        message: "어법 선택 문항을 만들지 못했습니다. 다시 시도해 주세요.",
       };
     }
     if (wantBlank && workbook.blankSections.length === 0) {

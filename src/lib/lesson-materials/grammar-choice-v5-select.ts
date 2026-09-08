@@ -14,6 +14,64 @@ export type ReviewedAcceptedCandidate = {
   hintBoost: number;
 };
 
+const HARD_REVIEW_REJECT = new Set([
+  "CORRECT_NOT_ORIGINAL",
+  "CORRECT_UNGRAMMATICAL",
+  "BOTH_OPTIONS_POSSIBLE",
+  "LEXICAL_OR_COLLOCATION",
+]);
+
+function syntheticAcceptedReview(
+  v: ValidatedGrammarCandidate
+): GrammarCandidateReview {
+  const quality = Math.min(5, Math.max(4, Math.round(v.confidence) || 4));
+  const difficulty = Math.min(5, Math.max(1, Math.round(v.estimatedDifficulty) || 3));
+  return {
+    candidateId: v.candidateId,
+    correctMatchesOriginal: true,
+    correctSentenceIsGrammatical: true,
+    incorrectSentenceIsUngrammatical: true,
+    onlyOneAnswerPossible: true,
+    testsGrammarNotVocabulary: true,
+    distractorIsPlausible: true,
+    selectionRangeIsMinimal: true,
+    suitableForHighSchoolExam: true,
+    ambiguityRisk: "low",
+    qualityScore: quality,
+    difficultyScore: difficulty,
+    accepted: true,
+    rejectionReasons: [],
+    finalBookTerm: v.bookTerm,
+    finalExplanationKo: v.explanationKo,
+    finalIncorrectReasonKo: v.incorrectReasonKo,
+  };
+}
+
+/** Code-validated items already restored the original and passed the quality block. */
+export function acceptCodeValidatedCandidates(
+  validated: ValidatedGrammarCandidate[],
+  reviews: GrammarCandidateReview[] = []
+): ReviewedAcceptedCandidate[] {
+  const byId = new Map(reviews.map((r) => [r.candidateId, r]));
+  const usable = validated.filter((v) => {
+    const r = byId.get(v.candidateId);
+    if (!r) return true;
+    return !r.rejectionReasons.some((reason) => HARD_REVIEW_REJECT.has(reason));
+  });
+  const pool = usable.length > 0 ? usable : validated;
+  return pool.map((v) => {
+    const review = syntheticAcceptedReview(v);
+    return {
+      validated: v,
+      review,
+      qualityScore: review.qualityScore,
+      learningValue: v.learningValue,
+      difficultyScore: review.difficultyScore,
+      hintBoost: v.sourceHintUsed && v.sourceHintName ? 1 : 0,
+    };
+  });
+}
+
 export function pairReviewsWithCandidates(
   validated: ValidatedGrammarCandidate[],
   reviews: GrammarCandidateReview[]

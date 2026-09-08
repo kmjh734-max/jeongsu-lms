@@ -399,8 +399,8 @@ function GrammarChoiceAnswerBody({
             <li>원문 불일치 탈락 수: {d.originalMismatchCount}</li>
             <li>범위 오류 탈락 수: {d.rangeErrorCount}</li>
             <li>중복·겹침 탈락 수: {d.overlapDuplicateCount}</li>
-            <li>검수 AI 전달 수: {d.reviewSubmittedCount}</li>
-            <li>검수 AI 승인 수: {d.reviewAcceptedCount}</li>
+            <li>전달 수: {d.reviewSubmittedCount}</li>
+            <li>승인 수: {d.reviewAcceptedCount}</li>
             <li>양쪽 가능성 탈락 수: {d.bothPossibleRejectCount}</li>
             <li>어휘·숙어 탈락 수: {d.lexicalRejectCount}</li>
             <li>저급 오답 탈락 수: {d.trivialRejectCount}</li>
@@ -425,7 +425,7 @@ function GrammarChoiceAnswerBody({
             <li>generatorVersion: {d.generatorVersion ?? "—"}</li>
             <li>reviewerVersion: {d.reviewerVersion ?? "—"}</li>
             <li>생성 API 호출: {d.generateApiCalls}</li>
-            <li>검수 API 호출: {d.reviewApiCalls}</li>
+            <li>검토 호출: {d.reviewApiCalls}</li>
             {d.underTargetReason ? (
               <li>부족 사유: {d.underTargetReason}</li>
             ) : null}
@@ -1066,9 +1066,7 @@ export function WorkbookWorkbench({
       if (multiReady) {
         setStatus("워크북을 만들고 있습니다…");
       } else if (wantGrammarChoice) {
-        setStatus(
-          "1/3 어법 후보를 생성하고 있습니다. AI 생성·검수라 1~3분 걸릴 수 있습니다."
-        );
+        setStatus("4%");
       } else if (wantBlank) {
         setStatus("빈칸 채우기 워크북을 만들고 있습니다…");
       } else if (wantWordOrder) {
@@ -1086,31 +1084,19 @@ export function WorkbookWorkbench({
       try {
         const startedAt = Date.now();
         if (wantGrammarChoice) {
-          // Server action is one round-trip: generate then review.
-          // Do NOT jump to "3/3" on a wall-clock timer — that feels stuck.
           const passageCount = Math.max(1, ids.length);
-          const switchToReviewMs = Math.min(
-            90_000,
-            35_000 + passageCount * 15_000
-          );
-          timers.status = setTimeout(() => {
-            if (!cancelled) {
-              setStatus(
-                "2/3 문항의 정답과 오답을 검수하고 있습니다. (지문이 많으면 2~3분 걸릴 수 있습니다)"
-              );
-            }
-          }, switchToReviewMs);
-          timers.elapsed = setInterval(() => {
+          const expectedMs = Math.min(180_000, 70_000 + passageCount * 40_000);
+          const tick = () => {
             if (cancelled) return;
-            const sec = Math.floor((Date.now() - startedAt) / 1000);
-            const phase =
-              Date.now() - startedAt < switchToReviewMs
-                ? "1/3 어법 후보를 생성하고 있습니다."
-                : "2/3 문항의 정답과 오답을 검수하고 있습니다.";
-            setStatus(
-              `${phase} ${sec}초 경과 · AI 생성·검수라 1~3분 걸릴 수 있습니다.`
+            const elapsed = Date.now() - startedAt;
+            const pct = Math.min(
+              96,
+              Math.max(4, Math.round((elapsed / expectedMs) * 96))
             );
-          }, 5_000);
+            setStatus(`${pct}%`);
+          };
+          tick();
+          timers.elapsed = setInterval(tick, 500);
         }
         const res = await generateWorkbookAction(role, {
           projectIds: ids,
@@ -1140,7 +1126,7 @@ export function WorkbookWorkbench({
           return;
         }
         if (wantGrammarChoice) {
-          setStatus("3/3 워크북을 구성하고 있습니다.");
+          setStatus("100%");
         }
         saveWorkbookToSession(res.workbook);
         setWorkbook(res.workbook);
@@ -1707,23 +1693,19 @@ export function WorkbookWorkbench({
   );
 
   if (generating) {
-    const grammarHint =
-      status.includes("어법") ||
-      status.includes("1/3") ||
-      status.includes("2/3") ||
-      status.includes("3/3");
+    const pctOnly = /^\d+%$/.test(status);
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-3 bg-slate-100 px-4">
         <div className="max-w-md rounded-2xl bg-white px-8 py-6 text-center shadow">
-          <p className="text-sm font-semibold leading-relaxed text-slate-800">
+          <p
+            className={
+              pctOnly
+                ? "text-3xl font-black tabular-nums text-slate-800"
+                : "text-sm font-semibold leading-relaxed text-slate-800"
+            }
+          >
             {status}
           </p>
-          {grammarHint ? (
-            <p className="mt-3 text-xs leading-relaxed text-slate-500">
-              화면이 멈춘 것이 아닙니다. 서버에서 AI로 후보를 만들고 검수하는
-              중이며, 보통 1~3분 걸립니다.
-            </p>
-          ) : null}
         </div>
         <Link href={base} className="text-xs font-semibold text-violet-700">
           ← 자료함으로 돌아가기
@@ -1844,7 +1826,6 @@ export function WorkbookWorkbench({
   const woSections = workbook.wordOrderWritingSections ?? [];
   const woSkipped = workbook.wordOrderWritingSkipped ?? [];
   const gcSections = workbook.grammarChoiceSections ?? [];
-  const gcSkipped = workbook.grammarChoiceSkipped ?? [];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -2105,15 +2086,6 @@ export function WorkbookWorkbench({
                               typeOrder={page.typeOrderGrammarChoice!}
                               multi={gcSections.length > 1}
                             />
-                            {i === gcSections.length - 1 && gcSkipped.length > 0 ? (
-                              <ul className="mt-4 space-y-1 text-[11px] text-amber-700">
-                                {gcSkipped.map((s) => (
-                                  <li key={`gcs-${s.projectId}`}>
-                                    「{s.title}」 {s.reason}
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : null}
                           </div>
                         ))
                       : null}
