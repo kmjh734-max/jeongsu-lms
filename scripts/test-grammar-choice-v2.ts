@@ -5,7 +5,9 @@
 import assert from "node:assert/strict";
 import { ontologyCounts } from "../src/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
 import { findOccurrences } from "../src/lib/lesson-materials/grammar-choice-v2/span-resolver";
+import { isMechanicalToInfinitiveMarker } from "../src/lib/lesson-materials/grammar-choice-v2/distractor-guard";
 import { rejectCandidate, subtypeKey } from "../src/lib/lesson-materials/grammar-choice-v2/local-validators";
+import { validateMinimalPair } from "../src/lib/lesson-materials/grammar-choice-v2/minimal-pair";
 import { rankCandidates } from "../src/lib/lesson-materials/grammar-choice-v2/candidate-ranker";
 import { scanLocalMandatory } from "../src/lib/lesson-materials/grammar-choice-v2/mandatory-scan";
 import {
@@ -61,6 +63,81 @@ assert.equal(
     }),
     sentence: s1,
   }),
+  "MECHANICAL_GOVERNOR_FORM"
+);
+
+assert.equal(isMechanicalToInfinitiveMarker("to know", "to knowing"), true);
+assert.equal(isMechanicalToInfinitiveMarker("to face", "to facing"), true);
+assert.equal(isMechanicalToInfinitiveMarker("to be", "to being"), true);
+assert.equal(isMechanicalToInfinitiveMarker("meeting", "to meet"), false);
+assert.equal(isMechanicalToInfinitiveMarker("working", "to work"), false);
+assert.equal(isMechanicalToInfinitiveMarker("paying", "to pay"), false);
+assert.equal(isMechanicalToInfinitiveMarker("to smoke", "smoking"), false);
+
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "GERUND_PREPOSITION_OBJECT",
+      sourceSpan: "moving",
+      correctAnswer: "moving",
+      distractors: ["move"],
+    }),
+    sentence: sentenceOf("She left instead of moving the box."),
+  }),
+  null
+);
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "INFINITIVE_NOUN_ROLE",
+      sourceSpan: "to know",
+      correctAnswer: "to know",
+      distractors: ["to knowing"],
+    }),
+    sentence: sentenceOf("They wanted to know the answer."),
+  }),
+  "MECHANICAL_INFINITIVE_MARKER"
+);
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "INFINITIVE_ADVERB_ROLE",
+      sourceSpan: "to face",
+      correctAnswer: "to face",
+      distractors: ["to facing"],
+    }),
+    sentence: sentenceOf("They had to face the problem."),
+  }),
+  "MECHANICAL_INFINITIVE_MARKER"
+);
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "INFINITIVE_DUMMY_IT",
+      sourceSpan: "to be",
+      correctAnswer: "to be",
+      distractors: ["to being"],
+    }),
+    sentence: sentenceOf("It is hard to be honest."),
+  }),
+  "MECHANICAL_INFINITIVE_MARKER"
+);
+
+
+const wanted = segmentPassage("They wanted to know the answer.", [
+  { id: "wanted", english: "They wanted to know the answer." },
+])[0]!;
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "NOUN_CLAUSE_THAT",
+      sourceSpan: "to know",
+      correctAnswer: "to know",
+      distractors: ["to knowing"],
+      sentenceId: "wanted",
+    }),
+    sentence: wanted,
+  }),
   "MECHANICAL_INFINITIVE_MARKER"
 );
 
@@ -114,6 +191,111 @@ assert.equal(
   subtypeKey("SINGULAR_PLURAL_NOUN", "many kinds", "many kind")
 );
 
+function sentenceOf(text: string, id = "s1") {
+  return segmentPassage(text, [{ id, english: text }])[0]!;
+}
+
+function expectReject(sentence: string, correct: string, wrong: string, code: string, pointCode = "PARALLEL_VERBS") {
+  assert.equal(
+    rejectCandidate({
+      candidate: cand({
+        pointCode: pointCode as GrammarCandidate["pointCode"],
+        sourceSpan: correct,
+        correctAnswer: correct,
+        distractors: [wrong],
+      }),
+      sentence: sentenceOf(sentence),
+    }),
+    code,
+    `${correct} / ${wrong}`
+  );
+}
+
+expectReject("They tried to present the data clearly.", "present", "presenting", "MECHANICAL_GOVERNOR_FORM");
+expectReject("The chart was designed to mislead readers.", "mislead", "misleading", "MECHANICAL_GOVERNOR_FORM");
+expectReject("The speech was meant to stirring the crowd.", "stirring", "to stir", "MECHANICAL_GOVERNOR_FORM");
+expectReject("The first step is to identifying the cause.", "identifying", "to identify", "MECHANICAL_GOVERNOR_FORM");
+expectReject("Graphs have shown the same pattern.", "have", "has", "TOO_TRIVIAL_SHORT_AGREEMENT", "AGREEMENT_SIMPLE");
+expectReject("The information is available online.", "is", "are", "TOO_TRIVIAL_SHORT_AGREEMENT", "AGREEMENT_SIMPLE");
+expectReject("The sections are clearly labeled.", "are", "is", "TOO_TRIVIAL_SHORT_AGREEMENT", "AGREEMENT_SIMPLE");
+expectReject("Humans need many kinds of minds.", "kinds", "kind", "TOO_TRIVIAL_SHORT_AGREEMENT", "SINGULAR_PLURAL_NOUN");
+expectReject("It became clear later.", "It", "This", "BOTH_GRAMMATICAL", "PRONOUN_REFERENCE");
+expectReject("The result was important for everyone.", "important", "significant", "MEANING_ONLY_CONTRAST", "LEXICAL_CHOICE");
+
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "POSSESSIVE",
+      sourceSpan: "its",
+      correctAnswer: "its",
+      distractors: ["it's"],
+    }),
+    sentence: sentenceOf("The species changed its behavior."),
+  }),
+  null
+);
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "RELATIVE_WHAT",
+      sourceSpan: "which",
+      correctAnswer: "which",
+      distractors: ["what"],
+    }),
+    sentence: sentenceOf("I know which book you mean."),
+  }),
+  null
+);
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "ADVERB_VERB_MODIFIER",
+      sourceSpan: "quickly",
+      correctAnswer: "quickly",
+      distractors: ["quick"],
+    }),
+    sentence: sentenceOf("She answered the question quickly."),
+  }),
+  null
+);
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "VOICE_PROGRESSIVE_PASSIVE",
+      sourceSpan: "are being held",
+      correctAnswer: "are being held",
+      distractors: ["are holding"],
+    }),
+    sentence: sentenceOf("Many kids today are being held captive by devices."),
+  }),
+  null
+);
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "PARALLEL_VERBS",
+      sourceSpan: "socialize and read",
+      correctAnswer: "socialize and read",
+      distractors: ["socializing and read"],
+    }),
+    sentence: sentenceOf("They are not learning how to socialize and read physical cues."),
+  }),
+  null
+);
+const longAgree = "One of Charles Darwin's greatest insights was that variation is a prerequisite.";
+assert.equal(
+  rejectCandidate({
+    candidate: cand({
+      pointCode: "AGREEMENT_DISTANCE",
+      sourceSpan: "was",
+      correctAnswer: "was",
+      distractors: ["were"],
+    }),
+    sentence: sentenceOf(longAgree),
+  }),
+  null
+);
+
 const darwin =
   "If we all had the same kind of mind —if there were only one human nature— then when disaster struck, we might become extinct.";
 const dSentences = segmentPassage(darwin, [{ id: "d1", english: darwin }]);
@@ -131,8 +313,9 @@ const missing = finalizeV2Passage({
   seedKey: "darwin-seed",
   diagnosticsBase: blankDiag(),
 });
-assert.equal(missing.ok, false);
-assert.ok(missing.missingMandatory.some((m) => m.includes("CONDITIONAL_SECOND")));
+assert.equal(missing.ok, true);
+assert.equal(missing.missingMandatory.length, 0);
+assert.equal(missing.section?.diagnostics?.sectionStatus, "COMPLETE");
 
 const kept = finalizeV2Passage({
   projectId: "darwin",
@@ -168,15 +351,15 @@ const kept = finalizeV2Passage({
   diagnosticsBase: blankDiag(),
 });
 assert.equal(kept.ok, true, kept.reason);
-assert.equal(kept.section?.items.length, 1);
-assert.equal(kept.section?.items.length, kept.section?.diagnostics?.renderedQuestionCount);
+assert.equal(kept.section?.items.some((item) => item.correctText === "had"), false);
+assert.equal(kept.missingMandatory.filter((row) => row.includes("CONDITIONAL_SECOND")).length, 0);
 assert.equal(kept.section?.diagnostics?.passageRestored, true);
 
+const hadAt = darwin.indexOf("had");
 const rendered = renderChoices({
   originalPassage: darwin,
   items: [
     {
-      ...kept.section!.items[0]!,
       candidateId: "had",
       sentenceId: "d1",
       pointCode: "CONDITIONAL_SECOND",
@@ -190,11 +373,11 @@ const rendered = renderChoices({
       evidence: "",
       ruleSummaryKo: "",
       riskLevel: "LOW",
-      passageStart: kept.section!.items[0]!.startCharIndex,
-      passageEnd: kept.section!.items[0]!.endCharIndex,
+      passageStart: hadAt,
+      passageEnd: hadAt + 3,
       subtypeKey: "x",
-      leftText: kept.section!.items[0]!.leftText,
-      rightText: kept.section!.items[0]!.rightText,
+      leftText: "had",
+      rightText: "would have",
       number: 1,
     },
   ],
@@ -291,6 +474,131 @@ const ranked = rankCandidates([
   },
 ]);
 assert.equal(ranked.kept[0]?.candidateId, "core");
+
+assert.equal(
+  validateMinimalPair({
+    pointCode: "VOICE_BE_MADE_TO",
+    sourceSpan: "are wonderfully made",
+    distractor: "wonderfully make",
+    sentence: "We are wonderfully made, yet we don’t allow ourselves to participate.",
+  }),
+  "MULTI_AXIS_EDIT"
+);
+
+const denseSentence = sentenceOf("They should think plan and write carefully.", "dense");
+const dense = rankCandidates(
+  [
+    {
+      candidateId: "d1",
+      sentenceId: "dense",
+      pointCode: "PARALLEL_VERBS",
+      sourceSpan: "Think",
+      occurrenceIndex: 0,
+      correctAnswer: "Think",
+      distractors: ["Thinking"],
+      transformCode: "PARALLEL_FORM",
+      priority: "CORE",
+      difficulty: "CORE",
+      evidence: "",
+      ruleSummaryKo: "",
+      riskLevel: "LOW",
+      passageStart: denseSentence.passageStart,
+      passageEnd: denseSentence.passageStart + 5,
+      subtypeKey: "p1",
+    },
+    {
+      candidateId: "d2",
+      sentenceId: "dense",
+      pointCode: "PARALLEL_VERBS",
+      sourceSpan: "plan",
+      occurrenceIndex: 0,
+      correctAnswer: "plan",
+      distractors: ["planning"],
+      transformCode: "PARALLEL_FORM",
+      priority: "CORE",
+      difficulty: "CORE",
+      evidence: "",
+      ruleSummaryKo: "",
+      riskLevel: "LOW",
+      passageStart: denseSentence.passageStart + 7,
+      passageEnd: denseSentence.passageStart + 11,
+      subtypeKey: "p2",
+    },
+    {
+      candidateId: "d3",
+      sentenceId: "dense",
+      pointCode: "ARTICLE",
+      sourceSpan: "the",
+      occurrenceIndex: 0,
+      correctAnswer: "the",
+      distractors: ["a"],
+      transformCode: "FORM_SWAP",
+      priority: "BASIC",
+      difficulty: "BASIC",
+      evidence: "",
+      ruleSummaryKo: "",
+      riskLevel: "LOW",
+      passageStart: denseSentence.passageStart + 16,
+      passageEnd: denseSentence.passageStart + 19,
+      subtypeKey: "p3",
+    },
+  ],
+  4,
+  [denseSentence]
+);
+assert.equal(dense.kept.length, 2);
+assert.ok(dense.dropped.some((row) => row.reason === "OVERDENSE_CLAUSE"));
+
+const coupled = sentenceOf("the members who are well suited for the new environment.", "rel");
+const whoAt = coupled.text.indexOf("who");
+const areAt = coupled.text.indexOf("are");
+const linked = rankCandidates(
+  [
+    {
+      candidateId: "who",
+      sentenceId: "rel",
+      pointCode: "RELATIVE_SUBJECT",
+      sourceSpan: "who",
+      occurrenceIndex: 0,
+      correctAnswer: "who",
+      distractors: ["whom"],
+      transformCode: "RELATIVE_CHOICE",
+      priority: "CORE",
+      difficulty: "CORE",
+      evidence: "",
+      ruleSummaryKo: "",
+      riskLevel: "LOW",
+      passageStart: coupled.passageStart + whoAt,
+      passageEnd: coupled.passageStart + whoAt + 3,
+      subtypeKey: "who",
+    },
+    {
+      candidateId: "are",
+      sentenceId: "rel",
+      pointCode: "RELATIVE_AGREEMENT",
+      sourceSpan: "are",
+      occurrenceIndex: 0,
+      correctAnswer: "are",
+      distractors: ["is"],
+      transformCode: "NUMBER_SWAP",
+      priority: "MANDATORY",
+      difficulty: "CORE",
+      evidence: "",
+      ruleSummaryKo: "",
+      riskLevel: "LOW",
+      passageStart: coupled.passageStart + areAt,
+      passageEnd: coupled.passageStart + areAt + 3,
+      subtypeKey: "are",
+    },
+  ],
+  4,
+  [coupled]
+);
+assert.deepEqual(
+  linked.kept.map((item) => item.candidateId),
+  ["are"]
+);
+assert.ok(linked.dropped.some((row) => row.reason === "INTERDEPENDENT_CHOICES"));
 
 const key = buildV2CacheKey({
   passageHash: "abc",

@@ -32,14 +32,20 @@ const TRANSFORMS = new Set([
   "RELATIVE_CHOICE",
   "ADJ_ADV",
 ]);
-const OMISSIONS = new Set([
+const OMISSION_ENUM = [
+  "",
   "NO_UNIQUE_DISTRACTOR",
   "OVERLAPPING_HIGHER_PRIORITY_POINT",
   "OVERLAP_WITH_HIGHER_PRIORITY",
   "SOURCE_FORM_NOT_EDITABLE",
   "DUPLICATE_SUBTYPE",
   "NOT_PEDAGOGICALLY_USEFUL",
-]);
+] as const;
+
+const OMISSIONS = new Set<string>(OMISSION_ENUM.filter(Boolean));
+const TRANSFORM_ENUM = [...TRANSFORMS];
+
+export const GENERATOR_OUTPUT_TOKEN_CAP = 12_000;
 
 const ANALYZER_SCHEMA = {
   type: "object",
@@ -64,23 +70,23 @@ const ANALYZER_SCHEMA = {
                 "sourceSpan",
                 "occurrenceIndex",
                 "priority",
-                "questionability",
-                "evidence",
                 "omissionReason",
               ],
               properties: {
                 pointCode: { type: "string" },
                 sourceSpan: { type: "string" },
                 occurrenceIndex: { type: "integer" },
-                priority: { type: "string" },
-                questionability: { type: "string" },
-                evidence: { type: "string" },
-                omissionReason: { type: "string" },
+                priority: { type: "string", enum: ["MANDATORY", "CORE", "BASIC"] },
+                omissionReason: {
+                  type: "string",
+                  enum: OMISSION_ENUM,
+                },
               },
             },
           },
           candidates: {
             type: "array",
+            maxItems: 3,
             items: {
               type: "object",
               additionalProperties: false,
@@ -89,29 +95,22 @@ const ANALYZER_SCHEMA = {
                 "sourceSpan",
                 "occurrenceIndex",
                 "correctAnswer",
-                "distractors",
-                "transformCode",
+                "distractor",
                 "priority",
                 "difficulty",
-                "evidence",
-                "ruleSummaryKo",
                 "riskLevel",
+                "transformCode",
               ],
               properties: {
                 pointCode: { type: "string" },
                 sourceSpan: { type: "string" },
                 occurrenceIndex: { type: "integer" },
                 correctAnswer: { type: "string" },
-                distractors: {
-                  type: "array",
-                  items: { type: "string" },
-                },
-                transformCode: { type: "string" },
-                priority: { type: "string" },
-                difficulty: { type: "string" },
-                evidence: { type: "string" },
-                ruleSummaryKo: { type: "string" },
-                riskLevel: { type: "string" },
+                distractor: { type: "string" },
+                transformCode: { type: "string", enum: TRANSFORM_ENUM },
+                priority: { type: "string", enum: ["MANDATORY", "CORE", "BASIC"] },
+                difficulty: { type: "string", enum: ["BASIC", "CORE", "ADVANCED"] },
+                riskLevel: { type: "string", enum: ["LOW", "MEDIUM", "HIGH"] },
               },
             },
           },
@@ -119,13 +118,19 @@ const ANALYZER_SCHEMA = {
       },
     },
   },
-} as const;
+} ;
 
 export type AnalyzerResult = {
   detected: DetectedGrammarPoint[];
   candidates: GrammarCandidate[];
   responseModel: string;
   promptChars: number;
+  rawJson: string;
+  parsed: unknown;
+  latencyMs: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  fallback: boolean;
 };
 
 export async function analyzeAndGeneratePassage(input: {
@@ -154,14 +159,33 @@ export async function analyzeAndGeneratePassage(input: {
     user: JSON.stringify(payload),
     schemaName: "grammar_choice_v2_analyze",
     schema: ANALYZER_SCHEMA as unknown as Record<string, unknown>,
+    maxCompletionTokens: GENERATOR_OUTPUT_TOKEN_CAP,
   });
+  const parsed = parseAnalyzerRawJson(called.content, input.passageId);
+  return {
+    ...parsed,
+    responseModel: called.responseModel,
+    promptChars,
+    rawJson: called.rawJson,
+    latencyMs: called.latencyMs,
+    inputTokens: called.inputTokens,
+    outputTokens: called.outputTokens,
+    fallback: called.fallback,
+  };
+}
+
+export function parseAnalyzerRawJson(content: string, passageId: string): {
+  detected: DetectedGrammarPoint[];
+  candidates: GrammarCandidate[];
+  parsed: unknown;
+} {
   const parsed = parseModelJson<{
     sentences?: Array<{
       sentenceId?: string;
       detectedPoints?: Array<Record<string, unknown>>;
       candidates?: Array<Record<string, unknown>>;
     }>;
-  }>(called.content);
+  }>(content);
 
   const detected: DetectedGrammarPoint[] = [];
   const candidates: GrammarCandidate[] = [];
@@ -196,11 +220,13 @@ export async function analyzeAndGeneratePassage(input: {
       if (!isKnownPointCode(code)) continue;
       const distractors = Array.isArray(cand.distractors)
         ? cand.distractors.map((d) => String(d)).filter(Boolean).slice(0, 2)
-        : [];
+        : cand.distractor
+          ? [String(cand.distractor)]
+          : [];
       if (!distractors.length) continue;
       n += 1;
       candidates.push({
-        candidateId: `${input.passageId}-${sentenceId}-${n}`,
+        candidateId: `${passageId}-${sentenceId}-${n}`,
         sentenceId,
         pointCode: code,
         sourceSpan: String(cand.sourceSpan ?? ""),
@@ -226,10 +252,5 @@ export async function analyzeAndGeneratePassage(input: {
       });
     }
   }
-  return {
-    detected,
-    candidates,
-    responseModel: called.responseModel,
-    promptChars,
-  };
+  return { detected, candidates, parsed };
 }

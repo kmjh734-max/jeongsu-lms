@@ -452,6 +452,17 @@ export type WorkbookGrammarChoiceItem = {
   analysisPointId?: string | null;
   structureSummary?: string;
   analysisOriginLabel?: string;
+  /** Teacher/replay provenance. Not rendered on the student surface. */
+  internalProvenance?: {
+    code: string;
+    subtype: string;
+    priority: string;
+    assessmentAxis: string;
+    occurrenceId: string;
+    sourceSpan: string;
+    candidateId: string;
+    exclusionReason: string | null;
+  };
 };
 
 export type WorkbookGrammarChoiceDiagnostics = {
@@ -485,6 +496,10 @@ export type WorkbookGrammarChoiceDiagnostics = {
   openAICallCount: number;
   localFallbackUsed: false;
   generatorVersion: string;
+  /** Engine actually used for this section. Teacher diagnostics only. */
+  engineVersion?: "v1" | "v2";
+  /** Set when GRAMMAR_CHOICE_ENGINE_VERSION is neither v1 nor v2. */
+  engineSelectionNote?: string;
   reviewerVersion: string;
   apiCalls: Array<{
     stage: "GENERATOR_INITIAL" | "GENERATOR_TOP_UP" | "REVIEWER";
@@ -510,9 +525,35 @@ export type WorkbookGrammarChoiceDiagnostics = {
   difficultyMix?: { BASIC: number; CORE: number; ADVANCED: number };
   sentencePointCounts?: Array<{ sentenceId: string; count: number }>;
   rejectReasonCounts?: Record<string, number>;
+  /** Same distractor pair with the same code/subtype appearing more than once. */
+  repeatedCodeSubtypePairs?: string[];
   generateApiCalls: number;
   reviewApiCalls: number;
   underTargetReason: string | null;
+  mandatoryDetected?: number;
+  mandatoryEligible?: number;
+  mandatoryRendered?: number;
+  mandatoryExcludedWithValidReason?: number;
+  sectionStatus?: "COMPLETE" | "PARTIAL" | "REJECTED";
+  analysisOnlyCount?: number;
+  eligibleQuestionCount?: number;
+  excludedOccurrenceCount?: number;
+  missingEligibleCount?: number;
+  mandatoryCoverage?: "N/A" | number;
+  /** MANDATORY grammar occurrences. Not student items. */
+  detectedMandatoryOccurrences?: number;
+  analysisOnlyMandatoryOccurrences?: number;
+  eligibleMandatoryOccurrences?: number;
+  validExcludedMandatoryOccurrences?: number;
+  renderedMandatoryOccurrences?: number;
+  missingEligibleMandatoryOccurrences?: number;
+  /** Student-question candidates, not mixed with mandatory detections. */
+  totalEligibleQuestions?: number;
+  /** Student items actually inserted. */
+  totalRenderedQuestions?: number;
+  /** All-priority occurrence exclusions. */
+  totalExcludedOccurrences?: number;
+  countUnits?: Record<string, string>;
   /** Teacher-only. Set only when GRAMMAR_CHOICE_ENGINE_COMPARE=1. */
   staffCompareNote?: string;
   reviewRejectSamples: Array<{ candidateId: string; reasons: string[] }>;

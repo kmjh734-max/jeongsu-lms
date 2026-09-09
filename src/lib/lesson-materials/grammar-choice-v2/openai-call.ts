@@ -30,9 +30,20 @@ export async function callGrammarChoiceV2Json(input: {
   user: string;
   schemaName: string;
   schema: Record<string, unknown>;
-}): Promise<{ content: string; responseModel: string }> {
+  maxCompletionTokens?: number;
+}): Promise<{
+  content: string;
+  responseModel: string;
+  rawJson: string;
+  latencyMs: number;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  fallback: boolean;
+}> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 180_000);
+  const started = Date.now();
+  let fallback = false;
   try {
     let bodyText = "";
     let ok = false;
@@ -41,6 +52,7 @@ export async function callGrammarChoiceV2Json(input: {
     let useJsonSchema = true;
 
     for (let attempt = 0; attempt < 4; attempt++) {
+      if (attempt > 0) fallback = true;
       const body: Record<string, unknown> = {
         model: input.model,
         messages: [
@@ -48,10 +60,11 @@ export async function callGrammarChoiceV2Json(input: {
           { role: "user", content: input.user },
         ],
       };
+      const completionCap = input.maxCompletionTokens ?? 12_000;
       if (isGpt5FamilyModel(input.model)) {
-        body.max_completion_tokens = 24_000;
+        body.max_completion_tokens = completionCap;
       } else {
-        body.max_tokens = 8_000;
+        body.max_tokens = Math.min(8_000, completionCap);
       }
       if (reasoningField === "object") {
         body.reasoning = { effort: input.reasoningEffort };
@@ -141,7 +154,18 @@ export async function callGrammarChoiceV2Json(input: {
         errorMessage: "빈 응답",
       });
     }
-    return { content, responseModel };
+    const usage = parseJsonSafe<{
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
+    }>(bodyText);
+    return {
+      content,
+      responseModel,
+      rawJson: content,
+      latencyMs: Date.now() - started,
+      inputTokens: usage?.usage?.prompt_tokens ?? null,
+      outputTokens: usage?.usage?.completion_tokens ?? null,
+      fallback,
+    };
   } finally {
     clearTimeout(timer);
   }

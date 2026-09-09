@@ -12,6 +12,7 @@ import { generateWorkbookGrammarChoice } from "@/lib/lesson-materials/generate-w
 import {
   generateWorkbookGrammarChoiceV2,
   resolveGrammarChoiceEngineVersion,
+  stampGrammarChoiceEngineDiagnostics,
 } from "@/lib/lesson-materials/grammar-choice-v2/generate";
 import type { StoredGrammarChoiceV2Cache } from "@/lib/lesson-materials/grammar-choice-v2/cache";
 import type { StoredGrammarChoiceCache } from "@/lib/lesson-materials/grammar-choice-cache";
@@ -264,7 +265,8 @@ export async function generateWorkbookAction(
     let openAiFromGrammar = 0;
 
     if (wantGrammarChoice) {
-      const engine = resolveGrammarChoiceEngineVersion();
+      const selection = resolveGrammarChoiceEngineVersion();
+      const engine = selection.version;
       const gc =
         engine === "v2"
           ? await generateWorkbookGrammarChoiceV2({
@@ -293,7 +295,10 @@ export async function generateWorkbookAction(
                   : p.grammarChoiceV5Cache,
               })),
             });
-      workbook.grammarChoiceSections = gc.sections;
+      workbook.grammarChoiceSections = stampGrammarChoiceEngineDiagnostics(
+        gc.sections,
+        selection
+      );
       workbook.grammarChoiceSkipped = gc.skipped;
       if (
         engine === "v2" &&
@@ -311,7 +316,10 @@ export async function generateWorkbookAction(
           })),
         });
         const note = `v2=${gc.sections.reduce((n, s) => n + s.items.length, 0)} v1=${v1.sections.reduce((n, s) => n + s.items.length, 0)}`;
-        workbook.grammarChoiceSections = gc.sections.map((section) => ({
+        workbook.grammarChoiceSections = stampGrammarChoiceEngineDiagnostics(
+          gc.sections,
+          selection
+        ).map((section) => ({
           ...section,
           diagnostics: section.diagnostics
             ? { ...section.diagnostics, staffCompareNote: note }

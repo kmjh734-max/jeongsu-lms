@@ -353,10 +353,12 @@ function GrammarChoiceAnswerBody({
   section,
   typeOrder,
   multi,
+  showStaffDiagnostics,
 }: {
   section: WorkbookGrammarChoiceSection;
   typeOrder: number;
   multi: boolean;
+  showStaffDiagnostics: boolean;
 }) {
   const d = section.diagnostics;
   return (
@@ -388,7 +390,7 @@ function GrammarChoiceAnswerBody({
           </li>
         ))}
       </ol>
-      {d ? (
+      {d && showStaffDiagnostics ? (
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600 print:hidden">
           <p className="font-bold text-slate-800">진단</p>
           <ul className="mt-1 space-y-0.5">
@@ -427,7 +429,14 @@ function GrammarChoiceAnswerBody({
             <li>newQuestionCount: {d.newQuestionCount ?? d.finalCount}</li>
             <li>localFallbackUsed: {d.localFallbackUsed ? "true" : "false"}</li>
             <li>generatorVersion: {d.generatorVersion ?? "—"}</li>
-            <li>engine: {d.generatorVersion?.startsWith("grammar-choice-v2") ? "v2" : "v1"}</li>
+            <li>
+              engine:{" "}
+              {d.engineVersion ??
+                (d.generatorVersion?.startsWith("grammar-choice-v2") ? "v2" : "v1")}
+            </li>
+            {d.engineSelectionNote ? (
+              <li>engineSelection: {d.engineSelectionNote}</li>
+            ) : null}
             {d.staffCompareNote ? <li>staffCompare: {d.staffCompareNote}</li> : null}
             <li>reviewerVersion: {d.reviewerVersion ?? "—"}</li>
             <li>생성 API 호출: {d.generateApiCalls}</li>
@@ -2146,6 +2155,7 @@ export function WorkbookWorkbench({
                               section={section}
                               typeOrder={page.typeOrderGrammarChoice!}
                               multi={gcSections.length > 1}
+                              showStaffDiagnostics={role === "teacher" || role === "admin"}
                             />
                           </div>
                         ))

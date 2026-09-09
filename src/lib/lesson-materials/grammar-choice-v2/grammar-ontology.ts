@@ -100,6 +100,7 @@ const ROWS: Row[] = [
   ["WOULD_PAST_HABIT", "C05", "would 과거 습관", "CORE", "would + 원형", "FORM_SWAP", true],
   ["HAD_BETTER", "C05", "had better", "CORE", "had better + 원형", "FORM_SWAP", true],
   ["WOULD_RATHER", "C05", "would rather", "CORE", "would rather V / than", "FORM_SWAP", true],
+  ["WOULD_RATHER_SUBJUNCTIVE", "C06", "would rather 가정법", "MANDATORY", "would rather + 별도 주어 + 과거/과거완료", "CONDITIONAL_FORM", true],
   ["CONDITIONAL_SECOND", "C06", "가정법 과거", "MANDATORY", "if+과거, would/could/might+원형", "CONDITIONAL_FORM", true],
   ["CONDITIONAL_THIRD", "C06", "가정법 과거완료", "MANDATORY", "if+had p.p., would have p.p.", "CONDITIONAL_FORM", true],
   ["CONDITIONAL_MIXED", "C06", "혼합 가정법", "MANDATORY", "과거 조건+현재 결과 또는 반대", "CONDITIONAL_FORM", true],
@@ -110,9 +111,12 @@ const ROWS: Row[] = [
   ["CONDITIONAL_INVERTED_SHOULD", "C06", "Should 도치 가정", "MANDATORY", "Should S V", "WORD_ORDER", true],
   ["WISH_PAST", "C06", "wish 가정법 과거", "MANDATORY", "wish + 과거", "CONDITIONAL_FORM", true],
   ["WISH_PAST_PERFECT", "C06", "wish 가정법 과거완료", "MANDATORY", "wish + had p.p.", "CONDITIONAL_FORM", true],
+  ["WISH_WOULD", "C06", "wish 미래 가정", "MANDATORY", "wish + would + 원형", "CONDITIONAL_FORM", true],
   ["AS_IF_PAST", "C06", "as if 과거", "MANDATORY", "as if/though + 과거", "CONDITIONAL_FORM", true],
   ["AS_IF_PAST_PERFECT", "C06", "as if 과거완료", "MANDATORY", "as if + had p.p.", "CONDITIONAL_FORM", true],
   ["WITHOUT_IF_CONDITION", "C06", "if 없는 가정", "MANDATORY", "without/but for", "CONDITIONAL_FORM", true],
+  ["IF_ONLY", "C06", "if only", "MANDATORY", "if only + 과거/과거완료", "CONDITIONAL_FORM", true],
+  ["OTHERWISE_CONDITIONAL", "C06", "otherwise 가정", "MANDATORY", "otherwise + would/could/might", "CONDITIONAL_FORM", true],
   ["MANDATIVE_SUBJUNCTIVE", "C06", "당위 가정법", "MANDATORY", "insist/suggest that S V", "FORM_SWAP", true],
   ["IT_IS_TIME_SUBJUNCTIVE", "C06", "it is time", "MANDATORY", "it is time S 과거", "CONDITIONAL_FORM", true],
   ["INFINITIVE_NOUN_ROLE", "C07", "명사적 용법 to부정사", "CORE", "주어·목적어 to V", "NONFINITE_SWAP", true],
@@ -131,6 +135,11 @@ const ROWS: Row[] = [
   ["GERUND_PERFECT", "C07", "완료 동명사", "CORE", "having p.p.", "TENSE_SWAP", true],
   ["GERUND_PASSIVE", "C07", "수동 동명사", "CORE", "being p.p.", "VOICE_SWAP", true],
   ["VERB_COMPLEMENT_MEANING_CHANGE", "C07", "to V / V-ing 의미 변화", "CORE", "remember/stop/try + to/V-ing", "NONFINITE_SWAP", true],
+  ["NONFINITE_MEMORY_COMPLEMENT", "C08", "remember/forget/regret 보충어", "MANDATORY", "문맥이 과거 경험과 앞으로의 의무를 잠글 때만", "NONFINITE_SWAP", true],
+  ["NONFINITE_STOP_COMPLEMENT", "C08", "stop 보충어", "MANDATORY", "중단과 목적을 위한 멈춤이 잠길 때만", "NONFINITE_SWAP", true],
+  ["NONFINITE_TRY_COMPLEMENT", "C08", "try 보충어", "MANDATORY", "노력과 시험이 잠길 때만", "NONFINITE_SWAP", true],
+  ["NONFINITE_MEAN_COMPLEMENT", "C08", "mean 보충어", "MANDATORY", "의도와 수반이 잠길 때만", "NONFINITE_SWAP", true],
+  ["NONFINITE_GO_ON_COMPLEMENT", "C08", "go on 보충어", "MANDATORY", "계속과 다음 단계가 잠길 때만", "NONFINITE_SWAP", true],
   ["GERUND_FIXED_CONSTRUCTION", "C07", "고정 동명사", "CORE", "spend time / look forward to / worth", "NONFINITE_SWAP", true],
   ["PARTICIPLE_NOUN_MODIFIER", "C08", "분사 명사 수식", "CORE", "명사 전후 분사", "VOICE_SWAP", true],
   ["PARTICIPLE_ACTIVE_PASSIVE", "C08", "분사 능동·수동", "CORE", "의미상 주어와 능동/수동", "VOICE_SWAP", true],
@@ -149,6 +158,7 @@ const ROWS: Row[] = [
   ["NOUN_CLAUSE_THAT", "C09", "that 명사절", "CORE", "완전한 절을 이끄는 that", "CLAUSE_MARKER", true],
   ["NOUN_CLAUSE_WHETHER_IF", "C09", "whether/if 명사절", "CORE", "whether + 완전절", "CLAUSE_MARKER", true],
   ["NOUN_CLAUSE_WH_WORD", "C09", "의문사 명사절", "CORE", "what/how 완전절", "WORD_ORDER", true],
+  ["NOUN_CLAUSE_DECLARATIVE_ORDER", "C09", "진술 명사절 어순", "CORE", "be동사 뒤 생략 that + 주어+동사", "WORD_ORDER", true],
   ["INDIRECT_QUESTION_ORDER", "C09", "간접의문문 어순", "MANDATORY", "의문사+주어+동사", "WORD_ORDER", true],
   ["APPOSITIVE_THAT", "C09", "동격 that", "CORE", "명사 + that절", "CLAUSE_MARKER", true],
   ["REPEATED_THAT", "C09", "반복 that", "CORE", "that A and that B", "CLAUSE_MARKER", true],
@@ -170,6 +180,7 @@ const ROWS: Row[] = [
   ["RELATIVE_ADVERB_WHERE", "C10", "관계부사 where", "CORE", "장소 선행사", "RELATIVE_CHOICE", true],
   ["RELATIVE_ADVERB_WHEN", "C10", "관계부사 when", "CORE", "시간 선행사", "RELATIVE_CHOICE", true],
   ["RELATIVE_ADVERB_WHY", "C10", "관계부사 why", "CORE", "reason why", "RELATIVE_CHOICE", true],
+  ["RELATIVE_ADVERB_HOW", "C10", "관계부사 how", "CORE", "방법 선행사 또는 선행사 없는 how", "RELATIVE_CHOICE", true],
   ["RELATIVE_RESTRICTIVE", "C10", "제한적 용법", "CORE", "콤마 없는 관계절. which/that 둘 다 가능하면 금지", "RELATIVE_CHOICE", true],
   ["RELATIVE_NONRESTRICTIVE", "C10", "계속적 용법", "MANDATORY", "콤마 뒤 which, that 불가", "RELATIVE_CHOICE", true],
   ["RELATIVE_OMISSION", "C10", "관계사 생략", "CORE", "목적격 생략 대비", "RELATIVE_CHOICE", true],
@@ -201,7 +212,9 @@ const ROWS: Row[] = [
   ["EITHER_NEITHER", "C12", "either/neither", "CORE", "둘 중 하나", "FORM_SWAP", true],
   ["COUNTABLE_UNCOUNTABLE", "C12", "가산·불가산", "BASIC", "much/many", "NUMBER_SWAP", false],
   ["SINGULAR_PLURAL_NOUN", "C12", "명사 단복수", "BASIC", "many kinds. 같은 subtype 1회", "NUMBER_SWAP", false],
-  ["ARTICLE", "C12", "관사", "BASIC", "a/an/the", "FORM_SWAP", false],
+  ["ARTICLE", "C12", "관사", "BASIC", "a/an/the. 구조가 확정될 때만", "FORM_SWAP", false],
+  ["PREPOSITION_COLLOCATION", "C12", "필수 전치사", "CORE", "동사·형용사가 요구하는 전치사", "FORM_SWAP", true],
+  ["PREPOSITION_INSTEAD_OF", "C12", "instead of", "CORE", "명사 앞 복합전치사 instead of", "FORM_SWAP", true],
   ["POSSESSIVE", "C12", "소유격", "BASIC", "소유격 vs 목적격", "CASE_SWAP", false],
   ["ITS_IT_IS", "C12", "its/it's", "CORE", "소유격 its vs it is", "FORM_SWAP", false],
   ["QUANTIFIER", "C12", "수량사", "BASIC", "much/many/few/little", "NUMBER_SWAP", false],
@@ -230,6 +243,7 @@ const ROWS: Row[] = [
   ["INVERSION_SO_NEITHER", "C14", "so/neither 도치", "MANDATORY", "so/neither + 조동사+주어", "WORD_ORDER", true],
   ["CLEFT_IT_THAT", "C14", "강조구문", "MANDATORY", "It is/was ... that", "CLAUSE_MARKER", true],
   ["EMPHATIC_DO", "C14", "do 강조", "MANDATORY", "do/does/did + 원형", "FORM_SWAP", true],
+  ["PSEUDO_CLEFT_ALL", "C14", "의사분열문 all", "CORE", "All (that) S have to do + be + 동사원형", "FORM_SWAP", true],
   ["ELLIPSIS_COMMON_ELEMENT", "C14", "공통 요소 생략", "MANDATORY", "반복 요소 생략", "FORM_SWAP", true],
   ["ELLIPSIS_SUBSTITUTION", "C14", "대동사 생략", "MANDATORY", "than S does", "FORM_SWAP", true],
   ["APPOSITION", "C14", "동격", "CORE", "명사, 명사", "CLAUSE_MARKER", true],
@@ -240,10 +254,286 @@ const ROWS: Row[] = [
   ["IT_TAKES_TO", "C14", "it takes to", "CORE", "It takes N to V", "NONFINITE_SWAP", true],
   ["TOO_TO", "C14", "too ... to", "CORE", "too adj to V", "FORM_SWAP", true],
   ["ENOUGH_TO", "C14", "enough to", "CORE", "adj enough to V", "FORM_SWAP", true],
+  ["RESULT_RELATION_TOO_TO", "C11", "too ... to 결과 관계", "CORE", "too ... to ↔ so ... that ... cannot", "CLAUSE_MARKER", true],
+  ["RESULT_RELATION_ENOUGH_TO", "C11", "enough to 결과 관계", "CORE", "enough to ↔ so ... that ... can", "CLAUSE_MARKER", true],
+  ["NONFINITE_VERBAL_PROPERTY", "C08", "준동사 동사적 성질", "CORE", "준동사는 절의 시제를 맡지 않는다", "NONFINITE_SWAP", true],
+  ["NONFINITE_LOGICAL_SUBJECT_ANALYSIS", "C08", "준동사 의미상 주어 분석", "CORE", "for/of 분석만", "NONFINITE_SWAP", true],
+  ["OBJECT_COMPLEMENT_TO_V_ANALYSIS", "C08", "목적격보어 to V 분석", "CORE", "allow O to V 분석만", "NONFINITE_SWAP", true],
+  ["OBJECT_COMPLEMENT_BARE_ANALYSIS", "C08", "사역·지각 원형 분석", "CORE", "help/let/make O V 분석만", "NONFINITE_SWAP", true],
+  ["GERUND_SUBJECT_ANALYSIS", "C08", "동명사 주어 분석", "CORE", "동명사구 주어 분석만", "NONFINITE_SWAP", true],
+  ["GERUND_PREP_OBJECT_ANALYSIS", "C08", "전치사+동명사 분석", "CORE", "전치사 목적어 분석만", "NONFINITE_SWAP", true],
+  ["GERUND_SUBJECT_AGREEMENT_ANALYSIS", "C08", "동명사 주어 수일치 분석", "CORE", "동명사구 주어 수 분석만", "NUMBER_SWAP", true],
+  ["PREP_MODIFIER_AGREEMENT_ANALYSIS", "C08", "전치사구 수식 수일치 분석", "CORE", "핵어 수일치 분석만", "NUMBER_SWAP", true],
   ["SO_AS_TO", "C14", "so as to", "CORE", "so as to V", "NONFINITE_SWAP", true],
 ];
 
-export const GRAMMAR_ONTOLOGY: GrammarPointDefinition[] = ROWS.map(row);
+const CH01_REFERENCE = new Set<GrammarPointCode>([
+  "SENTENCE_SV",
+  "SENTENCE_SVC",
+  "SENTENCE_SVO",
+  "SENTENCE_SVOO",
+  "SENTENCE_SVOC",
+  "VERB_TRANSITIVE_INTRANSITIVE",
+  "SUBJECT_COMPLEMENT",
+  "OBJECT_COMPLEMENT_NOUN_ADJ",
+  "OBJECT_COMPLEMENT_TO_V",
+  "OBJECT_COMPLEMENT_BARE_V",
+  "OBJECT_COMPLEMENT_VING",
+  "OBJECT_COMPLEMENT_PP",
+  "CAUSATIVE_ACTIVE",
+  "PERCEPTION_COMPLEMENT",
+]);
+
+const CH02_REFERENCE = new Set<GrammarPointCode>([
+  "TENSE_EXPLICIT_TIME_MARKER",
+  "TENSE_PRESENT_PAST",
+  "TENSE_PRESENT_PERFECT_PAST",
+  "TENSE_PAST_PERFECT",
+  "TENSE_FUTURE_PERFECT",
+  "TENSE_PROGRESSIVE",
+  "TENSE_SEQUENCE",
+  "TENSE_UNIVERSAL_TRUTH",
+  "TENSE_SINCE_FOR",
+  "TENSE_BY_THE_TIME",
+]);
+
+const CH04_REFERENCE = new Set<GrammarPointCode>([
+  "MODAL_MEANING",
+  "MODAL_HAVE_PP",
+  "MODAL_PAST_INFERENCE",
+  "MODAL_REGRET_CRITICISM",
+  "MANDATIVE_SHOULD",
+  "SUBSTITUTE_DO",
+  "USED_TO",
+  "WOULD_PAST_HABIT",
+  "HAD_BETTER",
+  "WOULD_RATHER",
+]);
+
+const CH05_REFERENCE = new Set<GrammarPointCode>([
+  "CONDITIONAL_SECOND",
+  "CONDITIONAL_THIRD",
+  "CONDITIONAL_MIXED",
+  "CONDITIONAL_IF_SHOULD",
+  "CONDITIONAL_IF_WERE_TO",
+  "CONDITIONAL_INVERTED_WERE",
+  "CONDITIONAL_INVERTED_HAD",
+  "CONDITIONAL_INVERTED_SHOULD",
+  "WISH_PAST",
+  "WISH_PAST_PERFECT",
+  "WISH_WOULD",
+  "AS_IF_PAST",
+  "AS_IF_PAST_PERFECT",
+  "WITHOUT_IF_CONDITION",
+  "IF_ONLY",
+  "OTHERWISE_CONDITIONAL",
+  "IT_IS_TIME_SUBJUNCTIVE",
+  "WOULD_RATHER_SUBJUNCTIVE",
+]);
+
+const CH09_REFERENCE = new Set<GrammarPointCode>([
+  "INFINITIVE_OBJECT_COMPLEMENT",
+  "INFINITIVE_PERFECT",
+  "INFINITIVE_PASSIVE",
+  "GERUND_PERFECT",
+  "GERUND_PASSIVE",
+  "NONFINITE_MEMORY_COMPLEMENT",
+  "NONFINITE_STOP_COMPLEMENT",
+  "NONFINITE_TRY_COMPLEMENT",
+  "NONFINITE_MEAN_COMPLEMENT",
+  "NONFINITE_GO_ON_COMPLEMENT",
+  "NONFINITE_VERBAL_PROPERTY",
+  "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+  "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+  "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+  "GERUND_SUBJECT_ANALYSIS",
+  "GERUND_PREP_OBJECT_ANALYSIS",
+  "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+  "PREP_MODIFIER_AGREEMENT_ANALYSIS",
+]);
+
+const CH12_REFERENCE = new Set<GrammarPointCode>([
+  "COMPARATIVE",
+  "SUPERLATIVE",
+  "AS_AS",
+  "THE_COMPARATIVE",
+  "COMPARATIVE_AND_COMPARATIVE",
+  "MULTIPLICATIVE_COMPARISON",
+  "ONE_OF_SUPERLATIVE",
+  "COMPARISON_TARGET",
+]);
+
+const CH13_REFERENCE = new Set<GrammarPointCode>([
+  "COUNTABLE_UNCOUNTABLE",
+  "SINGULAR_PLURAL_NOUN",
+  "ARTICLE",
+  "QUANTIFIER",
+  "PREPOSITION_COLLOCATION",
+  "PREPOSITION_INSTEAD_OF",
+  "PRONOUN_SUBJECT_OBJECT_CASE",
+  "PRONOUN_REFLEXIVE",
+  "PRONOUN_ANTECEDENT",
+  "DUMMY_REFERENTIAL_IT",
+  "ONE_ONES",
+  "ANOTHER_OTHER_THE_OTHER",
+  "EACH_ALL_BOTH",
+  "EITHER_NEITHER",
+  "POSSESSIVE",
+  "AGREEMENT_PREPOSITIONAL_MODIFIER",
+  "AGREEMENT_ONE_OF",
+  "AGREEMENT_NUMBER_OF",
+  "AGREEMENT_PARTITIVE",
+  "AGREEMENT_EACH_EVERY",
+  "AGREEMENT_DISTANCE",
+  "AGREEMENT_CORRELATIVE",
+  "ADJECTIVE_NOUN_MODIFIER",
+  "ADJECTIVE_SUBJECT_COMPLEMENT",
+  "ADJECTIVE_OBJECT_COMPLEMENT",
+  "ADVERB_VERB_MODIFIER",
+  "ADVERB_ADJECTIVE_MODIFIER",
+  "ADVERB_SENTENCE_MODIFIER",
+  "LINKING_VERB_COMPLEMENT",
+  "CONFUSABLE_ADVERB",
+  "TOO_ENOUGH",
+]);
+
+const CH07_REFERENCE = new Set<GrammarPointCode>([
+  "GERUND_SUBJECT",
+  "GERUND_COMPLEMENT",
+  "GERUND_VERB_OBJECT",
+  "GERUND_PREPOSITION_OBJECT",
+  "GERUND_LOGICAL_SUBJECT",
+  "GERUND_FIXED_CONSTRUCTION",
+  "AGREEMENT_GERUND_SUBJECT",
+  "VERB_COMPLEMENT_MEANING_CHANGE",
+]);
+
+const CH06_REFERENCE = new Set<GrammarPointCode>([
+  "INFINITIVE_NOUN_ROLE",
+  "INFINITIVE_ADJECTIVE_ROLE",
+  "INFINITIVE_ADVERB_ROLE",
+  "INFINITIVE_DUMMY_IT",
+  "INFINITIVE_LOGICAL_SUBJECT",
+  "DUMMY_IT_OBJECT",
+  "TOO_TO",
+  "ENOUGH_TO",
+  "SO_AS_TO",
+]);
+
+const CH08_REFERENCE = new Set<GrammarPointCode>([
+  "PARTICIPLE_NOUN_MODIFIER",
+  "PARTICIPLE_ACTIVE_PASSIVE",
+  "PARTICIPLE_EMOTION",
+  "PARTICIPLE_SUBJECT_COMPLEMENT",
+  "PARTICIPLE_OBJECT_COMPLEMENT",
+  "PARTICIPLE_REDUCED_RELATIVE",
+  "PARTICIPIAL_CLAUSE_ACTIVE",
+  "PARTICIPIAL_CLAUSE_PASSIVE",
+  "PARTICIPIAL_CLAUSE_PERFECT",
+  "PARTICIPIAL_CLAUSE_NEGATIVE",
+  "PARTICIPIAL_CLAUSE_WITH_CONJUNCTION",
+  "ABSOLUTE_PARTICIPLE",
+  "WITH_OBJECT_PARTICIPLE",
+  "DANGLING_PARTICIPLE",
+]);
+
+const CH10_REFERENCE = new Set<GrammarPointCode>([
+  "PARALLEL_AND_OR_BUT",
+  "CORRELATIVE_BOTH_AND",
+  "CORRELATIVE_EITHER_OR",
+  "CORRELATIVE_NEITHER_NOR",
+  "CORRELATIVE_NOT_ONLY_BUT_ALSO",
+  "CORRELATIVE_CONJUNCTION",
+  "NOUN_CLAUSE_THAT",
+  "NOUN_CLAUSE_WHETHER_IF",
+  "NOUN_CLAUSE_WH_WORD",
+  "NOUN_CLAUSE_DECLARATIVE_ORDER",
+  "INDIRECT_QUESTION_ORDER",
+  "TENSE_REPORTED_SPEECH",
+  "ADVERB_CLAUSE_TIME",
+  "ADVERB_CLAUSE_CONDITION",
+  "TENSE_TIME_CONDITION_CLAUSE",
+  "ADVERB_CLAUSE_REASON",
+  "ADVERB_CLAUSE_CONCESSION",
+  "CONJUNCTION_PREPOSITION_CONTRAST",
+  "ADVERB_CLAUSE_PURPOSE",
+  "ADVERB_CLAUSE_RESULT",
+  "SO_SUCH",
+  "RESULT_RELATION_TOO_TO",
+  "RESULT_RELATION_ENOUGH_TO",
+]);
+
+const CH03_REFERENCE = new Set<GrammarPointCode>([
+  "VOICE_ACTIVE_PASSIVE",
+  "VOICE_PROGRESSIVE_PASSIVE",
+  "VOICE_PERFECT_PASSIVE",
+  "VOICE_MODAL_PASSIVE",
+  "VOICE_PHRASAL_VERB_PASSIVE",
+  "VOICE_SVOO_PASSIVE",
+  "VOICE_SVOC_PASSIVE",
+  "VOICE_NONFINITE_PASSIVE",
+  "VOICE_CAUSATIVE_HAVE_GET",
+  "VOICE_BE_MADE_TO",
+  "VOICE_BE_SEEN_TO",
+]);
+
+const CH14_REFERENCE = new Set<GrammarPointCode>([
+  "EMPHATIC_DO",
+  "PSEUDO_CLEFT_ALL",
+  "CLEFT_IT_THAT",
+  "INVERSION_NEGATIVE",
+  "INVERSION_ONLY",
+  "INVERSION_PLACE_DIRECTION",
+  "INVERSION_COMPLEMENT",
+  "INVERSION_SO_NEITHER",
+  "ELLIPSIS_COMMON_ELEMENT",
+  "ELLIPSIS_SUBSTITUTION",
+  "APPOSITION",
+  "APPOSITIVE_THAT",
+  "INSERTION",
+  "NEGATION_SCOPE",
+  "PARTIAL_NEGATION",
+  "DOUBLE_NEGATION",
+]);
+
+const CH11_REFERENCE = new Set<GrammarPointCode>([
+  "RELATIVE_SUBJECT",
+  "RELATIVE_OBJECT",
+  "RELATIVE_POSSESSIVE",
+  "RELATIVE_WHO_WHOM",
+  "RELATIVE_WHAT",
+  "RELATIVE_PREPOSITION_WHICH",
+  "RELATIVE_PREPOSITION_WHOM",
+  "RELATIVE_ADVERB_WHERE",
+  "RELATIVE_ADVERB_WHEN",
+  "RELATIVE_ADVERB_WHY",
+  "RELATIVE_ADVERB_HOW",
+  "RELATIVE_RESTRICTIVE",
+  "RELATIVE_NONRESTRICTIVE",
+  "RELATIVE_OMISSION",
+  "RELATIVE_COMPOUND",
+  "RELATIVE_ANTECEDENT_DISTANCE",
+  "RELATIVE_AGREEMENT",
+]);
+
+export const GRAMMAR_ONTOLOGY: GrammarPointDefinition[] = ROWS.map((item) => {
+  const point = row(item);
+  if (CH05_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH05" as const };
+  if (CH04_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH04" as const };
+  if (CH11_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH11" as const };
+  if (CH10_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH10" as const };
+  if (CH08_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH08" as const };
+  if (CH07_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH07" as const };
+  if (CH09_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH09" as const };
+  if (CH14_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH14" as const };
+  if (CH03_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH03" as const };
+  if (CH01_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH01" as const };
+  if (CH02_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH02" as const };
+  if (CH06_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH06" as const };
+  if (CH12_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH12" as const };
+  if (CH13_REFERENCE.has(point.code)) return { ...point, referenceChapter: "CH13" as const };
+  return point;
+});
 
 const BY_CODE = new Map(GRAMMAR_ONTOLOGY.map((p) => [p.code, p]));
 
@@ -274,7 +564,7 @@ export function compactOntologyForPrompt() {
 }
 
 export function isKnownPointCode(code: string): code is GrammarPointCode {
-  return BY_CODE.has(code as GrammarPointCode);
+  return code === "UNMAPPED_HIGH_VALUE_POINT" || BY_CODE.has(code as GrammarPointCode);
 }
 
 export const FORBIDDEN_PATTERNS = [
