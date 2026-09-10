@@ -439,6 +439,20 @@ const CH08_REFERENCE = new Set<GrammarPointCode>([
 
 const CH10_REFERENCE = new Set<GrammarPointCode>([
   "PARALLEL_AND_OR_BUT",
+  // 병렬구조 계열. PARALLEL_AND_OR_BUT만 여기 있고 형제 코드가 전부 빠져 있었다.
+  // 빠진 코드는 referenceChapter가 undefined가 되고, referenceChapter ?? chapter로
+  // 읽는 리포트가 C축 라벨(C11)로 폴백한다. 그래서 같은 병렬구조가 한 리포트에서
+  // CH10과 C11 두 갈래로 집계됐다. C11은 CH11(관계사)과 번호가 겹쳐 더 헷갈렸다.
+  "PARALLEL_VERBS",
+  "PARALLEL_NOUN_PHRASES",
+  "PARALLEL_ADJECTIVES",
+  "PARALLEL_NONFINITE",
+  "PARALLEL_CLAUSES",
+  "PARALLEL_SHARED_AUXILIARY",
+  "PARALLEL_SHARED_TO",
+  "PARALLEL_REPEATED_THAT",
+  "FROM_A_TO_B",
+  "COMPARISON_PARALLEL",
   "CORRELATIVE_BOTH_AND",
   "CORRELATIVE_EITHER_OR",
   "CORRELATIVE_NEITHER_NOR",

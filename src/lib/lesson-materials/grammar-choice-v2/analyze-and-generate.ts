@@ -1,4 +1,4 @@
-import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { createLimiter, type Limiter } from "@/lib/lesson-materials/grammar-choice-v2/limiter";
 import { callGrammarChoiceV2Json, parseModelJson } from "@/lib/lesson-materials/grammar-choice-v2/openai-call";
 import {
   ANALYZER_SYSTEM_PROMPT,
@@ -133,14 +133,22 @@ export type AnalyzerResult = {
   inputTokens: number | null;
   outputTokens: number | null;
   fallback: boolean;
+  /** 이 지문이 실제로 쓴 분석 호출 수. 문장 묶음 하나가 곧 한 호출이다. */
+  callCount: number;
 };
 
 /**
  * 한 번의 분석 호출에 넣는 문장 수. 지문 전체를 한 호출에 넣으면 모델이 앞쪽
  * 몇 개만 실제로 분석하고 나머지는 만들기 쉬운 축(수일치·시제)으로 때운다.
  * 관측: 11문장 1호출에서 후보 16개 중 2개만 생존(폐기율 87%).
+ *
+ * 1문장인 이유는 속도다. 지연은 출력 토큰 수에 정비례하는데(실측 회귀
+ * 17.1ms/토큰, 약 58 tok/s) 묶음 크기가 곧 출력 크기다. 3문장 묶음은
+ * 호출당 출력 1,868토큰 / 지연 26.2초였다(실측 low, n=28). 1문장으로 쪼개면
+ * 호출당 출력이 1/3이 되어 호출 자체가 빨라지고, 남는 호출은 전역 게이트가
+ * 병렬로 흘린다. 묶음을 키워 봐야 같은 토큰을 직렬로 뱉을 뿐이다.
  */
-export const ANALYZER_SENTENCES_PER_CALL = 3;
+export const ANALYZER_SENTENCES_PER_CALL = 1;
 
 /**
  * 문장 하나에 허용하는 후보 수. 호출 상한은 묶음 크기에 비례해 잡는다.
@@ -152,8 +160,11 @@ export const ANALYZER_SENTENCES_PER_CALL = 3;
  */
 export const ANALYZER_CANDIDATES_PER_SENTENCE = 3;
 
-/** 한 지문 안에서 동시에 띄우는 분석 호출 수. */
-export const ANALYZER_CHUNK_CONCURRENCY = 3;
+/**
+ * 호출자가 게이트를 넘겨주지 않을 때 쓰는 지문 단독 상한.
+ * 실행 경로(generate.ts)는 지문 전체가 공유하는 게이트를 넘긴다.
+ */
+export const ANALYZER_CHUNK_CONCURRENCY = 8;
 
 /**
  * 문장 묶음 호출의 출력 상한.
@@ -191,15 +202,16 @@ export async function analyzeAndGeneratePassage(input: {
   analysisHints?: AnalysisHintV2[];
   localMandatoryHints?: LocalMandatoryHint[];
   sentencesPerCall?: number;
+  /** 지문들이 공유하는 호출 게이트. 없으면 이 지문만의 상한을 쓴다. */
+  limiter?: Limiter;
 }): Promise<AnalyzerResult> {
   const perCall = Math.max(1, input.sentencesPerCall ?? ANALYZER_SENTENCES_PER_CALL);
   const chunks = chunkSentences(input.sentences, perCall);
   const started = Date.now();
+  const gate = input.limiter ?? createLimiter(ANALYZER_CHUNK_CONCURRENCY);
 
-  const calls = await runWithConcurrency(
-    chunks,
-    Math.min(ANALYZER_CHUNK_CONCURRENCY, chunks.length || 1),
-    async (chunk) => {
+  const calls = await Promise.all(
+    chunks.map((chunk) => gate(async () => {
       const chunkIds = new Set(chunk.map((s) => s.sentenceId));
       const chunkText = chunk.map((s) => s.text).join(" ");
       const payload = buildAnalyzerUserPayload({
@@ -228,7 +240,7 @@ export async function analyzeAndGeneratePassage(input: {
         maxCompletionTokens: GENERATOR_CHUNK_OUTPUT_TOKEN_CAP,
       });
       return { called, promptChars };
-    }
+    }))
   );
 
   /**
@@ -259,6 +271,7 @@ export async function analyzeAndGeneratePassage(input: {
     inputTokens: calls.length ? sum((row) => row.called.inputTokens) : null,
     outputTokens: calls.length ? sum((row) => row.called.outputTokens) : null,
     fallback: calls.some((row) => row.called.fallback),
+    callCount: calls.length,
   };
 }
 

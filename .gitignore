@@ -32,3 +32,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# scratch (실험 스크립트·실행 로그·측정 결과). 지우지는 않고 status에서만 뺀다.
+/scripts/_*
+/tmp/
+/tmp-*
+/supabase/.temp/

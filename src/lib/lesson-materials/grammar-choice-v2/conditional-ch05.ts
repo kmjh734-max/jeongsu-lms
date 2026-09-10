@@ -325,6 +325,21 @@ export function rejectConditionalChoice(input: {
   const correct = input.correct.trim();
   const wrong = input.wrong.trim();
   const pair = [correct, wrong].map((s) => s.toLowerCase()).sort().join("|");
+  /**
+   * 자기 챕터 후보에만 적용한다.
+   *
+   * 이 게이트는 원래 함수 한참 아래에 있었고, 그 위의 검사들이 챕터와 무관하게
+   * 모든 후보에 적용됐다. 그래서 두 가지가 깨졌다:
+   *  - 시제 후보가 assessConditionalTensePair에 걸려 AMBIGUOUS_TENSE로 죽었다.
+   *    (관측: 제안된 TENSE 후보 전부가 가정법 로직에 의해 탈락)
+   *  - had|would have / were|would be 쌍이 무조건 죽었다. 그런데 이 쌍은
+   *    local-validators의 repairForbiddenConditionalDistractor가 일부러 만들고,
+   *    distractor-guard와 minimal-pair는 정당한 것으로 허용하며,
+   *    IF_ONLY 규칙은 자기 allowedMinimalPairs로 선언한다. 세 모듈이 모순이었다.
+   */
+  if (!isConditionalCh05Code(input.pointCode) && input.pointCode !== "WOULD_RATHER") {
+    return null;
+  }
   if (pair === "had|would have" || pair === "were|would be") return "MECHANICAL_IF_WOULD_CONTRAST";
   if (pair === "if|unless") return "MEANING_ONLY_CONTRAST";
   if (pair === "try|tries" || pair === "could try|could tries" || pair === "stay|stayed") {
@@ -343,7 +358,6 @@ export function rejectConditionalChoice(input: {
   }
   if (correct.split(/\s+/).length > 4 || wrong.split(/\s+/).length > 4) return "NON_MINIMAL_SPAN";
   if (/\bif\b/i.test(correct) && correct.split(/\s+/).length > 2) return "NON_MINIMAL_SPAN";
-  if (!isConditionalCh05Code(input.pointCode)) return null;
   if (pair === "was|were") return "BOTH_GRAMMATICAL";
   if (isOpenRealCondition(input.sentence) && input.pointCode.startsWith("CONDITIONAL_")) {
     return "BOTH_GRAMMATICAL";

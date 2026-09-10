@@ -13,6 +13,7 @@ import { detectSpecialCh14 } from "@/lib/lesson-materials/grammar-choice-v2/spec
 import { detectTenseCh02 } from "@/lib/lesson-materials/grammar-choice-v2/tense-ch02";
 import { detectVoiceCh03 } from "@/lib/lesson-materials/grammar-choice-v2/voice-ch03";
 import {
+  FORBIDDEN_PATTERNS,
   GRAMMAR_ONTOLOGY,
   ontologyPoint,
 } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
@@ -118,9 +119,7 @@ function addInsteadOfTrigger(text: string, core: Set<string>) {
   }
 }
 
-export function compactOntologyForSentences(sentences: ExactSentence[]) {
-  const text = sentences.map((s) => s.text).join("\n");
-  const mandatory = [
+const MANDATORY_CODES = [
     "CONDITIONAL_SECOND",
     "CONDITIONAL_THIRD",
     "INDIRECT_QUESTION_ORDER",
@@ -139,7 +138,17 @@ export function compactOntologyForSentences(sentences: ExactSentence[]) {
     "AGREEMENT_LONG_SUBJECT",
     "AGREEMENT_DISTANCE",
     "AGREEMENT_CLAUSE_SUBJECT",
-  ];
+];
+
+/**
+ * 한 문장에서 실제로 걸리는 코드만 모은다.
+ *
+ * 예전에는 묶음의 문장을 join한 뒤 한 번만 돌려서 3문장이 힌트 하나를 공유했다.
+ * 어느 문장 때문에 걸린 힌트인지 알 수 없으니, 추론 강도가 낮으면 사실상
+ * 쓸모가 없었다. 문장 단위로 돌려야 low에서도 모델이 231개 코드를 뒤지지 않고
+ * 좁은 후보에서 출발할 수 있다.
+ */
+function triggersForText(text: string): Set<string> {
   const core = new Set<string>();
   if (/\b(if|wish|as if|would|could|had|were)\b/i.test(text)) {
     core.add("CONDITIONAL_SECOND");
@@ -185,19 +194,46 @@ export function compactOntologyForSentences(sentences: ExactSentence[]) {
   addDeclarativeNounClauseTrigger(text, core);
   addInsteadOfTrigger(text, core);
   for (const code of detectedStudentCodes(text)) core.add(code);
+  return core;
+}
 
-  // 키워드로 걸러낸 코드는 "이 문장에서 특히 살펴보라"는 힌트로만 쓰고,
-  // 고를 수 있는 목록은 정리된 온톨로지 전체를 준다. 걸러 보내면 모델이
-  // 나머지 코드의 존재를 아예 모른다(관측: 231개 중 25~36개만 전달).
-  const highlighted = [...new Set([...mandatory, ...core])].filter((code) =>
-    ontologyPoint(code)
+export function highlightedForSentence(text: string): string[] {
+  return [...triggersForText(text)].filter((code) => ontologyPoint(code));
+}
+
+/** 정리된 온톨로지 전체. 호출마다 변하지 않으므로 시스템 프롬프트에 싣는다. */
+export function ontologyCatalogText(): string {
+  const codes = GRAMMAR_ONTOLOGY.map(
+    (def) => `${def.code}|${def.priority}|${def.labelKo}`
   );
+  return [
+    `CHAPTERS: ${CHAPTERS.join(" / ")}`,
+    `FORBIDDEN_PATTERNS: ${FORBIDDEN_PATTERNS.join(" / ")}`,
+    `GRAMMAR_ONTOLOGY (${codes.length} codes, format code|priority|labelKo):`,
+    codes.join("\n"),
+  ].join("\n");
+}
+
+/**
+ * 이 묶음에서 특히 살펴볼 코드를 문장별로 준다.
+ *
+ * 고를 수 있는 목록 자체(codes)는 시스템 프롬프트에 통째로 실려 있으므로
+ * 여기서 걸러도 모델이 나머지 코드의 존재를 모르게 되지는 않는다
+ * (그게 f861bc8에서 전체 전송으로 되돌린 이유였다).
+ * 정적인 목록을 system으로 옮기면 호출마다 10KB를 다시 보내지 않아도 되고,
+ * 프롬프트 캐시도 탄다.
+ */
+export function compactOntologyForSentences(sentences: ExactSentence[]) {
+  const passageText = sentences.map((s) => s.text).join("\n");
+  const inBatch = triggersForText(passageText);
   return {
-    chapters: CHAPTERS,
-    codes: GRAMMAR_ONTOLOGY.map(
-      (def) => `${def.code}|${def.priority}|${def.labelKo}`
+    highlightedBySentence: sentences.map((sentence) => ({
+      sentenceId: sentence.sentenceId,
+      likelyCodes: highlightedForSentence(sentence.text),
+    })),
+    mandatoryInThisBatch: MANDATORY_CODES.filter(
+      (code) => inBatch.has(code) && ontologyPoint(code)
     ),
-    highlighted,
-    note: "codes is the complete list. Choose the code that matches what the sentence actually tests; highlighted lists points this passage is likely to contain, but it is a hint, not a restriction.",
+    note: "likelyCodes are points a local detector found in that exact sentence. Start from them. They are a hint, not a restriction: the full code list is in GRAMMAR_ONTOLOGY in the system prompt, and a sentence may test a code not listed here.",
   };
 }
