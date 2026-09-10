@@ -211,3 +211,75 @@ function dropsArgument(correct: string[], wrong: string[]): boolean {
   const dropped = correct.length - wrong.length;
   return dropped >= 2;
 }
+
+type Token = { text: string; start: number; end: number };
+
+function tokenSpans(text: string): Token[] {
+  return [...text.matchAll(/\S+/g)].map((m) => ({
+    text: m[0],
+    start: m.index ?? 0,
+    end: (m.index ?? 0) + m[0].length,
+  }));
+}
+
+/**
+ * 두 선택지에서 공통된 앞뒤 토큰을 잘라 실제로 다른 구간만 남긴다.
+ *
+ * 분석 모델이 절 병렬 같은 항목에서 절을 통째로 선택지로 내놓는 일이 있는데
+ * (예: "We are wonderfully made, yet we don't allow ourselves to participate"),
+ * 어법 선택은 다른 부분만 네모 안에 넣어야 읽을 수 있는 문항이 된다.
+ *
+ * 잘라낸 정답의 시작 오프셋을 함께 돌려주므로, 호출부는 이미 해석해 둔 원본
+ * 스팬 위치에 더해 지문 내 위치를 다시 찾지 않고 계산할 수 있다.
+ * 어순 문항은 앞쪽만 자른다. 뒤까지 자르면 어순 대비가 무너진다.
+ */
+export function trimToMinimalPair(
+  correct: string,
+  wrong: string,
+  options?: { trimTrailing?: boolean }
+): { correct: string; wrong: string; startOffset: number } | null {
+  const c = tokenSpans(correct);
+  const w = tokenSpans(wrong);
+  if (c.length < 2 || w.length < 2) return null;
+
+  const same = (a: Token, b: Token) => a.text.toLowerCase() === b.text.toLowerCase();
+  const limit = Math.min(c.length, w.length) - 1;
+
+  let lead = 0;
+  while (lead < limit && same(c[lead]!, w[lead]!)) lead += 1;
+
+  let trail = 0;
+  if (options?.trimTrailing !== false) {
+    while (
+      lead + trail < limit &&
+      same(c[c.length - 1 - trail]!, w[w.length - 1 - trail]!)
+    ) {
+      trail += 1;
+    }
+  }
+  if (lead === 0 && trail === 0) return null;
+
+  const cStart = c[lead]!.start;
+  const cEnd = c[c.length - 1 - trail]!.end;
+  const wStart = w[lead]!.start;
+  const wEnd = w[w.length - 1 - trail]!.end;
+  if (cEnd <= cStart || wEnd <= wStart) return null;
+
+  let trimmedCorrect = correct.slice(cStart, cEnd);
+  let trimmedWrong = wrong.slice(wStart, wEnd);
+
+  // 양쪽에 똑같이 남은 꼬리 문장부호는 뗀다. 쉼표까지 네모에 넣으면 읽기 나쁘고,
+  // 뗀 자리도 단어 경계라 원문에서 그대로 다시 찾을 수 있다.
+  const tail = /[^A-Za-z0-9'’]+$/;
+  const correctTail = tail.exec(trimmedCorrect)?.[0] ?? "";
+  const wrongTail = tail.exec(trimmedWrong)?.[0] ?? "";
+  if (correctTail && correctTail === wrongTail) {
+    trimmedCorrect = trimmedCorrect.slice(0, -correctTail.length);
+    trimmedWrong = trimmedWrong.slice(0, -wrongTail.length);
+  }
+
+  if (!trimmedCorrect.trim() || !trimmedWrong.trim()) return null;
+  if (trimmedCorrect.toLowerCase() === trimmedWrong.toLowerCase()) return null;
+
+  return { correct: trimmedCorrect, wrong: trimmedWrong, startOffset: cStart };
+}

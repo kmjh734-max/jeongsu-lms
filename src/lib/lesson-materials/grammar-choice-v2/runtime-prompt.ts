@@ -29,8 +29,9 @@ Before returning:
 Output limits:
 - detectedPoints: only occurrences present in that sentence. No ontology echo. No prose evidence.
 - omissionReason: empty string, or one enum code when a MANDATORY occurrence has no candidate.
-- candidates for the whole passage: at most candidateCap. Do not invent extra candidates past that cap.
+- candidates for this batch: at most candidateCap. Do not invent extra candidates past that cap.
 - Never drop a MANDATORY occurrence from detectedPoints to satisfy the candidate cap.
+- Returning fewer candidates than the cap is correct and expected. Never pad the list to reach it.
 - No Korean or English explanations, no repeated grammar definitions, no full-sentence reprints.`;
 
 export function buildAnalyzerUserPayload(input: {
@@ -42,6 +43,11 @@ export function buildAnalyzerUserPayload(input: {
     pointCode: string;
     sourceSpan: string;
   }>;
+  /**
+   * 이 호출에서 요구할 후보 상한. 분석은 문장 묶음 단위로 쪼개 호출하므로
+   * 호출당 상한을 작게 유지해야 모델이 뒤쪽 후보를 수일치로 때우지 않는다.
+   */
+  candidateCap?: number;
 }) {
   return {
     passageId: input.passageId,
@@ -63,7 +69,8 @@ export function buildAnalyzerUserPayload(input: {
       .slice(0, 12)
       .map((h) => ({ targetText: h.targetText, label: h.label ?? "" })),
     localMandatoryHints: input.localMandatoryHints ?? [],
-    candidateCap: Math.min(32, Math.max(input.sentences.length * 2, 8)),
+    candidateCap:
+      input.candidateCap ?? Math.min(32, Math.max(input.sentences.length * 2, 8)),
     promptVersion: GRAMMAR_CHOICE_V2_PROMPT,
   };
 }
@@ -76,4 +83,30 @@ export const AUDITOR_SYSTEM_PROMPT = `You audit Korean high-school grammar choic
 Judge each item inside its unchanged sentence.
 Do not rewrite the sentence and do not write explanations.
 A PASS requires exactly one grammatical choice in this sentence, a plausible learner error, and a single grammar axis.
+REJECT with reasonCode FABRICATED_INFLECTION when the wrong choice is not a real English word form.
+A real word used in the wrong grammatical role is a good distractor and must not be rejected for this reason:
+"extraordinarily" for "extraordinary" is fine, but "extinctly" is not a word and must be rejected.
+Set correctedCode when the item's grammar code names a different point than the one the choice actually tests.
 Return only short structured JSON: candidateId, decision, uniqueInContext, reasonCode, correctedCode.`;
+
+/**
+ * 유일성 검증은 생성 호출과 분리된 블라인드 판정이다.
+ * 어느 쪽이 출제자가 고른 정답인지 알려주지 않아야 모델이 자기 답을 추인하지 않는다.
+ * 두 선택지를 optionA/optionB로만 제시하고 각각의 문법성만 묻는다.
+ */
+export const UNIQUENESS_SYSTEM_PROMPT = `You are a strict English grammaticality judge.
+
+For each item you get one sentence with a bracketed slot marked [[SLOT]], plus two candidate fillers: optionA and optionB.
+
+For each option independently, substitute it into the slot and judge the resulting sentence:
+- aGrammatical: true only if the sentence with optionA is fully grammatical in standard written English.
+- bGrammatical: true only if the sentence with optionB is fully grammatical in standard written English.
+
+Rules:
+- Judge grammar only. Ignore style, register, awkwardness, and which reading is more natural or more likely intended.
+- Judge each option inside this exact unchanged sentence. An option that is valid in some other sentence is still ungrammatical here if it does not fit this structure.
+- If a sentence is grammatical under any available reading, that option is grammatical.
+- You are not told which option the item writer intended. Do not guess it and do not let symmetry influence you. Both options being grammatical is a common and acceptable verdict.
+- Do not rewrite the sentence, do not explain, do not output reasoning.
+
+Return only structured JSON: itemId, aGrammatical, bGrammatical.`;

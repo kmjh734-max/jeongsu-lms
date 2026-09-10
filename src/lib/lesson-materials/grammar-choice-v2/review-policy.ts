@@ -25,7 +25,29 @@ export function isLocalSafeReviewSkip(item: ResolvedCandidate, sentence: string)
   const wrong = item.distractors[0] ?? "";
   if (!wrong || wrong.trim().toLowerCase() === item.correctAnswer.trim().toLowerCase()) return false;
   if (bothWhatThatGrammatical(sentence, item.correctAnswer, wrong)) return false;
+  if (mayBeFabricatedDerivation(item.correctAnswer, wrong)) return false;
   return true;
+}
+
+/**
+ * 오답이 정답에 접미사를 붙여 만든 파생형인지 본다. 이런 쌍은 실재하지 않는
+ * 단어일 수 있고(extinct → extinctly), 실재 여부는 어휘 지식이라 로컬 규칙으로
+ * 가릴 수 없다. 로컬 자동 통과에서 빼고 감사 모델이 판정하게 한다.
+ */
+const DERIVATION_SUFFIXES = ["ly", "ing", "ed", "er", "est", "ness", "ful"];
+
+export function mayBeFabricatedDerivation(correct: string, wrong: string): boolean {
+  const base = correct.trim().toLowerCase();
+  const derived = wrong.trim().toLowerCase();
+  if (!base || !derived || base === derived) return false;
+  if (base.includes(" ") || derived.includes(" ")) return false;
+  return DERIVATION_SUFFIXES.some(
+    (suffix) =>
+      derived === `${base}${suffix}` ||
+      derived === `${base.replace(/e$/, "")}${suffix}` ||
+      base === `${derived}${suffix}` ||
+      base === `${derived.replace(/e$/, "")}${suffix}`
+  );
 }
 
 export function planReviewerSubmission(

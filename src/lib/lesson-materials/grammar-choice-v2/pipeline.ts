@@ -17,7 +17,10 @@ import {
   generationPolicyFor,
   localTemplateDistractor,
 } from "@/lib/lesson-materials/grammar-choice-v2/generation-policy";
-import { validateMinimalPair } from "@/lib/lesson-materials/grammar-choice-v2/minimal-pair";
+import {
+  trimToMinimalPair,
+  validateMinimalPair,
+} from "@/lib/lesson-materials/grammar-choice-v2/minimal-pair";
 import {
   needsAuditor,
   rejectCandidate,
@@ -37,6 +40,7 @@ import {
   restoreCorrectAnswers,
 } from "@/lib/lesson-materials/grammar-choice-v2/renderer";
 import { findOccurrences, resolveSpan } from "@/lib/lesson-materials/grammar-choice-v2/span-resolver";
+import type { UniquenessVerdict } from "@/lib/lesson-materials/grammar-choice-v2/uniqueness-audit";
 import type {
   AuditResult,
   DetectedGrammarPoint,
@@ -71,9 +75,49 @@ export type FinalizeInput = {
   detected: DetectedGrammarPoint[];
   candidates: GrammarCandidate[];
   audits?: AuditResult[];
+  /**
+   * 생성과 분리된 블라인드 문법성 판정 결과.
+   * 비어 있으면 게이트를 건너뛰므로 판정을 돌리지 않는 경로도 그대로 동작한다.
+   */
+  uniqueness?: UniquenessVerdict[];
   seedKey: string;
   diagnosticsBase: WorkbookGrammarChoiceDiagnostics;
 };
+
+/**
+ * 정답만 문법적이라고 확인되지 않은 후보를 떨어뜨린다.
+ * 판정이 없는 후보(호출에 포함되지 않았거나 슬롯을 못 판 경우)는 건드리지 않는다.
+ */
+export function applyUniqueness(
+  items: ResolvedCandidate[],
+  verdicts: UniquenessVerdict[] | undefined
+): { kept: ResolvedCandidate[]; rejected: V2Reject[] } {
+  if (!verdicts || verdicts.length === 0) return { kept: items, rejected: [] };
+  const byId = new Map(verdicts.map((v) => [v.candidateId, v]));
+  const kept: ResolvedCandidate[] = [];
+  const rejected: V2Reject[] = [];
+  for (const item of items) {
+    const verdict = byId.get(item.candidateId);
+    if (!verdict || verdict.unique) {
+      kept.push(item);
+      continue;
+    }
+    // 첫 오답이 떨어져도 두 번째 오답이 유일성을 통과하면 그쪽으로 살린다.
+    const alt = item.distractors[1];
+    if (alt && byId.get(`${item.candidateId}#alt`)?.unique) {
+      kept.push({ ...item, distractors: [alt, item.distractors[0]!] });
+      continue;
+    }
+    rejected.push({
+      candidateId: item.candidateId,
+      sentenceId: item.sentenceId,
+      pointCode: item.pointCode,
+      reason: verdict.reason ?? "BOTH_GRAMMATICAL",
+      pair: `${item.correctAnswer} / ${item.distractors[0] ?? ""}`,
+    });
+  }
+  return { kept, rejected };
+}
 
 export function resolveAndFilter(input: {
   sentences: ExactSentence[];
@@ -215,6 +259,36 @@ export function resolveAndFilter(input: {
       });
       continue;
     }
+    // 선택지가 절 단위로 길게 잡혀 오면, 실제로 다른 구간만 남겨 네모에 넣는다.
+    // 원본 스팬 위치는 이미 확정됐으므로 지문에서 다시 찾지 않고 오프셋만 더한다.
+    const trimTrailing = !testsWordOrder(candidate);
+    const trimmed = spansWholeClause(candidate)
+      ? trimToMinimalPair(
+          candidate.correctAnswer,
+          candidate.distractors[0] ?? "",
+          { trimTrailing }
+        )
+      : null;
+    if (trimmed) {
+      const start = span.passageStart + trimmed.startOffset;
+      const alt = candidate.distractors[1];
+      const altTrimmed = alt
+        ? trimToMinimalPair(candidate.correctAnswer, alt, { trimTrailing })
+        : null;
+      candidate = {
+        ...candidate,
+        correctAnswer: trimmed.correct,
+        sourceSpan: trimmed.correct,
+        // 잘라낸 폭이 다른 대체 오답은 같은 네모에 못 들어가므로 버린다.
+        distractors:
+          altTrimmed && altTrimmed.startOffset === trimmed.startOffset
+            ? [trimmed.wrong, altTrimmed.wrong]
+            : [trimmed.wrong],
+      };
+      span.passageStart = start;
+      span.passageEnd = start + trimmed.correct.length;
+    }
+
     const exactPair = `${candidate.sentenceId}|${candidate.sourceSpan}|${normalize(candidate.distractors[0] ?? "")}`;
     if (seenPair.has(exactPair)) {
       rejected.push({
@@ -483,7 +557,12 @@ export function applyAudits(
         altAudit.plausibleLearnerError &&
         altAudit.singleGrammarAxis;
       if (altPass) {
-        kept.push({ ...item, distractors: [alt, item.distractors[0]!] });
+        kept.push(
+          withCorrectedPointCode(
+            { ...item, distractors: [alt, item.distractors[0]!] },
+            altAudit
+          )
+        );
         continue;
       }
       rejected.push({
@@ -495,9 +574,24 @@ export function applyAudits(
       });
       continue;
     }
-    kept.push(item);
+    kept.push(withCorrectedPointCode(item, audit));
   }
   return { kept, rejected };
+}
+
+/**
+ * 감사 모델이 point code를 바로잡아 주면 반영한다. 반영하지 않으면 문항에 엉뚱한
+ * 문법 이름이 붙는다(예: 관계대명사 what 문항이 "복합관계사"로 표시).
+ * 온톨로지에 있는 코드일 때만 받아들인다.
+ */
+function withCorrectedPointCode(
+  item: ResolvedCandidate,
+  audit: AuditResult | undefined
+): ResolvedCandidate {
+  const corrected = audit?.correctedRuleCode;
+  if (!corrected || corrected === item.pointCode) return item;
+  if (!ontologyPoint(corrected)) return item;
+  return { ...item, pointCode: corrected };
 }
 
 export function expandAuditItems(items: ResolvedCandidate[]): ResolvedCandidate[] {
@@ -532,13 +626,16 @@ export function finalizeV2Passage(input: FinalizeInput): {
     sentences: input.sentences,
     candidates: input.candidates,
   });
-  const beforeReviewer = filtered.resolved;
-  const audited = applyAudits(filtered.resolved, input.audits);
+  // 유일성 게이트는 검수보다 앞이다. 여기서 떨어진 항목은 검수에 보낼 필요가 없다.
+  const unique = applyUniqueness(filtered.resolved, input.uniqueness);
+  const beforeReviewer = unique.kept;
+  const audited = applyAudits(unique.kept, input.audits);
   const refined = refineAfterAudit(audited.kept, input.sentences);
   const beforeRank = refined.kept;
   const ranked = rankCandidates(beforeRank, input.sentences.length, input.sentences);
   const rejected: V2Reject[] = [
     ...filtered.rejected,
+    ...unique.rejected,
     ...audited.rejected,
     ...refined.rejected,
     ...ranked.dropped.map((d) => ({
@@ -852,3 +949,30 @@ export function hashPassage(text: string): string {
 }
 
 export type { LocalRejectCode, GrammarChoiceCandidate };
+
+/**
+ * 어순 자체가 출제 대상인 문항. 뒤쪽 공통 토큰까지 잘라내면 두 어순의 대비가
+ * 사라지므로(예: [you have / do you have]가 [you / do you]가 된다) 앞쪽만 자른다.
+ */
+function testsWordOrder(candidate: GrammarCandidate): boolean {
+  if (candidate.transformCode === "WORD_ORDER") return true;
+  return (
+    candidate.pointCode === "INDIRECT_QUESTION_ORDER" ||
+    candidate.pointCode === "NOUN_CLAUSE_DECLARATIVE_ORDER" ||
+    candidate.pointCode.startsWith("INVERSION_")
+  );
+}
+
+/**
+ * 선택지가 절 길이로 잡혀 네모 안에 넣기 어려운 후보인지 본다.
+ * be made to V처럼 구문 전체가 보여야 하는 짧은 스팬은 건드리지 않는다.
+ */
+const WHOLE_CLAUSE_TOKEN_THRESHOLD = 4;
+
+function spansWholeClause(candidate: GrammarCandidate): boolean {
+  const wordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+  return (
+    wordCount(candidate.correctAnswer) > WHOLE_CLAUSE_TOKEN_THRESHOLD ||
+    wordCount(candidate.distractors[0] ?? "") > WHOLE_CLAUSE_TOKEN_THRESHOLD
+  );
+}
