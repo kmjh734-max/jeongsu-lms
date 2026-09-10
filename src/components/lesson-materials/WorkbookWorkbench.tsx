@@ -47,6 +47,12 @@ import {
 import { formatAnswerOrderSequence } from "@/lib/lesson-materials/sentence-order-shuffle";
 import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
 
+/**
+ * 동시에 띄우는 어법 선택 지문 요청 수. 지문 하나가 요청 하나라 함수 실행시간
+ * 상한과는 무관하고, 순차로 돌리면 지문 수에 비례해 그대로 느려진다.
+ */
+const GRAMMAR_CHOICE_PASSAGE_CONCURRENCY = 4;
+
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
 const A4_PAD_MM = 14;
@@ -1172,35 +1178,62 @@ export function WorkbookWorkbench({
 
         const workbook = res.workbook;
         if (wantGrammarChoice) {
-          const sections: WorkbookGrammarChoiceSection[] = [];
-          const skipped: WorkbookGrammarChoiceSkip[] = [];
-          for (let i = 0; i < ids.length; i += 1) {
-            if (cancelled) return;
-            const pct = Math.round((i / ids.length) * 100);
+          const results = new Array<WorkbookGrammarChoiceSection | null>(
+            ids.length
+          ).fill(null);
+          const skips = new Array<WorkbookGrammarChoiceSkip | null>(
+            ids.length
+          ).fill(null);
+          let done = 0;
+          const report = () => {
+            const pct = Math.round((done / ids.length) * 100);
             setStatus(
               creatingNew
-                ? `새로 만들고 있습니다 · 지문 ${i + 1}/${ids.length} · ${pct}%`
-                : `지문 ${i + 1}/${ids.length} · ${pct}%`
+                ? `새로 만들고 있습니다 · 지문 ${done}/${ids.length} · ${pct}%`
+                : `지문 ${done}/${ids.length} · ${pct}%`
             );
-            const one = await generateGrammarChoicePassageAction(role, {
-              projectId: ids[i]!,
-              forceRegenerate,
-            });
-            if (cancelled) return;
-            if (!one.ok) {
-              // 한 지문이 실패해도 나머지는 살린다. 끝난 지문은 이미 캐시에 있다.
-              skipped.push({
+          };
+          report();
+
+          // 지문끼리는 서로 독립이므로 함께 띄운다. 순차로 돌리면 지문 수만큼
+          // 그대로 느려진다. 요청 하나가 지문 하나라 함수 실행시간에는 영향이 없다.
+          let next = 0;
+          const worker = async () => {
+            for (;;) {
+              const i = next;
+              next += 1;
+              if (i >= ids.length || cancelled) return;
+              const one = await generateGrammarChoicePassageAction(role, {
                 projectId: ids[i]!,
-                title: ids[i]!,
-                reason: one.message,
+                forceRegenerate,
               });
-              continue;
+              if (cancelled) return;
+              if (!one.ok) {
+                // 한 지문이 실패해도 나머지는 살린다. 끝난 지문은 이미 캐시에 있다.
+                skips[i] = {
+                  projectId: ids[i]!,
+                  title: ids[i]!,
+                  reason: one.message,
+                };
+              } else {
+                results[i] = one.section;
+                if (one.skipped) skips[i] = one.skipped;
+              }
+              done += 1;
+              report();
             }
-            if (one.section) sections.push(one.section);
-            if (one.skipped) skipped.push(one.skipped);
-          }
-          workbook.grammarChoiceSections = sections;
-          workbook.grammarChoiceSkipped = skipped;
+          };
+          await Promise.all(
+            Array.from({ length: Math.min(GRAMMAR_CHOICE_PASSAGE_CONCURRENCY, ids.length) }, worker)
+          );
+          if (cancelled) return;
+
+          workbook.grammarChoiceSections = results.filter(
+            (section): section is WorkbookGrammarChoiceSection => section !== null
+          );
+          workbook.grammarChoiceSkipped = skips.filter(
+            (skip): skip is WorkbookGrammarChoiceSkip => skip !== null
+          );
           setStatus(
             creatingNew ? "새로 만들고 있습니다 · 100%" : "100%"
           );
