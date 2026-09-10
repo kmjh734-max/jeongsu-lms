@@ -92,22 +92,26 @@ export function resolveV2AnalyzerModel(): string {
 }
 
 /**
- * 생성이 검수보다 낮은 effort로 돌면 싸게 만든 쓰레기를 비싸게 거르게 된다.
- * 문장 묶음 단위로 호출을 쪼갠 뒤로는 호출당 출력이 작아 high로 올려도 부담이 적다.
- */
-/**
  * 분석 단계 추론 강도.
  *
  * 이 단계가 하는 일은 정리된 온톨로지를 지문 문장에 대조해 해당하는 항목을
  * 고르고 최소 대립쌍을 만드는 것이라, 긴 추론이 필요한 종류의 작업이 아니다.
  * high는 시간과 비용만 늘렸다(관측: 3문장 한 호출이 medium 79초 / low 45초인데
  * high는 180초 상한을 넘겨 지문이 통째로 버려졌다).
- * 검수도 medium이므로 생성이 검수보다 낮은 강도로 도는 일은 없다.
+ *
+ * 기본값은 low다. 지연은 출력 토큰 수에 정비례하므로(실측 회귀: 17.1ms/토큰,
+ * 약 58 tok/s) 추론 강도를 낮추는 것이 속도에 가장 직접적으로 듣는다.
+ * low로 내리면서 잃는 정확도는 모델 추론이 아니라 로컬 층이 메운다:
+ *  - 문장별 likelyCodes(결정적 검출기 14종)가 코드 탐색을 대신한다.
+ *  - 블라인드 유일성 게이트가 "네모 안 둘 다 맞는" 문항을 걷어낸다.
+ *  - local-validators / choice-repair가 형태 오류를 잡는다.
+ * 판정 단계(검수·유일성)는 medium을 유지하므로, 싸게 만든 것을 무르게
+ * 통과시키는 방향으로는 기울지 않는다.
  */
 export function resolveV2AnalyzerEffort(): "low" | "medium" | "high" {
   const raw = process.env.OPENAI_GRAMMAR_V2_ANALYZER_REASONING_EFFORT?.trim().toLowerCase();
-  if (raw === "low" || raw === "high") return raw;
-  return "medium";
+  if (raw === "medium" || raw === "high") return raw;
+  return "low";
 }
 
 export function resolveV2AuditorModel(): string {
@@ -506,6 +510,13 @@ export async function generateWorkbookGrammarChoiceV2(input: {
   }
   const filterMs = Date.now() - filterStarted;
   const sentenceLookup = analyzed.flatMap(({ row }) => row.sentences);
+  /**
+   * 판정 묶음이 지문 경계를 넘지 않게 한다.
+   * 넘나들면 한 지문의 판정 입력이 "같이 돌린 지문 수"에 따라 달라져서,
+   * 혼자 돌릴 때와 여러 개를 같이 돌릴 때 결과가 어긋난다.
+   */
+  const passageKeyOf = (item: { passageId?: string; candidateId: string }) =>
+    item.passageId || item.candidateId;
   const reviewStarted = Date.now();
   // 두 판정은 서로 독립이므로 함께 띄운다.
   const [audit, uniqueness] = await Promise.all([
@@ -517,6 +528,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
           reasoningEffort: auditorEffort,
           sentences: sentenceLookup,
           items: auditPool,
+          groupKeyOf: passageKeyOf,
         }),
     verifyChoiceUniqueness({
       apiKey,
@@ -524,6 +536,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
       reasoningEffort: auditorEffort,
       sentences: sentenceLookup,
       items: uniquenessPool,
+      groupKeyOf: passageKeyOf,
     }),
   ]);
   const reviewMs = Date.now() - reviewStarted;

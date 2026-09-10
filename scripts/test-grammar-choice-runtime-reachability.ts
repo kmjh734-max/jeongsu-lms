@@ -134,14 +134,14 @@ function studentEmitter(rule: Rule): boolean {
 }
 
 /**
- * 이 지문에서 특히 살펴보라고 짚어준 코드. codes에는 정리된 온톨로지 전체가
- * 담기므로, 라우팅이 맞게 걸리는지는 highlighted로 확인해야 한다.
+ * 이 문장에서 특히 살펴보라고 짚어준 코드. 정리된 온톨로지 전체는 시스템
+ * 프롬프트에 실리므로, 라우팅이 맞게 걸리는지는 문장별 likelyCodes로 확인한다.
  */
 function promptCodes(text: string): Set<string> {
   const payload = compactOntologyForSentences([
     { sentenceId: "s1", text, passageStart: 0, passageEnd: text.length },
   ]);
-  return new Set(payload.highlighted);
+  return new Set(payload.highlightedBySentence.flatMap((row) => row.likelyCodes));
 }
 
 function scanCodes(text: string): Set<string> {

@@ -1,15 +1,21 @@
-import { FORBIDDEN_PATTERNS } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
-import { compactOntologyForSentences } from "@/lib/lesson-materials/grammar-choice-v2/trigger-router";
+import {
+  compactOntologyForSentences,
+  ontologyCatalogText,
+} from "@/lib/lesson-materials/grammar-choice-v2/trigger-router";
 import type { ExactSentence } from "@/lib/lesson-materials/grammar-choice-v2/types";
 import { GRAMMAR_CHOICE_V2_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
-export const ANALYZER_SYSTEM_PROMPT = `You are a Korean high-school English grammar analyst and item writer.
+const ANALYZER_INSTRUCTIONS = `You are a Korean high-school English grammar analyst and item writer.
 
 Analyze only the exact source sentences supplied in INPUT.
 Never rewrite, summarize, merge, delete, or reproduce the full passage.
 
 For every sentence:
-1. Identify relevant grammar occurrences using only the supplied GRAMMAR_ONTOLOGY codes.
+1. Identify relevant grammar occurrences using only GRAMMAR_ONTOLOGY codes.
+   INPUT gives you highlightedBySentence.likelyCodes: the points a deterministic
+   local detector already found in that exact sentence. Start from that list and
+   confirm each one against the sentence before you look further afield. It is a
+   shortlist, not a restriction, and it is not always right.
 2. Scan MANDATORY points before CORE and BASIC points.
 3. Report every detected MANDATORY occurrence even when no question can be made.
 4. Create a candidate only when the exact source span is the correct answer.
@@ -34,6 +40,15 @@ Output limits:
 - Returning fewer candidates than the cap is correct and expected. Never pad the list to reach it.
 - No Korean or English explanations, no repeated grammar definitions, no full-sentence reprints.`;
 
+/**
+ * 정리된 온톨로지는 호출마다 똑같다. user 페이로드에 넣으면 문장 묶음 호출
+ * 하나하나가 10KB를 다시 보내는데, system에 고정으로 실으면 접두사가 같아져
+ * 프롬프트 캐시가 붙는다. 모델이 보는 내용은 f861bc8과 동일하게 코드 전체다.
+ */
+export const ANALYZER_SYSTEM_PROMPT = `${ANALYZER_INSTRUCTIONS}
+
+${ontologyCatalogText()}`;
+
 export function buildAnalyzerUserPayload(input: {
   passageId: string;
   sentences: ExactSentence[] | Array<{ sentenceId: string; text: string }>;
@@ -55,7 +70,7 @@ export function buildAnalyzerUserPayload(input: {
       sentenceId: s.sentenceId,
       text: s.text,
     })),
-    grammarOntology: compactOntologyForSentences(
+    ...compactOntologyForSentences(
       input.sentences.map((s) => ({
         sentenceId: s.sentenceId,
         text: s.text,
@@ -63,7 +78,6 @@ export function buildAnalyzerUserPayload(input: {
         passageEnd: "passageEnd" in s ? s.passageEnd : s.text.length,
       }))
     ),
-    forbiddenPatterns: FORBIDDEN_PATTERNS,
     analysisHints: (input.analysisHints ?? [])
       .filter((h) => h.targetText.trim())
       .slice(0, 12)

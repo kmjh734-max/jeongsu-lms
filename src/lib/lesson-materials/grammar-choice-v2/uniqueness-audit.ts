@@ -1,4 +1,5 @@
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { chunkByGroup } from "@/lib/lesson-materials/grammar-choice-v2/chunk-by-group";
 import { callGrammarChoiceV2Json, parseModelJson } from "@/lib/lesson-materials/grammar-choice-v2/openai-call";
 import { UNIQUENESS_SYSTEM_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
 import type {
@@ -6,12 +7,32 @@ import type {
   ResolvedCandidate,
 } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
-export const UNIQUENESS_OUTPUT_TOKEN_CAP = 3_000;
+/**
+ * 유일성 판정도 출력이 항목 수에 비례한다. 고정 상한을 두면 지문을 여러 개
+ * 돌릴 때만 응답이 잘려서 판정이 통째로 사라진다(검수와 같은 함정).
+ * 항목당 실측치보다 넉넉히 잡되, 상한은 천장일 뿐 실제 지출이 아니다.
+ */
+export const UNIQUENESS_OUTPUT_TOKENS_PER_ITEM = 260;
+export const UNIQUENESS_OUTPUT_TOKEN_FLOOR = 1_200;
 
-/** 한 호출에 넣는 판정 항목 수. 판정 자체가 짧아 묶어도 품질이 잘 떨어지지 않는다. */
-export const UNIQUENESS_ITEMS_PER_CALL = 12;
+/** 한 호출에 넣는 판정 항목 수. */
+export const UNIQUENESS_ITEMS_PER_CALL = 8;
 
-export const UNIQUENESS_CONCURRENCY = 3;
+/**
+ * 유일성 풀은 지문 전체를 합친 전역 풀이라 지문 수에 비례해 커진다.
+ * 동시성이 3이면 여기가 전체 실행의 병목이 된다(후보 400개 = 10웨이브).
+ */
+export const UNIQUENESS_CONCURRENCY = 10;
+
+export function uniquenessOutputTokenCap(itemCount: number): number {
+  return Math.min(
+    12_000,
+    Math.max(
+      UNIQUENESS_OUTPUT_TOKEN_FLOOR,
+      itemCount * UNIQUENESS_OUTPUT_TOKENS_PER_ITEM
+    )
+  );
+}
 
 const SLOT = "[[SLOT]]";
 
@@ -108,6 +129,8 @@ export async function verifyChoiceUniqueness(input: {
   reasoningEffort: string;
   sentences: ExactSentence[];
   items: ResolvedCandidate[];
+  /** 묶음이 지문 경계를 넘지 않게 하는 키. 없으면 전부 한 덩어리로 본다. */
+  groupKeyOf?: (item: ResolvedCandidate) => string;
 }): Promise<{
   verdicts: UniquenessVerdict[];
   responseModel: string;
@@ -138,6 +161,7 @@ export async function verifyChoiceUniqueness(input: {
     optionA: string;
     optionB: string;
     correctIsA: boolean;
+    groupKey: string;
   };
 
   const prepared: Prepared[] = [];
@@ -156,6 +180,7 @@ export async function verifyChoiceUniqueness(input: {
     // candidateId 길이의 홀짝으로 좌우를 섞는다. 재실행해도 같은 배치가 나온다.
     const correctIsA = item.candidateId.length % 2 === 0;
     prepared.push({
+      groupKey: input.groupKeyOf ? input.groupKeyOf(item) : "all",
       candidateId: item.candidateId,
       slotSentence,
       optionA: correctIsA ? item.correctAnswer : wrong,
@@ -166,35 +191,48 @@ export async function verifyChoiceUniqueness(input: {
 
   if (prepared.length === 0) return empty;
 
-  const chunks: Prepared[][] = [];
-  for (let i = 0; i < prepared.length; i += UNIQUENESS_ITEMS_PER_CALL) {
-    chunks.push(prepared.slice(i, i + UNIQUENESS_ITEMS_PER_CALL));
-  }
+  const chunks = chunkByGroup(
+    prepared,
+    UNIQUENESS_ITEMS_PER_CALL,
+    (row) => row.groupKey
+  );
 
   const started = Date.now();
-  const calls = await runWithConcurrency(
-    chunks,
-    Math.min(UNIQUENESS_CONCURRENCY, chunks.length),
-    async (chunk) =>
-      callGrammarChoiceV2Json({
-        stage: "REVIEWER",
-        apiKey: input.apiKey,
-        model: input.model,
-        reasoningEffort: input.reasoningEffort,
-        system: UNIQUENESS_SYSTEM_PROMPT,
-        user: JSON.stringify({
-          items: chunk.map((row) => ({
-            itemId: row.candidateId,
-            sentence: row.slotSentence,
-            optionA: row.optionA,
-            optionB: row.optionB,
-          })),
-        }),
-        schemaName: "grammar_choice_v2_uniqueness",
-        schema: UNIQUENESS_SCHEMA as unknown as Record<string, unknown>,
-        maxCompletionTokens: UNIQUENESS_OUTPUT_TOKEN_CAP,
-      })
-  );
+  /**
+   * 묶음 하나가 실패해도 나머지 판정은 살린다. 판정이 없는 후보는
+   * applyUniqueness에서 게이트를 통과하지 못한 것으로 처리되므로,
+   * 실패를 삼켜도 "둘 다 맞는" 문항이 새어 나가지는 않는다.
+   */
+  const calls = (
+    await runWithConcurrency(
+      chunks,
+      Math.min(UNIQUENESS_CONCURRENCY, chunks.length),
+      async (chunk) => {
+        try {
+          return await callGrammarChoiceV2Json({
+            stage: "REVIEWER",
+            apiKey: input.apiKey,
+            model: input.model,
+            reasoningEffort: input.reasoningEffort,
+            system: UNIQUENESS_SYSTEM_PROMPT,
+            user: JSON.stringify({
+              items: chunk.map((row) => ({
+                itemId: row.candidateId,
+                sentence: row.slotSentence,
+                optionA: row.optionA,
+                optionB: row.optionB,
+              })),
+            }),
+            schemaName: "grammar_choice_v2_uniqueness",
+            schema: UNIQUENESS_SCHEMA as unknown as Record<string, unknown>,
+            maxCompletionTokens: uniquenessOutputTokenCap(chunk.length),
+          });
+        } catch {
+          return null;
+        }
+      }
+    )
+  ).filter((row): row is NonNullable<typeof row> => row !== null);
 
   const byId = new Map(prepared.map((row) => [row.candidateId, row]));
   const rawJson: string[] = [];
@@ -209,13 +247,18 @@ export async function verifyChoiceUniqueness(input: {
     outputTokens += called.outputTokens ?? 0;
     fallback = fallback || called.fallback;
     responseModel = called.responseModel;
-    const parsed = parseModelJson<{
+    let parsed: {
       results?: Array<{
         itemId?: string;
         aGrammatical?: unknown;
         bGrammatical?: unknown;
       }>;
-    }>(called.content);
+    };
+    try {
+      parsed = parseModelJson(called.content);
+    } catch {
+      continue;
+    }
     for (const row of parsed.results ?? []) {
       const id = String(row.itemId ?? "");
       const source = byId.get(id);
