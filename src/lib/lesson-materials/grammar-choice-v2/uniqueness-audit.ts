@@ -16,8 +16,15 @@ import type {
 export const UNIQUENESS_OUTPUT_TOKENS_PER_ITEM = 260;
 export const UNIQUENESS_OUTPUT_TOKEN_FLOOR = 1_200;
 
-/** 한 호출에 넣는 판정 항목 수. */
-export const UNIQUENESS_ITEMS_PER_CALL = 8;
+/**
+ * 한 호출에 넣는 판정 항목 수.
+ *
+ * 8이던 것을 3으로 내렸다. 분석 단계에서 문장 하나당 호출 하나로 쪼갠 것과 같은
+ * 이유다 — 지연은 그 호출이 뱉는 토큰 수에 비례하고, 묶음 안의 항목들은 서로
+ * 독립이라 직렬로 판정할 이유가 없다. 8개씩 묶었을 때 유일성 호출 하나가
+ * 최대 38초까지 걸려 전체 실행의 절반을 차지했다.
+ */
+export const UNIQUENESS_ITEMS_PER_CALL = 3;
 
 /**
  * 유일성 풀은 지문 전체를 합친 전역 풀이라 지문 수에 비례해 커진다.

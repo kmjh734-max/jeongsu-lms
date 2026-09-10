@@ -6,6 +6,7 @@ import { buildCoverage } from "@/lib/lesson-materials/grammar-choice-v2/coverage
 import { COMPARISON_CH12_RULES } from "@/lib/lesson-materials/grammar-choice-v2/comparison-ch12";
 import { codeSpanContractMismatch, explanationContractMismatch } from "@/lib/lesson-materials/grammar-choice-v2/assessment-contract";
 import { explanationFitsPair, repairChoice, safeLocalCandidates } from "@/lib/lesson-materials/grammar-choice-v2/choice-repair";
+import { localCandidatesFromDetectors } from "@/lib/lesson-materials/grammar-choice-v2/local-candidates";
 import { isWhToInfinitiveSpan } from "@/lib/lesson-materials/grammar-choice-v2/distractor-guard";
 import { explainChoice } from "@/lib/lesson-materials/grammar-choice-v2/explanation-templates";
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
@@ -124,7 +125,10 @@ export function resolveAndFilter(input: {
   candidates: GrammarCandidate[];
 }): { resolved: ResolvedCandidate[]; rejected: V2Reject[] } {
   const byId = new Map(input.sentences.map((s) => [s.sentenceId, s]));
-  const extras = input.sentences.flatMap((s) => safeLocalCandidates(s.sentenceId, s.text));
+  const extras = input.sentences.flatMap((s) => [
+    ...safeLocalCandidates(s.sentenceId, s.text),
+    ...localCandidatesFromDetectors(s.sentenceId, s.text),
+  ]);
   const seenLocal = new Set(input.candidates.map((c) => `${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`));
   const candidates = [
     ...input.candidates,
@@ -209,24 +213,6 @@ export function resolveAndFilter(input: {
       });
       continue;
     }
-    const local =
-      rejectCandidate({ candidate, sentence }) ??
-      validateMinimalPair({
-        pointCode: candidate.pointCode,
-        sourceSpan: candidate.sourceSpan,
-        distractor: candidate.distractors[0] ?? "",
-        sentence: sentence.text,
-      });
-    if (local) {
-      rejected.push({
-        candidateId: candidate.candidateId,
-        sentenceId: candidate.sentenceId,
-        pointCode: candidate.pointCode,
-        reason: local,
-        pair,
-      });
-      continue;
-    }
     const span =
       resolveSpan({
         sentence,
@@ -287,6 +273,37 @@ export function resolveAndFilter(input: {
       };
       span.passageStart = start;
       span.passageEnd = start + trimmed.correct.length;
+    }
+
+    /**
+     * 로컬 검증은 자른 뒤에 한다.
+     *
+     * 예전에는 자르기 전에 검증했다. 그런데 챕터 검증기의 NON_MINIMAL_SPAN 문턱
+     * (4단어)이 spansWholeClause의 문턱과 같은 값이라, 자르면 최소 대립쌍이 되는
+     * 후보가 자르기에 닿기도 전에 전부 NON_MINIMAL_SPAN으로 떨어졌다. 실측에서
+     * 이 사유 하나가 전체 탈락의 최다(12건)였고 문항 0개 문장 12개 중 7개가
+     * 여기서 나왔다.
+     *
+     * 학생이 네모에서 보는 것은 자른 쌍이므로, 검증 대상도 자른 쌍이어야 맞다.
+     */
+    const finalPair = `${candidate.correctAnswer} / ${candidate.distractors[0] ?? ""}`;
+    const local =
+      rejectCandidate({ candidate, sentence }) ??
+      validateMinimalPair({
+        pointCode: candidate.pointCode,
+        sourceSpan: candidate.sourceSpan,
+        distractor: candidate.distractors[0] ?? "",
+        sentence: sentence.text,
+      });
+    if (local) {
+      rejected.push({
+        candidateId: candidate.candidateId,
+        sentenceId: candidate.sentenceId,
+        pointCode: candidate.pointCode,
+        reason: local,
+        pair: finalPair,
+      });
+      continue;
     }
 
     const exactPair = `${candidate.sentenceId}|${candidate.sourceSpan}|${normalize(candidate.distractors[0] ?? "")}`;

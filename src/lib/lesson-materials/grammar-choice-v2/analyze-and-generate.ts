@@ -5,6 +5,7 @@ import {
   buildAnalyzerUserPayload,
 } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
 import { isKnownPointCode } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
+import { detectedPointsFromSentences } from "@/lib/lesson-materials/grammar-choice-v2/local-candidates";
 import type {
   AnalysisHintV2,
   DetectedGrammarPoint,
@@ -59,33 +60,9 @@ const ANALYZER_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["sentenceId", "detectedPoints", "candidates"],
+        required: ["sentenceId", "candidates"],
         properties: {
           sentenceId: { type: "string" },
-          detectedPoints: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: false,
-              required: [
-                "pointCode",
-                "sourceSpan",
-                "occurrenceIndex",
-                "priority",
-                "omissionReason",
-              ],
-              properties: {
-                pointCode: { type: "string" },
-                sourceSpan: { type: "string" },
-                occurrenceIndex: { type: "integer" },
-                priority: { type: "string", enum: ["MANDATORY", "CORE", "BASIC"] },
-                omissionReason: {
-                  type: "string",
-                  enum: OMISSION_ENUM,
-                },
-              },
-            },
-          },
           candidates: {
             type: "array",
             maxItems: 3,
@@ -257,12 +234,20 @@ export async function analyzeAndGeneratePassage(input: {
   }
   const mergedRawJson = JSON.stringify({ sentences: mergedSentences });
   const parsed = parseAnalyzerRawJson(mergedRawJson, input.passageId);
+  /**
+   * 검출 목록은 모델이 아니라 검출기에서 온다. 모델 응답에 detectedPoints가
+   * 남아 있는 것은 옛 스냅샷을 replay할 때뿐이므로, 비어 있을 때만 채운다.
+   */
+  const detected = parsed.detected.length
+    ? parsed.detected
+    : detectedPointsFromSentences(input.sentences);
 
   const sum = (pick: (row: (typeof calls)[number]) => number | null) =>
     calls.reduce((acc, row) => acc + (pick(row) ?? 0), 0);
 
   return {
     ...parsed,
+    detected,
     responseModel: calls[0]?.called.responseModel ?? input.model,
     promptChars: sum((row) => row.promptChars),
     rawJson: mergedRawJson,

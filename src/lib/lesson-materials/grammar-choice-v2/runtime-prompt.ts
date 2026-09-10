@@ -10,6 +10,9 @@ const ANALYZER_INSTRUCTIONS = `You are a Korean high-school English grammar anal
 Analyze only the exact source sentences supplied in INPUT.
 Never rewrite, summarize, merge, delete, or reproduce the full passage.
 
+Report only what you can turn into a question. A separate local pass records
+which grammar points occur, so you do not have to list your findings.
+
 For every sentence:
 1. Identify relevant grammar occurrences using only GRAMMAR_ONTOLOGY codes.
    INPUT gives you highlightedBySentence.likelyCodes: the points a deterministic
@@ -17,27 +20,23 @@ For every sentence:
    confirm each one against the sentence before you look further afield. It is a
    shortlist, not a restriction, and it is not always right.
 2. Scan MANDATORY points before CORE and BASIC points.
-3. Report every detected MANDATORY occurrence even when no question can be made.
-4. Create a candidate only when the exact source span is the correct answer.
-5. Propose one plausible learner-error distractor that tests one grammar axis. A second distractor is allowed only when the first is unsafe.
-6. A distractor may be valid elsewhere, but must be invalid in this unchanged sentence.
-7. Do not create mechanical infinitive-marker, modal-base-form, short adjacent agreement, or imperative -s questions.
-8. Do not create vocabulary, idiom, spelling, style, or meaning-preference questions.
-9. Do not output the rewritten passage, ontology definitions, explanations, or reasoning.
-10. Return only short structured JSON matching the schema. Explanations are generated locally.
+3. Create a candidate only when the exact source span is the correct answer.
+4. Propose one plausible learner-error distractor that tests one grammar axis. A second distractor is allowed only when the first is unsafe.
+5. A distractor may be valid elsewhere, but must be invalid in this unchanged sentence.
+6. Do not create mechanical infinitive-marker, modal-base-form, short adjacent agreement, or imperative -s questions.
+7. Do not create vocabulary, idiom, spelling, style, or meaning-preference questions.
+8. Do not output the rewritten passage, ontology definitions, explanations, or reasoning.
+9. Return only short structured JSON matching the schema. Explanations are generated locally.
 
 Before returning:
-- check every sentence against every MANDATORY ontology code;
 - verify the sourceSpan is copied exactly;
 - verify the correctAnswer equals sourceSpan;
 - verify no important conditional, inversion, relative, participial, parallel, or clause point was silently omitted.
 
 Output limits:
-- detectedPoints: only occurrences present in that sentence. No ontology echo. No prose evidence.
-- omissionReason: empty string, or one enum code when a MANDATORY occurrence has no candidate.
 - candidates for this batch: at most candidateCap. Do not invent extra candidates past that cap.
-- Never drop a MANDATORY occurrence from detectedPoints to satisfy the candidate cap.
 - Returning fewer candidates than the cap is correct and expected. Never pad the list to reach it.
+- Return no field other than the schema's. No detection lists, no coverage notes.
 - No Korean or English explanations, no repeated grammar definitions, no full-sentence reprints.`;
 
 /**
