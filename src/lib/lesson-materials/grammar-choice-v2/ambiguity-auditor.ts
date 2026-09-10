@@ -1,4 +1,5 @@
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import type { Limiter } from "@/lib/lesson-materials/grammar-choice-v2/limiter";
 import { chunkByGroup } from "@/lib/lesson-materials/grammar-choice-v2/chunk-by-group";
 import { callGrammarChoiceV2Json, parseModelJson } from "@/lib/lesson-materials/grammar-choice-v2/openai-call";
 import { AUDITOR_SYSTEM_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
@@ -97,6 +98,8 @@ export async function auditRiskyCandidates(input: {
   items: ResolvedCandidate[];
   /** 묶음이 지문 경계를 넘지 않게 하는 키. 없으면 전부 한 덩어리로 본다. */
   groupKeyOf?: (item: ResolvedCandidate) => string;
+  /** 지문들이 공유하는 판정 호출 게이트. 없으면 이 호출만의 상한을 쓴다. */
+  limiter?: Limiter;
 }): Promise<{
   results: AuditResult[];
   responseModel: string;
@@ -138,12 +141,15 @@ export async function auditRiskyCandidates(input: {
    * 판정이 없는 항목은 applyAudits에서 통과가 아니라 탈락으로 처리되므로,
    * 실패를 삼켜도 나쁜 문항이 통과하는 방향으로는 새지 않는다.
    */
+  const gate = input.limiter;
+  const runGated = <T>(task: () => Promise<T>): Promise<T> =>
+    gate ? gate(task) : task();
   const calls = await runWithConcurrency(
     reviewChunks,
-    Math.min(AUDIT_CONCURRENCY, reviewChunks.length),
+    gate ? reviewChunks.length : Math.min(AUDIT_CONCURRENCY, reviewChunks.length),
     async (chunk) => {
       try {
-        const called = await callGrammarChoiceV2Json({
+        const called = await runGated(() => callGrammarChoiceV2Json({
           stage: "REVIEWER",
           apiKey: input.apiKey,
           model: input.model,
@@ -162,7 +168,7 @@ export async function auditRiskyCandidates(input: {
           schemaName: "grammar_choice_v2_audit",
           schema: AUDIT_SCHEMA as unknown as Record<string, unknown>,
           maxCompletionTokens: auditOutputTokenCap(chunk.length),
-        });
+        }));
         return { called, error: null as Error | null };
       } catch (error) {
         return { called: null, error: error as Error };

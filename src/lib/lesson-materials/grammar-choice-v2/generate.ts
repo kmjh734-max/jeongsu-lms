@@ -1,4 +1,5 @@
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { createLimiter } from "@/lib/lesson-materials/grammar-choice-v2/limiter";
 import { analyzeAndGeneratePassage } from "@/lib/lesson-materials/grammar-choice-v2/analyze-and-generate";
 import { auditRiskyCandidates } from "@/lib/lesson-materials/grammar-choice-v2/ambiguity-auditor";
 import {
@@ -45,6 +46,29 @@ import {
   type WorkbookGrammarChoiceSkip,
 } from "@/lib/lesson-materials/workbook-types";
 
+/**
+ * 분석 단계에서 동시에 열어 두는 OpenAI 호출 수 (지문 전체 합).
+ *
+ * 예전 값 4는 "동시에 처리하는 지문 수"였고, 지문 안의 묶음 동시성(3)과
+ * 곱해져 실제 상한이 지문 구성에 따라 달라졌다. 이제는 문장 하나가 곧 한
+ * 호출이므로 여기 한 곳에서만 상한을 잡는다.
+ *
+ * 16 -> 32 -> 48로 올리며 실측했다. 16은 세 웨이브(74.1초), 32는 두 웨이브(51.2초)로
+ * 매번 peak가 상한에 붙었다 = 게이트가 병목이라는 뜻이다. 4지문이 38호출이므로
+ * 48이면 한 웨이브에 들어간다. 순간 호출이 늘어 429가 날 수 있으므로
+ * openai-call의 재시도가 전제다.
+ */
+export const ANALYZER_CALL_CONCURRENCY = 48;
+
+/**
+ * 판정 단계에서 동시에 열어 두는 OpenAI 호출 수 (지문 전체 합).
+ *
+ * AUDIT_CONCURRENCY(6)와 UNIQUENESS_CONCURRENCY(10)는 호출 1회당 상한이라,
+ * 지문별로 판정을 부르면 지문 수만큼 곱해진다. 여기서 전체를 한 번에 잡는다.
+ */
+export const REVIEWER_CALL_CONCURRENCY = 24;
+
+/** @deprecated 지문 단위로 세던 시절의 상한. ANALYZER_CALL_CONCURRENCY를 쓴다. */
 export const ANALYZER_CONCURRENCY = 4;
 
 export type GrammarChoiceEngineSelection = {
@@ -364,26 +388,79 @@ export async function generateWorkbookGrammarChoiceV2(input: {
     throw new Error("OPENAI_API_KEY가 설정되어 있지 않습니다.");
   }
 
-  const needAnalyze = pending.filter((row) => {
-    if (input.forceRegenerate) return true;
-    return !getCachedGrammarChoiceV2Analysis(row.cache, row.projectId, row.cacheKey);
-  });
-  const analyzeStarted = Date.now();
-  const concurrency = Math.min(ANALYZER_CONCURRENCY, needAnalyze.length || 1);
-  const fresh = await runWithConcurrency(needAnalyze, concurrency, async (row) => {
-    const routeStarted = Date.now();
-    const localMandatory = scanLocalMandatory(row.sentences);
-    const routeMs = Date.now() - routeStarted;
-    try {
-      const analyzedRow = await analyzeAndGeneratePassage({
-        apiKey,
-        model: analyzerModel,
-        reasoningEffort: analyzerEffort,
-        passageId: row.projectId,
-        sentences: row.sentences,
-        analysisHints: row.hints,
-        localMandatoryHints: localMandatory,
-      });
+  /**
+   * 지문 하나를 분석부터 판정까지 끝까지 밀고 간다.
+   *
+   * 예전에는 "전 지문 분석 -> 배리어 -> 전 지문 판정" 두 단계였다. 그래서 먼저
+   * 끝난 지문이 마지막 지문의 분석을 기다리는 동안 놀았다. 판정 묶음은 이미
+   * chunkByGroup이 지문 경계로 잘라 왔으므로(호출 하나가 두 지문을 섞은 적이
+   * 없다) 지문별로 나눠 불러도 호출당 항목 구성은 그대로다.
+   *
+   * 덤으로 전역 풀에서 candidateId로 판정을 되찾던 경로가 사라진다. 그 id는
+   * choice-repair가 만드는 local-*의 경우 지문 접두사가 없어서, 두 지문이 같은
+   * id를 만들면 판정이 엉뚱한 지문에 붙을 수 있었다.
+   */
+  const analyzerGate = createLimiter(ANALYZER_CALL_CONCURRENCY);
+  const reviewerGate = createLimiter(REVIEWER_CALL_CONCURRENCY);
+
+  const processed = await runWithConcurrency(
+    pending,
+    pending.length || 1,
+    async (row) => {
+      const localMandatory = scanLocalMandatory(row.sentences);
+      const cachedAnalysis = input.forceRegenerate
+        ? null
+        : getCachedGrammarChoiceV2Analysis(row.cache, row.projectId, row.cacheKey);
+
+      if (cachedAnalysis) {
+        return {
+          ok: true as const,
+          row,
+          analyzedRow: {
+            detected: cachedAnalysis.detected,
+            candidates: cachedAnalysis.candidates,
+            responseModel: cachedAnalysis.responseModel,
+            promptChars: 0,
+            rawJson: "",
+            parsed: null,
+            latencyMs: 0,
+            inputTokens: null,
+            outputTokens: null,
+            fallback: false,
+            callCount: 0,
+          },
+          audits: cachedAnalysis.audits,
+          uniqueness: cachedAnalysis.uniqueness ?? [],
+          auditResponseModel: auditorModel,
+          analyzeCalls: 0,
+          reviewCalls: 0,
+          analyzeMs: 0,
+          reviewMs: 0,
+        };
+      }
+
+      let analyzedRow;
+      const analyzeStarted = Date.now();
+      try {
+        analyzedRow = await analyzeAndGeneratePassage({
+          apiKey,
+          model: analyzerModel,
+          reasoningEffort: analyzerEffort,
+          passageId: row.projectId,
+          sentences: row.sentences,
+          analysisHints: row.hints,
+          localMandatoryHints: localMandatory,
+          limiter: analyzerGate,
+        });
+      } catch (error) {
+        return {
+          ok: false as const,
+          row,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+      const analyzeMs = Date.now() - analyzeStarted;
+
       if (capture) {
         writeCheckpoint(captureDir, `passages/${row.projectId}/analyzer.json`, {
           ...captureMetadata({
@@ -404,36 +481,103 @@ export async function generateWorkbookGrammarChoiceV2(input: {
           parsed: analyzedRow.parsed,
           detected: analyzedRow.detected,
           candidates: analyzedRow.candidates,
-          routeMs,
         });
       }
+
+      const { resolved } = resolveAndFilter({
+        sentences: row.sentences,
+        candidates: analyzedRow.candidates,
+      });
+      const expanded = expandAuditItems(resolved);
+      /**
+       * 유일성 판정은 needsAuditor 라우팅을 타지 않는다.
+       * 검수로 안 보내는 후보가 "네모 안 둘 다 맞는" 문제의 주된 출처이므로
+       * 해소된 후보 전부를 블라인드 판정에 넣는다.
+       */
+      const uniquenessPool = expandUniquenessItems(resolved);
+      const reviewPlan = planReviewerSubmission(expanded, row.sentences);
+
+      const reviewStarted = Date.now();
+      // 두 판정은 서로 독립이므로 함께 띄운다.
+      const [audit, uniqueness] = await Promise.all([
+        reviewPlan.send.length === 0
+          ? Promise.resolve({
+              results: [],
+              responseModel: auditorModel,
+              calls: 0,
+              latencyMs: 0,
+              inputTokens: null,
+              outputTokens: null,
+              rawJson: [] as string[],
+              parsed: [] as unknown[],
+              fallback: false,
+            })
+          : auditRiskyCandidates({
+              apiKey,
+              model: auditorModel,
+              reasoningEffort: auditorEffort,
+              sentences: row.sentences,
+              items: reviewPlan.send,
+              limiter: reviewerGate,
+            }),
+        verifyChoiceUniqueness({
+          apiKey,
+          model: auditorModel,
+          reasoningEffort: auditorEffort,
+          sentences: row.sentences,
+          items: uniquenessPool,
+          limiter: reviewerGate,
+        }),
+      ]);
+      const reviewMs = Date.now() - reviewStarted;
+
+      if (capture) {
+        writeCheckpoint(captureDir, `passages/${row.projectId}/reviewer.json`, {
+          ...captureMetadata({
+            sourceId: row.projectId,
+            generatorModel: analyzerModel,
+            generatorReasoningEffort: analyzerEffort,
+            reviewerModel: auditorModel,
+            reviewerReasoningEffort: auditorEffort,
+            forceRegenerate: input.forceRegenerate === true,
+            cacheHit: false,
+            fallback: audit.fallback,
+          }),
+          responseModel: audit.responseModel,
+          calls: audit.calls,
+          latencyMs: audit.latencyMs,
+          inputTokens: audit.inputTokens,
+          outputTokens: audit.outputTokens,
+          rawJson: audit.rawJson,
+          parsed: audit.parsed,
+          results: audit.results,
+        });
+      }
+
       return {
         ok: true as const,
         row,
         analyzedRow,
-        localMandatory,
-        routeMs,
-        fromCache: false,
-        cachedAudits: [] as import("@/lib/lesson-materials/grammar-choice-v2/types").AuditResult[],
-        cachedUniqueness: [] as UniquenessVerdict[],
-      };
-    } catch (error) {
-      return {
-        ok: false as const,
-        row,
-        error: error instanceof Error ? error.message : String(error),
-        localMandatory,
-        routeMs,
+        audits: [...reviewPlan.localPass, ...audit.results],
+        uniqueness: uniqueness.verdicts,
+        auditResponseModel: audit.responseModel,
+        analyzeCalls: analyzedRow.callCount,
+        reviewCalls: audit.calls + uniqueness.calls,
+        analyzeMs,
+        reviewMs,
       };
     }
-  });
-  const analyzeMs = Date.now() - analyzeStarted;
-  const succeeded = fresh.filter((item) => item.ok);
-  generateCalls += succeeded.length;
-  openAi += succeeded.length;
-  for (const row of succeeded) promptChars.push(row.analyzedRow.promptChars);
-  for (const item of fresh) {
-    if (item.ok) continue;
+  );
+
+
+  for (const item of processed) {
+    if (item.ok) {
+      generateCalls += item.analyzeCalls;
+      reviewCalls += item.reviewCalls;
+      openAi += item.analyzeCalls + item.reviewCalls;
+      if (item.analyzedRow.promptChars) promptChars.push(item.analyzedRow.promptChars);
+      continue;
+    }
     skipped.push({
       projectId: item.row.projectId,
       title: item.row.title,
@@ -441,152 +585,15 @@ export async function generateWorkbookGrammarChoiceV2(input: {
     });
   }
 
-  const analyzed = pending.flatMap((row) => {
-    const made = succeeded.find((item) => item.row.projectId === row.projectId);
-    if (made) return [made];
-    if (fresh.some((item) => !item.ok && item.row.projectId === row.projectId)) return [];
-    const hit = getCachedGrammarChoiceV2Analysis(row.cache, row.projectId, row.cacheKey);
-    if (!hit) return [];
-    return [{
-      ok: true as const,
-      row,
-      analyzedRow: {
-        detected: hit.detected,
-        candidates: hit.candidates,
-        responseModel: hit.responseModel,
-        promptChars: 0,
-        rawJson: "",
-        parsed: null,
-        latencyMs: 0,
-        inputTokens: null,
-        outputTokens: null,
-        fallback: false,
-      },
-      localMandatory: scanLocalMandatory(row.sentences),
-      routeMs: 0,
-      fromCache: true,
-      cachedAudits: hit.audits,
-      cachedUniqueness: hit.uniqueness ?? [],
-    }];
-  });
-
-  const filterStarted = Date.now();
-  const resolvedByPassage = analyzed.map(({ row, analyzedRow, fromCache, cachedAudits }) => ({
-    passageId: row.projectId,
-    resolved:
-      fromCache && cachedAudits
-        ? []
-        : resolveAndFilter({
-            sentences: row.sentences,
-            candidates: analyzedRow.candidates,
-          }).resolved,
-  }));
-  const expanded = resolvedByPassage.flatMap(({ passageId, resolved }) =>
-    expandAuditItems(resolved).map((item) => ({ ...item, passageId }))
-  );
+  const analyzed = processed.filter((item) => item.ok);
   /**
-   * 유일성 판정은 needsAuditor 라우팅을 타지 않는다.
-   * 검수로 안 보내는 후보가 "네모 안 둘 다 맞는" 문제의 주된 출처이므로
-   * 해소된 후보 전부를 블라인드 판정에 넣는다.
+   * 지문별 단계가 서로 겹치므로 합을 내면 실제 경과보다 커진다.
+   * 임계 경로를 보려면 최댓값이 맞다.
    */
-  const uniquenessPool = resolvedByPassage.flatMap(({ passageId, resolved }) =>
-    expandUniquenessItems(resolved).map((item) => ({ ...item, passageId }))
-  );
-  const reviewPlan = planReviewerSubmission(
-    expanded,
-    analyzed.flatMap(({ row }) => row.sentences)
-  );
-  const auditPool = reviewPlan.send.map((item) => {
-    const owner = expanded.find((row) => row.candidateId === item.candidateId);
-    return { ...item, passageId: owner && "passageId" in owner ? String(owner.passageId) : "" };
-  });
-  const localPassByPassage = new Map<string, typeof reviewPlan.localPass>();
-  for (const item of reviewPlan.localPass) {
-    const owner = expanded.find((row) => row.candidateId === item.candidateId);
-    const passageId = owner && "passageId" in owner ? String(owner.passageId) : "";
-    const list = localPassByPassage.get(passageId) ?? [];
-    list.push(item);
-    localPassByPassage.set(passageId, list);
-  }
-  const filterMs = Date.now() - filterStarted;
-  const sentenceLookup = analyzed.flatMap(({ row }) => row.sentences);
-  /**
-   * 판정 묶음이 지문 경계를 넘지 않게 한다.
-   * 넘나들면 한 지문의 판정 입력이 "같이 돌린 지문 수"에 따라 달라져서,
-   * 혼자 돌릴 때와 여러 개를 같이 돌릴 때 결과가 어긋난다.
-   */
-  const passageKeyOf = (item: { passageId?: string; candidateId: string }) =>
-    item.passageId || item.candidateId;
-  const reviewStarted = Date.now();
-  // 두 판정은 서로 독립이므로 함께 띄운다.
-  const [audit, uniqueness] = await Promise.all([
-    auditPool.length === 0
-      ? Promise.resolve({ results: [], responseModel: auditorModel, calls: 0, latencyMs: 0, inputTokens: null, outputTokens: null, rawJson: [] as string[], parsed: [] as unknown[], fallback: false })
-      : auditRiskyCandidates({
-          apiKey,
-          model: auditorModel,
-          reasoningEffort: auditorEffort,
-          sentences: sentenceLookup,
-          items: auditPool,
-          groupKeyOf: passageKeyOf,
-        }),
-    verifyChoiceUniqueness({
-      apiKey,
-      model: auditorModel,
-      reasoningEffort: auditorEffort,
-      sentences: sentenceLookup,
-      items: uniquenessPool,
-      groupKeyOf: passageKeyOf,
-    }),
-  ]);
-  const reviewMs = Date.now() - reviewStarted;
-  reviewCalls += audit.calls + uniqueness.calls;
-  openAi += audit.calls + uniqueness.calls;
+  const analyzeMs = Math.max(0, ...analyzed.map((item) => item.analyzeMs));
+  const reviewMs = Math.max(0, ...analyzed.map((item) => item.reviewMs));
 
-  const uniquenessByPassage = new Map<string, UniquenessVerdict[]>();
-  for (const verdict of uniqueness.verdicts) {
-    const owner = uniquenessPool.find((item) => item.candidateId === verdict.candidateId);
-    const passageId = owner ? owner.passageId : "";
-    const list = uniquenessByPassage.get(passageId) ?? [];
-    list.push(verdict);
-    uniquenessByPassage.set(passageId, list);
-  }
-  if (capture) {
-    writeCheckpoint(captureDir, "reviewer.json", {
-      ...captureMetadata({
-        generatorModel: analyzerModel,
-        generatorReasoningEffort: analyzerEffort,
-        reviewerModel: auditorModel,
-        reviewerReasoningEffort: auditorEffort,
-        forceRegenerate: input.forceRegenerate === true,
-        cacheHit: false,
-        fallback: audit.fallback,
-      }),
-      responseModel: audit.responseModel,
-      calls: audit.calls,
-      latencyMs: audit.latencyMs,
-      inputTokens: audit.inputTokens,
-      outputTokens: audit.outputTokens,
-      rawJson: audit.rawJson,
-      parsed: audit.parsed,
-      results: audit.results,
-    });
-  }
-
-  const auditByPassage = new Map<string, typeof audit.results>();
-  for (const result of audit.results) {
-    const owner = auditPool.find((item) => item.candidateId === result.candidateId);
-    const passageId = owner && "passageId" in owner ? String(owner.passageId) : "";
-    const list = auditByPassage.get(passageId) ?? [];
-    list.push(result);
-    auditByPassage.set(passageId, list);
-  }
-
-  for (const { row, analyzedRow, cachedAudits, cachedUniqueness } of analyzed) {
-    const passageUniqueness = [
-      ...(cachedUniqueness ?? []),
-      ...(uniquenessByPassage.get(row.projectId) ?? []),
-    ];
+  for (const { row, analyzedRow, audits, uniqueness: passageUniqueness, auditResponseModel } of analyzed) {
     const finalized = finalizeV2Passage({
       projectId: row.projectId,
       title: row.title,
@@ -595,11 +602,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
       sentences: row.sentences,
       detected: analyzedRow.detected,
       candidates: analyzedRow.candidates,
-      audits: [
-        ...(cachedAudits ?? []),
-        ...(localPassByPassage.get(row.projectId) ?? []),
-        ...(auditByPassage.get(row.projectId) ?? []),
-      ],
+      audits,
       uniqueness: passageUniqueness,
       seedKey: `${row.projectId}|${row.cacheKey.passageHash}|v2`,
       diagnosticsBase: emptyDiagnostics({
@@ -614,7 +617,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
         generateApiCalls: generateCalls,
         reviewApiCalls: reviewCalls,
         generatorResponseModel: analyzedRow.responseModel,
-        reviewerResponseModel: audit.responseModel,
+        reviewerResponseModel: auditResponseModel,
       }),
     });
     reports.push({
@@ -640,33 +643,10 @@ export async function generateWorkbookGrammarChoiceV2(input: {
       responseModel: analyzedRow.responseModel,
       detected: analyzedRow.detected,
       candidates: analyzedRow.candidates,
-      audits: [
-        ...(cachedAudits ?? []),
-        ...(localPassByPassage.get(row.projectId) ?? []),
-        ...(auditByPassage.get(row.projectId) ?? []),
-      ],
+      audits,
       uniqueness: passageUniqueness,
     });
     if (capture) {
-      writeCheckpoint(captureDir, `passages/${row.projectId}/reviewer.json`, {
-        ...captureMetadata({
-          sourceId: row.projectId,
-          generatorModel: analyzerModel,
-          generatorReasoningEffort: analyzerEffort,
-          reviewerModel: auditorModel,
-          reviewerReasoningEffort: auditorEffort,
-          forceRegenerate: input.forceRegenerate === true,
-          cacheHit: false,
-          fallback: audit.fallback,
-        }),
-        rawJson: audit.rawJson,
-        parsed: audit.parsed,
-        results: [
-          ...(cachedAudits ?? []),
-          ...(localPassByPassage.get(row.projectId) ?? []),
-          ...(auditByPassage.get(row.projectId) ?? []),
-        ],
-      });
       writeCheckpoint(captureDir, `passages/${row.projectId}/pipeline.json`, {
         ...captureMetadata({
           sourceId: row.projectId,
@@ -737,7 +717,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
     timing: {
       dataLoadMs: splitMs,
       translationLookupMs: analyzeMs,
-      blankSelectionMs: filterMs + reviewMs,
+      blankSelectionMs: reviewMs,
       pdfRenderMs: 0,
       totalMs: Date.now() - t0,
       openAiRequestCount: openAi,

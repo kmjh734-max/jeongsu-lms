@@ -1,4 +1,5 @@
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import type { Limiter } from "@/lib/lesson-materials/grammar-choice-v2/limiter";
 import { chunkByGroup } from "@/lib/lesson-materials/grammar-choice-v2/chunk-by-group";
 import { callGrammarChoiceV2Json, parseModelJson } from "@/lib/lesson-materials/grammar-choice-v2/openai-call";
 import { UNIQUENESS_SYSTEM_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
@@ -131,6 +132,8 @@ export async function verifyChoiceUniqueness(input: {
   items: ResolvedCandidate[];
   /** 묶음이 지문 경계를 넘지 않게 하는 키. 없으면 전부 한 덩어리로 본다. */
   groupKeyOf?: (item: ResolvedCandidate) => string;
+  /** 지문들이 공유하는 판정 호출 게이트. 없으면 이 호출만의 상한을 쓴다. */
+  limiter?: Limiter;
 }): Promise<{
   verdicts: UniquenessVerdict[];
   responseModel: string;
@@ -203,13 +206,16 @@ export async function verifyChoiceUniqueness(input: {
    * applyUniqueness에서 게이트를 통과하지 못한 것으로 처리되므로,
    * 실패를 삼켜도 "둘 다 맞는" 문항이 새어 나가지는 않는다.
    */
+  const gate = input.limiter;
+  const runGated = <T>(task: () => Promise<T>): Promise<T> =>
+    gate ? gate(task) : task();
   const calls = (
     await runWithConcurrency(
       chunks,
-      Math.min(UNIQUENESS_CONCURRENCY, chunks.length),
+      input.limiter ? chunks.length : Math.min(UNIQUENESS_CONCURRENCY, chunks.length),
       async (chunk) => {
         try {
-          return await callGrammarChoiceV2Json({
+          return await runGated(() => callGrammarChoiceV2Json({
             stage: "REVIEWER",
             apiKey: input.apiKey,
             model: input.model,
@@ -226,7 +232,7 @@ export async function verifyChoiceUniqueness(input: {
             schemaName: "grammar_choice_v2_uniqueness",
             schema: UNIQUENESS_SCHEMA as unknown as Record<string, unknown>,
             maxCompletionTokens: uniquenessOutputTokenCap(chunk.length),
-          });
+          }));
         } catch {
           return null;
         }

@@ -27,6 +27,34 @@ function parseJsonSafe<T>(text: string): T | null {
  */
 export const REQUEST_TIMEOUT_MS = 180_000;
 
+/**
+ * 429/5xx 재시도 횟수.
+ *
+ * 분석 호출은 문장 하나당 하나라 지문을 여러 개 돌리면 순간 동시 호출이
+ * 수십 개가 된다. 재시도가 없으면 rate limit 한 번에 그 지문이 통째로
+ * 버려진다(호출 실패는 곧 지문 skip이다). 게이트 상한을 올리기 전에
+ * 이 경로부터 있어야 한다.
+ */
+const RATE_LIMIT_RETRIES = 3;
+const RATE_LIMIT_BASE_DELAY_MS = 1_000;
+const RATE_LIMIT_MAX_DELAY_MS = 20_000;
+
+/** Retry-After는 초 단위 정수 또는 HTTP date로 온다. 초만 받는다. */
+function retryDelayMs(res: Response, attempt: number): number {
+  const header = Number(res.headers.get("retry-after"));
+  if (Number.isFinite(header) && header > 0) {
+    return Math.min(header * 1_000, RATE_LIMIT_MAX_DELAY_MS);
+  }
+  const backoff = RATE_LIMIT_BASE_DELAY_MS * 2 ** attempt;
+  // 같은 웨이브의 호출이 한꺼번에 되돌아오지 않게 흩는다.
+  const jitter = Math.random() * RATE_LIMIT_BASE_DELAY_MS;
+  return Math.min(backoff + jitter, RATE_LIMIT_MAX_DELAY_MS);
+}
+
+function isRetriableStatus(status: number): boolean {
+  return status === 429 || status === 408 || status >= 500;
+}
+
 export async function callGrammarChoiceV2Json(input: {
   stage: "GENERATOR" | "REVIEWER";
   apiKey: string;
@@ -60,8 +88,10 @@ export async function callGrammarChoiceV2Json(input: {
     let responseModel = input.model;
     let reasoningField: "effort" | "object" = "effort";
     let useJsonSchema = true;
+    let rateLimitRetries = 0;
 
-    for (let attempt = 0; attempt < 4; attempt++) {
+    // 파라미터 폴백 2회 + rate limit 재시도분까지 도는 상한.
+    for (let attempt = 0; attempt < 4 + RATE_LIMIT_RETRIES; attempt++) {
       if (attempt > 0) fallback = true;
       const body: Record<string, unknown> = {
         model: input.model,
@@ -109,6 +139,12 @@ export async function callGrammarChoiceV2Json(input: {
         break;
       }
       const errMsg = bodyText.slice(0, 800);
+      if (isRetriableStatus(res.status) && rateLimitRetries < RATE_LIMIT_RETRIES) {
+        const wait = retryDelayMs(res, rateLimitRetries);
+        rateLimitRetries += 1;
+        await new Promise((resolve) => setTimeout(resolve, wait));
+        continue;
+      }
       if (
         reasoningField === "effort" &&
         isUnsupportedParameterError(errMsg, "reasoning_effort")
