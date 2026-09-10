@@ -252,6 +252,38 @@ const PAST_TO_BASE: Record<string, string> = {
   stayed: "stay",
   failed: "fail",
   called: "call",
+  /**
+   * had가 빠져 있어서 If we all [had / have] 같은 표준 가정법 과거 문항이
+   * 만들어지지 않았다. baseOf가 null을 돌려주면 후보가 아예 생기지 않는다.
+   * 함께, local-validators의 IRREGULAR_VERB_STEM에는 있으나 이 표에는 없던
+   * 고빈도 과거형을 채운다. 과거분사는 넣지 않는다 — 이 표는 과거형에서
+   * 원형을 얻는 데만 쓰이고, gone -> go처럼 분사를 섞으면 가정법 과거가
+   * 아닌 자리에서 엉뚱한 쌍이 만들어진다.
+   */
+  had: "have",
+  got: "get",
+  became: "become",
+  began: "begin",
+  ran: "run",
+  sat: "sit",
+  spoke: "speak",
+  wrote: "write",
+  led: "lead",
+  grew: "grow",
+  fell: "fall",
+  sent: "send",
+  drew: "draw",
+  broke: "break",
+  spent: "spend",
+  chose: "choose",
+  rose: "rise",
+  drove: "drive",
+  ate: "eat",
+  forgot: "forget",
+  sought: "seek",
+  fought: "fight",
+  arose: "arise",
+  dealt: "deal",
 };
 
 const PP_TO_PAST: Record<string, string> = {
@@ -289,6 +321,13 @@ export function conditionalLocalDistractor(code: string, sourceSpan: string): st
   const span = sourceSpan.trim();
   const lower = span.toLowerCase();
   if (code === "CONDITIONAL_SECOND") {
+    /**
+     * had와 were는 막아 둔다. 둘 다 짝이 유일하지 않다 — was|were는
+     * 구어에서 둘 다 통하고(rejectConditionalChoice가 BOTH_GRAMMATICAL로 잡는다),
+     * had|have는 isDarwinNoUniqueConditional이 지목한 문장처럼 조건절과 결과절의
+     * 시간 축이 섞인 자리에서 유일하지 않다. 여기서 열어 봐도 그 게이트에
+     * 다시 걸리므로 후보만 늘고 문항은 늘지 않는다.
+     */
     if (lower === "had" || lower === "were") return null;
     if (lower === "used") return "would use";
     return baseOf(span);

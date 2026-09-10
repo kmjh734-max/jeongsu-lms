@@ -33,7 +33,12 @@ export type DetectorHit = {
   subtype: string;
   sourceSpan: string;
   occurrenceIndex: number;
-  questionable: boolean;
+  /**
+   * 13개 챕터는 이 값으로 출제 가능 여부를 말한다. ch05(가정법)만 이 필드가 없고
+   * exclusionReason의 유무로 같은 것을 말한다. 그래서 "값이 없음"과 "false"는
+   * 다르게 읽어야 한다 — undefined를 false로 뭉개면 가정법 히트가 통째로 사라진다.
+   */
+  questionable?: boolean;
   exclusionReason?: string;
 };
 
@@ -95,7 +100,7 @@ export function localCandidatesFromDetectors(
   const seen = new Set<string>();
 
   for (const hit of detectAllHits(source)) {
-    if (!hit.questionable) continue;
+    if (hit.questionable === false) continue;
     if (generationPolicyFor(hit.code) === "NOT_QUESTIONABLE") continue;
     if (!ontologyPoint(hit.code)) continue;
     const span = hit.sourceSpan;
@@ -155,7 +160,7 @@ export function detectedPointsFromSentences(
         sourceSpan: hit.sourceSpan,
         occurrenceIndex: Math.max(0, offsets.indexOf(hit.occurrenceIndex)),
         priority: def.priority,
-        questionability: hit.questionable ? "SAFE" : "NOT_SUITABLE",
+        questionability: hit.questionable === false ? "NOT_SUITABLE" : "SAFE",
         evidence: "",
       });
     }
