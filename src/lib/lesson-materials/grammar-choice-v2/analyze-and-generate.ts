@@ -142,8 +142,15 @@ export type AnalyzerResult = {
  */
 export const ANALYZER_SENTENCES_PER_CALL = 3;
 
-/** 호출당 후보 상한. 작게 유지해야 모델이 목표 개수를 채우려 억지 후보를 만들지 않는다. */
-export const ANALYZER_CANDIDATES_PER_CALL = 4;
+/**
+ * 문장 하나에 허용하는 후보 수. 호출 상한은 묶음 크기에 비례해 잡는다.
+ *
+ * 호출당 4개로 고정했더니 3문장 묶음에서 상한이 그대로 천장이 됐다
+ * (관측: 3문장 지문에서 정확히 4문항). 거를 후보가 남지 않으면 나쁜 문항을
+ * 버릴 수 없어서, 뒤쪽 필터를 아무리 조여도 품질이 오르지 않는다.
+ * 억지 후보는 상한이 아니라 "상한을 채우지 말라"는 프롬프트 지시가 막는다.
+ */
+export const ANALYZER_CANDIDATES_PER_SENTENCE = 3;
 
 /** 한 지문 안에서 동시에 띄우는 분석 호출 수. */
 export const ANALYZER_CHUNK_CONCURRENCY = 3;
@@ -205,7 +212,7 @@ export async function analyzeAndGeneratePassage(input: {
         localMandatoryHints: (input.localMandatoryHints ?? []).filter((h) =>
           chunkIds.has(h.sentenceId)
         ),
-        candidateCap: ANALYZER_CANDIDATES_PER_CALL,
+        candidateCap: chunk.length * ANALYZER_CANDIDATES_PER_SENTENCE,
       });
       const promptChars =
         ANALYZER_SYSTEM_PROMPT.length + JSON.stringify(payload).length;

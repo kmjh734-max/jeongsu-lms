@@ -100,7 +100,10 @@ async function main() {
     })
   );
   console.log(JSON.stringify({ summaries: summaries.map(({ text, ...rest }) => rest), promptChars: prompt }, null, 2));
-  assert.ok(prompt < 12000, `prompt too long ${prompt}`);
+  // 정리된 온톨로지 231개를 통째로 보내므로 코드 목록만 8KB 남짓이다.
+  // 약 3,600 토큰이라 모델 입력으로는 작고, 목록을 줄이면 정리해 둔 문법 항목이
+  // 모델에 전달되지 않는다. 지문·힌트가 붙는 여유까지 보고 상한을 잡는다.
+  assert.ok(prompt < 16000, `prompt too long ${prompt}`);
   console.log("grammar-choice-v2 quality gates: PASS");
 }
 

@@ -674,5 +674,28 @@ export function needsAuditor(candidate: GrammarCandidate): boolean {
   if (candidate.pointCode.startsWith("VOICE_") && candidate.riskLevel !== "LOW") {
     return true;
   }
+  // 정답에 접미사를 붙여 만든 오답은 실재하지 않는 단어일 수 있다
+  // (관측: extinct → extinctly가 그대로 출제됐다). 실재 여부는 어휘 지식이라
+  // 로컬 규칙으로 못 가리므로 감사 모델에 보낸다.
+  if (isDerivedFromCorrect(candidate.correctAnswer, candidate.distractors[0] ?? "")) {
+    return true;
+  }
   return false;
+}
+
+/** 한쪽이 다른 쪽에 파생 접미사를 붙인 형태인지 본다. */
+const DERIVATION_SUFFIXES = ["ly", "ing", "ed", "er", "est", "ness", "ful"];
+
+export function isDerivedFromCorrect(correct: string, wrong: string): boolean {
+  const base = correct.trim().toLowerCase();
+  const derived = wrong.trim().toLowerCase();
+  if (!base || !derived || base === derived) return false;
+  if (base.includes(" ") || derived.includes(" ")) return false;
+  return DERIVATION_SUFFIXES.some(
+    (suffix) =>
+      derived === `${base}${suffix}` ||
+      derived === `${base.replace(/e$/, "")}${suffix}` ||
+      base === `${derived}${suffix}` ||
+      base === `${derived.replace(/e$/, "")}${suffix}`
+  );
 }

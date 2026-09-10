@@ -12,7 +12,10 @@ import { detectSentenceCh01 } from "@/lib/lesson-materials/grammar-choice-v2/sen
 import { detectSpecialCh14 } from "@/lib/lesson-materials/grammar-choice-v2/special-ch14";
 import { detectTenseCh02 } from "@/lib/lesson-materials/grammar-choice-v2/tense-ch02";
 import { detectVoiceCh03 } from "@/lib/lesson-materials/grammar-choice-v2/voice-ch03";
-import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
+import {
+  GRAMMAR_ONTOLOGY,
+  ontologyPoint,
+} from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
 import type { ExactSentence, GrammarPointCode } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 const CHAPTERS = [
@@ -183,13 +186,18 @@ export function compactOntologyForSentences(sentences: ExactSentence[]) {
   addInsteadOfTrigger(text, core);
   for (const code of detectedStudentCodes(text)) core.add(code);
 
-  const codes = [...new Set([...mandatory, ...core])];
+  // 키워드로 걸러낸 코드는 "이 문장에서 특히 살펴보라"는 힌트로만 쓰고,
+  // 고를 수 있는 목록은 정리된 온톨로지 전체를 준다. 걸러 보내면 모델이
+  // 나머지 코드의 존재를 아예 모른다(관측: 231개 중 25~36개만 전달).
+  const highlighted = [...new Set([...mandatory, ...core])].filter((code) =>
+    ontologyPoint(code)
+  );
   return {
     chapters: CHAPTERS,
-    codes: codes.map((code) => {
-      const def = ontologyPoint(code);
-      return `${code}|${def?.priority ?? "CORE"}|${def?.labelKo ?? code}`;
-    }),
-    note: "If an important point is missing from codes, return pointCode UNMAPPED_HIGH_VALUE_POINT.",
+    codes: GRAMMAR_ONTOLOGY.map(
+      (def) => `${def.code}|${def.priority}|${def.labelKo}`
+    ),
+    highlighted,
+    note: "codes is the complete list. Choose the code that matches what the sentence actually tests; highlighted lists points this passage is likely to contain, but it is a hint, not a restriction.",
   };
 }

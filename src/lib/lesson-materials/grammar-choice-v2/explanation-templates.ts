@@ -47,8 +47,30 @@ const SPECIAL: Partial<Record<GrammarPointCode, ExplanationTemplate>> = {
   },
 };
 
-/** 영어 철자의 끝소리에 받침이 있는지 어림한다. 조사 은/는 선택에만 쓴다. */
-const NO_FINAL_CONSONANT = new Set(["a", "e", "i", "o", "u", "y", "r", "w"]);
+/**
+ * 영어 낱말 뒤 조사를 고를 때 받침이 있다고 보는 끝 철자.
+ *
+ * 한국어에서 영어 낱말을 읽을 때 대부분의 끝자음에는 '으'가 붙어(states → 스테이츠,
+ * extinct → 익스팅트) 모음으로 끝난 것처럼 조사가 붙는다. 받침이 남는 것은
+ * ㄴ·ㅁ·ㄹ·ㅇ 계열뿐이라, 그 경우만 은/을을 쓴다.
+ */
+const FINAL_CONSONANT_LETTERS = new Set(["l", "m", "n"]);
+
+/** 앞 낱말의 받침에 맞춰 목적격 조사(을/를)를 붙인다. */
+function withObjectParticle(word: string): string {
+  const trimmed = word.trim();
+  return `${trimmed}${hasFinalConsonant(trimmed) ? "을" : "를"}`;
+}
+
+/** 낱말의 끝소리에 받침이 있는지 본다. 한글은 종성으로, 영어는 철자로 어림한다. */
+function hasFinalConsonant(word: string): boolean {
+  const last = word.trim().at(-1);
+  if (!last) return false;
+  const code = last.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) return (code - 0xac00) % 28 !== 0;
+  if (/[a-zA-Z]/.test(last)) return FINAL_CONSONANT_LETTERS.has(last.toLowerCase());
+  return false;
+}
 
 /** 앞 낱말의 받침에 맞춰 주제 조사(은/는)를 붙인다. */
 function withTopicParticle(word: string): string {
@@ -60,7 +82,7 @@ function withTopicParticle(word: string): string {
     return `${trimmed}${(code - 0xac00) % 28 === 0 ? "는" : "은"}`;
   }
   if (/[a-zA-Z]/.test(last)) {
-    return `${trimmed}${NO_FINAL_CONSONANT.has(last.toLowerCase()) ? "는" : "은"}`;
+    return `${trimmed}${FINAL_CONSONANT_LETTERS.has(last.toLowerCase()) ? "은" : "는"}`;
   }
   return `${trimmed}는`;
 }
@@ -83,6 +105,40 @@ const AXIS_WRONG_REASON: Record<GrammarTransformCode, string> = {
   WORD_ORDER: "이 구문이 요구하는 어순이 아니다",
   FORM_SWAP: "이 자리에서 요구되는 형태가 아니다",
 };
+
+/** 정답이 그 형태여야 하는 이유를 문법 축에 맞춰 서술한다. */
+const AXIS_CORRECT_REASON: Record<GrammarTransformCode, string> = {
+  NUMBER_SWAP: "동사는 실제 주어의 수에 맞춘다",
+  TENSE_SWAP: "문맥이 가리키는 시점에 맞는 시제를 쓴다",
+  VOICE_SWAP: "주어가 행위의 주체인지 대상인지에 따라 태를 정한다",
+  ADJ_ADV: "수식 대상이 무엇인지에 따라 형용사와 부사를 가른다",
+  NONFINITE_SWAP: "이 자리가 요구하는 준동사 형태를 쓴다",
+  CASE_SWAP: "절 안에서 맡는 역할에 맞는 격을 쓴다",
+  PARALLEL_FORM: "등위접속사로 이어진 요소는 형태를 맞춘다",
+  CONDITIONAL_FORM: "가정법이 요구하는 절 형태를 맞춘다",
+  RELATIVE_CHOICE: "선행사와 뒤 절의 구조에 맞는 관계사를 고른다",
+  CLAUSE_MARKER: "뒤에 오는 절의 형태에 맞는 연결어를 쓴다",
+  WORD_ORDER: "이 구문이 요구하는 어순을 지킨다",
+  FORM_SWAP: "이 자리가 요구하는 형태를 쓴다",
+};
+
+/**
+ * point code 전용 템플릿도 모델 요약도 없을 때, 온톨로지 정보와 변형 축으로
+ * 정답 해설을 만든다. "규칙에 따라 원문 형태 X가 맞다"는 아무것도 알려주지 않는다.
+ */
+function derivedExplanation(input: {
+  correct: string;
+  transformCode?: GrammarTransformCode;
+  allowedTransform?: GrammarTransformCode;
+  titleKo: string;
+  structure: string;
+}): string {
+  const axis = input.transformCode ?? input.allowedTransform ?? "FORM_SWAP";
+  const rule = AXIS_CORRECT_REASON[axis] ?? AXIS_CORRECT_REASON.FORM_SWAP;
+  // structure는 온톨로지의 탐지 힌트라서 이 문장에 맞지 않을 수 있다
+  // (관측: while절 문항에 "that절 and that절"이 붙었다). 해설에는 쓰지 않는다.
+  return `${input.titleKo}. ${rule}. 그래서 ${withObjectParticle(input.correct)} 쓴다.`;
+}
 
 /**
  * point code 전용 템플릿이 없을 때 온톨로지 정보(labelKo·detectionHints)와
@@ -351,7 +407,13 @@ export function explainChoice(input: {
   const explanationKo =
     special?.explanationTemplate ??
     (input.ruleSummaryKo?.trim() ||
-      `${titleKo} 규칙에 따라 원문 형태 ${input.correct}가 맞다.`);
+      derivedExplanation({
+        correct: input.correct,
+        transformCode: input.transformCode,
+        allowedTransform: def?.allowedTransforms[0],
+        titleKo,
+        structure,
+      }));
   const wrongReasonKo = special?.wrongReasonTemplate
     ? special.wrongReasonTemplate.replaceAll("{wrong}", input.wrong)
     : derivedWrongReason({

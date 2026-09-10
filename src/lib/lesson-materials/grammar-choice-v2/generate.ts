@@ -95,10 +95,19 @@ export function resolveV2AnalyzerModel(): string {
  * 생성이 검수보다 낮은 effort로 돌면 싸게 만든 쓰레기를 비싸게 거르게 된다.
  * 문장 묶음 단위로 호출을 쪼갠 뒤로는 호출당 출력이 작아 high로 올려도 부담이 적다.
  */
+/**
+ * 분석 단계 추론 강도.
+ *
+ * 이 단계가 하는 일은 정리된 온톨로지를 지문 문장에 대조해 해당하는 항목을
+ * 고르고 최소 대립쌍을 만드는 것이라, 긴 추론이 필요한 종류의 작업이 아니다.
+ * high는 시간과 비용만 늘렸다(관측: 3문장 한 호출이 medium 79초 / low 45초인데
+ * high는 180초 상한을 넘겨 지문이 통째로 버려졌다).
+ * 검수도 medium이므로 생성이 검수보다 낮은 강도로 도는 일은 없다.
+ */
 export function resolveV2AnalyzerEffort(): "low" | "medium" | "high" {
   const raw = process.env.OPENAI_GRAMMAR_V2_ANALYZER_REASONING_EFFORT?.trim().toLowerCase();
-  if (raw === "low" || raw === "medium") return raw;
-  return "high";
+  if (raw === "low" || raw === "high") return raw;
+  return "medium";
 }
 
 export function resolveV2AuditorModel(): string {
