@@ -87,7 +87,7 @@ const IRREGULAR_VERB_STEM = new Map<string, string>([
   ["arose", "arise"], ["arisen", "arise"], ["dealt", "deal"], ["laid", "lay"],
 ]);
 
-function stemVerb(word: string): string {
+export function stemVerb(word: string): string {
   const w = normalizeToken(word).replace(/^to\s+/, "");
   const irregular = IRREGULAR_VERB_STEM.get(w);
   if (irregular) return irregular;

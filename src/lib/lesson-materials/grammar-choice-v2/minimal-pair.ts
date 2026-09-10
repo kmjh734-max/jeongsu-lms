@@ -1,3 +1,4 @@
+import { stemVerb } from "@/lib/lesson-materials/grammar-choice-v2/local-validators";
 import type { LocalRejectCode } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 const LONG_ALLOW = new Set([
@@ -155,23 +156,40 @@ function isSingleVoiceOrParticipleAxis(
   const extras = [...onlyC, ...onlyW];
   const content = extras.filter((t) => !aux.has(t));
   const functionExtras = extras.filter((t) => aux.has(t));
-  if (functionExtras.some((token) => finite.has(token)) && content.length > 0) return false;
-  return content.length === 0 || sameVerbFamily(content);
+  /**
+   * 태를 바꾸면 표면은 두 군데가 움직인다 — be동사가 생기거나 사라지고 동사 형태가
+   * 바뀐다(is set / sets). 그런데 문법 축은 하나(태)다.
+   *
+   * 예전에는 be동사가 움직였다는 것만 보고 축이 둘이라고 판정해서, 내신 어법의
+   * 핵심인 능동태·수동태 문항이 항상 MULTI_AXIS_EDIT로 죽었다. 바뀐 내용어가
+   * 같은 동사 가족이면(set/sets, obsessed/obsessing) 축은 하나다. 가족이 다르면
+   * 그때는 태 말고 다른 것도 함께 바꾼 것이므로 예전처럼 막는다.
+   */
+  /**
+   * 네모 안이 be동사와 그 동사 하나로만 이뤄져 있어야 태 하나만 묻는 문항이다.
+   * are wonderfully made / wonderfully make처럼 부사를 끌고 들어오면 학생이 봐야 할
+   * 것이 둘이 되므로 예전처럼 막는다.
+   */
+  const family = content.length ? verbFamily(content[0]!) : "";
+  const verbPhraseOnly = [...c, ...w].every(
+    (token) => aux.has(token) || verbFamily(token) === family
+  );
+  if (content.length === 0) return true;
+  if (sameVerbFamily(content) && verbPhraseOnly) return true;
+  if (functionExtras.some((token) => finite.has(token))) return false;
+  return false;
 }
 
+/**
+ * 같은 동사인지 본다.
+ *
+ * 예전에는 hold/make/do 세 개짜리 표에 규칙 접사 제거를 붙인 것이 전부여서
+ * written/wrote 같은 불규칙이 서로 다른 동사로 보였다. 그래서 was written / wrote,
+ * 즉 가장 표준적인 능동태·수동태 쌍이 축 둘로 판정돼 죽었다.
+ * PR #1이 시제 판정을 고치며 만든 공용 표(stemVerb)를 그대로 쓴다.
+ */
 function verbFamily(word: string): string {
-  const irregular: Record<string, string> = {
-    held: "hold",
-    hold: "hold",
-    holding: "hold",
-    made: "make",
-    make: "make",
-    making: "make",
-    done: "do",
-    did: "do",
-    doing: "do",
-  };
-  return irregular[word] ?? word.replace(/(ing|ed|es|s)$/i, "");
+  return stemVerb(word);
 }
 
 function sameVerbFamily(words: string[]): boolean {
