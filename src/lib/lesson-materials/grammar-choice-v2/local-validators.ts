@@ -21,6 +21,11 @@ import {
   isWhToInfinitiveSpan,
   rejectFabricatedDistractor,
 } from "@/lib/lesson-materials/grammar-choice-v2/distractor-guard";
+import {
+  hasInterveningAgreement,
+  isNumberAgreementPair,
+  whenFollowedByFiniteClause,
+} from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
 import type {
   ExactSentence,
@@ -60,7 +65,11 @@ function stemVerb(word: string): string {
   if (w.endsWith("ies") && w.length > 4) return `${w.slice(0, -3)}y`;
   if (w.endsWith("es") && w.length > 4) return w.slice(0, -2);
   if (w.endsWith("s") && w.length > 3) return w.slice(0, -1);
-  if (w.endsWith("ed") && w.length > 4) return w.slice(0, -2);
+  if (w.endsWith("ed") && w.length > 4) {
+    let stem = w.slice(0, -2);
+    if (stem.length >= 4 && stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
+    return stem;
+  }
   return w;
 }
 
@@ -407,7 +416,13 @@ export function rejectCandidate(input: {
     return null;
   }
   if (isConfusableAdverbPair(correct, wrong)) return "MEANING_ONLY_CONTRAST";
-  if (isMeaningOnlyContrast(correct, wrong)) return "MEANING_ONLY_CONTRAST";
+  if (pairKey(correct, wrong) === "during|when") {
+    if (!whenFollowedByFiniteClause(sentence.text) || !/^when$/i.test(correct)) {
+      return "MEANING_ONLY_CONTRAST";
+    }
+  } else if (isMeaningOnlyContrast(correct, wrong)) {
+    return "MEANING_ONLY_CONTRAST";
+  }
   if (isImplausible(correct, wrong, sentence.text)) {
     return "IMPLAUSIBLE_DISTRACTOR";
   }
@@ -568,7 +583,8 @@ function isTrivialShortAgreement(
     "want|wants",
   ]);
   const pair = `${c}|${w}`;
-  if (!agree.has(pair) && !isInflectionOnly(correct, wrong)) return false;
+  if (!agree.has(pair) && !isNumberAgreementPair(correct, wrong)) return false;
+  if (hasInterveningAgreement(sentence, correct)) return false;
   if (/\b(?:one of|the number of|a number of|not only|what|there|the news|each of|along with)\b/i.test(sentence)) {
     return false;
   }
@@ -580,7 +596,7 @@ function isTrivialShortAgreement(
   const before = sentence.slice(Math.max(0, at - 48), at);
   const gap = tokens(before);
   const intervening =
-    /\b(of|who|which|that|whose|when|where|with|by|from|in|on|for)\b/i.test(
+    /\b(of|who|which|that|whose|when|where|with|by|from|in|on|for|outside|inside)\b/i.test(
       before.slice(-40)
     ) && gap.length > 3;
   if (intervening || gap.length > 6) return false;

@@ -210,6 +210,8 @@ export function localTemplateDistractor(
     if (lower === "because of") return "because";
     if (lower === "although") return "despite";
     if (lower === "despite") return "although";
+    if (lower === "when") return "during";
+    if (lower === "during") return "when";
   }
   if (pointCode === "CORRELATIVE_BOTH_AND" && lower === "and") return "or";
   const voiceWrong = voiceLocalDistractor(pointCode, span);

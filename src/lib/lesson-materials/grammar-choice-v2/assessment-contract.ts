@@ -1,4 +1,12 @@
 import type { LocalRejectCode } from "@/lib/lesson-materials/grammar-choice-v2/types";
+import {
+  comparativeThanIsUnique,
+  findUniqueComparativeThan,
+  hasInterveningAgreement,
+  hasPrepWhich,
+  isPostmodifyingPastParticiple,
+  whenFollowedByFiniteClause,
+} from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 
 const COORD = /^(?:and|or|but)$/i;
 
@@ -147,6 +155,34 @@ export function codeSpanContractMismatch(input: {
     return null;
   }
 
+  if (code === "AGREEMENT_DISTANCE" && subtype === "INTERVENING_MODIFIER") {
+    if (!hasInterveningAgreement(sentence, input.correct)) return "CODE_SPAN_CONTRACT_MISMATCH";
+    return null;
+  }
+
+  if (code === "PARTICIPLE_ACTIVE_PASSIVE" && subtype === "POSTMODIFYING_PP") {
+    if (!isPostmodifyingPastParticiple(sentence, input.correct)) return "CODE_SPAN_CONTRACT_MISMATCH";
+    return null;
+  }
+
+  if (code === "RELATIVE_PREPOSITION_WHICH" && pair === "that|which") {
+    if (!hasPrepWhich(sentence)) return "CODE_SPAN_CONTRACT_MISMATCH";
+    if (subtype !== "PREP_WHICH" && !subtype.includes("PREP")) return "CODE_SPAN_CONTRACT_MISMATCH";
+    return null;
+  }
+
+  if (code === "COMPARATIVE" && pair === "as|than") {
+    const thanAt = findUniqueComparativeThan(sentence);
+    if (thanAt < 0 || !comparativeThanIsUnique(sentence, thanAt)) return "CODE_SPAN_CONTRACT_MISMATCH";
+    if (subtype !== "THAN_FRAME" && !subtype.includes("THAN")) return "CODE_SPAN_CONTRACT_MISMATCH";
+    return null;
+  }
+
+  if (code === "CONJUNCTION_PREPOSITION_CONTRAST" && pair === "during|when") {
+    if (!whenFollowedByFiniteClause(sentence)) return "CODE_SPAN_CONTRACT_MISMATCH";
+    return null;
+  }
+
   return null;
 }
 
@@ -186,6 +222,21 @@ export function explanationContractMismatch(input: {
     if (!/완전한/.test(text) || !/that/.test(text) || !/what/.test(text)) return true;
     if (!/문장 성분|주어나 목적어/.test(text)) return true;
     if (/같은 접속 구조/.test(text) && !/완전한 내용절/.test(text)) return true;
+  }
+  if (input.pointCode === "AGREEMENT_DISTANCE" && pair === "like|likes") {
+    if (!/수식어|장거리/.test(text)) return true;
+  }
+  if (input.pointCode === "PARTICIPLE_ACTIVE_PASSIVE" && pair === "involved|involving") {
+    if (!/후치수식/.test(text) || !/과거분사/.test(text)) return true;
+  }
+  if (input.pointCode === "RELATIVE_PREPOSITION_WHICH" && pair === "that|which") {
+    if (!/전치사/.test(text) || !/which/.test(text) || !/that/.test(text)) return true;
+  }
+  if (input.pointCode === "COMPARATIVE" && pair === "as|than") {
+    if (!/비교급/.test(text) || !/than/.test(text)) return true;
+  }
+  if (input.pointCode === "CONJUNCTION_PREPOSITION_CONTRAST" && pair === "during|when") {
+    if (!/절/.test(text) || !/when/.test(text)) return true;
   }
   return false;
 }

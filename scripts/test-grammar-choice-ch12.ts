@@ -58,8 +58,11 @@ assert.deepEqual(spans("Of the two plans, this is the better one.", "COMPARATIVE
 assert.deepEqual(spans("Of the two answers, hers is the more accurate one.", "COMPARATIVE"), ["more"]);
 assert.equal(comparisonLocalDistractor("COMPARATIVE", "more"), "most");
 assert.equal(comparisonLocalDistractor("COMPARATIVE", "better"), "best");
+assert.equal(comparisonLocalDistractor("COMPARATIVE", "than"), "as");
 assert.equal(none("This result is most interesting to readers.", "COMPARATIVE"), true);
-assert.equal(none("She is taller than I am.", "COMPARATIVE"), true);
+assert.deepEqual(spans("She is taller than I am.", "COMPARATIVE"), ["than"]);
+assert.deepEqual(spans("Nothing turns me off something quicker than bad advice.", "COMPARATIVE"), ["than"]);
+assert.deepEqual(spans("The new plan is more useful than the last one.", "COMPARATIVE"), ["than"]);
 assert.ok(has("He is taller than I am.", "COMPARISON_TARGET", "THAN_I_ME"));
 assert.equal(none("He is taller than me.", "COMPARISON_TARGET"), true);
 

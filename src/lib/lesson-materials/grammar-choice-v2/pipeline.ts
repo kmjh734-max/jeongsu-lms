@@ -1,4 +1,7 @@
-import { rankCandidates } from "@/lib/lesson-materials/grammar-choice-v2/candidate-ranker";
+import {
+  rankCandidates,
+  sortStudentPresentationOrder,
+} from "@/lib/lesson-materials/grammar-choice-v2/candidate-ranker";
 import { buildCoverage } from "@/lib/lesson-materials/grammar-choice-v2/coverage";
 import { COMPARISON_CH12_RULES } from "@/lib/lesson-materials/grammar-choice-v2/comparison-ch12";
 import { codeSpanContractMismatch, explanationContractMismatch } from "@/lib/lesson-materials/grammar-choice-v2/assessment-contract";
@@ -22,6 +25,11 @@ import {
   subtypeKey,
 } from "@/lib/lesson-materials/grammar-choice-v2/local-validators";
 import { scanLocalMandatory } from "@/lib/lesson-materials/grammar-choice-v2/mandatory-scan";
+import {
+  extractDetNounBefore,
+  hasInterveningAgreement,
+  isPostmodifyingPastParticiple,
+} from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 import {
   assignSeededSides,
   passageHash,
@@ -223,7 +231,8 @@ export function resolveAndFilter(input: {
     const presented = studentPresentation(
       candidate.pointCode,
       candidate.correctAnswer,
-      candidate.distractors[0] ?? ""
+      candidate.distractors[0] ?? "",
+      sentence.text
     );
     const contract = codeSpanContractMismatch({
       pointCode: candidate.pointCode,
@@ -245,6 +254,7 @@ export function resolveAndFilter(input: {
     }
     resolved.push({
       ...candidate,
+      ruleSummaryKo: presentationSummary(presented.subtype, candidate, sentence.text) ?? candidate.ruleSummaryKo,
       priority: presented.priority ?? def?.priority ?? candidate.priority,
       passageStart: span.passageStart,
       passageEnd: span.passageEnd,
@@ -257,7 +267,8 @@ export function resolveAndFilter(input: {
 function studentPresentation(
   pointCode: string,
   correct: string,
-  wrong: string
+  wrong: string,
+  sentence = ""
 ): { subtype: string; assessmentAxis: string; priority?: GrammarPriority } {
   const pair = [correct, wrong].map((s) => s.trim().toLowerCase()).sort().join("|");
   if (pointCode === "ONE_OF_SUPERLATIVE" && pair === "insight|insights") {
@@ -278,7 +289,46 @@ function studentPresentation(
   if (pointCode === "INFINITIVE_PASSIVE" && pair === "be wiped|wipe") {
     return { subtype: "TO_BE_PP", assessmentAxis: "INFINITIVE_PASSIVE" };
   }
+  if (pointCode === "AGREEMENT_DISTANCE" && hasInterveningAgreement(sentence, correct)) {
+    return { subtype: "INTERVENING_MODIFIER", assessmentAxis: "AGREEMENT_DISTANCE", priority: "CORE" };
+  }
+  if (pointCode === "PARTICIPLE_ACTIVE_PASSIVE" && isPostmodifyingPastParticiple(sentence, correct)) {
+    return { subtype: "POSTMODIFYING_PP", assessmentAxis: "PARTICIPLE_ACTIVE_PASSIVE" };
+  }
+  if (pointCode === "RELATIVE_PREPOSITION_WHICH" && pair === "that|which") {
+    return { subtype: "PREP_WHICH", assessmentAxis: "RELATIVE_PREPOSITION_WHICH" };
+  }
+  if (pointCode === "COMPARATIVE" && pair === "as|than") {
+    return { subtype: "THAN_FRAME", assessmentAxis: "COMPARATIVE" };
+  }
+  if (pointCode === "CORRELATIVE_EITHER_OR" && pair !== "nor|or") {
+    return { subtype: "EITHER_OR_PARALLEL", assessmentAxis: "CORRELATIVE_EITHER_OR" };
+  }
+  if (pointCode === "CONJUNCTION_PREPOSITION_CONTRAST" && pair === "during|when") {
+    return {
+      subtype: "CLAUSE_VS_PHRASE",
+      assessmentAxis: "CONJUNCTION_PREPOSITION_CONTRAST",
+      priority: "BASIC",
+    };
+  }
   return { subtype: subtypeKey(pointCode, correct, wrong), assessmentAxis: pointCode };
+}
+
+function presentationSummary(
+  subtype: string,
+  item: { correctAnswer: string; ruleSummaryKo?: string },
+  sentence: string
+): string | null {
+  if (subtype === "INTERVENING_MODIFIER") {
+    return "주어와 동사 사이에 수식어가 삽입된 장거리 수 일치이므로 동사는 실제 주어의 수를 따른다.";
+  }
+  if (subtype === "POSTMODIFYING_PP") {
+    const np = extractDetNounBefore(sentence, item.correctAnswer);
+    return np
+      ? `명사 뒤에서 후치수식하는 과거분사: ${np} ${item.correctAnswer}`
+      : `명사 뒤에서 후치수식하는 과거분사이므로 ${item.correctAnswer}가 맞다.`;
+  }
+  return null;
 }
 
 function repeatedCodeSubtypePairs(
@@ -344,7 +394,12 @@ function refineAfterAudit(
           occurrenceIndex: occurrenceIndex > 0 ? occurrenceIndex - 1 : 1,
         });
       if (span && span.resolvedText === repaired.correct) {
-        const presented = studentPresentation(repaired.pointCode, repaired.correct, repaired.wrong);
+        const presented = studentPresentation(
+          repaired.pointCode,
+          repaired.correct,
+          repaired.wrong,
+          sentence.text
+        );
         next = {
           ...item,
           pointCode: repaired.pointCode,
@@ -356,10 +411,21 @@ function refineAfterAudit(
           passageEnd: span.passageEnd,
           subtypeKey: presented.subtype,
           priority: presented.priority ?? item.priority,
+          ruleSummaryKo:
+            presentationSummary(
+              presented.subtype,
+              { ...item, correctAnswer: repaired.correct },
+              sentence.text
+            ) ?? item.ruleSummaryKo,
         };
       }
     }
-    const presented = studentPresentation(next.pointCode, next.correctAnswer, next.distractors[0] ?? "");
+    const presented = studentPresentation(
+      next.pointCode,
+      next.correctAnswer,
+      next.distractors[0] ?? "",
+      sentence.text
+    );
     const contract = codeSpanContractMismatch({
       pointCode: next.pointCode,
       subtype: presented.subtype,
@@ -491,6 +557,7 @@ export function finalizeV2Passage(input: FinalizeInput): {
       wrong: item.distractors[0] ?? "",
       ruleSummaryKo: item.ruleSummaryKo,
       evidence: item.evidence,
+      transformCode: item.transformCode,
     });
     const text = `${explained.explanationKo} ${explained.wrongReasonKo} ${explained.structure}`;
     if (
@@ -536,8 +603,9 @@ export function finalizeV2Passage(input: FinalizeInput): {
     })),
   });
 
-  const sides = assignSeededSides(explainable, input.seedKey);
-  const numbered = explainable.map((item, i) => ({
+  const ordered = sortStudentPresentationOrder(explainable);
+  const sides = assignSeededSides(ordered, input.seedKey);
+  const numbered = ordered.map((item, i) => ({
     ...item,
     number: i + 1,
     leftText: sides[i]!.leftText,
@@ -735,6 +803,7 @@ function toWorkbookItems(
       wrong: item.distractors[0] ?? "",
       ruleSummaryKo: item.ruleSummaryKo,
       evidence: item.evidence,
+      transformCode: item.transformCode,
     });
     const difficulty =
       item.difficulty === "ADVANCED" ? 5 : item.difficulty === "CORE" ? 3 : 2;
@@ -743,7 +812,7 @@ function toWorkbookItems(
       choiceId: item.candidateId,
       internalProvenance: {
         code: item.pointCode,
-        subtype: studentPresentation(item.pointCode, item.correctAnswer, item.distractors[0] ?? "").subtype,
+        subtype: item.subtypeKey,
         priority: item.priority,
         assessmentAxis: studentPresentation(item.pointCode, item.correctAnswer, item.distractors[0] ?? "").assessmentAxis,
         occurrenceId: occurrenceIdOf({

@@ -1,5 +1,8 @@
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
-import type { GrammarPointCode } from "@/lib/lesson-materials/grammar-choice-v2/types";
+import type {
+  GrammarPointCode,
+  GrammarTransformCode,
+} from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 export type ExplanationTemplate = {
   pointCode: GrammarPointCode;
@@ -44,12 +47,70 @@ const SPECIAL: Partial<Record<GrammarPointCode, ExplanationTemplate>> = {
   },
 };
 
+/** 영어 철자의 끝소리에 받침이 있는지 어림한다. 조사 은/는 선택에만 쓴다. */
+const NO_FINAL_CONSONANT = new Set(["a", "e", "i", "o", "u", "y", "r", "w"]);
+
+/** 앞 낱말의 받침에 맞춰 주제 조사(은/는)를 붙인다. */
+function withTopicParticle(word: string): string {
+  const trimmed = word.trim();
+  const last = trimmed.at(-1);
+  if (!last) return trimmed;
+  const code = last.charCodeAt(0);
+  if (code >= 0xac00 && code <= 0xd7a3) {
+    return `${trimmed}${(code - 0xac00) % 28 === 0 ? "는" : "은"}`;
+  }
+  if (/[a-zA-Z]/.test(last)) {
+    return `${trimmed}${NO_FINAL_CONSONANT.has(last.toLowerCase()) ? "는" : "은"}`;
+  }
+  return `${trimmed}는`;
+}
+
+/**
+ * 오답이 어긋난 문법 축을 서술한다. 세부 규칙 템플릿이 없는 point code에서도
+ * "무엇이 왜 틀렸는지"를 남기기 위한 기본 서술부다.
+ */
+const AXIS_WRONG_REASON: Record<GrammarTransformCode, string> = {
+  NUMBER_SWAP: "실제 주어의 수와 일치하지 않는다",
+  TENSE_SWAP: "문맥이 가리키는 시제와 맞지 않는다",
+  VOICE_SWAP: "주어와 동사의 능동·수동 관계에 맞지 않는다",
+  ADJ_ADV: "수식 대상의 품사와 맞지 않는다",
+  NONFINITE_SWAP: "이 자리에 올 수 있는 준동사 형태가 아니다",
+  CASE_SWAP: "이 자리에서 요구되는 격이 아니다",
+  PARALLEL_FORM: "병렬된 앞 요소와 형태가 다르다",
+  CONDITIONAL_FORM: "이 가정법 구문이 요구하는 형태가 아니다",
+  RELATIVE_CHOICE: "선행사와 뒤 절의 구조에 맞는 관계사가 아니다",
+  CLAUSE_MARKER: "뒤에 이어지는 절의 형태와 맞지 않는다",
+  WORD_ORDER: "이 구문이 요구하는 어순이 아니다",
+  FORM_SWAP: "이 자리에서 요구되는 형태가 아니다",
+};
+
+/**
+ * point code 전용 템플릿이 없을 때 온톨로지 정보(labelKo·detectionHints)와
+ * 변형 축을 조합해 오답 근거를 만든다.
+ */
+function derivedWrongReason(input: {
+  wrong: string;
+  transformCode?: GrammarTransformCode;
+  allowedTransform?: GrammarTransformCode;
+  titleKo: string;
+  structure: string;
+}): string {
+  const axis = input.transformCode ?? input.allowedTransform ?? "FORM_SWAP";
+  const predicate = AXIS_WRONG_REASON[axis] ?? AXIS_WRONG_REASON.FORM_SWAP;
+  const base = `${withTopicParticle(input.wrong)} ${predicate}.`;
+  // 축 문장만으로 규칙이 드러나지 않는 경우에만 어떤 규칙인지 괄호로 덧붙인다.
+  if (axis !== "FORM_SWAP") return base;
+  if (input.structure) return `${base} (${input.titleKo}: ${input.structure})`;
+  return `${base} (${input.titleKo})`;
+}
+
 export function explainChoice(input: {
   pointCode: GrammarPointCode;
   correct: string;
   wrong: string;
   ruleSummaryKo?: string;
   evidence?: string;
+  transformCode?: GrammarTransformCode;
 }): { titleKo: string; structure: string; explanationKo: string; wrongReasonKo: string } {
   if (input.pointCode === "PSEUDO_CLEFT_ALL") {
     return {
@@ -76,8 +137,68 @@ export function explainChoice(input: {
     return {
       titleKo: "전치사 + 관계대명사",
       structure: "전치사 + which",
-      explanationKo: "전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
+      explanationKo: "전치사 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
       wrongReasonKo: "that은 전치사 바로 뒤에 쓸 수 없다.",
+    };
+  }
+  if (
+    input.pointCode === "AGREEMENT_DISTANCE" &&
+    /수식어|장거리/.test(input.ruleSummaryKo ?? "")
+  ) {
+    return {
+      titleKo: "장거리 수 일치",
+      structure: "주어 + 수식어 + 동사",
+      explanationKo:
+        input.ruleSummaryKo?.trim() ||
+        "주어와 동사 사이에 수식어가 삽입된 장거리 수 일치이므로 동사는 실제 주어의 수를 따른다.",
+      wrongReasonKo: `${input.wrong}는 실제 주어의 수와 일치하지 않는다.`,
+    };
+  }
+  if (
+    input.pointCode === "PARTICIPLE_ACTIVE_PASSIVE" &&
+    /후치수식/.test(input.ruleSummaryKo ?? "")
+  ) {
+    return {
+      titleKo: "후치수식 과거분사",
+      structure: "명사 + 과거분사",
+      explanationKo:
+        input.ruleSummaryKo?.trim() ||
+        `명사 뒤에서 후치수식하는 과거분사이므로 ${input.correct}가 맞다.`,
+      wrongReasonKo: `${input.wrong}는 명사 뒤 후치수식 과거분사가 아니다.`,
+    };
+  }
+  if (
+    input.pointCode === "COMPARATIVE" &&
+    input.correct.trim().toLowerCase() === "than" &&
+    input.wrong.trim().toLowerCase() === "as"
+  ) {
+    return {
+      titleKo: "비교급 + than",
+      structure: "비교급 + than",
+      explanationKo: "비교급 뒤에는 than을 쓴다. as는 as … as 원급 비교에 쓴다.",
+      wrongReasonKo: "as는 비교급 뒤에 쓰지 않는다.",
+    };
+  }
+  if (
+    input.pointCode === "CORRELATIVE_EITHER_OR" &&
+    input.correct.trim().toLowerCase() !== "or"
+  ) {
+    return {
+      titleKo: "either A or B 병렬",
+      structure: "either A or B",
+      explanationKo: `either A or B는 같은 형태의 요소를 병렬하므로 ${input.correct}가 맞다.`,
+      wrongReasonKo: `${input.wrong}는 앞 요소와 병렬 형태가 아니다.`,
+    };
+  }
+  if (
+    input.pointCode === "CONJUNCTION_PREPOSITION_CONTRAST" &&
+    [input.correct, input.wrong].map((s) => s.trim().toLowerCase()).sort().join("|") === "during|when"
+  ) {
+    return {
+      titleKo: "접속사와 전치사",
+      structure: "when + 절 / during + 명사구",
+      explanationKo: "뒤에 완전한 절이 오면 접속사 when을 쓰고, during 뒤에는 명사구가 온다.",
+      wrongReasonKo: "during 뒤에는 완전한 절이 올 수 없다.",
     };
   }
   if (
@@ -231,10 +352,15 @@ export function explainChoice(input: {
     special?.explanationTemplate ??
     (input.ruleSummaryKo?.trim() ||
       `${titleKo} 규칙에 따라 원문 형태 ${input.correct}가 맞다.`);
-  const wrongReasonKo = (
-    special?.wrongReasonTemplate ??
-    "{wrong}는 이 문장의 문법 축에서 성립하지 않는다."
-  ).replaceAll("{wrong}", input.wrong);
+  const wrongReasonKo = special?.wrongReasonTemplate
+    ? special.wrongReasonTemplate.replaceAll("{wrong}", input.wrong)
+    : derivedWrongReason({
+        wrong: input.wrong,
+        transformCode: input.transformCode,
+        allowedTransform: def?.allowedTransforms[0],
+        titleKo,
+        structure,
+      });
   const useEvidence =
     input.pointCode.startsWith("CONDITIONAL_") ||
     input.pointCode.startsWith("TENSE_");

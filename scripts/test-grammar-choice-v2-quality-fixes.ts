@@ -117,6 +117,34 @@ const which = repairChoice({
 assert.equal(which?.correct, "which");
 assert.equal(which?.wrong, "that");
 
+const byWhich = repairChoice({
+  pointCode: "RELATIVE_NONRESTRICTIVE",
+  correct: "which",
+  wrong: "that",
+  sentence: "Nothing turns me off, by which I mean a social habit.",
+});
+assert.equal(byWhich?.pointCode, "RELATIVE_PREPOSITION_WHICH");
+assert.equal(byWhich?.correct, "which");
+assert.equal(byWhich?.wrong, "that");
+
+const eitherOr = repairChoice({
+  pointCode: "CORRELATIVE_EITHER_OR",
+  correct: "either made or messed up",
+  wrong: "either made or messing up",
+  sentence: "They will have either made or messed up the plan.",
+});
+assert.equal(eitherOr?.correct, "messed");
+assert.equal(eitherOr?.wrong, "messing");
+
+const quicker = repairChoice({
+  pointCode: "COMPARATIVE",
+  correct: "quicker",
+  wrong: "quickest",
+  sentence: "Nothing turns me off something quicker than bad advice.",
+});
+assert.equal(quicker?.correct, "than");
+assert.equal(quicker?.wrong, "as");
+
 const indirect = repairChoice({
   pointCode: "INDIRECT_QUESTION_ORDER",
   correct: "what limiting beliefs you have",
@@ -164,8 +192,9 @@ assert.match(oneExp.explanationKo, /단수 one/);
 assert.match(oneExp.explanationKo, /was/);
 
 const rel = explainChoice({ pointCode: "RELATIVE_PREPOSITION_WHICH", correct: "which", wrong: "that" });
-assert.match(rel.explanationKo, /전치사 for 바로 뒤에는 관계대명사 which/);
+assert.match(rel.explanationKo, /전치사 바로 뒤에는 관계대명사 which/);
 assert.doesNotMatch(rel.explanationKo, /for which \/ which/);
+assert.doesNotMatch(rel.explanationKo, /전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다\.$/);
 
 assert.equal(
   canShrinkToSafePair("what limiting beliefs you have", "do you have"),

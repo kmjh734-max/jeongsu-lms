@@ -136,8 +136,27 @@ function assertReplay(
   if ((d?.totalRenderedQuestions ?? -1) !== section.items.length) {
     errors.push("totalRenderedQuestions !== items.length");
   }
-  const choiceCount = section.segments.filter((seg) => seg.type === "choice").length;
-  if (choiceCount !== section.items.length) errors.push("choice markers !== items.length");
+  const choiceSegs = section.segments.filter((seg) => seg.type === "choice");
+  if (choiceSegs.length !== section.items.length) errors.push("choice markers !== items.length");
+  const positional = [...section.items].sort((a, b) => a.startCharIndex - b.startCharIndex || a.endCharIndex - b.endCharIndex);
+  for (let i = 0; i < positional.length; i += 1) {
+    if (positional[i]!.number !== i + 1) {
+      errors.push(`numbering:${positional[i]!.number}@${i}`);
+    }
+  }
+  for (let i = 0; i < section.items.length; i += 1) {
+    if (section.items[i]!.number !== i + 1) {
+      errors.push(`items-number:${section.items[i]!.number}@${i}`);
+    }
+  }
+  for (let i = 0; i < choiceSegs.length; i += 1) {
+    if (choiceSegs[i]!.number !== i + 1) {
+      errors.push(`marker-order:${choiceSegs[i]!.number}`);
+    }
+  }
+  if ((d?.passageRestored !== true) || (d?.renderedQuestionCount ?? -1) !== section.items.length) {
+    errors.push("passageRestored/count");
+  }
   const restored = restoreCorrectAnswers(
     renderedFromItems(passage, section.items),
     section.items.map((item) => ({ number: item.number, correctText: item.correctText }))
@@ -239,6 +258,11 @@ function explanationMismatchesItem(item: {
   if (pair === "think|thinking" && /to think|to부정사/.test(text)) return true;
   if (pair === "be wiped|wipe" && !/to부정사/.test(text)) return true;
   if (pair === "insight|insights" && !/복수형/.test(text)) return true;
+  if (pair === "like|likes" && !/수식어|장거리/.test(text)) return true;
+  if (pair === "involved|involving" && (!/후치수식/.test(text) || !/과거분사/.test(text))) return true;
+  if (pair === "that|which" && item.grammarCategoryId === "RELATIVE_PREPOSITION_WHICH" && !/전치사/.test(text)) return true;
+  if (pair === "as|than" && !/비교급/.test(text)) return true;
+  if (pair === "during|when" && !/절/.test(text)) return true;
   if (/\bink\b/i.test(text) && !/\bink\b/i.test(`${item.correctText} ${item.incorrectText} ${passage}`) && pair !== "instead|instead of") {
     return true;
   }

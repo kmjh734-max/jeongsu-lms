@@ -369,3 +369,30 @@ function blankDiag(): WorkbookGrammarChoiceDiagnostics {
 }
 
 void buildCoverage;
+
+const numbering = runFixture({
+  id: "numbering-core-before-mandatory",
+  title: "Numbering mixed priority",
+  lines: [
+    "Nothing is quicker than a false rumor in this town.",
+    "Consider what limiting beliefs you have about money.",
+  ],
+  detected: [det("COMPARATIVE", "than"), det("INDIRECT_QUESTION_ORDER", "you have")],
+  candidates: [
+    { ...cand("COMPARATIVE", "than", "as"), priority: "CORE" },
+    cand("INDIRECT_QUESTION_ORDER", "you have", "do you have"),
+  ],
+});
+assert.equal(numbering.ok, true, numbering.reason);
+assert.equal(numbering.section?.diagnostics?.passageRestored, true);
+assert.equal(numbering.section?.items.length, numbering.section?.diagnostics?.renderedQuestionCount);
+const numberedItems = numbering.section?.items ?? [];
+assert.deepEqual(numberedItems.map((item) => item.number), numberedItems.map((_, i) => i + 1));
+assert.equal(numberedItems[0]?.correctText, "than");
+assert.equal(numberedItems[1]?.correctText, "you have");
+assert.deepEqual(
+  (numbering.section?.segments ?? []).filter((seg) => seg.type === "choice").map((seg) => seg.number),
+  [1, 2]
+);
+console.log("pipeline-fixes numbering ok");
+

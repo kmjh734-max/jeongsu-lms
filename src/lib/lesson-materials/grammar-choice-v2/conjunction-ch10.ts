@@ -1,3 +1,4 @@
+import { whenFollowedByFiniteClause } from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 import type { GrammarPointCode, GrammarPriority } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 export type ConjunctionCh10Rule = {
@@ -161,6 +162,7 @@ export const CONJUNCTION_CH10_RULES: ConjunctionCh10Rule[] = [
       ["because", "because of"],
       ["although", "despite"],
       ["even though", "despite"],
+      ["when", "during"],
     ],
     rejectConditions: ["뒤 구조가 절인지 명사구인지 불분명", "because/since 의미 대립"],
     referenceChapter: "CH10",
@@ -283,6 +285,8 @@ export function conjunctionLocalDistractor(code: string, sourceSpan: string): st
     if (lower === "because of") return "because";
     if (lower === "although" || lower === "even though") return "despite";
     if (lower === "despite" || lower === "in spite of") return "although";
+    if (lower === "when") return "during";
+    if (lower === "during") return "when";
   }
   if (code === "ADVERB_CLAUSE_PURPOSE") {
     if (lower === "so that" || lower === "in order that") return "in order to";
@@ -403,6 +407,13 @@ function detectClauseVsPhrase(text: string, hits: ConjunctionHit[]) {
   }
   for (const match of text.matchAll(/\bin spite of\s+(?:the|a|an|this|that|his|her|their)?\s*[A-Za-z]+/gi)) {
     push(hits, "CONJUNCTION_PREPOSITION_CONTRAST", "IN_SPITE_OF_PHRASE", "in spite of", match.index ?? 0, true);
+  }
+  for (const match of text.matchAll(/\bwhen\b/gi)) {
+    const at = match.index ?? 0;
+    if (!whenFollowedByFiniteClause(text, at)) continue;
+    const before = text.slice(Math.max(0, at - 24), at);
+    if (new RegExp(`\\b(?:${PLACE_TIME})\\s+$`, "i").test(before)) continue;
+    push(hits, "CONJUNCTION_PREPOSITION_CONTRAST", "WHEN_CLAUSE", "when", at, true);
   }
 }
 

@@ -136,8 +136,13 @@ assert.equal(none("Our thoughts and words are powerful.", "AGREEMENT_PARTITIVE")
 
 assert.deepEqual(spans("The teacher, along with several students, was present.", "AGREEMENT_DISTANCE"), ["was"]);
 assert.deepEqual(spans("The coach, as well as the players, was waiting.", "AGREEMENT_DISTANCE"), ["was"]);
+assert.deepEqual(
+  spans("A village keeps a recipe that nobody outside the village likes anymore.", "AGREEMENT_DISTANCE"),
+  ["likes"]
+);
 assert.equal(none("Human beings want a fair process.", "AGREEMENT_DISTANCE"), true);
 assert.equal(none("The child was present in class.", "AGREEMENT_DISTANCE"), true);
+assert.equal(none("Nobody likes the pie on the table.", "AGREEMENT_DISTANCE"), true);
 
 assert.deepEqual(spans("Either the manager or the students are ready.", "AGREEMENT_CORRELATIVE"), ["are"]);
 assert.deepEqual(spans("Neither the students nor the teacher is ready.", "AGREEMENT_CORRELATIVE"), ["is"]);

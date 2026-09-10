@@ -1,3 +1,4 @@
+import { isComparativeErWord } from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 import type { GrammarPointCode, GrammarPriority } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 export type ComparisonCh12Rule = {
@@ -35,6 +36,7 @@ export const COMPARISON_CH12_RULES: ComparisonCh12Rule[] = [
     allowedMinimalPairs: [
       ["more", "most"],
       ["better", "best"],
+      ["than", "as"],
     ],
     rejectConditions: ["importanter", "very + 비교급", "more important / importanter"],
   },
@@ -292,6 +294,17 @@ function detectThanFrame(text: string, hits: ComparisonHit[]) {
   }
   if (/\bvery\s+(?:more|better|larger)\b/i.test(text)) {
     push(hits, "COMPARATIVE", "VERY_COMPARATIVE", "very", text.toLowerCase().search(/\bvery\s+/), false);
+  }
+  for (const match of text.matchAll(/\b([A-Za-z]{3,}er)\s+(than)\b/gi)) {
+    const adj = match[1] ?? "";
+    if (!isComparativeErWord(adj)) continue;
+    push(hits, "COMPARATIVE", "THAN_FRAME", exact(text, match[2] ?? "than", match.index ?? 0), indexOfSpan(text, match[2] ?? "than", match.index ?? 0), true);
+  }
+  for (const match of text.matchAll(/\bmore\s+[a-z]+\s+(than)\b/gi)) {
+    const before = text.slice(Math.max(0, (match.index ?? 0) - 12), match.index ?? 0);
+    if (/\b(?:far|much|even|still|a lot)\s+$/i.test(before)) continue;
+    if (/\bmore\s+and\s+more\b/i.test(match[0])) continue;
+    push(hits, "COMPARATIVE", "THAN_FRAME", exact(text, match[1] ?? "than", match.index ?? 0), indexOfSpan(text, match[1] ?? "than", match.index ?? 0), true);
   }
 }
 

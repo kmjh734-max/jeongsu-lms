@@ -1,3 +1,4 @@
+import { hasInterveningAgreement } from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 import type { GrammarPointCode, GrammarPriority } from "@/lib/lesson-materials/grammar-choice-v2/types";
 import { detectSentenceCh01 } from "@/lib/lesson-materials/grammar-choice-v2/sentence-ch01";
 import { detectNonfiniteCh09 } from "@/lib/lesson-materials/grammar-choice-v2/nonfinite-ch09";
@@ -186,6 +187,15 @@ export const PARTS_CH13_RULES: PartsCh13Rule[] = [
     rejectConditions: ["동명사구 주어는 CH07", "짧은 수일치"],
   },
   {
+    code: "AGREEMENT_DISTANCE",
+    subtype: "INTERVENING_MODIFIER",
+    priority: "CORE",
+    referenceChapter: "CH13",
+    headNounRule: "주어와 동사 사이에 수식어가 삽입되면 동사는 실제 주어의 수를 따른다",
+    allowedMinimalPairs: [["likes", "like"]],
+    rejectConditions: ["주어와 동사가 인접한 짧은 수일치", "nobody likes처럼 개입 수식어가 없는 경우"],
+  },
+  {
     code: "AGREEMENT_CORRELATIVE",
     subtype: "NEAR_NOUN",
     priority: "CORE",
@@ -319,6 +329,7 @@ export function detectPartsCh13(text: string): PartsHit[] {
   detectNumberOf(source, hits);
   detectPartitive(source, hits);
   detectAlongWith(source, hits);
+  detectInterveningAgreement(source, hits);
   detectCorrelativeNear(source, hits);
   detectMeasure(source, hits);
   detectPreposition(source, hits);
@@ -351,6 +362,8 @@ export function partsLocalDistractor(code: string, sourceSpan: string): string |
     if (lower === "were") return "was";
     if (lower === "has") return "have";
     if (lower === "have") return "has";
+    if (lower === "likes") return "like";
+    if (lower === "like") return "likes";
     if (lower === "seem") return "seems";
     if (lower === "seems") return "seem";
   }
@@ -621,6 +634,18 @@ function detectAlongWith(text: string, hits: PartsHit[]) {
     const span = exact(text, verb, match.index ?? 0);
     const plural = /\s(?:students|people|children)$/i.test(head);
     push(hits, "AGREEMENT_DISTANCE", "ALONG_WITH", span, indexOfSpan(text, span, match.index ?? 0), plural ? /^(?:were|are)$/i.test(verb) : /^(?:was|is)$/i.test(verb));
+  }
+}
+
+function detectInterveningAgreement(text: string, hits: PartsHit[]) {
+  const re =
+    /\b(?:nobody|no one|nothing|everybody|everyone|anybody|anyone|somebody|someone|each)\b[\s\S]{1,80}?\b([A-Za-z]+s)\b/gi;
+  for (const match of text.matchAll(re)) {
+    const verb = match[1] ?? "";
+    if (/^(?:is|was|has|does)$/i.test(verb)) continue;
+    if (!hasInterveningAgreement(text, verb)) continue;
+    const span = exact(text, verb, match.index ?? 0);
+    push(hits, "AGREEMENT_DISTANCE", "INTERVENING_MODIFIER", span, indexOfSpan(text, span, match.index ?? 0), true);
   }
 }
 

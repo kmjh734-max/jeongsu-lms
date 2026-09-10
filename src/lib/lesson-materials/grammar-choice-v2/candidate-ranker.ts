@@ -14,6 +14,18 @@ const RANK: Record<GrammarPriority, number> = {
 const MAX_ITEMS = 24;
 const MAX_ADJ_ADV = 2;
 
+export function sortStudentPresentationOrder<T extends {
+  passageStart: number;
+  passageEnd: number;
+  candidateId: string;
+}>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    if (a.passageStart !== b.passageStart) return a.passageStart - b.passageStart;
+    if (a.passageEnd !== b.passageEnd) return a.passageEnd - b.passageEnd;
+    return a.candidateId.localeCompare(b.candidateId);
+  });
+}
+
 export function rankCandidates(
   items: ResolvedCandidate[],
   sentenceCount = 24,
@@ -31,12 +43,17 @@ export function rankCandidates(
   const subtypeCount = new Map<string, number>();
   const conditionalSentence = new Set<string>();
   let adjAdv = 0;
+  let indirectQuestions = 0;
 
   for (const item of sorted) {
     const def = ontologyPoint(item.pointCode);
     const priority = item.priority ?? def?.priority ?? "CORE";
     const subtypeLimit = priority === "BASIC" ? 1 : priority === "CORE" ? 2 : 3;
     const used = subtypeCount.get(item.subtypeKey) ?? 0;
+    if (item.pointCode === "INDIRECT_QUESTION_ORDER" && indirectQuestions >= 1) {
+      dropped.push({ item, reason: "DUPLICATE_SUBTYPE" });
+      continue;
+    }
     if (item.pointCode.startsWith("CONDITIONAL_") && conditionalSentence.has(`${item.sentenceId}|${item.pointCode}`)) {
       dropped.push({ item, reason: "DUPLICATE_SUBTYPE" });
       continue;
@@ -61,6 +78,7 @@ export function rankCandidates(
     }
     kept.push({ ...item, priority });
     subtypeCount.set(item.subtypeKey, used + 1);
+    if (item.pointCode === "INDIRECT_QUESTION_ORDER") indirectQuestions += 1;
     if (item.pointCode.startsWith("CONDITIONAL_")) {
       conditionalSentence.add(`${item.sentenceId}|${item.pointCode}`);
     }

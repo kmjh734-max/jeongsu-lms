@@ -87,6 +87,8 @@ assert.ok(none("the very thing that will help them.", "RELATIVE_WHAT"));
 assert.ok(none("the book what you want is missing.", "RELATIVE_WHAT"));
 
 assert.deepEqual(spans("This is the tool with which they worked.", "RELATIVE_PREPOSITION_WHICH"), ["which"]);
+assert.deepEqual(spans("Nothing turns me off quicker than that, by which I mean habit.", "RELATIVE_PREPOSITION_WHICH"), ["which"]);
+assert.deepEqual(spans("They crossed the river through which trade moved.", "RELATIVE_PREPOSITION_WHICH"), ["which"]);
 assert.ok(none("We visited the town where she was born.", "RELATIVE_PREPOSITION_WHICH"));
 assert.ok(none("I like the book which we read yesterday.", "RELATIVE_PREPOSITION_WHICH"));
 

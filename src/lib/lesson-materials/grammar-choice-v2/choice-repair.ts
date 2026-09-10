@@ -1,5 +1,13 @@
 import { factorParallelChoices } from "@/lib/lesson-materials/grammar-choice-v2/assessment-contract";
 import { activeLemmaOfParticiple } from "@/lib/lesson-materials/grammar-choice-v2/nonfinite-ch09";
+import {
+  findEitherOrParallelVerb,
+  findPrepWhich,
+  findUniqueComparativeThan,
+  isLockedEitherOrParallel,
+  RELATIVE_PREPS,
+  whenFollowedByFiniteClause,
+} from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 import type { GrammarCandidate, GrammarPointCode, GrammarPriority } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 const BE = "is|are|was|were";
@@ -145,6 +153,44 @@ export function repairChoice(input: {
     if (at >= 0) {
       const whichAt = sentence.toLowerCase().indexOf("which", at);
       return { pointCode: "RELATIVE_PREPOSITION_WHICH", correct: "which", wrong: "that", at: whichAt };
+    }
+  }
+
+  const whichAt = whichAfterPrep(sentence, correct);
+  if (whichAt >= 0 && (/which/i.test(correct) || code === "RELATIVE_NONRESTRICTIVE" || code === "RELATIVE_PREPOSITION_WHICH")) {
+    return {
+      pointCode: "RELATIVE_PREPOSITION_WHICH",
+      correct: sentence.slice(whichAt, whichAt + 5),
+      wrong: "that",
+      at: whichAt,
+    };
+  }
+
+  if (isErEstPair(correct, wrong)) {
+    const thanAt = findUniqueComparativeThan(sentence);
+    if (thanAt >= 0) {
+      return { pointCode: "COMPARATIVE", correct: "than", wrong: "as", at: thanAt };
+    }
+  }
+
+  if (code === "CORRELATIVE_EITHER_OR" || /\beither\b/i.test(correct)) {
+    const shrunk = stripCommon(correct, wrong);
+    if (shrunk && isLockedEitherOrParallel(sentence, shrunk.correct, shrunk.wrong)) {
+      const at = indexOfWord(sentence, shrunk.correct);
+      if (at >= 0) {
+        return { pointCode: "CORRELATIVE_EITHER_OR", correct: shrunk.correct, wrong: shrunk.wrong, at };
+      }
+    }
+  }
+
+  if (
+    (code === "CONJUNCTION_PREPOSITION_CONTRAST" || pairKey(correct, wrong) === "during|when") &&
+    /^when$/i.test(correct) &&
+    whenFollowedByFiniteClause(sentence)
+  ) {
+    const at = indexOfWord(sentence, "when");
+    if (at >= 0) {
+      return { pointCode: "CONJUNCTION_PREPOSITION_CONTRAST", correct: "when", wrong: "during", at };
     }
   }
 
@@ -333,6 +379,21 @@ function repairToBeWiped(
   return { pointCode: "INFINITIVE_PASSIVE", correct: "be wiped", wrong: "wipe", at };
 }
 
+function whichAfterPrep(sentence: string, correct: string): number {
+  const from = /\bwhich\b/i.test(correct) ? Math.max(0, sentence.toLowerCase().indexOf(correct.toLowerCase().replace(/^.*\b(which)\b/i, "which"))) : -1;
+  const at = from >= 0 ? indexOfWord(sentence, "which", from) : indexOfWord(sentence, "which");
+  if (at < 0) return -1;
+  if (!new RegExp(`\\b(?:${RELATIVE_PREPS})\\s+$`, "i").test(sentence.slice(0, at))) return -1;
+  return at;
+}
+
+function isErEstPair(correct: string, wrong: string): boolean {
+  const a = correct.trim().toLowerCase();
+  const b = wrong.trim().toLowerCase();
+  if (!a || !b || a.includes(" ") || b.includes(" ")) return false;
+  return (a.endsWith("er") && b.endsWith("est")) || (a.endsWith("est") && b.endsWith("er"));
+}
+
 export function safeLocalCandidates(sentenceId: string, text: string): GrammarCandidate[] {
   const source = text.replace(/[’]/g, "'");
   const out: GrammarCandidate[] = [];
@@ -380,6 +441,25 @@ export function safeLocalCandidates(sentenceId: string, text: string): GrammarCa
   if (/\bfeel frightened and become\b/i.test(source)) {
     const at = source.toLowerCase().indexOf("become");
     push("PARALLEL_VERBS", "become", "becoming", at, "CORE");
+  }
+  let prepFrom = 0;
+  for (;;) {
+    const prepWhich = findPrepWhich(source, prepFrom);
+    if (!prepWhich) break;
+    push("RELATIVE_PREPOSITION_WHICH", source.slice(prepWhich.whichAt, prepWhich.whichAt + 5), "that", prepWhich.whichAt);
+    prepFrom = prepWhich.whichAt + 1;
+  }
+  const thanAt = findUniqueComparativeThan(source);
+  if (thanAt >= 0) {
+    push("COMPARATIVE", source.slice(thanAt, thanAt + 4), "as", thanAt, "CORE");
+  }
+  const either = findEitherOrParallelVerb(source);
+  if (either) {
+    push("CORRELATIVE_EITHER_OR", either.correct, either.wrong, either.at, "CORE");
+  }
+  const whenAt = indexOfWord(source, "when");
+  if (whenAt >= 0 && whenFollowedByFiniteClause(source, whenAt)) {
+    push("CONJUNCTION_PREPOSITION_CONTRAST", source.slice(whenAt, whenAt + 4), "during", whenAt, "BASIC");
   }
   return out;
 }

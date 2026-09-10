@@ -52,6 +52,14 @@ assert.deepEqual(spans(becauseClause, "CONJUNCTION_PREPOSITION_CONTRAST"), ["bec
 assert.equal(conjunctionLocalDistractor("CONJUNCTION_PREPOSITION_CONTRAST", "because"), "because of");
 assert.deepEqual(spans(evenThough, "CONJUNCTION_PREPOSITION_CONTRAST"), ["even though"]);
 assert.equal(conjunctionLocalDistractor("CONJUNCTION_PREPOSITION_CONTRAST", "even though"), "despite");
+assert.deepEqual(
+  spans("Even when you first drank milk, there was a choice.", "CONJUNCTION_PREPOSITION_CONTRAST"),
+  ["when"]
+);
+assert.equal(conjunctionLocalDistractor("CONJUNCTION_PREPOSITION_CONTRAST", "when"), "during");
+assert.ok(
+  none("I remember the day when he arrived home.", "CONJUNCTION_PREPOSITION_CONTRAST")
+);
 
 assert.equal(
   none("Nothing changes if you don't truly believe the claim.", "ADVERB_CLAUSE_CONDITION"),
