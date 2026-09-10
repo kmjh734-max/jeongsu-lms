@@ -281,31 +281,10 @@ function TfAnswerBody({
         {typeOrder}. T/F 문제
         {multi ? ` · ${section.title}` : ""}
       </h3>
-      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+      <p className="text-[13px] font-semibold text-slate-800">
         정답:{" "}
         {section.items.map((it) => `(${it.index}) ${it.answer}`).join("  ")}
       </p>
-      <ol className="space-y-4">
-        {section.items.map((it) => (
-          <li
-            key={it.index}
-            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
-          >
-            <p className="font-bold">
-              ({it.index}) {it.answer}
-            </p>
-            <p className="mt-1 text-slate-700">{it.explanation}</p>
-            {it.answer === "F" && it.correctedStatement ? (
-              <p className="mt-1 text-slate-700">
-                <span className="font-semibold text-rose-700">
-                  바르게 고친 문장 ·{" "}
-                </span>
-                {it.correctedStatement}
-              </p>
-            ) : null}
-          </li>
-        ))}
-      </ol>
     </>
   );
 }
@@ -377,26 +356,18 @@ function GrammarChoiceAnswerBody({
         {typeOrder}. 어법 선택
         {multi ? ` · ${section.title}` : ""}
       </h3>
-      <ol className="space-y-4">
+      <ol className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
         {section.items.map((it) => (
           <li
             key={it.choiceId}
             className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
           >
-            <p className="font-bold">
+            <span className="font-bold">
               {circledNumber(it.number)} 정답: {it.correctText}
-            </p>
-            <p className="mt-1 text-[12px] font-semibold text-slate-600">
-              문법: {it.bookTerm || it.grammarCategoryName}
-            </p>
-            {it.structureSummary ? (
-              <p className="mt-1 text-slate-700">구조: {it.structureSummary}</p>
-            ) : null}
-            <p className="mt-1 text-slate-700">설명: {it.explanationKo}</p>
-            <p className="mt-1 text-slate-700">
-              오답 이유: {it.incorrectText}
-              {it.incorrectReasonKo ? ` — ${it.incorrectReasonKo}` : ""}
-            </p>
+            </span>
+            <span className="ml-1.5 text-[11.5px] font-semibold text-slate-500">
+              [{it.bookTerm || it.grammarCategoryName}]
+            </span>
           </li>
         ))}
       </ol>
@@ -2180,7 +2151,7 @@ export function WorkbookWorkbench({
                   total={total}
                   workbookTitle={title}
                   showTypeTitle
-                  typeTitle="정답 및 해설"
+                  typeTitle="정답"
                   isLast={isLast}
                 >
                   <div className="space-y-8">
