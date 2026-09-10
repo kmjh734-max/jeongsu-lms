@@ -1,0 +1,35 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:58:59.314Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "rawJson": [
+    "{\"results\":[{\"candidateId\":\"0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1\",\"decision\":\"PASS\",\"uniqueInContext\":true,\"reasonCode\":\"VALID_SINGLE_CHOICE\",\"correctedCode\":\"RELATIVE_NONRESTRICTIVE\"}]}"
+  ],
+  "parsed": [
+    {
+      "results": [
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+          "decision": "PASS",
+          "uniqueInContext": true,
+          "reasonCode": "VALID_SINGLE_CHOICE",
+          "correctedCode": "RELATIVE_NONRESTRICTIVE"
+        }
+      ]
+    }
+  ],
+  "results": []
+}

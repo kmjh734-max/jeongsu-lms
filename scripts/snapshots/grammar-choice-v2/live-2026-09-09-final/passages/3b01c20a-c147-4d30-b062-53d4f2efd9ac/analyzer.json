@@ -1,0 +1,1971 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T08:40:21.328Z",
+  "sourceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 157582,
+  "inputTokens": 2098,
+  "outputTokens": 11158,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b\",\"detectedPoints\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"긴 동명사 주어 뒤에 단수 동사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"Letting go of our need for control\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"Letting으로 시작하는 동명사구가 주어임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_ANALYSIS\",\"sourceSpan\":\"Letting go of our need for control\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"동명사구 전체가 문장의 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_GERUND_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"동명사구 주어를 단수로 받아 is가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_AGREEMENT_ANALYSIS\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"동명사 주어와 단수 동사의 수가 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"gathering\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"medium\",\"evidence\":\"전치사 about의 목적어로 동명사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"about gathering\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"about 뒤 동명사가 전치사의 목적어임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"correctAnswer\":\"is\",\"distractors\":[\"are\"],\"transformCode\":\"LONG_SUBJECT_SV_NUMBER\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"긴 동명사구 주어는 단수로 취급됨\",\"ruleSummaryKo\":\"동명사구 주어에는 단수 동사를 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"gathering\",\"occurrenceIndex\":1,\"correctAnswer\":\"gathering\",\"distractors\":[\"gather\"],\"transformCode\":\"PREPOSITION_GERUND_FORM\",\"priority\":\"BASIC\",\"difficulty\":\"easy\",\"evidence\":\"about은 전치사이므로 뒤에 동명사가 필요함\",\"ruleSummaryKo\":\"전치사 뒤에는 동명사를 목적어로 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"c3afbd07-f719-4af9-9275-fa38566c13a4\",\"detectedPoints\":[{\"pointCode\":\"TENSE_PRESENT_PAST\",\"sourceSpan\":\"want\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"인간의 일반적 성향을 현재시제로 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[]},{\"sentenceId\":\"0449da60-1237-4054-b096-a8b60dea5be4\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"When we don’t know, when things are uncertain\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"두 when절이 같은 형태로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"feel frightened and become inflexible\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"feel과 become이 같은 주어에 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"feel frightened and become inflexible\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"and 양쪽에 동사구가 나란히 놓임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARTICIPLE_EMOTION\",\"sourceSpan\":\"frightened\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"두려움을 느끼는 사람의 상태를 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"When we don’t know, when things are uncertain\",\"occurrenceIndex\":1,\"correctAnswer\":\"When we don’t know, when things are uncertain\",\"distractors\":[\"When we don’t know, when things being uncertain\"],\"transformCode\":\"PARALLEL_FINITE_CLAUSES\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"병렬된 두 when절 모두 주어와 동사를 갖춤\",\"ruleSummaryKo\":\"병렬된 절은 서로 같은 절 구조를 유지한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"feel frightened and become inflexible\",\"occurrenceIndex\":1,\"correctAnswer\":\"feel frightened and become inflexible\",\"distractors\":[\"feel frightened and becoming inflexible\"],\"transformCode\":\"PARALLEL_VERB_FORMS\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"and 양쪽의 feel과 become이 같은 형태임\",\"ruleSummaryKo\":\"등위접속사 양쪽의 동사 형태를 맞춘다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARTICIPLE_EMOTION\",\"sourceSpan\":\"frightened\",\"occurrenceIndex\":1,\"correctAnswer\":\"frightened\",\"distractors\":[\"frightening\"],\"transformCode\":\"EMOTION_PARTICIPLE_ROLE\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"사람이 두려움을 느끼므로 과거분사를 씀\",\"ruleSummaryKo\":\"감정을 느끼는 대상에는 과거분사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"b8e266b5-04ea-4f5b-9b11-0f4e489b4c40\",\"detectedPoints\":[{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"that things are more predictable than they really are\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"pretend의 목적어인 접속사 that 명사절임\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more predictable than\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"more와 than으로 비교급 구조를 이룸\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARISON_TARGET\",\"sourceSpan\":\"than they really are\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"실제 상태와 예측 가능성을 비교함\",\"omissionReason\":\"\"},{\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"sourceSpan\":\"even though\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"완전한 절 앞에 양보 접속사가 쓰임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"CONTENT_CLAUSE_CONNECTOR\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"완전한 문장을 목적어절로 이끄는 접속사임\",\"ruleSummaryKo\":\"완전한 명사절에는 접속사 that을 쓸 수 있다\",\"riskLevel\":\"low\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more predictable\",\"occurrenceIndex\":1,\"correctAnswer\":\"more predictable\",\"distractors\":[\"most predictable\"],\"transformCode\":\"COMPARATIVE_SUPERLATIVE\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"than과 호응하는 비교급이 필요함\",\"ruleSummaryKo\":\"than 앞에는 비교급을 사용한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"COMPARISON_TARGET\",\"sourceSpan\":\"than they really are\",\"occurrenceIndex\":1,\"correctAnswer\":\"than they really are\",\"distractors\":[\"than they really do\"],\"transformCode\":\"COMPARATIVE_COMPLEMENT_ELLIPSIS\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"predictable을 대신하므로 be동사가 필요함\",\"ruleSummaryKo\":\"형용사 보어의 반복은 be동사로 받는다\",\"riskLevel\":\"low\"},{\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"sourceSpan\":\"even though\",\"occurrenceIndex\":1,\"correctAnswer\":\"even though\",\"distractors\":[\"despite\"],\"transformCode\":\"CONJUNCTION_VS_PREPOSITION\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"뒤에 주어와 동사가 있는 절이 이어짐\",\"ruleSummaryKo\":\"절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"90aefb4b-72ae-4409-b845-17eafb467f96\",\"detectedPoints\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"how things should be\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"how 명사절이 평서문 어순을 취함\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"how things should be and turn out\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"how절이 전치사 about의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"be and turn out\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"be와 turn out이 조동사 should를 공유함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"be and turn out\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"and가 두 동사 표현을 병렬 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"should\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"바람직하거나 예상되는 상태를 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"how things should be\",\"occurrenceIndex\":1,\"correctAnswer\":\"how things should be\",\"distractors\":[\"how should things be\"],\"transformCode\":\"EMBEDDED_QUESTION_WORD_ORDER\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"간접의문문은 의문사 뒤에 평서문 어순을 씀\",\"ruleSummaryKo\":\"간접의문문은 의문사+주어+동사 어순이다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"795cad67-fb4a-49a5-b0d5-4eacdb52bdfb\",\"detectedPoints\":[{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"having\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"high\",\"evidence\":\"전치사 with의 목적어로 동명사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"with having plans\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"having plans가 with의 목적어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"SINGULAR_PLURAL_NOUN\",\"sourceSpan\":\"plans\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"medium\",\"evidence\":\"가산명사 plan이 한정사 없이 복수로 쓰임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"having\",\"occurrenceIndex\":1,\"correctAnswer\":\"having\",\"distractors\":[\"have\"],\"transformCode\":\"PREPOSITION_GERUND_FORM\",\"priority\":\"BASIC\",\"difficulty\":\"easy\",\"evidence\":\"with 뒤에는 명사 역할의 동명사가 필요함\",\"ruleSummaryKo\":\"전치사 뒤의 동사는 동명사 형태로 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"SINGULAR_PLURAL_NOUN\",\"sourceSpan\":\"plans\",\"occurrenceIndex\":1,\"correctAnswer\":\"plans\",\"distractors\":[\"plan\"],\"transformCode\":\"BARE_COUNT_NOUN_NUMBER\",\"priority\":\"BASIC\",\"difficulty\":\"easy\",\"evidence\":\"한정사가 없으므로 가산명사를 복수로 씀\",\"ruleSummaryKo\":\"단수 가산명사는 한정사 없이 홀로 쓸 수 없다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"47a8c11b-8a5f-40e2-810e-e840a9769c82\",\"detectedPoints\":[{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"it’s a beautiful thing\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"think의 목적어인 접속사 that 생략 명사절임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"it’s\",\"occurrenceIndex\":1,\"correctAnswer\":\"it’s\",\"distractors\":[\"is it\"],\"transformCode\":\"CONTENT_CLAUSE_WORD_ORDER\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"think 뒤 진술 명사절은 평서문 어순을 취함\",\"ruleSummaryKo\":\"진술을 나타내는 명사절은 평서문 어순을 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"180f4425-6e44-41d1-ad9b-3161f2a495d9\",\"detectedPoints\":[{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"planning and thinking\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"high\",\"evidence\":\"between의 두 목적어가 동명사로 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"between planning and thinking\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 동명사가 between의 목적어를 이룸\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"planning and thinking\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"and 양쪽에 동명사가 병렬로 놓임\",\"omissionReason\":\"\"},{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"all your plans have to come to fruition\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"thinking의 목적어인 that 생략 명사절임\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"have to\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"계획 실현의 필요성을 나타내는 표현임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"planning and thinking\",\"occurrenceIndex\":1,\"correctAnswer\":\"planning and thinking\",\"distractors\":[\"planning and to think\",\"to plan and thinking\"],\"transformCode\":\"PARALLEL_GERUND_FORMS\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"between 뒤의 두 항목이 모두 동명사임\",\"ruleSummaryKo\":\"병렬된 두 항목은 같은 문법 형태를 취한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"Plans are worthless, but planning is everything\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"but 양쪽에 완전한 절이 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"Plans are worthless, but planning is everything\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"but가 대조되는 두 독립절을 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"planning\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"planning이 두 번째 절의 주어임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_ANALYSIS\",\"sourceSpan\":\"planning is everything\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"동명사 planning이 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_GERUND_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"동명사 주어 planning을 단수로 받음\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_AGREEMENT_ANALYSIS\",\"sourceSpan\":\"planning is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"동명사 주어와 단수 동사가 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"TENSE_EXPLICIT_TIME_MARKER\",\"sourceSpan\":\"once said\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"once가 과거의 발언 시점을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"TENSE_PRESENT_PAST\",\"sourceSpan\":\"said\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"과거의 발언을 과거시제로 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"but planning is everything\",\"occurrenceIndex\":1,\"correctAnswer\":\"but planning is everything\",\"distractors\":[\"but planning being everything\"],\"transformCode\":\"COORDINATED_FINITE_CLAUSES\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"but 뒤에도 주어와 서술동사가 있는 절이 필요함\",\"ruleSummaryKo\":\"등위접속사는 같은 층위의 완전한 절을 연결한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"TENSE_EXPLICIT_TIME_MARKER\",\"sourceSpan\":\"said\",\"occurrenceIndex\":1,\"correctAnswer\":\"said\",\"distractors\":[\"says\"],\"transformCode\":\"TIME_MARKER_TENSE\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"once가 특정 과거의 발언을 가리킴\",\"ruleSummaryKo\":\"명확한 과거 시점에는 과거시제를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"8bb693b7-669d-47b7-bb8a-da8048927aad\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"if we all used pencil instead of ink\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"현재의 가상 상황을 if와 과거형으로 제시함\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if we all used pencil instead of ink\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"if절이 가정되는 조건을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"sourceSpan\":\"instead of ink\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"instead of 뒤에 명사 ink가 이어짐\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"used\",\"occurrenceIndex\":1,\"correctAnswer\":\"used\",\"distractors\":[\"would use\"],\"transformCode\":\"SECOND_CONDITIONAL_IF_CLAUSE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"가정법 if절에는 일반적으로 would를 쓰지 않음\",\"ruleSummaryKo\":\"현재의 가정은 if절에 과거형을 사용한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"sourceSpan\":\"instead of\",\"occurrenceIndex\":1,\"correctAnswer\":\"instead of\",\"distractors\":[\"instead\"],\"transformCode\":\"PREPOSITION_BEFORE_NOUN\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"명사 ink 앞에는 전치사구 instead of가 필요함\",\"ruleSummaryKo\":\"instead of는 뒤의 명사를 목적어로 취한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"864a91d9-892a-49bd-a36e-7fdb604495a9\",\"detectedPoints\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"Both figuratively and literally\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"both와 and가 두 부사를 상관 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"figuratively and literally\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"and 양쪽에 같은 형태의 부사가 놓임\",\"omissionReason\":\"\"},{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"Both figuratively and literally\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"앞 문맥의 내용을 받는 의도적 생략 표현임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"Both figuratively and literally\",\"occurrenceIndex\":1,\"correctAnswer\":\"Both figuratively and literally\",\"distractors\":[\"Both figuratively or literally\",\"Either figuratively and literally\"],\"transformCode\":\"CORRELATIVE_PAIRING\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"both는 상관접속사 and와 짝을 이룸\",\"ruleSummaryKo\":\"both A and B의 짝을 정확히 사용한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"c5504fb3-2c67-4357-b3e0-4021485770a7\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"if we could bear in mind\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"could를 사용해 현재의 가상 상황을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if we could bear in mind\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"if절이 상상하는 조건을 제시함\",\"omissionReason\":\"\"},{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"what we think is going to happen\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"what 명사절 안에서 평서문 어순을 유지함\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_DISTANCE\",\"sourceSpan\":\"what we think is going to happen\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"medium\",\"evidence\":\"what과 is 사이에 we think가 삽입됨\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what we write down\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"what절이 사물의 내용을 나타내는 명사절임\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what we think is going to happen\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"what이 이끄는 절 전체가 명사 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what actually happens\",\"occurrenceIndex\":3,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"what절이 be동사의 보어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"that what we write down, what we think is going to happen, might not be what actually happens\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"bear in mind의 내용을 나타내는 that 명사절임\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"could\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"가상 상황에서의 가능성을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"might not\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"결과가 다를 가능성을 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"could bear\",\"occurrenceIndex\":1,\"correctAnswer\":\"could bear\",\"distractors\":[\"would bear\"],\"transformCode\":\"SECOND_CONDITIONAL_IF_CLAUSE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"가정법 if절에 결과절용 would를 쓰지 않음\",\"ruleSummaryKo\":\"가정법 if절에는 일반적으로 would를 쓰지 않는다\",\"riskLevel\":\"low\"},{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"what we think is going to happen\",\"occurrenceIndex\":1,\"correctAnswer\":\"what we think is going to happen\",\"distractors\":[\"what do we think is going to happen\"],\"transformCode\":\"EMBEDDED_WH_WORD_ORDER\",\"priority\":\"MANDATORY\",\"difficulty\":\"hard\",\"evidence\":\"문장 속 what절에는 의문문 도치를 하지 않음\",\"ruleSummaryKo\":\"의문사 명사절은 평서문 어순을 유지한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"AGREEMENT_DISTANCE\",\"sourceSpan\":\"is going to happen\",\"occurrenceIndex\":1,\"correctAnswer\":\"is going to happen\",\"distractors\":[\"are going to happen\"],\"transformCode\":\"DISTANT_SUBJECT_VERB_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"hard\",\"evidence\":\"삽입된 we think를 넘어 what과 is가 호응함\",\"ruleSummaryKo\":\"삽입 표현과 무관하게 본래 주어에 동사를 일치시킨다\",\"riskLevel\":\"medium\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what we write down\",\"occurrenceIndex\":1,\"correctAnswer\":\"what we write down\",\"distractors\":[\"which we write down\",\"that we write down\"],\"transformCode\":\"FUSED_RELATIVE_WHAT\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"선행사를 포함한 what이 명사절을 이끎\",\"ruleSummaryKo\":\"선행사가 없으면 ‘것’을 뜻하는 what을 쓸 수 있다\",\"riskLevel\":\"low\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what actually happens\",\"occurrenceIndex\":3,\"correctAnswer\":\"what actually happens\",\"distractors\":[\"that actually happens\"],\"transformCode\":\"NOMINAL_WH_CLAUSE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"be 뒤에서 명사 역할을 하는 what절임\",\"ruleSummaryKo\":\"what은 선행사를 포함하며 절 전체를 명사화한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"36812460-51e5-446b-80bb-156013b6942d\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"if we could try our best\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"could로 현재의 가상 조건을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if we could try our best to be all right with that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"if절이 앞의 상상 상황에 조건을 덧붙임\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"could\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"가상 상황에서의 가능성을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"UNMAPPED_HIGH_VALUE_POINT\",\"sourceSpan\":\"And if we could try our best to be all right with that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"앞 문장의 Imagine에 이어지는 생략 구조임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"could try\",\"occurrenceIndex\":1,\"correctAnswer\":\"could try\",\"distractors\":[\"would try\"],\"transformCode\":\"SECOND_CONDITIONAL_IF_CLAUSE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"가정법 if절에 결과절용 would를 쓰지 않음\",\"ruleSummaryKo\":\"현재의 가정에서 if절에는 과거형 조동사를 쓴다\",\"riskLevel\":\"low\"}]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "detectedPoints": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "긴 동명사 주어 뒤에 단수 동사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "Letting go of our need for control",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "Letting으로 시작하는 동명사구가 주어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_ANALYSIS",
+            "sourceSpan": "Letting go of our need for control",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "동명사구 전체가 문장의 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_GERUND_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "동명사구 주어를 단수로 받아 is가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "동명사 주어와 단수 동사의 수가 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "gathering",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "medium",
+            "evidence": "전치사 about의 목적어로 동명사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "about gathering",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "about 뒤 동명사가 전치사의 목적어임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "correctAnswer": "is",
+            "distractors": [
+              "are"
+            ],
+            "transformCode": "LONG_SUBJECT_SV_NUMBER",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "긴 동명사구 주어는 단수로 취급됨",
+            "ruleSummaryKo": "동명사구 주어에는 단수 동사를 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "gathering",
+            "occurrenceIndex": 1,
+            "correctAnswer": "gathering",
+            "distractors": [
+              "gather"
+            ],
+            "transformCode": "PREPOSITION_GERUND_FORM",
+            "priority": "BASIC",
+            "difficulty": "easy",
+            "evidence": "about은 전치사이므로 뒤에 동명사가 필요함",
+            "ruleSummaryKo": "전치사 뒤에는 동명사를 목적어로 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+        "detectedPoints": [
+          {
+            "pointCode": "TENSE_PRESENT_PAST",
+            "sourceSpan": "want",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "인간의 일반적 성향을 현재시제로 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": []
+      },
+      {
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "When we don’t know, when things are uncertain",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "두 when절이 같은 형태로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "feel frightened and become inflexible",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "feel과 become이 같은 주어에 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "feel frightened and become inflexible",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "and 양쪽에 동사구가 나란히 놓임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARTICIPLE_EMOTION",
+            "sourceSpan": "frightened",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "두려움을 느끼는 사람의 상태를 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "When we don’t know, when things are uncertain",
+            "occurrenceIndex": 1,
+            "correctAnswer": "When we don’t know, when things are uncertain",
+            "distractors": [
+              "When we don’t know, when things being uncertain"
+            ],
+            "transformCode": "PARALLEL_FINITE_CLAUSES",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "병렬된 두 when절 모두 주어와 동사를 갖춤",
+            "ruleSummaryKo": "병렬된 절은 서로 같은 절 구조를 유지한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "feel frightened and become inflexible",
+            "occurrenceIndex": 1,
+            "correctAnswer": "feel frightened and become inflexible",
+            "distractors": [
+              "feel frightened and becoming inflexible"
+            ],
+            "transformCode": "PARALLEL_VERB_FORMS",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+            "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARTICIPLE_EMOTION",
+            "sourceSpan": "frightened",
+            "occurrenceIndex": 1,
+            "correctAnswer": "frightened",
+            "distractors": [
+              "frightening"
+            ],
+            "transformCode": "EMOTION_PARTICIPLE_ROLE",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+            "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "detectedPoints": [
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "that things are more predictable than they really are",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "pretend의 목적어인 접속사 that 명사절임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more predictable than",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "more와 than으로 비교급 구조를 이룸",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARISON_TARGET",
+            "sourceSpan": "than they really are",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "실제 상태와 예측 가능성을 비교함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "sourceSpan": "even though",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "완전한 절 앞에 양보 접속사가 쓰임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "CONTENT_CLAUSE_CONNECTOR",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "완전한 문장을 목적어절로 이끄는 접속사임",
+            "ruleSummaryKo": "완전한 명사절에는 접속사 that을 쓸 수 있다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more predictable",
+            "occurrenceIndex": 1,
+            "correctAnswer": "more predictable",
+            "distractors": [
+              "most predictable"
+            ],
+            "transformCode": "COMPARATIVE_SUPERLATIVE",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "than과 호응하는 비교급이 필요함",
+            "ruleSummaryKo": "than 앞에는 비교급을 사용한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "COMPARISON_TARGET",
+            "sourceSpan": "than they really are",
+            "occurrenceIndex": 1,
+            "correctAnswer": "than they really are",
+            "distractors": [
+              "than they really do"
+            ],
+            "transformCode": "COMPARATIVE_COMPLEMENT_ELLIPSIS",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "predictable을 대신하므로 be동사가 필요함",
+            "ruleSummaryKo": "형용사 보어의 반복은 be동사로 받는다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "sourceSpan": "even though",
+            "occurrenceIndex": 1,
+            "correctAnswer": "even though",
+            "distractors": [
+              "despite"
+            ],
+            "transformCode": "CONJUNCTION_VS_PREPOSITION",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+            "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "detectedPoints": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "how things should be",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "how 명사절이 평서문 어순을 취함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "how things should be and turn out",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "how절이 전치사 about의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "be and turn out",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "be와 turn out이 조동사 should를 공유함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "be and turn out",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "and가 두 동사 표현을 병렬 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "should",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "바람직하거나 예상되는 상태를 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "how things should be",
+            "occurrenceIndex": 1,
+            "correctAnswer": "how things should be",
+            "distractors": [
+              "how should things be"
+            ],
+            "transformCode": "EMBEDDED_QUESTION_WORD_ORDER",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "간접의문문은 의문사 뒤에 평서문 어순을 씀",
+            "ruleSummaryKo": "간접의문문은 의문사+주어+동사 어순이다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "detectedPoints": [
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "having",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "high",
+            "evidence": "전치사 with의 목적어로 동명사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "with having plans",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "having plans가 with의 목적어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SINGULAR_PLURAL_NOUN",
+            "sourceSpan": "plans",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "medium",
+            "evidence": "가산명사 plan이 한정사 없이 복수로 쓰임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "having",
+            "occurrenceIndex": 1,
+            "correctAnswer": "having",
+            "distractors": [
+              "have"
+            ],
+            "transformCode": "PREPOSITION_GERUND_FORM",
+            "priority": "BASIC",
+            "difficulty": "easy",
+            "evidence": "with 뒤에는 명사 역할의 동명사가 필요함",
+            "ruleSummaryKo": "전치사 뒤의 동사는 동명사 형태로 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "SINGULAR_PLURAL_NOUN",
+            "sourceSpan": "plans",
+            "occurrenceIndex": 1,
+            "correctAnswer": "plans",
+            "distractors": [
+              "plan"
+            ],
+            "transformCode": "BARE_COUNT_NOUN_NUMBER",
+            "priority": "BASIC",
+            "difficulty": "easy",
+            "evidence": "한정사가 없으므로 가산명사를 복수로 씀",
+            "ruleSummaryKo": "단수 가산명사는 한정사 없이 홀로 쓸 수 없다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+        "detectedPoints": [
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "it’s a beautiful thing",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "think의 목적어인 접속사 that 생략 명사절임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "it’s",
+            "occurrenceIndex": 1,
+            "correctAnswer": "it’s",
+            "distractors": [
+              "is it"
+            ],
+            "transformCode": "CONTENT_CLAUSE_WORD_ORDER",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "think 뒤 진술 명사절은 평서문 어순을 취함",
+            "ruleSummaryKo": "진술을 나타내는 명사절은 평서문 어순을 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "detectedPoints": [
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "planning and thinking",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "high",
+            "evidence": "between의 두 목적어가 동명사로 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "between planning and thinking",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 동명사가 between의 목적어를 이룸",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "planning and thinking",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "and 양쪽에 동명사가 병렬로 놓임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "all your plans have to come to fruition",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "thinking의 목적어인 that 생략 명사절임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "have to",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "계획 실현의 필요성을 나타내는 표현임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "planning and thinking",
+            "occurrenceIndex": 1,
+            "correctAnswer": "planning and thinking",
+            "distractors": [
+              "planning and to think",
+              "to plan and thinking"
+            ],
+            "transformCode": "PARALLEL_GERUND_FORMS",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "between 뒤의 두 항목이 모두 동명사임",
+            "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "Plans are worthless, but planning is everything",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "but 양쪽에 완전한 절이 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "Plans are worthless, but planning is everything",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "but가 대조되는 두 독립절을 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "planning",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "planning이 두 번째 절의 주어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_ANALYSIS",
+            "sourceSpan": "planning is everything",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "동명사 planning이 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_GERUND_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "동명사 주어 planning을 단수로 받음",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "sourceSpan": "planning is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "동명사 주어와 단수 동사가 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+            "sourceSpan": "once said",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "once가 과거의 발언 시점을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "TENSE_PRESENT_PAST",
+            "sourceSpan": "said",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "과거의 발언을 과거시제로 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "but planning is everything",
+            "occurrenceIndex": 1,
+            "correctAnswer": "but planning is everything",
+            "distractors": [
+              "but planning being everything"
+            ],
+            "transformCode": "COORDINATED_FINITE_CLAUSES",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+            "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+            "sourceSpan": "said",
+            "occurrenceIndex": 1,
+            "correctAnswer": "said",
+            "distractors": [
+              "says"
+            ],
+            "transformCode": "TIME_MARKER_TENSE",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "once가 특정 과거의 발언을 가리킴",
+            "ruleSummaryKo": "명확한 과거 시점에는 과거시제를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "if we all used pencil instead of ink",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "현재의 가상 상황을 if와 과거형으로 제시함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if we all used pencil instead of ink",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "if절이 가정되는 조건을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "sourceSpan": "instead of ink",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "instead of 뒤에 명사 ink가 이어짐",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "used",
+            "occurrenceIndex": 1,
+            "correctAnswer": "used",
+            "distractors": [
+              "would use"
+            ],
+            "transformCode": "SECOND_CONDITIONAL_IF_CLAUSE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "가정법 if절에는 일반적으로 would를 쓰지 않음",
+            "ruleSummaryKo": "현재의 가정은 if절에 과거형을 사용한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "sourceSpan": "instead of",
+            "occurrenceIndex": 1,
+            "correctAnswer": "instead of",
+            "distractors": [
+              "instead"
+            ],
+            "transformCode": "PREPOSITION_BEFORE_NOUN",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+            "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "detectedPoints": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "Both figuratively and literally",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "both와 and가 두 부사를 상관 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "figuratively and literally",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "and 양쪽에 같은 형태의 부사가 놓임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "Both figuratively and literally",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "앞 문맥의 내용을 받는 의도적 생략 표현임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "Both figuratively and literally",
+            "occurrenceIndex": 1,
+            "correctAnswer": "Both figuratively and literally",
+            "distractors": [
+              "Both figuratively or literally",
+              "Either figuratively and literally"
+            ],
+            "transformCode": "CORRELATIVE_PAIRING",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "both는 상관접속사 and와 짝을 이룸",
+            "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "if we could bear in mind",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "could를 사용해 현재의 가상 상황을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if we could bear in mind",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "if절이 상상하는 조건을 제시함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "what we think is going to happen",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "what 명사절 안에서 평서문 어순을 유지함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sourceSpan": "what we think is going to happen",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "medium",
+            "evidence": "what과 is 사이에 we think가 삽입됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what we write down",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "what절이 사물의 내용을 나타내는 명사절임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what we think is going to happen",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "what이 이끄는 절 전체가 명사 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what actually happens",
+            "occurrenceIndex": 3,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "what절이 be동사의 보어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "that what we write down, what we think is going to happen, might not be what actually happens",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "bear in mind의 내용을 나타내는 that 명사절임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "could",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "가상 상황에서의 가능성을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "might not",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "결과가 다를 가능성을 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "could bear",
+            "occurrenceIndex": 1,
+            "correctAnswer": "could bear",
+            "distractors": [
+              "would bear"
+            ],
+            "transformCode": "SECOND_CONDITIONAL_IF_CLAUSE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "가정법 if절에 결과절용 would를 쓰지 않음",
+            "ruleSummaryKo": "가정법 if절에는 일반적으로 would를 쓰지 않는다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "what we think is going to happen",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what we think is going to happen",
+            "distractors": [
+              "what do we think is going to happen"
+            ],
+            "transformCode": "EMBEDDED_WH_WORD_ORDER",
+            "priority": "MANDATORY",
+            "difficulty": "hard",
+            "evidence": "문장 속 what절에는 의문문 도치를 하지 않음",
+            "ruleSummaryKo": "의문사 명사절은 평서문 어순을 유지한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sourceSpan": "is going to happen",
+            "occurrenceIndex": 1,
+            "correctAnswer": "is going to happen",
+            "distractors": [
+              "are going to happen"
+            ],
+            "transformCode": "DISTANT_SUBJECT_VERB_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "hard",
+            "evidence": "삽입된 we think를 넘어 what과 is가 호응함",
+            "ruleSummaryKo": "삽입 표현과 무관하게 본래 주어에 동사를 일치시킨다",
+            "riskLevel": "medium"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what we write down",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what we write down",
+            "distractors": [
+              "which we write down",
+              "that we write down"
+            ],
+            "transformCode": "FUSED_RELATIVE_WHAT",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "선행사를 포함한 what이 명사절을 이끎",
+            "ruleSummaryKo": "선행사가 없으면 ‘것’을 뜻하는 what을 쓸 수 있다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what actually happens",
+            "occurrenceIndex": 3,
+            "correctAnswer": "what actually happens",
+            "distractors": [
+              "that actually happens"
+            ],
+            "transformCode": "NOMINAL_WH_CLAUSE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "be 뒤에서 명사 역할을 하는 what절임",
+            "ruleSummaryKo": "what은 선행사를 포함하며 절 전체를 명사화한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "if we could try our best",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "could로 현재의 가상 조건을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if we could try our best to be all right with that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "if절이 앞의 상상 상황에 조건을 덧붙임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "could",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "가상 상황에서의 가능성을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+            "sourceSpan": "And if we could try our best to be all right with that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "앞 문장의 Imagine에 이어지는 생략 구조임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "could try",
+            "occurrenceIndex": 1,
+            "correctAnswer": "could try",
+            "distractors": [
+              "would try"
+            ],
+            "transformCode": "SECOND_CONDITIONAL_IF_CLAUSE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "가정법 if절에 결과절용 would를 쓰지 않음",
+            "ruleSummaryKo": "현재의 가정에서 if절에는 과거형 조동사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "긴 동명사 주어 뒤에 단수 동사가 쓰임"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "Letting go of our need for control",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "Letting으로 시작하는 동명사구가 주어임"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_SUBJECT_ANALYSIS",
+      "sourceSpan": "Letting go of our need for control",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사구 전체가 문장의 주어 역할을 함"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "AGREEMENT_GERUND_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사구 주어를 단수로 받아 is가 쓰임"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사 주어와 단수 동사의 수가 일치함"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "gathering",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "전치사 about의 목적어로 동명사가 쓰임"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "about gathering",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "about 뒤 동명사가 전치사의 목적어임"
+    },
+    {
+      "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+      "pointCode": "TENSE_PRESENT_PAST",
+      "sourceSpan": "want",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "인간의 일반적 성향을 현재시제로 나타냄"
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "When we don’t know, when things are uncertain",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "두 when절이 같은 형태로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "feel frightened and become inflexible",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "feel과 become이 같은 주어에 병렬 연결됨"
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "feel frightened and become inflexible",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and 양쪽에 동사구가 나란히 놓임"
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARTICIPLE_EMOTION",
+      "sourceSpan": "frightened",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두려움을 느끼는 사람의 상태를 나타냄"
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "that things are more predictable than they really are",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "pretend의 목적어인 접속사 that 명사절임"
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more predictable than",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "more와 than으로 비교급 구조를 이룸"
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARISON_TARGET",
+      "sourceSpan": "than they really are",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "실제 상태와 예측 가능성을 비교함"
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "sourceSpan": "even though",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "완전한 절 앞에 양보 접속사가 쓰임"
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "how things should be",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "how 명사절이 평서문 어순을 취함"
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "how things should be and turn out",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "how절이 전치사 about의 목적어임"
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "be and turn out",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "be와 turn out이 조동사 should를 공유함"
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "be and turn out",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 두 동사 표현을 병렬 연결함"
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "should",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "바람직하거나 예상되는 상태를 나타냄"
+    },
+    {
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "having",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "전치사 with의 목적어로 동명사가 쓰임"
+    },
+    {
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "with having plans",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "having plans가 with의 목적어 역할을 함"
+    },
+    {
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "sourceSpan": "plans",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "가산명사 plan이 한정사 없이 복수로 쓰임"
+    },
+    {
+      "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "it’s a beautiful thing",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "think의 목적어인 접속사 that 생략 명사절임"
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "planning and thinking",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "between의 두 목적어가 동명사로 쓰임"
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "between planning and thinking",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 동명사가 between의 목적어를 이룸"
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "planning and thinking",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and 양쪽에 동명사가 병렬로 놓임"
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "all your plans have to come to fruition",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "thinking의 목적어인 that 생략 명사절임"
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "have to",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "계획 실현의 필요성을 나타내는 표현임"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "Plans are worthless, but planning is everything",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "but 양쪽에 완전한 절이 병렬 연결됨"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "Plans are worthless, but planning is everything",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "but가 대조되는 두 독립절을 연결함"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "planning",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "planning이 두 번째 절의 주어임"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "GERUND_SUBJECT_ANALYSIS",
+      "sourceSpan": "planning is everything",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사 planning이 주어 역할을 함"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "AGREEMENT_GERUND_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사 주어 planning을 단수로 받음"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+      "sourceSpan": "planning is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사 주어와 단수 동사가 일치함"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+      "sourceSpan": "once said",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "once가 과거의 발언 시점을 나타냄"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "TENSE_PRESENT_PAST",
+      "sourceSpan": "said",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "과거의 발언을 과거시제로 나타냄"
+    },
+    {
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "if we all used pencil instead of ink",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "현재의 가상 상황을 if와 과거형으로 제시함"
+    },
+    {
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if we all used pencil instead of ink",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "if절이 가정되는 조건을 나타냄"
+    },
+    {
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "sourceSpan": "instead of ink",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "instead of 뒤에 명사 ink가 이어짐"
+    },
+    {
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "Both figuratively and literally",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "both와 and가 두 부사를 상관 연결함"
+    },
+    {
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "figuratively and literally",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and 양쪽에 같은 형태의 부사가 놓임"
+    },
+    {
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "Both figuratively and literally",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "앞 문맥의 내용을 받는 의도적 생략 표현임"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "if we could bear in mind",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "could를 사용해 현재의 가상 상황을 나타냄"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if we could bear in mind",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "if절이 상상하는 조건을 제시함"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "what we think is going to happen",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "what 명사절 안에서 평서문 어순을 유지함"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sourceSpan": "what we think is going to happen",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "what과 is 사이에 we think가 삽입됨"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what we write down",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "what절이 사물의 내용을 나타내는 명사절임"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what we think is going to happen",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "what이 이끄는 절 전체가 명사 역할을 함"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what actually happens",
+      "occurrenceIndex": 3,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "what절이 be동사의 보어 역할을 함"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "that what we write down, what we think is going to happen, might not be what actually happens",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "bear in mind의 내용을 나타내는 that 명사절임"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "could",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "가상 상황에서의 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "might not",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "결과가 다를 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "if we could try our best",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "could로 현재의 가상 조건을 나타냄"
+    },
+    {
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if we could try our best to be all right with that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "if절이 앞의 상상 상황에 조건을 덧붙임"
+    },
+    {
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "could",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "가상 상황에서의 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "And if we could try our best to be all right with that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "앞 문장의 Imagine에 이어지는 생략 구조임"
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-1",
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "correctAnswer": "is",
+      "distractors": [
+        "are"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "긴 동명사구 주어는 단수로 취급됨",
+      "ruleSummaryKo": "동명사구 주어에는 단수 동사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-2",
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "gathering",
+      "occurrenceIndex": 1,
+      "correctAnswer": "gathering",
+      "distractors": [
+        "gather"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "about은 전치사이므로 뒤에 동명사가 필요함",
+      "ruleSummaryKo": "전치사 뒤에는 동명사를 목적어로 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-3",
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "When we don’t know, when things are uncertain",
+      "occurrenceIndex": 1,
+      "correctAnswer": "When we don’t know, when things are uncertain",
+      "distractors": [
+        "When we don’t know, when things being uncertain"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "병렬된 두 when절 모두 주어와 동사를 갖춤",
+      "ruleSummaryKo": "병렬된 절은 서로 같은 절 구조를 유지한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "feel frightened and become inflexible",
+      "occurrenceIndex": 1,
+      "correctAnswer": "feel frightened and become inflexible",
+      "distractors": [
+        "feel frightened and becoming inflexible"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+      "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARTICIPLE_EMOTION",
+      "sourceSpan": "frightened",
+      "occurrenceIndex": 1,
+      "correctAnswer": "frightened",
+      "distractors": [
+        "frightening"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+      "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-6",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "완전한 문장을 목적어절로 이끄는 접속사임",
+      "ruleSummaryKo": "완전한 명사절에는 접속사 that을 쓸 수 있다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-7",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more predictable",
+      "occurrenceIndex": 1,
+      "correctAnswer": "more predictable",
+      "distractors": [
+        "most predictable"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "than과 호응하는 비교급이 필요함",
+      "ruleSummaryKo": "than 앞에는 비교급을 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-8",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARISON_TARGET",
+      "sourceSpan": "than they really are",
+      "occurrenceIndex": 1,
+      "correctAnswer": "than they really are",
+      "distractors": [
+        "than they really do"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "predictable을 대신하므로 be동사가 필요함",
+      "ruleSummaryKo": "형용사 보어의 반복은 be동사로 받는다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "sourceSpan": "even though",
+      "occurrenceIndex": 1,
+      "correctAnswer": "even though",
+      "distractors": [
+        "despite"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+      "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-10",
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "how things should be",
+      "occurrenceIndex": 1,
+      "correctAnswer": "how things should be",
+      "distractors": [
+        "how should things be"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "간접의문문은 의문사 뒤에 평서문 어순을 씀",
+      "ruleSummaryKo": "간접의문문은 의문사+주어+동사 어순이다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-11",
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "having",
+      "occurrenceIndex": 1,
+      "correctAnswer": "having",
+      "distractors": [
+        "have"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "with 뒤에는 명사 역할의 동명사가 필요함",
+      "ruleSummaryKo": "전치사 뒤의 동사는 동명사 형태로 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-12",
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "sourceSpan": "plans",
+      "occurrenceIndex": 1,
+      "correctAnswer": "plans",
+      "distractors": [
+        "plan"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "한정사가 없으므로 가산명사를 복수로 씀",
+      "ruleSummaryKo": "단수 가산명사는 한정사 없이 홀로 쓸 수 없다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-47a8c11b-8a5f-40e2-810e-e840a9769c82-13",
+      "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "sourceSpan": "it’s",
+      "occurrenceIndex": 1,
+      "correctAnswer": "it’s",
+      "distractors": [
+        "is it"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "think 뒤 진술 명사절은 평서문 어순을 취함",
+      "ruleSummaryKo": "진술을 나타내는 명사절은 평서문 어순을 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "planning and thinking",
+      "occurrenceIndex": 1,
+      "correctAnswer": "planning and thinking",
+      "distractors": [
+        "planning and to think",
+        "to plan and thinking"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "between 뒤의 두 항목이 모두 동명사임",
+      "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "but planning is everything",
+      "occurrenceIndex": 1,
+      "correctAnswer": "but planning is everything",
+      "distractors": [
+        "but planning being everything"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+      "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-16",
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+      "sourceSpan": "said",
+      "occurrenceIndex": 1,
+      "correctAnswer": "said",
+      "distractors": [
+        "says"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "once가 특정 과거의 발언을 가리킴",
+      "ruleSummaryKo": "명확한 과거 시점에는 과거시제를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-17",
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "used",
+      "occurrenceIndex": 1,
+      "correctAnswer": "used",
+      "distractors": [
+        "would use"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "가정법 if절에는 일반적으로 would를 쓰지 않음",
+      "ruleSummaryKo": "현재의 가정은 if절에 과거형을 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "sourceSpan": "instead of",
+      "occurrenceIndex": 1,
+      "correctAnswer": "instead of",
+      "distractors": [
+        "instead"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+      "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "Both figuratively and literally",
+      "occurrenceIndex": 1,
+      "correctAnswer": "Both figuratively and literally",
+      "distractors": [
+        "Both figuratively or literally",
+        "Either figuratively and literally"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "both는 상관접속사 and와 짝을 이룸",
+      "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-20",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "could bear",
+      "occurrenceIndex": 1,
+      "correctAnswer": "could bear",
+      "distractors": [
+        "would bear"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "가정법 if절에 결과절용 would를 쓰지 않음",
+      "ruleSummaryKo": "가정법 if절에는 일반적으로 would를 쓰지 않는다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-21",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "what we think is going to happen",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what we think is going to happen",
+      "distractors": [
+        "what do we think is going to happen"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "문장 속 what절에는 의문문 도치를 하지 않음",
+      "ruleSummaryKo": "의문사 명사절은 평서문 어순을 유지한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-22",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sourceSpan": "is going to happen",
+      "occurrenceIndex": 1,
+      "correctAnswer": "is going to happen",
+      "distractors": [
+        "are going to happen"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "삽입된 we think를 넘어 what과 is가 호응함",
+      "ruleSummaryKo": "삽입 표현과 무관하게 본래 주어에 동사를 일치시킨다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-23",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what we write down",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what we write down",
+      "distractors": [
+        "which we write down",
+        "that we write down"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "선행사를 포함한 what이 명사절을 이끎",
+      "ruleSummaryKo": "선행사가 없으면 ‘것’을 뜻하는 what을 쓸 수 있다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-24",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what actually happens",
+      "occurrenceIndex": 3,
+      "correctAnswer": "what actually happens",
+      "distractors": [
+        "that actually happens"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "be 뒤에서 명사 역할을 하는 what절임",
+      "ruleSummaryKo": "what은 선행사를 포함하며 절 전체를 명사화한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-36812460-51e5-446b-80bb-156013b6942d-25",
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "could try",
+      "occurrenceIndex": 1,
+      "correctAnswer": "could try",
+      "distractors": [
+        "would try"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "가정법 if절에 결과절용 would를 쓰지 않음",
+      "ruleSummaryKo": "현재의 가정에서 if절에는 과거형 조동사를 쓴다",
+      "riskLevel": "MEDIUM"
+    }
+  ]
+}

@@ -1,0 +1,5038 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T08:42:56.810Z",
+  "sourceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "ok": true,
+  "reason": null,
+  "stages": {
+    "afterAnalyzer": [
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-1",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "pointCode": "AGREEMENT_LONG_SUBJECT",
+        "sourceSpan": "is",
+        "occurrenceIndex": 1,
+        "correctAnswer": "is",
+        "distractors": [
+          "are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "긴 동명사구 주어는 단수로 취급됨",
+        "ruleSummaryKo": "동명사구 주어에는 단수 동사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-2",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "gathering",
+        "occurrenceIndex": 1,
+        "correctAnswer": "gathering",
+        "distractors": [
+          "gather"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "about은 전치사이므로 뒤에 동명사가 필요함",
+        "ruleSummaryKo": "전치사 뒤에는 동명사를 목적어로 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-3",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "When we don’t know, when things are uncertain",
+        "occurrenceIndex": 1,
+        "correctAnswer": "When we don’t know, when things are uncertain",
+        "distractors": [
+          "When we don’t know, when things being uncertain"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "병렬된 두 when절 모두 주어와 동사를 갖춤",
+        "ruleSummaryKo": "병렬된 절은 서로 같은 절 구조를 유지한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "feel frightened and become inflexible",
+        "occurrenceIndex": 1,
+        "correctAnswer": "feel frightened and become inflexible",
+        "distractors": [
+          "feel frightened and becoming inflexible"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+        "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARTICIPLE_EMOTION",
+        "sourceSpan": "frightened",
+        "occurrenceIndex": 1,
+        "correctAnswer": "frightened",
+        "distractors": [
+          "frightening"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+        "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-6",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "that",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that",
+        "distractors": [
+          "what"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "완전한 문장을 목적어절로 이끄는 접속사임",
+        "ruleSummaryKo": "완전한 명사절에는 접속사 that을 쓸 수 있다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-7",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more predictable",
+        "occurrenceIndex": 1,
+        "correctAnswer": "more predictable",
+        "distractors": [
+          "most predictable"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "than과 호응하는 비교급이 필요함",
+        "ruleSummaryKo": "than 앞에는 비교급을 사용한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-8",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "COMPARISON_TARGET",
+        "sourceSpan": "than they really are",
+        "occurrenceIndex": 1,
+        "correctAnswer": "than they really are",
+        "distractors": [
+          "than they really do"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "predictable을 대신하므로 be동사가 필요함",
+        "ruleSummaryKo": "형용사 보어의 반복은 be동사로 받는다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "even though",
+        "occurrenceIndex": 1,
+        "correctAnswer": "even though",
+        "distractors": [
+          "despite"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+        "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-10",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "how things should be",
+        "occurrenceIndex": 1,
+        "correctAnswer": "how things should be",
+        "distractors": [
+          "how should things be"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "간접의문문은 의문사 뒤에 평서문 어순을 씀",
+        "ruleSummaryKo": "간접의문문은 의문사+주어+동사 어순이다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-11",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "having",
+        "occurrenceIndex": 1,
+        "correctAnswer": "having",
+        "distractors": [
+          "have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "with 뒤에는 명사 역할의 동명사가 필요함",
+        "ruleSummaryKo": "전치사 뒤의 동사는 동명사 형태로 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-12",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "plans",
+        "occurrenceIndex": 1,
+        "correctAnswer": "plans",
+        "distractors": [
+          "plan"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "한정사가 없으므로 가산명사를 복수로 씀",
+        "ruleSummaryKo": "단수 가산명사는 한정사 없이 홀로 쓸 수 없다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-47a8c11b-8a5f-40e2-810e-e840a9769c82-13",
+        "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "it’s",
+        "occurrenceIndex": 1,
+        "correctAnswer": "it’s",
+        "distractors": [
+          "is it"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "think 뒤 진술 명사절은 평서문 어순을 취함",
+        "ruleSummaryKo": "진술을 나타내는 명사절은 평서문 어순을 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "planning and thinking",
+        "occurrenceIndex": 1,
+        "correctAnswer": "planning and thinking",
+        "distractors": [
+          "planning and to think",
+          "to plan and thinking"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "between 뒤의 두 항목이 모두 동명사임",
+        "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "but planning is everything",
+        "occurrenceIndex": 1,
+        "correctAnswer": "but planning is everything",
+        "distractors": [
+          "but planning being everything"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+        "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-16",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+        "sourceSpan": "said",
+        "occurrenceIndex": 1,
+        "correctAnswer": "said",
+        "distractors": [
+          "says"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "once가 특정 과거의 발언을 가리킴",
+        "ruleSummaryKo": "명확한 과거 시점에는 과거시제를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-17",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "used",
+        "occurrenceIndex": 1,
+        "correctAnswer": "used",
+        "distractors": [
+          "would use"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 if절에는 일반적으로 would를 쓰지 않음",
+        "ruleSummaryKo": "현재의 가정은 if절에 과거형을 사용한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "instead of",
+        "occurrenceIndex": 1,
+        "correctAnswer": "instead of",
+        "distractors": [
+          "instead"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+        "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "Both figuratively and literally",
+        "occurrenceIndex": 1,
+        "correctAnswer": "Both figuratively and literally",
+        "distractors": [
+          "Both figuratively or literally",
+          "Either figuratively and literally"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-20",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "could bear",
+        "occurrenceIndex": 1,
+        "correctAnswer": "could bear",
+        "distractors": [
+          "would bear"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 if절에 결과절용 would를 쓰지 않음",
+        "ruleSummaryKo": "가정법 if절에는 일반적으로 would를 쓰지 않는다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-21",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "what we think is going to happen",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what we think is going to happen",
+        "distractors": [
+          "what do we think is going to happen"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "문장 속 what절에는 의문문 도치를 하지 않음",
+        "ruleSummaryKo": "의문사 명사절은 평서문 어순을 유지한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-22",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "AGREEMENT_DISTANCE",
+        "sourceSpan": "is going to happen",
+        "occurrenceIndex": 1,
+        "correctAnswer": "is going to happen",
+        "distractors": [
+          "are going to happen"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "삽입된 we think를 넘어 what과 is가 호응함",
+        "ruleSummaryKo": "삽입 표현과 무관하게 본래 주어에 동사를 일치시킨다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-23",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what we write down",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what we write down",
+        "distractors": [
+          "which we write down",
+          "that we write down"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "선행사를 포함한 what이 명사절을 이끎",
+        "ruleSummaryKo": "선행사가 없으면 ‘것’을 뜻하는 what을 쓸 수 있다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-24",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what actually happens",
+        "occurrenceIndex": 3,
+        "correctAnswer": "what actually happens",
+        "distractors": [
+          "that actually happens"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be 뒤에서 명사 역할을 하는 what절임",
+        "ruleSummaryKo": "what은 선행사를 포함하며 절 전체를 명사화한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-36812460-51e5-446b-80bb-156013b6942d-25",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "could try",
+        "occurrenceIndex": 1,
+        "correctAnswer": "could try",
+        "distractors": [
+          "would try"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 if절에 결과절용 would를 쓰지 않음",
+        "ruleSummaryKo": "현재의 가정에서 if절에는 과거형 조동사를 쓴다",
+        "riskLevel": "MEDIUM"
+      }
+    ],
+    "afterLocalFilter": {
+      "resolved": [
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "occurrenceIndex": 0,
+          "correctAnswer": "become",
+          "distractors": [
+            "becoming"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+          "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 210,
+          "passageEnd": 216,
+          "subtypeKey": "PARALLEL_VERBS:become|becoming"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARTICIPLE_EMOTION",
+          "sourceSpan": "frightened",
+          "occurrenceIndex": 1,
+          "correctAnswer": "frightened",
+          "distractors": [
+            "frightening"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+          "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 195,
+          "passageEnd": 205,
+          "subtypeKey": "PARTICIPLE_EMOTION:frightened|frightening"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "even though",
+          "occurrenceIndex": 1,
+          "correctAnswer": "even though",
+          "distractors": [
+            "despite"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+          "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 298,
+          "passageEnd": 309,
+          "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "pointCode": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "planning and thinking",
+          "occurrenceIndex": 1,
+          "correctAnswer": "planning and thinking",
+          "distractors": [
+            "planning and to think",
+            "to plan and thinking"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "between 뒤의 두 항목이 모두 동명사임",
+          "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 570,
+          "passageEnd": 591,
+          "subtypeKey": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "is",
+          "occurrenceIndex": 0,
+          "correctAnswer": "is",
+          "distractors": [
+            "being"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+          "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 709,
+          "passageEnd": 711,
+          "subtypeKey": "PARALLEL_CLAUSES:being|is"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "instead of",
+          "occurrenceIndex": 1,
+          "correctAnswer": "instead of",
+          "distractors": [
+            "instead"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+          "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 755,
+          "passageEnd": 765,
+          "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룸",
+          "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 828,
+          "passageEnd": 831,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        }
+      ],
+      "rejected": [
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-1",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "pointCode": "AGREEMENT_LONG_SUBJECT",
+          "reason": "AMBIGUOUS_SUBJECT_BOUNDARY",
+          "pair": "is / are"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-2",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "pointCode": "GERUND_PREPOSITION_OBJECT",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "gathering / gather"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-3",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARALLEL_CLAUSES",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "When we don’t know, when things are uncertain / When we don’t know, when things being uncertain"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-6",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+          "reason": "BOTH_GRAMMATICAL",
+          "pair": "that / what"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-7",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "pointCode": "COMPARATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "more predictable / most predictable"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-8",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "pointCode": "COMPARISON_TARGET",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "than they really are / than they really do"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-10",
+          "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+          "pointCode": "INDIRECT_QUESTION_ORDER",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "how things should be / how should things be"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-11",
+          "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+          "pointCode": "GERUND_PREPOSITION_OBJECT",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "having / have"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-12",
+          "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+          "pointCode": "SINGULAR_PLURAL_NOUN",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "plans / plan"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-47a8c11b-8a5f-40e2-810e-e840a9769c82-13",
+          "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+          "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+          "reason": "MULTI_AXIS_EDIT",
+          "pair": "it’s / is it"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-16",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "said / says"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-17",
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "pointCode": "CONDITIONAL_SECOND",
+          "reason": "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT",
+          "pair": "used / would use"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-20",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "pointCode": "CONDITIONAL_SECOND",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "could bear / would bear"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-21",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "pointCode": "INDIRECT_QUESTION_ORDER",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "what we think is going to happen / what do we think is going to happen"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-22",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "pointCode": "AGREEMENT_DISTANCE",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "is going to happen / are going to happen"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-23",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "pointCode": "NOUN_CLAUSE_WH_WORD",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "what we write down / which we write down"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-24",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "pointCode": "NOUN_CLAUSE_WH_WORD",
+          "reason": "SOURCE_SPAN_NOT_FOUND",
+          "pair": "what actually happens / that actually happens"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-36812460-51e5-446b-80bb-156013b6942d-25",
+          "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+          "pointCode": "CONDITIONAL_SECOND",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "could try / would try"
+        },
+        {
+          "candidateId": "local-PARALLEL_VERBS-76",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARALLEL_VERBS",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "become / becoming"
+        },
+        {
+          "candidateId": "local-CORRELATIVE_BOTH_AND-18",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "and / or"
+        }
+      ]
+    },
+    "beforeReviewer": [
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+        "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 210,
+        "passageEnd": 216,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARTICIPLE_EMOTION",
+        "sourceSpan": "frightened",
+        "occurrenceIndex": 1,
+        "correctAnswer": "frightened",
+        "distractors": [
+          "frightening"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+        "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 195,
+        "passageEnd": 205,
+        "subtypeKey": "PARTICIPLE_EMOTION:frightened|frightening"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "even though",
+        "occurrenceIndex": 1,
+        "correctAnswer": "even though",
+        "distractors": [
+          "despite"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+        "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 298,
+        "passageEnd": 309,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "planning and thinking",
+        "occurrenceIndex": 1,
+        "correctAnswer": "planning and thinking",
+        "distractors": [
+          "planning and to think",
+          "to plan and thinking"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "between 뒤의 두 항목이 모두 동명사임",
+        "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 570,
+        "passageEnd": 591,
+        "subtypeKey": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "is",
+        "occurrenceIndex": 0,
+        "correctAnswer": "is",
+        "distractors": [
+          "being"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+        "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 709,
+        "passageEnd": 711,
+        "subtypeKey": "PARALLEL_CLAUSES:being|is"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "instead of",
+        "occurrenceIndex": 1,
+        "correctAnswer": "instead of",
+        "distractors": [
+          "instead"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+        "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 755,
+        "passageEnd": 765,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 831,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      }
+    ],
+    "afterReviewer": {
+      "kept": [
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "occurrenceIndex": 0,
+          "correctAnswer": "become",
+          "distractors": [
+            "becoming"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+          "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 210,
+          "passageEnd": 216,
+          "subtypeKey": "PARALLEL_VERBS:become|becoming"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARTICIPLE_EMOTION",
+          "sourceSpan": "frightened",
+          "occurrenceIndex": 1,
+          "correctAnswer": "frightened",
+          "distractors": [
+            "frightening"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+          "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 195,
+          "passageEnd": 205,
+          "subtypeKey": "PARTICIPLE_EMOTION:frightened|frightening"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "even though",
+          "occurrenceIndex": 1,
+          "correctAnswer": "even though",
+          "distractors": [
+            "despite"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+          "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 298,
+          "passageEnd": 309,
+          "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "pointCode": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "planning and thinking",
+          "occurrenceIndex": 1,
+          "correctAnswer": "planning and thinking",
+          "distractors": [
+            "planning and to think",
+            "to plan and thinking"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "between 뒤의 두 항목이 모두 동명사임",
+          "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 570,
+          "passageEnd": 591,
+          "subtypeKey": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "is",
+          "occurrenceIndex": 0,
+          "correctAnswer": "is",
+          "distractors": [
+            "being"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+          "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 709,
+          "passageEnd": 711,
+          "subtypeKey": "PARALLEL_CLAUSES:being|is"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "instead of",
+          "occurrenceIndex": 1,
+          "correctAnswer": "instead of",
+          "distractors": [
+            "instead"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+          "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 755,
+          "passageEnd": 765,
+          "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룸",
+          "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 828,
+          "passageEnd": 831,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        }
+      ],
+      "rejected": []
+    },
+    "beforeRank": [
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+        "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 210,
+        "passageEnd": 216,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARTICIPLE_EMOTION",
+        "sourceSpan": "frightened",
+        "occurrenceIndex": 1,
+        "correctAnswer": "frightened",
+        "distractors": [
+          "frightening"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+        "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 195,
+        "passageEnd": 205,
+        "subtypeKey": "PARTICIPLE_EMOTION:frightened|frightening"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "even though",
+        "occurrenceIndex": 1,
+        "correctAnswer": "even though",
+        "distractors": [
+          "despite"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+        "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 298,
+        "passageEnd": 309,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "planning and thinking",
+        "occurrenceIndex": 1,
+        "correctAnswer": "planning and thinking",
+        "distractors": [
+          "planning and to think",
+          "to plan and thinking"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "between 뒤의 두 항목이 모두 동명사임",
+        "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 570,
+        "passageEnd": 591,
+        "subtypeKey": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "is",
+        "occurrenceIndex": 0,
+        "correctAnswer": "is",
+        "distractors": [
+          "being"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+        "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 709,
+        "passageEnd": 711,
+        "subtypeKey": "PARALLEL_CLAUSES:being|is"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "instead of",
+        "occurrenceIndex": 1,
+        "correctAnswer": "instead of",
+        "distractors": [
+          "instead"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+        "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 755,
+        "passageEnd": 765,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 831,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      }
+    ],
+    "afterRank": {
+      "kept": [
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "is",
+          "occurrenceIndex": 0,
+          "correctAnswer": "is",
+          "distractors": [
+            "being"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+          "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 709,
+          "passageEnd": 711,
+          "subtypeKey": "PARALLEL_CLAUSES:being|is"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARTICIPLE_EMOTION",
+          "sourceSpan": "frightened",
+          "occurrenceIndex": 1,
+          "correctAnswer": "frightened",
+          "distractors": [
+            "frightening"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+          "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 195,
+          "passageEnd": 205,
+          "subtypeKey": "PARTICIPLE_EMOTION:frightened|frightening"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "occurrenceIndex": 0,
+          "correctAnswer": "become",
+          "distractors": [
+            "becoming"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+          "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 210,
+          "passageEnd": 216,
+          "subtypeKey": "PARALLEL_VERBS:become|becoming"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "even though",
+          "occurrenceIndex": 1,
+          "correctAnswer": "even though",
+          "distractors": [
+            "despite"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+          "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 298,
+          "passageEnd": 309,
+          "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "pointCode": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "planning and thinking",
+          "occurrenceIndex": 1,
+          "correctAnswer": "planning and thinking",
+          "distractors": [
+            "planning and to think",
+            "to plan and thinking"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "between 뒤의 두 항목이 모두 동명사임",
+          "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 570,
+          "passageEnd": 591,
+          "subtypeKey": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "instead of",
+          "occurrenceIndex": 1,
+          "correctAnswer": "instead of",
+          "distractors": [
+            "instead"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+          "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 755,
+          "passageEnd": 765,
+          "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of"
+        },
+        {
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룸",
+          "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 828,
+          "passageEnd": 831,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        }
+      ],
+      "dropped": []
+    },
+    "beforeDedup": [
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+        "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 210,
+        "passageEnd": 216,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARTICIPLE_EMOTION",
+        "sourceSpan": "frightened",
+        "occurrenceIndex": 1,
+        "correctAnswer": "frightened",
+        "distractors": [
+          "frightening"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+        "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 195,
+        "passageEnd": 205,
+        "subtypeKey": "PARTICIPLE_EMOTION:frightened|frightening"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "even though",
+        "occurrenceIndex": 1,
+        "correctAnswer": "even though",
+        "distractors": [
+          "despite"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+        "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 298,
+        "passageEnd": 309,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "planning and thinking",
+        "occurrenceIndex": 1,
+        "correctAnswer": "planning and thinking",
+        "distractors": [
+          "planning and to think",
+          "to plan and thinking"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "between 뒤의 두 항목이 모두 동명사임",
+        "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 570,
+        "passageEnd": 591,
+        "subtypeKey": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "is",
+        "occurrenceIndex": 0,
+        "correctAnswer": "is",
+        "distractors": [
+          "being"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+        "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 709,
+        "passageEnd": 711,
+        "subtypeKey": "PARALLEL_CLAUSES:being|is"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "instead of",
+        "occurrenceIndex": 1,
+        "correctAnswer": "instead of",
+        "distractors": [
+          "instead"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+        "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 755,
+        "passageEnd": 765,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 831,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      }
+    ],
+    "afterDedup": [
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "is",
+        "occurrenceIndex": 0,
+        "correctAnswer": "is",
+        "distractors": [
+          "being"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "but 뒤에도 주어와 서술동사가 있는 절이 필요함",
+        "ruleSummaryKo": "등위접속사는 같은 층위의 완전한 절을 연결한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 709,
+        "passageEnd": 711,
+        "subtypeKey": "PARALLEL_CLAUSES:being|is"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARTICIPLE_EMOTION",
+        "sourceSpan": "frightened",
+        "occurrenceIndex": 1,
+        "correctAnswer": "frightened",
+        "distractors": [
+          "frightening"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "사람이 두려움을 느끼므로 과거분사를 씀",
+        "ruleSummaryKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 195,
+        "passageEnd": 205,
+        "subtypeKey": "PARTICIPLE_EMOTION:frightened|frightening"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "and 양쪽의 feel과 become이 같은 형태임",
+        "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 210,
+        "passageEnd": 216,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "even though",
+        "occurrenceIndex": 1,
+        "correctAnswer": "even though",
+        "distractors": [
+          "despite"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "뒤에 주어와 동사가 있는 절이 이어짐",
+        "ruleSummaryKo": "절 앞에는 접속사, 명사구 앞에는 전치사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 298,
+        "passageEnd": 309,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "planning and thinking",
+        "occurrenceIndex": 1,
+        "correctAnswer": "planning and thinking",
+        "distractors": [
+          "planning and to think",
+          "to plan and thinking"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "between 뒤의 두 항목이 모두 동명사임",
+        "ruleSummaryKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 570,
+        "passageEnd": 591,
+        "subtypeKey": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "instead of",
+        "occurrenceIndex": 1,
+        "correctAnswer": "instead of",
+        "distractors": [
+          "instead"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "명사 ink 앞에는 전치사구 instead of가 필요함",
+        "ruleSummaryKo": "instead of는 뒤의 명사를 목적어로 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 755,
+        "passageEnd": 765,
+        "subtypeKey": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 정확히 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 831,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      }
+    ],
+    "coverage": {
+      "reports": [
+        {
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "detectedPointCodes": [
+            "AGREEMENT_LONG_SUBJECT",
+            "GERUND_PREPOSITION_OBJECT",
+            "GERUND_SUBJECT",
+            "GERUND_SUBJECT_ANALYSIS",
+            "AGREEMENT_GERUND_SUBJECT",
+            "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "GERUND_PREP_OBJECT_ANALYSIS"
+          ],
+          "mandatoryPointCodes": [
+            "AGREEMENT_LONG_SUBJECT"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "AGREEMENT_LONG_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_PREPOSITION_OBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_GERUND_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+          "detectedPointCodes": [
+            "TENSE_PRESENT_PAST"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "TENSE_PRESENT_PAST",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "detectedPointCodes": [
+            "PARTICIPLE_EMOTION",
+            "PARALLEL_VERBS",
+            "PARALLEL_CLAUSES",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "PARTICIPLE_EMOTION",
+            "PARALLEL_VERBS"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_VERBS",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "detectedPointCodes": [
+            "CONJUNCTION_PREPOSITION_CONTRAST",
+            "UNMAPPED_HIGH_VALUE_POINT",
+            "COMPARATIVE",
+            "COMPARISON_TARGET"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "CONJUNCTION_PREPOSITION_CONTRAST"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "COMPARISON_TARGET",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+          "detectedPointCodes": [
+            "INDIRECT_QUESTION_ORDER",
+            "NOUN_CLAUSE_WH_WORD",
+            "PARALLEL_VERBS",
+            "PARALLEL_AND_OR_BUT",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [
+            "INDIRECT_QUESTION_ORDER"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "INDIRECT_QUESTION_ORDER",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_WH_WORD",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_VERBS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+          "detectedPointCodes": [
+            "GERUND_PREPOSITION_OBJECT",
+            "SINGULAR_PLURAL_NOUN",
+            "GERUND_PREP_OBJECT_ANALYSIS"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "GERUND_PREPOSITION_OBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SINGULAR_PLURAL_NOUN",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+          "detectedPointCodes": [
+            "UNMAPPED_HIGH_VALUE_POINT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "detectedPointCodes": [
+            "PARALLEL_AND_OR_BUT",
+            "GERUND_PREPOSITION_OBJECT",
+            "GERUND_PREP_OBJECT_ANALYSIS",
+            "UNMAPPED_HIGH_VALUE_POINT",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "GERUND_PREPOSITION_OBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "detectedPointCodes": [
+            "PARALLEL_CLAUSES",
+            "TENSE_EXPLICIT_TIME_MARKER",
+            "PARALLEL_AND_OR_BUT",
+            "GERUND_SUBJECT",
+            "GERUND_SUBJECT_ANALYSIS",
+            "AGREEMENT_GERUND_SUBJECT",
+            "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "TENSE_PRESENT_PAST"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_GERUND_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "TENSE_PRESENT_PAST",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "detectedPointCodes": [
+            "CONJUNCTION_PREPOSITION_CONTRAST",
+            "CONDITIONAL_SECOND",
+            "ADVERB_CLAUSE_CONDITION"
+          ],
+          "mandatoryPointCodes": [
+            "CONDITIONAL_SECOND"
+          ],
+          "generatedQuestionPointCodes": [
+            "CONJUNCTION_PREPOSITION_CONTRAST"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "CONDITIONAL_SECOND",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "detectedPointCodes": [
+            "CORRELATIVE_BOTH_AND",
+            "PARALLEL_AND_OR_BUT",
+            "UNMAPPED_HIGH_VALUE_POINT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "CORRELATIVE_BOTH_AND"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "CORRELATIVE_BOTH_AND",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "detectedPointCodes": [
+            "CONDITIONAL_SECOND",
+            "INDIRECT_QUESTION_ORDER",
+            "AGREEMENT_DISTANCE",
+            "NOUN_CLAUSE_WH_WORD",
+            "ADVERB_CLAUSE_CONDITION",
+            "UNMAPPED_HIGH_VALUE_POINT",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [
+            "CONDITIONAL_SECOND",
+            "INDIRECT_QUESTION_ORDER",
+            "AGREEMENT_DISTANCE"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "CONDITIONAL_SECOND",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "INDIRECT_QUESTION_ORDER",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_DISTANCE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_WH_WORD",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_WH_WORD",
+              "reason": "SOURCE_FORM_NOT_EDITABLE"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+          "detectedPointCodes": [
+            "CONDITIONAL_SECOND",
+            "ADVERB_CLAUSE_CONDITION",
+            "MODAL_MEANING",
+            "UNMAPPED_HIGH_VALUE_POINT"
+          ],
+          "mandatoryPointCodes": [
+            "CONDITIONAL_SECOND"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "CONDITIONAL_SECOND",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        }
+      ],
+      "missing": [],
+      "occurrences": [
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:being|is",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "is",
+          "sourceAnswer": "is",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "code": "PARTICIPLE_EMOTION",
+          "subtype": "PARTICIPLE_EMOTION:frightened|frightening",
+          "assessmentAxis": "PARTICIPLE_EMOTION",
+          "sourceSpan": "frightened",
+          "sourceAnswer": "frightened",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:become|becoming",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "sourceAnswer": "become",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though",
+          "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "even though",
+          "sourceAnswer": "even though",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "planning and thinking",
+          "sourceAnswer": "planning and thinking",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of",
+          "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "sourceSpan": "instead of",
+          "sourceAnswer": "instead of",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "sourceAnswer": "and",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "code": "AGREEMENT_LONG_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_LONG_SUBJECT",
+          "sourceSpan": "is / are",
+          "sourceAnswer": "is",
+          "status": "VALID_EXCLUSION",
+          "reason": "AMBIGUOUS_SUBJECT_BOUNDARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "code": "GERUND_PREPOSITION_OBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+          "sourceSpan": "gathering / gather",
+          "sourceAnswer": "gathering",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "When we don’t know, when things are uncertain / When we don’t know, when things being uncertain",
+          "sourceAnswer": "When we don’t know, when things are uncertain",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "that / what",
+          "sourceAnswer": "that",
+          "status": "VALID_EXCLUSION",
+          "reason": "BOTH_GRAMMATICAL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "more predictable / most predictable",
+          "sourceAnswer": "more predictable",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+          "code": "COMPARISON_TARGET",
+          "subtype": "",
+          "assessmentAxis": "COMPARISON_TARGET",
+          "sourceSpan": "than they really are / than they really do",
+          "sourceAnswer": "than they really are",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+          "code": "INDIRECT_QUESTION_ORDER",
+          "subtype": "",
+          "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+          "sourceSpan": "how things should be / how should things be",
+          "sourceAnswer": "how things should be",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+          "code": "GERUND_PREPOSITION_OBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+          "sourceSpan": "having / have",
+          "sourceAnswer": "having",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+          "code": "SINGULAR_PLURAL_NOUN",
+          "subtype": "",
+          "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+          "sourceSpan": "plans / plan",
+          "sourceAnswer": "plans",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "it’s / is it",
+          "sourceAnswer": "it’s",
+          "status": "VALID_EXCLUSION",
+          "reason": "MULTI_AXIS_EDIT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "TENSE_EXPLICIT_TIME_MARKER",
+          "subtype": "",
+          "assessmentAxis": "TENSE_EXPLICIT_TIME_MARKER",
+          "sourceSpan": "said / says",
+          "sourceAnswer": "said",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "used / would use",
+          "sourceAnswer": "used",
+          "status": "VALID_EXCLUSION",
+          "reason": "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "could bear / would bear",
+          "sourceAnswer": "could bear",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "INDIRECT_QUESTION_ORDER",
+          "subtype": "",
+          "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+          "sourceSpan": "what we think is going to happen / what do we think is going to happen",
+          "sourceAnswer": "what we think is going to happen",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "AGREEMENT_DISTANCE",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_DISTANCE",
+          "sourceSpan": "is going to happen / are going to happen",
+          "sourceAnswer": "is going to happen",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "NOUN_CLAUSE_WH_WORD",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+          "sourceSpan": "what we write down / which we write down",
+          "sourceAnswer": "what we write down",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "NOUN_CLAUSE_WH_WORD",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+          "sourceSpan": "what actually happens / that actually happens",
+          "sourceAnswer": "what actually happens",
+          "status": "VALID_EXCLUSION",
+          "reason": "SOURCE_SPAN_NOT_FOUND"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "could try / would try",
+          "sourceAnswer": "could try",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "code": "PARALLEL_VERBS",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "become / becoming",
+          "sourceAnswer": "become",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and / or",
+          "sourceAnswer": "and",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "code": "GERUND_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT",
+          "sourceSpan": "Letting go of our need for control",
+          "sourceAnswer": "Letting go of our need for control",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "code": "GERUND_SUBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+          "sourceSpan": "Letting go of our need for control",
+          "sourceAnswer": "Letting go of our need for control",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "code": "AGREEMENT_GERUND_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_GERUND_SUBJECT",
+          "sourceSpan": "is",
+          "sourceAnswer": "is",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+          "sourceSpan": "is",
+          "sourceAnswer": "is",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+          "code": "GERUND_PREP_OBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+          "sourceSpan": "about gathering",
+          "sourceAnswer": "about gathering",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+          "code": "TENSE_PRESENT_PAST",
+          "subtype": "",
+          "assessmentAxis": "TENSE_PRESENT_PAST",
+          "sourceSpan": "want",
+          "sourceAnswer": "want",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "feel frightened and become inflexible",
+          "sourceAnswer": "feel frightened and become inflexible",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+          "code": "NOUN_CLAUSE_WH_WORD",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+          "sourceSpan": "how things should be and turn out",
+          "sourceAnswer": "how things should be and turn out",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+          "code": "PARALLEL_VERBS",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "be and turn out",
+          "sourceAnswer": "be and turn out",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "be and turn out",
+          "sourceAnswer": "be and turn out",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "should",
+          "sourceAnswer": "should",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+          "code": "GERUND_PREP_OBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+          "sourceSpan": "with having plans",
+          "sourceAnswer": "with having plans",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "code": "GERUND_PREPOSITION_OBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+          "sourceSpan": "planning and thinking",
+          "sourceAnswer": "planning and thinking",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "code": "GERUND_PREP_OBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+          "sourceSpan": "between planning and thinking",
+          "sourceAnswer": "between planning and thinking",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "all your plans have to come to fruition",
+          "sourceAnswer": "all your plans have to come to fruition",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "have to",
+          "sourceAnswer": "have to",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "Plans are worthless, but planning is everything",
+          "sourceAnswer": "Plans are worthless, but planning is everything",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "GERUND_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT",
+          "sourceSpan": "planning",
+          "sourceAnswer": "planning",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "GERUND_SUBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+          "sourceSpan": "planning is everything",
+          "sourceAnswer": "planning is everything",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "AGREEMENT_GERUND_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_GERUND_SUBJECT",
+          "sourceSpan": "is",
+          "sourceAnswer": "is",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+          "sourceSpan": "planning is",
+          "sourceAnswer": "planning is",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+          "code": "TENSE_PRESENT_PAST",
+          "subtype": "",
+          "assessmentAxis": "TENSE_PRESENT_PAST",
+          "sourceSpan": "said",
+          "sourceAnswer": "said",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "if we all used pencil instead of ink",
+          "sourceAnswer": "if we all used pencil instead of ink",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "figuratively and literally",
+          "sourceAnswer": "figuratively and literally",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "Both figuratively and literally",
+          "sourceAnswer": "Both figuratively and literally",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "if we could bear in mind",
+          "sourceAnswer": "if we could bear in mind",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "that what we write down, what we think is going to happen, might not be what actually happens",
+          "sourceAnswer": "that what we write down, what we think is going to happen, might not be what actually happens",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "could",
+          "sourceAnswer": "could",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "if we could try our best to be all right with that",
+          "sourceAnswer": "if we could try our best to be all right with that",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "could",
+          "sourceAnswer": "could",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "And if we could try our best to be all right with that",
+          "sourceAnswer": "And if we could try our best to be all right with that",
+          "status": "ANALYSIS_ONLY"
+        }
+      ],
+      "metrics": {
+        "mandatoryDetected": 9,
+        "mandatoryEligible": 1,
+        "mandatoryRendered": 1,
+        "mandatoryExcludedWithValidReason": 7,
+        "analysisOnly": 32,
+        "eligible": 7,
+        "excluded": 19,
+        "rendered": 7,
+        "missingEligible": 0,
+        "coverage": 100
+      }
+    },
+    "finalize": {
+      "ok": true,
+      "sectionStatus": "COMPLETE"
+    },
+    "studentItems": [
+      {
+        "number": 1,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+        "internalProvenance": {
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:being|is",
+          "priority": "MANDATORY",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "occurrenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d|PARALLEL_CLAUSES|is",
+          "sourceSpan": "is",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 709,
+        "endCharIndex": 711,
+        "originalText": "is",
+        "correctText": "is",
+        "incorrectText": "being",
+        "leftText": "being",
+        "rightText": "is",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_CLAUSES",
+        "grammarCategoryName": "절 병렬",
+        "bookTerm": "절 병렬",
+        "explanationKo": "but은 앞의 완전한 절과 뒤의 완전한 절을 연결하므로, 뒤 절에도 정형동사 is가 필요하다.",
+        "incorrectReasonKo": "being은 뒤 절의 정형동사를 없앤다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "but + 완전한 절"
+      },
+      {
+        "number": 2,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+        "internalProvenance": {
+          "code": "PARTICIPLE_EMOTION",
+          "subtype": "PARTICIPLE_EMOTION:frightened|frightening",
+          "priority": "CORE",
+          "assessmentAxis": "PARTICIPLE_EMOTION",
+          "occurrenceId": "0449da60-1237-4054-b096-a8b60dea5be4|PARTICIPLE_EMOTION|frightened",
+          "sourceSpan": "frightened",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+          "exclusionReason": null
+        },
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 195,
+        "endCharIndex": 205,
+        "originalText": "frightened",
+        "correctText": "frightened",
+        "incorrectText": "frightening",
+        "leftText": "frightened",
+        "rightText": "frightening",
+        "correctSide": "left",
+        "grammarCategoryId": "PARTICIPLE_EMOTION",
+        "grammarCategoryName": "감정분사",
+        "bookTerm": "감정분사",
+        "explanationKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "incorrectReasonKo": "frightening는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "감정 원인 -ing / 느끼는 -ed"
+      },
+      {
+        "number": 3,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:become|becoming",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "0449da60-1237-4054-b096-a8b60dea5be4|PARALLEL_VERBS|become",
+          "sourceSpan": "become",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+          "exclusionReason": null
+        },
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 210,
+        "endCharIndex": 216,
+        "originalText": "become",
+        "correctText": "become",
+        "incorrectText": "becoming",
+        "leftText": "become",
+        "rightText": "becoming",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "incorrectReasonKo": "becoming는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 4,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+        "internalProvenance": {
+          "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though",
+          "priority": "CORE",
+          "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "occurrenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40|CONJUNCTION_PREPOSITION_CONTRAST|even though",
+          "sourceSpan": "even though",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 298,
+        "endCharIndex": 309,
+        "originalText": "even though",
+        "correctText": "even though",
+        "incorrectText": "despite",
+        "leftText": "despite",
+        "rightText": "even though",
+        "correctSide": "right",
+        "grammarCategoryId": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "grammarCategoryName": "접속사와 전치사",
+        "bookTerm": "접속사와 전치사",
+        "explanationKo": "뒤에 오는 성분이 절이면 접속사, 명사구이면 전치사를 쓴다.",
+        "incorrectReasonKo": "despite는 뒤 성분의 품사와 맞지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "접속사 + 절 / 전치사 + 명사구"
+      },
+      {
+        "number": 5,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+        "internalProvenance": {
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "occurrenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9|PARALLEL_AND_OR_BUT|planning and thinking",
+          "sourceSpan": "planning and thinking",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 570,
+        "endCharIndex": 591,
+        "originalText": "planning and thinking",
+        "correctText": "planning and thinking",
+        "incorrectText": "planning and to think",
+        "leftText": "planning and to think",
+        "rightText": "planning and thinking",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_AND_OR_BUT",
+        "grammarCategoryName": "등위 병렬",
+        "bookTerm": "등위 병렬",
+        "explanationKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "incorrectReasonKo": "planning and to think는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "and/or/but 뒤 형태"
+      },
+      {
+        "number": 6,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+        "internalProvenance": {
+          "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of",
+          "priority": "CORE",
+          "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "occurrenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad|CONJUNCTION_PREPOSITION_CONTRAST|instead of",
+          "sourceSpan": "instead of",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+          "exclusionReason": null
+        },
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 755,
+        "endCharIndex": 765,
+        "originalText": "instead of",
+        "correctText": "instead of",
+        "incorrectText": "instead",
+        "leftText": "instead of",
+        "rightText": "instead",
+        "correctSide": "left",
+        "grammarCategoryId": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "grammarCategoryName": "접속사와 전치사",
+        "bookTerm": "접속사와 전치사",
+        "explanationKo": "뒤에 오는 성분이 절이면 접속사, 명사구이면 전치사를 쓴다.",
+        "incorrectReasonKo": "instead는 뒤 성분의 품사와 맞지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "접속사 + 절 / 전치사 + 명사구"
+      },
+      {
+        "number": 7,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+          "exclusionReason": null
+        },
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 828,
+        "endCharIndex": 831,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "or",
+        "rightText": "and",
+        "correctSide": "right",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-1",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "pointCode": "AGREEMENT_LONG_SUBJECT",
+        "reason": "AMBIGUOUS_SUBJECT_BOUNDARY",
+        "pair": "is / are"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-2",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "gathering / gather"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-3",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "When we don’t know, when things are uncertain / When we don’t know, when things being uncertain"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-6",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "reason": "BOTH_GRAMMATICAL",
+        "pair": "that / what"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-7",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "more predictable / most predictable"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-8",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "COMPARISON_TARGET",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "than they really are / than they really do"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-10",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "how things should be / how should things be"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-11",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "having / have"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-12",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "plans / plan"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-47a8c11b-8a5f-40e2-810e-e840a9769c82-13",
+        "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "it’s / is it"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-16",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "said / says"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-17",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT",
+        "pair": "used / would use"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-20",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "could bear / would bear"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-21",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "what we think is going to happen / what do we think is going to happen"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-22",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "AGREEMENT_DISTANCE",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "is going to happen / are going to happen"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-23",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "NOUN_CLAUSE_WH_WORD",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "what we write down / which we write down"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-24",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "NOUN_CLAUSE_WH_WORD",
+        "reason": "SOURCE_SPAN_NOT_FOUND",
+        "pair": "what actually happens / that actually happens"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-36812460-51e5-446b-80bb-156013b6942d-25",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "could try / would try"
+      },
+      {
+        "candidateId": "local-PARALLEL_VERBS-76",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_VERBS",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "become / becoming"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-18",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:being|is",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARTICIPLE_EMOTION",
+        "subtype": "PARTICIPLE_EMOTION:frightened|frightening",
+        "assessmentAxis": "PARTICIPLE_EMOTION",
+        "sourceSpan": "frightened",
+        "sourceAnswer": "frightened",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:become|becoming",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "sourceAnswer": "become",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though",
+        "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "even though",
+        "sourceAnswer": "even though",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "planning and thinking",
+        "sourceAnswer": "planning and thinking",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of",
+        "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "instead of",
+        "sourceAnswer": "instead of",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "AGREEMENT_LONG_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_LONG_SUBJECT",
+        "sourceSpan": "is / are",
+        "sourceAnswer": "is",
+        "status": "VALID_EXCLUSION",
+        "reason": "AMBIGUOUS_SUBJECT_BOUNDARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "gathering / gather",
+        "sourceAnswer": "gathering",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "When we don’t know, when things are uncertain / When we don’t know, when things being uncertain",
+        "sourceAnswer": "When we don’t know, when things are uncertain",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "that / what",
+        "sourceAnswer": "that",
+        "status": "VALID_EXCLUSION",
+        "reason": "BOTH_GRAMMATICAL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more predictable / most predictable",
+        "sourceAnswer": "more predictable",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "COMPARISON_TARGET",
+        "subtype": "",
+        "assessmentAxis": "COMPARISON_TARGET",
+        "sourceSpan": "than they really are / than they really do",
+        "sourceAnswer": "than they really are",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "how things should be / how should things be",
+        "sourceAnswer": "how things should be",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "having / have",
+        "sourceAnswer": "having",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "plans / plan",
+        "sourceAnswer": "plans",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "it’s / is it",
+        "sourceAnswer": "it’s",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "TENSE_EXPLICIT_TIME_MARKER",
+        "subtype": "",
+        "assessmentAxis": "TENSE_EXPLICIT_TIME_MARKER",
+        "sourceSpan": "said / says",
+        "sourceAnswer": "said",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "used / would use",
+        "sourceAnswer": "used",
+        "status": "VALID_EXCLUSION",
+        "reason": "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "could bear / would bear",
+        "sourceAnswer": "could bear",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "what we think is going to happen / what do we think is going to happen",
+        "sourceAnswer": "what we think is going to happen",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "sourceSpan": "is going to happen / are going to happen",
+        "sourceAnswer": "is going to happen",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what we write down / which we write down",
+        "sourceAnswer": "what we write down",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what actually happens / that actually happens",
+        "sourceAnswer": "what actually happens",
+        "status": "VALID_EXCLUSION",
+        "reason": "SOURCE_SPAN_NOT_FOUND"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "could try / would try",
+        "sourceAnswer": "could try",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "become / becoming",
+        "sourceAnswer": "become",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT",
+        "sourceSpan": "Letting go of our need for control",
+        "sourceAnswer": "Letting go of our need for control",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+        "sourceSpan": "Letting go of our need for control",
+        "sourceAnswer": "Letting go of our need for control",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "AGREEMENT_GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_GERUND_SUBJECT",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "about gathering",
+        "sourceAnswer": "about gathering",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "want",
+        "sourceAnswer": "want",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "feel frightened and become inflexible",
+        "sourceAnswer": "feel frightened and become inflexible",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "how things should be and turn out",
+        "sourceAnswer": "how things should be and turn out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "be and turn out",
+        "sourceAnswer": "be and turn out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "be and turn out",
+        "sourceAnswer": "be and turn out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "should",
+        "sourceAnswer": "should",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "with having plans",
+        "sourceAnswer": "with having plans",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "planning and thinking",
+        "sourceAnswer": "planning and thinking",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "between planning and thinking",
+        "sourceAnswer": "between planning and thinking",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "all your plans have to come to fruition",
+        "sourceAnswer": "all your plans have to come to fruition",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "have to",
+        "sourceAnswer": "have to",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "Plans are worthless, but planning is everything",
+        "sourceAnswer": "Plans are worthless, but planning is everything",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT",
+        "sourceSpan": "planning",
+        "sourceAnswer": "planning",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "GERUND_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+        "sourceSpan": "planning is everything",
+        "sourceAnswer": "planning is everything",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "AGREEMENT_GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_GERUND_SUBJECT",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "sourceSpan": "planning is",
+        "sourceAnswer": "planning is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "said",
+        "sourceAnswer": "said",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if we all used pencil instead of ink",
+        "sourceAnswer": "if we all used pencil instead of ink",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "figuratively and literally",
+        "sourceAnswer": "figuratively and literally",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "Both figuratively and literally",
+        "sourceAnswer": "Both figuratively and literally",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if we could bear in mind",
+        "sourceAnswer": "if we could bear in mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "that what we write down, what we think is going to happen, might not be what actually happens",
+        "sourceAnswer": "that what we write down, what we think is going to happen, might not be what actually happens",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "could",
+        "sourceAnswer": "could",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if we could try our best to be all right with that",
+        "sourceAnswer": "if we could try our best to be all right with that",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "could",
+        "sourceAnswer": "could",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "And if we could try our best to be all right with that",
+        "sourceAnswer": "And if we could try our best to be all right with that",
+        "status": "ANALYSIS_ONLY"
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-1",
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "reason": "AMBIGUOUS_SUBJECT_BOUNDARY",
+      "pair": "is / are"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-2",
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "gathering / gather"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-3",
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_CLAUSES",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "When we don’t know, when things are uncertain / When we don’t know, when things being uncertain"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-6",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "reason": "BOTH_GRAMMATICAL",
+      "pair": "that / what"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-7",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARATIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "more predictable / most predictable"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-8",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARISON_TARGET",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "than they really are / than they really do"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-10",
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "how things should be / how should things be"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-11",
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "having / have"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-12",
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "plans / plan"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-47a8c11b-8a5f-40e2-810e-e840a9769c82-13",
+      "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+      "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+      "reason": "MULTI_AXIS_EDIT",
+      "pair": "it’s / is it"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-16",
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "said / says"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-17",
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "CONDITIONAL_SECOND",
+      "reason": "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT",
+      "pair": "used / would use"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-20",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "CONDITIONAL_SECOND",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "could bear / would bear"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-21",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "what we think is going to happen / what do we think is going to happen"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-22",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "is going to happen / are going to happen"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-23",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "what we write down / which we write down"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-24",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "reason": "SOURCE_SPAN_NOT_FOUND",
+      "pair": "what actually happens / that actually happens"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-36812460-51e5-446b-80bb-156013b6942d-25",
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "pointCode": "CONDITIONAL_SECOND",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "could try / would try"
+    },
+    {
+      "candidateId": "local-PARALLEL_VERBS-76",
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_VERBS",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "become / becoming"
+    },
+    {
+      "candidateId": "local-CORRELATIVE_BOTH_AND-18",
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "and / or"
+    }
+  ],
+  "missingMandatory": [],
+  "section": {
+    "projectId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac",
+    "title": "불확실성을 받아들이는 용기",
+    "source": null,
+    "sourcePassage": "Letting go of our need for control, being aware, is a lot about gathering the courage to face uncertainty. Human beings want to know. When we don’t know, when things are uncertain, we often feel frightened and become inflexible. So we pretend that things are more predictable than they really are, even though we actually live with enormous uncertainty all the time. We cling to our plans and ideas about how things should be and turn out ever so desperately. And there’s nothing wrong with having plans. I think it’s a beautiful thing. But there’s a difference between planning and thinking all your plans have to come to fruition. American president Eisenhower once said: ‘Plans are worthless, but planning is everything.’ Imagine if we all used pencil instead of ink to write in our calendars and planners. Both figuratively and literally. Imagine if we could bear in mind that what we write down, what we think is going to happen, might not be what actually happens. And if we could try our best to be all right with that.",
+    "items": [
+      {
+        "number": 1,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+        "internalProvenance": {
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:being|is",
+          "priority": "MANDATORY",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "occurrenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d|PARALLEL_CLAUSES|is",
+          "sourceSpan": "is",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 709,
+        "endCharIndex": 711,
+        "originalText": "is",
+        "correctText": "is",
+        "incorrectText": "being",
+        "leftText": "being",
+        "rightText": "is",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_CLAUSES",
+        "grammarCategoryName": "절 병렬",
+        "bookTerm": "절 병렬",
+        "explanationKo": "but은 앞의 완전한 절과 뒤의 완전한 절을 연결하므로, 뒤 절에도 정형동사 is가 필요하다.",
+        "incorrectReasonKo": "being은 뒤 절의 정형동사를 없앤다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "but + 완전한 절"
+      },
+      {
+        "number": 2,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+        "internalProvenance": {
+          "code": "PARTICIPLE_EMOTION",
+          "subtype": "PARTICIPLE_EMOTION:frightened|frightening",
+          "priority": "CORE",
+          "assessmentAxis": "PARTICIPLE_EMOTION",
+          "occurrenceId": "0449da60-1237-4054-b096-a8b60dea5be4|PARTICIPLE_EMOTION|frightened",
+          "sourceSpan": "frightened",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5",
+          "exclusionReason": null
+        },
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 195,
+        "endCharIndex": 205,
+        "originalText": "frightened",
+        "correctText": "frightened",
+        "incorrectText": "frightening",
+        "leftText": "frightened",
+        "rightText": "frightening",
+        "correctSide": "left",
+        "grammarCategoryId": "PARTICIPLE_EMOTION",
+        "grammarCategoryName": "감정분사",
+        "bookTerm": "감정분사",
+        "explanationKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "incorrectReasonKo": "frightening는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "감정 원인 -ing / 느끼는 -ed"
+      },
+      {
+        "number": 3,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:become|becoming",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "0449da60-1237-4054-b096-a8b60dea5be4|PARALLEL_VERBS|become",
+          "sourceSpan": "become",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4",
+          "exclusionReason": null
+        },
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 210,
+        "endCharIndex": 216,
+        "originalText": "become",
+        "correctText": "become",
+        "incorrectText": "becoming",
+        "leftText": "become",
+        "rightText": "becoming",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "incorrectReasonKo": "becoming는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 4,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+        "internalProvenance": {
+          "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though",
+          "priority": "CORE",
+          "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "occurrenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40|CONJUNCTION_PREPOSITION_CONTRAST|even though",
+          "sourceSpan": "even though",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 298,
+        "endCharIndex": 309,
+        "originalText": "even though",
+        "correctText": "even though",
+        "incorrectText": "despite",
+        "leftText": "despite",
+        "rightText": "even though",
+        "correctSide": "right",
+        "grammarCategoryId": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "grammarCategoryName": "접속사와 전치사",
+        "bookTerm": "접속사와 전치사",
+        "explanationKo": "뒤에 오는 성분이 절이면 접속사, 명사구이면 전치사를 쓴다.",
+        "incorrectReasonKo": "despite는 뒤 성분의 품사와 맞지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "접속사 + 절 / 전치사 + 명사구"
+      },
+      {
+        "number": 5,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+        "internalProvenance": {
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "occurrenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9|PARALLEL_AND_OR_BUT|planning and thinking",
+          "sourceSpan": "planning and thinking",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 570,
+        "endCharIndex": 591,
+        "originalText": "planning and thinking",
+        "correctText": "planning and thinking",
+        "incorrectText": "planning and to think",
+        "leftText": "planning and to think",
+        "rightText": "planning and thinking",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_AND_OR_BUT",
+        "grammarCategoryName": "등위 병렬",
+        "bookTerm": "등위 병렬",
+        "explanationKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "incorrectReasonKo": "planning and to think는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "and/or/but 뒤 형태"
+      },
+      {
+        "number": 6,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+        "internalProvenance": {
+          "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of",
+          "priority": "CORE",
+          "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "occurrenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad|CONJUNCTION_PREPOSITION_CONTRAST|instead of",
+          "sourceSpan": "instead of",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18",
+          "exclusionReason": null
+        },
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 755,
+        "endCharIndex": 765,
+        "originalText": "instead of",
+        "correctText": "instead of",
+        "incorrectText": "instead",
+        "leftText": "instead of",
+        "rightText": "instead",
+        "correctSide": "left",
+        "grammarCategoryId": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "grammarCategoryName": "접속사와 전치사",
+        "bookTerm": "접속사와 전치사",
+        "explanationKo": "뒤에 오는 성분이 절이면 접속사, 명사구이면 전치사를 쓴다.",
+        "incorrectReasonKo": "instead는 뒤 성분의 품사와 맞지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "접속사 + 절 / 전치사 + 명사구"
+      },
+      {
+        "number": 7,
+        "choiceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19",
+          "exclusionReason": null
+        },
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 828,
+        "endCharIndex": 831,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "or",
+        "rightText": "and",
+        "correctSide": "right",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      }
+    ],
+    "segments": [
+      {
+        "type": "text",
+        "text": "Letting go of our need for control, being aware, is a lot about gathering the courage to face uncertainty. Human beings want to know. When we don’t know, when things are uncertain, we often feel "
+      },
+      {
+        "type": "choice",
+        "number": 2,
+        "leftText": "frightened",
+        "rightText": "frightening"
+      },
+      {
+        "type": "text",
+        "text": " and "
+      },
+      {
+        "type": "choice",
+        "number": 3,
+        "leftText": "become",
+        "rightText": "becoming"
+      },
+      {
+        "type": "text",
+        "text": " inflexible. So we pretend that things are more predictable than they really are, "
+      },
+      {
+        "type": "choice",
+        "number": 4,
+        "leftText": "despite",
+        "rightText": "even though"
+      },
+      {
+        "type": "text",
+        "text": " we actually live with enormous uncertainty all the time. We cling to our plans and ideas about how things should be and turn out ever so desperately. And there’s nothing wrong with having plans. I think it’s a beautiful thing. But there’s a difference between "
+      },
+      {
+        "type": "choice",
+        "number": 5,
+        "leftText": "planning and to think",
+        "rightText": "planning and thinking"
+      },
+      {
+        "type": "text",
+        "text": " all your plans have to come to fruition. American president Eisenhower once said: ‘Plans are worthless, but planning "
+      },
+      {
+        "type": "choice",
+        "number": 1,
+        "leftText": "being",
+        "rightText": "is"
+      },
+      {
+        "type": "text",
+        "text": " everything.’ Imagine if we all used pencil "
+      },
+      {
+        "type": "choice",
+        "number": 6,
+        "leftText": "instead of",
+        "rightText": "instead"
+      },
+      {
+        "type": "text",
+        "text": " ink to write in our calendars and planners. Both figuratively "
+      },
+      {
+        "type": "choice",
+        "number": 7,
+        "leftText": "or",
+        "rightText": "and"
+      },
+      {
+        "type": "text",
+        "text": " literally. Imagine if we could bear in mind that what we write down, what we think is going to happen, might not be what actually happens. And if we could try our best to be all right with that."
+      }
+    ],
+    "algorithmVersion": "grammar-choice-v2",
+    "diagnostics": {
+      "sentenceCount": 13,
+      "analysisHintCount": 0,
+      "generatedCandidateCount": 25,
+      "codeValidatedCount": 7,
+      "originalMismatchCount": 1,
+      "rangeErrorCount": 0,
+      "overlapDuplicateCount": 2,
+      "reviewSubmittedCount": 0,
+      "reviewAcceptedCount": 7,
+      "bothPossibleRejectCount": 0,
+      "lexicalRejectCount": 0,
+      "trivialRejectCount": 0,
+      "finalCount": 7,
+      "grammarCategoryCount": 6,
+      "averageQualityScore": 0,
+      "passageRestored": true,
+      "cacheHit": false,
+      "generatorModel": "gpt-5.6-sol",
+      "reviewerModel": "gpt-5.6-sol",
+      "generatorResponseModel": "gpt-5.6-sol",
+      "reviewerResponseModel": "gpt-5.6-sol",
+      "generatorActualResponseModel": "gpt-5.6-sol",
+      "reviewerActualResponseModel": "gpt-5.6-sol",
+      "generatorReasoningEffort": "medium",
+      "reviewerReasoningEffort": "high",
+      "reasoningEffort": "medium",
+      "openAICallCount": 5,
+      "localFallbackUsed": false,
+      "generatorVersion": "grammar-choice-v2",
+      "apiCalls": [],
+      "forceRegenerate": true,
+      "oldQuestionReuseCount": 0,
+      "generatorActualModel": "gpt-5.6-sol",
+      "reviewerActualModel": "gpt-5.6-sol",
+      "newQuestionCount": 7,
+      "generateApiCalls": 4,
+      "reviewApiCalls": 1,
+      "underTargetReason": null,
+      "reviewRejectSamples": [],
+      "codeRejectSamples": [],
+      "mandatoryDetected": 9,
+      "mandatoryEligible": 1,
+      "mandatoryRendered": 1,
+      "mandatoryExcludedWithValidReason": 7,
+      "sectionStatus": "COMPLETE",
+      "analysisOnlyCount": 32,
+      "eligibleQuestionCount": 7,
+      "excludedOccurrenceCount": 19,
+      "missingEligibleCount": 0,
+      "mandatoryCoverage": 100,
+      "detectedMandatoryOccurrences": 9,
+      "analysisOnlyMandatoryOccurrences": 1,
+      "eligibleMandatoryOccurrences": 1,
+      "validExcludedMandatoryOccurrences": 7,
+      "renderedMandatoryOccurrences": 1,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 19,
+      "countUnits": {
+        "detectedMandatoryOccurrences": "mandatory-occurrence",
+        "analysisOnlyMandatoryOccurrences": "mandatory-occurrence",
+        "eligibleMandatoryOccurrences": "mandatory-occurrence",
+        "validExcludedMandatoryOccurrences": "mandatory-occurrence",
+        "renderedMandatoryOccurrences": "mandatory-occurrence",
+        "missingEligibleMandatoryOccurrences": "mandatory-occurrence",
+        "totalEligibleQuestions": "student-question-candidate",
+        "totalRenderedQuestions": "student-item",
+        "totalExcludedOccurrences": "occurrence"
+      },
+      "finalQuestionCount": 7,
+      "renderedQuestionCount": 7,
+      "countMismatch": false,
+      "difficultyMix": {
+        "BASIC": 0,
+        "CORE": 7,
+        "ADVANCED": 0
+      },
+      "rejectReasonCounts": {
+        "AMBIGUOUS_SUBJECT_BOUNDARY": 1,
+        "NOT_PEDAGOGICALLY_USEFUL": 3,
+        "NON_MINIMAL_SPAN": 6,
+        "BOTH_GRAMMATICAL": 1,
+        "MEANING_ONLY_CONTRAST": 4,
+        "MULTI_AXIS_EDIT": 1,
+        "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT": 1,
+        "SOURCE_SPAN_NOT_FOUND": 1,
+        "DUPLICATE_SATISFIED_BY_PRIMARY": 2
+      }
+    }
+  },
+  "digest": {
+    "passage": "Letting go of our need for control, being aware, is a lot about gathering the courage to face uncertainty. Human beings want to know. When we don’t know, when things are uncertain, we often feel (2) [frightened / frightening] and (3) [become / becoming] inflexible. So we pretend that things are more predictable than they really are, (4) [despite / even though] we actually live with enormous uncertainty all the time. We cling to our plans and ideas about how things should be and turn out ever so desperately. And there’s nothing wrong with having plans. I think it’s a beautiful thing. But there’s a difference between (5) [planning and to think / planning and thinking] all your plans have to come to fruition. American president Eisenhower once said: ‘Plans are worthless, but planning (1) [being / is] everything.’ Imagine if we all used pencil (6) [instead of / instead] ink to write in our calendars and planners. Both figuratively (7) [or / and] literally. Imagine if we could bear in mind that what we write down, what we think is going to happen, might not be what actually happens. And if we could try our best to be all right with that.",
+    "questions": [
+      {
+        "number": 1,
+        "correct": "is",
+        "wrong": "being",
+        "left": "being",
+        "right": "is",
+        "correctSide": "right",
+        "explanationKo": "but은 앞의 완전한 절과 뒤의 완전한 절을 연결하므로, 뒤 절에도 정형동사 is가 필요하다.",
+        "incorrectReasonKo": "being은 뒤 절의 정형동사를 없앤다.",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:being|is",
+        "priority": "MANDATORY",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "occurrenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d|PARALLEL_CLAUSES|is",
+        "sourceSpan": "is",
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-15"
+      },
+      {
+        "number": 2,
+        "correct": "frightened",
+        "wrong": "frightening",
+        "left": "frightened",
+        "right": "frightening",
+        "correctSide": "left",
+        "explanationKo": "감정을 느끼는 대상에는 과거분사를 쓴다",
+        "incorrectReasonKo": "frightening는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARTICIPLE_EMOTION",
+        "subtype": "PARTICIPLE_EMOTION:frightened|frightening",
+        "priority": "CORE",
+        "assessmentAxis": "PARTICIPLE_EMOTION",
+        "occurrenceId": "0449da60-1237-4054-b096-a8b60dea5be4|PARTICIPLE_EMOTION|frightened",
+        "sourceSpan": "frightened",
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-5"
+      },
+      {
+        "number": 3,
+        "correct": "become",
+        "wrong": "becoming",
+        "left": "become",
+        "right": "becoming",
+        "correctSide": "left",
+        "explanationKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "incorrectReasonKo": "becoming는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:become|becoming",
+        "priority": "CORE",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "occurrenceId": "0449da60-1237-4054-b096-a8b60dea5be4|PARALLEL_VERBS|become",
+        "sourceSpan": "become",
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-4"
+      },
+      {
+        "number": 4,
+        "correct": "even though",
+        "wrong": "despite",
+        "left": "despite",
+        "right": "even though",
+        "correctSide": "right",
+        "explanationKo": "뒤에 오는 성분이 절이면 접속사, 명사구이면 전치사를 쓴다.",
+        "incorrectReasonKo": "despite는 뒤 성분의 품사와 맞지 않는다.",
+        "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though",
+        "priority": "CORE",
+        "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "occurrenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40|CONJUNCTION_PREPOSITION_CONTRAST|even though",
+        "sourceSpan": "even though",
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-9"
+      },
+      {
+        "number": 5,
+        "correct": "planning and thinking",
+        "wrong": "planning and to think",
+        "left": "planning and to think",
+        "right": "planning and thinking",
+        "correctSide": "right",
+        "explanationKo": "병렬된 두 항목은 같은 문법 형태를 취한다",
+        "incorrectReasonKo": "planning and to think는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think",
+        "priority": "CORE",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "occurrenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9|PARALLEL_AND_OR_BUT|planning and thinking",
+        "sourceSpan": "planning and thinking",
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-14"
+      },
+      {
+        "number": 6,
+        "correct": "instead of",
+        "wrong": "instead",
+        "left": "instead of",
+        "right": "instead",
+        "correctSide": "left",
+        "explanationKo": "뒤에 오는 성분이 절이면 접속사, 명사구이면 전치사를 쓴다.",
+        "incorrectReasonKo": "instead는 뒤 성분의 품사와 맞지 않는다.",
+        "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of",
+        "priority": "CORE",
+        "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "occurrenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad|CONJUNCTION_PREPOSITION_CONTRAST|instead of",
+        "sourceSpan": "instead of",
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-18"
+      },
+      {
+        "number": 7,
+        "correct": "and",
+        "wrong": "or",
+        "left": "or",
+        "right": "and",
+        "correctSide": "right",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "priority": "CORE",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "occurrenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9|CORRELATIVE_BOTH_AND|and",
+        "sourceSpan": "and",
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-19"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-1",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "pointCode": "AGREEMENT_LONG_SUBJECT",
+        "reason": "AMBIGUOUS_SUBJECT_BOUNDARY",
+        "pair": "is / are"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-2",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "gathering / gather"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-3",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "When we don’t know, when things are uncertain / When we don’t know, when things being uncertain"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-6",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "reason": "BOTH_GRAMMATICAL",
+        "pair": "that / what"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-7",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "more predictable / most predictable"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-8",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "pointCode": "COMPARISON_TARGET",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "than they really are / than they really do"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-10",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "how things should be / how should things be"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-11",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "having / have"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-795cad67-fb4a-49a5-b0d5-4eacdb52bdfb-12",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "plans / plan"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-47a8c11b-8a5f-40e2-810e-e840a9769c82-13",
+        "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "it’s / is it"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-16",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "said / says"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-17",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT",
+        "pair": "used / would use"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-20",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "could bear / would bear"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-21",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "what we think is going to happen / what do we think is going to happen"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-22",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "AGREEMENT_DISTANCE",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "is going to happen / are going to happen"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-23",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "NOUN_CLAUSE_WH_WORD",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "what we write down / which we write down"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-24",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "pointCode": "NOUN_CLAUSE_WH_WORD",
+        "reason": "SOURCE_SPAN_NOT_FOUND",
+        "pair": "what actually happens / that actually happens"
+      },
+      {
+        "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-36812460-51e5-446b-80bb-156013b6942d-25",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "could try / would try"
+      },
+      {
+        "candidateId": "local-PARALLEL_VERBS-76",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "pointCode": "PARALLEL_VERBS",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "become / becoming"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-18",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:being|is",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARTICIPLE_EMOTION",
+        "subtype": "PARTICIPLE_EMOTION:frightened|frightening",
+        "assessmentAxis": "PARTICIPLE_EMOTION",
+        "sourceSpan": "frightened",
+        "sourceAnswer": "frightened",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:become|becoming",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "sourceAnswer": "become",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:despite|even though",
+        "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "even though",
+        "sourceAnswer": "even though",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "PARALLEL_AND_OR_BUT:planning and thinking|planning and to think",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "planning and thinking",
+        "sourceAnswer": "planning and thinking",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "subtype": "CONJUNCTION_PREPOSITION_CONTRAST:instead|instead of",
+        "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "instead of",
+        "sourceAnswer": "instead of",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "AGREEMENT_LONG_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_LONG_SUBJECT",
+        "sourceSpan": "is / are",
+        "sourceAnswer": "is",
+        "status": "VALID_EXCLUSION",
+        "reason": "AMBIGUOUS_SUBJECT_BOUNDARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "gathering / gather",
+        "sourceAnswer": "gathering",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "When we don’t know, when things are uncertain / When we don’t know, when things being uncertain",
+        "sourceAnswer": "When we don’t know, when things are uncertain",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "that / what",
+        "sourceAnswer": "that",
+        "status": "VALID_EXCLUSION",
+        "reason": "BOTH_GRAMMATICAL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more predictable / most predictable",
+        "sourceAnswer": "more predictable",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "code": "COMPARISON_TARGET",
+        "subtype": "",
+        "assessmentAxis": "COMPARISON_TARGET",
+        "sourceSpan": "than they really are / than they really do",
+        "sourceAnswer": "than they really are",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "how things should be / how should things be",
+        "sourceAnswer": "how things should be",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "having / have",
+        "sourceAnswer": "having",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "plans / plan",
+        "sourceAnswer": "plans",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "it’s / is it",
+        "sourceAnswer": "it’s",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "TENSE_EXPLICIT_TIME_MARKER",
+        "subtype": "",
+        "assessmentAxis": "TENSE_EXPLICIT_TIME_MARKER",
+        "sourceSpan": "said / says",
+        "sourceAnswer": "said",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "used / would use",
+        "sourceAnswer": "used",
+        "status": "VALID_EXCLUSION",
+        "reason": "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "could bear / would bear",
+        "sourceAnswer": "could bear",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "what we think is going to happen / what do we think is going to happen",
+        "sourceAnswer": "what we think is going to happen",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "sourceSpan": "is going to happen / are going to happen",
+        "sourceAnswer": "is going to happen",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what we write down / which we write down",
+        "sourceAnswer": "what we write down",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what actually happens / that actually happens",
+        "sourceAnswer": "what actually happens",
+        "status": "VALID_EXCLUSION",
+        "reason": "SOURCE_SPAN_NOT_FOUND"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "could try / would try",
+        "sourceAnswer": "could try",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "become / becoming",
+        "sourceAnswer": "become",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT",
+        "sourceSpan": "Letting go of our need for control",
+        "sourceAnswer": "Letting go of our need for control",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+        "sourceSpan": "Letting go of our need for control",
+        "sourceAnswer": "Letting go of our need for control",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "AGREEMENT_GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_GERUND_SUBJECT",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "about gathering",
+        "sourceAnswer": "about gathering",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "want",
+        "sourceAnswer": "want",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "feel frightened and become inflexible",
+        "sourceAnswer": "feel frightened and become inflexible",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "how things should be and turn out",
+        "sourceAnswer": "how things should be and turn out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "be and turn out",
+        "sourceAnswer": "be and turn out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "be and turn out",
+        "sourceAnswer": "be and turn out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "should",
+        "sourceAnswer": "should",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "with having plans",
+        "sourceAnswer": "with having plans",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "planning and thinking",
+        "sourceAnswer": "planning and thinking",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "between planning and thinking",
+        "sourceAnswer": "between planning and thinking",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "all your plans have to come to fruition",
+        "sourceAnswer": "all your plans have to come to fruition",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "have to",
+        "sourceAnswer": "have to",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "Plans are worthless, but planning is everything",
+        "sourceAnswer": "Plans are worthless, but planning is everything",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT",
+        "sourceSpan": "planning",
+        "sourceAnswer": "planning",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "GERUND_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+        "sourceSpan": "planning is everything",
+        "sourceAnswer": "planning is everything",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "AGREEMENT_GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_GERUND_SUBJECT",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "sourceSpan": "planning is",
+        "sourceAnswer": "planning is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "said",
+        "sourceAnswer": "said",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if we all used pencil instead of ink",
+        "sourceAnswer": "if we all used pencil instead of ink",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "figuratively and literally",
+        "sourceAnswer": "figuratively and literally",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "Both figuratively and literally",
+        "sourceAnswer": "Both figuratively and literally",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if we could bear in mind",
+        "sourceAnswer": "if we could bear in mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "that what we write down, what we think is going to happen, might not be what actually happens",
+        "sourceAnswer": "that what we write down, what we think is going to happen, might not be what actually happens",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "could",
+        "sourceAnswer": "could",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if we could try our best to be all right with that",
+        "sourceAnswer": "if we could try our best to be all right with that",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "could",
+        "sourceAnswer": "could",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "And if we could try our best to be all right with that",
+        "sourceAnswer": "And if we could try our best to be all right with that",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "detectedMandatoryOccurrences": 9,
+      "analysisOnlyMandatoryOccurrences": 1,
+      "eligibleMandatoryOccurrences": 1,
+      "validExcludedMandatoryOccurrences": 7,
+      "renderedMandatoryOccurrences": 1,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 19,
+      "sectionStatus": "COMPLETE"
+    }
+  }
+}

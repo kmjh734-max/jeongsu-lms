@@ -39,6 +39,8 @@ export type StoredGrammarChoiceV2Analysis = {
   detected: import("@/lib/lesson-materials/grammar-choice-v2/types").DetectedGrammarPoint[];
   candidates: import("@/lib/lesson-materials/grammar-choice-v2/types").GrammarCandidate[];
   audits: import("@/lib/lesson-materials/grammar-choice-v2/types").AuditResult[];
+  /** 블라인드 문법성 판정 결과. 캐시 히트 때도 같은 게이트가 적용되도록 함께 저장한다. */
+  uniqueness?: import("@/lib/lesson-materials/grammar-choice-v2/uniqueness-audit").UniquenessVerdict[];
 };
 
 export type StoredGrammarChoiceV2Cache = {

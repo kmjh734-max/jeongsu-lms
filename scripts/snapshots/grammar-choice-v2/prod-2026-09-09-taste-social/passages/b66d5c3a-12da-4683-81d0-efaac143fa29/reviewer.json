@@ -1,0 +1,36 @@
+{
+  "capturedAt": "2026-09-09T12:19:45.862Z",
+  "sourceId": "b66d5c3a-12da-4683-81d0-efaac143fa29",
+  "fromProductionCache": true,
+  "rawJsonMissing": true,
+  "reconstructedFromCache": true,
+  "rawJson": [
+    "{\"results\":[{\"decision\":\"REJECT\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8\",\"rejectionCode\":\"BOTH_GRAMMATICAL\",\"uniqueInContext\":false,\"correctedRuleCode\":\"DEMONSTRATIVE_THAT\",\"singleGrammarAxis\":false,\"plausibleLearnerError\":false}]}"
+  ],
+  "parsed": [
+    {
+      "results": [
+        {
+          "decision": "REJECT",
+          "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+          "rejectionCode": "BOTH_GRAMMATICAL",
+          "uniqueInContext": false,
+          "correctedRuleCode": "DEMONSTRATIVE_THAT",
+          "singleGrammarAxis": false,
+          "plausibleLearnerError": false
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "decision": "REJECT",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+      "rejectionCode": "BOTH_GRAMMATICAL",
+      "uniqueInContext": false,
+      "correctedRuleCode": "DEMONSTRATIVE_THAT",
+      "singleGrammarAxis": false,
+      "plausibleLearnerError": false
+    }
+  ]
+}

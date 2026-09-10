@@ -1,3 +1,4 @@
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { callGrammarChoiceV2Json, parseModelJson } from "@/lib/lesson-materials/grammar-choice-v2/openai-call";
 import {
   ANALYZER_SYSTEM_PROMPT,
@@ -45,6 +46,7 @@ const OMISSION_ENUM = [
 const OMISSIONS = new Set<string>(OMISSION_ENUM.filter(Boolean));
 const TRANSFORM_ENUM = [...TRANSFORMS];
 
+/** @deprecated 지문 전체를 한 호출로 보내던 시절의 상한. GENERATOR_CHUNK_OUTPUT_TOKEN_CAP를 쓴다. */
 export const GENERATOR_OUTPUT_TOKEN_CAP = 12_000;
 
 const ANALYZER_SCHEMA = {
@@ -133,6 +135,46 @@ export type AnalyzerResult = {
   fallback: boolean;
 };
 
+/**
+ * 한 번의 분석 호출에 넣는 문장 수. 지문 전체를 한 호출에 넣으면 모델이 앞쪽
+ * 몇 개만 실제로 분석하고 나머지는 만들기 쉬운 축(수일치·시제)으로 때운다.
+ * 관측: 11문장 1호출에서 후보 16개 중 2개만 생존(폐기율 87%).
+ */
+export const ANALYZER_SENTENCES_PER_CALL = 3;
+
+/** 호출당 후보 상한. 작게 유지해야 모델이 목표 개수를 채우려 억지 후보를 만들지 않는다. */
+export const ANALYZER_CANDIDATES_PER_CALL = 4;
+
+/** 한 지문 안에서 동시에 띄우는 분석 호출 수. */
+export const ANALYZER_CHUNK_CONCURRENCY = 3;
+
+/**
+ * 문장 묶음 호출의 출력 상한.
+ *
+ * GPT-5 계열에서 max_completion_tokens는 reasoning 토큰까지 함께 센다.
+ * effort=high는 reasoning이 크게 늘어 5,000에서는 응답이 통째로 잘렸다
+ * (관측: 4개 지문 전부 TOKEN_LIMIT). 상한은 천장일 뿐 실제 지출이 아니므로
+ * 잘림을 막을 만큼 넉넉히 둔다. 품질은 문장 분할과 candidateCap이 잡는다.
+ */
+export const GENERATOR_CHUNK_OUTPUT_TOKEN_CAP = 16_000;
+
+type AnalyzerSentenceRow = {
+  sentenceId?: string;
+  detectedPoints?: Array<Record<string, unknown>>;
+  candidates?: Array<Record<string, unknown>>;
+};
+
+function chunkSentences(
+  sentences: ExactSentence[],
+  size: number
+): ExactSentence[][] {
+  const chunks: ExactSentence[][] = [];
+  for (let i = 0; i < sentences.length; i += size) {
+    chunks.push(sentences.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export async function analyzeAndGeneratePassage(input: {
   apiKey: string;
   model: string;
@@ -141,36 +183,75 @@ export async function analyzeAndGeneratePassage(input: {
   sentences: ExactSentence[];
   analysisHints?: AnalysisHintV2[];
   localMandatoryHints?: LocalMandatoryHint[];
+  sentencesPerCall?: number;
 }): Promise<AnalyzerResult> {
-  const payload = buildAnalyzerUserPayload({
-    passageId: input.passageId,
-    sentences: input.sentences,
-    analysisHints: input.analysisHints,
-    localMandatoryHints: input.localMandatoryHints,
-  });
-  const promptChars =
-    ANALYZER_SYSTEM_PROMPT.length + JSON.stringify(payload).length;
-  const called = await callGrammarChoiceV2Json({
-    stage: "GENERATOR",
-    apiKey: input.apiKey,
-    model: input.model,
-    reasoningEffort: input.reasoningEffort,
-    system: ANALYZER_SYSTEM_PROMPT,
-    user: JSON.stringify(payload),
-    schemaName: "grammar_choice_v2_analyze",
-    schema: ANALYZER_SCHEMA as unknown as Record<string, unknown>,
-    maxCompletionTokens: GENERATOR_OUTPUT_TOKEN_CAP,
-  });
-  const parsed = parseAnalyzerRawJson(called.content, input.passageId);
+  const perCall = Math.max(1, input.sentencesPerCall ?? ANALYZER_SENTENCES_PER_CALL);
+  const chunks = chunkSentences(input.sentences, perCall);
+  const started = Date.now();
+
+  const calls = await runWithConcurrency(
+    chunks,
+    Math.min(ANALYZER_CHUNK_CONCURRENCY, chunks.length || 1),
+    async (chunk) => {
+      const chunkIds = new Set(chunk.map((s) => s.sentenceId));
+      const chunkText = chunk.map((s) => s.text).join(" ");
+      const payload = buildAnalyzerUserPayload({
+        passageId: input.passageId,
+        sentences: chunk,
+        // 이 묶음의 문장에 실제로 등장하는 힌트만 남긴다.
+        analysisHints: (input.analysisHints ?? []).filter((h) =>
+          h.targetText ? chunkText.includes(h.targetText) : false
+        ),
+        localMandatoryHints: (input.localMandatoryHints ?? []).filter((h) =>
+          chunkIds.has(h.sentenceId)
+        ),
+        candidateCap: ANALYZER_CANDIDATES_PER_CALL,
+      });
+      const promptChars =
+        ANALYZER_SYSTEM_PROMPT.length + JSON.stringify(payload).length;
+      const called = await callGrammarChoiceV2Json({
+        stage: "GENERATOR",
+        apiKey: input.apiKey,
+        model: input.model,
+        reasoningEffort: input.reasoningEffort,
+        system: ANALYZER_SYSTEM_PROMPT,
+        user: JSON.stringify(payload),
+        schemaName: "grammar_choice_v2_analyze",
+        schema: ANALYZER_SCHEMA as unknown as Record<string, unknown>,
+        maxCompletionTokens: GENERATOR_CHUNK_OUTPUT_TOKEN_CAP,
+      });
+      return { called, promptChars };
+    }
+  );
+
+  /**
+   * 묶음 응답을 원래 문장 순서대로 하나의 분석 JSON으로 합친다.
+   * rawJson은 replay가 다시 파싱하는 입력이므로, 합친 뒤 한 번만 파싱해야
+   * candidateId 번호가 재생 시에도 동일하게 나온다.
+   */
+  const mergedSentences: AnalyzerSentenceRow[] = [];
+  for (const { called } of calls) {
+    const chunkParsed = parseModelJson<{ sentences?: AnalyzerSentenceRow[] }>(
+      called.content
+    );
+    mergedSentences.push(...(chunkParsed.sentences ?? []));
+  }
+  const mergedRawJson = JSON.stringify({ sentences: mergedSentences });
+  const parsed = parseAnalyzerRawJson(mergedRawJson, input.passageId);
+
+  const sum = (pick: (row: (typeof calls)[number]) => number | null) =>
+    calls.reduce((acc, row) => acc + (pick(row) ?? 0), 0);
+
   return {
     ...parsed,
-    responseModel: called.responseModel,
-    promptChars,
-    rawJson: called.rawJson,
-    latencyMs: called.latencyMs,
-    inputTokens: called.inputTokens,
-    outputTokens: called.outputTokens,
-    fallback: called.fallback,
+    responseModel: calls[0]?.called.responseModel ?? input.model,
+    promptChars: sum((row) => row.promptChars),
+    rawJson: mergedRawJson,
+    // 묶음 호출은 병렬이므로 합이 아니라 실제 경과 시간을 보고한다.
+    latencyMs: Date.now() - started,
+    inputTokens: calls.length ? sum((row) => row.called.inputTokens) : null,
+    outputTokens: calls.length ? sum((row) => row.called.outputTokens) : null,
+    fallback: calls.some((row) => row.called.fallback),
   };
 }
 

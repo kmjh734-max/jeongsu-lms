@@ -1,0 +1,1088 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:58:48.033Z",
+  "sourceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 82401,
+  "inputTokens": 2276,
+  "outputTokens": 6634,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b\",\"detectedPoints\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"Letting go of our need for control\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"being aware\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_GERUND_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"OVERLAPPING_HIGHER_PRIORITY_POINT\"},{\"pointCode\":\"GERUND_SUBJECT_ANALYSIS\",\"sourceSpan\":\"Letting go of our need for control\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_AGREEMENT_ANALYSIS\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"OVERLAPPING_HIGHER_PRIORITY_POINT\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"about gathering\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"about gathering\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"correctAnswer\":\"is\",\"distractor\":\"are\",\"transformCode\":\"NUMBER_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"c3afbd07-f719-4af9-9275-fa38566c13a4\",\"detectedPoints\":[],\"candidates\":[]},{\"sentenceId\":\"0449da60-1237-4054-b096-a8b60dea5be4\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"feel frightened and become inflexible\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"feel frightened and become inflexible\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARTICIPLE_EMOTION\",\"sourceSpan\":\"frightened\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"feel frightened and become inflexible\",\"occurrenceIndex\":1,\"correctAnswer\":\"feel frightened and become inflexible\",\"distractor\":\"feel frightened and becoming inflexible\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"b8e266b5-04ea-4f5b-9b11-0f4e489b4c40\",\"detectedPoints\":[{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more predictable than\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARISON_TARGET\",\"sourceSpan\":\"than they really are\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"sourceSpan\":\"even though\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more predictable than\",\"occurrenceIndex\":1,\"correctAnswer\":\"more predictable than\",\"distractor\":\"more predictable as\",\"transformCode\":\"CLAUSE_MARKER\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"sourceSpan\":\"even though\",\"occurrenceIndex\":1,\"correctAnswer\":\"even though\",\"distractor\":\"despite\",\"transformCode\":\"CLAUSE_MARKER\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"90aefb4b-72ae-4409-b845-17eafb467f96\",\"detectedPoints\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"how things should be\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"how things should be and turn out\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"be and turn out\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"be and turn out\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"how things should be\",\"occurrenceIndex\":1,\"correctAnswer\":\"how things should be\",\"distractor\":\"how should things be\",\"transformCode\":\"WORD_ORDER\",\"priority\":\"MANDATORY\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"be and turn out\",\"occurrenceIndex\":1,\"correctAnswer\":\"be and turn out\",\"distractor\":\"be and turning out\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"795cad67-fb4a-49a5-b0d5-4eacdb52bdfb\",\"detectedPoints\":[{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"with having plans\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"with having plans\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"NOT_PEDAGOGICALLY_USEFUL\"}],\"candidates\":[]},{\"sentenceId\":\"47a8c11b-8a5f-40e2-810e-e840a9769c82\",\"detectedPoints\":[],\"candidates\":[]},{\"sentenceId\":\"180f4425-6e44-41d1-ad9b-3161f2a495d9\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"planning and thinking\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"between planning and thinking\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"between planning and thinking\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"planning and thinking\",\"occurrenceIndex\":1,\"correctAnswer\":\"planning and thinking\",\"distractor\":\"planning and think\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"Plans are worthless, but planning is everything\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"Plans are worthless, but planning is everything\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"OVERLAPPING_HIGHER_PRIORITY_POINT\"},{\"pointCode\":\"TENSE_EXPLICIT_TIME_MARKER\",\"sourceSpan\":\"once said\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"planning\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_GERUND_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"NOT_PEDAGOGICALLY_USEFUL\"},{\"pointCode\":\"GERUND_SUBJECT_ANALYSIS\",\"sourceSpan\":\"planning\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_AGREEMENT_ANALYSIS\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"NOT_PEDAGOGICALLY_USEFUL\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"Plans are worthless, but planning is everything\",\"occurrenceIndex\":1,\"correctAnswer\":\"Plans are worthless, but planning is everything\",\"distractor\":\"Plans are worthless, but planning everything\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"MANDATORY\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"TENSE_EXPLICIT_TIME_MARKER\",\"sourceSpan\":\"once said\",\"occurrenceIndex\":1,\"correctAnswer\":\"once said\",\"distractor\":\"once says\",\"transformCode\":\"TENSE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"8bb693b7-669d-47b7-bb8a-da8048927aad\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"if we all used\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"},{\"pointCode\":\"PREPOSITION_INSTEAD_OF\",\"sourceSpan\":\"instead of\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PREPOSITION_INSTEAD_OF\",\"sourceSpan\":\"instead of\",\"occurrenceIndex\":1,\"correctAnswer\":\"instead of\",\"distractor\":\"instead\",\"transformCode\":\"FORM_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"864a91d9-892a-49bd-a36e-7fdb604495a9\",\"detectedPoints\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"Both figuratively and literally\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"figuratively and literally\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"DUPLICATE_SUBTYPE\"}],\"candidates\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"Both figuratively and literally\",\"occurrenceIndex\":1,\"correctAnswer\":\"Both figuratively and literally\",\"distractor\":\"Both figuratively or literally\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"c5504fb3-2c67-4357-b3e0-4021485770a7\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"if we could bear\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what we write down\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what we think is going to happen\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what actually happens\",\"occurrenceIndex\":3,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what we write down\",\"occurrenceIndex\":1,\"correctAnswer\":\"what we write down\",\"distractor\":\"what do we write down\",\"transformCode\":\"WORD_ORDER\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"36812460-51e5-446b-80bb-156013b6942d\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"if we could try\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"}],\"candidates\":[]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+        "detectedPoints": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "Letting go of our need for control",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "being aware",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_GERUND_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": "OVERLAPPING_HIGHER_PRIORITY_POINT"
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_ANALYSIS",
+            "sourceSpan": "Letting go of our need for control",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": "OVERLAPPING_HIGHER_PRIORITY_POINT"
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "about gathering",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "about gathering",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "correctAnswer": "is",
+            "distractor": "are",
+            "transformCode": "NUMBER_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "ADVANCED",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+        "detectedPoints": [],
+        "candidates": []
+      },
+      {
+        "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "feel frightened and become inflexible",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "feel frightened and become inflexible",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARTICIPLE_EMOTION",
+            "sourceSpan": "frightened",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "feel frightened and become inflexible",
+            "occurrenceIndex": 1,
+            "correctAnswer": "feel frightened and become inflexible",
+            "distractor": "feel frightened and becoming inflexible",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+        "detectedPoints": [
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more predictable than",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARISON_TARGET",
+            "sourceSpan": "than they really are",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "sourceSpan": "even though",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more predictable than",
+            "occurrenceIndex": 1,
+            "correctAnswer": "more predictable than",
+            "distractor": "more predictable as",
+            "transformCode": "CLAUSE_MARKER",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "sourceSpan": "even though",
+            "occurrenceIndex": 1,
+            "correctAnswer": "even though",
+            "distractor": "despite",
+            "transformCode": "CLAUSE_MARKER",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+        "detectedPoints": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "how things should be",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "how things should be and turn out",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "be and turn out",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "be and turn out",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "how things should be",
+            "occurrenceIndex": 1,
+            "correctAnswer": "how things should be",
+            "distractor": "how should things be",
+            "transformCode": "WORD_ORDER",
+            "priority": "MANDATORY",
+            "difficulty": "ADVANCED",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "be and turn out",
+            "occurrenceIndex": 1,
+            "correctAnswer": "be and turn out",
+            "distractor": "be and turning out",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+        "detectedPoints": [
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "with having plans",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "with having plans",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": "NOT_PEDAGOGICALLY_USEFUL"
+          }
+        ],
+        "candidates": []
+      },
+      {
+        "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+        "detectedPoints": [],
+        "candidates": []
+      },
+      {
+        "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "planning and thinking",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "between planning and thinking",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "between planning and thinking",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "planning and thinking",
+            "occurrenceIndex": 1,
+            "correctAnswer": "planning and thinking",
+            "distractor": "planning and think",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "Plans are worthless, but planning is everything",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "Plans are worthless, but planning is everything",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": "OVERLAPPING_HIGHER_PRIORITY_POINT"
+          },
+          {
+            "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+            "sourceSpan": "once said",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "planning",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_GERUND_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": "NOT_PEDAGOGICALLY_USEFUL"
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_ANALYSIS",
+            "sourceSpan": "planning",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": "NOT_PEDAGOGICALLY_USEFUL"
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "Plans are worthless, but planning is everything",
+            "occurrenceIndex": 1,
+            "correctAnswer": "Plans are worthless, but planning is everything",
+            "distractor": "Plans are worthless, but planning everything",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "MANDATORY",
+            "difficulty": "ADVANCED",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+            "sourceSpan": "once said",
+            "occurrenceIndex": 1,
+            "correctAnswer": "once said",
+            "distractor": "once says",
+            "transformCode": "TENSE_SWAP",
+            "priority": "CORE",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "if we all used",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          },
+          {
+            "pointCode": "PREPOSITION_INSTEAD_OF",
+            "sourceSpan": "instead of",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PREPOSITION_INSTEAD_OF",
+            "sourceSpan": "instead of",
+            "occurrenceIndex": 1,
+            "correctAnswer": "instead of",
+            "distractor": "instead",
+            "transformCode": "FORM_SWAP",
+            "priority": "CORE",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+        "detectedPoints": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "Both figuratively and literally",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "figuratively and literally",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": "DUPLICATE_SUBTYPE"
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "Both figuratively and literally",
+            "occurrenceIndex": 1,
+            "correctAnswer": "Both figuratively and literally",
+            "distractor": "Both figuratively or literally",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "if we could bear",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what we write down",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what we think is going to happen",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what actually happens",
+            "occurrenceIndex": 3,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what we write down",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what we write down",
+            "distractor": "what do we write down",
+            "transformCode": "WORD_ORDER",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "if we could try",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          }
+        ],
+        "candidates": []
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "Letting go of our need for control",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "being aware",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "AGREEMENT_GERUND_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "OVERLAPPING_HIGHER_PRIORITY_POINT"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_SUBJECT_ANALYSIS",
+      "sourceSpan": "Letting go of our need for control",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "OVERLAPPING_HIGHER_PRIORITY_POINT"
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "about gathering",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "about gathering",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "feel frightened and become inflexible",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "feel frightened and become inflexible",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARTICIPLE_EMOTION",
+      "sourceSpan": "frightened",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more predictable than",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARISON_TARGET",
+      "sourceSpan": "than they really are",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "sourceSpan": "even though",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "how things should be",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "how things should be and turn out",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "be and turn out",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "be and turn out",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "with having plans",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "with having plans",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NOT_PEDAGOGICALLY_USEFUL"
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "planning and thinking",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "between planning and thinking",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "between planning and thinking",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "Plans are worthless, but planning is everything",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "Plans are worthless, but planning is everything",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "OVERLAPPING_HIGHER_PRIORITY_POINT"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+      "sourceSpan": "once said",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "planning",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "AGREEMENT_GERUND_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NOT_PEDAGOGICALLY_USEFUL"
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "GERUND_SUBJECT_ANALYSIS",
+      "sourceSpan": "planning",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NOT_PEDAGOGICALLY_USEFUL"
+    },
+    {
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "if we all used",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "PREPOSITION_INSTEAD_OF",
+      "sourceSpan": "instead of",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "Both figuratively and literally",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "figuratively and literally",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "DUPLICATE_SUBTYPE"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "if we could bear",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what we write down",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what we think is going to happen",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what actually happens",
+      "occurrenceIndex": 3,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "if we could try",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b-1",
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "correctAnswer": "is",
+      "distractors": [
+        "are"
+      ],
+      "transformCode": "NUMBER_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-0449da60-1237-4054-b096-a8b60dea5be4-2",
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "feel frightened and become inflexible",
+      "occurrenceIndex": 1,
+      "correctAnswer": "feel frightened and become inflexible",
+      "distractors": [
+        "feel frightened and becoming inflexible"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-3",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more predictable than",
+      "occurrenceIndex": 1,
+      "correctAnswer": "more predictable than",
+      "distractors": [
+        "more predictable as"
+      ],
+      "transformCode": "CLAUSE_MARKER",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-b8e266b5-04ea-4f5b-9b11-0f4e489b4c40-4",
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "sourceSpan": "even though",
+      "occurrenceIndex": 1,
+      "correctAnswer": "even though",
+      "distractors": [
+        "despite"
+      ],
+      "transformCode": "CLAUSE_MARKER",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-5",
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "how things should be",
+      "occurrenceIndex": 1,
+      "correctAnswer": "how things should be",
+      "distractors": [
+        "how should things be"
+      ],
+      "transformCode": "WORD_ORDER",
+      "priority": "MANDATORY",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-90aefb4b-72ae-4409-b845-17eafb467f96-6",
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "be and turn out",
+      "occurrenceIndex": 1,
+      "correctAnswer": "be and turn out",
+      "distractors": [
+        "be and turning out"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-180f4425-6e44-41d1-ad9b-3161f2a495d9-7",
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "planning and thinking",
+      "occurrenceIndex": 1,
+      "correctAnswer": "planning and thinking",
+      "distractors": [
+        "planning and think"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-8",
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "Plans are worthless, but planning is everything",
+      "occurrenceIndex": 1,
+      "correctAnswer": "Plans are worthless, but planning is everything",
+      "distractors": [
+        "Plans are worthless, but planning everything"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "MANDATORY",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d-9",
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+      "sourceSpan": "once said",
+      "occurrenceIndex": 1,
+      "correctAnswer": "once said",
+      "distractors": [
+        "once says"
+      ],
+      "transformCode": "TENSE_SWAP",
+      "priority": "CORE",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-8bb693b7-669d-47b7-bb8a-da8048927aad-10",
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "pointCode": "PREPOSITION_INSTEAD_OF",
+      "sourceSpan": "instead of",
+      "occurrenceIndex": 1,
+      "correctAnswer": "instead of",
+      "distractors": [
+        "instead"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-864a91d9-892a-49bd-a36e-7fdb604495a9-11",
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "Both figuratively and literally",
+      "occurrenceIndex": 1,
+      "correctAnswer": "Both figuratively and literally",
+      "distractors": [
+        "Both figuratively or literally"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac-c5504fb3-2c67-4357-b3e0-4021485770a7-12",
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what we write down",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what we write down",
+      "distractors": [
+        "what do we write down"
+      ],
+      "transformCode": "WORD_ORDER",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    }
+  ],
+  "routeMs": 0
+}

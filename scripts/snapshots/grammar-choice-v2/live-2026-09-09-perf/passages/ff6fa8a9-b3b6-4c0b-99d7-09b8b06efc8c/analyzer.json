@@ -1,0 +1,1058 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:58:55.564Z",
+  "sourceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 89935,
+  "inputTokens": 2350,
+  "outputTokens": 7585,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"fa5d682b-9c04-4f0b-a13a-a7664555dabe\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"yet we don’t allow ourselves to participate\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"are wonderfully made\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"OBJECT_COMPLEMENT_TO_V\",\"sourceSpan\":\"ourselves to participate\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_PREPOSITION_WHICH\",\"sourceSpan\":\"for which\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"were created\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"are wonderfully made\",\"occurrenceIndex\":1,\"correctAnswer\":\"are wonderfully made\",\"distractor\":\"are wonderfully making\",\"transformCode\":\"VOICE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_PREPOSITION_WHICH\",\"sourceSpan\":\"for which\",\"occurrenceIndex\":1,\"correctAnswer\":\"for which\",\"distractor\":\"for that\",\"transformCode\":\"RELATIVE_CHOICE\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"eca1cec4-e242-4e74-ad3d-b63d8450f4a3\",\"detectedPoints\":[{\"pointCode\":\"PREPOSITION_INSTEAD_OF\",\"sourceSpan\":\"Instead of\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"moving\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"anywhere and everywhere\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_FIXED_CONSTRUCTION\",\"sourceSpan\":\"spend our time moving\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"moving\",\"occurrenceIndex\":1,\"correctAnswer\":\"moving\",\"distractor\":\"move\",\"transformCode\":\"NONFINITE_SWAP\",\"priority\":\"BASIC\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"GERUND_FIXED_CONSTRUCTION\",\"sourceSpan\":\"spend our time moving\",\"occurrenceIndex\":1,\"correctAnswer\":\"spend our time moving\",\"distractor\":\"spend our time to move\",\"transformCode\":\"NONFINITE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"d6ab89e5-d089-4b0f-ae48-75ff480e3ac6\",\"detectedPoints\":[{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"a\",\"occurrenceIndex\":2,\"priority\":\"BASIC\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"hours and hours\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the\",\"occurrenceIndex\":1,\"correctAnswer\":\"the\",\"distractor\":\"a\",\"transformCode\":\"FORM_SWAP\",\"priority\":\"BASIC\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"7286ec55-f639-41ab-a201-d8b2243dce97\",\"detectedPoints\":[{\"pointCode\":\"VOICE_PROGRESSIVE_PASSIVE\",\"sourceSpan\":\"are being held\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"phones and tablets\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"VOICE_PROGRESSIVE_PASSIVE\",\"sourceSpan\":\"are being held\",\"occurrenceIndex\":1,\"correctAnswer\":\"are being held\",\"distractor\":\"are holding\",\"transformCode\":\"VOICE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"17a8930e-18fb-49e8-9fc0-6b2442b87be5\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"They are not going outside to play, they are not learning\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"},{\"pointCode\":\"INFINITIVE_ADVERB_ROLE\",\"sourceSpan\":\"to play\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"socialize and read\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"socialize and read\",\"occurrenceIndex\":1,\"correctAnswer\":\"socialize and read\",\"distractor\":\"socialize and reading\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"55d3264f-cc23-4ead-85c6-c6d6153f2880\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learning or building\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"OBJECT_COMPLEMENT_BARE_V\",\"sourceSpan\":\"help them learn\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learn, communicate, create, and become\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learning or building\",\"occurrenceIndex\":1,\"correctAnswer\":\"learning or building\",\"distractor\":\"learning or build\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"correctAnswer\":\"that\",\"distractor\":\"what\",\"transformCode\":\"RELATIVE_CHOICE\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learn, communicate, create, and become\",\"occurrenceIndex\":2,\"correctAnswer\":\"learn, communicate, create, and become\",\"distractor\":\"learn, communicate, create, and becoming\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"38c8d85b-3668-4faf-b802-96c52b453612\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"how to run, how to skip, or how to climb\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"how to climb\",\"occurrenceIndex\":1,\"correctAnswer\":\"how to climb\",\"distractor\":\"how climbing\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"433f228c-5bae-4525-b373-9af91700f7a9\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"anxiety, depression, and even diseases\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_OMISSION\",\"sourceSpan\":\"diseases they were never meant to have\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"were never meant\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_OMISSION\",\"sourceSpan\":\"diseases they were never meant to have\",\"occurrenceIndex\":1,\"correctAnswer\":\"diseases they were never meant to have\",\"distractor\":\"diseases what they were never meant to have\",\"transformCode\":\"RELATIVE_CHOICE\",\"priority\":\"CORE\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"c8869225-b030-4f97-8dd7-f08bf0440400\",\"detectedPoints\":[{\"pointCode\":\"NOUN_CLAUSE_DECLARATIVE_ORDER\",\"sourceSpan\":\"we are getting\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE_AND_COMPARATIVE\",\"sourceSpan\":\"further and further\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"The\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"NOUN_CLAUSE_DECLARATIVE_ORDER\",\"sourceSpan\":\"we are getting\",\"occurrenceIndex\":1,\"correctAnswer\":\"we are getting\",\"distractor\":\"are we getting\",\"transformCode\":\"WORD_ORDER\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"COMPARATIVE_AND_COMPARATIVE\",\"sourceSpan\":\"further and further\",\"occurrenceIndex\":1,\"correctAnswer\":\"further and further\",\"distractor\":\"further and furthest\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"6230dd5c-f0f6-4cb7-a037-2d2e8f988674\",\"detectedPoints\":[{\"pointCode\":\"VOICE_BE_MADE_TO\",\"sourceSpan\":\"were made to move\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"We were made to move—and through movement, we are meant\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"are meant to live\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"VOICE_BE_MADE_TO\",\"sourceSpan\":\"were made to move\",\"occurrenceIndex\":1,\"correctAnswer\":\"were made to move\",\"distractor\":\"were made moving\",\"transformCode\":\"NONFINITE_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"6ce0a23c-a15f-410c-bd32-f7e6016a247a\",\"detectedPoints\":[],\"candidates\":[]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "yet we don’t allow ourselves to participate",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "are wonderfully made",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_TO_V",
+            "sourceSpan": "ourselves to participate",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_PREPOSITION_WHICH",
+            "sourceSpan": "for which",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "were created",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "are wonderfully made",
+            "occurrenceIndex": 1,
+            "correctAnswer": "are wonderfully made",
+            "distractor": "are wonderfully making",
+            "transformCode": "VOICE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_PREPOSITION_WHICH",
+            "sourceSpan": "for which",
+            "occurrenceIndex": 1,
+            "correctAnswer": "for which",
+            "distractor": "for that",
+            "transformCode": "RELATIVE_CHOICE",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "detectedPoints": [
+          {
+            "pointCode": "PREPOSITION_INSTEAD_OF",
+            "sourceSpan": "Instead of",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "moving",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "anywhere and everywhere",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_FIXED_CONSTRUCTION",
+            "sourceSpan": "spend our time moving",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "moving",
+            "occurrenceIndex": 1,
+            "correctAnswer": "moving",
+            "distractor": "move",
+            "transformCode": "NONFINITE_SWAP",
+            "priority": "BASIC",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "GERUND_FIXED_CONSTRUCTION",
+            "sourceSpan": "spend our time moving",
+            "occurrenceIndex": 1,
+            "correctAnswer": "spend our time moving",
+            "distractor": "spend our time to move",
+            "transformCode": "NONFINITE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "detectedPoints": [
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "a",
+            "occurrenceIndex": 2,
+            "priority": "BASIC",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "hours and hours",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the",
+            "occurrenceIndex": 1,
+            "correctAnswer": "the",
+            "distractor": "a",
+            "transformCode": "FORM_SWAP",
+            "priority": "BASIC",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "detectedPoints": [
+          {
+            "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+            "sourceSpan": "are being held",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "phones and tablets",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+            "sourceSpan": "are being held",
+            "occurrenceIndex": 1,
+            "correctAnswer": "are being held",
+            "distractor": "are holding",
+            "transformCode": "VOICE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "They are not going outside to play, they are not learning",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          },
+          {
+            "pointCode": "INFINITIVE_ADVERB_ROLE",
+            "sourceSpan": "to play",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "socialize and read",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "socialize and read",
+            "occurrenceIndex": 1,
+            "correctAnswer": "socialize and read",
+            "distractor": "socialize and reading",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learning or building",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+            "sourceSpan": "help them learn",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learn, communicate, create, and become",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learning or building",
+            "occurrenceIndex": 1,
+            "correctAnswer": "learning or building",
+            "distractor": "learning or build",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that",
+            "distractor": "what",
+            "transformCode": "RELATIVE_CHOICE",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learn, communicate, create, and become",
+            "occurrenceIndex": 2,
+            "correctAnswer": "learn, communicate, create, and become",
+            "distractor": "learn, communicate, create, and becoming",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "how to run, how to skip, or how to climb",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "how to climb",
+            "occurrenceIndex": 1,
+            "correctAnswer": "how to climb",
+            "distractor": "how climbing",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "anxiety, depression, and even diseases",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_OMISSION",
+            "sourceSpan": "diseases they were never meant to have",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "were never meant",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_OMISSION",
+            "sourceSpan": "diseases they were never meant to have",
+            "occurrenceIndex": 1,
+            "correctAnswer": "diseases they were never meant to have",
+            "distractor": "diseases what they were never meant to have",
+            "transformCode": "RELATIVE_CHOICE",
+            "priority": "CORE",
+            "difficulty": "ADVANCED",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "detectedPoints": [
+          {
+            "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+            "sourceSpan": "we are getting",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+            "sourceSpan": "further and further",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "The",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+            "sourceSpan": "we are getting",
+            "occurrenceIndex": 1,
+            "correctAnswer": "we are getting",
+            "distractor": "are we getting",
+            "transformCode": "WORD_ORDER",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+            "sourceSpan": "further and further",
+            "occurrenceIndex": 1,
+            "correctAnswer": "further and further",
+            "distractor": "further and furthest",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "detectedPoints": [
+          {
+            "pointCode": "VOICE_BE_MADE_TO",
+            "sourceSpan": "were made to move",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "We were made to move—and through movement, we are meant",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "are meant to live",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "VOICE_BE_MADE_TO",
+            "sourceSpan": "were made to move",
+            "occurrenceIndex": 1,
+            "correctAnswer": "were made to move",
+            "distractor": "were made moving",
+            "transformCode": "NONFINITE_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "6ce0a23c-a15f-410c-bd32-f7e6016a247a",
+        "detectedPoints": [],
+        "candidates": []
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "yet we don’t allow ourselves to participate",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "are wonderfully made",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "OBJECT_COMPLEMENT_TO_V",
+      "sourceSpan": "ourselves to participate",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "RELATIVE_PREPOSITION_WHICH",
+      "sourceSpan": "for which",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "were created",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "PREPOSITION_INSTEAD_OF",
+      "sourceSpan": "Instead of",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "moving",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "anywhere and everywhere",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_FIXED_CONSTRUCTION",
+      "sourceSpan": "spend our time moving",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "a",
+      "occurrenceIndex": 2,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "hours and hours",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+      "sourceSpan": "are being held",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "phones and tablets",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "They are not going outside to play, they are not learning",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "INFINITIVE_ADVERB_ROLE",
+      "sourceSpan": "to play",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "socialize and read",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learning or building",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+      "sourceSpan": "help them learn",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learn, communicate, create, and become",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "how to run, how to skip, or how to climb",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "anxiety, depression, and even diseases",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "RELATIVE_OMISSION",
+      "sourceSpan": "diseases they were never meant to have",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "were never meant",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+      "sourceSpan": "we are getting",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+      "sourceSpan": "further and further",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "The",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_BE_MADE_TO",
+      "sourceSpan": "were made to move",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "We were made to move—and through movement, we are meant",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "are meant to live",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "are wonderfully made",
+      "occurrenceIndex": 1,
+      "correctAnswer": "are wonderfully made",
+      "distractors": [
+        "are wonderfully making"
+      ],
+      "transformCode": "VOICE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "RELATIVE_PREPOSITION_WHICH",
+      "sourceSpan": "for which",
+      "occurrenceIndex": 1,
+      "correctAnswer": "for which",
+      "distractors": [
+        "for that"
+      ],
+      "transformCode": "RELATIVE_CHOICE",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-3",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "moving",
+      "occurrenceIndex": 1,
+      "correctAnswer": "moving",
+      "distractors": [
+        "move"
+      ],
+      "transformCode": "NONFINITE_SWAP",
+      "priority": "BASIC",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-4",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_FIXED_CONSTRUCTION",
+      "sourceSpan": "spend our time moving",
+      "occurrenceIndex": 1,
+      "correctAnswer": "spend our time moving",
+      "distractors": [
+        "spend our time to move"
+      ],
+      "transformCode": "NONFINITE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-d6ab89e5-d089-4b0f-ae48-75ff480e3ac6-5",
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the",
+      "occurrenceIndex": 1,
+      "correctAnswer": "the",
+      "distractors": [
+        "a"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+      "sourceSpan": "are being held",
+      "occurrenceIndex": 1,
+      "correctAnswer": "are being held",
+      "distractors": [
+        "are holding"
+      ],
+      "transformCode": "VOICE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "socialize and read",
+      "occurrenceIndex": 1,
+      "correctAnswer": "socialize and read",
+      "distractors": [
+        "socialize and reading"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learning or building",
+      "occurrenceIndex": 1,
+      "correctAnswer": "learning or building",
+      "distractors": [
+        "learning or build"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "RELATIVE_CHOICE",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learn, communicate, create, and become",
+      "occurrenceIndex": 2,
+      "correctAnswer": "learn, communicate, create, and become",
+      "distractors": [
+        "learn, communicate, create, and becoming"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "how to climb",
+      "occurrenceIndex": 1,
+      "correctAnswer": "how to climb",
+      "distractors": [
+        "how climbing"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-12",
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "RELATIVE_OMISSION",
+      "sourceSpan": "diseases they were never meant to have",
+      "occurrenceIndex": 1,
+      "correctAnswer": "diseases they were never meant to have",
+      "distractors": [
+        "diseases what they were never meant to have"
+      ],
+      "transformCode": "RELATIVE_CHOICE",
+      "priority": "CORE",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+      "sourceSpan": "we are getting",
+      "occurrenceIndex": 1,
+      "correctAnswer": "we are getting",
+      "distractors": [
+        "are we getting"
+      ],
+      "transformCode": "WORD_ORDER",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+      "sourceSpan": "further and further",
+      "occurrenceIndex": 1,
+      "correctAnswer": "further and further",
+      "distractors": [
+        "further and furthest"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_BE_MADE_TO",
+      "sourceSpan": "were made to move",
+      "occurrenceIndex": 1,
+      "correctAnswer": "were made to move",
+      "distractors": [
+        "were made moving"
+      ],
+      "transformCode": "NONFINITE_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    }
+  ],
+  "routeMs": 0
+}

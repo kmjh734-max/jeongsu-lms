@@ -1,0 +1,73 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:00:06.908Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "rawJson": [
+    "{\"results\":[{\"candidateId\":\"0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1\",\"decision\":\"PASS\",\"uniqueInContext\":true,\"plausibleLearnerError\":true,\"singleGrammarAxis\":true,\"rejectionCode\":\"NONE\",\"correctedRuleCode\":\"RELATIVE_NONRESTRICTIVE\"},{\"candidateId\":\"0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-14\",\"decision\":\"PASS\",\"uniqueInContext\":true,\"plausibleLearnerError\":true,\"singleGrammarAxis\":true,\"rejectionCode\":\"NONE\",\"correctedRuleCode\":\"RELATIVE_WHAT\"},{\"candidateId\":\"0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-24\",\"decision\":\"PASS\",\"uniqueInContext\":true,\"plausibleLearnerError\":true,\"singleGrammarAxis\":true,\"rejectionCode\":\"NONE\",\"correctedRuleCode\":\"RELATIVE_WHAT\"},{\"candidateId\":\"ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-10\",\"decision\":\"PASS\",\"uniqueInContext\":true,\"plausibleLearnerError\":true,\"singleGrammarAxis\":true,\"rejectionCode\":\"NONE\",\"correctedRuleCode\":\"VOICE_PROGRESSIVE_PASSIVE\"},{\"candidateId\":\"ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-23\",\"decision\":\"PASS\",\"uniqueInContext\":true,\"plausibleLearnerError\":true,\"singleGrammarAxis\":true,\"rejectionCode\":\"NONE\",\"correctedRuleCode\":\"VOICE_BE_MADE_TO\"}]}"
+  ],
+  "parsed": [
+    {
+      "results": [
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+          "decision": "PASS",
+          "uniqueInContext": true,
+          "plausibleLearnerError": true,
+          "singleGrammarAxis": true,
+          "rejectionCode": "NONE",
+          "correctedRuleCode": "RELATIVE_NONRESTRICTIVE"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-14",
+          "decision": "PASS",
+          "uniqueInContext": true,
+          "plausibleLearnerError": true,
+          "singleGrammarAxis": true,
+          "rejectionCode": "NONE",
+          "correctedRuleCode": "RELATIVE_WHAT"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-24",
+          "decision": "PASS",
+          "uniqueInContext": true,
+          "plausibleLearnerError": true,
+          "singleGrammarAxis": true,
+          "rejectionCode": "NONE",
+          "correctedRuleCode": "RELATIVE_WHAT"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-10",
+          "decision": "PASS",
+          "uniqueInContext": true,
+          "plausibleLearnerError": true,
+          "singleGrammarAxis": true,
+          "rejectionCode": "NONE",
+          "correctedRuleCode": "VOICE_PROGRESSIVE_PASSIVE"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-23",
+          "decision": "PASS",
+          "uniqueInContext": true,
+          "plausibleLearnerError": true,
+          "singleGrammarAxis": true,
+          "rejectionCode": "NONE",
+          "correctedRuleCode": "VOICE_BE_MADE_TO"
+        }
+      ]
+    }
+  ],
+  "results": []
+}

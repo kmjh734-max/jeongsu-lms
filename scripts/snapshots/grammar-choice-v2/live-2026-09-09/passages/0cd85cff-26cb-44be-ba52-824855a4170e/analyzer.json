@@ -1,0 +1,1593 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T07:23:38.882Z",
+  "sourceId": "0cd85cff-26cb-44be-ba52-824855a4170e",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 141601,
+  "inputTokens": 1921,
+  "outputTokens": 9929,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"da72b219-e5aa-46f2-9103-16cdf87752fd\",\"detectedPoints\":[{\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"쉼표 뒤에서 선행사를 부연 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"states\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"low\",\"evidence\":\"관계사의 단수 선행사는 the Law of Attraction임\",\"omissionReason\":\"관계사와 동사가 인접한 기계적 수일치 문항임\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"두 that절이 and로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"which가 관계절의 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that ‘like attracts like’\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"that절이 states의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 번째 that절도 states의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"focusing\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"high\",\"evidence\":\"전치사 by 뒤에 동명사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"by focusing on positive or negative thoughts\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"by의 목적어로 동명사구가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"can\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"결과를 가져올 수 있다는 가능성을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"positive or negative thoughts\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 형용사가 or로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"positive or negative results\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 형용사가 or로 병렬 연결됨\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"correctAnswer\":\"which\",\"distractors\":[\"that\"],\"transformCode\":\"NONRESTRICTIVE_RELATIVE_MARKER\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"쉼표 뒤 계속적 용법에는 that을 쓰지 않음\",\"ruleSummaryKo\":\"계속적 관계절은 which로 이끈다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"occurrenceIndex\":1,\"correctAnswer\":\"that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"distractors\":[\"by focusing on positive or negative thoughts, one can bring about positive or negative results\"],\"transformCode\":\"PARALLEL_THAT_CLAUSE_MARKER\",\"priority\":\"MANDATORY\",\"difficulty\":\"high\",\"evidence\":\"앞의 that절과 같은 구조로 병렬됨\",\"ruleSummaryKo\":\"병렬된 명사절의 접속사 구조를 맞춘다\",\"riskLevel\":\"medium\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"focusing\",\"occurrenceIndex\":1,\"correctAnswer\":\"focusing\",\"distractors\":[\"focus\"],\"transformCode\":\"PREPOSITION_GERUND_FORM\",\"priority\":\"BASIC\",\"difficulty\":\"low\",\"evidence\":\"전치사 by의 목적어 자리임\",\"ruleSummaryKo\":\"전치사 뒤에는 동명사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"4ab316e4-c31d-40fa-8fa6-4b44970bc901\",\"detectedPoints\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"The common flaw in our understanding of this law is\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"긴 주어의 중심 명사 flaw가 단수임\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_PREPOSITIONAL_MODIFIER\",\"sourceSpan\":\"The common flaw in our understanding of this law is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"전치사구와 무관하게 flaw에 동사가 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"주어 뒤에 be동사와 주격보어가 이어짐\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"that we believe all we have to do is think about or visualize something to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"that절이 주어의 내용을 설명하는 보어임\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that we believe all we have to do is think about or visualize something to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"that이 완전한 명사절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"PSEUDO_CLEFT_ALL\",\"sourceSpan\":\"all we have to do is think about or visualize something\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"all절의 내용을 be동사 뒤에서 밝힘\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"think about or visualize\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"두 동사구가 or로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_ADVERB_ROLE\",\"sourceSpan\":\"to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"목적을 나타내는 부사적 부정사구임\",\"omissionReason\":\"\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"it은 앞의 something을 가리킴\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"correctAnswer\":\"is\",\"distractors\":[\"are\"],\"transformCode\":\"LONG_SUBJECT_HEAD_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"주어의 중심 명사 flaw는 단수임\",\"ruleSummaryKo\":\"긴 주어는 중심 명사의 수에 동사를 일치시킨다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"think about or visualize\",\"occurrenceIndex\":1,\"correctAnswer\":\"think about or visualize\",\"distractors\":[\"think about or visualizing\"],\"transformCode\":\"PARALLEL_VERB_FORM\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"or 양쪽에 같은 동사 형태가 필요함\",\"ruleSummaryKo\":\"등위접속사 양쪽의 동사 형태를 맞춘다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"d5266686-93c2-4e30-a119-19682a4254a3\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"두 that절이 and로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"DUMMY_IT_SUBJECT\",\"sourceSpan\":\"It\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"뒤의 that절을 대신하는 가주어임\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"It is true\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"be동사 뒤 형용사 true가 보어로 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"true\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"true가 주어의 상태를 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that we attract at the level of our own vibration\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"첫 번째 that절이 진주어 내용을 이룸\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that our thoughts and words are extremely magnetic\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 번째 that절이 병렬된 내용을 이룸\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"our thoughts and words\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 명사가 and로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"extremely magnetic\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"high\",\"evidence\":\"부사 extremely가 형용사를 수식함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that our thoughts and words are extremely magnetic\",\"occurrenceIndex\":1,\"correctAnswer\":\"that our thoughts and words are extremely magnetic\",\"distractors\":[\"our thoughts and words are extremely magnetic\"],\"transformCode\":\"PARALLEL_THAT_CLAUSE_MARKER\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"첫 that절과 동일한 명사절 구조로 병렬됨\",\"ruleSummaryKo\":\"병렬된 that절의 구조를 일관되게 유지한다\",\"riskLevel\":\"medium\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"extremely\",\"occurrenceIndex\":1,\"correctAnswer\":\"extremely\",\"distractors\":[\"extreme\"],\"transformCode\":\"ADVERB_MODIFIES_ADJECTIVE\",\"priority\":\"BASIC\",\"difficulty\":\"low\",\"evidence\":\"형용사 magnetic을 수식하는 자리임\",\"ruleSummaryKo\":\"형용사를 수식할 때는 부사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"68aaa91d-8a8d-433f-84ce-0ff97f13e5ad\",\"detectedPoints\":[{\"pointCode\":\"SUPERLATIVE\",\"sourceSpan\":\"the most powerful\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"most가 형용사의 최상급을 만듦\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"the most powerful attractor is our belief system\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"be동사 뒤 명사구가 주격보어로 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"our belief system\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"명사구가 주어 attractor의 정체를 설명함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"SUPERLATIVE\",\"sourceSpan\":\"most powerful\",\"occurrenceIndex\":1,\"correctAnswer\":\"most powerful\",\"distractors\":[\"most powerfully\"],\"transformCode\":\"SUPERLATIVE_ADJECTIVE_FORM\",\"priority\":\"CORE\",\"difficulty\":\"low\",\"evidence\":\"명사 attractor를 수식하는 형용사 최상급임\",\"ruleSummaryKo\":\"명사를 수식하는 최상급에는 형용사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"87bc4fa5-3d09-437a-ad55-6778552d7b34\",\"detectedPoints\":[{\"pointCode\":\"AGREEMENT_CLAUSE_SUBJECT\",\"sourceSpan\":\"attracting a great career or relationship into your life may be\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"low\",\"evidence\":\"동명사절 전체가 단수 주어로 기능함\",\"omissionReason\":\"조동사 뒤 형태만 묻는 기계적 문항이 됨\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what you want\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"what이 선행사를 포함한 관계대명사임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"create beautiful poster boards full of images of what you want and affirm every day\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"create와 affirm이 can을 공유하며 병렬됨\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that you are available for an incredibly successful, passionate career or a loving relationship\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"that절이 affirm의 목적어로 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if you don’t truly believe you are enough, worthy, lovable, and deserving\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"if절이 실제 가능 조건을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"attracting a great career or relationship into your life\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"동명사구가 문장의 주어로 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_ANALYSIS\",\"sourceSpan\":\"attracting a great career or relationship into your life\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"attracting이 이끄는 구 전체가 주어임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_AGREEMENT_ANALYSIS\",\"sourceSpan\":\"attracting a great career or relationship into your life may be\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"동명사구 주어는 단수로 취급됨\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more challenging\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"more가 형용사의 비교급을 만듦\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"can\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"행동의 가능성을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"may\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"결과의 가능성을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"incredibly successful\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"high\",\"evidence\":\"부사 incredibly가 형용사를 수식함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"an incredibly successful, passionate career or a loving relationship\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 명사구가 or로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"enough, worthy, lovable, and deserving\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"네 보어가 같은 형용사 기능으로 병렬됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"a great career or relationship\",\"occurrenceIndex\":3,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"두 명사가 or로 병렬 연결됨\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what\",\"occurrenceIndex\":1,\"correctAnswer\":\"what\",\"distractors\":[\"which\"],\"transformCode\":\"FUSED_RELATIVE_WHAT\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"선행사 없이 관계절의 목적어를 포함함\",\"ruleSummaryKo\":\"선행사를 포함한 관계대명사로 what을 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"enough, worthy, lovable, and deserving\",\"occurrenceIndex\":1,\"correctAnswer\":\"enough, worthy, lovable, and deserving\",\"distractors\":[\"enough, worthy, lovable, and deserve\"],\"transformCode\":\"PARALLEL_COMPLEMENT_FORM\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"be동사 뒤 보어들이 같은 형태로 병렬됨\",\"ruleSummaryKo\":\"병렬된 보어의 품사와 형태를 일치시킨다\",\"riskLevel\":\"low\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"attracting\",\"occurrenceIndex\":1,\"correctAnswer\":\"attracting\",\"distractors\":[\"attract\"],\"transformCode\":\"GERUND_AS_SUBJECT\",\"priority\":\"CORE\",\"difficulty\":\"low\",\"evidence\":\"조건절 뒤 새 절의 주어 자리임\",\"ruleSummaryKo\":\"행위를 주어로 나타낼 때 동명사를 쓸 수 있다\",\"riskLevel\":\"low\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more challenging\",\"occurrenceIndex\":1,\"correctAnswer\":\"more challenging\",\"distractors\":[\"more challengingly\"],\"transformCode\":\"COMPARATIVE_PREDICATIVE_ADJECTIVE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"be동사 뒤 주격보어로 형용사가 필요함\",\"ruleSummaryKo\":\"be동사 뒤 비교급 보어에는 형용사를 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"incredibly\",\"occurrenceIndex\":1,\"correctAnswer\":\"incredibly\",\"distractors\":[\"incredible\"],\"transformCode\":\"ADVERB_MODIFIES_ADJECTIVE\",\"priority\":\"BASIC\",\"difficulty\":\"low\",\"evidence\":\"형용사 successful을 수식함\",\"ruleSummaryKo\":\"형용사를 수식할 때는 부사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"fc1cfdbe-8e0a-40e7-89c6-c75336681cf4\",\"detectedPoints\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"what limiting beliefs you have\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"간접의문문에 주어와 동사의 평서문 어순이 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"contradict\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"관계사의 선행사 limiting beliefs가 복수임\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":2,\"priority\":\"MANDATORY\",\"questionability\":\"low\",\"evidence\":\"관계사의 선행사 beliefs가 복수임\",\"omissionReason\":\"관계사와 동사가 인접한 기계적 수일치 문항임\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what limiting beliefs you have\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"what이 이끄는 절이 Consider의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"that이 contradict의 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"that이 are의 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"Consider와 upgrade가 병렬된 명령 동사임\",\"omissionReason\":\"\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"them\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"them은 복수 명사 limiting beliefs를 가리킴\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what you want to attract\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"what이 attract의 목적어를 포함함\",\"omissionReason\":\"\"},{\"pointCode\":\"PREPOSITION_COLLOCATION\",\"sourceSpan\":\"in line with\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"line과 결합하는 전치사 구조가 쓰임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"what limiting beliefs you have\",\"occurrenceIndex\":1,\"correctAnswer\":\"what limiting beliefs you have\",\"distractors\":[\"what limiting beliefs do you have\"],\"transformCode\":\"INDIRECT_QUESTION_DECLARATIVE_ORDER\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"Consider의 목적어인 간접의문문임\",\"ruleSummaryKo\":\"간접의문문은 의문사 뒤에 평서문 어순을 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"contradict\",\"occurrenceIndex\":1,\"correctAnswer\":\"contradict\",\"distractors\":[\"contradicts\"],\"transformCode\":\"RELATIVE_ANTECEDENT_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"선행사 limiting beliefs가 복수임\",\"ruleSummaryKo\":\"관계절 동사는 선행사의 수에 일치시킨다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"them\",\"occurrenceIndex\":1,\"correctAnswer\":\"them\",\"distractors\":[\"it\"],\"transformCode\":\"PRONOUN_NUMBER_AGREEMENT\",\"priority\":\"CORE\",\"difficulty\":\"low\",\"evidence\":\"복수 선행사 limiting beliefs를 받음\",\"ruleSummaryKo\":\"대명사의 수는 선행사의 수와 일치시킨다\",\"riskLevel\":\"low\"}]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "detectedPoints": [
+          {
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "쉼표 뒤에서 선행사를 부연 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "states",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "low",
+            "evidence": "관계사의 단수 선행사는 the Law of Attraction임",
+            "omissionReason": "관계사와 동사가 인접한 기계적 수일치 문항임"
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "두 that절이 and로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "which가 관계절의 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that ‘like attracts like’",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "that절이 states의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 번째 that절도 states의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "focusing",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "high",
+            "evidence": "전치사 by 뒤에 동명사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "by focusing on positive or negative thoughts",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "by의 목적어로 동명사구가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "can",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "결과를 가져올 수 있다는 가능성을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "positive or negative thoughts",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 형용사가 or로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "positive or negative results",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 형용사가 or로 병렬 연결됨",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "correctAnswer": "which",
+            "distractors": [
+              "that"
+            ],
+            "transformCode": "NONRESTRICTIVE_RELATIVE_MARKER",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+            "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "distractors": [
+              "by focusing on positive or negative thoughts, one can bring about positive or negative results"
+            ],
+            "transformCode": "PARALLEL_THAT_CLAUSE_MARKER",
+            "priority": "MANDATORY",
+            "difficulty": "high",
+            "evidence": "앞의 that절과 같은 구조로 병렬됨",
+            "ruleSummaryKo": "병렬된 명사절의 접속사 구조를 맞춘다",
+            "riskLevel": "medium"
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "focusing",
+            "occurrenceIndex": 1,
+            "correctAnswer": "focusing",
+            "distractors": [
+              "focus"
+            ],
+            "transformCode": "PREPOSITION_GERUND_FORM",
+            "priority": "BASIC",
+            "difficulty": "low",
+            "evidence": "전치사 by의 목적어 자리임",
+            "ruleSummaryKo": "전치사 뒤에는 동명사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "detectedPoints": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "The common flaw in our understanding of this law is",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "긴 주어의 중심 명사 flaw가 단수임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+            "sourceSpan": "The common flaw in our understanding of this law is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "전치사구와 무관하게 flaw에 동사가 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "주어 뒤에 be동사와 주격보어가 이어짐",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "that절이 주어의 내용을 설명하는 보어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "that이 완전한 명사절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PSEUDO_CLEFT_ALL",
+            "sourceSpan": "all we have to do is think about or visualize something",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "all절의 내용을 be동사 뒤에서 밝힘",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "think about or visualize",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "두 동사구가 or로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_ADVERB_ROLE",
+            "sourceSpan": "to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "목적을 나타내는 부사적 부정사구임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "it은 앞의 something을 가리킴",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "correctAnswer": "is",
+            "distractors": [
+              "are"
+            ],
+            "transformCode": "LONG_SUBJECT_HEAD_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "주어의 중심 명사 flaw는 단수임",
+            "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "think about or visualize",
+            "occurrenceIndex": 1,
+            "correctAnswer": "think about or visualize",
+            "distractors": [
+              "think about or visualizing"
+            ],
+            "transformCode": "PARALLEL_VERB_FORM",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "or 양쪽에 같은 동사 형태가 필요함",
+            "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "두 that절이 and로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "DUMMY_IT_SUBJECT",
+            "sourceSpan": "It",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "뒤의 that절을 대신하는 가주어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "It is true",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "be동사 뒤 형용사 true가 보어로 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "true",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "true가 주어의 상태를 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that we attract at the level of our own vibration",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "첫 번째 that절이 진주어 내용을 이룸",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that our thoughts and words are extremely magnetic",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 번째 that절이 병렬된 내용을 이룸",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "our thoughts and words",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 명사가 and로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "extremely magnetic",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "high",
+            "evidence": "부사 extremely가 형용사를 수식함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that our thoughts and words are extremely magnetic",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that our thoughts and words are extremely magnetic",
+            "distractors": [
+              "our thoughts and words are extremely magnetic"
+            ],
+            "transformCode": "PARALLEL_THAT_CLAUSE_MARKER",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "첫 that절과 동일한 명사절 구조로 병렬됨",
+            "ruleSummaryKo": "병렬된 that절의 구조를 일관되게 유지한다",
+            "riskLevel": "medium"
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "extremely",
+            "occurrenceIndex": 1,
+            "correctAnswer": "extremely",
+            "distractors": [
+              "extreme"
+            ],
+            "transformCode": "ADVERB_MODIFIES_ADJECTIVE",
+            "priority": "BASIC",
+            "difficulty": "low",
+            "evidence": "형용사 magnetic을 수식하는 자리임",
+            "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "detectedPoints": [
+          {
+            "pointCode": "SUPERLATIVE",
+            "sourceSpan": "the most powerful",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "most가 형용사의 최상급을 만듦",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "the most powerful attractor is our belief system",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "be동사 뒤 명사구가 주격보어로 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "our belief system",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "명사구가 주어 attractor의 정체를 설명함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "SUPERLATIVE",
+            "sourceSpan": "most powerful",
+            "occurrenceIndex": 1,
+            "correctAnswer": "most powerful",
+            "distractors": [
+              "most powerfully"
+            ],
+            "transformCode": "SUPERLATIVE_ADJECTIVE_FORM",
+            "priority": "CORE",
+            "difficulty": "low",
+            "evidence": "명사 attractor를 수식하는 형용사 최상급임",
+            "ruleSummaryKo": "명사를 수식하는 최상급에는 형용사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "detectedPoints": [
+          {
+            "pointCode": "AGREEMENT_CLAUSE_SUBJECT",
+            "sourceSpan": "attracting a great career or relationship into your life may be",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "low",
+            "evidence": "동명사절 전체가 단수 주어로 기능함",
+            "omissionReason": "조동사 뒤 형태만 묻는 기계적 문항이 됨"
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what you want",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "what이 선행사를 포함한 관계대명사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "create beautiful poster boards full of images of what you want and affirm every day",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "create와 affirm이 can을 공유하며 병렬됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that you are available for an incredibly successful, passionate career or a loving relationship",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "that절이 affirm의 목적어로 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "if절이 실제 가능 조건을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "attracting a great career or relationship into your life",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "동명사구가 문장의 주어로 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_ANALYSIS",
+            "sourceSpan": "attracting a great career or relationship into your life",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "attracting이 이끄는 구 전체가 주어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "sourceSpan": "attracting a great career or relationship into your life may be",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "동명사구 주어는 단수로 취급됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more challenging",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "more가 형용사의 비교급을 만듦",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "can",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "행동의 가능성을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "may",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "결과의 가능성을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "incredibly successful",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "high",
+            "evidence": "부사 incredibly가 형용사를 수식함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "an incredibly successful, passionate career or a loving relationship",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 명사구가 or로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "enough, worthy, lovable, and deserving",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "네 보어가 같은 형용사 기능으로 병렬됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "a great career or relationship",
+            "occurrenceIndex": 3,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "두 명사가 or로 병렬 연결됨",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what",
+            "distractors": [
+              "which"
+            ],
+            "transformCode": "FUSED_RELATIVE_WHAT",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "선행사 없이 관계절의 목적어를 포함함",
+            "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "enough, worthy, lovable, and deserving",
+            "occurrenceIndex": 1,
+            "correctAnswer": "enough, worthy, lovable, and deserving",
+            "distractors": [
+              "enough, worthy, lovable, and deserve"
+            ],
+            "transformCode": "PARALLEL_COMPLEMENT_FORM",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "be동사 뒤 보어들이 같은 형태로 병렬됨",
+            "ruleSummaryKo": "병렬된 보어의 품사와 형태를 일치시킨다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "attracting",
+            "occurrenceIndex": 1,
+            "correctAnswer": "attracting",
+            "distractors": [
+              "attract"
+            ],
+            "transformCode": "GERUND_AS_SUBJECT",
+            "priority": "CORE",
+            "difficulty": "low",
+            "evidence": "조건절 뒤 새 절의 주어 자리임",
+            "ruleSummaryKo": "행위를 주어로 나타낼 때 동명사를 쓸 수 있다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more challenging",
+            "occurrenceIndex": 1,
+            "correctAnswer": "more challenging",
+            "distractors": [
+              "more challengingly"
+            ],
+            "transformCode": "COMPARATIVE_PREDICATIVE_ADJECTIVE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+            "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "incredibly",
+            "occurrenceIndex": 1,
+            "correctAnswer": "incredibly",
+            "distractors": [
+              "incredible"
+            ],
+            "transformCode": "ADVERB_MODIFIES_ADJECTIVE",
+            "priority": "BASIC",
+            "difficulty": "low",
+            "evidence": "형용사 successful을 수식함",
+            "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "detectedPoints": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "what limiting beliefs you have",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "간접의문문에 주어와 동사의 평서문 어순이 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "contradict",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "관계사의 선행사 limiting beliefs가 복수임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 2,
+            "priority": "MANDATORY",
+            "questionability": "low",
+            "evidence": "관계사의 선행사 beliefs가 복수임",
+            "omissionReason": "관계사와 동사가 인접한 기계적 수일치 문항임"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what limiting beliefs you have",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "what이 이끄는 절이 Consider의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "that이 contradict의 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "that이 are의 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "Consider와 upgrade가 병렬된 명령 동사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "them",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "them은 복수 명사 limiting beliefs를 가리킴",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what you want to attract",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "what이 attract의 목적어를 포함함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PREPOSITION_COLLOCATION",
+            "sourceSpan": "in line with",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "line과 결합하는 전치사 구조가 쓰임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "what limiting beliefs you have",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what limiting beliefs you have",
+            "distractors": [
+              "what limiting beliefs do you have"
+            ],
+            "transformCode": "INDIRECT_QUESTION_DECLARATIVE_ORDER",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "Consider의 목적어인 간접의문문임",
+            "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "contradict",
+            "occurrenceIndex": 1,
+            "correctAnswer": "contradict",
+            "distractors": [
+              "contradicts"
+            ],
+            "transformCode": "RELATIVE_ANTECEDENT_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "선행사 limiting beliefs가 복수임",
+            "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "them",
+            "occurrenceIndex": 1,
+            "correctAnswer": "them",
+            "distractors": [
+              "it"
+            ],
+            "transformCode": "PRONOUN_NUMBER_AGREEMENT",
+            "priority": "CORE",
+            "difficulty": "low",
+            "evidence": "복수 선행사 limiting beliefs를 받음",
+            "ruleSummaryKo": "대명사의 수는 선행사의 수와 일치시킨다",
+            "riskLevel": "low"
+          }
+        ]
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "쉼표 뒤에서 선행사를 부연 설명함"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "states",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "관계사의 단수 선행사는 the Law of Attraction임"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "두 that절이 and로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "which가 관계절의 주어 역할을 함"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that ‘like attracts like’",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that절이 states의 목적어임"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 번째 that절도 states의 목적어임"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "focusing",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "전치사 by 뒤에 동명사가 쓰임"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "by focusing on positive or negative thoughts",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "by의 목적어로 동명사구가 쓰임"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "can",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "결과를 가져올 수 있다는 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "positive or negative thoughts",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 형용사가 or로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "positive or negative results",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 형용사가 or로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "The common flaw in our understanding of this law is",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "긴 주어의 중심 명사 flaw가 단수임"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+      "sourceSpan": "The common flaw in our understanding of this law is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "전치사구와 무관하게 flaw에 동사가 일치함"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "주어 뒤에 be동사와 주격보어가 이어짐"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that절이 주어의 내용을 설명하는 보어임"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that이 완전한 명사절을 이끎"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PSEUDO_CLEFT_ALL",
+      "sourceSpan": "all we have to do is think about or visualize something",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "all절의 내용을 be동사 뒤에서 밝힘"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "think about or visualize",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 동사구가 or로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "INFINITIVE_ADVERB_ROLE",
+      "sourceSpan": "to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "목적을 나타내는 부사적 부정사구임"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "it은 앞의 something을 가리킴"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "두 that절이 and로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "DUMMY_IT_SUBJECT",
+      "sourceSpan": "It",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "뒤의 that절을 대신하는 가주어임"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "It is true",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "be동사 뒤 형용사 true가 보어로 쓰임"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "true",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "true가 주어의 상태를 설명함"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that we attract at the level of our own vibration",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "첫 번째 that절이 진주어 내용을 이룸"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that our thoughts and words are extremely magnetic",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 번째 that절이 병렬된 내용을 이룸"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "our thoughts and words",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 명사가 and로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "extremely magnetic",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "부사 extremely가 형용사를 수식함"
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUPERLATIVE",
+      "sourceSpan": "the most powerful",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "most가 형용사의 최상급을 만듦"
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "the most powerful attractor is our belief system",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "be동사 뒤 명사구가 주격보어로 쓰임"
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "our belief system",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "명사구가 주어 attractor의 정체를 설명함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "AGREEMENT_CLAUSE_SUBJECT",
+      "sourceSpan": "attracting a great career or relationship into your life may be",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "동명사절 전체가 단수 주어로 기능함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what you want",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "what이 선행사를 포함한 관계대명사임"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "create beautiful poster boards full of images of what you want and affirm every day",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "create와 affirm이 can을 공유하며 병렬됨"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that you are available for an incredibly successful, passionate career or a loving relationship",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that절이 affirm의 목적어로 쓰임"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "if절이 실제 가능 조건을 나타냄"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "attracting a great career or relationship into your life",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사구가 문장의 주어로 쓰임"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT_ANALYSIS",
+      "sourceSpan": "attracting a great career or relationship into your life",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "attracting이 이끄는 구 전체가 주어임"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+      "sourceSpan": "attracting a great career or relationship into your life may be",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사구 주어는 단수로 취급됨"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more challenging",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "more가 형용사의 비교급을 만듦"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "can",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "행동의 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "may",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "결과의 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "incredibly successful",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "부사 incredibly가 형용사를 수식함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "an incredibly successful, passionate career or a loving relationship",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 명사구가 or로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "enough, worthy, lovable, and deserving",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "네 보어가 같은 형용사 기능으로 병렬됨"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "a great career or relationship",
+      "occurrenceIndex": 3,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 명사가 or로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "what limiting beliefs you have",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "간접의문문에 주어와 동사의 평서문 어순이 쓰임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "contradict",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "관계사의 선행사 limiting beliefs가 복수임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 2,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "관계사의 선행사 beliefs가 복수임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what limiting beliefs you have",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "what이 이끄는 절이 Consider의 목적어임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that이 contradict의 주어 역할을 함"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that이 are의 주어 역할을 함"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "Consider와 upgrade가 병렬된 명령 동사임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "them",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "them은 복수 명사 limiting beliefs를 가리킴"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what you want to attract",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "what이 attract의 목적어를 포함함"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PREPOSITION_COLLOCATION",
+      "sourceSpan": "in line with",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "line과 결합하는 전치사 구조가 쓰임"
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "correctAnswer": "which",
+      "distractors": [
+        "that"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+      "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "distractors": [
+        "by focusing on positive or negative thoughts, one can bring about positive or negative results"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "앞의 that절과 같은 구조로 병렬됨",
+      "ruleSummaryKo": "병렬된 명사절의 접속사 구조를 맞춘다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "focusing",
+      "occurrenceIndex": 1,
+      "correctAnswer": "focusing",
+      "distractors": [
+        "focus"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "전치사 by의 목적어 자리임",
+      "ruleSummaryKo": "전치사 뒤에는 동명사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "correctAnswer": "is",
+      "distractors": [
+        "are"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "주어의 중심 명사 flaw는 단수임",
+      "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "think about or visualize",
+      "occurrenceIndex": 1,
+      "correctAnswer": "think about or visualize",
+      "distractors": [
+        "think about or visualizing"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "or 양쪽에 같은 동사 형태가 필요함",
+      "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-6",
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that our thoughts and words are extremely magnetic",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that our thoughts and words are extremely magnetic",
+      "distractors": [
+        "our thoughts and words are extremely magnetic"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "첫 that절과 동일한 명사절 구조로 병렬됨",
+      "ruleSummaryKo": "병렬된 that절의 구조를 일관되게 유지한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "extremely",
+      "occurrenceIndex": 1,
+      "correctAnswer": "extremely",
+      "distractors": [
+        "extreme"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "형용사 magnetic을 수식하는 자리임",
+      "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-68aaa91d-8a8d-433f-84ce-0ff97f13e5ad-8",
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUPERLATIVE",
+      "sourceSpan": "most powerful",
+      "occurrenceIndex": 1,
+      "correctAnswer": "most powerful",
+      "distractors": [
+        "most powerfully"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "명사 attractor를 수식하는 형용사 최상급임",
+      "ruleSummaryKo": "명사를 수식하는 최상급에는 형용사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what",
+      "distractors": [
+        "which"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "선행사 없이 관계절의 목적어를 포함함",
+      "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-10",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "enough, worthy, lovable, and deserving",
+      "occurrenceIndex": 1,
+      "correctAnswer": "enough, worthy, lovable, and deserving",
+      "distractors": [
+        "enough, worthy, lovable, and deserve"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "be동사 뒤 보어들이 같은 형태로 병렬됨",
+      "ruleSummaryKo": "병렬된 보어의 품사와 형태를 일치시킨다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-11",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "attracting",
+      "occurrenceIndex": 1,
+      "correctAnswer": "attracting",
+      "distractors": [
+        "attract"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "조건절 뒤 새 절의 주어 자리임",
+      "ruleSummaryKo": "행위를 주어로 나타낼 때 동명사를 쓸 수 있다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more challenging",
+      "occurrenceIndex": 1,
+      "correctAnswer": "more challenging",
+      "distractors": [
+        "more challengingly"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+      "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-13",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "incredibly",
+      "occurrenceIndex": 1,
+      "correctAnswer": "incredibly",
+      "distractors": [
+        "incredible"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "형용사 successful을 수식함",
+      "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "what limiting beliefs you have",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what limiting beliefs you have",
+      "distractors": [
+        "what limiting beliefs do you have"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "Consider의 목적어인 간접의문문임",
+      "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "contradict",
+      "occurrenceIndex": 1,
+      "correctAnswer": "contradict",
+      "distractors": [
+        "contradicts"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "선행사 limiting beliefs가 복수임",
+      "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-16",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "them",
+      "occurrenceIndex": 1,
+      "correctAnswer": "them",
+      "distractors": [
+        "it"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "복수 선행사 limiting beliefs를 받음",
+      "ruleSummaryKo": "대명사의 수는 선행사의 수와 일치시킨다",
+      "riskLevel": "MEDIUM"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:00:06.912Z",
+  "sourceId": null,
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "status": "FINISHED",
+  "passageIds": [
+    "0cd85cff-26cb-44be-ba52-824855a4170e",
+    "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+    "3b01c20a-c147-4d30-b062-53d4f2efd9ac",
+    "15887084-262f-4c77-9c90-023c2551151f"
+  ],
+  "openAICallCount": 5,
+  "generateApiCalls": 4,
+  "reviewApiCalls": 1,
+  "snapshotDir": "scripts/snapshots/grammar-choice-v2/live-2026-09-09-routed"
+}

@@ -1,0 +1,1862 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T09:57:19.988Z",
+  "sourceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 135254,
+  "inputTokens": 2184,
+  "outputTokens": 10089,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"fa5d682b-9c04-4f0b-a13a-a7664555dabe\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"We are wonderfully made, yet we don’t allow ourselves to participate\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"yet이 두 개의 독립절을 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"are wonderfully made\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"주어 We가 만들어지는 대상임\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"were created\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"주어 we가 창조된 대상임\",\"omissionReason\":\"\"},{\"pointCode\":\"OBJECT_COMPLEMENT_TO_V\",\"sourceSpan\":\"ourselves to participate\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"allow의 목적어 뒤에 to부정사가 옴\",\"omissionReason\":\"\"},{\"pointCode\":\"OBJECT_COMPLEMENT_TO_V_ANALYSIS\",\"sourceSpan\":\"ourselves to participate\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"목적어와 to부정사가 의미상 주술 관계임\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_PREPOSITION_WHICH\",\"sourceSpan\":\"for which\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"전치사 for가 관계대명사 앞에 위치함\",\"omissionReason\":\"\"},{\"pointCode\":\"PREPOSITION_COLLOCATION\",\"sourceSpan\":\"participate in\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"participate는 대상 앞에 in을 취함\",\"omissionReason\":\"\"},{\"pointCode\":\"CONFUSABLE_ADVERB\",\"sourceSpan\":\"wonderfully made\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"부사가 과거분사 made를 수식함\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the wonder\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"특정한 wonder를 정관사로 한정함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"We are wonderfully made, yet we don’t allow ourselves to participate\",\"occurrenceIndex\":1,\"correctAnswer\":\"We are wonderfully made, yet we don’t allow ourselves to participate\",\"distractors\":[\"We are wonderfully made, yet we not allow ourselves to participate\"],\"transformCode\":\"BREAK_FINITE_CLAUSE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"yet 뒤에도 주어와 정동사가 필요함\",\"ruleSummaryKo\":\"등위접속사로 연결된 절은 완전한 절 구조를 갖춘다\",\"riskLevel\":\"low\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"are wonderfully made\",\"occurrenceIndex\":1,\"correctAnswer\":\"are wonderfully made\",\"distractors\":[\"wonderfully make\",\"are wonderfully making\"],\"transformCode\":\"PASSIVE_TO_ACTIVE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"We는 만드는 주체가 아니라 만들어진 대상임\",\"ruleSummaryKo\":\"행위의 대상인 주어에는 수동태를 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"were created\",\"occurrenceIndex\":2,\"correctAnswer\":\"were created\",\"distractors\":[\"created\",\"were creating\"],\"transformCode\":\"PASSIVE_TO_ACTIVE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"we가 창조된 대상이므로 수동태임\",\"ruleSummaryKo\":\"행위의 대상은 be동사와 과거분사로 나타낸다\",\"riskLevel\":\"low\"},{\"pointCode\":\"OBJECT_COMPLEMENT_TO_V\",\"sourceSpan\":\"ourselves to participate\",\"occurrenceIndex\":1,\"correctAnswer\":\"ourselves to participate\",\"distractors\":[\"ourselves participating\",\"ourselves participate\"],\"transformCode\":\"OBJECT_COMPLEMENT_FORM\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"allow는 목적어 뒤에 to부정사를 취함\",\"ruleSummaryKo\":\"allow는 목적어와 to부정사를 목적격보어로 취한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"RELATIVE_PREPOSITION_WHICH\",\"sourceSpan\":\"for which\",\"occurrenceIndex\":1,\"correctAnswer\":\"for which\",\"distractors\":[\"for that\",\"which for\"],\"transformCode\":\"PREPOSITION_RELATIVE_ORDER\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"전치사 뒤에는 관계대명사 which가 필요함\",\"ruleSummaryKo\":\"전치사 뒤에는 that이 아닌 which를 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"CONFUSABLE_ADVERB\",\"sourceSpan\":\"wonderfully made\",\"occurrenceIndex\":1,\"correctAnswer\":\"wonderfully made\",\"distractors\":[\"wonderful made\"],\"transformCode\":\"ADJECTIVE_ADVERB\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"made를 수식하므로 부사형이 필요함\",\"ruleSummaryKo\":\"분사를 수식할 때는 부사를 사용한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"eca1cec4-e242-4e74-ad3d-b63d8450f4a3\",\"detectedPoints\":[{\"pointCode\":\"PREPOSITION_INSTEAD_OF\",\"sourceSpan\":\"Instead of moving\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"instead of 뒤에 동명사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"moving\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"high\",\"evidence\":\"전치사 of의 목적어로 동명사가 옴\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"of moving\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"moving은 전치사 of의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_FIXED_CONSTRUCTION\",\"sourceSpan\":\"spend our time moving\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"spend time 뒤에 동명사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"anywhere and everywhere\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"and가 두 장소 부사를 병렬 연결함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PREPOSITION_INSTEAD_OF\",\"sourceSpan\":\"Instead of moving\",\"occurrenceIndex\":1,\"correctAnswer\":\"Instead of moving\",\"distractors\":[\"Instead of move\",\"Instead to moving\"],\"transformCode\":\"PREPOSITION_GERUND\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"of는 전치사이므로 뒤에 동명사가 필요함\",\"ruleSummaryKo\":\"instead of 뒤에는 명사나 동명사를 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"GERUND_FIXED_CONSTRUCTION\",\"sourceSpan\":\"spend our time moving\",\"occurrenceIndex\":1,\"correctAnswer\":\"spend our time moving\",\"distractors\":[\"spend our time to move\",\"spend our time move\"],\"transformCode\":\"SPEND_TIME_GERUND\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"spend time은 뒤에 동명사를 취함\",\"ruleSummaryKo\":\"spend time 뒤에는 동명사를 사용한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"d6ab89e5-d089-4b0f-ae48-75ff480e3ac6\",\"detectedPoints\":[{\"pointCode\":\"TENSE_EXPLICIT_TIME_MARKER\",\"sourceSpan\":\"occupy\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"every day가 반복되는 현재 습관을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"hours and hours\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"and가 같은 명사를 반복 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the same square footage\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"same 앞에 정관사 the가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"a chair\",\"occurrenceIndex\":2,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"단수 가산명사 chair가 부정관사를 취함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"TENSE_EXPLICIT_TIME_MARKER\",\"sourceSpan\":\"occupy\",\"occurrenceIndex\":1,\"correctAnswer\":\"occupy\",\"distractors\":[\"occupied\",\"are occupying\"],\"transformCode\":\"HABITUAL_PRESENT_TENSE\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"every day는 반복적 습관을 나타냄\",\"ruleSummaryKo\":\"현재의 반복적 습관은 단순현재로 나타낸다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"7286ec55-f639-41ab-a201-d8b2243dce97\",\"detectedPoints\":[{\"pointCode\":\"VOICE_PROGRESSIVE_PASSIVE\",\"sourceSpan\":\"are being held\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"아이들이 현재 붙잡혀 있는 진행 수동임\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"are being held\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"주어 Many kids가 행위의 대상임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"phones and tablets\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"and가 두 복수명사를 병렬 연결함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"VOICE_PROGRESSIVE_PASSIVE\",\"sourceSpan\":\"are being held\",\"occurrenceIndex\":1,\"correctAnswer\":\"are being held\",\"distractors\":[\"are holding\",\"are being holding\"],\"transformCode\":\"PROGRESSIVE_PASSIVE_FORM\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"kids가 붙잡는 주체가 아니라 붙잡힌 대상임\",\"ruleSummaryKo\":\"진행 수동태는 be being p.p. 형태로 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"17a8930e-18fb-49e8-9fc0-6b2442b87be5\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"They are not going outside to play, they are not learning\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"두 개의 독립절이 동일한 구조로 이어짐\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_ADVERB_ROLE\",\"sourceSpan\":\"to play\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"밖에 나가는 목적을 나타내는 부사적 용법임\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_NOUN_ROLE\",\"sourceSpan\":\"how to socialize and read physical cues from others\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"의문사 to부정사구가 learning의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"socialize and read\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"and가 두 동사원형을 병렬 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"socialize and read\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"and 양쪽에 같은 형태의 동사가 놓임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"They are not going outside to play, they are not learning\",\"occurrenceIndex\":1,\"correctAnswer\":\"They are not going outside to play, they are not learning\",\"distractors\":[\"They are not going outside to play, they not learning\"],\"transformCode\":\"BREAK_FINITE_CLAUSE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"두 번째 절에도 정동사 are가 필요함\",\"ruleSummaryKo\":\"독립절은 주어와 정동사를 갖춰야 한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"socialize and read\",\"occurrenceIndex\":1,\"correctAnswer\":\"socialize and read\",\"distractors\":[\"socializing and read\",\"socialize and reading\"],\"transformCode\":\"BREAK_VERB_PARALLELISM\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"to가 socialize와 read에 공통으로 적용됨\",\"ruleSummaryKo\":\"접속사로 연결된 동사는 같은 형태를 유지한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"55d3264f-cc23-4ead-85c6-c6d6153f2880\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learning or building\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"or가 두 동명사 형태를 병렬 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"learning or building\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"or 양쪽에 같은 형태가 놓임\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that will help them learn, communicate, create, and become emotionally mature\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"that이 관계절의 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"OBJECT_COMPLEMENT_BARE_V\",\"sourceSpan\":\"help them learn\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"help의 목적어 뒤에 동사원형이 옴\",\"omissionReason\":\"\"},{\"pointCode\":\"OBJECT_COMPLEMENT_BARE_ANALYSIS\",\"sourceSpan\":\"them learn\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"them과 learn이 의미상 주술 관계임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learn, communicate, create, and become\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"네 동사원형이 병렬로 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"learn, communicate, create, and become\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"and가 동일 형태의 마지막 동사를 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"CONFUSABLE_ADVERB\",\"sourceSpan\":\"emotionally mature\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"부사 emotionally가 형용사 mature를 수식함\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the very thing\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"특정 대상을 정관사 the로 한정함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learning or building\",\"occurrenceIndex\":1,\"correctAnswer\":\"learning or building\",\"distractors\":[\"learning or build\",\"learn or building\"],\"transformCode\":\"BREAK_VERB_PARALLELISM\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"or 양쪽은 모두 learning과 결합하는 동명사임\",\"ruleSummaryKo\":\"등위접속사 양쪽은 같은 문법 형태를 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"RELATIVE_TO_FUSED_RELATIVE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"선행사 thing이 있으므로 관계대명사가 필요함\",\"ruleSummaryKo\":\"선행사가 있으면 관계대명사 what을 쓰지 않는다\",\"riskLevel\":\"low\"},{\"pointCode\":\"OBJECT_COMPLEMENT_BARE_V\",\"sourceSpan\":\"help them learn\",\"occurrenceIndex\":1,\"correctAnswer\":\"help them learn\",\"distractors\":[\"help them learning\"],\"transformCode\":\"BARE_COMPLEMENT_TO_GERUND\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"help 뒤 목적격보어로 동사원형이 쓰임\",\"ruleSummaryKo\":\"help는 목적어 뒤에 동사원형을 취할 수 있다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"learn, communicate, create, and become\",\"occurrenceIndex\":2,\"correctAnswer\":\"learn, communicate, create, and become\",\"distractors\":[\"learn, communicating, create, and become\",\"learn, communicate, creating, and become\"],\"transformCode\":\"BREAK_LIST_PARALLELISM\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"네 동사가 모두 help의 목적격보어로 병렬됨\",\"ruleSummaryKo\":\"나열된 동사들은 동일한 형태를 유지한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"CONFUSABLE_ADVERB\",\"sourceSpan\":\"emotionally mature\",\"occurrenceIndex\":1,\"correctAnswer\":\"emotionally mature\",\"distractors\":[\"emotional mature\"],\"transformCode\":\"ADJECTIVE_ADVERB\",\"priority\":\"CORE\",\"difficulty\":\"easy\",\"evidence\":\"mature를 수식하므로 부사형이 필요함\",\"ruleSummaryKo\":\"형용사를 수식할 때는 부사를 사용한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"38c8d85b-3668-4faf-b802-96c52b453612\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"how to run, how to skip, or how to climb\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"세 의문사 to부정사절이 병렬로 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"how to run, how to skip, or how to climb\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"or가 동일 구조의 마지막 항목을 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_NOUN_ROLE\",\"sourceSpan\":\"how to run\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"의문사 to부정사절이 learning의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_NOUN_ROLE\",\"sourceSpan\":\"how to skip\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"의문사 to부정사절이 병렬 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_NOUN_ROLE\",\"sourceSpan\":\"how to climb\",\"occurrenceIndex\":3,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"의문사 to부정사절이 병렬 목적어임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"how to run, how to skip, or how to climb\",\"occurrenceIndex\":1,\"correctAnswer\":\"how to run, how to skip, or how to climb\",\"distractors\":[\"how to run, how skipping, or how to climb\",\"how to run, how to skip, or how climb\"],\"transformCode\":\"BREAK_CLAUSE_PARALLELISM\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"세 항목 모두 how to V 구조를 유지함\",\"ruleSummaryKo\":\"병렬된 절은 동일한 문법 구조를 유지한다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"433f228c-5bae-4525-b373-9af91700f7a9\",\"detectedPoints\":[{\"pointCode\":\"INFINITIVE_NOUN_ROLE\",\"sourceSpan\":\"how to live with anxiety, depression, and even diseases\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"의문사 to부정사절이 learning의 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"anxiety, depression, and even diseases\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"세 명사가 and로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_OMISSION\",\"sourceSpan\":\"diseases they were never meant to have\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"diseases 뒤 목적격 관계대명사가 생략됨\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"were never meant to have\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"they가 의도된 대상으로 수동태가 쓰임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_OMISSION\",\"sourceSpan\":\"diseases they were never meant to have\",\"occurrenceIndex\":1,\"correctAnswer\":\"diseases they were never meant to have\",\"distractors\":[\"diseases what they were never meant to have\"],\"transformCode\":\"OMITTED_RELATIVE_TO_WHAT\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"선행사 뒤 목적격 관계대명사는 생략 가능함\",\"ruleSummaryKo\":\"선행사가 있으면 관계대명사 what을 쓰지 않는다\",\"riskLevel\":\"low\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"were never meant to have\",\"occurrenceIndex\":1,\"correctAnswer\":\"were never meant to have\",\"distractors\":[\"were never mean to have\",\"were never meaning to have\"],\"transformCode\":\"PASSIVE_PARTICIPLE_FORM\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"be동사 뒤에 과거분사 meant가 필요함\",\"ruleSummaryKo\":\"수동태는 be동사와 과거분사로 만든다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"c8869225-b030-4f97-8dd7-f08bf0440400\",\"detectedPoints\":[{\"pointCode\":\"NOUN_CLAUSE_DECLARATIVE_ORDER\",\"sourceSpan\":\"we are getting further and further away from our design\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"보어 역할의 명사절이 평서문 어순을 취함\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"further\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"far의 비교급이 거리 증가를 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"further\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"비교급 반복으로 변화의 지속을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE_AND_COMPARATIVE\",\"sourceSpan\":\"further and further\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"비교급이 and로 반복되어 점진적 변화를 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"PREPOSITION_COLLOCATION\",\"sourceSpan\":\"away from\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"away가 거리의 기준 앞에 from을 취함\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"The point\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"문맥상 특정한 요점을 정관사로 한정함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"NOUN_CLAUSE_DECLARATIVE_ORDER\",\"sourceSpan\":\"we are getting further and further away from our design\",\"occurrenceIndex\":1,\"correctAnswer\":\"we are getting further and further away from our design\",\"distractors\":[\"are we getting further and further away from our design\"],\"transformCode\":\"DECLARATIVE_TO_QUESTION_ORDER\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"명사절 내부는 주어 다음에 동사가 옴\",\"ruleSummaryKo\":\"진술 명사절은 의문문이 아닌 평서문 어순을 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"COMPARATIVE_AND_COMPARATIVE\",\"sourceSpan\":\"further and further\",\"occurrenceIndex\":1,\"correctAnswer\":\"further and further\",\"distractors\":[\"more and more far\",\"more further and more further\"],\"transformCode\":\"GRADUAL_COMPARATIVE_FORM\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"같은 비교급을 and로 반복한 구조임\",\"ruleSummaryKo\":\"점진적 변화는 비교급 and 비교급으로 나타낸다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"6230dd5c-f0f6-4cb7-a037-2d2e8f988674\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"We were made to move—and through movement, we are meant to live extraordinary lives\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"low\",\"evidence\":\"and가 주어와 동사를 갖춘 두 절을 연결함\",\"omissionReason\":\"단일 문법 축으로 오답을 만들기 어려움\"},{\"pointCode\":\"VOICE_BE_MADE_TO\",\"sourceSpan\":\"were made to move\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"수동태 made 뒤에 to부정사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"were made to move\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"We가 만들어진 대상이므로 수동태임\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"are meant to live\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"We가 의도된 대상으로 수동태가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"and through movement, we are meant to live extraordinary lives\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"and가 앞뒤의 두 절을 연결함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"VOICE_BE_MADE_TO\",\"sourceSpan\":\"were made to move\",\"occurrenceIndex\":1,\"correctAnswer\":\"were made to move\",\"distractors\":[\"were made move\",\"were made moving\"],\"transformCode\":\"PASSIVE_CAUSATIVE_COMPLEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"make의 수동태에서는 목적격보어 앞에 to가 복원됨\",\"ruleSummaryKo\":\"make가 수동태가 되면 뒤에 to부정사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"6ce0a23c-a15f-410c-bd32-f7e6016a247a\",\"detectedPoints\":[],\"candidates\":[]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "We are wonderfully made, yet we don’t allow ourselves to participate",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "yet이 두 개의 독립절을 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "are wonderfully made",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "주어 We가 만들어지는 대상임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "were created",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "주어 we가 창조된 대상임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_TO_V",
+            "sourceSpan": "ourselves to participate",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "allow의 목적어 뒤에 to부정사가 옴",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+            "sourceSpan": "ourselves to participate",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "목적어와 to부정사가 의미상 주술 관계임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_PREPOSITION_WHICH",
+            "sourceSpan": "for which",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "전치사 for가 관계대명사 앞에 위치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PREPOSITION_COLLOCATION",
+            "sourceSpan": "participate in",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "participate는 대상 앞에 in을 취함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "CONFUSABLE_ADVERB",
+            "sourceSpan": "wonderfully made",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "부사가 과거분사 made를 수식함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the wonder",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "특정한 wonder를 정관사로 한정함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "We are wonderfully made, yet we don’t allow ourselves to participate",
+            "occurrenceIndex": 1,
+            "correctAnswer": "We are wonderfully made, yet we don’t allow ourselves to participate",
+            "distractors": [
+              "We are wonderfully made, yet we not allow ourselves to participate"
+            ],
+            "transformCode": "BREAK_FINITE_CLAUSE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "yet 뒤에도 주어와 정동사가 필요함",
+            "ruleSummaryKo": "등위접속사로 연결된 절은 완전한 절 구조를 갖춘다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "are wonderfully made",
+            "occurrenceIndex": 1,
+            "correctAnswer": "are wonderfully made",
+            "distractors": [
+              "wonderfully make",
+              "are wonderfully making"
+            ],
+            "transformCode": "PASSIVE_TO_ACTIVE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+            "ruleSummaryKo": "행위의 대상인 주어에는 수동태를 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "were created",
+            "occurrenceIndex": 2,
+            "correctAnswer": "were created",
+            "distractors": [
+              "created",
+              "were creating"
+            ],
+            "transformCode": "PASSIVE_TO_ACTIVE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "we가 창조된 대상이므로 수동태임",
+            "ruleSummaryKo": "행위의 대상은 be동사와 과거분사로 나타낸다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_TO_V",
+            "sourceSpan": "ourselves to participate",
+            "occurrenceIndex": 1,
+            "correctAnswer": "ourselves to participate",
+            "distractors": [
+              "ourselves participating",
+              "ourselves participate"
+            ],
+            "transformCode": "OBJECT_COMPLEMENT_FORM",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "allow는 목적어 뒤에 to부정사를 취함",
+            "ruleSummaryKo": "allow는 목적어와 to부정사를 목적격보어로 취한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "RELATIVE_PREPOSITION_WHICH",
+            "sourceSpan": "for which",
+            "occurrenceIndex": 1,
+            "correctAnswer": "for which",
+            "distractors": [
+              "for that",
+              "which for"
+            ],
+            "transformCode": "PREPOSITION_RELATIVE_ORDER",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "전치사 뒤에는 관계대명사 which가 필요함",
+            "ruleSummaryKo": "전치사 뒤에는 that이 아닌 which를 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "CONFUSABLE_ADVERB",
+            "sourceSpan": "wonderfully made",
+            "occurrenceIndex": 1,
+            "correctAnswer": "wonderfully made",
+            "distractors": [
+              "wonderful made"
+            ],
+            "transformCode": "ADJECTIVE_ADVERB",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "made를 수식하므로 부사형이 필요함",
+            "ruleSummaryKo": "분사를 수식할 때는 부사를 사용한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "detectedPoints": [
+          {
+            "pointCode": "PREPOSITION_INSTEAD_OF",
+            "sourceSpan": "Instead of moving",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "instead of 뒤에 동명사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "moving",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "high",
+            "evidence": "전치사 of의 목적어로 동명사가 옴",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "of moving",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "moving은 전치사 of의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_FIXED_CONSTRUCTION",
+            "sourceSpan": "spend our time moving",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "spend time 뒤에 동명사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "anywhere and everywhere",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "and가 두 장소 부사를 병렬 연결함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PREPOSITION_INSTEAD_OF",
+            "sourceSpan": "Instead of moving",
+            "occurrenceIndex": 1,
+            "correctAnswer": "Instead of moving",
+            "distractors": [
+              "Instead of move",
+              "Instead to moving"
+            ],
+            "transformCode": "PREPOSITION_GERUND",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "of는 전치사이므로 뒤에 동명사가 필요함",
+            "ruleSummaryKo": "instead of 뒤에는 명사나 동명사를 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "GERUND_FIXED_CONSTRUCTION",
+            "sourceSpan": "spend our time moving",
+            "occurrenceIndex": 1,
+            "correctAnswer": "spend our time moving",
+            "distractors": [
+              "spend our time to move",
+              "spend our time move"
+            ],
+            "transformCode": "SPEND_TIME_GERUND",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "spend time은 뒤에 동명사를 취함",
+            "ruleSummaryKo": "spend time 뒤에는 동명사를 사용한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "detectedPoints": [
+          {
+            "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+            "sourceSpan": "occupy",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "every day가 반복되는 현재 습관을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "hours and hours",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "and가 같은 명사를 반복 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the same square footage",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "same 앞에 정관사 the가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "a chair",
+            "occurrenceIndex": 2,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "단수 가산명사 chair가 부정관사를 취함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+            "sourceSpan": "occupy",
+            "occurrenceIndex": 1,
+            "correctAnswer": "occupy",
+            "distractors": [
+              "occupied",
+              "are occupying"
+            ],
+            "transformCode": "HABITUAL_PRESENT_TENSE",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "every day는 반복적 습관을 나타냄",
+            "ruleSummaryKo": "현재의 반복적 습관은 단순현재로 나타낸다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "detectedPoints": [
+          {
+            "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+            "sourceSpan": "are being held",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "아이들이 현재 붙잡혀 있는 진행 수동임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "are being held",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "주어 Many kids가 행위의 대상임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "phones and tablets",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "and가 두 복수명사를 병렬 연결함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+            "sourceSpan": "are being held",
+            "occurrenceIndex": 1,
+            "correctAnswer": "are being held",
+            "distractors": [
+              "are holding",
+              "are being holding"
+            ],
+            "transformCode": "PROGRESSIVE_PASSIVE_FORM",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "kids가 붙잡는 주체가 아니라 붙잡힌 대상임",
+            "ruleSummaryKo": "진행 수동태는 be being p.p. 형태로 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "They are not going outside to play, they are not learning",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "두 개의 독립절이 동일한 구조로 이어짐",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_ADVERB_ROLE",
+            "sourceSpan": "to play",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "밖에 나가는 목적을 나타내는 부사적 용법임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_NOUN_ROLE",
+            "sourceSpan": "how to socialize and read physical cues from others",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "의문사 to부정사구가 learning의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "socialize and read",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "and가 두 동사원형을 병렬 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "socialize and read",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "and 양쪽에 같은 형태의 동사가 놓임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "They are not going outside to play, they are not learning",
+            "occurrenceIndex": 1,
+            "correctAnswer": "They are not going outside to play, they are not learning",
+            "distractors": [
+              "They are not going outside to play, they not learning"
+            ],
+            "transformCode": "BREAK_FINITE_CLAUSE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "두 번째 절에도 정동사 are가 필요함",
+            "ruleSummaryKo": "독립절은 주어와 정동사를 갖춰야 한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "socialize and read",
+            "occurrenceIndex": 1,
+            "correctAnswer": "socialize and read",
+            "distractors": [
+              "socializing and read",
+              "socialize and reading"
+            ],
+            "transformCode": "BREAK_VERB_PARALLELISM",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "to가 socialize와 read에 공통으로 적용됨",
+            "ruleSummaryKo": "접속사로 연결된 동사는 같은 형태를 유지한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learning or building",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "or가 두 동명사 형태를 병렬 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "learning or building",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "or 양쪽에 같은 형태가 놓임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that will help them learn, communicate, create, and become emotionally mature",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "that이 관계절의 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+            "sourceSpan": "help them learn",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "help의 목적어 뒤에 동사원형이 옴",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+            "sourceSpan": "them learn",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "them과 learn이 의미상 주술 관계임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learn, communicate, create, and become",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "네 동사원형이 병렬로 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "learn, communicate, create, and become",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "and가 동일 형태의 마지막 동사를 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "CONFUSABLE_ADVERB",
+            "sourceSpan": "emotionally mature",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "부사 emotionally가 형용사 mature를 수식함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the very thing",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "특정 대상을 정관사 the로 한정함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learning or building",
+            "occurrenceIndex": 1,
+            "correctAnswer": "learning or building",
+            "distractors": [
+              "learning or build",
+              "learn or building"
+            ],
+            "transformCode": "BREAK_VERB_PARALLELISM",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "or 양쪽은 모두 learning과 결합하는 동명사임",
+            "ruleSummaryKo": "등위접속사 양쪽은 같은 문법 형태를 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "RELATIVE_TO_FUSED_RELATIVE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "선행사 thing이 있으므로 관계대명사가 필요함",
+            "ruleSummaryKo": "선행사가 있으면 관계대명사 what을 쓰지 않는다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+            "sourceSpan": "help them learn",
+            "occurrenceIndex": 1,
+            "correctAnswer": "help them learn",
+            "distractors": [
+              "help them learning"
+            ],
+            "transformCode": "BARE_COMPLEMENT_TO_GERUND",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "help 뒤 목적격보어로 동사원형이 쓰임",
+            "ruleSummaryKo": "help는 목적어 뒤에 동사원형을 취할 수 있다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "learn, communicate, create, and become",
+            "occurrenceIndex": 2,
+            "correctAnswer": "learn, communicate, create, and become",
+            "distractors": [
+              "learn, communicating, create, and become",
+              "learn, communicate, creating, and become"
+            ],
+            "transformCode": "BREAK_LIST_PARALLELISM",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "네 동사가 모두 help의 목적격보어로 병렬됨",
+            "ruleSummaryKo": "나열된 동사들은 동일한 형태를 유지한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "CONFUSABLE_ADVERB",
+            "sourceSpan": "emotionally mature",
+            "occurrenceIndex": 1,
+            "correctAnswer": "emotionally mature",
+            "distractors": [
+              "emotional mature"
+            ],
+            "transformCode": "ADJECTIVE_ADVERB",
+            "priority": "CORE",
+            "difficulty": "easy",
+            "evidence": "mature를 수식하므로 부사형이 필요함",
+            "ruleSummaryKo": "형용사를 수식할 때는 부사를 사용한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "how to run, how to skip, or how to climb",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "세 의문사 to부정사절이 병렬로 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "how to run, how to skip, or how to climb",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "or가 동일 구조의 마지막 항목을 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_NOUN_ROLE",
+            "sourceSpan": "how to run",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "의문사 to부정사절이 learning의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_NOUN_ROLE",
+            "sourceSpan": "how to skip",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "의문사 to부정사절이 병렬 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_NOUN_ROLE",
+            "sourceSpan": "how to climb",
+            "occurrenceIndex": 3,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "의문사 to부정사절이 병렬 목적어임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "how to run, how to skip, or how to climb",
+            "occurrenceIndex": 1,
+            "correctAnswer": "how to run, how to skip, or how to climb",
+            "distractors": [
+              "how to run, how skipping, or how to climb",
+              "how to run, how to skip, or how climb"
+            ],
+            "transformCode": "BREAK_CLAUSE_PARALLELISM",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "세 항목 모두 how to V 구조를 유지함",
+            "ruleSummaryKo": "병렬된 절은 동일한 문법 구조를 유지한다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "detectedPoints": [
+          {
+            "pointCode": "INFINITIVE_NOUN_ROLE",
+            "sourceSpan": "how to live with anxiety, depression, and even diseases",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "의문사 to부정사절이 learning의 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "anxiety, depression, and even diseases",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "세 명사가 and로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_OMISSION",
+            "sourceSpan": "diseases they were never meant to have",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "diseases 뒤 목적격 관계대명사가 생략됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "were never meant to have",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "they가 의도된 대상으로 수동태가 쓰임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_OMISSION",
+            "sourceSpan": "diseases they were never meant to have",
+            "occurrenceIndex": 1,
+            "correctAnswer": "diseases they were never meant to have",
+            "distractors": [
+              "diseases what they were never meant to have"
+            ],
+            "transformCode": "OMITTED_RELATIVE_TO_WHAT",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "선행사 뒤 목적격 관계대명사는 생략 가능함",
+            "ruleSummaryKo": "선행사가 있으면 관계대명사 what을 쓰지 않는다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "were never meant to have",
+            "occurrenceIndex": 1,
+            "correctAnswer": "were never meant to have",
+            "distractors": [
+              "were never mean to have",
+              "were never meaning to have"
+            ],
+            "transformCode": "PASSIVE_PARTICIPLE_FORM",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "be동사 뒤에 과거분사 meant가 필요함",
+            "ruleSummaryKo": "수동태는 be동사와 과거분사로 만든다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "detectedPoints": [
+          {
+            "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+            "sourceSpan": "we are getting further and further away from our design",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "보어 역할의 명사절이 평서문 어순을 취함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "further",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "far의 비교급이 거리 증가를 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "further",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "비교급 반복으로 변화의 지속을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+            "sourceSpan": "further and further",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "비교급이 and로 반복되어 점진적 변화를 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PREPOSITION_COLLOCATION",
+            "sourceSpan": "away from",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "away가 거리의 기준 앞에 from을 취함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "The point",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "문맥상 특정한 요점을 정관사로 한정함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+            "sourceSpan": "we are getting further and further away from our design",
+            "occurrenceIndex": 1,
+            "correctAnswer": "we are getting further and further away from our design",
+            "distractors": [
+              "are we getting further and further away from our design"
+            ],
+            "transformCode": "DECLARATIVE_TO_QUESTION_ORDER",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "명사절 내부는 주어 다음에 동사가 옴",
+            "ruleSummaryKo": "진술 명사절은 의문문이 아닌 평서문 어순을 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+            "sourceSpan": "further and further",
+            "occurrenceIndex": 1,
+            "correctAnswer": "further and further",
+            "distractors": [
+              "more and more far",
+              "more further and more further"
+            ],
+            "transformCode": "GRADUAL_COMPARATIVE_FORM",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "같은 비교급을 and로 반복한 구조임",
+            "ruleSummaryKo": "점진적 변화는 비교급 and 비교급으로 나타낸다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "We were made to move—and through movement, we are meant to live extraordinary lives",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "low",
+            "evidence": "and가 주어와 동사를 갖춘 두 절을 연결함",
+            "omissionReason": "단일 문법 축으로 오답을 만들기 어려움"
+          },
+          {
+            "pointCode": "VOICE_BE_MADE_TO",
+            "sourceSpan": "were made to move",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "수동태 made 뒤에 to부정사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "were made to move",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "We가 만들어진 대상이므로 수동태임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "are meant to live",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "We가 의도된 대상으로 수동태가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "and through movement, we are meant to live extraordinary lives",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "and가 앞뒤의 두 절을 연결함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "VOICE_BE_MADE_TO",
+            "sourceSpan": "were made to move",
+            "occurrenceIndex": 1,
+            "correctAnswer": "were made to move",
+            "distractors": [
+              "were made move",
+              "were made moving"
+            ],
+            "transformCode": "PASSIVE_CAUSATIVE_COMPLEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "make의 수동태에서는 목적격보어 앞에 to가 복원됨",
+            "ruleSummaryKo": "make가 수동태가 되면 뒤에 to부정사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "6ce0a23c-a15f-410c-bd32-f7e6016a247a",
+        "detectedPoints": [],
+        "candidates": []
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "We are wonderfully made, yet we don’t allow ourselves to participate",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "yet이 두 개의 독립절을 연결함"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "are wonderfully made",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "주어 We가 만들어지는 대상임"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "were created",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "주어 we가 창조된 대상임"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "OBJECT_COMPLEMENT_TO_V",
+      "sourceSpan": "ourselves to participate",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "allow의 목적어 뒤에 to부정사가 옴"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+      "sourceSpan": "ourselves to participate",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "목적어와 to부정사가 의미상 주술 관계임"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "RELATIVE_PREPOSITION_WHICH",
+      "sourceSpan": "for which",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "전치사 for가 관계대명사 앞에 위치함"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "PREPOSITION_COLLOCATION",
+      "sourceSpan": "participate in",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "participate는 대상 앞에 in을 취함"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "CONFUSABLE_ADVERB",
+      "sourceSpan": "wonderfully made",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "부사가 과거분사 made를 수식함"
+    },
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the wonder",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "특정한 wonder를 정관사로 한정함"
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "PREPOSITION_INSTEAD_OF",
+      "sourceSpan": "Instead of moving",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "instead of 뒤에 동명사가 쓰임"
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "moving",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "전치사 of의 목적어로 동명사가 옴"
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "of moving",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "moving은 전치사 of의 목적어임"
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_FIXED_CONSTRUCTION",
+      "sourceSpan": "spend our time moving",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "spend time 뒤에 동명사가 쓰임"
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "anywhere and everywhere",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 두 장소 부사를 병렬 연결함"
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+      "sourceSpan": "occupy",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "every day가 반복되는 현재 습관을 나타냄"
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "hours and hours",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 같은 명사를 반복 연결함"
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the same square footage",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "same 앞에 정관사 the가 쓰임"
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "a chair",
+      "occurrenceIndex": 2,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "단수 가산명사 chair가 부정관사를 취함"
+    },
+    {
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+      "sourceSpan": "are being held",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "아이들이 현재 붙잡혀 있는 진행 수동임"
+    },
+    {
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "are being held",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "주어 Many kids가 행위의 대상임"
+    },
+    {
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "phones and tablets",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 두 복수명사를 병렬 연결함"
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "They are not going outside to play, they are not learning",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "두 개의 독립절이 동일한 구조로 이어짐"
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "INFINITIVE_ADVERB_ROLE",
+      "sourceSpan": "to play",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "밖에 나가는 목적을 나타내는 부사적 용법임"
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "INFINITIVE_NOUN_ROLE",
+      "sourceSpan": "how to socialize and read physical cues from others",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "의문사 to부정사구가 learning의 목적어임"
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "socialize and read",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 두 동사원형을 병렬 연결함"
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "socialize and read",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and 양쪽에 같은 형태의 동사가 놓임"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learning or building",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "or가 두 동명사 형태를 병렬 연결함"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "learning or building",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "or 양쪽에 같은 형태가 놓임"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that will help them learn, communicate, create, and become emotionally mature",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that이 관계절의 주어 역할을 함"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+      "sourceSpan": "help them learn",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "help의 목적어 뒤에 동사원형이 옴"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+      "sourceSpan": "them learn",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "them과 learn이 의미상 주술 관계임"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learn, communicate, create, and become",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "네 동사원형이 병렬로 연결됨"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "learn, communicate, create, and become",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 동일 형태의 마지막 동사를 연결함"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "CONFUSABLE_ADVERB",
+      "sourceSpan": "emotionally mature",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "부사 emotionally가 형용사 mature를 수식함"
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the very thing",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "특정 대상을 정관사 the로 한정함"
+    },
+    {
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "how to run, how to skip, or how to climb",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "세 의문사 to부정사절이 병렬로 연결됨"
+    },
+    {
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "how to run, how to skip, or how to climb",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "or가 동일 구조의 마지막 항목을 연결함"
+    },
+    {
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "INFINITIVE_NOUN_ROLE",
+      "sourceSpan": "how to run",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "의문사 to부정사절이 learning의 목적어임"
+    },
+    {
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "INFINITIVE_NOUN_ROLE",
+      "sourceSpan": "how to skip",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "의문사 to부정사절이 병렬 목적어임"
+    },
+    {
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "INFINITIVE_NOUN_ROLE",
+      "sourceSpan": "how to climb",
+      "occurrenceIndex": 3,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "의문사 to부정사절이 병렬 목적어임"
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "INFINITIVE_NOUN_ROLE",
+      "sourceSpan": "how to live with anxiety, depression, and even diseases",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "의문사 to부정사절이 learning의 목적어임"
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "anxiety, depression, and even diseases",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "세 명사가 and로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "RELATIVE_OMISSION",
+      "sourceSpan": "diseases they were never meant to have",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "diseases 뒤 목적격 관계대명사가 생략됨"
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "were never meant to have",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "they가 의도된 대상으로 수동태가 쓰임"
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+      "sourceSpan": "we are getting further and further away from our design",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "보어 역할의 명사절이 평서문 어순을 취함"
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "further",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "far의 비교급이 거리 증가를 나타냄"
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "further",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "비교급 반복으로 변화의 지속을 나타냄"
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+      "sourceSpan": "further and further",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "비교급이 and로 반복되어 점진적 변화를 나타냄"
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "PREPOSITION_COLLOCATION",
+      "sourceSpan": "away from",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "away가 거리의 기준 앞에 from을 취함"
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "The point",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "문맥상 특정한 요점을 정관사로 한정함"
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "We were made to move—and through movement, we are meant to live extraordinary lives",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "and가 주어와 동사를 갖춘 두 절을 연결함"
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_BE_MADE_TO",
+      "sourceSpan": "were made to move",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "수동태 made 뒤에 to부정사가 쓰임"
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "were made to move",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "We가 만들어진 대상이므로 수동태임"
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "are meant to live",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "We가 의도된 대상으로 수동태가 쓰임"
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "and through movement, we are meant to live extraordinary lives",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 앞뒤의 두 절을 연결함"
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "We are wonderfully made, yet we don’t allow ourselves to participate",
+      "occurrenceIndex": 1,
+      "correctAnswer": "We are wonderfully made, yet we don’t allow ourselves to participate",
+      "distractors": [
+        "We are wonderfully made, yet we not allow ourselves to participate"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "yet 뒤에도 주어와 정동사가 필요함",
+      "ruleSummaryKo": "등위접속사로 연결된 절은 완전한 절 구조를 갖춘다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "are wonderfully made",
+      "occurrenceIndex": 1,
+      "correctAnswer": "are wonderfully made",
+      "distractors": [
+        "wonderfully make",
+        "are wonderfully making"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+      "ruleSummaryKo": "행위의 대상인 주어에는 수동태를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "were created",
+      "occurrenceIndex": 2,
+      "correctAnswer": "were created",
+      "distractors": [
+        "created",
+        "were creating"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "we가 창조된 대상이므로 수동태임",
+      "ruleSummaryKo": "행위의 대상은 be동사와 과거분사로 나타낸다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-4",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "OBJECT_COMPLEMENT_TO_V",
+      "sourceSpan": "ourselves to participate",
+      "occurrenceIndex": 1,
+      "correctAnswer": "ourselves to participate",
+      "distractors": [
+        "ourselves participating",
+        "ourselves participate"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "allow는 목적어 뒤에 to부정사를 취함",
+      "ruleSummaryKo": "allow는 목적어와 to부정사를 목적격보어로 취한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-5",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "RELATIVE_PREPOSITION_WHICH",
+      "sourceSpan": "for which",
+      "occurrenceIndex": 1,
+      "correctAnswer": "for which",
+      "distractors": [
+        "for that",
+        "which for"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "전치사 뒤에는 관계대명사 which가 필요함",
+      "ruleSummaryKo": "전치사 뒤에는 that이 아닌 which를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-6",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "CONFUSABLE_ADVERB",
+      "sourceSpan": "wonderfully made",
+      "occurrenceIndex": 1,
+      "correctAnswer": "wonderfully made",
+      "distractors": [
+        "wonderful made"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "made를 수식하므로 부사형이 필요함",
+      "ruleSummaryKo": "분사를 수식할 때는 부사를 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-7",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "PREPOSITION_INSTEAD_OF",
+      "sourceSpan": "Instead of moving",
+      "occurrenceIndex": 1,
+      "correctAnswer": "Instead of moving",
+      "distractors": [
+        "Instead of move",
+        "Instead to moving"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "of는 전치사이므로 뒤에 동명사가 필요함",
+      "ruleSummaryKo": "instead of 뒤에는 명사나 동명사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-8",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_FIXED_CONSTRUCTION",
+      "sourceSpan": "spend our time moving",
+      "occurrenceIndex": 1,
+      "correctAnswer": "spend our time moving",
+      "distractors": [
+        "spend our time to move",
+        "spend our time move"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "spend time은 뒤에 동명사를 취함",
+      "ruleSummaryKo": "spend time 뒤에는 동명사를 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-d6ab89e5-d089-4b0f-ae48-75ff480e3ac6-9",
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "TENSE_EXPLICIT_TIME_MARKER",
+      "sourceSpan": "occupy",
+      "occurrenceIndex": 1,
+      "correctAnswer": "occupy",
+      "distractors": [
+        "occupied",
+        "are occupying"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "every day는 반복적 습관을 나타냄",
+      "ruleSummaryKo": "현재의 반복적 습관은 단순현재로 나타낸다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-10",
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+      "sourceSpan": "are being held",
+      "occurrenceIndex": 1,
+      "correctAnswer": "are being held",
+      "distractors": [
+        "are holding",
+        "are being holding"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "kids가 붙잡는 주체가 아니라 붙잡힌 대상임",
+      "ruleSummaryKo": "진행 수동태는 be being p.p. 형태로 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-11",
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "They are not going outside to play, they are not learning",
+      "occurrenceIndex": 1,
+      "correctAnswer": "They are not going outside to play, they are not learning",
+      "distractors": [
+        "They are not going outside to play, they not learning"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "두 번째 절에도 정동사 are가 필요함",
+      "ruleSummaryKo": "독립절은 주어와 정동사를 갖춰야 한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-12",
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "socialize and read",
+      "occurrenceIndex": 1,
+      "correctAnswer": "socialize and read",
+      "distractors": [
+        "socializing and read",
+        "socialize and reading"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "to가 socialize와 read에 공통으로 적용됨",
+      "ruleSummaryKo": "접속사로 연결된 동사는 같은 형태를 유지한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-13",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learning or building",
+      "occurrenceIndex": 1,
+      "correctAnswer": "learning or building",
+      "distractors": [
+        "learning or build",
+        "learn or building"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "or 양쪽은 모두 learning과 결합하는 동명사임",
+      "ruleSummaryKo": "등위접속사 양쪽은 같은 문법 형태를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-14",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "선행사 thing이 있으므로 관계대명사가 필요함",
+      "ruleSummaryKo": "선행사가 있으면 관계대명사 what을 쓰지 않는다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-15",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+      "sourceSpan": "help them learn",
+      "occurrenceIndex": 1,
+      "correctAnswer": "help them learn",
+      "distractors": [
+        "help them learning"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "help 뒤 목적격보어로 동사원형이 쓰임",
+      "ruleSummaryKo": "help는 목적어 뒤에 동사원형을 취할 수 있다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-16",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "learn, communicate, create, and become",
+      "occurrenceIndex": 2,
+      "correctAnswer": "learn, communicate, create, and become",
+      "distractors": [
+        "learn, communicating, create, and become",
+        "learn, communicate, creating, and become"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "네 동사가 모두 help의 목적격보어로 병렬됨",
+      "ruleSummaryKo": "나열된 동사들은 동일한 형태를 유지한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-17",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "CONFUSABLE_ADVERB",
+      "sourceSpan": "emotionally mature",
+      "occurrenceIndex": 1,
+      "correctAnswer": "emotionally mature",
+      "distractors": [
+        "emotional mature"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "mature를 수식하므로 부사형이 필요함",
+      "ruleSummaryKo": "형용사를 수식할 때는 부사를 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-18",
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "how to run, how to skip, or how to climb",
+      "occurrenceIndex": 1,
+      "correctAnswer": "how to run, how to skip, or how to climb",
+      "distractors": [
+        "how to run, how skipping, or how to climb",
+        "how to run, how to skip, or how climb"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "세 항목 모두 how to V 구조를 유지함",
+      "ruleSummaryKo": "병렬된 절은 동일한 문법 구조를 유지한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-19",
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "RELATIVE_OMISSION",
+      "sourceSpan": "diseases they were never meant to have",
+      "occurrenceIndex": 1,
+      "correctAnswer": "diseases they were never meant to have",
+      "distractors": [
+        "diseases what they were never meant to have"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "선행사 뒤 목적격 관계대명사는 생략 가능함",
+      "ruleSummaryKo": "선행사가 있으면 관계대명사 what을 쓰지 않는다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-20",
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "were never meant to have",
+      "occurrenceIndex": 1,
+      "correctAnswer": "were never meant to have",
+      "distractors": [
+        "were never mean to have",
+        "were never meaning to have"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "be동사 뒤에 과거분사 meant가 필요함",
+      "ruleSummaryKo": "수동태는 be동사와 과거분사로 만든다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-21",
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+      "sourceSpan": "we are getting further and further away from our design",
+      "occurrenceIndex": 1,
+      "correctAnswer": "we are getting further and further away from our design",
+      "distractors": [
+        "are we getting further and further away from our design"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "명사절 내부는 주어 다음에 동사가 옴",
+      "ruleSummaryKo": "진술 명사절은 의문문이 아닌 평서문 어순을 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-22",
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+      "sourceSpan": "further and further",
+      "occurrenceIndex": 1,
+      "correctAnswer": "further and further",
+      "distractors": [
+        "more and more far",
+        "more further and more further"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "같은 비교급을 and로 반복한 구조임",
+      "ruleSummaryKo": "점진적 변화는 비교급 and 비교급으로 나타낸다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-23",
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_BE_MADE_TO",
+      "sourceSpan": "were made to move",
+      "occurrenceIndex": 1,
+      "correctAnswer": "were made to move",
+      "distractors": [
+        "were made move",
+        "were made moving"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "make의 수동태에서는 목적격보어 앞에 to가 복원됨",
+      "ruleSummaryKo": "make가 수동태가 되면 뒤에 to부정사를 쓴다",
+      "riskLevel": "MEDIUM"
+    }
+  ]
+}

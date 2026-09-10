@@ -258,7 +258,8 @@ async function loadPassages() {
 
 async function main() {
   process.env.OPENAI_GRAMMAR_V2_ANALYZER_MODEL = "gpt-5.6-sol";
-  process.env.OPENAI_GRAMMAR_V2_ANALYZER_REASONING_EFFORT = "medium";
+  // 배포 기본값과 같은 effort로 검증한다. 생성이 검수보다 낮으면 안 된다.
+  process.env.OPENAI_GRAMMAR_V2_ANALYZER_REASONING_EFFORT = "high";
   process.env.OPENAI_GRAMMAR_V2_AUDITOR_MODEL = "gpt-5.6-sol";
   process.env.OPENAI_GRAMMAR_V2_AUDITOR_REASONING_EFFORT = "high";
 

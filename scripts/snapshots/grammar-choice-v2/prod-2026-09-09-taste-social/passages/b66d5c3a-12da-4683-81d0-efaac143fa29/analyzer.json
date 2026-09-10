@@ -1,0 +1,824 @@
+{
+  "capturedAt": "2026-09-09T12:19:45.862Z",
+  "sourceId": "b66d5c3a-12da-4683-81d0-efaac143fa29",
+  "fromProductionCache": true,
+  "rawJsonMissing": true,
+  "reconstructedFromCache": true,
+  "responseModel": "gpt-5.6-sol",
+  "detected": [
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "there was the milk, yes, but there was also the person behind the milk",
+      "omissionReason": "NOT_PEDAGOGICALLY_USEFUL",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "will have",
+      "omissionReason": "SOURCE_FORM_NOT_EDITABLE",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "when",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "who",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "CORRELATIVE_EITHER_OR",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "either made or messed up",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "PARALLEL_VERBS",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "made or messed up",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+      "sourceSpan": "families and friends",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+      "sourceSpan": "at school and in work",
+      "occurrenceIndex": 2,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+      "sourceSpan": "likes",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "what they are",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "who we are",
+      "occurrenceIndex": 2,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "what they are, but who we are",
+      "omissionReason": "DUPLICATE_SUBTYPE",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "RELATIVE_WHAT",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "what",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "what they are",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "who we are",
+      "occurrenceIndex": 2,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+      "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+      "sourceSpan": "involved",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "doesn’t",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "COMPARATIVE",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "quicker",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "COMPARISON_TARGET",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "than",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "RELATIVE_PREPOSITION_WHICH",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "by which",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+      "sentenceId": "8bb784f5-758e-44b3-9984-465a29933a4c",
+      "sourceSpan": "chopped",
+      "occurrenceIndex": 1,
+      "questionability": "RISKY"
+    }
+  ],
+  "candidates": [
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "when",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-1",
+      "distractors": [
+        "during"
+      ],
+      "correctAnswer": "when",
+      "ruleSummaryKo": "",
+      "transformCode": "CLAUSE_MARKER",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "RELATIVE_SUBJECT",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "who",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+      "distractors": [
+        "whom"
+      ],
+      "correctAnswer": "who",
+      "ruleSummaryKo": "",
+      "transformCode": "RELATIVE_CHOICE",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "CORRELATIVE_EITHER_OR",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "sourceSpan": "either made or messed up",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-3",
+      "distractors": [
+        "either made or messing up"
+      ],
+      "correctAnswer": "either made or messed up",
+      "ruleSummaryKo": "",
+      "transformCode": "PARALLEL_FORM",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+      "sourceSpan": "likes",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+      "distractors": [
+        "like"
+      ],
+      "correctAnswer": "likes",
+      "ruleSummaryKo": "",
+      "transformCode": "NUMBER_SWAP",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "what they are",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+      "distractors": [
+        "what are they"
+      ],
+      "correctAnswer": "what they are",
+      "ruleSummaryKo": "",
+      "transformCode": "WORD_ORDER",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "sourceSpan": "who we are",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-6",
+      "distractors": [
+        "who are we"
+      ],
+      "correctAnswer": "who we are",
+      "ruleSummaryKo": "",
+      "transformCode": "WORD_ORDER",
+      "occurrenceIndex": 2
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+      "sourceSpan": "involved",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+      "distractors": [
+        "involving"
+      ],
+      "correctAnswer": "involved",
+      "ruleSummaryKo": "",
+      "transformCode": "VOICE_SWAP",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "riskLevel": "MEDIUM",
+      "difficulty": "ADVANCED",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "which",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+      "distractors": [
+        "that"
+      ],
+      "correctAnswer": "which",
+      "ruleSummaryKo": "",
+      "transformCode": "RELATIVE_CHOICE",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "MANDATORY",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "riskLevel": "LOW",
+      "difficulty": "CORE",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "doesn’t",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-9",
+      "distractors": [
+        "don’t"
+      ],
+      "correctAnswer": "doesn’t",
+      "ruleSummaryKo": "",
+      "transformCode": "NUMBER_SWAP",
+      "occurrenceIndex": 1
+    },
+    {
+      "evidence": "",
+      "priority": "CORE",
+      "pointCode": "COMPARATIVE",
+      "riskLevel": "LOW",
+      "difficulty": "BASIC",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "sourceSpan": "quicker",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-10",
+      "distractors": [
+        "quickest"
+      ],
+      "correctAnswer": "quicker",
+      "ruleSummaryKo": "",
+      "transformCode": "FORM_SWAP",
+      "occurrenceIndex": 1
+    }
+  ],
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"detectedPoints\":[{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"PARALLEL_CLAUSES\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"there was the milk, yes, but there was also the person behind the milk\",\"omissionReason\":\"NOT_PEDAGOGICALLY_USEFUL\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"RELATIVE_AGREEMENT\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"will have\",\"omissionReason\":\"SOURCE_FORM_NOT_EDITABLE\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"when\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"RELATIVE_SUBJECT\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"who\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"CORRELATIVE_EITHER_OR\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"either made or messed up\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"PARALLEL_VERBS\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"made or messed up\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"}],\"candidates\":[{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"CONJUNCTION_PREPOSITION_CONTRAST\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"when\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-1\",\"distractors\":[\"during\"],\"correctAnswer\":\"when\",\"ruleSummaryKo\":\"\",\"transformCode\":\"CLAUSE_MARKER\",\"occurrenceIndex\":1},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"RELATIVE_SUBJECT\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"who\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2\",\"distractors\":[\"whom\"],\"correctAnswer\":\"who\",\"ruleSummaryKo\":\"\",\"transformCode\":\"RELATIVE_CHOICE\",\"occurrenceIndex\":1},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"CORRELATIVE_EITHER_OR\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"9654fcb9-1b22-4c6b-b181-2c270bf01bdb\",\"sourceSpan\":\"either made or messed up\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-3\",\"distractors\":[\"either made or messing up\"],\"correctAnswer\":\"either made or messed up\",\"ruleSummaryKo\":\"\",\"transformCode\":\"PARALLEL_FORM\",\"occurrenceIndex\":1}]},{\"sentenceId\":\"289f4a8c-9346-407c-877f-bf8c6c5987c2\",\"detectedPoints\":[{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sentenceId\":\"289f4a8c-9346-407c-877f-bf8c6c5987c2\",\"sourceSpan\":\"families and friends\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sentenceId\":\"289f4a8c-9346-407c-877f-bf8c6c5987c2\",\"sourceSpan\":\"at school and in work\",\"occurrenceIndex\":2,\"questionability\":\"RISKY\"}],\"candidates\":[]},{\"sentenceId\":\"8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c\",\"detectedPoints\":[{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"AGREEMENT_DISTANCE\",\"sentenceId\":\"8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c\",\"sourceSpan\":\"likes\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"}],\"candidates\":[{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"AGREEMENT_DISTANCE\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c\",\"sourceSpan\":\"likes\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4\",\"distractors\":[\"like\"],\"correctAnswer\":\"likes\",\"ruleSummaryKo\":\"\",\"transformCode\":\"NUMBER_SWAP\",\"occurrenceIndex\":1}]},{\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"detectedPoints\":[{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"what they are\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"who we are\",\"occurrenceIndex\":2,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"PARALLEL_CLAUSES\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"what they are, but who we are\",\"omissionReason\":\"DUPLICATE_SUBTYPE\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"RELATIVE_WHAT\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"what\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"what they are\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"who we are\",\"occurrenceIndex\":2,\"questionability\":\"RISKY\"}],\"candidates\":[{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"what they are\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5\",\"distractors\":[\"what are they\"],\"correctAnswer\":\"what they are\",\"ruleSummaryKo\":\"\",\"transformCode\":\"WORD_ORDER\",\"occurrenceIndex\":1},{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"87384a36-de03-4631-b5b9-5e30620f303f\",\"sourceSpan\":\"who we are\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-6\",\"distractors\":[\"who are we\"],\"correctAnswer\":\"who we are\",\"ruleSummaryKo\":\"\",\"transformCode\":\"WORD_ORDER\",\"occurrenceIndex\":2}]},{\"sentenceId\":\"0ef31ba8-380f-47e4-9f75-f8559e58bcbb\",\"detectedPoints\":[{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"PARTICIPLE_ACTIVE_PASSIVE\",\"sentenceId\":\"0ef31ba8-380f-47e4-9f75-f8559e58bcbb\",\"sourceSpan\":\"involved\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"}],\"candidates\":[{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"PARTICIPLE_ACTIVE_PASSIVE\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"0ef31ba8-380f-47e4-9f75-f8559e58bcbb\",\"sourceSpan\":\"involved\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7\",\"distractors\":[\"involving\"],\"correctAnswer\":\"involved\",\"ruleSummaryKo\":\"\",\"transformCode\":\"VOICE_SWAP\",\"occurrenceIndex\":1}]},{\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"detectedPoints\":[{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"RELATIVE_AGREEMENT\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"doesn’t\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"COMPARATIVE\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"quicker\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"COMPARISON_TARGET\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"than\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"RELATIVE_PREPOSITION_WHICH\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"by which\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"RELATIVE_SUBJECT\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"}],\"candidates\":[{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"riskLevel\":\"MEDIUM\",\"difficulty\":\"ADVANCED\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"which\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8\",\"distractors\":[\"that\"],\"correctAnswer\":\"which\",\"ruleSummaryKo\":\"\",\"transformCode\":\"RELATIVE_CHOICE\",\"occurrenceIndex\":1},{\"evidence\":\"\",\"priority\":\"MANDATORY\",\"pointCode\":\"RELATIVE_AGREEMENT\",\"riskLevel\":\"LOW\",\"difficulty\":\"CORE\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"doesn’t\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-9\",\"distractors\":[\"don’t\"],\"correctAnswer\":\"doesn’t\",\"ruleSummaryKo\":\"\",\"transformCode\":\"NUMBER_SWAP\",\"occurrenceIndex\":1},{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"COMPARATIVE\",\"riskLevel\":\"LOW\",\"difficulty\":\"BASIC\",\"sentenceId\":\"e0b38e2b-23ab-4c61-b799-f025b7f6901d\",\"sourceSpan\":\"quicker\",\"candidateId\":\"b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-10\",\"distractors\":[\"quickest\"],\"correctAnswer\":\"quicker\",\"ruleSummaryKo\":\"\",\"transformCode\":\"FORM_SWAP\",\"occurrenceIndex\":1}]},{\"sentenceId\":\"8bb784f5-758e-44b3-9984-465a29933a4c\",\"detectedPoints\":[{\"evidence\":\"\",\"priority\":\"CORE\",\"pointCode\":\"PARTICIPLE_ACTIVE_PASSIVE\",\"sentenceId\":\"8bb784f5-758e-44b3-9984-465a29933a4c\",\"sourceSpan\":\"chopped\",\"occurrenceIndex\":1,\"questionability\":\"RISKY\"}],\"candidates\":[]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "detectedPoints": [
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "PARALLEL_CLAUSES",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "there was the milk, yes, but there was also the person behind the milk",
+            "omissionReason": "NOT_PEDAGOGICALLY_USEFUL",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "will have",
+            "omissionReason": "SOURCE_FORM_NOT_EDITABLE",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "when",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "RELATIVE_SUBJECT",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "who",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "CORRELATIVE_EITHER_OR",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "either made or messed up",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "PARALLEL_VERBS",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "made or messed up",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          }
+        ],
+        "candidates": [
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "when",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-1",
+            "distractors": [
+              "during"
+            ],
+            "correctAnswer": "when",
+            "ruleSummaryKo": "",
+            "transformCode": "CLAUSE_MARKER",
+            "occurrenceIndex": 1
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "RELATIVE_SUBJECT",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "who",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+            "distractors": [
+              "whom"
+            ],
+            "correctAnswer": "who",
+            "ruleSummaryKo": "",
+            "transformCode": "RELATIVE_CHOICE",
+            "occurrenceIndex": 1
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "CORRELATIVE_EITHER_OR",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+            "sourceSpan": "either made or messed up",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-3",
+            "distractors": [
+              "either made or messing up"
+            ],
+            "correctAnswer": "either made or messed up",
+            "ruleSummaryKo": "",
+            "transformCode": "PARALLEL_FORM",
+            "occurrenceIndex": 1
+          }
+        ]
+      },
+      {
+        "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+        "detectedPoints": [
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+            "sourceSpan": "families and friends",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+            "sourceSpan": "at school and in work",
+            "occurrenceIndex": 2,
+            "questionability": "RISKY"
+          }
+        ],
+        "candidates": []
+      },
+      {
+        "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+        "detectedPoints": [
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+            "sourceSpan": "likes",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          }
+        ],
+        "candidates": [
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "AGREEMENT_DISTANCE",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+            "sourceSpan": "likes",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+            "distractors": [
+              "like"
+            ],
+            "correctAnswer": "likes",
+            "ruleSummaryKo": "",
+            "transformCode": "NUMBER_SWAP",
+            "occurrenceIndex": 1
+          }
+        ]
+      },
+      {
+        "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+        "detectedPoints": [
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "what they are",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "who we are",
+            "occurrenceIndex": 2,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "PARALLEL_CLAUSES",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "what they are, but who we are",
+            "omissionReason": "DUPLICATE_SUBTYPE",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "RELATIVE_WHAT",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "what",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "what they are",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "who we are",
+            "occurrenceIndex": 2,
+            "questionability": "RISKY"
+          }
+        ],
+        "candidates": [
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "what they are",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+            "distractors": [
+              "what are they"
+            ],
+            "correctAnswer": "what they are",
+            "ruleSummaryKo": "",
+            "transformCode": "WORD_ORDER",
+            "occurrenceIndex": 1
+          },
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+            "sourceSpan": "who we are",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-6",
+            "distractors": [
+              "who are we"
+            ],
+            "correctAnswer": "who we are",
+            "ruleSummaryKo": "",
+            "transformCode": "WORD_ORDER",
+            "occurrenceIndex": 2
+          }
+        ]
+      },
+      {
+        "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+        "detectedPoints": [
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+            "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+            "sourceSpan": "involved",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          }
+        ],
+        "candidates": [
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+            "sourceSpan": "involved",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+            "distractors": [
+              "involving"
+            ],
+            "correctAnswer": "involved",
+            "ruleSummaryKo": "",
+            "transformCode": "VOICE_SWAP",
+            "occurrenceIndex": 1
+          }
+        ]
+      },
+      {
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "detectedPoints": [
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "doesn’t",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "COMPARATIVE",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "quicker",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "COMPARISON_TARGET",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "than",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "RELATIVE_PREPOSITION_WHICH",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "by which",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "RELATIVE_SUBJECT",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          }
+        ],
+        "candidates": [
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "riskLevel": "MEDIUM",
+            "difficulty": "ADVANCED",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "which",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+            "distractors": [
+              "that"
+            ],
+            "correctAnswer": "which",
+            "ruleSummaryKo": "",
+            "transformCode": "RELATIVE_CHOICE",
+            "occurrenceIndex": 1
+          },
+          {
+            "evidence": "",
+            "priority": "MANDATORY",
+            "pointCode": "RELATIVE_AGREEMENT",
+            "riskLevel": "LOW",
+            "difficulty": "CORE",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "doesn’t",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-9",
+            "distractors": [
+              "don’t"
+            ],
+            "correctAnswer": "doesn’t",
+            "ruleSummaryKo": "",
+            "transformCode": "NUMBER_SWAP",
+            "occurrenceIndex": 1
+          },
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "COMPARATIVE",
+            "riskLevel": "LOW",
+            "difficulty": "BASIC",
+            "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+            "sourceSpan": "quicker",
+            "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-10",
+            "distractors": [
+              "quickest"
+            ],
+            "correctAnswer": "quicker",
+            "ruleSummaryKo": "",
+            "transformCode": "FORM_SWAP",
+            "occurrenceIndex": 1
+          }
+        ]
+      },
+      {
+        "sentenceId": "8bb784f5-758e-44b3-9984-465a29933a4c",
+        "detectedPoints": [
+          {
+            "evidence": "",
+            "priority": "CORE",
+            "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+            "sentenceId": "8bb784f5-758e-44b3-9984-465a29933a4c",
+            "sourceSpan": "chopped",
+            "occurrenceIndex": 1,
+            "questionability": "RISKY"
+          }
+        ],
+        "candidates": []
+      }
+    ]
+  }
+}

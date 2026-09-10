@@ -1,0 +1,3349 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:58:59.316Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "ok": true,
+  "reason": null,
+  "stages": {
+    "afterAnalyzer": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for humans",
+        "distractors": [
+          "of humans"
+        ],
+        "transformCode": "CASE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "occurrenceIndex": 0,
+        "correctAnswer": "greatest",
+        "distractors": [
+          "most greatest"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_DISTANCE",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "NUMBER_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that variation is",
+        "occurrenceIndex": 0,
+        "correctAnswer": "that variation is",
+        "distractors": [
+          "variation is"
+        ],
+        "transformCode": "CLAUSE_MARKER",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-5",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "there’s",
+        "occurrenceIndex": 0,
+        "correctAnswer": "there’s",
+        "distractors": [
+          "there will be"
+        ],
+        "transformCode": "TENSE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-6",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+        "occurrenceIndex": 0,
+        "correctAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "distractors": [
+          "a catastrophic drop in the food supply or a big increasing in temperature"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be completely wiped out",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be completely wiped out",
+        "distractors": [
+          "completely wipe out"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are",
+        "occurrenceIndex": 0,
+        "correctAnswer": "are",
+        "distractors": [
+          "is"
+        ],
+        "transformCode": "NUMBER_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more likely",
+        "occurrenceIndex": 0,
+        "correctAnswer": "more likely",
+        "distractors": [
+          "more likelier"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-11",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "occurrenceIndex": 0,
+        "correctAnswer": "had",
+        "distractors": [
+          "would have"
+        ],
+        "transformCode": "CONDITIONAL_FORM",
+        "priority": "MANDATORY",
+        "difficulty": "ADVANCED",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "occurrenceIndex": 0,
+        "correctAnswer": "were",
+        "distractors": [
+          "would be"
+        ],
+        "transformCode": "CONDITIONAL_FORM",
+        "priority": "MANDATORY",
+        "difficulty": "ADVANCED",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "both within a single culture and across cultures",
+        "occurrenceIndex": 0,
+        "correctAnswer": "both within a single culture and across cultures",
+        "distractors": [
+          "both within a single culture or across cultures"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "less likely",
+        "occurrenceIndex": 0,
+        "correctAnswer": "less likely",
+        "distractors": [
+          "less likelier"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped out",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped out",
+        "distractors": [
+          "wipe out"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      }
+    ],
+    "afterLocalFilter": {
+      "resolved": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for humans",
+          "occurrenceIndex": 0,
+          "correctAnswer": "for humans",
+          "distractors": [
+            "of humans"
+          ],
+          "transformCode": "CASE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 15,
+          "passageEnd": 25,
+          "subtypeKey": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "insights",
+          "occurrenceIndex": 0,
+          "correctAnswer": "insights",
+          "distractors": [
+            "insight"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "BASIC",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 149,
+          "passageEnd": 157,
+          "subtypeKey": "ONE_OF_PLURAL"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "NUMBER_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "VOICE_MODAL_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 418,
+          "passageEnd": 423,
+          "subtypeKey": "VOICE_MODAL_PASSIVE:wiped|wiping"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "INFINITIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "be wiped",
+          "distractors": [
+            "wipe"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 922,
+          "passageEnd": 930,
+          "subtypeKey": "TO_BE_PP"
+        }
+      ],
+      "rejected": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "NOUN_CLAUSE_THAT",
+          "reason": "MULTI_AXIS_EDIT",
+          "pair": "that variation is / variation is"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-5",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "ADVERB_CLAUSE_CONDITION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "there’s / there will be"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-6",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "PARALLEL_AND_OR_BUT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or a big increasing in temperature"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_AGREEMENT",
+          "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+          "pair": "are / is"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "COMPARATIVE",
+          "reason": "DOUBLE_DEGREE_MARKING",
+          "pair": "more likely / more likelier"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-11",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+          "pair": "had / would have"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+          "pair": "were / would be"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "COMPARATIVE",
+          "reason": "DOUBLE_DEGREE_MARKING",
+          "pair": "less likely / less likelier"
+        },
+        {
+          "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "and / or"
+        }
+      ]
+    },
+    "beforeReviewer": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for humans",
+        "distractors": [
+          "of humans"
+        ],
+        "transformCode": "CASE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 15,
+        "passageEnd": 25,
+        "subtypeKey": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "insights",
+        "occurrenceIndex": 0,
+        "correctAnswer": "insights",
+        "distractors": [
+          "insight"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 149,
+        "passageEnd": 157,
+        "subtypeKey": "ONE_OF_PLURAL"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "NUMBER_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_MODAL_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_MODAL_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "INFINITIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "TO_BE_PP"
+      }
+    ],
+    "afterReviewer": {
+      "kept": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for humans",
+          "occurrenceIndex": 0,
+          "correctAnswer": "for humans",
+          "distractors": [
+            "of humans"
+          ],
+          "transformCode": "CASE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 15,
+          "passageEnd": 25,
+          "subtypeKey": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "insights",
+          "occurrenceIndex": 0,
+          "correctAnswer": "insights",
+          "distractors": [
+            "insight"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "BASIC",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 149,
+          "passageEnd": 157,
+          "subtypeKey": "ONE_OF_PLURAL"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "NUMBER_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "VOICE_MODAL_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 418,
+          "passageEnd": 423,
+          "subtypeKey": "VOICE_MODAL_PASSIVE:wiped|wiping"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "INFINITIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "be wiped",
+          "distractors": [
+            "wipe"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 922,
+          "passageEnd": 930,
+          "subtypeKey": "TO_BE_PP"
+        }
+      ],
+      "rejected": []
+    },
+    "beforeRank": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for humans",
+        "distractors": [
+          "of humans"
+        ],
+        "transformCode": "CASE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 15,
+        "passageEnd": 25,
+        "subtypeKey": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "insights",
+        "occurrenceIndex": 0,
+        "correctAnswer": "insights",
+        "distractors": [
+          "insight"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 149,
+        "passageEnd": 157,
+        "subtypeKey": "ONE_OF_PLURAL"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "NUMBER_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_MODAL_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_MODAL_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "INFINITIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "TO_BE_PP"
+      }
+    ],
+    "afterRank": {
+      "kept": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "insights",
+          "occurrenceIndex": 0,
+          "correctAnswer": "insights",
+          "distractors": [
+            "insight"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "BASIC",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 149,
+          "passageEnd": 157,
+          "subtypeKey": "ONE_OF_PLURAL"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for humans",
+          "occurrenceIndex": 0,
+          "correctAnswer": "for humans",
+          "distractors": [
+            "of humans"
+          ],
+          "transformCode": "CASE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 15,
+          "passageEnd": 25,
+          "subtypeKey": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "NUMBER_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "VOICE_MODAL_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 418,
+          "passageEnd": 423,
+          "subtypeKey": "VOICE_MODAL_PASSIVE:wiped|wiping"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "INFINITIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "be wiped",
+          "distractors": [
+            "wipe"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 922,
+          "passageEnd": 930,
+          "subtypeKey": "TO_BE_PP"
+        }
+      ],
+      "dropped": []
+    },
+    "beforeDedup": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for humans",
+        "distractors": [
+          "of humans"
+        ],
+        "transformCode": "CASE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 15,
+        "passageEnd": 25,
+        "subtypeKey": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "insights",
+        "occurrenceIndex": 0,
+        "correctAnswer": "insights",
+        "distractors": [
+          "insight"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 149,
+        "passageEnd": 157,
+        "subtypeKey": "ONE_OF_PLURAL"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "NUMBER_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_MODAL_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_MODAL_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "INFINITIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "TO_BE_PP"
+      }
+    ],
+    "afterDedup": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "insights",
+        "occurrenceIndex": 0,
+        "correctAnswer": "insights",
+        "distractors": [
+          "insight"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 149,
+        "passageEnd": 157,
+        "subtypeKey": "ONE_OF_PLURAL"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for humans",
+        "distractors": [
+          "of humans"
+        ],
+        "transformCode": "CASE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 15,
+        "passageEnd": 25,
+        "subtypeKey": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "NUMBER_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_MODAL_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_MODAL_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "INFINITIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "TO_BE_PP"
+      }
+    ],
+    "coverage": {
+      "reports": [
+        {
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "detectedPointCodes": [
+            "INFINITIVE_LOGICAL_SUBJECT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "INFINITIVE_LOGICAL_SUBJECT"
+          ],
+          "omittedPoints": []
+        },
+        {
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "detectedPointCodes": [
+            "ONE_OF_SUPERLATIVE",
+            "AGREEMENT_ONE_OF",
+            "NOUN_CLAUSE_THAT",
+            "AGREEMENT_DISTANCE",
+            "INFINITIVE_LOGICAL_SUBJECT"
+          ],
+          "mandatoryPointCodes": [
+            "AGREEMENT_DISTANCE"
+          ],
+          "generatedQuestionPointCodes": [
+            "ONE_OF_SUPERLATIVE",
+            "AGREEMENT_ONE_OF"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "NOUN_CLAUSE_THAT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_DISTANCE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "detectedPointCodes": [
+            "VOICE_MODAL_PASSIVE",
+            "ADVERB_CLAUSE_CONDITION",
+            "PARALLEL_AND_OR_BUT",
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "VOICE_MODAL_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "detectedPointCodes": [
+            "RELATIVE_SUBJECT",
+            "RELATIVE_AGREEMENT",
+            "COMPARATIVE",
+            "PARTICIPLE_SUBJECT_COMPLEMENT"
+          ],
+          "mandatoryPointCodes": [
+            "RELATIVE_AGREEMENT"
+          ],
+          "generatedQuestionPointCodes": [
+            "RELATIVE_SUBJECT"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "RELATIVE_AGREEMENT",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARTICIPLE_SUBJECT_COMPLEMENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "detectedPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            }
+          ]
+        },
+        {
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "detectedPointCodes": [
+            "CONDITIONAL_SECOND",
+            "PARALLEL_CLAUSES",
+            "ADVERB_CLAUSE_CONDITION"
+          ],
+          "mandatoryPointCodes": [
+            "CONDITIONAL_SECOND",
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "CONDITIONAL_SECOND",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "CONDITIONAL_SECOND",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "detectedPointCodes": [
+            "CORRELATIVE_BOTH_AND",
+            "INFINITIVE_PASSIVE",
+            "COMPARATIVE",
+            "PARALLEL_AND_OR_BUT",
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "CORRELATIVE_BOTH_AND",
+            "INFINITIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "CORRELATIVE_BOTH_AND",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "detectedPointCodes": [
+            "PRONOUN_ANTECEDENT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "PRONOUN_ANTECEDENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        }
+      ],
+      "missing": [],
+      "occurrences": [
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "ONE_OF_SUPERLATIVE",
+          "subtype": "ONE_OF_PLURAL",
+          "assessmentAxis": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "insights",
+          "sourceAnswer": "insights",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for humans",
+          "sourceAnswer": "for humans",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "sourceAnswer": "was",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "VOICE_MODAL_PASSIVE",
+          "subtype": "VOICE_MODAL_PASSIVE:wiped|wiping",
+          "assessmentAxis": "VOICE_MODAL_PASSIVE",
+          "sourceSpan": "wiped",
+          "sourceAnswer": "wiped",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:who|whom",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "sourceAnswer": "who",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "sourceAnswer": "and",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "INFINITIVE_PASSIVE",
+          "subtype": "TO_BE_PP",
+          "assessmentAxis": "INFINITIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "sourceAnswer": "be wiped",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "NOUN_CLAUSE_THAT",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_THAT",
+          "sourceSpan": "that variation is / variation is",
+          "sourceAnswer": "that variation is",
+          "status": "VALID_EXCLUSION",
+          "reason": "MULTI_AXIS_EDIT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "there’s / there will be",
+          "sourceAnswer": "there’s",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or a big increasing in temperature",
+          "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "RELATIVE_AGREEMENT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_AGREEMENT",
+          "sourceSpan": "are / is",
+          "sourceAnswer": "are",
+          "status": "VALID_EXCLUSION",
+          "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "more likely / more likelier",
+          "sourceAnswer": "more likely",
+          "status": "VALID_EXCLUSION",
+          "reason": "DOUBLE_DEGREE_MARKING"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "had / would have",
+          "sourceAnswer": "had",
+          "status": "ANALYSIS_ONLY",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "were / would be",
+          "sourceAnswer": "were",
+          "status": "ANALYSIS_ONLY",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "less likely / less likelier",
+          "sourceAnswer": "less likely",
+          "status": "VALID_EXCLUSION",
+          "reason": "DOUBLE_DEGREE_MARKING"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and / or",
+          "sourceAnswer": "and",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "AGREEMENT_DISTANCE",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_DISTANCE",
+          "sourceSpan": "was",
+          "sourceAnswer": "was",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for natural selection",
+          "sourceAnswer": "for natural selection",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "be completely wiped out",
+          "sourceAnswer": "be completely wiped out",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "PARTICIPLE_SUBJECT_COMPLEMENT",
+          "subtype": "",
+          "assessmentAxis": "PARTICIPLE_SUBJECT_COMPLEMENT",
+          "sourceSpan": "well suited",
+          "sourceAnswer": "well suited",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "observed variation in the bodies of animals, and the same principle applies",
+          "sourceAnswer": "observed variation in the bodies of animals, and the same principle applies",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NO_UNIQUE_DISTRACTOR"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "If we all had the same kind of mind—if there were only one human nature",
+          "sourceAnswer": "If we all had the same kind of mind—if there were only one human nature",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NO_UNIQUE_DISTRACTOR"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "If we all had the same kind of mind",
+          "sourceAnswer": "If we all had the same kind of mind",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "within a single culture and across cultures",
+          "sourceAnswer": "within a single culture and across cultures",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "be wiped out",
+          "sourceAnswer": "be wiped out",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "code": "PRONOUN_ANTECEDENT",
+          "subtype": "",
+          "assessmentAxis": "PRONOUN_ANTECEDENT",
+          "sourceSpan": "This",
+          "sourceAnswer": "This",
+          "status": "ANALYSIS_ONLY"
+        }
+      ],
+      "metrics": {
+        "mandatoryDetected": 6,
+        "mandatoryEligible": 0,
+        "mandatoryRendered": 0,
+        "mandatoryExcludedWithValidReason": 1,
+        "analysisOnly": 12,
+        "eligible": 7,
+        "excluded": 7,
+        "rendered": 7,
+        "missingEligible": 0,
+        "coverage": "N/A"
+      }
+    },
+    "finalize": {
+      "ok": true,
+      "sectionStatus": "COMPLETE"
+    },
+    "studentItems": [
+      {
+        "number": 1,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+        "internalProvenance": {
+          "code": "ONE_OF_SUPERLATIVE",
+          "subtype": "ONE_OF_PLURAL",
+          "priority": "MANDATORY",
+          "assessmentAxis": "ONE_OF_PLURAL",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|ONE_OF_SUPERLATIVE|insights",
+          "sourceSpan": "insights",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 149,
+        "endCharIndex": 157,
+        "originalText": "insights",
+        "correctText": "insights",
+        "incorrectText": "insight",
+        "leftText": "insights",
+        "rightText": "insight",
+        "correctSide": "left",
+        "grammarCategoryId": "ONE_OF_SUPERLATIVE",
+        "grammarCategoryName": "one of 최상급",
+        "bookTerm": "one of 최상급",
+        "explanationKo": "one of + 최상급 + 복수명사 구조이므로 복수형 insights를 쓴다.",
+        "incorrectReasonKo": "insight는 one of + 최상급 뒤의 복수명사가 아니다.",
+        "difficulty": 2,
+        "learningValue": 5,
+        "structureSummary": "one of + 최상급 + 복수명사"
+      },
+      {
+        "number": 2,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "internalProvenance": {
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans",
+          "priority": "CORE",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "occurrenceId": "0b6ffe30-81a0-498c-baee-c229917fb034|INFINITIVE_LOGICAL_SUBJECT|for humans",
+          "sourceSpan": "for humans",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+          "exclusionReason": null
+        },
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 15,
+        "endCharIndex": 25,
+        "originalText": "for humans",
+        "correctText": "for humans",
+        "incorrectText": "of humans",
+        "leftText": "of humans",
+        "rightText": "for humans",
+        "correctSide": "right",
+        "grammarCategoryId": "INFINITIVE_LOGICAL_SUBJECT",
+        "grammarCategoryName": "의미상 주어 for/of",
+        "bookTerm": "의미상 주어 for/of",
+        "explanationKo": "의미상 주어 for/of 규칙에 따라 원문 형태 for humans가 맞다.",
+        "incorrectReasonKo": "of humans는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "for N to V"
+      },
+      {
+        "number": 3,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "internalProvenance": {
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "priority": "CORE",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+          "sourceSpan": "was",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 158,
+        "endCharIndex": 161,
+        "originalText": "was",
+        "correctText": "was",
+        "incorrectText": "were",
+        "leftText": "were",
+        "rightText": "was",
+        "correctSide": "right",
+        "grammarCategoryId": "AGREEMENT_ONE_OF",
+        "grammarCategoryName": "one of 수일치",
+        "bookTerm": "one of 수일치",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of + 복수명사 + 단수 동사"
+      },
+      {
+        "number": 4,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "internalProvenance": {
+          "code": "VOICE_MODAL_PASSIVE",
+          "subtype": "VOICE_MODAL_PASSIVE:wiped|wiping",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_MODAL_PASSIVE",
+          "occurrenceId": "bf80eb0a-ba47-4823-8f6e-539106229834|VOICE_MODAL_PASSIVE|wiped",
+          "sourceSpan": "wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 418,
+        "endCharIndex": 423,
+        "originalText": "wiped",
+        "correctText": "wiped",
+        "incorrectText": "wiping",
+        "leftText": "wiped",
+        "rightText": "wiping",
+        "correctSide": "left",
+        "grammarCategoryId": "VOICE_MODAL_PASSIVE",
+        "grammarCategoryName": "조동사 수동",
+        "bookTerm": "조동사 수동",
+        "explanationKo": "조동사 뒤에는 수동태 modal + be p.p.를 쓴다. 주어가 행위의 주체가 아니므로 과거분사 wiped를 쓴다.",
+        "incorrectReasonKo": "wiping은 주어를 행위 주체로 만든다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "modal + be p.p."
+      },
+      {
+        "number": 5,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "internalProvenance": {
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:who|whom",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_SUBJECT|who",
+          "sourceSpan": "who",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 531,
+        "endCharIndex": 534,
+        "originalText": "who",
+        "correctText": "who",
+        "incorrectText": "whom",
+        "leftText": "who",
+        "rightText": "whom",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_SUBJECT",
+        "grammarCategoryName": "주격 관계대명사",
+        "bookTerm": "주격 관계대명사",
+        "explanationKo": "주격 관계대명사 규칙에 따라 원문 형태 who가 맞다.",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "관계절 주어 자리"
+      },
+      {
+        "number": 6,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 877,
+        "endCharIndex": 880,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "or",
+        "rightText": "and",
+        "correctSide": "right",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      },
+      {
+        "number": 7,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "internalProvenance": {
+          "code": "INFINITIVE_PASSIVE",
+          "subtype": "TO_BE_PP",
+          "priority": "CORE",
+          "assessmentAxis": "INFINITIVE_PASSIVE",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|INFINITIVE_PASSIVE|be wiped",
+          "sourceSpan": "be wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 922,
+        "endCharIndex": 930,
+        "originalText": "be wiped",
+        "correctText": "be wiped",
+        "incorrectText": "wipe",
+        "leftText": "be wiped",
+        "rightText": "wipe",
+        "correctSide": "left",
+        "grammarCategoryId": "INFINITIVE_PASSIVE",
+        "grammarCategoryName": "to부정사 수동",
+        "bookTerm": "to부정사 수동",
+        "explanationKo": "주어가 행위의 주체가 아니라 행위의 대상이므로 to부정사의 수동형 to be p.p.를 쓴다.",
+        "incorrectReasonKo": "wipe는 주어를 행위 주체로 만든다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "to be p.p."
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "that variation is / variation is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-5",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "ADVERB_CLAUSE_CONDITION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "there’s / there will be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-6",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or a big increasing in temperature"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+        "pair": "are / is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "COMPARATIVE",
+        "reason": "DOUBLE_DEGREE_MARKING",
+        "pair": "more likely / more likelier"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-11",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "had / would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "were / would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "reason": "DOUBLE_DEGREE_MARKING",
+        "pair": "less likely / less likelier"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "ONE_OF_PLURAL",
+        "assessmentAxis": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "insights",
+        "sourceAnswer": "insights",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans",
+        "sourceAnswer": "for humans",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_MODAL_PASSIVE",
+        "subtype": "VOICE_MODAL_PASSIVE:wiped|wiping",
+        "assessmentAxis": "VOICE_MODAL_PASSIVE",
+        "sourceSpan": "wiped",
+        "sourceAnswer": "wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "INFINITIVE_PASSIVE",
+        "subtype": "TO_BE_PP",
+        "assessmentAxis": "INFINITIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "sourceAnswer": "be wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that variation is / variation is",
+        "sourceAnswer": "that variation is",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "there’s / there will be",
+        "sourceAnswer": "there’s",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or a big increasing in temperature",
+        "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are / is",
+        "sourceAnswer": "are",
+        "status": "VALID_EXCLUSION",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more likely / more likelier",
+        "sourceAnswer": "more likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "DOUBLE_DEGREE_MARKING"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "had / would have",
+        "sourceAnswer": "had",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "were / would be",
+        "sourceAnswer": "were",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "less likely / less likelier",
+        "sourceAnswer": "less likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "DOUBLE_DEGREE_MARKING"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection",
+        "sourceAnswer": "for natural selection",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be completely wiped out",
+        "sourceAnswer": "be completely wiped out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "sourceSpan": "well suited",
+        "sourceAnswer": "well suited",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "observed variation in the bodies of animals, and the same principle applies",
+        "sourceAnswer": "observed variation in the bodies of animals, and the same principle applies",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "If we all had the same kind of mind—if there were only one human nature",
+        "sourceAnswer": "If we all had the same kind of mind—if there were only one human nature",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If we all had the same kind of mind",
+        "sourceAnswer": "If we all had the same kind of mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "within a single culture and across cultures",
+        "sourceAnswer": "within a single culture and across cultures",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped out",
+        "sourceAnswer": "be wiped out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "PRONOUN_ANTECEDENT",
+        "subtype": "",
+        "assessmentAxis": "PRONOUN_ANTECEDENT",
+        "sourceSpan": "This",
+        "sourceAnswer": "This",
+        "status": "ANALYSIS_ONLY"
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "reason": "MULTI_AXIS_EDIT",
+      "pair": "that variation is / variation is"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-5",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "there’s / there will be"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-6",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or a big increasing in temperature"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+      "pair": "are / is"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "COMPARATIVE",
+      "reason": "DOUBLE_DEGREE_MARKING",
+      "pair": "more likely / more likelier"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-11",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+      "pair": "had / would have"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+      "pair": "were / would be"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "COMPARATIVE",
+      "reason": "DOUBLE_DEGREE_MARKING",
+      "pair": "less likely / less likelier"
+    },
+    {
+      "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "and / or"
+    }
+  ],
+  "missingMandatory": [],
+  "section": {
+    "projectId": "15887084-262f-4c77-9c90-023c2551151f",
+    "title": "다양한 사고 방식의 중요성",
+    "source": null,
+    "sourcePassage": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest insights was that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely wiped out. A species with great variation will more likely have some survivors after any catastrophe—the members who are well suited for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely to be wiped out. This variation preserves the evolvability of our species.",
+    "items": [
+      {
+        "number": 1,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+        "internalProvenance": {
+          "code": "ONE_OF_SUPERLATIVE",
+          "subtype": "ONE_OF_PLURAL",
+          "priority": "MANDATORY",
+          "assessmentAxis": "ONE_OF_PLURAL",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|ONE_OF_SUPERLATIVE|insights",
+          "sourceSpan": "insights",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 149,
+        "endCharIndex": 157,
+        "originalText": "insights",
+        "correctText": "insights",
+        "incorrectText": "insight",
+        "leftText": "insights",
+        "rightText": "insight",
+        "correctSide": "left",
+        "grammarCategoryId": "ONE_OF_SUPERLATIVE",
+        "grammarCategoryName": "one of 최상급",
+        "bookTerm": "one of 최상급",
+        "explanationKo": "one of + 최상급 + 복수명사 구조이므로 복수형 insights를 쓴다.",
+        "incorrectReasonKo": "insight는 one of + 최상급 뒤의 복수명사가 아니다.",
+        "difficulty": 2,
+        "learningValue": 5,
+        "structureSummary": "one of + 최상급 + 복수명사"
+      },
+      {
+        "number": 2,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "internalProvenance": {
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans",
+          "priority": "CORE",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "occurrenceId": "0b6ffe30-81a0-498c-baee-c229917fb034|INFINITIVE_LOGICAL_SUBJECT|for humans",
+          "sourceSpan": "for humans",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+          "exclusionReason": null
+        },
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 15,
+        "endCharIndex": 25,
+        "originalText": "for humans",
+        "correctText": "for humans",
+        "incorrectText": "of humans",
+        "leftText": "of humans",
+        "rightText": "for humans",
+        "correctSide": "right",
+        "grammarCategoryId": "INFINITIVE_LOGICAL_SUBJECT",
+        "grammarCategoryName": "의미상 주어 for/of",
+        "bookTerm": "의미상 주어 for/of",
+        "explanationKo": "의미상 주어 for/of 규칙에 따라 원문 형태 for humans가 맞다.",
+        "incorrectReasonKo": "of humans는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "for N to V"
+      },
+      {
+        "number": 3,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "internalProvenance": {
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "priority": "CORE",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+          "sourceSpan": "was",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 158,
+        "endCharIndex": 161,
+        "originalText": "was",
+        "correctText": "was",
+        "incorrectText": "were",
+        "leftText": "were",
+        "rightText": "was",
+        "correctSide": "right",
+        "grammarCategoryId": "AGREEMENT_ONE_OF",
+        "grammarCategoryName": "one of 수일치",
+        "bookTerm": "one of 수일치",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of + 복수명사 + 단수 동사"
+      },
+      {
+        "number": 4,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "internalProvenance": {
+          "code": "VOICE_MODAL_PASSIVE",
+          "subtype": "VOICE_MODAL_PASSIVE:wiped|wiping",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_MODAL_PASSIVE",
+          "occurrenceId": "bf80eb0a-ba47-4823-8f6e-539106229834|VOICE_MODAL_PASSIVE|wiped",
+          "sourceSpan": "wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 418,
+        "endCharIndex": 423,
+        "originalText": "wiped",
+        "correctText": "wiped",
+        "incorrectText": "wiping",
+        "leftText": "wiped",
+        "rightText": "wiping",
+        "correctSide": "left",
+        "grammarCategoryId": "VOICE_MODAL_PASSIVE",
+        "grammarCategoryName": "조동사 수동",
+        "bookTerm": "조동사 수동",
+        "explanationKo": "조동사 뒤에는 수동태 modal + be p.p.를 쓴다. 주어가 행위의 주체가 아니므로 과거분사 wiped를 쓴다.",
+        "incorrectReasonKo": "wiping은 주어를 행위 주체로 만든다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "modal + be p.p."
+      },
+      {
+        "number": 5,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "internalProvenance": {
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:who|whom",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_SUBJECT|who",
+          "sourceSpan": "who",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 531,
+        "endCharIndex": 534,
+        "originalText": "who",
+        "correctText": "who",
+        "incorrectText": "whom",
+        "leftText": "who",
+        "rightText": "whom",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_SUBJECT",
+        "grammarCategoryName": "주격 관계대명사",
+        "bookTerm": "주격 관계대명사",
+        "explanationKo": "주격 관계대명사 규칙에 따라 원문 형태 who가 맞다.",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "관계절 주어 자리"
+      },
+      {
+        "number": 6,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 877,
+        "endCharIndex": 880,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "or",
+        "rightText": "and",
+        "correctSide": "right",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      },
+      {
+        "number": 7,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "internalProvenance": {
+          "code": "INFINITIVE_PASSIVE",
+          "subtype": "TO_BE_PP",
+          "priority": "CORE",
+          "assessmentAxis": "INFINITIVE_PASSIVE",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|INFINITIVE_PASSIVE|be wiped",
+          "sourceSpan": "be wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 922,
+        "endCharIndex": 930,
+        "originalText": "be wiped",
+        "correctText": "be wiped",
+        "incorrectText": "wipe",
+        "leftText": "be wiped",
+        "rightText": "wipe",
+        "correctSide": "left",
+        "grammarCategoryId": "INFINITIVE_PASSIVE",
+        "grammarCategoryName": "to부정사 수동",
+        "bookTerm": "to부정사 수동",
+        "explanationKo": "주어가 행위의 주체가 아니라 행위의 대상이므로 to부정사의 수동형 to be p.p.를 쓴다.",
+        "incorrectReasonKo": "wipe는 주어를 행위 주체로 만든다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "to be p.p."
+      }
+    ],
+    "segments": [
+      {
+        "type": "text",
+        "text": "It’s important "
+      },
+      {
+        "type": "choice",
+        "number": 2,
+        "leftText": "of humans",
+        "rightText": "for humans"
+      },
+      {
+        "type": "text",
+        "text": " to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest "
+      },
+      {
+        "type": "choice",
+        "number": 1,
+        "leftText": "insights",
+        "rightText": "insight"
+      },
+      {
+        "type": "text",
+        "text": " "
+      },
+      {
+        "type": "choice",
+        "number": 3,
+        "leftText": "were",
+        "rightText": "was"
+      },
+      {
+        "type": "text",
+        "text": " that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely "
+      },
+      {
+        "type": "choice",
+        "number": 4,
+        "leftText": "wiped",
+        "rightText": "wiping"
+      },
+      {
+        "type": "text",
+        "text": " out. A species with great variation will more likely have some survivors after any catastrophe—the members "
+      },
+      {
+        "type": "choice",
+        "number": 5,
+        "leftText": "who",
+        "rightText": "whom"
+      },
+      {
+        "type": "text",
+        "text": " are well suited for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture "
+      },
+      {
+        "type": "choice",
+        "number": 6,
+        "leftText": "or",
+        "rightText": "and"
+      },
+      {
+        "type": "text",
+        "text": " across cultures, so we’re less likely to "
+      },
+      {
+        "type": "choice",
+        "number": 7,
+        "leftText": "be wiped",
+        "rightText": "wipe"
+      },
+      {
+        "type": "text",
+        "text": " out. This variation preserves the evolvability of our species."
+      }
+    ],
+    "algorithmVersion": "grammar-choice-v2",
+    "diagnostics": {
+      "sentenceCount": 8,
+      "analysisHintCount": 0,
+      "generatedCandidateCount": 15,
+      "codeValidatedCount": 7,
+      "originalMismatchCount": 0,
+      "rangeErrorCount": 0,
+      "overlapDuplicateCount": 1,
+      "reviewSubmittedCount": 0,
+      "reviewAcceptedCount": 7,
+      "bothPossibleRejectCount": 0,
+      "lexicalRejectCount": 0,
+      "trivialRejectCount": 0,
+      "finalCount": 7,
+      "grammarCategoryCount": 7,
+      "averageQualityScore": 0,
+      "passageRestored": true,
+      "cacheHit": false,
+      "generatorModel": "gpt-5.6-sol",
+      "reviewerModel": "gpt-5.6-sol",
+      "generatorResponseModel": "gpt-5.6-sol",
+      "reviewerResponseModel": "gpt-5.6-sol",
+      "generatorActualResponseModel": "gpt-5.6-sol",
+      "reviewerActualResponseModel": "gpt-5.6-sol",
+      "generatorReasoningEffort": "medium",
+      "reviewerReasoningEffort": "high",
+      "reasoningEffort": "medium",
+      "openAICallCount": 5,
+      "localFallbackUsed": false,
+      "generatorVersion": "grammar-choice-v2",
+      "apiCalls": [],
+      "forceRegenerate": true,
+      "oldQuestionReuseCount": 0,
+      "generatorActualModel": "gpt-5.6-sol",
+      "reviewerActualModel": "gpt-5.6-sol",
+      "newQuestionCount": 7,
+      "generateApiCalls": 4,
+      "reviewApiCalls": 1,
+      "underTargetReason": null,
+      "reviewRejectSamples": [],
+      "codeRejectSamples": [],
+      "mandatoryDetected": 6,
+      "mandatoryEligible": 0,
+      "mandatoryRendered": 0,
+      "mandatoryExcludedWithValidReason": 1,
+      "sectionStatus": "COMPLETE",
+      "analysisOnlyCount": 12,
+      "eligibleQuestionCount": 7,
+      "excludedOccurrenceCount": 7,
+      "missingEligibleCount": 0,
+      "mandatoryCoverage": "N/A",
+      "detectedMandatoryOccurrences": 6,
+      "analysisOnlyMandatoryOccurrences": 5,
+      "eligibleMandatoryOccurrences": 0,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 0,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 7,
+      "countUnits": {
+        "detectedMandatoryOccurrences": "mandatory-occurrence",
+        "analysisOnlyMandatoryOccurrences": "mandatory-occurrence",
+        "eligibleMandatoryOccurrences": "mandatory-occurrence",
+        "validExcludedMandatoryOccurrences": "mandatory-occurrence",
+        "renderedMandatoryOccurrences": "mandatory-occurrence",
+        "missingEligibleMandatoryOccurrences": "mandatory-occurrence",
+        "totalEligibleQuestions": "student-question-candidate",
+        "totalRenderedQuestions": "student-item",
+        "totalExcludedOccurrences": "occurrence"
+      },
+      "finalQuestionCount": 7,
+      "renderedQuestionCount": 7,
+      "countMismatch": false,
+      "difficultyMix": {
+        "BASIC": 1,
+        "CORE": 6,
+        "ADVANCED": 0
+      },
+      "rejectReasonCounts": {
+        "MULTI_AXIS_EDIT": 1,
+        "NOT_PEDAGOGICALLY_USEFUL": 1,
+        "NON_MINIMAL_SPAN": 1,
+        "TOO_TRIVIAL_SHORT_AGREEMENT": 1,
+        "DOUBLE_DEGREE_MARKING": 2,
+        "MECHANICAL_IF_WOULD_CONTRAST": 2,
+        "DUPLICATE_SATISFIED_BY_PRIMARY": 1
+      },
+      "repeatedCodeSubtypePairs": []
+    }
+  },
+  "digest": {
+    "passage": "It’s important (2) [of humans / for humans] to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest (1) [insights / insight] (3) [were / was] that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely (4) [wiped / wiping] out. A species with great variation will more likely have some survivors after any catastrophe—the members (5) [who / whom] are well suited for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture (6) [or / and] across cultures, so we’re less likely to (7) [be wiped / wipe] out. This variation preserves the evolvability of our species.",
+    "questions": [
+      {
+        "number": 1,
+        "correct": "insights",
+        "wrong": "insight",
+        "left": "insights",
+        "right": "insight",
+        "correctSide": "left",
+        "explanationKo": "one of + 최상급 + 복수명사 구조이므로 복수형 insights를 쓴다.",
+        "incorrectReasonKo": "insight는 one of + 최상급 뒤의 복수명사가 아니다.",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "ONE_OF_PLURAL",
+        "priority": "MANDATORY",
+        "assessmentAxis": "ONE_OF_PLURAL",
+        "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|ONE_OF_SUPERLATIVE|insights",
+        "sourceSpan": "insights",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2"
+      },
+      {
+        "number": 2,
+        "correct": "for humans",
+        "wrong": "of humans",
+        "left": "of humans",
+        "right": "for humans",
+        "correctSide": "right",
+        "explanationKo": "의미상 주어 for/of 규칙에 따라 원문 형태 for humans가 맞다.",
+        "incorrectReasonKo": "of humans는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans",
+        "priority": "CORE",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "occurrenceId": "0b6ffe30-81a0-498c-baee-c229917fb034|INFINITIVE_LOGICAL_SUBJECT|for humans",
+        "sourceSpan": "for humans",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1"
+      },
+      {
+        "number": 3,
+        "correct": "was",
+        "wrong": "were",
+        "left": "were",
+        "right": "was",
+        "correctSide": "right",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "priority": "CORE",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+        "sourceSpan": "was",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3"
+      },
+      {
+        "number": 4,
+        "correct": "wiped",
+        "wrong": "wiping",
+        "left": "wiped",
+        "right": "wiping",
+        "correctSide": "left",
+        "explanationKo": "조동사 뒤에는 수동태 modal + be p.p.를 쓴다. 주어가 행위의 주체가 아니므로 과거분사 wiped를 쓴다.",
+        "incorrectReasonKo": "wiping은 주어를 행위 주체로 만든다.",
+        "code": "VOICE_MODAL_PASSIVE",
+        "subtype": "VOICE_MODAL_PASSIVE:wiped|wiping",
+        "priority": "CORE",
+        "assessmentAxis": "VOICE_MODAL_PASSIVE",
+        "occurrenceId": "bf80eb0a-ba47-4823-8f6e-539106229834|VOICE_MODAL_PASSIVE|wiped",
+        "sourceSpan": "wiped",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7"
+      },
+      {
+        "number": 5,
+        "correct": "who",
+        "wrong": "whom",
+        "left": "who",
+        "right": "whom",
+        "correctSide": "left",
+        "explanationKo": "주격 관계대명사 규칙에 따라 원문 형태 who가 맞다.",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "priority": "CORE",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_SUBJECT|who",
+        "sourceSpan": "who",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9"
+      },
+      {
+        "number": 6,
+        "correct": "and",
+        "wrong": "or",
+        "left": "or",
+        "right": "and",
+        "correctSide": "right",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "priority": "CORE",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+        "sourceSpan": "and",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13"
+      },
+      {
+        "number": 7,
+        "correct": "be wiped",
+        "wrong": "wipe",
+        "left": "be wiped",
+        "right": "wipe",
+        "correctSide": "left",
+        "explanationKo": "주어가 행위의 주체가 아니라 행위의 대상이므로 to부정사의 수동형 to be p.p.를 쓴다.",
+        "incorrectReasonKo": "wipe는 주어를 행위 주체로 만든다.",
+        "code": "INFINITIVE_PASSIVE",
+        "subtype": "TO_BE_PP",
+        "priority": "CORE",
+        "assessmentAxis": "INFINITIVE_PASSIVE",
+        "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|INFINITIVE_PASSIVE|be wiped",
+        "sourceSpan": "be wiped",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "that variation is / variation is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-5",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "ADVERB_CLAUSE_CONDITION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "there’s / there will be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-6",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or a big increasing in temperature"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+        "pair": "are / is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "COMPARATIVE",
+        "reason": "DOUBLE_DEGREE_MARKING",
+        "pair": "more likely / more likelier"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-11",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "had / would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "were / would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "reason": "DOUBLE_DEGREE_MARKING",
+        "pair": "less likely / less likelier"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "ONE_OF_PLURAL",
+        "assessmentAxis": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "insights",
+        "sourceAnswer": "insights",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "INFINITIVE_LOGICAL_SUBJECT:for humans|of humans",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans",
+        "sourceAnswer": "for humans",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_MODAL_PASSIVE",
+        "subtype": "VOICE_MODAL_PASSIVE:wiped|wiping",
+        "assessmentAxis": "VOICE_MODAL_PASSIVE",
+        "sourceSpan": "wiped",
+        "sourceAnswer": "wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "INFINITIVE_PASSIVE",
+        "subtype": "TO_BE_PP",
+        "assessmentAxis": "INFINITIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "sourceAnswer": "be wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that variation is / variation is",
+        "sourceAnswer": "that variation is",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "there’s / there will be",
+        "sourceAnswer": "there’s",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or a big increasing in temperature",
+        "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are / is",
+        "sourceAnswer": "are",
+        "status": "VALID_EXCLUSION",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more likely / more likelier",
+        "sourceAnswer": "more likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "DOUBLE_DEGREE_MARKING"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "had / would have",
+        "sourceAnswer": "had",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "were / would be",
+        "sourceAnswer": "were",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "less likely / less likelier",
+        "sourceAnswer": "less likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "DOUBLE_DEGREE_MARKING"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection",
+        "sourceAnswer": "for natural selection",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be completely wiped out",
+        "sourceAnswer": "be completely wiped out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "sourceSpan": "well suited",
+        "sourceAnswer": "well suited",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "observed variation in the bodies of animals, and the same principle applies",
+        "sourceAnswer": "observed variation in the bodies of animals, and the same principle applies",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "If we all had the same kind of mind—if there were only one human nature",
+        "sourceAnswer": "If we all had the same kind of mind—if there were only one human nature",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If we all had the same kind of mind",
+        "sourceAnswer": "If we all had the same kind of mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "within a single culture and across cultures",
+        "sourceAnswer": "within a single culture and across cultures",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped out",
+        "sourceAnswer": "be wiped out",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "PRONOUN_ANTECEDENT",
+        "subtype": "",
+        "assessmentAxis": "PRONOUN_ANTECEDENT",
+        "sourceSpan": "This",
+        "sourceAnswer": "This",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "detectedMandatoryOccurrences": 6,
+      "analysisOnlyMandatoryOccurrences": 5,
+      "eligibleMandatoryOccurrences": 0,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 0,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 7,
+      "sectionStatus": "COMPLETE"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "capturedAt": "2026-09-09T12:27:55.588Z",
+  "productionCommit": "1d709e044407af8420326c7a1f1c20fd460890ef",
+  "deployment": "dpl_8hyqxMbjfe5P35t73EjatxQAeWgi",
+  "engine": "v2",
+  "passageIds": [
+    "b66d5c3a-12da-4683-81d0-efaac143fa29"
+  ],
+  "cacheSchemaVersion": "2",
+  "engineVersion": "grammar-choice-v2",
+  "rawAnalyzerMissing": true,
+  "note": "Dumped from production lesson_pack_json grammarChoiceV2Cache without OpenAI recall."
+}

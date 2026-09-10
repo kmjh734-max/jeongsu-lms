@@ -1,0 +1,3853 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T08:42:56.843Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "ok": true,
+  "reason": null,
+  "stages": {
+    "afterAnalyzer": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans to have",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for humans to have",
+        "distractors": [
+          "of humans to have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "important는 행위 주체를 for로 나타낸다",
+        "ruleSummaryKo": "일반적 행위 주체는 for+목적격으로 표시한다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "kinds",
+        "occurrenceIndex": 0,
+        "correctAnswer": "kinds",
+        "distractors": [
+          "kind"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "many가 가산명사의 복수형을 요구한다",
+        "ruleSummaryKo": "many 뒤에는 복수 가산명사를 쓴다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "occurrenceIndex": 0,
+        "correctAnswer": "greatest",
+        "distractors": [
+          "most greatest"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "greatest 자체가 최상급 형태이다",
+        "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+        "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that variation is a prerequisite for natural selection to work",
+        "occurrenceIndex": 0,
+        "correctAnswer": "that variation is a prerequisite for natural selection to work",
+        "distractors": [
+          "what variation is a prerequisite for natural selection to work"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "절 내부 성분이 완전해 접속사 that이 필요하다",
+        "ruleSummaryKo": "완전한 명사절은 접속사 that으로 이끈다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection to work",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for natural selection to work",
+        "distractors": [
+          "of natural selection to work"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "natural selection은 work의 행위 주체이다",
+        "ruleSummaryKo": "일반적 의미상 주어는 for+목적격으로 나타낸다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If there’s a huge change in the environment",
+        "occurrenceIndex": 0,
+        "correctAnswer": "If there’s a huge change in the environment",
+        "distractors": [
+          "If there will be a huge change in the environment"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "미래 가능 조건도 if절에는 현재형을 쓴다",
+        "ruleSummaryKo": "조건의 if절에서는 미래 대신 현재시제를 쓴다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-8",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+        "occurrenceIndex": 0,
+        "correctAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "distractors": [
+          "a catastrophic drop in the food supply or increase greatly in temperature"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "or 양쪽이 관사와 수식어를 갖춘 명사구이다",
+        "ruleSummaryKo": "등위접속사 양쪽은 같은 문법 형태로 병렬화한다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be completely wiped out",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be completely wiped out",
+        "distractors": [
+          "be completely wiping out"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more likely",
+        "occurrenceIndex": 0,
+        "correctAnswer": "more likely",
+        "distractors": [
+          "more likelier"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "likely의 비교급은 more likely이다",
+        "ruleSummaryKo": "more와 -er 비교급을 중복하지 않는다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+        "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-12",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are",
+        "occurrenceIndex": 0,
+        "correctAnswer": "are",
+        "distractors": [
+          "is"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "관계절 동사는 복수 선행사 members와 일치한다",
+        "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be suited for는 적합한 상태를 나타낸다",
+        "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-14",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "Darwin observed variation in the bodies of animals, and the same principle applies",
+        "occurrenceIndex": 0,
+        "correctAnswer": "Darwin observed variation in the bodies of animals, and the same principle applies",
+        "distractors": [
+          "Darwin observed variation in the bodies of animals, and the same principle applying"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "and 뒤에도 주어와 서술동사가 있는 절이 필요하다",
+        "ruleSummaryKo": "등위 연결된 절은 각각 완전한 서술 구조를 갖춘다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-15",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "occurrenceIndex": 0,
+        "correctAnswer": "had",
+        "distractors": [
+          "have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "현재 사실의 반대 가정이므로 과거형을 쓴다",
+        "ruleSummaryKo": "가정법 과거의 if절에는 동사의 과거형을 쓴다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-16",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "occurrenceIndex": 0,
+        "correctAnswer": "were",
+        "distractors": [
+          "are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "현재와 반대되는 존재 상황을 가정한다",
+        "ruleSummaryKo": "현재 반대 가정의 be동사는 과거형 were를 쓴다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-17",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "if we all had the same kind of mind—if there were only one human nature",
+        "occurrenceIndex": 0,
+        "correctAnswer": "if we all had the same kind of mind—if there were only one human nature",
+        "distractors": [
+          "if we all had the same kind of mind—if there being only one human nature"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "두 if절 모두 주어와 정형동사를 갖춘다",
+        "ruleSummaryKo": "병렬된 조건절은 같은 완전한 절 구조를 유지한다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "both within a single culture and across cultures",
+        "occurrenceIndex": 0,
+        "correctAnswer": "both within a single culture and across cultures",
+        "distractors": [
+          "both within a single culture or across cultures"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룬다",
+        "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-19",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely",
+        "occurrenceIndex": 0,
+        "correctAnswer": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely",
+        "distractors": [
+          "our species has many kinds of minds, both within a single culture and across cultures, so being less likely"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "so 뒤에 주어와 정형동사가 있는 결과절이 온다",
+        "ruleSummaryKo": "so로 연결된 결과절은 완전한 절이어야 한다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-20",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "less likely",
+        "occurrenceIndex": 0,
+        "correctAnswer": "less likely",
+        "distractors": [
+          "less likelier"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "less와 -er를 동시에 사용할 수 없다",
+        "ruleSummaryKo": "비교 표지 less와 -er를 중복하지 않는다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "to be wiped out",
+        "occurrenceIndex": 0,
+        "correctAnswer": "to be wiped out",
+        "distractors": [
+          "to be wiping out"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "our species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-e2b4bbf0-8a07-40fd-91a7-095038e9f8f0-22",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "pointCode": "ARTICLE",
+        "sourceSpan": "the",
+        "occurrenceIndex": 0,
+        "correctAnswer": "the",
+        "distractors": [
+          "an"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "of our species가 대상을 특정하므로 the를 쓴다",
+        "ruleSummaryKo": "뒤 수식어가 특정한 대상을 가리키면 the를 쓴다",
+        "riskLevel": "MEDIUM"
+      }
+    ],
+    "afterLocalFilter": {
+      "resolved": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "greatest",
+          "occurrenceIndex": 0,
+          "correctAnswer": "greatest",
+          "distractors": [
+            "most greatest"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "greatest 자체가 최상급 형태이다",
+          "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+          "riskLevel": "LOW",
+          "passageStart": 140,
+          "passageEnd": 148,
+          "subtypeKey": "ONE_OF_SUPERLATIVE:greatest|most greatest"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+          "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+          "riskLevel": "LOW",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "species는 wipe out의 행위 대상이다",
+          "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 418,
+          "passageEnd": 423,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+          "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "occurrenceIndex": 0,
+          "correctAnswer": "suited",
+          "distractors": [
+            "suiting"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "be suited for는 적합한 상태를 나타낸다",
+          "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 544,
+          "passageEnd": 550,
+          "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룬다",
+          "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+          "riskLevel": "LOW",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "our species는 wipe out의 행위 대상이다",
+          "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+          "riskLevel": "LOW",
+          "passageStart": 925,
+          "passageEnd": 930,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+        }
+      ],
+      "rejected": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "for humans to have / of humans to have"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "pointCode": "SINGULAR_PLURAL_NOUN",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "kinds / kind"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "NOUN_CLAUSE_THAT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "that variation is a prerequisite for natural selection to work / what variation is a prerequisite for natural selection to work"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "for natural selection to work / of natural selection to work"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "ADVERB_CLAUSE_CONDITION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "If there’s a huge change in the environment / If there will be a huge change in the environment"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-8",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "PARALLEL_AND_OR_BUT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or increase greatly in temperature"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "COMPARATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "more likely / more likelier"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-12",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_AGREEMENT",
+          "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+          "pair": "are / is"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-14",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "pointCode": "PARALLEL_CLAUSES",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "Darwin observed variation in the bodies of animals, and the same principle applies / Darwin observed variation in the bodies of animals, and the same principle applying"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-15",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+          "pair": "had / would have"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-16",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+          "pair": "were / would be"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-17",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "PARALLEL_CLAUSES",
+          "reason": "SOURCE_SPAN_NOT_FOUND",
+          "pair": "if we all had the same kind of mind—if there were only one human nature / if we all had the same kind of mind—if there being only one human nature"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-19",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "PARALLEL_CLAUSES",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely / our species has many kinds of minds, both within a single culture and across cultures, so being less likely"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-20",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "COMPARATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "less likely / less likelier"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-e2b4bbf0-8a07-40fd-91a7-095038e9f8f0-22",
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "pointCode": "ARTICLE",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "the / an"
+        },
+        {
+          "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "and / or"
+        }
+      ]
+    },
+    "beforeReviewer": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "occurrenceIndex": 0,
+        "correctAnswer": "greatest",
+        "distractors": [
+          "most greatest"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "greatest 자체가 최상급 형태이다",
+        "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+        "riskLevel": "LOW",
+        "passageStart": 140,
+        "passageEnd": 148,
+        "subtypeKey": "ONE_OF_SUPERLATIVE:greatest|most greatest"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+        "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+        "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be suited for는 적합한 상태를 나타낸다",
+        "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룬다",
+        "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "our species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "riskLevel": "LOW",
+        "passageStart": 925,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      }
+    ],
+    "afterReviewer": {
+      "kept": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "greatest",
+          "occurrenceIndex": 0,
+          "correctAnswer": "greatest",
+          "distractors": [
+            "most greatest"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "greatest 자체가 최상급 형태이다",
+          "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+          "riskLevel": "LOW",
+          "passageStart": 140,
+          "passageEnd": 148,
+          "subtypeKey": "ONE_OF_SUPERLATIVE:greatest|most greatest"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+          "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+          "riskLevel": "LOW",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "species는 wipe out의 행위 대상이다",
+          "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 418,
+          "passageEnd": 423,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+          "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "occurrenceIndex": 0,
+          "correctAnswer": "suited",
+          "distractors": [
+            "suiting"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "be suited for는 적합한 상태를 나타낸다",
+          "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 544,
+          "passageEnd": 550,
+          "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룬다",
+          "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+          "riskLevel": "LOW",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "our species는 wipe out의 행위 대상이다",
+          "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+          "riskLevel": "LOW",
+          "passageStart": 925,
+          "passageEnd": 930,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+        }
+      ],
+      "rejected": []
+    },
+    "beforeRank": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "occurrenceIndex": 0,
+        "correctAnswer": "greatest",
+        "distractors": [
+          "most greatest"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "greatest 자체가 최상급 형태이다",
+        "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+        "riskLevel": "LOW",
+        "passageStart": 140,
+        "passageEnd": 148,
+        "subtypeKey": "ONE_OF_SUPERLATIVE:greatest|most greatest"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+        "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+        "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be suited for는 적합한 상태를 나타낸다",
+        "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룬다",
+        "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "our species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "riskLevel": "LOW",
+        "passageStart": 925,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      }
+    ],
+    "afterRank": {
+      "kept": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "greatest",
+          "occurrenceIndex": 0,
+          "correctAnswer": "greatest",
+          "distractors": [
+            "most greatest"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "greatest 자체가 최상급 형태이다",
+          "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+          "riskLevel": "LOW",
+          "passageStart": 140,
+          "passageEnd": 148,
+          "subtypeKey": "ONE_OF_SUPERLATIVE:greatest|most greatest"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+          "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+          "riskLevel": "LOW",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "species는 wipe out의 행위 대상이다",
+          "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 418,
+          "passageEnd": 423,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+          "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "occurrenceIndex": 0,
+          "correctAnswer": "suited",
+          "distractors": [
+            "suiting"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "be suited for는 적합한 상태를 나타낸다",
+          "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+          "riskLevel": "LOW",
+          "passageStart": 544,
+          "passageEnd": 550,
+          "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룬다",
+          "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+          "riskLevel": "LOW",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "wiped",
+          "distractors": [
+            "wiping"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "our species는 wipe out의 행위 대상이다",
+          "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+          "riskLevel": "LOW",
+          "passageStart": 925,
+          "passageEnd": 930,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+        }
+      ],
+      "dropped": []
+    },
+    "beforeDedup": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "occurrenceIndex": 0,
+        "correctAnswer": "greatest",
+        "distractors": [
+          "most greatest"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "greatest 자체가 최상급 형태이다",
+        "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+        "riskLevel": "LOW",
+        "passageStart": 140,
+        "passageEnd": 148,
+        "subtypeKey": "ONE_OF_SUPERLATIVE:greatest|most greatest"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+        "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+        "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be suited for는 적합한 상태를 나타낸다",
+        "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룬다",
+        "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "our species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "riskLevel": "LOW",
+        "passageStart": 925,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      }
+    ],
+    "afterDedup": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "occurrenceIndex": 0,
+        "correctAnswer": "greatest",
+        "distractors": [
+          "most greatest"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "greatest 자체가 최상급 형태이다",
+        "ruleSummaryKo": "최상급에 most를 중복해 쓰지 않는다",
+        "riskLevel": "LOW",
+        "passageStart": 140,
+        "passageEnd": 148,
+        "subtypeKey": "ONE_OF_SUPERLATIVE:greatest|most greatest"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "One이 주어의 중심어이므로 단수 동사를 쓴다",
+        "ruleSummaryKo": "one of+복수명사는 단수 주어로 취급한다",
+        "riskLevel": "LOW",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 418,
+        "passageEnd": 423,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계사 뒤에 별도 주어 없이 동사가 이어진다",
+        "ruleSummaryKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_SUBJECT:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be suited for는 적합한 상태를 나타낸다",
+        "ruleSummaryKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "riskLevel": "LOW",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룬다",
+        "ruleSummaryKo": "both A and B의 짝을 일치시킨다",
+        "riskLevel": "LOW",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "wiped",
+        "distractors": [
+          "wiping"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "our species는 wipe out의 행위 대상이다",
+        "ruleSummaryKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "riskLevel": "LOW",
+        "passageStart": 925,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:wiped|wiping"
+      }
+    ],
+    "coverage": {
+      "reports": [
+        {
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "detectedPointCodes": [
+            "INFINITIVE_LOGICAL_SUBJECT",
+            "SINGULAR_PLURAL_NOUN",
+            "NONFINITE_LOGICAL_SUBJECT_ANALYSIS"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SINGULAR_PLURAL_NOUN",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "detectedPointCodes": [
+            "ONE_OF_SUPERLATIVE",
+            "AGREEMENT_ONE_OF",
+            "NOUN_CLAUSE_THAT",
+            "INFINITIVE_LOGICAL_SUBJECT",
+            "NONFINITE_LOGICAL_SUBJECT_ANALYSIS"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "ONE_OF_SUPERLATIVE",
+            "AGREEMENT_ONE_OF"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "NOUN_CLAUSE_THAT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "detectedPointCodes": [
+            "VOICE_ACTIVE_PASSIVE",
+            "ADVERB_CLAUSE_CONDITION",
+            "PARALLEL_AND_OR_BUT",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "detectedPointCodes": [
+            "RELATIVE_SUBJECT",
+            "PARTICIPLE_ACTIVE_PASSIVE",
+            "COMPARATIVE",
+            "RELATIVE_AGREEMENT",
+            "MODAL_MEANING",
+            "UNMAPPED_HIGH_VALUE_POINT"
+          ],
+          "mandatoryPointCodes": [
+            "RELATIVE_AGREEMENT"
+          ],
+          "generatedQuestionPointCodes": [
+            "RELATIVE_SUBJECT",
+            "PARTICIPLE_ACTIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "RELATIVE_AGREEMENT",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "detectedPointCodes": [
+            "PARALLEL_CLAUSES",
+            "TENSE_PRESENT_PAST"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "TENSE_PRESENT_PAST",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "detectedPointCodes": [
+            "CONDITIONAL_SECOND",
+            "PARALLEL_CLAUSES",
+            "ADVERB_CLAUSE_CONDITION",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [
+            "CONDITIONAL_SECOND",
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "CONDITIONAL_SECOND",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "CONDITIONAL_SECOND",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "SOURCE_FORM_NOT_EDITABLE"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "detectedPointCodes": [
+            "CORRELATIVE_BOTH_AND",
+            "VOICE_ACTIVE_PASSIVE",
+            "PARALLEL_CLAUSES",
+            "COMPARATIVE"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "CORRELATIVE_BOTH_AND",
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "CORRELATIVE_BOTH_AND",
+              "reason": "DUPLICATE_SUBTYPE"
+            }
+          ]
+        },
+        {
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "detectedPointCodes": [
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        }
+      ],
+      "missing": [],
+      "occurrences": [
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "ONE_OF_SUPERLATIVE",
+          "subtype": "ONE_OF_SUPERLATIVE:greatest|most greatest",
+          "assessmentAxis": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "greatest",
+          "sourceAnswer": "greatest",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "sourceAnswer": "was",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "sourceAnswer": "wiped",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:who|whom",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "sourceAnswer": "who",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+          "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "sourceAnswer": "suited",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "sourceAnswer": "and",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "wiped",
+          "sourceAnswer": "wiped",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for humans to have / of humans to have",
+          "sourceAnswer": "for humans to have",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "code": "SINGULAR_PLURAL_NOUN",
+          "subtype": "",
+          "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+          "sourceSpan": "kinds / kind",
+          "sourceAnswer": "kinds",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "NOUN_CLAUSE_THAT",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_THAT",
+          "sourceSpan": "that variation is a prerequisite for natural selection to work / what variation is a prerequisite for natural selection to work",
+          "sourceAnswer": "that variation is a prerequisite for natural selection to work",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for natural selection to work / of natural selection to work",
+          "sourceAnswer": "for natural selection to work",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "If there’s a huge change in the environment / If there will be a huge change in the environment",
+          "sourceAnswer": "If there’s a huge change in the environment",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or increase greatly in temperature",
+          "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "more likely / more likelier",
+          "sourceAnswer": "more likely",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "RELATIVE_AGREEMENT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_AGREEMENT",
+          "sourceSpan": "are / is",
+          "sourceAnswer": "are",
+          "status": "VALID_EXCLUSION",
+          "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "Darwin observed variation in the bodies of animals, and the same principle applies / Darwin observed variation in the bodies of animals, and the same principle applying",
+          "sourceAnswer": "Darwin observed variation in the bodies of animals, and the same principle applies",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "had / would have",
+          "sourceAnswer": "had",
+          "status": "ANALYSIS_ONLY",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "were / would be",
+          "sourceAnswer": "were",
+          "status": "ANALYSIS_ONLY",
+          "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "if we all had the same kind of mind—if there were only one human nature / if we all had the same kind of mind—if there being only one human nature",
+          "sourceAnswer": "if we all had the same kind of mind—if there were only one human nature",
+          "status": "VALID_EXCLUSION",
+          "reason": "SOURCE_SPAN_NOT_FOUND"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely / our species has many kinds of minds, both within a single culture and across cultures, so being less likely",
+          "sourceAnswer": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "less likely / less likelier",
+          "sourceAnswer": "less likely",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the / an",
+          "sourceAnswer": "the",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and / or",
+          "sourceAnswer": "and",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "code": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+          "sourceSpan": "for humans to have",
+          "sourceAnswer": "for humans to have",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+          "sourceSpan": "for natural selection to work",
+          "sourceAnswer": "for natural selection to work",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "might",
+          "sourceAnswer": "might",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "will",
+          "sourceAnswer": "will",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "the members who are well suited for the new environment",
+          "sourceAnswer": "the members who are well suited for the new environment",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "code": "TENSE_PRESENT_PAST",
+          "subtype": "",
+          "assessmentAxis": "TENSE_PRESENT_PAST",
+          "sourceSpan": "observed",
+          "sourceAnswer": "observed",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "If we all had the same kind of mind",
+          "sourceAnswer": "If we all had the same kind of mind",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "might",
+          "sourceAnswer": "might",
+          "status": "ANALYSIS_ONLY"
+        }
+      ],
+      "metrics": {
+        "mandatoryDetected": 6,
+        "mandatoryEligible": 0,
+        "mandatoryRendered": 0,
+        "mandatoryExcludedWithValidReason": 2,
+        "analysisOnly": 12,
+        "eligible": 7,
+        "excluded": 12,
+        "rendered": 7,
+        "missingEligible": 0,
+        "coverage": "N/A"
+      }
+    },
+    "finalize": {
+      "ok": true,
+      "sectionStatus": "COMPLETE"
+    },
+    "studentItems": [
+      {
+        "number": 1,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "internalProvenance": {
+          "code": "ONE_OF_SUPERLATIVE",
+          "subtype": "ONE_OF_SUPERLATIVE:greatest|most greatest",
+          "priority": "CORE",
+          "assessmentAxis": "ONE_OF_SUPERLATIVE",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|ONE_OF_SUPERLATIVE|greatest",
+          "sourceSpan": "greatest",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 140,
+        "endCharIndex": 148,
+        "originalText": "greatest",
+        "correctText": "greatest",
+        "incorrectText": "most greatest",
+        "leftText": "greatest",
+        "rightText": "most greatest",
+        "correctSide": "left",
+        "grammarCategoryId": "ONE_OF_SUPERLATIVE",
+        "grammarCategoryName": "one of 최상급",
+        "bookTerm": "one of 최상급",
+        "explanationKo": "최상급에 most를 중복해 쓰지 않는다",
+        "incorrectReasonKo": "most greatest는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of the + 최상급 + 복수"
+      },
+      {
+        "number": 2,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "internalProvenance": {
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "priority": "CORE",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+          "sourceSpan": "was",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 158,
+        "endCharIndex": 161,
+        "originalText": "was",
+        "correctText": "was",
+        "incorrectText": "were",
+        "leftText": "were",
+        "rightText": "was",
+        "correctSide": "right",
+        "grammarCategoryId": "AGREEMENT_ONE_OF",
+        "grammarCategoryName": "one of 수일치",
+        "bookTerm": "one of 수일치",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of + 복수명사 + 단수 동사"
+      },
+      {
+        "number": 3,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+        "internalProvenance": {
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "occurrenceId": "bf80eb0a-ba47-4823-8f6e-539106229834|VOICE_ACTIVE_PASSIVE|wiped",
+          "sourceSpan": "wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 418,
+        "endCharIndex": 423,
+        "originalText": "wiped",
+        "correctText": "wiped",
+        "incorrectText": "wiping",
+        "leftText": "wiping",
+        "rightText": "wiped",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "능동·수동",
+        "bookTerm": "능동·수동",
+        "explanationKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "incorrectReasonKo": "wiping는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "행위자/대상 의미역"
+      },
+      {
+        "number": 4,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+        "internalProvenance": {
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:who|whom",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_SUBJECT|who",
+          "sourceSpan": "who",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 531,
+        "endCharIndex": 534,
+        "originalText": "who",
+        "correctText": "who",
+        "incorrectText": "whom",
+        "leftText": "who",
+        "rightText": "whom",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_SUBJECT",
+        "grammarCategoryName": "주격 관계대명사",
+        "bookTerm": "주격 관계대명사",
+        "explanationKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "관계절 주어 자리"
+      },
+      {
+        "number": 5,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+        "internalProvenance": {
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+          "priority": "CORE",
+          "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|PARTICIPLE_ACTIVE_PASSIVE|suited",
+          "sourceSpan": "suited",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 544,
+        "endCharIndex": 550,
+        "originalText": "suited",
+        "correctText": "suited",
+        "incorrectText": "suiting",
+        "leftText": "suited",
+        "rightText": "suiting",
+        "correctSide": "left",
+        "grammarCategoryId": "PARTICIPLE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "분사 능동·수동",
+        "bookTerm": "분사 능동·수동",
+        "explanationKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "incorrectReasonKo": "suiting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "의미상 주어와 능동/수동"
+      },
+      {
+        "number": 6,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 877,
+        "endCharIndex": 880,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "or",
+        "rightText": "and",
+        "correctSide": "right",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      },
+      {
+        "number": 7,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+        "internalProvenance": {
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|VOICE_ACTIVE_PASSIVE|wiped",
+          "sourceSpan": "wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 925,
+        "endCharIndex": 930,
+        "originalText": "wiped",
+        "correctText": "wiped",
+        "incorrectText": "wiping",
+        "leftText": "wiped",
+        "rightText": "wiping",
+        "correctSide": "left",
+        "grammarCategoryId": "VOICE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "능동·수동",
+        "bookTerm": "능동·수동",
+        "explanationKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "incorrectReasonKo": "wiping는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "행위자/대상 의미역"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for humans to have / of humans to have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "kinds / kind"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "that variation is a prerequisite for natural selection to work / what variation is a prerequisite for natural selection to work"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for natural selection to work / of natural selection to work"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "ADVERB_CLAUSE_CONDITION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "If there’s a huge change in the environment / If there will be a huge change in the environment"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-8",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or increase greatly in temperature"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "more likely / more likelier"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-12",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+        "pair": "are / is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-14",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "Darwin observed variation in the bodies of animals, and the same principle applies / Darwin observed variation in the bodies of animals, and the same principle applying"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-15",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "had / would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-16",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "were / would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-17",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "SOURCE_SPAN_NOT_FOUND",
+        "pair": "if we all had the same kind of mind—if there were only one human nature / if we all had the same kind of mind—if there being only one human nature"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-19",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely / our species has many kinds of minds, both within a single culture and across cultures, so being less likely"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-20",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "less likely / less likelier"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-e2b4bbf0-8a07-40fd-91a7-095038e9f8f0-22",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "pointCode": "ARTICLE",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "the / an"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "ONE_OF_SUPERLATIVE:greatest|most greatest",
+        "assessmentAxis": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "sourceAnswer": "greatest",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "sourceAnswer": "wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "sourceAnswer": "suited",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "sourceAnswer": "wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans to have / of humans to have",
+        "sourceAnswer": "for humans to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "kinds / kind",
+        "sourceAnswer": "kinds",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that variation is a prerequisite for natural selection to work / what variation is a prerequisite for natural selection to work",
+        "sourceAnswer": "that variation is a prerequisite for natural selection to work",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection to work / of natural selection to work",
+        "sourceAnswer": "for natural selection to work",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If there’s a huge change in the environment / If there will be a huge change in the environment",
+        "sourceAnswer": "If there’s a huge change in the environment",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or increase greatly in temperature",
+        "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more likely / more likelier",
+        "sourceAnswer": "more likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are / is",
+        "sourceAnswer": "are",
+        "status": "VALID_EXCLUSION",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "Darwin observed variation in the bodies of animals, and the same principle applies / Darwin observed variation in the bodies of animals, and the same principle applying",
+        "sourceAnswer": "Darwin observed variation in the bodies of animals, and the same principle applies",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "had / would have",
+        "sourceAnswer": "had",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "were / would be",
+        "sourceAnswer": "were",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "if we all had the same kind of mind—if there were only one human nature / if we all had the same kind of mind—if there being only one human nature",
+        "sourceAnswer": "if we all had the same kind of mind—if there were only one human nature",
+        "status": "VALID_EXCLUSION",
+        "reason": "SOURCE_SPAN_NOT_FOUND"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely / our species has many kinds of minds, both within a single culture and across cultures, so being less likely",
+        "sourceAnswer": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "less likely / less likelier",
+        "sourceAnswer": "less likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the / an",
+        "sourceAnswer": "the",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "sourceSpan": "for humans to have",
+        "sourceAnswer": "for humans to have",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "sourceSpan": "for natural selection to work",
+        "sourceAnswer": "for natural selection to work",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "will",
+        "sourceAnswer": "will",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "the members who are well suited for the new environment",
+        "sourceAnswer": "the members who are well suited for the new environment",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "observed",
+        "sourceAnswer": "observed",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If we all had the same kind of mind",
+        "sourceAnswer": "If we all had the same kind of mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "for humans to have / of humans to have"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "kinds / kind"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "that variation is a prerequisite for natural selection to work / what variation is a prerequisite for natural selection to work"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "for natural selection to work / of natural selection to work"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "If there’s a huge change in the environment / If there will be a huge change in the environment"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-8",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or increase greatly in temperature"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "COMPARATIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "more likely / more likelier"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-12",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+      "pair": "are / is"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-14",
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "pointCode": "PARALLEL_CLAUSES",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "Darwin observed variation in the bodies of animals, and the same principle applies / Darwin observed variation in the bodies of animals, and the same principle applying"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-15",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+      "pair": "had / would have"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-16",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+      "pair": "were / would be"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-17",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "PARALLEL_CLAUSES",
+      "reason": "SOURCE_SPAN_NOT_FOUND",
+      "pair": "if we all had the same kind of mind—if there were only one human nature / if we all had the same kind of mind—if there being only one human nature"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-19",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "PARALLEL_CLAUSES",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely / our species has many kinds of minds, both within a single culture and across cultures, so being less likely"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-20",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "COMPARATIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "less likely / less likelier"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-e2b4bbf0-8a07-40fd-91a7-095038e9f8f0-22",
+      "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+      "pointCode": "ARTICLE",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "the / an"
+    },
+    {
+      "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "and / or"
+    }
+  ],
+  "missingMandatory": [],
+  "section": {
+    "projectId": "15887084-262f-4c77-9c90-023c2551151f",
+    "title": "다양한 사고 방식의 중요성",
+    "source": null,
+    "sourcePassage": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest insights was that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely wiped out. A species with great variation will more likely have some survivors after any catastrophe—the members who are well suited for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely to be wiped out. This variation preserves the evolvability of our species.",
+    "items": [
+      {
+        "number": 1,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "internalProvenance": {
+          "code": "ONE_OF_SUPERLATIVE",
+          "subtype": "ONE_OF_SUPERLATIVE:greatest|most greatest",
+          "priority": "CORE",
+          "assessmentAxis": "ONE_OF_SUPERLATIVE",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|ONE_OF_SUPERLATIVE|greatest",
+          "sourceSpan": "greatest",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 140,
+        "endCharIndex": 148,
+        "originalText": "greatest",
+        "correctText": "greatest",
+        "incorrectText": "most greatest",
+        "leftText": "greatest",
+        "rightText": "most greatest",
+        "correctSide": "left",
+        "grammarCategoryId": "ONE_OF_SUPERLATIVE",
+        "grammarCategoryName": "one of 최상급",
+        "bookTerm": "one of 최상급",
+        "explanationKo": "최상급에 most를 중복해 쓰지 않는다",
+        "incorrectReasonKo": "most greatest는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of the + 최상급 + 복수"
+      },
+      {
+        "number": 2,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "internalProvenance": {
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "priority": "CORE",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+          "sourceSpan": "was",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 158,
+        "endCharIndex": 161,
+        "originalText": "was",
+        "correctText": "was",
+        "incorrectText": "were",
+        "leftText": "were",
+        "rightText": "was",
+        "correctSide": "right",
+        "grammarCategoryId": "AGREEMENT_ONE_OF",
+        "grammarCategoryName": "one of 수일치",
+        "bookTerm": "one of 수일치",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of + 복수명사 + 단수 동사"
+      },
+      {
+        "number": 3,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+        "internalProvenance": {
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "occurrenceId": "bf80eb0a-ba47-4823-8f6e-539106229834|VOICE_ACTIVE_PASSIVE|wiped",
+          "sourceSpan": "wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 418,
+        "endCharIndex": 423,
+        "originalText": "wiped",
+        "correctText": "wiped",
+        "incorrectText": "wiping",
+        "leftText": "wiping",
+        "rightText": "wiped",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "능동·수동",
+        "bookTerm": "능동·수동",
+        "explanationKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "incorrectReasonKo": "wiping는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "행위자/대상 의미역"
+      },
+      {
+        "number": 4,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+        "internalProvenance": {
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:who|whom",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_SUBJECT|who",
+          "sourceSpan": "who",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 531,
+        "endCharIndex": 534,
+        "originalText": "who",
+        "correctText": "who",
+        "incorrectText": "whom",
+        "leftText": "who",
+        "rightText": "whom",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_SUBJECT",
+        "grammarCategoryName": "주격 관계대명사",
+        "bookTerm": "주격 관계대명사",
+        "explanationKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "관계절 주어 자리"
+      },
+      {
+        "number": 5,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+        "internalProvenance": {
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+          "priority": "CORE",
+          "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|PARTICIPLE_ACTIVE_PASSIVE|suited",
+          "sourceSpan": "suited",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 544,
+        "endCharIndex": 550,
+        "originalText": "suited",
+        "correctText": "suited",
+        "incorrectText": "suiting",
+        "leftText": "suited",
+        "rightText": "suiting",
+        "correctSide": "left",
+        "grammarCategoryId": "PARTICIPLE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "분사 능동·수동",
+        "bookTerm": "분사 능동·수동",
+        "explanationKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "incorrectReasonKo": "suiting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "의미상 주어와 능동/수동"
+      },
+      {
+        "number": 6,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 877,
+        "endCharIndex": 880,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "or",
+        "rightText": "and",
+        "correctSide": "right",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      },
+      {
+        "number": 7,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+        "internalProvenance": {
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|VOICE_ACTIVE_PASSIVE|wiped",
+          "sourceSpan": "wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 925,
+        "endCharIndex": 930,
+        "originalText": "wiped",
+        "correctText": "wiped",
+        "incorrectText": "wiping",
+        "leftText": "wiped",
+        "rightText": "wiping",
+        "correctSide": "left",
+        "grammarCategoryId": "VOICE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "능동·수동",
+        "bookTerm": "능동·수동",
+        "explanationKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "incorrectReasonKo": "wiping는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "행위자/대상 의미역"
+      }
+    ],
+    "segments": [
+      {
+        "type": "text",
+        "text": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s "
+      },
+      {
+        "type": "choice",
+        "number": 1,
+        "leftText": "greatest",
+        "rightText": "most greatest"
+      },
+      {
+        "type": "text",
+        "text": " insights "
+      },
+      {
+        "type": "choice",
+        "number": 2,
+        "leftText": "were",
+        "rightText": "was"
+      },
+      {
+        "type": "text",
+        "text": " that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely "
+      },
+      {
+        "type": "choice",
+        "number": 3,
+        "leftText": "wiping",
+        "rightText": "wiped"
+      },
+      {
+        "type": "text",
+        "text": " out. A species with great variation will more likely have some survivors after any catastrophe—the members "
+      },
+      {
+        "type": "choice",
+        "number": 4,
+        "leftText": "who",
+        "rightText": "whom"
+      },
+      {
+        "type": "text",
+        "text": " are well "
+      },
+      {
+        "type": "choice",
+        "number": 5,
+        "leftText": "suited",
+        "rightText": "suiting"
+      },
+      {
+        "type": "text",
+        "text": " for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture "
+      },
+      {
+        "type": "choice",
+        "number": 6,
+        "leftText": "or",
+        "rightText": "and"
+      },
+      {
+        "type": "text",
+        "text": " across cultures, so we’re less likely to be "
+      },
+      {
+        "type": "choice",
+        "number": 7,
+        "leftText": "wiped",
+        "rightText": "wiping"
+      },
+      {
+        "type": "text",
+        "text": " out. This variation preserves the evolvability of our species."
+      }
+    ],
+    "algorithmVersion": "grammar-choice-v2",
+    "diagnostics": {
+      "sentenceCount": 8,
+      "analysisHintCount": 0,
+      "generatedCandidateCount": 22,
+      "codeValidatedCount": 7,
+      "originalMismatchCount": 1,
+      "rangeErrorCount": 0,
+      "overlapDuplicateCount": 1,
+      "reviewSubmittedCount": 0,
+      "reviewAcceptedCount": 7,
+      "bothPossibleRejectCount": 0,
+      "lexicalRejectCount": 0,
+      "trivialRejectCount": 0,
+      "finalCount": 7,
+      "grammarCategoryCount": 6,
+      "averageQualityScore": 0,
+      "passageRestored": true,
+      "cacheHit": false,
+      "generatorModel": "gpt-5.6-sol",
+      "reviewerModel": "gpt-5.6-sol",
+      "generatorResponseModel": "gpt-5.6-sol",
+      "reviewerResponseModel": "gpt-5.6-sol",
+      "generatorActualResponseModel": "gpt-5.6-sol",
+      "reviewerActualResponseModel": "gpt-5.6-sol",
+      "generatorReasoningEffort": "medium",
+      "reviewerReasoningEffort": "high",
+      "reasoningEffort": "medium",
+      "openAICallCount": 5,
+      "localFallbackUsed": false,
+      "generatorVersion": "grammar-choice-v2",
+      "apiCalls": [],
+      "forceRegenerate": true,
+      "oldQuestionReuseCount": 0,
+      "generatorActualModel": "gpt-5.6-sol",
+      "reviewerActualModel": "gpt-5.6-sol",
+      "newQuestionCount": 7,
+      "generateApiCalls": 4,
+      "reviewApiCalls": 1,
+      "underTargetReason": null,
+      "reviewRejectSamples": [],
+      "codeRejectSamples": [],
+      "mandatoryDetected": 6,
+      "mandatoryEligible": 0,
+      "mandatoryRendered": 0,
+      "mandatoryExcludedWithValidReason": 2,
+      "sectionStatus": "COMPLETE",
+      "analysisOnlyCount": 12,
+      "eligibleQuestionCount": 7,
+      "excludedOccurrenceCount": 12,
+      "missingEligibleCount": 0,
+      "mandatoryCoverage": "N/A",
+      "detectedMandatoryOccurrences": 6,
+      "analysisOnlyMandatoryOccurrences": 4,
+      "eligibleMandatoryOccurrences": 0,
+      "validExcludedMandatoryOccurrences": 2,
+      "renderedMandatoryOccurrences": 0,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 12,
+      "countUnits": {
+        "detectedMandatoryOccurrences": "mandatory-occurrence",
+        "analysisOnlyMandatoryOccurrences": "mandatory-occurrence",
+        "eligibleMandatoryOccurrences": "mandatory-occurrence",
+        "validExcludedMandatoryOccurrences": "mandatory-occurrence",
+        "renderedMandatoryOccurrences": "mandatory-occurrence",
+        "missingEligibleMandatoryOccurrences": "mandatory-occurrence",
+        "totalEligibleQuestions": "student-question-candidate",
+        "totalRenderedQuestions": "student-item",
+        "totalExcludedOccurrences": "occurrence"
+      },
+      "finalQuestionCount": 7,
+      "renderedQuestionCount": 7,
+      "countMismatch": false,
+      "difficultyMix": {
+        "BASIC": 0,
+        "CORE": 7,
+        "ADVANCED": 0
+      },
+      "rejectReasonCounts": {
+        "NON_MINIMAL_SPAN": 6,
+        "NOT_PEDAGOGICALLY_USEFUL": 3,
+        "MEANING_ONLY_CONTRAST": 2,
+        "TOO_TRIVIAL_SHORT_AGREEMENT": 1,
+        "MECHANICAL_IF_WOULD_CONTRAST": 2,
+        "SOURCE_SPAN_NOT_FOUND": 1,
+        "DUPLICATE_SATISFIED_BY_PRIMARY": 1
+      }
+    }
+  },
+  "digest": {
+    "passage": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s (1) [greatest / most greatest] insights (2) [were / was] that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely (3) [wiping / wiped] out. A species with great variation will more likely have some survivors after any catastrophe—the members (4) [who / whom] are well (5) [suited / suiting] for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture (6) [or / and] across cultures, so we’re less likely to be (7) [wiped / wiping] out. This variation preserves the evolvability of our species.",
+    "questions": [
+      {
+        "number": 1,
+        "correct": "greatest",
+        "wrong": "most greatest",
+        "left": "greatest",
+        "right": "most greatest",
+        "correctSide": "left",
+        "explanationKo": "최상급에 most를 중복해 쓰지 않는다",
+        "incorrectReasonKo": "most greatest는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "ONE_OF_SUPERLATIVE:greatest|most greatest",
+        "priority": "CORE",
+        "assessmentAxis": "ONE_OF_SUPERLATIVE",
+        "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|ONE_OF_SUPERLATIVE|greatest",
+        "sourceSpan": "greatest",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3"
+      },
+      {
+        "number": 2,
+        "correct": "was",
+        "wrong": "were",
+        "left": "were",
+        "right": "was",
+        "correctSide": "right",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "priority": "CORE",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+        "sourceSpan": "was",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4"
+      },
+      {
+        "number": 3,
+        "correct": "wiped",
+        "wrong": "wiping",
+        "left": "wiping",
+        "right": "wiped",
+        "correctSide": "right",
+        "explanationKo": "행위 대상인 주어에는 be+p.p. 수동태를 쓴다",
+        "incorrectReasonKo": "wiping는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+        "priority": "CORE",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "occurrenceId": "bf80eb0a-ba47-4823-8f6e-539106229834|VOICE_ACTIVE_PASSIVE|wiped",
+        "sourceSpan": "wiped",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-9"
+      },
+      {
+        "number": 4,
+        "correct": "who",
+        "wrong": "whom",
+        "left": "who",
+        "right": "whom",
+        "correctSide": "left",
+        "explanationKo": "관계절에서 주어 역할이면 who를 쓴다",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "priority": "CORE",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_SUBJECT|who",
+        "sourceSpan": "who",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-11"
+      },
+      {
+        "number": 5,
+        "correct": "suited",
+        "wrong": "suiting",
+        "left": "suited",
+        "right": "suiting",
+        "correctSide": "left",
+        "explanationKo": "대상이 적합한 상태이면 과거분사를 쓴다",
+        "incorrectReasonKo": "suiting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+        "priority": "CORE",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|PARTICIPLE_ACTIVE_PASSIVE|suited",
+        "sourceSpan": "suited",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-13"
+      },
+      {
+        "number": 6,
+        "correct": "and",
+        "wrong": "or",
+        "left": "or",
+        "right": "and",
+        "correctSide": "right",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "priority": "CORE",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+        "sourceSpan": "and",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-18"
+      },
+      {
+        "number": 7,
+        "correct": "wiped",
+        "wrong": "wiping",
+        "left": "wiped",
+        "right": "wiping",
+        "correctSide": "left",
+        "explanationKo": "행위 대상은 be+p.p. 형태의 수동태로 나타낸다",
+        "incorrectReasonKo": "wiping는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+        "priority": "CORE",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|VOICE_ACTIVE_PASSIVE|wiped",
+        "sourceSpan": "wiped",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-21"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for humans to have / of humans to have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "kinds / kind"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "that variation is a prerequisite for natural selection to work / what variation is a prerequisite for natural selection to work"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for natural selection to work / of natural selection to work"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "ADVERB_CLAUSE_CONDITION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "If there’s a huge change in the environment / If there will be a huge change in the environment"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-8",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or increase greatly in temperature"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "more likely / more likelier"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-12",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+        "pair": "are / is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-14",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "Darwin observed variation in the bodies of animals, and the same principle applies / Darwin observed variation in the bodies of animals, and the same principle applying"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-15",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "had / would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-16",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST",
+        "pair": "were / would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-17",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "SOURCE_SPAN_NOT_FOUND",
+        "pair": "if we all had the same kind of mind—if there were only one human nature / if we all had the same kind of mind—if there being only one human nature"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-19",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely / our species has many kinds of minds, both within a single culture and across cultures, so being less likely"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-20",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "less likely / less likelier"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-e2b4bbf0-8a07-40fd-91a7-095038e9f8f0-22",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "pointCode": "ARTICLE",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "the / an"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "ONE_OF_SUPERLATIVE:greatest|most greatest",
+        "assessmentAxis": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "greatest",
+        "sourceAnswer": "greatest",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "sourceAnswer": "wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "sourceAnswer": "suited",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:wiped|wiping",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "wiped",
+        "sourceAnswer": "wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans to have / of humans to have",
+        "sourceAnswer": "for humans to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "kinds / kind",
+        "sourceAnswer": "kinds",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that variation is a prerequisite for natural selection to work / what variation is a prerequisite for natural selection to work",
+        "sourceAnswer": "that variation is a prerequisite for natural selection to work",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection to work / of natural selection to work",
+        "sourceAnswer": "for natural selection to work",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If there’s a huge change in the environment / If there will be a huge change in the environment",
+        "sourceAnswer": "If there’s a huge change in the environment",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature / a catastrophic drop in the food supply or increase greatly in temperature",
+        "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more likely / more likelier",
+        "sourceAnswer": "more likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are / is",
+        "sourceAnswer": "are",
+        "status": "VALID_EXCLUSION",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "Darwin observed variation in the bodies of animals, and the same principle applies / Darwin observed variation in the bodies of animals, and the same principle applying",
+        "sourceAnswer": "Darwin observed variation in the bodies of animals, and the same principle applies",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "had / would have",
+        "sourceAnswer": "had",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "were / would be",
+        "sourceAnswer": "were",
+        "status": "ANALYSIS_ONLY",
+        "reason": "MECHANICAL_IF_WOULD_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "if we all had the same kind of mind—if there were only one human nature / if we all had the same kind of mind—if there being only one human nature",
+        "sourceAnswer": "if we all had the same kind of mind—if there were only one human nature",
+        "status": "VALID_EXCLUSION",
+        "reason": "SOURCE_SPAN_NOT_FOUND"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely / our species has many kinds of minds, both within a single culture and across cultures, so being less likely",
+        "sourceAnswer": "our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "less likely / less likelier",
+        "sourceAnswer": "less likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the / an",
+        "sourceAnswer": "the",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "sourceSpan": "for humans to have",
+        "sourceAnswer": "for humans to have",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "NONFINITE_LOGICAL_SUBJECT_ANALYSIS",
+        "sourceSpan": "for natural selection to work",
+        "sourceAnswer": "for natural selection to work",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "will",
+        "sourceAnswer": "will",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "the members who are well suited for the new environment",
+        "sourceAnswer": "the members who are well suited for the new environment",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "observed",
+        "sourceAnswer": "observed",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If we all had the same kind of mind",
+        "sourceAnswer": "If we all had the same kind of mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "detectedMandatoryOccurrences": 6,
+      "analysisOnlyMandatoryOccurrences": 4,
+      "eligibleMandatoryOccurrences": 0,
+      "validExcludedMandatoryOccurrences": 2,
+      "renderedMandatoryOccurrences": 0,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 12,
+      "sectionStatus": "COMPLETE"
+    }
+  }
+}

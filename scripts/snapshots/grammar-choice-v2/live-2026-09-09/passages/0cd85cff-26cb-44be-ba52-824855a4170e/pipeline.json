@@ -1,0 +1,4180 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T07:25:41.536Z",
+  "sourceId": "0cd85cff-26cb-44be-ba52-824855a4170e",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "ok": true,
+  "reason": null,
+  "stages": {
+    "afterAnalyzer": [
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "occurrenceIndex": 1,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+        "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+        "distractors": [
+          "by focusing on positive or negative thoughts, one can bring about positive or negative results"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "앞의 that절과 같은 구조로 병렬됨",
+        "ruleSummaryKo": "병렬된 명사절의 접속사 구조를 맞춘다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "focusing",
+        "occurrenceIndex": 1,
+        "correctAnswer": "focusing",
+        "distractors": [
+          "focus"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "전치사 by의 목적어 자리임",
+        "ruleSummaryKo": "전치사 뒤에는 동명사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "AGREEMENT_LONG_SUBJECT",
+        "sourceSpan": "is",
+        "occurrenceIndex": 1,
+        "correctAnswer": "is",
+        "distractors": [
+          "are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "주어의 중심 명사 flaw는 단수임",
+        "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "think about or visualize",
+        "occurrenceIndex": 1,
+        "correctAnswer": "think about or visualize",
+        "distractors": [
+          "think about or visualizing"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "or 양쪽에 같은 동사 형태가 필요함",
+        "ruleSummaryKo": "등위접속사 양쪽의 동사 형태를 맞춘다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-6",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "that our thoughts and words are extremely magnetic",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that our thoughts and words are extremely magnetic",
+        "distractors": [
+          "our thoughts and words are extremely magnetic"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "첫 that절과 동일한 명사절 구조로 병렬됨",
+        "ruleSummaryKo": "병렬된 that절의 구조를 일관되게 유지한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "extremely",
+        "occurrenceIndex": 1,
+        "correctAnswer": "extremely",
+        "distractors": [
+          "extreme"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "형용사 magnetic을 수식하는 자리임",
+        "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-68aaa91d-8a8d-433f-84ce-0ff97f13e5ad-8",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "pointCode": "SUPERLATIVE",
+        "sourceSpan": "most powerful",
+        "occurrenceIndex": 1,
+        "correctAnswer": "most powerful",
+        "distractors": [
+          "most powerfully"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "명사 attractor를 수식하는 형용사 최상급임",
+        "ruleSummaryKo": "명사를 수식하는 최상급에는 형용사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what",
+        "distractors": [
+          "which"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "선행사 없이 관계절의 목적어를 포함함",
+        "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-10",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "enough, worthy, lovable, and deserving",
+        "occurrenceIndex": 1,
+        "correctAnswer": "enough, worthy, lovable, and deserving",
+        "distractors": [
+          "enough, worthy, lovable, and deserve"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be동사 뒤 보어들이 같은 형태로 병렬됨",
+        "ruleSummaryKo": "병렬된 보어의 품사와 형태를 일치시킨다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-11",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "GERUND_SUBJECT",
+        "sourceSpan": "attracting",
+        "occurrenceIndex": 1,
+        "correctAnswer": "attracting",
+        "distractors": [
+          "attract"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "조건절 뒤 새 절의 주어 자리임",
+        "ruleSummaryKo": "행위를 주어로 나타낼 때 동명사를 쓸 수 있다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more challenging",
+        "occurrenceIndex": 1,
+        "correctAnswer": "more challenging",
+        "distractors": [
+          "more challengingly"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+        "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-13",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "incredibly",
+        "occurrenceIndex": 1,
+        "correctAnswer": "incredibly",
+        "distractors": [
+          "incredible"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "형용사 successful을 수식함",
+        "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "what limiting beliefs you have",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what limiting beliefs you have",
+        "distractors": [
+          "what limiting beliefs do you have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "Consider의 목적어인 간접의문문임",
+        "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "contradict",
+        "occurrenceIndex": 1,
+        "correctAnswer": "contradict",
+        "distractors": [
+          "contradicts"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "선행사 limiting beliefs가 복수임",
+        "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-16",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "PRONOUN_ANTECEDENT",
+        "sourceSpan": "them",
+        "occurrenceIndex": 1,
+        "correctAnswer": "them",
+        "distractors": [
+          "it"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "복수 선행사 limiting beliefs를 받음",
+        "ruleSummaryKo": "대명사의 수는 선행사의 수와 일치시킨다",
+        "riskLevel": "MEDIUM"
+      }
+    ],
+    "afterLocalFilter": {
+      "resolved": [
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "pointCode": "RELATIVE_NONRESTRICTIVE",
+          "sourceSpan": "which",
+          "occurrenceIndex": 1,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+          "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 49,
+          "passageEnd": 54,
+          "subtypeKey": "RELATIVE_NONRESTRICTIVE:that|which"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "pointCode": "PSEUDO_CLEFT_ALL",
+          "sourceSpan": "is",
+          "occurrenceIndex": 1,
+          "correctAnswer": "is",
+          "distractors": [
+            "are"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "주어의 중심 명사 flaw는 단수임",
+          "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 279,
+          "passageEnd": 281,
+          "subtypeKey": "PSEUDO_CLEFT_ALL:are|is"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+          "sourceSpan": "extremely",
+          "occurrenceIndex": 1,
+          "correctAnswer": "extremely",
+          "distractors": [
+            "extreme"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "BASIC",
+          "difficulty": "CORE",
+          "evidence": "형용사 magnetic을 수식하는 자리임",
+          "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 430,
+          "passageEnd": 439,
+          "subtypeKey": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "RELATIVE_WHAT",
+          "sourceSpan": "what",
+          "occurrenceIndex": 1,
+          "correctAnswer": "what",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "선행사 없이 관계절의 목적어를 포함함",
+          "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 561,
+          "passageEnd": 565,
+          "subtypeKey": "RELATIVE_WHAT:that|what"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "COMPARATIVE",
+          "sourceSpan": "more challenging",
+          "occurrenceIndex": 1,
+          "correctAnswer": "more challenging",
+          "distractors": [
+            "more challengingly"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+          "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 841,
+          "passageEnd": 857,
+          "subtypeKey": "COMPARATIVE:more challenging|more challengingly"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "INDIRECT_QUESTION_ORDER",
+          "sourceSpan": "you have",
+          "occurrenceIndex": 0,
+          "correctAnswer": "you have",
+          "distractors": [
+            "do you have"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "Consider의 목적어인 간접의문문임",
+          "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 890,
+          "passageEnd": 898,
+          "subtypeKey": "INDIRECT_QUESTION_ORDER:do you have|you have"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "RELATIVE_AGREEMENT",
+          "sourceSpan": "contradict",
+          "occurrenceIndex": 1,
+          "correctAnswer": "contradict",
+          "distractors": [
+            "contradicts"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "선행사 limiting beliefs가 복수임",
+          "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 904,
+          "passageEnd": 914,
+          "subtypeKey": "RELATIVE_AGREEMENT:contradict|contradicts"
+        }
+      ],
+      "rejected": [
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "pointCode": "PARALLEL_CLAUSES",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "that by focusing on positive or negative thoughts, one can bring about positive or negative results / by focusing on positive or negative thoughts, one can bring about positive or negative results"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "pointCode": "GERUND_PREPOSITION_OBJECT",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "focusing / focus"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "pointCode": "PARALLEL_VERBS",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "think about or visualize / think about or visualizing"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-6",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "pointCode": "PARALLEL_CLAUSES",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "that our thoughts and words are extremely magnetic / our thoughts and words are extremely magnetic"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-68aaa91d-8a8d-433f-84ce-0ff97f13e5ad-8",
+          "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+          "pointCode": "SUPERLATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "most powerful / more powerful"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-10",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "PARALLEL_AND_OR_BUT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "enough, worthy, lovable, and deserving / enough, worthy, lovable, and deserve"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-11",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "GERUND_SUBJECT",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "attracting / attract"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-13",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "incredibly / incredible"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-16",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "PRONOUN_ANTECEDENT",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "them / it"
+        },
+        {
+          "candidateId": "local-INDIRECT_QUESTION_ORDER-31",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "INDIRECT_QUESTION_ORDER",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "you have / do you have"
+        }
+      ]
+    },
+    "beforeReviewer": [
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "occurrenceIndex": 1,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+        "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 49,
+        "passageEnd": 54,
+        "subtypeKey": "RELATIVE_NONRESTRICTIVE:that|which"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "PSEUDO_CLEFT_ALL",
+        "sourceSpan": "is",
+        "occurrenceIndex": 1,
+        "correctAnswer": "is",
+        "distractors": [
+          "are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어의 중심 명사 flaw는 단수임",
+        "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 279,
+        "passageEnd": 281,
+        "subtypeKey": "PSEUDO_CLEFT_ALL:are|is"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "extremely",
+        "occurrenceIndex": 1,
+        "correctAnswer": "extremely",
+        "distractors": [
+          "extreme"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "형용사 magnetic을 수식하는 자리임",
+        "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 430,
+        "passageEnd": 439,
+        "subtypeKey": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "선행사 없이 관계절의 목적어를 포함함",
+        "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 561,
+        "passageEnd": 565,
+        "subtypeKey": "RELATIVE_WHAT:that|what"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more challenging",
+        "occurrenceIndex": 1,
+        "correctAnswer": "more challenging",
+        "distractors": [
+          "more challengingly"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+        "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 841,
+        "passageEnd": 857,
+        "subtypeKey": "COMPARATIVE:more challenging|more challengingly"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have",
+        "occurrenceIndex": 0,
+        "correctAnswer": "you have",
+        "distractors": [
+          "do you have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "Consider의 목적어인 간접의문문임",
+        "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 890,
+        "passageEnd": 898,
+        "subtypeKey": "INDIRECT_QUESTION_ORDER:do you have|you have"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "contradict",
+        "occurrenceIndex": 1,
+        "correctAnswer": "contradict",
+        "distractors": [
+          "contradicts"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "선행사 limiting beliefs가 복수임",
+        "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 904,
+        "passageEnd": 914,
+        "subtypeKey": "RELATIVE_AGREEMENT:contradict|contradicts"
+      }
+    ],
+    "afterReviewer": {
+      "kept": [
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "pointCode": "RELATIVE_NONRESTRICTIVE",
+          "sourceSpan": "which",
+          "occurrenceIndex": 1,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+          "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 49,
+          "passageEnd": 54,
+          "subtypeKey": "RELATIVE_NONRESTRICTIVE:that|which"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "pointCode": "PSEUDO_CLEFT_ALL",
+          "sourceSpan": "is",
+          "occurrenceIndex": 1,
+          "correctAnswer": "is",
+          "distractors": [
+            "are"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "주어의 중심 명사 flaw는 단수임",
+          "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 279,
+          "passageEnd": 281,
+          "subtypeKey": "PSEUDO_CLEFT_ALL:are|is"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+          "sourceSpan": "extremely",
+          "occurrenceIndex": 1,
+          "correctAnswer": "extremely",
+          "distractors": [
+            "extreme"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "BASIC",
+          "difficulty": "CORE",
+          "evidence": "형용사 magnetic을 수식하는 자리임",
+          "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 430,
+          "passageEnd": 439,
+          "subtypeKey": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "RELATIVE_WHAT",
+          "sourceSpan": "what",
+          "occurrenceIndex": 1,
+          "correctAnswer": "what",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "선행사 없이 관계절의 목적어를 포함함",
+          "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 561,
+          "passageEnd": 565,
+          "subtypeKey": "RELATIVE_WHAT:that|what"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "COMPARATIVE",
+          "sourceSpan": "more challenging",
+          "occurrenceIndex": 1,
+          "correctAnswer": "more challenging",
+          "distractors": [
+            "more challengingly"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+          "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 841,
+          "passageEnd": 857,
+          "subtypeKey": "COMPARATIVE:more challenging|more challengingly"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "INDIRECT_QUESTION_ORDER",
+          "sourceSpan": "you have",
+          "occurrenceIndex": 0,
+          "correctAnswer": "you have",
+          "distractors": [
+            "do you have"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "Consider의 목적어인 간접의문문임",
+          "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 890,
+          "passageEnd": 898,
+          "subtypeKey": "INDIRECT_QUESTION_ORDER:do you have|you have"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "RELATIVE_AGREEMENT",
+          "sourceSpan": "contradict",
+          "occurrenceIndex": 1,
+          "correctAnswer": "contradict",
+          "distractors": [
+            "contradicts"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "선행사 limiting beliefs가 복수임",
+          "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 904,
+          "passageEnd": 914,
+          "subtypeKey": "RELATIVE_AGREEMENT:contradict|contradicts"
+        }
+      ],
+      "rejected": []
+    },
+    "beforeRank": [
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "occurrenceIndex": 1,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+        "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 49,
+        "passageEnd": 54,
+        "subtypeKey": "RELATIVE_NONRESTRICTIVE:that|which"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "PSEUDO_CLEFT_ALL",
+        "sourceSpan": "is",
+        "occurrenceIndex": 1,
+        "correctAnswer": "is",
+        "distractors": [
+          "are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어의 중심 명사 flaw는 단수임",
+        "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 279,
+        "passageEnd": 281,
+        "subtypeKey": "PSEUDO_CLEFT_ALL:are|is"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "extremely",
+        "occurrenceIndex": 1,
+        "correctAnswer": "extremely",
+        "distractors": [
+          "extreme"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "형용사 magnetic을 수식하는 자리임",
+        "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 430,
+        "passageEnd": 439,
+        "subtypeKey": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "선행사 없이 관계절의 목적어를 포함함",
+        "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 561,
+        "passageEnd": 565,
+        "subtypeKey": "RELATIVE_WHAT:that|what"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more challenging",
+        "occurrenceIndex": 1,
+        "correctAnswer": "more challenging",
+        "distractors": [
+          "more challengingly"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+        "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 841,
+        "passageEnd": 857,
+        "subtypeKey": "COMPARATIVE:more challenging|more challengingly"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have",
+        "occurrenceIndex": 0,
+        "correctAnswer": "you have",
+        "distractors": [
+          "do you have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "Consider의 목적어인 간접의문문임",
+        "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 890,
+        "passageEnd": 898,
+        "subtypeKey": "INDIRECT_QUESTION_ORDER:do you have|you have"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "contradict",
+        "occurrenceIndex": 1,
+        "correctAnswer": "contradict",
+        "distractors": [
+          "contradicts"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "선행사 limiting beliefs가 복수임",
+        "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 904,
+        "passageEnd": 914,
+        "subtypeKey": "RELATIVE_AGREEMENT:contradict|contradicts"
+      }
+    ],
+    "afterRank": {
+      "kept": [
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "pointCode": "RELATIVE_NONRESTRICTIVE",
+          "sourceSpan": "which",
+          "occurrenceIndex": 1,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+          "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 49,
+          "passageEnd": 54,
+          "subtypeKey": "RELATIVE_NONRESTRICTIVE:that|which"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "INDIRECT_QUESTION_ORDER",
+          "sourceSpan": "you have",
+          "occurrenceIndex": 0,
+          "correctAnswer": "you have",
+          "distractors": [
+            "do you have"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "Consider의 목적어인 간접의문문임",
+          "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 890,
+          "passageEnd": 898,
+          "subtypeKey": "INDIRECT_QUESTION_ORDER:do you have|you have"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "pointCode": "RELATIVE_AGREEMENT",
+          "sourceSpan": "contradict",
+          "occurrenceIndex": 1,
+          "correctAnswer": "contradict",
+          "distractors": [
+            "contradicts"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "선행사 limiting beliefs가 복수임",
+          "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 904,
+          "passageEnd": 914,
+          "subtypeKey": "RELATIVE_AGREEMENT:contradict|contradicts"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "pointCode": "PSEUDO_CLEFT_ALL",
+          "sourceSpan": "is",
+          "occurrenceIndex": 1,
+          "correctAnswer": "is",
+          "distractors": [
+            "are"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "주어의 중심 명사 flaw는 단수임",
+          "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 279,
+          "passageEnd": 281,
+          "subtypeKey": "PSEUDO_CLEFT_ALL:are|is"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "RELATIVE_WHAT",
+          "sourceSpan": "what",
+          "occurrenceIndex": 1,
+          "correctAnswer": "what",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "선행사 없이 관계절의 목적어를 포함함",
+          "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 561,
+          "passageEnd": 565,
+          "subtypeKey": "RELATIVE_WHAT:that|what"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "pointCode": "COMPARATIVE",
+          "sourceSpan": "more challenging",
+          "occurrenceIndex": 1,
+          "correctAnswer": "more challenging",
+          "distractors": [
+            "more challengingly"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+          "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 841,
+          "passageEnd": 857,
+          "subtypeKey": "COMPARATIVE:more challenging|more challengingly"
+        },
+        {
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+          "sourceSpan": "extremely",
+          "occurrenceIndex": 1,
+          "correctAnswer": "extremely",
+          "distractors": [
+            "extreme"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "BASIC",
+          "difficulty": "CORE",
+          "evidence": "형용사 magnetic을 수식하는 자리임",
+          "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 430,
+          "passageEnd": 439,
+          "subtypeKey": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely"
+        }
+      ],
+      "dropped": []
+    },
+    "beforeDedup": [
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "occurrenceIndex": 1,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+        "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 49,
+        "passageEnd": 54,
+        "subtypeKey": "RELATIVE_NONRESTRICTIVE:that|which"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "PSEUDO_CLEFT_ALL",
+        "sourceSpan": "is",
+        "occurrenceIndex": 1,
+        "correctAnswer": "is",
+        "distractors": [
+          "are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어의 중심 명사 flaw는 단수임",
+        "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 279,
+        "passageEnd": 281,
+        "subtypeKey": "PSEUDO_CLEFT_ALL:are|is"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "extremely",
+        "occurrenceIndex": 1,
+        "correctAnswer": "extremely",
+        "distractors": [
+          "extreme"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "형용사 magnetic을 수식하는 자리임",
+        "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 430,
+        "passageEnd": 439,
+        "subtypeKey": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "선행사 없이 관계절의 목적어를 포함함",
+        "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 561,
+        "passageEnd": 565,
+        "subtypeKey": "RELATIVE_WHAT:that|what"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more challenging",
+        "occurrenceIndex": 1,
+        "correctAnswer": "more challenging",
+        "distractors": [
+          "more challengingly"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+        "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 841,
+        "passageEnd": 857,
+        "subtypeKey": "COMPARATIVE:more challenging|more challengingly"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have",
+        "occurrenceIndex": 0,
+        "correctAnswer": "you have",
+        "distractors": [
+          "do you have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "Consider의 목적어인 간접의문문임",
+        "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 890,
+        "passageEnd": 898,
+        "subtypeKey": "INDIRECT_QUESTION_ORDER:do you have|you have"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "contradict",
+        "occurrenceIndex": 1,
+        "correctAnswer": "contradict",
+        "distractors": [
+          "contradicts"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "선행사 limiting beliefs가 복수임",
+        "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 904,
+        "passageEnd": 914,
+        "subtypeKey": "RELATIVE_AGREEMENT:contradict|contradicts"
+      }
+    ],
+    "afterDedup": [
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "occurrenceIndex": 1,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+        "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 49,
+        "passageEnd": 54,
+        "subtypeKey": "RELATIVE_NONRESTRICTIVE:that|which"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have",
+        "occurrenceIndex": 0,
+        "correctAnswer": "you have",
+        "distractors": [
+          "do you have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "Consider의 목적어인 간접의문문임",
+        "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 890,
+        "passageEnd": 898,
+        "subtypeKey": "INDIRECT_QUESTION_ORDER:do you have|you have"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "contradict",
+        "occurrenceIndex": 1,
+        "correctAnswer": "contradict",
+        "distractors": [
+          "contradicts"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "선행사 limiting beliefs가 복수임",
+        "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 904,
+        "passageEnd": 914,
+        "subtypeKey": "RELATIVE_AGREEMENT:contradict|contradicts"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "PSEUDO_CLEFT_ALL",
+        "sourceSpan": "is",
+        "occurrenceIndex": 1,
+        "correctAnswer": "is",
+        "distractors": [
+          "are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어의 중심 명사 flaw는 단수임",
+        "ruleSummaryKo": "긴 주어는 중심 명사의 수에 동사를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 279,
+        "passageEnd": 281,
+        "subtypeKey": "PSEUDO_CLEFT_ALL:are|is"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "occurrenceIndex": 1,
+        "correctAnswer": "what",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "선행사 없이 관계절의 목적어를 포함함",
+        "ruleSummaryKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 561,
+        "passageEnd": 565,
+        "subtypeKey": "RELATIVE_WHAT:that|what"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "more challenging",
+        "occurrenceIndex": 1,
+        "correctAnswer": "more challenging",
+        "distractors": [
+          "more challengingly"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "be동사 뒤 주격보어로 형용사가 필요함",
+        "ruleSummaryKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 841,
+        "passageEnd": 857,
+        "subtypeKey": "COMPARATIVE:more challenging|more challengingly"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "extremely",
+        "occurrenceIndex": 1,
+        "correctAnswer": "extremely",
+        "distractors": [
+          "extreme"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "형용사 magnetic을 수식하는 자리임",
+        "ruleSummaryKo": "형용사를 수식할 때는 부사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 430,
+        "passageEnd": 439,
+        "subtypeKey": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely"
+      }
+    ],
+    "coverage": {
+      "reports": [
+        {
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "detectedPointCodes": [
+            "RELATIVE_NONRESTRICTIVE",
+            "PARALLEL_CLAUSES",
+            "GERUND_PREPOSITION_OBJECT",
+            "RELATIVE_AGREEMENT",
+            "RELATIVE_SUBJECT",
+            "NOUN_CLAUSE_THAT",
+            "GERUND_PREP_OBJECT_ANALYSIS",
+            "MODAL_MEANING",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [
+            "RELATIVE_NONRESTRICTIVE",
+            "PARALLEL_CLAUSES",
+            "RELATIVE_AGREEMENT"
+          ],
+          "generatedQuestionPointCodes": [
+            "RELATIVE_NONRESTRICTIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_PREPOSITION_OBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "RELATIVE_AGREEMENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "RELATIVE_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_THAT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "detectedPointCodes": [
+            "PSEUDO_CLEFT_ALL",
+            "PARALLEL_VERBS",
+            "AGREEMENT_LONG_SUBJECT",
+            "AGREEMENT_PREPOSITIONAL_MODIFIER",
+            "SENTENCE_SVC",
+            "SUBJECT_COMPLEMENT",
+            "NOUN_CLAUSE_THAT",
+            "INFINITIVE_ADVERB_ROLE",
+            "PRONOUN_ANTECEDENT"
+          ],
+          "mandatoryPointCodes": [
+            "AGREEMENT_LONG_SUBJECT"
+          ],
+          "generatedQuestionPointCodes": [
+            "PSEUDO_CLEFT_ALL"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_VERBS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_LONG_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SENTENCE_SVC",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SUBJECT_COMPLEMENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_THAT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "INFINITIVE_ADVERB_ROLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PRONOUN_ANTECEDENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "detectedPointCodes": [
+            "ADVERB_ADJECTIVE_MODIFIER",
+            "PARALLEL_CLAUSES",
+            "DUMMY_IT_SUBJECT",
+            "SENTENCE_SVC",
+            "SUBJECT_COMPLEMENT",
+            "NOUN_CLAUSE_THAT",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "ADVERB_ADJECTIVE_MODIFIER"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "DUMMY_IT_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SENTENCE_SVC",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SUBJECT_COMPLEMENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_THAT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+          "detectedPointCodes": [
+            "SUPERLATIVE",
+            "SENTENCE_SVC",
+            "SUBJECT_COMPLEMENT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "SUPERLATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SENTENCE_SVC",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SUBJECT_COMPLEMENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "detectedPointCodes": [
+            "RELATIVE_WHAT",
+            "COMPARATIVE",
+            "PARALLEL_AND_OR_BUT",
+            "GERUND_SUBJECT",
+            "ADVERB_ADJECTIVE_MODIFIER",
+            "AGREEMENT_CLAUSE_SUBJECT",
+            "PARALLEL_VERBS",
+            "NOUN_CLAUSE_THAT",
+            "ADVERB_CLAUSE_CONDITION",
+            "GERUND_SUBJECT_ANALYSIS",
+            "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [
+            "AGREEMENT_CLAUSE_SUBJECT"
+          ],
+          "generatedQuestionPointCodes": [
+            "RELATIVE_WHAT",
+            "COMPARATIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_CLAUSE_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_VERBS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_THAT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "detectedPointCodes": [
+            "INDIRECT_QUESTION_ORDER",
+            "RELATIVE_AGREEMENT",
+            "PRONOUN_ANTECEDENT",
+            "NOUN_CLAUSE_WH_WORD",
+            "RELATIVE_SUBJECT",
+            "PARALLEL_VERBS",
+            "RELATIVE_WHAT",
+            "PREPOSITION_COLLOCATION"
+          ],
+          "mandatoryPointCodes": [
+            "INDIRECT_QUESTION_ORDER",
+            "RELATIVE_AGREEMENT"
+          ],
+          "generatedQuestionPointCodes": [
+            "INDIRECT_QUESTION_ORDER",
+            "RELATIVE_AGREEMENT"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PRONOUN_ANTECEDENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "INDIRECT_QUESTION_ORDER",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "NOUN_CLAUSE_WH_WORD",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "RELATIVE_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_VERBS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "RELATIVE_WHAT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PREPOSITION_COLLOCATION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        }
+      ],
+      "missing": [],
+      "occurrences": [
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "RELATIVE_NONRESTRICTIVE",
+          "subtype": "RELATIVE_NONRESTRICTIVE:that|which",
+          "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+          "sourceSpan": "which",
+          "sourceAnswer": "which",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "INDIRECT_QUESTION_ORDER",
+          "subtype": "INDIRECT_QUESTION_ORDER:do you have|you have",
+          "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+          "sourceSpan": "you have",
+          "sourceAnswer": "you have",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "RELATIVE_AGREEMENT",
+          "subtype": "RELATIVE_AGREEMENT:contradict|contradicts",
+          "assessmentAxis": "RELATIVE_AGREEMENT",
+          "sourceSpan": "contradict",
+          "sourceAnswer": "contradict",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "PSEUDO_CLEFT_ALL",
+          "subtype": "PSEUDO_CLEFT_ALL:are|is",
+          "assessmentAxis": "PSEUDO_CLEFT_ALL",
+          "sourceSpan": "is",
+          "sourceAnswer": "is",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "RELATIVE_WHAT",
+          "subtype": "RELATIVE_WHAT:that|what",
+          "assessmentAxis": "RELATIVE_WHAT",
+          "sourceSpan": "what",
+          "sourceAnswer": "what",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "COMPARATIVE",
+          "subtype": "COMPARATIVE:more challenging|more challengingly",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "more challenging",
+          "sourceAnswer": "more challenging",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "code": "ADVERB_ADJECTIVE_MODIFIER",
+          "subtype": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely",
+          "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+          "sourceSpan": "extremely",
+          "sourceAnswer": "extremely",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results / by focusing on positive or negative thoughts, one can bring about positive or negative results",
+          "sourceAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "GERUND_PREPOSITION_OBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+          "sourceSpan": "focusing / focus",
+          "sourceAnswer": "focusing",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "PARALLEL_VERBS",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "think about or visualize / think about or visualizing",
+          "sourceAnswer": "think about or visualize",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "that our thoughts and words are extremely magnetic / our thoughts and words are extremely magnetic",
+          "sourceAnswer": "that our thoughts and words are extremely magnetic",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+          "code": "SUPERLATIVE",
+          "subtype": "",
+          "assessmentAxis": "SUPERLATIVE",
+          "sourceSpan": "most powerful / more powerful",
+          "sourceAnswer": "most powerful",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "enough, worthy, lovable, and deserving / enough, worthy, lovable, and deserve",
+          "sourceAnswer": "enough, worthy, lovable, and deserving",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "GERUND_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT",
+          "sourceSpan": "attracting / attract",
+          "sourceAnswer": "attracting",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "ADVERB_ADJECTIVE_MODIFIER",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+          "sourceSpan": "incredibly / incredible",
+          "sourceAnswer": "incredibly",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "PRONOUN_ANTECEDENT",
+          "subtype": "",
+          "assessmentAxis": "PRONOUN_ANTECEDENT",
+          "sourceSpan": "them / it",
+          "sourceAnswer": "them",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "INDIRECT_QUESTION_ORDER",
+          "subtype": "",
+          "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+          "sourceSpan": "you have / do you have",
+          "sourceAnswer": "you have",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "RELATIVE_AGREEMENT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_AGREEMENT",
+          "sourceSpan": "states",
+          "sourceAnswer": "states",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "sourceSpan": "which",
+          "sourceAnswer": "which",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "NOUN_CLAUSE_THAT",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_THAT",
+          "sourceSpan": "that ‘like attracts like’",
+          "sourceAnswer": "that ‘like attracts like’",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "GERUND_PREP_OBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+          "sourceSpan": "by focusing on positive or negative thoughts",
+          "sourceAnswer": "by focusing on positive or negative thoughts",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "can",
+          "sourceAnswer": "can",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "positive or negative thoughts",
+          "sourceAnswer": "positive or negative thoughts",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "AGREEMENT_LONG_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_LONG_SUBJECT",
+          "sourceSpan": "The common flaw in our understanding of this law is",
+          "sourceAnswer": "The common flaw in our understanding of this law is",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+          "sourceSpan": "The common flaw in our understanding of this law is",
+          "sourceAnswer": "The common flaw in our understanding of this law is",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "SENTENCE_SVC",
+          "subtype": "",
+          "assessmentAxis": "SENTENCE_SVC",
+          "sourceSpan": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+          "sourceAnswer": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "SUBJECT_COMPLEMENT",
+          "subtype": "",
+          "assessmentAxis": "SUBJECT_COMPLEMENT",
+          "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+          "sourceAnswer": "that we believe all we have to do is think about or visualize something to manifest it",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "NOUN_CLAUSE_THAT",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_THAT",
+          "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+          "sourceAnswer": "that we believe all we have to do is think about or visualize something to manifest it",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "INFINITIVE_ADVERB_ROLE",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+          "sourceSpan": "to manifest it",
+          "sourceAnswer": "to manifest it",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+          "code": "PRONOUN_ANTECEDENT",
+          "subtype": "",
+          "assessmentAxis": "PRONOUN_ANTECEDENT",
+          "sourceSpan": "it",
+          "sourceAnswer": "it",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "code": "DUMMY_IT_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "DUMMY_IT_SUBJECT",
+          "sourceSpan": "It",
+          "sourceAnswer": "It",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "code": "SENTENCE_SVC",
+          "subtype": "",
+          "assessmentAxis": "SENTENCE_SVC",
+          "sourceSpan": "It is true",
+          "sourceAnswer": "It is true",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "code": "SUBJECT_COMPLEMENT",
+          "subtype": "",
+          "assessmentAxis": "SUBJECT_COMPLEMENT",
+          "sourceSpan": "true",
+          "sourceAnswer": "true",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "code": "NOUN_CLAUSE_THAT",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_THAT",
+          "sourceSpan": "that we attract at the level of our own vibration",
+          "sourceAnswer": "that we attract at the level of our own vibration",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "our thoughts and words",
+          "sourceAnswer": "our thoughts and words",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+          "code": "SENTENCE_SVC",
+          "subtype": "",
+          "assessmentAxis": "SENTENCE_SVC",
+          "sourceSpan": "the most powerful attractor is our belief system",
+          "sourceAnswer": "the most powerful attractor is our belief system",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+          "code": "SUBJECT_COMPLEMENT",
+          "subtype": "",
+          "assessmentAxis": "SUBJECT_COMPLEMENT",
+          "sourceSpan": "our belief system",
+          "sourceAnswer": "our belief system",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "AGREEMENT_CLAUSE_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_CLAUSE_SUBJECT",
+          "sourceSpan": "attracting a great career or relationship into your life may be",
+          "sourceAnswer": "attracting a great career or relationship into your life may be",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "PARALLEL_VERBS",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "create beautiful poster boards full of images of what you want and affirm every day",
+          "sourceAnswer": "create beautiful poster boards full of images of what you want and affirm every day",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "NOUN_CLAUSE_THAT",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_THAT",
+          "sourceSpan": "that you are available for an incredibly successful, passionate career or a loving relationship",
+          "sourceAnswer": "that you are available for an incredibly successful, passionate career or a loving relationship",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+          "sourceAnswer": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "GERUND_SUBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+          "sourceSpan": "attracting a great career or relationship into your life",
+          "sourceAnswer": "attracting a great career or relationship into your life",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+          "sourceSpan": "attracting a great career or relationship into your life may be",
+          "sourceAnswer": "attracting a great career or relationship into your life may be",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "can",
+          "sourceAnswer": "can",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "NOUN_CLAUSE_WH_WORD",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+          "sourceSpan": "what limiting beliefs you have",
+          "sourceAnswer": "what limiting beliefs you have",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "sourceSpan": "that",
+          "sourceAnswer": "that",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "PARALLEL_VERBS",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+          "sourceAnswer": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "RELATIVE_WHAT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_WHAT",
+          "sourceSpan": "what you want to attract",
+          "sourceAnswer": "what you want to attract",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+          "code": "PREPOSITION_COLLOCATION",
+          "subtype": "",
+          "assessmentAxis": "PREPOSITION_COLLOCATION",
+          "sourceSpan": "in line with",
+          "sourceAnswer": "in line with",
+          "status": "ANALYSIS_ONLY"
+        }
+      ],
+      "metrics": {
+        "mandatoryDetected": 9,
+        "mandatoryEligible": 3,
+        "mandatoryRendered": 3,
+        "mandatoryExcludedWithValidReason": 1,
+        "analysisOnly": 34,
+        "eligible": 7,
+        "excluded": 8,
+        "rendered": 7,
+        "missingEligible": 0,
+        "coverage": 100
+      }
+    },
+    "finalize": {
+      "ok": true,
+      "sectionStatus": "COMPLETE"
+    },
+    "studentItems": [
+      {
+        "number": 1,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+        "internalProvenance": {
+          "code": "RELATIVE_NONRESTRICTIVE",
+          "subtype": "RELATIVE_NONRESTRICTIVE:that|which",
+          "priority": "MANDATORY",
+          "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+          "occurrenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd|RELATIVE_NONRESTRICTIVE|which",
+          "sourceSpan": "which",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+          "exclusionReason": null
+        },
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 49,
+        "endCharIndex": 54,
+        "originalText": "which",
+        "correctText": "which",
+        "incorrectText": "that",
+        "leftText": "which",
+        "rightText": "that",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_NONRESTRICTIVE",
+        "grammarCategoryName": "계속적 용법의 관계대명사",
+        "bookTerm": "계속적 용법의 관계대명사",
+        "explanationKo": "콤마 뒤에서 앞 명사나 절을 부연하는 계속적 용법에는 which를 쓴다.",
+        "incorrectReasonKo": "that는 계속적 용법의 관계대명사로 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "선행사, which + 절"
+      },
+      {
+        "number": 2,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+        "internalProvenance": {
+          "code": "INDIRECT_QUESTION_ORDER",
+          "subtype": "INDIRECT_QUESTION_ORDER:do you have|you have",
+          "priority": "MANDATORY",
+          "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+          "occurrenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4|INDIRECT_QUESTION_ORDER|you have",
+          "sourceSpan": "you have",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 890,
+        "endCharIndex": 898,
+        "originalText": "you have",
+        "correctText": "you have",
+        "incorrectText": "do you have",
+        "leftText": "do you have",
+        "rightText": "you have",
+        "correctSide": "right",
+        "grammarCategoryId": "INDIRECT_QUESTION_ORDER",
+        "grammarCategoryName": "간접의문문",
+        "bookTerm": "간접의문문",
+        "explanationKo": "간접의문문이므로 you have처럼 평서문 어순을 쓴다.",
+        "incorrectReasonKo": "do you have는 직접의문문 어순이다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "의문사 + 주어 + 동사"
+      },
+      {
+        "number": 3,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+        "internalProvenance": {
+          "code": "RELATIVE_AGREEMENT",
+          "subtype": "RELATIVE_AGREEMENT:contradict|contradicts",
+          "priority": "MANDATORY",
+          "assessmentAxis": "RELATIVE_AGREEMENT",
+          "occurrenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4|RELATIVE_AGREEMENT|contradict",
+          "sourceSpan": "contradict",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 904,
+        "endCharIndex": 914,
+        "originalText": "contradict",
+        "correctText": "contradict",
+        "incorrectText": "contradicts",
+        "leftText": "contradict",
+        "rightText": "contradicts",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_AGREEMENT",
+        "grammarCategoryName": "관계절 수일치",
+        "bookTerm": "관계절 수일치",
+        "explanationKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "incorrectReasonKo": "contradicts는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "관계사 동사와 선행사"
+      },
+      {
+        "number": 4,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+        "internalProvenance": {
+          "code": "PSEUDO_CLEFT_ALL",
+          "subtype": "PSEUDO_CLEFT_ALL:are|is",
+          "priority": "CORE",
+          "assessmentAxis": "PSEUDO_CLEFT_ALL",
+          "occurrenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901|PSEUDO_CLEFT_ALL|is",
+          "sourceSpan": "is",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+          "exclusionReason": null
+        },
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 279,
+        "endCharIndex": 281,
+        "originalText": "is",
+        "correctText": "is",
+        "incorrectText": "are",
+        "leftText": "are",
+        "rightText": "is",
+        "correctSide": "right",
+        "grammarCategoryId": "PSEUDO_CLEFT_ALL",
+        "grammarCategoryName": "의사분열문 all",
+        "bookTerm": "의사분열문 all",
+        "explanationKo": "All (that) S have to do + be + 동사원형. 여기서 all절은 ‘해야 할 전부/한 가지 일’을 나타낸다.",
+        "incorrectReasonKo": "are는 all절의 be동사로 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "All (that) S have to do + be + 동사원형"
+      },
+      {
+        "number": 5,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+        "internalProvenance": {
+          "code": "RELATIVE_WHAT",
+          "subtype": "RELATIVE_WHAT:that|what",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_WHAT",
+          "occurrenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34|RELATIVE_WHAT|what",
+          "sourceSpan": "what",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 561,
+        "endCharIndex": 565,
+        "originalText": "what",
+        "correctText": "what",
+        "incorrectText": "that",
+        "leftText": "that",
+        "rightText": "what",
+        "correctSide": "right",
+        "grammarCategoryId": "RELATIVE_WHAT",
+        "grammarCategoryName": "관계대명사 what",
+        "bookTerm": "관계대명사 what",
+        "explanationKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "incorrectReasonKo": "that는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "선행사 포함 what"
+      },
+      {
+        "number": 6,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+        "internalProvenance": {
+          "code": "COMPARATIVE",
+          "subtype": "COMPARATIVE:more challenging|more challengingly",
+          "priority": "CORE",
+          "assessmentAxis": "COMPARATIVE",
+          "occurrenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34|COMPARATIVE|more challenging",
+          "sourceSpan": "more challenging",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+          "exclusionReason": null
+        },
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 841,
+        "endCharIndex": 857,
+        "originalText": "more challenging",
+        "correctText": "more challenging",
+        "incorrectText": "more challengingly",
+        "leftText": "more challenging",
+        "rightText": "more challengingly",
+        "correctSide": "left",
+        "grammarCategoryId": "COMPARATIVE",
+        "grammarCategoryName": "비교급",
+        "bookTerm": "비교급",
+        "explanationKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "incorrectReasonKo": "more challengingly는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "than 비교"
+      },
+      {
+        "number": 7,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+        "internalProvenance": {
+          "code": "ADVERB_ADJECTIVE_MODIFIER",
+          "subtype": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely",
+          "priority": "BASIC",
+          "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+          "occurrenceId": "d5266686-93c2-4e30-a119-19682a4254a3|ADVERB_ADJECTIVE_MODIFIER|extremely",
+          "sourceSpan": "extremely",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 430,
+        "endCharIndex": 439,
+        "originalText": "extremely",
+        "correctText": "extremely",
+        "incorrectText": "extreme",
+        "leftText": "extremely",
+        "rightText": "extreme",
+        "correctSide": "left",
+        "grammarCategoryId": "ADVERB_ADJECTIVE_MODIFIER",
+        "grammarCategoryName": "형용사 수식 부사",
+        "bookTerm": "형용사 수식 부사",
+        "explanationKo": "형용사를 수식할 때는 부사를 쓴다",
+        "incorrectReasonKo": "extreme는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "부사+형용사"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "that by focusing on positive or negative thoughts, one can bring about positive or negative results / by focusing on positive or negative thoughts, one can bring about positive or negative results"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "focusing / focus"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "PARALLEL_VERBS",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "think about or visualize / think about or visualizing"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-6",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "that our thoughts and words are extremely magnetic / our thoughts and words are extremely magnetic"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-68aaa91d-8a8d-433f-84ce-0ff97f13e5ad-8",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "pointCode": "SUPERLATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "most powerful / more powerful"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-10",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "enough, worthy, lovable, and deserving / enough, worthy, lovable, and deserve"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-11",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "GERUND_SUBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "attracting / attract"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-13",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "incredibly / incredible"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-16",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "PRONOUN_ANTECEDENT",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "them / it"
+      },
+      {
+        "candidateId": "local-INDIRECT_QUESTION_ORDER-31",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "you have / do you have"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "RELATIVE_NONRESTRICTIVE",
+        "subtype": "RELATIVE_NONRESTRICTIVE:that|which",
+        "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "INDIRECT_QUESTION_ORDER:do you have|you have",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have",
+        "sourceAnswer": "you have",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "RELATIVE_AGREEMENT:contradict|contradicts",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "contradict",
+        "sourceAnswer": "contradict",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "PSEUDO_CLEFT_ALL",
+        "subtype": "PSEUDO_CLEFT_ALL:are|is",
+        "assessmentAxis": "PSEUDO_CLEFT_ALL",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "RELATIVE_WHAT",
+        "subtype": "RELATIVE_WHAT:that|what",
+        "assessmentAxis": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "sourceAnswer": "what",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "COMPARATIVE",
+        "subtype": "COMPARATIVE:more challenging|more challengingly",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more challenging",
+        "sourceAnswer": "more challenging",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "ADVERB_ADJECTIVE_MODIFIER",
+        "subtype": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely",
+        "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "extremely",
+        "sourceAnswer": "extremely",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results / by focusing on positive or negative thoughts, one can bring about positive or negative results",
+        "sourceAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "focusing / focus",
+        "sourceAnswer": "focusing",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "think about or visualize / think about or visualizing",
+        "sourceAnswer": "think about or visualize",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "that our thoughts and words are extremely magnetic / our thoughts and words are extremely magnetic",
+        "sourceAnswer": "that our thoughts and words are extremely magnetic",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "code": "SUPERLATIVE",
+        "subtype": "",
+        "assessmentAxis": "SUPERLATIVE",
+        "sourceSpan": "most powerful / more powerful",
+        "sourceAnswer": "most powerful",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "enough, worthy, lovable, and deserving / enough, worthy, lovable, and deserve",
+        "sourceAnswer": "enough, worthy, lovable, and deserving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT",
+        "sourceSpan": "attracting / attract",
+        "sourceAnswer": "attracting",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "ADVERB_ADJECTIVE_MODIFIER",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "incredibly / incredible",
+        "sourceAnswer": "incredibly",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "PRONOUN_ANTECEDENT",
+        "subtype": "",
+        "assessmentAxis": "PRONOUN_ANTECEDENT",
+        "sourceSpan": "them / it",
+        "sourceAnswer": "them",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have / do you have",
+        "sourceAnswer": "you have",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "states",
+        "sourceAnswer": "states",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that ‘like attracts like’",
+        "sourceAnswer": "that ‘like attracts like’",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "by focusing on positive or negative thoughts",
+        "sourceAnswer": "by focusing on positive or negative thoughts",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "can",
+        "sourceAnswer": "can",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "positive or negative thoughts",
+        "sourceAnswer": "positive or negative thoughts",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "AGREEMENT_LONG_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_LONG_SUBJECT",
+        "sourceSpan": "The common flaw in our understanding of this law is",
+        "sourceAnswer": "The common flaw in our understanding of this law is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+        "sourceSpan": "The common flaw in our understanding of this law is",
+        "sourceAnswer": "The common flaw in our understanding of this law is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "SENTENCE_SVC",
+        "subtype": "",
+        "assessmentAxis": "SENTENCE_SVC",
+        "sourceSpan": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+        "sourceAnswer": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "SUBJECT_COMPLEMENT",
+        "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+        "sourceAnswer": "that we believe all we have to do is think about or visualize something to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+        "sourceAnswer": "that we believe all we have to do is think about or visualize something to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "INFINITIVE_ADVERB_ROLE",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+        "sourceSpan": "to manifest it",
+        "sourceAnswer": "to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "PRONOUN_ANTECEDENT",
+        "subtype": "",
+        "assessmentAxis": "PRONOUN_ANTECEDENT",
+        "sourceSpan": "it",
+        "sourceAnswer": "it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "DUMMY_IT_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "DUMMY_IT_SUBJECT",
+        "sourceSpan": "It",
+        "sourceAnswer": "It",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "SENTENCE_SVC",
+        "subtype": "",
+        "assessmentAxis": "SENTENCE_SVC",
+        "sourceSpan": "It is true",
+        "sourceAnswer": "It is true",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "SUBJECT_COMPLEMENT",
+        "sourceSpan": "true",
+        "sourceAnswer": "true",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that we attract at the level of our own vibration",
+        "sourceAnswer": "that we attract at the level of our own vibration",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "our thoughts and words",
+        "sourceAnswer": "our thoughts and words",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "code": "SENTENCE_SVC",
+        "subtype": "",
+        "assessmentAxis": "SENTENCE_SVC",
+        "sourceSpan": "the most powerful attractor is our belief system",
+        "sourceAnswer": "the most powerful attractor is our belief system",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "code": "SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "SUBJECT_COMPLEMENT",
+        "sourceSpan": "our belief system",
+        "sourceAnswer": "our belief system",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "AGREEMENT_CLAUSE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_CLAUSE_SUBJECT",
+        "sourceSpan": "attracting a great career or relationship into your life may be",
+        "sourceAnswer": "attracting a great career or relationship into your life may be",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "create beautiful poster boards full of images of what you want and affirm every day",
+        "sourceAnswer": "create beautiful poster boards full of images of what you want and affirm every day",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that you are available for an incredibly successful, passionate career or a loving relationship",
+        "sourceAnswer": "that you are available for an incredibly successful, passionate career or a loving relationship",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+        "sourceAnswer": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "GERUND_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+        "sourceSpan": "attracting a great career or relationship into your life",
+        "sourceAnswer": "attracting a great career or relationship into your life",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "sourceSpan": "attracting a great career or relationship into your life may be",
+        "sourceAnswer": "attracting a great career or relationship into your life may be",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "can",
+        "sourceAnswer": "can",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what limiting beliefs you have",
+        "sourceAnswer": "what limiting beliefs you have",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "sourceAnswer": "that",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+        "sourceAnswer": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "RELATIVE_WHAT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_WHAT",
+        "sourceSpan": "what you want to attract",
+        "sourceAnswer": "what you want to attract",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "PREPOSITION_COLLOCATION",
+        "subtype": "",
+        "assessmentAxis": "PREPOSITION_COLLOCATION",
+        "sourceSpan": "in line with",
+        "sourceAnswer": "in line with",
+        "status": "ANALYSIS_ONLY"
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_CLAUSES",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "that by focusing on positive or negative thoughts, one can bring about positive or negative results / by focusing on positive or negative thoughts, one can bring about positive or negative results"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "focusing / focus"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_VERBS",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "think about or visualize / think about or visualizing"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-6",
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_CLAUSES",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "that our thoughts and words are extremely magnetic / our thoughts and words are extremely magnetic"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-68aaa91d-8a8d-433f-84ce-0ff97f13e5ad-8",
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUPERLATIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "most powerful / more powerful"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-10",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "enough, worthy, lovable, and deserving / enough, worthy, lovable, and deserve"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-11",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "attracting / attract"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-13",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "incredibly / incredible"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-16",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "them / it"
+    },
+    {
+      "candidateId": "local-INDIRECT_QUESTION_ORDER-31",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "you have / do you have"
+    }
+  ],
+  "missingMandatory": [],
+  "section": {
+    "projectId": "0cd85cff-26cb-44be-ba52-824855a4170e",
+    "title": "긍정적 사고의 한계와 믿음의 힘",
+    "source": null,
+    "sourcePassage": "Perhaps you have heard of the Law of Attraction, which states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results. The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it. It is true that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic. But the most powerful attractor is our belief system. You can create beautiful poster boards full of images of what you want and affirm every day that you are available for an incredibly successful, passionate career or a loving relationship; but if you don’t truly believe you are enough, worthy, lovable, and deserving, then attracting a great career or relationship into your life may be more challenging. Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract.",
+    "items": [
+      {
+        "number": 1,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+        "internalProvenance": {
+          "code": "RELATIVE_NONRESTRICTIVE",
+          "subtype": "RELATIVE_NONRESTRICTIVE:that|which",
+          "priority": "MANDATORY",
+          "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+          "occurrenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd|RELATIVE_NONRESTRICTIVE|which",
+          "sourceSpan": "which",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+          "exclusionReason": null
+        },
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 49,
+        "endCharIndex": 54,
+        "originalText": "which",
+        "correctText": "which",
+        "incorrectText": "that",
+        "leftText": "which",
+        "rightText": "that",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_NONRESTRICTIVE",
+        "grammarCategoryName": "계속적 용법의 관계대명사",
+        "bookTerm": "계속적 용법의 관계대명사",
+        "explanationKo": "콤마 뒤에서 앞 명사나 절을 부연하는 계속적 용법에는 which를 쓴다.",
+        "incorrectReasonKo": "that는 계속적 용법의 관계대명사로 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "선행사, which + 절"
+      },
+      {
+        "number": 2,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+        "internalProvenance": {
+          "code": "INDIRECT_QUESTION_ORDER",
+          "subtype": "INDIRECT_QUESTION_ORDER:do you have|you have",
+          "priority": "MANDATORY",
+          "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+          "occurrenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4|INDIRECT_QUESTION_ORDER|you have",
+          "sourceSpan": "you have",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 890,
+        "endCharIndex": 898,
+        "originalText": "you have",
+        "correctText": "you have",
+        "incorrectText": "do you have",
+        "leftText": "do you have",
+        "rightText": "you have",
+        "correctSide": "right",
+        "grammarCategoryId": "INDIRECT_QUESTION_ORDER",
+        "grammarCategoryName": "간접의문문",
+        "bookTerm": "간접의문문",
+        "explanationKo": "간접의문문이므로 you have처럼 평서문 어순을 쓴다.",
+        "incorrectReasonKo": "do you have는 직접의문문 어순이다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "의문사 + 주어 + 동사"
+      },
+      {
+        "number": 3,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+        "internalProvenance": {
+          "code": "RELATIVE_AGREEMENT",
+          "subtype": "RELATIVE_AGREEMENT:contradict|contradicts",
+          "priority": "MANDATORY",
+          "assessmentAxis": "RELATIVE_AGREEMENT",
+          "occurrenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4|RELATIVE_AGREEMENT|contradict",
+          "sourceSpan": "contradict",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 904,
+        "endCharIndex": 914,
+        "originalText": "contradict",
+        "correctText": "contradict",
+        "incorrectText": "contradicts",
+        "leftText": "contradict",
+        "rightText": "contradicts",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_AGREEMENT",
+        "grammarCategoryName": "관계절 수일치",
+        "bookTerm": "관계절 수일치",
+        "explanationKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "incorrectReasonKo": "contradicts는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "관계사 동사와 선행사"
+      },
+      {
+        "number": 4,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+        "internalProvenance": {
+          "code": "PSEUDO_CLEFT_ALL",
+          "subtype": "PSEUDO_CLEFT_ALL:are|is",
+          "priority": "CORE",
+          "assessmentAxis": "PSEUDO_CLEFT_ALL",
+          "occurrenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901|PSEUDO_CLEFT_ALL|is",
+          "sourceSpan": "is",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+          "exclusionReason": null
+        },
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 279,
+        "endCharIndex": 281,
+        "originalText": "is",
+        "correctText": "is",
+        "incorrectText": "are",
+        "leftText": "are",
+        "rightText": "is",
+        "correctSide": "right",
+        "grammarCategoryId": "PSEUDO_CLEFT_ALL",
+        "grammarCategoryName": "의사분열문 all",
+        "bookTerm": "의사분열문 all",
+        "explanationKo": "All (that) S have to do + be + 동사원형. 여기서 all절은 ‘해야 할 전부/한 가지 일’을 나타낸다.",
+        "incorrectReasonKo": "are는 all절의 be동사로 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "All (that) S have to do + be + 동사원형"
+      },
+      {
+        "number": 5,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+        "internalProvenance": {
+          "code": "RELATIVE_WHAT",
+          "subtype": "RELATIVE_WHAT:that|what",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_WHAT",
+          "occurrenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34|RELATIVE_WHAT|what",
+          "sourceSpan": "what",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 561,
+        "endCharIndex": 565,
+        "originalText": "what",
+        "correctText": "what",
+        "incorrectText": "that",
+        "leftText": "that",
+        "rightText": "what",
+        "correctSide": "right",
+        "grammarCategoryId": "RELATIVE_WHAT",
+        "grammarCategoryName": "관계대명사 what",
+        "bookTerm": "관계대명사 what",
+        "explanationKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "incorrectReasonKo": "that는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "선행사 포함 what"
+      },
+      {
+        "number": 6,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+        "internalProvenance": {
+          "code": "COMPARATIVE",
+          "subtype": "COMPARATIVE:more challenging|more challengingly",
+          "priority": "CORE",
+          "assessmentAxis": "COMPARATIVE",
+          "occurrenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34|COMPARATIVE|more challenging",
+          "sourceSpan": "more challenging",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12",
+          "exclusionReason": null
+        },
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 841,
+        "endCharIndex": 857,
+        "originalText": "more challenging",
+        "correctText": "more challenging",
+        "incorrectText": "more challengingly",
+        "leftText": "more challenging",
+        "rightText": "more challengingly",
+        "correctSide": "left",
+        "grammarCategoryId": "COMPARATIVE",
+        "grammarCategoryName": "비교급",
+        "bookTerm": "비교급",
+        "explanationKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "incorrectReasonKo": "more challengingly는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "than 비교"
+      },
+      {
+        "number": 7,
+        "choiceId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+        "internalProvenance": {
+          "code": "ADVERB_ADJECTIVE_MODIFIER",
+          "subtype": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely",
+          "priority": "BASIC",
+          "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+          "occurrenceId": "d5266686-93c2-4e30-a119-19682a4254a3|ADVERB_ADJECTIVE_MODIFIER|extremely",
+          "sourceSpan": "extremely",
+          "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 430,
+        "endCharIndex": 439,
+        "originalText": "extremely",
+        "correctText": "extremely",
+        "incorrectText": "extreme",
+        "leftText": "extremely",
+        "rightText": "extreme",
+        "correctSide": "left",
+        "grammarCategoryId": "ADVERB_ADJECTIVE_MODIFIER",
+        "grammarCategoryName": "형용사 수식 부사",
+        "bookTerm": "형용사 수식 부사",
+        "explanationKo": "형용사를 수식할 때는 부사를 쓴다",
+        "incorrectReasonKo": "extreme는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "부사+형용사"
+      }
+    ],
+    "segments": [
+      {
+        "type": "text",
+        "text": "Perhaps you have heard of the Law of Attraction, "
+      },
+      {
+        "type": "choice",
+        "number": 1,
+        "leftText": "which",
+        "rightText": "that"
+      },
+      {
+        "type": "text",
+        "text": " states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results. The common flaw in our understanding of this law is that we believe all we have to do "
+      },
+      {
+        "type": "choice",
+        "number": 4,
+        "leftText": "are",
+        "rightText": "is"
+      },
+      {
+        "type": "text",
+        "text": " think about or visualize something to manifest it. It is true that we attract at the level of our own vibration and that our thoughts and words are "
+      },
+      {
+        "type": "choice",
+        "number": 7,
+        "leftText": "extremely",
+        "rightText": "extreme"
+      },
+      {
+        "type": "text",
+        "text": " magnetic. But the most powerful attractor is our belief system. You can create beautiful poster boards full of images of "
+      },
+      {
+        "type": "choice",
+        "number": 5,
+        "leftText": "that",
+        "rightText": "what"
+      },
+      {
+        "type": "text",
+        "text": " you want and affirm every day that you are available for an incredibly successful, passionate career or a loving relationship; but if you don’t truly believe you are enough, worthy, lovable, and deserving, then attracting a great career or relationship into your life may be "
+      },
+      {
+        "type": "choice",
+        "number": 6,
+        "leftText": "more challenging",
+        "rightText": "more challengingly"
+      },
+      {
+        "type": "text",
+        "text": ". Consider what limiting beliefs "
+      },
+      {
+        "type": "choice",
+        "number": 2,
+        "leftText": "do you have",
+        "rightText": "you have"
+      },
+      {
+        "type": "text",
+        "text": " that "
+      },
+      {
+        "type": "choice",
+        "number": 3,
+        "leftText": "contradict",
+        "rightText": "contradicts"
+      },
+      {
+        "type": "text",
+        "text": " your desires and upgrade them to beliefs that are in line with what you want to attract."
+      }
+    ],
+    "algorithmVersion": "grammar-choice-v2",
+    "diagnostics": {
+      "sentenceCount": 6,
+      "analysisHintCount": 0,
+      "generatedCandidateCount": 16,
+      "codeValidatedCount": 7,
+      "originalMismatchCount": 0,
+      "rangeErrorCount": 0,
+      "overlapDuplicateCount": 1,
+      "reviewSubmittedCount": 2,
+      "reviewAcceptedCount": 7,
+      "bothPossibleRejectCount": 0,
+      "lexicalRejectCount": 0,
+      "trivialRejectCount": 0,
+      "finalCount": 7,
+      "grammarCategoryCount": 7,
+      "averageQualityScore": 0,
+      "passageRestored": true,
+      "cacheHit": false,
+      "generatorModel": "gpt-5.6-sol",
+      "reviewerModel": "gpt-5.6-sol",
+      "generatorResponseModel": "gpt-5.6-sol",
+      "reviewerResponseModel": "gpt-5.6-sol",
+      "generatorActualResponseModel": "gpt-5.6-sol",
+      "reviewerActualResponseModel": "gpt-5.6-sol",
+      "generatorReasoningEffort": "medium",
+      "reviewerReasoningEffort": "high",
+      "reasoningEffort": "medium",
+      "openAICallCount": 5,
+      "localFallbackUsed": false,
+      "generatorVersion": "grammar-choice-v2",
+      "apiCalls": [],
+      "forceRegenerate": true,
+      "oldQuestionReuseCount": 0,
+      "generatorActualModel": "gpt-5.6-sol",
+      "reviewerActualModel": "gpt-5.6-sol",
+      "newQuestionCount": 7,
+      "generateApiCalls": 4,
+      "reviewApiCalls": 1,
+      "underTargetReason": null,
+      "reviewRejectSamples": [],
+      "codeRejectSamples": [],
+      "mandatoryDetected": 9,
+      "mandatoryEligible": 3,
+      "mandatoryRendered": 3,
+      "mandatoryExcludedWithValidReason": 1,
+      "sectionStatus": "COMPLETE",
+      "analysisOnlyCount": 34,
+      "eligibleQuestionCount": 7,
+      "excludedOccurrenceCount": 8,
+      "missingEligibleCount": 0,
+      "mandatoryCoverage": 100,
+      "detectedMandatoryOccurrences": 9,
+      "analysisOnlyMandatoryOccurrences": 5,
+      "eligibleMandatoryOccurrences": 3,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 3,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 8,
+      "countUnits": {
+        "detectedMandatoryOccurrences": "mandatory-occurrence",
+        "analysisOnlyMandatoryOccurrences": "mandatory-occurrence",
+        "eligibleMandatoryOccurrences": "mandatory-occurrence",
+        "validExcludedMandatoryOccurrences": "mandatory-occurrence",
+        "renderedMandatoryOccurrences": "mandatory-occurrence",
+        "missingEligibleMandatoryOccurrences": "mandatory-occurrence",
+        "totalEligibleQuestions": "student-question-candidate",
+        "totalRenderedQuestions": "student-item",
+        "totalExcludedOccurrences": "occurrence"
+      },
+      "finalQuestionCount": 7,
+      "renderedQuestionCount": 7,
+      "countMismatch": false,
+      "difficultyMix": {
+        "BASIC": 0,
+        "CORE": 7,
+        "ADVANCED": 0
+      },
+      "rejectReasonCounts": {
+        "NON_MINIMAL_SPAN": 4,
+        "NOT_PEDAGOGICALLY_USEFUL": 2,
+        "MEANING_ONLY_CONTRAST": 3,
+        "DUPLICATE_SATISFIED_BY_PRIMARY": 1
+      }
+    }
+  },
+  "digest": {
+    "passage": "Perhaps you have heard of the Law of Attraction, (1) [which / that] states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results. The common flaw in our understanding of this law is that we believe all we have to do (4) [are / is] think about or visualize something to manifest it. It is true that we attract at the level of our own vibration and that our thoughts and words are (7) [extremely / extreme] magnetic. But the most powerful attractor is our belief system. You can create beautiful poster boards full of images of (5) [that / what] you want and affirm every day that you are available for an incredibly successful, passionate career or a loving relationship; but if you don’t truly believe you are enough, worthy, lovable, and deserving, then attracting a great career or relationship into your life may be (6) [more challenging / more challengingly]. Consider what limiting beliefs (2) [do you have / you have] that (3) [contradict / contradicts] your desires and upgrade them to beliefs that are in line with what you want to attract.",
+    "questions": [
+      {
+        "number": 1,
+        "correct": "which",
+        "wrong": "that",
+        "left": "which",
+        "right": "that",
+        "correctSide": "left",
+        "explanationKo": "콤마 뒤에서 앞 명사나 절을 부연하는 계속적 용법에는 which를 쓴다.",
+        "incorrectReasonKo": "that는 계속적 용법의 관계대명사로 쓸 수 없다.",
+        "code": "RELATIVE_NONRESTRICTIVE",
+        "subtype": "RELATIVE_NONRESTRICTIVE:that|which",
+        "priority": "MANDATORY",
+        "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+        "occurrenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd|RELATIVE_NONRESTRICTIVE|which",
+        "sourceSpan": "which",
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1"
+      },
+      {
+        "number": 2,
+        "correct": "you have",
+        "wrong": "do you have",
+        "left": "do you have",
+        "right": "you have",
+        "correctSide": "right",
+        "explanationKo": "간접의문문이므로 you have처럼 평서문 어순을 쓴다.",
+        "incorrectReasonKo": "do you have는 직접의문문 어순이다.",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "INDIRECT_QUESTION_ORDER:do you have|you have",
+        "priority": "MANDATORY",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "occurrenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4|INDIRECT_QUESTION_ORDER|you have",
+        "sourceSpan": "you have",
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-14"
+      },
+      {
+        "number": 3,
+        "correct": "contradict",
+        "wrong": "contradicts",
+        "left": "contradict",
+        "right": "contradicts",
+        "correctSide": "left",
+        "explanationKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "incorrectReasonKo": "contradicts는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "RELATIVE_AGREEMENT:contradict|contradicts",
+        "priority": "MANDATORY",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "occurrenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4|RELATIVE_AGREEMENT|contradict",
+        "sourceSpan": "contradict",
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-15"
+      },
+      {
+        "number": 4,
+        "correct": "is",
+        "wrong": "are",
+        "left": "are",
+        "right": "is",
+        "correctSide": "right",
+        "explanationKo": "All (that) S have to do + be + 동사원형. 여기서 all절은 ‘해야 할 전부/한 가지 일’을 나타낸다.",
+        "incorrectReasonKo": "are는 all절의 be동사로 쓸 수 없다.",
+        "code": "PSEUDO_CLEFT_ALL",
+        "subtype": "PSEUDO_CLEFT_ALL:are|is",
+        "priority": "CORE",
+        "assessmentAxis": "PSEUDO_CLEFT_ALL",
+        "occurrenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901|PSEUDO_CLEFT_ALL|is",
+        "sourceSpan": "is",
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4"
+      },
+      {
+        "number": 5,
+        "correct": "what",
+        "wrong": "that",
+        "left": "that",
+        "right": "what",
+        "correctSide": "right",
+        "explanationKo": "선행사를 포함한 관계대명사로 what을 쓴다",
+        "incorrectReasonKo": "that는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "RELATIVE_WHAT",
+        "subtype": "RELATIVE_WHAT:that|what",
+        "priority": "CORE",
+        "assessmentAxis": "RELATIVE_WHAT",
+        "occurrenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34|RELATIVE_WHAT|what",
+        "sourceSpan": "what",
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-9"
+      },
+      {
+        "number": 6,
+        "correct": "more challenging",
+        "wrong": "more challengingly",
+        "left": "more challenging",
+        "right": "more challengingly",
+        "correctSide": "left",
+        "explanationKo": "be동사 뒤 비교급 보어에는 형용사를 쓴다",
+        "incorrectReasonKo": "more challengingly는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "COMPARATIVE",
+        "subtype": "COMPARATIVE:more challenging|more challengingly",
+        "priority": "CORE",
+        "assessmentAxis": "COMPARATIVE",
+        "occurrenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34|COMPARATIVE|more challenging",
+        "sourceSpan": "more challenging",
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-12"
+      },
+      {
+        "number": 7,
+        "correct": "extremely",
+        "wrong": "extreme",
+        "left": "extremely",
+        "right": "extreme",
+        "correctSide": "left",
+        "explanationKo": "형용사를 수식할 때는 부사를 쓴다",
+        "incorrectReasonKo": "extreme는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "ADVERB_ADJECTIVE_MODIFIER",
+        "subtype": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely",
+        "priority": "BASIC",
+        "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+        "occurrenceId": "d5266686-93c2-4e30-a119-19682a4254a3|ADVERB_ADJECTIVE_MODIFIER|extremely",
+        "sourceSpan": "extremely",
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-7"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "that by focusing on positive or negative thoughts, one can bring about positive or negative results / by focusing on positive or negative thoughts, one can bring about positive or negative results"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "focusing / focus"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "pointCode": "PARALLEL_VERBS",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "think about or visualize / think about or visualizing"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-6",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "pointCode": "PARALLEL_CLAUSES",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "that our thoughts and words are extremely magnetic / our thoughts and words are extremely magnetic"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-68aaa91d-8a8d-433f-84ce-0ff97f13e5ad-8",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "pointCode": "SUPERLATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "most powerful / more powerful"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-10",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "enough, worthy, lovable, and deserving / enough, worthy, lovable, and deserve"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-11",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "GERUND_SUBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "attracting / attract"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-13",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "incredibly / incredible"
+      },
+      {
+        "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-16",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "PRONOUN_ANTECEDENT",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "them / it"
+      },
+      {
+        "candidateId": "local-INDIRECT_QUESTION_ORDER-31",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "you have / do you have"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "RELATIVE_NONRESTRICTIVE",
+        "subtype": "RELATIVE_NONRESTRICTIVE:that|which",
+        "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "INDIRECT_QUESTION_ORDER:do you have|you have",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have",
+        "sourceAnswer": "you have",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "RELATIVE_AGREEMENT:contradict|contradicts",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "contradict",
+        "sourceAnswer": "contradict",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "PSEUDO_CLEFT_ALL",
+        "subtype": "PSEUDO_CLEFT_ALL:are|is",
+        "assessmentAxis": "PSEUDO_CLEFT_ALL",
+        "sourceSpan": "is",
+        "sourceAnswer": "is",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "RELATIVE_WHAT",
+        "subtype": "RELATIVE_WHAT:that|what",
+        "assessmentAxis": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "sourceAnswer": "what",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "COMPARATIVE",
+        "subtype": "COMPARATIVE:more challenging|more challengingly",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more challenging",
+        "sourceAnswer": "more challenging",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "ADVERB_ADJECTIVE_MODIFIER",
+        "subtype": "ADVERB_ADJECTIVE_MODIFIER:extreme|extremely",
+        "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "extremely",
+        "sourceAnswer": "extremely",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results / by focusing on positive or negative thoughts, one can bring about positive or negative results",
+        "sourceAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "focusing / focus",
+        "sourceAnswer": "focusing",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "think about or visualize / think about or visualizing",
+        "sourceAnswer": "think about or visualize",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "that our thoughts and words are extremely magnetic / our thoughts and words are extremely magnetic",
+        "sourceAnswer": "that our thoughts and words are extremely magnetic",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "code": "SUPERLATIVE",
+        "subtype": "",
+        "assessmentAxis": "SUPERLATIVE",
+        "sourceSpan": "most powerful / more powerful",
+        "sourceAnswer": "most powerful",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "enough, worthy, lovable, and deserving / enough, worthy, lovable, and deserve",
+        "sourceAnswer": "enough, worthy, lovable, and deserving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "GERUND_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT",
+        "sourceSpan": "attracting / attract",
+        "sourceAnswer": "attracting",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "ADVERB_ADJECTIVE_MODIFIER",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_ADJECTIVE_MODIFIER",
+        "sourceSpan": "incredibly / incredible",
+        "sourceAnswer": "incredibly",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "PRONOUN_ANTECEDENT",
+        "subtype": "",
+        "assessmentAxis": "PRONOUN_ANTECEDENT",
+        "sourceSpan": "them / it",
+        "sourceAnswer": "them",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "you have / do you have",
+        "sourceAnswer": "you have",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "states",
+        "sourceAnswer": "states",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that ‘like attracts like’",
+        "sourceAnswer": "that ‘like attracts like’",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "by focusing on positive or negative thoughts",
+        "sourceAnswer": "by focusing on positive or negative thoughts",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "can",
+        "sourceAnswer": "can",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "positive or negative thoughts",
+        "sourceAnswer": "positive or negative thoughts",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "AGREEMENT_LONG_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_LONG_SUBJECT",
+        "sourceSpan": "The common flaw in our understanding of this law is",
+        "sourceAnswer": "The common flaw in our understanding of this law is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+        "sourceSpan": "The common flaw in our understanding of this law is",
+        "sourceAnswer": "The common flaw in our understanding of this law is",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "SENTENCE_SVC",
+        "subtype": "",
+        "assessmentAxis": "SENTENCE_SVC",
+        "sourceSpan": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+        "sourceAnswer": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "SUBJECT_COMPLEMENT",
+        "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+        "sourceAnswer": "that we believe all we have to do is think about or visualize something to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+        "sourceAnswer": "that we believe all we have to do is think about or visualize something to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "INFINITIVE_ADVERB_ROLE",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+        "sourceSpan": "to manifest it",
+        "sourceAnswer": "to manifest it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "code": "PRONOUN_ANTECEDENT",
+        "subtype": "",
+        "assessmentAxis": "PRONOUN_ANTECEDENT",
+        "sourceSpan": "it",
+        "sourceAnswer": "it",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "DUMMY_IT_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "DUMMY_IT_SUBJECT",
+        "sourceSpan": "It",
+        "sourceAnswer": "It",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "SENTENCE_SVC",
+        "subtype": "",
+        "assessmentAxis": "SENTENCE_SVC",
+        "sourceSpan": "It is true",
+        "sourceAnswer": "It is true",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "SUBJECT_COMPLEMENT",
+        "sourceSpan": "true",
+        "sourceAnswer": "true",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that we attract at the level of our own vibration",
+        "sourceAnswer": "that we attract at the level of our own vibration",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "our thoughts and words",
+        "sourceAnswer": "our thoughts and words",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "code": "SENTENCE_SVC",
+        "subtype": "",
+        "assessmentAxis": "SENTENCE_SVC",
+        "sourceSpan": "the most powerful attractor is our belief system",
+        "sourceAnswer": "the most powerful attractor is our belief system",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "code": "SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "SUBJECT_COMPLEMENT",
+        "sourceSpan": "our belief system",
+        "sourceAnswer": "our belief system",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "AGREEMENT_CLAUSE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_CLAUSE_SUBJECT",
+        "sourceSpan": "attracting a great career or relationship into your life may be",
+        "sourceAnswer": "attracting a great career or relationship into your life may be",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "create beautiful poster boards full of images of what you want and affirm every day",
+        "sourceAnswer": "create beautiful poster boards full of images of what you want and affirm every day",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that you are available for an incredibly successful, passionate career or a loving relationship",
+        "sourceAnswer": "that you are available for an incredibly successful, passionate career or a loving relationship",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+        "sourceAnswer": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "GERUND_SUBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_ANALYSIS",
+        "sourceSpan": "attracting a great career or relationship into your life",
+        "sourceAnswer": "attracting a great career or relationship into your life",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+        "sourceSpan": "attracting a great career or relationship into your life may be",
+        "sourceAnswer": "attracting a great career or relationship into your life may be",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "can",
+        "sourceAnswer": "can",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what limiting beliefs you have",
+        "sourceAnswer": "what limiting beliefs you have",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "sourceAnswer": "that",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+        "sourceAnswer": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "RELATIVE_WHAT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_WHAT",
+        "sourceSpan": "what you want to attract",
+        "sourceAnswer": "what you want to attract",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "code": "PREPOSITION_COLLOCATION",
+        "subtype": "",
+        "assessmentAxis": "PREPOSITION_COLLOCATION",
+        "sourceSpan": "in line with",
+        "sourceAnswer": "in line with",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "detectedMandatoryOccurrences": 9,
+      "analysisOnlyMandatoryOccurrences": 5,
+      "eligibleMandatoryOccurrences": 3,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 3,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 8,
+      "sectionStatus": "COMPLETE"
+    }
+  }
+}

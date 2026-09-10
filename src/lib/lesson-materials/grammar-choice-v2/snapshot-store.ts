@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import {
   AUDITOR_SYSTEM_PROMPT,
   ANALYZER_SYSTEM_PROMPT,
+  UNIQUENESS_SYSTEM_PROMPT,
 } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
 import {
   GRAMMAR_CHOICE_V2_AUDITOR,
@@ -34,6 +35,8 @@ export function promptDigest(): string {
     .update(ANALYZER_SYSTEM_PROMPT)
     .update("\n---\n")
     .update(AUDITOR_SYSTEM_PROMPT)
+    .update("\n---\n")
+    .update(UNIQUENESS_SYSTEM_PROMPT)
     .digest("hex");
 }
 

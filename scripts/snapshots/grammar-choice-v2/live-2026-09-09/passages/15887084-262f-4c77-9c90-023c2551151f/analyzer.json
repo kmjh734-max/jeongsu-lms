@@ -1,0 +1,1234 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T07:25:18.268Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 119163,
+  "inputTokens": 2043,
+  "outputTokens": 7594,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"0b6ffe30-81a0-498c-baee-c229917fb034\",\"detectedPoints\":[{\"pointCode\":\"INFINITIVE_LOGICAL_SUBJECT\",\"sourceSpan\":\"for humans to have\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"for가 to부정사의 의미상 주어를 표시함\",\"omissionReason\":\"\"},{\"pointCode\":\"SINGULAR_PLURAL_NOUN\",\"sourceSpan\":\"many kinds of minds\",\"occurrenceIndex\":0,\"priority\":\"BASIC\",\"questionability\":\"medium\",\"evidence\":\"many 뒤의 가산명사가 복수형으로 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"a species\",\"occurrenceIndex\":0,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"단수 가산명사 species 앞에 부정관사가 쓰임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"INFINITIVE_LOGICAL_SUBJECT\",\"sourceSpan\":\"for humans to have\",\"occurrenceIndex\":0,\"correctAnswer\":\"for humans to have\",\"distractors\":[\"of humans to have\"],\"transformCode\":\"FOR_OF_LOGICAL_SUBJECT\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"행위 주체 humans 앞에는 for가 필요함\",\"ruleSummaryKo\":\"일반적 의미상 주어는 for+목적격으로 나타낸다\",\"riskLevel\":\"low\"},{\"pointCode\":\"SINGULAR_PLURAL_NOUN\",\"sourceSpan\":\"many kinds of minds\",\"occurrenceIndex\":0,\"correctAnswer\":\"many kinds of minds\",\"distractors\":[\"many kind of minds\"],\"transformCode\":\"COUNT_NOUN_NUMBER\",\"priority\":\"BASIC\",\"difficulty\":\"low\",\"evidence\":\"many가 kinds의 복수형을 요구함\",\"ruleSummaryKo\":\"many 뒤에는 복수 가산명사가 온다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"0840e154-7dc2-45c6-9e6f-c1e1f7bd5372\",\"detectedPoints\":[{\"pointCode\":\"AGREEMENT_DISTANCE\",\"sourceSpan\":\"was\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"복수명사 insights와 떨어진 주어 One에 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"ONE_OF_SUPERLATIVE\",\"sourceSpan\":\"One of Charles Darwin’s greatest insights\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"one of와 최상급 및 복수명사가 결합함\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_ONE_OF\",\"sourceSpan\":\"was\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"one of 구문의 주어 중심어는 One임\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"완전한 절을 이끄는 보어 명사절 접속사임\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_LOGICAL_SUBJECT\",\"sourceSpan\":\"for natural selection to work\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"natural selection이 work의 의미상 주어임\",\"omissionReason\":\"\"},{\"pointCode\":\"SINGULAR_PLURAL_NOUN\",\"sourceSpan\":\"insights\",\"occurrenceIndex\":0,\"priority\":\"BASIC\",\"questionability\":\"medium\",\"evidence\":\"one of 뒤에 복수 가산명사가 쓰임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"AGREEMENT_DISTANCE\",\"sourceSpan\":\"was\",\"occurrenceIndex\":0,\"correctAnswer\":\"was\",\"distractors\":[\"were\"],\"transformCode\":\"DISTANT_HEAD_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"주어는 insights가 아니라 단수 One임\",\"ruleSummaryKo\":\"one of 구문의 동사는 One에 일치시킨다\",\"riskLevel\":\"low\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":0,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"THAT_WHAT_COMPLETE_CLAUSE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"뒤 절에 빠진 문장 성분이 없음\",\"ruleSummaryKo\":\"완전한 절은 접속사 that이 이끈다\",\"riskLevel\":\"low\"},{\"pointCode\":\"INFINITIVE_LOGICAL_SUBJECT\",\"sourceSpan\":\"for natural selection to work\",\"occurrenceIndex\":0,\"correctAnswer\":\"for natural selection to work\",\"distractors\":[\"of natural selection to work\"],\"transformCode\":\"FOR_OF_LOGICAL_SUBJECT\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"work의 행위 주체 앞에는 for가 필요함\",\"ruleSummaryKo\":\"일반적 의미상 주어는 for+목적격으로 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"SINGULAR_PLURAL_NOUN\",\"sourceSpan\":\"insights\",\"occurrenceIndex\":0,\"correctAnswer\":\"insights\",\"distractors\":[\"insight\"],\"transformCode\":\"ONE_OF_PLURAL_NOUN\",\"priority\":\"BASIC\",\"difficulty\":\"low\",\"evidence\":\"one of 뒤에는 복수명사가 필요함\",\"ruleSummaryKo\":\"one of 다음의 가산명사는 복수형을 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"bf80eb0a-ba47-4823-8f6e-539106229834\",\"detectedPoints\":[{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"If there’s a huge change in the environment\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"If가 실제 가능성을 나타내는 조건절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"a catastrophic drop in the food supply or a big increase in temperature\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"or가 두 명사구를 병렬로 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"might\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"might가 결과의 가능성을 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"be completely wiped out\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"species가 제거되는 대상이므로 수동태가 쓰임\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"be completely wiped out\",\"occurrenceIndex\":0,\"correctAnswer\":\"be completely wiped out\",\"distractors\":[\"completely wipe out\",\"be completely wiping out\"],\"transformCode\":\"PASSIVE_ACTIVE_SELECTION\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"species는 wipe out의 행위 대상임\",\"ruleSummaryKo\":\"행위의 대상이 주어이면 수동태를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"f6b27df7-bfdb-4e69-a974-90df1965fa56\",\"detectedPoints\":[{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"관계절 동사가 복수 선행사 members에 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"who\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"who가 관계절 안에서 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_WHO_WHOM\",\"sourceSpan\":\"who\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"사람 선행사의 주격 관계대명사임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARTICIPLE_SUBJECT_COMPLEMENT\",\"sourceSpan\":\"suited\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"suited가 members의 상태를 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARTICIPLE_ACTIVE_PASSIVE\",\"sourceSpan\":\"suited\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"members가 환경에 적합하게 된 수동 관계임\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more likely\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"more가 likely의 비교 정도를 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":0,\"correctAnswer\":\"are\",\"distractors\":[\"is\"],\"transformCode\":\"RELATIVE_ANTECEDENT_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"선행사 members가 복수임\",\"ruleSummaryKo\":\"관계절 동사는 선행사의 수에 일치시킨다\",\"riskLevel\":\"low\"},{\"pointCode\":\"RELATIVE_WHO_WHOM\",\"sourceSpan\":\"who\",\"occurrenceIndex\":0,\"correctAnswer\":\"who\",\"distractors\":[\"whom\"],\"transformCode\":\"WHO_WHOM_CASE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"관계절에 별도의 주어가 없어 주격이 필요함\",\"ruleSummaryKo\":\"관계절의 주어 자리에는 who를 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"PARTICIPLE_ACTIVE_PASSIVE\",\"sourceSpan\":\"suited\",\"occurrenceIndex\":0,\"correctAnswer\":\"suited\",\"distractors\":[\"suiting\"],\"transformCode\":\"PARTICIPLE_VOICE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"members와 suit 사이가 수동 관계임\",\"ruleSummaryKo\":\"수식을 받는 명사가 대상이면 과거분사를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"3848abd0-8384-4cd5-b6ae-e903d6160881\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"applies\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"and 뒤 병렬절에 독립된 서술동사가 필요함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"and\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"and가 두 독립절을 등위 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"TENSE_PRESENT_PAST\",\"sourceSpan\":\"observed\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"Darwin의 과거 관찰을 과거시제로 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"TENSE_PRESENT_PAST\",\"sourceSpan\":\"applies\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"현재에도 성립하는 일반 원리를 현재시제로 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"applies\",\"occurrenceIndex\":0,\"correctAnswer\":\"applies\",\"distractors\":[\"applying\",\"to apply\"],\"transformCode\":\"FINITE_VERB_IN_COORDINATE_CLAUSE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"and 뒤 절에는 주어 principle의 동사가 필요함\",\"ruleSummaryKo\":\"병렬된 독립절마다 서술동사가 필요하다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"b2ddcd90-4c6f-4bef-968c-68bf34ca6d74\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"had\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"현재 사실과 다른 가정을 과거형으로 나타냄\",\"omissionReason\":\"\"},{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"were\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"questionability\":\"high\",\"evidence\":\"가정법 과거의 be동사로 were가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"if there were only one human nature\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"questionability\":\"low\",\"evidence\":\"두 if절이 같은 가정 내용을 병렬로 제시함\",\"omissionReason\":\"원문을 유지하며 한 축만 시험할 안전한 오답이 없음\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"If we all had the same kind of mind\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"첫 번째 if절이 가정적 조건을 제시함\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if there were only one human nature\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"두 번째 if절이 앞 조건을 바꾸어 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"might\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"low\",\"evidence\":\"might가 가정된 결과의 가능성을 나타냄\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"had\",\"occurrenceIndex\":0,\"correctAnswer\":\"had\",\"distractors\":[\"would have\"],\"transformCode\":\"SECOND_CONDITIONAL_IF_CLAUSE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"가정법 과거의 if절에는 과거형이 필요함\",\"ruleSummaryKo\":\"현재 반대 가정의 if절에는 과거형을 쓴다\",\"riskLevel\":\"low\"},{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"were\",\"occurrenceIndex\":0,\"correctAnswer\":\"were\",\"distractors\":[\"would be\"],\"transformCode\":\"SUBJUNCTIVE_WERE\",\"priority\":\"MANDATORY\",\"difficulty\":\"medium\",\"evidence\":\"가정적 if절 안에는 would be를 쓰지 않음\",\"ruleSummaryKo\":\"가정법 과거의 be동사는 원칙적으로 were를 쓴다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"8f0b7dfd-fd15-4103-8e44-16957df2cfc6\",\"detectedPoints\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"both within a single culture and across cultures\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"both와 and가 두 전치사구를 상관 연결함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"within a single culture and across cultures\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"medium\",\"evidence\":\"and 양쪽에 전치사구가 병렬로 놓임\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"less likely\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"less가 likely의 낮은 정도를 비교함\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"to be wiped out\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"questionability\":\"high\",\"evidence\":\"we가 제거되는 대상이므로 수동형이 필요함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"both within a single culture and across cultures\",\"occurrenceIndex\":0,\"correctAnswer\":\"both within a single culture and across cultures\",\"distractors\":[\"both within a single culture or across cultures\"],\"transformCode\":\"BOTH_AND_CORRELATIVE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"both는 상관접속사 and와 짝을 이룸\",\"ruleSummaryKo\":\"both A and B의 짝을 일관되게 사용한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"less likely\",\"occurrenceIndex\":0,\"correctAnswer\":\"less likely\",\"distractors\":[\"less likelier\"],\"transformCode\":\"DOUBLE_COMPARATIVE\",\"priority\":\"CORE\",\"difficulty\":\"low\",\"evidence\":\"less와 비교급 어미를 함께 쓸 수 없음\",\"ruleSummaryKo\":\"비교급 표지는 한 번만 사용한다\",\"riskLevel\":\"low\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"to be wiped out\",\"occurrenceIndex\":0,\"correctAnswer\":\"to be wiped out\",\"distractors\":[\"to wipe out\",\"to be wiping out\"],\"transformCode\":\"PASSIVE_INFINITIVE\",\"priority\":\"CORE\",\"difficulty\":\"medium\",\"evidence\":\"we는 wipe out의 행위 대상임\",\"ruleSummaryKo\":\"부정사의 수동형은 to be+과거분사이다\",\"riskLevel\":\"low\"}]},{\"sentenceId\":\"e2b4bbf0-8a07-40fd-91a7-095038e9f8f0\",\"detectedPoints\":[{\"pointCode\":\"ARTICLE\",\"sourceSpan\":\"the\",\"occurrenceIndex\":0,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"특정한 evolvability를 나타내는 정관사임\",\"omissionReason\":\"\"},{\"pointCode\":\"SINGULAR_PLURAL_NOUN\",\"sourceSpan\":\"species\",\"occurrenceIndex\":0,\"priority\":\"BASIC\",\"questionability\":\"low\",\"evidence\":\"species는 단수와 복수의 형태가 동일함\",\"omissionReason\":\"\"}],\"candidates\":[]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "detectedPoints": [
+          {
+            "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+            "sourceSpan": "for humans to have",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "for가 to부정사의 의미상 주어를 표시함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SINGULAR_PLURAL_NOUN",
+            "sourceSpan": "many kinds of minds",
+            "occurrenceIndex": 0,
+            "priority": "BASIC",
+            "questionability": "medium",
+            "evidence": "many 뒤의 가산명사가 복수형으로 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "a species",
+            "occurrenceIndex": 0,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "단수 가산명사 species 앞에 부정관사가 쓰임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+            "sourceSpan": "for humans to have",
+            "occurrenceIndex": 0,
+            "correctAnswer": "for humans to have",
+            "distractors": [
+              "of humans to have"
+            ],
+            "transformCode": "FOR_OF_LOGICAL_SUBJECT",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "행위 주체 humans 앞에는 for가 필요함",
+            "ruleSummaryKo": "일반적 의미상 주어는 for+목적격으로 나타낸다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "SINGULAR_PLURAL_NOUN",
+            "sourceSpan": "many kinds of minds",
+            "occurrenceIndex": 0,
+            "correctAnswer": "many kinds of minds",
+            "distractors": [
+              "many kind of minds"
+            ],
+            "transformCode": "COUNT_NOUN_NUMBER",
+            "priority": "BASIC",
+            "difficulty": "low",
+            "evidence": "many가 kinds의 복수형을 요구함",
+            "ruleSummaryKo": "many 뒤에는 복수 가산명사가 온다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "detectedPoints": [
+          {
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sourceSpan": "was",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "복수명사 insights와 떨어진 주어 One에 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ONE_OF_SUPERLATIVE",
+            "sourceSpan": "One of Charles Darwin’s greatest insights",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "one of와 최상급 및 복수명사가 결합함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_ONE_OF",
+            "sourceSpan": "was",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "one of 구문의 주어 중심어는 One임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "완전한 절을 이끄는 보어 명사절 접속사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+            "sourceSpan": "for natural selection to work",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "natural selection이 work의 의미상 주어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SINGULAR_PLURAL_NOUN",
+            "sourceSpan": "insights",
+            "occurrenceIndex": 0,
+            "priority": "BASIC",
+            "questionability": "medium",
+            "evidence": "one of 뒤에 복수 가산명사가 쓰임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sourceSpan": "was",
+            "occurrenceIndex": 0,
+            "correctAnswer": "was",
+            "distractors": [
+              "were"
+            ],
+            "transformCode": "DISTANT_HEAD_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "주어는 insights가 아니라 단수 One임",
+            "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 0,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "THAT_WHAT_COMPLETE_CLAUSE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "뒤 절에 빠진 문장 성분이 없음",
+            "ruleSummaryKo": "완전한 절은 접속사 that이 이끈다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+            "sourceSpan": "for natural selection to work",
+            "occurrenceIndex": 0,
+            "correctAnswer": "for natural selection to work",
+            "distractors": [
+              "of natural selection to work"
+            ],
+            "transformCode": "FOR_OF_LOGICAL_SUBJECT",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "work의 행위 주체 앞에는 for가 필요함",
+            "ruleSummaryKo": "일반적 의미상 주어는 for+목적격으로 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "SINGULAR_PLURAL_NOUN",
+            "sourceSpan": "insights",
+            "occurrenceIndex": 0,
+            "correctAnswer": "insights",
+            "distractors": [
+              "insight"
+            ],
+            "transformCode": "ONE_OF_PLURAL_NOUN",
+            "priority": "BASIC",
+            "difficulty": "low",
+            "evidence": "one of 뒤에는 복수명사가 필요함",
+            "ruleSummaryKo": "one of 다음의 가산명사는 복수형을 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "detectedPoints": [
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "If there’s a huge change in the environment",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "If가 실제 가능성을 나타내는 조건절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "or가 두 명사구를 병렬로 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "might",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "might가 결과의 가능성을 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "be completely wiped out",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "species가 제거되는 대상이므로 수동태가 쓰임",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "be completely wiped out",
+            "occurrenceIndex": 0,
+            "correctAnswer": "be completely wiped out",
+            "distractors": [
+              "completely wipe out",
+              "be completely wiping out"
+            ],
+            "transformCode": "PASSIVE_ACTIVE_SELECTION",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "species는 wipe out의 행위 대상임",
+            "ruleSummaryKo": "행위의 대상이 주어이면 수동태를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "detectedPoints": [
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "관계절 동사가 복수 선행사 members에 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "who",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "who가 관계절 안에서 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_WHO_WHOM",
+            "sourceSpan": "who",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "사람 선행사의 주격 관계대명사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARTICIPLE_SUBJECT_COMPLEMENT",
+            "sourceSpan": "suited",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "suited가 members의 상태를 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+            "sourceSpan": "suited",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "members가 환경에 적합하게 된 수동 관계임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more likely",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "more가 likely의 비교 정도를 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 0,
+            "correctAnswer": "are",
+            "distractors": [
+              "is"
+            ],
+            "transformCode": "RELATIVE_ANTECEDENT_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "선행사 members가 복수임",
+            "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "RELATIVE_WHO_WHOM",
+            "sourceSpan": "who",
+            "occurrenceIndex": 0,
+            "correctAnswer": "who",
+            "distractors": [
+              "whom"
+            ],
+            "transformCode": "WHO_WHOM_CASE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+            "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+            "sourceSpan": "suited",
+            "occurrenceIndex": 0,
+            "correctAnswer": "suited",
+            "distractors": [
+              "suiting"
+            ],
+            "transformCode": "PARTICIPLE_VOICE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "members와 suit 사이가 수동 관계임",
+            "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "applies",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "and 뒤 병렬절에 독립된 서술동사가 필요함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "and",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "and가 두 독립절을 등위 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "TENSE_PRESENT_PAST",
+            "sourceSpan": "observed",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "Darwin의 과거 관찰을 과거시제로 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "TENSE_PRESENT_PAST",
+            "sourceSpan": "applies",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "현재에도 성립하는 일반 원리를 현재시제로 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "applies",
+            "occurrenceIndex": 0,
+            "correctAnswer": "applies",
+            "distractors": [
+              "applying",
+              "to apply"
+            ],
+            "transformCode": "FINITE_VERB_IN_COORDINATE_CLAUSE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+            "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "had",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "현재 사실과 다른 가정을 과거형으로 나타냄",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "were",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "questionability": "high",
+            "evidence": "가정법 과거의 be동사로 were가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "if there were only one human nature",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "questionability": "low",
+            "evidence": "두 if절이 같은 가정 내용을 병렬로 제시함",
+            "omissionReason": "원문을 유지하며 한 축만 시험할 안전한 오답이 없음"
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "If we all had the same kind of mind",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "첫 번째 if절이 가정적 조건을 제시함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if there were only one human nature",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "두 번째 if절이 앞 조건을 바꾸어 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "might",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "low",
+            "evidence": "might가 가정된 결과의 가능성을 나타냄",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "had",
+            "occurrenceIndex": 0,
+            "correctAnswer": "had",
+            "distractors": [
+              "would have"
+            ],
+            "transformCode": "SECOND_CONDITIONAL_IF_CLAUSE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+            "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "were",
+            "occurrenceIndex": 0,
+            "correctAnswer": "were",
+            "distractors": [
+              "would be"
+            ],
+            "transformCode": "SUBJUNCTIVE_WERE",
+            "priority": "MANDATORY",
+            "difficulty": "medium",
+            "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+            "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "detectedPoints": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "both within a single culture and across cultures",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "both와 and가 두 전치사구를 상관 연결함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "within a single culture and across cultures",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "medium",
+            "evidence": "and 양쪽에 전치사구가 병렬로 놓임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "less likely",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "less가 likely의 낮은 정도를 비교함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "to be wiped out",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "questionability": "high",
+            "evidence": "we가 제거되는 대상이므로 수동형이 필요함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "both within a single culture and across cultures",
+            "occurrenceIndex": 0,
+            "correctAnswer": "both within a single culture and across cultures",
+            "distractors": [
+              "both within a single culture or across cultures"
+            ],
+            "transformCode": "BOTH_AND_CORRELATIVE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "both는 상관접속사 and와 짝을 이룸",
+            "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "less likely",
+            "occurrenceIndex": 0,
+            "correctAnswer": "less likely",
+            "distractors": [
+              "less likelier"
+            ],
+            "transformCode": "DOUBLE_COMPARATIVE",
+            "priority": "CORE",
+            "difficulty": "low",
+            "evidence": "less와 비교급 어미를 함께 쓸 수 없음",
+            "ruleSummaryKo": "비교급 표지는 한 번만 사용한다",
+            "riskLevel": "low"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "to be wiped out",
+            "occurrenceIndex": 0,
+            "correctAnswer": "to be wiped out",
+            "distractors": [
+              "to wipe out",
+              "to be wiping out"
+            ],
+            "transformCode": "PASSIVE_INFINITIVE",
+            "priority": "CORE",
+            "difficulty": "medium",
+            "evidence": "we는 wipe out의 행위 대상임",
+            "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+            "riskLevel": "low"
+          }
+        ]
+      },
+      {
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "detectedPoints": [
+          {
+            "pointCode": "ARTICLE",
+            "sourceSpan": "the",
+            "occurrenceIndex": 0,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "특정한 evolvability를 나타내는 정관사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SINGULAR_PLURAL_NOUN",
+            "sourceSpan": "species",
+            "occurrenceIndex": 0,
+            "priority": "BASIC",
+            "questionability": "low",
+            "evidence": "species는 단수와 복수의 형태가 동일함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": []
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "sourceSpan": "for humans to have",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "for가 to부정사의 의미상 주어를 표시함"
+    },
+    {
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "sourceSpan": "many kinds of minds",
+      "occurrenceIndex": 0,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "many 뒤의 가산명사가 복수형으로 쓰임"
+    },
+    {
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "a species",
+      "occurrenceIndex": 0,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "단수 가산명사 species 앞에 부정관사가 쓰임"
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sourceSpan": "was",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "복수명사 insights와 떨어진 주어 One에 일치함"
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "ONE_OF_SUPERLATIVE",
+      "sourceSpan": "One of Charles Darwin’s greatest insights",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "one of와 최상급 및 복수명사가 결합함"
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "AGREEMENT_ONE_OF",
+      "sourceSpan": "was",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "one of 구문의 주어 중심어는 One임"
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "완전한 절을 이끄는 보어 명사절 접속사임"
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "sourceSpan": "for natural selection to work",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "natural selection이 work의 의미상 주어임"
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "sourceSpan": "insights",
+      "occurrenceIndex": 0,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "one of 뒤에 복수 가산명사가 쓰임"
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "If there’s a huge change in the environment",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "If가 실제 가능성을 나타내는 조건절을 이끎"
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "or가 두 명사구를 병렬로 연결함"
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "might",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "might가 결과의 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "be completely wiped out",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "species가 제거되는 대상이므로 수동태가 쓰임"
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "관계절 동사가 복수 선행사 members에 일치함"
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "who",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "who가 관계절 안에서 주어 역할을 함"
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_WHO_WHOM",
+      "sourceSpan": "who",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "사람 선행사의 주격 관계대명사임"
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "PARTICIPLE_SUBJECT_COMPLEMENT",
+      "sourceSpan": "suited",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "suited가 members의 상태를 설명함"
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+      "sourceSpan": "suited",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "members가 환경에 적합하게 된 수동 관계임"
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more likely",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "more가 likely의 비교 정도를 나타냄"
+    },
+    {
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "applies",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "and 뒤 병렬절에 독립된 서술동사가 필요함"
+    },
+    {
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "and",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and가 두 독립절을 등위 연결함"
+    },
+    {
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "pointCode": "TENSE_PRESENT_PAST",
+      "sourceSpan": "observed",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "Darwin의 과거 관찰을 과거시제로 나타냄"
+    },
+    {
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "pointCode": "TENSE_PRESENT_PAST",
+      "sourceSpan": "applies",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "현재에도 성립하는 일반 원리를 현재시제로 나타냄"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "had",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "현재 사실과 다른 가정을 과거형으로 나타냄"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "were",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "가정법 과거의 be동사로 were가 쓰임"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "if there were only one human nature",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "두 if절이 같은 가정 내용을 병렬로 제시함"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "If we all had the same kind of mind",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "첫 번째 if절이 가정적 조건을 제시함"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if there were only one human nature",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 번째 if절이 앞 조건을 바꾸어 설명함"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "might",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "might가 가정된 결과의 가능성을 나타냄"
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "both within a single culture and across cultures",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "both와 and가 두 전치사구를 상관 연결함"
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "within a single culture and across cultures",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "and 양쪽에 전치사구가 병렬로 놓임"
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "less likely",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "less가 likely의 낮은 정도를 비교함"
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "to be wiped out",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "we가 제거되는 대상이므로 수동형이 필요함"
+    },
+    {
+      "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+      "pointCode": "ARTICLE",
+      "sourceSpan": "the",
+      "occurrenceIndex": 0,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "특정한 evolvability를 나타내는 정관사임"
+    },
+    {
+      "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "sourceSpan": "species",
+      "occurrenceIndex": 0,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "species는 단수와 복수의 형태가 동일함"
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "sourceSpan": "for humans to have",
+      "occurrenceIndex": 0,
+      "correctAnswer": "for humans to have",
+      "distractors": [
+        "of humans to have"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "행위 주체 humans 앞에는 for가 필요함",
+      "ruleSummaryKo": "일반적 의미상 주어는 for+목적격으로 나타낸다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "sourceSpan": "many kinds of minds",
+      "occurrenceIndex": 0,
+      "correctAnswer": "many kinds of minds",
+      "distractors": [
+        "many kind of minds"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "many가 kinds의 복수형을 요구함",
+      "ruleSummaryKo": "many 뒤에는 복수 가산명사가 온다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sourceSpan": "was",
+      "occurrenceIndex": 0,
+      "correctAnswer": "was",
+      "distractors": [
+        "were"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "주어는 insights가 아니라 단수 One임",
+      "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 0,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "뒤 절에 빠진 문장 성분이 없음",
+      "ruleSummaryKo": "완전한 절은 접속사 that이 이끈다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "sourceSpan": "for natural selection to work",
+      "occurrenceIndex": 0,
+      "correctAnswer": "for natural selection to work",
+      "distractors": [
+        "of natural selection to work"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "work의 행위 주체 앞에는 for가 필요함",
+      "ruleSummaryKo": "일반적 의미상 주어는 for+목적격으로 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "sourceSpan": "insights",
+      "occurrenceIndex": 0,
+      "correctAnswer": "insights",
+      "distractors": [
+        "insight"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "one of 뒤에는 복수명사가 필요함",
+      "ruleSummaryKo": "one of 다음의 가산명사는 복수형을 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "be completely wiped out",
+      "occurrenceIndex": 0,
+      "correctAnswer": "be completely wiped out",
+      "distractors": [
+        "completely wipe out",
+        "be completely wiping out"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "species는 wipe out의 행위 대상임",
+      "ruleSummaryKo": "행위의 대상이 주어이면 수동태를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 0,
+      "correctAnswer": "are",
+      "distractors": [
+        "is"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "선행사 members가 복수임",
+      "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_WHO_WHOM",
+      "sourceSpan": "who",
+      "occurrenceIndex": 0,
+      "correctAnswer": "who",
+      "distractors": [
+        "whom"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+      "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+      "sourceSpan": "suited",
+      "occurrenceIndex": 0,
+      "correctAnswer": "suited",
+      "distractors": [
+        "suiting"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "members와 suit 사이가 수동 관계임",
+      "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "applies",
+      "occurrenceIndex": 0,
+      "correctAnswer": "applies",
+      "distractors": [
+        "applying",
+        "to apply"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+      "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "had",
+      "occurrenceIndex": 0,
+      "correctAnswer": "had",
+      "distractors": [
+        "would have"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+      "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "were",
+      "occurrenceIndex": 0,
+      "correctAnswer": "were",
+      "distractors": [
+        "would be"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+      "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "both within a single culture and across cultures",
+      "occurrenceIndex": 0,
+      "correctAnswer": "both within a single culture and across cultures",
+      "distractors": [
+        "both within a single culture or across cultures"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "both는 상관접속사 and와 짝을 이룸",
+      "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "less likely",
+      "occurrenceIndex": 0,
+      "correctAnswer": "less likely",
+      "distractors": [
+        "less likelier"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "less와 비교급 어미를 함께 쓸 수 없음",
+      "ruleSummaryKo": "비교급 표지는 한 번만 사용한다",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "to be wiped out",
+      "occurrenceIndex": 0,
+      "correctAnswer": "to be wiped out",
+      "distractors": [
+        "to wipe out",
+        "to be wiping out"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "we는 wipe out의 행위 대상임",
+      "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+      "riskLevel": "MEDIUM"
+    }
+  ]
+}

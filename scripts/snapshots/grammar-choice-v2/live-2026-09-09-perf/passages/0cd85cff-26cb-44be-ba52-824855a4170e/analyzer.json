@@ -1,0 +1,1252 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:58:55.011Z",
+  "sourceId": "0cd85cff-26cb-44be-ba52-824855a4170e",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 89388,
+  "inputTokens": 2087,
+  "outputTokens": 7428,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"da72b219-e5aa-46f2-9103-16cdf87752fd\",\"detectedPoints\":[{\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"states\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that ‘like attracts like’\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"focusing\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"focusing\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"can\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"positive or negative\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"positive or negative\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"correctAnswer\":\"which\",\"distractor\":\"that\",\"transformCode\":\"RELATIVE_CHOICE\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"states\",\"occurrenceIndex\":1,\"correctAnswer\":\"states\",\"distractor\":\"state\",\"transformCode\":\"NUMBER_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"occurrenceIndex\":1,\"correctAnswer\":\"that by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"distractor\":\"what by focusing on positive or negative thoughts, one can bring about positive or negative results\",\"transformCode\":\"CLAUSE_MARKER\",\"priority\":\"MANDATORY\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"MEDIUM\"}]},{\"sentenceId\":\"4ab316e4-c31d-40fa-8fa6-4b44970bc901\",\"detectedPoints\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_DISTANCE\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"DUPLICATE_SUBTYPE\"},{\"pointCode\":\"AGREEMENT_PREPOSITIONAL_MODIFIER\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that we believe all we have to do is think about or visualize something to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PSEUDO_CLEFT_ALL\",\"sourceSpan\":\"all we have to do is think about or visualize something\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"think about or visualize\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"think about or visualize\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_ADVERB_ROLE\",\"sourceSpan\":\"to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"correctAnswer\":\"is\",\"distractor\":\"are\",\"transformCode\":\"NUMBER_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"visualize\",\"occurrenceIndex\":1,\"correctAnswer\":\"visualize\",\"distractor\":\"visualizing\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"d5266686-93c2-4e30-a119-19682a4254a3\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"DUMMY_IT_SUBJECT\",\"sourceSpan\":\"It\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that we attract at the level of our own vibration\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that our thoughts and words are extremely magnetic\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"is true\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"true\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"thoughts and words\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"extremely magnetic\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that our thoughts and words are extremely magnetic\",\"occurrenceIndex\":1,\"correctAnswer\":\"that our thoughts and words are extremely magnetic\",\"distractor\":\"what our thoughts and words are extremely magnetic\",\"transformCode\":\"CLAUSE_MARKER\",\"priority\":\"MANDATORY\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"MEDIUM\"}]},{\"sentenceId\":\"68aaa91d-8a8d-433f-84ce-0ff97f13e5ad\",\"detectedPoints\":[{\"pointCode\":\"SUPERLATIVE\",\"sourceSpan\":\"most powerful\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"is our belief system\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"our belief system\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[]},{\"sentenceId\":\"87bc4fa5-3d09-437a-ad55-6778552d7b34\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"but\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"},{\"pointCode\":\"AGREEMENT_CLAUSE_SUBJECT\",\"sourceSpan\":\"may be\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"SOURCE_FORM_NOT_EDITABLE\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if you don’t truly believe you are enough, worthy, lovable, and deserving\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"create beautiful poster boards full of images of what you want and affirm\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"an incredibly successful, passionate career or a loving relationship\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"enough, worthy, lovable, and deserving\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"a great career or relationship\",\"occurrenceIndex\":3,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what you want\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that you are available for an incredibly successful, passionate career or a loving relationship\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"attracting a great career or relationship into your life\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_ANALYSIS\",\"sourceSpan\":\"attracting a great career or relationship into your life\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_AGREEMENT_ANALYSIS\",\"sourceSpan\":\"may be\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more challenging\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"can\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"may\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"incredibly successful\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"attracting\",\"occurrenceIndex\":1,\"correctAnswer\":\"attracting\",\"distractor\":\"attract\",\"transformCode\":\"NONFINITE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"fc1cfdbe-8e0a-40e7-89c6-c75336681cf4\",\"detectedPoints\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"what limiting beliefs you have\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"contradict\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":2,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what limiting beliefs you have\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what you want to attract\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"Consider what limiting beliefs you have that contradict your desires and upgrade\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"them\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"what limiting beliefs you have\",\"occurrenceIndex\":1,\"correctAnswer\":\"what limiting beliefs you have\",\"distractor\":\"what limiting beliefs do you have\",\"transformCode\":\"WORD_ORDER\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"contradict\",\"occurrenceIndex\":1,\"correctAnswer\":\"contradict\",\"distractor\":\"contradicts\",\"transformCode\":\"NUMBER_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":2,\"correctAnswer\":\"are\",\"distractor\":\"is\",\"transformCode\":\"NUMBER_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "detectedPoints": [
+          {
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "states",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that ‘like attracts like’",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "focusing",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "focusing",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "can",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "positive or negative",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "positive or negative",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "correctAnswer": "which",
+            "distractor": "that",
+            "transformCode": "RELATIVE_CHOICE",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "states",
+            "occurrenceIndex": 1,
+            "correctAnswer": "states",
+            "distractor": "state",
+            "transformCode": "NUMBER_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "distractor": "what by focusing on positive or negative thoughts, one can bring about positive or negative results",
+            "transformCode": "CLAUSE_MARKER",
+            "priority": "MANDATORY",
+            "difficulty": "ADVANCED",
+            "riskLevel": "MEDIUM"
+          }
+        ]
+      },
+      {
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "detectedPoints": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "DUPLICATE_SUBTYPE"
+          },
+          {
+            "pointCode": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PSEUDO_CLEFT_ALL",
+            "sourceSpan": "all we have to do is think about or visualize something",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "think about or visualize",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "think about or visualize",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_ADVERB_ROLE",
+            "sourceSpan": "to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "correctAnswer": "is",
+            "distractor": "are",
+            "transformCode": "NUMBER_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "visualize",
+            "occurrenceIndex": 1,
+            "correctAnswer": "visualize",
+            "distractor": "visualizing",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "DUMMY_IT_SUBJECT",
+            "sourceSpan": "It",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that we attract at the level of our own vibration",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that our thoughts and words are extremely magnetic",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "is true",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "true",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "thoughts and words",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "extremely magnetic",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that our thoughts and words are extremely magnetic",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that our thoughts and words are extremely magnetic",
+            "distractor": "what our thoughts and words are extremely magnetic",
+            "transformCode": "CLAUSE_MARKER",
+            "priority": "MANDATORY",
+            "difficulty": "ADVANCED",
+            "riskLevel": "MEDIUM"
+          }
+        ]
+      },
+      {
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "detectedPoints": [
+          {
+            "pointCode": "SUPERLATIVE",
+            "sourceSpan": "most powerful",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "is our belief system",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "our belief system",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": []
+      },
+      {
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "but",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          },
+          {
+            "pointCode": "AGREEMENT_CLAUSE_SUBJECT",
+            "sourceSpan": "may be",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": "SOURCE_FORM_NOT_EDITABLE"
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "create beautiful poster boards full of images of what you want and affirm",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "an incredibly successful, passionate career or a loving relationship",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "enough, worthy, lovable, and deserving",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "a great career or relationship",
+            "occurrenceIndex": 3,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what you want",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that you are available for an incredibly successful, passionate career or a loving relationship",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "attracting a great career or relationship into your life",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_ANALYSIS",
+            "sourceSpan": "attracting a great career or relationship into your life",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "sourceSpan": "may be",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more challenging",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "can",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "may",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "incredibly successful",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "attracting",
+            "occurrenceIndex": 1,
+            "correctAnswer": "attracting",
+            "distractor": "attract",
+            "transformCode": "NONFINITE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "detectedPoints": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "what limiting beliefs you have",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "contradict",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 2,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what limiting beliefs you have",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what you want to attract",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "Consider what limiting beliefs you have that contradict your desires and upgrade",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "them",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "what limiting beliefs you have",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what limiting beliefs you have",
+            "distractor": "what limiting beliefs do you have",
+            "transformCode": "WORD_ORDER",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "contradict",
+            "occurrenceIndex": 1,
+            "correctAnswer": "contradict",
+            "distractor": "contradicts",
+            "transformCode": "NUMBER_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 2,
+            "correctAnswer": "are",
+            "distractor": "is",
+            "transformCode": "NUMBER_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "states",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that ‘like attracts like’",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "focusing",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "focusing",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "can",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "positive or negative",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "positive or negative",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "DUPLICATE_SUBTYPE"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PSEUDO_CLEFT_ALL",
+      "sourceSpan": "all we have to do is think about or visualize something",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "think about or visualize",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "think about or visualize",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "INFINITIVE_ADVERB_ROLE",
+      "sourceSpan": "to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "DUMMY_IT_SUBJECT",
+      "sourceSpan": "It",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that we attract at the level of our own vibration",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that our thoughts and words are extremely magnetic",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "is true",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "true",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "thoughts and words",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "extremely magnetic",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUPERLATIVE",
+      "sourceSpan": "most powerful",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "is our belief system",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "our belief system",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "but",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "AGREEMENT_CLAUSE_SUBJECT",
+      "sourceSpan": "may be",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "SOURCE_FORM_NOT_EDITABLE"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if you don’t truly believe you are enough, worthy, lovable, and deserving",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "create beautiful poster boards full of images of what you want and affirm",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "an incredibly successful, passionate career or a loving relationship",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "enough, worthy, lovable, and deserving",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "a great career or relationship",
+      "occurrenceIndex": 3,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what you want",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that you are available for an incredibly successful, passionate career or a loving relationship",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "attracting a great career or relationship into your life",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT_ANALYSIS",
+      "sourceSpan": "attracting a great career or relationship into your life",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+      "sourceSpan": "may be",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more challenging",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "can",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "may",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "incredibly successful",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "what limiting beliefs you have",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "contradict",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 2,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what limiting beliefs you have",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what you want to attract",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "Consider what limiting beliefs you have that contradict your desires and upgrade",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "them",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "correctAnswer": "which",
+      "distractors": [
+        "that"
+      ],
+      "transformCode": "RELATIVE_CHOICE",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "states",
+      "occurrenceIndex": 1,
+      "correctAnswer": "states",
+      "distractors": [
+        "state"
+      ],
+      "transformCode": "NUMBER_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that by focusing on positive or negative thoughts, one can bring about positive or negative results",
+      "distractors": [
+        "what by focusing on positive or negative thoughts, one can bring about positive or negative results"
+      ],
+      "transformCode": "CLAUSE_MARKER",
+      "priority": "MANDATORY",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-4",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "correctAnswer": "is",
+      "distractors": [
+        "are"
+      ],
+      "transformCode": "NUMBER_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "visualize",
+      "occurrenceIndex": 1,
+      "correctAnswer": "visualize",
+      "distractors": [
+        "visualizing"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-6",
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that our thoughts and words are extremely magnetic",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that our thoughts and words are extremely magnetic",
+      "distractors": [
+        "what our thoughts and words are extremely magnetic"
+      ],
+      "transformCode": "CLAUSE_MARKER",
+      "priority": "MANDATORY",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-7",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "attracting",
+      "occurrenceIndex": 1,
+      "correctAnswer": "attracting",
+      "distractors": [
+        "attract"
+      ],
+      "transformCode": "NONFINITE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-8",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "what limiting beliefs you have",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what limiting beliefs you have",
+      "distractors": [
+        "what limiting beliefs do you have"
+      ],
+      "transformCode": "WORD_ORDER",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-9",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "contradict",
+      "occurrenceIndex": 1,
+      "correctAnswer": "contradict",
+      "distractors": [
+        "contradicts"
+      ],
+      "transformCode": "NUMBER_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-10",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 2,
+      "correctAnswer": "are",
+      "distractors": [
+        "is"
+      ],
+      "transformCode": "NUMBER_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    }
+  ],
+  "routeMs": 3
+}

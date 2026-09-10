@@ -1,0 +1,1043 @@
+{
+  "title": "우리의 취향은 사회적이다",
+  "projectId": "b66d5c3a-12da-4683-81d0-efaac143fa29",
+  "updatedAt": "2026-09-09T12:19:45.863+00:00",
+  "sentenceCount": 9,
+  "passageChars": 922,
+  "cacheKey": {
+    "passageHash": "c6a76de7760124d3a7cc1dfcd4bfb9edf1222dedd74f00907c7e2159db65d2a1",
+    "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+    "analyzerModel": "gpt-5.6-sol",
+    "engineVersion": "grammar-choice-v2",
+    "reviewerModel": "gpt-5.6-sol",
+    "auditorVersion": "risk-audit-v1",
+    "ontologyVersion": "high-school-grammar-v1",
+    "cacheSchemaVersion": "2",
+    "ontologyRuleDigest": "1b3a0d158181e676a6617d6de926a304dbceebdbf5c02b60769f044cba07ac1d",
+    "runtimePromptVersion": "scan-generate-v1",
+    "localValidatorVersion": "local-gate-v1",
+    "auditorReasoningEffort": "medium",
+    "analyzerReasoningEffort": "medium"
+  },
+  "numbering": {
+    "storedNumbers": [
+      {
+        "number": 1,
+        "pair": "like / likes",
+        "correct": "likes",
+        "wrong": "like",
+        "code": "AGREEMENT_DISTANCE",
+        "start": 404,
+        "end": 409,
+        "circled": "①",
+        "snippet": "pie—one that nobody outside the village likes, but who cares? We want these things no"
+      },
+      {
+        "number": 2,
+        "pair": "what they are / what are they",
+        "correct": "what they are",
+        "wrong": "what are they",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "start": 467,
+        "end": 480,
+        "circled": "②",
+        "snippet": "e want these things not just because of what they are, but who we are. Tastes spread like thi"
+      },
+      {
+        "number": 3,
+        "pair": "who / whom",
+        "correct": "who",
+        "wrong": "whom",
+        "code": "RELATIVE_SUBJECT",
+        "start": 126,
+        "end": 129,
+        "circled": "③",
+        "snippet": "ere was also the person behind the milk who will have presumably either made or mes"
+      },
+      {
+        "number": 4,
+        "pair": "involving / involved",
+        "correct": "involved",
+        "wrong": "involving",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "start": 604,
+        "end": 612,
+        "circled": "④",
+        "snippet": "respective of the qualities of the food involved. We observe other people in their food "
+      }
+    ],
+    "passageOrderCircled": [
+      "③",
+      "①",
+      "②",
+      "④"
+    ],
+    "passageOrderPairs": [
+      "③ who/whom @126",
+      "① like/likes @404",
+      "② what they are/what are they @467",
+      "④ involving/involved @604"
+    ]
+  },
+  "detectedCount": 23,
+  "candidateCount": 10,
+  "auditCount": 1,
+  "detected": [
+    {
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "PARALLEL_CLAUSES",
+      "span": "there was the milk, yes, but there was also the person behind the milk",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": "NOT_PEDAGOGICALLY_USEFUL",
+      "chapter": "C11"
+    },
+    {
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "RELATIVE_AGREEMENT",
+      "span": "will have",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": "SOURCE_FORM_NOT_EDITABLE",
+      "chapter": "CH11"
+    },
+    {
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "span": "when",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "RELATIVE_SUBJECT",
+      "span": "who",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH11"
+    },
+    {
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "CORRELATIVE_EITHER_OR",
+      "span": "either made or messed up",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "PARALLEL_VERBS",
+      "span": "made or messed up",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "C11"
+    },
+    {
+      "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+      "code": "PARALLEL_AND_OR_BUT",
+      "span": "families and friends",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+      "code": "PARALLEL_AND_OR_BUT",
+      "span": "at school and in work",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+      "code": "AGREEMENT_DISTANCE",
+      "span": "likes",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH13"
+    },
+    {
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "INDIRECT_QUESTION_ORDER",
+      "span": "what they are",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "INDIRECT_QUESTION_ORDER",
+      "span": "who we are",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "PARALLEL_CLAUSES",
+      "span": "what they are, but who we are",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": "DUPLICATE_SUBTYPE",
+      "chapter": "C11"
+    },
+    {
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "RELATIVE_WHAT",
+      "span": "what",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH11"
+    },
+    {
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "NOUN_CLAUSE_WH_WORD",
+      "span": "what they are",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "NOUN_CLAUSE_WH_WORD",
+      "span": "who we are",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH10"
+    },
+    {
+      "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+      "code": "PARTICIPLE_ACTIVE_PASSIVE",
+      "span": "involved",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH08"
+    },
+    {
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "RELATIVE_NONRESTRICTIVE",
+      "span": "which",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH11"
+    },
+    {
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "RELATIVE_AGREEMENT",
+      "span": "doesn’t",
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH11"
+    },
+    {
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "COMPARATIVE",
+      "span": "quicker",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH12"
+    },
+    {
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "COMPARISON_TARGET",
+      "span": "than",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH12"
+    },
+    {
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "RELATIVE_PREPOSITION_WHICH",
+      "span": "by which",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH11"
+    },
+    {
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "RELATIVE_SUBJECT",
+      "span": "that",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH11"
+    },
+    {
+      "sentenceId": "8bb784f5-758e-44b3-9984-465a29933a4c",
+      "code": "PARTICIPLE_ACTIVE_PASSIVE",
+      "span": "chopped",
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "omission": null,
+      "chapter": "CH08"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-1",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+      "span": "when",
+      "pair": "when / during",
+      "priority": "CORE",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "RELATIVE_SUBJECT",
+      "span": "who",
+      "pair": "who / whom",
+      "priority": "CORE",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-3",
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "code": "CORRELATIVE_EITHER_OR",
+      "span": "either made or messed up",
+      "pair": "either made or messed up / either made or messing up",
+      "priority": "CORE",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+      "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+      "code": "AGREEMENT_DISTANCE",
+      "span": "likes",
+      "pair": "likes / like",
+      "priority": "MANDATORY",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "INDIRECT_QUESTION_ORDER",
+      "span": "what they are",
+      "pair": "what they are / what are they",
+      "priority": "MANDATORY",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-6",
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "code": "INDIRECT_QUESTION_ORDER",
+      "span": "who we are",
+      "pair": "who we are / who are we",
+      "priority": "MANDATORY",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+      "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+      "code": "PARTICIPLE_ACTIVE_PASSIVE",
+      "span": "involved",
+      "pair": "involved / involving",
+      "priority": "CORE",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "RELATIVE_NONRESTRICTIVE",
+      "span": "which",
+      "pair": "which / that",
+      "priority": "MANDATORY",
+      "risk": "MEDIUM"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-9",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "RELATIVE_AGREEMENT",
+      "span": "doesn’t",
+      "pair": "doesn’t / don’t",
+      "priority": "MANDATORY",
+      "risk": "LOW"
+    },
+    {
+      "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-10",
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "code": "COMPARATIVE",
+      "span": "quicker",
+      "pair": "quicker / quickest",
+      "priority": "CORE",
+      "risk": "LOW"
+    }
+  ],
+  "audits": [
+    {
+      "decision": "REJECT",
+      "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+      "rejectionCode": "BOTH_GRAMMATICAL",
+      "uniqueInContext": false,
+      "correctedRuleCode": "DEMONSTRATIVE_THAT",
+      "singleGrammarAxis": false,
+      "plausibleLearnerError": false
+    }
+  ],
+  "replay": {
+    "ok": true,
+    "reason": null,
+    "itemCount": 4,
+    "rejected": [
+      {
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-1",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "pointCode": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "when / during"
+      },
+      {
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-3",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "pointCode": "CORRELATIVE_EITHER_OR",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "either made or messed up / either made or messing up"
+      },
+      {
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-6",
+        "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+        "pointCode": "INDIRECT_QUESTION_ORDER",
+        "reason": "SOURCE_SPAN_NOT_FOUND",
+        "pair": "who we are / who are we"
+      },
+      {
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-9",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "doesn’t / don’t"
+      },
+      {
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-10",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "quicker / quickest"
+      },
+      {
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "pointCode": "RELATIVE_NONRESTRICTIVE",
+        "reason": "BOTH_GRAMMATICAL",
+        "pair": "which / that"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "AGREEMENT_DISTANCE:like|likes",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "sourceSpan": "likes",
+        "sourceAnswer": "likes",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "INDIRECT_QUESTION_ORDER:what are they|what they are",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "what they are",
+        "sourceAnswer": "what they are",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:involved|involving",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "involved",
+        "sourceAnswer": "involved",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "code": "RELATIVE_NONRESTRICTIVE",
+        "subtype": "RELATIVE_NONRESTRICTIVE:that|which",
+        "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "VALID_EXCLUSION"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "subtype": "",
+        "assessmentAxis": "CONJUNCTION_PREPOSITION_CONTRAST",
+        "sourceSpan": "when / during",
+        "sourceAnswer": "when",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "code": "CORRELATIVE_EITHER_OR",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_EITHER_OR",
+        "sourceSpan": "either made or messed up / either made or messing up",
+        "sourceAnswer": "either made or messed up",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "sourceSpan": "who we are / who are we",
+        "sourceAnswer": "who we are",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "doesn’t / don’t",
+        "sourceAnswer": "doesn’t",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "quicker / quickest",
+        "sourceAnswer": "quicker",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "code": "RELATIVE_NONRESTRICTIVE",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_NONRESTRICTIVE",
+        "sourceSpan": "which / that",
+        "sourceAnswer": "which",
+        "status": "VALID_EXCLUSION",
+        "reason": "BOTH_GRAMMATICAL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "there was the milk, yes, but there was also the person behind the milk",
+        "sourceAnswer": "there was the milk, yes, but there was also the person behind the milk",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "will have",
+        "sourceAnswer": "will have",
+        "status": "VALID_EXCLUSION",
+        "reason": "SOURCE_FORM_NOT_EDITABLE"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "made or messed up",
+        "sourceAnswer": "made or messed up",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "families and friends",
+        "sourceAnswer": "families and friends",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "what they are, but who we are",
+        "sourceAnswer": "what they are, but who we are",
+        "status": "ANALYSIS_ONLY",
+        "reason": "DUPLICATE_SUBTYPE"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+        "code": "RELATIVE_WHAT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_WHAT",
+        "sourceSpan": "what",
+        "sourceAnswer": "what",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+        "code": "NOUN_CLAUSE_WH_WORD",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_WH_WORD",
+        "sourceSpan": "what they are",
+        "sourceAnswer": "what they are",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "code": "COMPARISON_TARGET",
+        "subtype": "",
+        "assessmentAxis": "COMPARISON_TARGET",
+        "sourceSpan": "than",
+        "sourceAnswer": "than",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "code": "RELATIVE_PREPOSITION_WHICH",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "by which",
+        "sourceAnswer": "by which",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "sourceAnswer": "that",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8bb784f5-758e-44b3-9984-465a29933a4c",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "chopped",
+        "sourceAnswer": "chopped",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "mandatoryDetected": 8,
+      "mandatoryEligible": 2,
+      "mandatoryRendered": 2,
+      "mandatoryExcludedWithValidReason": 5,
+      "analysisOnly": 10,
+      "eligible": 4,
+      "excluded": 8,
+      "rendered": 4,
+      "missingEligible": 0,
+      "coverage": 100
+    },
+    "afterLocalFilter": {
+      "resolved": 5,
+      "rejected": 5,
+      "resolvedPairs": [
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+          "code": "RELATIVE_SUBJECT",
+          "pair": "who/whom",
+          "start": 126,
+          "reason": null
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+          "code": "AGREEMENT_DISTANCE",
+          "pair": "likes/like",
+          "start": 404,
+          "reason": null
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+          "code": "INDIRECT_QUESTION_ORDER",
+          "pair": "what they are/what are they",
+          "start": 467,
+          "reason": null
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "pair": "involved/involving",
+          "start": 604,
+          "reason": null
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+          "code": "RELATIVE_NONRESTRICTIVE",
+          "pair": "which/that",
+          "start": 754,
+          "reason": null
+        }
+      ],
+      "rejectedPairs": [
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-1",
+          "code": "CONJUNCTION_PREPOSITION_CONTRAST",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "when / during"
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-3",
+          "code": "CORRELATIVE_EITHER_OR",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "either made or messed up / either made or messing up"
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-6",
+          "code": "INDIRECT_QUESTION_ORDER",
+          "reason": "SOURCE_SPAN_NOT_FOUND",
+          "pair": "who we are / who are we"
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-9",
+          "code": "RELATIVE_AGREEMENT",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "doesn’t / don’t"
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-10",
+          "code": "COMPARATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "quicker / quickest"
+        }
+      ]
+    },
+    "afterReviewer": {
+      "kept": 4,
+      "rejected": 1,
+      "keptPairs": [
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+          "code": "RELATIVE_SUBJECT",
+          "pair": "who/whom",
+          "start": 126
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+          "code": "AGREEMENT_DISTANCE",
+          "pair": "likes/like",
+          "start": 404
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+          "code": "INDIRECT_QUESTION_ORDER",
+          "pair": "what they are/what are they",
+          "start": 467
+        },
+        {
+          "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "pair": "involved/involving",
+          "start": 604
+        }
+      ],
+      "rejectedPairs": [
+        {
+          "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-e0b38e2b-23ab-4c61-b799-f025b7f6901d-8",
+          "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+          "pointCode": "RELATIVE_NONRESTRICTIVE",
+          "reason": "BOTH_GRAMMATICAL",
+          "pair": "which / that"
+        }
+      ]
+    },
+    "afterRank": [
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+        "code": "AGREEMENT_DISTANCE",
+        "pair": "likes/like",
+        "start": 404,
+        "priority": "MANDATORY"
+      },
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "pair": "what they are/what are they",
+        "start": 467,
+        "priority": "MANDATORY"
+      },
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+        "code": "RELATIVE_SUBJECT",
+        "pair": "who/whom",
+        "start": 126,
+        "priority": "CORE"
+      },
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "pair": "involved/involving",
+        "start": 604,
+        "priority": "CORE"
+      }
+    ],
+    "explainable": [
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+        "code": "AGREEMENT_DISTANCE",
+        "pair": "likes/like",
+        "start": 404,
+        "priority": "MANDATORY"
+      },
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+        "code": "INDIRECT_QUESTION_ORDER",
+        "pair": "what they are/what are they",
+        "start": 467,
+        "priority": "MANDATORY"
+      },
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+        "code": "RELATIVE_SUBJECT",
+        "pair": "who/whom",
+        "start": 126,
+        "priority": "CORE"
+      },
+      {
+        "id": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "pair": "involved/involving",
+        "start": 604,
+        "priority": "CORE"
+      }
+    ]
+  },
+  "storedItems": [
+    {
+      "number": 1,
+      "bookTerm": "먼 주어 수일치",
+      "choiceId": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+      "leftText": "like",
+      "rightText": "likes",
+      "difficulty": 3,
+      "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+      "correctSide": "right",
+      "correctText": "likes",
+      "endCharIndex": 409,
+      "originalText": "likes",
+      "endTokenIndex": 0,
+      "explanationKo": "먼 주어 수일치 규칙에 따라 원문 형태 likes가 맞다.",
+      "incorrectText": "like",
+      "learningValue": 5,
+      "startCharIndex": 404,
+      "startTokenIndex": 0,
+      "structureSummary": "가까운 명사와 실제 주어가 다름",
+      "grammarCategoryId": "AGREEMENT_DISTANCE",
+      "incorrectReasonKo": "like는 이 문장의 문법 축에서 성립하지 않는다.",
+      "internalProvenance": {
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "AGREEMENT_DISTANCE:like|likes",
+        "priority": "MANDATORY",
+        "sourceSpan": "likes",
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c-4",
+        "occurrenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c|AGREEMENT_DISTANCE|likes",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "exclusionReason": null
+      },
+      "grammarCategoryName": "먼 주어 수일치"
+    },
+    {
+      "number": 2,
+      "bookTerm": "간접의문문",
+      "choiceId": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+      "leftText": "what they are",
+      "rightText": "what are they",
+      "difficulty": 3,
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "correctSide": "left",
+      "correctText": "what they are",
+      "endCharIndex": 480,
+      "originalText": "what they are",
+      "endTokenIndex": 0,
+      "explanationKo": "간접의문문이므로 what they are처럼 평서문 어순을 쓴다.",
+      "incorrectText": "what are they",
+      "learningValue": 5,
+      "startCharIndex": 467,
+      "startTokenIndex": 0,
+      "structureSummary": "의문사 + 주어 + 동사",
+      "grammarCategoryId": "INDIRECT_QUESTION_ORDER",
+      "incorrectReasonKo": "what are they는 직접의문문 어순이다.",
+      "internalProvenance": {
+        "code": "INDIRECT_QUESTION_ORDER",
+        "subtype": "INDIRECT_QUESTION_ORDER:what are they|what they are",
+        "priority": "MANDATORY",
+        "sourceSpan": "what they are",
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-87384a36-de03-4631-b5b9-5e30620f303f-5",
+        "occurrenceId": "87384a36-de03-4631-b5b9-5e30620f303f|INDIRECT_QUESTION_ORDER|what they are",
+        "assessmentAxis": "INDIRECT_QUESTION_ORDER",
+        "exclusionReason": null
+      },
+      "grammarCategoryName": "간접의문문"
+    },
+    {
+      "number": 3,
+      "bookTerm": "주격 관계대명사",
+      "choiceId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+      "leftText": "who",
+      "rightText": "whom",
+      "difficulty": 3,
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "correctSide": "left",
+      "correctText": "who",
+      "endCharIndex": 129,
+      "originalText": "who",
+      "endTokenIndex": 0,
+      "explanationKo": "주격 관계대명사 규칙에 따라 원문 형태 who가 맞다.",
+      "incorrectText": "whom",
+      "learningValue": 3,
+      "startCharIndex": 126,
+      "startTokenIndex": 0,
+      "structureSummary": "관계절 주어 자리",
+      "grammarCategoryId": "RELATIVE_SUBJECT",
+      "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+      "internalProvenance": {
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:who|whom",
+        "priority": "CORE",
+        "sourceSpan": "who",
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-9654fcb9-1b22-4c6b-b181-2c270bf01bdb-2",
+        "occurrenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb|RELATIVE_SUBJECT|who",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "exclusionReason": null
+      },
+      "grammarCategoryName": "주격 관계대명사"
+    },
+    {
+      "number": 4,
+      "bookTerm": "분사 능동·수동",
+      "choiceId": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+      "leftText": "involving",
+      "rightText": "involved",
+      "difficulty": 3,
+      "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+      "correctSide": "right",
+      "correctText": "involved",
+      "endCharIndex": 612,
+      "originalText": "involved",
+      "endTokenIndex": 0,
+      "explanationKo": "분사 능동·수동 규칙에 따라 원문 형태 involved가 맞다.",
+      "incorrectText": "involving",
+      "learningValue": 3,
+      "startCharIndex": 604,
+      "startTokenIndex": 0,
+      "structureSummary": "의미상 주어와 능동/수동",
+      "grammarCategoryId": "PARTICIPLE_ACTIVE_PASSIVE",
+      "incorrectReasonKo": "involving는 이 문장의 문법 축에서 성립하지 않는다.",
+      "internalProvenance": {
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:involved|involving",
+        "priority": "CORE",
+        "sourceSpan": "involved",
+        "candidateId": "b66d5c3a-12da-4683-81d0-efaac143fa29-0ef31ba8-380f-47e4-9f75-f8559e58bcbb-7",
+        "occurrenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb|PARTICIPLE_ACTIVE_PASSIVE|involved",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "exclusionReason": null
+      },
+      "grammarCategoryName": "분사 능동·수동"
+    }
+  ],
+  "localMandatory": [],
+  "sentences": [
+    {
+      "order": 0,
+      "id": "5c862d55-637c-4cb3-a602-b57ec36d25a1",
+      "text": "Our tastes are social."
+    },
+    {
+      "order": 1,
+      "id": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "text": "Even when you first drank milk, there was the milk, yes, but there was also the person behind the milk who will have presumably either made or messed up your relationship with food for the couple of decades after that."
+    },
+    {
+      "order": 2,
+      "id": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+      "text": "We learn to eat from our families and friends, at school and in work."
+    },
+    {
+      "order": 3,
+      "id": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+      "text": "A village develops a particular recipe for an apple pie—one that nobody outside the village likes, but who cares?"
+    },
+    {
+      "order": 4,
+      "id": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "text": "We want these things not just because of what they are, but who we are."
+    },
+    {
+      "order": 5,
+      "id": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+      "text": "Tastes spread like this, person to person, like viruses, almost irrespective of the qualities of the food involved."
+    },
+    {
+      "order": 6,
+      "id": "9dd6a59d-407e-47cc-938e-bb9406c39fc0",
+      "text": "We observe other people in their food lives, often judgmentally."
+    },
+    {
+      "order": 7,
+      "id": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "text": "Nothing turns me off something quicker than the wrong people liking it, by which I mean people almost identical to me in every respect, in a way that doesn’t flatter me."
+    },
+    {
+      "order": 8,
+      "id": "8bb784f5-758e-44b3-9984-465a29933a4c",
+      "text": "I avoided the viral chopped salad moment of 2024 by the skin of my teeth."
+    }
+  ]
+}

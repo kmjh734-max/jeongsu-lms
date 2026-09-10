@@ -1,0 +1,65 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:57:25.597Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "title": "다양한 사고 방식의 중요성",
+  "source": null,
+  "passage": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest insights was that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely wiped out. A species with great variation will more likely have some survivors after any catastrophe—the members who are well suited for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely to be wiped out. This variation preserves the evolvability of our species.",
+  "sha256": "82eaca156ce5ba0b698f87cc63df3822dc5ed9658d89dd0bc543dd57e7a9c747",
+  "sentenceCount": 8,
+  "sentences": [
+    {
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "order": 0,
+      "text": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species."
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "order": 1,
+      "text": "One of Charles Darwin’s greatest insights was that variation is a prerequisite for natural selection to work."
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "order": 2,
+      "text": "Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely wiped out."
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "order": 3,
+      "text": "A species with great variation will more likely have some survivors after any catastrophe—the members who are well suited for the new environment."
+    },
+    {
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "order": 4,
+      "text": "Darwin observed variation in the bodies of animals, and the same principle applies to human minds."
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "order": 5,
+      "text": "If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct."
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "order": 6,
+      "text": "Thankfully, our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely to be wiped out."
+    },
+    {
+      "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+      "order": 7,
+      "text": "This variation preserves the evolvability of our species."
+    }
+  ]
+}

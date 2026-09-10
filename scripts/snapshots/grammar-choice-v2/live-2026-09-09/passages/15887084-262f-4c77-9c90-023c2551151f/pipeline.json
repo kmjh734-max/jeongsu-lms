@@ -1,0 +1,3879 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T07:25:41.608Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "ok": true,
+  "reason": null,
+  "stages": {
+    "afterAnalyzer": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans to have",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for humans to have",
+        "distractors": [
+          "of humans to have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "행위 주체 humans 앞에는 for가 필요함",
+        "ruleSummaryKo": "일반적 의미상 주어는 for+목적격으로 나타낸다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "many kinds of minds",
+        "occurrenceIndex": 0,
+        "correctAnswer": "many kinds of minds",
+        "distractors": [
+          "many kind of minds"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "many가 kinds의 복수형을 요구함",
+        "ruleSummaryKo": "many 뒤에는 복수 가산명사가 온다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_DISTANCE",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "주어는 insights가 아니라 단수 One임",
+        "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that",
+        "occurrenceIndex": 0,
+        "correctAnswer": "that",
+        "distractors": [
+          "what"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "뒤 절에 빠진 문장 성분이 없음",
+        "ruleSummaryKo": "완전한 절은 접속사 that이 이끈다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection to work",
+        "occurrenceIndex": 0,
+        "correctAnswer": "for natural selection to work",
+        "distractors": [
+          "of natural selection to work"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "work의 행위 주체 앞에는 for가 필요함",
+        "ruleSummaryKo": "일반적 의미상 주어는 for+목적격으로 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "insights",
+        "occurrenceIndex": 0,
+        "correctAnswer": "insights",
+        "distractors": [
+          "insight"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "CORE",
+        "evidence": "one of 뒤에는 복수명사가 필요함",
+        "ruleSummaryKo": "one of 다음의 가산명사는 복수형을 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be completely wiped out",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be completely wiped out",
+        "distractors": [
+          "completely wipe out",
+          "be completely wiping out"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "species는 wipe out의 행위 대상임",
+        "ruleSummaryKo": "행위의 대상이 주어이면 수동태를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are",
+        "occurrenceIndex": 0,
+        "correctAnswer": "are",
+        "distractors": [
+          "is"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "선행사 members가 복수임",
+        "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치시킨다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_WHO_WHOM",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+        "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "members와 suit 사이가 수동 관계임",
+        "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "applies",
+        "occurrenceIndex": 0,
+        "correctAnswer": "applies",
+        "distractors": [
+          "applying",
+          "to apply"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+        "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "occurrenceIndex": 0,
+        "correctAnswer": "had",
+        "distractors": [
+          "would have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+        "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "occurrenceIndex": 0,
+        "correctAnswer": "were",
+        "distractors": [
+          "would be"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+        "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "both within a single culture and across cultures",
+        "occurrenceIndex": 0,
+        "correctAnswer": "both within a single culture and across cultures",
+        "distractors": [
+          "both within a single culture or across cultures"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "sourceSpan": "less likely",
+        "occurrenceIndex": 0,
+        "correctAnswer": "less likely",
+        "distractors": [
+          "less likelier"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "less와 비교급 어미를 함께 쓸 수 없음",
+        "ruleSummaryKo": "비교급 표지는 한 번만 사용한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "to be wiped out",
+        "occurrenceIndex": 0,
+        "correctAnswer": "to be wiped out",
+        "distractors": [
+          "to wipe out",
+          "to be wiping out"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "we는 wipe out의 행위 대상임",
+        "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+        "riskLevel": "MEDIUM"
+      }
+    ],
+    "afterLocalFilter": {
+      "resolved": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "주어는 insights가 아니라 단수 One임",
+          "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_WHO_WHOM",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+          "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_WHO_WHOM:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "occurrenceIndex": 0,
+          "correctAnswer": "suited",
+          "distractors": [
+            "suiting"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "members와 suit 사이가 수동 관계임",
+          "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 544,
+          "passageEnd": 550,
+          "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "applies",
+          "occurrenceIndex": 0,
+          "correctAnswer": "applies",
+          "distractors": [
+            "applying",
+            "to apply"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+          "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 651,
+          "passageEnd": 658,
+          "subtypeKey": "PARALLEL_CLAUSES:applies|applying"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "sourceSpan": "had",
+          "occurrenceIndex": 0,
+          "correctAnswer": "had",
+          "distractors": [
+            "would have"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+          "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 685,
+          "passageEnd": 688,
+          "subtypeKey": "CONDITIONAL_SECOND:had|would have"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "sourceSpan": "were",
+          "occurrenceIndex": 0,
+          "correctAnswer": "were",
+          "distractors": [
+            "would be"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+          "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 720,
+          "passageEnd": 724,
+          "subtypeKey": "CONDITIONAL_SECOND:were|would be"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룸",
+          "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "be wiped",
+          "distractors": [
+            "wipe"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "we는 wipe out의 행위 대상임",
+          "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 922,
+          "passageEnd": 930,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:be wiped|wipe"
+        }
+      ],
+      "rejected": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "for humans to have / of humans to have"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "pointCode": "SINGULAR_PLURAL_NOUN",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "many kinds of minds / many kind of minds"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "NOUN_CLAUSE_THAT",
+          "reason": "BOTH_GRAMMATICAL",
+          "pair": "that / what"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "for natural selection to work / of natural selection to work"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "SINGULAR_PLURAL_NOUN",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "insights / insight"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "reason": "MULTI_AXIS_EDIT",
+          "pair": "be completely wiped / completely wipe"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_AGREEMENT",
+          "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+          "pair": "are / is"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "COMPARATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "less likely / less likelier"
+        },
+        {
+          "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "and / or"
+        }
+      ]
+    },
+    "beforeReviewer": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어는 insights가 아니라 단수 One임",
+        "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_WHO_WHOM",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+        "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_WHO_WHOM:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "members와 suit 사이가 수동 관계임",
+        "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "applies",
+        "occurrenceIndex": 0,
+        "correctAnswer": "applies",
+        "distractors": [
+          "applying",
+          "to apply"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+        "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 651,
+        "passageEnd": 658,
+        "subtypeKey": "PARALLEL_CLAUSES:applies|applying"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "occurrenceIndex": 0,
+        "correctAnswer": "had",
+        "distractors": [
+          "would have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+        "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 685,
+        "passageEnd": 688,
+        "subtypeKey": "CONDITIONAL_SECOND:had|would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "occurrenceIndex": 0,
+        "correctAnswer": "were",
+        "distractors": [
+          "would be"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+        "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 720,
+        "passageEnd": 724,
+        "subtypeKey": "CONDITIONAL_SECOND:were|would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "we는 wipe out의 행위 대상임",
+        "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:be wiped|wipe"
+      }
+    ],
+    "afterReviewer": {
+      "kept": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "주어는 insights가 아니라 단수 One임",
+          "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_WHO_WHOM",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+          "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_WHO_WHOM:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "occurrenceIndex": 0,
+          "correctAnswer": "suited",
+          "distractors": [
+            "suiting"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "members와 suit 사이가 수동 관계임",
+          "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 544,
+          "passageEnd": 550,
+          "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "applies",
+          "occurrenceIndex": 0,
+          "correctAnswer": "applies",
+          "distractors": [
+            "applying",
+            "to apply"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+          "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 651,
+          "passageEnd": 658,
+          "subtypeKey": "PARALLEL_CLAUSES:applies|applying"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "sourceSpan": "had",
+          "occurrenceIndex": 0,
+          "correctAnswer": "had",
+          "distractors": [
+            "would have"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+          "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 685,
+          "passageEnd": 688,
+          "subtypeKey": "CONDITIONAL_SECOND:had|would have"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "sourceSpan": "were",
+          "occurrenceIndex": 0,
+          "correctAnswer": "were",
+          "distractors": [
+            "would be"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+          "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 720,
+          "passageEnd": 724,
+          "subtypeKey": "CONDITIONAL_SECOND:were|would be"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룸",
+          "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "be wiped",
+          "distractors": [
+            "wipe"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "we는 wipe out의 행위 대상임",
+          "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 922,
+          "passageEnd": 930,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:be wiped|wipe"
+        }
+      ],
+      "rejected": []
+    },
+    "beforeRank": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어는 insights가 아니라 단수 One임",
+        "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_WHO_WHOM",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+        "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_WHO_WHOM:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "members와 suit 사이가 수동 관계임",
+        "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "applies",
+        "occurrenceIndex": 0,
+        "correctAnswer": "applies",
+        "distractors": [
+          "applying",
+          "to apply"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+        "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 651,
+        "passageEnd": 658,
+        "subtypeKey": "PARALLEL_CLAUSES:applies|applying"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "occurrenceIndex": 0,
+        "correctAnswer": "had",
+        "distractors": [
+          "would have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+        "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 685,
+        "passageEnd": 688,
+        "subtypeKey": "CONDITIONAL_SECOND:had|would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "occurrenceIndex": 0,
+        "correctAnswer": "were",
+        "distractors": [
+          "would be"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+        "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 720,
+        "passageEnd": 724,
+        "subtypeKey": "CONDITIONAL_SECOND:were|would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "we는 wipe out의 행위 대상임",
+        "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:be wiped|wipe"
+      }
+    ],
+    "afterRank": {
+      "kept": [
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "applies",
+          "occurrenceIndex": 0,
+          "correctAnswer": "applies",
+          "distractors": [
+            "applying",
+            "to apply"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+          "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 651,
+          "passageEnd": 658,
+          "subtypeKey": "PARALLEL_CLAUSES:applies|applying"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "sourceSpan": "had",
+          "occurrenceIndex": 0,
+          "correctAnswer": "had",
+          "distractors": [
+            "would have"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+          "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 685,
+          "passageEnd": 688,
+          "subtypeKey": "CONDITIONAL_SECOND:had|would have"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "pointCode": "CONDITIONAL_SECOND",
+          "sourceSpan": "were",
+          "occurrenceIndex": 0,
+          "correctAnswer": "were",
+          "distractors": [
+            "would be"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+          "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 720,
+          "passageEnd": 724,
+          "subtypeKey": "CONDITIONAL_SECOND:were|would be"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "pointCode": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "occurrenceIndex": 0,
+          "correctAnswer": "was",
+          "distractors": [
+            "were"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "주어는 insights가 아니라 단수 One임",
+          "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 158,
+          "passageEnd": 161,
+          "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "RELATIVE_WHO_WHOM",
+          "sourceSpan": "who",
+          "occurrenceIndex": 0,
+          "correctAnswer": "who",
+          "distractors": [
+            "whom"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+          "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 531,
+          "passageEnd": 534,
+          "subtypeKey": "RELATIVE_WHO_WHOM:who|whom"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "occurrenceIndex": 0,
+          "correctAnswer": "suited",
+          "distractors": [
+            "suiting"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "members와 suit 사이가 수동 관계임",
+          "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 544,
+          "passageEnd": 550,
+          "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "occurrenceIndex": 0,
+          "correctAnswer": "and",
+          "distractors": [
+            "or"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "both는 상관접속사 and와 짝을 이룸",
+          "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 877,
+          "passageEnd": 880,
+          "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+        },
+        {
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "occurrenceIndex": 0,
+          "correctAnswer": "be wiped",
+          "distractors": [
+            "wipe"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "we는 wipe out의 행위 대상임",
+          "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 922,
+          "passageEnd": 930,
+          "subtypeKey": "VOICE_ACTIVE_PASSIVE:be wiped|wipe"
+        }
+      ],
+      "dropped": []
+    },
+    "beforeDedup": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어는 insights가 아니라 단수 One임",
+        "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_WHO_WHOM",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+        "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_WHO_WHOM:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "members와 suit 사이가 수동 관계임",
+        "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "applies",
+        "occurrenceIndex": 0,
+        "correctAnswer": "applies",
+        "distractors": [
+          "applying",
+          "to apply"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+        "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 651,
+        "passageEnd": 658,
+        "subtypeKey": "PARALLEL_CLAUSES:applies|applying"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "occurrenceIndex": 0,
+        "correctAnswer": "had",
+        "distractors": [
+          "would have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+        "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 685,
+        "passageEnd": 688,
+        "subtypeKey": "CONDITIONAL_SECOND:had|would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "occurrenceIndex": 0,
+        "correctAnswer": "were",
+        "distractors": [
+          "would be"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+        "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 720,
+        "passageEnd": 724,
+        "subtypeKey": "CONDITIONAL_SECOND:were|would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "we는 wipe out의 행위 대상임",
+        "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:be wiped|wipe"
+      }
+    ],
+    "afterDedup": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "applies",
+        "occurrenceIndex": 0,
+        "correctAnswer": "applies",
+        "distractors": [
+          "applying",
+          "to apply"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "and 뒤 절에는 주어 principle의 동사가 필요함",
+        "ruleSummaryKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 651,
+        "passageEnd": 658,
+        "subtypeKey": "PARALLEL_CLAUSES:applies|applying"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "occurrenceIndex": 0,
+        "correctAnswer": "had",
+        "distractors": [
+          "would have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정법 과거의 if절에는 과거형이 필요함",
+        "ruleSummaryKo": "현재 반대 가정의 if절에는 과거형을 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 685,
+        "passageEnd": 688,
+        "subtypeKey": "CONDITIONAL_SECOND:had|would have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "pointCode": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "occurrenceIndex": 0,
+        "correctAnswer": "were",
+        "distractors": [
+          "would be"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "가정적 if절 안에는 would be를 쓰지 않음",
+        "ruleSummaryKo": "가정법 과거의 be동사는 원칙적으로 were를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 720,
+        "passageEnd": 724,
+        "subtypeKey": "CONDITIONAL_SECOND:were|would be"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "occurrenceIndex": 0,
+        "correctAnswer": "was",
+        "distractors": [
+          "were"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "주어는 insights가 아니라 단수 One임",
+        "ruleSummaryKo": "one of 구문의 동사는 One에 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 158,
+        "passageEnd": 161,
+        "subtypeKey": "AGREEMENT_ONE_OF:was|were"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_WHO_WHOM",
+        "sourceSpan": "who",
+        "occurrenceIndex": 0,
+        "correctAnswer": "who",
+        "distractors": [
+          "whom"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에 별도의 주어가 없어 주격이 필요함",
+        "ruleSummaryKo": "관계절의 주어 자리에는 who를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 531,
+        "passageEnd": 534,
+        "subtypeKey": "RELATIVE_WHO_WHOM:who|whom"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "occurrenceIndex": 0,
+        "correctAnswer": "suited",
+        "distractors": [
+          "suiting"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "members와 suit 사이가 수동 관계임",
+        "ruleSummaryKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 544,
+        "passageEnd": 550,
+        "subtypeKey": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "occurrenceIndex": 0,
+        "correctAnswer": "and",
+        "distractors": [
+          "or"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "both는 상관접속사 and와 짝을 이룸",
+        "ruleSummaryKo": "both A and B의 짝을 일관되게 사용한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 877,
+        "passageEnd": 880,
+        "subtypeKey": "CORRELATIVE_BOTH_AND:and|or"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "occurrenceIndex": 0,
+        "correctAnswer": "be wiped",
+        "distractors": [
+          "wipe"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "we는 wipe out의 행위 대상임",
+        "ruleSummaryKo": "부정사의 수동형은 to be+과거분사이다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 922,
+        "passageEnd": 930,
+        "subtypeKey": "VOICE_ACTIVE_PASSIVE:be wiped|wipe"
+      }
+    ],
+    "coverage": {
+      "reports": [
+        {
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "detectedPointCodes": [
+            "INFINITIVE_LOGICAL_SUBJECT",
+            "SINGULAR_PLURAL_NOUN",
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SINGULAR_PLURAL_NOUN",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "detectedPointCodes": [
+            "AGREEMENT_ONE_OF",
+            "NOUN_CLAUSE_THAT",
+            "INFINITIVE_LOGICAL_SUBJECT",
+            "SINGULAR_PLURAL_NOUN",
+            "AGREEMENT_DISTANCE",
+            "ONE_OF_SUPERLATIVE"
+          ],
+          "mandatoryPointCodes": [
+            "AGREEMENT_DISTANCE"
+          ],
+          "generatedQuestionPointCodes": [
+            "AGREEMENT_ONE_OF"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "NOUN_CLAUSE_THAT",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SINGULAR_PLURAL_NOUN",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "AGREEMENT_DISTANCE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ONE_OF_SUPERLATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "detectedPointCodes": [
+            "VOICE_ACTIVE_PASSIVE",
+            "ADVERB_CLAUSE_CONDITION",
+            "PARALLEL_AND_OR_BUT",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "detectedPointCodes": [
+            "RELATIVE_WHO_WHOM",
+            "PARTICIPLE_ACTIVE_PASSIVE",
+            "RELATIVE_AGREEMENT",
+            "RELATIVE_SUBJECT",
+            "PARTICIPLE_SUBJECT_COMPLEMENT",
+            "COMPARATIVE"
+          ],
+          "mandatoryPointCodes": [
+            "RELATIVE_AGREEMENT"
+          ],
+          "generatedQuestionPointCodes": [
+            "RELATIVE_WHO_WHOM",
+            "PARTICIPLE_ACTIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "RELATIVE_AGREEMENT",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "RELATIVE_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARTICIPLE_SUBJECT_COMPLEMENT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "detectedPointCodes": [
+            "PARALLEL_CLAUSES",
+            "PARALLEL_AND_OR_BUT",
+            "TENSE_PRESENT_PAST"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "TENSE_PRESENT_PAST",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "detectedPointCodes": [
+            "CONDITIONAL_SECOND",
+            "PARALLEL_CLAUSES",
+            "ADVERB_CLAUSE_CONDITION",
+            "MODAL_MEANING"
+          ],
+          "mandatoryPointCodes": [
+            "CONDITIONAL_SECOND",
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "CONDITIONAL_SECOND"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ADVERB_CLAUSE_CONDITION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "MODAL_MEANING",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "detectedPointCodes": [
+            "CORRELATIVE_BOTH_AND",
+            "VOICE_ACTIVE_PASSIVE",
+            "COMPARATIVE",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "CORRELATIVE_BOTH_AND",
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "CORRELATIVE_BOTH_AND",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "detectedPointCodes": [
+            "ARTICLE",
+            "SINGULAR_PLURAL_NOUN"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "SINGULAR_PLURAL_NOUN",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        }
+      ],
+      "missing": [],
+      "occurrences": [
+        {
+          "sourceId": "",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:applies|applying",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "applies",
+          "sourceAnswer": "applies",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "CONDITIONAL_SECOND:had|would have",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "had",
+          "sourceAnswer": "had",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "CONDITIONAL_SECOND:were|would be",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "sourceSpan": "were",
+          "sourceAnswer": "were",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "sourceSpan": "was",
+          "sourceAnswer": "was",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "RELATIVE_WHO_WHOM",
+          "subtype": "RELATIVE_WHO_WHOM:who|whom",
+          "assessmentAxis": "RELATIVE_WHO_WHOM",
+          "sourceSpan": "who",
+          "sourceAnswer": "who",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+          "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+          "sourceSpan": "suited",
+          "sourceAnswer": "suited",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and",
+          "sourceAnswer": "and",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:be wiped|wipe",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "be wiped",
+          "sourceAnswer": "be wiped",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for humans to have / of humans to have",
+          "sourceAnswer": "for humans to have",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "code": "SINGULAR_PLURAL_NOUN",
+          "subtype": "",
+          "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+          "sourceSpan": "many kinds of minds / many kind of minds",
+          "sourceAnswer": "many kinds of minds",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "NOUN_CLAUSE_THAT",
+          "subtype": "",
+          "assessmentAxis": "NOUN_CLAUSE_THAT",
+          "sourceSpan": "that / what",
+          "sourceAnswer": "that",
+          "status": "VALID_EXCLUSION",
+          "reason": "BOTH_GRAMMATICAL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "INFINITIVE_LOGICAL_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+          "sourceSpan": "for natural selection to work / of natural selection to work",
+          "sourceAnswer": "for natural selection to work",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "SINGULAR_PLURAL_NOUN",
+          "subtype": "",
+          "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+          "sourceSpan": "insights / insight",
+          "sourceAnswer": "insights",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "be completely wiped / completely wipe",
+          "sourceAnswer": "be completely wiped",
+          "status": "VALID_EXCLUSION",
+          "reason": "MULTI_AXIS_EDIT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "RELATIVE_AGREEMENT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_AGREEMENT",
+          "sourceSpan": "are / is",
+          "sourceAnswer": "are",
+          "status": "VALID_EXCLUSION",
+          "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "less likely / less likelier",
+          "sourceAnswer": "less likely",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "sourceSpan": "and / or",
+          "sourceAnswer": "and",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "a species",
+          "sourceAnswer": "a species",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "AGREEMENT_DISTANCE",
+          "subtype": "",
+          "assessmentAxis": "AGREEMENT_DISTANCE",
+          "sourceSpan": "was",
+          "sourceAnswer": "was",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+          "code": "ONE_OF_SUPERLATIVE",
+          "subtype": "",
+          "assessmentAxis": "ONE_OF_SUPERLATIVE",
+          "sourceSpan": "One of Charles Darwin’s greatest insights",
+          "sourceAnswer": "One of Charles Darwin’s greatest insights",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "If there’s a huge change in the environment",
+          "sourceAnswer": "If there’s a huge change in the environment",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+          "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "might",
+          "sourceAnswer": "might",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "sourceSpan": "who",
+          "sourceAnswer": "who",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "PARTICIPLE_SUBJECT_COMPLEMENT",
+          "subtype": "",
+          "assessmentAxis": "PARTICIPLE_SUBJECT_COMPLEMENT",
+          "sourceSpan": "suited",
+          "sourceAnswer": "suited",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "more likely",
+          "sourceAnswer": "more likely",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "and",
+          "sourceAnswer": "and",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+          "code": "TENSE_PRESENT_PAST",
+          "subtype": "",
+          "assessmentAxis": "TENSE_PRESENT_PAST",
+          "sourceSpan": "observed",
+          "sourceAnswer": "observed",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "if there were only one human nature",
+          "sourceAnswer": "if there were only one human nature",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "ADVERB_CLAUSE_CONDITION",
+          "subtype": "",
+          "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+          "sourceSpan": "If we all had the same kind of mind",
+          "sourceAnswer": "If we all had the same kind of mind",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+          "code": "MODAL_MEANING",
+          "subtype": "",
+          "assessmentAxis": "MODAL_MEANING",
+          "sourceSpan": "might",
+          "sourceAnswer": "might",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "within a single culture and across cultures",
+          "sourceAnswer": "within a single culture and across cultures",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the",
+          "sourceAnswer": "the",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+          "code": "SINGULAR_PLURAL_NOUN",
+          "subtype": "",
+          "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+          "sourceSpan": "species",
+          "sourceAnswer": "species",
+          "status": "ANALYSIS_ONLY"
+        }
+      ],
+      "metrics": {
+        "mandatoryDetected": 6,
+        "mandatoryEligible": 3,
+        "mandatoryRendered": 3,
+        "mandatoryExcludedWithValidReason": 1,
+        "analysisOnly": 17,
+        "eligible": 8,
+        "excluded": 9,
+        "rendered": 8,
+        "missingEligible": 0,
+        "coverage": 100
+      }
+    },
+    "finalize": {
+      "ok": true,
+      "sectionStatus": "COMPLETE"
+    },
+    "studentItems": [
+      {
+        "number": 1,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+        "internalProvenance": {
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:applies|applying",
+          "priority": "MANDATORY",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "occurrenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881|PARALLEL_CLAUSES|applies",
+          "sourceSpan": "applies",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+          "exclusionReason": null
+        },
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 651,
+        "endCharIndex": 658,
+        "originalText": "applies",
+        "correctText": "applies",
+        "incorrectText": "applying",
+        "leftText": "applies",
+        "rightText": "applying",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_CLAUSES",
+        "grammarCategoryName": "절 병렬",
+        "bookTerm": "절 병렬",
+        "explanationKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "incorrectReasonKo": "applying는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "that절 and that절"
+      },
+      {
+        "number": 2,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "internalProvenance": {
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "CONDITIONAL_SECOND:had|would have",
+          "priority": "MANDATORY",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "occurrenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74|CONDITIONAL_SECOND|had",
+          "sourceSpan": "had",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+          "exclusionReason": null
+        },
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 685,
+        "endCharIndex": 688,
+        "originalText": "had",
+        "correctText": "had",
+        "incorrectText": "would have",
+        "leftText": "would have",
+        "rightText": "had",
+        "correctSide": "right",
+        "grammarCategoryId": "CONDITIONAL_SECOND",
+        "grammarCategoryName": "가정법 과거",
+        "bookTerm": "가정법 과거",
+        "explanationKo": "현재 사실과 반대되는 가정은 if절에 과거형을 쓰고, 주절에는 would/could/might + 동사원형을 쓴다. 가정법 과거의 if절에는 과거형이 필요함",
+        "incorrectReasonKo": "would have는 가정법 과거의 if절/주절 형태가 아니다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "if + 과거형, S + would/could/might + 동사원형"
+      },
+      {
+        "number": 3,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+        "internalProvenance": {
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "CONDITIONAL_SECOND:were|would be",
+          "priority": "MANDATORY",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "occurrenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74|CONDITIONAL_SECOND|were",
+          "sourceSpan": "were",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 720,
+        "endCharIndex": 724,
+        "originalText": "were",
+        "correctText": "were",
+        "incorrectText": "would be",
+        "leftText": "would be",
+        "rightText": "were",
+        "correctSide": "right",
+        "grammarCategoryId": "CONDITIONAL_SECOND",
+        "grammarCategoryName": "가정법 과거",
+        "bookTerm": "가정법 과거",
+        "explanationKo": "현재 사실과 반대되는 가정은 if절에 과거형을 쓰고, 주절에는 would/could/might + 동사원형을 쓴다. 가정적 if절 안에는 would be를 쓰지 않음",
+        "incorrectReasonKo": "would be는 가정법 과거의 if절/주절 형태가 아니다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "if + 과거형, S + would/could/might + 동사원형"
+      },
+      {
+        "number": 4,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "internalProvenance": {
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "priority": "CORE",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+          "sourceSpan": "was",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 158,
+        "endCharIndex": 161,
+        "originalText": "was",
+        "correctText": "was",
+        "incorrectText": "were",
+        "leftText": "was",
+        "rightText": "were",
+        "correctSide": "left",
+        "grammarCategoryId": "AGREEMENT_ONE_OF",
+        "grammarCategoryName": "one of 수일치",
+        "bookTerm": "one of 수일치",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of + 복수명사 + 단수 동사"
+      },
+      {
+        "number": 5,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "internalProvenance": {
+          "code": "RELATIVE_WHO_WHOM",
+          "subtype": "RELATIVE_WHO_WHOM:who|whom",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_WHO_WHOM",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_WHO_WHOM|who",
+          "sourceSpan": "who",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 531,
+        "endCharIndex": 534,
+        "originalText": "who",
+        "correctText": "who",
+        "incorrectText": "whom",
+        "leftText": "who",
+        "rightText": "whom",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_WHO_WHOM",
+        "grammarCategoryName": "who/whom",
+        "bookTerm": "who/whom",
+        "explanationKo": "관계절의 주어 자리에는 who를 쓴다",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "사람 선행사 격"
+      },
+      {
+        "number": 6,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "internalProvenance": {
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+          "priority": "CORE",
+          "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|PARTICIPLE_ACTIVE_PASSIVE|suited",
+          "sourceSpan": "suited",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 544,
+        "endCharIndex": 550,
+        "originalText": "suited",
+        "correctText": "suited",
+        "incorrectText": "suiting",
+        "leftText": "suiting",
+        "rightText": "suited",
+        "correctSide": "right",
+        "grammarCategoryId": "PARTICIPLE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "분사 능동·수동",
+        "bookTerm": "분사 능동·수동",
+        "explanationKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "incorrectReasonKo": "suiting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "의미상 주어와 능동/수동"
+      },
+      {
+        "number": 7,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 877,
+        "endCharIndex": 880,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "and",
+        "rightText": "or",
+        "correctSide": "left",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      },
+      {
+        "number": 8,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+        "internalProvenance": {
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:be wiped|wipe",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|VOICE_ACTIVE_PASSIVE|be wiped",
+          "sourceSpan": "be wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 922,
+        "endCharIndex": 930,
+        "originalText": "be wiped",
+        "correctText": "be wiped",
+        "incorrectText": "wipe",
+        "leftText": "wipe",
+        "rightText": "be wiped",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "능동·수동",
+        "bookTerm": "능동·수동",
+        "explanationKo": "부정사의 수동형은 to be+과거분사이다",
+        "incorrectReasonKo": "wipe는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "행위자/대상 의미역"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for humans to have / of humans to have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "many kinds of minds / many kind of minds"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "reason": "BOTH_GRAMMATICAL",
+        "pair": "that / what"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for natural selection to work / of natural selection to work"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "insights / insight"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "be completely wiped / completely wipe"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+        "pair": "are / is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "less likely / less likelier"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:applies|applying",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "applies",
+        "sourceAnswer": "applies",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "CONDITIONAL_SECOND:had|would have",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "sourceAnswer": "had",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "CONDITIONAL_SECOND:were|would be",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "sourceAnswer": "were",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_WHO_WHOM",
+        "subtype": "RELATIVE_WHO_WHOM:who|whom",
+        "assessmentAxis": "RELATIVE_WHO_WHOM",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "sourceAnswer": "suited",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:be wiped|wipe",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "sourceAnswer": "be wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans to have / of humans to have",
+        "sourceAnswer": "for humans to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "many kinds of minds / many kind of minds",
+        "sourceAnswer": "many kinds of minds",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that / what",
+        "sourceAnswer": "that",
+        "status": "VALID_EXCLUSION",
+        "reason": "BOTH_GRAMMATICAL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection to work / of natural selection to work",
+        "sourceAnswer": "for natural selection to work",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "insights / insight",
+        "sourceAnswer": "insights",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be completely wiped / completely wipe",
+        "sourceAnswer": "be completely wiped",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are / is",
+        "sourceAnswer": "are",
+        "status": "VALID_EXCLUSION",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "less likely / less likelier",
+        "sourceAnswer": "less likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "a species",
+        "sourceAnswer": "a species",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "",
+        "assessmentAxis": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "One of Charles Darwin’s greatest insights",
+        "sourceAnswer": "One of Charles Darwin’s greatest insights",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If there’s a huge change in the environment",
+        "sourceAnswer": "If there’s a huge change in the environment",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+        "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "sourceSpan": "suited",
+        "sourceAnswer": "suited",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more likely",
+        "sourceAnswer": "more likely",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "observed",
+        "sourceAnswer": "observed",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "if there were only one human nature",
+        "sourceAnswer": "if there were only one human nature",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If we all had the same kind of mind",
+        "sourceAnswer": "If we all had the same kind of mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "within a single culture and across cultures",
+        "sourceAnswer": "within a single culture and across cultures",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the",
+        "sourceAnswer": "the",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "species",
+        "sourceAnswer": "species",
+        "status": "ANALYSIS_ONLY"
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "for humans to have / of humans to have"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "many kinds of minds / many kind of minds"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "reason": "BOTH_GRAMMATICAL",
+      "pair": "that / what"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "for natural selection to work / of natural selection to work"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "SINGULAR_PLURAL_NOUN",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "insights / insight"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "reason": "MULTI_AXIS_EDIT",
+      "pair": "be completely wiped / completely wipe"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+      "pair": "are / is"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "COMPARATIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "less likely / less likelier"
+    },
+    {
+      "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "and / or"
+    }
+  ],
+  "missingMandatory": [],
+  "section": {
+    "projectId": "15887084-262f-4c77-9c90-023c2551151f",
+    "title": "다양한 사고 방식의 중요성",
+    "source": null,
+    "sourcePassage": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest insights was that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely wiped out. A species with great variation will more likely have some survivors after any catastrophe—the members who are well suited for the new environment. Darwin observed variation in the bodies of animals, and the same principle applies to human minds. If we all had the same kind of mind—if there were only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture and across cultures, so we’re less likely to be wiped out. This variation preserves the evolvability of our species.",
+    "items": [
+      {
+        "number": 1,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+        "internalProvenance": {
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:applies|applying",
+          "priority": "MANDATORY",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "occurrenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881|PARALLEL_CLAUSES|applies",
+          "sourceSpan": "applies",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11",
+          "exclusionReason": null
+        },
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 651,
+        "endCharIndex": 658,
+        "originalText": "applies",
+        "correctText": "applies",
+        "incorrectText": "applying",
+        "leftText": "applies",
+        "rightText": "applying",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_CLAUSES",
+        "grammarCategoryName": "절 병렬",
+        "bookTerm": "절 병렬",
+        "explanationKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "incorrectReasonKo": "applying는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "that절 and that절"
+      },
+      {
+        "number": 2,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+        "internalProvenance": {
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "CONDITIONAL_SECOND:had|would have",
+          "priority": "MANDATORY",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "occurrenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74|CONDITIONAL_SECOND|had",
+          "sourceSpan": "had",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+          "exclusionReason": null
+        },
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 685,
+        "endCharIndex": 688,
+        "originalText": "had",
+        "correctText": "had",
+        "incorrectText": "would have",
+        "leftText": "would have",
+        "rightText": "had",
+        "correctSide": "right",
+        "grammarCategoryId": "CONDITIONAL_SECOND",
+        "grammarCategoryName": "가정법 과거",
+        "bookTerm": "가정법 과거",
+        "explanationKo": "현재 사실과 반대되는 가정은 if절에 과거형을 쓰고, 주절에는 would/could/might + 동사원형을 쓴다. 가정법 과거의 if절에는 과거형이 필요함",
+        "incorrectReasonKo": "would have는 가정법 과거의 if절/주절 형태가 아니다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "if + 과거형, S + would/could/might + 동사원형"
+      },
+      {
+        "number": 3,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+        "internalProvenance": {
+          "code": "CONDITIONAL_SECOND",
+          "subtype": "CONDITIONAL_SECOND:were|would be",
+          "priority": "MANDATORY",
+          "assessmentAxis": "CONDITIONAL_SECOND",
+          "occurrenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74|CONDITIONAL_SECOND|were",
+          "sourceSpan": "were",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 720,
+        "endCharIndex": 724,
+        "originalText": "were",
+        "correctText": "were",
+        "incorrectText": "would be",
+        "leftText": "would be",
+        "rightText": "were",
+        "correctSide": "right",
+        "grammarCategoryId": "CONDITIONAL_SECOND",
+        "grammarCategoryName": "가정법 과거",
+        "bookTerm": "가정법 과거",
+        "explanationKo": "현재 사실과 반대되는 가정은 if절에 과거형을 쓰고, 주절에는 would/could/might + 동사원형을 쓴다. 가정적 if절 안에는 would be를 쓰지 않음",
+        "incorrectReasonKo": "would be는 가정법 과거의 if절/주절 형태가 아니다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "if + 과거형, S + would/could/might + 동사원형"
+      },
+      {
+        "number": 4,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+        "internalProvenance": {
+          "code": "AGREEMENT_ONE_OF",
+          "subtype": "AGREEMENT_ONE_OF:was|were",
+          "priority": "CORE",
+          "assessmentAxis": "AGREEMENT_ONE_OF",
+          "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+          "sourceSpan": "was",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 158,
+        "endCharIndex": 161,
+        "originalText": "was",
+        "correctText": "was",
+        "incorrectText": "were",
+        "leftText": "was",
+        "rightText": "were",
+        "correctSide": "left",
+        "grammarCategoryId": "AGREEMENT_ONE_OF",
+        "grammarCategoryName": "one of 수일치",
+        "bookTerm": "one of 수일치",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "one of + 복수명사 + 단수 동사"
+      },
+      {
+        "number": 5,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+        "internalProvenance": {
+          "code": "RELATIVE_WHO_WHOM",
+          "subtype": "RELATIVE_WHO_WHOM:who|whom",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_WHO_WHOM",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_WHO_WHOM|who",
+          "sourceSpan": "who",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 531,
+        "endCharIndex": 534,
+        "originalText": "who",
+        "correctText": "who",
+        "incorrectText": "whom",
+        "leftText": "who",
+        "rightText": "whom",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_WHO_WHOM",
+        "grammarCategoryName": "who/whom",
+        "bookTerm": "who/whom",
+        "explanationKo": "관계절의 주어 자리에는 who를 쓴다",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "사람 선행사 격"
+      },
+      {
+        "number": 6,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+        "internalProvenance": {
+          "code": "PARTICIPLE_ACTIVE_PASSIVE",
+          "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+          "priority": "CORE",
+          "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+          "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|PARTICIPLE_ACTIVE_PASSIVE|suited",
+          "sourceSpan": "suited",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+          "exclusionReason": null
+        },
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 544,
+        "endCharIndex": 550,
+        "originalText": "suited",
+        "correctText": "suited",
+        "incorrectText": "suiting",
+        "leftText": "suiting",
+        "rightText": "suited",
+        "correctSide": "right",
+        "grammarCategoryId": "PARTICIPLE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "분사 능동·수동",
+        "bookTerm": "분사 능동·수동",
+        "explanationKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "incorrectReasonKo": "suiting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "의미상 주어와 능동/수동"
+      },
+      {
+        "number": 7,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+        "internalProvenance": {
+          "code": "CORRELATIVE_BOTH_AND",
+          "subtype": "CORRELATIVE_BOTH_AND:and|or",
+          "priority": "CORE",
+          "assessmentAxis": "CORRELATIVE_BOTH_AND",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+          "sourceSpan": "and",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 877,
+        "endCharIndex": 880,
+        "originalText": "and",
+        "correctText": "and",
+        "incorrectText": "or",
+        "leftText": "and",
+        "rightText": "or",
+        "correctSide": "left",
+        "grammarCategoryId": "CORRELATIVE_BOTH_AND",
+        "grammarCategoryName": "both A and B",
+        "bookTerm": "both A and B",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "both A and B"
+      },
+      {
+        "number": 8,
+        "choiceId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+        "internalProvenance": {
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "VOICE_ACTIVE_PASSIVE:be wiped|wipe",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|VOICE_ACTIVE_PASSIVE|be wiped",
+          "sourceSpan": "be wiped",
+          "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16",
+          "exclusionReason": null
+        },
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 922,
+        "endCharIndex": 930,
+        "originalText": "be wiped",
+        "correctText": "be wiped",
+        "incorrectText": "wipe",
+        "leftText": "wipe",
+        "rightText": "be wiped",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_ACTIVE_PASSIVE",
+        "grammarCategoryName": "능동·수동",
+        "bookTerm": "능동·수동",
+        "explanationKo": "부정사의 수동형은 to be+과거분사이다",
+        "incorrectReasonKo": "wipe는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "행위자/대상 의미역"
+      }
+    ],
+    "segments": [
+      {
+        "type": "text",
+        "text": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest insights "
+      },
+      {
+        "type": "choice",
+        "number": 4,
+        "leftText": "was",
+        "rightText": "were"
+      },
+      {
+        "type": "text",
+        "text": " that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely wiped out. A species with great variation will more likely have some survivors after any catastrophe—the members "
+      },
+      {
+        "type": "choice",
+        "number": 5,
+        "leftText": "who",
+        "rightText": "whom"
+      },
+      {
+        "type": "text",
+        "text": " are well "
+      },
+      {
+        "type": "choice",
+        "number": 6,
+        "leftText": "suiting",
+        "rightText": "suited"
+      },
+      {
+        "type": "text",
+        "text": " for the new environment. Darwin observed variation in the bodies of animals, and the same principle "
+      },
+      {
+        "type": "choice",
+        "number": 1,
+        "leftText": "applies",
+        "rightText": "applying"
+      },
+      {
+        "type": "text",
+        "text": " to human minds. If we all "
+      },
+      {
+        "type": "choice",
+        "number": 2,
+        "leftText": "would have",
+        "rightText": "had"
+      },
+      {
+        "type": "text",
+        "text": " the same kind of mind—if there "
+      },
+      {
+        "type": "choice",
+        "number": 3,
+        "leftText": "would be",
+        "rightText": "were"
+      },
+      {
+        "type": "text",
+        "text": " only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture "
+      },
+      {
+        "type": "choice",
+        "number": 7,
+        "leftText": "and",
+        "rightText": "or"
+      },
+      {
+        "type": "text",
+        "text": " across cultures, so we’re less likely to "
+      },
+      {
+        "type": "choice",
+        "number": 8,
+        "leftText": "wipe",
+        "rightText": "be wiped"
+      },
+      {
+        "type": "text",
+        "text": " out. This variation preserves the evolvability of our species."
+      }
+    ],
+    "algorithmVersion": "grammar-choice-v2",
+    "diagnostics": {
+      "sentenceCount": 8,
+      "analysisHintCount": 0,
+      "generatedCandidateCount": 16,
+      "codeValidatedCount": 8,
+      "originalMismatchCount": 0,
+      "rangeErrorCount": 0,
+      "overlapDuplicateCount": 1,
+      "reviewSubmittedCount": 4,
+      "reviewAcceptedCount": 8,
+      "bothPossibleRejectCount": 0,
+      "lexicalRejectCount": 0,
+      "trivialRejectCount": 0,
+      "finalCount": 8,
+      "grammarCategoryCount": 7,
+      "averageQualityScore": 0,
+      "passageRestored": true,
+      "cacheHit": false,
+      "generatorModel": "gpt-5.6-sol",
+      "reviewerModel": "gpt-5.6-sol",
+      "generatorResponseModel": "gpt-5.6-sol",
+      "reviewerResponseModel": "gpt-5.6-sol",
+      "generatorActualResponseModel": "gpt-5.6-sol",
+      "reviewerActualResponseModel": "gpt-5.6-sol",
+      "generatorReasoningEffort": "medium",
+      "reviewerReasoningEffort": "high",
+      "reasoningEffort": "medium",
+      "openAICallCount": 5,
+      "localFallbackUsed": false,
+      "generatorVersion": "grammar-choice-v2",
+      "apiCalls": [],
+      "forceRegenerate": true,
+      "oldQuestionReuseCount": 0,
+      "generatorActualModel": "gpt-5.6-sol",
+      "reviewerActualModel": "gpt-5.6-sol",
+      "newQuestionCount": 8,
+      "generateApiCalls": 4,
+      "reviewApiCalls": 1,
+      "underTargetReason": null,
+      "reviewRejectSamples": [],
+      "codeRejectSamples": [],
+      "mandatoryDetected": 6,
+      "mandatoryEligible": 3,
+      "mandatoryRendered": 3,
+      "mandatoryExcludedWithValidReason": 1,
+      "sectionStatus": "COMPLETE",
+      "analysisOnlyCount": 17,
+      "eligibleQuestionCount": 8,
+      "excludedOccurrenceCount": 9,
+      "missingEligibleCount": 0,
+      "mandatoryCoverage": 100,
+      "detectedMandatoryOccurrences": 6,
+      "analysisOnlyMandatoryOccurrences": 2,
+      "eligibleMandatoryOccurrences": 3,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 3,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 8,
+      "totalRenderedQuestions": 8,
+      "totalExcludedOccurrences": 9,
+      "countUnits": {
+        "detectedMandatoryOccurrences": "mandatory-occurrence",
+        "analysisOnlyMandatoryOccurrences": "mandatory-occurrence",
+        "eligibleMandatoryOccurrences": "mandatory-occurrence",
+        "validExcludedMandatoryOccurrences": "mandatory-occurrence",
+        "renderedMandatoryOccurrences": "mandatory-occurrence",
+        "missingEligibleMandatoryOccurrences": "mandatory-occurrence",
+        "totalEligibleQuestions": "student-question-candidate",
+        "totalRenderedQuestions": "student-item",
+        "totalExcludedOccurrences": "occurrence"
+      },
+      "finalQuestionCount": 8,
+      "renderedQuestionCount": 8,
+      "countMismatch": false,
+      "difficultyMix": {
+        "BASIC": 0,
+        "CORE": 8,
+        "ADVANCED": 0
+      },
+      "rejectReasonCounts": {
+        "NON_MINIMAL_SPAN": 2,
+        "NOT_PEDAGOGICALLY_USEFUL": 2,
+        "BOTH_GRAMMATICAL": 1,
+        "MULTI_AXIS_EDIT": 1,
+        "TOO_TRIVIAL_SHORT_AGREEMENT": 1,
+        "MEANING_ONLY_CONTRAST": 1,
+        "DUPLICATE_SATISFIED_BY_PRIMARY": 1
+      }
+    }
+  },
+  "digest": {
+    "passage": "It’s important for humans to have many kinds of minds, because variation is critical for the survival of a species. One of Charles Darwin’s greatest insights (4) [was / were] that variation is a prerequisite for natural selection to work. Think about it: If there’s a huge change in the environment, like a catastrophic drop in the food supply or a big increase in temperature, a species without much variation might be completely wiped out. A species with great variation will more likely have some survivors after any catastrophe—the members (5) [who / whom] are well (6) [suiting / suited] for the new environment. Darwin observed variation in the bodies of animals, and the same principle (1) [applies / applying] to human minds. If we all (2) [would have / had] the same kind of mind—if there (3) [would be / were] only one human nature—then when disaster struck, we might become extinct. Thankfully, our species has many kinds of minds, both within a single culture (7) [and / or] across cultures, so we’re less likely to (8) [wipe / be wiped] out. This variation preserves the evolvability of our species.",
+    "questions": [
+      {
+        "number": 1,
+        "correct": "applies",
+        "wrong": "applying",
+        "left": "applies",
+        "right": "applying",
+        "correctSide": "left",
+        "explanationKo": "병렬된 독립절마다 서술동사가 필요하다",
+        "incorrectReasonKo": "applying는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:applies|applying",
+        "priority": "MANDATORY",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "occurrenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881|PARALLEL_CLAUSES|applies",
+        "sourceSpan": "applies",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-3848abd0-8384-4cd5-b6ae-e903d6160881-11"
+      },
+      {
+        "number": 2,
+        "correct": "had",
+        "wrong": "would have",
+        "left": "would have",
+        "right": "had",
+        "correctSide": "right",
+        "explanationKo": "현재 사실과 반대되는 가정은 if절에 과거형을 쓰고, 주절에는 would/could/might + 동사원형을 쓴다. 가정법 과거의 if절에는 과거형이 필요함",
+        "incorrectReasonKo": "would have는 가정법 과거의 if절/주절 형태가 아니다.",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "CONDITIONAL_SECOND:had|would have",
+        "priority": "MANDATORY",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "occurrenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74|CONDITIONAL_SECOND|had",
+        "sourceSpan": "had",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12"
+      },
+      {
+        "number": 3,
+        "correct": "were",
+        "wrong": "would be",
+        "left": "would be",
+        "right": "were",
+        "correctSide": "right",
+        "explanationKo": "현재 사실과 반대되는 가정은 if절에 과거형을 쓰고, 주절에는 would/could/might + 동사원형을 쓴다. 가정적 if절 안에는 would be를 쓰지 않음",
+        "incorrectReasonKo": "would be는 가정법 과거의 if절/주절 형태가 아니다.",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "CONDITIONAL_SECOND:were|would be",
+        "priority": "MANDATORY",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "occurrenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74|CONDITIONAL_SECOND|were",
+        "sourceSpan": "were",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-13"
+      },
+      {
+        "number": 4,
+        "correct": "was",
+        "wrong": "were",
+        "left": "was",
+        "right": "were",
+        "correctSide": "left",
+        "explanationKo": "주어의 중심어는 단수 one이므로 동사는 was가 된다.",
+        "incorrectReasonKo": "were는 one이 아닌 복수 명사에 맞춘 형태다.",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "priority": "CORE",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "occurrenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372|AGREEMENT_ONE_OF|was",
+        "sourceSpan": "was",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3"
+      },
+      {
+        "number": 5,
+        "correct": "who",
+        "wrong": "whom",
+        "left": "who",
+        "right": "whom",
+        "correctSide": "left",
+        "explanationKo": "관계절의 주어 자리에는 who를 쓴다",
+        "incorrectReasonKo": "whom는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "RELATIVE_WHO_WHOM",
+        "subtype": "RELATIVE_WHO_WHOM:who|whom",
+        "priority": "CORE",
+        "assessmentAxis": "RELATIVE_WHO_WHOM",
+        "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|RELATIVE_WHO_WHOM|who",
+        "sourceSpan": "who",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9"
+      },
+      {
+        "number": 6,
+        "correct": "suited",
+        "wrong": "suiting",
+        "left": "suiting",
+        "right": "suited",
+        "correctSide": "right",
+        "explanationKo": "수식을 받는 명사가 대상이면 과거분사를 쓴다",
+        "incorrectReasonKo": "suiting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+        "priority": "CORE",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "occurrenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56|PARTICIPLE_ACTIVE_PASSIVE|suited",
+        "sourceSpan": "suited",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10"
+      },
+      {
+        "number": 7,
+        "correct": "and",
+        "wrong": "or",
+        "left": "and",
+        "right": "or",
+        "correctSide": "left",
+        "explanationKo": "both가 있으면 짝 접속사는 and이며 or를 쓰지 않는다.",
+        "incorrectReasonKo": "or는 both와 짝을 이루지 않는다.",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "priority": "CORE",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|CORRELATIVE_BOTH_AND|and",
+        "sourceSpan": "and",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14"
+      },
+      {
+        "number": 8,
+        "correct": "be wiped",
+        "wrong": "wipe",
+        "left": "wipe",
+        "right": "be wiped",
+        "correctSide": "right",
+        "explanationKo": "부정사의 수동형은 to be+과거분사이다",
+        "incorrectReasonKo": "wipe는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:be wiped|wipe",
+        "priority": "CORE",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "occurrenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6|VOICE_ACTIVE_PASSIVE|be wiped",
+        "sourceSpan": "be wiped",
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-16"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for humans to have / of humans to have"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-2",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "many kinds of minds / many kind of minds"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "NOUN_CLAUSE_THAT",
+        "reason": "BOTH_GRAMMATICAL",
+        "pair": "that / what"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-5",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "for natural selection to work / of natural selection to work"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-6",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "pointCode": "SINGULAR_PLURAL_NOUN",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "insights / insight"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "be completely wiped / completely wipe"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "pointCode": "RELATIVE_AGREEMENT",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT",
+        "pair": "are / is"
+      },
+      {
+        "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "less likely / less likelier"
+      },
+      {
+        "candidateId": "local-CORRELATIVE_BOTH_AND-78",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "pointCode": "CORRELATIVE_BOTH_AND",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "and / or"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:applies|applying",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "applies",
+        "sourceAnswer": "applies",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "CONDITIONAL_SECOND:had|would have",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "had",
+        "sourceAnswer": "had",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "CONDITIONAL_SECOND",
+        "subtype": "CONDITIONAL_SECOND:were|would be",
+        "assessmentAxis": "CONDITIONAL_SECOND",
+        "sourceSpan": "were",
+        "sourceAnswer": "were",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_ONE_OF",
+        "subtype": "AGREEMENT_ONE_OF:was|were",
+        "assessmentAxis": "AGREEMENT_ONE_OF",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_WHO_WHOM",
+        "subtype": "RELATIVE_WHO_WHOM:who|whom",
+        "assessmentAxis": "RELATIVE_WHO_WHOM",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_ACTIVE_PASSIVE",
+        "subtype": "PARTICIPLE_ACTIVE_PASSIVE:suited|suiting",
+        "assessmentAxis": "PARTICIPLE_ACTIVE_PASSIVE",
+        "sourceSpan": "suited",
+        "sourceAnswer": "suited",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "CORRELATIVE_BOTH_AND:and|or",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "VOICE_ACTIVE_PASSIVE:be wiped|wipe",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be wiped",
+        "sourceAnswer": "be wiped",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for humans to have / of humans to have",
+        "sourceAnswer": "for humans to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "many kinds of minds / many kind of minds",
+        "sourceAnswer": "many kinds of minds",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "NOUN_CLAUSE_THAT",
+        "subtype": "",
+        "assessmentAxis": "NOUN_CLAUSE_THAT",
+        "sourceSpan": "that / what",
+        "sourceAnswer": "that",
+        "status": "VALID_EXCLUSION",
+        "reason": "BOTH_GRAMMATICAL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "INFINITIVE_LOGICAL_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_LOGICAL_SUBJECT",
+        "sourceSpan": "for natural selection to work / of natural selection to work",
+        "sourceAnswer": "for natural selection to work",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "insights / insight",
+        "sourceAnswer": "insights",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "be completely wiped / completely wipe",
+        "sourceAnswer": "be completely wiped",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_AGREEMENT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_AGREEMENT",
+        "sourceSpan": "are / is",
+        "sourceAnswer": "are",
+        "status": "VALID_EXCLUSION",
+        "reason": "TOO_TRIVIAL_SHORT_AGREEMENT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "less likely / less likelier",
+        "sourceAnswer": "less likely",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "CORRELATIVE_BOTH_AND",
+        "subtype": "",
+        "assessmentAxis": "CORRELATIVE_BOTH_AND",
+        "sourceSpan": "and / or",
+        "sourceAnswer": "and",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "a species",
+        "sourceAnswer": "a species",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "AGREEMENT_DISTANCE",
+        "subtype": "",
+        "assessmentAxis": "AGREEMENT_DISTANCE",
+        "sourceSpan": "was",
+        "sourceAnswer": "was",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "code": "ONE_OF_SUPERLATIVE",
+        "subtype": "",
+        "assessmentAxis": "ONE_OF_SUPERLATIVE",
+        "sourceSpan": "One of Charles Darwin’s greatest insights",
+        "sourceAnswer": "One of Charles Darwin’s greatest insights",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If there’s a huge change in the environment",
+        "sourceAnswer": "If there’s a huge change in the environment",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+        "sourceAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "who",
+        "sourceAnswer": "who",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "subtype": "",
+        "assessmentAxis": "PARTICIPLE_SUBJECT_COMPLEMENT",
+        "sourceSpan": "suited",
+        "sourceAnswer": "suited",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "more likely",
+        "sourceAnswer": "more likely",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "and",
+        "sourceAnswer": "and",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "code": "TENSE_PRESENT_PAST",
+        "subtype": "",
+        "assessmentAxis": "TENSE_PRESENT_PAST",
+        "sourceSpan": "observed",
+        "sourceAnswer": "observed",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "if there were only one human nature",
+        "sourceAnswer": "if there were only one human nature",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "ADVERB_CLAUSE_CONDITION",
+        "subtype": "",
+        "assessmentAxis": "ADVERB_CLAUSE_CONDITION",
+        "sourceSpan": "If we all had the same kind of mind",
+        "sourceAnswer": "If we all had the same kind of mind",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "code": "MODAL_MEANING",
+        "subtype": "",
+        "assessmentAxis": "MODAL_MEANING",
+        "sourceSpan": "might",
+        "sourceAnswer": "might",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "within a single culture and across cultures",
+        "sourceAnswer": "within a single culture and across cultures",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the",
+        "sourceAnswer": "the",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "code": "SINGULAR_PLURAL_NOUN",
+        "subtype": "",
+        "assessmentAxis": "SINGULAR_PLURAL_NOUN",
+        "sourceSpan": "species",
+        "sourceAnswer": "species",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "detectedMandatoryOccurrences": 6,
+      "analysisOnlyMandatoryOccurrences": 2,
+      "eligibleMandatoryOccurrences": 3,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 3,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 8,
+      "totalRenderedQuestions": 8,
+      "totalExcludedOccurrences": 9,
+      "sectionStatus": "COMPLETE"
+    }
+  }
+}

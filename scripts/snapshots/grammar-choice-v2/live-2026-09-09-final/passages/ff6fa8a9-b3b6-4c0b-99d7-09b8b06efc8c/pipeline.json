@@ -1,0 +1,3904 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T08:42:56.787Z",
+  "sourceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "ok": true,
+  "reason": null,
+  "stages": {
+    "afterAnalyzer": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are wonderfully made",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are wonderfully made",
+        "distractors": [
+          "wonderfully make"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+        "ruleSummaryKo": "수동태는 be동사와 과거분사로 구성한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "occurrenceIndex": 1,
+        "correctAnswer": "ourselves to participate",
+        "distractors": [
+          "ourselves participating",
+          "ourselves participate"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+        "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "for which",
+        "occurrenceIndex": 1,
+        "correctAnswer": "for which",
+        "distractors": [
+          "which for",
+          "for that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에서 for의 목적어는 which임",
+        "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-4",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were created",
+        "occurrenceIndex": 2,
+        "correctAnswer": "were created",
+        "distractors": [
+          "created",
+          "were creating"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "we는 창조 행위의 대상임",
+        "ruleSummaryKo": "행위의 대상인 주어에는 수동태를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-5",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "moving",
+        "occurrenceIndex": 1,
+        "correctAnswer": "moving",
+        "distractors": [
+          "move",
+          "moved"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "전치사 of 뒤에는 동명사가 필요함",
+        "ruleSummaryKo": "전치사의 목적어에는 동명사를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-6",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_FIXED_CONSTRUCTION",
+        "sourceSpan": "spend our time moving",
+        "occurrenceIndex": 1,
+        "correctAnswer": "spend our time moving",
+        "distractors": [
+          "spend our time move",
+          "spend our time moved"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "spend time은 동명사와 결합함",
+        "ruleSummaryKo": "spend time 다음에는 동명사를 사용한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding",
+          "have been holding"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+        "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "occurrenceIndex": 1,
+        "correctAnswer": "socialize and read",
+        "distractors": [
+          "socializing and read",
+          "socialize and reading"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+        "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "occurrenceIndex": 1,
+        "correctAnswer": "learning or building",
+        "distractors": [
+          "learning or build",
+          "learn or building"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+        "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+        "sourceSpan": "help them learn",
+        "occurrenceIndex": 1,
+        "correctAnswer": "help them learn",
+        "distractors": [
+          "help them learning",
+          "help them learned"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "help 뒤 목적격보어로 동사원형이 쓰임",
+        "ruleSummaryKo": "help는 목적어 뒤에 동사원형을 취할 수 있다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-11",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learn, communicate, create, and become",
+        "occurrenceIndex": 2,
+        "correctAnswer": "learn, communicate, create, and become",
+        "distractors": [
+          "learn, communicating, create, and become",
+          "learn, communicate, created, and become"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "help them 뒤 네 동사가 같은 원형으로 병렬됨",
+        "ruleSummaryKo": "병렬된 동사들은 동일한 문법 형태를 취한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-12",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "how to run, how to skip, or how to climb",
+        "occurrenceIndex": 1,
+        "correctAnswer": "how to run, how to skip, or how to climb",
+        "distractors": [
+          "how to run, skipping, or how to climb",
+          "how to run, how to skip, or climbing"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "세 항목이 모두 how to 구조를 반복함",
+        "ruleSummaryKo": "나열된 병렬 항목은 같은 구조를 유지한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-13",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were never meant to have",
+        "occurrenceIndex": 1,
+        "correctAnswer": "were never meant to have",
+        "distractors": [
+          "never meant to have",
+          "were never meaning to have"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "they는 질병을 갖도록 의도된 대상임",
+        "ruleSummaryKo": "의도된 대상을 나타낼 때 be meant to를 쓴다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 1,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting",
+          "we getting are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+        "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-15",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+        "sourceSpan": "further and further",
+        "occurrenceIndex": 1,
+        "correctAnswer": "further and further",
+        "distractors": [
+          "further and furthest",
+          "furthest and further"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "점진적 변화는 같은 비교급을 반복해 나타냄",
+        "ruleSummaryKo": "점진적 증가는 비교급 and 비교급으로 표현한다",
+        "riskLevel": "MEDIUM"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "were made to move",
+        "occurrenceIndex": 1,
+        "correctAnswer": "were made to move",
+        "distractors": [
+          "made to move",
+          "were making to move"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+        "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "riskLevel": "MEDIUM"
+      }
+    ],
+    "afterLocalFilter": {
+      "resolved": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "OBJECT_COMPLEMENT_TO_V",
+          "sourceSpan": "ourselves to participate",
+          "occurrenceIndex": 1,
+          "correctAnswer": "ourselves to participate",
+          "distractors": [
+            "ourselves participating",
+            "ourselves participate"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+          "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 44,
+          "passageEnd": 68,
+          "subtypeKey": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "occurrenceIndex": 0,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계절에서 for의 목적어는 which임",
+          "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 87,
+          "passageEnd": 92,
+          "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "occurrenceIndex": 1,
+          "correctAnswer": "are being held",
+          "distractors": [
+            "are holding"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+          "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 287,
+          "passageEnd": 301,
+          "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "socialize and read",
+          "occurrenceIndex": 1,
+          "correctAnswer": "socialize and read",
+          "distractors": [
+            "socialize and reading"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+          "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 419,
+          "passageEnd": 437,
+          "subtypeKey": "PARALLEL_VERBS:socialize and read|socialize and reading"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "learning or building",
+          "occurrenceIndex": 1,
+          "correctAnswer": "learning or building",
+          "distractors": [
+            "learning or build",
+            "learn or building"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+          "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 490,
+          "passageEnd": 510,
+          "subtypeKey": "PARALLEL_VERBS:learning or build|learning or building"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "we are getting",
+          "occurrenceIndex": 1,
+          "correctAnswer": "we are getting",
+          "distractors": [
+            "are we getting",
+            "we getting are"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+          "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 828,
+          "passageEnd": 842,
+          "subtypeKey": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "occurrenceIndex": 0,
+          "correctAnswer": "made to move",
+          "distractors": [
+            "made move"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+          "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 893,
+          "passageEnd": 905,
+          "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+        }
+      ],
+      "rejected": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "reason": "MULTI_AXIS_EDIT",
+          "pair": "are wonderfully made / wonderfully make"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-4",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "reason": "SOURCE_SPAN_NOT_FOUND",
+          "pair": "were created / created"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-5",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "moving / move"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-6",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "pointCode": "GERUND_FIXED_CONSTRUCTION",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "spend our time moving / spend our time move"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "help them learn / help them learning"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-11",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "learn, communicate, create, and become / learn, communicate, create, and becoming"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-12",
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "pointCode": "PARALLEL_AND_OR_BUT",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "how to run, how to skip, or how to climb / how to run, skipping, or how to climb"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-13",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "were never meant to have / never meant to have"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-15",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "further and further / further and furthest"
+        },
+        {
+          "candidateId": "local-VOICE_BE_MADE_TO-8",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "made to move / made move"
+        }
+      ]
+    },
+    "beforeReviewer": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "occurrenceIndex": 1,
+        "correctAnswer": "ourselves to participate",
+        "distractors": [
+          "ourselves participating",
+          "ourselves participate"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+        "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 44,
+        "passageEnd": 68,
+        "subtypeKey": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에서 for의 목적어는 which임",
+        "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+        "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "occurrenceIndex": 1,
+        "correctAnswer": "socialize and read",
+        "distractors": [
+          "socialize and reading"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+        "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 419,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:socialize and read|socialize and reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "occurrenceIndex": 1,
+        "correctAnswer": "learning or building",
+        "distractors": [
+          "learning or build",
+          "learn or building"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+        "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 490,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:learning or build|learning or building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 1,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting",
+          "we getting are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+        "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+        "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      }
+    ],
+    "afterReviewer": {
+      "kept": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "OBJECT_COMPLEMENT_TO_V",
+          "sourceSpan": "ourselves to participate",
+          "occurrenceIndex": 1,
+          "correctAnswer": "ourselves to participate",
+          "distractors": [
+            "ourselves participating",
+            "ourselves participate"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+          "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 44,
+          "passageEnd": 68,
+          "subtypeKey": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "occurrenceIndex": 0,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계절에서 for의 목적어는 which임",
+          "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 87,
+          "passageEnd": 92,
+          "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "occurrenceIndex": 1,
+          "correctAnswer": "are being held",
+          "distractors": [
+            "are holding"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+          "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 287,
+          "passageEnd": 301,
+          "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "socialize and read",
+          "occurrenceIndex": 1,
+          "correctAnswer": "socialize and read",
+          "distractors": [
+            "socialize and reading"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+          "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 419,
+          "passageEnd": 437,
+          "subtypeKey": "PARALLEL_VERBS:socialize and read|socialize and reading"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "learning or building",
+          "occurrenceIndex": 1,
+          "correctAnswer": "learning or building",
+          "distractors": [
+            "learning or build",
+            "learn or building"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+          "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 490,
+          "passageEnd": 510,
+          "subtypeKey": "PARALLEL_VERBS:learning or build|learning or building"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "we are getting",
+          "occurrenceIndex": 1,
+          "correctAnswer": "we are getting",
+          "distractors": [
+            "are we getting",
+            "we getting are"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+          "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 828,
+          "passageEnd": 842,
+          "subtypeKey": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "occurrenceIndex": 0,
+          "correctAnswer": "made to move",
+          "distractors": [
+            "made move"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+          "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 893,
+          "passageEnd": 905,
+          "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+        }
+      ],
+      "rejected": []
+    },
+    "beforeRank": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "occurrenceIndex": 1,
+        "correctAnswer": "ourselves to participate",
+        "distractors": [
+          "ourselves participating",
+          "ourselves participate"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+        "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 44,
+        "passageEnd": 68,
+        "subtypeKey": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에서 for의 목적어는 which임",
+        "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+        "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "occurrenceIndex": 1,
+        "correctAnswer": "socialize and read",
+        "distractors": [
+          "socialize and reading"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+        "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 419,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:socialize and read|socialize and reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "occurrenceIndex": 1,
+        "correctAnswer": "learning or building",
+        "distractors": [
+          "learning or build",
+          "learn or building"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+        "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 490,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:learning or build|learning or building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 1,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting",
+          "we getting are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+        "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+        "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      }
+    ],
+    "afterRank": {
+      "kept": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "occurrenceIndex": 0,
+          "correctAnswer": "made to move",
+          "distractors": [
+            "made move"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+          "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 893,
+          "passageEnd": 905,
+          "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "OBJECT_COMPLEMENT_TO_V",
+          "sourceSpan": "ourselves to participate",
+          "occurrenceIndex": 1,
+          "correctAnswer": "ourselves to participate",
+          "distractors": [
+            "ourselves participating",
+            "ourselves participate"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+          "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 44,
+          "passageEnd": 68,
+          "subtypeKey": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "occurrenceIndex": 0,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "관계절에서 for의 목적어는 which임",
+          "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 87,
+          "passageEnd": 92,
+          "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "occurrenceIndex": 1,
+          "correctAnswer": "are being held",
+          "distractors": [
+            "are holding"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+          "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 287,
+          "passageEnd": 301,
+          "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "socialize and read",
+          "occurrenceIndex": 1,
+          "correctAnswer": "socialize and read",
+          "distractors": [
+            "socialize and reading"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+          "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 419,
+          "passageEnd": 437,
+          "subtypeKey": "PARALLEL_VERBS:socialize and read|socialize and reading"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "learning or building",
+          "occurrenceIndex": 1,
+          "correctAnswer": "learning or building",
+          "distractors": [
+            "learning or build",
+            "learn or building"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+          "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 490,
+          "passageEnd": 510,
+          "subtypeKey": "PARALLEL_VERBS:learning or build|learning or building"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "we are getting",
+          "occurrenceIndex": 1,
+          "correctAnswer": "we are getting",
+          "distractors": [
+            "are we getting",
+            "we getting are"
+          ],
+          "transformCode": "FORM_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+          "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+          "riskLevel": "MEDIUM",
+          "passageStart": 828,
+          "passageEnd": 842,
+          "subtypeKey": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting"
+        }
+      ],
+      "dropped": []
+    },
+    "beforeDedup": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "occurrenceIndex": 1,
+        "correctAnswer": "ourselves to participate",
+        "distractors": [
+          "ourselves participating",
+          "ourselves participate"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+        "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 44,
+        "passageEnd": 68,
+        "subtypeKey": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에서 for의 목적어는 which임",
+        "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+        "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "occurrenceIndex": 1,
+        "correctAnswer": "socialize and read",
+        "distractors": [
+          "socialize and reading"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+        "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 419,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:socialize and read|socialize and reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "occurrenceIndex": 1,
+        "correctAnswer": "learning or building",
+        "distractors": [
+          "learning or build",
+          "learn or building"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+        "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 490,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:learning or build|learning or building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 1,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting",
+          "we getting are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+        "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+        "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      }
+    ],
+    "afterDedup": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "We는 만드는 주체가 아니라 만들어진 대상임",
+        "ruleSummaryKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "occurrenceIndex": 1,
+        "correctAnswer": "ourselves to participate",
+        "distractors": [
+          "ourselves participating",
+          "ourselves participate"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "allow 뒤 목적격보어로 to부정사가 필요함",
+        "ruleSummaryKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 44,
+        "passageEnd": 68,
+        "subtypeKey": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "관계절에서 for의 목적어는 which임",
+        "ruleSummaryKo": "전치사 뒤 관계대명사로 that을 쓰지 않는다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "kids는 붙잡는 주체가 아니라 대상임",
+        "ruleSummaryKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "occurrenceIndex": 1,
+        "correctAnswer": "socialize and read",
+        "distractors": [
+          "socialize and reading"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "두 동사는 공통된 to에 병렬로 연결됨",
+        "ruleSummaryKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 419,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:socialize and read|socialize and reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "occurrenceIndex": 1,
+        "correctAnswer": "learning or building",
+        "distractors": [
+          "learning or build",
+          "learn or building"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "are에 이어지는 두 동사가 같은 형태를 취함",
+        "ruleSummaryKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 490,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:learning or build|learning or building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 1,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting",
+          "we getting are"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "내용절에는 평서문의 주어-동사 어순이 필요함",
+        "ruleSummaryKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "riskLevel": "MEDIUM",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting"
+      }
+    ],
+    "coverage": {
+      "reports": [
+        {
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "detectedPointCodes": [
+            "OBJECT_COMPLEMENT_TO_V",
+            "RELATIVE_PREPOSITION_WHICH",
+            "VOICE_ACTIVE_PASSIVE",
+            "PARALLEL_CLAUSES",
+            "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "OBJECT_COMPLEMENT_TO_V",
+            "RELATIVE_PREPOSITION_WHICH"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "SOURCE_FORM_NOT_EDITABLE"
+            },
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "detectedPointCodes": [
+            "GERUND_PREP_OBJECT_ANALYSIS",
+            "GERUND_FIXED_CONSTRUCTION",
+            "GERUND_PREPOSITION_OBJECT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_FIXED_CONSTRUCTION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_PREPOSITION_OBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+          "detectedPointCodes": [
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "detectedPointCodes": [
+            "VOICE_PROGRESSIVE_PASSIVE",
+            "VOICE_ACTIVE_PASSIVE",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "VOICE_PROGRESSIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "detectedPointCodes": [
+            "PARALLEL_VERBS",
+            "PARALLEL_CLAUSES",
+            "INFINITIVE_ADVERB_ROLE",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_VERBS"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "INFINITIVE_ADVERB_ROLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "detectedPointCodes": [
+            "PARALLEL_VERBS",
+            "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+            "PARALLEL_AND_OR_BUT",
+            "UNMAPPED_HIGH_VALUE_POINT",
+            "RELATIVE_SUBJECT",
+            "OBJECT_COMPLEMENT_BARE_V",
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_VERBS"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_VERBS",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "UNMAPPED_HIGH_VALUE_POINT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "RELATIVE_SUBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "detectedPointCodes": [
+            "PARALLEL_AND_OR_BUT",
+            "PARALLEL_VERBS"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_VERBS",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "detectedPointCodes": [
+            "VOICE_ACTIVE_PASSIVE",
+            "PARALLEL_AND_OR_BUT",
+            "RELATIVE_OMISSION"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "RELATIVE_OMISSION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "detectedPointCodes": [
+            "UNMAPPED_HIGH_VALUE_POINT",
+            "COMPARATIVE_AND_COMPARATIVE",
+            "COMPARATIVE",
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "UNMAPPED_HIGH_VALUE_POINT"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "detectedPointCodes": [
+            "VOICE_BE_MADE_TO",
+            "PARALLEL_CLAUSES",
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "mandatoryPointCodes": [
+            "VOICE_BE_MADE_TO",
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "VOICE_BE_MADE_TO"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "VOICE_BE_MADE_TO",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "6ce0a23c-a15f-410c-bd32-f7e6016a247a",
+          "detectedPointCodes": [],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": []
+        }
+      ],
+      "missing": [],
+      "occurrences": [
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "sourceAnswer": "made to move",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "OBJECT_COMPLEMENT_TO_V",
+          "subtype": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate",
+          "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+          "sourceSpan": "ourselves to participate",
+          "sourceAnswer": "ourselves to participate",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "RELATIVE_PREPOSITION_WHICH",
+          "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+          "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "sourceAnswer": "which",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "code": "VOICE_PROGRESSIVE_PASSIVE",
+          "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+          "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "sourceAnswer": "are being held",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:socialize and read|socialize and reading",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "socialize and read",
+          "sourceAnswer": "socialize and read",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:learning or build|learning or building",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "learning or building",
+          "sourceAnswer": "learning or building",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "we are getting",
+          "sourceAnswer": "we are getting",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "are wonderfully made / wonderfully make",
+          "sourceAnswer": "are wonderfully made",
+          "status": "VALID_EXCLUSION",
+          "reason": "MULTI_AXIS_EDIT"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "were created / created",
+          "sourceAnswer": "were created",
+          "status": "VALID_EXCLUSION",
+          "reason": "SOURCE_SPAN_NOT_FOUND"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "code": "GERUND_PREP_OBJECT_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+          "sourceSpan": "moving / move",
+          "sourceAnswer": "moving",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "code": "GERUND_FIXED_CONSTRUCTION",
+          "subtype": "",
+          "assessmentAxis": "GERUND_FIXED_CONSTRUCTION",
+          "sourceSpan": "spend our time moving / spend our time move",
+          "sourceAnswer": "spend our time moving",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+          "sourceSpan": "help them learn / help them learning",
+          "sourceAnswer": "help them learn",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "PARALLEL_VERBS",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "learn, communicate, create, and become / learn, communicate, create, and becoming",
+          "sourceAnswer": "learn, communicate, create, and become",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "how to run, how to skip, or how to climb / how to run, skipping, or how to climb",
+          "sourceAnswer": "how to run, how to skip, or how to climb",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "were never meant to have / never meant to have",
+          "sourceAnswer": "were never meant to have",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "code": "COMPARATIVE_AND_COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE_AND_COMPARATIVE",
+          "sourceSpan": "further and further / further and furthest",
+          "sourceAnswer": "further and further",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move / made move",
+          "sourceAnswer": "made to move",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "yet",
+          "sourceAnswer": "yet",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+          "subtype": "",
+          "assessmentAxis": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+          "sourceSpan": "allow ourselves to participate",
+          "sourceAnswer": "allow ourselves to participate",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the wonder",
+          "sourceAnswer": "the wonder",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "code": "GERUND_PREPOSITION_OBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+          "sourceSpan": "moving",
+          "sourceAnswer": "moving",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the same square footage",
+          "sourceAnswer": "the same square footage",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "are being held captive",
+          "sourceAnswer": "are being held captive",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "phones and tablets",
+          "sourceAnswer": "phones and tablets",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "they are not going outside to play, they are not learning",
+          "sourceAnswer": "they are not going outside to play, they are not learning",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "code": "INFINITIVE_ADVERB_ROLE",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+          "sourceSpan": "to play",
+          "sourceAnswer": "to play",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "socialize and read",
+          "sourceAnswer": "socialize and read",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "learning or building",
+          "sourceAnswer": "learning or building",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "sourceSpan": "the very thing",
+          "sourceAnswer": "the very thing",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "sourceSpan": "that will help them",
+          "sourceAnswer": "that will help them",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "OBJECT_COMPLEMENT_BARE_V",
+          "subtype": "",
+          "assessmentAxis": "OBJECT_COMPLEMENT_BARE_V",
+          "sourceSpan": "help them learn",
+          "sourceAnswer": "help them learn",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the very thing",
+          "sourceAnswer": "the very thing",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "code": "PARALLEL_VERBS",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "run, how to skip, or how to climb",
+          "sourceAnswer": "run, how to skip, or how to climb",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "anxiety, depression, and even diseases",
+          "sourceAnswer": "anxiety, depression, and even diseases",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "code": "RELATIVE_OMISSION",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_OMISSION",
+          "sourceSpan": "diseases they were never meant to have",
+          "sourceAnswer": "diseases they were never meant to have",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "code": "COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE",
+          "sourceSpan": "further",
+          "sourceAnswer": "further",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "The point",
+          "sourceAnswer": "The point",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "We were made to move—and through movement, we are meant to live extraordinary lives",
+          "sourceAnswer": "We were made to move—and through movement, we are meant to live extraordinary lives",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "were made to move",
+          "sourceAnswer": "were made to move",
+          "status": "ANALYSIS_ONLY"
+        }
+      ],
+      "metrics": {
+        "mandatoryDetected": 4,
+        "mandatoryEligible": 1,
+        "mandatoryRendered": 1,
+        "mandatoryExcludedWithValidReason": 1,
+        "analysisOnly": 22,
+        "eligible": 7,
+        "excluded": 10,
+        "rendered": 7,
+        "missingEligible": 0,
+        "coverage": 100
+      }
+    },
+    "finalize": {
+      "ok": true,
+      "sectionStatus": "COMPLETE"
+    },
+    "studentItems": [
+      {
+        "number": 1,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+        "internalProvenance": {
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+          "priority": "MANDATORY",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "occurrenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674|VOICE_BE_MADE_TO|made to move",
+          "sourceSpan": "made to move",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+          "exclusionReason": null
+        },
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 893,
+        "endCharIndex": 905,
+        "originalText": "made to move",
+        "correctText": "made to move",
+        "incorrectText": "made move",
+        "leftText": "made move",
+        "rightText": "made to move",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_BE_MADE_TO",
+        "grammarCategoryName": "be made to V",
+        "bookTerm": "be made to V",
+        "explanationKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "incorrectReasonKo": "made move는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "수동 사역 to부정사"
+      },
+      {
+        "number": 2,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "internalProvenance": {
+          "code": "OBJECT_COMPLEMENT_TO_V",
+          "subtype": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate",
+          "priority": "CORE",
+          "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+          "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|OBJECT_COMPLEMENT_TO_V|ourselves to participate",
+          "sourceSpan": "ourselves to participate",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "exclusionReason": null
+        },
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 44,
+        "endCharIndex": 68,
+        "originalText": "ourselves to participate",
+        "correctText": "ourselves to participate",
+        "incorrectText": "ourselves participating",
+        "leftText": "ourselves to participate",
+        "rightText": "ourselves participating",
+        "correctSide": "left",
+        "grammarCategoryId": "OBJECT_COMPLEMENT_TO_V",
+        "grammarCategoryName": "목적격보어 to부정사",
+        "bookTerm": "목적격보어 to부정사",
+        "explanationKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "incorrectReasonKo": "ourselves participating는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "allow/enable O to V"
+      },
+      {
+        "number": 3,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+        "internalProvenance": {
+          "code": "RELATIVE_PREPOSITION_WHICH",
+          "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+          "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|RELATIVE_PREPOSITION_WHICH|which",
+          "sourceSpan": "which",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 87,
+        "endCharIndex": 92,
+        "originalText": "which",
+        "correctText": "which",
+        "incorrectText": "that",
+        "leftText": "which",
+        "rightText": "that",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_PREPOSITION_WHICH",
+        "grammarCategoryName": "전치사 + 관계대명사",
+        "bookTerm": "전치사 + 관계대명사",
+        "explanationKo": "전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
+        "incorrectReasonKo": "that은 전치사 바로 뒤에 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "전치사 + which"
+      },
+      {
+        "number": 4,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+        "internalProvenance": {
+          "code": "VOICE_PROGRESSIVE_PASSIVE",
+          "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+          "occurrenceId": "7286ec55-f639-41ab-a201-d8b2243dce97|VOICE_PROGRESSIVE_PASSIVE|are being held",
+          "sourceSpan": "are being held",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 287,
+        "endCharIndex": 301,
+        "originalText": "are being held",
+        "correctText": "are being held",
+        "incorrectText": "are holding",
+        "leftText": "are holding",
+        "rightText": "are being held",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_PROGRESSIVE_PASSIVE",
+        "grammarCategoryName": "진행 수동",
+        "bookTerm": "진행 수동",
+        "explanationKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "incorrectReasonKo": "are holding는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "are being p.p."
+      },
+      {
+        "number": 5,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:socialize and read|socialize and reading",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5|PARALLEL_VERBS|socialize and read",
+          "sourceSpan": "socialize and read",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+          "exclusionReason": null
+        },
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 419,
+        "endCharIndex": 437,
+        "originalText": "socialize and read",
+        "correctText": "socialize and read",
+        "incorrectText": "socialize and reading",
+        "leftText": "socialize and reading",
+        "rightText": "socialize and read",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "incorrectReasonKo": "socialize and reading는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 6,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:learning or build|learning or building",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|learning or building",
+          "sourceSpan": "learning or building",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 490,
+        "endCharIndex": 510,
+        "originalText": "learning or building",
+        "correctText": "learning or building",
+        "incorrectText": "learning or build",
+        "leftText": "learning or building",
+        "rightText": "learning or build",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "incorrectReasonKo": "learning or build는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 7,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "internalProvenance": {
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting",
+          "priority": "CORE",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "occurrenceId": "c8869225-b030-4f97-8dd7-f08bf0440400|UNMAPPED_HIGH_VALUE_POINT|we are getting",
+          "sourceSpan": "we are getting",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 828,
+        "endCharIndex": 842,
+        "originalText": "we are getting",
+        "correctText": "we are getting",
+        "incorrectText": "are we getting",
+        "leftText": "are we getting",
+        "rightText": "we are getting",
+        "correctSide": "right",
+        "grammarCategoryId": "UNMAPPED_HIGH_VALUE_POINT",
+        "grammarCategoryName": "UNMAPPED_HIGH_VALUE_POINT",
+        "bookTerm": "UNMAPPED_HIGH_VALUE_POINT",
+        "explanationKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "incorrectReasonKo": "are we getting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": ""
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "are wonderfully made / wonderfully make"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-4",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "SOURCE_SPAN_NOT_FOUND",
+        "pair": "were created / created"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-5",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "moving / move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-6",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_FIXED_CONSTRUCTION",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "spend our time moving / spend our time move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "help them learn / help them learning"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-11",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "learn, communicate, create, and become / learn, communicate, create, and becoming"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-12",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "how to run, how to skip, or how to climb / how to run, skipping, or how to climb"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-13",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "were never meant to have / never meant to have"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-15",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "further and further / further and furthest"
+      },
+      {
+        "candidateId": "local-VOICE_BE_MADE_TO-8",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "made to move / made move"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "sourceAnswer": "made to move",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "OBJECT_COMPLEMENT_TO_V",
+        "subtype": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate",
+        "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "sourceAnswer": "ourselves to participate",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "RELATIVE_PREPOSITION_WHICH",
+        "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+        "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "VOICE_PROGRESSIVE_PASSIVE",
+        "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+        "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "sourceAnswer": "are being held",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:socialize and read|socialize and reading",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "sourceAnswer": "socialize and read",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:learning or build|learning or building",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "sourceAnswer": "learning or building",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "we are getting",
+        "sourceAnswer": "we are getting",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are wonderfully made / wonderfully make",
+        "sourceAnswer": "are wonderfully made",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were created / created",
+        "sourceAnswer": "were created",
+        "status": "VALID_EXCLUSION",
+        "reason": "SOURCE_SPAN_NOT_FOUND"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "moving / move",
+        "sourceAnswer": "moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_FIXED_CONSTRUCTION",
+        "subtype": "",
+        "assessmentAxis": "GERUND_FIXED_CONSTRUCTION",
+        "sourceSpan": "spend our time moving / spend our time move",
+        "sourceAnswer": "spend our time moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+        "sourceSpan": "help them learn / help them learning",
+        "sourceAnswer": "help them learn",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "learn, communicate, create, and become / learn, communicate, create, and becoming",
+        "sourceAnswer": "learn, communicate, create, and become",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "how to run, how to skip, or how to climb / how to run, skipping, or how to climb",
+        "sourceAnswer": "how to run, how to skip, or how to climb",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were never meant to have / never meant to have",
+        "sourceAnswer": "were never meant to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "COMPARATIVE_AND_COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE_AND_COMPARATIVE",
+        "sourceSpan": "further and further / further and furthest",
+        "sourceAnswer": "further and further",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move / made move",
+        "sourceAnswer": "made to move",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "yet",
+        "sourceAnswer": "yet",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+        "sourceSpan": "allow ourselves to participate",
+        "sourceAnswer": "allow ourselves to participate",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the wonder",
+        "sourceAnswer": "the wonder",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "moving",
+        "sourceAnswer": "moving",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the same square footage",
+        "sourceAnswer": "the same square footage",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are being held captive",
+        "sourceAnswer": "are being held captive",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "phones and tablets",
+        "sourceAnswer": "phones and tablets",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "they are not going outside to play, they are not learning",
+        "sourceAnswer": "they are not going outside to play, they are not learning",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "INFINITIVE_ADVERB_ROLE",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+        "sourceSpan": "to play",
+        "sourceAnswer": "to play",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "socialize and read",
+        "sourceAnswer": "socialize and read",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "learning or building",
+        "sourceAnswer": "learning or building",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "the very thing",
+        "sourceAnswer": "the very thing",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "that will help them",
+        "sourceAnswer": "that will help them",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "OBJECT_COMPLEMENT_BARE_V",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_BARE_V",
+        "sourceSpan": "help them learn",
+        "sourceAnswer": "help them learn",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the very thing",
+        "sourceAnswer": "the very thing",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "run, how to skip, or how to climb",
+        "sourceAnswer": "run, how to skip, or how to climb",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "anxiety, depression, and even diseases",
+        "sourceAnswer": "anxiety, depression, and even diseases",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "RELATIVE_OMISSION",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_OMISSION",
+        "sourceSpan": "diseases they were never meant to have",
+        "sourceAnswer": "diseases they were never meant to have",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "further",
+        "sourceAnswer": "further",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "The point",
+        "sourceAnswer": "The point",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "We were made to move—and through movement, we are meant to live extraordinary lives",
+        "sourceAnswer": "We were made to move—and through movement, we are meant to live extraordinary lives",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were made to move",
+        "sourceAnswer": "were made to move",
+        "status": "ANALYSIS_ONLY"
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "reason": "MULTI_AXIS_EDIT",
+      "pair": "are wonderfully made / wonderfully make"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-4",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "reason": "SOURCE_SPAN_NOT_FOUND",
+      "pair": "were created / created"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-5",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "moving / move"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-6",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_FIXED_CONSTRUCTION",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "spend our time moving / spend our time move"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "help them learn / help them learning"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-11",
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "pointCode": "PARALLEL_VERBS",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "learn, communicate, create, and become / learn, communicate, create, and becoming"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-12",
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "how to run, how to skip, or how to climb / how to run, skipping, or how to climb"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-13",
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "were never meant to have / never meant to have"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-15",
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "further and further / further and furthest"
+    },
+    {
+      "candidateId": "local-VOICE_BE_MADE_TO-8",
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_BE_MADE_TO",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "made to move / made move"
+    }
+  ],
+  "missingMandatory": [],
+  "section": {
+    "projectId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+    "title": "우리는 움직이기 위해 태어났다",
+    "source": null,
+    "sourcePassage": "We are wonderfully made, yet we don’t allow ourselves to participate in the wonder for which we were created. Instead of moving anywhere and everywhere, most of us spend our time moving nowhere. We occupy the same square footage of a chair for hours and hours every day. Many kids today are being held captive by ‘smart’ devices like phones and tablets. They are not going outside to play, they are not learning how to socialize and read physical cues from others. As a result they are not learning or building their movement repertoire, the very thing that will help them learn, communicate, create, and become emotionally mature. They are not even learning how to run, how to skip, or how to climb. Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have. The point is we are getting further and further away from our design. We were made to move—and through movement, we are meant to live extraordinary lives. Movement is life to us.",
+    "items": [
+      {
+        "number": 1,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+        "internalProvenance": {
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+          "priority": "MANDATORY",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "occurrenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674|VOICE_BE_MADE_TO|made to move",
+          "sourceSpan": "made to move",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16",
+          "exclusionReason": null
+        },
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 893,
+        "endCharIndex": 905,
+        "originalText": "made to move",
+        "correctText": "made to move",
+        "incorrectText": "made move",
+        "leftText": "made move",
+        "rightText": "made to move",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_BE_MADE_TO",
+        "grammarCategoryName": "be made to V",
+        "bookTerm": "be made to V",
+        "explanationKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "incorrectReasonKo": "made move는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "수동 사역 to부정사"
+      },
+      {
+        "number": 2,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "internalProvenance": {
+          "code": "OBJECT_COMPLEMENT_TO_V",
+          "subtype": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate",
+          "priority": "CORE",
+          "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+          "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|OBJECT_COMPLEMENT_TO_V|ourselves to participate",
+          "sourceSpan": "ourselves to participate",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "exclusionReason": null
+        },
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 44,
+        "endCharIndex": 68,
+        "originalText": "ourselves to participate",
+        "correctText": "ourselves to participate",
+        "incorrectText": "ourselves participating",
+        "leftText": "ourselves to participate",
+        "rightText": "ourselves participating",
+        "correctSide": "left",
+        "grammarCategoryId": "OBJECT_COMPLEMENT_TO_V",
+        "grammarCategoryName": "목적격보어 to부정사",
+        "bookTerm": "목적격보어 to부정사",
+        "explanationKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "incorrectReasonKo": "ourselves participating는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "allow/enable O to V"
+      },
+      {
+        "number": 3,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+        "internalProvenance": {
+          "code": "RELATIVE_PREPOSITION_WHICH",
+          "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+          "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|RELATIVE_PREPOSITION_WHICH|which",
+          "sourceSpan": "which",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3",
+          "exclusionReason": null
+        },
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 87,
+        "endCharIndex": 92,
+        "originalText": "which",
+        "correctText": "which",
+        "incorrectText": "that",
+        "leftText": "which",
+        "rightText": "that",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_PREPOSITION_WHICH",
+        "grammarCategoryName": "전치사 + 관계대명사",
+        "bookTerm": "전치사 + 관계대명사",
+        "explanationKo": "전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
+        "incorrectReasonKo": "that은 전치사 바로 뒤에 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "전치사 + which"
+      },
+      {
+        "number": 4,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+        "internalProvenance": {
+          "code": "VOICE_PROGRESSIVE_PASSIVE",
+          "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+          "occurrenceId": "7286ec55-f639-41ab-a201-d8b2243dce97|VOICE_PROGRESSIVE_PASSIVE|are being held",
+          "sourceSpan": "are being held",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 287,
+        "endCharIndex": 301,
+        "originalText": "are being held",
+        "correctText": "are being held",
+        "incorrectText": "are holding",
+        "leftText": "are holding",
+        "rightText": "are being held",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_PROGRESSIVE_PASSIVE",
+        "grammarCategoryName": "진행 수동",
+        "bookTerm": "진행 수동",
+        "explanationKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "incorrectReasonKo": "are holding는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "are being p.p."
+      },
+      {
+        "number": 5,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:socialize and read|socialize and reading",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5|PARALLEL_VERBS|socialize and read",
+          "sourceSpan": "socialize and read",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8",
+          "exclusionReason": null
+        },
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 419,
+        "endCharIndex": 437,
+        "originalText": "socialize and read",
+        "correctText": "socialize and read",
+        "incorrectText": "socialize and reading",
+        "leftText": "socialize and reading",
+        "rightText": "socialize and read",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "incorrectReasonKo": "socialize and reading는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 6,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:learning or build|learning or building",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|learning or building",
+          "sourceSpan": "learning or building",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 490,
+        "endCharIndex": 510,
+        "originalText": "learning or building",
+        "correctText": "learning or building",
+        "incorrectText": "learning or build",
+        "leftText": "learning or building",
+        "rightText": "learning or build",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "incorrectReasonKo": "learning or build는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 7,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "internalProvenance": {
+          "code": "UNMAPPED_HIGH_VALUE_POINT",
+          "subtype": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting",
+          "priority": "CORE",
+          "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+          "occurrenceId": "c8869225-b030-4f97-8dd7-f08bf0440400|UNMAPPED_HIGH_VALUE_POINT|we are getting",
+          "sourceSpan": "we are getting",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+          "exclusionReason": null
+        },
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 828,
+        "endCharIndex": 842,
+        "originalText": "we are getting",
+        "correctText": "we are getting",
+        "incorrectText": "are we getting",
+        "leftText": "are we getting",
+        "rightText": "we are getting",
+        "correctSide": "right",
+        "grammarCategoryId": "UNMAPPED_HIGH_VALUE_POINT",
+        "grammarCategoryName": "UNMAPPED_HIGH_VALUE_POINT",
+        "bookTerm": "UNMAPPED_HIGH_VALUE_POINT",
+        "explanationKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "incorrectReasonKo": "are we getting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": ""
+      }
+    ],
+    "segments": [
+      {
+        "type": "text",
+        "text": "We are wonderfully made, yet we don’t allow "
+      },
+      {
+        "type": "choice",
+        "number": 2,
+        "leftText": "ourselves to participate",
+        "rightText": "ourselves participating"
+      },
+      {
+        "type": "text",
+        "text": " in the wonder for "
+      },
+      {
+        "type": "choice",
+        "number": 3,
+        "leftText": "which",
+        "rightText": "that"
+      },
+      {
+        "type": "text",
+        "text": " we were created. Instead of moving anywhere and everywhere, most of us spend our time moving nowhere. We occupy the same square footage of a chair for hours and hours every day. Many kids today "
+      },
+      {
+        "type": "choice",
+        "number": 4,
+        "leftText": "are holding",
+        "rightText": "are being held"
+      },
+      {
+        "type": "text",
+        "text": " captive by ‘smart’ devices like phones and tablets. They are not going outside to play, they are not learning how to "
+      },
+      {
+        "type": "choice",
+        "number": 5,
+        "leftText": "socialize and reading",
+        "rightText": "socialize and read"
+      },
+      {
+        "type": "text",
+        "text": " physical cues from others. As a result they are not "
+      },
+      {
+        "type": "choice",
+        "number": 6,
+        "leftText": "learning or building",
+        "rightText": "learning or build"
+      },
+      {
+        "type": "text",
+        "text": " their movement repertoire, the very thing that will help them learn, communicate, create, and become emotionally mature. They are not even learning how to run, how to skip, or how to climb. Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have. The point is "
+      },
+      {
+        "type": "choice",
+        "number": 7,
+        "leftText": "are we getting",
+        "rightText": "we are getting"
+      },
+      {
+        "type": "text",
+        "text": " further and further away from our design. We were "
+      },
+      {
+        "type": "choice",
+        "number": 1,
+        "leftText": "made move",
+        "rightText": "made to move"
+      },
+      {
+        "type": "text",
+        "text": "—and through movement, we are meant to live extraordinary lives. Movement is life to us."
+      }
+    ],
+    "algorithmVersion": "grammar-choice-v2",
+    "diagnostics": {
+      "sentenceCount": 11,
+      "analysisHintCount": 0,
+      "generatedCandidateCount": 16,
+      "codeValidatedCount": 7,
+      "originalMismatchCount": 1,
+      "rangeErrorCount": 0,
+      "overlapDuplicateCount": 1,
+      "reviewSubmittedCount": 2,
+      "reviewAcceptedCount": 7,
+      "bothPossibleRejectCount": 0,
+      "lexicalRejectCount": 0,
+      "trivialRejectCount": 0,
+      "finalCount": 7,
+      "grammarCategoryCount": 6,
+      "averageQualityScore": 0,
+      "passageRestored": true,
+      "cacheHit": false,
+      "generatorModel": "gpt-5.6-sol",
+      "reviewerModel": "gpt-5.6-sol",
+      "generatorResponseModel": "gpt-5.6-sol",
+      "reviewerResponseModel": "gpt-5.6-sol",
+      "generatorActualResponseModel": "gpt-5.6-sol",
+      "reviewerActualResponseModel": "gpt-5.6-sol",
+      "generatorReasoningEffort": "medium",
+      "reviewerReasoningEffort": "high",
+      "reasoningEffort": "medium",
+      "openAICallCount": 5,
+      "localFallbackUsed": false,
+      "generatorVersion": "grammar-choice-v2",
+      "apiCalls": [],
+      "forceRegenerate": true,
+      "oldQuestionReuseCount": 0,
+      "generatorActualModel": "gpt-5.6-sol",
+      "reviewerActualModel": "gpt-5.6-sol",
+      "newQuestionCount": 7,
+      "generateApiCalls": 4,
+      "reviewApiCalls": 1,
+      "underTargetReason": null,
+      "reviewRejectSamples": [],
+      "codeRejectSamples": [],
+      "mandatoryDetected": 4,
+      "mandatoryEligible": 1,
+      "mandatoryRendered": 1,
+      "mandatoryExcludedWithValidReason": 1,
+      "sectionStatus": "COMPLETE",
+      "analysisOnlyCount": 22,
+      "eligibleQuestionCount": 7,
+      "excludedOccurrenceCount": 10,
+      "missingEligibleCount": 0,
+      "mandatoryCoverage": 100,
+      "detectedMandatoryOccurrences": 4,
+      "analysisOnlyMandatoryOccurrences": 3,
+      "eligibleMandatoryOccurrences": 1,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 1,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 10,
+      "countUnits": {
+        "detectedMandatoryOccurrences": "mandatory-occurrence",
+        "analysisOnlyMandatoryOccurrences": "mandatory-occurrence",
+        "eligibleMandatoryOccurrences": "mandatory-occurrence",
+        "validExcludedMandatoryOccurrences": "mandatory-occurrence",
+        "renderedMandatoryOccurrences": "mandatory-occurrence",
+        "missingEligibleMandatoryOccurrences": "mandatory-occurrence",
+        "totalEligibleQuestions": "student-question-candidate",
+        "totalRenderedQuestions": "student-item",
+        "totalExcludedOccurrences": "occurrence"
+      },
+      "finalQuestionCount": 7,
+      "renderedQuestionCount": 7,
+      "countMismatch": false,
+      "difficultyMix": {
+        "BASIC": 0,
+        "CORE": 7,
+        "ADVANCED": 0
+      },
+      "rejectReasonCounts": {
+        "MULTI_AXIS_EDIT": 1,
+        "SOURCE_SPAN_NOT_FOUND": 1,
+        "NOT_PEDAGOGICALLY_USEFUL": 2,
+        "NON_MINIMAL_SPAN": 4,
+        "MEANING_ONLY_CONTRAST": 1,
+        "DUPLICATE_SATISFIED_BY_PRIMARY": 1
+      }
+    }
+  },
+  "digest": {
+    "passage": "We are wonderfully made, yet we don’t allow (2) [ourselves to participate / ourselves participating] in the wonder for (3) [which / that] we were created. Instead of moving anywhere and everywhere, most of us spend our time moving nowhere. We occupy the same square footage of a chair for hours and hours every day. Many kids today (4) [are holding / are being held] captive by ‘smart’ devices like phones and tablets. They are not going outside to play, they are not learning how to (5) [socialize and reading / socialize and read] physical cues from others. As a result they are not (6) [learning or building / learning or build] their movement repertoire, the very thing that will help them learn, communicate, create, and become emotionally mature. They are not even learning how to run, how to skip, or how to climb. Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have. The point is (7) [are we getting / we are getting] further and further away from our design. We were (1) [made move / made to move]—and through movement, we are meant to live extraordinary lives. Movement is life to us.",
+    "questions": [
+      {
+        "number": 1,
+        "correct": "made to move",
+        "wrong": "made move",
+        "left": "made move",
+        "right": "made to move",
+        "correctSide": "right",
+        "explanationKo": "수동의 be made to는 be동사와 과거분사를 쓴다",
+        "incorrectReasonKo": "made move는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+        "priority": "MANDATORY",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "occurrenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674|VOICE_BE_MADE_TO|made to move",
+        "sourceSpan": "made to move",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-16"
+      },
+      {
+        "number": 2,
+        "correct": "ourselves to participate",
+        "wrong": "ourselves participating",
+        "left": "ourselves to participate",
+        "right": "ourselves participating",
+        "correctSide": "left",
+        "explanationKo": "allow는 목적어 뒤에 to부정사를 취한다",
+        "incorrectReasonKo": "ourselves participating는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "OBJECT_COMPLEMENT_TO_V",
+        "subtype": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate",
+        "priority": "CORE",
+        "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+        "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|OBJECT_COMPLEMENT_TO_V|ourselves to participate",
+        "sourceSpan": "ourselves to participate",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2"
+      },
+      {
+        "number": 3,
+        "correct": "which",
+        "wrong": "that",
+        "left": "which",
+        "right": "that",
+        "correctSide": "left",
+        "explanationKo": "전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
+        "incorrectReasonKo": "that은 전치사 바로 뒤에 쓸 수 없다.",
+        "code": "RELATIVE_PREPOSITION_WHICH",
+        "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+        "priority": "CORE",
+        "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+        "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|RELATIVE_PREPOSITION_WHICH|which",
+        "sourceSpan": "which",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-3"
+      },
+      {
+        "number": 4,
+        "correct": "are being held",
+        "wrong": "are holding",
+        "left": "are holding",
+        "right": "are being held",
+        "correctSide": "right",
+        "explanationKo": "진행 수동은 be being p.p. 형태를 쓴다",
+        "incorrectReasonKo": "are holding는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "VOICE_PROGRESSIVE_PASSIVE",
+        "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+        "priority": "CORE",
+        "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+        "occurrenceId": "7286ec55-f639-41ab-a201-d8b2243dce97|VOICE_PROGRESSIVE_PASSIVE|are being held",
+        "sourceSpan": "are being held",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-7"
+      },
+      {
+        "number": 5,
+        "correct": "socialize and read",
+        "wrong": "socialize and reading",
+        "left": "socialize and reading",
+        "right": "socialize and read",
+        "correctSide": "right",
+        "explanationKo": "등위접속사로 연결된 동사는 형태를 맞춘다",
+        "incorrectReasonKo": "socialize and reading는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:socialize and read|socialize and reading",
+        "priority": "CORE",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "occurrenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5|PARALLEL_VERBS|socialize and read",
+        "sourceSpan": "socialize and read",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-8"
+      },
+      {
+        "number": 6,
+        "correct": "learning or building",
+        "wrong": "learning or build",
+        "left": "learning or building",
+        "right": "learning or build",
+        "correctSide": "left",
+        "explanationKo": "or로 연결된 동사 요소의 형태를 일치시킨다",
+        "incorrectReasonKo": "learning or build는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:learning or build|learning or building",
+        "priority": "CORE",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|learning or building",
+        "sourceSpan": "learning or building",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9"
+      },
+      {
+        "number": 7,
+        "correct": "we are getting",
+        "wrong": "are we getting",
+        "left": "are we getting",
+        "right": "we are getting",
+        "correctSide": "right",
+        "explanationKo": "평서 내용절은 주어 뒤에 동사를 둔다",
+        "incorrectReasonKo": "are we getting는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting",
+        "priority": "CORE",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "occurrenceId": "c8869225-b030-4f97-8dd7-f08bf0440400|UNMAPPED_HIGH_VALUE_POINT|we are getting",
+        "sourceSpan": "we are getting",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "MULTI_AXIS_EDIT",
+        "pair": "are wonderfully made / wonderfully make"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-4",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "SOURCE_SPAN_NOT_FOUND",
+        "pair": "were created / created"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-5",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "moving / move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-6",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_FIXED_CONSTRUCTION",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "spend our time moving / spend our time move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "help them learn / help them learning"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-11",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "learn, communicate, create, and become / learn, communicate, create, and becoming"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-12",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_AND_OR_BUT",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "how to run, how to skip, or how to climb / how to run, skipping, or how to climb"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-13",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "were never meant to have / never meant to have"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-15",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "further and further / further and furthest"
+      },
+      {
+        "candidateId": "local-VOICE_BE_MADE_TO-8",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "made to move / made move"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "sourceAnswer": "made to move",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "OBJECT_COMPLEMENT_TO_V",
+        "subtype": "OBJECT_COMPLEMENT_TO_V:ourselves participating|ourselves to participate",
+        "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "sourceAnswer": "ourselves to participate",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "RELATIVE_PREPOSITION_WHICH",
+        "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+        "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "VOICE_PROGRESSIVE_PASSIVE",
+        "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+        "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "sourceAnswer": "are being held",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:socialize and read|socialize and reading",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "sourceAnswer": "socialize and read",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:learning or build|learning or building",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "sourceAnswer": "learning or building",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "UNMAPPED_HIGH_VALUE_POINT:are we getting|we are getting",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "we are getting",
+        "sourceAnswer": "we are getting",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are wonderfully made / wonderfully make",
+        "sourceAnswer": "are wonderfully made",
+        "status": "VALID_EXCLUSION",
+        "reason": "MULTI_AXIS_EDIT"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were created / created",
+        "sourceAnswer": "were created",
+        "status": "VALID_EXCLUSION",
+        "reason": "SOURCE_SPAN_NOT_FOUND"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_PREP_OBJECT_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREP_OBJECT_ANALYSIS",
+        "sourceSpan": "moving / move",
+        "sourceAnswer": "moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_FIXED_CONSTRUCTION",
+        "subtype": "",
+        "assessmentAxis": "GERUND_FIXED_CONSTRUCTION",
+        "sourceSpan": "spend our time moving / spend our time move",
+        "sourceAnswer": "spend our time moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_BARE_ANALYSIS",
+        "sourceSpan": "help them learn / help them learning",
+        "sourceAnswer": "help them learn",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "learn, communicate, create, and become / learn, communicate, create, and becoming",
+        "sourceAnswer": "learn, communicate, create, and become",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "how to run, how to skip, or how to climb / how to run, skipping, or how to climb",
+        "sourceAnswer": "how to run, how to skip, or how to climb",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were never meant to have / never meant to have",
+        "sourceAnswer": "were never meant to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "COMPARATIVE_AND_COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE_AND_COMPARATIVE",
+        "sourceSpan": "further and further / further and furthest",
+        "sourceAnswer": "further and further",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move / made move",
+        "sourceAnswer": "made to move",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "yet",
+        "sourceAnswer": "yet",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_TO_V_ANALYSIS",
+        "sourceSpan": "allow ourselves to participate",
+        "sourceAnswer": "allow ourselves to participate",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the wonder",
+        "sourceAnswer": "the wonder",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "moving",
+        "sourceAnswer": "moving",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the same square footage",
+        "sourceAnswer": "the same square footage",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are being held captive",
+        "sourceAnswer": "are being held captive",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "phones and tablets",
+        "sourceAnswer": "phones and tablets",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "they are not going outside to play, they are not learning",
+        "sourceAnswer": "they are not going outside to play, they are not learning",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "INFINITIVE_ADVERB_ROLE",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+        "sourceSpan": "to play",
+        "sourceAnswer": "to play",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "socialize and read",
+        "sourceAnswer": "socialize and read",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "learning or building",
+        "sourceAnswer": "learning or building",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "UNMAPPED_HIGH_VALUE_POINT",
+        "subtype": "",
+        "assessmentAxis": "UNMAPPED_HIGH_VALUE_POINT",
+        "sourceSpan": "the very thing",
+        "sourceAnswer": "the very thing",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "that will help them",
+        "sourceAnswer": "that will help them",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "OBJECT_COMPLEMENT_BARE_V",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_BARE_V",
+        "sourceSpan": "help them learn",
+        "sourceAnswer": "help them learn",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the very thing",
+        "sourceAnswer": "the very thing",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "code": "PARALLEL_VERBS",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "run, how to skip, or how to climb",
+        "sourceAnswer": "run, how to skip, or how to climb",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "anxiety, depression, and even diseases",
+        "sourceAnswer": "anxiety, depression, and even diseases",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "RELATIVE_OMISSION",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_OMISSION",
+        "sourceSpan": "diseases they were never meant to have",
+        "sourceAnswer": "diseases they were never meant to have",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE",
+        "sourceSpan": "further",
+        "sourceAnswer": "further",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "The point",
+        "sourceAnswer": "The point",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "We were made to move—and through movement, we are meant to live extraordinary lives",
+        "sourceAnswer": "We were made to move—and through movement, we are meant to live extraordinary lives",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were made to move",
+        "sourceAnswer": "were made to move",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "detectedMandatoryOccurrences": 4,
+      "analysisOnlyMandatoryOccurrences": 3,
+      "eligibleMandatoryOccurrences": 1,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 1,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 7,
+      "totalRenderedQuestions": 7,
+      "totalExcludedOccurrences": 10,
+      "sectionStatus": "COMPLETE"
+    }
+  }
+}

@@ -1,0 +1,3983 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:58:59.302Z",
+  "sourceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "ok": true,
+  "reason": null,
+  "stages": {
+    "afterAnalyzer": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are wonderfully made",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are wonderfully made",
+        "distractors": [
+          "are wonderfully making"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "for which",
+        "occurrenceIndex": 1,
+        "correctAnswer": "for which",
+        "distractors": [
+          "for that"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-3",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "moving",
+        "occurrenceIndex": 1,
+        "correctAnswer": "moving",
+        "distractors": [
+          "move"
+        ],
+        "transformCode": "NONFINITE_SWAP",
+        "priority": "BASIC",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-4",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_FIXED_CONSTRUCTION",
+        "sourceSpan": "spend our time moving",
+        "occurrenceIndex": 1,
+        "correctAnswer": "spend our time moving",
+        "distractors": [
+          "spend our time to move"
+        ],
+        "transformCode": "NONFINITE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-d6ab89e5-d089-4b0f-ae48-75ff480e3ac6-5",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "pointCode": "ARTICLE",
+        "sourceSpan": "the",
+        "occurrenceIndex": 1,
+        "correctAnswer": "the",
+        "distractors": [
+          "a"
+        ],
+        "transformCode": "FORM_SWAP",
+        "priority": "BASIC",
+        "difficulty": "BASIC",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "socialize and read",
+        "occurrenceIndex": 1,
+        "correctAnswer": "socialize and read",
+        "distractors": [
+          "socialize and reading"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learning or building",
+        "occurrenceIndex": 1,
+        "correctAnswer": "learning or building",
+        "distractors": [
+          "learning or build"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that",
+        "distractors": [
+          "what"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "learn, communicate, create, and become",
+        "occurrenceIndex": 2,
+        "correctAnswer": "learn, communicate, create, and become",
+        "distractors": [
+          "learn, communicate, create, and becoming"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "how to climb",
+        "occurrenceIndex": 1,
+        "correctAnswer": "how to climb",
+        "distractors": [
+          "how climbing"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-12",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "pointCode": "RELATIVE_OMISSION",
+        "sourceSpan": "diseases they were never meant to have",
+        "occurrenceIndex": 1,
+        "correctAnswer": "diseases they were never meant to have",
+        "distractors": [
+          "diseases what they were never meant to have"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "ADVANCED",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 1,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting"
+        ],
+        "transformCode": "WORD_ORDER",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+        "sourceSpan": "further and further",
+        "occurrenceIndex": 1,
+        "correctAnswer": "further and further",
+        "distractors": [
+          "further and furthest"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "were made to move",
+        "occurrenceIndex": 1,
+        "correctAnswer": "were made to move",
+        "distractors": [
+          "were made moving"
+        ],
+        "transformCode": "NONFINITE_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW"
+      }
+    ],
+    "afterLocalFilter": {
+      "resolved": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "occurrenceIndex": 0,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 87,
+          "passageEnd": 92,
+          "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "occurrenceIndex": 1,
+          "correctAnswer": "are being held",
+          "distractors": [
+            "are holding"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 287,
+          "passageEnd": 301,
+          "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "read",
+          "occurrenceIndex": 0,
+          "correctAnswer": "read",
+          "distractors": [
+            "reading"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 433,
+          "passageEnd": 437,
+          "subtypeKey": "PARALLEL_VERBS:read|reading"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "building",
+          "occurrenceIndex": 0,
+          "correctAnswer": "building",
+          "distractors": [
+            "build"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 502,
+          "passageEnd": 510,
+          "subtypeKey": "PARALLEL_VERBS:build|building"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "that",
+          "occurrenceIndex": 1,
+          "correctAnswer": "that",
+          "distractors": [
+            "what"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 553,
+          "passageEnd": 557,
+          "subtypeKey": "RELATIVE_SUBJECT:that|what"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "occurrenceIndex": 0,
+          "correctAnswer": "become",
+          "distractors": [
+            "becoming"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 605,
+          "passageEnd": 611,
+          "subtypeKey": "PARALLEL_VERBS:become|becoming"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "how to climb",
+          "occurrenceIndex": 1,
+          "correctAnswer": "how to climb",
+          "distractors": [
+            "how climbing"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 687,
+          "passageEnd": 699,
+          "subtypeKey": "PARALLEL_CLAUSES:how climbing|how to climb"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "sourceSpan": "we are getting",
+          "occurrenceIndex": 0,
+          "correctAnswer": "we are getting",
+          "distractors": [
+            "are we getting"
+          ],
+          "transformCode": "WORD_ORDER",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 828,
+          "passageEnd": 842,
+          "subtypeKey": "OMITTED_THAT_SV_ORDER"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "occurrenceIndex": 0,
+          "correctAnswer": "made to move",
+          "distractors": [
+            "made move"
+          ],
+          "transformCode": "NONFINITE_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 893,
+          "passageEnd": 905,
+          "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+        }
+      ],
+      "rejected": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "VOICE_ACTIVE_PASSIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "are wonderfully made / are wonderfully making"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-3",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "pointCode": "GERUND_PREPOSITION_OBJECT",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "moving / move"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-4",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "pointCode": "GERUND_FIXED_CONSTRUCTION",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "spend our time moving / spend our time to move"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-d6ab89e5-d089-4b0f-ae48-75ff480e3ac6-5",
+          "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+          "pointCode": "ARTICLE",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL",
+          "pair": "the / a"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-12",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "pointCode": "RELATIVE_OMISSION",
+          "reason": "NON_MINIMAL_SPAN",
+          "pair": "diseases they were never meant to have / diseases what they were never meant to have"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+          "reason": "MEANING_ONLY_CONTRAST",
+          "pair": "further and further / further and furthest"
+        },
+        {
+          "candidateId": "local-VOICE_BE_MADE_TO-8",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+          "pair": "made to move / made move"
+        }
+      ]
+    },
+    "beforeReviewer": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "read",
+        "occurrenceIndex": 0,
+        "correctAnswer": "read",
+        "distractors": [
+          "reading"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 433,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:read|reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "building",
+        "occurrenceIndex": 0,
+        "correctAnswer": "building",
+        "distractors": [
+          "build"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 502,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:build|building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that",
+        "distractors": [
+          "what"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 553,
+        "passageEnd": 557,
+        "subtypeKey": "RELATIVE_SUBJECT:that|what"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 605,
+        "passageEnd": 611,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "how to climb",
+        "occurrenceIndex": 1,
+        "correctAnswer": "how to climb",
+        "distractors": [
+          "how climbing"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 687,
+        "passageEnd": 699,
+        "subtypeKey": "PARALLEL_CLAUSES:how climbing|how to climb"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 0,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting"
+        ],
+        "transformCode": "WORD_ORDER",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "OMITTED_THAT_SV_ORDER"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "NONFINITE_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      }
+    ],
+    "afterReviewer": {
+      "kept": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "occurrenceIndex": 0,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 87,
+          "passageEnd": 92,
+          "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "occurrenceIndex": 1,
+          "correctAnswer": "are being held",
+          "distractors": [
+            "are holding"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 287,
+          "passageEnd": 301,
+          "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "read",
+          "occurrenceIndex": 0,
+          "correctAnswer": "read",
+          "distractors": [
+            "reading"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 433,
+          "passageEnd": 437,
+          "subtypeKey": "PARALLEL_VERBS:read|reading"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "building",
+          "occurrenceIndex": 0,
+          "correctAnswer": "building",
+          "distractors": [
+            "build"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 502,
+          "passageEnd": 510,
+          "subtypeKey": "PARALLEL_VERBS:build|building"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "that",
+          "occurrenceIndex": 1,
+          "correctAnswer": "that",
+          "distractors": [
+            "what"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 553,
+          "passageEnd": 557,
+          "subtypeKey": "RELATIVE_SUBJECT:that|what"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "occurrenceIndex": 0,
+          "correctAnswer": "become",
+          "distractors": [
+            "becoming"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 605,
+          "passageEnd": 611,
+          "subtypeKey": "PARALLEL_VERBS:become|becoming"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "how to climb",
+          "occurrenceIndex": 1,
+          "correctAnswer": "how to climb",
+          "distractors": [
+            "how climbing"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 687,
+          "passageEnd": 699,
+          "subtypeKey": "PARALLEL_CLAUSES:how climbing|how to climb"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "sourceSpan": "we are getting",
+          "occurrenceIndex": 0,
+          "correctAnswer": "we are getting",
+          "distractors": [
+            "are we getting"
+          ],
+          "transformCode": "WORD_ORDER",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 828,
+          "passageEnd": 842,
+          "subtypeKey": "OMITTED_THAT_SV_ORDER"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "occurrenceIndex": 0,
+          "correctAnswer": "made to move",
+          "distractors": [
+            "made move"
+          ],
+          "transformCode": "NONFINITE_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 893,
+          "passageEnd": 905,
+          "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+        }
+      ],
+      "rejected": []
+    },
+    "beforeRank": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "read",
+        "occurrenceIndex": 0,
+        "correctAnswer": "read",
+        "distractors": [
+          "reading"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 433,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:read|reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "building",
+        "occurrenceIndex": 0,
+        "correctAnswer": "building",
+        "distractors": [
+          "build"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 502,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:build|building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that",
+        "distractors": [
+          "what"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 553,
+        "passageEnd": 557,
+        "subtypeKey": "RELATIVE_SUBJECT:that|what"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 605,
+        "passageEnd": 611,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "how to climb",
+        "occurrenceIndex": 1,
+        "correctAnswer": "how to climb",
+        "distractors": [
+          "how climbing"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 687,
+        "passageEnd": 699,
+        "subtypeKey": "PARALLEL_CLAUSES:how climbing|how to climb"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 0,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting"
+        ],
+        "transformCode": "WORD_ORDER",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "OMITTED_THAT_SV_ORDER"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "NONFINITE_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      }
+    ],
+    "afterRank": {
+      "kept": [
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "pointCode": "PARALLEL_CLAUSES",
+          "sourceSpan": "how to climb",
+          "occurrenceIndex": 1,
+          "correctAnswer": "how to climb",
+          "distractors": [
+            "how climbing"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 687,
+          "passageEnd": 699,
+          "subtypeKey": "PARALLEL_CLAUSES:how climbing|how to climb"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "pointCode": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "occurrenceIndex": 0,
+          "correctAnswer": "made to move",
+          "distractors": [
+            "made move"
+          ],
+          "transformCode": "NONFINITE_SWAP",
+          "priority": "MANDATORY",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 893,
+          "passageEnd": 905,
+          "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "pointCode": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "occurrenceIndex": 0,
+          "correctAnswer": "which",
+          "distractors": [
+            "that"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 87,
+          "passageEnd": 92,
+          "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "occurrenceIndex": 1,
+          "correctAnswer": "are being held",
+          "distractors": [
+            "are holding"
+          ],
+          "transformCode": "VOICE_SWAP",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 287,
+          "passageEnd": 301,
+          "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "read",
+          "occurrenceIndex": 0,
+          "correctAnswer": "read",
+          "distractors": [
+            "reading"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 433,
+          "passageEnd": 437,
+          "subtypeKey": "PARALLEL_VERBS:read|reading"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "building",
+          "occurrenceIndex": 0,
+          "correctAnswer": "building",
+          "distractors": [
+            "build"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 502,
+          "passageEnd": 510,
+          "subtypeKey": "PARALLEL_VERBS:build|building"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "RELATIVE_SUBJECT",
+          "sourceSpan": "that",
+          "occurrenceIndex": 1,
+          "correctAnswer": "that",
+          "distractors": [
+            "what"
+          ],
+          "transformCode": "RELATIVE_CHOICE",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 553,
+          "passageEnd": 557,
+          "subtypeKey": "RELATIVE_SUBJECT:that|what"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "pointCode": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "occurrenceIndex": 0,
+          "correctAnswer": "become",
+          "distractors": [
+            "becoming"
+          ],
+          "transformCode": "PARALLEL_FORM",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 605,
+          "passageEnd": 611,
+          "subtypeKey": "PARALLEL_VERBS:become|becoming"
+        },
+        {
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "sourceSpan": "we are getting",
+          "occurrenceIndex": 0,
+          "correctAnswer": "we are getting",
+          "distractors": [
+            "are we getting"
+          ],
+          "transformCode": "WORD_ORDER",
+          "priority": "CORE",
+          "difficulty": "CORE",
+          "evidence": "",
+          "ruleSummaryKo": "",
+          "riskLevel": "LOW",
+          "passageStart": 828,
+          "passageEnd": 842,
+          "subtypeKey": "OMITTED_THAT_SV_ORDER"
+        }
+      ],
+      "dropped": []
+    },
+    "beforeDedup": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "read",
+        "occurrenceIndex": 0,
+        "correctAnswer": "read",
+        "distractors": [
+          "reading"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 433,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:read|reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "building",
+        "occurrenceIndex": 0,
+        "correctAnswer": "building",
+        "distractors": [
+          "build"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 502,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:build|building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that",
+        "distractors": [
+          "what"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 553,
+        "passageEnd": 557,
+        "subtypeKey": "RELATIVE_SUBJECT:that|what"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 605,
+        "passageEnd": 611,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "how to climb",
+        "occurrenceIndex": 1,
+        "correctAnswer": "how to climb",
+        "distractors": [
+          "how climbing"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 687,
+        "passageEnd": 699,
+        "subtypeKey": "PARALLEL_CLAUSES:how climbing|how to climb"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 0,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting"
+        ],
+        "transformCode": "WORD_ORDER",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "OMITTED_THAT_SV_ORDER"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "NONFINITE_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      }
+    ],
+    "afterDedup": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "pointCode": "PARALLEL_CLAUSES",
+        "sourceSpan": "how to climb",
+        "occurrenceIndex": 1,
+        "correctAnswer": "how to climb",
+        "distractors": [
+          "how climbing"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 687,
+        "passageEnd": 699,
+        "subtypeKey": "PARALLEL_CLAUSES:how climbing|how to climb"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "occurrenceIndex": 0,
+        "correctAnswer": "made to move",
+        "distractors": [
+          "made move"
+        ],
+        "transformCode": "NONFINITE_SWAP",
+        "priority": "MANDATORY",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 893,
+        "passageEnd": 905,
+        "subtypeKey": "VOICE_BE_MADE_TO:made move|made to move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "occurrenceIndex": 0,
+        "correctAnswer": "which",
+        "distractors": [
+          "that"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 87,
+        "passageEnd": 92,
+        "subtypeKey": "RELATIVE_PREPOSITION_WHICH:that|which"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "pointCode": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "occurrenceIndex": 1,
+        "correctAnswer": "are being held",
+        "distractors": [
+          "are holding"
+        ],
+        "transformCode": "VOICE_SWAP",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 287,
+        "passageEnd": 301,
+        "subtypeKey": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "read",
+        "occurrenceIndex": 0,
+        "correctAnswer": "read",
+        "distractors": [
+          "reading"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 433,
+        "passageEnd": 437,
+        "subtypeKey": "PARALLEL_VERBS:read|reading"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "building",
+        "occurrenceIndex": 0,
+        "correctAnswer": "building",
+        "distractors": [
+          "build"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 502,
+        "passageEnd": 510,
+        "subtypeKey": "PARALLEL_VERBS:build|building"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "occurrenceIndex": 1,
+        "correctAnswer": "that",
+        "distractors": [
+          "what"
+        ],
+        "transformCode": "RELATIVE_CHOICE",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 553,
+        "passageEnd": 557,
+        "subtypeKey": "RELATIVE_SUBJECT:that|what"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "pointCode": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "occurrenceIndex": 0,
+        "correctAnswer": "become",
+        "distractors": [
+          "becoming"
+        ],
+        "transformCode": "PARALLEL_FORM",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 605,
+        "passageEnd": 611,
+        "subtypeKey": "PARALLEL_VERBS:become|becoming"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "sourceSpan": "we are getting",
+        "occurrenceIndex": 0,
+        "correctAnswer": "we are getting",
+        "distractors": [
+          "are we getting"
+        ],
+        "transformCode": "WORD_ORDER",
+        "priority": "CORE",
+        "difficulty": "CORE",
+        "evidence": "",
+        "ruleSummaryKo": "",
+        "riskLevel": "LOW",
+        "passageStart": 828,
+        "passageEnd": 842,
+        "subtypeKey": "OMITTED_THAT_SV_ORDER"
+      }
+    ],
+    "coverage": {
+      "reports": [
+        {
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "detectedPointCodes": [
+            "RELATIVE_PREPOSITION_WHICH",
+            "VOICE_ACTIVE_PASSIVE",
+            "PARALLEL_CLAUSES",
+            "OBJECT_COMPLEMENT_TO_V",
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "RELATIVE_PREPOSITION_WHICH"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "OBJECT_COMPLEMENT_TO_V",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "detectedPointCodes": [
+            "GERUND_PREPOSITION_OBJECT",
+            "GERUND_FIXED_CONSTRUCTION",
+            "PREPOSITION_INSTEAD_OF",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "GERUND_PREPOSITION_OBJECT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "GERUND_FIXED_CONSTRUCTION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PREPOSITION_INSTEAD_OF",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+          "detectedPointCodes": [
+            "ARTICLE",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "detectedPointCodes": [
+            "VOICE_PROGRESSIVE_PASSIVE",
+            "PARALLEL_AND_OR_BUT"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "VOICE_PROGRESSIVE_PASSIVE"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "detectedPointCodes": [
+            "PARALLEL_VERBS",
+            "PARALLEL_CLAUSES",
+            "INFINITIVE_ADVERB_ROLE"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_VERBS"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "INFINITIVE_ADVERB_ROLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "detectedPointCodes": [
+            "PARALLEL_VERBS",
+            "RELATIVE_SUBJECT",
+            "OBJECT_COMPLEMENT_BARE_V",
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_VERBS",
+            "RELATIVE_SUBJECT"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "OBJECT_COMPLEMENT_BARE_V",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "detectedPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "mandatoryPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "PARALLEL_CLAUSES"
+          ],
+          "omittedPoints": []
+        },
+        {
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "detectedPointCodes": [
+            "RELATIVE_OMISSION",
+            "PARALLEL_AND_OR_BUT",
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": [
+            {
+              "pointCode": "RELATIVE_OMISSION",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "PARALLEL_AND_OR_BUT",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "detectedPointCodes": [
+            "NOUN_CLAUSE_DECLARATIVE_ORDER",
+            "COMPARATIVE_AND_COMPARATIVE",
+            "ARTICLE"
+          ],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [
+            "NOUN_CLAUSE_DECLARATIVE_ORDER"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            },
+            {
+              "pointCode": "ARTICLE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "detectedPointCodes": [
+            "VOICE_BE_MADE_TO",
+            "PARALLEL_CLAUSES",
+            "VOICE_ACTIVE_PASSIVE"
+          ],
+          "mandatoryPointCodes": [
+            "VOICE_BE_MADE_TO",
+            "PARALLEL_CLAUSES"
+          ],
+          "generatedQuestionPointCodes": [
+            "VOICE_BE_MADE_TO"
+          ],
+          "omittedPoints": [
+            {
+              "pointCode": "VOICE_BE_MADE_TO",
+              "reason": "DUPLICATE_SUBTYPE"
+            },
+            {
+              "pointCode": "PARALLEL_CLAUSES",
+              "reason": "NO_UNIQUE_DISTRACTOR"
+            },
+            {
+              "pointCode": "VOICE_ACTIVE_PASSIVE",
+              "reason": "NOT_PEDAGOGICALLY_USEFUL"
+            }
+          ]
+        },
+        {
+          "sentenceId": "6ce0a23c-a15f-410c-bd32-f7e6016a247a",
+          "detectedPointCodes": [],
+          "mandatoryPointCodes": [],
+          "generatedQuestionPointCodes": [],
+          "omittedPoints": []
+        }
+      ],
+      "missing": [],
+      "occurrences": [
+        {
+          "sourceId": "",
+          "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:how climbing|how to climb",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "how to climb",
+          "sourceAnswer": "how to climb",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move",
+          "sourceAnswer": "made to move",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "RELATIVE_PREPOSITION_WHICH",
+          "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+          "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+          "sourceSpan": "which",
+          "sourceAnswer": "which",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "code": "VOICE_PROGRESSIVE_PASSIVE",
+          "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+          "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+          "sourceSpan": "are being held",
+          "sourceAnswer": "are being held",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:read|reading",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "read",
+          "sourceAnswer": "read",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:build|building",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "building",
+          "sourceAnswer": "building",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:that|what",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "sourceSpan": "that",
+          "sourceAnswer": "that",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:become|becoming",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "sourceSpan": "become",
+          "sourceAnswer": "become",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "code": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "subtype": "OMITTED_THAT_SV_ORDER",
+          "assessmentAxis": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "sourceSpan": "we are getting",
+          "sourceAnswer": "we are getting",
+          "status": "RENDERED"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "are wonderfully made / are wonderfully making",
+          "sourceAnswer": "are wonderfully made",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "code": "GERUND_PREPOSITION_OBJECT",
+          "subtype": "",
+          "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+          "sourceSpan": "moving / move",
+          "sourceAnswer": "moving",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "code": "GERUND_FIXED_CONSTRUCTION",
+          "subtype": "",
+          "assessmentAxis": "GERUND_FIXED_CONSTRUCTION",
+          "sourceSpan": "spend our time moving / spend our time to move",
+          "sourceAnswer": "spend our time moving",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the / a",
+          "sourceAnswer": "the",
+          "status": "VALID_EXCLUSION",
+          "reason": "NOT_PEDAGOGICALLY_USEFUL"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "code": "RELATIVE_OMISSION",
+          "subtype": "",
+          "assessmentAxis": "RELATIVE_OMISSION",
+          "sourceSpan": "diseases they were never meant to have / diseases what they were never meant to have",
+          "sourceAnswer": "diseases they were never meant to have",
+          "status": "VALID_EXCLUSION",
+          "reason": "NON_MINIMAL_SPAN"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "code": "COMPARATIVE_AND_COMPARATIVE",
+          "subtype": "",
+          "assessmentAxis": "COMPARATIVE_AND_COMPARATIVE",
+          "sourceSpan": "further and further / further and furthest",
+          "sourceAnswer": "further and further",
+          "status": "VALID_EXCLUSION",
+          "reason": "MEANING_ONLY_CONTRAST"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "sourceSpan": "made to move / made move",
+          "sourceAnswer": "made to move",
+          "status": "VALID_EXCLUSION",
+          "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "yet we don’t allow ourselves to participate",
+          "sourceAnswer": "yet we don’t allow ourselves to participate",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NO_UNIQUE_DISTRACTOR"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "OBJECT_COMPLEMENT_TO_V",
+          "subtype": "",
+          "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+          "sourceSpan": "ourselves to participate",
+          "sourceAnswer": "ourselves to participate",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the",
+          "sourceAnswer": "the",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "code": "PREPOSITION_INSTEAD_OF",
+          "subtype": "",
+          "assessmentAxis": "PREPOSITION_INSTEAD_OF",
+          "sourceSpan": "Instead of",
+          "sourceAnswer": "Instead of",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "anywhere and everywhere",
+          "sourceAnswer": "anywhere and everywhere",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "hours and hours",
+          "sourceAnswer": "hours and hours",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "phones and tablets",
+          "sourceAnswer": "phones and tablets",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "They are not going outside to play, they are not learning",
+          "sourceAnswer": "They are not going outside to play, they are not learning",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NO_UNIQUE_DISTRACTOR"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+          "code": "INFINITIVE_ADVERB_ROLE",
+          "subtype": "",
+          "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+          "sourceSpan": "to play",
+          "sourceAnswer": "to play",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "OBJECT_COMPLEMENT_BARE_V",
+          "subtype": "",
+          "assessmentAxis": "OBJECT_COMPLEMENT_BARE_V",
+          "sourceSpan": "help them learn",
+          "sourceAnswer": "help them learn",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "the",
+          "sourceAnswer": "the",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "code": "PARALLEL_AND_OR_BUT",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_AND_OR_BUT",
+          "sourceSpan": "anxiety, depression, and even diseases",
+          "sourceAnswer": "anxiety, depression, and even diseases",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "were never meant",
+          "sourceAnswer": "were never meant",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+          "code": "ARTICLE",
+          "subtype": "",
+          "assessmentAxis": "ARTICLE",
+          "sourceSpan": "The",
+          "sourceAnswer": "The",
+          "status": "ANALYSIS_ONLY"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "sourceSpan": "We were made to move—and through movement, we are meant",
+          "sourceAnswer": "We were made to move—and through movement, we are meant",
+          "status": "ANALYSIS_ONLY",
+          "reason": "NO_UNIQUE_DISTRACTOR"
+        },
+        {
+          "sourceId": "",
+          "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+          "code": "VOICE_ACTIVE_PASSIVE",
+          "subtype": "",
+          "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+          "sourceSpan": "are meant to live",
+          "sourceAnswer": "are meant to live",
+          "status": "ANALYSIS_ONLY"
+        }
+      ],
+      "metrics": {
+        "mandatoryDetected": 5,
+        "mandatoryEligible": 2,
+        "mandatoryRendered": 2,
+        "mandatoryExcludedWithValidReason": 1,
+        "analysisOnly": 16,
+        "eligible": 9,
+        "excluded": 7,
+        "rendered": 9,
+        "missingEligible": 0,
+        "coverage": 100
+      }
+    },
+    "finalize": {
+      "ok": true,
+      "sectionStatus": "COMPLETE"
+    },
+    "studentItems": [
+      {
+        "number": 1,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+        "internalProvenance": {
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:how climbing|how to climb",
+          "priority": "MANDATORY",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "occurrenceId": "38c8d85b-3668-4faf-b802-96c52b453612|PARALLEL_CLAUSES|how to climb",
+          "sourceSpan": "how to climb",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+          "exclusionReason": null
+        },
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 687,
+        "endCharIndex": 699,
+        "originalText": "how to climb",
+        "correctText": "how to climb",
+        "incorrectText": "how climbing",
+        "leftText": "how climbing",
+        "rightText": "how to climb",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_CLAUSES",
+        "grammarCategoryName": "절 병렬",
+        "bookTerm": "절 병렬",
+        "explanationKo": "절 병렬 규칙에 따라 원문 형태 how to climb가 맞다.",
+        "incorrectReasonKo": "how climbing는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "that절 and that절"
+      },
+      {
+        "number": 2,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+        "internalProvenance": {
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+          "priority": "MANDATORY",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "occurrenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674|VOICE_BE_MADE_TO|made to move",
+          "sourceSpan": "made to move",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 893,
+        "endCharIndex": 905,
+        "originalText": "made to move",
+        "correctText": "made to move",
+        "incorrectText": "made move",
+        "leftText": "made to move",
+        "rightText": "made move",
+        "correctSide": "left",
+        "grammarCategoryId": "VOICE_BE_MADE_TO",
+        "grammarCategoryName": "사역 수동",
+        "bookTerm": "사역 수동",
+        "explanationKo": "능동태 make + 목적어 + 동사원형 구조가 수동태가 되면 be made to + 동사원형으로 바뀐다.",
+        "incorrectReasonKo": "made move는 수동태에서 복원되어야 하는 to가 없다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "be made to + 동사원형"
+      },
+      {
+        "number": 3,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "internalProvenance": {
+          "code": "RELATIVE_PREPOSITION_WHICH",
+          "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+          "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|RELATIVE_PREPOSITION_WHICH|which",
+          "sourceSpan": "which",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "exclusionReason": null
+        },
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 87,
+        "endCharIndex": 92,
+        "originalText": "which",
+        "correctText": "which",
+        "incorrectText": "that",
+        "leftText": "which",
+        "rightText": "that",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_PREPOSITION_WHICH",
+        "grammarCategoryName": "전치사 + 관계대명사",
+        "bookTerm": "전치사 + 관계대명사",
+        "explanationKo": "전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
+        "incorrectReasonKo": "that은 전치사 바로 뒤에 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "전치사 + which"
+      },
+      {
+        "number": 4,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+        "internalProvenance": {
+          "code": "VOICE_PROGRESSIVE_PASSIVE",
+          "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+          "occurrenceId": "7286ec55-f639-41ab-a201-d8b2243dce97|VOICE_PROGRESSIVE_PASSIVE|are being held",
+          "sourceSpan": "are being held",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+          "exclusionReason": null
+        },
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 287,
+        "endCharIndex": 301,
+        "originalText": "are being held",
+        "correctText": "are being held",
+        "incorrectText": "are holding",
+        "leftText": "are holding",
+        "rightText": "are being held",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_PROGRESSIVE_PASSIVE",
+        "grammarCategoryName": "진행 수동",
+        "bookTerm": "진행 수동",
+        "explanationKo": "진행 수동 규칙에 따라 원문 형태 are being held가 맞다.",
+        "incorrectReasonKo": "are holding는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "are being p.p."
+      },
+      {
+        "number": 5,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:read|reading",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5|PARALLEL_VERBS|read",
+          "sourceSpan": "read",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 433,
+        "endCharIndex": 437,
+        "originalText": "read",
+        "correctText": "read",
+        "incorrectText": "reading",
+        "leftText": "reading",
+        "rightText": "read",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 read가 맞다.",
+        "incorrectReasonKo": "reading는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 6,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:build|building",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|building",
+          "sourceSpan": "building",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 502,
+        "endCharIndex": 510,
+        "originalText": "building",
+        "correctText": "building",
+        "incorrectText": "build",
+        "leftText": "building",
+        "rightText": "build",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 building가 맞다.",
+        "incorrectReasonKo": "build는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 7,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "internalProvenance": {
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:that|what",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|RELATIVE_SUBJECT|that",
+          "sourceSpan": "that",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 553,
+        "endCharIndex": 557,
+        "originalText": "that",
+        "correctText": "that",
+        "incorrectText": "what",
+        "leftText": "what",
+        "rightText": "that",
+        "correctSide": "right",
+        "grammarCategoryId": "RELATIVE_SUBJECT",
+        "grammarCategoryName": "주격 관계대명사",
+        "bookTerm": "주격 관계대명사",
+        "explanationKo": "주격 관계대명사 규칙에 따라 원문 형태 that가 맞다.",
+        "incorrectReasonKo": "what는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "관계절 주어 자리"
+      },
+      {
+        "number": 8,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:become|becoming",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|become",
+          "sourceSpan": "become",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 605,
+        "endCharIndex": 611,
+        "originalText": "become",
+        "correctText": "become",
+        "incorrectText": "becoming",
+        "leftText": "become",
+        "rightText": "becoming",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 become가 맞다.",
+        "incorrectReasonKo": "becoming는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 9,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+        "internalProvenance": {
+          "code": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "subtype": "OMITTED_THAT_SV_ORDER",
+          "priority": "CORE",
+          "assessmentAxis": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "occurrenceId": "c8869225-b030-4f97-8dd7-f08bf0440400|NOUN_CLAUSE_DECLARATIVE_ORDER|we are getting",
+          "sourceSpan": "we are getting",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 828,
+        "endCharIndex": 842,
+        "originalText": "we are getting",
+        "correctText": "we are getting",
+        "incorrectText": "are we getting",
+        "leftText": "are we getting",
+        "rightText": "we are getting",
+        "correctSide": "right",
+        "grammarCategoryId": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "grammarCategoryName": "진술 명사절 어순",
+        "bookTerm": "진술 명사절 어순",
+        "explanationKo": "내용을 설명하는 명사절에는 평서문 어순인 주어 + 동사, 곧 S + V를 쓴다.",
+        "incorrectReasonKo": "are we getting는 의문문 어순이라 내용절에 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "내용절의 S + V"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "are wonderfully made / are wonderfully making"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-3",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "moving / move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-4",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_FIXED_CONSTRUCTION",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "spend our time moving / spend our time to move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-d6ab89e5-d089-4b0f-ae48-75ff480e3ac6-5",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "pointCode": "ARTICLE",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "the / a"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-12",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "pointCode": "RELATIVE_OMISSION",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "diseases they were never meant to have / diseases what they were never meant to have"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "further and further / further and furthest"
+      },
+      {
+        "candidateId": "local-VOICE_BE_MADE_TO-8",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "made to move / made move"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:how climbing|how to climb",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "how to climb",
+        "sourceAnswer": "how to climb",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "sourceAnswer": "made to move",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "RELATIVE_PREPOSITION_WHICH",
+        "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+        "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "VOICE_PROGRESSIVE_PASSIVE",
+        "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+        "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "sourceAnswer": "are being held",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:read|reading",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "read",
+        "sourceAnswer": "read",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:build|building",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "building",
+        "sourceAnswer": "building",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:that|what",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "sourceAnswer": "that",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:become|becoming",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "sourceAnswer": "become",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "subtype": "OMITTED_THAT_SV_ORDER",
+        "assessmentAxis": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "sourceSpan": "we are getting",
+        "sourceAnswer": "we are getting",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are wonderfully made / are wonderfully making",
+        "sourceAnswer": "are wonderfully made",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "moving / move",
+        "sourceAnswer": "moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_FIXED_CONSTRUCTION",
+        "subtype": "",
+        "assessmentAxis": "GERUND_FIXED_CONSTRUCTION",
+        "sourceSpan": "spend our time moving / spend our time to move",
+        "sourceAnswer": "spend our time moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the / a",
+        "sourceAnswer": "the",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "RELATIVE_OMISSION",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_OMISSION",
+        "sourceSpan": "diseases they were never meant to have / diseases what they were never meant to have",
+        "sourceAnswer": "diseases they were never meant to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "COMPARATIVE_AND_COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE_AND_COMPARATIVE",
+        "sourceSpan": "further and further / further and furthest",
+        "sourceAnswer": "further and further",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move / made move",
+        "sourceAnswer": "made to move",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "yet we don’t allow ourselves to participate",
+        "sourceAnswer": "yet we don’t allow ourselves to participate",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "OBJECT_COMPLEMENT_TO_V",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "sourceAnswer": "ourselves to participate",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the",
+        "sourceAnswer": "the",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "PREPOSITION_INSTEAD_OF",
+        "subtype": "",
+        "assessmentAxis": "PREPOSITION_INSTEAD_OF",
+        "sourceSpan": "Instead of",
+        "sourceAnswer": "Instead of",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "anywhere and everywhere",
+        "sourceAnswer": "anywhere and everywhere",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "hours and hours",
+        "sourceAnswer": "hours and hours",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "phones and tablets",
+        "sourceAnswer": "phones and tablets",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "They are not going outside to play, they are not learning",
+        "sourceAnswer": "They are not going outside to play, they are not learning",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "INFINITIVE_ADVERB_ROLE",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+        "sourceSpan": "to play",
+        "sourceAnswer": "to play",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "OBJECT_COMPLEMENT_BARE_V",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_BARE_V",
+        "sourceSpan": "help them learn",
+        "sourceAnswer": "help them learn",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the",
+        "sourceAnswer": "the",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "anxiety, depression, and even diseases",
+        "sourceAnswer": "anxiety, depression, and even diseases",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were never meant",
+        "sourceAnswer": "were never meant",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "The",
+        "sourceAnswer": "The",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "We were made to move—and through movement, we are meant",
+        "sourceAnswer": "We were made to move—and through movement, we are meant",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are meant to live",
+        "sourceAnswer": "are meant to live",
+        "status": "ANALYSIS_ONLY"
+      }
+    ]
+  },
+  "rejected": [
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "are wonderfully made / are wonderfully making"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-3",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "moving / move"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-4",
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "pointCode": "GERUND_FIXED_CONSTRUCTION",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "spend our time moving / spend our time to move"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-d6ab89e5-d089-4b0f-ae48-75ff480e3ac6-5",
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "pointCode": "ARTICLE",
+      "reason": "NOT_PEDAGOGICALLY_USEFUL",
+      "pair": "the / a"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-12",
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "pointCode": "RELATIVE_OMISSION",
+      "reason": "NON_MINIMAL_SPAN",
+      "pair": "diseases they were never meant to have / diseases what they were never meant to have"
+    },
+    {
+      "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+      "reason": "MEANING_ONLY_CONTRAST",
+      "pair": "further and further / further and furthest"
+    },
+    {
+      "candidateId": "local-VOICE_BE_MADE_TO-8",
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "pointCode": "VOICE_BE_MADE_TO",
+      "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+      "pair": "made to move / made move"
+    }
+  ],
+  "missingMandatory": [],
+  "section": {
+    "projectId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+    "title": "우리는 움직이기 위해 태어났다",
+    "source": null,
+    "sourcePassage": "We are wonderfully made, yet we don’t allow ourselves to participate in the wonder for which we were created. Instead of moving anywhere and everywhere, most of us spend our time moving nowhere. We occupy the same square footage of a chair for hours and hours every day. Many kids today are being held captive by ‘smart’ devices like phones and tablets. They are not going outside to play, they are not learning how to socialize and read physical cues from others. As a result they are not learning or building their movement repertoire, the very thing that will help them learn, communicate, create, and become emotionally mature. They are not even learning how to run, how to skip, or how to climb. Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have. The point is we are getting further and further away from our design. We were made to move—and through movement, we are meant to live extraordinary lives. Movement is life to us.",
+    "items": [
+      {
+        "number": 1,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+        "internalProvenance": {
+          "code": "PARALLEL_CLAUSES",
+          "subtype": "PARALLEL_CLAUSES:how climbing|how to climb",
+          "priority": "MANDATORY",
+          "assessmentAxis": "PARALLEL_CLAUSES",
+          "occurrenceId": "38c8d85b-3668-4faf-b802-96c52b453612|PARALLEL_CLAUSES|how to climb",
+          "sourceSpan": "how to climb",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11",
+          "exclusionReason": null
+        },
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 687,
+        "endCharIndex": 699,
+        "originalText": "how to climb",
+        "correctText": "how to climb",
+        "incorrectText": "how climbing",
+        "leftText": "how climbing",
+        "rightText": "how to climb",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_CLAUSES",
+        "grammarCategoryName": "절 병렬",
+        "bookTerm": "절 병렬",
+        "explanationKo": "절 병렬 규칙에 따라 원문 형태 how to climb가 맞다.",
+        "incorrectReasonKo": "how climbing는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "that절 and that절"
+      },
+      {
+        "number": 2,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+        "internalProvenance": {
+          "code": "VOICE_BE_MADE_TO",
+          "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+          "priority": "MANDATORY",
+          "assessmentAxis": "VOICE_BE_MADE_TO",
+          "occurrenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674|VOICE_BE_MADE_TO|made to move",
+          "sourceSpan": "made to move",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15",
+          "exclusionReason": null
+        },
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 893,
+        "endCharIndex": 905,
+        "originalText": "made to move",
+        "correctText": "made to move",
+        "incorrectText": "made move",
+        "leftText": "made to move",
+        "rightText": "made move",
+        "correctSide": "left",
+        "grammarCategoryId": "VOICE_BE_MADE_TO",
+        "grammarCategoryName": "사역 수동",
+        "bookTerm": "사역 수동",
+        "explanationKo": "능동태 make + 목적어 + 동사원형 구조가 수동태가 되면 be made to + 동사원형으로 바뀐다.",
+        "incorrectReasonKo": "made move는 수동태에서 복원되어야 하는 to가 없다.",
+        "difficulty": 3,
+        "learningValue": 5,
+        "structureSummary": "be made to + 동사원형"
+      },
+      {
+        "number": 3,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+        "internalProvenance": {
+          "code": "RELATIVE_PREPOSITION_WHICH",
+          "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+          "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|RELATIVE_PREPOSITION_WHICH|which",
+          "sourceSpan": "which",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2",
+          "exclusionReason": null
+        },
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 87,
+        "endCharIndex": 92,
+        "originalText": "which",
+        "correctText": "which",
+        "incorrectText": "that",
+        "leftText": "which",
+        "rightText": "that",
+        "correctSide": "left",
+        "grammarCategoryId": "RELATIVE_PREPOSITION_WHICH",
+        "grammarCategoryName": "전치사 + 관계대명사",
+        "bookTerm": "전치사 + 관계대명사",
+        "explanationKo": "전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
+        "incorrectReasonKo": "that은 전치사 바로 뒤에 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "전치사 + which"
+      },
+      {
+        "number": 4,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+        "internalProvenance": {
+          "code": "VOICE_PROGRESSIVE_PASSIVE",
+          "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+          "priority": "CORE",
+          "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+          "occurrenceId": "7286ec55-f639-41ab-a201-d8b2243dce97|VOICE_PROGRESSIVE_PASSIVE|are being held",
+          "sourceSpan": "are being held",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6",
+          "exclusionReason": null
+        },
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 287,
+        "endCharIndex": 301,
+        "originalText": "are being held",
+        "correctText": "are being held",
+        "incorrectText": "are holding",
+        "leftText": "are holding",
+        "rightText": "are being held",
+        "correctSide": "right",
+        "grammarCategoryId": "VOICE_PROGRESSIVE_PASSIVE",
+        "grammarCategoryName": "진행 수동",
+        "bookTerm": "진행 수동",
+        "explanationKo": "진행 수동 규칙에 따라 원문 형태 are being held가 맞다.",
+        "incorrectReasonKo": "are holding는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "are being p.p."
+      },
+      {
+        "number": 5,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:read|reading",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5|PARALLEL_VERBS|read",
+          "sourceSpan": "read",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7",
+          "exclusionReason": null
+        },
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 433,
+        "endCharIndex": 437,
+        "originalText": "read",
+        "correctText": "read",
+        "incorrectText": "reading",
+        "leftText": "reading",
+        "rightText": "read",
+        "correctSide": "right",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 read가 맞다.",
+        "incorrectReasonKo": "reading는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 6,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:build|building",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|building",
+          "sourceSpan": "building",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 502,
+        "endCharIndex": 510,
+        "originalText": "building",
+        "correctText": "building",
+        "incorrectText": "build",
+        "leftText": "building",
+        "rightText": "build",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 building가 맞다.",
+        "incorrectReasonKo": "build는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 7,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+        "internalProvenance": {
+          "code": "RELATIVE_SUBJECT",
+          "subtype": "RELATIVE_SUBJECT:that|what",
+          "priority": "CORE",
+          "assessmentAxis": "RELATIVE_SUBJECT",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|RELATIVE_SUBJECT|that",
+          "sourceSpan": "that",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 553,
+        "endCharIndex": 557,
+        "originalText": "that",
+        "correctText": "that",
+        "incorrectText": "what",
+        "leftText": "what",
+        "rightText": "that",
+        "correctSide": "right",
+        "grammarCategoryId": "RELATIVE_SUBJECT",
+        "grammarCategoryName": "주격 관계대명사",
+        "bookTerm": "주격 관계대명사",
+        "explanationKo": "주격 관계대명사 규칙에 따라 원문 형태 that가 맞다.",
+        "incorrectReasonKo": "what는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "관계절 주어 자리"
+      },
+      {
+        "number": 8,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+        "internalProvenance": {
+          "code": "PARALLEL_VERBS",
+          "subtype": "PARALLEL_VERBS:become|becoming",
+          "priority": "CORE",
+          "assessmentAxis": "PARALLEL_VERBS",
+          "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|become",
+          "sourceSpan": "become",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10",
+          "exclusionReason": null
+        },
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 605,
+        "endCharIndex": 611,
+        "originalText": "become",
+        "correctText": "become",
+        "incorrectText": "becoming",
+        "leftText": "become",
+        "rightText": "becoming",
+        "correctSide": "left",
+        "grammarCategoryId": "PARALLEL_VERBS",
+        "grammarCategoryName": "동사 병렬",
+        "bookTerm": "동사 병렬",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 become가 맞다.",
+        "incorrectReasonKo": "becoming는 이 문장의 문법 축에서 성립하지 않는다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "떨어진 동사 형태"
+      },
+      {
+        "number": 9,
+        "choiceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+        "internalProvenance": {
+          "code": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "subtype": "OMITTED_THAT_SV_ORDER",
+          "priority": "CORE",
+          "assessmentAxis": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+          "occurrenceId": "c8869225-b030-4f97-8dd7-f08bf0440400|NOUN_CLAUSE_DECLARATIVE_ORDER|we are getting",
+          "sourceSpan": "we are getting",
+          "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13",
+          "exclusionReason": null
+        },
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "startTokenIndex": 0,
+        "endTokenIndex": 0,
+        "startCharIndex": 828,
+        "endCharIndex": 842,
+        "originalText": "we are getting",
+        "correctText": "we are getting",
+        "incorrectText": "are we getting",
+        "leftText": "are we getting",
+        "rightText": "we are getting",
+        "correctSide": "right",
+        "grammarCategoryId": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "grammarCategoryName": "진술 명사절 어순",
+        "bookTerm": "진술 명사절 어순",
+        "explanationKo": "내용을 설명하는 명사절에는 평서문 어순인 주어 + 동사, 곧 S + V를 쓴다.",
+        "incorrectReasonKo": "are we getting는 의문문 어순이라 내용절에 쓸 수 없다.",
+        "difficulty": 3,
+        "learningValue": 3,
+        "structureSummary": "내용절의 S + V"
+      }
+    ],
+    "segments": [
+      {
+        "type": "text",
+        "text": "We are wonderfully made, yet we don’t allow ourselves to participate in the wonder for "
+      },
+      {
+        "type": "choice",
+        "number": 3,
+        "leftText": "which",
+        "rightText": "that"
+      },
+      {
+        "type": "text",
+        "text": " we were created. Instead of moving anywhere and everywhere, most of us spend our time moving nowhere. We occupy the same square footage of a chair for hours and hours every day. Many kids today "
+      },
+      {
+        "type": "choice",
+        "number": 4,
+        "leftText": "are holding",
+        "rightText": "are being held"
+      },
+      {
+        "type": "text",
+        "text": " captive by ‘smart’ devices like phones and tablets. They are not going outside to play, they are not learning how to socialize and "
+      },
+      {
+        "type": "choice",
+        "number": 5,
+        "leftText": "reading",
+        "rightText": "read"
+      },
+      {
+        "type": "text",
+        "text": " physical cues from others. As a result they are not learning or "
+      },
+      {
+        "type": "choice",
+        "number": 6,
+        "leftText": "building",
+        "rightText": "build"
+      },
+      {
+        "type": "text",
+        "text": " their movement repertoire, the very thing "
+      },
+      {
+        "type": "choice",
+        "number": 7,
+        "leftText": "what",
+        "rightText": "that"
+      },
+      {
+        "type": "text",
+        "text": " will help them learn, communicate, create, and "
+      },
+      {
+        "type": "choice",
+        "number": 8,
+        "leftText": "become",
+        "rightText": "becoming"
+      },
+      {
+        "type": "text",
+        "text": " emotionally mature. They are not even learning how to run, how to skip, or "
+      },
+      {
+        "type": "choice",
+        "number": 1,
+        "leftText": "how climbing",
+        "rightText": "how to climb"
+      },
+      {
+        "type": "text",
+        "text": ". Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have. The point is "
+      },
+      {
+        "type": "choice",
+        "number": 9,
+        "leftText": "are we getting",
+        "rightText": "we are getting"
+      },
+      {
+        "type": "text",
+        "text": " further and further away from our design. We were "
+      },
+      {
+        "type": "choice",
+        "number": 2,
+        "leftText": "made to move",
+        "rightText": "made move"
+      },
+      {
+        "type": "text",
+        "text": "—and through movement, we are meant to live extraordinary lives. Movement is life to us."
+      }
+    ],
+    "algorithmVersion": "grammar-choice-v2",
+    "diagnostics": {
+      "sentenceCount": 11,
+      "analysisHintCount": 0,
+      "generatedCandidateCount": 15,
+      "codeValidatedCount": 9,
+      "originalMismatchCount": 0,
+      "rangeErrorCount": 0,
+      "overlapDuplicateCount": 1,
+      "reviewSubmittedCount": 0,
+      "reviewAcceptedCount": 9,
+      "bothPossibleRejectCount": 0,
+      "lexicalRejectCount": 0,
+      "trivialRejectCount": 0,
+      "finalCount": 9,
+      "grammarCategoryCount": 7,
+      "averageQualityScore": 0,
+      "passageRestored": true,
+      "cacheHit": false,
+      "generatorModel": "gpt-5.6-sol",
+      "reviewerModel": "gpt-5.6-sol",
+      "generatorResponseModel": "gpt-5.6-sol",
+      "reviewerResponseModel": "gpt-5.6-sol",
+      "generatorActualResponseModel": "gpt-5.6-sol",
+      "reviewerActualResponseModel": "gpt-5.6-sol",
+      "generatorReasoningEffort": "medium",
+      "reviewerReasoningEffort": "high",
+      "reasoningEffort": "medium",
+      "openAICallCount": 5,
+      "localFallbackUsed": false,
+      "generatorVersion": "grammar-choice-v2",
+      "apiCalls": [],
+      "forceRegenerate": true,
+      "oldQuestionReuseCount": 0,
+      "generatorActualModel": "gpt-5.6-sol",
+      "reviewerActualModel": "gpt-5.6-sol",
+      "newQuestionCount": 9,
+      "generateApiCalls": 4,
+      "reviewApiCalls": 1,
+      "underTargetReason": null,
+      "reviewRejectSamples": [],
+      "codeRejectSamples": [],
+      "mandatoryDetected": 5,
+      "mandatoryEligible": 2,
+      "mandatoryRendered": 2,
+      "mandatoryExcludedWithValidReason": 1,
+      "sectionStatus": "COMPLETE",
+      "analysisOnlyCount": 16,
+      "eligibleQuestionCount": 9,
+      "excludedOccurrenceCount": 7,
+      "missingEligibleCount": 0,
+      "mandatoryCoverage": 100,
+      "detectedMandatoryOccurrences": 5,
+      "analysisOnlyMandatoryOccurrences": 3,
+      "eligibleMandatoryOccurrences": 2,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 2,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 9,
+      "totalRenderedQuestions": 9,
+      "totalExcludedOccurrences": 7,
+      "countUnits": {
+        "detectedMandatoryOccurrences": "mandatory-occurrence",
+        "analysisOnlyMandatoryOccurrences": "mandatory-occurrence",
+        "eligibleMandatoryOccurrences": "mandatory-occurrence",
+        "validExcludedMandatoryOccurrences": "mandatory-occurrence",
+        "renderedMandatoryOccurrences": "mandatory-occurrence",
+        "missingEligibleMandatoryOccurrences": "mandatory-occurrence",
+        "totalEligibleQuestions": "student-question-candidate",
+        "totalRenderedQuestions": "student-item",
+        "totalExcludedOccurrences": "occurrence"
+      },
+      "finalQuestionCount": 9,
+      "renderedQuestionCount": 9,
+      "countMismatch": false,
+      "difficultyMix": {
+        "BASIC": 0,
+        "CORE": 9,
+        "ADVANCED": 0
+      },
+      "rejectReasonCounts": {
+        "MEANING_ONLY_CONTRAST": 2,
+        "NOT_PEDAGOGICALLY_USEFUL": 2,
+        "NON_MINIMAL_SPAN": 2,
+        "DUPLICATE_SATISFIED_BY_PRIMARY": 1
+      },
+      "repeatedCodeSubtypePairs": []
+    }
+  },
+  "digest": {
+    "passage": "We are wonderfully made, yet we don’t allow ourselves to participate in the wonder for (3) [which / that] we were created. Instead of moving anywhere and everywhere, most of us spend our time moving nowhere. We occupy the same square footage of a chair for hours and hours every day. Many kids today (4) [are holding / are being held] captive by ‘smart’ devices like phones and tablets. They are not going outside to play, they are not learning how to socialize and (5) [reading / read] physical cues from others. As a result they are not learning or (6) [building / build] their movement repertoire, the very thing (7) [what / that] will help them learn, communicate, create, and (8) [become / becoming] emotionally mature. They are not even learning how to run, how to skip, or (1) [how climbing / how to climb]. Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have. The point is (9) [are we getting / we are getting] further and further away from our design. We were (2) [made to move / made move]—and through movement, we are meant to live extraordinary lives. Movement is life to us.",
+    "questions": [
+      {
+        "number": 1,
+        "correct": "how to climb",
+        "wrong": "how climbing",
+        "left": "how climbing",
+        "right": "how to climb",
+        "correctSide": "right",
+        "explanationKo": "절 병렬 규칙에 따라 원문 형태 how to climb가 맞다.",
+        "incorrectReasonKo": "how climbing는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:how climbing|how to climb",
+        "priority": "MANDATORY",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "occurrenceId": "38c8d85b-3668-4faf-b802-96c52b453612|PARALLEL_CLAUSES|how to climb",
+        "sourceSpan": "how to climb",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-38c8d85b-3668-4faf-b802-96c52b453612-11"
+      },
+      {
+        "number": 2,
+        "correct": "made to move",
+        "wrong": "made move",
+        "left": "made to move",
+        "right": "made move",
+        "correctSide": "left",
+        "explanationKo": "능동태 make + 목적어 + 동사원형 구조가 수동태가 되면 be made to + 동사원형으로 바뀐다.",
+        "incorrectReasonKo": "made move는 수동태에서 복원되어야 하는 to가 없다.",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+        "priority": "MANDATORY",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "occurrenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674|VOICE_BE_MADE_TO|made to move",
+        "sourceSpan": "made to move",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-6230dd5c-f0f6-4cb7-a037-2d2e8f988674-15"
+      },
+      {
+        "number": 3,
+        "correct": "which",
+        "wrong": "that",
+        "left": "which",
+        "right": "that",
+        "correctSide": "left",
+        "explanationKo": "전치사 for 바로 뒤에는 관계대명사 which를 쓰며 that은 쓸 수 없다.",
+        "incorrectReasonKo": "that은 전치사 바로 뒤에 쓸 수 없다.",
+        "code": "RELATIVE_PREPOSITION_WHICH",
+        "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+        "priority": "CORE",
+        "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+        "occurrenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe|RELATIVE_PREPOSITION_WHICH|which",
+        "sourceSpan": "which",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-2"
+      },
+      {
+        "number": 4,
+        "correct": "are being held",
+        "wrong": "are holding",
+        "left": "are holding",
+        "right": "are being held",
+        "correctSide": "right",
+        "explanationKo": "진행 수동 규칙에 따라 원문 형태 are being held가 맞다.",
+        "incorrectReasonKo": "are holding는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "VOICE_PROGRESSIVE_PASSIVE",
+        "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+        "priority": "CORE",
+        "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+        "occurrenceId": "7286ec55-f639-41ab-a201-d8b2243dce97|VOICE_PROGRESSIVE_PASSIVE|are being held",
+        "sourceSpan": "are being held",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-7286ec55-f639-41ab-a201-d8b2243dce97-6"
+      },
+      {
+        "number": 5,
+        "correct": "read",
+        "wrong": "reading",
+        "left": "reading",
+        "right": "read",
+        "correctSide": "right",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 read가 맞다.",
+        "incorrectReasonKo": "reading는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:read|reading",
+        "priority": "CORE",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "occurrenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5|PARALLEL_VERBS|read",
+        "sourceSpan": "read",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-17a8930e-18fb-49e8-9fc0-6b2442b87be5-7"
+      },
+      {
+        "number": 6,
+        "correct": "building",
+        "wrong": "build",
+        "left": "building",
+        "right": "build",
+        "correctSide": "left",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 building가 맞다.",
+        "incorrectReasonKo": "build는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:build|building",
+        "priority": "CORE",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|building",
+        "sourceSpan": "building",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-8"
+      },
+      {
+        "number": 7,
+        "correct": "that",
+        "wrong": "what",
+        "left": "what",
+        "right": "that",
+        "correctSide": "right",
+        "explanationKo": "주격 관계대명사 규칙에 따라 원문 형태 that가 맞다.",
+        "incorrectReasonKo": "what는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:that|what",
+        "priority": "CORE",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|RELATIVE_SUBJECT|that",
+        "sourceSpan": "that",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-9"
+      },
+      {
+        "number": 8,
+        "correct": "become",
+        "wrong": "becoming",
+        "left": "become",
+        "right": "becoming",
+        "correctSide": "left",
+        "explanationKo": "동사 병렬 규칙에 따라 원문 형태 become가 맞다.",
+        "incorrectReasonKo": "becoming는 이 문장의 문법 축에서 성립하지 않는다.",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:become|becoming",
+        "priority": "CORE",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "occurrenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880|PARALLEL_VERBS|become",
+        "sourceSpan": "become",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-55d3264f-cc23-4ead-85c6-c6d6153f2880-10"
+      },
+      {
+        "number": 9,
+        "correct": "we are getting",
+        "wrong": "are we getting",
+        "left": "are we getting",
+        "right": "we are getting",
+        "correctSide": "right",
+        "explanationKo": "내용을 설명하는 명사절에는 평서문 어순인 주어 + 동사, 곧 S + V를 쓴다.",
+        "incorrectReasonKo": "are we getting는 의문문 어순이라 내용절에 쓸 수 없다.",
+        "code": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "subtype": "OMITTED_THAT_SV_ORDER",
+        "priority": "CORE",
+        "assessmentAxis": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "occurrenceId": "c8869225-b030-4f97-8dd7-f08bf0440400|NOUN_CLAUSE_DECLARATIVE_ORDER|we are getting",
+        "sourceSpan": "we are getting",
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-13"
+      }
+    ],
+    "exclusions": [
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-fa5d682b-9c04-4f0b-a13a-a7664555dabe-1",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "pointCode": "VOICE_ACTIVE_PASSIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "are wonderfully made / are wonderfully making"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-3",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_PREPOSITION_OBJECT",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "moving / move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-eca1cec4-e242-4e74-ad3d-b63d8450f4a3-4",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "pointCode": "GERUND_FIXED_CONSTRUCTION",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "spend our time moving / spend our time to move"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-d6ab89e5-d089-4b0f-ae48-75ff480e3ac6-5",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "pointCode": "ARTICLE",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL",
+        "pair": "the / a"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-433f228c-5bae-4525-b373-9af91700f7a9-12",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "pointCode": "RELATIVE_OMISSION",
+        "reason": "NON_MINIMAL_SPAN",
+        "pair": "diseases they were never meant to have / diseases what they were never meant to have"
+      },
+      {
+        "candidateId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c-c8869225-b030-4f97-8dd7-f08bf0440400-14",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "pointCode": "COMPARATIVE_AND_COMPARATIVE",
+        "reason": "MEANING_ONLY_CONTRAST",
+        "pair": "further and further / further and furthest"
+      },
+      {
+        "candidateId": "local-VOICE_BE_MADE_TO-8",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "pointCode": "VOICE_BE_MADE_TO",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY",
+        "pair": "made to move / made move"
+      }
+    ],
+    "occurrences": [
+      {
+        "sourceId": "",
+        "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "PARALLEL_CLAUSES:how climbing|how to climb",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "how to climb",
+        "sourceAnswer": "how to climb",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "VOICE_BE_MADE_TO:made move|made to move",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move",
+        "sourceAnswer": "made to move",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "RELATIVE_PREPOSITION_WHICH",
+        "subtype": "RELATIVE_PREPOSITION_WHICH:that|which",
+        "assessmentAxis": "RELATIVE_PREPOSITION_WHICH",
+        "sourceSpan": "which",
+        "sourceAnswer": "which",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "VOICE_PROGRESSIVE_PASSIVE",
+        "subtype": "VOICE_PROGRESSIVE_PASSIVE:are being held|are holding",
+        "assessmentAxis": "VOICE_PROGRESSIVE_PASSIVE",
+        "sourceSpan": "are being held",
+        "sourceAnswer": "are being held",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:read|reading",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "read",
+        "sourceAnswer": "read",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:build|building",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "building",
+        "sourceAnswer": "building",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "RELATIVE_SUBJECT",
+        "subtype": "RELATIVE_SUBJECT:that|what",
+        "assessmentAxis": "RELATIVE_SUBJECT",
+        "sourceSpan": "that",
+        "sourceAnswer": "that",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "PARALLEL_VERBS",
+        "subtype": "PARALLEL_VERBS:become|becoming",
+        "assessmentAxis": "PARALLEL_VERBS",
+        "sourceSpan": "become",
+        "sourceAnswer": "become",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "subtype": "OMITTED_THAT_SV_ORDER",
+        "assessmentAxis": "NOUN_CLAUSE_DECLARATIVE_ORDER",
+        "sourceSpan": "we are getting",
+        "sourceAnswer": "we are getting",
+        "status": "RENDERED"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are wonderfully made / are wonderfully making",
+        "sourceAnswer": "are wonderfully made",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_PREPOSITION_OBJECT",
+        "subtype": "",
+        "assessmentAxis": "GERUND_PREPOSITION_OBJECT",
+        "sourceSpan": "moving / move",
+        "sourceAnswer": "moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "GERUND_FIXED_CONSTRUCTION",
+        "subtype": "",
+        "assessmentAxis": "GERUND_FIXED_CONSTRUCTION",
+        "sourceSpan": "spend our time moving / spend our time to move",
+        "sourceAnswer": "spend our time moving",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the / a",
+        "sourceAnswer": "the",
+        "status": "VALID_EXCLUSION",
+        "reason": "NOT_PEDAGOGICALLY_USEFUL"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "RELATIVE_OMISSION",
+        "subtype": "",
+        "assessmentAxis": "RELATIVE_OMISSION",
+        "sourceSpan": "diseases they were never meant to have / diseases what they were never meant to have",
+        "sourceAnswer": "diseases they were never meant to have",
+        "status": "VALID_EXCLUSION",
+        "reason": "NON_MINIMAL_SPAN"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "COMPARATIVE_AND_COMPARATIVE",
+        "subtype": "",
+        "assessmentAxis": "COMPARATIVE_AND_COMPARATIVE",
+        "sourceSpan": "further and further / further and furthest",
+        "sourceAnswer": "further and further",
+        "status": "VALID_EXCLUSION",
+        "reason": "MEANING_ONLY_CONTRAST"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_BE_MADE_TO",
+        "subtype": "",
+        "assessmentAxis": "VOICE_BE_MADE_TO",
+        "sourceSpan": "made to move / made move",
+        "sourceAnswer": "made to move",
+        "status": "VALID_EXCLUSION",
+        "reason": "DUPLICATE_SATISFIED_BY_PRIMARY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "yet we don’t allow ourselves to participate",
+        "sourceAnswer": "yet we don’t allow ourselves to participate",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "OBJECT_COMPLEMENT_TO_V",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_TO_V",
+        "sourceSpan": "ourselves to participate",
+        "sourceAnswer": "ourselves to participate",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the",
+        "sourceAnswer": "the",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "PREPOSITION_INSTEAD_OF",
+        "subtype": "",
+        "assessmentAxis": "PREPOSITION_INSTEAD_OF",
+        "sourceSpan": "Instead of",
+        "sourceAnswer": "Instead of",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "anywhere and everywhere",
+        "sourceAnswer": "anywhere and everywhere",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "hours and hours",
+        "sourceAnswer": "hours and hours",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "phones and tablets",
+        "sourceAnswer": "phones and tablets",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "They are not going outside to play, they are not learning",
+        "sourceAnswer": "They are not going outside to play, they are not learning",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+        "code": "INFINITIVE_ADVERB_ROLE",
+        "subtype": "",
+        "assessmentAxis": "INFINITIVE_ADVERB_ROLE",
+        "sourceSpan": "to play",
+        "sourceAnswer": "to play",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "OBJECT_COMPLEMENT_BARE_V",
+        "subtype": "",
+        "assessmentAxis": "OBJECT_COMPLEMENT_BARE_V",
+        "sourceSpan": "help them learn",
+        "sourceAnswer": "help them learn",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "the",
+        "sourceAnswer": "the",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "PARALLEL_AND_OR_BUT",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_AND_OR_BUT",
+        "sourceSpan": "anxiety, depression, and even diseases",
+        "sourceAnswer": "anxiety, depression, and even diseases",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "were never meant",
+        "sourceAnswer": "were never meant",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+        "code": "ARTICLE",
+        "subtype": "",
+        "assessmentAxis": "ARTICLE",
+        "sourceSpan": "The",
+        "sourceAnswer": "The",
+        "status": "ANALYSIS_ONLY"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "PARALLEL_CLAUSES",
+        "subtype": "",
+        "assessmentAxis": "PARALLEL_CLAUSES",
+        "sourceSpan": "We were made to move—and through movement, we are meant",
+        "sourceAnswer": "We were made to move—and through movement, we are meant",
+        "status": "ANALYSIS_ONLY",
+        "reason": "NO_UNIQUE_DISTRACTOR"
+      },
+      {
+        "sourceId": "",
+        "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+        "code": "VOICE_ACTIVE_PASSIVE",
+        "subtype": "",
+        "assessmentAxis": "VOICE_ACTIVE_PASSIVE",
+        "sourceSpan": "are meant to live",
+        "sourceAnswer": "are meant to live",
+        "status": "ANALYSIS_ONLY"
+      }
+    ],
+    "coverage": {
+      "detectedMandatoryOccurrences": 5,
+      "analysisOnlyMandatoryOccurrences": 3,
+      "eligibleMandatoryOccurrences": 2,
+      "validExcludedMandatoryOccurrences": 1,
+      "renderedMandatoryOccurrences": 2,
+      "missingEligibleMandatoryOccurrences": 0,
+      "totalEligibleQuestions": 9,
+      "totalRenderedQuestions": 9,
+      "totalExcludedOccurrences": 7,
+      "sectionStatus": "COMPLETE"
+    }
+  }
+}

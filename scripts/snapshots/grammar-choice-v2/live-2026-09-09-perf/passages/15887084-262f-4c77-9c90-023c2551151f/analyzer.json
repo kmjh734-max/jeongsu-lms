@@ -1,0 +1,892 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:58:55.819Z",
+  "sourceId": "15887084-262f-4c77-9c90-023c2551151f",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 90183,
+  "inputTokens": 2209,
+  "outputTokens": 7404,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"0b6ffe30-81a0-498c-baee-c229917fb034\",\"detectedPoints\":[{\"pointCode\":\"INFINITIVE_LOGICAL_SUBJECT\",\"sourceSpan\":\"for humans\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"INFINITIVE_LOGICAL_SUBJECT\",\"sourceSpan\":\"for humans\",\"occurrenceIndex\":0,\"correctAnswer\":\"for humans\",\"distractor\":\"of humans\",\"transformCode\":\"CASE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"0840e154-7dc2-45c6-9e6f-c1e1f7bd5372\",\"detectedPoints\":[{\"pointCode\":\"ONE_OF_SUPERLATIVE\",\"sourceSpan\":\"greatest\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_DISTANCE\",\"sourceSpan\":\"was\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_ONE_OF\",\"sourceSpan\":\"was\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that variation is\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_LOGICAL_SUBJECT\",\"sourceSpan\":\"for natural selection\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"ONE_OF_SUPERLATIVE\",\"sourceSpan\":\"greatest\",\"occurrenceIndex\":0,\"correctAnswer\":\"greatest\",\"distractor\":\"most greatest\",\"transformCode\":\"FORM_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"AGREEMENT_DISTANCE\",\"sourceSpan\":\"was\",\"occurrenceIndex\":0,\"correctAnswer\":\"was\",\"distractor\":\"were\",\"transformCode\":\"NUMBER_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that variation is\",\"occurrenceIndex\":0,\"correctAnswer\":\"that variation is\",\"distractor\":\"variation is\",\"transformCode\":\"CLAUSE_MARKER\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"bf80eb0a-ba47-4823-8f6e-539106229834\",\"detectedPoints\":[{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"If there’s a huge change in the environment\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"a catastrophic drop in the food supply or a big increase in temperature\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"be completely wiped out\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"there’s\",\"occurrenceIndex\":0,\"correctAnswer\":\"there’s\",\"distractor\":\"there will be\",\"transformCode\":\"TENSE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"MEDIUM\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"a catastrophic drop in the food supply or a big increase in temperature\",\"occurrenceIndex\":0,\"correctAnswer\":\"a catastrophic drop in the food supply or a big increase in temperature\",\"distractor\":\"a catastrophic drop in the food supply or a big increasing in temperature\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"be completely wiped out\",\"occurrenceIndex\":0,\"correctAnswer\":\"be completely wiped out\",\"distractor\":\"completely wipe out\",\"transformCode\":\"VOICE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"f6b27df7-bfdb-4e69-a974-90df1965fa56\",\"detectedPoints\":[{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"who\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more likely\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARTICIPLE_SUBJECT_COMPLEMENT\",\"sourceSpan\":\"well suited\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":0,\"correctAnswer\":\"are\",\"distractor\":\"is\",\"transformCode\":\"NUMBER_SWAP\",\"priority\":\"MANDATORY\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"who\",\"occurrenceIndex\":0,\"correctAnswer\":\"who\",\"distractor\":\"whom\",\"transformCode\":\"RELATIVE_CHOICE\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more likely\",\"occurrenceIndex\":0,\"correctAnswer\":\"more likely\",\"distractor\":\"more likelier\",\"transformCode\":\"FORM_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"3848abd0-8384-4cd5-b6ae-e903d6160881\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"observed variation in the bodies of animals, and the same principle applies\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"}],\"candidates\":[]},{\"sentenceId\":\"b2ddcd90-4c6f-4bef-968c-68bf34ca6d74\",\"detectedPoints\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"had\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"were\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"If we all had the same kind of mind—if there were only one human nature\",\"occurrenceIndex\":0,\"priority\":\"MANDATORY\",\"omissionReason\":\"NO_UNIQUE_DISTRACTOR\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"If we all had the same kind of mind\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if there were only one human nature\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"had\",\"occurrenceIndex\":0,\"correctAnswer\":\"had\",\"distractor\":\"would have\",\"transformCode\":\"CONDITIONAL_FORM\",\"priority\":\"MANDATORY\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"CONDITIONAL_SECOND\",\"sourceSpan\":\"were\",\"occurrenceIndex\":0,\"correctAnswer\":\"were\",\"distractor\":\"would be\",\"transformCode\":\"CONDITIONAL_FORM\",\"priority\":\"MANDATORY\",\"difficulty\":\"ADVANCED\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"8f0b7dfd-fd15-4103-8e44-16957df2cfc6\",\"detectedPoints\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"both within a single culture and across cultures\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"within a single culture and across cultures\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"less likely\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"be wiped out\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"CORRELATIVE_BOTH_AND\",\"sourceSpan\":\"both within a single culture and across cultures\",\"occurrenceIndex\":0,\"correctAnswer\":\"both within a single culture and across cultures\",\"distractor\":\"both within a single culture or across cultures\",\"transformCode\":\"PARALLEL_FORM\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"less likely\",\"occurrenceIndex\":0,\"correctAnswer\":\"less likely\",\"distractor\":\"less likelier\",\"transformCode\":\"FORM_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"BASIC\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"VOICE_ACTIVE_PASSIVE\",\"sourceSpan\":\"be wiped out\",\"occurrenceIndex\":0,\"correctAnswer\":\"be wiped out\",\"distractor\":\"wipe out\",\"transformCode\":\"VOICE_SWAP\",\"priority\":\"CORE\",\"difficulty\":\"CORE\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"e2b4bbf0-8a07-40fd-91a7-095038e9f8f0\",\"detectedPoints\":[{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"This\",\"occurrenceIndex\":0,\"priority\":\"CORE\",\"omissionReason\":\"\"}],\"candidates\":[]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+        "detectedPoints": [
+          {
+            "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+            "sourceSpan": "for humans",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+            "sourceSpan": "for humans",
+            "occurrenceIndex": 0,
+            "correctAnswer": "for humans",
+            "distractor": "of humans",
+            "transformCode": "CASE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+        "detectedPoints": [
+          {
+            "pointCode": "ONE_OF_SUPERLATIVE",
+            "sourceSpan": "greatest",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sourceSpan": "was",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_ONE_OF",
+            "sourceSpan": "was",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that variation is",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+            "sourceSpan": "for natural selection",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "ONE_OF_SUPERLATIVE",
+            "sourceSpan": "greatest",
+            "occurrenceIndex": 0,
+            "correctAnswer": "greatest",
+            "distractor": "most greatest",
+            "transformCode": "FORM_SWAP",
+            "priority": "CORE",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "AGREEMENT_DISTANCE",
+            "sourceSpan": "was",
+            "occurrenceIndex": 0,
+            "correctAnswer": "was",
+            "distractor": "were",
+            "transformCode": "NUMBER_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that variation is",
+            "occurrenceIndex": 0,
+            "correctAnswer": "that variation is",
+            "distractor": "variation is",
+            "transformCode": "CLAUSE_MARKER",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+        "detectedPoints": [
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "If there’s a huge change in the environment",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "be completely wiped out",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "there’s",
+            "occurrenceIndex": 0,
+            "correctAnswer": "there’s",
+            "distractor": "there will be",
+            "transformCode": "TENSE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "MEDIUM"
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+            "occurrenceIndex": 0,
+            "correctAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+            "distractor": "a catastrophic drop in the food supply or a big increasing in temperature",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "be completely wiped out",
+            "occurrenceIndex": 0,
+            "correctAnswer": "be completely wiped out",
+            "distractor": "completely wipe out",
+            "transformCode": "VOICE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+        "detectedPoints": [
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "who",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more likely",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARTICIPLE_SUBJECT_COMPLEMENT",
+            "sourceSpan": "well suited",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 0,
+            "correctAnswer": "are",
+            "distractor": "is",
+            "transformCode": "NUMBER_SWAP",
+            "priority": "MANDATORY",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "who",
+            "occurrenceIndex": 0,
+            "correctAnswer": "who",
+            "distractor": "whom",
+            "transformCode": "RELATIVE_CHOICE",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more likely",
+            "occurrenceIndex": 0,
+            "correctAnswer": "more likely",
+            "distractor": "more likelier",
+            "transformCode": "FORM_SWAP",
+            "priority": "CORE",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "observed variation in the bodies of animals, and the same principle applies",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          }
+        ],
+        "candidates": []
+      },
+      {
+        "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+        "detectedPoints": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "had",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "were",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "If we all had the same kind of mind—if there were only one human nature",
+            "occurrenceIndex": 0,
+            "priority": "MANDATORY",
+            "omissionReason": "NO_UNIQUE_DISTRACTOR"
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "If we all had the same kind of mind",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if there were only one human nature",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "had",
+            "occurrenceIndex": 0,
+            "correctAnswer": "had",
+            "distractor": "would have",
+            "transformCode": "CONDITIONAL_FORM",
+            "priority": "MANDATORY",
+            "difficulty": "ADVANCED",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "CONDITIONAL_SECOND",
+            "sourceSpan": "were",
+            "occurrenceIndex": 0,
+            "correctAnswer": "were",
+            "distractor": "would be",
+            "transformCode": "CONDITIONAL_FORM",
+            "priority": "MANDATORY",
+            "difficulty": "ADVANCED",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+        "detectedPoints": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "both within a single culture and across cultures",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "within a single culture and across cultures",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "less likely",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "be wiped out",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "CORRELATIVE_BOTH_AND",
+            "sourceSpan": "both within a single culture and across cultures",
+            "occurrenceIndex": 0,
+            "correctAnswer": "both within a single culture and across cultures",
+            "distractor": "both within a single culture or across cultures",
+            "transformCode": "PARALLEL_FORM",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "less likely",
+            "occurrenceIndex": 0,
+            "correctAnswer": "less likely",
+            "distractor": "less likelier",
+            "transformCode": "FORM_SWAP",
+            "priority": "CORE",
+            "difficulty": "BASIC",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "VOICE_ACTIVE_PASSIVE",
+            "sourceSpan": "be wiped out",
+            "occurrenceIndex": 0,
+            "correctAnswer": "be wiped out",
+            "distractor": "wipe out",
+            "transformCode": "VOICE_SWAP",
+            "priority": "CORE",
+            "difficulty": "CORE",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+        "detectedPoints": [
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "This",
+            "occurrenceIndex": 0,
+            "priority": "CORE",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": []
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "sourceSpan": "for humans",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "ONE_OF_SUPERLATIVE",
+      "sourceSpan": "greatest",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sourceSpan": "was",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "AGREEMENT_ONE_OF",
+      "sourceSpan": "was",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that variation is",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "sourceSpan": "for natural selection",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "If there’s a huge change in the environment",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "be completely wiped out",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "who",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more likely",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "PARTICIPLE_SUBJECT_COMPLEMENT",
+      "sourceSpan": "well suited",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "3848abd0-8384-4cd5-b6ae-e903d6160881",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "observed variation in the bodies of animals, and the same principle applies",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "had",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "were",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "If we all had the same kind of mind—if there were only one human nature",
+      "occurrenceIndex": 0,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "",
+      "omissionReason": "NO_UNIQUE_DISTRACTOR"
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "If we all had the same kind of mind",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if there were only one human nature",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "both within a single culture and across cultures",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "within a single culture and across cultures",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "less likely",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "be wiped out",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    },
+    {
+      "sentenceId": "e2b4bbf0-8a07-40fd-91a7-095038e9f8f0",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "This",
+      "occurrenceIndex": 0,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": ""
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0b6ffe30-81a0-498c-baee-c229917fb034-1",
+      "sentenceId": "0b6ffe30-81a0-498c-baee-c229917fb034",
+      "pointCode": "INFINITIVE_LOGICAL_SUBJECT",
+      "sourceSpan": "for humans",
+      "occurrenceIndex": 0,
+      "correctAnswer": "for humans",
+      "distractors": [
+        "of humans"
+      ],
+      "transformCode": "CASE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-2",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "ONE_OF_SUPERLATIVE",
+      "sourceSpan": "greatest",
+      "occurrenceIndex": 0,
+      "correctAnswer": "greatest",
+      "distractors": [
+        "most greatest"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-3",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "AGREEMENT_DISTANCE",
+      "sourceSpan": "was",
+      "occurrenceIndex": 0,
+      "correctAnswer": "was",
+      "distractors": [
+        "were"
+      ],
+      "transformCode": "NUMBER_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-0840e154-7dc2-45c6-9e6f-c1e1f7bd5372-4",
+      "sentenceId": "0840e154-7dc2-45c6-9e6f-c1e1f7bd5372",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that variation is",
+      "occurrenceIndex": 0,
+      "correctAnswer": "that variation is",
+      "distractors": [
+        "variation is"
+      ],
+      "transformCode": "CLAUSE_MARKER",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-5",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "there’s",
+      "occurrenceIndex": 0,
+      "correctAnswer": "there’s",
+      "distractors": [
+        "there will be"
+      ],
+      "transformCode": "TENSE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "MEDIUM"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-6",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "a catastrophic drop in the food supply or a big increase in temperature",
+      "occurrenceIndex": 0,
+      "correctAnswer": "a catastrophic drop in the food supply or a big increase in temperature",
+      "distractors": [
+        "a catastrophic drop in the food supply or a big increasing in temperature"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-bf80eb0a-ba47-4823-8f6e-539106229834-7",
+      "sentenceId": "bf80eb0a-ba47-4823-8f6e-539106229834",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "be completely wiped out",
+      "occurrenceIndex": 0,
+      "correctAnswer": "be completely wiped out",
+      "distractors": [
+        "completely wipe out"
+      ],
+      "transformCode": "VOICE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-8",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 0,
+      "correctAnswer": "are",
+      "distractors": [
+        "is"
+      ],
+      "transformCode": "NUMBER_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-9",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "who",
+      "occurrenceIndex": 0,
+      "correctAnswer": "who",
+      "distractors": [
+        "whom"
+      ],
+      "transformCode": "RELATIVE_CHOICE",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-f6b27df7-bfdb-4e69-a974-90df1965fa56-10",
+      "sentenceId": "f6b27df7-bfdb-4e69-a974-90df1965fa56",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more likely",
+      "occurrenceIndex": 0,
+      "correctAnswer": "more likely",
+      "distractors": [
+        "more likelier"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-11",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "had",
+      "occurrenceIndex": 0,
+      "correctAnswer": "had",
+      "distractors": [
+        "would have"
+      ],
+      "transformCode": "CONDITIONAL_FORM",
+      "priority": "MANDATORY",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-b2ddcd90-4c6f-4bef-968c-68bf34ca6d74-12",
+      "sentenceId": "b2ddcd90-4c6f-4bef-968c-68bf34ca6d74",
+      "pointCode": "CONDITIONAL_SECOND",
+      "sourceSpan": "were",
+      "occurrenceIndex": 0,
+      "correctAnswer": "were",
+      "distractors": [
+        "would be"
+      ],
+      "transformCode": "CONDITIONAL_FORM",
+      "priority": "MANDATORY",
+      "difficulty": "ADVANCED",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-13",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "CORRELATIVE_BOTH_AND",
+      "sourceSpan": "both within a single culture and across cultures",
+      "occurrenceIndex": 0,
+      "correctAnswer": "both within a single culture and across cultures",
+      "distractors": [
+        "both within a single culture or across cultures"
+      ],
+      "transformCode": "PARALLEL_FORM",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-14",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "less likely",
+      "occurrenceIndex": 0,
+      "correctAnswer": "less likely",
+      "distractors": [
+        "less likelier"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "BASIC",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "15887084-262f-4c77-9c90-023c2551151f-8f0b7dfd-fd15-4103-8e44-16957df2cfc6-15",
+      "sentenceId": "8f0b7dfd-fd15-4103-8e44-16957df2cfc6",
+      "pointCode": "VOICE_ACTIVE_PASSIVE",
+      "sourceSpan": "be wiped out",
+      "occurrenceIndex": 0,
+      "correctAnswer": "be wiped out",
+      "distractors": [
+        "wipe out"
+      ],
+      "transformCode": "VOICE_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "",
+      "ruleSummaryKo": "",
+      "riskLevel": "LOW"
+    }
+  ],
+  "routeMs": 1
+}

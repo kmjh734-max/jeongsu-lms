@@ -1,0 +1,80 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T08:37:43.661Z",
+  "sourceId": "ff6fa8a9-b3b6-4c0b-99d7-09b8b06efc8c",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "title": "우리는 움직이기 위해 태어났다",
+  "source": null,
+  "passage": "We are wonderfully made, yet we don’t allow ourselves to participate in the wonder for which we were created. Instead of moving anywhere and everywhere, most of us spend our time moving nowhere. We occupy the same square footage of a chair for hours and hours every day. Many kids today are being held captive by ‘smart’ devices like phones and tablets. They are not going outside to play, they are not learning how to socialize and read physical cues from others. As a result they are not learning or building their movement repertoire, the very thing that will help them learn, communicate, create, and become emotionally mature. They are not even learning how to run, how to skip, or how to climb. Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have. The point is we are getting further and further away from our design. We were made to move—and through movement, we are meant to live extraordinary lives. Movement is life to us.",
+  "sha256": "063e74c8cf3e20cf0da3a82a34a2c92fbca9db2e580996782d7a978255c18dfc",
+  "sentenceCount": 11,
+  "sentences": [
+    {
+      "sentenceId": "fa5d682b-9c04-4f0b-a13a-a7664555dabe",
+      "order": 0,
+      "text": "We are wonderfully made, yet we don’t allow ourselves to participate in the wonder for which we were created."
+    },
+    {
+      "sentenceId": "eca1cec4-e242-4e74-ad3d-b63d8450f4a3",
+      "order": 1,
+      "text": "Instead of moving anywhere and everywhere, most of us spend our time moving nowhere."
+    },
+    {
+      "sentenceId": "d6ab89e5-d089-4b0f-ae48-75ff480e3ac6",
+      "order": 2,
+      "text": "We occupy the same square footage of a chair for hours and hours every day."
+    },
+    {
+      "sentenceId": "7286ec55-f639-41ab-a201-d8b2243dce97",
+      "order": 3,
+      "text": "Many kids today are being held captive by ‘smart’ devices like phones and tablets."
+    },
+    {
+      "sentenceId": "17a8930e-18fb-49e8-9fc0-6b2442b87be5",
+      "order": 4,
+      "text": "They are not going outside to play, they are not learning how to socialize and read physical cues from others."
+    },
+    {
+      "sentenceId": "55d3264f-cc23-4ead-85c6-c6d6153f2880",
+      "order": 5,
+      "text": "As a result they are not learning or building their movement repertoire, the very thing that will help them learn, communicate, create, and become emotionally mature."
+    },
+    {
+      "sentenceId": "38c8d85b-3668-4faf-b802-96c52b453612",
+      "order": 6,
+      "text": "They are not even learning how to run, how to skip, or how to climb."
+    },
+    {
+      "sentenceId": "433f228c-5bae-4525-b373-9af91700f7a9",
+      "order": 7,
+      "text": "Instead, they are learning how to live with anxiety, depression, and even diseases they were never meant to have."
+    },
+    {
+      "sentenceId": "c8869225-b030-4f97-8dd7-f08bf0440400",
+      "order": 8,
+      "text": "The point is we are getting further and further away from our design."
+    },
+    {
+      "sentenceId": "6230dd5c-f0f6-4cb7-a037-2d2e8f988674",
+      "order": 9,
+      "text": "We were made to move—and through movement, we are meant to live extraordinary lives."
+    },
+    {
+      "sentenceId": "6ce0a23c-a15f-410c-bd32-f7e6016a247a",
+      "order": 10,
+      "text": "Movement is life to us."
+    }
+  ]
+}

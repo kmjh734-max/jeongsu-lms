@@ -1,0 +1,1847 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T09:57:05.549Z",
+  "sourceId": "0cd85cff-26cb-44be-ba52-824855a4170e",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "responseModel": "gpt-5.6-sol",
+  "latencyMs": 120820,
+  "inputTokens": 1921,
+  "outputTokens": 8976,
+  "rawJson": "{\"sentences\":[{\"sentenceId\":\"da72b219-e5aa-46f2-9103-16cdf87752fd\",\"detectedPoints\":[{\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"쉼표 뒤에서 선행사를 부연 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"states\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"관계절 동사가 단수 선행사에 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"두 that절이 and로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"states의 목적어인 완전한 절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"병렬된 두 번째 명사절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREPOSITION_OBJECT\",\"sourceSpan\":\"focusing\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"LOW\",\"evidence\":\"전치사 by의 목적어로 동명사가 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_PREP_OBJECT_ANALYSIS\",\"sourceSpan\":\"focusing\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"by 뒤의 focusing은 동명사 목적어임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"positive or negative\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"동일한 품사의 형용사가 or로 병렬됨\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"positive or negative\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"결과를 수식하는 형용사가 or로 병렬됨\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"RELATIVE_NONRESTRICTIVE\",\"sourceSpan\":\"which\",\"occurrenceIndex\":1,\"correctAnswer\":\"which\",\"distractors\":[\"that\"],\"transformCode\":\"NONRESTRICTIVE_RELATIVE_CHOICE\",\"priority\":\"MANDATORY\",\"difficulty\":\"EASY\",\"evidence\":\"쉼표 뒤 계속적 용법에는 that을 쓰지 않음\",\"ruleSummaryKo\":\"계속적 관계절은 which로 이끈다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"states\",\"occurrenceIndex\":1,\"correctAnswer\":\"states\",\"distractors\":[\"state\"],\"transformCode\":\"RELATIVE_VERB_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"EASY\",\"evidence\":\"which의 선행사 the Law는 단수임\",\"ruleSummaryKo\":\"관계절 동사는 선행사의 수에 일치한다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"PARALLEL_CLAUSE_CONNECTOR\",\"priority\":\"MANDATORY\",\"difficulty\":\"MEDIUM\",\"evidence\":\"states에 연결된 완전한 두 절이 병렬됨\",\"ruleSummaryKo\":\"병렬된 명사절은 같은 접속 구조를 유지한다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"NOUN_CLAUSE_CONNECTOR\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"뒤 절에 빠진 문장 성분이 없음\",\"ruleSummaryKo\":\"완전한 명사절은 접속사 that으로 이끈다\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"4ab316e4-c31d-40fa-8fa6-4b44970bc901\",\"detectedPoints\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"긴 주어의 중심 명사 flaw는 단수임\",\"omissionReason\":\"\"},{\"pointCode\":\"AGREEMENT_PREPOSITIONAL_MODIFIER\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"전치사구와 무관하게 flaw에 수를 맞춤\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"주어와 뒤의 보어를 연결하는 동사임\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"that we believe all we have to do is think about or visualize something to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"that절이 주어 The common flaw를 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"완전한 보어절을 접속사 that이 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"PSEUDO_CLEFT_ALL\",\"sourceSpan\":\"all we have to do is think\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"all절 뒤에 보어 동작이 제시된 구조임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"visualize\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"think about과 visualize가 or로 병렬됨\",\"omissionReason\":\"\"},{\"pointCode\":\"INFINITIVE_ADVERB_ROLE\",\"sourceSpan\":\"to manifest it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"행동의 목적을 나타내는 부정사구임\",\"omissionReason\":\"\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"it\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"단수 대명사가 something을 가리킴\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"AGREEMENT_LONG_SUBJECT\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"correctAnswer\":\"is\",\"distractors\":[\"are\"],\"transformCode\":\"LONG_SUBJECT_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"MEDIUM\",\"evidence\":\"주어의 중심 명사 flaw가 단수임\",\"ruleSummaryKo\":\"긴 주어에서도 중심 명사에 동사를 일치시킨다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"NOUN_CLAUSE_CONNECTOR\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"뒤 절이 필수 성분을 모두 갖춘 완전한 절임\",\"ruleSummaryKo\":\"완전한 명사절에는 접속사 that을 쓴다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"visualize\",\"occurrenceIndex\":1,\"correctAnswer\":\"visualize\",\"distractors\":[\"visualizing\",\"visualized\"],\"transformCode\":\"PARALLEL_VERB_FORM\",\"priority\":\"CORE\",\"difficulty\":\"EASY\",\"evidence\":\"or 앞의 think와 같은 동사 형태가 필요함\",\"ruleSummaryKo\":\"등위 접속된 동사는 형태를 병렬로 맞춘다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"it\",\"occurrenceIndex\":1,\"correctAnswer\":\"it\",\"distractors\":[\"them\"],\"transformCode\":\"PRONOUN_NUMBER_REFERENCE\",\"priority\":\"CORE\",\"difficulty\":\"EASY\",\"evidence\":\"선행사 something이 단수임\",\"ruleSummaryKo\":\"대명사의 수는 선행사와 일치해야 한다\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"d5266686-93c2-4e30-a119-19682a4254a3\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"두 that절이 and로 병렬 연결됨\",\"omissionReason\":\"\"},{\"pointCode\":\"DUMMY_IT_SUBJECT\",\"sourceSpan\":\"It\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"뒤의 that절을 대신하는 가주어임\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"첫 번째 진주어 명사절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"병렬된 두 번째 진주어절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"is true\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"연결동사 뒤에 주격보어가 놓임\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"true\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"형용사 true가 주어의 상태를 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"are extremely magnetic\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"be동사 뒤에 형용사 보어가 놓임\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"magnetic\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"magnetic이 thoughts and words를 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"extremely\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"HIGH\",\"evidence\":\"부사가 형용사 magnetic을 수식함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"thoughts and words\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"두 복수 명사가 and로 병렬됨\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_CLAUSES\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"PARALLEL_CLAUSE_CONNECTOR\",\"priority\":\"MANDATORY\",\"difficulty\":\"MEDIUM\",\"evidence\":\"and 양쪽에 완전한 명사절이 병렬됨\",\"ruleSummaryKo\":\"병렬된 명사절은 같은 접속 구조를 유지한다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"DUMMY_IT_SUBJECT\",\"sourceSpan\":\"It\",\"occurrenceIndex\":1,\"correctAnswer\":\"It\",\"distractors\":[\"This\"],\"transformCode\":\"DUMMY_IT_SELECTION\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"뒤의 that절이 실질적인 주어임\",\"ruleSummaryKo\":\"긴 진주어절은 가주어 it으로 뒤로 보낼 수 있다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"extremely\",\"occurrenceIndex\":1,\"correctAnswer\":\"extremely\",\"distractors\":[\"extreme\"],\"transformCode\":\"ADVERB_ADJECTIVE_MODIFICATION\",\"priority\":\"BASIC\",\"difficulty\":\"EASY\",\"evidence\":\"형용사 magnetic을 수식하므로 부사가 필요함\",\"ruleSummaryKo\":\"형용사를 수식할 때는 부사형을 쓴다\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"68aaa91d-8a8d-433f-84ce-0ff97f13e5ad\",\"detectedPoints\":[{\"pointCode\":\"SUPERLATIVE\",\"sourceSpan\":\"the most powerful\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"the와 most가 형용사의 최상급을 이룸\",\"omissionReason\":\"\"},{\"pointCode\":\"SENTENCE_SVC\",\"sourceSpan\":\"is\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"주어와 명사 보어를 연결하는 동사임\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"our belief system\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"명사구가 주어 the attractor를 설명함\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"SUPERLATIVE\",\"sourceSpan\":\"the most powerful\",\"occurrenceIndex\":1,\"correctAnswer\":\"the most powerful\",\"distractors\":[\"the more powerful\",\"most powerful\"],\"transformCode\":\"SUPERLATIVE_FORM\",\"priority\":\"CORE\",\"difficulty\":\"EASY\",\"evidence\":\"하나를 최고 수준으로 특정하는 최상급 표현임\",\"ruleSummaryKo\":\"최상급 형용사 앞에는 일반적으로 the를 쓴다\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"87bc4fa5-3d09-437a-ad55-6778552d7b34\",\"detectedPoints\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"affirm\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"create와 affirm이 and로 병렬됨\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"선행사를 포함하며 of의 목적어절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"affirm의 목적어인 완전한 절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_CLAUSE_CONDITION\",\"sourceSpan\":\"if\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"실현 가능한 조건을 나타내는 부사절을 이끎\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"attracting\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"동명사구가 조건절 뒤 주절의 주어임\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_ANALYSIS\",\"sourceSpan\":\"attracting a great career or relationship into your life\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"전체 동명사구가 may be의 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"GERUND_SUBJECT_AGREEMENT_ANALYSIS\",\"sourceSpan\":\"attracting a great career or relationship into your life\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"동명사구는 하나의 행위로 단수 취급됨\",\"omissionReason\":\"\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more challenging\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"more가 형용사의 비교급을 형성함\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"can\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"행동의 가능성을 나타내는 조동사임\",\"omissionReason\":\"\"},{\"pointCode\":\"MODAL_MEANING\",\"sourceSpan\":\"may\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"결과의 가능성을 나타내는 조동사임\",\"omissionReason\":\"\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"incredibly\",\"occurrenceIndex\":1,\"priority\":\"BASIC\",\"questionability\":\"HIGH\",\"evidence\":\"부사가 형용사 successful을 수식함\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"available\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"형용사가 주어 you의 상태를 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"SUBJECT_COMPLEMENT\",\"sourceSpan\":\"enough, worthy, lovable, and deserving\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"MEDIUM\",\"evidence\":\"병렬 형용사들이 주어 you를 설명함\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_AND_OR_BUT\",\"sourceSpan\":\"enough, worthy, lovable, and deserving\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"네 형용사가 동일한 보어로 병렬됨\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"affirm\",\"occurrenceIndex\":1,\"correctAnswer\":\"affirm\",\"distractors\":[\"affirming\",\"affirmed\"],\"transformCode\":\"PARALLEL_VERB_FORM\",\"priority\":\"CORE\",\"difficulty\":\"EASY\",\"evidence\":\"and 앞의 create와 같은 동사 형태가 필요함\",\"ruleSummaryKo\":\"등위 접속된 동사는 형태를 병렬로 맞춘다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what\",\"occurrenceIndex\":1,\"correctAnswer\":\"what\",\"distractors\":[\"which\",\"that\"],\"transformCode\":\"FUSED_RELATIVE_CHOICE\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"별도 선행사 없이 원하는 것을 뜻함\",\"ruleSummaryKo\":\"what은 선행사를 포함한 관계대명사이다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"NOUN_CLAUSE_THAT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"correctAnswer\":\"that\",\"distractors\":[\"what\"],\"transformCode\":\"NOUN_CLAUSE_CONNECTOR\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"뒤 절에 빠진 문장 성분이 없음\",\"ruleSummaryKo\":\"완전한 목적어절은 접속사 that으로 이끈다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"GERUND_SUBJECT\",\"sourceSpan\":\"attracting\",\"occurrenceIndex\":1,\"correctAnswer\":\"attracting\",\"distractors\":[\"attract\",\"attracted\"],\"transformCode\":\"GERUND_SUBJECT_FORM\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"may be 앞에서 행위를 주어로 나타냄\",\"ruleSummaryKo\":\"동작을 문장의 주어로 쓰면 동명사를 쓸 수 있다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"COMPARATIVE\",\"sourceSpan\":\"more challenging\",\"occurrenceIndex\":1,\"correctAnswer\":\"more challenging\",\"distractors\":[\"most challenging\",\"more challenged\"],\"transformCode\":\"COMPARATIVE_ADJECTIVE_FORM\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"조건에 따른 상대적 난도를 나타냄\",\"ruleSummaryKo\":\"긴 형용사의 비교급은 more와 원급으로 만든다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"ADVERB_ADJECTIVE_MODIFIER\",\"sourceSpan\":\"incredibly\",\"occurrenceIndex\":1,\"correctAnswer\":\"incredibly\",\"distractors\":[\"incredible\"],\"transformCode\":\"ADVERB_ADJECTIVE_MODIFICATION\",\"priority\":\"BASIC\",\"difficulty\":\"EASY\",\"evidence\":\"형용사 successful을 수식하므로 부사가 필요함\",\"ruleSummaryKo\":\"형용사를 수식할 때는 부사형을 쓴다\",\"riskLevel\":\"LOW\"}]},{\"sentenceId\":\"fc1cfdbe-8e0a-40e7-89c6-c75336681cf4\",\"detectedPoints\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"you have\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"의문사절 안에서 주어와 동사가 평서문 어순임\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"contradict\",\"occurrenceIndex\":1,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"관계절 동사가 복수 선행사 beliefs에 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":2,\"priority\":\"MANDATORY\",\"questionability\":\"HIGH\",\"evidence\":\"관계절 동사가 복수 선행사 beliefs에 일치함\",\"omissionReason\":\"\"},{\"pointCode\":\"NOUN_CLAUSE_WH_WORD\",\"sourceSpan\":\"what limiting beliefs you have\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"Consider의 목적어인 의문사 명사절임\",\"omissionReason\":\"\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"upgrade\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"Consider와 upgrade가 and로 병렬됨\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"관계절에서 that이 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"them\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"복수 대명사가 limiting beliefs를 가리킴\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_SUBJECT\",\"sourceSpan\":\"that\",\"occurrenceIndex\":2,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"관계절에서 that이 주어 역할을 함\",\"omissionReason\":\"\"},{\"pointCode\":\"PREPOSITION_COLLOCATION\",\"sourceSpan\":\"with\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"LOW\",\"evidence\":\"in line with의 필수 전치사로 쓰임\",\"omissionReason\":\"\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what\",\"occurrenceIndex\":1,\"priority\":\"CORE\",\"questionability\":\"HIGH\",\"evidence\":\"선행사를 포함하며 with의 목적어절을 이끎\",\"omissionReason\":\"\"}],\"candidates\":[{\"pointCode\":\"INDIRECT_QUESTION_ORDER\",\"sourceSpan\":\"you have\",\"occurrenceIndex\":1,\"correctAnswer\":\"you have\",\"distractors\":[\"do you have\"],\"transformCode\":\"INDIRECT_QUESTION_WORD_ORDER\",\"priority\":\"MANDATORY\",\"difficulty\":\"MEDIUM\",\"evidence\":\"명사절 내부에는 의문문 도치를 적용하지 않음\",\"ruleSummaryKo\":\"간접의문문은 의문사 뒤에 평서문 어순을 쓴다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"contradict\",\"occurrenceIndex\":1,\"correctAnswer\":\"contradict\",\"distractors\":[\"contradicts\"],\"transformCode\":\"RELATIVE_VERB_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"MEDIUM\",\"evidence\":\"선행사 limiting beliefs가 복수임\",\"ruleSummaryKo\":\"관계절 동사는 선행사의 수에 일치한다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_AGREEMENT\",\"sourceSpan\":\"are\",\"occurrenceIndex\":2,\"correctAnswer\":\"are\",\"distractors\":[\"is\"],\"transformCode\":\"RELATIVE_VERB_AGREEMENT\",\"priority\":\"MANDATORY\",\"difficulty\":\"EASY\",\"evidence\":\"선행사 beliefs가 복수임\",\"ruleSummaryKo\":\"복수 선행사의 관계절에는 복수 동사를 쓴다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PARALLEL_VERBS\",\"sourceSpan\":\"upgrade\",\"occurrenceIndex\":1,\"correctAnswer\":\"upgrade\",\"distractors\":[\"upgrading\",\"upgraded\"],\"transformCode\":\"PARALLEL_VERB_FORM\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"and 앞의 Consider와 같은 동사 형태가 필요함\",\"ruleSummaryKo\":\"and로 연결된 동사는 같은 형태로 병렬시킨다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"PRONOUN_ANTECEDENT\",\"sourceSpan\":\"them\",\"occurrenceIndex\":1,\"correctAnswer\":\"them\",\"distractors\":[\"it\"],\"transformCode\":\"PRONOUN_NUMBER_REFERENCE\",\"priority\":\"CORE\",\"difficulty\":\"EASY\",\"evidence\":\"선행사 limiting beliefs가 복수임\",\"ruleSummaryKo\":\"복수 선행사는 복수 대명사로 받아야 한다\",\"riskLevel\":\"LOW\"},{\"pointCode\":\"RELATIVE_WHAT\",\"sourceSpan\":\"what\",\"occurrenceIndex\":1,\"correctAnswer\":\"what\",\"distractors\":[\"which\",\"that\"],\"transformCode\":\"FUSED_RELATIVE_CHOICE\",\"priority\":\"CORE\",\"difficulty\":\"MEDIUM\",\"evidence\":\"별도 선행사 없이 원하는 것을 뜻함\",\"ruleSummaryKo\":\"what은 선행사를 포함한 관계대명사이다\",\"riskLevel\":\"LOW\"}]}]}",
+  "parsed": {
+    "sentences": [
+      {
+        "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+        "detectedPoints": [
+          {
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "쉼표 뒤에서 선행사를 부연 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "states",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "관계절 동사가 단수 선행사에 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "두 that절이 and로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "states의 목적어인 완전한 절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "병렬된 두 번째 명사절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREPOSITION_OBJECT",
+            "sourceSpan": "focusing",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "LOW",
+            "evidence": "전치사 by의 목적어로 동명사가 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+            "sourceSpan": "focusing",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "by 뒤의 focusing은 동명사 목적어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "positive or negative",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "동일한 품사의 형용사가 or로 병렬됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "positive or negative",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "결과를 수식하는 형용사가 or로 병렬됨",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "RELATIVE_NONRESTRICTIVE",
+            "sourceSpan": "which",
+            "occurrenceIndex": 1,
+            "correctAnswer": "which",
+            "distractors": [
+              "that"
+            ],
+            "transformCode": "NONRESTRICTIVE_RELATIVE_CHOICE",
+            "priority": "MANDATORY",
+            "difficulty": "EASY",
+            "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+            "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "states",
+            "occurrenceIndex": 1,
+            "correctAnswer": "states",
+            "distractors": [
+              "state"
+            ],
+            "transformCode": "RELATIVE_VERB_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "EASY",
+            "evidence": "which의 선행사 the Law는 단수임",
+            "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치한다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "PARALLEL_CLAUSE_CONNECTOR",
+            "priority": "MANDATORY",
+            "difficulty": "MEDIUM",
+            "evidence": "states에 연결된 완전한 두 절이 병렬됨",
+            "ruleSummaryKo": "병렬된 명사절은 같은 접속 구조를 유지한다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "NOUN_CLAUSE_CONNECTOR",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "뒤 절에 빠진 문장 성분이 없음",
+            "ruleSummaryKo": "완전한 명사절은 접속사 that으로 이끈다",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+        "detectedPoints": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "긴 주어의 중심 명사 flaw는 단수임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "전치사구와 무관하게 flaw에 수를 맞춤",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "주어와 뒤의 보어를 연결하는 동사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "that절이 주어 The common flaw를 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "완전한 보어절을 접속사 that이 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PSEUDO_CLEFT_ALL",
+            "sourceSpan": "all we have to do is think",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "all절 뒤에 보어 동작이 제시된 구조임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "visualize",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "think about과 visualize가 or로 병렬됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "INFINITIVE_ADVERB_ROLE",
+            "sourceSpan": "to manifest it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "행동의 목적을 나타내는 부정사구임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "it",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "단수 대명사가 something을 가리킴",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "AGREEMENT_LONG_SUBJECT",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "correctAnswer": "is",
+            "distractors": [
+              "are"
+            ],
+            "transformCode": "LONG_SUBJECT_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "MEDIUM",
+            "evidence": "주어의 중심 명사 flaw가 단수임",
+            "ruleSummaryKo": "긴 주어에서도 중심 명사에 동사를 일치시킨다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "NOUN_CLAUSE_CONNECTOR",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "뒤 절이 필수 성분을 모두 갖춘 완전한 절임",
+            "ruleSummaryKo": "완전한 명사절에는 접속사 that을 쓴다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "visualize",
+            "occurrenceIndex": 1,
+            "correctAnswer": "visualize",
+            "distractors": [
+              "visualizing",
+              "visualized"
+            ],
+            "transformCode": "PARALLEL_VERB_FORM",
+            "priority": "CORE",
+            "difficulty": "EASY",
+            "evidence": "or 앞의 think와 같은 동사 형태가 필요함",
+            "ruleSummaryKo": "등위 접속된 동사는 형태를 병렬로 맞춘다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "it",
+            "occurrenceIndex": 1,
+            "correctAnswer": "it",
+            "distractors": [
+              "them"
+            ],
+            "transformCode": "PRONOUN_NUMBER_REFERENCE",
+            "priority": "CORE",
+            "difficulty": "EASY",
+            "evidence": "선행사 something이 단수임",
+            "ruleSummaryKo": "대명사의 수는 선행사와 일치해야 한다",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "두 that절이 and로 병렬 연결됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "DUMMY_IT_SUBJECT",
+            "sourceSpan": "It",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "뒤의 that절을 대신하는 가주어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "첫 번째 진주어 명사절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "병렬된 두 번째 진주어절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "is true",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "연결동사 뒤에 주격보어가 놓임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "true",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "형용사 true가 주어의 상태를 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "are extremely magnetic",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "be동사 뒤에 형용사 보어가 놓임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "magnetic",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "magnetic이 thoughts and words를 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "extremely",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "HIGH",
+            "evidence": "부사가 형용사 magnetic을 수식함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "thoughts and words",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "두 복수 명사가 and로 병렬됨",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_CLAUSES",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "PARALLEL_CLAUSE_CONNECTOR",
+            "priority": "MANDATORY",
+            "difficulty": "MEDIUM",
+            "evidence": "and 양쪽에 완전한 명사절이 병렬됨",
+            "ruleSummaryKo": "병렬된 명사절은 같은 접속 구조를 유지한다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "DUMMY_IT_SUBJECT",
+            "sourceSpan": "It",
+            "occurrenceIndex": 1,
+            "correctAnswer": "It",
+            "distractors": [
+              "This"
+            ],
+            "transformCode": "DUMMY_IT_SELECTION",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "뒤의 that절이 실질적인 주어임",
+            "ruleSummaryKo": "긴 진주어절은 가주어 it으로 뒤로 보낼 수 있다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "extremely",
+            "occurrenceIndex": 1,
+            "correctAnswer": "extremely",
+            "distractors": [
+              "extreme"
+            ],
+            "transformCode": "ADVERB_ADJECTIVE_MODIFICATION",
+            "priority": "BASIC",
+            "difficulty": "EASY",
+            "evidence": "형용사 magnetic을 수식하므로 부사가 필요함",
+            "ruleSummaryKo": "형용사를 수식할 때는 부사형을 쓴다",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+        "detectedPoints": [
+          {
+            "pointCode": "SUPERLATIVE",
+            "sourceSpan": "the most powerful",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "the와 most가 형용사의 최상급을 이룸",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SENTENCE_SVC",
+            "sourceSpan": "is",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "주어와 명사 보어를 연결하는 동사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "our belief system",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "명사구가 주어 the attractor를 설명함",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "SUPERLATIVE",
+            "sourceSpan": "the most powerful",
+            "occurrenceIndex": 1,
+            "correctAnswer": "the most powerful",
+            "distractors": [
+              "the more powerful",
+              "most powerful"
+            ],
+            "transformCode": "SUPERLATIVE_FORM",
+            "priority": "CORE",
+            "difficulty": "EASY",
+            "evidence": "하나를 최고 수준으로 특정하는 최상급 표현임",
+            "ruleSummaryKo": "최상급 형용사 앞에는 일반적으로 the를 쓴다",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+        "detectedPoints": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "affirm",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "create와 affirm이 and로 병렬됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "선행사를 포함하며 of의 목적어절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "affirm의 목적어인 완전한 절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_CLAUSE_CONDITION",
+            "sourceSpan": "if",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "실현 가능한 조건을 나타내는 부사절을 이끎",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "attracting",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "동명사구가 조건절 뒤 주절의 주어임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_ANALYSIS",
+            "sourceSpan": "attracting a great career or relationship into your life",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "전체 동명사구가 may be의 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+            "sourceSpan": "attracting a great career or relationship into your life",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "동명사구는 하나의 행위로 단수 취급됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more challenging",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "more가 형용사의 비교급을 형성함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "can",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "행동의 가능성을 나타내는 조동사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "MODAL_MEANING",
+            "sourceSpan": "may",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "결과의 가능성을 나타내는 조동사임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "incredibly",
+            "occurrenceIndex": 1,
+            "priority": "BASIC",
+            "questionability": "HIGH",
+            "evidence": "부사가 형용사 successful을 수식함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "available",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "형용사가 주어 you의 상태를 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "SUBJECT_COMPLEMENT",
+            "sourceSpan": "enough, worthy, lovable, and deserving",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "MEDIUM",
+            "evidence": "병렬 형용사들이 주어 you를 설명함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_AND_OR_BUT",
+            "sourceSpan": "enough, worthy, lovable, and deserving",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "네 형용사가 동일한 보어로 병렬됨",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "affirm",
+            "occurrenceIndex": 1,
+            "correctAnswer": "affirm",
+            "distractors": [
+              "affirming",
+              "affirmed"
+            ],
+            "transformCode": "PARALLEL_VERB_FORM",
+            "priority": "CORE",
+            "difficulty": "EASY",
+            "evidence": "and 앞의 create와 같은 동사 형태가 필요함",
+            "ruleSummaryKo": "등위 접속된 동사는 형태를 병렬로 맞춘다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what",
+            "distractors": [
+              "which",
+              "that"
+            ],
+            "transformCode": "FUSED_RELATIVE_CHOICE",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "별도 선행사 없이 원하는 것을 뜻함",
+            "ruleSummaryKo": "what은 선행사를 포함한 관계대명사이다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_THAT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "correctAnswer": "that",
+            "distractors": [
+              "what"
+            ],
+            "transformCode": "NOUN_CLAUSE_CONNECTOR",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "뒤 절에 빠진 문장 성분이 없음",
+            "ruleSummaryKo": "완전한 목적어절은 접속사 that으로 이끈다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "GERUND_SUBJECT",
+            "sourceSpan": "attracting",
+            "occurrenceIndex": 1,
+            "correctAnswer": "attracting",
+            "distractors": [
+              "attract",
+              "attracted"
+            ],
+            "transformCode": "GERUND_SUBJECT_FORM",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "may be 앞에서 행위를 주어로 나타냄",
+            "ruleSummaryKo": "동작을 문장의 주어로 쓰면 동명사를 쓸 수 있다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "COMPARATIVE",
+            "sourceSpan": "more challenging",
+            "occurrenceIndex": 1,
+            "correctAnswer": "more challenging",
+            "distractors": [
+              "most challenging",
+              "more challenged"
+            ],
+            "transformCode": "COMPARATIVE_ADJECTIVE_FORM",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "조건에 따른 상대적 난도를 나타냄",
+            "ruleSummaryKo": "긴 형용사의 비교급은 more와 원급으로 만든다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+            "sourceSpan": "incredibly",
+            "occurrenceIndex": 1,
+            "correctAnswer": "incredibly",
+            "distractors": [
+              "incredible"
+            ],
+            "transformCode": "ADVERB_ADJECTIVE_MODIFICATION",
+            "priority": "BASIC",
+            "difficulty": "EASY",
+            "evidence": "형용사 successful을 수식하므로 부사가 필요함",
+            "ruleSummaryKo": "형용사를 수식할 때는 부사형을 쓴다",
+            "riskLevel": "LOW"
+          }
+        ]
+      },
+      {
+        "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+        "detectedPoints": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "you have",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "의문사절 안에서 주어와 동사가 평서문 어순임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "contradict",
+            "occurrenceIndex": 1,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "관계절 동사가 복수 선행사 beliefs에 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 2,
+            "priority": "MANDATORY",
+            "questionability": "HIGH",
+            "evidence": "관계절 동사가 복수 선행사 beliefs에 일치함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "NOUN_CLAUSE_WH_WORD",
+            "sourceSpan": "what limiting beliefs you have",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "Consider의 목적어인 의문사 명사절임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "upgrade",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "Consider와 upgrade가 and로 병렬됨",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "관계절에서 that이 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "them",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "복수 대명사가 limiting beliefs를 가리킴",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_SUBJECT",
+            "sourceSpan": "that",
+            "occurrenceIndex": 2,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "관계절에서 that이 주어 역할을 함",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "PREPOSITION_COLLOCATION",
+            "sourceSpan": "with",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "LOW",
+            "evidence": "in line with의 필수 전치사로 쓰임",
+            "omissionReason": ""
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what",
+            "occurrenceIndex": 1,
+            "priority": "CORE",
+            "questionability": "HIGH",
+            "evidence": "선행사를 포함하며 with의 목적어절을 이끎",
+            "omissionReason": ""
+          }
+        ],
+        "candidates": [
+          {
+            "pointCode": "INDIRECT_QUESTION_ORDER",
+            "sourceSpan": "you have",
+            "occurrenceIndex": 1,
+            "correctAnswer": "you have",
+            "distractors": [
+              "do you have"
+            ],
+            "transformCode": "INDIRECT_QUESTION_WORD_ORDER",
+            "priority": "MANDATORY",
+            "difficulty": "MEDIUM",
+            "evidence": "명사절 내부에는 의문문 도치를 적용하지 않음",
+            "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "contradict",
+            "occurrenceIndex": 1,
+            "correctAnswer": "contradict",
+            "distractors": [
+              "contradicts"
+            ],
+            "transformCode": "RELATIVE_VERB_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "MEDIUM",
+            "evidence": "선행사 limiting beliefs가 복수임",
+            "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치한다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_AGREEMENT",
+            "sourceSpan": "are",
+            "occurrenceIndex": 2,
+            "correctAnswer": "are",
+            "distractors": [
+              "is"
+            ],
+            "transformCode": "RELATIVE_VERB_AGREEMENT",
+            "priority": "MANDATORY",
+            "difficulty": "EASY",
+            "evidence": "선행사 beliefs가 복수임",
+            "ruleSummaryKo": "복수 선행사의 관계절에는 복수 동사를 쓴다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PARALLEL_VERBS",
+            "sourceSpan": "upgrade",
+            "occurrenceIndex": 1,
+            "correctAnswer": "upgrade",
+            "distractors": [
+              "upgrading",
+              "upgraded"
+            ],
+            "transformCode": "PARALLEL_VERB_FORM",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "and 앞의 Consider와 같은 동사 형태가 필요함",
+            "ruleSummaryKo": "and로 연결된 동사는 같은 형태로 병렬시킨다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "PRONOUN_ANTECEDENT",
+            "sourceSpan": "them",
+            "occurrenceIndex": 1,
+            "correctAnswer": "them",
+            "distractors": [
+              "it"
+            ],
+            "transformCode": "PRONOUN_NUMBER_REFERENCE",
+            "priority": "CORE",
+            "difficulty": "EASY",
+            "evidence": "선행사 limiting beliefs가 복수임",
+            "ruleSummaryKo": "복수 선행사는 복수 대명사로 받아야 한다",
+            "riskLevel": "LOW"
+          },
+          {
+            "pointCode": "RELATIVE_WHAT",
+            "sourceSpan": "what",
+            "occurrenceIndex": 1,
+            "correctAnswer": "what",
+            "distractors": [
+              "which",
+              "that"
+            ],
+            "transformCode": "FUSED_RELATIVE_CHOICE",
+            "priority": "CORE",
+            "difficulty": "MEDIUM",
+            "evidence": "별도 선행사 없이 원하는 것을 뜻함",
+            "ruleSummaryKo": "what은 선행사를 포함한 관계대명사이다",
+            "riskLevel": "LOW"
+          }
+        ]
+      }
+    ]
+  },
+  "detected": [
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "쉼표 뒤에서 선행사를 부연 설명함"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "states",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "관계절 동사가 단수 선행사에 일치함"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "두 that절이 and로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "states의 목적어인 완전한 절을 이끎"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "병렬된 두 번째 명사절을 이끎"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREPOSITION_OBJECT",
+      "sourceSpan": "focusing",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "전치사 by의 목적어로 동명사가 쓰임"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "GERUND_PREP_OBJECT_ANALYSIS",
+      "sourceSpan": "focusing",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "by 뒤의 focusing은 동명사 목적어임"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "positive or negative",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동일한 품사의 형용사가 or로 병렬됨"
+    },
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "positive or negative",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "결과를 수식하는 형용사가 or로 병렬됨"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "긴 주어의 중심 명사 flaw는 단수임"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_PREPOSITIONAL_MODIFIER",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "전치사구와 무관하게 flaw에 수를 맞춤"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "주어와 뒤의 보어를 연결하는 동사임"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "that we believe all we have to do is think about or visualize something to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "that절이 주어 The common flaw를 설명함"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "완전한 보어절을 접속사 that이 이끎"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PSEUDO_CLEFT_ALL",
+      "sourceSpan": "all we have to do is think",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "all절 뒤에 보어 동작이 제시된 구조임"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "visualize",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "think about과 visualize가 or로 병렬됨"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "INFINITIVE_ADVERB_ROLE",
+      "sourceSpan": "to manifest it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "행동의 목적을 나타내는 부정사구임"
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "it",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "단수 대명사가 something을 가리킴"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "두 that절이 and로 병렬 연결됨"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "DUMMY_IT_SUBJECT",
+      "sourceSpan": "It",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "뒤의 that절을 대신하는 가주어임"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "첫 번째 진주어 명사절을 이끎"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "병렬된 두 번째 진주어절을 이끎"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "is true",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "연결동사 뒤에 주격보어가 놓임"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "true",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "형용사 true가 주어의 상태를 설명함"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "are extremely magnetic",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "be동사 뒤에 형용사 보어가 놓임"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "magnetic",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "magnetic이 thoughts and words를 설명함"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "extremely",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "부사가 형용사 magnetic을 수식함"
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "thoughts and words",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "두 복수 명사가 and로 병렬됨"
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUPERLATIVE",
+      "sourceSpan": "the most powerful",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "the와 most가 형용사의 최상급을 이룸"
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SENTENCE_SVC",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "주어와 명사 보어를 연결하는 동사임"
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "our belief system",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "명사구가 주어 the attractor를 설명함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "affirm",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "create와 affirm이 and로 병렬됨"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "선행사를 포함하며 of의 목적어절을 이끎"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "affirm의 목적어인 완전한 절을 이끎"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_CLAUSE_CONDITION",
+      "sourceSpan": "if",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "실현 가능한 조건을 나타내는 부사절을 이끎"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "attracting",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사구가 조건절 뒤 주절의 주어임"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT_ANALYSIS",
+      "sourceSpan": "attracting a great career or relationship into your life",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "전체 동명사구가 may be의 주어 역할을 함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
+      "sourceSpan": "attracting a great career or relationship into your life",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "동명사구는 하나의 행위로 단수 취급됨"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more challenging",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "more가 형용사의 비교급을 형성함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "can",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "행동의 가능성을 나타내는 조동사임"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "MODAL_MEANING",
+      "sourceSpan": "may",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "결과의 가능성을 나타내는 조동사임"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "incredibly",
+      "occurrenceIndex": 1,
+      "priority": "BASIC",
+      "questionability": "RISKY",
+      "evidence": "부사가 형용사 successful을 수식함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "available",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "형용사가 주어 you의 상태를 설명함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "SUBJECT_COMPLEMENT",
+      "sourceSpan": "enough, worthy, lovable, and deserving",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "병렬 형용사들이 주어 you를 설명함"
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_AND_OR_BUT",
+      "sourceSpan": "enough, worthy, lovable, and deserving",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "네 형용사가 동일한 보어로 병렬됨"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "you have",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "의문사절 안에서 주어와 동사가 평서문 어순임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "contradict",
+      "occurrenceIndex": 1,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "관계절 동사가 복수 선행사 beliefs에 일치함"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 2,
+      "priority": "MANDATORY",
+      "questionability": "RISKY",
+      "evidence": "관계절 동사가 복수 선행사 beliefs에 일치함"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "NOUN_CLAUSE_WH_WORD",
+      "sourceSpan": "what limiting beliefs you have",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "Consider의 목적어인 의문사 명사절임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "upgrade",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "Consider와 upgrade가 and로 병렬됨"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "관계절에서 that이 주어 역할을 함"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "them",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "복수 대명사가 limiting beliefs를 가리킴"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_SUBJECT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "관계절에서 that이 주어 역할을 함"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PREPOSITION_COLLOCATION",
+      "sourceSpan": "with",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "in line with의 필수 전치사로 쓰임"
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what",
+      "occurrenceIndex": 1,
+      "priority": "CORE",
+      "questionability": "RISKY",
+      "evidence": "선행사를 포함하며 with의 목적어절을 이끎"
+    }
+  ],
+  "candidates": [
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-1",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_NONRESTRICTIVE",
+      "sourceSpan": "which",
+      "occurrenceIndex": 1,
+      "correctAnswer": "which",
+      "distractors": [
+        "that"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "쉼표 뒤 계속적 용법에는 that을 쓰지 않음",
+      "ruleSummaryKo": "계속적 관계절은 which로 이끈다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-2",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "states",
+      "occurrenceIndex": 1,
+      "correctAnswer": "states",
+      "distractors": [
+        "state"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "which의 선행사 the Law는 단수임",
+      "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치한다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-3",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "states에 연결된 완전한 두 절이 병렬됨",
+      "ruleSummaryKo": "병렬된 명사절은 같은 접속 구조를 유지한다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-da72b219-e5aa-46f2-9103-16cdf87752fd-4",
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "뒤 절에 빠진 문장 성분이 없음",
+      "ruleSummaryKo": "완전한 명사절은 접속사 that으로 이끈다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-5",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "AGREEMENT_LONG_SUBJECT",
+      "sourceSpan": "is",
+      "occurrenceIndex": 1,
+      "correctAnswer": "is",
+      "distractors": [
+        "are"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "주어의 중심 명사 flaw가 단수임",
+      "ruleSummaryKo": "긴 주어에서도 중심 명사에 동사를 일치시킨다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-6",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "뒤 절이 필수 성분을 모두 갖춘 완전한 절임",
+      "ruleSummaryKo": "완전한 명사절에는 접속사 that을 쓴다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-7",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "visualize",
+      "occurrenceIndex": 1,
+      "correctAnswer": "visualize",
+      "distractors": [
+        "visualizing",
+        "visualized"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "or 앞의 think와 같은 동사 형태가 필요함",
+      "ruleSummaryKo": "등위 접속된 동사는 형태를 병렬로 맞춘다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-4ab316e4-c31d-40fa-8fa6-4b44970bc901-8",
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "it",
+      "occurrenceIndex": 1,
+      "correctAnswer": "it",
+      "distractors": [
+        "them"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "선행사 something이 단수임",
+      "ruleSummaryKo": "대명사의 수는 선행사와 일치해야 한다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-9",
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "PARALLEL_CLAUSES",
+      "sourceSpan": "that",
+      "occurrenceIndex": 2,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "and 양쪽에 완전한 명사절이 병렬됨",
+      "ruleSummaryKo": "병렬된 명사절은 같은 접속 구조를 유지한다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-10",
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "DUMMY_IT_SUBJECT",
+      "sourceSpan": "It",
+      "occurrenceIndex": 1,
+      "correctAnswer": "It",
+      "distractors": [
+        "This"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "뒤의 that절이 실질적인 주어임",
+      "ruleSummaryKo": "긴 진주어절은 가주어 it으로 뒤로 보낼 수 있다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-d5266686-93c2-4e30-a119-19682a4254a3-11",
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "extremely",
+      "occurrenceIndex": 1,
+      "correctAnswer": "extremely",
+      "distractors": [
+        "extreme"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "형용사 magnetic을 수식하므로 부사가 필요함",
+      "ruleSummaryKo": "형용사를 수식할 때는 부사형을 쓴다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-68aaa91d-8a8d-433f-84ce-0ff97f13e5ad-12",
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "pointCode": "SUPERLATIVE",
+      "sourceSpan": "the most powerful",
+      "occurrenceIndex": 1,
+      "correctAnswer": "the most powerful",
+      "distractors": [
+        "the more powerful",
+        "most powerful"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "하나를 최고 수준으로 특정하는 최상급 표현임",
+      "ruleSummaryKo": "최상급 형용사 앞에는 일반적으로 the를 쓴다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-13",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "affirm",
+      "occurrenceIndex": 1,
+      "correctAnswer": "affirm",
+      "distractors": [
+        "affirming",
+        "affirmed"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "and 앞의 create와 같은 동사 형태가 필요함",
+      "ruleSummaryKo": "등위 접속된 동사는 형태를 병렬로 맞춘다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-14",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what",
+      "distractors": [
+        "which",
+        "that"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "별도 선행사 없이 원하는 것을 뜻함",
+      "ruleSummaryKo": "what은 선행사를 포함한 관계대명사이다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-15",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "NOUN_CLAUSE_THAT",
+      "sourceSpan": "that",
+      "occurrenceIndex": 1,
+      "correctAnswer": "that",
+      "distractors": [
+        "what"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "뒤 절에 빠진 문장 성분이 없음",
+      "ruleSummaryKo": "완전한 목적어절은 접속사 that으로 이끈다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-16",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "GERUND_SUBJECT",
+      "sourceSpan": "attracting",
+      "occurrenceIndex": 1,
+      "correctAnswer": "attracting",
+      "distractors": [
+        "attract",
+        "attracted"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "may be 앞에서 행위를 주어로 나타냄",
+      "ruleSummaryKo": "동작을 문장의 주어로 쓰면 동명사를 쓸 수 있다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-17",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "COMPARATIVE",
+      "sourceSpan": "more challenging",
+      "occurrenceIndex": 1,
+      "correctAnswer": "more challenging",
+      "distractors": [
+        "most challenging",
+        "more challenged"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "조건에 따른 상대적 난도를 나타냄",
+      "ruleSummaryKo": "긴 형용사의 비교급은 more와 원급으로 만든다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-87bc4fa5-3d09-437a-ad55-6778552d7b34-18",
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "pointCode": "ADVERB_ADJECTIVE_MODIFIER",
+      "sourceSpan": "incredibly",
+      "occurrenceIndex": 1,
+      "correctAnswer": "incredibly",
+      "distractors": [
+        "incredible"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "BASIC",
+      "difficulty": "CORE",
+      "evidence": "형용사 successful을 수식하므로 부사가 필요함",
+      "ruleSummaryKo": "형용사를 수식할 때는 부사형을 쓴다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-19",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "INDIRECT_QUESTION_ORDER",
+      "sourceSpan": "you have",
+      "occurrenceIndex": 1,
+      "correctAnswer": "you have",
+      "distractors": [
+        "do you have"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "명사절 내부에는 의문문 도치를 적용하지 않음",
+      "ruleSummaryKo": "간접의문문은 의문사 뒤에 평서문 어순을 쓴다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-20",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "contradict",
+      "occurrenceIndex": 1,
+      "correctAnswer": "contradict",
+      "distractors": [
+        "contradicts"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "선행사 limiting beliefs가 복수임",
+      "ruleSummaryKo": "관계절 동사는 선행사의 수에 일치한다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-21",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_AGREEMENT",
+      "sourceSpan": "are",
+      "occurrenceIndex": 2,
+      "correctAnswer": "are",
+      "distractors": [
+        "is"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "MANDATORY",
+      "difficulty": "CORE",
+      "evidence": "선행사 beliefs가 복수임",
+      "ruleSummaryKo": "복수 선행사의 관계절에는 복수 동사를 쓴다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-22",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PARALLEL_VERBS",
+      "sourceSpan": "upgrade",
+      "occurrenceIndex": 1,
+      "correctAnswer": "upgrade",
+      "distractors": [
+        "upgrading",
+        "upgraded"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "and 앞의 Consider와 같은 동사 형태가 필요함",
+      "ruleSummaryKo": "and로 연결된 동사는 같은 형태로 병렬시킨다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-23",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "PRONOUN_ANTECEDENT",
+      "sourceSpan": "them",
+      "occurrenceIndex": 1,
+      "correctAnswer": "them",
+      "distractors": [
+        "it"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "선행사 limiting beliefs가 복수임",
+      "ruleSummaryKo": "복수 선행사는 복수 대명사로 받아야 한다",
+      "riskLevel": "LOW"
+    },
+    {
+      "candidateId": "0cd85cff-26cb-44be-ba52-824855a4170e-fc1cfdbe-8e0a-40e7-89c6-c75336681cf4-24",
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "pointCode": "RELATIVE_WHAT",
+      "sourceSpan": "what",
+      "occurrenceIndex": 1,
+      "correctAnswer": "what",
+      "distractors": [
+        "which",
+        "that"
+      ],
+      "transformCode": "FORM_SWAP",
+      "priority": "CORE",
+      "difficulty": "CORE",
+      "evidence": "별도 선행사 없이 원하는 것을 뜻함",
+      "ruleSummaryKo": "what은 선행사를 포함한 관계대명사이다",
+      "riskLevel": "LOW"
+    }
+  ]
+}

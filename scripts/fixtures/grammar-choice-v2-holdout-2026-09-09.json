@@ -1,0 +1,31 @@
+{
+  "preparedAt": "2026-09-09",
+  "note": "Holdout English passages only. Not used for rule tuning. Do not call OpenAI in this pass.",
+  "passages": [
+    {
+      "id": "holdout-coral-nurseries",
+      "title": "Coral nurseries and reef recovery",
+      "passage": "Coral nurseries now grow fragments on underwater frames before divers return them to damaged reefs. Scientists measure survival after storms because a colony that attaches firmly can seed a wider area. The work is slow, yet each successful transplant records a method that other islands can copy."
+    },
+    {
+      "id": "holdout-branch-libraries",
+      "title": "Branch libraries as civic workshops",
+      "passage": "A branch library is no longer only a room of shelves. Residents reserve studio hours, ask for copyright guidance, and borrow tools that would be expensive to own. When a teenager prints a prototype there, the building becomes a workshop that belongs to the street around it."
+    },
+    {
+      "id": "holdout-rooftop-hives",
+      "title": "Rooftop hives in dense cities",
+      "passage": "Rooftop hives look ornamental until inspection day. Beekeepers check stores, watch for disease, and move frames so the brood nest stays compact. Neighbors notice the honey, but the real harvest is a map of which trees still bloom between glass towers."
+    },
+    {
+      "id": "holdout-museum-climate",
+      "title": "Quiet climate control in museums",
+      "passage": "Museum cases hide a climate system that never announces itself. Conservators log humidity because paint layers crack when the air swings too quickly. Visitors see a still portrait; staff see a graph that must stay inside a narrow band all night."
+    },
+    {
+      "id": "holdout-ice-cores",
+      "title": "Ice cores from polar archives",
+      "passage": "An ice core is a timeline packed into frozen snow. Researchers count layers, trap ancient air, and compare volcanic ash with written records. The cylinder looks ordinary on a metal tray, yet it carries winters that no living witness can describe."
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "2f6a1ed0954a95b3c192c4e9469fe0f4d82a6ed823b31b53bdcfd95c38660954",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T07:21:17.131Z",
+  "sourceId": "3b01c20a-c147-4d30-b062-53d4f2efd9ac",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "title": "불확실성을 받아들이는 용기",
+  "source": null,
+  "passage": "Letting go of our need for control, being aware, is a lot about gathering the courage to face uncertainty. Human beings want to know. When we don’t know, when things are uncertain, we often feel frightened and become inflexible. So we pretend that things are more predictable than they really are, even though we actually live with enormous uncertainty all the time. We cling to our plans and ideas about how things should be and turn out ever so desperately. And there’s nothing wrong with having plans. I think it’s a beautiful thing. But there’s a difference between planning and thinking all your plans have to come to fruition. American president Eisenhower once said: ‘Plans are worthless, but planning is everything.’ Imagine if we all used pencil instead of ink to write in our calendars and planners. Both figuratively and literally. Imagine if we could bear in mind that what we write down, what we think is going to happen, might not be what actually happens. And if we could try our best to be all right with that.",
+  "sha256": "43c5c6ad1080184ca17bc96932e4276aada438bed010f725c34ca01b36025db9",
+  "sentenceCount": 13,
+  "sentences": [
+    {
+      "sentenceId": "b2ff7e2a-5c79-4a55-b7dd-2e7ba348f03b",
+      "order": 0,
+      "text": "Letting go of our need for control, being aware, is a lot about gathering the courage to face uncertainty."
+    },
+    {
+      "sentenceId": "c3afbd07-f719-4af9-9275-fa38566c13a4",
+      "order": 1,
+      "text": "Human beings want to know."
+    },
+    {
+      "sentenceId": "0449da60-1237-4054-b096-a8b60dea5be4",
+      "order": 2,
+      "text": "When we don’t know, when things are uncertain, we often feel frightened and become inflexible."
+    },
+    {
+      "sentenceId": "b8e266b5-04ea-4f5b-9b11-0f4e489b4c40",
+      "order": 3,
+      "text": "So we pretend that things are more predictable than they really are, even though we actually live with enormous uncertainty all the time."
+    },
+    {
+      "sentenceId": "90aefb4b-72ae-4409-b845-17eafb467f96",
+      "order": 4,
+      "text": "We cling to our plans and ideas about how things should be and turn out ever so desperately."
+    },
+    {
+      "sentenceId": "795cad67-fb4a-49a5-b0d5-4eacdb52bdfb",
+      "order": 5,
+      "text": "And there’s nothing wrong with having plans."
+    },
+    {
+      "sentenceId": "47a8c11b-8a5f-40e2-810e-e840a9769c82",
+      "order": 6,
+      "text": "I think it’s a beautiful thing."
+    },
+    {
+      "sentenceId": "180f4425-6e44-41d1-ad9b-3161f2a495d9",
+      "order": 7,
+      "text": "But there’s a difference between planning and thinking all your plans have to come to fruition."
+    },
+    {
+      "sentenceId": "2ef2d1ca-b518-4498-aeb6-5ceaf1bdf22d",
+      "order": 8,
+      "text": "American president Eisenhower once said: ‘Plans are worthless, but planning is everything.’"
+    },
+    {
+      "sentenceId": "8bb693b7-669d-47b7-bb8a-da8048927aad",
+      "order": 9,
+      "text": "Imagine if we all used pencil instead of ink to write in our calendars and planners."
+    },
+    {
+      "sentenceId": "864a91d9-892a-49bd-a36e-7fdb604495a9",
+      "order": 10,
+      "text": "Both figuratively and literally."
+    },
+    {
+      "sentenceId": "c5504fb3-2c67-4357-b3e0-4021485770a7",
+      "order": 11,
+      "text": "Imagine if we could bear in mind that what we write down, what we think is going to happen, might not be what actually happens."
+    },
+    {
+      "sentenceId": "36812460-51e5-446b-80bb-156013b6942d",
+      "order": 12,
+      "text": "And if we could try our best to be all right with that."
+    }
+  ]
+}

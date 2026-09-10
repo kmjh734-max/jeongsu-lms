@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-09-09T12:27:55.582Z",
+  "sourceId": "b66d5c3a-12da-4683-81d0-efaac143fa29",
+  "title": "우리의 취향은 사회적이다",
+  "source": null,
+  "passage": "Our tastes are social. Even when you first drank milk, there was the milk, yes, but there was also the person behind the milk who will have presumably either made or messed up your relationship with food for the couple of decades after that. We learn to eat from our families and friends, at school and in work. A village develops a particular recipe for an apple pie—one that nobody outside the village likes, but who cares? We want these things not just because of what they are, but who we are. Tastes spread like this, person to person, like viruses, almost irrespective of the qualities of the food involved. We observe other people in their food lives, often judgmentally. Nothing turns me off something quicker than the wrong people liking it, by which I mean people almost identical to me in every respect, in a way that doesn’t flatter me. I avoided the viral chopped salad moment of 2024 by the skin of my teeth.",
+  "sha256": "c6a76de7760124d3a7cc1dfcd4bfb9edf1222dedd74f00907c7e2159db65d2a1",
+  "sentenceCount": 9,
+  "sentences": [
+    {
+      "sentenceId": "5c862d55-637c-4cb3-a602-b57ec36d25a1",
+      "order": 0,
+      "text": "Our tastes are social."
+    },
+    {
+      "sentenceId": "9654fcb9-1b22-4c6b-b181-2c270bf01bdb",
+      "order": 1,
+      "text": "Even when you first drank milk, there was the milk, yes, but there was also the person behind the milk who will have presumably either made or messed up your relationship with food for the couple of decades after that."
+    },
+    {
+      "sentenceId": "289f4a8c-9346-407c-877f-bf8c6c5987c2",
+      "order": 2,
+      "text": "We learn to eat from our families and friends, at school and in work."
+    },
+    {
+      "sentenceId": "8b6e4e84-64ce-4bf7-bc44-80118a1c1f4c",
+      "order": 3,
+      "text": "A village develops a particular recipe for an apple pie—one that nobody outside the village likes, but who cares?"
+    },
+    {
+      "sentenceId": "87384a36-de03-4631-b5b9-5e30620f303f",
+      "order": 4,
+      "text": "We want these things not just because of what they are, but who we are."
+    },
+    {
+      "sentenceId": "0ef31ba8-380f-47e4-9f75-f8559e58bcbb",
+      "order": 5,
+      "text": "Tastes spread like this, person to person, like viruses, almost irrespective of the qualities of the food involved."
+    },
+    {
+      "sentenceId": "9dd6a59d-407e-47cc-938e-bb9406c39fc0",
+      "order": 6,
+      "text": "We observe other people in their food lives, often judgmentally."
+    },
+    {
+      "sentenceId": "e0b38e2b-23ab-4c61-b799-f025b7f6901d",
+      "order": 7,
+      "text": "Nothing turns me off something quicker than the wrong people liking it, by which I mean people almost identical to me in every respect, in a way that doesn’t flatter me."
+    },
+    {
+      "sentenceId": "8bb784f5-758e-44b3-9984-465a29933a4c",
+      "order": 8,
+      "text": "I avoided the viral chopped salad moment of 2024 by the skin of my teeth."
+    }
+  ],
+  "note": "Production cache dump. Analyzer rawJson was not stored because snapshot capture is off in production."
+}

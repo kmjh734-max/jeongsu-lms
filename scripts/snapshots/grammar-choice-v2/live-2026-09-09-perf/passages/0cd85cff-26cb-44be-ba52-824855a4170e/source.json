@@ -1,0 +1,55 @@
+{
+  "snapshotSchemaVersion": 1,
+  "engineVersion": "grammar-choice-v2",
+  "ontologyVersion": "high-school-grammar-v1",
+  "ontologyDigest": "58f391e216bfb46dd95f9e4ef231c26d4de895e6ec7ea52b0fe0f0a7a8a2ec79",
+  "promptVersion": "scan-generate-v1",
+  "promptDigest": "784a2174156cc9c5dcae1d7ee1f506b72ab4cd3d5d3d097d70209b57a2678a7e",
+  "validatorVersion": "local-gate-v1",
+  "generatorModel": "gpt-5.6-sol",
+  "generatorReasoningEffort": "medium",
+  "reviewerModel": "gpt-5.6-sol",
+  "reviewerReasoningEffort": "high",
+  "capturedAt": "2026-09-09T10:57:25.590Z",
+  "sourceId": "0cd85cff-26cb-44be-ba52-824855a4170e",
+  "forceRegenerate": true,
+  "cacheHit": false,
+  "fallback": false,
+  "title": "긍정적 사고의 한계와 믿음의 힘",
+  "source": null,
+  "passage": "Perhaps you have heard of the Law of Attraction, which states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results. The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it. It is true that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic. But the most powerful attractor is our belief system. You can create beautiful poster boards full of images of what you want and affirm every day that you are available for an incredibly successful, passionate career or a loving relationship; but if you don’t truly believe you are enough, worthy, lovable, and deserving, then attracting a great career or relationship into your life may be more challenging. Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract.",
+  "sha256": "3be22f83b7aaf3193190d6f38782ffae3883d0eaa29e60a262e230b0c5aec944",
+  "sentenceCount": 6,
+  "sentences": [
+    {
+      "sentenceId": "da72b219-e5aa-46f2-9103-16cdf87752fd",
+      "order": 0,
+      "text": "Perhaps you have heard of the Law of Attraction, which states that ‘like attracts like’ and that by focusing on positive or negative thoughts, one can bring about positive or negative results."
+    },
+    {
+      "sentenceId": "4ab316e4-c31d-40fa-8fa6-4b44970bc901",
+      "order": 1,
+      "text": "The common flaw in our understanding of this law is that we believe all we have to do is think about or visualize something to manifest it."
+    },
+    {
+      "sentenceId": "d5266686-93c2-4e30-a119-19682a4254a3",
+      "order": 2,
+      "text": "It is true that we attract at the level of our own vibration and that our thoughts and words are extremely magnetic."
+    },
+    {
+      "sentenceId": "68aaa91d-8a8d-433f-84ce-0ff97f13e5ad",
+      "order": 3,
+      "text": "But the most powerful attractor is our belief system."
+    },
+    {
+      "sentenceId": "87bc4fa5-3d09-437a-ad55-6778552d7b34",
+      "order": 4,
+      "text": "You can create beautiful poster boards full of images of what you want and affirm every day that you are available for an incredibly successful, passionate career or a loving relationship; but if you don’t truly believe you are enough, worthy, lovable, and deserving, then attracting a great career or relationship into your life may be more challenging."
+    },
+    {
+      "sentenceId": "fc1cfdbe-8e0a-40e7-89c6-c75336681cf4",
+      "order": 5,
+      "text": "Consider what limiting beliefs you have that contradict your desires and upgrade them to beliefs that are in line with what you want to attract."
+    }
+  ]
+}

@@ -1,6 +1,11 @@
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { analyzeAndGeneratePassage } from "@/lib/lesson-materials/grammar-choice-v2/analyze-and-generate";
 import { auditRiskyCandidates } from "@/lib/lesson-materials/grammar-choice-v2/ambiguity-auditor";
+import {
+  expandUniquenessItems,
+  verifyChoiceUniqueness,
+  type UniquenessVerdict,
+} from "@/lib/lesson-materials/grammar-choice-v2/uniqueness-audit";
 import { planReviewerSubmission } from "@/lib/lesson-materials/grammar-choice-v2/review-policy";
 import {
   buildV2CacheKey,
@@ -86,10 +91,14 @@ export function resolveV2AnalyzerModel(): string {
   return process.env.OPENAI_GRAMMAR_V2_ANALYZER_MODEL?.trim() || "gpt-5.6-sol";
 }
 
+/**
+ * 생성이 검수보다 낮은 effort로 돌면 싸게 만든 쓰레기를 비싸게 거르게 된다.
+ * 문장 묶음 단위로 호출을 쪼갠 뒤로는 호출당 출력이 작아 high로 올려도 부담이 적다.
+ */
 export function resolveV2AnalyzerEffort(): "low" | "medium" | "high" {
   const raw = process.env.OPENAI_GRAMMAR_V2_ANALYZER_REASONING_EFFORT?.trim().toLowerCase();
-  if (raw === "low" || raw === "high") return raw;
-  return "medium";
+  if (raw === "low" || raw === "medium") return raw;
+  return "high";
 }
 
 export function resolveV2AuditorModel(): string {
@@ -393,6 +402,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
         routeMs,
         fromCache: false,
         cachedAudits: [] as import("@/lib/lesson-materials/grammar-choice-v2/types").AuditResult[],
+        cachedUniqueness: [] as UniquenessVerdict[],
       };
     } catch (error) {
       return {
@@ -443,21 +453,32 @@ export async function generateWorkbookGrammarChoiceV2(input: {
       routeMs: 0,
       fromCache: true,
       cachedAudits: hit.audits,
+      cachedUniqueness: hit.uniqueness ?? [],
     }];
   });
 
   const filterStarted = Date.now();
-  const expanded = analyzed.flatMap(({ row, analyzedRow, fromCache, cachedAudits }) => {
-    if (fromCache && cachedAudits) return [];
-    const filtered = resolveAndFilter({
-      sentences: row.sentences,
-      candidates: analyzedRow.candidates,
-    });
-    return expandAuditItems(filtered.resolved).map((item) => ({
-      ...item,
-      passageId: row.projectId,
-    }));
-  });
+  const resolvedByPassage = analyzed.map(({ row, analyzedRow, fromCache, cachedAudits }) => ({
+    passageId: row.projectId,
+    resolved:
+      fromCache && cachedAudits
+        ? []
+        : resolveAndFilter({
+            sentences: row.sentences,
+            candidates: analyzedRow.candidates,
+          }).resolved,
+  }));
+  const expanded = resolvedByPassage.flatMap(({ passageId, resolved }) =>
+    expandAuditItems(resolved).map((item) => ({ ...item, passageId }))
+  );
+  /**
+   * 유일성 판정은 needsAuditor 라우팅을 타지 않는다.
+   * 검수로 안 보내는 후보가 "네모 안 둘 다 맞는" 문제의 주된 출처이므로
+   * 해소된 후보 전부를 블라인드 판정에 넣는다.
+   */
+  const uniquenessPool = resolvedByPassage.flatMap(({ passageId, resolved }) =>
+    expandUniquenessItems(resolved).map((item) => ({ ...item, passageId }))
+  );
   const reviewPlan = planReviewerSubmission(
     expanded,
     analyzed.flatMap(({ row }) => row.sentences)
@@ -477,19 +498,37 @@ export async function generateWorkbookGrammarChoiceV2(input: {
   const filterMs = Date.now() - filterStarted;
   const sentenceLookup = analyzed.flatMap(({ row }) => row.sentences);
   const reviewStarted = Date.now();
-  const audit =
+  // 두 판정은 서로 독립이므로 함께 띄운다.
+  const [audit, uniqueness] = await Promise.all([
     auditPool.length === 0
-      ? { results: [], responseModel: auditorModel, calls: 0, latencyMs: 0, inputTokens: null, outputTokens: null, rawJson: [] as string[], parsed: [] as unknown[], fallback: false }
-      : await auditRiskyCandidates({
+      ? Promise.resolve({ results: [], responseModel: auditorModel, calls: 0, latencyMs: 0, inputTokens: null, outputTokens: null, rawJson: [] as string[], parsed: [] as unknown[], fallback: false })
+      : auditRiskyCandidates({
           apiKey,
           model: auditorModel,
           reasoningEffort: auditorEffort,
           sentences: sentenceLookup,
           items: auditPool,
-        });
+        }),
+    verifyChoiceUniqueness({
+      apiKey,
+      model: auditorModel,
+      reasoningEffort: auditorEffort,
+      sentences: sentenceLookup,
+      items: uniquenessPool,
+    }),
+  ]);
   const reviewMs = Date.now() - reviewStarted;
-  reviewCalls += audit.calls;
-  openAi += audit.calls;
+  reviewCalls += audit.calls + uniqueness.calls;
+  openAi += audit.calls + uniqueness.calls;
+
+  const uniquenessByPassage = new Map<string, UniquenessVerdict[]>();
+  for (const verdict of uniqueness.verdicts) {
+    const owner = uniquenessPool.find((item) => item.candidateId === verdict.candidateId);
+    const passageId = owner ? owner.passageId : "";
+    const list = uniquenessByPassage.get(passageId) ?? [];
+    list.push(verdict);
+    uniquenessByPassage.set(passageId, list);
+  }
   if (capture) {
     writeCheckpoint(captureDir, "reviewer.json", {
       ...captureMetadata({
@@ -521,7 +560,11 @@ export async function generateWorkbookGrammarChoiceV2(input: {
     auditByPassage.set(passageId, list);
   }
 
-  for (const { row, analyzedRow, cachedAudits } of analyzed) {
+  for (const { row, analyzedRow, cachedAudits, cachedUniqueness } of analyzed) {
+    const passageUniqueness = [
+      ...(cachedUniqueness ?? []),
+      ...(uniquenessByPassage.get(row.projectId) ?? []),
+    ];
     const finalized = finalizeV2Passage({
       projectId: row.projectId,
       title: row.title,
@@ -535,6 +578,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
         ...(localPassByPassage.get(row.projectId) ?? []),
         ...(auditByPassage.get(row.projectId) ?? []),
       ],
+      uniqueness: passageUniqueness,
       seedKey: `${row.projectId}|${row.cacheKey.passageHash}|v2`,
       diagnosticsBase: emptyDiagnostics({
         sentenceCount: row.sentences.length,
@@ -579,6 +623,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
         ...(localPassByPassage.get(row.projectId) ?? []),
         ...(auditByPassage.get(row.projectId) ?? []),
       ],
+      uniqueness: passageUniqueness,
     });
     if (capture) {
       writeCheckpoint(captureDir, `passages/${row.projectId}/reviewer.json`, {
