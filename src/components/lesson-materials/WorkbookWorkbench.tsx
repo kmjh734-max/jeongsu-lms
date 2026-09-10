@@ -17,7 +17,10 @@ import {
   loadWorkbookFromSession,
   saveWorkbookToSession,
 } from "@/components/lesson-materials/WorkbookCreateModal";
-import { generateWorkbookAction } from "@/lib/lesson-materials/workbook-actions";
+import {
+  generateGrammarChoicePassageAction,
+  generateWorkbookAction,
+} from "@/lib/lesson-materials/workbook-actions";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
@@ -34,6 +37,7 @@ import {
   type WorkbookData,
   type WorkbookFullEnWritingSection,
   type WorkbookGrammarChoiceSection,
+  type WorkbookGrammarChoiceSkip,
   type WorkbookLineTranslationSection,
   type WorkbookPassageSection,
   type WorkbookSentenceOrderQuestion,
@@ -1133,24 +1137,12 @@ export function WorkbookWorkbench({
       }
 
       try {
-        const startedAt = Date.now();
-        if (wantGrammarChoice) {
-          const passageCount = Math.max(1, ids.length);
-          const expectedMs = Math.min(180_000, 70_000 + passageCount * 40_000);
-          const tick = () => {
-            if (cancelled) return;
-            const elapsed = Date.now() - startedAt;
-            const pct = Math.min(
-              96,
-              Math.max(4, Math.round((elapsed / expectedMs) * 96))
-            );
-            setStatus(
-              creatingNew ? `새로 만들고 있습니다 · ${pct}%` : `${pct}%`
-            );
-          };
-          tick();
-          timers.elapsed = setInterval(tick, 500);
-        }
+        const forceRegenerate =
+          wantGrammarChoice &&
+          (searchParams.get("fresh") === "1" ||
+            searchParams.get("forceRegen") === "1");
+        // 어법 선택은 지문당 요청을 따로 보낸다. 한 요청에 다 묶으면 지문이 늘수록
+        // 서버리스 실행시간 상한을 넘겨 통째로 실패한다.
         const res = await generateWorkbookAction(role, {
           projectIds: ids,
           selectedTypes: types,
@@ -1158,15 +1150,11 @@ export function WorkbookWorkbench({
           blankOptions,
           title,
           lineTranslationExcludeIds: ltExclude,
-          forceRegenerate:
-            wantGrammarChoice &&
-            (searchParams.get("fresh") === "1" ||
-              searchParams.get("forceRegen") === "1"),
+          forceRegenerate,
+          deferGrammarChoice: wantGrammarChoice,
         });
         if (timers.status) clearTimeout(timers.status);
-        if (timers.elapsed) clearInterval(timers.elapsed);
         timers.status = null;
-        timers.elapsed = null;
         if (cancelled) return;
         if (!res.ok) {
           setError(res.message);
@@ -1181,14 +1169,45 @@ export function WorkbookWorkbench({
           setGenerating(false);
           return;
         }
+
+        const workbook = res.workbook;
         if (wantGrammarChoice) {
+          const sections: WorkbookGrammarChoiceSection[] = [];
+          const skipped: WorkbookGrammarChoiceSkip[] = [];
+          for (let i = 0; i < ids.length; i += 1) {
+            if (cancelled) return;
+            const pct = Math.round((i / ids.length) * 100);
+            setStatus(
+              creatingNew
+                ? `새로 만들고 있습니다 · 지문 ${i + 1}/${ids.length} · ${pct}%`
+                : `지문 ${i + 1}/${ids.length} · ${pct}%`
+            );
+            const one = await generateGrammarChoicePassageAction(role, {
+              projectId: ids[i]!,
+              forceRegenerate,
+            });
+            if (cancelled) return;
+            if (!one.ok) {
+              // 한 지문이 실패해도 나머지는 살린다. 끝난 지문은 이미 캐시에 있다.
+              skipped.push({
+                projectId: ids[i]!,
+                title: ids[i]!,
+                reason: one.message,
+              });
+              continue;
+            }
+            if (one.section) sections.push(one.section);
+            if (one.skipped) skipped.push(one.skipped);
+          }
+          workbook.grammarChoiceSections = sections;
+          workbook.grammarChoiceSkipped = skipped;
           setStatus(
             creatingNew ? "새로 만들고 있습니다 · 100%" : "100%"
           );
         }
         setSourceNote(creatingNew ? "new" : "existing");
-        saveWorkbookToSession(res.workbook);
-        setWorkbook(res.workbook);
+        saveWorkbookToSession(workbook);
+        setWorkbook(workbook);
         setGenerating(false);
       } catch (e) {
         if (timers.status) clearTimeout(timers.status);

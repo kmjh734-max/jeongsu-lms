@@ -21,6 +21,12 @@ function parseJsonSafe<T>(text: string): T | null {
   }
 }
 
+/**
+ * 분석 호출 지연은 편차가 크다(관측: 1문장 29초, 3문장 79초, 180초 초과 사례).
+ * 상한을 넘기면 abort하되, 원시 AbortError가 아니라 진단 가능한 오류로 바꿔 던진다.
+ */
+export const REQUEST_TIMEOUT_MS = 180_000;
+
 export async function callGrammarChoiceV2Json(input: {
   stage: "GENERATOR" | "REVIEWER";
   apiKey: string;
@@ -41,7 +47,11 @@ export async function callGrammarChoiceV2Json(input: {
   fallback: boolean;
 }> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 180_000);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, REQUEST_TIMEOUT_MS);
   const started = Date.now();
   let fallback = false;
   try {
@@ -166,6 +176,17 @@ export async function callGrammarChoiceV2Json(input: {
       outputTokens: usage?.usage?.completion_tokens ?? null,
       fallback,
     };
+  } catch (error) {
+    if (timedOut) {
+      throw new GrammarChoiceModelError({
+        stage: input.stage,
+        requestedModel: input.model,
+        requestedReasoningEffort: input.reasoningEffort,
+        errorCode: "TIMEOUT",
+        errorMessage: `${Math.round(REQUEST_TIMEOUT_MS / 1000)}초 안에 응답이 오지 않았습니다.`,
+      });
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }

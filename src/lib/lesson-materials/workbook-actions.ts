@@ -34,6 +34,8 @@ import {
   type WorkbookBlankFillOptions,
   type WorkbookData,
   type WorkbookTfOptions,
+  type WorkbookGrammarChoiceSection,
+  type WorkbookGrammarChoiceSkip,
   type WorkbookTypeId,
 } from "@/lib/lesson-materials/workbook-types";
 
@@ -71,6 +73,8 @@ export async function generateWorkbookAction(
     lineTranslationExcludeIds?: string[];
     /** 어법 선택 캐시를 무시하고 새 모델로 다시 생성 */
     forceRegenerate?: boolean;
+    /** 어법 선택은 생성하지 않고 비워 둔다. 클라이언트가 지문 단위로 따로 채운다. */
+    deferGrammarChoice?: boolean;
   }
 ): Promise<
   | { ok: true; workbook: WorkbookData }
@@ -109,7 +113,11 @@ export async function generateWorkbookAction(
 
   const wantTf = types.includes("tf");
   const wantBlank = types.includes("blank_fill");
-  const wantGrammarChoice = types.includes("grammar_choice");
+  // 어법 선택은 지문당 30~180초가 걸려 다른 유형과 한 요청에 묶으면 함수 실행시간
+  // 상한을 넘긴다. 클라이언트가 generateGrammarChoicePassageAction으로 지문 단위로
+  // 따로 호출할 때는 여기서 건너뛰고, 유형 선택 자체는 워크북 구조에 그대로 남긴다.
+  const wantGrammarChoice =
+    types.includes("grammar_choice") && input.deferGrammarChoice !== true;
   const wantSentenceOrder = types.includes("sentence_order");
   const wantLineKo = types.includes("one_line_ko");
   const wantFullEn = types.includes("full_en_writing");
@@ -666,6 +674,152 @@ export async function generateWorkbookAction(
         : code === "MISSING_LINE_TRANSLATION"
           ? { code: "MISSING_LINE_TRANSLATION" as const }
           : {}),
+    };
+  }
+}
+
+/**
+ * 지문 한 개의 어법 선택만 생성한다.
+ *
+ * generateWorkbookAction은 모든 지문·모든 유형을 한 요청 안에서 순차 처리하기
+ * 때문에, 지문이 늘어나면 서버리스 함수 실행시간 상한을 넘겨 통째로 실패한다.
+ * 실패하면 이미 끝난 지문의 분석 결과(호출당 30~180초)도 저장되지 못하고 버려진다.
+ * 지문 단위로 나눠 호출하면 요청 하나가 짧아지고, 끝난 지문은 즉시 캐시에 남아
+ * 재시도가 싸진다. 클라이언트가 지문 수만큼 순차 호출하며 진행률을 표시한다.
+ */
+export async function generateGrammarChoicePassageAction(
+  role: Role,
+  input: { projectId: string; forceRegenerate?: boolean }
+): Promise<
+  | {
+      ok: true;
+      section: WorkbookGrammarChoiceSection | null;
+      skipped: WorkbookGrammarChoiceSkip | null;
+      openAiRequestCount: number;
+    }
+  | { ok: false; message: string }
+> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+
+  const projectId = input.projectId?.trim();
+  if (!projectId) return { ok: false, message: "선택된 자료가 없습니다." };
+
+  const supabase = await createClient();
+  let pq = supabase
+    .from("lesson_material_projects")
+    .select("id,title,source,lesson_pack_json,analysis_report_json,deleted_at")
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null);
+  if (role === "teacher") {
+    pq = pq.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { data: projects, error: pErr } = await pq;
+  if (pErr) return { ok: false, message: pErr.message };
+  const project = (projects ?? [])[0];
+  if (!project) return { ok: false, message: "프로젝트를 찾을 수 없습니다." };
+
+  const { data: items, error: iErr } = await supabase
+    .from("lesson_material_items")
+    .select("id,english_text,korean_text,order_index")
+    .eq("project_id", project.id)
+    .order("order_index", { ascending: true });
+  if (iErr) return { ok: false, message: iErr.message };
+
+  const sentences = (items ?? []).map((it, idx) => ({
+    id: String(it.id ?? `s${idx}`),
+    english: String(it.english_text ?? ""),
+  }));
+  const pack = (project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+  const analysisReport =
+    (project as { analysis_report_json?: unknown }).analysis_report_json &&
+    typeof (project as { analysis_report_json?: unknown })
+      .analysis_report_json === "object"
+      ? ((project as { analysis_report_json: AnalysisReportData })
+          .analysis_report_json as AnalysisReportData)
+      : null;
+
+  const forceRegenerate = input.forceRegenerate === true;
+  const selection = resolveGrammarChoiceEngineVersion();
+  const engine = selection.version;
+
+  try {
+    const passage = {
+      projectId: project.id,
+      title: project.title,
+      source: (project.source as string | null) ?? null,
+      sentences,
+      analysisReport,
+    };
+    const gc =
+      engine === "v2"
+        ? await generateWorkbookGrammarChoiceV2({
+            forceRegenerate,
+            passages: [
+              {
+                ...passage,
+                grammarChoiceV2Cache: forceRegenerate
+                  ? null
+                  : ((pack.grammarChoiceV2Cache as StoredGrammarChoiceV2Cache) ??
+                    null),
+              },
+            ],
+          })
+        : await generateWorkbookGrammarChoice({
+            forceRegenerate,
+            passages: [
+              {
+                ...passage,
+                grammarChoiceV5Cache: forceRegenerate
+                  ? null
+                  : ((pack.grammarChoiceV5Cache as StoredGrammarChoiceV5Cache) ??
+                    null),
+              },
+            ],
+          });
+
+    // 이 지문이 끝나는 즉시 캐시에 남긴다. 뒤 지문이 실패해도 다시 만들지 않는다.
+    for (const { cache } of gc.cachesToSave) {
+      const next: LessonPackData = {
+        headerLabel: pack.headerLabel || "26년도 1학기 중간고사 대비",
+        vocab: pack.vocab ?? [],
+        updatedAt: new Date().toISOString(),
+        blankCandidatePool: pack.blankCandidatePool,
+        passageSourceHash: pack.passageSourceHash,
+        sentenceTranslations: pack.sentenceTranslations,
+        wordOrderChunkCache: pack.wordOrderChunkCache,
+        grammarChoiceCache: pack.grammarChoiceCache,
+        grammarBlueprintCache: pack.grammarBlueprintCache,
+        grammarChoiceV5Cache:
+          engine === "v2"
+            ? pack.grammarChoiceV5Cache
+            : (cache as StoredGrammarChoiceV5Cache),
+        grammarChoiceV2Cache:
+          engine === "v2"
+            ? (cache as StoredGrammarChoiceV2Cache)
+            : pack.grammarChoiceV2Cache,
+      };
+      await supabase
+        .from("lesson_material_projects")
+        .update({
+          lesson_pack_json: next,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", project.id);
+    }
+
+    const stamped = stampGrammarChoiceEngineDiagnostics(gc.sections, selection);
+    return {
+      ok: true,
+      section: stamped[0] ?? null,
+      skipped: gc.skipped[0] ?? null,
+      openAiRequestCount: gc.timing.openAiRequestCount,
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "어법 선택 생성 실패",
     };
   }
 }
