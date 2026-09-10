@@ -7,6 +7,7 @@ import {
 import {
   tokenizeForWordOrder,
   normalizeWhitespace,
+  type WordOrderToken,
 } from "@/lib/lesson-materials/word-order-tokenize";
 
 const SYSTEM = `너는 고등학교 영어 구문 교재의 문장을 학생이 의미 단위로 끊어 읽을 수 있도록 나누는 전문가다.
@@ -118,6 +119,21 @@ export async function callWordOrderChunkOpenAI(input: {
       return { byId, openAiRequestCount: 1 };
     }
 
+    /**
+     * 모델이 만든 JSON은 응답 봉투 안의 choices[0].message.content에 문자열로 들어 있다.
+     * 예전에는 봉투 자체(bodyText)를 파싱해서 sentences를 찾았고, 봉투에는 그런 필드가
+     * 없으니 rows가 항상 빈 배열이었다. 그래서 모델이 정상적으로 의미 단위를 돌려주는데도
+     * 문항이 전부 deterministic-fallback(기계적 고정폭 분할)으로 만들어졌다.
+     * 관측: 응답 200 + 올바른 청크인데 byId가 0개.
+     */
+    const envelope = parseJsonSafe<{
+      choices?: Array<{ message?: { content?: string } }>;
+    }>(bodyText);
+    const content = envelope?.choices?.[0]?.message?.content ?? "";
+    if (!content) {
+      console.warn("[WordOrderChunks] 응답에 content가 없습니다", bodyText.slice(0, 200));
+      return { byId, openAiRequestCount: 1 };
+    }
     const parsed = parseJsonSafe<{
       sentences?: Array<{
         sentenceId?: string;
@@ -128,27 +144,21 @@ export async function callWordOrderChunkOpenAI(input: {
           type?: string;
         }>;
       }>;
-    }>(bodyText);
+    }>(content);
     const rows = parsed?.sentences ?? [];
     for (const row of rows) {
       const sid = String(row.sentenceId ?? "");
       const src = input.sentences.find((s) => s.sentenceId === sid);
       if (!src || !Array.isArray(row.chunks)) continue;
       const tokens = tokenizeForWordOrder(src.english);
-      const ranges = row.chunks
-        .map((c) => ({
-          start: Number(c.startTokenIndex),
-          end: Number(c.endTokenIndex),
+      const ranges = alignChunkTextsToTokens(
+        tokens,
+        row.chunks.map((c) => ({
+          text: String(c.text ?? ""),
           type: (c.type as SemanticChunkType | undefined) ?? "other",
         }))
-        .filter(
-          (r) =>
-            Number.isFinite(r.start) &&
-            Number.isFinite(r.end) &&
-            r.start >= 0 &&
-            r.end >= r.start
-        );
-      if (ranges.length < 2) continue;
+      );
+      if (!ranges || ranges.length < 2) continue;
       const chunks = buildChunksFromRanges(sid, tokens, ranges);
       const v = validateWordOrderChunksDetailed(src.english, chunks);
       if (v.ok) {
@@ -171,4 +181,58 @@ export async function callWordOrderChunkOpenAI(input: {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** 비교용 정규화: 대소문자·문장부호·굽은 따옴표 차이를 지운다. */
+function comparable(text: string): string {
+  return text
+    .replace(/[‘’]/g, "'")
+    .toLowerCase()
+    .replace(/[^a-z0-9']/g, "");
+}
+
+/**
+ * 모델이 준 청크 "텍스트"를 원문 토큰에 순서대로 맞춰 범위를 만든다.
+ *
+ * 예전에는 모델이 준 startTokenIndex/endTokenIndex를 그대로 썼다. 그런데 로컬
+ * 토크나이저는 공백으로만 자르는데(reader's = 토큰 하나, thought. = 토큰 하나)
+ * 모델은 문장부호와 소유격을 따로 세기 때문에 인덱스가 어긋났다. 그 결과
+ * 마지막 토큰이 잘려 COVERAGE_FAILED·RESTORE_FAILED로 전부 탈락했다.
+ *
+ * 청크의 텍스트 자체는 정확하므로(의미 단위를 제대로 잡는다) 텍스트로 맞춘다.
+ * 모델이 꼬리 토큰을 빠뜨린 경우는 마지막 청크를 끝까지 늘려 덮는다 —
+ * 다만 빠진 양이 크면 의미 단위가 아니게 되므로 그때는 포기하고 폴백에 맡긴다.
+ */
+const CHUNK_TAIL_TOLERANCE = 3;
+
+export function alignChunkTextsToTokens(
+  tokens: WordOrderToken[],
+  chunks: Array<{ text: string; type?: SemanticChunkType }>
+): Array<{ start: number; end: number; type?: SemanticChunkType }> | null {
+  const ranges: Array<{ start: number; end: number; type?: SemanticChunkType }> = [];
+  let cursor = 0;
+  for (const chunk of chunks) {
+    const want = comparable(chunk.text);
+    if (!want) continue;
+    if (cursor >= tokens.length) return null;
+    let acc = "";
+    let end = cursor - 1;
+    for (let i = cursor; i < tokens.length; i++) {
+      acc += comparable(tokens[i]!.surface);
+      if (acc === want) {
+        end = i;
+        break;
+      }
+      if (!want.startsWith(acc)) return null;
+    }
+    if (end < cursor) return null;
+    ranges.push({ start: cursor, end, type: chunk.type });
+    cursor = end + 1;
+  }
+  if (!ranges.length) return null;
+  if (cursor < tokens.length) {
+    if (tokens.length - cursor > CHUNK_TAIL_TOLERANCE) return null;
+    ranges[ranges.length - 1]!.end = tokens.length - 1;
+  }
+  return ranges;
 }
