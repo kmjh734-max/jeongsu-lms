@@ -101,13 +101,57 @@ export function rankCandidates(
     }
     limited.push(item);
   }
-  if (limited.length <= cap) return { kept: limited, dropped };
-
-  const overflow = limited.slice(cap);
-  for (const item of overflow) {
-    dropped.push({ item, reason: "DUPLICATE_SUBTYPE" });
+  const capped = limited.length <= cap ? limited : limited.slice(0, cap);
+  if (limited.length > cap) {
+    for (const item of limited.slice(cap)) {
+      dropped.push({ item, reason: "DUPLICATE_SUBTYPE" });
+    }
   }
-  return { kept: limited.slice(0, cap), dropped };
+
+  return { kept: rescueEmptySentences(capped, dropped, cap), dropped };
+}
+
+/**
+ * 다양성 상한 때문에 문장 하나가 통째로 비는 것을 막는다.
+ *
+ * subtype 상한·ADJ_ADV 상한·BASIC 비율은 한 지문이 같은 유형으로만 채워지는 것을
+ * 막으려고 있다. 그런데 어떤 문장의 유일한 후보가 그 상한에 걸리면 그 문장에는
+ * 네모가 하나도 안 남는다. 선생님이 지적한 "문법 사항이 들어간 문장인데 문항이
+ * 없다"의 한 갈래가 이것이다.
+ *
+ * 상한에 걸려 떨어진 후보 중, 그 문장에 남은 문항이 하나도 없고 이미 채택된
+ * 문항과 자리가 겹치지 않는 것 하나만 되살린다. 전체 상한(cap)은 그대로 지킨다 —
+ * 문항 수를 늘리는 것이 아니라 같은 수를 더 고르게 퍼뜨리는 것이다.
+ */
+function rescueEmptySentences(
+  kept: ResolvedCandidate[],
+  dropped: Array<{ item: ResolvedCandidate; reason: string }>,
+  cap: number
+): ResolvedCandidate[] {
+  if (kept.length >= cap) return kept;
+  const covered = new Set(kept.map((item) => item.sentenceId));
+  const out = [...kept];
+  const rescuedFrom = new Set<number>();
+
+  for (let i = 0; i < dropped.length && out.length < cap; i++) {
+    const row = dropped[i]!;
+    if (row.reason !== "DUPLICATE_SUBTYPE") continue;
+    if (covered.has(row.item.sentenceId)) continue;
+    const overlaps = out.some(
+      (k) =>
+        k.sentenceId === row.item.sentenceId &&
+        row.item.passageStart < k.passageEnd &&
+        row.item.passageEnd > k.passageStart
+    );
+    if (overlaps) continue;
+    out.push(row.item);
+    covered.add(row.item.sentenceId);
+    rescuedFrom.add(i);
+  }
+  if (!rescuedFrom.size) return kept;
+  // 되살린 것은 탈락 목록에서 뺀다. 진단이 살아 있는 문항을 탈락으로 세면 안 된다.
+  for (const i of [...rescuedFrom].sort((a, b) => b - a)) dropped.splice(i, 1);
+  return out;
 }
 
 export function priorityRank(priority: GrammarPriority): number {

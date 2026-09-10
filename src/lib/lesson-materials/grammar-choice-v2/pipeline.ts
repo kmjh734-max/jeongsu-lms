@@ -297,15 +297,50 @@ export function resolveAndFilter(input: {
      *
      * 학생이 네모에서 보는 것은 자른 쌍이므로, 검증 대상도 자른 쌍이어야 맞다.
      */
-    const finalPair = `${candidate.correctAnswer} / ${candidate.distractors[0] ?? ""}`;
-    const local =
-      rejectCandidate({ candidate, sentence }) ??
+    const localCheck = (row: typeof candidate) =>
+      rejectCandidate({ candidate: row, sentence }) ??
       validateMinimalPair({
-        pointCode: candidate.pointCode,
-        sourceSpan: candidate.sourceSpan,
-        distractor: candidate.distractors[0] ?? "",
+        pointCode: row.pointCode,
+        sourceSpan: row.sourceSpan,
+        distractor: row.distractors[0] ?? "",
         sentence: sentence.text,
       });
+
+    let local = localCheck(candidate);
+    /**
+     * NON_MINIMAL_SPAN이면 한 번 더 잘라 본다.
+     *
+     * 위의 자르기는 spansWholeClause(5단어 이상)만 대상으로 한다. 그런데
+     * our families and friends / our families and friendly처럼 정확히 4단어인 쌍은
+     * 자르기 대상이 아니면서 챕터 검증기에서는 NON_MINIMAL_SPAN으로 떨어진다.
+     * 잘라서 friends / friendly가 되면 학생이 봐야 할 것이 한 낱말로 줄어든다.
+     *
+     * 자른 쌍은 아래 게이트를 처음부터 다시 통과해야 하고(느슨해지는 것이 없다),
+     * 통과하지 못하면 원래 사유로 떨어뜨린다.
+     */
+    if (local === "NON_MINIMAL_SPAN" && !trimmed) {
+      const retry = trimToMinimalPair(
+        candidate.correctAnswer,
+        candidate.distractors[0] ?? "",
+        { trimTrailing: !testsWordOrder(candidate) }
+      );
+      if (retry) {
+        const retried = {
+          ...candidate,
+          correctAnswer: retry.correct,
+          sourceSpan: retry.correct,
+          distractors: [retry.wrong],
+        };
+        if (!localCheck(retried)) {
+          const start = span.passageStart + retry.startOffset;
+          span.passageStart = start;
+          span.passageEnd = start + retry.correct.length;
+          candidate = retried;
+          local = null;
+        }
+      }
+    }
+    const finalPair = `${candidate.correctAnswer} / ${candidate.distractors[0] ?? ""}`;
     if (local) {
       rejected.push({
         candidateId: candidate.candidateId,
