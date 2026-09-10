@@ -27,6 +27,11 @@ import {
 import { countEnglishWords } from "@/lib/lesson-materials/workbook-types";
 import { normalizeWhitespace } from "@/lib/lesson-materials/word-order-tokenize";
 
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+
+/** 어순배열에서 동시에 처리하는 지문 수. 빈칸과 같은 이유로 상한만 둔다. */
+const WORD_ORDER_PASSAGE_CONCURRENCY = 8;
+
 export type WordOrderWritingItem = {
   questionId: string;
   passageId: string;
@@ -282,7 +287,16 @@ export async function generateWorkbookWordOrderWriting(input: {
   const sections: WorkbookWordOrderWritingSection[] = [];
   const failedSentences: string[] = [];
 
-  for (const s of bilingualSections) {
+  /**
+   * 지문 하나씩 순서대로 기다리고 있었다. 지문끼리 독립이고 호출도 지문당
+   * 하나라 실행 시간이 지문 수에 그대로 비례했다(실측 4지문 58.1초).
+   * 누적값은 지문별로 모아 입력 순서대로 합친다.
+   */
+  const perSection = async (s: (typeof bilingualSections)[number]) => {
+    let localOpenAi = 0;
+    const localFailed: string[] = [];
+    let localCache: { projectId: string; cache: StoredWordOrderChunkCache } | null = null;
+    let localSection: WorkbookWordOrderWritingSection | null = null;
     const passage = packByProject.get(s.projectId);
     let cache = passage?.wordOrderChunkCache ?? null;
     const needAi: Array<{ sentenceId: string; english: string }> = [];
@@ -315,7 +329,7 @@ export async function generateWorkbookWordOrderWriting(input: {
     if (needAi.length > 0 && process.env.OPENAI_API_KEY?.trim()) {
       const ai = await callWordOrderChunkOpenAI({ sentences: needAi });
       aiById = ai.byId;
-      openAiRequestCount += ai.openAiRequestCount;
+      localOpenAi += ai.openAiRequestCount;
     }
 
     const items: WordOrderWritingItem[] = [];
@@ -330,7 +344,7 @@ export async function generateWorkbookWordOrderWriting(input: {
         aiChunks: aiById.get(it.sentenceId) ?? null,
       });
       if (!resolved.chunks) {
-        failedSentences.push(it.sentenceId);
+        localFailed.push(it.sentenceId);
         console.error(
           "[WordOrderChunks] 이 문장은 의미 단위 배열 데이터를 생성하지 못했습니다.",
           { passageId: s.projectId, sentenceId: it.sentenceId }
@@ -349,7 +363,7 @@ export async function generateWorkbookWordOrderWriting(input: {
         chunkSource: resolved.source,
       });
       if (!q) {
-        failedSentences.push(it.sentenceId);
+        localFailed.push(it.sentenceId);
         continue;
       }
       items.push(q);
@@ -370,17 +384,33 @@ export async function generateWorkbookWordOrderWriting(input: {
     logChunkDiagnostics(items);
 
     if (cache && items.length) {
-      cachesToSave.push({ projectId: s.projectId, cache });
+      localCache = ({ projectId: s.projectId, cache });
     }
 
-    if (items.length === 0) continue;
-    sections.push({
+    // 이 지문에서 문항이 하나도 안 나오면 섹션을 만들지 않는다.
+    if (items.length === 0) {
+      return { localOpenAi, localFailed, localCache, localSection };
+    }
+    localSection = ({
       projectId: s.projectId,
       title: s.title,
       source: s.source,
       algorithmVersion: WORD_ORDER_WRITING_ALGORITHM_VERSION,
       items,
     });
+    return { localOpenAi, localFailed, localCache, localSection };
+  };
+
+  const perSectionResults = await runWithConcurrency(
+    bilingualSections,
+    WORD_ORDER_PASSAGE_CONCURRENCY,
+    perSection
+  );
+  for (const row of perSectionResults) {
+    openAiRequestCount += row.localOpenAi;
+    failedSentences.push(...row.localFailed);
+    if (row.localCache) cachesToSave.push(row.localCache);
+    if (row.localSection) sections.push(row.localSection);
   }
 
   if (failedSentences.length && sections.length === 0) {

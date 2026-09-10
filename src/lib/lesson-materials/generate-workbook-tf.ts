@@ -20,6 +20,11 @@ import {
   type WorkbookTfOptions,
 } from "@/lib/lesson-materials/workbook-types";
 
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+
+/** T/F에서 동시에 처리하는 지문 수. */
+const TF_PASSAGE_CONCURRENCY = 8;
+
 function parseJsonSafe<T>(text: string): T | null {
   try {
     return JSON.parse(text) as T;
@@ -232,24 +237,33 @@ export async function generateWorkbookTf(input: {
   };
 
   const sections: WorkbookPassageSection[] = [];
-  for (const p of input.passages) {
-    const passage = joinWorkbookPassageLines(p.englishLines);
-    if (!passage) {
-      throw new Error(`「${p.title}」에 영어 지문이 없습니다.`);
+  /**
+   * 지문끼리 독립인데 순서대로 기다리고 있었다. 호출이 지문당 하나라
+   * 실행 시간이 지문 수에 비례했다. 결과 순서는 runWithConcurrency가 지킨다.
+   */
+  const perPassage = await runWithConcurrency(
+    input.passages,
+    TF_PASSAGE_CONCURRENCY,
+    async (p) => {
+      const passage = joinWorkbookPassageLines(p.englishLines);
+      if (!passage) {
+        throw new Error(`「${p.title}」에 영어 지문이 없습니다.`);
+      }
+      const items = await callTfOpenAI({
+        title: p.title,
+        passage,
+        options,
+      });
+      return {
+        projectId: p.projectId,
+        title: p.title,
+        source: p.source ?? null,
+        passage,
+        items,
+      };
     }
-    const items = await callTfOpenAI({
-      title: p.title,
-      passage,
-      options,
-    });
-    sections.push({
-      projectId: p.projectId,
-      title: p.title,
-      source: p.source ?? null,
-      passage,
-      items,
-    });
-  }
+  );
+  sections.push(...perPassage);
 
   const now = new Date();
   return {
