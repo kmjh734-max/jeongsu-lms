@@ -422,21 +422,18 @@ export function safeLocalCandidates(sentenceId: string, text: string): GrammarCa
     });
   };
 
-  const youHave = source.toLowerCase().indexOf("you have");
-  if (/\bwhat\b/i.test(source) && youHave >= 0 && /what[\s\S]{0,40}you have\b/i.test(source)) {
-    push("INDIRECT_QUESTION_ORDER", "you have", "do you have", youHave);
-  }
+  /**
+   * 여기 있던 문장별 하드코딩 세 덩이를 걷어냈다.
+   *
+   * "you have" / "both within ... and across" / "made to move"는 특정 지문의
+   * 문자열을 그대로 찾고 있었다. localCandidatesFromDetectors가 14개 챕터
+   * 검출기로 같은 후보를 만들게 되면서 전부 겹침이 됐다(측정: 7개 중 6개가
+   * 검출기와 중복이고, 고유한 것은 아래 PARALLEL_VERBS 하나뿐이다).
+   * 남은 규칙들은 문장이 아니라 구조를 보는 것들이라 그대로 둔다.
+   */
   if (/\bBoth\b/.test(source) && /\band\b/i.test(source)) {
     const andAt = source.toLowerCase().indexOf(" and ");
     if (andAt >= 0) push("CORRELATIVE_BOTH_AND", "and", "or", andAt + 1);
-  }
-  if (/\bboth within\b/i.test(source) && /\band across\b/i.test(source)) {
-    const andAt = source.toLowerCase().indexOf(" and across");
-    if (andAt >= 0) push("CORRELATIVE_BOTH_AND", "and", "or", andAt + 1);
-  }
-  if (/\bmade to move\b/i.test(source)) {
-    const at = source.toLowerCase().indexOf("made to move");
-    push("VOICE_BE_MADE_TO", "made to move", "made move", at, "MANDATORY");
   }
   if (/\bfeel frightened and become\b/i.test(source)) {
     const at = source.toLowerCase().indexOf("become");

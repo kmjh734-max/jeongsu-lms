@@ -3,7 +3,7 @@ export const GRAMMAR_CHOICE_V2_ENGINE = "grammar-choice-v2";
 export const GRAMMAR_CHOICE_V2_CACHE_SCHEMA = "2";
 export const GRAMMAR_CHOICE_V2_ONTOLOGY = "high-school-grammar-v1";
 export const GRAMMAR_CHOICE_V2_PROMPT = "scan-generate-v1";
-export const GRAMMAR_CHOICE_V2_VALIDATOR = "local-gate-v1";
+export const GRAMMAR_CHOICE_V2_VALIDATOR = "local-gate-v2";
 export const GRAMMAR_CHOICE_V2_AUDITOR = "risk-audit-v1";
 
 export type GrammarPriority = "MANDATORY" | "CORE" | "BASIC";

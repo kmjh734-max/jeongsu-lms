@@ -30,7 +30,23 @@ function isGerundBasePair(correct: string, wrong: string): boolean {
   const base = ing === c ? w : c;
   if (!ing || !base || base.endsWith("ing")) return false;
   const stem = ing.replace(/ing$/, "");
-  return base === stem || base === `${stem}e` || `${base.replace(/e$/, "")}` === stem;
+  /**
+   * -ing를 떼면 자음이 겹쳐 남는 형태가 있다: chopping -> chopp, planning -> plann,
+   * getting -> gett. 겹친 자음 하나를 떼야 원형이 된다.
+   *
+   * 예전에는 이 경우를 몰라서 by chopping [chopping / chop] 같은 표준 전치사+동명사
+   * 문항이 CODE_SPAN_CONTRACT_MISMATCH로 죽었다. filling처럼 원래 겹자음인 낱말은
+   * base === stem에서 이미 통과하므로 이 완화가 그쪽 판정을 바꾸지 않는다.
+   */
+  const dedoubled =
+    stem.length > 2 && /([bdfglmnprt])\1$/.test(stem) ? stem.slice(0, -1) : "";
+  const stems = dedoubled ? [stem, dedoubled] : [stem];
+  return stems.some(
+    (candidate) =>
+      base === candidate ||
+      base === `${candidate}e` ||
+      base.replace(/e$/, "") === candidate
+  );
 }
 
 function followingToken(sentence: string, span: string): string {

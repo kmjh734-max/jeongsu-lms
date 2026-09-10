@@ -374,20 +374,93 @@ export async function generateWorkbookAction(
       }
     }
 
+    /**
+     * 유형별 생성은 서로 독립인데 하나씩 순서대로 기다리고 있었다.
+     * 실측(4지문 35문장, 지문 병렬화 후): 빈칸 31초 + 어순배열 16초 + T/F 10초 = 57초.
+     * 먼저 띄워 두면 합이 아니라 최댓값이 된다. 각 결과는 workbook의 서로 다른
+     * 필드로 들어가므로 섞이지 않는다.
+     *
+     * 실패는 소비 지점에서 다시 던진다. 그대로 두면 아래 조기 반환 경로에서
+     * 처리되지 않은 거부가 남는다.
+     */
+    const settle = <T,>(task: Promise<T>) =>
+      task.then(
+        (value) => ({ ok: true as const, value }),
+        (error: unknown) => ({ ok: false as const, error })
+      );
+    const unwrap = <T,>(
+      row: { ok: true; value: T } | { ok: false; error: unknown }
+    ): T => {
+      if (row.ok) return row.value;
+      throw row.error;
+    };
+
+    const bilingualEarly = wantBilingual
+      ? generateWorkbookLineTranslation({
+          passages: passages.map((p) => ({
+            projectId: p.projectId,
+            title: p.title,
+            source: p.source,
+            sentences: p.sentences,
+            sentenceTranslations: p.sentenceTranslations,
+          })),
+          excludeProjectIds: lineTranslationExcludeIds,
+        })
+      : null;
+    const blankTask = wantBlank
+      ? settle(
+          generateWorkbookBlankFill({
+          passages: passages.map((p) => ({
+            projectId: p.projectId,
+            title: p.title,
+            source: p.source,
+            sentences: p.sentences,
+            blankPool: p.blankPool,
+            vocabLemmas: p.vocabLemmas,
+            vocab: p.vocab,
+            sentenceTranslations: p.sentenceTranslations,
+          })),
+          options: blankOptions,
+          })
+        )
+      : null;
+    const tfTask = wantTf
+      ? settle(
+          generateWorkbookTf({
+            title: workbook.metadata.title,
+            passages: passages.map((p) => ({
+              projectId: p.projectId,
+              title: p.title,
+              source: p.source,
+              englishLines: p.englishLines,
+            })),
+            options: tfOptions,
+          })
+        )
+      : null;
+    const wordOrderTask =
+      wantWordOrder && bilingualEarly && bilingualEarly.blocking.length === 0
+        ? settle(
+            generateWorkbookWordOrderWriting({
+                workbookId,
+                passages: passages.map((p) => ({
+                  projectId: p.projectId,
+                  title: p.title,
+                  source: p.source,
+                  sentences: p.sentences,
+                  sentenceTranslations: p.sentenceTranslations,
+                  packJson: p.packJson,
+                  wordOrderChunkCache: p.wordOrderChunkCache,
+                })),
+                prebuiltLineSections: bilingualEarly.sections,
+                prebuiltSkipped: bilingualEarly.skipped,
+                prebuiltBlocking: [],
+            })
+          )
+        : null;
+
     if (wantBlank) {
-      const blankResult = await generateWorkbookBlankFill({
-        passages: passages.map((p) => ({
-          projectId: p.projectId,
-          title: p.title,
-          source: p.source,
-          sentences: p.sentences,
-          blankPool: p.blankPool,
-          vocabLemmas: p.vocabLemmas,
-          vocab: p.vocab,
-          sentenceTranslations: p.sentenceTranslations,
-        })),
-        options: blankOptions,
-      });
+      const blankResult = unwrap(await blankTask!);
       workbook.blankSections = blankResult.sections;
       openAiFromBlank = blankResult.timing.openAiRequestCount;
       const prevOpenAi = workbook.timing?.openAiRequestCount ?? 0;
@@ -444,16 +517,7 @@ export async function generateWorkbookAction(
     }
 
     if (wantTf) {
-      const tf = await generateWorkbookTf({
-        title: workbook.metadata.title,
-        passages: passages.map((p) => ({
-          projectId: p.projectId,
-          title: p.title,
-          source: p.source,
-          englishLines: p.englishLines,
-        })),
-        options: tfOptions,
-      });
+      const tf = unwrap(await tfTask!);
       workbook.sections = tf.sections;
       // TF still uses OpenAI — timing note only for blank path when TF absent
       if (workbook.timing && !wantBlank) {
@@ -489,16 +553,7 @@ export async function generateWorkbookAction(
     }
 
     if (wantBilingual) {
-      const bilingual = generateWorkbookLineTranslation({
-        passages: passages.map((p) => ({
-          projectId: p.projectId,
-          title: p.title,
-          source: p.source,
-          sentences: p.sentences,
-          sentenceTranslations: p.sentenceTranslations,
-        })),
-        excludeProjectIds: lineTranslationExcludeIds,
-      });
+      const bilingual = bilingualEarly!;
 
       if (bilingual.blocking.length > 0) {
         const message = bilingual.blocking.map((b) => b.reason).join("\n");
@@ -528,21 +583,7 @@ export async function generateWorkbookAction(
         workbook.fullEnWritingSkipped = skipped;
       }
       if (wantWordOrder) {
-        const wo = await generateWorkbookWordOrderWriting({
-          workbookId,
-          passages: passages.map((p) => ({
-            projectId: p.projectId,
-            title: p.title,
-            source: p.source,
-            sentences: p.sentences,
-            sentenceTranslations: p.sentenceTranslations,
-            packJson: p.packJson,
-            wordOrderChunkCache: p.wordOrderChunkCache,
-          })),
-          prebuiltLineSections: bilingual.sections,
-          prebuiltSkipped: bilingual.skipped,
-          prebuiltBlocking: [],
-        });
+        const wo = unwrap(await wordOrderTask!);
         workbook.wordOrderWritingSections = wo.sections;
         workbook.wordOrderWritingSkipped = skipped;
 

@@ -241,7 +241,22 @@ assert.ok(codes.some((c) => c.includes("culture:CORRELATIVE_BOTH_AND:and/or")), 
 assert.equal(filtered.rejected.some((item) => item.sentenceId === "imagine" && item.reason === "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT"), true);
 assert.ok(codes.some((c) => c.includes("PARALLEL_VERBS") && c.includes("become/becoming")), codes.join("\n"));
 assert.ok(codes.some((c) => c.includes("which/that")), codes.join("\n"));
-assert.equal(filtered.resolved.some((item) => item.sentenceId === "gerund"), false);
+// 이 문장에서 확인할 것은 "긴 주어 뒤 수일치"가 주어 경계가 모호해 떨어진다는 것이다.
+// 예전에는 이 문장의 후보가 그것뿐이어서 "이 문장에서 아무것도 살아남지 않는다"로
+// 적어 두었는데, 검출기가 후보를 공급하게 되면서 같은 문장에서 전치사+동명사
+// (about gathering / gather)가 정당하게 나온다. 원래 의도대로 코드를 집어 확인한다.
+assert.equal(
+  filtered.resolved.some(
+    (item) => item.sentenceId === "gerund" && item.pointCode === "AGREEMENT_LONG_SUBJECT"
+  ),
+  false
+);
+assert.ok(
+  filtered.resolved.some(
+    (item) => item.sentenceId === "gerund" && item.pointCode === "GERUND_PREPOSITION_OBJECT"
+  ),
+  "검출기가 만든 전치사+동명사 후보가 살아남아야 한다"
+);
 assert.equal(filtered.rejected.some((item) => item.reason === "BOTH_GRAMMATICAL" && item.sentenceId === "flaw"), true);
 assert.equal(filtered.rejected.some((item) => item.reason === "AMBIGUOUS_SUBJECT_BOUNDARY"), true);
 assert.equal(filtered.resolved.some((item) => item.correctAnswer === "for which"), false);

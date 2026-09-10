@@ -49,6 +49,17 @@ import {
   type WorkbookGenerationTiming,
 } from "@/lib/lesson-materials/workbook-types";
 
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+
+/**
+ * 빈칸 생성에서 동시에 처리하는 지문 수.
+ *
+ * 호출이 지문당 하나이고 지문끼리 독립이므로 지문 수만큼 열어도 되지만,
+ * 워크북 한 권이 지문 20개를 넘길 수 있어 상한을 둔다. 어법 선택이 클라이언트에서
+ * 지문 4개씩 도는 것과 달리 여기는 한 요청 안이라 상한을 여기서만 잡으면 된다.
+ */
+const BLANK_PASSAGE_CONCURRENCY = 8;
+
 function parseJsonSafe<T>(text: string): T | null {
   try {
     return JSON.parse(text) as T;
@@ -402,7 +413,21 @@ export async function generateWorkbookBlankFill(input: {
   const sections: WorkbookBlankSection[] = [];
   const density = input.options.density ?? "high";
 
-  for (const p of input.passages) {
+  /**
+   * 지문 하나씩 순서대로 기다리고 있었다. 지문끼리는 서로 독립인데 호출이
+   * 지문당 하나라 실행 시간이 지문 수에 그대로 비례했다(실측 4지문 68.7초,
+   * OpenAI 호출 4회 = 호출당 17초가 직렬로 쌓인 값이다).
+   *
+   * 누적값은 지문별로 따로 모은 뒤 입력 순서대로 합친다. runWithConcurrency가
+   * 결과 배열의 순서를 입력 순서로 보장하므로 섹션 순서는 바뀌지 않는다.
+   */
+  const perPassage = async (p: (typeof input.passages)[number]) => {
+    let localTranslationMs = 0;
+    let localBlankMs = 0;
+    let localOpenAi = 0;
+    const localNotes: string[] = [];
+    let localPool: { projectId: string; pool: StoredBlankCandidatePool } | null = null;
+    let localSection: WorkbookBlankSection | null = null;
     const sentences = p.sentences
       .map((s) => ({
         id: s.id,
@@ -430,7 +455,7 @@ export async function generateWorkbookBlankFill(input: {
         );
       }
     }
-    translationLookupMs += Date.now() - tTr;
+    localTranslationMs += Date.now() - tTr;
 
     const sourcePassage = joinWorkbookPassageLines(
       sentences.map((s) => s.english)
@@ -492,11 +517,11 @@ export async function generateWorkbookBlankFill(input: {
       };
     } else {
       // v5: one AI call, then merge with vocab + deterministic content words
-      statusNotes.push(
+      localNotes.push(
         `「${p.title}」핵심 어휘 후보(v5)를 준비합니다. 이후 동일 원문은 캐시를 사용합니다.`
       );
       try {
-        openAiRequestCount += 1;
+        localOpenAi += 1;
         const aliasSentences = sentences.map((s, i) => ({
           id: `s${i}`,
           english: s.english,
@@ -525,7 +550,7 @@ export async function generateWorkbookBlankFill(input: {
           });
           fromVocabFallback = rawAi.length >= 4;
           if (fromVocabFallback) {
-            statusNotes.push(
+            localNotes.push(
               `「${p.title}」AI 후보 생성 실패 → 수업용자료 어휘로 대체했습니다.`
             );
           }
@@ -536,7 +561,7 @@ export async function generateWorkbookBlankFill(input: {
             titleText: p.title,
             maxCandidates: poolTarget,
           });
-          statusNotes.push(
+          localNotes.push(
             `「${p.title}」지문 내용어로 빈칸 후보를 구성했습니다.`
           );
         }
@@ -590,7 +615,7 @@ export async function generateWorkbookBlankFill(input: {
     if (valid.length === 0) {
       if (usedCache) {
         usedCache = false;
-        statusNotes.push(
+        localNotes.push(
           `「${p.title}」이전 빈칸 캐시를 사용할 수 없어 다시 준비합니다.`
         );
       }
@@ -627,7 +652,7 @@ export async function generateWorkbookBlankFill(input: {
       if (valid.length === 0) {
         // try AI even if we thought we had cache
         try {
-          openAiRequestCount += 1;
+          localOpenAi += 1;
           const aliasSentences = sentences.map((s, i) => ({
             id: `s${i}`,
             english: s.english,
@@ -663,7 +688,7 @@ export async function generateWorkbookBlankFill(input: {
           /* keep empty — last resort below */
         }
       } else {
-        statusNotes.push(
+        localNotes.push(
           `「${p.title}」대체 후보로 빈칸을 구성했습니다.`
         );
       }
@@ -693,7 +718,7 @@ export async function generateWorkbookBlankFill(input: {
       valid.length < Math.min(4, recommended)
     ) {
       try {
-        openAiRequestCount += 1;
+        localOpenAi += 1;
         const aliasSentences = sentences.map((s, i) => ({
           id: `s${i}`,
           english: s.english,
@@ -813,10 +838,10 @@ export async function generateWorkbookBlankFill(input: {
         sourceHash,
         coreSentenceIds
       );
-      poolsToSave.push({ projectId: p.projectId, pool });
+      localPool = ({ projectId: p.projectId, pool });
     }
 
-    blankSelectionMs += Date.now() - tBlank;
+    localBlankMs += Date.now() - tBlank;
 
     const sentenceOrder = sentences.map((s) => s.id);
     const numberByKey = assignBlankNumbers(selected, sentenceOrder);
@@ -851,7 +876,7 @@ export async function generateWorkbookBlankFill(input: {
       .filter(Boolean)
       .join(" ");
 
-    sections.push({
+    localSection = ({
       projectId: p.projectId,
       title: p.title,
       source: p.source ?? null,
@@ -869,6 +894,21 @@ export async function generateWorkbookBlankFill(input: {
           selected.length < recommended ? shortfallReason : null,
       },
     });
+    return { localTranslationMs, localBlankMs, localOpenAi, localNotes, localPool, localSection };
+  };
+
+  const perPassageResults = await runWithConcurrency(
+    input.passages,
+    BLANK_PASSAGE_CONCURRENCY,
+    perPassage
+  );
+  for (const row of perPassageResults) {
+    translationLookupMs += row.localTranslationMs;
+    blankSelectionMs += row.localBlankMs;
+    openAiRequestCount += row.localOpenAi;
+    statusNotes.push(...row.localNotes);
+    if (row.localPool) poolsToSave.push(row.localPool);
+    if (row.localSection) sections.push(row.localSection);
   }
 
   const timing: WorkbookGenerationTiming = {

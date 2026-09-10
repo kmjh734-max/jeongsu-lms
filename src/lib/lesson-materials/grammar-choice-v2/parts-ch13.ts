@@ -565,7 +565,14 @@ function detectQuantifierAgreement(text: string, hits: PartsHit[]) {
 }
 
 function detectPrepHead(text: string, hits: PartsHit[]) {
-  const re = /\bThe\s+(?:[a-z]+\s+){0,2}([A-Za-z]+)\s+(?:of|in|for)\s+[^.]{3,48}?\s+(has|have|is|are|was|were)\b/gi;
+  /**
+   * 수식어구가 끼어든 주어의 수일치. 내신 어법에서 가장 자주 나오는 축 중 하나다.
+   *
+   * 예전에는 주어가 The로 시작할 때만 봤다. 그래서 A succession of tiny paragraphs
+   * [is/are], Its effects on students [are/is]처럼 한정사만 다른 같은 구조를 통째로
+   * 놓쳤다. one of / each of / a number of는 각자 전용 검출기가 있으므로 여기서는 뺀다.
+   */
+  const re = /\b(?:The|A|An|This|That|These|Those|My|Your|His|Her|Its|Our|Their)\s+(?:[a-z]+\s+){0,2}([A-Za-z]+)\s+(?:of|in|for)\s+[^.]{3,48}?\s+(has|have|is|are|was|were)\b/gi;
   for (const match of text.matchAll(re)) {
     const head = match[1] ?? "";
     const verb = match[2] ?? "";

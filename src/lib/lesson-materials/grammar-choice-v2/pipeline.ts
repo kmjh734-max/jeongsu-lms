@@ -6,6 +6,7 @@ import { buildCoverage } from "@/lib/lesson-materials/grammar-choice-v2/coverage
 import { COMPARISON_CH12_RULES } from "@/lib/lesson-materials/grammar-choice-v2/comparison-ch12";
 import { codeSpanContractMismatch, explanationContractMismatch } from "@/lib/lesson-materials/grammar-choice-v2/assessment-contract";
 import { explanationFitsPair, repairChoice, safeLocalCandidates } from "@/lib/lesson-materials/grammar-choice-v2/choice-repair";
+import { localCandidatesFromDetectors } from "@/lib/lesson-materials/grammar-choice-v2/local-candidates";
 import { isWhToInfinitiveSpan } from "@/lib/lesson-materials/grammar-choice-v2/distractor-guard";
 import { explainChoice } from "@/lib/lesson-materials/grammar-choice-v2/explanation-templates";
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
@@ -124,11 +125,25 @@ export function resolveAndFilter(input: {
   candidates: GrammarCandidate[];
 }): { resolved: ResolvedCandidate[]; rejected: V2Reject[] } {
   const byId = new Map(input.sentences.map((s) => [s.sentenceId, s]));
-  const extras = input.sentences.flatMap((s) => safeLocalCandidates(s.sentenceId, s.text));
-  const seenLocal = new Set(input.candidates.map((c) => `${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`));
+  const extras = input.sentences.flatMap((s) => [
+    ...safeLocalCandidates(s.sentenceId, s.text),
+    ...localCandidatesFromDetectors(s.sentenceId, s.text),
+  ]);
+  /**
+   * 같은 (문장, 코드, 스팬)을 로컬과 모델이 함께 내놓으면 로컬 쪽을 쓴다.
+   *
+   * 예전에는 모델 후보를 먼저 넣어서 겹치는 자리를 모델이 차지했다. 그래서
+   * 검출기를 후보 공급원으로 올려도 최종 45문항 중 로컬이 만든 것은 3개(7%)뿐이었다.
+   * 같은 문법 지점을 같은 스팬에서 묻는다면 어느 쪽을 써도 문항은 같고, 로컬
+   * 템플릿은 실행마다 같은 오답을 만든다. 겹치는 자리를 로컬로 채우면 같은 지문을
+   * 다시 생성했을 때 문항이 덜 흔들린다(예전 관측: 같은 4지문이 35 / 44 / 36).
+   */
+  const keyOf = (c: GrammarCandidate) =>
+    `${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`;
+  const seenLocal = new Set(extras.map(keyOf));
   const candidates = [
-    ...input.candidates,
-    ...extras.filter((c) => !seenLocal.has(`${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`)),
+    ...extras,
+    ...input.candidates.filter((c) => !seenLocal.has(keyOf(c))),
   ];
   const resolved: ResolvedCandidate[] = [];
   const rejected: V2Reject[] = [];
@@ -209,24 +224,6 @@ export function resolveAndFilter(input: {
       });
       continue;
     }
-    const local =
-      rejectCandidate({ candidate, sentence }) ??
-      validateMinimalPair({
-        pointCode: candidate.pointCode,
-        sourceSpan: candidate.sourceSpan,
-        distractor: candidate.distractors[0] ?? "",
-        sentence: sentence.text,
-      });
-    if (local) {
-      rejected.push({
-        candidateId: candidate.candidateId,
-        sentenceId: candidate.sentenceId,
-        pointCode: candidate.pointCode,
-        reason: local,
-        pair,
-      });
-      continue;
-    }
     const span =
       resolveSpan({
         sentence,
@@ -287,6 +284,72 @@ export function resolveAndFilter(input: {
       };
       span.passageStart = start;
       span.passageEnd = start + trimmed.correct.length;
+    }
+
+    /**
+     * 로컬 검증은 자른 뒤에 한다.
+     *
+     * 예전에는 자르기 전에 검증했다. 그런데 챕터 검증기의 NON_MINIMAL_SPAN 문턱
+     * (4단어)이 spansWholeClause의 문턱과 같은 값이라, 자르면 최소 대립쌍이 되는
+     * 후보가 자르기에 닿기도 전에 전부 NON_MINIMAL_SPAN으로 떨어졌다. 실측에서
+     * 이 사유 하나가 전체 탈락의 최다(12건)였고 문항 0개 문장 12개 중 7개가
+     * 여기서 나왔다.
+     *
+     * 학생이 네모에서 보는 것은 자른 쌍이므로, 검증 대상도 자른 쌍이어야 맞다.
+     */
+    const localCheck = (row: typeof candidate) =>
+      rejectCandidate({ candidate: row, sentence }) ??
+      validateMinimalPair({
+        pointCode: row.pointCode,
+        sourceSpan: row.sourceSpan,
+        distractor: row.distractors[0] ?? "",
+        sentence: sentence.text,
+      });
+
+    let local = localCheck(candidate);
+    /**
+     * NON_MINIMAL_SPAN이면 한 번 더 잘라 본다.
+     *
+     * 위의 자르기는 spansWholeClause(5단어 이상)만 대상으로 한다. 그런데
+     * our families and friends / our families and friendly처럼 정확히 4단어인 쌍은
+     * 자르기 대상이 아니면서 챕터 검증기에서는 NON_MINIMAL_SPAN으로 떨어진다.
+     * 잘라서 friends / friendly가 되면 학생이 봐야 할 것이 한 낱말로 줄어든다.
+     *
+     * 자른 쌍은 아래 게이트를 처음부터 다시 통과해야 하고(느슨해지는 것이 없다),
+     * 통과하지 못하면 원래 사유로 떨어뜨린다.
+     */
+    if (local === "NON_MINIMAL_SPAN" && !trimmed) {
+      const retry = trimToMinimalPair(
+        candidate.correctAnswer,
+        candidate.distractors[0] ?? "",
+        { trimTrailing: !testsWordOrder(candidate) }
+      );
+      if (retry) {
+        const retried = {
+          ...candidate,
+          correctAnswer: retry.correct,
+          sourceSpan: retry.correct,
+          distractors: [retry.wrong],
+        };
+        if (!localCheck(retried)) {
+          const start = span.passageStart + retry.startOffset;
+          span.passageStart = start;
+          span.passageEnd = start + retry.correct.length;
+          candidate = retried;
+          local = null;
+        }
+      }
+    }
+    const finalPair = `${candidate.correctAnswer} / ${candidate.distractors[0] ?? ""}`;
+    if (local) {
+      rejected.push({
+        candidateId: candidate.candidateId,
+        sentenceId: candidate.sentenceId,
+        pointCode: candidate.pointCode,
+        reason: local,
+        pair: finalPair,
+      });
+      continue;
     }
 
     const exactPair = `${candidate.sentenceId}|${candidate.sourceSpan}|${normalize(candidate.distractors[0] ?? "")}`;

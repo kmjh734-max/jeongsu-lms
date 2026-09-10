@@ -87,7 +87,7 @@ const IRREGULAR_VERB_STEM = new Map<string, string>([
   ["arose", "arise"], ["arisen", "arise"], ["dealt", "deal"], ["laid", "lay"],
 ]);
 
-function stemVerb(word: string): string {
+export function stemVerb(word: string): string {
   const w = normalizeToken(word).replace(/^to\s+/, "");
   const irregular = IRREGULAR_VERB_STEM.get(w);
   if (irregular) return irregular;
@@ -510,12 +510,29 @@ function isAllowedLongAgreement(sentence: string, correct: string): boolean {
   return tokens(before).length > 6;
 }
 
+/**
+ * 형용사와 그 부사형인지 본다.
+ *
+ * 예전에는 X + ly와 y -> ily만 알았다. 그래서 reliable / reliably가 서로 무관한 두
+ * 낱말로 보여 MEANING_ONLY_CONTRAST로 죽었다. -le, -ic, -e, -ll로 끝나는 형용사는
+ * 부사형이 규칙과 다르게 만들어지고, 이 형태들이 어법 문항에 자주 나온다.
+ */
 function isAdjAdvPair(a: string, b: string): boolean {
   const left = normalizeToken(a);
   const right = normalizeToken(b);
   const [short, long] = [left, right].sort((x, y) => x.length - y.length);
   if (!short || !long) return false;
-  return long === `${short}ly` || (short.endsWith("y") && long === `${short.slice(0, -1)}ily`);
+  if (long === `${short}ly`) return true;
+  if (short.endsWith("y") && long === `${short.slice(0, -1)}ily`) return true;
+  // reliable -> reliably, simple -> simply, terrible -> terribly
+  if (short.endsWith("le") && long === `${short.slice(0, -1)}y`) return true;
+  // basic -> basically, dramatic -> dramatically
+  if (short.endsWith("ic") && long === `${short}ally`) return true;
+  // true -> truly, whole -> wholly
+  if (short.endsWith("e") && long === `${short.slice(0, -1)}ly`) return true;
+  // full -> fully, dull -> dully
+  if (short.endsWith("ll") && long === `${short}y`) return true;
+  return false;
 }
 
 function isContextLockedNonfinite(code: string): boolean {
@@ -545,6 +562,17 @@ function isStructuralPronounPair(code: string, correct: string, wrong: string, s
   }
   if (code === "PRONOUN_SUBJECT_OBJECT_CASE" && ["he|him", "i|me", "she|her", "they|them", "we|us"].includes(pair)) {
     return !/\bit was\b/i.test(sentence);
+  }
+  /**
+   * 소유격과 목적격·주격의 대립(their / them, our / us)은 문법 축이다 —
+   * 한정사 자리에 격이 맞는 형태가 무엇인가를 묻는다. 예전에는 이 쌍이
+   * 구조쌍 목록에 없어서 "형태가 아니라 의미로 갈리는 쌍"으로 오분류돼 죽었다.
+   */
+  if (
+    (code.includes("POSSESSIVE") || code.includes("PRONOUN")) &&
+    ["their|them", "their|they", "our|us", "our|we", "your|you", "him|his", "it|its"].includes(pair)
+  ) {
+    return true;
   }
   return false;
 }

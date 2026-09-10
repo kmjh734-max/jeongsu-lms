@@ -5,6 +5,7 @@ import {
   buildAnalyzerUserPayload,
 } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
 import { isKnownPointCode } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
+import { detectedPointsFromSentences } from "@/lib/lesson-materials/grammar-choice-v2/local-candidates";
 import type {
   AnalysisHintV2,
   DetectedGrammarPoint,
@@ -59,36 +60,12 @@ const ANALYZER_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["sentenceId", "detectedPoints", "candidates"],
+        required: ["sentenceId", "candidates"],
         properties: {
           sentenceId: { type: "string" },
-          detectedPoints: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: false,
-              required: [
-                "pointCode",
-                "sourceSpan",
-                "occurrenceIndex",
-                "priority",
-                "omissionReason",
-              ],
-              properties: {
-                pointCode: { type: "string" },
-                sourceSpan: { type: "string" },
-                occurrenceIndex: { type: "integer" },
-                priority: { type: "string", enum: ["MANDATORY", "CORE", "BASIC"] },
-                omissionReason: {
-                  type: "string",
-                  enum: OMISSION_ENUM,
-                },
-              },
-            },
-          },
           candidates: {
             type: "array",
-            maxItems: 3,
+            maxItems: 5,
             items: {
               type: "object",
               additionalProperties: false,
@@ -158,7 +135,14 @@ export const ANALYZER_SENTENCES_PER_CALL = 1;
  * 버릴 수 없어서, 뒤쪽 필터를 아무리 조여도 품질이 오르지 않는다.
  * 억지 후보는 상한이 아니라 "상한을 채우지 말라"는 프롬프트 지시가 막는다.
  */
-export const ANALYZER_CANDIDATES_PER_SENTENCE = 3;
+/**
+ * 문장 하나에서 요구할 후보 상한.
+ *
+ * 3에서 5로 올린다. 한 문장에 문법 지점이 여럿 들어 있는 것이 정상이고,
+ * 선생님도 한 문장에 여러 문법이 들어가도 된다고 했다. 3이면 모델이 가장
+ * 눈에 띄는 것만 내고 나머지를 버린다.
+ */
+export const ANALYZER_CANDIDATES_PER_SENTENCE = 5;
 
 /**
  * 호출자가 게이트를 넘겨주지 않을 때 쓰는 지문 단독 상한.
@@ -257,12 +241,20 @@ export async function analyzeAndGeneratePassage(input: {
   }
   const mergedRawJson = JSON.stringify({ sentences: mergedSentences });
   const parsed = parseAnalyzerRawJson(mergedRawJson, input.passageId);
+  /**
+   * 검출 목록은 모델이 아니라 검출기에서 온다. 모델 응답에 detectedPoints가
+   * 남아 있는 것은 옛 스냅샷을 replay할 때뿐이므로, 비어 있을 때만 채운다.
+   */
+  const detected = parsed.detected.length
+    ? parsed.detected
+    : detectedPointsFromSentences(input.sentences);
 
   const sum = (pick: (row: (typeof calls)[number]) => number | null) =>
     calls.reduce((acc, row) => acc + (pick(row) ?? 0), 0);
 
   return {
     ...parsed,
+    detected,
     responseModel: calls[0]?.called.responseModel ?? input.model,
     promptChars: sum((row) => row.promptChars),
     rawJson: mergedRawJson,

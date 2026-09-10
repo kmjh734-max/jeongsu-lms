@@ -50,8 +50,13 @@ import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
 /**
  * 동시에 띄우는 어법 선택 지문 요청 수. 지문 하나가 요청 하나라 함수 실행시간
  * 상한과는 무관하고, 순차로 돌리면 지문 수에 비례해 그대로 느려진다.
+ *
+ * 4에서 8로 올린다. 지문 하나가 20~29초이므로 4면 지문 8개에 두 웨이브(약 1분)가
+ * 되는데, 다른 유형 생성이 전체 17초로 내려온 지금은 여기가 화면에서 기다리는
+ * 시간의 거의 전부다. 요청은 각각 별도 함수 호출이라 서로의 실행시간을 잡아먹지
+ * 않고, 순간 호출이 늘어 429가 나도 openai-call의 재시도가 받는다.
  */
-const GRAMMAR_CHOICE_PASSAGE_CONCURRENCY = 4;
+const GRAMMAR_CHOICE_PASSAGE_CONCURRENCY = 8;
 
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";

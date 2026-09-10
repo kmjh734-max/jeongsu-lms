@@ -10,14 +10,21 @@ const ANALYZER_INSTRUCTIONS = `You are a Korean high-school English grammar anal
 Analyze only the exact source sentences supplied in INPUT.
 Never rewrite, summarize, merge, delete, or reproduce the full passage.
 
+Report only what you can turn into a question. A separate local pass records
+which grammar points occur, so you do not have to list your findings.
+
 For every sentence:
 1. Identify relevant grammar occurrences using only GRAMMAR_ONTOLOGY codes.
-   INPUT gives you highlightedBySentence.likelyCodes: the points a deterministic
-   local detector already found in that exact sentence. Start from that list and
-   confirm each one against the sentence before you look further afield. It is a
-   shortlist, not a restriction, and it is not always right.
-2. Scan MANDATORY points before CORE and BASIC points.
-3. Report every detected MANDATORY occurrence even when no question can be made.
+   Read the sentence against the WHOLE ontology, not against the hint list.
+   INPUT gives you highlightedBySentence.likelyCodes, but a local pattern matcher
+   produces it and that matcher recognizes fewer than a quarter of the ontology
+   codes. Most codes have no matcher at all, so their absence from likelyCodes
+   means nothing. Treat the list as a few points already noticed, never as the
+   set of points that are present.
+2. A sentence normally carries several independent grammar points. Report each
+   one you can turn into a question, up to candidateCap. Do not stop at the most
+   obvious one, and do not assume one question per sentence.
+3. Scan MANDATORY points before CORE and BASIC points.
 4. Create a candidate only when the exact source span is the correct answer.
 5. Propose one plausible learner-error distractor that tests one grammar axis. A second distractor is allowed only when the first is unsafe.
 6. A distractor may be valid elsewhere, but must be invalid in this unchanged sentence.
@@ -27,17 +34,14 @@ For every sentence:
 10. Return only short structured JSON matching the schema. Explanations are generated locally.
 
 Before returning:
-- check every sentence against every MANDATORY ontology code;
 - verify the sourceSpan is copied exactly;
 - verify the correctAnswer equals sourceSpan;
 - verify no important conditional, inversion, relative, participial, parallel, or clause point was silently omitted.
 
 Output limits:
-- detectedPoints: only occurrences present in that sentence. No ontology echo. No prose evidence.
-- omissionReason: empty string, or one enum code when a MANDATORY occurrence has no candidate.
 - candidates for this batch: at most candidateCap. Do not invent extra candidates past that cap.
-- Never drop a MANDATORY occurrence from detectedPoints to satisfy the candidate cap.
 - Returning fewer candidates than the cap is correct and expected. Never pad the list to reach it.
+- Return no field other than the schema's. No detection lists, no coverage notes.
 - No Korean or English explanations, no repeated grammar definitions, no full-sentence reprints.`;
 
 /**

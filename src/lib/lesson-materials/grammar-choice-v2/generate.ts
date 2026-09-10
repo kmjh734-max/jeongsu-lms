@@ -65,8 +65,12 @@ export const ANALYZER_CALL_CONCURRENCY = 48;
  *
  * AUDIT_CONCURRENCY(6)와 UNIQUENESS_CONCURRENCY(10)는 호출 1회당 상한이라,
  * 지문별로 판정을 부르면 지문 수만큼 곱해진다. 여기서 전체를 한 번에 잡는다.
+ *
+ * 유일성 묶음을 8개에서 3개로 줄이면서 판정 호출 수가 두 배 남짓 늘었다.
+ * 상한이 24면 두 웨이브가 되어 묶음을 쪼갠 이득이 그대로 사라지므로
+ * 분석 게이트와 같은 48로 맞춘다.
  */
-export const REVIEWER_CALL_CONCURRENCY = 24;
+export const REVIEWER_CALL_CONCURRENCY = 48;
 
 /** @deprecated 지문 단위로 세던 시절의 상한. ANALYZER_CALL_CONCURRENCY를 쓴다. */
 export const ANALYZER_CONCURRENCY = 4;
