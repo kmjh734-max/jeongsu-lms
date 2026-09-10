@@ -129,10 +129,21 @@ export function resolveAndFilter(input: {
     ...safeLocalCandidates(s.sentenceId, s.text),
     ...localCandidatesFromDetectors(s.sentenceId, s.text),
   ]);
-  const seenLocal = new Set(input.candidates.map((c) => `${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`));
+  /**
+   * 같은 (문장, 코드, 스팬)을 로컬과 모델이 함께 내놓으면 로컬 쪽을 쓴다.
+   *
+   * 예전에는 모델 후보를 먼저 넣어서 겹치는 자리를 모델이 차지했다. 그래서
+   * 검출기를 후보 공급원으로 올려도 최종 45문항 중 로컬이 만든 것은 3개(7%)뿐이었다.
+   * 같은 문법 지점을 같은 스팬에서 묻는다면 어느 쪽을 써도 문항은 같고, 로컬
+   * 템플릿은 실행마다 같은 오답을 만든다. 겹치는 자리를 로컬로 채우면 같은 지문을
+   * 다시 생성했을 때 문항이 덜 흔들린다(예전 관측: 같은 4지문이 35 / 44 / 36).
+   */
+  const keyOf = (c: GrammarCandidate) =>
+    `${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`;
+  const seenLocal = new Set(extras.map(keyOf));
   const candidates = [
-    ...input.candidates,
-    ...extras.filter((c) => !seenLocal.has(`${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`)),
+    ...extras,
+    ...input.candidates.filter((c) => !seenLocal.has(keyOf(c))),
   ];
   const resolved: ResolvedCandidate[] = [];
   const rejected: V2Reject[] = [];
