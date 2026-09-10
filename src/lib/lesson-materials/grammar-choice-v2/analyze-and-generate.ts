@@ -65,7 +65,7 @@ const ANALYZER_SCHEMA = {
           sentenceId: { type: "string" },
           candidates: {
             type: "array",
-            maxItems: 3,
+            maxItems: 5,
             items: {
               type: "object",
               additionalProperties: false,
@@ -135,7 +135,14 @@ export const ANALYZER_SENTENCES_PER_CALL = 1;
  * 버릴 수 없어서, 뒤쪽 필터를 아무리 조여도 품질이 오르지 않는다.
  * 억지 후보는 상한이 아니라 "상한을 채우지 말라"는 프롬프트 지시가 막는다.
  */
-export const ANALYZER_CANDIDATES_PER_SENTENCE = 3;
+/**
+ * 문장 하나에서 요구할 후보 상한.
+ *
+ * 3에서 5로 올린다. 한 문장에 문법 지점이 여럿 들어 있는 것이 정상이고,
+ * 선생님도 한 문장에 여러 문법이 들어가도 된다고 했다. 3이면 모델이 가장
+ * 눈에 띄는 것만 내고 나머지를 버린다.
+ */
+export const ANALYZER_CANDIDATES_PER_SENTENCE = 5;
 
 /**
  * 호출자가 게이트를 넘겨주지 않을 때 쓰는 지문 단독 상한.

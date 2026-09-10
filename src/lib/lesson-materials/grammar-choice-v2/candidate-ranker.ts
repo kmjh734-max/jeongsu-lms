@@ -11,8 +11,17 @@ const RANK: Record<GrammarPriority, number> = {
   BASIC: 2,
 };
 
-const MAX_ITEMS = 24;
-const MAX_ADJ_ADV = 2;
+/**
+ * 지문 하나의 문항 상한.
+ *
+ * 한 문장에 문법 지점이 여럿 들어 있는 것이 정상이므로, 문장 수 x 2 / 24개라는
+ * 예전 상한은 문장당 하나꼴로 눌러 놓는 값이었다. 문장 수 x 3 / 36개로 올린다.
+ * 자리가 겹치는 후보는 아래 overlap 검사가 그대로 막으므로, 같은 네모가 두 번
+ * 나오지는 않는다.
+ */
+const MAX_ITEMS = 36;
+const ITEMS_PER_SENTENCE = 3;
+const MAX_ADJ_ADV = 3;
 
 export function sortStudentPresentationOrder<T extends {
   passageStart: number;
@@ -86,7 +95,7 @@ export function rankCandidates(
   }
 
   const clauseFiltered = applyClauseQuality(kept, dropped, sentences);
-  const cap = Math.min(sentenceCount * 2, MAX_ITEMS);
+  const cap = Math.min(sentenceCount * ITEMS_PER_SENTENCE, MAX_ITEMS);
   const nonBasic = clauseFiltered.filter((item) => item.priority !== "BASIC");
   const basicCap = Math.floor(nonBasic.length / 3);
   let basicUsed = 0;

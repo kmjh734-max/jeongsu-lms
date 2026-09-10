@@ -710,7 +710,22 @@ function ppToBase(pp: string): string | null {
   if (w.endsWith("ied") && w.length > 4) return `${w.slice(0, -3)}y`;
   if (w.endsWith("ed") && w.length > 4) {
     const stem = w.slice(0, -2);
-    if (stem.length >= 3 && stem.at(-1) === stem.at(-2) && !/[aeiou]/.test(stem.at(-1) ?? "")) {
+    const last = stem.at(-1) ?? "";
+    /**
+     * -ed를 떼면 자음이 겹쳐 남는 것은 두 가지다 — 어미변화로 겹친 것(stopped -> stop,
+     * controlled -> control)과 원래 겹자음인 것(obsessed -> obsess, passed -> pass).
+     * 영어는 어미변화로 s를 겹치지 않으므로 s만은 벗기지 않는다.
+     *
+     * 예전에는 obsessed -> obses가 되어 is obsessed의 능동형이 obseses라는 없는
+     * 철자로 나왔다. 로컬 후보는 위험도가 낮아 검수 호출을 타지 않고, 블라인드
+     * 유일성 판정은 없는 낱말을 "비문"으로 보아 통과시키므로 여기서 막아야 한다.
+     */
+    if (
+      stem.length >= 3 &&
+      last === stem.at(-2) &&
+      last !== "s" &&
+      !/[aeiou]/.test(last)
+    ) {
       return stem.slice(0, -1);
     }
     return stem;

@@ -15,18 +15,23 @@ which grammar points occur, so you do not have to list your findings.
 
 For every sentence:
 1. Identify relevant grammar occurrences using only GRAMMAR_ONTOLOGY codes.
-   INPUT gives you highlightedBySentence.likelyCodes: the points a deterministic
-   local detector already found in that exact sentence. Start from that list and
-   confirm each one against the sentence before you look further afield. It is a
-   shortlist, not a restriction, and it is not always right.
-2. Scan MANDATORY points before CORE and BASIC points.
-3. Create a candidate only when the exact source span is the correct answer.
-4. Propose one plausible learner-error distractor that tests one grammar axis. A second distractor is allowed only when the first is unsafe.
-5. A distractor may be valid elsewhere, but must be invalid in this unchanged sentence.
-6. Do not create mechanical infinitive-marker, modal-base-form, short adjacent agreement, or imperative -s questions.
-7. Do not create vocabulary, idiom, spelling, style, or meaning-preference questions.
-8. Do not output the rewritten passage, ontology definitions, explanations, or reasoning.
-9. Return only short structured JSON matching the schema. Explanations are generated locally.
+   Read the sentence against the WHOLE ontology, not against the hint list.
+   INPUT gives you highlightedBySentence.likelyCodes, but a local pattern matcher
+   produces it and that matcher recognizes fewer than a quarter of the ontology
+   codes. Most codes have no matcher at all, so their absence from likelyCodes
+   means nothing. Treat the list as a few points already noticed, never as the
+   set of points that are present.
+2. A sentence normally carries several independent grammar points. Report each
+   one you can turn into a question, up to candidateCap. Do not stop at the most
+   obvious one, and do not assume one question per sentence.
+3. Scan MANDATORY points before CORE and BASIC points.
+4. Create a candidate only when the exact source span is the correct answer.
+5. Propose one plausible learner-error distractor that tests one grammar axis. A second distractor is allowed only when the first is unsafe.
+6. A distractor may be valid elsewhere, but must be invalid in this unchanged sentence.
+7. Do not create mechanical infinitive-marker, modal-base-form, short adjacent agreement, or imperative -s questions.
+8. Do not create vocabulary, idiom, spelling, style, or meaning-preference questions.
+9. Do not output the rewritten passage, ontology definitions, explanations, or reasoning.
+10. Return only short structured JSON matching the schema. Explanations are generated locally.
 
 Before returning:
 - verify the sourceSpan is copied exactly;
