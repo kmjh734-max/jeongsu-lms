@@ -55,8 +55,42 @@ function tokens(text: string): string[] {
   return text.split(/\s+/).filter(Boolean);
 }
 
+/**
+ * 불규칙 동사의 과거·과거분사를 원형으로 되돌리는 표.
+ *
+ * 규칙 접사만 벗기면 said -> said, went -> went로 남아 원형과 다른 낱말로 보인다.
+ * 그러면 said/says 같은 순수 시제 굴절 쌍이 "형태가 아니라 의미로 갈리는 쌍"으로
+ * 오분류되어 MEANING_ONLY_CONTRAST로 죽는다.
+ * 관측: 스냅샷 17지문에서 제안된 TENSE 후보 5개가 전부 이 경로로 탈락했다
+ * (said/says x4, occupy/occupied x1). 시제 문항 0건의 직접 원인이다.
+ */
+const IRREGULAR_VERB_STEM = new Map<string, string>([
+  ["said", "say"], ["went", "go"], ["gone", "go"], ["made", "make"],
+  ["took", "take"], ["taken", "take"], ["came", "come"], ["saw", "see"],
+  ["seen", "see"], ["knew", "know"], ["known", "know"], ["got", "get"],
+  ["gotten", "get"], ["gave", "give"], ["given", "give"], ["found", "find"],
+  ["thought", "think"], ["told", "tell"], ["became", "become"],
+  ["left", "leave"], ["felt", "feel"], ["brought", "bring"], ["began", "begin"],
+  ["begun", "begin"], ["kept", "keep"], ["held", "hold"], ["wrote", "write"],
+  ["written", "write"], ["stood", "stand"], ["heard", "hear"],
+  ["meant", "mean"], ["met", "meet"], ["ran", "run"], ["paid", "pay"],
+  ["sat", "sit"], ["spoke", "speak"], ["spoken", "speak"], ["led", "lead"],
+  ["grew", "grow"], ["grown", "grow"], ["lost", "lose"], ["fell", "fall"],
+  ["fallen", "fall"], ["sent", "send"], ["built", "build"],
+  ["understood", "understand"], ["drew", "draw"], ["drawn", "draw"],
+  ["broke", "break"], ["broken", "break"], ["spent", "spend"],
+  ["chose", "choose"], ["chosen", "choose"], ["rose", "rise"], ["risen", "rise"],
+  ["drove", "drive"], ["driven", "drive"], ["ate", "eat"], ["eaten", "eat"],
+  ["forgot", "forget"], ["forgotten", "forget"], ["bought", "buy"],
+  ["caught", "catch"], ["taught", "teach"], ["sought", "seek"],
+  ["fought", "fight"], ["won", "win"], ["shown", "show"],
+  ["arose", "arise"], ["arisen", "arise"], ["dealt", "deal"], ["laid", "lay"],
+]);
+
 function stemVerb(word: string): string {
   const w = normalizeToken(word).replace(/^to\s+/, "");
+  const irregular = IRREGULAR_VERB_STEM.get(w);
+  if (irregular) return irregular;
   if (w.endsWith("ing") && w.length > 4) {
     let stem = w.slice(0, -3);
     if (stem.length >= 4 && stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
@@ -65,6 +99,7 @@ function stemVerb(word: string): string {
   if (w.endsWith("ies") && w.length > 4) return `${w.slice(0, -3)}y`;
   if (w.endsWith("es") && w.length > 4) return w.slice(0, -2);
   if (w.endsWith("s") && w.length > 3) return w.slice(0, -1);
+  if (w.endsWith("ied") && w.length > 4) return `${w.slice(0, -3)}y`;
   if (w.endsWith("ed") && w.length > 4) {
     let stem = w.slice(0, -2);
     if (stem.length >= 4 && stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
@@ -636,6 +671,21 @@ function isImplausible(correct: string, wrong: string, sentence: string): boolea
   return false;
 }
 
+/**
+ * 문장 안에서 시제를 확정짓는 시간 표지.
+ *
+ * isAmbiguousTense는 "표지가 없으면 모호하니 거부"하는 게이트다. 그런데 목록이
+ * 좁아서 실제로 시제를 확정하는 표현을 대부분 놓쳤다. 관측: 제안된
+ * TENSE_EXPLICIT_TIME_MARKER 후보가 전부 여기서 탈락했는데 정작 그 문장들은
+ * once said / Today ... occupy처럼 표지가 분명했다. 코드명이 이미
+ * "명시적 시간 표지"인 후보가 표지 없음으로 걸리던 셈이다.
+ *
+ * 넓히는 방향이지만 가드를 푸는 것은 아니다. 표지가 없으면 지금과 똑같이
+ * 탈락하고, 살아남은 후보도 블라인드 유일성 게이트와 검수를 그대로 통과해야 한다.
+ */
+const EXPLICIT_TIME_MARKER_RE =
+  /\b(?:yesterday|ago|already|since|for|before|after|by the time|now|then|when|while|tomorrow|just|never|always|once|today|tonight|nowadays|currently|recently|lately|these days|at present|so far|up to now|ever since|last (?:night|week|month|year|time)|next (?:week|month|year)|this (?:morning|afternoon|evening|week|month|year)|over the (?:past|last)|in \d{4})\b/i;
+
 function isAmbiguousTense(
   correct: string,
   wrong: string,
@@ -644,10 +694,7 @@ function isAmbiguousTense(
 ): boolean {
   if (!pointCode.startsWith("TENSE_")) return false;
   if (!isInflectionOnly(correct, wrong)) return false;
-  const hasMarker =
-    /\b(yesterday|ago|already|since|for|before|after|by the time|now|then|when|while|tomorrow|just|never|always)\b/i.test(
-      sentence
-    );
+  const hasMarker = EXPLICIT_TIME_MARKER_RE.test(sentence);
   return !hasMarker;
 }
 
