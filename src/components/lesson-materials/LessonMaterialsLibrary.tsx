@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { LessonMaterialDocumentList } from "@/components/lesson-materials/LessonMaterialDocumentList";
+import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
@@ -198,8 +200,21 @@ export function LessonMaterialsLibrary({
   const inTrash = folderFilter === "trash";
   const tabComingSoon =
     libraryTab === "questions" ||
-    libraryTab === "workbook" ||
     libraryTab === "integrated";
+  /** 만든 파일을 보여 주는 탭. 워크북 탭은 파일만 있고 지문별 목록이 없다. */
+  const documentKind: LessonMaterialDocumentKind | null =
+    libraryTab === "lesson"
+      ? "lesson_pack"
+      : libraryTab === "analysis"
+        ? "analysis_report"
+        : libraryTab === "workbook"
+          ? "workbook"
+          : null;
+  const tabDocuments = useMemo(
+    () => (documentKind ? (data.documents ?? []).filter((d) => d.kind === documentKind) : []),
+    [data.documents, documentKind]
+  );
+  const showProjectList = libraryTab !== "workbook";
 
   const currentFolderLabel =
     folderFilter === "all"
@@ -212,9 +227,9 @@ export function LessonMaterialsLibrary({
 
   const tabEmptyMessage =
     libraryTab === "lesson"
-      ? "저장된 수업용 자료가 없습니다. 지문자료를 선택한 뒤 「수업용 자료 제작」에서 저장하세요."
+      ? "수업용 자료가 저장된 지문이 없습니다."
       : libraryTab === "analysis"
-        ? "저장된 분석서가 없습니다. 지문자료를 선택한 뒤 「지문 분석서 제작」으로 만드세요."
+        ? "분석서가 저장된 지문이 없습니다."
         : libraryTab === "questions"
           ? "변형문제는 준비 중입니다."
           : libraryTab === "workbook"
@@ -679,7 +694,11 @@ export function LessonMaterialsLibrary({
             <p className="mt-1 text-sm text-slate-600">
               {tabComingSoon
                 ? "준비 중"
-                : `${visibleProjects.length}개의 자료가 있습니다.`}
+                : documentKind === "workbook"
+                  ? `${tabDocuments.length}개의 파일이 있습니다.`
+                  : documentKind
+                    ? `파일 ${tabDocuments.length}개 · 지문 ${visibleProjects.length}개`
+                    : `${visibleProjects.length}개의 자료가 있습니다.`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -868,7 +887,19 @@ export function LessonMaterialsLibrary({
           </Alert>
         ) : null}
 
-        {!tabComingSoon ? (
+        {documentKind && !inTrash ? (
+          <LessonMaterialDocumentList
+            key={documentKind}
+            role={role}
+            kind={documentKind}
+            documents={tabDocuments}
+          />
+        ) : null}
+        {documentKind && showProjectList && !inTrash ? (
+          <h2 className="mt-6 text-sm font-bold text-slate-800">지문별 자료</h2>
+        ) : null}
+
+        {!tabComingSoon && showProjectList ? (
         <div className="mt-3 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
           <label className="inline-flex items-center gap-2 font-semibold">
             <input
@@ -890,7 +921,7 @@ export function LessonMaterialsLibrary({
         </div>
         ) : null}
 
-        <ul className="mt-3 space-y-2">
+        <ul className={`mt-3 space-y-2 ${showProjectList ? "" : "hidden"}`}>
           {tabComingSoon || orderedProjects.length === 0 ? (
             <li className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
               {tabEmptyMessage}

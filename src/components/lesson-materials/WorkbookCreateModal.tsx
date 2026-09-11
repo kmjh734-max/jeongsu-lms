@@ -1,5 +1,7 @@
 "use client";
 
+import { openNewDocument } from "@/components/lesson-materials/open-new-document";
+
 import { useMemo, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -148,7 +150,7 @@ export function WorkbookCreateModal({
     setStep("options");
   }
 
-  function handleStart() {
+  async function handleStart() {
     setError(null);
     if (projectIds.length === 0) {
       setError("선택된 자료가 없습니다.");
@@ -164,11 +166,13 @@ export function WorkbookCreateModal({
       blankOptions,
       title: title.trim() || defaultWorkbookTitle(),
     });
-    const win = window.open(href, "_blank", "noopener,noreferrer");
-    if (!win) {
-      setError(
-        "팝업이 차단되었습니다. 브라우저에서 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요."
-      );
+    // 워크북도 파일로 저장한다. 제목이 곧 파일 이름이고, 만든 조건(유형·옵션)을 함께 둔다.
+    const err = await openNewDocument(role, "workbook", [...projectIds], {
+      name: title.trim() || defaultWorkbookTitle(),
+      query: href.slice(href.indexOf("?") + 1),
+    });
+    if (err) {
+      setError(err);
       return;
     }
     onClose();

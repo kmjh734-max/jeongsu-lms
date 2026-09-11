@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { WorkbookCreateModal } from "@/components/lesson-materials/WorkbookCreateModal";
+import { openNewDocument } from "@/components/lesson-materials/open-new-document";
+import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
+
 
 /** Floating purple action bar when library items are selected. */
 export function LessonMaterialsSelectionBar({
@@ -17,16 +20,20 @@ export function LessonMaterialsSelectionBar({
   onEdit?: () => void;
 }) {
   const [workbookOpen, setWorkbookOpen] = useState(false);
+  const [openError, setOpenError] = useState<string | null>(null);
+  const [opening, setOpening] = useState(false);
   if (selectedCount <= 0) return null;
+
+  async function make(kind: LessonMaterialDocumentKind) {
+    setOpenError(null);
+    setOpening(true);
+    const err = await openNewDocument(role, kind, selectedIds);
+    setOpening(false);
+    if (err) setOpenError(err);
+  }
 
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
-  const packHref = `${base}/lesson-pack?ids=${encodeURIComponent(
-    selectedIds.join(",")
-  )}`;
-  const analysisHref = `${base}/analysis-report?ids=${encodeURIComponent(
-    selectedIds.join(",")
-  )}`;
   const singleEditHref =
     selectedIds.length === 1
       ? `${base}/project/${selectedIds[0]}`
@@ -44,6 +51,11 @@ export function LessonMaterialsSelectionBar({
               ✓
             </span>
             {selectedCount}개 자료 선택됨
+            {openError ? (
+              <span className="rounded-md bg-white/90 px-2 py-0.5 text-xs font-semibold text-rose-600">
+                {openError}
+              </span>
+            ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {singleEditHref ? (
@@ -55,22 +67,22 @@ export function LessonMaterialsSelectionBar({
                 ✏ 수정
               </button>
             )}
-            <Link
-              href={packHref}
+            <button
+              type="button"
               className={btn}
-              target="_blank"
-              rel="noopener noreferrer"
+              disabled={opening}
+              onClick={() => void make("lesson_pack")}
             >
               ✦ 수업용 자료 제작
-            </Link>
-            <Link
-              href={analysisHref}
+            </button>
+            <button
+              type="button"
               className={btn}
-              target="_blank"
-              rel="noopener noreferrer"
+              disabled={opening}
+              onClick={() => void make("analysis_report")}
             >
               📄 지문 분석서 제작
-            </Link>
+            </button>
             <button type="button" className={btn} disabled title="준비 중">
               ✒ 문제 제작
             </button>

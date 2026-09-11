@@ -1,4 +1,5 @@
 /** Lesson-materials workbook types (ready + placeholder cards). */
+import { defaultDocumentName } from "@/lib/lesson-materials/documents";
 
 export type WorkbookTypeId =
   | "grammar_choice"
@@ -630,8 +631,9 @@ export function getGrammarChoiceTargetRange(englishWordCount: number): {
   return { min: 10, max: 14 };
 }
 
+/** 워크북_0911 (한국 시간). 워크북 파일 이름의 기본값이기도 하다. */
 export function defaultWorkbookTitle(d = new Date()): string {
-  return `워크북_${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  return defaultDocumentName("workbook", d);
 }
 
 export function clampTfCount(n: unknown): number {

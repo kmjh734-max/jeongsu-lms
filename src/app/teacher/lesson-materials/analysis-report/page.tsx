@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page";
 import { AnalysisReportWorkbench } from "@/components/lesson-materials/AnalysisReportWorkbench";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
@@ -8,13 +9,10 @@ import Link from "next/link";
 export default async function TeacherAnalysisReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ids?: string }>;
+  searchParams: Promise<{ ids?: string; doc?: string }>;
 }) {
-  const { ids: idsRaw } = await searchParams;
-  const ids = (idsRaw ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // ?doc=면 저장된 파일의 지문을, 아니면 ?ids=를 쓴다.
+  const ids = await resolveDocumentProjectIds(await searchParams, "analysis_report");
 
   if (ids.length === 0) {
     return (

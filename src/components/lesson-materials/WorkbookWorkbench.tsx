@@ -22,6 +22,7 @@ import {
   type generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { getWorkbookDocument } from "@/lib/lesson-materials/document-actions";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
@@ -59,6 +60,25 @@ import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
  * 늘어 429가 나도 openai-call의 재시도가 받는다.
  */
 const GRAMMAR_CHOICE_PASSAGE_CONCURRENCY = 8;
+
+/** 저장된 워크북(브라우저 세션·워크북 파일)은 옛 형식일 수 있어 빠진 목록을 채운다. */
+function withWorkbookDefaults(w: WorkbookData): WorkbookData {
+  return {
+    ...w,
+    blankSections: w.blankSections ?? [],
+    blankOptions: w.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
+    grammarChoiceSections: w.grammarChoiceSections ?? [],
+    grammarChoiceSkipped: w.grammarChoiceSkipped ?? [],
+    sentenceOrderQuestions: w.sentenceOrderQuestions ?? [],
+    sentenceOrderSkipped: w.sentenceOrderSkipped ?? [],
+    lineTranslationSections: w.lineTranslationSections ?? [],
+    lineTranslationSkipped: w.lineTranslationSkipped ?? [],
+    fullEnWritingSections: w.fullEnWritingSections ?? [],
+    fullEnWritingSkipped: w.fullEnWritingSkipped ?? [],
+    wordOrderWritingSections: w.wordOrderWritingSections ?? [],
+    wordOrderWritingSkipped: w.wordOrderWritingSkipped ?? [],
+  };
+}
 
 const A4_WIDTH = "210mm";
 const A4_HEIGHT = "297mm";
@@ -918,6 +938,8 @@ export function WorkbookWorkbench({
   const measureRef = useRef<HTMLDivElement>(null);
 
   const requestKey = searchParams.toString();
+  /** 이 탭에서 만들어 파일에 저장까지 끝낸 워크북 파일 id. */
+  const producedDocRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -925,6 +947,25 @@ export function WorkbookWorkbench({
       status: ReturnType<typeof setTimeout> | null;
       elapsed: ReturnType<typeof setInterval> | null;
     } = { status: null, elapsed: null };
+    const docId = searchParams.get("doc")?.trim() || null;
+    const freshRequest = searchParams.get("fresh") === "1";
+    // 저장 뒤 주소에서 fresh=1만 뗀 것이다. 화면의 워크북을 그대로 둔다.
+    if (docId && !freshRequest && producedDocRef.current === docId) return;
+
+    /** 다 만든 워크북을 워크북 파일에 저장하고, 새로 고쳐도 다시 만들지 않게 fresh=1을 뗀다. */
+    const persistToDocument = async (finished: WorkbookData) => {
+      if (!docId) return;
+      const res = await postJson<{ ok: true }>("/api/lesson-materials/documents/workbook", {
+        id: docId,
+        workbook: finished,
+      });
+      if (!res.ok || cancelled) return;
+      producedDocRef.current = docId;
+      const params = new URLSearchParams(window.location.search);
+      params.delete("fresh");
+      window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+    };
+
     (async () => {
       setGenerating(true);
       setError(null);
@@ -954,6 +995,39 @@ export function WorkbookWorkbench({
       const title =
         searchParams.get("title")?.trim() || defaultWorkbookTitle();
 
+      // 자료함의 워크북 파일을 연 경우: 저장된 결과를 그대로 보여 준다.
+      if (docId && !freshRequest) {
+        setStatus("워크북 파일을 불러오고 있습니다…");
+        const doc = await getWorkbookDocument(role, { id: docId });
+        if (cancelled) return;
+        if (!doc.ok) {
+          setError(doc.message);
+          setGenerating(false);
+          return;
+        }
+        if (doc.payload && typeof doc.payload === "object") {
+          const saved = withWorkbookDefaults(doc.payload as WorkbookData);
+          producedDocRef.current = docId;
+          setSourceNote("existing");
+          saveWorkbookToSession(saved);
+          setWorkbook(saved);
+          setGenerating(false);
+          return;
+        }
+        // 결과를 저장하기 전에 탭이 닫힌 파일: 만든 조건 그대로 한 번 다시 만든다.
+        const again = new URLSearchParams(doc.sourceQuery ?? "");
+        if (!again.get("ids")) again.set("ids", doc.projectIds.join(","));
+        if (again.get("types")) {
+          again.set("doc", docId);
+          again.set("fresh", "1");
+          window.location.replace(`${window.location.pathname}?${again.toString()}`);
+          return;
+        }
+        setError("저장된 워크북 내용이 없습니다. 지문자료에서 다시 만들어 주세요.");
+        setGenerating(false);
+        return;
+      }
+
       if (ids.length === 0) {
         setStatus("기존 워크북을 불러오고 있습니다…");
         const cached = loadWorkbookFromSession();
@@ -969,21 +1043,7 @@ export function WorkbookWorkbench({
         ) {
           if (!cancelled) {
             setSourceNote("existing");
-            setWorkbook({
-              ...cached,
-              blankSections: cached.blankSections ?? [],
-              blankOptions: cached.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS,
-              grammarChoiceSections: cached.grammarChoiceSections ?? [],
-              grammarChoiceSkipped: cached.grammarChoiceSkipped ?? [],
-              sentenceOrderQuestions: cached.sentenceOrderQuestions ?? [],
-              sentenceOrderSkipped: cached.sentenceOrderSkipped ?? [],
-              lineTranslationSections: cached.lineTranslationSections ?? [],
-              lineTranslationSkipped: cached.lineTranslationSkipped ?? [],
-              fullEnWritingSections: cached.fullEnWritingSections ?? [],
-              fullEnWritingSkipped: cached.fullEnWritingSkipped ?? [],
-              wordOrderWritingSections: cached.wordOrderWritingSections ?? [],
-              wordOrderWritingSkipped: cached.wordOrderWritingSkipped ?? [],
-            });
+            setWorkbook(withWorkbookDefaults(cached));
             setGenerating(false);
           }
           return;
@@ -1172,6 +1232,7 @@ export function WorkbookWorkbench({
             saveWorkbookToSession(merged);
             setWorkbook(merged);
             setGrammarChoicePending(false);
+            void persistToDocument(merged);
             return;
           }
           workbook.grammarChoiceSections = grammarChoiceSections;
@@ -1181,6 +1242,7 @@ export function WorkbookWorkbench({
         saveWorkbookToSession(workbook);
         setWorkbook(workbook);
         setGenerating(false);
+        void persistToDocument(workbook);
       } catch (e) {
         if (timers.status) clearTimeout(timers.status);
         if (timers.elapsed) clearInterval(timers.elapsed);

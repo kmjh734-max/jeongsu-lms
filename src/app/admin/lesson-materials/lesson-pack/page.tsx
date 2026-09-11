@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page";
 import { LessonPackWorkbench } from "@/components/lesson-materials/LessonPackWorkbench";
 import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
 import type {
@@ -12,13 +13,10 @@ import Link from "next/link";
 export default async function AdminLessonPackPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ids?: string }>;
+  searchParams: Promise<{ ids?: string; doc?: string }>;
 }) {
-  const { ids: idsRaw } = await searchParams;
-  const ids = (idsRaw ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // ?doc=면 저장된 파일의 지문을, 아니면 ?ids=를 쓴다.
+  const ids = await resolveDocumentProjectIds(await searchParams, "lesson_pack");
 
   if (ids.length === 0) {
     return (
