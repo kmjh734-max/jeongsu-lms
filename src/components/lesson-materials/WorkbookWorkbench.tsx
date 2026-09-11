@@ -349,14 +349,11 @@ function GrammarChoiceAnswerBody({
   section,
   typeOrder,
   multi,
-  showStaffDiagnostics,
 }: {
   section: WorkbookGrammarChoiceSection;
   typeOrder: number;
   multi: boolean;
-  showStaffDiagnostics: boolean;
 }) {
-  const d = section.diagnostics;
   return (
     <>
       <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
@@ -378,63 +375,6 @@ function GrammarChoiceAnswerBody({
           </li>
         ))}
       </ol>
-      {d && showStaffDiagnostics ? (
-        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-600 print:hidden">
-          <p className="font-bold text-slate-800">진단</p>
-          <ul className="mt-1 space-y-0.5">
-            <li>전체 문장 수: {d.sentenceCount}</li>
-            <li>발견 포인트: {d.discoveredGrammarPointCount ?? "—"} {d.sentencePointCounts ? `(${d.sentencePointCounts.map((s) => s.count).join("/")})` : ""}</li>
-            <li>최종/화면/정답지: {d.finalQuestionCount ?? d.finalCount} / {d.renderedQuestionCount ?? d.finalCount} / {d.renderedQuestionCount ?? d.finalCount}</li>
-            <li>난이도: {d.difficultyMix ? `BASIC ${d.difficultyMix.BASIC} · CORE ${d.difficultyMix.CORE} · ADVANCED ${d.difficultyMix.ADVANCED}` : "—"}</li>
-            <li>탈락 사유: {d.rejectReasonCounts ? JSON.stringify(d.rejectReasonCounts) : "—"}</li>
-            <li>분석 힌트 수: {d.analysisHintCount}</li>
-            <li>후보 생성 수: {d.generatedCandidateCount}</li>
-            <li>1차 코드 검증 통과 수: {d.codeValidatedCount}</li>
-            <li>원문 불일치 탈락 수: {d.originalMismatchCount}</li>
-            <li>범위 오류 탈락 수: {d.rangeErrorCount}</li>
-            <li>중복·겹침 탈락 수: {d.overlapDuplicateCount}</li>
-            <li>전달 수: {d.reviewSubmittedCount}</li>
-            <li>승인 수: {d.reviewAcceptedCount}</li>
-            <li>양쪽 가능성 탈락 수: {d.bothPossibleRejectCount}</li>
-            <li>어휘·숙어 탈락 수: {d.lexicalRejectCount}</li>
-            <li>저급 오답 탈락 수: {d.trivialRejectCount}</li>
-            <li>최종 문항 수: {d.finalCount}</li>
-            <li>문법 범주 수: {d.grammarCategoryCount}</li>
-            <li>평균 품질 점수: {d.averageQualityScore}</li>
-            <li>원문 완전 복원: {d.passageRestored ? "예" : "아니오"}</li>
-            <li>generatorModel: {d.generatorModel}</li>
-            <li>generatorActualResponseModel: {d.generatorActualResponseModel ?? d.generatorResponseModel ?? "—"}</li>
-            <li>generatorReasoningEffort: {d.generatorReasoningEffort ?? "—"}</li>
-            <li>reviewerModel: {d.reviewerModel}</li>
-            <li>reviewerActualResponseModel: {d.reviewerActualResponseModel ?? d.reviewerResponseModel ?? "—"}</li>
-            <li>reviewerReasoningEffort: {d.reviewerReasoningEffort ?? "—"}</li>
-            <li>openAICallCount: {d.openAICallCount ?? (d.generateApiCalls ?? 0) + (d.reviewApiCalls ?? 0)}</li>
-            <li>cacheHit: {d.cacheHit ? "true" : "false"}</li>
-            <li>forceRegenerate: {d.forceRegenerate ? "true" : "false"}</li>
-            <li>oldQuestionReuseCount: {d.oldQuestionReuseCount ?? 0}</li>
-            <li>generatorActualModel: {d.generatorActualModel ?? d.generatorActualResponseModel ?? "—"}</li>
-            <li>reviewerActualModel: {d.reviewerActualModel ?? d.reviewerActualResponseModel ?? "—"}</li>
-            <li>newQuestionCount: {d.newQuestionCount ?? d.finalCount}</li>
-            <li>localFallbackUsed: {d.localFallbackUsed ? "true" : "false"}</li>
-            <li>generatorVersion: {d.generatorVersion ?? "—"}</li>
-            <li>
-              engine:{" "}
-              {d.engineVersion ??
-                (d.generatorVersion?.startsWith("grammar-choice-v2") ? "v2" : "v1")}
-            </li>
-            {d.engineSelectionNote ? (
-              <li>engineSelection: {d.engineSelectionNote}</li>
-            ) : null}
-            {d.staffCompareNote ? <li>staffCompare: {d.staffCompareNote}</li> : null}
-            <li>reviewerVersion: {d.reviewerVersion ?? "—"}</li>
-            <li>생성 API 호출: {d.generateApiCalls}</li>
-            <li>검토 호출: {d.reviewApiCalls}</li>
-            {d.underTargetReason ? (
-              <li>부족 사유: {d.underTargetReason}</li>
-            ) : null}
-          </ul>
-        </div>
-      ) : null}
     </>
   );
 }
@@ -2220,7 +2160,6 @@ export function WorkbookWorkbench({
                               section={section}
                               typeOrder={page.typeOrderGrammarChoice!}
                               multi={gcSections.length > 1}
-                              showStaffDiagnostics={role === "teacher" || role === "admin"}
                             />
                           </div>
                         ))
