@@ -636,7 +636,13 @@ export function applyAudits(
   items: ResolvedCandidate[],
   audits: AuditResult[] | undefined
 ): { kept: ResolvedCandidate[]; rejected: V2Reject[] } {
-  if (!audits || audits.length === 0) return { kept: items, rejected: [] };
+  /**
+   * 검수 단계가 돌지 않았을 때(undefined: replay·테스트)만 그대로 둔다.
+   * 검수가 돌았는데 결과가 비었으면(호출 전부 실패) 검수가 필요한 후보는 떨어뜨린다.
+   * 예전에는 빈 결과도 "전부 통과"로 봐서, 없는 낱말처럼 검수로 보낸 오답이 호출이
+   * 실패한 날 그대로 출제될 수 있었다(유일성 판정과 같은 구멍).
+   */
+  if (!audits) return { kept: items, rejected: [] };
   const byId = new Map(audits.map((a) => [a.candidateId, a]));
   const kept: ResolvedCandidate[] = [];
   const rejected: V2Reject[] = [];

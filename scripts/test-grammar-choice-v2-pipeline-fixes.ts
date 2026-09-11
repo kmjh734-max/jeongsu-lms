@@ -37,6 +37,9 @@ for (const [pointCode, correct, wrong] of [
   ["MODAL_MEANING", "will", "wills"],
   ["COMPARATIVE", "more predictable", "predictabler"],
   ["COMPARATIVE", "most beautiful", "beautifulest"],
+  // 접속부사 + ly (2026-09-11 운영: ④[Howeverly / However], do they live happily)
+  ["ADVERB_SENTENCE_MODIFIER", "However", "Howeverly"],
+  ["ADVERB_SENTENCE_MODIFIER", "Therefore", "Thereforely"],
 ] as const) {
   assert.equal(
     rejectFabricatedDistractor({ pointCode, correct, wrong, sentence: "" }),
