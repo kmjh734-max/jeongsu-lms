@@ -22,6 +22,11 @@ import type {
   AnalysisSentence,
 } from "@/lib/lesson-materials/generate-analysis-report";
 import { LOGO_SRC } from "@/lib/branding";
+import { postJson } from "@/lib/lesson-materials/post-json";
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+
+/** 분석서를 동시에 만드는 지문 수. 지문 하나가 모델 호출 하나라 8개도 부담이 작다. */
+const ANALYSIS_REPORT_CONCURRENCY = 8;
 
 export type AnalysisReportProjectInput = {
   id: string;
@@ -38,9 +43,10 @@ const A4_PAD_MM = 12;
 const A4_PAD = `${A4_PAD_MM}mm`;
 const A4_FOOTER_MM = 16;
 /**
- * 분석서가 아직 없을 때 쓰는 빈 배열. 렌더마다 새 []를 만들면 그것을 의존성으로
- * 받는 쪽 배치 effect가 매번 setPageChunks를 불러 무한 렌더가 되고
- * (React #185), 화면이 "Application error"로 죽는다.
+ * 분석서가 아직 없을 때 쓰는 빈 배열. 렌더마다 새 []를 만들어 effect 의존성에
+ * 넣으면 쪽 배치 effect가 매번 state를 바꿔 무한 렌더가 되고(React #185),
+ * 화면이 "Application error"로 죽었다. 쪽 배치는 이제 projects에 걸려 있지만,
+ * 빈 배열은 계속 이 상수 하나를 쓴다.
  */
 const NO_SENTENCES: AnalysisReportData["sentences"] = [];
 
@@ -139,17 +145,30 @@ function A4Sheet({
   label,
   isLast,
   footerLogoSrc,
+  screenHidden,
+  printHidden,
 }: {
   children: ReactNode;
   label: string;
   isLast?: boolean;
   footerLogoSrc?: string | null;
+  /** 화면에서는 숨기고 인쇄에만 넣는다(고르지 않은 지문의 쪽). */
+  screenHidden?: boolean;
+  /** 인쇄에서 뺀다(분석서가 없는 지문). */
+  printHidden?: boolean;
 }) {
+  const visibility = printHidden
+    ? screenHidden
+      ? "hidden"
+      : "print:hidden"
+    : screenHidden
+      ? "hidden print:block"
+      : "";
   return (
     <article
       className={`analysis-report-a4-sheet lesson-pack-a4-sheet relative box-border overflow-hidden bg-white shadow-xl print:shadow-none ${
         isLast ? "lesson-pack-a4-sheet--last" : ""
-      }`}
+      } ${visibility}`}
       style={{
         width: A4_WIDTH,
         minHeight: A4_HEIGHT,
@@ -245,12 +264,11 @@ export function AnalysisReportWorkbench({
     initialProjects.some((p) => !p.report?.sentences?.length)
   );
   const [zoom, setZoom] = useState(85);
-  const [pageChunks, setPageChunks] = useState<number[][]>([[]]);
+  const [pageChunksById, setPageChunksById] = useState<Record<string, number[][]>>({});
   const measureRef = useRef<HTMLDivElement>(null);
 
   const project = projects[active];
   const report = project?.report;
-  const sentences = report?.sentences ?? NO_SENTENCES;
 
   useEffect(() => {
     const id = "analysis-report-print-page-size-style";
@@ -285,31 +303,39 @@ export function AnalysisReportWorkbench({
     setPrepLoading(true);
     setGenerating(true);
     (async () => {
-      for (const { p, i } of pending) {
-        if (cancelled) return;
-        // 서버 액션이 던지면(시간 초과 등) 거부된 프라미스가 버려져 로딩이 끝나지 않는다.
-        const res = await generateAndSaveAnalysisReportAction(role, {
-          projectId: p.id,
-          headerLabel,
-        }).catch((e: unknown) => ({
-          ok: false as const,
-          message: e instanceof Error ? e.message : "분석서를 만들지 못했습니다.",
-        }));
-        if (!res.ok) {
-          setError(res.message);
-          break;
+      // 지문끼리는 독립이라 함께 만든다. 서버 액션은 브라우저에서 한 번에 하나씩만
+      // 돌기 때문에 API 라우트로 보낸다(post-json.ts).
+      const failures = await runWithConcurrency(
+        pending,
+        ANALYSIS_REPORT_CONCURRENCY,
+        async ({ p, i }) => {
+          if (cancelled) return null;
+          const res = await postJson<
+            Awaited<ReturnType<typeof generateAndSaveAnalysisReportAction>>
+          >("/api/lesson-materials/analysis-report", {
+            role,
+            projectId: p.id,
+            headerLabel,
+          });
+          if (!res.ok) return `${String(i + 1).padStart(2, "0")}: ${res.message}`;
+          if (cancelled) return null;
+          setProjects((prev) =>
+            prev.map((row, idx) =>
+              idx === i
+                ? {
+                    ...row,
+                    report: res.report,
+                    headerLabel: res.report.headerLabel || row.headerLabel,
+                  }
+                : row
+            )
+          );
+          return null;
         }
-        setProjects((prev) =>
-          prev.map((row, idx) =>
-            idx === i
-              ? {
-                  ...row,
-                  report: res.report,
-                  headerLabel: res.report.headerLabel || row.headerLabel,
-                }
-              : row
-          )
-        );
+      );
+      const failed = failures.filter((row): row is string => row !== null);
+      if (!cancelled && failed.length > 0) {
+        setError(`분석서 ${failed.length}개를 만들지 못했습니다. ${failed.join(" / ")}`);
       }
       // 실패해도 로딩 화면을 내린다. 오류 문구는 본 화면에만 있어서, 로딩을
       // 유지하면 스피너만 도는 채로 무엇이 잘못됐는지 보이지 않는다.
@@ -323,55 +349,79 @@ export function AnalysisReportWorkbench({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projects.map((p) => p.id).join(",")]);
 
-  // Pack sentences onto A4 pages (header only on first page)
+  // Pack sentences onto A4 pages (header only on first page).
+  // 인쇄는 선택한 지문 전부를 내보내므로 모든 지문을 배치한다. 화면에는 고른 지문만 보인다.
   useLayoutEffect(() => {
     const root = measureRef.current;
-    if (!root || sentences.length === 0) {
-      setPageChunks(sentences.length ? [sentences.map((_, i) => i)] : [[]]);
-      return;
-    }
+    if (!root) return;
     const widthPx = root.offsetWidth || 1;
     const pxPerMm = widthPx / 210;
     const bodyMm = 297 - A4_PAD_MM - A4_FOOTER_MM;
     const pageBodyPx = bodyMm * pxPerMm;
     const gapPx = 8;
 
-    const headerEl = root.querySelector(
-      '[data-analysis-block="header"]'
-    ) as HTMLElement | null;
-    const headerH = headerEl?.offsetHeight ?? 0;
-
-    const heights = sentences.map((_, i) => {
-      const el = root.querySelector(
-        `[data-analysis-block="s-${i}"]`
+    const next: Record<string, number[][]> = {};
+    for (const p of projects) {
+      const count = p.report?.sentences?.length ?? 0;
+      const box = root.querySelector(
+        `[data-measure-project="${p.id}"]`
       ) as HTMLElement | null;
-      return el?.offsetHeight ?? 120;
-    });
-
-    const pages: number[][] = [];
-    let current: number[] = [];
-    let used = 0;
-
-    heights.forEach((h, i) => {
-      const topPad = current.length === 0 ? (pages.length === 0 ? headerH + gapPx : 0) : gapPx;
-      const need = topPad + h;
-      if (current.length > 0 && used + need > pageBodyPx) {
-        pages.push(current);
-        current = [];
-        used = 0;
+      if (!box || count === 0) {
+        next[p.id] = [Array.from({ length: count }, (_, i) => i)];
+        continue;
       }
-      const firstPad =
-        current.length === 0
-          ? pages.length === 0
-            ? headerH + gapPx
-            : 0
-          : gapPx;
-      used += firstPad + h;
-      current.push(i);
-    });
-    if (current.length) pages.push(current);
-    setPageChunks(pages.length ? pages : [[]]);
-  }, [sentences, headerLabel, project?.title, project?.source, active]);
+
+      const headerEl = box.querySelector(
+        '[data-analysis-block="header"]'
+      ) as HTMLElement | null;
+      const headerH = headerEl?.offsetHeight ?? 0;
+
+      const heights = Array.from({ length: count }, (_, i) => {
+        const el = box.querySelector(
+          `[data-analysis-block="s-${i}"]`
+        ) as HTMLElement | null;
+        return el?.offsetHeight ?? 120;
+      });
+
+      const pages: number[][] = [];
+      let current: number[] = [];
+      let used = 0;
+
+      heights.forEach((h, i) => {
+        const topPad = current.length === 0 ? (pages.length === 0 ? headerH + gapPx : 0) : gapPx;
+        const need = topPad + h;
+        if (current.length > 0 && used + need > pageBodyPx) {
+          pages.push(current);
+          current = [];
+          used = 0;
+        }
+        const firstPad =
+          current.length === 0
+            ? pages.length === 0
+              ? headerH + gapPx
+              : 0
+            : gapPx;
+        used += firstPad + h;
+        current.push(i);
+      });
+      if (current.length) pages.push(current);
+      next[p.id] = pages.length ? pages : [[]];
+    }
+    setPageChunksById(next);
+  }, [projects, headerLabel, active]);
+
+  /** 지문 하나의 쪽 배치. 배치 effect가 돌기 전 렌더에서는 없는 문장 번호를 뺀다. */
+  function pagesFor(projectId: string, count: number): number[][] {
+    const live = (pageChunksById[projectId] ?? [])
+      .map((c) => c.filter((i) => i < count))
+      .filter((c) => c.length > 0);
+    return live.length > 0 ? live : [Array.from({ length: count }, (_, i) => i)];
+  }
+
+  /** 지문별 상단 라벨. 고른 지문은 편집 중인 값을 쓴다. */
+  function headerLabelFor(index: number): string {
+    return index === active ? headerLabel : projects[index]?.headerLabel || headerLabel;
+  }
 
   async function handleRegen() {
     if (!project) return;
@@ -458,14 +508,29 @@ export function AnalysisReportWorkbench({
     );
   }
 
-  const pageNo = String(active + 1).padStart(2, "0");
-  // 탭을 긴 지문에서 짧은 지문으로 바꾸면 배치 effect가 돌기 전 한 번은 이전
-  // 지문의 쪽 배치로 렌더된다. 없는 문장 번호를 빼지 않으면 sentences[si]가
-  // undefined여서 SentenceBlock이 죽는다.
-  const liveChunks = pageChunks
-    .map((c) => c.filter((i) => i < sentences.length))
-    .filter((c) => c.length > 0);
-  const pages = liveChunks.length > 0 ? liveChunks : [sentences.map((_, i) => i)];
+  /**
+   * 인쇄할 쪽 전부. 선택한 지문을 순서대로 모두 넣고, 화면에는 고른 지문의 쪽만
+   * 보인다(나머지는 print 때만 나타난다). 쪽을 지문별 묶음 없이 한 줄로 두는 이유:
+   * 인쇄 CSS가 :last-child 쪽의 쪽 나눔을 끄므로, 묶으면 다음 지문이 앞 지문의 마지막
+   * 쪽에 이어 붙는다. 분석서가 없는 지문(생성 실패)은 고른 지문일 때만 화면에 둔다.
+   */
+  const sheets = projects.flatMap((p, pi) => {
+    const pSentences = p.report?.sentences ?? NO_SENTENCES;
+    if (pSentences.length === 0 && pi !== active) return [];
+    const pPages = pagesFor(p.id, pSentences.length);
+    return pPages.map((chunk, pageI) => ({
+      key: `${p.id}-${pageI}`,
+      project: p,
+      projectIndex: pi,
+      sentences: pSentences,
+      chunk,
+      pageI,
+      pageCount: pPages.length,
+      screen: pi === active,
+      printable: pSentences.length > 0,
+    }));
+  });
+  const lastPrintable = sheets.map((s) => s.printable).lastIndexOf(true);
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -579,35 +644,37 @@ export function AnalysisReportWorkbench({
             className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
             style={previewStyle}
           >
-            {pages.map((chunk, pageI) => (
+            {sheets.map((sheet, si) => (
               <A4Sheet
-                key={`analysis-page-${pageI}`}
-                label={`${pageI + 1} / ${pages.length}`}
-                isLast={pageI === pages.length - 1}
+                key={sheet.key}
+                label={`${sheet.pageI + 1} / ${sheet.pageCount}`}
+                isLast={si === lastPrintable}
                 footerLogoSrc={logoSrc}
+                screenHidden={!sheet.screen}
+                printHidden={!sheet.printable}
               >
-                {pageI === 0 ? (
+                {sheet.pageI === 0 ? (
                   <ReportHeader
-                    headerLabel={headerLabel}
-                    source={project.source}
-                    title={project.title}
-                    pageNo={pageNo}
+                    headerLabel={headerLabelFor(sheet.projectIndex)}
+                    source={sheet.project.source}
+                    title={sheet.project.title}
+                    pageNo={String(sheet.projectIndex + 1).padStart(2, "0")}
                     accent={accent}
                   />
                 ) : null}
                 <div className="space-y-1">
-                  {chunk.map((si) => (
+                  {sheet.chunk.map((i) => (
                     <SentenceBlock
-                      key={sentences[si]?.itemId || si}
-                      sentence={sentences[si]!}
-                      index={si}
+                      key={sheet.sentences[i]?.itemId || i}
+                      sentence={sheet.sentences[i]!}
+                      index={i}
                       accent={accent}
                     />
                   ))}
                 </div>
-                {pageI === pages.length - 1 && report?.noPointMessage ? (
+                {sheet.pageI === sheet.pageCount - 1 && sheet.project.report?.noPointMessage ? (
                   <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
-                    {report.noPointMessage}
+                    {sheet.project.report.noPointMessage}
                   </p>
                 ) : null}
               </A4Sheet>
@@ -633,20 +700,24 @@ export function AnalysisReportWorkbench({
           style={{ padding: A4_PAD }}
           aria-hidden
         >
-          <ReportHeader
-            headerLabel={headerLabel}
-            source={project.source}
-            title={project.title}
-            pageNo={pageNo}
-            accent={accent}
-          />
-          {sentences.map((s, i) => (
-            <SentenceBlock
-              key={`m-${s.itemId || i}`}
-              sentence={s}
-              index={i}
-              accent={accent}
-            />
+          {projects.map((p, pi) => (
+            <div key={`m-${p.id}`} data-measure-project={p.id}>
+              <ReportHeader
+                headerLabel={headerLabelFor(pi)}
+                source={p.source}
+                title={p.title}
+                pageNo={String(pi + 1).padStart(2, "0")}
+                accent={accent}
+              />
+              {(p.report?.sentences ?? NO_SENTENCES).map((s, i) => (
+                <SentenceBlock
+                  key={`m-${s.itemId || i}`}
+                  sentence={s}
+                  index={i}
+                  accent={accent}
+                />
+              ))}
+            </div>
           ))}
         </div>
       </main>
