@@ -137,8 +137,10 @@ assert.equal(none("He was seen to the door.", "VOICE_BE_SEEN_TO"), true);
 
 assert.deepEqual(spans("Humans are meant to live extraordinary lives.", "VOICE_ACTIVE_PASSIVE", "PASSIVE_IDIOM"), ["are meant to"]);
 assert.deepEqual(spans("The ad is not intended to deceive readers.", "VOICE_ACTIVE_PASSIVE", "PASSIVE_IDIOM"), ["is not intended to"]);
-assert.equal(voiceLocalDistractor("VOICE_ACTIVE_PASSIVE", "are meant to"), "mean to");
-assert.equal(voiceLocalDistractor("VOICE_ACTIVE_PASSIVE", "is not intended to"), "does not intend to");
+// be meant/intended to의 능동형(mean to, intend to)은 뜻만 다른 정문이라 오답을 만들지 않는다.
+assert.equal(voiceLocalDistractor("VOICE_ACTIVE_PASSIVE", "are meant to"), null);
+assert.equal(voiceLocalDistractor("VOICE_ACTIVE_PASSIVE", "is not intended to"), null);
+assert.equal(voiceLocalDistractor("VOICE_ACTIVE_PASSIVE", "are supposed to"), "suppose to");
 assert.equal(none("She is interested in science.", "VOICE_ACTIVE_PASSIVE"), true);
 assert.equal(none("The members are well suited to the role.", "VOICE_ACTIVE_PASSIVE"), true);
 assert.ok(has("She is interested in science.", "VOICE_ACTIVE_PASSIVE", "STATIVE_ADJECTIVE"));

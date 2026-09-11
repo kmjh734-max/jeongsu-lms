@@ -147,16 +147,30 @@ const LOCAL = new Set<GrammarPointCode>([
   "DUMMY_IT_OBJECT",
 ]);
 
+/**
+ * 출제하지 않는 코드.
+ *
+ * - 분석 전용(*_ANALYSIS, RESULT_RELATION_*, NONFINITE_VERBAL_PROPERTY): 학생 문항은
+ *   짝이 되는 출제 코드가 맡는다.
+ * - 뜻으로만 갈리는 대비(MODAL_MEANING, WOULD_PAST_HABIT, ADVERB_CLAUSE_CONDITION,
+ *   VERB_COMPLEMENT_MEANING_CHANGE, CONFUSABLE_ADVERB): 유일성 판정이 문법성만 보므로
+ *   가를 수 없다. VERB_COMPLEMENT_MEANING_CHANGE는 문맥 잠금이 있는 NONFINITE_*가 맡는다.
+ * - 고등 수준에 너무 쉬운 것(ARTICLE, SINGULAR_PLURAL_NOUN, ITS_IT_IS): 2026-09-11
+ *   선생님 검토에서 뺐다. it's/its는 철자 문제에 가깝다.
+ * - 문장 형식 자체(SENTENCE_SV, SENTENCE_SVO), 둘 다 되는 것(GERUND_LOGICAL_SUBJECT:
+ *   his/him coming), 문장 전체를 고쳐야 하는 것(DANGLING_PARTICIPLE).
+ *
+ * USED_TO, HAD_BETTER, GERUND_SUBJECT, GERUND_COMPLEMENT는 여기 있다가 뺐다. 형태로
+ * 답이 정해지는 내신·수능 대표 어법(used to V, had better V, 동명사 주어·보어)이다.
+ */
 const NOT_Q = new Set<GrammarPointCode>([
   "ADVERB_CLAUSE_CONDITION",
-  "TENSE_PRESENT_PAST",
   "DANGLING_PARTICIPLE",
   "ARTICLE",
   "SINGULAR_PLURAL_NOUN",
+  "ITS_IT_IS",
   "MODAL_MEANING",
-  "USED_TO",
   "WOULD_PAST_HABIT",
-  "HAD_BETTER",
   "SENTENCE_SV",
   "SENTENCE_SVO",
   "RESULT_RELATION_TOO_TO",
@@ -169,8 +183,6 @@ const NOT_Q = new Set<GrammarPointCode>([
   "GERUND_PREP_OBJECT_ANALYSIS",
   "GERUND_SUBJECT_AGREEMENT_ANALYSIS",
   "PREP_MODIFIER_AGREEMENT_ANALYSIS",
-  "GERUND_SUBJECT",
-  "GERUND_COMPLEMENT",
   "GERUND_LOGICAL_SUBJECT",
   "VERB_COMPLEMENT_MEANING_CHANGE",
   "CONFUSABLE_ADVERB",

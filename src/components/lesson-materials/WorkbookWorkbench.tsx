@@ -369,9 +369,11 @@ function GrammarChoiceAnswerBody({
             <span className="font-bold">
               {circledNumber(it.number)} 정답: {it.correctText}
             </span>
-            <span className="ml-1.5 text-[11.5px] font-semibold text-slate-500">
-              [{it.bookTerm || it.grammarCategoryName}]
-            </span>
+            {it.labelHidden ? null : (
+              <span className="ml-1.5 text-[11.5px] font-semibold text-slate-500">
+                [{it.bookTerm || it.grammarCategoryName}]
+              </span>
+            )}
           </li>
         ))}
       </ol>

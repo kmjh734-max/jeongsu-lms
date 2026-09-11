@@ -180,8 +180,17 @@ export async function verifyChoiceUniqueness(input: {
     return buildSlotSentence(sentence.text, span, item.occurrenceIndex);
   };
 
+  /**
+   * 바로 앞 문장. 과거 서술 속 과거완료(there was an athlete who [had won / has won])처럼
+   * 시점이 앞 문장에서 정해지는 시제 문항은 한 문장만 보면 둘 다 문법적이라 떨어졌다.
+   */
+  const previousText = new Map(
+    input.sentences.map((s, i) => [s.sentenceId, input.sentences[i - 1]?.text ?? ""])
+  );
+
   type Prepared = {
     candidateId: string;
+    context: string;
     slotSentence: string;
     optionA: string;
     optionB: string;
@@ -205,6 +214,7 @@ export async function verifyChoiceUniqueness(input: {
     prepared.push({
       groupKey: input.groupKeyOf ? input.groupKeyOf(item) : "all",
       candidateId: item.candidateId,
+      context: previousText.get(item.sentenceId) ?? "",
       slotSentence,
       optionA: correctIsA ? item.correctAnswer : wrong,
       optionB: correctIsA ? wrong : item.correctAnswer,
@@ -244,6 +254,7 @@ export async function verifyChoiceUniqueness(input: {
             user: JSON.stringify({
               items: chunk.map((row) => ({
                 itemId: row.candidateId,
+                context: row.context,
                 sentence: row.slotSentence,
                 optionA: row.optionA,
                 optionB: row.optionB,

@@ -62,15 +62,52 @@ export function validateMinimalPair(input: {
     return "IMPLAUSIBLE_CLAUSE_REWRITE";
   }
 
+  if (isInsertionPair(cTok, wTok) && !insertionIsThePoint(input.pointCode)) {
+    return "IMPLAUSIBLE_DISTRACTOR";
+  }
   if (hasMultipleGrammarAxes(correct, wrong, input.pointCode)) {
     return "MULTI_AXIS_EDIT";
   }
   const diffs = alignedDiffs(cTok, wTok);
-  if (diffs > 2 && !LONG_ALLOW.has(input.pointCode) && !isSingleAxisConstruction(correct, wrong)) {
+  if (
+    diffs > 2 &&
+    !LONG_ALLOW.has(input.pointCode) &&
+    !isSingleAxisConstruction(correct, wrong) &&
+    !isSingleVerbGroupAxis(correct, wrong)
+  ) {
     return "MULTI_AXIS_EDIT";
   }
   if (dropsArgument(cTok, wTok)) return "FUNCTION_WORD_OR_ARGUMENT_DROPPED";
   return null;
+}
+
+/** 한쪽이 다른 쪽에 낱말을 끼워 넣은 것뿐인지(순서 유지). */
+function isInsertionPair(a: string[], b: string[]): boolean {
+  const [short, long] = a.length < b.length ? [a, b] : [b, a];
+  if (short.length === 0 || long.length === short.length) return false;
+  // 원형 / to부정사(stay / to stay)는 to 하나를 넣고 빼는 것이 곧 문법 축이다.
+  if (long.length === short.length + 1 && long[0]?.toLowerCase() === "to") return false;
+  let i = 0;
+  for (const token of long) {
+    if (i < short.length && token.toLowerCase() === short[i]!.toLowerCase()) i += 1;
+  }
+  return i === short.length;
+}
+
+/**
+ * 낱말을 넣고 빼는 것 자체가 문법 포인트인 코드.
+ * discuss (about) the issue, a friend you haven't seen (him), because (of), to sit (on),
+ * be made (to) move, has (been) repaired처럼 끼워 넣은 낱말이 곧 틀린 곳이다.
+ * 이 밖의 코드에서 끼워 넣기는 문항 축과 무관한 어색한 오답이 된다
+ * (관측: [happiness / of happiness]가 that 명사절로, [new things / to new things]가
+ * 동명사 목적어로, [moment / moment to be]가 5형식으로 나왔다).
+ */
+function insertionIsThePoint(code: string): boolean {
+  return (
+    /^(?:VOICE_|TENSE_|MODAL_|CONDITIONAL_|WISH_|AS_IF_|CORRELATIVE_|INVERSION_|PARTICIPIAL_CLAUSE_|INDIRECT_QUESTION_ORDER|NOUN_CLAUSE_DECLARATIVE_ORDER|RELATIVE_OMISSION|RELATIVE_WHAT|PREPOSITION_|CONJUNCTION_PREPOSITION|CAUSATIVE_|OBJECT_COMPLEMENT_(?:TO_V|BARE_V)|PERCEPTION_COMPLEMENT|INFINITIVE_(?:ADJECTIVE_ROLE|OBJECT_COMPLEMENT|PASSIVE|PERFECT)|GERUND_(?:PASSIVE|PERFECT)|ELLIPSIS_|SUBSTITUTE_DO|EMPHATIC_DO|PSEUDO_CLEFT_ALL|SO_AS_TO|IF_ONLY|MANDATIVE_|SENTENCE_SVOO|VERB_TRANSITIVE_INTRANSITIVE|PARALLEL_NOUN_PHRASES|PARALLEL_SHARED_TO|OTHERWISE_CONDITIONAL|WITHOUT_IF_CONDITION|IT_TAKES_TO|TOO_TO|ENOUGH_TO|ADVERB_CLAUSE_PURPOSE|NOUN_CLAUSE_WH_WORD)/.test(
+      code
+    )
+  );
 }
 
 function norm(text: string): string {
@@ -85,7 +122,10 @@ function isSingleAxisConstruction(correct: string, wrong: string): boolean {
     pair === "had|would have" ||
     pair === "were|would be" ||
     pair === "you have|do you have" ||
-    pair === "things should|should things"
+    pair === "things should|should things" ||
+    // 목적 부사절: 규칙이 허용 쌍으로 적어 둔 고정 구 대비다.
+    pair === "in order to|so that" ||
+    pair === "in order that|in order to"
   ) {
     return true;
   }
@@ -93,6 +133,13 @@ function isSingleAxisConstruction(correct: string, wrong: string): boolean {
   const wTok = tokens(w);
   if (cTok.length === wTok.length && [...cTok].sort().join(" ") === [...wTok].sort().join(" ")) {
     return true;
+  }
+  // 낱말 하나를 넣거나 뺀 것(discussed the issue / about the issue, to me / me)은 축이 하나다.
+  const [shorter, longer] = cTok.length < wTok.length ? [cTok, wTok] : [wTok, cTok];
+  if (longer.length === shorter.length + 1) {
+    for (let i = 0; i < longer.length; i++) {
+      if ([...longer.slice(0, i), ...longer.slice(i + 1)].join(" ") === shorter.join(" ")) return true;
+    }
   }
   return false;
 }
@@ -102,7 +149,8 @@ function hasMultipleGrammarAxes(correct: string, wrong: string, pointCode: strin
     pointCode.startsWith("CONDITIONAL_") ||
     pointCode.startsWith("PARALLEL_") ||
     isSingleAxisConstruction(correct, wrong) ||
-    isSingleVoiceOrParticipleAxis(correct, wrong, pointCode)
+    isSingleVoiceOrParticipleAxis(correct, wrong, pointCode) ||
+    isSingleVerbGroupAxis(correct, wrong)
   ) {
     return false;
   }
@@ -178,6 +226,75 @@ function isSingleVoiceOrParticipleAxis(
   if (sameVerbFamily(content) && verbPhraseOnly) return true;
   if (functionExtras.some((token) => finite.has(token))) return false;
   return false;
+}
+
+const VERB_GROUP_AUX = new Set([
+  "be", "am", "is", "are", "was", "were", "been", "being",
+  "have", "has", "had", "having", "do", "does", "did",
+  "will", "would", "shall", "should", "can", "could", "may", "might", "must",
+  "not",
+]);
+
+const SUBJECT_PRONOUN = new Set(["i", "you", "he", "she", "it", "we", "they"]);
+
+/** 축약형을 풀어 조동사를 낱말로 드러낸다. 's는 is/has/소유격이 겹쳐 풀지 않는다. */
+function expandContractions(text: string): string[] {
+  return tokens(
+    norm(text)
+      .replace(/\bwon't\b/g, "will not")
+      .replace(/\bcan't\b/g, "can not")
+      .replace(/\bshan't\b/g, "shall not")
+      .replace(/n't\b/g, " not")
+      .replace(/'ve\b/g, " have")
+      .replace(/'ll\b/g, " will")
+      .replace(/'re\b/g, " are")
+      .replace(/'m\b/g, " am")
+      .replace(/'d\b/g, " would")
+  );
+}
+
+/**
+ * 두 선택지가 동사 덩어리(조동사 + 한 동사의 형태)만 다르고 나머지는 같은지 본다.
+ *
+ * 시제·상·법은 표면에서 여러 낱말이 한꺼번에 움직인다: will have worked / has
+ * worked, is belonging / belongs, I've been / I was, haven't seen / didn't see.
+ * 그런데 묻는 축은 하나(동사의 형태)다. 낱말 수로만 축을 세면 이런 쌍이 전부
+ * MULTI_AXIS_EDIT / DISTRACTOR_NOT_ALLOWED로 죽었다(관측: 8지문에서 모델이 낸
+ * 시제 후보 10개 중 8개 탈락, 그중 3개가 이 경로).
+ *
+ * 조건: 바뀐 낱말이 모두 조동사이거나 한 동사 가족이고, 동사 덩어리 밖의 낱말
+ * (주어, 목적어, 부사)은 순서까지 같다. 조동사는 본동사 앞에만 온다
+ * (think not 같은 어순 바꾸기는 여기 해당하지 않는다).
+ */
+export function isSingleVerbGroupAxis(correct: string, wrong: string): boolean {
+  const c = expandContractions(correct);
+  const w = expandContractions(wrong);
+  if (!c.length || !w.length) return false;
+  const onlyC = extraTokens(c, w);
+  const onlyW = extraTokens(w, c);
+  const extras = [...onlyC, ...onlyW];
+  if (extras.length === 0) return false;
+  const lexical = extras.filter((t) => !VERB_GROUP_AUX.has(t));
+  if (lexical.length > 0 && !sameVerbFamily(lexical)) return false;
+  // 본동사 형태가 그대로면(will have worked / has worked) 끝의 같은 낱말이 본동사다.
+  const sharedHead = c.at(-1) === w.at(-1) && !VERB_GROUP_AUX.has(c.at(-1) ?? "") ? c.at(-1)! : null;
+  const family = lexical.length ? verbFamily(lexical[0]!) : sharedHead ? verbFamily(sharedHead) : null;
+
+  const isVerbGroup = (t: string) =>
+    VERB_GROUP_AUX.has(t) || (family !== null && verbFamily(t) === family);
+  const outside = (list: string[]) => list.filter((t) => !isVerbGroup(t)).join(" ");
+  if (outside(c) !== outside(w)) return false;
+  // 동사 덩어리 밖에서 네모에 들어와도 되는 것은 주어 대명사뿐이다(I've been / I was).
+  // 부사를 끌고 들어오면(are wonderfully made / wonderfully make) 봐야 할 것이 둘이 된다.
+  if (c.filter((t) => !isVerbGroup(t)).some((t) => !SUBJECT_PRONOUN.has(t))) return false;
+
+  // 조동사가 본동사 뒤에 오면 어순을 바꾼 것이다.
+  const auxAfterVerb = (list: string[]) => {
+    const verbAt = family === null ? -1 : list.findIndex((t) => verbFamily(t) === family);
+    return verbAt >= 0 && list.slice(verbAt + 1).some((t) => VERB_GROUP_AUX.has(t) && t !== "not");
+  };
+  if (auxAfterVerb(c) || auxAfterVerb(w)) return false;
+  return true;
 }
 
 /**

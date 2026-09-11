@@ -407,6 +407,8 @@ export type GrammarChoiceCandidate = {
   grammarCategoryId: string;
   grammarCategoryName: string;
   bookTerm: string;
+  /** 문항이 묻는 것과 코드가 어긋나 정답지에 라벨을 싣지 않는다. */
+  labelHidden?: boolean;
   explanationKo: string;
   incorrectReasonKo: string;
   difficulty: 1 | 2 | 3 | 4 | 5;
@@ -444,6 +446,8 @@ export type WorkbookGrammarChoiceItem = {
   grammarCategoryId: string;
   grammarCategoryName: string;
   bookTerm: string;
+  /** 문항이 묻는 것과 코드가 어긋나 정답지에 라벨을 싣지 않는다. */
+  labelHidden?: boolean;
   explanationKo: string;
   incorrectReasonKo: string;
   difficulty: 1 | 2 | 3 | 4 | 5;

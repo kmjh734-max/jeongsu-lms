@@ -308,7 +308,14 @@ export function rejectConjunctionChoice(input: {
   const wrong = input.wrong.trim();
   const pair = [correct, wrong].map((s) => s.toLowerCase()).sort().join("|");
   if (correct.split(/\s+/).length > 4 || wrong.split(/\s+/).length > 6) return "NON_MINIMAL_SPAN";
-  if (pair === "and|but" || pair === "and|so" || pair === "but|so" || pair === "but|yet" || pair === "or|yet") {
+  // not A but B는 but이 구조로 정해진다(and는 not A and B가 되어 뜻이 무너진다).
+  const butAt = input.sentence.toLowerCase().indexOf(" but ");
+  const notButFrame =
+    pair === "and|but" &&
+    correct.toLowerCase() === "but" &&
+    butAt > 0 &&
+    /\bnot\b[^,.;]{1,60}$/i.test(input.sentence.slice(0, butAt + 1));
+  if (!notButFrame && (pair === "and|but" || pair === "and|so" || pair === "but|so" || pair === "but|yet" || pair === "or|yet")) {
     return "MEANING_ONLY_CONTRAST";
   }
   if (pair === "and|or" && input.pointCode !== "CORRELATIVE_BOTH_AND") return "MEANING_ONLY_CONTRAST";

@@ -12,6 +12,9 @@ import type { GrammarCandidate, GrammarPointCode, GrammarPriority } from "@/lib/
 
 const BE = "is|are|was|were";
 const PRON = "we|they|he|she|I|you|it";
+/** 의문사(또는 whether/if) 뒤 네 낱말 안에 you have가 오는지. */
+export const WH_BEFORE_YOU_HAVE =
+  /\b(?:what|which|where|when|why|how|who|whom|whose|whether|if)\b(?:\s+\S+){0,4}\s+you\s+have\b/i;
 
 function tokens(text: string): string[] {
   return text.trim().split(/\s+/).filter(Boolean);
@@ -61,7 +64,19 @@ export function bothWhatThatGrammatical(sentence: string, correct: string, wrong
   ) {
     return true;
   }
-  if (new RegExp(`\\b(?:${BE})\\s+$`, "i").test(before) && new RegExp(`^(?:${PRON})\\s+[A-Za-z]+`, "i").test(after)) {
+  /**
+   * be + that/what + 대명사 절이 둘 다 되는 것은 절의 동사가 절 목적어를 받는
+   * 동사일 때뿐이다(The flaw is that/what we believe ...). The problem is that we
+   * don't have enough time처럼 절이 완전하면 what은 틀린다. 예전에는 대명사만 보고
+   * 전부 둘 다 된다고 봐서 that 명사절 대표 문항이 떨어졌다.
+   */
+  if (
+    new RegExp(`\\b(?:${BE})\\s+$`, "i").test(before) &&
+    new RegExp(
+      `^(?:${PRON})\\s+(?:(?:do|does|did|don't|doesn't|didn't|can|could|will|would|should|must|may|might|really|all|often|always|never|just)\\s+)*(?:believe|believed|think|thought|know|knew|say|said|feel|felt|hope|hoped|assume|assumed|understand|understood|mean|meant|suggest|suggested|expect|expected|imagine|imagined|want|wanted|need|needed)\\b`,
+      "i"
+    ).test(after)
+  ) {
     return true;
   }
   return false;
@@ -194,7 +209,15 @@ export function repairChoice(input: {
     }
   }
 
-  if (code === "INDIRECT_QUESTION_ORDER" || /\byou have\b/i.test(correct)) {
+  /**
+   * 의문사가 이끄는 절 안의 you have만 간접의문문이다(what limiting beliefs you have).
+   * 예전에는 문장에 you have만 있으면 바꿨기 때문에, all you have to do is ...가
+   * [you have / do you have] 간접의문문 문항으로 두 지문에 출제됐다(2026-09-11 검토).
+   */
+  if (
+    (code === "INDIRECT_QUESTION_ORDER" || /\byou have\b/i.test(correct)) &&
+    WH_BEFORE_YOU_HAVE.test(sentence)
+  ) {
     if (/\byou have\b/i.test(sentence) && (/\bdo you have\b/i.test(wrong) || /\byou have\b/i.test(correct))) {
       const at = sentence.toLowerCase().indexOf("you have");
       if (at >= 0 && tokens(correct).length > 2) {

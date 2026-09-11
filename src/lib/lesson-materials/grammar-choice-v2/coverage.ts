@@ -83,6 +83,7 @@ const VALID_EXCLUSION = new Set([
   "INTERDEPENDENT_CHOICES",
   "OVERDENSE_CLAUSE",
   "CODE_SPAN_CONTRACT_MISMATCH",
+  "TOO_BASIC_FOR_LEVEL",
 ]);
 
 export function canShrinkToSafePair(correct: string, wrong: string): boolean {

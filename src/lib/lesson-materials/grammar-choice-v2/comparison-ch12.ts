@@ -113,10 +113,7 @@ export const COMPARISON_CH12_RULES: ComparisonCh12Rule[] = [
     referenceChapter: "CH12",
     comparisonFrame: "superior/prefer/different from/the same as",
     targetRule: "to 또는 from이 요구되면 than으로 바꾸지 않는다",
-    allowedMinimalPairs: [
-      ["to", "than"],
-      ["from", "than"],
-    ],
+    allowedMinimalPairs: [["to", "than"]],
     rejectConditions: ["would rather는 CH04", "no more than / not more than", "둘 다 가능"],
   },
   {
@@ -191,7 +188,8 @@ export function comparisonLocalDistractor(code: string, sourceSpan: string): str
     if (lower === "much") return "many";
   }
   if (code === "COMPARATIVE") {
-    if (lower === "to" || lower === "from") return "than";
+    // different from / than은 표준 영어에서 둘 다 쓰여 오답이 되지 못한다. to만 than으로 바꾼다.
+    if (lower === "to") return "than";
     if (lower === "more") return "most";
     if (lower === "better") return "best";
     if (lower === "than") return "as";

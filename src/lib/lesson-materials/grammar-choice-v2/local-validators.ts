@@ -85,27 +85,51 @@ const IRREGULAR_VERB_STEM = new Map<string, string>([
   ["caught", "catch"], ["taught", "teach"], ["sought", "seek"],
   ["fought", "fight"], ["won", "win"], ["shown", "show"],
   ["arose", "arise"], ["arisen", "arise"], ["dealt", "deal"], ["laid", "lay"],
+  ["did", "do"], ["done", "do"], ["does", "do"], ["had", "have"], ["has", "have"],
+  ["slept", "sleep"], ["woke", "wake"], ["woken", "wake"], ["wore", "wear"], ["worn", "wear"],
+  ["threw", "throw"], ["thrown", "throw"], ["flew", "fly"], ["flown", "fly"], ["swam", "swim"],
+  ["swum", "swim"], ["sang", "sing"], ["sung", "sing"], ["rang", "ring"], ["rung", "ring"],
+  ["drank", "drink"], ["drunk", "drink"], ["hid", "hide"], ["hidden", "hide"], ["bit", "bite"],
+  ["bitten", "bite"], ["rode", "ride"], ["ridden", "ride"], ["froze", "freeze"], ["frozen", "freeze"],
+  ["stole", "steal"], ["stolen", "steal"], ["tore", "tear"], ["torn", "tear"], ["shook", "shake"],
+  ["shaken", "shake"], ["forgave", "forgive"], ["forgiven", "forgive"], ["lent", "lend"],
+  ["bent", "bend"], ["fed", "feed"], ["fled", "flee"], ["hung", "hang"], ["dug", "dig"],
+  ["struck", "strike"], ["stuck", "stick"], ["swept", "sweep"], ["wept", "weep"], ["crept", "creep"],
+  ["dreamt", "dream"], ["learnt", "learn"], ["burnt", "burn"], ["spelt", "spell"], ["lit", "light"],
+  ["slid", "slide"], ["sold", "sell"], ["won't", "will"],
 ]);
 
+/**
+ * 비교에만 쓰는 어간. 원형이 아니다.
+ *
+ * 묵음 e를 떼어 맞춘다. 떼지 않으면 taking -> tak, take -> take, writing -> writ,
+ * written -> write로 같은 동사가 서로 다른 낱말로 보여 took / taking, written /
+ * writing 같은 표준 형태 쌍이 "의미로만 갈리는 쌍"으로 떨어졌다. 호출부는 모두
+ * 두 어간이 같은지만 보므로(어간으로 낱말을 만들지 않는다) 원형일 필요가 없다.
+ */
 export function stemVerb(word: string): string {
   const w = normalizeToken(word).replace(/^to\s+/, "");
   const irregular = IRREGULAR_VERB_STEM.get(w);
-  if (irregular) return irregular;
+  if (irregular) return dropSilentE(irregular);
   if (w.endsWith("ing") && w.length > 4) {
     let stem = w.slice(0, -3);
     if (stem.length >= 4 && stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
-    return stem;
+    return dropSilentE(stem);
   }
   if (w.endsWith("ies") && w.length > 4) return `${w.slice(0, -3)}y`;
-  if (w.endsWith("es") && w.length > 4) return w.slice(0, -2);
-  if (w.endsWith("s") && w.length > 3) return w.slice(0, -1);
+  if (w.endsWith("es") && w.length > 4) return dropSilentE(w.slice(0, -2));
+  if (w.endsWith("s") && w.length > 3) return dropSilentE(w.slice(0, -1));
   if (w.endsWith("ied") && w.length > 4) return `${w.slice(0, -3)}y`;
   if (w.endsWith("ed") && w.length > 4) {
     let stem = w.slice(0, -2);
     if (stem.length >= 4 && stem.at(-1) === stem.at(-2)) stem = stem.slice(0, -1);
-    return stem;
+    return dropSilentE(stem);
   }
-  return w;
+  return dropSilentE(w);
+}
+
+function dropSilentE(stem: string): string {
+  return stem.length > 3 && stem.endsWith("e") && !stem.endsWith("ee") ? stem.slice(0, -1) : stem;
 }
 
 export function subtypeKey(pointCode: string, a: string, b: string): string {
@@ -145,20 +169,43 @@ function stripLeadingTo(text: string): string {
   return n.startsWith("to ") ? n.slice(3).trim() : n;
 }
 
+/**
+ * 전치사 to를 거느리는 표현. 뒤에는 동명사가 와야 하므로 to 뒤 V / V-ing 대비가
+ * 곧 문법 포인트다(look forward to hearing, be used to getting up).
+ */
+const TO_PREPOSITION_GOVERNOR =
+  /\b(?:look(?:s|ed|ing)? forward|(?:used|accustomed|devoted|committed|dedicated|opposed|addicted|close|key|contribution|objection|approach|attention|reply|answer|access|in addition|with a view|when it comes)|object(?:s|ed)?|contribut(?:e|es|ed|ing)|admit(?:s|ted)?|confess(?:es|ed)?|react(?:s|ed)?|adjust(?:s|ed)?|resort(?:s|ed)?)\s*$/i;
+
+/**
+ * 부정사 to가 네모 밖에 있고 네모 안에서 -ing만 붙었다 떨어지는 쌍(want to [go / going]).
+ * 앞의 to가 답을 기계적으로 정한다.
+ *
+ * 예전에는 네모 안에 to가 들어간 쌍(to borrow / borrowing, drawing / to draw)과
+ * 전치사 to 뒤(look forward to [hearing / hear])까지 여기서 막았다. 앞의 것은
+ * 동명사·to부정사를 가르는 축 자체이고 뒤의 것은 전치사+동명사의 대표 문항이라,
+ * 목적·병렬·it takes to·remember to 같은 코드가 대표 문항부터 떨어졌다.
+ */
 function isMechanicalGovernorForm(
   correct: string,
   wrong: string,
-  prev: string
+  prev: string,
+  before: string
 ): boolean {
   const c = normalizeToken(correct);
   const w = normalizeToken(wrong);
-  const cBare = stripLeadingTo(c);
-  const wBare = stripLeadingTo(w);
-  if (!cBare || !wBare || cBare.includes(" ") || wBare.includes(" ")) return false;
-  if (stemVerb(cBare) !== stemVerb(wBare)) return false;
-  const ingShift = cBare.endsWith("ing") !== wBare.endsWith("ing");
-  if (!ingShift) return false;
-  return prev === "to" || c.startsWith("to ") || w.startsWith("to ");
+  // 앞의 to 뒤에 to가 또 오는 쌍(was meant to [stirring / to stir])은 to가 둘이 된다.
+  if (prev === "to" && (c.startsWith("to ") || w.startsWith("to "))) {
+    const cb = stripLeadingTo(c);
+    const wb = stripLeadingTo(w);
+    if (cb && wb && !cb.includes(" ") && !wb.includes(" ") && stemVerb(cb) === stemVerb(wb)) return true;
+  }
+  if (c.startsWith("to ") || w.startsWith("to ")) return false;
+  if (!c || !w || c.includes(" ") || w.includes(" ")) return false;
+  if (stemVerb(c) !== stemVerb(w)) return false;
+  if (c.endsWith("ing") === w.endsWith("ing")) return false;
+  if (prev !== "to") return false;
+  const beforeTo = before.replace(/\s*\bto\s*$/i, "");
+  return !TO_PREPOSITION_GOVERNOR.test(beforeTo);
 }
 
 function looksLikeToVVsToVing(a: string, b: string): boolean {
@@ -270,6 +317,35 @@ export function rejectCandidate(input: {
     !/\b(?:you|we|they|things?)\s+(?:have|should)\b/i.test(correct)
   ) {
     return "ANALYSIS_ONLY";
+  }
+  const basic = tooBasicForLevel(sentence.text, correct, wrong);
+  if (basic) return basic;
+  /**
+   * 간접의문문은 의문사·whether·if가 이끄는 절이어야 한다. all you have to do is ...처럼
+   * 의문사 없는 you have를 [you have / do you have]로 묻는 것은 간접의문문이 아니고
+   * 오답도 어색하다(2026-09-11 선생님 검토에서 두 지문에 나왔다).
+   */
+  if (candidate.pointCode === "INDIRECT_QUESTION_ORDER") {
+    const at = sentence.text.toLowerCase().indexOf(correct.toLowerCase());
+    const lead = sentence.text.slice(0, Math.max(0, at)).split(/\s+/).filter(Boolean).slice(-5).join(" ");
+    const inBox = /^(?:what|which|where|when|why|how|who|whom|whose|whether|if)\b/i.test(correct);
+    if (!inBox && !/\b(?:what|which|where|when|why|how|who|whom|whose|whether|if)\b/i.test(lead)) {
+      return "CODE_SPAN_CONTRACT_MISMATCH";
+    }
+  }
+  /**
+   * 어순 문항의 오답은 의문문 어순(조동사·be동사가 주어 앞)이어야 학습자가 실제로
+   * 틀리는 형태다. [you'll enjoy / enjoy you'll]처럼 낱말을 아무렇게나 뒤집은 오답은 뺀다.
+   */
+  if (
+    (candidate.pointCode === "INDIRECT_QUESTION_ORDER" || candidate.pointCode === "NOUN_CLAUSE_DECLARATIVE_ORDER") &&
+    !/^(?:what\s+|which\s+|where\s+|when\s+|why\s+|how\s+|whether\s+|if\s+)?(?:am|is|are|was|were|do|does|did|have|has|had|can|could|will|would|shall|should|may|might|must)\b/i.test(wrong.trim())
+  ) {
+    return "IMPLAUSIBLE_DISTRACTOR";
+  }
+  // too/enough 문항은 enough의 자리(형용사 뒤)를 묻는다. [too long / long too]는 이 축이 아니다.
+  if (candidate.pointCode === "TOO_ENOUGH" && !/\benough\b/i.test(`${correct} ${wrong}`)) {
+    return "IMPLAUSIBLE_DISTRACTOR";
   }
   if (isMisclassifiedComparative(correct, wrong)) return "MISCLASSIFIED_ASSESSMENT_AXIS";
   if (isDoubleDegreeMarking(correct) || isDoubleDegreeMarking(wrong)) return "DOUBLE_DEGREE_MARKING";
@@ -407,10 +483,15 @@ export function rejectCandidate(input: {
     /^(?:[a-z]+ing|to [a-z]+)$/i.test(correct.trim()) &&
     /^(?:[a-z]+ing|to [a-z]+)$/i.test(wrong.trim()) &&
     correct.trim().toLowerCase().startsWith("to ") !== wrong.trim().toLowerCase().startsWith("to ");
-  if (!gerundVersusTo && isMechanicalGovernorForm(correct, wrong, prev)) {
+  const before = sentence.text.slice(0, Math.max(0, sentence.text.indexOf(correct)));
+  if (!gerundVersusTo && isMechanicalGovernorForm(correct, wrong, prev, before)) {
     return "MECHANICAL_GOVERNOR_FORM";
   }
-  if (prev === "to" && looksLikeToVVsToVing(correct, wrong)) {
+  if (
+    prev === "to" &&
+    looksLikeToVVsToVing(correct, wrong) &&
+    !TO_PREPOSITION_GOVERNOR.test(before.replace(/\s*\bto\s*$/i, ""))
+  ) {
     return "MECHANICAL_INFINITIVE_MARKER";
   }
 
@@ -455,7 +536,7 @@ export function rejectCandidate(input: {
     if (!whenFollowedByFiniteClause(sentence.text) || !/^when$/i.test(correct)) {
       return "MEANING_ONLY_CONTRAST";
     }
-  } else if (isMeaningOnlyContrast(correct, wrong)) {
+  } else if (isMeaningOnlyContrast(correct, wrong, candidate.pointCode)) {
     return "MEANING_ONLY_CONTRAST";
   }
   if (isImplausible(correct, wrong, sentence.text)) {
@@ -464,7 +545,10 @@ export function rejectCandidate(input: {
   if (isAmbiguousTense(correct, wrong, sentence.text, candidate.pointCode)) {
     return "AMBIGUOUS_TENSE";
   }
-  if (isAmbiguousReference(correct, wrong)) return "AMBIGUOUS_REFERENCE";
+  // 가주어·가목적어 it은 뒤의 to부정사·that절을 받는 자리라 that/this가 들어갈 수 없다.
+  if (!DUMMY_IT_CODES.has(candidate.pointCode) && isAmbiguousReference(correct, wrong)) {
+    return "AMBIGUOUS_REFERENCE";
+  }
   return null;
 }
 
@@ -585,13 +669,69 @@ function isAllowedPedagogicPair(correct: string, wrong: string): boolean {
   return isAdjAdvPair(correct, wrong);
 }
 
-function isMeaningOnlyContrast(correct: string, wrong: string): boolean {
+/**
+ * 문법 낱말. 이 부류끼리의 대비(such/so, each/all, although/despite, it/one,
+ * didn't/wasn't)는 어느 쪽이 맞는지를 구조가 정하므로 "의미로만 갈리는 쌍"이 아니다.
+ * 예전에는 be·have·관계사 몇 개만 여기 있어서, 목록에 있는 비교·수량·대명사·접속사
+ * 문항이 로컬 단계에서 전부 떨어졌다(관측: 대표 문항 207개 중 약 30개가 이 사유).
+ * 둘 다 되는 경우(at / on 같은)는 뒤의 유일성 판정이 거른다.
+ */
+const GRAMMAR_WORD = new Set([
+  "i", "me", "my", "mine", "you", "your", "yours", "he", "him", "his", "she", "her", "hers",
+  "it", "its", "it's", "they", "them", "their", "theirs", "we", "us", "our", "ours",
+  "myself", "yourself", "himself", "herself", "itself", "ourselves", "yourselves", "themselves",
+  "one", "ones", "other", "others", "another", "this", "that", "these", "those",
+  "who", "whom", "whose", "which", "what", "where", "when", "why", "how",
+  "whoever", "whomever", "whatever", "whichever", "wherever", "whenever", "however", "whether", "if",
+  "a", "an", "the", "some", "any", "no", "every", "each", "all", "both", "either", "neither",
+  "few", "little", "many", "much", "several", "enough", "such", "so", "too", "very",
+  "more", "most", "less", "least", "fewer", "fewest", "better", "best", "worse", "worst",
+  "farther", "further", "farthest", "furthest",
+  "to", "of", "in", "on", "at", "by", "for", "with", "from", "about", "into", "onto", "during",
+  "despite", "since", "until", "till", "before", "after", "while", "because", "although", "though",
+  "unless", "than", "as", "like", "without", "within", "among", "between", "through", "across",
+  "against", "toward", "towards", "upon", "instead",
+  "and", "or", "but", "nor", "yet", "whereas", "not",
+  "is", "are", "was", "were", "am", "be", "been", "being", "has", "have", "had", "having",
+  "do", "does", "did", "isn't", "aren't", "wasn't", "weren't", "hasn't", "haven't", "hadn't",
+  "don't", "doesn't", "didn't", "can't", "couldn't", "won't", "wouldn't", "shouldn't", "mustn't",
+  "can", "could", "may", "might", "must", "shall", "should", "will", "would",
+]);
+
+const MODAL_WORD = new Set(["can", "could", "may", "might", "must", "shall", "should", "will", "would"]);
+const MODAL_TENSE_PAIR = new Set(["will|would", "can|could", "may|might", "shall|should"]);
+const SHOULD_FORM_CODES = new Set([
+  "SHOULD_SPECIAL_USE", "CONDITIONAL_IF_SHOULD", "CONDITIONAL_INVERTED_SHOULD", "MANDATIVE_SHOULD",
+]);
+
+/** 조동사 자체가 문법 포인트인 코드. 여기서는 조동사끼리의 대비가 형태 문제다. */
+function modalIsTheForm(pointCode: string): boolean {
+  return (
+    pointCode.startsWith("CONDITIONAL_") ||
+    pointCode.startsWith("WISH_") ||
+    pointCode.startsWith("AS_IF_") ||
+    pointCode.startsWith("TENSE_") ||
+    pointCode.startsWith("MANDATIVE_") ||
+    pointCode.startsWith("WOULD_RATHER") ||
+    pointCode === "WITHOUT_IF_CONDITION" ||
+    pointCode === "OTHERWISE_CONDITIONAL" ||
+    pointCode === "IF_ONLY" ||
+    pointCode === "SHOULD_SPECIAL_USE" ||
+    pointCode === "IT_IS_TIME_SUBJUNCTIVE"
+  );
+}
+
+/** creativity / creative, children's / childrens', tallest / taller: 같은 낱말 가족. */
+function isDerivationalFamily(a: string, b: string): boolean {
+  const x = a.replace(/[’']/g, "");
+  const y = b.replace(/[’']/g, "");
+  let shared = 0;
+  while (shared < x.length && shared < y.length && x[shared] === y[shared]) shared += 1;
+  return shared >= 5 && shared >= Math.min(x.length, y.length) - 3;
+}
+
+function isMeaningOnlyContrast(correct: string, wrong: string, pointCode: string): boolean {
   if (isAllowedPedagogicPair(correct, wrong)) return false;
-  const closed = new Set([
-    "is", "are", "was", "were", "has", "have", "had", "do", "does", "did",
-    "to", "of", "which", "that", "who", "whom", "what", "whose", "and", "or",
-    "but", "its", "it's", "a", "an", "the", "not", "be", "been", "being", "than",
-  ]);
   const c = tokens(correct);
   const w = tokens(wrong);
   if (c.length !== w.length || c.length === 0) return false;
@@ -602,15 +742,28 @@ function isMeaningOnlyContrast(correct: string, wrong: string): boolean {
   if (diffs.length !== 1) return false;
   const a = normalizeToken(c[diffs[0]!]!);
   const b = normalizeToken(w[diffs[0]!]!);
-  if (closed.has(a) || closed.has(b)) return false;
+  // 같은 조동사의 시제 대비(will/would, can/could)만 형태 문제다. could/would처럼
+  // 조동사가 다르면 뜻(능력·의지)이 갈리는 것이다.
+  if (MODAL_WORD.has(a) && MODAL_WORD.has(b)) {
+    // lest ... should, if S should, Should you ...: should 자체가 묻는 형태다.
+    if (SHOULD_FORM_CODES.has(pointCode) && (a === "should" || b === "should")) return false;
+    return !(modalIsTheForm(pointCode) && MODAL_TENSE_PAIR.has([a, b].sort().join("|")));
+  }
+  if (GRAMMAR_WORD.has(a) && GRAMMAR_WORD.has(b)) return false;
   if (stemVerb(a) === stemVerb(b) || isInflectedPair(a, b) || isComparativePair(a, b)) return false;
-  if (isAdjAdvPair(a, b)) return false;
+  if (isAdjAdvPair(a, b) || isDerivationalFamily(a, b)) return false;
   return true;
 }
 
 function isComparativePair(a: string, b: string): boolean {
-  const forms = new Set(["far", "further", "farther", "good", "better", "bad", "worse", "much", "more", "little", "less"]);
-  return forms.has(a) && forms.has(b);
+  const forms = new Set([
+    "far", "further", "farther", "furthest", "farthest", "good", "better", "best",
+    "bad", "worse", "worst", "much", "many", "more", "most", "little", "less", "least",
+  ]);
+  if (forms.has(a) && forms.has(b)) return true;
+  // taller / tallest, larger / largest
+  const base = (word: string) => word.replace(/(?:est|er)$/, "").replace(/e$/, "");
+  return /(?:er|est)$/.test(a) && /(?:er|est)$/.test(b) && base(a) === base(b);
 }
 
 function isInflectedPair(a: string, b: string): boolean {
@@ -648,6 +801,11 @@ function isTrivialShortAgreement(
   const pair = `${c}|${w}`;
   if (!agree.has(pair) && !isNumberAgreementPair(correct, wrong)) return false;
   if (hasInterveningAgreement(sentence, correct)) return false;
+  // Learning foreign languages is ...: 주어가 동명사구이고 동사 바로 앞은 복수 명사다.
+  // 짧아도 대표적인 함정이라 사소한 수일치가 아니다.
+  if (/^\s*(?:[A-Z][a-z]+ing|[a-z]+ing)\b/.test(sentence.slice(0, Math.max(0, sentence.indexOf(correct))))) {
+    return false;
+  }
   if (/\b(?:one of|the number of|a number of|not only|what|there|the news|each of|along with)\b/i.test(sentence)) {
     return false;
   }
@@ -714,6 +872,64 @@ function isImplausible(correct: string, wrong: string, sentence: string): boolea
 const EXPLICIT_TIME_MARKER_RE =
   /\b(?:yesterday|ago|already|since|for|before|after|by the time|now|then|when|while|tomorrow|just|never|always|once|today|tonight|nowadays|currently|recently|lately|these days|at present|so far|up to now|ever since|last (?:night|week|month|year|time)|next (?:week|month|year)|this (?:morning|afternoon|evening|week|month|year)|over the (?:past|last)|in \d{4})\b/i;
 
+const DUMMY_IT_CODES = new Set(["DUMMY_IT_SUBJECT", "DUMMY_IT_OBJECT", "INFINITIVE_DUMMY_IT"]);
+
+const SUBJECT_CASE_PAIRS = new Set(["i|me", "he|him", "she|her", "we|us", "they|them"]);
+const SUBJECT_PRONOUNS = new Set(["i", "he", "she", "we", "they"]);
+
+/**
+ * 고등 내신·수능 수준에 너무 쉬운 문항을 뺀다(2026-09-11 선생님 검토).
+ *
+ * - [I / me] am a sophomore: 주어 자리 주격 대명사. 목적어 자리(between you and me)는
+ *   고등 문항이라 남긴다.
+ * - [its / it's]: 철자 문제에 가깝다.
+ * - [Is there / Does there be]: 학습자가 실제로 쓰지 않는 형태라 오답 구실을 못 한다.
+ * - [don't / not] feel: do 부정문. 중학 기초다.
+ * - "Ah, [that / what] sounds boring.": 문장 첫머리 지시대명사 that은 절 표지가 아니라
+ *   that/what 문항이 아니고, 라벨도 [that 명사절]로 잘못 붙었다.
+ */
+function tooBasicForLevel(
+  sentence: string,
+  correct: string,
+  wrong: string
+): "TOO_BASIC_FOR_LEVEL" | "CODE_SPAN_CONTRACT_MISMATCH" | null {
+  const c = normalizeToken(correct);
+  const w = normalizeToken(wrong);
+  const pair = [c, w].sort().join("|");
+  if (pair === "it's|its") return "TOO_BASIC_FOR_LEVEL";
+  if (SUBJECT_CASE_PAIRS.has(pair) && SUBJECT_PRONOUNS.has(c)) return "TOO_BASIC_FOR_LEVEL";
+  if (/\bdo(?:es)?\s+there\s+be\b/i.test(wrong) || /^(?:do|does|did)\s+there\b/i.test(wrong.trim())) {
+    return "TOO_BASIC_FOR_LEVEL";
+  }
+  // 네모를 줄이면 [Is there / Does there be]가 [Is / Does] there가 된다.
+  if (/^(?:do|does|did)$/.test(w) && /^(?:is|are|was|were)$/.test(c)) {
+    const at = sentence.indexOf(correct);
+    if (at >= 0 && /^\s+there\b/i.test(sentence.slice(at + correct.length))) return "TOO_BASIC_FOR_LEVEL";
+  }
+  if (/^(?:don't|doesn't|didn't|do not|does not|did not)\|not$/.test([c, w].sort((x, y) => y.length - x.length).join("|"))) {
+    return "TOO_BASIC_FOR_LEVEL";
+  }
+  if (pair === "that|what") {
+    const at = sentence.indexOf(correct);
+    const before = sentence.slice(0, Math.max(0, at));
+    const after = sentence.slice(at + correct.length);
+    const clauseStart = /(?:^|[,"“”'‘’—:;!?.]\s*|\b(?:ah|oh|well|yes|no),?\s*)$/i.test(before.trim() === "" ? "" : before);
+    if (clauseStart && /^\s*(?:sounds|seems|is|was|looks|means|makes|feels|works|happens|matters)\b/i.test(after)) {
+      return "CODE_SPAN_CONTRACT_MISMATCH";
+    }
+  }
+  return null;
+}
+
+/**
+ * 시제 일치·간접화법·불변 진리는 시간 부사가 아니라 주절의 과거 보고 동사가
+ * 시제를 정한다(I knew that he had lied, She said that water boils). 시간 부사만
+ * 표지로 보면 이 세 코드는 대표 문항부터 AMBIGUOUS_TENSE로 떨어졌다.
+ */
+const REPORTING_PAST_RE =
+  /\b(?:said|told|asked|knew|thought|believed|felt|heard|learned|learnt|realized|explained|claimed|insisted|reported|found|noticed|discovered|wondered|admitted|promised|taught|showed|wrote)\b/i;
+const REPORTING_TENSE_CODES = new Set(["TENSE_SEQUENCE", "TENSE_REPORTED_SPEECH", "TENSE_UNIVERSAL_TRUTH"]);
+
 function isAmbiguousTense(
   correct: string,
   wrong: string,
@@ -722,6 +938,7 @@ function isAmbiguousTense(
 ): boolean {
   if (!pointCode.startsWith("TENSE_")) return false;
   if (!isInflectionOnly(correct, wrong)) return false;
+  if (REPORTING_TENSE_CODES.has(pointCode) && REPORTING_PAST_RE.test(sentence)) return false;
   const hasMarker = EXPLICIT_TIME_MARKER_RE.test(sentence);
   return !hasMarker;
 }
@@ -763,6 +980,10 @@ const DERIVATION_SUFFIXES = ["ly", "ing", "ed", "er", "est", "ness", "ful"];
 
 function suffixDerived(base: string, derived: string): boolean {
   if (!base || !derived || base === derived) return false;
+  // 복수 명사의 -s 자리에 접미사를 붙인 것(impostors / impostorly, friends / friendly)도
+  // 실재 여부를 검수 모델이 가리게 한다. friendly는 있고 impostorly는 없다.
+  const singular = /[^su]s$/.test(base) ? base.slice(0, -1) : "";
+  if (singular && DERIVATION_SUFFIXES.some((suffix) => derived === `${singular}${suffix}`)) return true;
   return DERIVATION_SUFFIXES.some(
     (suffix) =>
       derived === `${base}${suffix}` ||

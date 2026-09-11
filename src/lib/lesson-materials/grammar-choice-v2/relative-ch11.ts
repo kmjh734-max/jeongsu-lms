@@ -220,6 +220,7 @@ export function relativeLocalDistractor(code: string, sourceSpan: string): strin
     if (lower === "are") return "is";
     if (lower === "is") return "are";
   }
+  // 템플릿은 스팬만 보므로 문장이 간접의문문인지는 호출부(검출기·검증기)가 가린다.
   if (code === "INDIRECT_QUESTION_ORDER" && /\byou have\b/i.test(sourceSpan)) return "do you have";
   return null;
 }
@@ -236,7 +237,16 @@ export function rejectRelativeChoice(input: {
   }
   if (pair === "that|who") return "BOTH_GRAMMATICAL";
   if (pair === "in which|where" || pair === "where|in which") return "BOTH_GRAMMATICAL";
-  if (input.correct.trim().split(/\s+/).length > 3) return "NON_MINIMAL_SPAN";
+  /**
+   * 간접의문문 어순은 네모 안에 주어와 동사가 함께 들어가야 문항이 된다
+   * (where [the nearest station is / is the nearest station]). 같은 낱말의 어순만
+   * 바꾼 쌍은 5낱말까지 둔다. 예전 3낱말 문턱에서는 명사구 주어가 들어가는 순간
+   * 이 코드의 대표 문항이 떨어졌다.
+   */
+  const correctTokens = input.correct.trim().toLowerCase().split(/\s+/);
+  const wrongTokens = input.wrong.trim().toLowerCase().split(/\s+/);
+  const wordOrderOnly = [...correctTokens].sort().join(" ") === [...wrongTokens].sort().join(" ");
+  if (correctTokens.length > (wordOrderOnly ? 5 : 3)) return "NON_MINIMAL_SPAN";
   if (input.pointCode === "RELATIVE_AGREEMENT" && pair === "are|is" && !/\bone of the\b|\bthe only one of\b/i.test(input.sentence)) {
     return "TOO_TRIVIAL_SHORT_AGREEMENT";
   }

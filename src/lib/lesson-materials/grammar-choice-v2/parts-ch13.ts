@@ -819,6 +819,8 @@ function axisCount(correct: string, wrong: string): number {
   const a = correct.trim().toLowerCase().split(/\s+/);
   const b = wrong.trim().toLowerCase().split(/\s+/);
   if (a.length !== b.length) return a.join(" ") === wrong.trim().toLowerCase() ? 0 : 1;
+  // strong enough / enough strong: 같은 낱말의 어순 하나만 바꾼 것이다.
+  if ([...a].sort().join(" ") === [...b].sort().join(" ")) return 1;
   return a.filter((word, i) => word !== b[i]).length;
 }
 

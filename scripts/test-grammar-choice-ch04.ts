@@ -91,6 +91,7 @@ assert.equal(none("People used to live near the river.", "USED_TO"), true);
 assert.equal(none("She is used to living alone.", "USED_TO"), true);
 assert.equal(none("They are getting used to the schedule.", "USED_TO"), true);
 assert.equal(modalLocalDistractor("USED_TO", "live"), null);
+// used to V는 2026-09-11부터 출제한다. be/get 없는 used to 뒤는 원형뿐이라 답이 하나다.
 assert.equal(
   rejectModalChoice({
     pointCode: "USED_TO",
@@ -98,7 +99,17 @@ assert.equal(
     wrong: "living",
     sentence: "People used to live near the river.",
   }),
-  "MECHANICAL_MODAL_FORM"
+  null
+);
+// be used to 뒤는 V-ing와 (수동) 원형이 둘 다 되므로 막는다.
+assert.equal(
+  rejectModalChoice({
+    pointCode: "USED_TO",
+    correct: "living",
+    wrong: "live",
+    sentence: "She is used to living alone.",
+  }),
+  "BOTH_GRAMMATICAL"
 );
 
 assert.ok(has("You had better go now.", "HAD_BETTER"));

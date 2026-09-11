@@ -1,4 +1,5 @@
 import type { LocalRejectCode } from "@/lib/lesson-materials/grammar-choice-v2/types";
+import { isSingleVerbGroupAxis } from "@/lib/lesson-materials/grammar-choice-v2/minimal-pair";
 
 const ADJECTIVE_OR_NOUN = new Set([
   "negative",
@@ -199,7 +200,16 @@ function inventedTokens(correct: string, wrong: string): string[] {
   return out;
 }
 
+/** -ive로 끝나지만 동사인 낱말. 형용사 어미로 보면 living, arriving이 없는 낱말이 된다. */
+const IVE_VERBS = new Set([
+  "live", "give", "drive", "dive", "arrive", "survive", "derive", "deprive", "receive",
+  "perceive", "believe", "relieve", "achieve", "strive", "thrive", "forgive", "revive",
+  "conceive", "deceive", "contrive", "retrieve", "grieve", "leave", "weave", "save",
+  "move", "prove", "improve", "approve", "remove", "solve", "involve", "resolve", "evolve",
+]);
+
 function canTakeIng(word: string): boolean {
+  if (IVE_VERBS.has(word)) return true;
   if (ADJECTIVE_OR_NOUN.has(word) || isAdjectiveOrMassNoun(word)) return false;
   if (VERB_PARALLEL.has(word)) return true;
   if (/(?:ize|ise|ate|ify|en)$/.test(word)) return true;
@@ -207,6 +217,7 @@ function canTakeIng(word: string): boolean {
 }
 
 function isAdjectiveOrMassNoun(word: string): boolean {
+  if (IVE_VERBS.has(word)) return false;
   return ADJECTIVE_OR_NOUN.has(word) || /(?:tion|ment|ness|ity|ive|ous|ful|less)$/.test(word);
 }
 
@@ -221,6 +232,8 @@ function changesSeveralAxes(correct: string, wrong: string): boolean {
   const c = correct.toLowerCase().split(/\s+/).filter(Boolean);
   const w = wrong.toLowerCase().split(/\s+/).filter(Boolean);
   if (c.length !== w.length || c.length < 2) return false;
+  // I've been / I was, haven't seen / didn't see: 낱말 둘이 바뀌어도 축은 동사 형태 하나다.
+  if (isSingleVerbGroupAxis(correct, wrong)) return false;
   let diffs = 0;
   for (let i = 0; i < c.length; i += 1) if (c[i] !== w[i]) diffs += 1;
   return diffs >= 2 && !isWordOrderFlip(correct, wrong);

@@ -373,9 +373,16 @@ function rejectDegreeFrameChoice(correct: string, wrong: string): "MECHANICAL_IN
   if (/^to [a-z]+\|to [a-z]+ing$/.test(pair)) return "MECHANICAL_INFINITIVE_MARKER";
   const leftTokens = left.toLowerCase().split(/\s+/);
   const rightTokens = right.toLowerCase().split(/\s+/);
-  if (leftTokens.length === rightTokens.length && leftTokens.filter((token, index) => token !== rightTokens[index]).length > 1) {
+  // strong enough / enough strong은 같은 낱말의 어순만 바꾼 쌍이라 축이 하나다.
+  const wordOrderOnly = [...leftTokens].sort().join(" ") === [...rightTokens].sort().join(" ");
+  if (
+    !wordOrderOnly &&
+    leftTokens.length === rightTokens.length &&
+    leftTokens.filter((token, index) => token !== rightTokens[index]).length > 1
+  ) {
     return "MULTI_AXIS_EDIT";
   }
+  if (wordOrderOnly) return null;
   if (pair !== "that|to") return "BOTH_GRAMMATICAL";
   return null;
 }

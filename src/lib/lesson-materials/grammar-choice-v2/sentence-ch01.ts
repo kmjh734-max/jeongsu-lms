@@ -227,7 +227,17 @@ export function rejectSentenceChoice(input: {
   if (!mine) return null;
   const pair = [input.correct, input.wrong].map((s) => s.trim().toLowerCase()).sort().join("|");
   if (/\bhelp\b/i.test(input.sentence) && /^[a-z]+\|to [a-z]+$/.test(pair)) return "BOTH_GRAMMATICAL";
-  if (input.pointCode === "PERCEPTION_COMPLEMENT") return "BOTH_GRAMMATICAL";
+  /**
+   * 지각동사 보어는 원형/-ing가 둘 다 된다(saw him cross / crossing). 그러나 능동
+   * 지각동사 뒤 원형/to V는 원형만 된다(heard someone call / to call). 예전에는
+   * 지각동사 문항을 전부 둘 다 된다고 봐서 이 코드가 한 번도 출제되지 않았다.
+   * 수동(was seen to enter)은 VOICE_BE_SEEN_TO가 맡는다.
+   */
+  if (input.pointCode === "PERCEPTION_COMPLEMENT") {
+    const bareVersusTo = /^[a-z]+\|to [a-z]+$/.test(pair);
+    const passive = /\b(?:am|is|are|was|were|be|been|being)\s+(?:seen|heard|watched|noticed|observed)\b/i.test(input.sentence);
+    if (!bareVersusTo || passive) return "BOTH_GRAMMATICAL";
+  }
   if (pair === "good|well" && /\bfeel\b/i.test(input.sentence)) return "BOTH_GRAMMATICAL";
   if (input.correct.trim().split(/\s+/).length > 4) return "NON_MINIMAL_SPAN";
   if (/\benter into\b/i.test(input.sentence)) return "MEANING_ONLY_CONTRAST";

@@ -603,42 +603,63 @@ function assessConditionalTensePair(
   wrong: string
 ): "AMBIGUOUS_CONDITIONAL_TIME" | null {
   const pair = [correct, wrong].map((s) => s.trim().toLowerCase()).sort().join("|");
-  if (pair !== "had been|were" && pair !== "would catch|would have caught") return null;
   if (pair === "had been|were") {
     if (uniqueSecondWere(sentence, correct) || uniqueThirdHadBeen(sentence, correct)) return null;
     return "AMBIGUOUS_CONDITIONAL_TIME";
   }
+  if (!isWouldHaveVersusWould(correct, wrong)) return null;
   if (uniqueThirdWouldHave(sentence, correct)) return null;
   return "AMBIGUOUS_CONDITIONAL_TIME";
 }
 
+/**
+ * 가정법 시점을 문장이 정하는지 본다.
+ *
+ * 예전 판정은 특정 테스트 문장에만 맞춰져 있었다("in general"이 있어야 과거,
+ * "yesterday … that mistake … would not have made"가 있어야 과거완료, "if she had
+ * left earlier"가 있어야 would have). 그래서 다른 지문의 가정법 시점 문항은 모두
+ * AMBIGUOUS_CONDITIONAL_TIME으로 떨어졌다. 주절의 형태가 시점을 정하는 일반 규칙으로
+ * 바꾼다: 주절이 would + 원형이면 가정법 과거, would have p.p.면 가정법 과거완료다.
+ * 혼합 가정(now, today)은 시점이 둘이라 여기서 확정하지 않는다.
+ */
+const MIXED_TIME = /\b(?:now|today|these days|at the moment|still)\b/i;
+
+/**
+ * were / had been은 주절이 would + 원형이어도 혼합 가정(과거 조건, 현재 결과)이 남는다.
+ * 현재 시점 표지가 있어야 가정법 과거로 확정한다.
+ */
+const PRESENT_TIME = /\b(?:now|today|in general|these days|currently|at the moment|always|usually|every day)\b/i;
+
 function uniqueSecondWere(sentence: string, correct: string): boolean {
   if (correct.trim().toLowerCase() !== "were") return false;
   return (
-    /\bif\b/i.test(sentence) &&
-    /\bwere\b/i.test(sentence) &&
+    PRESENT_TIME.test(sentence) &&
+    /\b(?:if|as if|as though|wish)\b/i.test(sentence) &&
     /\b(?:would|could|might)\s+(?!have\b)[A-Za-z]+/i.test(sentence) &&
-    /\bin general\b/i.test(sentence) &&
-    !/\b(?:yesterday|then|now|today|had been)\b/i.test(sentence)
+    !/\b(?:would|could|might)(?:\s+not)?\s+have\s+[a-z]+/i.test(sentence) &&
+    !/\b(?:yesterday|ago|last\s+\w+|had been)\b/i.test(sentence)
   );
 }
 
 function uniqueThirdHadBeen(sentence: string, correct: string): boolean {
   if (correct.trim().toLowerCase() !== "had been") return false;
-  return (
-    /\byesterday\b/i.test(sentence) &&
-    /\bthat mistake\b/i.test(sentence) &&
-    /\bwould not have made\b/i.test(sentence)
-  );
+  return /\b(?:would|could|might)(?:\s+not)?\s+have\s+[a-z]+/i.test(sentence) && !MIXED_TIME.test(sentence);
+}
+
+function isWouldHaveVersusWould(correct: string, wrong: string): boolean {
+  const withHave = /^(?:would|could|might)(?:\s+not)?\s+have\s+\S+$/i;
+  const without = /^(?:would|could|might)(?:\s+not)?\s+(?!have\b)\S+$/i;
+  const c = correct.trim();
+  const w = wrong.trim();
+  return (withHave.test(c) && without.test(w)) || (withHave.test(w) && without.test(c));
 }
 
 function uniqueThirdWouldHave(sentence: string, correct: string): boolean {
-  if (correct.trim().toLowerCase() !== "would have caught") return false;
-  return (
-    /\bif\s+she\s+had\s+left\s+earlier\b/i.test(sentence) &&
-    /\bwould have caught\b/i.test(sentence) &&
-    !/\b(?:now|today)\b/i.test(sentence)
-  );
+  if (!/^(?:would|could|might)(?:\s+not)?\s+have\s+\S+$/i.test(correct.trim())) return false;
+  // if절(또는 Had 도치)이 과거완료여야 과거 사실의 반대다.
+  const pastPerfectCondition =
+    /\bif\b[^,;.]*\bhad\b/i.test(sentence) || /^\s*had\s+\w+\s+\w+/i.test(sentence);
+  return pastPerfectCondition && !MIXED_TIME.test(sentence);
 }
 
 function isOpenRealCondition(text: string): boolean {

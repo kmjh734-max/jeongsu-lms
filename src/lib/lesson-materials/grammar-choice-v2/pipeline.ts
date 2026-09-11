@@ -52,6 +52,7 @@ import type {
   ResolvedCandidate,
 } from "@/lib/lesson-materials/grammar-choice-v2/types";
 import { buildPassageSegmentsFromSource } from "@/lib/lesson-materials/grammar-choice-display";
+import { checkLabelContract } from "@/lib/lesson-materials/grammar-choice-v2/label-contract";
 import type {
   GrammarChoiceCandidate,
   WorkbookGrammarChoiceDiagnostics,
@@ -232,6 +233,7 @@ export function resolveAndFilter(input: {
       });
       continue;
     }
+    candidate = matchSourceCase(candidate, sentence.text);
     const span =
       resolveSpan({
         sentence,
@@ -394,6 +396,15 @@ export function resolveAndFilter(input: {
       continue;
     }
     seenPair.add(exactPair);
+    const label = checkLabelContract({
+      pointCode: candidate.pointCode,
+      correct: candidate.correctAnswer,
+      wrong: candidate.distractors[0] ?? "",
+      sentence: sentence.text,
+      at: span.passageStart - sentence.passageStart,
+    });
+    if (label.pointCode !== candidate.pointCode) candidate = { ...candidate, pointCode: label.pointCode };
+    const labelHidden = !label.showLabel;
     const def = ontologyPoint(candidate.pointCode);
     const presented = studentPresentation(
       candidate.pointCode,
@@ -426,6 +437,7 @@ export function resolveAndFilter(input: {
       passageStart: span.passageStart,
       passageEnd: span.passageEnd,
       subtypeKey: presented.subtype,
+      ...(labelHidden ? { labelHidden: true } : {}),
     });
   }
   return { resolved, rejected };
@@ -1027,7 +1039,9 @@ function toWorkbookItems(
       correctSide: item.correctSide,
       grammarCategoryId: item.pointCode,
       grammarCategoryName: explained.titleKo,
-      bookTerm: explained.titleKo,
+      // 쌍과 코드가 어긋나 라벨을 확신할 수 없으면 정답지에 라벨을 싣지 않는다(label-contract.ts).
+      bookTerm: item.labelHidden ? "" : explained.titleKo,
+      ...(item.labelHidden ? { labelHidden: true } : {}),
       explanationKo: explained.explanationKo,
       incorrectReasonKo: explained.wrongReasonKo,
       difficulty,
@@ -1054,6 +1068,33 @@ function testsWordOrder(candidate: GrammarCandidate): boolean {
     candidate.pointCode === "NOUN_CLAUSE_DECLARATIVE_ORDER" ||
     candidate.pointCode.startsWith("INVERSION_")
   );
+}
+
+/**
+ * 스팬의 대소문자를 원문에 맞춘다.
+ *
+ * 로컬 템플릿은 스팬을 소문자로 만든다. 문장 첫머리의 Despite, Were, Although는
+ * 원문에서 despite / were로 찾지 못해 SOURCE_SPAN_NOT_FOUND로 버려졌다(대표 문항
+ * 검사에서 접속사·전치사 대비, Were 도치 가정이 이 사유로 빠졌다). 원문 표기로
+ * 바꾸고, 원문이 대문자로 시작하면 오답 첫 글자도 대문자로 맞춘다.
+ */
+function matchSourceCase(candidate: GrammarCandidate, text: string): GrammarCandidate {
+  const span = candidate.sourceSpan;
+  if (!span || text.includes(span)) return candidate;
+  const escaped = span.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const hit = new RegExp(`(?<![A-Za-z])${escaped}(?![A-Za-z])`, "i").exec(text);
+  if (!hit) return candidate;
+  const original = hit[0];
+  const capital = /^[A-Z]/.test(original);
+  const recase = (word: string) =>
+    capital && /^[a-z]/.test(word) ? `${word[0]!.toUpperCase()}${word.slice(1)}` : word;
+  return {
+    ...candidate,
+    sourceSpan: original,
+    correctAnswer:
+      candidate.correctAnswer.toLowerCase() === span.toLowerCase() ? original : candidate.correctAnswer,
+    distractors: candidate.distractors.map(recase),
+  };
 }
 
 /**

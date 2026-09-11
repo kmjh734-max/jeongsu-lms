@@ -232,7 +232,8 @@ assert.equal(
     }),
     sentence: sentenceOf("The species changed its behavior."),
   }),
-  null
+  // 2026-09-11 선생님 검토: its/it's는 고등 수준에 너무 쉬워 출제하지 않는다.
+  "TOO_BASIC_FOR_LEVEL"
 );
 assert.equal(
   rejectCandidate({

@@ -326,7 +326,8 @@ export type LocalRejectCode =
   | "NO_UNIQUE_HIGH_VALUE_CONDITIONAL_PAIR"
   | "DOUBLE_DEGREE_MARKING"
   | "UNMAPPED_ASSESSMENT_AXIS"
-  | "CODE_SPAN_CONTRACT_MISMATCH";
+  | "CODE_SPAN_CONTRACT_MISMATCH"
+  | "TOO_BASIC_FOR_LEVEL";
 
 export type ExactSentence = {
   sentenceId: string;
@@ -382,6 +383,8 @@ export type ResolvedCandidate = GrammarCandidate & {
   passageStart: number;
   passageEnd: number;
   subtypeKey: string;
+  /** 쌍과 코드가 어긋나 정답지 라벨을 싣지 않는다(label-contract.ts). */
+  labelHidden?: boolean;
 };
 
 export type SentenceCoverageReport = {

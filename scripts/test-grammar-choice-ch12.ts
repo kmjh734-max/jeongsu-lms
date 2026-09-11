@@ -103,7 +103,8 @@ assert.deepEqual(spans("This method is superior to the previous one.", "COMPARAT
 assert.deepEqual(spans("Many students prefer reading to memorizing rules.", "COMPARATIVE"), ["to"]);
 assert.deepEqual(spans("The result is different from the earlier report.", "COMPARATIVE"), ["from"]);
 assert.equal(comparisonLocalDistractor("COMPARATIVE", "to"), "than");
-assert.equal(comparisonLocalDistractor("COMPARATIVE", "from"), "than");
+// different from / than은 표준 영어에서 둘 다 쓰여 오답 템플릿을 만들지 않는다.
+assert.equal(comparisonLocalDistractor("COMPARATIVE", "from"), null);
 assert.ok(has("I would rather stay than leave.", "COMPARATIVE", "RATHER_DEFER"));
 assert.equal(none("I would rather stay than leave.", "COMPARATIVE"), true);
 assert.equal(none("This amount is no more than we expected.", "COMPARATIVE"), true);

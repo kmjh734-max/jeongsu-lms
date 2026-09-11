@@ -256,11 +256,21 @@ export function rejectModalChoice(input: {
   if (pair === "tries|try" || pair === "go|goes" || pair === "go|to go" || pair === "stay|stayed") {
     return "MECHANICAL_MODAL_FORM";
   }
-  if (pair === "live|living" || pair === "live|to live") return "MECHANICAL_MODAL_FORM";
   if (input.pointCode === "MODAL_MEANING") return "MEANING_ONLY_CONTRAST";
-  if (input.pointCode === "USED_TO" || input.pointCode === "HAD_BETTER" || input.pointCode === "WOULD_PAST_HABIT") {
-    return "BOTH_GRAMMATICAL";
+  /**
+   * used to V(과거 습관)와 be/get used to V-ing(익숙함)는 앞의 be/get이 가른다.
+   * be/get이 없으면 used to 뒤는 원형뿐이다. had better 뒤도 원형뿐이다(had better
+   * not skip / to skip). 이 두 코드는 출제하지 않던 시절 전부 둘 다 된다고 막혀 있었다.
+   */
+  if (input.pointCode === "USED_TO") {
+    const beUsedTo = /\b(?:be|am|is|are|was|were|been|being|get|gets|got|getting|become|became)\s+used\s+to\b/i.test(input.sentence);
+    const bareVersusIng = /^[a-z]+\|[a-z]+ing$/.test(pair) || /^[a-z]+ing\|[a-z]+$/.test(pair);
+    if (beUsedTo || !bareVersusIng) return "BOTH_GRAMMATICAL";
+  } else if (pair === "live|living" || pair === "live|to live") {
+    return "MECHANICAL_MODAL_FORM";
   }
+  if (input.pointCode === "HAD_BETTER" && !/^[a-z]+\|to [a-z]+$/.test(pair)) return "BOTH_GRAMMATICAL";
+  if (input.pointCode === "WOULD_PAST_HABIT") return "BOTH_GRAMMATICAL";
   if (/\bshould\b/i.test(input.sentence) && input.pointCode === "MANDATIVE_SHOULD" && /\bshould\b/i.test(input.sentence.slice(0, input.sentence.toLowerCase().indexOf(input.correct.toLowerCase())))) {
     return "BOTH_GRAMMATICAL";
   }

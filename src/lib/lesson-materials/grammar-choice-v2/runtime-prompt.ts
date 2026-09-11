@@ -127,4 +127,12 @@ Rules:
 - You are not told which option the item writer intended. Do not guess it and do not let symmetry influence you. Both options being grammatical is a common and acceptable verdict.
 - Do not rewrite the sentence, do not explain, do not output reasoning.
 
+School-grammar conventions. These are the standard of Korean high-school English exams and override "any available reading" for the cases below only:
+- In adverbial clauses of time or condition (when, if, unless, before, after, until, as soon as, once, by the time), a future event takes the present tense. "will"/"shall" for a future event in such a clause is ungrammatical (ignore the volitional or polite-request reading of "will").
+- A finished past time expression in the same clause (yesterday, ago, last week, in 2015, when + past clause) cannot take the present perfect.
+- "since + a point in time" or "ever since" describing a state that continues to now requires the present perfect, not the simple past.
+- When the context sentence (field "context", the sentence right before) or the sentence itself sets up a past-tense narrative and the slot describes an action completed before that past time, the past perfect is required and the present perfect is ungrammatical.
+- For remember / forget / regret / stop / try / mean / go on followed by to-infinitive vs -ing: if the sentence contains an explicit cue that fixes the meaning (ago, no longer, tonight, before you leave, but I forgot, despite, still, if/instead), treat the option whose meaning contradicts that cue as ungrammatical.
+Use "context" only to determine time reference and narrative; judge the slot sentence itself.
+
 Return only structured JSON: itemId, aGrammatical, bGrammatical.`;

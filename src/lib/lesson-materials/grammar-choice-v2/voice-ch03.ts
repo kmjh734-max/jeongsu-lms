@@ -651,8 +651,13 @@ function flipModal(span: string): string | null {
   return `${match[1]} ${base}${particle}`;
 }
 
+/**
+ * be supposed/obliged/bound to의 능동형은 비문이라 오답이 된다(suppose to live).
+ * be meant/intended to는 능동형(mean to, intend to)도 뜻만 다른 정문이라 넣지 않는다
+ * (관측: we are meant to live / we mean to live가 둘 다 맞는 문항으로 새어 나왔다).
+ */
 function flipIdiom(span: string): string | null {
-  const match = /^(am|is|are|was|were)(\s+not)?\s+(meant|intended|supposed|obliged|bound)\s+to$/i.exec(span.trim());
+  const match = /^(am|is|are|was|were)(\s+not)?\s+(supposed|obliged|bound)\s+to$/i.exec(span.trim());
   if (!match) return null;
   const base = ppToBase(match[3] ?? "");
   if (!base) return null;
@@ -704,6 +709,33 @@ function ppForm(base: string): string {
   return known?.[0] ?? `${base}ed`;
 }
 
+/**
+ * -ed를 떼고 남은 어간에 묵음 e를 되돌린다.
+ *
+ * 떼기만 하면 admired -> admir, used -> us, changed -> chang이 되어 is admired의
+ * 능동형 오답이 "admir"라는 없는 철자로 나왔다(대표 문항 검사에서 발견). 영어 철자
+ * 규칙으로 e가 확실히 붙는 어미만 되돌린다. visited/limited, opened/happened,
+ * answered/considered, developed처럼 e 없이 끝나는 동사와 갈리지 않는 어미
+ * (-ited, -ned, -ered, -ped)는 건드리지 않는다.
+ */
+const E_FINAL_ITE = new Set(["invit", "unit", "excit", "recit", "ignit", "cit", "delet", "complet"]);
+const NO_E_US = new Set(["focus", "bias", "canvas"]);
+
+function restoreSilentE(stem: string): string {
+  if (E_FINAL_ITE.has(stem)) return `${stem}e`;
+  if (NO_E_US.has(stem)) return stem;
+  if (/(?:v|z|c|dg|ang|eng|[^s]s|[aiou]r|[aiou]t|[aiou]d|[aiou]k|[aiou]l|[aiou]m|in|at)$/.test(stem)) {
+    if (/(?:it|er|ss)$/.test(stem)) return stem;
+    // 이중모음 뒤 자음(treated, looked, failed, seemed, rained)은 e가 없다.
+    // qu는 자음으로 읽는다(required, acquired).
+    if (/[aeiou]{2}[^aeiou]$/.test(stem) && !/[aeiou]{2}s$/.test(stem) && !/qu[aeiou][^aeiou]$/.test(stem)) {
+      return stem;
+    }
+    return `${stem}e`;
+  }
+  return stem;
+}
+
 function ppToBase(pp: string): string | null {
   const w = pp.toLowerCase();
   if (PP_BASE[w]) return PP_BASE[w];
@@ -728,7 +760,7 @@ function ppToBase(pp: string): string | null {
     ) {
       return stem.slice(0, -1);
     }
-    return stem;
+    return restoreSilentE(stem);
   }
   return null;
 }
@@ -757,6 +789,10 @@ function dropsParticle(correct: string, wrong: string): boolean {
   if (c.length < 2 || w.length !== c.length - 1) return false;
   const last = c[c.length - 1] ?? "";
   if (!/^(?:after|down|up|off|out|on|at|with|of|into|to|for|over)$/.test(last)) return false;
+  // is said to be / is said be: 준동사 수동에서 to를 빼는 것은 대표 오답이다(규칙의 허용 쌍).
+  if (last === "to" && /^(?:said|believed|known|reported|thought|expected|supposed|considered|seen|heard|made)$/.test(c[0] ?? "")) {
+    return false;
+  }
   return c.slice(0, -1).join(" ") === w.join(" ");
 }
 
