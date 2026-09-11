@@ -968,6 +968,8 @@ export function WorkbookWorkbench({
       : "기존 워크북을 불러오고 있습니다…"
   );
   const [sourceNote, setSourceNote] = useState<"new" | "existing" | null>(null);
+  /** 나머지 유형을 먼저 보여 준 뒤 어법 선택을 만드는 중인지. */
+  const [grammarChoicePending, setGrammarChoicePending] = useState(false);
   const [zoom, setZoom] = useState(85);
   /** Measured A4 item chunks: key → pages of item indices */
   const [a4Chunks, setA4Chunks] = useState<Record<string, number[][]>>({});
@@ -987,6 +989,7 @@ export function WorkbookWorkbench({
       setErrorCode(null);
       setLineTranslationExcludeIds([]);
       setWorkbook(null);
+      setGrammarChoicePending(false);
 
       const ids = (searchParams.get("ids") ?? "")
         .split(",")
@@ -1159,6 +1162,19 @@ export function WorkbookWorkbench({
         }
 
         const workbook = res.workbook;
+        /**
+         * 어법 선택은 다른 유형이 다 만들어진 뒤에 만든다. 다른 유형이 함께 있으면
+         * 워크북을 먼저 보여 주고, 어법 선택은 끝나는 대로 붙인다. 어법 선택이
+         * 가장 오래 걸려서, 기다리는 동안 나머지를 볼 수 있게 한다.
+         */
+        const grammarChoiceLater = wantGrammarChoice && types.length > 1;
+        if (grammarChoiceLater) {
+          setSourceNote(creatingNew ? "new" : "existing");
+          saveWorkbookToSession(workbook);
+          setWorkbook(workbook);
+          setGrammarChoicePending(true);
+          setGenerating(false);
+        }
         if (wantGrammarChoice) {
           const results = new Array<WorkbookGrammarChoiceSection | null>(
             ids.length
@@ -1203,12 +1219,21 @@ export function WorkbookWorkbench({
           );
           if (cancelled) return;
 
-          workbook.grammarChoiceSections = results.filter(
+          const grammarChoiceSections = results.filter(
             (section): section is WorkbookGrammarChoiceSection => section !== null
           );
-          workbook.grammarChoiceSkipped = skips.filter(
+          const grammarChoiceSkipped = skips.filter(
             (skip): skip is WorkbookGrammarChoiceSkip => skip !== null
           );
+          if (grammarChoiceLater) {
+            const merged = { ...workbook, grammarChoiceSections, grammarChoiceSkipped };
+            saveWorkbookToSession(merged);
+            setWorkbook(merged);
+            setGrammarChoicePending(false);
+            return;
+          }
+          workbook.grammarChoiceSections = grammarChoiceSections;
+          workbook.grammarChoiceSkipped = grammarChoiceSkipped;
         }
         setSourceNote(creatingNew ? "new" : "existing");
         saveWorkbookToSession(workbook);
@@ -1936,14 +1961,30 @@ export function WorkbookWorkbench({
               .join(" · ")}
           </p>
         </div>
+        {grammarChoicePending ? (
+          <div className="mx-4 mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-3">
+            <p className="text-xs font-bold text-violet-800">어법 선택 제작 중</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-violet-700">
+              나머지 유형은 완성됐습니다. 어법 선택은 끝나는 대로 워크북에 붙습니다.
+            </p>
+            <div
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-white"
+              role="progressbar"
+              aria-label="어법 선택 제작 중"
+            >
+              <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
+            </div>
+          </div>
+        ) : null}
         <div className="mt-auto space-y-2 border-t border-slate-100 p-4">
           <Button
             type="button"
             size="sm"
             className="w-full"
+            disabled={grammarChoicePending}
             onClick={() => window.print()}
           >
-            인쇄 / PDF 저장
+            {grammarChoicePending ? "어법 선택 완성 후 인쇄" : "인쇄 / PDF 저장"}
           </Button>
           <p className="text-[10px] leading-relaxed text-slate-400">
             인쇄 대화상자에서 「PDF로 저장」을 선택하세요. 표지·빈 페이지 없이
