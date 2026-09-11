@@ -24,6 +24,7 @@ import {
 } from "@/lib/lesson-materials/library-ops";
 import { updateLessonMaterialProjectMeta } from "@/lib/lesson-materials/lesson-pack-actions";
 import { LessonMaterialsSelectionBar } from "@/components/lesson-materials/LessonMaterialsSelectionBar";
+import { useReloadOnNewDeploy } from "@/components/lesson-materials/use-reload-on-new-deploy";
 import type { LessonMaterialFolderRow } from "@/lib/lesson-materials/load-library";
 
 type FolderFilter = "all" | "unfiled" | "trash" | string;
@@ -83,6 +84,7 @@ export function LessonMaterialsLibrary({
   data: LessonMaterialLibraryData;
 }) {
   const router = useRouter();
+  useReloadOnNewDeploy();
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [folderFilter, setFolderFilter] = useState<FolderFilter>("all");
   const [libraryTab, setLibraryTab] = useState<LibraryTab>("materials");
