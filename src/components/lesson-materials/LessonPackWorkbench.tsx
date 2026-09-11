@@ -184,7 +184,7 @@ export function LessonPackWorkbench({
   );
   const [lineHeightPct, setLineHeightPct] = useState(180);
   const [fontFamily, setFontFamily] = useState(FONT_OPTIONS[0]!.value);
-  const [fontSizePx, setFontSizePx] = useState(14);
+  const [fontSizePx, setFontSizePx] = useState(13);
   const [themeColor, setThemeColor] = useState("#DC2626");
   const [zoom, setZoom] = useState(70);
 

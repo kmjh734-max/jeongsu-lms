@@ -68,7 +68,7 @@ function GrammarPointItem({
   );
 
   return (
-    <li className="text-[12.5px] leading-relaxed text-slate-800">
+    <li className="text-[13px] leading-relaxed text-slate-800">
       <span className="mr-1 font-bold text-rose-600">{mark}</span>
       <span className="font-bold text-slate-900">{title}</span>
       {point.example ? (
@@ -109,7 +109,7 @@ function SentenceBlock({
           <p className="text-[13px] font-semibold leading-relaxed text-slate-800">
             {enText || "\u00a0"}
           </p>
-          <p className="text-[12px] leading-relaxed text-slate-700">
+          <p className="text-[13px] leading-relaxed text-slate-700">
             {koText || "\u00a0"}
           </p>
         </div>
@@ -131,7 +131,7 @@ function SentenceBlock({
           className="analysis-context-note mt-2 rounded-r-md border-l-4 border-[#1e3a5f] bg-[#e8eef6] px-3.5 py-2.5 print:bg-[#e8eef6]"
           style={{ WebkitPrintColorAdjust: "exact", printColorAdjust: "exact" }}
         >
-          <p className="text-[12.5px] leading-relaxed text-slate-800">
+          <p className="text-[13px] leading-relaxed text-slate-800">
             {contextNote}
           </p>
         </div>

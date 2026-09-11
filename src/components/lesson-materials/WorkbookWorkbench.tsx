@@ -193,7 +193,7 @@ function BlankQuestionBody({
         >
           [해석]
         </p>
-        <p className="workbook-passage text-[12.5px] leading-relaxed text-slate-700">
+        <p className="workbook-passage text-[13px] leading-relaxed text-slate-700">
           {section.fullKorean || "—"}
         </p>
         {section.translationWarning ? (
@@ -1283,7 +1283,7 @@ export function WorkbookWorkbench({
   color: #172033;
 }
 .line-translation-english {
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.75;
   color: #172033;
   margin: 0;
@@ -1297,13 +1297,13 @@ export function WorkbookWorkbench({
   border-bottom: 1px solid #94a3b8;
 }
 .line-translation-answer-key-english {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.55;
   color: #1e3a5f;
   margin: 0;
 }
 .line-translation-answer-key-korean {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.65;
   margin-top: 4px;
   color: #475569;
@@ -1324,11 +1324,11 @@ export function WorkbookWorkbench({
 .full-writing-number {
   flex-shrink: 0;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13px;
   color: #172033;
 }
 .full-writing-korean {
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.75;
   color: #334155;
   white-space: pre-wrap;
@@ -1344,7 +1344,7 @@ export function WorkbookWorkbench({
   border-bottom: 1px solid #94a3b8;
 }
 .full-writing-answer-key-korean {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.65;
   color: #64748b;
   margin: 0;
@@ -1354,7 +1354,7 @@ export function WorkbookWorkbench({
 }
 .full-writing-answer-key-english {
   margin-top: 5px;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.65;
   color: #172033;
   font-weight: 500;
@@ -1387,11 +1387,11 @@ export function WorkbookWorkbench({
 .word-order-number {
   flex-shrink: 0;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13px;
   color: #172033;
 }
 .word-order-korean {
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.65;
   color: #334155;
   white-space: pre-wrap;
@@ -1410,7 +1410,7 @@ export function WorkbookWorkbench({
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   background: #f8fafc;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.55;
   color: #172033;
 }
