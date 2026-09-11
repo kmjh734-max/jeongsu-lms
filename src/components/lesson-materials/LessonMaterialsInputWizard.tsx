@@ -532,7 +532,11 @@ export function LessonMaterialsInputWizard({
       const createdIds: string[] = [];
       let totalItems = 0;
 
-      for (const board of workbenches) {
+      // 마지막 지문부터 저장한다. 자료함은 새 지문이 order_index 0으로 들어가
+      // 최근 수정순(기본: 최신 위)으로 정렬되므로, 앞에서부터 저장하면 한 번에 만든
+      // 지문이 8·7·…·1 순으로 보인다. 거꾸로 저장해야 1번이 맨 위, 8번이 맨 아래다.
+      // 선택 순서가 곧 수업자료·분석서의 지문 순서라 그쪽도 1번부터 나온다.
+      for (const board of workbenches.slice().reverse()) {
         const items = board.selected
           .slice()
           .sort((a, b) => a - b)
@@ -568,6 +572,8 @@ export function LessonMaterialsInputWizard({
         setError("저장할 문장이 없습니다. 체크박스를 확인해 주세요.");
         return;
       }
+      // 저장 완료 화면과 이어지는 링크는 입력 순서(1번부터)를 쓴다.
+      createdIds.reverse();
 
       setSavedProjectIds(createdIds);
       setSavedProjectId(createdIds[0] ?? null);
