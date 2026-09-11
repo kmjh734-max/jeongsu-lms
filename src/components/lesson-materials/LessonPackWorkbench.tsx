@@ -19,6 +19,7 @@ import {
 import { LOGO_SRC } from "@/lib/branding";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
 
 /** 수업자료 준비(단어·동반의어, 영어 제목)를 동시에 돌리는 지문 수. */
 const LESSON_PACK_PREP_CONCURRENCY = 8;
@@ -137,18 +138,29 @@ export function LessonPackWorkbench({
   role,
   projects: initialProjects,
   logoSrc = LOGO_SRC,
+  regenerate = false,
 }: {
   role: "admin" | "teacher";
   projects: LessonPackProjectInput[];
   logoSrc?: string;
+  /** 제작 버튼으로 열었다: 이미 만든 지문도 단어·동반의어를 새로 만든다. */
+  regenerate?: boolean;
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
+  useCreateDocumentFromUrl(
+    role,
+    "lesson_pack",
+    initialProjects.map((p) => p.id)
+  );
+  /** 새로 만들기는 첫 준비 한 번에만 적용한다(다시 시도는 못 끝난 지문만). */
+  const regenerateOnce = useRef(regenerate);
   const [projects, setProjects] = useState(initialProjects);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [prepLoading, setPrepLoading] = useState(() =>
+    regenerate ||
     initialProjects.some(
       (p) =>
         p.vocab.length === 0 ||
@@ -334,10 +346,12 @@ export function LessonPackWorkbench({
 
   // Auto-generate/refresh vocab; backfill English title without wiping good vocab
   useEffect(() => {
+    const regenerateAll = regenerateOnce.current;
     const pending = projects
       .map((p, i) => ({ p, i }))
       .filter(
         ({ p }) =>
+          regenerateAll ||
           p.vocab.length === 0 ||
           vocabNeedsAntonymRefresh(p.vocab) ||
           !p.titleEn?.trim()
@@ -363,7 +377,7 @@ export function LessonPackWorkbench({
         async ({ p, i }): Promise<string | null> => {
           if (cancelled) return null;
           const needsVocab =
-            p.vocab.length === 0 || vocabNeedsAntonymRefresh(p.vocab);
+            regenerateAll || p.vocab.length === 0 || vocabNeedsAntonymRefresh(p.vocab);
           let failure: string | null = null;
           if (needsVocab) {
             const res = await postJson<
@@ -421,6 +435,7 @@ export function LessonPackWorkbench({
         setError(failed.join(" / "));
         return;
       }
+      regenerateOnce.current = false;
       setPrepLoading(false);
     })();
 

@@ -1,39 +1,66 @@
+import { useEffect } from "react";
 import { createLessonMaterialDocument } from "@/lib/lesson-materials/document-actions";
 import { documentPagePath, type LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 
 /**
- * 새 탭을 먼저 열고(클릭 순간이라 팝업 차단을 받지 않는다) 파일을 만든 뒤 그 탭을 파일로 보낸다.
- * 서버 응답을 기다린 다음 window.open을 부르면 브라우저가 팝업으로 막는다.
+ * 제작 버튼: 새 탭에서 바로 해당 페이지(수업용 자료·분석서·워크북)를 연다.
+ * 파일은 그 페이지가 열린 뒤 만든다(useCreateDocumentFromUrl).
+ *
+ * 예전에는 빈 탭을 먼저 열어 "자료를 준비하고 있습니다"를 띄워 두고, 서버에서 파일을
+ * 만든 다음 그 탭을 페이지로 보냈다(서버를 기다린 뒤 window.open을 부르면 팝업으로
+ * 막히기 때문). 선생님이 그 흰 화면이 거슬린다고 해서, 탭은 클릭 순간 페이지로 바로 연다.
  */
-export async function openNewDocument(
+export function openNewDocument(
   role: "admin" | "teacher",
   kind: LessonMaterialDocumentKind,
   projectIds: string[],
   extra?: { name?: string; query?: string }
-): Promise<string | null> {
-  const win = window.open("", "_blank");
-  if (!win) return "팝업이 차단되었습니다. 브라우저에서 이 사이트의 팝업을 허용한 뒤 다시 시도해 주세요.";
-  try {
-    win.document.title = "자료를 준비하고 있습니다";
-    win.document.body.innerHTML =
-      '<p style="font-family:sans-serif;padding:32px;color:#475569">자료를 준비하고 있습니다…</p>';
-  } catch {
-    /* 빈 창에 쓰지 못해도 이동은 된다 */
-  }
-  const res = await createLessonMaterialDocument(role, {
-    kind,
-    projectIds,
-    name: extra?.name ?? null,
-    sourceQuery: extra?.query ?? null,
-  });
-  if (!res.ok) {
-    win.close();
-    return res.message;
-  }
-  win.opener = null;
+): string | null {
   const params = new URLSearchParams(extra?.query ?? "");
-  params.set("doc", res.id);
   if (!params.has("ids")) params.set("ids", projectIds.join(","));
-  win.location.href = `${documentPagePath(role, kind)}?${params.toString()}`;
+  params.set("newDoc", "1");
+  if (extra?.name) params.set("docName", extra.name);
+  const win = window.open(
+    `${documentPagePath(role, kind)}?${params.toString()}`,
+    "_blank",
+    "noopener,noreferrer"
+  );
+  // noopener로 열면 일부 브라우저는 창 핸들 대신 null을 준다. 막혔는지는 알 수 없으므로
+  // 여기서는 실패로 보지 않는다.
+  void win;
   return null;
+}
+
+/** 이 페이지 방문에서 이미 파일을 만들었는지(개발 모드의 effect 두 번 실행 대비). */
+const creating = new Set<string>();
+
+/**
+ * 제작 버튼으로 열린 페이지(?newDoc=1)에서 파일을 한 번 만들고 주소를 ?doc=id로 바꾼다.
+ * 이후 새로 고침이나 자료함에서 열 때는 이 파일로 연다. 워크북은 생성 흐름 안에서
+ * 따로 만든다(WorkbookWorkbench).
+ */
+export function useCreateDocumentFromUrl(
+  role: "admin" | "teacher",
+  kind: LessonMaterialDocumentKind,
+  projectIds: string[]
+) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("newDoc") !== "1" || params.get("doc")) return;
+    const key = window.location.href;
+    if (creating.has(key)) return;
+    creating.add(key);
+    void createLessonMaterialDocument(role, {
+      kind,
+      projectIds,
+      name: params.get("docName"),
+    }).then((res) => {
+      if (!res.ok) return;
+      params.delete("newDoc");
+      params.delete("docName");
+      params.set("doc", res.id);
+      window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }

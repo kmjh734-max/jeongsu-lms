@@ -24,6 +24,7 @@ import type {
 import { LOGO_SRC } from "@/lib/branding";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
+import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
 
 /** 분석서를 동시에 만드는 지문 수. 지문 하나가 모델 호출 하나라 8개도 부담이 작다. */
 const ANALYSIS_REPORT_CONCURRENCY = 8;
@@ -244,13 +245,23 @@ export function AnalysisReportWorkbench({
   role,
   projects: initialProjects,
   logoSrc = LOGO_SRC,
+  regenerate = false,
 }: {
   role: "admin" | "teacher";
   projects: AnalysisReportProjectInput[];
   logoSrc?: string;
+  /** 제작 버튼으로 열었다: 이미 분석서가 있는 지문도 새로 만든다. */
+  regenerate?: boolean;
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
+  useCreateDocumentFromUrl(
+    role,
+    "analysis_report",
+    initialProjects.map((p) => p.id)
+  );
+  /** 새로 만들기는 첫 생성 한 번에만 적용한다(이후 다시 시도는 빠진 지문만). */
+  const regenerateOnce = useRef(regenerate);
   const [projects, setProjects] = useState(initialProjects);
   const [active, setActive] = useState(0);
   const [headerLabel, setHeaderLabel] = useState(
@@ -260,8 +271,8 @@ export function AnalysisReportWorkbench({
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [prepLoading, setPrepLoading] = useState(() =>
-    initialProjects.some((p) => !p.report?.sentences?.length)
+  const [prepLoading, setPrepLoading] = useState(
+    () => regenerate || initialProjects.some((p) => !p.report?.sentences?.length)
   );
   const [zoom, setZoom] = useState(85);
   const [pageChunksById, setPageChunksById] = useState<Record<string, number[][]>>({});
@@ -292,9 +303,10 @@ export function AnalysisReportWorkbench({
 
   useEffect(() => {
     let cancelled = false;
+    const regenerateAll = regenerateOnce.current;
     const pending = projects
       .map((p, i) => ({ p, i }))
-      .filter(({ p }) => !p.report?.sentences?.length);
+      .filter(({ p }) => regenerateAll || !p.report?.sentences?.length);
     if (pending.length === 0) {
       setPrepLoading(false);
       return;
@@ -339,7 +351,10 @@ export function AnalysisReportWorkbench({
       }
       // 실패해도 로딩 화면을 내린다. 오류 문구는 본 화면에만 있어서, 로딩을
       // 유지하면 스피너만 도는 채로 무엇이 잘못됐는지 보이지 않는다.
-      if (!cancelled) setPrepLoading(false);
+      if (!cancelled) {
+        setPrepLoading(false);
+        regenerateOnce.current = false;
+      }
       setGenerating(false);
     })();
 

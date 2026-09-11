@@ -9,10 +9,13 @@ import Link from "next/link";
 export default async function AdminAnalysisReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ids?: string; doc?: string }>;
+  searchParams: Promise<{ ids?: string; doc?: string; newDoc?: string }>;
 }) {
   // ?doc=면 저장된 파일의 지문을, 아니면 ?ids=를 쓴다.
-  const ids = await resolveDocumentProjectIds(await searchParams, "analysis_report");
+  const params = await searchParams;
+  const ids = await resolveDocumentProjectIds(params, "analysis_report");
+  // 제작 버튼으로 연 경우(?newDoc=1)는 이미 만든 적이 있어도 새로 만든다.
+  const regenerate = params.newDoc === "1" && !params.doc;
 
   if (ids.length === 0) {
     return (
@@ -55,6 +58,7 @@ export default async function AdminAnalysisReportPage({
 
   return (
     <AnalysisReportWorkbench
+      regenerate={regenerate}
       role="admin"
       projects={payload}
       logoSrc={branding.logoUrl || LOGO_SRC}

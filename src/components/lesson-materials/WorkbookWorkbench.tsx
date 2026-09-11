@@ -22,7 +22,10 @@ import {
   type generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
 import { postJson } from "@/lib/lesson-materials/post-json";
-import { getWorkbookDocument } from "@/lib/lesson-materials/document-actions";
+import {
+  createLessonMaterialDocument,
+  getWorkbookDocument,
+} from "@/lib/lesson-materials/document-actions";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
@@ -937,7 +940,17 @@ export function WorkbookWorkbench({
   const [a4Chunks, setA4Chunks] = useState<Record<string, number[][]>>({});
   const measureRef = useRef<HTMLDivElement>(null);
 
-  const requestKey = searchParams.toString();
+  /**
+   * 생성을 다시 돌릴지 가르는 키. 파일을 만든 뒤 주소에 doc=를 붙이고 newDoc을 떼는 것은
+   * 같은 요청이므로 키에서 뺀다(빼지 않으면 도는 중인 생성이 취소되고 처음부터 다시 돈다).
+   */
+  const requestKey = (() => {
+    const p = new URLSearchParams(searchParams.toString());
+    p.delete("doc");
+    p.delete("newDoc");
+    p.delete("docName");
+    return p.toString();
+  })();
   /** 이 탭에서 만들어 파일에 저장까지 끝낸 워크북 파일 id. */
   const producedDocRef = useRef<string | null>(null);
 
@@ -947,8 +960,9 @@ export function WorkbookWorkbench({
       status: ReturnType<typeof setTimeout> | null;
       elapsed: ReturnType<typeof setInterval> | null;
     } = { status: null, elapsed: null };
-    const docId = searchParams.get("doc")?.trim() || null;
+    let docId = searchParams.get("doc")?.trim() || null;
     const freshRequest = searchParams.get("fresh") === "1";
+    const newDocRequest = searchParams.get("newDoc") === "1" && !docId;
     // 저장 뒤 주소에서 fresh=1만 뗀 것이다. 화면의 워크북을 그대로 둔다.
     if (docId && !freshRequest && producedDocRef.current === docId) return;
 
@@ -994,6 +1008,28 @@ export function WorkbookWorkbench({
       };
       const title =
         searchParams.get("title")?.trim() || defaultWorkbookTitle();
+
+      // 제작 창에서 연 경우: 워크북 파일을 먼저 만들고 주소를 ?doc=로 바꾼다(생성은 이어서 한다).
+      if (newDocRequest && ids.length > 0) {
+        const sourceQuery = new URLSearchParams(searchParams.toString());
+        const docName = sourceQuery.get("docName");
+        for (const key of ["doc", "newDoc", "docName", "fresh"]) sourceQuery.delete(key);
+        const created = await createLessonMaterialDocument(role, {
+          kind: "workbook",
+          projectIds: ids,
+          name: docName || title,
+          sourceQuery: sourceQuery.toString(),
+        });
+        if (cancelled) return;
+        if (created.ok) {
+          docId = created.id;
+          const params = new URLSearchParams(window.location.search);
+          params.delete("newDoc");
+          params.delete("docName");
+          params.set("doc", created.id);
+          window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+        }
+      }
 
       // 자료함의 워크북 파일을 연 경우: 저장된 결과를 그대로 보여 준다.
       if (docId && !freshRequest) {
