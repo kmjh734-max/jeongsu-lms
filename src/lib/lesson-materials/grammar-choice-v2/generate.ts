@@ -127,19 +127,27 @@ export function resolveV2AnalyzerModel(): string {
  * high는 시간과 비용만 늘렸다(관측: 3문장 한 호출이 medium 79초 / low 45초인데
  * high는 180초 상한을 넘겨 지문이 통째로 버려졌다).
  *
- * 기본값은 low다. 지연은 출력 토큰 수에 정비례하므로(실측 회귀: 17.1ms/토큰,
+ * 지연은 출력 토큰 수에 정비례하므로(실측 회귀: 17.1ms/토큰,
  * 약 58 tok/s) 추론 강도를 낮추는 것이 속도에 가장 직접적으로 듣는다.
- * low로 내리면서 잃는 정확도는 모델 추론이 아니라 로컬 층이 메운다:
+ * 추론을 줄이면서 잃는 정확도는 모델 추론이 아니라 로컬 층이 메운다:
  *  - 문장별 likelyCodes(결정적 검출기 14종)가 코드 탐색을 대신한다.
  *  - 블라인드 유일성 게이트가 "네모 안 둘 다 맞는" 문항을 걷어낸다.
  *  - local-validators / choice-repair가 형태 오류를 잡는다.
  * 판정 단계(검수·유일성)는 medium을 유지하므로, 싸게 만든 것을 무르게
  * 통과시키는 방향으로는 기울지 않는다.
+ *
+ * 기본값을 low에서 none으로 내렸다. low에서도 출력의 60~75%가 추론 토큰이었고
+ * 가장 느린 호출이 곧 추론이 가장 긴 호출이었다(39.5초 = 1,355토큰 중 997).
+ * 같은 4지문 38문장 실측에서 분석 단계 종료가 43초 -> 14.4초였고 문항 수는
+ * 70 -> 65로 비슷했다. 새로 생긴 실패는 없는 낱말 오답(oftenly, likelyly,
+ * wills, predictabler)이었고, 판정을 medium으로 두어도 걸러지지 않아서
+ * distractor-guard가 형태로 막는다. 판정 단계는 low로 내리면 둘 다 맞는
+ * 문항(are meant / mean)이 새어 나와 medium을 유지한다.
  */
-export function resolveV2AnalyzerEffort(): "low" | "medium" | "high" {
+export function resolveV2AnalyzerEffort(): "none" | "low" | "medium" | "high" {
   const raw = process.env.OPENAI_GRAMMAR_V2_ANALYZER_REASONING_EFFORT?.trim().toLowerCase();
-  if (raw === "medium" || raw === "high") return raw;
-  return "low";
+  if (raw === "low" || raw === "medium" || raw === "high") return raw;
+  return "none";
 }
 
 export function resolveV2AuditorModel(): string {

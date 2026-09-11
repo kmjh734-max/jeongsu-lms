@@ -116,7 +116,48 @@ export function isInventedInflection(base: string, derived: string): boolean {
     return !canTakeIng(left);
   }
   if (right === `${left}s` && isAdjectiveOrMassNoun(left)) return true;
+  if (right === `${left}ly` && (left.endsWith("ly") || FLAT_ADVERBS.has(left))) return true;
+  if (right === `${left}s` && MODALS.has(left)) return true;
+  if (isInventedComparative(left, right)) return true;
   return false;
+}
+
+/**
+ * 분석 추론을 끄면(none) 모델이 규칙을 기계적으로 적용한 없는 낱말을 오답으로
+ * 낸다(관측: often/oftenly, likely/likelyly, will/wills,
+ * more predictable/predictabler). 유일성 판정은 "문법에 맞느냐"만 묻기 때문에
+ * 없는 낱말을 오히려 통과시키고, 검수를 medium으로 올려도 걸러지지 않았다.
+ * 형태만 보고 확실히 없는 것만 여기서 막는다.
+ */
+const FLAT_ADVERBS = new Set([
+  "often",
+  "always",
+  "never",
+  "also",
+  "very",
+  "soon",
+  "seldom",
+  "almost",
+  "already",
+  "perhaps",
+  "quite",
+  "rather",
+  "together",
+  "sometimes",
+]);
+
+const MODALS = new Set(["will", "would", "can", "could", "shall", "should", "may", "might"]);
+
+/**
+ * 파생 접미사로 끝나는 형용사는 -er/-est 비교급을 만들지 않는다(more/most를 쓴다).
+ * pleasant/pleasanter처럼 드물게 쓰이는 형태가 있는 -ant는 넣지 않는다.
+ */
+const PERIPHRASTIC_ADJECTIVE = /(?:able|ible|ful|ous|ive|less|ic|ish|ent)$/;
+
+function isInventedComparative(base: string, derived: string): boolean {
+  if (!PERIPHRASTIC_ADJECTIVE.test(base)) return false;
+  const stem = base.replace(/e$/, "");
+  return [`${stem}er`, `${stem}est`, `${base}r`, `${base}st`].includes(derived);
 }
 
 function isAllowedTeachingPair(pointCode: string, correct: string, wrong: string, sentence: string): boolean {

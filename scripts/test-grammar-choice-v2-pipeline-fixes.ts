@@ -30,6 +30,33 @@ assert.equal(
   }),
   "FABRICATED_INFLECTION"
 );
+// 분석 추론을 끈 실측에서 나온 없는 낱말들.
+for (const [pointCode, correct, wrong] of [
+  ["ADVERB_ADJECTIVE_MODIFIER", "often", "oftenly"],
+  ["ADJECTIVE_SUBJECT_COMPLEMENT", "likely", "likelyly"],
+  ["MODAL_MEANING", "will", "wills"],
+  ["COMPARATIVE", "more predictable", "predictabler"],
+  ["COMPARATIVE", "most beautiful", "beautifulest"],
+] as const) {
+  assert.equal(
+    rejectFabricatedDistractor({ pointCode, correct, wrong, sentence: "" }),
+    "FABRICATED_INFLECTION",
+    `${correct} / ${wrong}`
+  );
+}
+// 실제로 있는 형태는 막지 않는다.
+for (const [pointCode, correct, wrong] of [
+  ["COMPARATIVE", "happy", "happier"],
+  ["ADVERB_ADJECTIVE_MODIFIER", "hard", "hardly"],
+  ["COMPARATIVE", "pleasant", "pleasanter"],
+  ["ADVERB_ADJECTIVE_MODIFIER", "extreme", "extremely"],
+] as const) {
+  assert.equal(
+    rejectFabricatedDistractor({ pointCode, correct, wrong, sentence: "" }),
+    null,
+    `${correct} / ${wrong}`
+  );
+}
 assert.equal(
   rejectFabricatedDistractor({
     pointCode: "COUNTABLE_UNCOUNTABLE",

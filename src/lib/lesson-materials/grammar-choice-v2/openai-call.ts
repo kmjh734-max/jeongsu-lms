@@ -55,7 +55,40 @@ function isRetriableStatus(status: number): boolean {
   return status === 429 || status === 408 || status >= 500;
 }
 
-export async function callGrammarChoiceV2Json(input: {
+/**
+ * 이 시간 안에 답이 없으면 같은 요청을 하나 더 보내고 먼저 온 답을 쓴다.
+ *
+ * 관측(2026-09-11): 판정 호출 하나가 21초 동안 멈춰 있다가 500을 돌려주고,
+ * 재시도도 500, 그다음 재시도가 36초 걸려 4지문 전체가 30초대에서 76초가 됐다.
+ * 나머지 판정 호출은 대부분 3~7초에 끝났다. 지문 전체가 가장 느린 호출 하나를
+ * 기다리는 구조라, 멈춘 호출 하나가 곧 전체 시간이다.
+ *
+ * 문턱은 단계별 정상 분포의 꼬리 바깥에 둔다(판정 p50 약 4초, 분석 none p90 약
+ * 13초). 추론이 길어서 느린 정상 호출도 복제되지만, 판정 호출은 출력이 수백
+ * 토큰이라 비용이 작다.
+ */
+const HEDGE_AFTER_MS: Record<"GENERATOR" | "REVIEWER", number> = {
+  GENERATOR: 20_000,
+  REVIEWER: 12_000,
+};
+
+/**
+ * 판정 단계는 이 시간이 지나면 복제 요청까지 모두 접고 실패로 끝낸다.
+ *
+ * 복제로 못 구하는 느린 호출이 있다. 같은 묶음에서 모델이 추론을 멈추지 않아
+ * 출력 상한(1,200토큰)을 채우는 경우로, 원 요청 59초, 복제 요청 78초가 걸린 뒤
+ * 둘 다 TOKEN_LIMIT로 실패했다(2026-09-11). 어차피 실패로 끝날 호출을 기다리느라
+ * 4지문 전체가 102초가 됐다. 정상 판정 호출은 대부분 15초 안에 끝나고, 성공한
+ * 가장 긴 호출이 25.7초였다.
+ *
+ * 분석 단계는 REQUEST_TIMEOUT_MS를 그대로 쓴다. 분석이 실패하면 지문이 통째로 빠진다.
+ */
+const STAGE_DEADLINE_MS: Record<"GENERATOR" | "REVIEWER", number | null> = {
+  GENERATOR: null,
+  REVIEWER: 35_000,
+};
+
+type GrammarChoiceV2CallInput = {
   stage: "GENERATOR" | "REVIEWER";
   apiKey: string;
   model: string;
@@ -65,7 +98,9 @@ export async function callGrammarChoiceV2Json(input: {
   schemaName: string;
   schema: Record<string, unknown>;
   maxCompletionTokens?: number;
-}): Promise<{
+};
+
+type GrammarChoiceV2CallResult = {
   content: string;
   responseModel: string;
   rawJson: string;
@@ -73,13 +108,90 @@ export async function callGrammarChoiceV2Json(input: {
   inputTokens: number | null;
   outputTokens: number | null;
   fallback: boolean;
-}> {
+};
+
+export async function callGrammarChoiceV2Json(
+  input: GrammarChoiceV2CallInput
+): Promise<GrammarChoiceV2CallResult> {
+  const hedgeAfterMs = HEDGE_AFTER_MS[input.stage];
+  const deadlineMs = STAGE_DEADLINE_MS[input.stage];
+  const primary = new AbortController();
+  const backup = new AbortController();
+  const started = Date.now();
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let launched = 1;
+    let failed = 0;
+    let firstError: unknown = null;
+
+    const finish = () => {
+      settled = true;
+      clearTimeout(hedgeTimer);
+      if (deadlineTimer) clearTimeout(deadlineTimer);
+    };
+
+    const run = (own: AbortController, other: AbortController) => {
+      callOnce(input, own.signal).then(
+        (result) => {
+          if (settled) return;
+          finish();
+          other.abort();
+          resolve({ ...result, latencyMs: Date.now() - started });
+        },
+        (error: unknown) => {
+          if (settled) return;
+          failed += 1;
+          firstError ??= error;
+          // 다른 쪽이 아직 돌고 있으면 그 답을 기다린다.
+          if (failed < launched) return;
+          finish();
+          reject(firstError);
+        }
+      );
+    };
+
+    const hedgeTimer = setTimeout(() => {
+      if (settled) return;
+      launched = 2;
+      run(backup, primary);
+    }, hedgeAfterMs);
+
+    const deadlineTimer =
+      deadlineMs === null
+        ? null
+        : setTimeout(() => {
+            if (settled) return;
+            finish();
+            primary.abort();
+            backup.abort();
+            reject(
+              new GrammarChoiceModelError({
+                stage: input.stage,
+                requestedModel: input.model,
+                requestedReasoningEffort: input.reasoningEffort,
+                errorCode: "TIMEOUT",
+                errorMessage: `${Math.round(deadlineMs / 1000)}초 안에 판정이 오지 않았습니다.`,
+              })
+            );
+          }, deadlineMs);
+
+    run(primary, backup);
+  });
+}
+
+async function callOnce(
+  input: GrammarChoiceV2CallInput,
+  cancel: AbortSignal
+): Promise<GrammarChoiceV2CallResult> {
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
     timedOut = true;
     controller.abort();
   }, REQUEST_TIMEOUT_MS);
+  const onCancel = () => controller.abort();
+  cancel.addEventListener("abort", onCancel, { once: true });
   const started = Date.now();
   let fallback = false;
   try {
@@ -225,6 +337,7 @@ export async function callGrammarChoiceV2Json(input: {
     throw error;
   } finally {
     clearTimeout(timer);
+    cancel.removeEventListener("abort", onCancel);
   }
 }
 
