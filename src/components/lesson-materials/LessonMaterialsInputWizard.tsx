@@ -22,6 +22,13 @@ import {
   splitKoreanSentences,
   splitPassageIntoLinePairs,
 } from "@/lib/lesson-materials/split-sentences";
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+
+/**
+ * 삽화 일괄 생성 때 동시에 보내는 요청 수. 이미지 생성은 분당 장수 제한이 낮아서
+ * 지문 수만큼 한꺼번에 보내면 429를 받고, 그러면 서버가 다음(구형) 모델로 넘어간다.
+ */
+const ILLUSTRATION_CONCURRENCY = 3;
 
 type PassageDraft = {
   english: string;
@@ -242,14 +249,18 @@ export function LessonMaterialsInputWizard({
     return "";
   }
 
+  /**
+   * 지문 하나의 삽화를 만든다. 실패하면 사유를 돌려주고, 오류 표시는 호출부가 한다.
+   * 일괄 생성은 여러 지문을 함께 돌리므로, 여기서 공용 오류를 지우거나 덮으면
+   * 나중에 시작한 지문이 앞 지문의 실패를 지운다.
+   */
   async function runIllustrationForIndex(
     index: number,
     overrides?: { illustrationPrompt?: string; comicCaptions?: string[] }
-  ) {
+  ): Promise<string | null> {
     const cur = workbenches[index];
     if (!cur) {
-      setError("지문 정보가 없습니다. 이전 단계로 돌아가 다시 시도해 주세요.");
-      return;
+      return "지문 정보가 없습니다. 이전 단계로 돌아가 다시 시도해 주세요.";
     }
 
     const prompt = (
@@ -269,10 +280,7 @@ export function LessonMaterialsInputWizard({
             ];
 
     if (prompt.length < 8) {
-      setError(
-        "삽화에 쓸 내용이 없습니다. 「논리 흐름 재생성」을 한 뒤 다시 눌러 주세요."
-      );
-      return;
+      return "삽화에 쓸 내용이 없습니다. 「논리 흐름 재생성」을 한 뒤 다시 눌러 주세요.";
     }
 
     // Persist resolved prompt so later clicks keep working
@@ -281,7 +289,6 @@ export function LessonMaterialsInputWizard({
     }
 
     patchWorkbench(index, { generatingIllustration: true });
-    setError(null);
     try {
       const res = await fetch("/api/lesson-materials/illustration", {
         method: "POST",
@@ -296,26 +303,17 @@ export function LessonMaterialsInputWizard({
       try {
         img = (await res.json()) as typeof img;
       } catch {
-        setError(
-          `삽화 응답을 읽지 못했습니다 (HTTP ${res.status}). 잠시 후 다시 시도해 주세요.`
-        );
-        return;
+        return `삽화 응답을 읽지 못했습니다 (HTTP ${res.status}). 잠시 후 다시 시도해 주세요.`;
       }
       if (!res.ok || !img.ok) {
-        setError(
-          !img.ok
-            ? img.message
-            : `삽화 생성 실패 (HTTP ${res.status})`
-        );
-        return;
+        return !img.ok ? img.message : `삽화 생성 실패 (HTTP ${res.status})`;
       }
       patchWorkbench(index, { illustrationUrl: img.url });
+      return null;
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? `삽화 생성 중 오류: ${e.message}`
-          : "삽화 생성 중 오류가 발생했습니다."
-      );
+      return e instanceof Error
+        ? `삽화 생성 중 오류: ${e.message}`
+        : "삽화 생성 중 오류가 발생했습니다.";
     } finally {
       patchWorkbench(index, { generatingIllustration: false });
     }
@@ -495,10 +493,19 @@ export function LessonMaterialsInputWizard({
     setBulkBusy(true);
     setError(null);
     try {
-      const count = workbenches.length;
-      for (let pi = 0; pi < count; pi++) {
-        // 삽화만 생성 — 제목·논리흐름은 재생성하지 않음
-        await runIllustrationForIndex(pi);
+      // 삽화만 생성 — 제목·논리흐름은 재생성하지 않음.
+      // 지문끼리는 독립이라 함께 띄운다. 서버는 요청 하나에 삽화 하나라 바꿀 것이 없다.
+      const failures = await runWithConcurrency(
+        workbenches.map((_, pi) => pi),
+        ILLUSTRATION_CONCURRENCY,
+        async (pi) => {
+          const reason = await runIllustrationForIndex(pi);
+          return reason ? `지문 ${pi + 1}: ${reason}` : null;
+        }
+      );
+      const failed = failures.filter((row): row is string => row !== null);
+      if (failed.length > 0) {
+        setError(`삽화 ${failed.length}개를 만들지 못했습니다. ${failed.join(" / ")}`);
       }
     } finally {
       setBulkBusy(false);
@@ -921,10 +928,15 @@ export function LessonMaterialsInputWizard({
                         wb.english.trim().length < 20)
                     }
                     onClick={() =>
-                      void runIllustrationForIndex(activePassage, {
-                        illustrationPrompt: wb.illustrationPrompt,
-                        comicCaptions: wb.comicCaptions,
-                      })
+                      void (async () => {
+                        setError(null);
+                        setError(
+                          await runIllustrationForIndex(activePassage, {
+                            illustrationPrompt: wb.illustrationPrompt,
+                            comicCaptions: wb.comicCaptions,
+                          })
+                        );
+                      })()
                     }
                   >
                     {wb.generatingIllustration
