@@ -561,22 +561,40 @@ export async function reorderLessonMaterialProjects(
 
   const supabase = await createClient();
 
-  for (let i = 0; i < orderedIds.length; i++) {
-    const id = orderedIds[i]!;
-    let q = supabase
-      .from("lesson_material_projects")
-      .update({ order_index: i })
-      .eq("id", id)
-      .eq("academy_id", profile!.academy_id!)
-      .is("deleted_at", null);
-
-    if (role === "teacher") {
-      q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
-    }
-
-    const { error: updateErr } = await q;
-    if (updateErr) return actionError(updateErr.message);
+  /**
+   * 자리가 바뀐 행만, 함께 고친다.
+   *
+   * 예전에는 목록 전체를 한 행씩 기다리며 고쳐서, 지문이 많을수록 끌어 놓을 때마다
+   * 행 수만큼 왕복이 쌓였다(자료함에서 순서 바꾸기가 느리다는 지적). 한 번 끌면 보통
+   * 몇 행만 자리가 바뀐다.
+   */
+  let current = supabase
+    .from("lesson_material_projects")
+    .select("id,order_index")
+    .in("id", orderedIds)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null);
+  if (role === "teacher") {
+    current = current.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
   }
+  const { data: rows, error: readErr } = await current;
+  if (readErr) return actionError(readErr.message);
+  const indexNow = new Map((rows ?? []).map((r) => [r.id as string, r.order_index as number | null]));
+  const changed = orderedIds
+    .map((id, i) => ({ id, i }))
+    .filter(({ id, i }) => indexNow.has(id) && indexNow.get(id) !== i);
+
+  const updates = await Promise.all(
+    changed.map(({ id, i }) =>
+      supabase
+        .from("lesson_material_projects")
+        .update({ order_index: i })
+        .eq("id", id)
+        .eq("academy_id", profile!.academy_id!)
+    )
+  );
+  const failed = updates.find((res) => res.error);
+  if (failed?.error) return actionError(failed.error.message);
 
   revalidateLibrary(role);
   return actionSuccess("순서가 저장되었습니다.");

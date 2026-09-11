@@ -43,6 +43,20 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
   { id: "integrated", label: "최종통합자료" },
 ];
 
+/** 끌기 손잡이: 점 두 줄. 글자(⠿)는 글꼴마다 크기·굵기가 달라 작고 흐리게 보였다. */
+function GripIcon() {
+  return (
+    <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden>
+      <circle cx="2.5" cy="3" r="1.5" />
+      <circle cx="7.5" cy="3" r="1.5" />
+      <circle cx="2.5" cy="8" r="1.5" />
+      <circle cx="7.5" cy="8" r="1.5" />
+      <circle cx="2.5" cy="13" r="1.5" />
+      <circle cx="7.5" cy="13" r="1.5" />
+    </svg>
+  );
+}
+
 function reorderProjects(
   items: LessonMaterialProjectRow[],
   fromId: string,
@@ -226,26 +240,41 @@ export function LessonMaterialsLibrary({
       libraryTab === "lesson" ||
       libraryTab === "analysis");
 
+  /**
+   * 순서는 화면에 바로 반영하고 저장은 뒤에서 한다.
+   *
+   * 예전에는 저장이 끝날 때까지 목록을 흐리게 막고(pointer-events-none), 끝나면 페이지
+   * 전체를 다시 불러왔다. 서버가 행을 하나씩 고치던 것까지 겹쳐 한 번 끌 때마다 몇 초씩
+   * 멈췄다. 저장 중에 또 끌면 마지막 순서만 이어서 저장한다.
+   */
+  const pendingOrder = useRef<string[] | null>(null);
+  const savingOrder = useRef(false);
+
   async function persistOrder(next: LessonMaterialProjectRow[]) {
+    pendingOrder.current = next.map((p) => p.id);
+    if (savingOrder.current) return;
+    savingOrder.current = true;
     setReordering(true);
     setError(null);
     try {
-      const res = await reorderLessonMaterialProjects(role, {
-        orderedIds: next.map((p) => p.id),
-      });
-      if (!res.ok) {
-        setError(res.message);
-        setOrderedProjects(visibleProjects);
-        return;
+      while (pendingOrder.current) {
+        const orderedIds = pendingOrder.current;
+        pendingOrder.current = null;
+        const res = await reorderLessonMaterialProjects(role, { orderedIds });
+        if (!res.ok) {
+          setError(res.message);
+          setOrderedProjects(visibleProjects);
+          pendingOrder.current = null;
+          return;
+        }
       }
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "순서 저장에 실패했습니다.");
       setOrderedProjects(visibleProjects);
     } finally {
+      savingOrder.current = false;
       setReordering(false);
-      setDraggingId(null);
-      setDragOverId(null);
     }
   }
 
@@ -253,6 +282,8 @@ export function LessonMaterialsLibrary({
     if (!canReorder || !draggingId || draggingId === targetId) return;
     const next = reorderProjects(orderedProjects, draggingId, targetId);
     setOrderedProjects(next);
+    setDraggingId(null);
+    setDragOverId(null);
     void persistOrder(next);
   }
 
@@ -852,15 +883,14 @@ export function LessonMaterialsLibrary({
           </label>
           <span className="text-xs text-slate-400">
             {canReorder
-              ? "⠿ 손잡이를 끌어 순서를 바꾸세요 · Shift + 클릭으로 범위 선택"
+              ? "왼쪽 점 아이콘을 끌어 순서를 바꾸세요 · Shift + 클릭으로 범위 선택"
               : "Shift + 클릭으로 범위 선택"}
+            {reordering ? " · 순서 저장 중…" : ""}
           </span>
         </div>
         ) : null}
 
-        <ul
-          className={`mt-3 space-y-2 ${reordering ? "pointer-events-none opacity-70" : ""}`}
-        >
+        <ul className="mt-3 space-y-2">
           {tabComingSoon || orderedProjects.length === 0 ? (
             <li className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
               {tabEmptyMessage}
@@ -910,15 +940,15 @@ export function LessonMaterialsLibrary({
                           setDraggingId(null);
                           setDragOverId(null);
                         }}
-                        className="shrink-0 cursor-grab select-none px-0.5 text-slate-400 hover:text-slate-600 active:cursor-grabbing"
-                        title="드래그하여 순서 변경"
+                        className="flex h-8 w-6 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-violet-50 hover:text-violet-600 active:cursor-grabbing"
+                        title="끌어서 순서 변경"
                         aria-label={`${p.title} 순서 변경`}
                       >
-                        ⠿
+                        <GripIcon />
                       </span>
                     ) : (
-                      <span className="text-slate-300" aria-hidden>
-                        ⠿
+                      <span className="flex h-8 w-6 shrink-0 items-center justify-center text-slate-200" aria-hidden>
+                        <GripIcon />
                       </span>
                     )}
                     <input
