@@ -14,7 +14,11 @@ import { canShrinkToSafePair } from "../src/lib/lesson-materials/grammar-choice-
 import { explanationContractMismatch } from "../src/lib/lesson-materials/grammar-choice-v2/assessment-contract";
 import { explainChoice } from "../src/lib/lesson-materials/grammar-choice-v2/explanation-templates";
 import { ontologyPoint } from "../src/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
-import { isDoubleDegreeMarking, rejectCandidate } from "../src/lib/lesson-materials/grammar-choice-v2/local-validators";
+import {
+  isDerivedFromCorrect,
+  isDoubleDegreeMarking,
+  rejectCandidate,
+} from "../src/lib/lesson-materials/grammar-choice-v2/local-validators";
 import { resolveAndFilter } from "../src/lib/lesson-materials/grammar-choice-v2/pipeline";
 import type { GrammarCandidate, GrammarPointCode } from "../src/lib/lesson-materials/grammar-choice-v2/types";
 
@@ -418,6 +422,24 @@ assert.equal(
   }),
   false
 );
+
+// 낱말 하나만 다른 쌍은 그 낱말만 네모에 넣는다. 공백이 아니라 글자 s로 쪼개던
+// 버그가 있었으므로 s가 든 낱말(necessary)로 본다. 네모는 원문과 정확히 맞아야 한다.
+const NATURAL = "Resting is natural and necessary for success.";
+const narrowed = resolveAndFilter({
+  sentences: [sent("natural", NATURAL)],
+  candidates: [
+    cand("PARALLEL_AND_OR_BUT", "natural and necessary", "naturally and necessary", NATURAL, "natural"),
+  ],
+}).resolved.find((item) => item.candidateId.startsWith("natural-"));
+assert.equal(narrowed?.correctAnswer, "natural");
+assert.deepEqual(narrowed?.distractors, ["naturally"]);
+assert.equal(NATURAL.slice(narrowed!.passageStart, narrowed!.passageEnd), "natural");
+
+// 여러 단어 네모에서도 없는 파생어 오답을 검수로 보낸다.
+assert.equal(isDerivedFromCorrect("a misunderstood text", "a misunderstoodly text"), true);
+assert.equal(isDerivedFromCorrect("was extinct", "was extinctly"), true);
+assert.equal(isDerivedFromCorrect("made to move", "made move"), false);
 
 console.log("quality-fixes ok", filtered.resolved.length, "resolved");
 

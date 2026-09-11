@@ -761,11 +761,8 @@ export function needsAuditor(candidate: GrammarCandidate): boolean {
 /** 한쪽이 다른 쪽에 파생 접미사를 붙인 형태인지 본다. */
 const DERIVATION_SUFFIXES = ["ly", "ing", "ed", "er", "est", "ness", "ful"];
 
-export function isDerivedFromCorrect(correct: string, wrong: string): boolean {
-  const base = correct.trim().toLowerCase();
-  const derived = wrong.trim().toLowerCase();
+function suffixDerived(base: string, derived: string): boolean {
   if (!base || !derived || base === derived) return false;
-  if (base.includes(" ") || derived.includes(" ")) return false;
   return DERIVATION_SUFFIXES.some(
     (suffix) =>
       derived === `${base}${suffix}` ||
@@ -773,4 +770,33 @@ export function isDerivedFromCorrect(correct: string, wrong: string): boolean {
       base === `${derived}${suffix}` ||
       base === `${derived.replace(/e$/, "")}${suffix}`
   );
+}
+
+/**
+ * 정답에 접미사를 붙여 만든 오답인지 본다. 그런 오답은 실재하지 않는 낱말일 수
+ * 있고(misunderstood -> misunderstoodly, extinct -> extinctly) 실재 여부는 어휘
+ * 지식이라 로컬 규칙으로 못 가린다. 걸리면 검수 모델로 보낸다.
+ *
+ * 예전에는 스팬에 공백이 있으면 곧바로 false였다. 그래서
+ * [a misunderstood text / a misunderstoodly text]처럼 네모가 여러 단어인 경우
+ * 검사가 아예 돌지 않았고, 없는 낱말이 그대로 출제됐다. 한 단어 스팬이었다면
+ * 잡혔을 것이다. 이제 달라진 낱말끼리 짝지어 본다.
+ */
+export function isDerivedFromCorrect(correct: string, wrong: string): boolean {
+  const base = correct.trim().toLowerCase();
+  const derived = wrong.trim().toLowerCase();
+  if (!base || !derived || base === derived) return false;
+  if (!base.includes(" ") && !derived.includes(" ")) return suffixDerived(base, derived);
+
+  const c = base.split(/\s+/).filter(Boolean);
+  const w = derived.split(/\s+/).filter(Boolean);
+  if (c.length === w.length) {
+    // 자리를 맞춰 놓고 달라진 낱말끼리만 본다.
+    return c.some((token, i) => suffixDerived(token, w[i] ?? ""));
+  }
+  // 길이가 다르면 공통 낱말을 빼고 남은 것끼리 본다.
+  const shared = new Set(c.filter((t) => w.includes(t)));
+  const restC = c.filter((t) => !shared.has(t));
+  const restW = w.filter((t) => !shared.has(t));
+  return restC.some((a) => restW.some((b) => suffixDerived(a, b)));
 }

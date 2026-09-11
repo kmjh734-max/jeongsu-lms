@@ -306,7 +306,29 @@ export function resolveAndFilter(input: {
         sentence: sentence.text,
       });
 
-    let local = localCheck(candidate);
+    /**
+     * 낱말 하나만 다르면 그 낱말만 네모에 넣는다.
+     *
+     * [naturally and necessary / natural and necessary]처럼 접속사와 뒤 낱말까지
+     * 물고 있으면 학생이 어디를 보라는 것인지 흐려진다. 위쪽 자르기는 5단어
+     * 이상만 대상이라 3단어짜리 이런 쌍이 그대로 남았다.
+     *
+     * 낱말 수가 같고 정확히 한 자리만 다를 때만 줄인다. made to move / made move처럼
+     * 낱말 수가 다른 쌍은 건드리지 않으므로 구문 전체를 보여 주던 문항은 그대로다.
+     * 줄인 쌍이 로컬 검증에 걸리면(is made / is making의 made / making처럼 조동사가
+     * 빠져 판정이 달라지는 경우) 줄이지 않고 원래 쌍으로 간다.
+     */
+    const narrowed = trimmed ? null : narrowToOneWord(candidate);
+    let local: ReturnType<typeof localCheck>;
+    if (narrowed && !localCheck(narrowed.candidate)) {
+      const start = span.passageStart + narrowed.startOffset;
+      span.passageStart = start;
+      span.passageEnd = start + narrowed.candidate.correctAnswer.length;
+      candidate = narrowed.candidate;
+      local = null;
+    } else {
+      local = localCheck(candidate);
+    }
     /**
      * NON_MINIMAL_SPAN이면 한 번 더 잘라 본다.
      *
@@ -1024,6 +1046,45 @@ function testsWordOrder(candidate: GrammarCandidate): boolean {
     candidate.pointCode === "NOUN_CLAUSE_DECLARATIVE_ORDER" ||
     candidate.pointCode.startsWith("INVERSION_")
   );
+}
+
+/**
+ * 낱말 수가 같고 정확히 한 자리만 다른 쌍을 그 낱말 하나로 줄인다.
+ *
+ * 위치 계산과 꼬리 문장부호는 trimToMinimalPair에 맡긴다. 공백을 기준으로
+ * 다시 이어 붙여 오프셋을 세면 원문의 공백 폭이 달라질 때 네모가 어긋난다.
+ * 대체 오답은 같은 낱말에서만 다를 때 함께 줄이고, 아니면 버린다
+ * (잘라낸 폭이 다른 오답은 같은 네모에 못 들어간다).
+ */
+function narrowToOneWord(
+  candidate: GrammarCandidate
+): { candidate: GrammarCandidate; startOffset: number } | null {
+  if (testsWordOrder(candidate)) return null;
+  const wrong = candidate.distractors[0] ?? "";
+  const words = (text: string) => text.trim().split(/\s+/).filter(Boolean);
+  const c = words(candidate.correctAnswer);
+  const w = words(wrong);
+  if (c.length < 2 || c.length !== w.length) return null;
+  const diffs = c.filter((token, i) => token.toLowerCase() !== w[i]!.toLowerCase());
+  if (diffs.length !== 1) return null;
+
+  const narrowed = trimToMinimalPair(candidate.correctAnswer, wrong);
+  if (!narrowed) return null;
+  const alt = candidate.distractors[1];
+  const altNarrowed = alt ? trimToMinimalPair(candidate.correctAnswer, alt) : null;
+  const keepAlt =
+    altNarrowed !== null &&
+    altNarrowed.startOffset === narrowed.startOffset &&
+    altNarrowed.correct === narrowed.correct;
+  return {
+    startOffset: narrowed.startOffset,
+    candidate: {
+      ...candidate,
+      correctAnswer: narrowed.correct,
+      sourceSpan: narrowed.correct,
+      distractors: keepAlt ? [narrowed.wrong, altNarrowed.wrong] : [narrowed.wrong],
+    },
+  };
 }
 
 /**

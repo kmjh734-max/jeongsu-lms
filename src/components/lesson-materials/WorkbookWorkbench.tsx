@@ -1079,7 +1079,11 @@ export function WorkbookWorkbench({
             : "워크북을 만들고 있습니다…"
         );
       } else if (wantGrammarChoice) {
-        setStatus(creatingNew ? "새로 만들고 있습니다 · 4%" : "4%");
+        setStatus(
+          creatingNew
+            ? "새로 만들고 있습니다…"
+            : "어법 선택 워크북을 만들고 있습니다…"
+        );
       } else if (wantBlank) {
         setStatus(
           creatingNew
@@ -1160,16 +1164,8 @@ export function WorkbookWorkbench({
           const skips = new Array<WorkbookGrammarChoiceSkip | null>(
             ids.length
           ).fill(null);
-          let done = 0;
-          const report = () => {
-            const pct = Math.round((done / ids.length) * 100);
-            setStatus(
-              creatingNew
-                ? `새로 만들고 있습니다 · 지문 ${done}/${ids.length} · ${pct}%`
-                : `지문 ${done}/${ids.length} · ${pct}%`
-            );
-          };
-          report();
+          // 진행률은 보여 주지 않는다. 지문들이 함께 돌아 거의 동시에 끝나므로
+          // 완료 지문 수로 센 퍼센트는 0%에 머물다가 100%로 뛸 뿐이었다.
 
           // 지문끼리는 서로 독립이므로 함께 띄운다. 순차로 돌리면 지문 수만큼
           // 그대로 느려진다. 요청 하나가 지문 하나라 함수 실행시간에는 영향이 없다.
@@ -1195,8 +1191,6 @@ export function WorkbookWorkbench({
                 results[i] = one.section;
                 if (one.skipped) skips[i] = one.skipped;
               }
-              done += 1;
-              report();
             }
           };
           await Promise.all(
@@ -1209,9 +1203,6 @@ export function WorkbookWorkbench({
           );
           workbook.grammarChoiceSkipped = skips.filter(
             (skip): skip is WorkbookGrammarChoiceSkip => skip !== null
-          );
-          setStatus(
-            creatingNew ? "새로 만들고 있습니다 · 100%" : "100%"
           );
         }
         setSourceNote(creatingNew ? "new" : "existing");
@@ -1780,19 +1771,19 @@ export function WorkbookWorkbench({
   );
 
   if (generating) {
-    const pctOnly = /^\d+%$/.test(status);
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-3 bg-slate-100 px-4">
-        <div className="max-w-md rounded-2xl bg-white px-8 py-6 text-center shadow">
-          <p
-            className={
-              pctOnly
-                ? "text-3xl font-black tabular-nums text-slate-800"
-                : "text-sm font-semibold leading-relaxed text-slate-800"
-            }
+        <div className="w-full max-w-md rounded-2xl bg-white px-8 py-6 text-center shadow">
+          <p className="text-base font-bold text-slate-900">제작 중</p>
+          <p className="mt-1 text-sm leading-relaxed text-slate-600">{status}</p>
+          {/* 남은 양을 알 수 없으므로 채워지는 막대가 아니라 오가는 막대를 쓴다. */}
+          <div
+            className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
+            aria-label="워크북 제작 중"
           >
-            {status}
-          </p>
+            <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
+          </div>
         </div>
         <Link href={base} className="text-xs font-semibold text-violet-700">
           ← 자료함으로 돌아가기
