@@ -27,6 +27,7 @@ import {
   whenFollowedByFiniteClause,
 } from "@/lib/lesson-materials/grammar-choice-v2/structure-frames";
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
+import { findOccurrences } from "@/lib/lesson-materials/grammar-choice-v2/span-resolver";
 import type {
   ExactSentence,
   GrammarCandidate,
@@ -143,8 +144,25 @@ export function subtypeKey(pointCode: string, a: string, b: string): string {
   return `${pointCode}:${pair}`;
 }
 
+/**
+ * 문장 속 정답 자리. 낱말 경계로 찾는다.
+ *
+ * indexOf로 찾으면 in이 feeling 안에서, to가 impostor 안에서 잡혀 앞 낱말과 앞 문맥을
+ * 엉뚱한 데서 읽었다(2026-09-11 배포 전 점검: at some point [in / during] their lives의
+ * 앞 낱말이 feel로 읽혔다). 대소문자가 달라도 찾는다.
+ */
+export function spanStart(sentence: string, span: string): number {
+  const needle = span.trim();
+  if (!needle) return -1;
+  return (
+    findOccurrences(sentence, needle)[0] ??
+    findOccurrences(sentence.toLowerCase(), needle.toLowerCase())[0] ??
+    sentence.toLowerCase().indexOf(needle.toLowerCase())
+  );
+}
+
 function previousToken(sentence: string, span: string): string {
-  const at = sentence.indexOf(span);
+  const at = spanStart(sentence, span);
   if (at <= 0) return "";
   const before = sentence.slice(0, at).trim();
   const parts = tokens(before);
@@ -326,7 +344,7 @@ export function rejectCandidate(input: {
    * 오답도 어색하다(2026-09-11 선생님 검토에서 두 지문에 나왔다).
    */
   if (candidate.pointCode === "INDIRECT_QUESTION_ORDER") {
-    const at = sentence.text.toLowerCase().indexOf(correct.toLowerCase());
+    const at = spanStart(sentence.text, correct);
     const lead = sentence.text.slice(0, Math.max(0, at)).split(/\s+/).filter(Boolean).slice(-5).join(" ");
     const inBox = /^(?:what|which|where|when|why|how|who|whom|whose|whether|if)\b/i.test(correct);
     if (!inBox && !/\b(?:what|which|where|when|why|how|who|whom|whose|whether|if)\b/i.test(lead)) {
@@ -483,7 +501,7 @@ export function rejectCandidate(input: {
     /^(?:[a-z]+ing|to [a-z]+)$/i.test(correct.trim()) &&
     /^(?:[a-z]+ing|to [a-z]+)$/i.test(wrong.trim()) &&
     correct.trim().toLowerCase().startsWith("to ") !== wrong.trim().toLowerCase().startsWith("to ");
-  const before = sentence.text.slice(0, Math.max(0, sentence.text.indexOf(correct)));
+  const before = sentence.text.slice(0, Math.max(0, spanStart(sentence.text, correct)));
   if (!gerundVersusTo && isMechanicalGovernorForm(correct, wrong, prev, before)) {
     return "MECHANICAL_GOVERNOR_FORM";
   }
@@ -557,7 +575,7 @@ function pairKey(a: string, b: string): string {
 }
 
 function immediateSubject(sentence: string, span: string): string {
-  const at = sentence.toLowerCase().indexOf(normalizeToken(span));
+  const at = spanStart(sentence, span);
   if (at < 0) return "";
   const before = sentence.slice(0, at).trim();
   return normalizeToken(tokens(before).at(-1) ?? "");
@@ -586,7 +604,7 @@ function isShortAgreementPair(correct: string, wrong: string): boolean {
 function isAllowedLongAgreement(sentence: string, correct: string): boolean {
   const c = normalizeToken(correct);
   if (!/^(is|are|was|were|has|have)$/.test(c)) return false;
-  const at = sentence.indexOf(correct);
+  const at = spanStart(sentence, correct);
   if (at < 0) return false;
   const before = sentence.slice(0, at);
   if (/\b(?:who|which|that|whose)\b/i.test(before.slice(-48))) return true;
@@ -803,17 +821,17 @@ function isTrivialShortAgreement(
   if (hasInterveningAgreement(sentence, correct)) return false;
   // Learning foreign languages is ...: 주어가 동명사구이고 동사 바로 앞은 복수 명사다.
   // 짧아도 대표적인 함정이라 사소한 수일치가 아니다.
-  if (/^\s*(?:[A-Z][a-z]+ing|[a-z]+ing)\b/.test(sentence.slice(0, Math.max(0, sentence.indexOf(correct))))) {
+  if (/^\s*(?:[A-Z][a-z]+ing|[a-z]+ing)\b/.test(sentence.slice(0, Math.max(0, spanStart(sentence, correct))))) {
     return false;
   }
   if (/\b(?:one of|the number of|a number of|not only|what|there|the news|each of|along with)\b/i.test(sentence)) {
     return false;
   }
   if (/\b(?:who|which|that)\b/i.test(sentence) && c.match(/^(is|are|was|were|has|have)$/)) {
-    const between = sentence.split(correct)[0] ?? "";
+    const between = sentence.slice(0, Math.max(0, spanStart(sentence, correct)));
     if (/\b(?:who|which|that|of)\b/i.test(between.slice(-40))) return false;
   }
-  const at = sentence.indexOf(correct);
+  const at = spanStart(sentence, correct);
   const before = sentence.slice(Math.max(0, at - 48), at);
   const gap = tokens(before);
   const intervening =
@@ -897,24 +915,31 @@ function tooBasicForLevel(
   const w = normalizeToken(wrong);
   const pair = [c, w].sort().join("|");
   if (pair === "it's|its") return "TOO_BASIC_FOR_LEVEL";
-  if (SUBJECT_CASE_PAIRS.has(pair) && SUBJECT_PRONOUNS.has(c)) return "TOO_BASIC_FOR_LEVEL";
+  // 표는 주격|목적격 순서다. pair는 알파벳순이라(them|they, us|we, her|she) 두 순서를 다 본다.
+  // 예전에는 한 순서만 봐서 i|me, he|him만 걸리고 they / them, we / us가 그대로 나왔다.
+  if ((SUBJECT_CASE_PAIRS.has(`${c}|${w}`) || SUBJECT_CASE_PAIRS.has(`${w}|${c}`)) && SUBJECT_PRONOUNS.has(c)) {
+    return "TOO_BASIC_FOR_LEVEL";
+  }
+  // Even if [you / your] don't feel like it: 주어 자리 you와 소유격 your
+  if (c === "you" && w === "your") return "TOO_BASIC_FOR_LEVEL";
   if (/\bdo(?:es)?\s+there\s+be\b/i.test(wrong) || /^(?:do|does|did)\s+there\b/i.test(wrong.trim())) {
     return "TOO_BASIC_FOR_LEVEL";
   }
   // 네모를 줄이면 [Is there / Does there be]가 [Is / Does] there가 된다.
   if (/^(?:do|does|did)$/.test(w) && /^(?:is|are|was|were)$/.test(c)) {
-    const at = sentence.indexOf(correct);
+    const at = spanStart(sentence, correct);
     if (at >= 0 && /^\s+there\b/i.test(sentence.slice(at + correct.length))) return "TOO_BASIC_FOR_LEVEL";
   }
   if (/^(?:don't|doesn't|didn't|do not|does not|did not)\|not$/.test([c, w].sort((x, y) => y.length - x.length).join("|"))) {
     return "TOO_BASIC_FOR_LEVEL";
   }
   if (pair === "that|what") {
-    const at = sentence.indexOf(correct);
+    const at = spanStart(sentence, correct);
     const before = sentence.slice(0, Math.max(0, at));
     const after = sentence.slice(at + correct.length);
     const clauseStart = /(?:^|[,"“”'‘’—:;!?.]\s*|\b(?:ah|oh|well|yes|no),?\s*)$/i.test(before.trim() === "" ? "" : before);
-    if (clauseStart && /^\s*(?:sounds|seems|is|was|looks|means|makes|feels|works|happens|matters)\b/i.test(after)) {
+    // However, [that / what] doesn't mean ...: 조동사·부정형이 바로 오는 것도 지시대명사다.
+    if (clauseStart && /^\s*(?:sounds|seems|is|was|looks|means|makes|feels|works|happens|matters|doesn['’]t|does|didn['’]t|did|isn['’]t|wasn['’]t|can|could|will|would|may|might|must|should|has|had)\b/i.test(after)) {
       return "CODE_SPAN_CONTRACT_MISMATCH";
     }
   }

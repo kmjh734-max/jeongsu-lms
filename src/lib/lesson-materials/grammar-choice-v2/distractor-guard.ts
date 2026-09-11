@@ -100,6 +100,12 @@ export function rejectFabricatedDistractor(input: {
   const invented = inventedTokens(correct, wrong);
   if (invented.length) return "FABRICATED_INFLECTION";
 
+  // make the reader's job [harder / more hardly]: more를 붙이면서 형용사를 부사로도
+  // 바꿨다. 축이 둘이고 more hardly는 뜻도 다른 말이 된다.
+  if (/^(?:more|most)\s+[a-z]+ly$/i.test(wrong) && /^[a-z]+$/i.test(correct) && !/ly$/i.test(correct)) {
+    return "DISTRACTOR_NOT_ALLOWED";
+  }
+
   if (changesSeveralAxes(correct, wrong) && !isAllowedTeachingPair(input.pointCode, correct, wrong, input.sentence)) {
     return "DISTRACTOR_NOT_ALLOWED";
   }
@@ -118,6 +124,10 @@ export function isInventedInflection(base: string, derived: string): boolean {
   }
   if (right === `${left}s` && isAdjectiveOrMassNoun(left)) return true;
   if (right === `${left}ly` && (left.endsWith("ly") || FLAT_ADVERBS.has(left))) return true;
+  // full -> fully처럼 -ll에 y만 붙인 꼴: ill -> illy
+  if (left.endsWith("ll") && right === `${left}y` && FLAT_ADVERBS.has(left)) return true;
+  // the [small / smallly] miracles: -ll에 -ly를 통째로 붙이면 l이 셋이 된다. 그런 낱말은 없다.
+  if (right === `${left}ly` && (left.endsWith("ll") || NO_LY_ADJECTIVES.has(left))) return true;
   if (right === `${left}s` && MODALS.has(left)) return true;
   if (isInventedComparative(left, right)) return true;
   return false;
@@ -185,7 +195,37 @@ const FLAT_ADVERBS = new Set([
   "everywhere",
   "anywhere",
   "nowhere",
+  // 형용사·부사 모양이 같은 낱말: makes me very [ill / illy] at ease(2026-09-11 배포 전 점검).
+  // hard/hardly, late/lately, high/highly처럼 -ly가 뜻이 다른 실재 낱말인 것은 넣지 않는다.
+  "ill",
+  "fast",
+  "far",
+  "long",
+  "enough",
+  "else",
+  "once",
+  "twice",
+  "alike",
+  "alone",
+  "ahead",
+  "abroad",
+  "away",
+  "aloud",
+  "further",
+  "later",
+  "sooner",
+  "less",
+  "more",
+  "least",
+  "better",
+  "best",
+  "worse",
+  "worst",
+  "straight",
 ]);
+
+/** -ly 부사형이 없는 흔한 형용사(bigly, oldly, youngly는 없는 말이다). */
+const NO_LY_ADJECTIVES = new Set(["small", "big", "tall", "old", "young", "little", "fun", "good", "fat"]);
 
 const MODALS = new Set(["will", "would", "can", "could", "shall", "should", "may", "might"]);
 

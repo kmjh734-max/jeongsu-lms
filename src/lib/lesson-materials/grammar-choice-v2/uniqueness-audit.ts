@@ -1,6 +1,7 @@
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import type { Limiter } from "@/lib/lesson-materials/grammar-choice-v2/limiter";
 import { chunkByGroup } from "@/lib/lesson-materials/grammar-choice-v2/chunk-by-group";
+import { findOccurrences } from "@/lib/lesson-materials/grammar-choice-v2/span-resolver";
 import { callGrammarChoiceV2Json, parseModelJson } from "@/lib/lesson-materials/grammar-choice-v2/openai-call";
 import { UNIQUENESS_SYSTEM_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
 import type {
@@ -107,14 +108,9 @@ export function buildSlotSentence(
 ): string | null {
   const span = sourceSpan.trim();
   if (!span) return null;
-  let from = 0;
-  let at = -1;
-  for (let i = 0; i <= Math.max(0, occurrenceIndex); i++) {
-    at = sentence.indexOf(span, from);
-    if (at < 0) return null;
-    from = at + span.length;
-  }
-  if (at < 0) return null;
+  // 순번은 낱말 경계로 센 것이다(findOccurrences). indexOf로 세면 in이 feeling 안에서 잡힌다.
+  const at = findOccurrences(sentence, span)[Math.max(0, occurrenceIndex)];
+  if (at == null) return null;
   return `${sentence.slice(0, at)}${SLOT}${sentence.slice(at + span.length)}`;
 }
 

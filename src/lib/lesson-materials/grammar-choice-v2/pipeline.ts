@@ -53,6 +53,7 @@ import type {
 } from "@/lib/lesson-materials/grammar-choice-v2/types";
 import { buildPassageSegmentsFromSource } from "@/lib/lesson-materials/grammar-choice-display";
 import { checkLabelContract } from "@/lib/lesson-materials/grammar-choice-v2/label-contract";
+import { rejectAtPosition } from "@/lib/lesson-materials/grammar-choice-v2/position-guards";
 import type {
   GrammarChoiceCandidate,
   WorkbookGrammarChoiceDiagnostics,
@@ -383,6 +384,23 @@ export function resolveAndFilter(input: {
       });
       continue;
     }
+    const positional = rejectAtPosition({
+      pointCode: candidate.pointCode,
+      correct: candidate.correctAnswer,
+      wrong: candidate.distractors[0] ?? "",
+      sentence: sentence.text,
+      at: span.passageStart - sentence.passageStart,
+    });
+    if (positional) {
+      rejected.push({
+        candidateId: candidate.candidateId,
+        sentenceId: candidate.sentenceId,
+        pointCode: candidate.pointCode,
+        reason: positional,
+        pair: finalPair,
+      });
+      continue;
+    }
 
     const exactPair = `${candidate.sentenceId}|${candidate.sourceSpan}|${normalize(candidate.distractors[0] ?? "")}`;
     if (seenPair.has(exactPair)) {
@@ -619,6 +637,24 @@ function refineAfterAudit(
         sentenceId: next.sentenceId,
         pointCode: next.pointCode,
         reason: contract,
+        pair: `${next.correctAnswer} / ${next.distractors[0] ?? ""}`,
+      });
+      continue;
+    }
+    // 고친 쌍도 네모 앞뒤를 다시 본다(고치면서 자리와 쌍이 바뀐다).
+    const positional = rejectAtPosition({
+      pointCode: next.pointCode,
+      correct: next.correctAnswer,
+      wrong: next.distractors[0] ?? "",
+      sentence: sentence.text,
+      at: next.passageStart - sentence.passageStart,
+    });
+    if (positional) {
+      rejected.push({
+        candidateId: next.candidateId,
+        sentenceId: next.sentenceId,
+        pointCode: next.pointCode,
+        reason: positional,
         pair: `${next.correctAnswer} / ${next.distractors[0] ?? ""}`,
       });
       continue;

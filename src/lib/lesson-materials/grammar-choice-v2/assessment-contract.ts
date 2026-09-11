@@ -1,4 +1,5 @@
 import type { LocalRejectCode } from "@/lib/lesson-materials/grammar-choice-v2/types";
+import { spanStart } from "@/lib/lesson-materials/grammar-choice-v2/local-validators";
 import {
   comparativeThanIsUnique,
   findUniqueComparativeThan,
@@ -50,7 +51,7 @@ function isGerundBasePair(correct: string, wrong: string): boolean {
 }
 
 function followingToken(sentence: string, span: string): string {
-  const at = sentence.toLowerCase().indexOf(span.trim().toLowerCase());
+  const at = spanStart(sentence, span);
   if (at < 0) return "";
   const after = sentence.slice(at + span.trim().length).trim();
   return (after.split(/\s+/)[0] ?? "").replace(/[^A-Za-z'-]/g, "");
@@ -66,20 +67,20 @@ function insteadOfNounShape(correct: string, wrong: string, sentence: string): b
 }
 
 function prepositionBefore(sentence: string, span: string): boolean {
-  const at = sentence.toLowerCase().indexOf(span.trim().toLowerCase());
+  const at = spanStart(sentence, span);
   if (at <= 0) return false;
   const before = sentence.slice(0, at);
   return /\b(?:of|by|before|after|about|without|from|in|on|at|for|with|to)\s+$/i.test(before);
 }
 
 function toBeBefore(sentence: string, span: string): boolean {
-  const at = sentence.toLowerCase().indexOf(span.trim().toLowerCase());
+  const at = spanStart(sentence, span);
   if (at < 0) return false;
   return /\bto\s+$/i.test(sentence.slice(0, at));
 }
 
 function modalBeBefore(sentence: string, span: string): boolean {
-  const at = sentence.toLowerCase().indexOf(span.trim().toLowerCase());
+  const at = spanStart(sentence, span);
   if (at < 0) return false;
   const before = sentence.slice(Math.max(0, at - 48), at);
   return /\b(?:can|could|may|might|must|shall|should|will|would)\s+be(?:\s+\w+){0,2}\s+$/i.test(before);
