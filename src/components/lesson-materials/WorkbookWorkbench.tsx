@@ -18,9 +18,10 @@ import {
   saveWorkbookToSession,
 } from "@/components/lesson-materials/WorkbookCreateModal";
 import {
-  generateGrammarChoicePassageAction,
   generateWorkbookAction,
+  type generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
+import { postJson } from "@/lib/lesson-materials/post-json";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
@@ -51,10 +52,11 @@ import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
  * 동시에 띄우는 어법 선택 지문 요청 수. 지문 하나가 요청 하나라 함수 실행시간
  * 상한과는 무관하고, 순차로 돌리면 지문 수에 비례해 그대로 느려진다.
  *
- * 4에서 8로 올린다. 지문 하나가 20~29초이므로 4면 지문 8개에 두 웨이브(약 1분)가
- * 되는데, 다른 유형 생성이 전체 17초로 내려온 지금은 여기가 화면에서 기다리는
- * 시간의 거의 전부다. 요청은 각각 별도 함수 호출이라 서로의 실행시간을 잡아먹지
- * 않고, 순간 호출이 늘어 429가 나도 openai-call의 재시도가 받는다.
+ * 요청은 서버 액션이 아니라 API 라우트(/api/lesson-materials/grammar-choice)로
+ * 보낸다. 브라우저에서 부른 서버 액션은 Next.js가 한 번에 하나씩 실행하므로, 이
+ * 상한을 4에서 8로 올렸을 때도 실제로는 지문이 하나씩 돌고 있었다(post-json.ts).
+ * 요청은 각각 별도 함수 호출이라 서로의 실행시간을 잡아먹지 않고, 순간 호출이
+ * 늘어 429가 나도 openai-call의 재시도가 받는다.
  */
 const GRAMMAR_CHOICE_PASSAGE_CONCURRENCY = 8;
 
@@ -1175,7 +1177,10 @@ export function WorkbookWorkbench({
               const i = next;
               next += 1;
               if (i >= ids.length || cancelled) return;
-              const one = await generateGrammarChoicePassageAction(role, {
+              const one = await postJson<
+                Awaited<ReturnType<typeof generateGrammarChoicePassageAction>>
+              >("/api/lesson-materials/grammar-choice", {
+                role,
                 projectId: ids[i]!,
                 forceRegenerate,
               });
