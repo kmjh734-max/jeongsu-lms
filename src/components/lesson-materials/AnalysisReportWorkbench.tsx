@@ -37,6 +37,12 @@ const A4_HEIGHT = "297mm";
 const A4_PAD_MM = 12;
 const A4_PAD = `${A4_PAD_MM}mm`;
 const A4_FOOTER_MM = 16;
+/**
+ * 분석서가 아직 없을 때 쓰는 빈 배열. 렌더마다 새 []를 만들면 그것을 의존성으로
+ * 받는 쪽 배치 effect가 매번 setPageChunks를 불러 무한 렌더가 되고
+ * (React #185), 화면이 "Application error"로 죽는다.
+ */
+const NO_SENTENCES: AnalysisReportData["sentences"] = [];
 
 function joinChunks(texts: string[], sep = " / ") {
   return texts.map((t) => t.trim()).filter(Boolean).join(sep);
@@ -244,7 +250,7 @@ export function AnalysisReportWorkbench({
 
   const project = projects[active];
   const report = project?.report;
-  const sentences = report?.sentences ?? [];
+  const sentences = report?.sentences ?? NO_SENTENCES;
 
   useEffect(() => {
     const id = "analysis-report-print-page-size-style";
@@ -279,15 +285,17 @@ export function AnalysisReportWorkbench({
     setPrepLoading(true);
     setGenerating(true);
     (async () => {
-      let failed = false;
       for (const { p, i } of pending) {
         if (cancelled) return;
+        // 서버 액션이 던지면(시간 초과 등) 거부된 프라미스가 버려져 로딩이 끝나지 않는다.
         const res = await generateAndSaveAnalysisReportAction(role, {
           projectId: p.id,
           headerLabel,
-        });
+        }).catch((e: unknown) => ({
+          ok: false as const,
+          message: e instanceof Error ? e.message : "분석서를 만들지 못했습니다.",
+        }));
         if (!res.ok) {
-          failed = true;
           setError(res.message);
           break;
         }
@@ -303,7 +311,9 @@ export function AnalysisReportWorkbench({
           )
         );
       }
-      if (!cancelled && !failed) setPrepLoading(false);
+      // 실패해도 로딩 화면을 내린다. 오류 문구는 본 화면에만 있어서, 로딩을
+      // 유지하면 스피너만 도는 채로 무엇이 잘못됐는지 보이지 않는다.
+      if (!cancelled) setPrepLoading(false);
       setGenerating(false);
     })();
 
@@ -449,10 +459,13 @@ export function AnalysisReportWorkbench({
   }
 
   const pageNo = String(active + 1).padStart(2, "0");
-  const pages =
-    pageChunks.filter((c) => c.length > 0).length > 0
-      ? pageChunks.filter((c) => c.length > 0)
-      : [sentences.map((_, i) => i)];
+  // 탭을 긴 지문에서 짧은 지문으로 바꾸면 배치 effect가 돌기 전 한 번은 이전
+  // 지문의 쪽 배치로 렌더된다. 없는 문장 번호를 빼지 않으면 sentences[si]가
+  // undefined여서 SentenceBlock이 죽는다.
+  const liveChunks = pageChunks
+    .map((c) => c.filter((i) => i < sentences.length))
+    .filter((c) => c.length > 0);
+  const pages = liveChunks.length > 0 ? liveChunks : [sentences.map((_, i) => i)];
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
