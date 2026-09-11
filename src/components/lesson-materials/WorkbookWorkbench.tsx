@@ -1507,8 +1507,9 @@ export function WorkbookWorkbench({
     };
   }, []);
 
+  // 저장된 옛 워크북도 지금의 유형 순서로 보이게 그릴 때마다 정렬한다.
   const typeOrders = useMemo(() => {
-    const types = workbook?.selectedTypes ?? [];
+    const types = sortWorkbookTypesByPrintOrder(workbook?.selectedTypes ?? []);
     const map = new Map<WorkbookTypeId, number>();
     types.forEach((t, i) => map.set(t, i + 1));
     return map;
@@ -1517,7 +1518,7 @@ export function WorkbookWorkbench({
   const pages = useMemo(() => {
     if (!workbook) return [] as WorkbookPage[];
     const out: WorkbookPage[] = [];
-    const types = workbook.selectedTypes;
+    const types = sortWorkbookTypesByPrintOrder(workbook.selectedTypes);
     const soQuestions = workbook.sentenceOrderQuestions ?? [];
     const ltSections = workbook.lineTranslationSections ?? [];
     const feSections = workbook.fullEnWritingSections ?? [];
@@ -1898,7 +1899,7 @@ export function WorkbookWorkbench({
           </p>
           <p className="text-xs text-slate-500">{title}</p>
           <p className="text-[11px] text-slate-400">
-            {workbook.selectedTypes
+            {sortWorkbookTypesByPrintOrder(workbook.selectedTypes)
               .map((t) => workbookTypeDisplayTitle(t))
               .join(" · ")}
           </p>
@@ -2138,10 +2139,11 @@ export function WorkbookWorkbench({
                   typeTitle="정답"
                   isLast={isLast}
                 >
-                  <div className="space-y-8">
+                  {/* 정답은 유형 번호 순으로 보인다(CSS order). 유형 순서가 바뀌어도 여기를 고칠 필요가 없다. */}
+                  <div className="flex flex-col gap-8">
                     {page.typeOrderBlank != null
                       ? workbook.blankSections.map((section, i) => (
-                          <div key={`ba-${section.projectId}-${i}`}>
+                          <div key={`ba-${section.projectId}-${i}`} style={{ order: page.typeOrderBlank! }}>
                             <h3
                               className="mb-3 text-[16px] font-black"
                               style={{ color: ACCENT }}
@@ -2157,7 +2159,7 @@ export function WorkbookWorkbench({
                       : null}
                     {page.typeOrderGrammarChoice != null
                       ? gcSections.map((section, i) => (
-                          <div key={`gca-${section.projectId}-${i}`}>
+                          <div key={`gca-${section.projectId}-${i}`} style={{ order: page.typeOrderGrammarChoice! }}>
                             <GrammarChoiceAnswerBody
                               section={section}
                               typeOrder={page.typeOrderGrammarChoice!}
@@ -2168,7 +2170,7 @@ export function WorkbookWorkbench({
                       : null}
                     {page.typeOrderTf != null
                       ? workbook.sections.map((section, i) => (
-                          <div key={`ta-${section.projectId}-${i}`}>
+                          <div key={`ta-${section.projectId}-${i}`} style={{ order: page.typeOrderTf! }}>
                             <TfAnswerBody
                               section={section}
                               typeOrder={page.typeOrderTf!}
@@ -2178,7 +2180,7 @@ export function WorkbookWorkbench({
                         ))
                       : null}
                     {page.typeOrderSentenceOrder != null ? (
-                      <div>
+                      <div style={{ order: page.typeOrderSentenceOrder }}>
                         <h3
                           className="mb-3 text-[16px] font-black"
                           style={{ color: ACCENT }}
@@ -2207,7 +2209,7 @@ export function WorkbookWorkbench({
                       </div>
                     ) : null}
                     {page.typeOrderLineKo != null ? (
-                      <div className="space-y-8">
+                      <div className="space-y-8" style={{ order: page.typeOrderLineKo }}>
                         {ltSections.map((section) => (
                           <LineTranslationAnswerBody
                             key={`lta-${section.projectId}`}
@@ -2228,7 +2230,7 @@ export function WorkbookWorkbench({
                       </div>
                     ) : null}
                     {page.typeOrderFullEn != null ? (
-                      <div className="space-y-8">
+                      <div className="space-y-8" style={{ order: page.typeOrderFullEn }}>
                         {feSections.map((section) => (
                           <FullEnWritingAnswerBody
                             key={`fea-${section.projectId}`}
@@ -2249,7 +2251,7 @@ export function WorkbookWorkbench({
                       </div>
                     ) : null}
                     {page.typeOrderWordOrder != null ? (
-                      <div className="space-y-8">
+                      <div className="space-y-8" style={{ order: page.typeOrderWordOrder }}>
                         {woSections.map((section) => (
                           <WordOrderAnswerBody
                             key={`woa-${section.projectId}`}
