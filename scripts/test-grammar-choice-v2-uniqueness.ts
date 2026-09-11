@@ -7,6 +7,7 @@ import { applyUniqueness } from "../src/lib/lesson-materials/grammar-choice-v2/p
 import {
   buildSlotSentence,
   expandUniquenessItems,
+  verifyChoiceUniqueness,
 } from "../src/lib/lesson-materials/grammar-choice-v2/uniqueness-audit";
 import type { ResolvedCandidate } from "../src/lib/lesson-materials/grammar-choice-v2/types";
 
@@ -66,14 +67,12 @@ const applied = applyUniqueness(items, [
   { candidateId: "flipped", unique: false, reason: "CORRECT_ANSWER_WRONG" },
 ]);
 
-// 정답만 문법적인 항목은 살고, 둘 다 맞거나 정답이 틀린 항목은 떨어진다.
-assert.deepEqual(
-  applied.kept.map((i) => i.candidateId).sort(),
-  ["keep", "unjudged"]
-);
+// 정답만 문법적인 항목만 산다. 둘 다 맞거나 정답이 틀린 항목, 판정을 못 받은
+// 항목(호출 실패·시간 초과)은 떨어진다.
+assert.deepEqual(applied.kept.map((i) => i.candidateId), ["keep"]);
 assert.deepEqual(
   applied.rejected.map((r) => r.reason).sort(),
-  ["BOTH_GRAMMATICAL", "CORRECT_ANSWER_WRONG"]
+  ["BOTH_GRAMMATICAL", "CORRECT_ANSWER_WRONG", "UNIQUENESS_UNVERIFIED"]
 );
 
 // 첫 오답이 떨어져도 두 번째 오답이 통과하면 그쪽으로 살아난다.
@@ -112,10 +111,46 @@ assert.deepEqual(
 
 console.log("expandUniquenessItems ok");
 
-// 판정이 아예 없으면 게이트는 아무것도 건드리지 않는다.
-assert.equal(applyUniqueness(items, []).kept.length, 4);
+// 판정 단계가 돌았는데 판정이 하나도 없으면(호출 전부 실패) 전부 떨어진다.
+assert.equal(applyUniqueness(items, []).kept.length, 0);
+// 판정 단계가 돌지 않았으면(replay·테스트·옛 캐시) 아무것도 건드리지 않는다.
 assert.equal(applyUniqueness(items, undefined).kept.length, 4);
 assert.equal(applyUniqueness(items, undefined).rejected.length, 0);
 
+// 줄인 네모는 낱말+순번이 아니라 해소된 위치로 슬롯을 판다.
+// further and further의 두 번째 further만 네모인데 occurrenceIndex는 0으로 남아 있다.
+async function slotByPosition() {
+  const text = "The point is we are getting further and further away from our design.";
+  const at = text.indexOf("further", text.indexOf("further") + 1);
+  let sentUser = "";
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (_url: unknown, init?: { body?: string }) => {
+    sentUser = JSON.parse(JSON.parse(String(init?.body)).messages[1].content).items[0].sentence;
+    return new Response(
+      JSON.stringify({
+        model: "m",
+        choices: [{ finish_reason: "stop", message: { content: '{"results":[]}' } }],
+      }),
+      { status: 200 }
+    );
+  }) as typeof fetch;
+  const narrowed = {
+    ...candidate("far", "further", "far"),
+    sentenceId: "s1",
+    passageStart: 100 + at,
+    passageEnd: 100 + at + "further".length,
+  };
+  await verifyChoiceUniqueness({
+    apiKey: "k",
+    model: "m",
+    reasoningEffort: "medium",
+    sentences: [{ sentenceId: "s1", text, passageStart: 100, passageEnd: 100 + text.length }],
+    items: [narrowed],
+  });
+  globalThis.fetch = realFetch;
+  assert.equal(sentUser, "The point is we are getting further and [[SLOT]] away from our design.");
+  console.log("slot by position ok");
+}
+
 console.log("applyUniqueness ok");
-console.log("grammar-choice-v2 uniqueness tests: PASS");
+slotByPosition().then(() => console.log("grammar-choice-v2 uniqueness tests: PASS"));

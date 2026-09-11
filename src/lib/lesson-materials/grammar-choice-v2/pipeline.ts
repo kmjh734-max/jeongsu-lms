@@ -86,20 +86,28 @@ export type FinalizeInput = {
 };
 
 /**
- * 정답만 문법적이라고 확인되지 않은 후보를 떨어뜨린다.
- * 판정이 없는 후보(호출에 포함되지 않았거나 슬롯을 못 판 경우)는 건드리지 않는다.
+ * 정답만 문법적이라고 확인된 후보만 남긴다.
+ *
+ * 판정이 없는 후보도 떨어뜨린다(UNIQUENESS_UNVERIFIED). 판정 호출이 실패하거나
+ * 35초 상한에 걸리거나 슬롯을 못 판 경우다. 예전에는 이런 후보를 그대로 통과시켜서,
+ * OpenAI가 불안정한 날(2026-09-11: 요청의 절반가량이 500)에는 "둘 다 맞는" 문항을
+ * 거르는 게이트가 조용히 꺼진 채 출제됐다. 모델이 끝없이 추론하다 실패하는 묶음은
+ * 애매한 문항일 때가 많아서, 실패를 통과로 치면 걸러야 할 것이 먼저 새어 나간다.
+ *
+ * verdicts가 아예 없으면(undefined) 판정 단계가 돌지 않은 것이다. replay·테스트와
+ * 판정 도입 전에 저장된 분석 캐시가 여기에 해당하므로 그대로 둔다.
  */
 export function applyUniqueness(
   items: ResolvedCandidate[],
   verdicts: UniquenessVerdict[] | undefined
 ): { kept: ResolvedCandidate[]; rejected: V2Reject[] } {
-  if (!verdicts || verdicts.length === 0) return { kept: items, rejected: [] };
+  if (!verdicts) return { kept: items, rejected: [] };
   const byId = new Map(verdicts.map((v) => [v.candidateId, v]));
   const kept: ResolvedCandidate[] = [];
   const rejected: V2Reject[] = [];
   for (const item of items) {
     const verdict = byId.get(item.candidateId);
-    if (!verdict || verdict.unique) {
+    if (verdict?.unique) {
       kept.push(item);
       continue;
     }
@@ -113,7 +121,7 @@ export function applyUniqueness(
       candidateId: item.candidateId,
       sentenceId: item.sentenceId,
       pointCode: item.pointCode,
-      reason: verdict.reason ?? "BOTH_GRAMMATICAL",
+      reason: verdict ? (verdict.reason ?? "BOTH_GRAMMATICAL") : "UNIQUENESS_UNVERIFIED",
       pair: `${item.correctAnswer} / ${item.distractors[0] ?? ""}`,
     });
   }

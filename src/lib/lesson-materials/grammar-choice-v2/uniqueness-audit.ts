@@ -163,7 +163,22 @@ export async function verifyChoiceUniqueness(input: {
   };
   if (input.items.length === 0) return empty;
 
-  const bySentence = new Map(input.sentences.map((s) => [s.sentenceId, s.text]));
+  const bySentence = new Map(input.sentences.map((s) => [s.sentenceId, s]));
+
+  /**
+   * 해소된 위치로 슬롯을 판다. 네모를 줄이면(further and further / further and far
+   * → 두 번째 further 하나) sourceSpan은 줄인 낱말인데 occurrenceIndex는 원래 구의
+   * 것이라, 낱말+순번으로 찾으면 앞쪽의 같은 낱말에 슬롯을 판다. 위치가 원문과
+   * 맞지 않을 때만(테스트·옛 입력) 낱말+순번으로 찾는다.
+   */
+  const slotFor = (item: ResolvedCandidate, sentence: ExactSentence): string | null => {
+    const at = item.passageStart - sentence.passageStart;
+    const span = item.sourceSpan;
+    if (span && at >= 0 && sentence.text.slice(at, at + span.length) === span) {
+      return `${sentence.text.slice(0, at)}${SLOT}${sentence.text.slice(at + span.length)}`;
+    }
+    return buildSlotSentence(sentence.text, span, item.occurrenceIndex);
+  };
 
   type Prepared = {
     candidateId: string;
@@ -178,12 +193,10 @@ export async function verifyChoiceUniqueness(input: {
   const verdicts: UniquenessVerdict[] = [];
 
   for (const item of input.items) {
-    const sentence = bySentence.get(item.sentenceId) ?? "";
+    const sentence = bySentence.get(item.sentenceId);
     const wrong = item.distractors[0] ?? "";
-    const slotSentence = sentence
-      ? buildSlotSentence(sentence, item.sourceSpan, item.occurrenceIndex)
-      : null;
-    // 슬롯을 못 파면 판정 자체가 불가능하다. 통과시키지 않고 그대로 둔다.
+    const slotSentence = sentence ? slotFor(item, sentence) : null;
+    // 슬롯을 못 파면 판정 자체가 불가능하다. 판정이 없으므로 applyUniqueness에서 떨어진다.
     if (!slotSentence || !wrong || normalize(wrong) === normalize(item.correctAnswer)) {
       continue;
     }

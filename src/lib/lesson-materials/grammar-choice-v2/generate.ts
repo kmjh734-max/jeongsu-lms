@@ -442,7 +442,8 @@ export async function generateWorkbookGrammarChoiceV2(input: {
             callCount: 0,
           },
           audits: cachedAnalysis.audits,
-          uniqueness: cachedAnalysis.uniqueness ?? [],
+          // 판정 도입 전 캐시에는 판정이 없다. []로 넘기면 판정 실패로 보고 전부 떨어뜨린다.
+          uniqueness: cachedAnalysis.uniqueness,
           auditResponseModel: auditorModel,
           analyzeCalls: 0,
           reviewCalls: 0,
