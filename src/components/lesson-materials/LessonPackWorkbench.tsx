@@ -12,11 +12,16 @@ import {
 import type { LessonMaterialAnalysisCard } from "@/lib/lesson-materials/generate-organization";
 import {
   generateAndSaveLessonPackVocabAction,
-  ensureLessonMaterialTitleEnAction,
   regenerateLessonPackTranslationsAction,
   saveLessonPackAction,
+  type ensureLessonMaterialTitleEnAction,
 } from "@/lib/lesson-materials/lesson-pack-actions";
 import { LOGO_SRC } from "@/lib/branding";
+import { postJson } from "@/lib/lesson-materials/post-json";
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
+
+/** 수업자료 준비(단어·동반의어, 영어 제목)를 동시에 돌리는 지문 수. */
+const LESSON_PACK_PREP_CONCURRENCY = 8;
 
 export type LessonPackProjectInput = {
   id: string;
@@ -348,22 +353,29 @@ export function LessonPackWorkbench({
     setPrepProgress({ done: 0, total: pending.length });
 
     void (async () => {
-      let failed = false;
-      for (let n = 0; n < pending.length; n++) {
-        if (cancelled) return;
-        const { p, i } = pending[n]!;
-        setGenerating(true);
-        try {
+      setGenerating(true);
+      let done = 0;
+      // 지문끼리는 독립이라 함께 준비한다. 서버 액션은 브라우저에서 한 번에 하나씩만
+      // 돌기 때문에 API 라우트로 보낸다(post-json.ts).
+      const failures = await runWithConcurrency(
+        pending,
+        LESSON_PACK_PREP_CONCURRENCY,
+        async ({ p, i }): Promise<string | null> => {
+          if (cancelled) return null;
           const needsVocab =
             p.vocab.length === 0 || vocabNeedsAntonymRefresh(p.vocab);
+          let failure: string | null = null;
           if (needsVocab) {
-            const res = await generateAndSaveLessonPackVocabAction(role, {
+            const res = await postJson<
+              Awaited<ReturnType<typeof generateAndSaveLessonPackVocabAction>>
+            >("/api/lesson-materials/lesson-pack-prep", {
+              role,
               projectId: p.id,
+              kind: "vocab",
             });
             if (!res.ok) {
-              failed = true;
-              setError(res.message);
-            } else {
+              failure = res.message;
+            } else if (!cancelled) {
               setProjects((prev) =>
                 prev.map((row, idx) =>
                   idx === i
@@ -379,13 +391,16 @@ export function LessonPackWorkbench({
               if (i === 0) setHeaderLabel(res.headerLabel);
             }
           } else if (!p.titleEn?.trim()) {
-            const res = await ensureLessonMaterialTitleEnAction(role, {
+            const res = await postJson<
+              Awaited<ReturnType<typeof ensureLessonMaterialTitleEnAction>>
+            >("/api/lesson-materials/lesson-pack-prep", {
+              role,
               projectId: p.id,
+              kind: "titleEn",
             });
             if (!res.ok) {
-              failed = true;
-              setError(res.message);
-            } else {
+              failure = res.message;
+            } else if (!cancelled) {
               setProjects((prev) =>
                 prev.map((row, idx) =>
                   idx === i ? { ...row, titleEn: res.titleEn } : row
@@ -393,22 +408,20 @@ export function LessonPackWorkbench({
               );
             }
           }
-        } catch (e) {
-          failed = true;
-          setError(e instanceof Error ? e.message : "준비 실패");
-        } finally {
-          setGenerating(false);
+          done += 1;
+          if (!cancelled) setPrepProgress({ done, total: pending.length });
+          return failure ? `지문 ${i + 1}: ${failure}` : null;
         }
-        if (!cancelled) {
-          setPrepProgress({ done: n + 1, total: pending.length });
-        }
+      );
+      setGenerating(false);
+      if (cancelled) return;
+      const failed = failures.filter((row): row is string => row !== null);
+      if (failed.length > 0) {
+        // 로딩 화면에 오류와 "다시 시도"가 있다. 다시 시도하면 못 끝난 지문만 돈다.
+        setError(failed.join(" / "));
+        return;
       }
-      if (!cancelled) {
-        if (failed) {
-          return;
-        }
-        setPrepLoading(false);
-      }
+      setPrepLoading(false);
     })();
 
     return () => {
