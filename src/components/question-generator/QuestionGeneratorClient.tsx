@@ -10,7 +10,6 @@ import {
   MAX_PASSAGES,
   MAX_SETS_PER_TYPE,
   MAX_TOTAL_QUESTIONS,
-  SOURCE_TYPES,
 } from "@/lib/question-generator/constants";
 import { emptyPassageInput } from "@/lib/question-generator/passages";
 import {
@@ -55,7 +54,7 @@ export function QuestionGeneratorClient({
   const [title, setTitle] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [grade, setGrade] = useState("고1");
-  const [sourceType, setSourceType] = useState("모의고사");
+  const [sourceType, setSourceType] = useState("");
   const [sourceDetail, setSourceDetail] = useState("");
   const [overallDifficulty, setOverallDifficulty] = useState("내신");
   const [passages, setPassages] = useState<PassageInput[]>([
@@ -172,7 +171,7 @@ export function QuestionGeneratorClient({
         setTitle((cfg.title ?? "").trim() || "");
         setSchoolName(cfg.schoolName ?? "");
         setGrade(cfg.grade || "고1");
-        setSourceType(cfg.sourceType || "모의고사");
+        setSourceType(cfg.sourceType ?? "");
         setSourceDetail(cfg.sourceDetail ?? "");
         setOverallDifficulty(cfg.overallDifficulty || "내신");
         setCounts(sanitizeCounts(cfg.counts, MAX_SETS_PER_TYPE));
@@ -1065,19 +1064,14 @@ export function QuestionGeneratorClient({
                   placeholder="예: 2026년 3월 고1 모의고사 변형"
                 />
               </label>
-              <label className="block">
+              <label className="block sm:col-span-2">
                 <span className="ui-label">출처</span>
-                <select
-                  className="ui-select mt-1"
+                <input
+                  className="ui-input mt-1"
                   value={sourceType}
                   onChange={(e) => setSourceType(e.target.value)}
-                >
-                  {SOURCE_TYPES.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="예: 2026년 3월 고1 모의고사"
+                />
               </label>
             </div>
             <p className="mt-2 text-xs text-slate-500">
