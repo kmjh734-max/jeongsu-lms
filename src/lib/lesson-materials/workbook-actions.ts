@@ -97,7 +97,7 @@ export async function generateWorkbookAction(
     return {
       ok: false,
       message:
-        "생성 가능한 문제 유형을 선택해 주세요. (어법 선택, T/F, 빈칸 채우기, 문장 순서 배열, 한줄해석, 통문장 영작, 어순배열 영작)",
+        "생성 가능한 문제 유형을 선택해 주세요. (어법 선택, 어법 수정, T/F, 빈칸 채우기, 문장 순서 배열, 한줄해석, 통문장 영작, 어순배열 영작)",
     };
   }
   const unknown = (input.selectedTypes ?? []).filter(

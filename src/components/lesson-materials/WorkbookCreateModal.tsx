@@ -7,10 +7,14 @@ import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
+  DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
+  GRAMMAR_FIX_ERROR_COUNTS,
   MAX_TF_COUNT,
   WORKBOOK_TYPE_CATALOG,
+  clampGrammarFixErrors,
   clampTfCount,
+  type WorkbookGrammarFixOptions,
   defaultWorkbookTitle,
   estimateBlankCountPreview,
   sortWorkbookTypesByPrintOrder,
@@ -48,6 +52,7 @@ export function buildWorkbookHref(
     selectedTypes: WorkbookTypeId[];
     tfOptions: WorkbookTfOptions;
     blankOptions: WorkbookBlankFillOptions;
+    grammarFixOptions?: WorkbookGrammarFixOptions;
     title: string;
   }
 ) {
@@ -66,6 +71,11 @@ export function buildWorkbookHref(
   params.set("blankTr", opts.blankOptions.showTranslation ? "1" : "0");
   params.set("blankLayout", opts.blankOptions.translationLayout);
   params.set("blankDensity", opts.blankOptions.density ?? "high");
+  if (types.includes("grammar_fix")) {
+    const gf = opts.grammarFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS;
+    params.set("gfMode", gf.mode);
+    params.set("gfErrors", String(clampGrammarFixErrors(gf.errorCount)));
+  }
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   params.set("fresh", "1");
   return `${base}?${params.toString()}`;
@@ -94,6 +104,9 @@ export function WorkbookCreateModal({
   const [blankOptions, setBlankOptions] = useState<WorkbookBlankFillOptions>(
     DEFAULT_WORKBOOK_BLANK_OPTIONS
   );
+  const [grammarFixOptions, setGrammarFixOptions] = useState<WorkbookGrammarFixOptions>(
+    DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS
+  );
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [error, setError] = useState<string | null>(null);
 
@@ -116,6 +129,7 @@ export function WorkbookCreateModal({
   const wantTf = selected.has("tf");
   const wantBlank = selected.has("blank_fill");
   const wantSentenceOrder = selected.has("sentence_order");
+  const wantGrammarFix = selected.has("grammar_fix");
   const wantLineKo = selected.has("one_line_ko");
   const wantFullEn = selected.has("full_en_writing");
   const wantWordOrder = selected.has("word_order_writing");
@@ -165,6 +179,7 @@ export function WorkbookCreateModal({
         count: clampTfCount(tfOptions.count),
       },
       blankOptions,
+      grammarFixOptions,
       title: title.trim() || defaultWorkbookTitle(),
     });
     // 워크북도 파일로 저장한다. 제목이 곧 파일 이름이고, 만든 조건(유형·옵션)을 함께 둔다.
@@ -440,6 +455,58 @@ export function WorkbookCreateModal({
                           }))
                         }
                       />
+                    </OptionRow>
+                  </div>
+                </div>
+              ) : null}
+
+              {wantGrammarFix ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-900">어법 수정 옵션</p>
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+                    <OptionRow tone="violet" label="출제 방식">
+                      <div className="space-y-2">
+                        <TogglePair
+                          tone="violet"
+                          left={{ id: "underline", label: "밑줄 표시" }}
+                          right={{ id: "find", label: "밑줄 없음" }}
+                          value={grammarFixOptions.mode}
+                          onChange={(mode) =>
+                            setGrammarFixOptions((o) => ({
+                              ...o,
+                              mode: mode === "find" ? "find" : "underline",
+                            }))
+                          }
+                        />
+                        <p className="text-[11px] text-violet-600">
+                          {grammarFixOptions.mode === "underline"
+                            ? "밑줄 친 여러 곳 중 어법상 틀린 것을 찾아 고칩니다."
+                            : "밑줄 없이 지문 전체에서 어법상 틀린 곳을 찾아 고칩니다."}
+                        </p>
+                      </div>
+                    </OptionRow>
+                    <OptionRow tone="violet" label="틀린 곳 수">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {GRAMMAR_FIX_ERROR_COUNTS.map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() =>
+                              setGrammarFixOptions((o) => ({ ...o, errorCount: n }))
+                            }
+                            className={`rounded-md px-3 py-1 text-xs font-bold ${
+                              grammarFixOptions.errorCount === n
+                                ? "bg-violet-600 text-white"
+                                : "border border-slate-200 bg-white text-slate-600"
+                            }`}
+                          >
+                            {n}개
+                          </button>
+                        ))}
+                        <span className="text-[11px] text-slate-500">
+                          지문 1개당, 고칠 자리가 모자란 지문은 적게 나옵니다.
+                        </span>
+                      </div>
                     </OptionRow>
                   </div>
                 </div>

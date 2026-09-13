@@ -66,7 +66,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "grammar_fix",
     title: "어법 수정",
     subtitle: "어법상 어색한 부분을 고치는 서술형",
-    ready: false,
+    ready: true,
     displayOrder: 5,
     printOrder: 5,
   },
@@ -616,6 +616,10 @@ export type WorkbookData = {
   /** Word-order writing (Korean + scrambled tokens → English) */
   wordOrderWritingSections?: WorkbookWordOrderWritingSection[];
   wordOrderWritingSkipped?: WorkbookLineTranslationSkip[];
+  /** 어법 수정: 어법 선택에서 검수한 자리 중 몇 곳에 틀린 형태를 넣은 지문 */
+  grammarFixSections?: WorkbookGrammarFixSection[];
+  grammarFixSkipped?: WorkbookGrammarChoiceSkip[];
+  grammarFixOptions?: WorkbookGrammarFixOptions;
   /** 유형별 단 수. 없으면 1단. 한줄해석·통문장 영작·어순배열 영작은 늘 1단이다. */
   columnLayout?: Partial<Record<WorkbookColumnTypeId, 1 | 2>>;
   timing?: WorkbookGenerationTiming;
@@ -624,11 +628,66 @@ export type WorkbookData = {
 /** 1단·2단을 고를 수 있는 유형(쓰기 칸이 있는 유형은 뺀다). */
 export const WORKBOOK_COLUMN_TYPES = [
   "grammar_choice",
+  "grammar_fix",
   "blank_fill",
   "tf",
   "sentence_order",
 ] as const;
 export type WorkbookColumnTypeId = (typeof WORKBOOK_COLUMN_TYPES)[number];
+
+/**
+ * 어법 수정 출제 방식.
+ * - underline: 밑줄 친 여러 곳 중 틀린 것을 찾아 고친다(틀린 곳 수를 알려 준다).
+ * - find: 밑줄 없이 지문에서 틀린 곳을 찾아 고친다.
+ */
+export type WorkbookGrammarFixMode = "underline" | "find";
+
+export type WorkbookGrammarFixOptions = {
+  mode: WorkbookGrammarFixMode;
+  /** 지문당 틀린 곳 수(어법 선택 자리가 모자라면 그만큼 줄어든다). */
+  errorCount: number;
+};
+
+export const DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS: WorkbookGrammarFixOptions = {
+  mode: "underline",
+  errorCount: 3,
+};
+
+export const GRAMMAR_FIX_ERROR_COUNTS = [2, 3, 4, 5] as const;
+
+export function clampGrammarFixErrors(n: unknown): number {
+  const v = typeof n === "number" ? n : Number(n);
+  if (!Number.isFinite(v)) return DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS.errorCount;
+  return Math.min(5, Math.max(1, Math.floor(v)));
+}
+
+export function parseGrammarFixMode(raw: unknown): WorkbookGrammarFixMode {
+  return raw === "find" ? "find" : "underline";
+}
+
+export type GrammarFixRenderSegment =
+  | { type: "text"; text: string }
+  /** 밑줄형은 번호가 있고, 찾기형 틀린 곳은 번호 없이 본문에 섞인다. */
+  | { type: "spot"; number: number | null; text: string };
+
+export type WorkbookGrammarFixAnswer = {
+  /** 밑줄 번호(찾기형은 null) */
+  number: number | null;
+  wrongText: string;
+  correctText: string;
+};
+
+export type WorkbookGrammarFixSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  mode: WorkbookGrammarFixMode;
+  segments: GrammarFixRenderSegment[];
+  /** 틀린 곳, 지문 순서 */
+  answers: WorkbookGrammarFixAnswer[];
+  /** 밑줄 친 곳 수(찾기형은 틀린 곳 수와 같다) */
+  spotCount: number;
+};
 
 /** Soft target range for grammar-choice count by passage length. */
 export function getGrammarChoiceTargetRange(englishWordCount: number): {

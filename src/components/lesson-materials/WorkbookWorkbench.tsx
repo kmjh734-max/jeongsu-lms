@@ -28,8 +28,12 @@ import type {
 } from "@/lib/lesson-materials/document-actions";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
+  DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
+  clampGrammarFixErrors,
   clampTfCount,
+  parseGrammarFixMode,
+  type WorkbookGrammarFixSection,
   defaultWorkbookTitle,
   formatWorkbookPassage,
   parseBlankDensity,
@@ -52,6 +56,7 @@ import {
   type WorkbookWordOrderWritingSection,
 } from "@/lib/lesson-materials/workbook-types";
 import { formatAnswerOrderSequence } from "@/lib/lesson-materials/sentence-order-shuffle";
+import { buildGrammarFixSections } from "@/lib/lesson-materials/grammar-fix";
 import { circledNumber } from "@/lib/lesson-materials/grammar-choice-constants";
 
 /**
@@ -82,6 +87,8 @@ function withWorkbookDefaults(w: WorkbookData): WorkbookData {
     fullEnWritingSkipped: w.fullEnWritingSkipped ?? [],
     wordOrderWritingSections: w.wordOrderWritingSections ?? [],
     wordOrderWritingSkipped: w.wordOrderWritingSkipped ?? [],
+    grammarFixSections: w.grammarFixSections ?? [],
+    grammarFixSkipped: w.grammarFixSkipped ?? [],
   };
 }
 
@@ -96,6 +103,7 @@ const COLUMN_SECTION_GAP_PX = 18;
 /** 2단 유형의 쪽 제목. */
 const COLUMN_TYPE_TITLE: Record<WorkbookColumnTypeId, string> = {
   grammar_choice: "어법 선택",
+  grammar_fix: "어법 수정",
   blank_fill: "빈칸 채우기",
   tf: "T/F 문제",
   sentence_order: "문장 순서 배열",
@@ -431,6 +439,102 @@ function GrammarChoiceAnswerBody({
                 [{it.bookTerm || it.grammarCategoryName}]
               </span>
             )}
+          </li>
+        ))}
+      </ol>
+    </>
+  );
+}
+
+function GrammarFixQuestionBody({
+  section,
+  multi,
+}: {
+  section: WorkbookGrammarFixSection;
+  multi: boolean;
+}) {
+  const errors = section.answers.length;
+  return (
+    <>
+      {multi ? (
+        <p className="mb-2 text-[12px] font-semibold text-slate-500">
+          {section.title}
+          {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
+        </p>
+      ) : (
+        <>
+          <p className="mb-1 text-[12px] font-semibold text-slate-500">{section.title}</p>
+          {section.source?.trim() ? (
+            <p className="mb-3 text-[12px] font-semibold text-slate-500">
+              · {section.source.trim()}
+            </p>
+          ) : (
+            <div className="mb-3" />
+          )}
+        </>
+      )}
+      <p className="mb-4 text-[13px] font-semibold text-slate-800">
+        {section.mode === "underline"
+          ? `밑줄 친 부분 중 어법상 틀린 것 ${errors}개를 찾아 바르게 고치세요.`
+          : `다음 글에서 어법상 틀린 부분 ${errors}개를 찾아 바르게 고치세요.`}
+      </p>
+      <p className="grammar-passage text-[13px] text-slate-900">
+        {section.segments.map((seg, i) =>
+          seg.type === "text" ? (
+            <span key={`gft-${i}`}>{seg.text}</span>
+          ) : seg.number != null ? (
+            <span key={`gfs-${i}`} className="grammar-fix-spot">
+              <span className="grammar-fix-num">{circledNumber(seg.number)}</span>
+              <span className="grammar-fix-underline">{seg.text}</span>
+            </span>
+          ) : (
+            <span key={`gfs-${i}`}>{seg.text}</span>
+          )
+        )}
+      </p>
+      <div className="grammar-fix-answer-rows mt-4 break-inside-avoid">
+        {section.answers.map((_, i) => (
+          <div key={`gfa-${i}`} className="grammar-fix-answer-row">
+            {section.mode === "underline" ? (
+              <span className="grammar-fix-answer-no">(&nbsp;&nbsp;&nbsp;&nbsp;)</span>
+            ) : (
+              <span className="grammar-fix-answer-no">{i + 1})</span>
+            )}
+            <span className="grammar-fix-answer-line" />
+            <span className="grammar-fix-answer-arrow">→</span>
+            <span className="grammar-fix-answer-line" />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function GrammarFixAnswerBody({
+  section,
+  typeOrder,
+  multi,
+}: {
+  section: WorkbookGrammarFixSection;
+  typeOrder: number;
+  multi: boolean;
+}) {
+  return (
+    <>
+      <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+        {typeOrder}. 어법 수정
+        {multi ? ` · ${section.title}` : ""}
+      </h3>
+      <ol className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        {section.answers.map((a, i) => (
+          <li
+            key={`gfk-${i}`}
+            className="break-inside-avoid text-[12.5px] leading-relaxed text-slate-800"
+          >
+            <span className="font-bold">
+              {a.number != null ? `${circledNumber(a.number)} ` : `${i + 1}) `}
+            </span>
+            {a.wrongText} → <span className="font-bold">{a.correctText}</span>
           </li>
         ))}
       </ol>
@@ -921,6 +1025,11 @@ type WorkbookPage =
       typeOrder: number;
     }
   | {
+      kind: "grammar_fix_q";
+      sectionIndex: number;
+      typeOrder: number;
+    }
+  | {
       kind: "sentence_order_q";
       questionIndex: number;
       typeOrder: number;
@@ -950,6 +1059,7 @@ type WorkbookPage =
       kind: "answers";
       typeOrderBlank: number | null;
       typeOrderGrammarChoice: number | null;
+      typeOrderGrammarFix: number | null;
       typeOrderTf: number | null;
       typeOrderSentenceOrder: number | null;
       typeOrderLineKo: number | null;
@@ -1043,6 +1153,7 @@ export function WorkbookWorkbench({
       sections: apply(w.sections) ?? [],
       blankSections: apply(w.blankSections) ?? [],
       grammarChoiceSections: apply(w.grammarChoiceSections),
+      grammarFixSections: apply(w.grammarFixSections),
       lineTranslationSections: apply(w.lineTranslationSections),
       fullEnWritingSections: apply(w.fullEnWritingSections),
       wordOrderWritingSections: apply(w.wordOrderWritingSections),
@@ -1065,6 +1176,7 @@ export function WorkbookWorkbench({
     };
     for (const list of [
       workbook.grammarChoiceSections ?? [],
+      workbook.grammarFixSections ?? [],
       workbook.blankSections,
       workbook.sections,
       workbook.lineTranslationSections ?? [],
@@ -1221,7 +1333,8 @@ export function WorkbookWorkbench({
             (cached.sentenceOrderQuestions?.length ?? 0) > 0 ||
             (cached.lineTranslationSections?.length ?? 0) > 0 ||
             (cached.fullEnWritingSections?.length ?? 0) > 0 ||
-            (cached.wordOrderWritingSections?.length ?? 0) > 0)
+            (cached.wordOrderWritingSections?.length ?? 0) > 0 ||
+            (cached.grammarFixSections?.length ?? 0) > 0)
         ) {
           if (!cancelled) {
             setSourceNote("existing");
@@ -1242,6 +1355,15 @@ export function WorkbookWorkbench({
       const wantBlank = types.includes("blank_fill");
       const wantTf = types.includes("tf");
       const wantGrammarChoice = types.includes("grammar_choice");
+      const wantGrammarFix = types.includes("grammar_fix");
+      // 어법 수정은 어법 선택 결과로 만든다(grammar-fix.ts). 둘 다 고르면 한 번만 만든다.
+      const needGrammar = wantGrammarChoice || wantGrammarFix;
+      const grammarFixOptions = {
+        mode: parseGrammarFixMode(searchParams.get("gfMode")),
+        errorCount: clampGrammarFixErrors(
+          searchParams.get("gfErrors") ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS.errorCount
+        ),
+      };
       const wantSentenceOrder = types.includes("sentence_order");
       const wantLineKo = types.includes("one_line_ko");
       const wantFullEn = types.includes("full_en_writing");
@@ -1254,7 +1376,7 @@ export function WorkbookWorkbench({
         [
           wantBlank,
           wantTf,
-          wantGrammarChoice,
+          needGrammar,
           wantSentenceOrder,
           wantLineKo,
           wantFullEn,
@@ -1267,11 +1389,11 @@ export function WorkbookWorkbench({
             ? "새로 만들고 있습니다…"
             : "워크북을 만들고 있습니다…"
         );
-      } else if (wantGrammarChoice) {
+      } else if (needGrammar) {
         setStatus(
           creatingNew
             ? "새로 만들고 있습니다…"
-            : "어법 선택 워크북을 만들고 있습니다…"
+            : "어법 워크북을 만들고 있습니다…"
         );
       } else if (wantBlank) {
         setStatus(
@@ -1313,7 +1435,7 @@ export function WorkbookWorkbench({
 
       try {
         const forceRegenerate =
-          wantGrammarChoice &&
+          needGrammar &&
           (searchParams.get("fresh") === "1" ||
             searchParams.get("forceRegen") === "1");
         /**
@@ -1325,7 +1447,7 @@ export function WorkbookWorkbench({
          * 어법 선택은 지문당 요청을 따로 보낸다. 한 요청에 다 묶으면 지문이 늘수록
          * 서버리스 실행시간 상한을 넘겨 통째로 실패한다.
          */
-        const grammarTask = wantGrammarChoice
+        const grammarTask = needGrammar
           ? (async () => {
               const results = new Array<WorkbookGrammarChoiceSection | null>(ids.length).fill(null);
               const skips = new Array<WorkbookGrammarChoiceSkip | null>(ids.length).fill(null);
@@ -1400,9 +1522,15 @@ export function WorkbookWorkbench({
         const workbook = res.workbook;
         const grammar = await grammarTask;
         if (cancelled) return;
-        if (grammar) {
+        if (grammar && wantGrammarChoice) {
           workbook.grammarChoiceSections = grammar.sections;
           workbook.grammarChoiceSkipped = grammar.skipped;
+        }
+        if (grammar && wantGrammarFix) {
+          const fix = buildGrammarFixSections(grammar.sections, grammarFixOptions);
+          workbook.grammarFixSections = fix.sections;
+          workbook.grammarFixSkipped = [...grammar.skipped, ...fix.skipped];
+          workbook.grammarFixOptions = grammarFixOptions;
         }
         setSourceNote(creatingNew ? "new" : "existing");
         saveWorkbookToSession(workbook);
@@ -1461,6 +1589,41 @@ export function WorkbookWorkbench({
   word-break: normal;
   font-weight: 700;
   color: #1e3a5f;
+}
+.grammar-fix-spot {
+  white-space: normal;
+}
+.grammar-fix-num {
+  font-weight: 700;
+  color: #1e3a5f;
+  margin-right: 1px;
+}
+.grammar-fix-underline {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.grammar-fix-answer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #334155;
+}
+.grammar-fix-answer-no {
+  flex: 0 0 auto;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.grammar-fix-answer-line {
+  flex: 1 1 0;
+  height: 22px;
+  border-bottom: 1px solid #94a3b8;
+}
+.grammar-fix-answer-arrow {
+  flex: 0 0 auto;
+  color: #64748b;
 }
 .sentence-order-choice {
   display: flex;
@@ -1777,8 +1940,10 @@ export function WorkbookWorkbench({
     const feSections = workbook.fullEnWritingSections ?? [];
     const woSections = workbook.wordOrderWritingSections ?? [];
     const gcSections = workbook.grammarChoiceSections ?? [];
+    const gfSections = workbook.grammarFixSections ?? [];
     const columnCounts: Record<WorkbookColumnTypeId, number> = {
       grammar_choice: gcSections.length,
+      grammar_fix: gfSections.length,
       blank_fill: workbook.blankSections.length,
       tf: workbook.sections.length,
       sentence_order: soQuestions.length,
@@ -1812,6 +1977,11 @@ export function WorkbookWorkbench({
             sectionIndex: i,
             typeOrder: order,
           });
+        });
+      }
+      if (t === "grammar_fix") {
+        gfSections.forEach((_, i) => {
+          out.push({ kind: "grammar_fix_q", sectionIndex: i, typeOrder: order });
         });
       }
       if (t === "blank_fill") {
@@ -1896,6 +2066,7 @@ export function WorkbookWorkbench({
         kind: "answers",
         typeOrderBlank: typeOrders.get("blank_fill") ?? null,
         typeOrderGrammarChoice: typeOrders.get("grammar_choice") ?? null,
+        typeOrderGrammarFix: typeOrders.get("grammar_fix") ?? null,
         typeOrderTf: typeOrders.get("tf") ?? null,
         typeOrderSentenceOrder: typeOrders.get("sentence_order") ?? null,
         typeOrderLineKo: typeOrders.get("one_line_ko") ?? null,
@@ -2224,6 +2395,8 @@ export function WorkbookWorkbench({
   const woSections = workbook.wordOrderWritingSections ?? [];
   const woSkipped = workbook.wordOrderWritingSkipped ?? [];
   const gcSections = workbook.grammarChoiceSections ?? [];
+  const gfSections = workbook.grammarFixSections ?? [];
+  const gfSkipped = workbook.grammarFixSkipped ?? [];
 
   /** 2단 쪽에 싣는 지문(문장 순서 배열은 문항) 하나. 쪽과 배치 측정이 같은 모양을 쓴다. */
   const renderColumnSection = (type: WorkbookColumnTypeId, i: number): ReactNode => {
@@ -2231,6 +2404,12 @@ export function WorkbookWorkbench({
       const section = gcSections[i];
       return section ? (
         <GrammarChoiceQuestionBody section={section} multi={gcSections.length > 1} />
+      ) : null;
+    }
+    if (type === "grammar_fix") {
+      const section = gfSections[i];
+      return section ? (
+        <GrammarFixQuestionBody section={section} multi={gfSections.length > 1} />
       ) : null;
     }
     if (type === "blank_fill") {
@@ -2275,6 +2454,8 @@ export function WorkbookWorkbench({
   const columnCountFor = (type: WorkbookColumnTypeId): number =>
     type === "grammar_choice"
       ? gcSections.length
+      : type === "grammar_fix"
+        ? gfSections.length
       : type === "blank_fill"
         ? workbook.blankSections.length
         : type === "tf"
@@ -2539,6 +2720,23 @@ export function WorkbookWorkbench({
                 );
               }
 
+              if (page.kind === "grammar_fix_q") {
+                const section = gfSections[page.sectionIndex]!;
+                return (
+                  <PageShell
+                    key={`gf-q-${page.sectionIndex}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={`${page.typeOrder}. 어법 수정`}
+                    isLast={isLast}
+                  >
+                    <GrammarFixQuestionBody section={section} multi={gfSections.length > 1} />
+                  </PageShell>
+                );
+              }
+
               if (page.kind === "tf_q") {
                 const section = workbook.sections[page.sectionIndex]!;
                 return (
@@ -2688,6 +2886,28 @@ export function WorkbookWorkbench({
                           </div>
                         ))
                       : null}
+                    {page.typeOrderGrammarFix != null ? (
+                      <div className="space-y-6" style={{ order: page.typeOrderGrammarFix }}>
+                        {gfSections.map((section, i) => (
+                          <div key={`gfa-${section.projectId}-${i}`}>
+                            <GrammarFixAnswerBody
+                              section={section}
+                              typeOrder={page.typeOrderGrammarFix!}
+                              multi={gfSections.length > 1}
+                            />
+                          </div>
+                        ))}
+                        {gfSkipped.length > 0 ? (
+                          <ul className="space-y-1 text-[11px] text-amber-700">
+                            {gfSkipped.map((s) => (
+                              <li key={`gfs-${s.projectId}`}>
+                                「{s.title}」 {s.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : null}
                     {page.typeOrderTf != null
                       ? workbook.sections.map((section, i) => (
                           <div key={`ta-${section.projectId}-${i}`} style={{ order: page.typeOrderTf! }}>
