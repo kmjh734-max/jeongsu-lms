@@ -616,8 +616,19 @@ export type WorkbookData = {
   /** Word-order writing (Korean + scrambled tokens → English) */
   wordOrderWritingSections?: WorkbookWordOrderWritingSection[];
   wordOrderWritingSkipped?: WorkbookLineTranslationSkip[];
+  /** 유형별 단 수. 없으면 1단. 한줄해석·통문장 영작·어순배열 영작은 늘 1단이다. */
+  columnLayout?: Partial<Record<WorkbookColumnTypeId, 1 | 2>>;
   timing?: WorkbookGenerationTiming;
 };
+
+/** 1단·2단을 고를 수 있는 유형(쓰기 칸이 있는 유형은 뺀다). */
+export const WORKBOOK_COLUMN_TYPES = [
+  "grammar_choice",
+  "blank_fill",
+  "tf",
+  "sentence_order",
+] as const;
+export type WorkbookColumnTypeId = (typeof WORKBOOK_COLUMN_TYPES)[number];
 
 /** Soft target range for grammar-choice count by passage length. */
 export function getGrammarChoiceTargetRange(englishWordCount: number): {

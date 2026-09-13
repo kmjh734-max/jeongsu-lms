@@ -37,7 +37,9 @@ import {
   parseBlankTranslationLayout,
   sortWorkbookTypesByPrintOrder,
   workbookTypeDisplayTitle,
+  WORKBOOK_COLUMN_TYPES,
   type BlankRenderToken,
+  type WorkbookColumnTypeId,
   type WorkbookBlankSection,
   type WorkbookData,
   type WorkbookFullEnWritingSection,
@@ -98,6 +100,7 @@ function PageShell({
   showTypeTitle,
   typeTitle,
   isLast,
+  columns = 1,
 }: {
   children: ReactNode;
   pageNo: number;
@@ -106,6 +109,8 @@ function PageShell({
   showTypeTitle?: boolean;
   typeTitle?: string;
   isLast?: boolean;
+  /** 본문 단 수. 2이면 본문을 두 단으로 흘린다. */
+  columns?: 1 | 2;
 }) {
   return (
     <article
@@ -132,7 +137,7 @@ function PageShell({
           </h2>
         ) : null}
       </header>
-      <div className="workbook-a4-body">{children}</div>
+      <div className={`workbook-a4-body${columns === 2 ? " workbook-two-col" : ""}`}>{children}</div>
       <p className="pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
         - {pageNo} -
       </p>
@@ -597,7 +602,7 @@ function LineTranslationAnswerBody({
           · {section.source.trim()}
         </p>
       ) : null}
-      <div className="space-y-4">
+      <div className="space-y-2.5">
         {section.items.map((it) => (
           <div
             key={`lta-${section.projectId}-${it.sentenceId}`}
@@ -826,7 +831,7 @@ function WordOrderAnswerBody({
           · {section.source.trim()}
         </p>
       ) : null}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {section.items.map((it) => (
           <div
             key={`woa-${it.questionId}`}
@@ -939,6 +944,88 @@ export function WorkbookWorkbench({
   /** Measured A4 item chunks: key → pages of item indices */
   const [a4Chunks, setA4Chunks] = useState<Record<string, number[][]>>({});
   const measureRef = useRef<HTMLDivElement>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 저장을 차례로 보낸다. 늦게 떠난 저장이 먼저 도착해 앞 내용으로 덮는 일을 막는다. */
+  const saveChain = useRef<Promise<unknown>>(Promise.resolve());
+  const saveSeq = useRef(0);
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    },
+    []
+  );
+
+  /**
+   * 화면에서 고친 워크북(제목·지문 제목·출처·단 수)을 보여 주고, 브라우저와 워크북 파일에
+   * 저장한다. 글자를 칠 때마다 보내지 않게 입력이 잠깐 멈춘 뒤에 보낸다.
+   */
+  function editWorkbook(mutate: (w: WorkbookData) => WorkbookData) {
+    if (!workbook) return;
+    const next = mutate(workbook);
+    setWorkbook(next);
+    saveWorkbookToSession(next);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    const docId = new URLSearchParams(window.location.search).get("doc")?.trim();
+    if (!docId) return;
+    setSaveState("saving");
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      const seq = ++saveSeq.current;
+      saveChain.current = saveChain.current.then(async () => {
+        const res = await postJson<{ ok: true }>("/api/lesson-materials/documents/workbook", {
+          id: docId,
+          workbook: next,
+        });
+        if (seq === saveSeq.current) setSaveState(res.ok ? "saved" : "error");
+      });
+    }, 800);
+  }
+
+  /** 지문 제목·출처는 유형마다 따로 들어 있어 같은 지문을 모두 고친다. */
+  function editPassage(projectId: string, patch: { title: string } | { source: string }) {
+    const apply = <T extends { projectId: string; title: string; source: string | null }>(
+      list: T[] | undefined
+    ) => list?.map((s) => (s.projectId === projectId ? { ...s, ...patch } : s));
+    editWorkbook((w) => ({
+      ...w,
+      sections: apply(w.sections) ?? [],
+      blankSections: apply(w.blankSections) ?? [],
+      grammarChoiceSections: apply(w.grammarChoiceSections),
+      lineTranslationSections: apply(w.lineTranslationSections),
+      fullEnWritingSections: apply(w.fullEnWritingSections),
+      wordOrderWritingSections: apply(w.wordOrderWritingSections),
+      sentenceOrderQuestions: w.sentenceOrderQuestions?.map((q) =>
+        q.passageId === projectId ? { ...q, ...patch } : q
+      ),
+    }));
+  }
+
+  function columnsFor(type: WorkbookColumnTypeId): 1 | 2 {
+    return workbook?.columnLayout?.[type] === 2 ? 2 : 1;
+  }
+
+  /** 편집 칸에 보일 지문 목록(워크북에 든 지문마다 하나). */
+  const editablePassages = useMemo(() => {
+    if (!workbook) return [];
+    const seen = new Map<string, { projectId: string; title: string; source: string }>();
+    const add = (projectId: string, title: string, source: string | null) => {
+      if (!seen.has(projectId)) seen.set(projectId, { projectId, title, source: source ?? "" });
+    };
+    for (const list of [
+      workbook.grammarChoiceSections ?? [],
+      workbook.blankSections,
+      workbook.sections,
+      workbook.lineTranslationSections ?? [],
+      workbook.fullEnWritingSections ?? [],
+      workbook.wordOrderWritingSections ?? [],
+    ]) {
+      for (const s of list) add(s.projectId, s.title, s.source);
+    }
+    for (const q of workbook.sentenceOrderQuestions ?? []) add(q.passageId, q.title, q.source);
+    return [...seen.values()];
+  }, [workbook]);
 
   /**
    * 생성을 다시 돌릴지 가르는 키. 파일을 만든 뒤 주소에 doc=를 붙이고 newDoc을 떼는 것은
@@ -1359,7 +1446,7 @@ export function WorkbookWorkbench({
   box-sizing: border-box;
 }
 .line-translation-item {
-  margin-bottom: 22px;
+  margin-bottom: 14px;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -1375,28 +1462,28 @@ export function WorkbookWorkbench({
 }
 .line-translation-english {
   font-size: 13px;
-  line-height: 1.75;
+  line-height: 1.5;
   color: #172033;
   margin: 0;
 }
 .line-translation-answer {
-  margin-top: 8px;
+  margin-top: 2px;
   margin-left: 1.25rem;
 }
 .translation-answer-line {
-  height: 34px;
+  height: 26px;
   border-bottom: 1px solid #94a3b8;
 }
 .line-translation-answer-key-english {
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 1.45;
   color: #1e3a5f;
   margin: 0;
 }
 .line-translation-answer-key-korean {
   font-size: 13px;
-  line-height: 1.65;
-  margin-top: 4px;
+  line-height: 1.5;
+  margin-top: 2px;
   color: #475569;
   white-space: pre-wrap;
   word-break: keep-all;
@@ -1451,7 +1538,7 @@ export function WorkbookWorkbench({
   font-weight: 500;
 }
 .word-order-item {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -1483,26 +1570,26 @@ export function WorkbookWorkbench({
 }
 .word-order-korean {
   font-size: 13px;
-  line-height: 1.65;
+  line-height: 1.45;
   color: #334155;
   white-space: pre-wrap;
   word-break: keep-all;
   overflow-wrap: break-word;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 }
 .word-order-bank {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 6px;
-  padding: 8px 12px;
-  margin-top: 6px;
-  margin-bottom: 7px;
+  gap: 2px 6px;
+  padding: 5px 10px;
+  margin-top: 3px;
+  margin-bottom: 3px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   background: #f8fafc;
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 1.4;
   color: #172033;
 }
 .word-order-chunk-unit {
@@ -1516,16 +1603,16 @@ export function WorkbookWorkbench({
   font-weight: 500;
 }
 .word-order-answer-area {
-  margin-top: 6px;
+  margin-top: 0;
   padding-left: 1.25rem;
 }
 .word-order-answer-line {
-  height: 29px;
+  height: 24px;
   border-bottom: 1px solid #94a3b8;
 }
 .word-order-answer-key-korean {
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.45;
   color: #64748b;
   margin: 0;
   white-space: pre-wrap;
@@ -1533,9 +1620,9 @@ export function WorkbookWorkbench({
   overflow-wrap: break-word;
 }
 .word-order-answer-key-english {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.45;
   color: #172033;
   font-weight: 500;
 }
@@ -1543,6 +1630,17 @@ export function WorkbookWorkbench({
 .workbook-a4-sheet:has(.word-order-sheet) h2 {
   font-size: 22px;
   line-height: 1.3;
+}
+.workbook-two-col {
+  column-count: 2;
+  column-gap: 26px;
+  column-rule: 1px solid #e2e8f0;
+  column-fill: balance;
+}
+.workbook-two-col li,
+.workbook-two-col .break-inside-avoid {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
@@ -1554,7 +1652,7 @@ export function WorkbookWorkbench({
     border: 0.45mm solid #64748b;
   }
   .translation-answer-line {
-    height: 9mm;
+    height: 7mm;
     border-bottom: 0.3mm solid #94a3b8;
   }
   .full-writing-answer-line {
@@ -1581,8 +1679,11 @@ export function WorkbookWorkbench({
     font-size: 10pt;
   }
   .word-order-answer-line {
-    height: 7.5mm;
+    height: 6.5mm;
     border-bottom: 0.3mm solid #94a3b8;
+  }
+  .workbook-two-col {
+    column-gap: 7mm;
   }
   .workbook-a4-sheet:has(.word-order-sheet) h2 {
     font-size: 16pt;
@@ -1961,6 +2062,10 @@ export function WorkbookWorkbench({
   }
 
   const title = workbook.metadata.title;
+  const columnTypes = sortWorkbookTypesByPrintOrder(workbook.selectedTypes).filter(
+    (t): t is WorkbookColumnTypeId =>
+      (WORKBOOK_COLUMN_TYPES as readonly string[]).includes(t)
+  );
   const total = pages.length;
   const blankOpts = workbook.blankOptions ?? DEFAULT_WORKBOOK_BLANK_OPTIONS;
   const soQuestions = workbook.sentenceOrderQuestions ?? [];
@@ -1988,12 +2093,102 @@ export function WorkbookWorkbench({
                 ? "기존 워크북을 불러왔습니다"
                 : "새로 만들었습니다"}
           </p>
-          <p className="text-xs text-slate-500">{title}</p>
           <p className="text-[11px] text-slate-400">
             {sortWorkbookTypesByPrintOrder(workbook.selectedTypes)
               .map((t) => workbookTypeDisplayTitle(t))
               .join(" · ")}
           </p>
+        </div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
+          <label className="block space-y-1">
+            <span className="text-[11px] font-bold text-slate-500">워크북 제목</span>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+              value={title}
+              maxLength={80}
+              onChange={(e) =>
+                editWorkbook((w) => ({
+                  ...w,
+                  metadata: { ...w.metadata, title: e.target.value },
+                }))
+              }
+            />
+          </label>
+
+          {columnTypes.length > 0 ? (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold text-slate-500">단 나누기</p>
+              {columnTypes.map((t) => (
+                <div key={t} className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-slate-700">{workbookTypeDisplayTitle(t)}</span>
+                  <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+                    {([1, 2] as const).map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() =>
+                          editWorkbook((w) => ({
+                            ...w,
+                            columnLayout: { ...w.columnLayout, [t]: n },
+                          }))
+                        }
+                        className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${
+                          columnsFor(t) === n
+                            ? "bg-violet-600 text-white"
+                            : "text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {n}단
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {editablePassages.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-[11px] font-bold text-slate-500">지문 제목 · 출처</p>
+              {editablePassages.map((p, i) => (
+                <div
+                  key={p.projectId}
+                  className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 p-2"
+                >
+                  <input
+                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-900 outline-none focus:border-violet-300"
+                    value={p.title}
+                    maxLength={120}
+                    placeholder={`지문 ${i + 1} 제목`}
+                    aria-label={`지문 ${i + 1} 제목`}
+                    onChange={(e) => editPassage(p.projectId, { title: e.target.value })}
+                  />
+                  <input
+                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 outline-none focus:border-violet-300"
+                    value={p.source}
+                    maxLength={120}
+                    placeholder="출처"
+                    aria-label={`지문 ${i + 1} 출처`}
+                    onChange={(e) => editPassage(p.projectId, { source: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {saveState !== "idle" ? (
+            <p
+              className={`text-[11px] ${
+                saveState === "error" ? "text-rose-600" : "text-slate-400"
+              }`}
+            >
+              {saveState === "saving"
+                ? "저장 중…"
+                : saveState === "saved"
+                  ? "고친 내용을 저장했습니다."
+                  : "저장하지 못했습니다. 잠시 후 다시 고쳐 보세요."}
+            </p>
+          ) : null}
         </div>
         {grammarChoicePending ? (
           <div className="mx-4 mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-3">
@@ -2074,6 +2269,7 @@ export function WorkbookWorkbench({
                     showTypeTitle
                     typeTitle={`${page.typeOrder}. 빈칸 채우기`}
                     isLast={isLast}
+                    columns={columnsFor("blank_fill")}
                   >
                     {workbook.blankSections.length > 1 ? (
                       <p className="mb-2 text-[12px] font-semibold text-slate-500">
@@ -2103,6 +2299,7 @@ export function WorkbookWorkbench({
                     showTypeTitle
                     typeTitle={`${page.typeOrder}. 어법 선택`}
                     isLast={isLast}
+                    columns={columnsFor("grammar_choice")}
                   >
                     <GrammarChoiceQuestionBody
                       section={section}
@@ -2123,6 +2320,7 @@ export function WorkbookWorkbench({
                     showTypeTitle
                     typeTitle={`${page.typeOrder}. T/F 문제`}
                     isLast={isLast}
+                    columns={columnsFor("tf")}
                   >
                     <TfQuestionBody
                       section={section}
@@ -2147,6 +2345,7 @@ export function WorkbookWorkbench({
                       soQuestions
                     )}
                     isLast={isLast}
+                    columns={columnsFor("sentence_order")}
                   >
                     <SentenceOrderQuestionBody
                       question={question}
