@@ -91,6 +91,15 @@ const A4_PAD_MM = 14;
 const A4_FOOTER_MM = 18;
 const A4_PAD = `${A4_PAD_MM}mm`;
 const ACCENT = "#F07167";
+/** 2단에서 지문과 지문 사이 간격(.workbook-col-section의 margin-bottom과 같게). */
+const COLUMN_SECTION_GAP_PX = 18;
+/** 2단 유형의 쪽 제목. */
+const COLUMN_TYPE_TITLE: Record<WorkbookColumnTypeId, string> = {
+  grammar_choice: "어법 선택",
+  blank_fill: "빈칸 채우기",
+  tf: "T/F 문제",
+  sentence_order: "문장 순서 배열",
+};
 
 function PageShell({
   children,
@@ -101,6 +110,9 @@ function PageShell({
   typeTitle,
   isLast,
   columns = 1,
+  columnHeightMm,
+  columnKey,
+  columnCount,
 }: {
   children: ReactNode;
   pageNo: number;
@@ -111,7 +123,17 @@ function PageShell({
   isLast?: boolean;
   /** 본문 단 수. 2이면 본문을 두 단으로 흘린다. */
   columns?: 1 | 2;
+  /**
+   * 2단 본문 높이. 주면 왼쪽 단을 이 높이까지 채운 뒤 오른쪽 단으로 넘긴다.
+   * 없으면 두 단 높이를 맞춰 나누고, 내용이 길면 쪽이 늘어난다.
+   * (쪽 높이를 고정하는 방식은 인쇄 CSS가 쪽 높이를 auto로 되돌려 쓸 수 없다.)
+   */
+  columnHeightMm?: number;
+  /** 넘침 검사용: "유형:첫 지문 번호"와 이 쪽에 실은 지문 수. */
+  columnKey?: string;
+  columnCount?: number;
 }) {
+  const fixed = columns === 2 && columnHeightMm != null;
   return (
     <article
       className={`workbook-a4-sheet lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none ${
@@ -137,7 +159,14 @@ function PageShell({
           </h2>
         ) : null}
       </header>
-      <div className={`workbook-a4-body${columns === 2 ? " workbook-two-col" : ""}`}>{children}</div>
+      <div
+        className={`workbook-a4-body${columns === 2 ? " workbook-two-col" : ""}`}
+        style={fixed ? { height: `${columnHeightMm}mm`, columnFill: "auto" } : undefined}
+        data-col-body={fixed ? columnKey : undefined}
+        data-col-count={fixed ? columnCount : undefined}
+      >
+        {children}
+      </div>
       <p className="pointer-events-none absolute bottom-[8mm] left-0 right-0 text-center text-[12px] text-slate-500">
         - {pageNo} -
       </p>
@@ -862,7 +891,20 @@ function parseTypes(raw: string | null): WorkbookTypeId[] {
   return sortWorkbookTypesByPrintOrder(list.length ? list : ["tf"]);
 }
 
+/**
+ * 2단 유형의 한 쪽. 지문(문장 순서 배열은 문항) 여러 개를 왼쪽 단부터 이어 싣는다.
+ * packed가 아니면 지문 하나가 한 쪽보다 길어 따로 한 쪽을 쓴다.
+ */
+type ColumnPage = {
+  kind: "columns_q";
+  type: WorkbookColumnTypeId;
+  indices: number[];
+  typeOrder: number;
+  packed: boolean;
+};
+
 type WorkbookPage =
+  | ColumnPage
   | {
       kind: "blank_q";
       sectionIndex: number;
@@ -943,6 +985,14 @@ export function WorkbookWorkbench({
   const [zoom, setZoom] = useState(85);
   /** Measured A4 item chunks: key → pages of item indices */
   const [a4Chunks, setA4Chunks] = useState<Record<string, number[][]>>({});
+  /** 2단 유형: 쪽마다 실을 지문(문항) 번호. packed가 아니면 한 쪽보다 긴 지문 하나. */
+  const [columnPacks, setColumnPacks] = useState<
+    Partial<Record<WorkbookColumnTypeId, { indices: number[]; packed: boolean }[]>>
+  >({});
+  /** 2단 쪽의 본문(단) 높이. 머리글 높이를 잰 뒤에 정해진다. */
+  const [columnBodyMm, setColumnBodyMm] = useState<number | null>(null);
+  /** 그려 보니 넘친 2단 쪽: "유형:첫 지문 번호" → 그 쪽에 실을 수 있는 지문 수. */
+  const [columnLimits, setColumnLimits] = useState<Record<string, number>>({});
   const measureRef = useRef<HTMLDivElement>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1642,10 +1692,21 @@ export function WorkbookWorkbench({
   break-inside: avoid;
   page-break-inside: avoid;
 }
+.workbook-col-section {
+  margin-bottom: 18px;
+}
+.workbook-col-section + .workbook-col-section {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 14px;
+}
+/* 지문 제목·지시문이 단 끝에 홀로 남지 않게 본문과 붙인다(본문 문단 자체는 단 사이로 나뉠 수 있다). */
+.workbook-col-section > p:not(.workbook-passage):not(.grammar-passage) {
+  break-after: avoid;
+}
 @media print {
   @page { size: 210mm 297mm; margin: 0; }
   @page app-print-a4 { size: 210mm 297mm; margin: 0; }
-  #workbook-print-root { transform: none !important; gap: 0 !important; }
+  #workbook-print-root { transform: none !important; zoom: 1 !important; gap: 0 !important; }
   .sentence-order-answer-box {
     width: 13mm;
     height: 10mm;
@@ -1716,8 +1777,34 @@ export function WorkbookWorkbench({
     const feSections = workbook.fullEnWritingSections ?? [];
     const woSections = workbook.wordOrderWritingSections ?? [];
     const gcSections = workbook.grammarChoiceSections ?? [];
+    const columnCounts: Record<WorkbookColumnTypeId, number> = {
+      grammar_choice: gcSections.length,
+      blank_fill: workbook.blankSections.length,
+      tf: workbook.sections.length,
+      sentence_order: soQuestions.length,
+    };
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
+      const columnType = (WORKBOOK_COLUMN_TYPES as readonly string[]).includes(t)
+        ? (t as WorkbookColumnTypeId)
+        : null;
+      if (columnType && workbook.columnLayout?.[columnType] === 2) {
+        const count = columnCounts[columnType];
+        // 배치를 재기 전(첫 그림)에는 지문마다 한 쪽씩 둔다.
+        const packs =
+          columnPacks[columnType]?.filter((p) => p.indices.every((i) => i < count)) ??
+          Array.from({ length: count }, (_, i) => ({ indices: [i], packed: false }));
+        for (const p of packs) {
+          out.push({
+            kind: "columns_q",
+            type: columnType,
+            indices: p.indices,
+            typeOrder: order,
+            packed: p.packed,
+          });
+        }
+        continue;
+      }
       if (t === "grammar_choice") {
         gcSections.forEach((_, i) => {
           out.push({
@@ -1817,7 +1904,7 @@ export function WorkbookWorkbench({
       });
     }
     return out;
-  }, [workbook, typeOrders, a4Chunks]);
+  }, [workbook, typeOrders, a4Chunks, columnPacks]);
 
   useLayoutEffect(() => {
     ensureWorkbookPrintStyles();
@@ -1927,13 +2014,73 @@ export function WorkbookWorkbench({
     });
   }, [workbook]);
 
-  const previewStyle = useMemo(
-    (): CSSProperties => ({
-      transform: `scale(${zoom / 100})`,
-      transformOrigin: "top center",
-    }),
-    [zoom]
-  );
+  // 2단 유형: 단 너비로 잰 지문 높이로 쪽마다 실을 지문을 정한다(왼쪽 단 → 오른쪽 단 → 다음 쪽).
+  useLayoutEffect(() => {
+    const root = measureRef.current;
+    if (!workbook || !root) {
+      setColumnPacks({});
+      return;
+    }
+    const pxPerMm = (root.offsetWidth || 1) / 210;
+    const pageBodyPx = (297 - A4_PAD_MM - A4_FOOTER_MM) * pxPerMm;
+    const headerEl = root.querySelector('[data-wb-measure="sheet-header"]') as HTMLElement | null;
+    // 머리글 아래 여백(mb-4)과, 쪽 번호와 겹치지 않을 여유를 뺀다.
+    const columnPx = pageBodyPx - ((headerEl?.offsetHeight ?? 72) + 16) - 4 * pxPerMm;
+    setColumnBodyMm(Math.floor((columnPx / pxPerMm) * 10) / 10);
+    // 문항은 단 사이에서 쪼개지지 않고 통째로 넘어가 단 끝에 빈 줄이 생기므로 조금 덜 채운다.
+    // 그래도 넘치면 그린 뒤에 넘친 쪽을 찾아 지문 하나를 다음 쪽으로 보낸다(columnLimits).
+    const capacity = columnPx * 2 - 40;
+    const next: Partial<Record<WorkbookColumnTypeId, { indices: number[]; packed: boolean }[]>> = {};
+    for (const t of WORKBOOK_COLUMN_TYPES) {
+      if (workbook.columnLayout?.[t] !== 2) continue;
+      const heights = Array.from(
+        root.querySelectorAll<HTMLElement>(`[data-wb-col="${t}"]`)
+      ).map((el) => el.offsetHeight + COLUMN_SECTION_GAP_PX);
+      const packs: { indices: number[]; packed: boolean }[] = [];
+      let current: number[] = [];
+      let used = 0;
+      heights.forEach((h, i) => {
+        const limit = current.length > 0 ? columnLimits[`${t}:${current[0]}`] : undefined;
+        if (
+          current.length > 0 &&
+          (used + h > capacity || (limit != null && current.length >= limit))
+        ) {
+          packs.push({ indices: current, packed: true });
+          current = [];
+          used = 0;
+        }
+        current.push(i);
+        used += h;
+      });
+      if (current.length) packs.push({ indices: current, packed: true });
+      // 한 쪽에 다 들어가지 않는 지문 하나는 쪽을 늘려 두 단 높이를 맞춘다.
+      for (const p of packs) {
+        if (p.indices.length === 1 && heights[p.indices[0]!]! > capacity) p.packed = false;
+      }
+      next[t] = packs;
+    }
+    setColumnPacks((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+  }, [workbook, columnLimits]);
+
+  // 그린 2단 쪽이 오른쪽 단 밖으로 넘치면(재 둔 높이와 실제가 다를 때) 그 쪽에 싣는 지문을 하나 줄인다.
+  useLayoutEffect(() => {
+    const over: Record<string, number> = {};
+    document.querySelectorAll<HTMLElement>("[data-col-body]").forEach((el) => {
+      const count = Number(el.dataset.colCount ?? "0");
+      if (count > 1 && el.scrollWidth > el.clientWidth + 2) {
+        over[el.dataset.colBody!] = count - 1;
+      }
+    });
+    if (Object.keys(over).length > 0) {
+      setColumnLimits((prev) => ({ ...prev, ...over }));
+    }
+  }, [columnPacks, columnBodyMm, zoom]);
+
+  /**
+   * 미리보기 배율. transform: scale은 줄인 만큼의 높이를 그대로 남겨, 쪽이 많으면 마지막 쪽
+   * 아래로 수천 px가 빈 채로 스크롤됐다. zoom은 줄인 크기대로 자리를 차지한다.
+   */
+  const previewStyle = useMemo((): CSSProperties => ({ zoom: zoom / 100 }), [zoom]);
 
   if (generating) {
     return (
@@ -2077,6 +2224,65 @@ export function WorkbookWorkbench({
   const woSections = workbook.wordOrderWritingSections ?? [];
   const woSkipped = workbook.wordOrderWritingSkipped ?? [];
   const gcSections = workbook.grammarChoiceSections ?? [];
+
+  /** 2단 쪽에 싣는 지문(문장 순서 배열은 문항) 하나. 쪽과 배치 측정이 같은 모양을 쓴다. */
+  const renderColumnSection = (type: WorkbookColumnTypeId, i: number): ReactNode => {
+    if (type === "grammar_choice") {
+      const section = gcSections[i];
+      return section ? (
+        <GrammarChoiceQuestionBody section={section} multi={gcSections.length > 1} />
+      ) : null;
+    }
+    if (type === "blank_fill") {
+      const section = workbook.blankSections[i];
+      if (!section) return null;
+      return (
+        <>
+          {workbook.blankSections.length > 1 ? (
+            <p className="mb-2 text-[12px] font-semibold text-slate-500">
+              {section.title}
+              {section.source?.trim() ? ` · ${section.source.trim()}` : ""}
+            </p>
+          ) : null}
+          <BlankQuestionBody
+            section={section}
+            showTranslation={blankOpts.showTranslation}
+            layout={blankOpts.translationLayout}
+          />
+        </>
+      );
+    }
+    if (type === "tf") {
+      const section = workbook.sections[i];
+      return section ? (
+        <TfQuestionBody section={section} multi={workbook.sections.length > 1} />
+      ) : null;
+    }
+    const question = soQuestions[i];
+    if (!question) return null;
+    const sets = soQuestions.filter((x) => x.passageId === question.passageId).length;
+    return (
+      <>
+        {sets > 1 ? (
+          <p className="mb-1 text-[13px] font-black" style={{ color: ACCENT }}>
+            {typeOrders.get("sentence_order") ?? 1}-{question.setIndex}
+          </p>
+        ) : null}
+        <SentenceOrderQuestionBody question={question} showPassageMeta />
+      </>
+    );
+  };
+  const columnCountFor = (type: WorkbookColumnTypeId): number =>
+    type === "grammar_choice"
+      ? gcSections.length
+      : type === "blank_fill"
+        ? workbook.blankSections.length
+        : type === "tf"
+          ? workbook.sections.length
+          : soQuestions.length;
+  const columnTypesOn = WORKBOOK_COLUMN_TYPES.filter(
+    (t) => workbook.columnLayout?.[t] === 2 && workbook.selectedTypes.includes(t)
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -2257,6 +2463,30 @@ export function WorkbookWorkbench({
             {pages.map((page, pageI) => {
               const pageNo = pageI + 1;
               const isLast = pageI === total - 1;
+
+              if (page.kind === "columns_q") {
+                return (
+                  <PageShell
+                    key={`col-${page.type}-${page.indices.join("-")}`}
+                    pageNo={pageNo}
+                    total={total}
+                    workbookTitle={title}
+                    showTypeTitle
+                    typeTitle={`${page.typeOrder}. ${COLUMN_TYPE_TITLE[page.type]}`}
+                    isLast={isLast}
+                    columns={2}
+                    columnHeightMm={page.packed ? (columnBodyMm ?? undefined) : undefined}
+                    columnKey={`${page.type}:${page.indices[0]}`}
+                    columnCount={page.indices.length}
+                  >
+                    {page.indices.map((i) => (
+                      <div key={`col-${page.type}-${i}`} className="workbook-col-section">
+                        {renderColumnSection(page.type, i)}
+                      </div>
+                    ))}
+                  </PageShell>
+                );
+              }
 
               if (page.kind === "blank_q") {
                 const section = workbook.blankSections[page.sectionIndex]!;
@@ -2568,17 +2798,31 @@ export function WorkbookWorkbench({
           </div>
         </div>
 
-        {/* Off-screen measure tree: packs long bilingual sections into real A4 pages */}
+        {/*
+          Off-screen measure tree: packs long bilingual sections into real A4 pages.
+          높이 0인 틀 안에 둔다. 틀 없이 두면 측정용 내용 높이만큼 미리보기 아래가 스크롤됐다.
+        */}
+        <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
         <div
           ref={measureRef}
-          className="pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0 print:hidden"
+          className="-z-10 w-[210mm] opacity-0"
           style={{
             padding: A4_PAD,
             paddingBottom: `${A4_FOOTER_MM}mm`,
             boxSizing: "border-box",
           }}
-          aria-hidden
         >
+          {columnTypesOn.map((t) => (
+            <div key={`m-col-${t}`} style={{ width: "calc((100% - 26px) / 2)" }}>
+              {columnCountFor(t) > 0
+                ? Array.from({ length: columnCountFor(t) }, (_, i) => (
+                    <div key={`m-col-${t}-${i}`} className="workbook-col-section" data-wb-col={t}>
+                      {renderColumnSection(t, i)}
+                    </div>
+                  ))
+                : null}
+            </div>
+          ))}
           <header className="mb-4" data-wb-measure="sheet-header">
             <p className="text-[13px] font-bold text-slate-800">{title}</p>
             <div
@@ -2763,6 +3007,7 @@ export function WorkbookWorkbench({
               ))}
             </div>
           ))}
+        </div>
         </div>
       </main>
     </div>
