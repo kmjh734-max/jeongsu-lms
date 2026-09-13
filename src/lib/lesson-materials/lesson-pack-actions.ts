@@ -276,6 +276,8 @@ export async function generateAndSaveLessonPackVocabAction(
     }
 
     const pack: LessonPackData = {
+    // 목록에 없는 캐시(어법·어휘·어순배열)가 저장할 때 지워지지 않게 먼저 펼친다.
+    ...prev,
       headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
       vocab,
       updatedAt: new Date().toISOString(),
@@ -446,6 +448,8 @@ export async function saveLessonPackAction(
   const prev = (existing?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
 
   const pack: LessonPackData = {
+    // 목록에 없는 캐시(어법·어휘·어순배열)가 저장할 때 지워지지 않게 먼저 펼친다.
+    ...prev,
     headerLabel: (input.headerLabel ?? "26년도 1학기 중간고사 대비").trim(),
     vocab: input.vocab,
     updatedAt: new Date().toISOString(),
@@ -605,6 +609,8 @@ export async function regenerateLessonPackTranslationsAction(
   }
 
   const pack: LessonPackData = {
+    // 목록에 없는 캐시(어법·어휘·어순배열)가 저장할 때 지워지지 않게 먼저 펼친다.
+    ...prev,
     headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
     vocab: prev.vocab ?? [],
     updatedAt: new Date().toISOString(),
