@@ -47,15 +47,23 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
 ];
 
 /** 끌기 손잡이: 점 두 줄. 글자(⠿)는 글꼴마다 크기·굵기가 달라 작고 흐리게 보였다. */
+/** 위아래 화살표 사이에 가로줄 두 개: 끌어서 위아래로 옮긴다는 뜻. */
 function GripIcon() {
   return (
-    <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor" aria-hidden>
-      <circle cx="2.5" cy="3" r="1.5" />
-      <circle cx="7.5" cy="3" r="1.5" />
-      <circle cx="2.5" cy="8" r="1.5" />
-      <circle cx="7.5" cy="8" r="1.5" />
-      <circle cx="2.5" cy="13" r="1.5" />
-      <circle cx="7.5" cy="13" r="1.5" />
+    <svg
+      width="14"
+      height="20"
+      viewBox="0 0 14 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 5 7 2l3 3" />
+      <path d="M3 8.5h8M3 11.5h8" />
+      <path d="M4 15l3 3 3-3" />
     </svg>
   );
 }
@@ -916,7 +924,7 @@ export function LessonMaterialsLibrary({
           </label>
           <span className="text-xs text-slate-400">
             {canReorder
-              ? "왼쪽 점 아이콘을 끌어 순서를 바꾸세요 · Shift + 클릭으로 범위 선택"
+              ? "왼쪽 손잡이를 끌어 순서를 바꾸세요 · Shift + 클릭으로 범위 선택"
               : "Shift + 클릭으로 범위 선택"}
             {reordering ? " · 순서 저장 중…" : ""}
           </span>
@@ -973,14 +981,18 @@ export function LessonMaterialsLibrary({
                           setDraggingId(null);
                           setDragOverId(null);
                         }}
-                        className="flex h-8 w-6 shrink-0 cursor-grab select-none items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-violet-50 hover:text-violet-600 active:cursor-grabbing"
+                        className={`flex h-9 w-7 shrink-0 cursor-grab select-none items-center justify-center rounded-lg border shadow-sm transition-all duration-150 hover:-translate-y-px hover:border-violet-300 hover:bg-violet-600 hover:text-white hover:shadow-md hover:shadow-violet-200 active:translate-y-0 active:scale-95 active:cursor-grabbing ${
+                          isDragging
+                            ? "border-violet-500 bg-violet-600 text-white shadow-md shadow-violet-200"
+                            : "border-slate-200 bg-gradient-to-b from-white to-slate-50 text-slate-400"
+                        }`}
                         title="끌어서 순서 변경"
                         aria-label={`${p.title} 순서 변경`}
                       >
                         <GripIcon />
                       </span>
                     ) : (
-                      <span className="flex h-8 w-6 shrink-0 items-center justify-center text-slate-200" aria-hidden>
+                      <span className="flex h-9 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-100 text-slate-200" aria-hidden>
                         <GripIcon />
                       </span>
                     )}
