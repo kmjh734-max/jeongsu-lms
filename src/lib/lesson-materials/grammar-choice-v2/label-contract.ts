@@ -160,7 +160,7 @@ function contextLabel(code: string, correct: string, wrong: string, before: stri
   if (pair === "like|likely") return { pointCode: code as GrammarPointCode, showLabel: false };
   // tricking everyone into [thinking / thought] -> 분사가 아니라 전치사 뒤 동명사
   if (
-    code.startsWith("PARTICIPLE_") &&
+    (code.startsWith("PARTICIPLE_") || code === "OBJECT_COMPLEMENT_VING") &&
     /^[a-z]+ing$/.test(c) &&
     // after·before + -ing는 접속사 분사구문으로 가르치기도 해서 넣지 않는다.
     /\b(?:into|of|by|for|from|without|about|in|on|at|besides|despite)\s+$/i.test(before)

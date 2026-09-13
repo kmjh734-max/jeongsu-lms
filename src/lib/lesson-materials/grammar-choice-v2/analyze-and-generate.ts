@@ -197,18 +197,9 @@ export async function analyzeAndGeneratePassage(input: {
 
   const calls = await Promise.all(
     chunks.map((chunk) => gate(async () => {
-      const chunkIds = new Set(chunk.map((s) => s.sentenceId));
-      const chunkText = chunk.map((s) => s.text).join(" ");
       const payload = buildAnalyzerUserPayload({
         passageId: input.passageId,
         sentences: chunk,
-        // 이 묶음의 문장에 실제로 등장하는 힌트만 남긴다.
-        analysisHints: (input.analysisHints ?? []).filter((h) =>
-          h.targetText ? chunkText.includes(h.targetText) : false
-        ),
-        localMandatoryHints: (input.localMandatoryHints ?? []).filter((h) =>
-          chunkIds.has(h.sentenceId)
-        ),
         candidateCap: chunk.length * ANALYZER_CANDIDATES_PER_SENTENCE,
       });
       const promptChars =

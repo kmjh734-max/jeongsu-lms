@@ -7,6 +7,7 @@
 import assert from "node:assert/strict";
 import { GRAMMAR_ONTOLOGY } from "../src/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
 import { generationPolicyFor } from "../src/lib/lesson-materials/grammar-choice-v2/generation-policy";
+import { isTextbookPoint } from "../src/lib/lesson-materials/grammar-choice-v2/textbook-rules";
 import { resolveAndFilter } from "../src/lib/lesson-materials/grammar-choice-v2/pipeline";
 import { explainChoice } from "../src/lib/lesson-materials/grammar-choice-v2/explanation-templates";
 import type { GrammarCandidate, GrammarPointCode } from "../src/lib/lesson-materials/grammar-choice-v2/types";
@@ -76,8 +77,13 @@ const questionable = GRAMMAR_ONTOLOGY.filter(
 const fixtureCodes = new Set(ONTOLOGY_FIXTURES.map((f) => f.code));
 const withoutFixture = questionable.filter((code) => !fixtureCodes.has(code));
 
+// 2026-09-13부터 교재 규칙(textbook-rules.ts)에 있는 포인트만 출제한다. 교재에 없는 코드는
+// NOT_IN_TEXTBOOK으로 떨어지는 것이 맞다. 교재 포인트는 전부 로컬 게이트를 통과해야 한다.
 const outcomes = ONTOLOGY_FIXTURES.map(run);
-const bad = outcomes.filter((o) => o.status !== "OK");
+const bad = outcomes.filter((o) =>
+  isTextbookPoint(o.code) ? o.status !== "OK" : !(o.status === "REJECTED" && o.detail.startsWith("NOT_IN_TEXTBOOK"))
+);
+const textbookFixtures = outcomes.filter((o) => isTextbookPoint(o.code)).length;
 for (const o of verbose ? outcomes : bad) {
   console.log(`${o.status.padEnd(8)} ${o.code.padEnd(36)} ${o.detail}${o.label ? `  [${o.label}]` : ""}`);
 }
@@ -85,7 +91,7 @@ const notQuestionableFixtures = ONTOLOGY_FIXTURES.filter(
   (f) => generationPolicyFor(f.code) === "NOT_QUESTIONABLE"
 ).map((f) => f.code);
 console.log(
-  `\n출제 가능 코드 ${questionable.length}개 · 픽스처 ${ONTOLOGY_FIXTURES.length}개 · 통과 ${outcomes.length - bad.length}개 · 실패 ${bad.length}개`
+  `\n출제 가능 코드 ${questionable.length}개 · 픽스처 ${ONTOLOGY_FIXTURES.length}개(교재 포인트 ${textbookFixtures}개) · 통과 ${outcomes.length - bad.length}개 · 실패 ${bad.length}개`
 );
 if (withoutFixture.length) console.log(`픽스처 없는 출제 가능 코드: ${withoutFixture.join(", ")}`);
 if (notQuestionableFixtures.length) console.log(`정책상 출제 불가인데 픽스처가 있는 코드: ${notQuestionableFixtures.join(", ")}`);

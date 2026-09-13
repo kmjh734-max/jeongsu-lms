@@ -608,8 +608,20 @@ function assessConditionalTensePair(
     return "AMBIGUOUS_CONDITIONAL_TIME";
   }
   if (!isWouldHaveVersusWould(correct, wrong)) return null;
-  if (uniqueThirdWouldHave(sentence, correct)) return null;
+  if (uniqueThirdWouldHave(sentence, correct) || uniqueMixedWouldBase(sentence, correct)) return null;
   return "AMBIGUOUS_CONDITIONAL_TIME";
+}
+
+/**
+ * If I had taken that job, I [would be / would have been] rich now: if절이 과거완료이고
+ * 주절에 현재 표지(now, today …)가 있으면 혼합 가정이라 would + 원형만 된다.
+ * 예전에는 would have p.p.가 정답인 경우만 확정해서, 혼합 가정 문항은 로컬 검출기가 따로
+ * 만들어 줄 때만 나왔다(2026-09-13 로컬 후보를 없애며 드러났다).
+ */
+function uniqueMixedWouldBase(sentence: string, correct: string): boolean {
+  if (!/^(?:would|could|might)(?:\s+not)?\s+(?!have\b)\S+$/i.test(correct.trim())) return false;
+  const pastPerfectCondition = /\bif\b[^,;.]*\bhad\s+[a-z]+(?:ed|en|wn|ne|ght)\b/i.test(sentence);
+  return pastPerfectCondition && hasPresentResultMarker(sentence);
 }
 
 /**

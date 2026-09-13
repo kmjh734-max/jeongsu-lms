@@ -78,7 +78,9 @@ function bothPossibleInTextbooks(
     c.length === 1 && w.length === 1 &&
     /ing$/.test(a) !== /ing$/.test(b) && !/(?:ed|en)$/.test(bare(a, b)) &&
     stemVerb(a) === stemVerb(b) &&
-    /\b(?:see|sees|saw|seen|watch|watches|watched|hear|hears|heard|feel|feels|felt|notice|notices|noticed|observe|observes|observed|look(?:s|ed)? at|listen(?:s|ed)? to)\b(?:\s+[\w'’]+){1,3}\s*$/i.test(before)
+    /\b(?:see|sees|saw|seen|watch|watches|watched|hear|hears|heard|feel|feels|felt|notice|notices|noticed|observe|observes|observed|look(?:s|ed)? at|listen(?:s|ed)? to)\b(?:\s+[\w'’]+){1,3}\s*$/i.test(before) &&
+    // 사이 낱말이 목적어여야 한다(we feel frightened and [become]은 지각동사 구문이 아니다)
+    !/\b(?:and|or|but|that|to|so|as)\s*$/i.test(before)
   ) {
     return "BOTH_GRAMMATICAL";
   }
@@ -322,6 +324,66 @@ export function rejectAtPosition(input: {
 
   const textbookBoth = bothPossibleInTextbooks(c, w, before, after);
   if (textbookBoth) return textbookBoth;
+
+  // 분석 모델 비교 실행(2026-09-13, gpt-5.2)에서 나온 모양
+  // there [must be / be must], Then, [what are / are what] ...?: 조동사·be와 의문사를 뒤섞은 어순
+  if (c.length === 2 && w.length === 2 && c[0] === w[1] && c[1] === w[0]) {
+    const [x, y] = c as [string, string];
+    const modalBe = (MODALS.has(x) && /^(?:be|have)$/.test(y)) || (MODALS.has(y) && /^(?:be|have)$/.test(x));
+    const directQuestion = /^(?:what|who|which|where|when|why|how)$/.test(x) && CLAUSE_OPENING.test(before) && /\?\s*["”’]?\s*$/.test(after);
+    if (modalBe || directQuestion) return "IMPLAUSIBLE_DISTRACTOR";
+  }
+  // There must [be / are]: 조동사 뒤에 be동사 활용형
+  if (c.length === 1 && w.length === 1 && MODALS.has(prev) && /^(?:am|is|are|was|were)$/.test(w[0]!) && c[0] === "be") {
+    return "MECHANICAL_MODAL_FORM";
+  }
+  // all you have to [do / does]: to 뒤 원형에 -s를 붙인 오답
+  if (prev === "to" && c.length === 1 && w.length === 1 && (w[0] === `${c[0]}s` || w[0] === `${c[0]}es`)) {
+    return "MECHANICAL_INFINITIVE_MARKER";
+  }
+  // the same song you [love / loves]: 주격 대명사 바로 뒤 수일치는 너무 쉽다
+  // (Either you or he [is]처럼 상관접속사·등위 주어는 교재 포인트라 둔다.)
+  if (isNumberPair(c, w) && SUBJECT_PRONOUN.test(prev) && !/\b(?:or|nor|either|neither|not only|as well as|along with|and)\b[^,;]*$/i.test(before)) {
+    return "TOO_TRIVIAL_SHORT_AGREEMENT";
+  }
+  // [at / while] some point: 접속사·전치사 문항은 교재의 대비 쌍만 쓴다(when/while/because … vs during/because of/despite)
+  if (
+    input.pointCode === "CONJUNCTION_PREPOSITION_CONTRAST" &&
+    !/^(?:during\|while|during\|when|because\|because of|although\|despite|despite\|though|although\|in spite of|in spite of\|though|despite\|even though|despite\|while|as\|during|during\|since|because of\|since|as\|because of)$/.test(pair)
+  ) {
+    return "IMPLAUSIBLE_DISTRACTOR";
+  }
+  // all [it / one] would take: 총칭의 one도 문법적이다
+  // (주어 자리만. can't find [it / one] anywhere처럼 목적어 자리의 it/one은 교재 포인트다.)
+  if (pair === "it|one" && /^\s+(?:would|will|can|could|may|might|must|should|takes?|is|was|seems?)\b/i.test(after)) {
+    return "AMBIGUOUS_REFERENCE";
+  }
+
+  // 교재 규칙만으로 출제한 뒤 실행(2026-09-13)
+  // is [another / the other] sort of language: 뜻만 다르고 둘 다 문법적이다(another/other,
+  // other/others처럼 한정사·수로 갈리는 쌍은 둔다). [the latter / another]도 같다.
+  // (two brothers; one …, and [the other / another]처럼 둘 중 나머지가 정해지면 the other만 된다.)
+  if (
+    (pair === "another|the other" || pair === "another|the latter" || pair === "the latter|the other") &&
+    !/\b(?:two|both|one\b[^.;]*,)/i.test(before)
+  ) {
+    return "BOTH_GRAMMATICAL";
+  }
+  // but [this / these] can be difficult: 대명사 this/these·that/those는 무엇을 받느냐(뜻)로 갈린다.
+  // 뒤가 of면(that of, those of) 비교 대상 문항이라 둔다.
+  if ((pair === "these|this" || pair === "that|those") && /^\s*(?:[,.;:!?]|(?:is|are|was|were|can|could|will|would|may|might|must|should|has|have|seems?|makes?|means?)\b)/i.test(after)) {
+    return "AMBIGUOUS_REFERENCE";
+  }
+  // feel [like / to] you aren't …: 절 앞의 like를 to로 바꾼 오답은 학습자가 쓰지 않는다
+  if (pair === "like|to") return "IMPLAUSIBLE_DISTRACTOR";
+  // you [could / could have] simply imagine: have 뒤에 원형이 남는 오답
+  if (w.length === c.length + 1 && w.at(-1) === "have" && w.slice(0, -1).join(" ") === c.join(" ") && /^\s+(?:[a-z]+ly\s+)?(?!been\b)[a-z]+(?<!ed|en|wn|ne|ght)\b/i.test(after)) {
+    return "IMPLAUSIBLE_DISTRACTOR";
+  }
+  // to [sustain / sustained]: to 뒤 원형을 과거형으로 바꾼 오답(기계적)
+  if (prev === "to" && c.length === 1 && w.length === 1 && /ed$/.test(w[0]!) && !/ed$/.test(c[0]!) && stemVerb(c[0]!) === stemVerb(w[0]!)) {
+    return "MECHANICAL_INFINITIVE_MARKER";
+  }
 
   // 교재 규칙 반영 뒤 실행(2026-09-13)
   // happiness [comes / come], your brain [uses / use]: 주어가 바로 앞 한두 낱말이면 수일치가 너무 쉽다.

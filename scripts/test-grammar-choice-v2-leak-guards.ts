@@ -311,3 +311,53 @@ console.log("leak-guards ok");
   );
   console.log("final-run ok");
 }
+
+// 10. 교재 규칙만으로 출제한 뒤(가벼운 구성) 실행
+{
+  const leaks: Array<[...Row, string]> = [
+    ["ANOTHER_OTHER_THE_OTHER", "another", "the other", "Following this logic, if measurement is another sort of language, units need definitions.", "BOTH_GRAMMATICAL"],
+    ["PRONOUN_ANTECEDENT", "this", "these", "Subjective measures contain useful knowledge, but this can be difficult to share.", "AMBIGUOUS_REFERENCE"],
+    ["GERUND_FIXED_CONSTRUCTION", "like", "to", "Whenever you feel like you aren’t good enough for the task at hand, here is my advice.", "IMPLAUSIBLE_DISTRACTOR"],
+    ["CONDITIONAL_SECOND", "could", "could have", "If the world were a perfect substitute, you could simply imagine yourself at a banquet.", "IMPLAUSIBLE_DISTRACTOR"],
+    ["MODAL_HAVE_PP", "sustain", "sustained", "Happiness is a state that we must put in constant effort to sustain.", "MECHANICAL_INFINITIVE_MARKER"],
+  ];
+  for (const [code, correct, wrong, sentence, expected] of leaks) {
+    assert.equal(position(code, correct, wrong, sentence), expected, `${correct} / ${wrong}`);
+  }
+  const keep: Row[] = [
+    ["ANOTHER_OTHER_THE_OTHER", "another", "other", "Following this logic, if measurement is another sort of language, units need definitions."],
+    ["COMPARISON_TARGET", "that", "those", "The climate of Korea is milder than that of Russia."],
+    ["CONDITIONAL_THIRD", "could have", "could", "If I had known, I could have been there."],
+  ];
+  for (const [code, correct, wrong, sentence] of keep) {
+    assert.equal(position(code, correct, wrong, sentence), null, `${correct} / ${wrong}`);
+  }
+  console.log("lean-run ok");
+}
+
+// 11. 분석 모델 비교(gpt-5.2)에서 나온 모양
+{
+  const leaks: Array<[...Row, string]> = [
+    ["INVERSION_NEGATIVE", "must be", "be must", "I’m sure there must be a better candidate!", "IMPLAUSIBLE_DISTRACTOR"],
+    ["INDIRECT_QUESTION_ORDER", "what are", "are what", "Then, what are some of the efforts we should make?", "IMPLAUSIBLE_DISTRACTOR"],
+    ["AGREEMENT_THERE_BE", "be", "are", "There must be a reason that your friends chose to nominate you.", "MECHANICAL_MODAL_FORM"],
+    ["AGREEMENT_CLAUSE_SUBJECT", "do", "does", "However, it doesn’t mean that all you have to do is just sit back.", "MECHANICAL_INFINITIVE_MARKER"],
+    ["RELATIVE_OBJECT", "love", "loves", "continuously listening to the same song you love or alternating between songs", "TOO_TRIVIAL_SHORT_AGREEMENT"],
+    ["CONJUNCTION_PREPOSITION_CONTRAST", "at", "while", "people report feeling impostor syndrome at some point in their lives.", "IMPLAUSIBLE_DISTRACTOR"],
+    ["DUMMY_REFERENTIAL_IT", "it", "one", "he believed that one bad race was all it would take for others to doubt him.", "AMBIGUOUS_REFERENCE"],
+  ];
+  for (const [code, correct, wrong, sentence, expected] of leaks) {
+    assert.equal(position(code, correct, wrong, sentence), expected, `${correct} / ${wrong}`);
+  }
+  const keep: Row[] = [
+    ["PARALLEL_CLAUSES", "I am", "am I", "My name is Minjun, and I am a sophomore."],
+    ["INDIRECT_QUESTION_ORDER", "what you want", "what do you want", "Tell me what you want."],
+    ["CONJUNCTION_PREPOSITION_CONTRAST", "because of", "because", "Coupons that because of a printing error offered no savings."],
+    ["CONJUNCTION_PREPOSITION_CONTRAST", "when", "during", "Recent research shows that, when it comes to happiness, frequency matters."],
+    ["AGREEMENT_RELATIVE_ANTECEDENT", "concludes", "conclude", "the ending that concludes every fairy tale."],
+  ];
+  for (const [code, correct, wrong, sentence] of keep) {
+    assert.equal(position(code, correct, wrong, sentence), null, `${correct} / ${wrong}`);
+  }
+  console.log("model-compare ok");
+}

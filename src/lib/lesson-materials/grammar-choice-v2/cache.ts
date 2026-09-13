@@ -38,7 +38,8 @@ export type StoredGrammarChoiceV2Analysis = {
   responseModel: string;
   detected: import("@/lib/lesson-materials/grammar-choice-v2/types").DetectedGrammarPoint[];
   candidates: import("@/lib/lesson-materials/grammar-choice-v2/types").GrammarCandidate[];
-  audits: import("@/lib/lesson-materials/grammar-choice-v2/types").AuditResult[];
+  /** 검수 단계가 있던 때의 결과. 검수를 없앤 뒤(2026-09-13)에는 비어 있다(없으면 전부 통과). */
+  audits?: import("@/lib/lesson-materials/grammar-choice-v2/types").AuditResult[];
   /** 블라인드 문법성 판정 결과. 캐시 히트 때도 같은 게이트가 적용되도록 함께 저장한다. */
   uniqueness?: import("@/lib/lesson-materials/grammar-choice-v2/uniqueness-audit").UniquenessVerdict[];
 };

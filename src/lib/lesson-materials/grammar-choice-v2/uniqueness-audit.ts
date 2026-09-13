@@ -55,11 +55,13 @@ const UNIQUENESS_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["itemId", "aGrammatical", "bGrammatical"],
+        required: ["itemId", "aGrammatical", "bGrammatical", "aRealWords", "bRealWords"],
         properties: {
           itemId: { type: "string" },
           aGrammatical: { type: "boolean" },
           bGrammatical: { type: "boolean" },
+          aRealWords: { type: "boolean" },
+          bRealWords: { type: "boolean" },
         },
       },
     },
@@ -71,7 +73,7 @@ export type UniquenessVerdict = {
   /** 정답만 문법적이어서 출제 가능한 상태인지. */
   unique: boolean;
   /** unique가 false일 때 왜 탈락했는지. */
-  reason?: "BOTH_GRAMMATICAL" | "NEITHER_GRAMMATICAL" | "CORRECT_ANSWER_WRONG";
+  reason?: "BOTH_GRAMMATICAL" | "NEITHER_GRAMMATICAL" | "CORRECT_ANSWER_WRONG" | "FABRICATED_INFLECTION";
 };
 
 /**
@@ -285,6 +287,8 @@ export async function verifyChoiceUniqueness(input: {
         itemId?: string;
         aGrammatical?: unknown;
         bGrammatical?: unknown;
+        aRealWords?: unknown;
+        bRealWords?: unknown;
       }>;
     };
     try {
@@ -300,6 +304,13 @@ export async function verifyChoiceUniqueness(input: {
       const bOk = row.bGrammatical === true;
       const correctOk = source.correctIsA ? aOk : bOk;
       const wrongOk = source.correctIsA ? bOk : aOk;
+      // 없는 낱말로 만든 오답(extinctly, smallly)은 문법 판정과 따로 막는다.
+      // 예전에는 검수 단계가 따로 물었는데, 판정이 모든 문항을 보므로 여기서 함께 묻는다.
+      const wrongReal = source.correctIsA ? row.bRealWords : row.aRealWords;
+      if (wrongReal === false) {
+        verdicts.push({ candidateId: id, unique: false, reason: "FABRICATED_INFLECTION" });
+        continue;
+      }
 
       if (correctOk && !wrongOk) {
         verdicts.push({ candidateId: id, unique: true });

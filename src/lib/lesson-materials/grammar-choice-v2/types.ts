@@ -2,8 +2,8 @@ export const GRAMMAR_CHOICE_V2_ENGINE = "grammar-choice-v2";
 /** Bump only this when V2 item/cache schema changes. Does not touch V1 cache. */
 export const GRAMMAR_CHOICE_V2_CACHE_SCHEMA = "2";
 export const GRAMMAR_CHOICE_V2_ONTOLOGY = "high-school-grammar-v1";
-// v2: 교재 5권 규칙 카드(textbook-rules.ts)를 분석 프롬프트에 실었다(2026-09-13).
-export const GRAMMAR_CHOICE_V2_PROMPT = "scan-generate-v2-textbook";
+// v3: 교재 5권 규칙만으로 출제(예전 문법 목록·로컬 후보·검수 단계 없음, 2026-09-13).
+export const GRAMMAR_CHOICE_V2_PROMPT = "textbook-lean-v3";
 export const GRAMMAR_CHOICE_V2_VALIDATOR = "local-gate-v2";
 export const GRAMMAR_CHOICE_V2_AUDITOR = "risk-audit-v1";
 

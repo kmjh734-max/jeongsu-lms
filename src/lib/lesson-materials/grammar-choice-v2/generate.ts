@@ -1,13 +1,11 @@
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { createLimiter } from "@/lib/lesson-materials/grammar-choice-v2/limiter";
 import { analyzeAndGeneratePassage } from "@/lib/lesson-materials/grammar-choice-v2/analyze-and-generate";
-import { auditRiskyCandidates } from "@/lib/lesson-materials/grammar-choice-v2/ambiguity-auditor";
 import {
   expandUniquenessItems,
   verifyChoiceUniqueness,
   type UniquenessVerdict,
 } from "@/lib/lesson-materials/grammar-choice-v2/uniqueness-audit";
-import { planReviewerSubmission } from "@/lib/lesson-materials/grammar-choice-v2/review-policy";
 import {
   buildV2CacheKey,
   getCachedGrammarChoiceV2,
@@ -17,10 +15,8 @@ import {
   type StoredGrammarChoiceV2Cache,
 } from "@/lib/lesson-materials/grammar-choice-v2/cache";
 import { ontologyCounts } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
-import { scanLocalMandatory } from "@/lib/lesson-materials/grammar-choice-v2/mandatory-scan";
 import { joinSourceLines, segmentPassage } from "@/lib/lesson-materials/grammar-choice-v2/sentence-segmenter";
 import {
-  expandAuditItems,
   finalizeV2Passage,
   hashPassage,
   resolveAndFilter,
@@ -419,7 +415,6 @@ export async function generateWorkbookGrammarChoiceV2(input: {
     pending,
     pending.length || 1,
     async (row) => {
-      const localMandatory = scanLocalMandatory(row.sentences);
       const cachedAnalysis = input.forceRegenerate
         ? null
         : getCachedGrammarChoiceV2Analysis(row.cache, row.projectId, row.cacheKey);
@@ -461,8 +456,6 @@ export async function generateWorkbookGrammarChoiceV2(input: {
           reasoningEffort: analyzerEffort,
           passageId: row.projectId,
           sentences: row.sentences,
-          analysisHints: row.hints,
-          localMandatoryHints: localMandatory,
           limiter: analyzerGate,
         });
       } catch (error) {
@@ -501,47 +494,36 @@ export async function generateWorkbookGrammarChoiceV2(input: {
         sentences: row.sentences,
         candidates: analyzedRow.candidates,
       });
-      const expanded = expandAuditItems(resolved);
       /**
-       * 유일성 판정은 needsAuditor 라우팅을 타지 않는다.
-       * 검수로 안 보내는 후보가 "네모 안 둘 다 맞는" 문제의 주된 출처이므로
-       * 해소된 후보 전부를 블라인드 판정에 넣는다.
+       * 해소된 후보 전부를 블라인드 유일성 판정에 넣는다. 판정은 없는 낱말(extinctly, smallly)도
+       * 함께 본다.
+       *
+       * 검수 단계는 없앴다(2026-09-13). 검수 호출은 몇 개 안 되지만 가장 늦게 끝나(12초)
+       * 전체 시간을 정했고, 없는 낱말(illy, smallly)은 오히려 통과시켰다. 없는 낱말은 판정이,
+       * 코드·라벨은 로컬 규칙(label-contract, position-guards)이 본다.
        */
       const uniquenessPool = expandUniquenessItems(resolved);
-      const reviewPlan = planReviewerSubmission(expanded, row.sentences);
 
       const reviewStarted = Date.now();
-      // 두 판정은 서로 독립이므로 함께 띄운다.
-      const [audit, uniqueness] = await Promise.all([
-        reviewPlan.send.length === 0
-          ? Promise.resolve({
-              results: [],
-              responseModel: auditorModel,
-              calls: 0,
-              latencyMs: 0,
-              inputTokens: null,
-              outputTokens: null,
-              rawJson: [] as string[],
-              parsed: [] as unknown[],
-              fallback: false,
-            })
-          : auditRiskyCandidates({
-              apiKey,
-              model: auditorModel,
-              reasoningEffort: auditorEffort,
-              sentences: row.sentences,
-              items: reviewPlan.send,
-              limiter: reviewerGate,
-            }),
-        verifyChoiceUniqueness({
-          apiKey,
-          model: auditorModel,
-          reasoningEffort: auditorEffort,
-          sentences: row.sentences,
-          items: uniquenessPool,
-          limiter: reviewerGate,
-        }),
-      ]);
+      const audit = {
+        results: [],
+        responseModel: auditorModel,
+        calls: 0,
+        latencyMs: 0,
+        inputTokens: null,
+        outputTokens: null,
+        rawJson: [] as string[],
+        parsed: [] as unknown[],
+        fallback: false,
+      };
+      const uniqueness = await verifyChoiceUniqueness({
+        apiKey,
+        model: auditorModel,
+        reasoningEffort: auditorEffort,
+        sentences: row.sentences,
+        items: uniquenessPool,
+        limiter: reviewerGate,
+      });
       const reviewMs = Date.now() - reviewStarted;
 
       if (capture) {
@@ -571,7 +553,7 @@ export async function generateWorkbookGrammarChoiceV2(input: {
         ok: true as const,
         row,
         analyzedRow,
-        audits: [...reviewPlan.localPass, ...audit.results],
+        audits: undefined,
         uniqueness: uniqueness.verdicts,
         auditResponseModel: audit.responseModel,
         analyzeCalls: analyzedRow.callCount,

@@ -5,8 +5,7 @@ import {
 import { buildCoverage } from "@/lib/lesson-materials/grammar-choice-v2/coverage";
 import { COMPARISON_CH12_RULES } from "@/lib/lesson-materials/grammar-choice-v2/comparison-ch12";
 import { codeSpanContractMismatch, explanationContractMismatch } from "@/lib/lesson-materials/grammar-choice-v2/assessment-contract";
-import { explanationFitsPair, repairChoice, safeLocalCandidates } from "@/lib/lesson-materials/grammar-choice-v2/choice-repair";
-import { localCandidatesFromDetectors } from "@/lib/lesson-materials/grammar-choice-v2/local-candidates";
+import { explanationFitsPair, repairChoice } from "@/lib/lesson-materials/grammar-choice-v2/choice-repair";
 import { isWhToInfinitiveSpan } from "@/lib/lesson-materials/grammar-choice-v2/distractor-guard";
 import { explainChoice } from "@/lib/lesson-materials/grammar-choice-v2/explanation-templates";
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
@@ -55,7 +54,7 @@ import type {
 import { buildPassageSegmentsFromSource } from "@/lib/lesson-materials/grammar-choice-display";
 import { checkLabelContract } from "@/lib/lesson-materials/grammar-choice-v2/label-contract";
 import { rejectAtPosition } from "@/lib/lesson-materials/grammar-choice-v2/position-guards";
-import { grammarChoiceKnowledge, TEXTBOOK_RULES } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
+import { isTextbookPoint } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
 import type {
   GrammarChoiceCandidate,
   WorkbookGrammarChoiceDiagnostics,
@@ -137,35 +136,22 @@ export function resolveAndFilter(input: {
   candidates: GrammarCandidate[];
 }): { resolved: ResolvedCandidate[]; rejected: V2Reject[] } {
   const byId = new Map(input.sentences.map((s) => [s.sentenceId, s]));
-  const extras = input.sentences.flatMap((s) => [
-    ...safeLocalCandidates(s.sentenceId, s.text),
-    ...localCandidatesFromDetectors(s.sentenceId, s.text),
-  ]);
   /**
-   * 같은 (문장, 코드, 스팬)을 로컬과 모델이 함께 내놓으면 로컬 쪽을 쓴다.
+   * 후보는 교재 규칙으로 만든 모델 후보만 쓴다.
    *
-   * 예전에는 모델 후보를 먼저 넣어서 겹치는 자리를 모델이 차지했다. 그래서
-   * 검출기를 후보 공급원으로 올려도 최종 45문항 중 로컬이 만든 것은 3개(7%)뿐이었다.
-   * 같은 문법 지점을 같은 스팬에서 묻는다면 어느 쪽을 써도 문항은 같고, 로컬
-   * 템플릿은 실행마다 같은 오답을 만든다. 겹치는 자리를 로컬로 채우면 같은 지문을
-   * 다시 생성했을 때 문항이 덜 흔들린다(예전 관측: 같은 4지문이 35 / 44 / 36).
+   * 예전에는 231개 문법 목록의 로컬 검출기(ch01~ch14)가 만든 후보를 앞에 붙여 겹치는 자리를
+   * 로컬로 채웠다. 2026-09-13 선생님 결정으로 교재 규칙만으로 출제하므로 넣지 않는다.
+   * 로컬 검사(검증기·위치 검사·라벨 규칙)는 그대로 모든 후보에 돈다.
    */
-  const keyOf = (c: GrammarCandidate) =>
-    `${c.sentenceId}|${c.pointCode}|${c.sourceSpan.toLowerCase()}`;
-  const seenLocal = new Set(extras.map(keyOf));
-  const candidates = [
-    ...extras,
-    ...input.candidates.filter((c) => !seenLocal.has(keyOf(c))),
-  ];
+  const candidates = input.candidates;
   const resolved: ResolvedCandidate[] = [];
   const rejected: V2Reject[] = [];
   const seenPair = new Set<string>();
-  const knowledge = grammarChoiceKnowledge();
 
   for (const raw of candidates) {
-    let candidate = preferWhichOverWhom(repairForbiddenConditionalDistractor(raw));
-    // 교재만 보고 출제하는 방식이면 교재 카드에 없는 코드는 내지 않는다(로컬 검출기 후보 포함).
-    if (knowledge === "textbook" && !TEXTBOOK_RULES[candidate.pointCode]) {
+    let candidate = conjunctionPrepositionCode(preferWhichOverWhom(repairForbiddenConditionalDistractor(raw)));
+    // 교재 카드에 없는 코드는 내지 않는다(2026-09-13: 교재 규칙만으로 출제).
+    if (!isTextbookPoint(candidate.pointCode)) {
       rejected.push({
         candidateId: candidate.candidateId,
         sentenceId: candidate.sentenceId,
@@ -1152,6 +1138,24 @@ export function preferWhichOverWhom(candidate: GrammarCandidate): GrammarCandida
         : "RELATIVE_OBJECT"
       : candidate.pointCode;
   return { ...candidate, pointCode, distractors: [which, ...candidate.distractors.slice(1)] };
+}
+
+/**
+ * She stayed home [because / because of] ...: 부사절 코드(ADVERB_CLAUSE_REASON 등)로 온
+ * 접속사·전치사 대비는 접속사·전치사 코드로 맞춘다. 부사절 코드의 최소쌍 검사는
+ * 접속사끼리의 대비만 알아서 이 쌍을 IMPLAUSIBLE로 떨어뜨렸다(예전에는 같은 자리의 로컬
+ * 검출기 후보가 대신 나왔다).
+ */
+const CONJUNCTION_PREPOSITION_PAIRS = new Set([
+  "because|because of", "although|despite", "despite|though", "during|while", "during|when",
+  "although|in spite of", "in spite of|though", "despite|even though",
+]);
+
+function conjunctionPrepositionCode(candidate: GrammarCandidate): GrammarCandidate {
+  if (!candidate.pointCode.startsWith("ADVERB_CLAUSE_")) return candidate;
+  const pair = [candidate.correctAnswer, candidate.distractors[0] ?? ""].map((s) => s.trim().toLowerCase()).sort().join("|");
+  if (!CONJUNCTION_PREPOSITION_PAIRS.has(pair)) return candidate;
+  return { ...candidate, pointCode: "CONJUNCTION_PREPOSITION_CONTRAST" };
 }
 
 function matchSourceCase(candidate: GrammarCandidate, text: string): GrammarCandidate {

@@ -264,11 +264,12 @@ assert.equal(
   ),
   false
 );
-assert.ok(
-  filtered.resolved.some(
-    (item) => item.sentenceId === "gerund" && item.pointCode === "GERUND_PREPOSITION_OBJECT"
-  ),
-  "검출기가 만든 전치사+동명사 후보가 살아남아야 한다"
+// 예전에는 로컬 검출기가 같은 문장에서 전치사+동명사(about gathering / gather) 후보를
+// 공급했다. 2026-09-13부터 교재 규칙으로 만든 모델 후보만 쓰므로 로컬 후보는 나오지 않는다.
+assert.equal(
+  filtered.resolved.some((item) => item.candidateId.startsWith("local-")),
+  false,
+  "로컬 검출기 후보는 더 이상 공급되지 않는다"
 );
 assert.equal(filtered.rejected.some((item) => item.reason === "BOTH_GRAMMATICAL" && item.sentenceId === "flaw"), true);
 assert.equal(filtered.rejected.some((item) => item.reason === "AMBIGUOUS_SUBJECT_BOUNDARY"), true);

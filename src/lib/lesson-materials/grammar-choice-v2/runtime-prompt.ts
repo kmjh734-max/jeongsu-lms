@@ -1,113 +1,44 @@
-import {
-  compactOntologyForSentences,
-  ontologyCatalogText,
-} from "@/lib/lesson-materials/grammar-choice-v2/trigger-router";
 import type { ExactSentence } from "@/lib/lesson-materials/grammar-choice-v2/types";
-import {
-  grammarChoiceKnowledge,
-  textbookRulesText,
-  type GrammarChoiceKnowledge,
-} from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
+import { textbookRulesText } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
 import { GRAMMAR_CHOICE_V2_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
-const ANALYZER_INSTRUCTIONS = `You are a Korean high-school English grammar analyst and item writer.
-
-Analyze only the exact source sentences supplied in INPUT.
-Never rewrite, summarize, merge, delete, or reproduce the full passage.
-
-Report only what you can turn into a question. A separate local pass records
-which grammar points occur, so you do not have to list your findings.
-
-For every sentence:
-1. Identify relevant grammar occurrences using only GRAMMAR_ONTOLOGY codes.
-   Read the sentence against the WHOLE ontology, not against the hint list.
-   INPUT gives you highlightedBySentence.likelyCodes, but a local pattern matcher
-   produces it and that matcher recognizes fewer than a quarter of the ontology
-   codes. Most codes have no matcher at all, so their absence from likelyCodes
-   means nothing. Treat the list as a few points already noticed, never as the
-   set of points that are present.
-2. A sentence normally carries several independent grammar points. Report each
-   one you can turn into a question, up to candidateCap. Do not stop at the most
-   obvious one, and do not assume one question per sentence.
-3. Scan MANDATORY points before CORE and BASIC points.
-4. Create a candidate only when the exact source span is the correct answer.
-5. Propose one plausible learner-error distractor that tests one grammar axis. A second distractor is allowed only when the first is unsafe.
-6. A distractor may be valid elsewhere, but must be invalid in this unchanged sentence.
-7. Do not create mechanical infinitive-marker, modal-base-form, short adjacent agreement, or imperative -s questions.
-8. Do not create vocabulary, idiom, spelling, style, or meaning-preference questions.
-9. Do not output the rewritten passage, ontology definitions, explanations, or reasoning.
-10. Return only short structured JSON matching the schema. Explanations are generated locally.
-`;
-
-const TEXTBOOK_STYLE = `
-Write items the way Korean school grammar textbooks do (TEXTBOOK_RULES below summarizes five of them):
-- The two choices are the same word in two forms (V-ing/p.p., to V/V-ing, is/are, that/what, adjective/adverb, active/passive). Keep the box to one or two words; a whole clause is almost never boxed.
-- Prefer the pairs listed for the code in TEXTBOOK_RULES and the trap shown after "오답:". The typical trap makes the student match the nearest noun, or misread whether the clause is complete.
-- The sentence itself must contain the cue that decides the answer (the real subject, the antecedent, a complete or incomplete clause, the time expression). Never box a point listed after "출제금지:" for that code.
-- When several points are possible in a sentence, prefer the ones textbooks test most (TEXTBOOK_RULES is ordered by how often they are tested).
-`;
-
-const ANALYZER_TAIL = `
-Before returning:
-- verify the sourceSpan is copied exactly;
-- verify the correctAnswer equals sourceSpan;
-- verify no important conditional, inversion, relative, participial, parallel, or clause point was silently omitted.
-
-Output limits:
-- candidates for this batch: at most candidateCap. Do not invent extra candidates past that cap.
-- Returning fewer candidates than the cap is correct and expected. Never pad the list to reach it.
-- Return no field other than the schema's. No detection lists, no coverage notes.
-- No Korean or English explanations, no repeated grammar definitions, no full-sentence reprints.`;
-
 /**
- * 정리된 온톨로지는 호출마다 똑같다. user 페이로드에 넣으면 문장 묶음 호출
- * 하나하나가 10KB를 다시 보내는데, system에 고정으로 실으면 접두사가 같아져
- * 프롬프트 캐시가 붙는다. 모델이 보는 내용은 f861bc8과 동일하게 코드 전체다.
+ * 분석(문항 만들기) 시스템 프롬프트. 교재 5권의 규칙 카드(textbook-rules.ts)만 본다.
+ *
+ * 2026-09-13 선생님 결정: 예전 자료(231개 문법 목록 전체, 로컬 패턴 힌트, 분석서 힌트)는
+ * 쓰지 않고 오늘 정리한 교재 규칙만으로, 가볍고 빠르게 출제한다. 카드는 호출마다 같아
+ * 프롬프트 캐시가 붙는다. 문항의 정확성은 이 뒤의 로컬 검사와 유일성 판정이 지킨다.
  */
+const ANALYZER_INSTRUCTIONS = `You write Korean high-school English grammar-choice items ([correct / wrong]) from the exact sentences in INPUT, the way Korean school grammar textbooks do.
+TEXTBOOK_RULES below lists every point you may test. Use only those codes.
+
+For each sentence:
+1. Find every TEXTBOOK_RULES point the sentence really contains that can be asked, up to candidateCap. Most sentences have two or three; report each of them, but never invent one to pad the list.
+2. sourceSpan is copied exactly from the sentence and equals correctAnswer. Box one or two words; a phrase only when the point needs it.
+3. Give one distractor: the same word in its other form, the mistake a student actually makes (see "오답"). It changes one grammar point only, is a real English word, and is wrong in this unchanged sentence.
+4. The sentence itself must contain the cue that decides the answer (the real subject, the antecedent, whether the clause is complete, the time expression). Skip anything under "출제금지" and any slot where both forms could be right.
+5. Prefer points higher in TEXTBOOK_RULES (they are ordered by how often textbooks test them).
+6. No spelling, vocabulary, meaning-only, or made-up word choices. No explanations, no reasoning, no reprinted sentences.
+
+Return only JSON matching the schema.`;
+
 const TEXTBOOK_HEADER =
-  "TEXTBOOK_RULES (code: [typical pairs] how to decide | 오답: typical trap | 출제금지: both forms are acceptable, do not ask):";
+  "TEXTBOOK_RULES (code: [pairs] how to decide | 오답: typical trap | 출제금지: both forms are acceptable, do not ask):";
 
-/**
- * 분석 시스템 프롬프트. 무엇을 보고 출제할지(grammarChoiceKnowledge)에 따라 달라진다.
- * - ontology: 교재 반영 전 그대로(문법 목록 전체)
- * - textbook: 교재 카드가 곧 코드 목록이다. 카드에 없는 코드는 쓰지 말라고 한다.
- * - mixed: 문법 목록 전체 + 교재 카드
- */
-export function analyzerSystemPrompt(knowledge: GrammarChoiceKnowledge = grammarChoiceKnowledge()): string {
-  if (knowledge === "ontology") {
-    return `${ANALYZER_INSTRUCTIONS}${ANALYZER_TAIL}
-
-${ontologyCatalogText()}`;
-  }
-  if (knowledge === "textbook") {
-    return `${ANALYZER_INSTRUCTIONS}${TEXTBOOK_STYLE}${ANALYZER_TAIL}
-
-GRAMMAR_ONTOLOGY is exactly the codes in TEXTBOOK_RULES below. Use no other code.
-${TEXTBOOK_HEADER}
-${textbookRulesText()}`;
-  }
-  return `${ANALYZER_INSTRUCTIONS}${TEXTBOOK_STYLE}${ANALYZER_TAIL}
-
-${ontologyCatalogText()}
+export function analyzerSystemPrompt(): string {
+  return `${ANALYZER_INSTRUCTIONS}
 
 ${TEXTBOOK_HEADER}
 ${textbookRulesText()}`;
 }
 
-export const ANALYZER_SYSTEM_PROMPT = analyzerSystemPrompt("mixed");
+export const ANALYZER_SYSTEM_PROMPT = analyzerSystemPrompt();
 
 export function buildAnalyzerUserPayload(input: {
   passageId: string;
   sentences: ExactSentence[] | Array<{ sentenceId: string; text: string }>;
-  analysisHints?: Array<{ targetText: string; label?: string }>;
-  localMandatoryHints?: Array<{
-    sentenceId: string;
-    pointCode: string;
-    sourceSpan: string;
-  }>;
   /**
-   * 이 호출에서 요구할 후보 상한. 분석은 문장 묶음 단위로 쪼개 호출하므로
-   * 호출당 상한을 작게 유지해야 모델이 뒤쪽 후보를 수일치로 때우지 않는다.
+   * 이 호출에서 요구할 후보 상한. 분석은 문장 하나씩 호출하므로 호출당 상한을 작게 유지한다.
    */
   candidateCap?: number;
 }) {
@@ -117,19 +48,6 @@ export function buildAnalyzerUserPayload(input: {
       sentenceId: s.sentenceId,
       text: s.text,
     })),
-    ...compactOntologyForSentences(
-      input.sentences.map((s) => ({
-        sentenceId: s.sentenceId,
-        text: s.text,
-        passageStart: "passageStart" in s ? s.passageStart : 0,
-        passageEnd: "passageEnd" in s ? s.passageEnd : s.text.length,
-      }))
-    ),
-    analysisHints: (input.analysisHints ?? [])
-      .filter((h) => h.targetText.trim())
-      .slice(0, 12)
-      .map((h) => ({ targetText: h.targetText, label: h.label ?? "" })),
-    localMandatoryHints: input.localMandatoryHints ?? [],
     candidateCap:
       input.candidateCap ?? Math.min(32, Math.max(input.sentences.length * 2, 8)),
     promptVersion: GRAMMAR_CHOICE_V2_PROMPT,
@@ -178,4 +96,7 @@ School-grammar conventions. These are the standard of Korean high-school English
 - For remember / forget / regret / stop / try / mean / go on followed by to-infinitive vs -ing: if the sentence contains an explicit cue that fixes the meaning (ago, no longer, tonight, before you leave, but I forgot, despite, still, if/instead), treat the option whose meaning contradicts that cue as ungrammatical.
 Use "context" only to determine time reference and narrative; judge the slot sentence itself.
 
-Return only structured JSON: itemId, aGrammatical, bGrammatical.`;
+Also judge vocabulary, separately from grammar:
+- aRealWords / bRealWords: false only if the option contains a word form that does not exist in English (extinctly, oftenly, smallly, illy, Howeverly, error-freely, outing used as a verb form of "out"). A real word in the wrong grammatical role is still a real word ("happily" for "happy" is real).
+
+Return only structured JSON: itemId, aGrammatical, bGrammatical, aRealWords, bRealWords.`;
