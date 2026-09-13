@@ -102,17 +102,20 @@ export async function renameLessonMaterialDocument(
   return { ok: true, name };
 }
 
-export async function trashLessonMaterialDocument(
+/** 파일을 휴지통으로 보낸다. 목록에서 여러 개를 골라 한 번에 보낼 수 있다. */
+export async function trashLessonMaterialDocuments(
   role: Role,
-  input: { id: string }
+  input: { ids: string[] }
 ): Promise<{ ok: true } | Fail> {
   const { profile, error } = await requireRole(role);
   if (error) return { ok: false, message: error };
+  const ids = [...new Set((input.ids ?? []).map((id) => id.trim()).filter(Boolean))];
+  if (ids.length === 0) return { ok: false, message: "선택된 파일이 없습니다." };
   const supabase = await createClient();
   const { error: updateError } = await supabase
     .from("lesson_material_documents")
     .update({ deleted_at: new Date().toISOString() })
-    .eq("id", input.id)
+    .in("id", ids)
     .eq("academy_id", profile!.academy_id!);
   if (updateError) return { ok: false, message: updateError.message };
   revalidatePath(`/${role}/lesson-materials`);

@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   renameLessonMaterialDocument,
-  trashLessonMaterialDocument,
+  trashLessonMaterialDocuments,
 } from "@/lib/lesson-materials/document-actions";
 import {
   documentPagePath,
@@ -40,7 +40,7 @@ function formatWhen(iso: string): string {
 /**
  * 자료함의 "만든 파일" 목록. 지문자료에서 수업용 자료·분석서·워크북을 만들 때마다
  * 파일이 하나씩 생긴다(수업용자료_0911). 이름을 누르면 열리고, 이름을 바꾸거나
- * 휴지통으로 보낼 수 있다.
+ * 휴지통으로 보낼 수 있다. 체크해서 여러 개를 한 번에 지울 수도 있다.
  */
 export function LessonMaterialDocumentList({
   role,
@@ -56,13 +56,40 @@ export function LessonMaterialDocumentList({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const lastClicked = useRef<string | null>(null);
 
-  // 서버에서 새 목록이 오면(새 파일, 새로 고침) 그것으로 바꾼다.
+  // 서버에서 새 목록이 오면(새 파일, 새로 고침) 그것으로 바꾸고, 사라진 파일은 선택에서 뺀다.
   const [seen, setSeen] = useState(documents);
   if (seen !== documents) {
     setSeen(documents);
     setRows(documents);
+    const alive = new Set(documents.map((d) => d.id));
+    setSelected((prev) => new Set([...prev].filter((id) => alive.has(id))));
+  }
+
+  const allChecked = rows.length > 0 && rows.every((r) => selected.has(r.id));
+
+  function toggleSelect(id: string, shiftKey: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (shiftKey && lastClicked.current) {
+        const ids = rows.map((r) => r.id);
+        const a = ids.indexOf(lastClicked.current);
+        const b = ids.indexOf(id);
+        if (a >= 0 && b >= 0) {
+          const [from, to] = a < b ? [a, b] : [b, a];
+          for (let i = from; i <= to; i++) next.add(ids[i]!);
+          lastClicked.current = id;
+          return next;
+        }
+      }
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      lastClicked.current = id;
+      return next;
+    });
   }
 
   function open(id: string) {
@@ -75,9 +102,9 @@ export function LessonMaterialDocumentList({
     setEditingId(null);
     if (!name || name === before) return;
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, name } : r)));
-    setBusyId(id);
+    setBusyIds(new Set([id]));
     const res = await renameLessonMaterialDocument(role, { id, name });
-    setBusyId(null);
+    setBusyIds(new Set());
     if (!res.ok) {
       setError(res.message);
       setRows((prev) => prev.map((r) => (r.id === id ? { ...r, name: before } : r)));
@@ -86,16 +113,19 @@ export function LessonMaterialDocumentList({
     router.refresh();
   }
 
-  async function trash(id: string, name: string) {
-    if (!window.confirm(`「${name}」 파일을 삭제할까요? 지문 자료는 그대로 남습니다.`)) return;
-    setBusyId(id);
-    const res = await trashLessonMaterialDocument(role, { id });
-    setBusyId(null);
+  async function trash(ids: string[], question: string) {
+    if (ids.length === 0 || !window.confirm(`${question} 지문 자료는 그대로 남습니다.`)) return;
+    setError(null);
+    setBusyIds(new Set(ids));
+    const res = await trashLessonMaterialDocuments(role, { ids });
+    setBusyIds(new Set());
     if (!res.ok) {
       setError(res.message);
       return;
     }
-    setRows((prev) => prev.filter((r) => r.id !== id));
+    const gone = new Set(ids);
+    setRows((prev) => prev.filter((r) => !gone.has(r.id)));
+    setSelected((prev) => new Set([...prev].filter((id) => !gone.has(id))));
     router.refresh();
   }
 
@@ -110,14 +140,55 @@ export function LessonMaterialDocumentList({
           지문자료 탭에서 지문을 골라 {KIND_LABEL[kind]} 제작을 누르면 여기에 파일로 저장됩니다.
         </p>
       ) : (
+        <>
+        <div className="mb-2 flex flex-wrap items-center gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          <label className="inline-flex items-center gap-2 font-semibold">
+            <input
+              type="checkbox"
+              checked={allChecked}
+              onChange={(e) =>
+                setSelected(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())
+              }
+            />
+            전체 선택
+          </label>
+          <span className="text-xs text-slate-400">Shift + 클릭으로 범위 선택</span>
+          {selected.size > 0 ? (
+            <button
+              type="button"
+              disabled={busyIds.size > 0}
+              onClick={() =>
+                void trash(
+                  rows.filter((r) => selected.has(r.id)).map((r) => r.id),
+                  `선택한 파일 ${selected.size}개를 삭제할까요?`
+                )
+              }
+              className="ml-auto rounded-lg border border-rose-200 bg-white px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+            >
+              선택 삭제 ({selected.size})
+            </button>
+          ) : null}
+        </div>
         <ul className="space-y-2">
           {rows.map((doc) => (
             <li
               key={doc.id}
-              className={`flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 ${
-                busyId === doc.id ? "opacity-60" : ""
-              }`}
+              className={`flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 ${
+                selected.has(doc.id) ? "border-violet-300 bg-violet-50" : "border-slate-200 bg-white"
+              } ${busyIds.has(doc.id) ? "opacity-60" : ""}`}
             >
+              <input
+                type="checkbox"
+                checked={selected.has(doc.id)}
+                onChange={(e) => toggleSelect(doc.id, (e.nativeEvent as MouseEvent).shiftKey)}
+                onClick={(e) => {
+                  if (e.shiftKey) {
+                    e.preventDefault();
+                    toggleSelect(doc.id, true);
+                  }
+                }}
+                aria-label={`${doc.name} 선택`}
+              />
               <span className="text-base" aria-hidden>
                 {KIND_ICON[kind]}
               </span>
@@ -163,7 +234,7 @@ export function LessonMaterialDocumentList({
                 </button>
                 <button
                   type="button"
-                  onClick={() => void trash(doc.id, doc.name)}
+                  onClick={() => void trash([doc.id], `「${doc.name}」 파일을 삭제할까요?`)}
                   className="rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50"
                 >
                   삭제
@@ -172,6 +243,7 @@ export function LessonMaterialDocumentList({
             </li>
           ))}
         </ul>
+        </>
       )}
     </section>
   );
