@@ -15,11 +15,13 @@ export async function POST(request: Request) {
       role?: string;
       projectId?: string;
       headerLabel?: string;
+      onlyIfChanged?: boolean;
     };
     const role = body.role === "admin" ? "admin" : "teacher";
     const result = await generateAndSaveAnalysisReportAction(role, {
       projectId: String(body.projectId ?? ""),
       headerLabel: body.headerLabel,
+      onlyIfChanged: body.onlyIfChanged === true,
     });
     return NextResponse.json(result);
   } catch (e) {

@@ -98,6 +98,7 @@ export default async function AdminLessonPackPage({
       analysisCards: analysis,
       headerLabel: pack.headerLabel || "26년도 1학기 중간고사 대비",
       vocab,
+      antonymChecked: pack.vocabAntonymChecked === true,
       illustrationUrl: (p!.illustration_url as string | null) ?? null,
       items: (itemsByProject.get(p!.id) ?? []).map((it) => ({
         id: it.id,

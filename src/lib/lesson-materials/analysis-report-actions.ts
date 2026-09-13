@@ -1,12 +1,21 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import {
+  ANALYSIS_REPORT_FORMAT_VERSION,
   generateAnalysisReport,
   type AnalysisReportData,
 } from "@/lib/lesson-materials/generate-analysis-report";
+
+function analysisSourceHash(lines: Array<string | null | undefined>): string {
+  const joined = lines
+    .map((l) => String(l ?? "").replace(/\s+/g, " ").trim())
+    .join("\n");
+  return createHash("sha256").update(joined).digest("hex").slice(0, 32);
+}
 
 type Role = "admin" | "teacher";
 
@@ -26,9 +35,17 @@ async function requireRole(role: Role) {
 
 export async function generateAndSaveAnalysisReportAction(
   role: Role,
-  input: { projectId: string; headerLabel?: string }
+  input: {
+    projectId: string;
+    headerLabel?: string;
+    /**
+     * 제작 버튼으로 연 경우: 원문과 형식이 저장된 분석서와 같으면 새로 만들지 않고 그대로 쓴다
+     * (같은 지문으로 여러 번 제작해도 비용이 들지 않게). "다시 만들기"는 이 값 없이 부른다.
+     */
+    onlyIfChanged?: boolean;
+  }
 ): Promise<
-  | { ok: true; report: AnalysisReportData }
+  | { ok: true; report: AnalysisReportData; reused?: boolean }
   | { ok: false; message: string }
 > {
   const { profile, error } = await requireRole(role);
@@ -65,8 +82,18 @@ export async function generateAndSaveAnalysisReportAction(
     prev.headerLabel ||
     "26년도 1학기 중간고사 대비";
 
+  const sourceHash = analysisSourceHash((items ?? []).map((it) => it.english_text));
+  if (
+    input.onlyIfChanged &&
+    (prev.sentences?.length ?? 0) > 0 &&
+    prev.sourceHash === sourceHash &&
+    prev.formatVersion === ANALYSIS_REPORT_FORMAT_VERSION
+  ) {
+    return { ok: true, report: { ...(prev as AnalysisReportData), headerLabel }, reused: true };
+  }
+
   try {
-    const report = await generateAnalysisReport({
+    const generated = await generateAnalysisReport({
       title: project.title,
       headerLabel,
       lines: (items ?? []).map((it) => ({
@@ -75,6 +102,11 @@ export async function generateAndSaveAnalysisReportAction(
         korean: it.korean_text,
       })),
     });
+    const report: AnalysisReportData = {
+      ...generated,
+      sourceHash,
+      formatVersion: ANALYSIS_REPORT_FORMAT_VERSION,
+    };
 
     const { error: uErr } = await supabase
       .from("lesson_material_projects")

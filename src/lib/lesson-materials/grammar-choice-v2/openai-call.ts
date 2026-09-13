@@ -69,7 +69,8 @@ function isRetriableStatus(status: number): boolean {
  */
 const HEDGE_AFTER_MS: Record<"GENERATOR" | "REVIEWER", number> = {
   GENERATOR: 20_000,
-  REVIEWER: 12_000,
+  // 12초였을 때 판정 호출의 꼬리 부분마다 복제가 붙어 비용이 늘었다. 성공한 판정 대부분이 15초 안이다.
+  REVIEWER: 20_000,
 };
 
 /**
@@ -236,6 +237,8 @@ async function callOnce(
       } else {
         body.reasoning_effort = input.reasoningEffort;
       }
+      // 같은 단계 호출끼리 같은 서버로 가게 해 긴 공통 앞부분(규칙·지시문)이 프롬프트 캐시에 걸리게 한다.
+      body.prompt_cache_key = input.schemaName;
       if (useJsonSchema) {
         body.response_format = {
           type: "json_schema",

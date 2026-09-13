@@ -83,7 +83,16 @@ export type AnalysisSentence = {
   grammarPoints: AnalysisGrammarPoint[];
 };
 
+/**
+ * 저장된 분석서를 그대로 쓸 수 있는지 가르는 형식 버전. 출력 항목이 바뀌면(예: 문법 설명
+ * explanation 추가) 올려서, 옛 형식 분석서는 제작 때 한 번 새로 만들게 한다.
+ */
+export const ANALYSIS_REPORT_FORMAT_VERSION = "ar-2-explanation";
+
 export type AnalysisReportData = {
+  /** 만들 때의 영어 원문 해시. 원문이 그대로면 제작을 눌러도 다시 만들지 않는다. */
+  sourceHash?: string;
+  formatVersion?: string;
   headerLabel: string;
   sentences: AnalysisSentence[];
   analysisSummary?: string;
@@ -424,6 +433,8 @@ async function requestAnalysisContent(
           { role: "user", content: userContent },
         ],
       };
+      // 분석서 호출끼리 같은 서버로 가게 해 긴 공통 지시문이 프롬프트 캐시에 걸리게 한다.
+      body.prompt_cache_key = "analysis-report";
       if (includeJsonMode) {
         body.response_format = { type: "json_object" };
       }

@@ -55,6 +55,8 @@ export function buildWorkbookHref(
     grammarFixOptions?: WorkbookGrammarFixOptions;
     vocabFixOptions?: WorkbookGrammarFixOptions;
     title: string;
+    /** 저장된 결과(어법·어휘·빈칸·어순)가 있어도 새 문항으로 만든다. */
+    regenerate?: boolean;
   }
 ) {
   const base =
@@ -84,6 +86,7 @@ export function buildWorkbookHref(
   }
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   params.set("fresh", "1");
+  if (opts.regenerate) params.set("regen", "1");
   return `${base}?${params.toString()}`;
 }
 
@@ -117,6 +120,7 @@ export function WorkbookCreateModal({
     DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS
   );
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
+  const [regenerate, setRegenerate] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const readySelected = useMemo(
@@ -192,6 +196,7 @@ export function WorkbookCreateModal({
       grammarFixOptions,
       vocabFixOptions,
       title: title.trim() || defaultWorkbookTitle(),
+      regenerate,
     });
     // 워크북도 파일로 저장한다. 제목이 곧 파일 이름이고, 만든 조건(유형·옵션)을 함께 둔다.
     const err = await openNewDocument(role, "workbook", [...projectIds], {
@@ -284,6 +289,21 @@ export function WorkbookCreateModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
+              </label>
+
+              <label className="flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={regenerate}
+                  onChange={(e) => setRegenerate(e.target.checked)}
+                />
+                <span className="text-xs text-slate-700">
+                  <span className="font-bold">새 문항으로 다시 만들기</span>
+                  <span className="block text-[11px] text-slate-500">
+                    끄면 전에 만든 문항 재료를 다시 써서 빠르게 만듭니다. 켜면 어법·어휘·빈칸·어순배열을 처음부터 새로 만들어 시간과 비용이 더 듭니다.
+                  </span>
+                </span>
               </label>
 
               {wantBlank ? (

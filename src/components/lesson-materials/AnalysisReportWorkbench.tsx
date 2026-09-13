@@ -341,6 +341,8 @@ export function AnalysisReportWorkbench({
             role,
             projectId: p.id,
             headerLabel,
+            // 원문이 그대로인 분석서는 다시 만들지 않는다(비용 절감). 지문별 "다시 만들기"는 강제로 만든다.
+            onlyIfChanged: true,
           });
           if (!res.ok) return `${String(i + 1).padStart(2, "0")}: ${res.message}`;
           if (cancelled) return null;

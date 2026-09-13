@@ -284,6 +284,7 @@ export async function generateAndSaveLessonPackVocabAction(
       blankCandidatePool,
       passageSourceHash: sourceHash,
       sentenceTranslations,
+      vocabAntonymChecked: true,
     };
 
     let titleEn = ((project.title_en as string | null) ?? "").trim() || null;
@@ -456,6 +457,7 @@ export async function saveLessonPackAction(
     blankCandidatePool: prev.blankCandidatePool ?? null,
     passageSourceHash: prev.passageSourceHash,
     sentenceTranslations: prev.sentenceTranslations,
+    vocabAntonymChecked: true,
   };
 
   const patch: Record<string, unknown> = {

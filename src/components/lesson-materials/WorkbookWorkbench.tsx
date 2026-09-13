@@ -1420,6 +1420,7 @@ export function WorkbookWorkbench({
       producedDocRef.current = docId;
       const params = new URLSearchParams(window.location.search);
       params.delete("fresh");
+      params.delete("regen");
       window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
     };
 
@@ -1456,7 +1457,7 @@ export function WorkbookWorkbench({
       if (newDocRequest && ids.length > 0) {
         const sourceQuery = new URLSearchParams(searchParams.toString());
         const docName = sourceQuery.get("docName");
-        for (const key of ["doc", "newDoc", "docName", "fresh", "t"]) sourceQuery.delete(key);
+        for (const key of ["doc", "newDoc", "docName", "fresh", "t", "regen"]) sourceQuery.delete(key);
         // 서버 액션이 아니라 fetch로 부른다(api/lesson-materials/documents/open 참고).
         const created = await postJson<Awaited<ReturnType<typeof createLessonMaterialDocument>>>(
           "/api/lesson-materials/documents/open",
@@ -1640,9 +1641,10 @@ export function WorkbookWorkbench({
       }
 
       try {
-        // 자료함 제작 창에서 연 경우(fresh=1)는 모든 유형을 저장된 결과 없이 처음부터 만든다.
+        // 제작 창에서 "새 문항으로 다시 만들기"를 켠 경우만 저장된 재료 없이 처음부터 만든다.
+        // 기본은 저장된 재료(어법·어휘·빈칸·어순)를 다시 써서 같은 지문을 여러 번 만들어도 비용이 들지 않는다.
         const forceRegenerate =
-          searchParams.get("fresh") === "1" || searchParams.get("forceRegen") === "1";
+          searchParams.get("regen") === "1" || searchParams.get("forceRegen") === "1";
         /**
          * 어법 선택은 다른 유형과 동시에 시작하고, 다 끝나면 워크북을 한 번에 보여 준다.
          *

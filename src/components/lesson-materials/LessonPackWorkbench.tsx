@@ -37,6 +37,8 @@ export type LessonPackProjectInput = {
   analysisCards: LessonMaterialAnalysisCard[];
   headerLabel: string;
   vocab: LessonPackVocabItem[];
+  /** 반의어 보강을 이미 한 번 했다(열 때마다 다시 만들지 않는다). */
+  antonymChecked?: boolean;
   illustrationUrl: string | null;
   items: Array<{
     id: string;
@@ -168,7 +170,7 @@ export function LessonPackWorkbench({
     initialProjects.some(
       (p) =>
         p.vocab.length === 0 ||
-        vocabNeedsAntonymRefresh(p.vocab) ||
+        (!p.antonymChecked && vocabNeedsAntonymRefresh(p.vocab)) ||
         !p.titleEn?.trim()
     )
   );
@@ -179,7 +181,7 @@ export function LessonPackWorkbench({
       initialProjects.filter(
         (p) =>
           p.vocab.length === 0 ||
-          vocabNeedsAntonymRefresh(p.vocab) ||
+          (!p.antonymChecked && vocabNeedsAntonymRefresh(p.vocab)) ||
           !p.titleEn?.trim()
       ).length
     ),
@@ -358,7 +360,7 @@ export function LessonPackWorkbench({
         ({ p }) =>
           regenerateAll ||
           p.vocab.length === 0 ||
-          vocabNeedsAntonymRefresh(p.vocab) ||
+          (!p.antonymChecked && vocabNeedsAntonymRefresh(p.vocab)) ||
           !p.titleEn?.trim()
       );
     if (pending.length === 0) {
@@ -382,7 +384,7 @@ export function LessonPackWorkbench({
         async ({ p, i }): Promise<string | null> => {
           if (cancelled) return null;
           const needsVocab =
-            regenerateAll || p.vocab.length === 0 || vocabNeedsAntonymRefresh(p.vocab);
+            regenerateAll || p.vocab.length === 0 || (!p.antonymChecked && vocabNeedsAntonymRefresh(p.vocab));
           let failure: string | null = null;
           if (needsVocab) {
             const res = await postJson<
