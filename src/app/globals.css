@@ -2336,7 +2336,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    padding-bottom: 18mm !important;
+    /* 화면(수업용 자료 16mm·분석서 12~16mm)보다 크면 꽉 찬 쪽이 인쇄에서 넘쳐 빈 쪽이 생긴다. */
+    padding-bottom: 15mm !important;
     break-after: page;
     page-break-after: always;
   }
@@ -2348,7 +2349,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    padding-bottom: 18mm !important;
+    /* 화면(수업용 자료 16mm·분석서 12~16mm)보다 크면 꽉 찬 쪽이 인쇄에서 넘쳐 빈 쪽이 생긴다. */
+    padding-bottom: 15mm !important;
     break-after: page;
     page-break-after: always;
   }
@@ -2609,7 +2611,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
-    padding-bottom: 18mm !important;
+    /* 화면(수업용 자료 16mm·분석서 12~16mm)보다 크면 꽉 찬 쪽이 인쇄에서 넘쳐 빈 쪽이 생긴다. */
+    padding-bottom: 15mm !important;
     page-break-after: always !important;
     break-after: page !important;
     -webkit-print-color-adjust: exact !important;
