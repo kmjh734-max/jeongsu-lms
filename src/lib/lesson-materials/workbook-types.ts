@@ -636,10 +636,13 @@ export function defaultWorkbookTitle(d = new Date()): string {
   return defaultDocumentName("workbook", d);
 }
 
+/** 지문 1개당 T/F 선택지 최대 개수. */
+export const MAX_TF_COUNT = 20;
+
 export function clampTfCount(n: unknown): number {
   const v = typeof n === "number" ? n : Number(n);
   if (!Number.isFinite(v)) return 4;
-  return Math.min(8, Math.max(1, Math.floor(v)));
+  return Math.min(MAX_TF_COUNT, Math.max(1, Math.floor(v)));
 }
 
 export function countEnglishWords(text: string): number {

@@ -84,6 +84,8 @@ function mapItems(
       correctedStatement: answer === "F" ? corrected : undefined,
     });
   }
+  // 넘치게 준 것은 요청한 개수만 쓴다. 모자라면 다시 만들어야 한다.
+  if (items.length > expected) items.length = expected;
   if (items.length !== expected) {
     return {
       ok: false,
@@ -128,7 +130,8 @@ async function callTfOpenAI(input: {
     : ["gpt-4o", "gpt-4o-mini"];
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 90_000);
+  // 지문당 최대 20문항이라 응답이 길다. 워크북 라우트 한도(300초) 안에서 넉넉히 둔다.
+  const timer = setTimeout(() => controller.abort(), 180_000);
 
   try {
     let bodyText = "";
@@ -152,12 +155,12 @@ async function callTfOpenAI(input: {
         if (includeTemperature) body.temperature = 0.35;
         else delete body.temperature;
         if (isGpt5FamilyModel(model)) {
-          body.max_completion_tokens = 8_192;
+          body.max_completion_tokens = 16_000;
           // low > medium: large latency win for T/F stems
           if (includeReasoningEffort) body.reasoning_effort = "low";
           else delete body.reasoning_effort;
         } else {
-          body.max_tokens = 4096;
+          body.max_tokens = 10_000;
         }
 
         const res = await fetch("https://api.openai.com/v1/chat/completions", {

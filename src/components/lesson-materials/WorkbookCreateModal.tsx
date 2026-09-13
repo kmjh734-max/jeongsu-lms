@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/Alert";
 import {
   DEFAULT_WORKBOOK_BLANK_OPTIONS,
   DEFAULT_WORKBOOK_TF_OPTIONS,
+  MAX_TF_COUNT,
   WORKBOOK_TYPE_CATALOG,
   clampTfCount,
   defaultWorkbookTitle,
@@ -386,7 +387,7 @@ export function WorkbookCreateModal({
                         <input
                           type="number"
                           min={1}
-                          max={8}
+                          max={MAX_TF_COUNT}
                           className="w-16 rounded border border-slate-200 px-2 py-1 text-sm"
                           value={tfOptions.count}
                           onChange={(e) =>
@@ -400,7 +401,7 @@ export function WorkbookCreateModal({
                           type="button"
                           className="rounded-md bg-rose-500 px-2.5 py-1 text-[11px] font-bold text-white"
                           onClick={() =>
-                            setTfOptions((o) => ({ ...o, count: 8 }))
+                            setTfOptions((o) => ({ ...o, count: MAX_TF_COUNT }))
                           }
                         >
                           최대 갯수
@@ -450,9 +451,9 @@ export function WorkbookCreateModal({
                     문장 순서 배열
                   </p>
                   <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
-                    저장된 원문 문장을 그대로 섞어 출제합니다. AI 호출 없이
-                    즉시 생성되며, 문제지에 한글 해석은 표시되지 않습니다.
-                    문장이 2개 이하인 지문은 자동으로 제외됩니다.
+                    저장된 원문 문장을 그대로 섞어 출제합니다. 문제지에 한글
+                    해석은 표시되지 않으며, 문장이 2개 이하인 지문은 자동으로
+                    제외됩니다.
                   </p>
                 </div>
               ) : null}
@@ -473,8 +474,7 @@ export function WorkbookCreateModal({
                   <p className="text-sm font-bold text-slate-900">통문장 영작</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
                     저장된 한글 해석을 제시하고 학생이 영어 원문 전체를
-                    씁니다. 한줄해석과 같은 해석 데이터를 재사용하며 AI 호출은
-                    없습니다.
+                    씁니다. 해석은 한줄해석과 같은 것을 씁니다.
                   </p>
                 </div>
               ) : null}
@@ -486,8 +486,7 @@ export function WorkbookCreateModal({
                   </p>
                   <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
                     저장된 한글 해석과 의미 단위(구·절)로 묶인 영어 청크를 보고
-                    완전한 영어 문장을 씁니다. 청크는 캐시되며, 없을 때만
-                    지문당 최대 1회 AI로 생성합니다.
+                    완전한 영어 문장을 씁니다.
                   </p>
                 </div>
               ) : null}
