@@ -12,7 +12,12 @@ import {
 type Role = "admin" | "teacher";
 type Fail = { ok: false; message: string };
 
-const KINDS = new Set<LessonMaterialDocumentKind>(["lesson_pack", "analysis_report", "workbook"]);
+const KINDS = new Set<LessonMaterialDocumentKind>([
+  "lesson_pack",
+  "analysis_report",
+  "workbook",
+  "integrated",
+]);
 const NAME_MAX = 80;
 
 async function requireRole(role: Role) {
@@ -155,4 +160,66 @@ export async function getWorkbookDocument(
     payload: data.payload ?? null,
     sourceQuery: (data.source_query as string | null) ?? null,
   };
+}
+
+/**
+ * 최종통합자료 파일을 만든다. payload에 구성(고른 파일·순서)과 표지 설정을 둔다.
+ * project_ids에는 묶은 자료들이 쓰는 지문을 모두 둔다(자료함에서 지문 수 표시용).
+ */
+export async function createIntegratedDocument(
+  role: Role,
+  input: { name?: string | null; projectIds: string[]; payload: unknown }
+): Promise<{ ok: true; id: string; name: string } | Fail> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const supabase = await createClient();
+  const base = cleanName(input.name) || defaultDocumentName("integrated");
+  const { data: same } = await supabase
+    .from("lesson_material_documents")
+    .select("name")
+    .eq("academy_id", profile!.academy_id!)
+    .eq("kind", "integrated")
+    .is("deleted_at", null)
+    .like("name", `${base.replace(/[%_\\]/g, (c) => `\\${c}`)}%`);
+  const name = uniqueDocumentName(base, (same ?? []).map((row) => row.name as string));
+  const projectIds = [...new Set((input.projectIds ?? []).map((id) => String(id).trim()).filter(Boolean))];
+  const { data, error: insertError } = await supabase
+    .from("lesson_material_documents")
+    .insert({
+      kind: "integrated",
+      name,
+      project_ids: projectIds,
+      payload: input.payload ?? null,
+      teacher_id: role === "teacher" ? profile!.id : null,
+      created_by: profile!.id,
+      academy_id: profile!.academy_id,
+    })
+    .select("id,name")
+    .single();
+  if (insertError || !data) {
+    return { ok: false, message: insertError?.message ?? "통합자료를 만들지 못했습니다." };
+  }
+  revalidatePath(`/${role}/lesson-materials`);
+  return { ok: true, id: data.id as string, name: data.name as string };
+}
+
+/** 최종통합자료의 표지·구성 설정을 저장한다. */
+export async function saveIntegratedDocument(
+  role: Role,
+  input: { id: string; payload: unknown }
+): Promise<{ ok: true } | Fail> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const supabase = await createClient();
+  const { data, error: updateError } = await supabase
+    .from("lesson_material_documents")
+    .update({ payload: input.payload ?? null, updated_at: new Date().toISOString() })
+    .eq("id", input.id)
+    .eq("kind", "integrated")
+    .eq("academy_id", profile!.academy_id!)
+    .select("id")
+    .maybeSingle();
+  if (updateError) return { ok: false, message: updateError.message };
+  if (!data) return { ok: false, message: "통합자료 파일을 찾을 수 없습니다." };
+  return { ok: true };
 }

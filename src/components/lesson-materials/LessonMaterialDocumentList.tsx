@@ -15,12 +15,14 @@ const KIND_LABEL: Record<LessonMaterialDocumentKind, string> = {
   lesson_pack: "수업용 자료",
   analysis_report: "지문 분석서",
   workbook: "워크북",
+  integrated: "통합자료",
 };
 
 const KIND_ICON: Record<LessonMaterialDocumentKind, string> = {
   lesson_pack: "✦",
   analysis_report: "📄",
   workbook: "📘",
+  integrated: "🗂",
 };
 
 function formatWhen(iso: string): string {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { LessonMaterialDocumentList } from "@/components/lesson-materials/LessonMaterialDocumentList";
 import { LessonQuestionJobList } from "@/components/lesson-materials/LessonQuestionJobList";
+import { IntegratedCreateModal } from "@/components/lesson-materials/integrated/IntegratedCreateModal";
 import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -137,6 +138,8 @@ export function LessonMaterialsLibrary({
   const [menuFolderId, setMenuFolderId] = useState<string | null>(null);
   const [moveOpen, setMoveOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  /** 새 통합자료 생성 창. 지문을 골라 연 경우 그 지문으로 만든 파일을 미리 골라 둔다. */
+  const [integratedOpen, setIntegratedOpen] = useState<null | { preselected: string[] }>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     () => new Set(data.folders.map((f) => f.id))
   );
@@ -235,7 +238,7 @@ export function LessonMaterialsLibrary({
   const selectedIds = [...selected];
   const selectedCount = selectedIds.length;
   const inTrash = folderFilter === "trash";
-  const tabComingSoon = libraryTab === "integrated";
+  const tabComingSoon = false;
   /** 만든 파일을 보여 주는 탭. 워크북 탭은 파일만 있고 지문별 목록이 없다. */
   const documentKind: LessonMaterialDocumentKind | null =
     libraryTab === "lesson"
@@ -244,13 +247,16 @@ export function LessonMaterialsLibrary({
         ? "analysis_report"
         : libraryTab === "workbook"
           ? "workbook"
-          : null;
+          : libraryTab === "integrated"
+            ? "integrated"
+            : null;
   const tabDocuments = useMemo(
     () => (documentKind ? (data.documents ?? []).filter((d) => d.kind === documentKind) : []),
     [data.documents, documentKind]
   );
   /** 워크북·변형문제 탭은 만든 결과만 있고 지문별 목록이 없다. */
-  const showProjectList = libraryTab !== "workbook" && libraryTab !== "questions";
+  const showProjectList =
+    libraryTab !== "workbook" && libraryTab !== "questions" && libraryTab !== "integrated";
 
   const currentFolderLabel = !folderScoped
     ? (LIBRARY_TABS.find((t) => t.id === libraryTab)?.label ?? "전체")
@@ -919,12 +925,22 @@ export function LessonMaterialsLibrary({
               </>
             ) : null}
 
-            <Link
-              href={`${base}/input`}
-              className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700"
-            >
-              + 새 자료 추가
-            </Link>
+            {libraryTab === "integrated" ? (
+              <button
+                type="button"
+                onClick={() => setIntegratedOpen({ preselected: [] })}
+                className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700"
+              >
+                + 새 통합자료 생성
+              </button>
+            ) : (
+              <Link
+                href={`${base}/input`}
+                className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700"
+              >
+                + 새 자료 추가
+              </Link>
+            )}
           </div>
         </div>
 
@@ -1170,6 +1186,16 @@ export function LessonMaterialsLibrary({
           role={role}
           selectedCount={selectedCount}
           selectedIds={selectedIds}
+          onIntegrated={() => setIntegratedOpen({ preselected: selectedIds })}
+        />
+      ) : null}
+      {integratedOpen ? (
+        <IntegratedCreateModal
+          role={role}
+          open
+          onClose={() => setIntegratedOpen(null)}
+          data={data}
+          preselectedProjectIds={integratedOpen.preselected}
         />
       ) : null}
     </div>

@@ -145,12 +145,15 @@ export function LessonPackWorkbench({
   projects: initialProjects,
   logoSrc = LOGO_SRC,
   regenerate = false,
+  embedded = false,
 }: {
   role: "admin" | "teacher";
   projects: LessonPackProjectInput[];
   logoSrc?: string;
   /** 제작 버튼으로 열었다: 이미 만든 지문도 단어·동반의어를 새로 만든다. */
   regenerate?: boolean;
+  /** 최종통합자료 안에 쪽만 끼워 넣는다(설정 창·생성·편집 없이 저장된 내용 그대로). */
+  embedded?: boolean;
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
@@ -166,13 +169,13 @@ export function LessonPackWorkbench({
   const [message, setMessage] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [prepLoading, setPrepLoading] = useState(() =>
-    regenerate ||
+    !embedded && (regenerate ||
     initialProjects.some(
       (p) =>
         p.vocab.length === 0 ||
         (!p.antonymChecked && vocabNeedsAntonymRefresh(p.vocab)) ||
         !p.titleEn?.trim()
-    )
+    ))
   );
   const [prepProgress, setPrepProgress] = useState({
     done: 0,
@@ -353,6 +356,8 @@ export function LessonPackWorkbench({
 
   // Auto-generate/refresh vocab; backfill English title without wiping good vocab
   useEffect(() => {
+    // 최종통합자료에 끼워 넣을 때는 저장된 내용만 보여 준다(만들지 않는다).
+    if (embedded) return;
     const regenerateAll = regenerateOnce.current;
     const pending = projects
       .map((p, i) => ({ p, i }))
@@ -1227,6 +1232,73 @@ export function LessonPackWorkbench({
     return null;
   }
 
+  /** 쪽들(인쇄 대상). 최종통합자료에 끼워 넣을 때(embedded)도 같은 모양을 쓴다. */
+  const printPages = (
+    <>
+              {pageChunks
+                .filter((chunk) => chunk.length > 0)
+                .map((chunk, pageI, pages) => (
+                <A4Sheet
+                  key={`pack-page-${pageI}`}
+                  label={`${pageI + 1} / ${pages.length}`}
+                  footerLogoSrc={showLogo ? logoSrc : null}
+                  className={
+                    pageI === pages.length - 1
+                      ? "lesson-pack-a4-sheet--last"
+                      : undefined
+                  }
+                >
+                  <div className="flex flex-col gap-2.5">
+                    {chunk.map((blockId) => (
+                      <div key={`${pageI}-${blockId}`} className="break-inside-avoid">
+                        {renderPackBlock(blockId, true)}
+                      </div>
+                    ))}
+                  </div>
+                </A4Sheet>
+              ))}
+  
+              {showLogo && logoSrc && !embedded ? (
+                <div
+                  aria-hidden
+                  className="lesson-pack-print-logo-fixed hidden print:flex"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoSrc}
+                    alt=""
+                    className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
+                  />
+                </div>
+              ) : null}
+  
+              {/* Off-screen measure — must match on-screen interactive heights.
+                  높이 0인 틀 안에 둬서 스크롤 길이에 잡히지 않게 한다. */}
+              <div aria-hidden className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden">
+              <div
+                className="lesson-pack-measure -z-10 w-[210mm] opacity-0"
+                style={{ padding: A4_PAD, ...previewStyle }}
+              >
+                <div ref={packMeasureRef} className="flex flex-col gap-2.5">
+                  {packBlocks.map((b) => (
+                    <div key={`m-${b.id}`} data-pack-block={b.id}>
+                      {renderPackBlock(b.id, true)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div id="lesson-pack-print-root" className="flex flex-col gap-6 print:gap-0" style={previewStyle}>
+        {printPages}
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       {/* Settings sidebar */}
@@ -1570,59 +1642,7 @@ export function LessonPackWorkbench({
               ...previewStyle,
             }}
           >
-            {pageChunks
-              .filter((chunk) => chunk.length > 0)
-              .map((chunk, pageI, pages) => (
-              <A4Sheet
-                key={`pack-page-${pageI}`}
-                label={`${pageI + 1} / ${pages.length}`}
-                footerLogoSrc={showLogo ? logoSrc : null}
-                className={
-                  pageI === pages.length - 1
-                    ? "lesson-pack-a4-sheet--last"
-                    : undefined
-                }
-              >
-                <div className="flex flex-col gap-2.5">
-                  {chunk.map((blockId) => (
-                    <div key={`${pageI}-${blockId}`} className="break-inside-avoid">
-                      {renderPackBlock(blockId, true)}
-                    </div>
-                  ))}
-                </div>
-              </A4Sheet>
-            ))}
-
-            {showLogo && logoSrc ? (
-              <div
-                aria-hidden
-                className="lesson-pack-print-logo-fixed hidden print:flex"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoSrc}
-                  alt=""
-                  className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
-                />
-              </div>
-            ) : null}
-
-            {/* Off-screen measure — must match on-screen interactive heights.
-                높이 0인 틀 안에 둬서 스크롤 길이에 잡히지 않게 한다. */}
-            <div aria-hidden className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden">
-            <div
-              className="lesson-pack-measure -z-10 w-[210mm] opacity-0"
-              style={{ padding: A4_PAD, ...previewStyle }}
-            >
-              <div ref={packMeasureRef} className="flex flex-col gap-2.5">
-                {packBlocks.map((b) => (
-                  <div key={`m-${b.id}`} data-pack-block={b.id}>
-                    {renderPackBlock(b.id, true)}
-                  </div>
-                ))}
-              </div>
-            </div>
-            </div>
+            {printPages}
           </div>
           </div>
         </div>

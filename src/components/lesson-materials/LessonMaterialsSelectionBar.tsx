@@ -13,11 +13,14 @@ export function LessonMaterialsSelectionBar({
   selectedCount,
   selectedIds,
   onEdit,
+  onIntegrated,
 }: {
   role: "admin" | "teacher";
   selectedCount: number;
   selectedIds: string[];
   onEdit?: () => void;
+  /** 최종통합자료 제작: 고른 지문으로 만든 파일을 골라 둔 생성 창을 연다. */
+  onIntegrated?: () => void;
 }) {
   const [workbookOpen, setWorkbookOpen] = useState(false);
   const [openError, setOpenError] = useState<string | null>(null);
@@ -95,7 +98,7 @@ export function LessonMaterialsSelectionBar({
             <button
               type="button"
               className={btn}
-              title="고른 지문으로 AI 변형문제를 만듭니다"
+              title="고른 지문으로 변형문제를 만듭니다"
               onClick={() =>
                 window.open(
                   `${questionBase}/new?fromLesson=${encodeURIComponent(selectedIds.join(","))}`,
@@ -106,7 +109,12 @@ export function LessonMaterialsSelectionBar({
             >
               ✒ 문제 제작
             </button>
-            <button type="button" className={btn} disabled title="준비 중">
+            <button
+              type="button"
+              className={btn}
+              disabled={!onIntegrated}
+              onClick={onIntegrated}
+            >
               🗂 최종통합자료 제작
             </button>
             <button type="button" className={btn} disabled title="준비 중">

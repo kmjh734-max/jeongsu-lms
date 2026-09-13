@@ -1215,8 +1215,11 @@ type WorkbookPage =
 
 export function WorkbookWorkbench({
   role,
+  embeddedDocId,
 }: {
   role: "admin" | "teacher";
+  /** 최종통합자료 안에 끼워 넣을 워크북 파일. 저장된 결과만 보여 주고 만들거나 고치지 않는다. */
+  embeddedDocId?: string;
 }) {
   const searchParams = useSearchParams();
   const base =
@@ -1431,6 +1434,22 @@ export function WorkbookWorkbench({
       setLineTranslationExcludeIds([]);
       setWorkbook(null);
       setGrammarChoicePending(false);
+
+      if (embeddedDocId) {
+        const doc = await postJson<Awaited<ReturnType<typeof getWorkbookDocument>>>(
+          "/api/lesson-materials/documents/open",
+          { op: "getWorkbook", role, id: embeddedDocId }
+        );
+        if (cancelled) return;
+        if (!doc.ok || !doc.payload || typeof doc.payload !== "object") {
+          setError(doc.ok ? "저장된 워크북 내용이 없습니다. 워크북을 먼저 열어 완성해 주세요." : doc.message);
+          setGenerating(false);
+          return;
+        }
+        setWorkbook(withWorkbookDefaults(doc.payload as WorkbookData));
+        setGenerating(false);
+        return;
+      }
 
       const ids = (searchParams.get("ids") ?? "")
         .split(",")
@@ -1789,7 +1808,7 @@ export function WorkbookWorkbench({
       if (timers.elapsed) clearInterval(timers.elapsed);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- requestKey captures query
-  }, [role, requestKey]);
+  }, [role, requestKey, embeddedDocId]);
 
   const ensureWorkbookPrintStyles = () => {
     const id = "workbook-print-page-size-style";
@@ -2421,6 +2440,14 @@ export function WorkbookWorkbench({
    */
   const previewStyle = useMemo((): CSSProperties => ({ zoom: zoom / 100 }), [zoom]);
 
+  if (embeddedDocId && (generating || error || !workbook)) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500 print:hidden">
+        {error ?? "워크북을 불러오고 있습니다…"}
+      </div>
+    );
+  }
+
   if (generating) {
     return (
       <div className="flex h-[80vh] flex-col items-center justify-center gap-3 bg-slate-100 px-4">
@@ -2660,203 +2687,9 @@ export function WorkbookWorkbench({
   /** 배치를 잴 유형(고른 유형 전부). 1단은 쪽 너비, 2단은 단 너비로 잰다. */
   const columnTypesOn = WORKBOOK_COLUMN_TYPES.filter((t) => workbook.selectedTypes.includes(t));
 
-  return (
-    <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
-      <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
-        <div className="space-y-2 border-b border-slate-100 p-4">
-          <button
-            type="button"
-            onClick={() => void leaveWorkbook()}
-            className="text-left text-xs font-semibold text-violet-700"
-          >
-            ← 자료함
-          </button>
-          <h1 className="text-base font-bold text-slate-900">워크북</h1>
-          <p className="text-xs font-semibold text-slate-700">
-            {sourceNote === "new"
-              ? "새로 만들었습니다"
-              : sourceNote === "existing"
-                ? "기존 워크북을 불러왔습니다"
-                : "새로 만들었습니다"}
-          </p>
-          <p className="text-[11px] text-slate-400">
-            {sortWorkbookTypesByPrintOrder(workbook.selectedTypes)
-              .map((t) => workbookTypeDisplayTitle(t))
-              .join(" · ")}
-          </p>
-        </div>
-        <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
-          <label className="block space-y-1">
-            <span className="text-[11px] font-bold text-slate-500">워크북 제목</span>
-            <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
-              value={title}
-              maxLength={80}
-              onChange={(e) =>
-                editWorkbook((w) => ({
-                  ...w,
-                  metadata: { ...w.metadata, title: e.target.value },
-                }))
-              }
-            />
-          </label>
-
-          {columnTypes.length > 0 ? (
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-bold text-slate-500">단 나누기</p>
-              {columnTypes.map((t) => (
-                <div key={t} className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-slate-700">{workbookTypeDisplayTitle(t)}</span>
-                  <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
-                    {([1, 2] as const).map((n) => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() =>
-                          editWorkbook((w) => ({
-                            ...w,
-                            columnLayout: { ...w.columnLayout, [t]: n },
-                          }))
-                        }
-                        className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${
-                          columnsFor(t) === n
-                            ? "bg-violet-600 text-white"
-                            : "text-slate-500 hover:bg-slate-50"
-                        }`}
-                      >
-                        {n}단
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {workbook.selectedTypes.includes("grammar_fix") ? (
-            <FixControls
-              label="어법 수정"
-              options={workbook.grammarFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS}
-              available={(workbook.grammarChoiceSections?.length ?? 0) > 0}
-              onChange={(patch) => changeFix("grammar", patch)}
-            />
-          ) : null}
-          {workbook.selectedTypes.includes("vocab_fix") ? (
-            <FixControls
-              label="어휘 수정"
-              options={workbook.vocabFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS}
-              available={(workbook.vocabChoiceSections?.length ?? 0) > 0}
-              onChange={(patch) => changeFix("vocab", patch)}
-            />
-          ) : null}
-
-          {editablePassages.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-[11px] font-bold text-slate-500">지문 제목 · 출처</p>
-              {editablePassages.map((p, i) => (
-                <div
-                  key={p.projectId}
-                  className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 p-2"
-                >
-                  <input
-                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-900 outline-none focus:border-violet-300"
-                    value={p.title}
-                    maxLength={120}
-                    placeholder={`지문 ${i + 1} 제목`}
-                    aria-label={`지문 ${i + 1} 제목`}
-                    onChange={(e) => editPassage(p.projectId, { title: e.target.value })}
-                  />
-                  <input
-                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 outline-none focus:border-violet-300"
-                    value={p.source}
-                    maxLength={120}
-                    placeholder="출처"
-                    aria-label={`지문 ${i + 1} 출처`}
-                    onChange={(e) => editPassage(p.projectId, { source: e.target.value })}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {saveState !== "idle" ? (
-            <p
-              className={`text-[11px] ${
-                saveState === "error" ? "text-rose-600" : "text-slate-400"
-              }`}
-            >
-              {saveState === "saving"
-                ? "저장 중…"
-                : saveState === "saved"
-                  ? "고친 내용을 저장했습니다."
-                  : "저장하지 못했습니다. 잠시 후 다시 고쳐 보세요."}
-            </p>
-          ) : null}
-        </div>
-        {grammarChoicePending ? (
-          <div className="mx-4 mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-3">
-            <p className="text-xs font-bold text-violet-800">어법 선택 제작 중</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-violet-700">
-              나머지 유형은 완성됐습니다. 어법 선택은 끝나는 대로 워크북에 붙습니다.
-            </p>
-            <div
-              className="mt-2 h-1.5 overflow-hidden rounded-full bg-white"
-              role="progressbar"
-              aria-label="어법 선택 제작 중"
-            >
-              <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
-            </div>
-          </div>
-        ) : null}
-        <div className="mt-auto space-y-2 border-t border-slate-100 p-4">
-          <Button
-            type="button"
-            size="sm"
-            className="w-full"
-            disabled={grammarChoicePending}
-            onClick={() => window.print()}
-          >
-            {grammarChoicePending ? "어법 선택 완성 후 인쇄" : "인쇄 / PDF 저장"}
-          </Button>
-          <p className="text-[10px] leading-relaxed text-slate-400">
-            인쇄 대화상자에서 「PDF로 저장」을 선택하세요. 표지·빈 페이지 없이
-            문제 → 정답 순입니다.
-          </p>
-        </div>
-      </aside>
-
-      <main className="relative min-w-0 flex-1 overflow-auto print:overflow-visible">
-        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 py-2 backdrop-blur print:hidden">
-          <button
-            type="button"
-            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
-            onClick={() => setZoom(100)}
-          >
-            100%
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
-            onClick={() => setZoom((z) => Math.max(40, z - 10))}
-          >
-            −
-          </button>
-          <span className="text-xs font-semibold text-slate-600">{zoom}%</span>
-          <button
-            type="button"
-            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
-            onClick={() => setZoom((z) => Math.min(120, z + 10))}
-          >
-            +
-          </button>
-        </div>
-
-        <div className="flex justify-center p-6 print:p-0">
-          <div
-            id="workbook-print-root"
-            className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
-            style={previewStyle}
-          >
+  /** 인쇄할 쪽들과 쪽 나눔 측정 영역. 최종통합자료에 끼워 넣을 때(embedded)도 같은 모양을 쓴다. */
+  const printPages = (
+    <>
             {pages.map((page, pageI) => {
               const pageNo = pageI + 1;
               const isLast = pageI === total - 1;
@@ -3140,9 +2973,10 @@ export function WorkbookWorkbench({
                 </PageShell>
               );
             })}
-          </div>
-        </div>
-
+    </>
+  );
+  const measureBlock = (
+    <>
         {/*
           Off-screen measure tree: packs long bilingual sections into real A4 pages.
           높이 0인 틀 안에 둔다. 틀 없이 두면 측정용 내용 높이만큼 미리보기 아래가 스크롤됐다.
@@ -3359,6 +3193,222 @@ export function WorkbookWorkbench({
           ))}
         </div>
         </div>
+    </>
+  );
+
+  if (embeddedDocId) {
+    return (
+      <div className="relative">
+        <div id="workbook-print-root" className="flex flex-col gap-6 print:gap-0">
+          {printPages}
+        </div>
+        {measureBlock}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
+      <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
+        <div className="space-y-2 border-b border-slate-100 p-4">
+          <button
+            type="button"
+            onClick={() => void leaveWorkbook()}
+            className="text-left text-xs font-semibold text-violet-700"
+          >
+            ← 자료함
+          </button>
+          <h1 className="text-base font-bold text-slate-900">워크북</h1>
+          <p className="text-xs font-semibold text-slate-700">
+            {sourceNote === "new"
+              ? "새로 만들었습니다"
+              : sourceNote === "existing"
+                ? "기존 워크북을 불러왔습니다"
+                : "새로 만들었습니다"}
+          </p>
+          <p className="text-[11px] text-slate-400">
+            {sortWorkbookTypesByPrintOrder(workbook.selectedTypes)
+              .map((t) => workbookTypeDisplayTitle(t))
+              .join(" · ")}
+          </p>
+        </div>
+        <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
+          <label className="block space-y-1">
+            <span className="text-[11px] font-bold text-slate-500">워크북 제목</span>
+            <input
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+              value={title}
+              maxLength={80}
+              onChange={(e) =>
+                editWorkbook((w) => ({
+                  ...w,
+                  metadata: { ...w.metadata, title: e.target.value },
+                }))
+              }
+            />
+          </label>
+
+          {columnTypes.length > 0 ? (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold text-slate-500">단 나누기</p>
+              {columnTypes.map((t) => (
+                <div key={t} className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-slate-700">{workbookTypeDisplayTitle(t)}</span>
+                  <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+                    {([1, 2] as const).map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() =>
+                          editWorkbook((w) => ({
+                            ...w,
+                            columnLayout: { ...w.columnLayout, [t]: n },
+                          }))
+                        }
+                        className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${
+                          columnsFor(t) === n
+                            ? "bg-violet-600 text-white"
+                            : "text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {n}단
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {workbook.selectedTypes.includes("grammar_fix") ? (
+            <FixControls
+              label="어법 수정"
+              options={workbook.grammarFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS}
+              available={(workbook.grammarChoiceSections?.length ?? 0) > 0}
+              onChange={(patch) => changeFix("grammar", patch)}
+            />
+          ) : null}
+          {workbook.selectedTypes.includes("vocab_fix") ? (
+            <FixControls
+              label="어휘 수정"
+              options={workbook.vocabFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS}
+              available={(workbook.vocabChoiceSections?.length ?? 0) > 0}
+              onChange={(patch) => changeFix("vocab", patch)}
+            />
+          ) : null}
+
+          {editablePassages.length > 0 ? (
+            <div className="space-y-2">
+              <p className="text-[11px] font-bold text-slate-500">지문 제목 · 출처</p>
+              {editablePassages.map((p, i) => (
+                <div
+                  key={p.projectId}
+                  className="space-y-1 rounded-lg border border-slate-100 bg-slate-50 p-2"
+                >
+                  <input
+                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-900 outline-none focus:border-violet-300"
+                    value={p.title}
+                    maxLength={120}
+                    placeholder={`지문 ${i + 1} 제목`}
+                    aria-label={`지문 ${i + 1} 제목`}
+                    onChange={(e) => editPassage(p.projectId, { title: e.target.value })}
+                  />
+                  <input
+                    className="w-full rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600 outline-none focus:border-violet-300"
+                    value={p.source}
+                    maxLength={120}
+                    placeholder="출처"
+                    aria-label={`지문 ${i + 1} 출처`}
+                    onChange={(e) => editPassage(p.projectId, { source: e.target.value })}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {saveState !== "idle" ? (
+            <p
+              className={`text-[11px] ${
+                saveState === "error" ? "text-rose-600" : "text-slate-400"
+              }`}
+            >
+              {saveState === "saving"
+                ? "저장 중…"
+                : saveState === "saved"
+                  ? "고친 내용을 저장했습니다."
+                  : "저장하지 못했습니다. 잠시 후 다시 고쳐 보세요."}
+            </p>
+          ) : null}
+        </div>
+        {grammarChoicePending ? (
+          <div className="mx-4 mt-4 rounded-xl border border-violet-200 bg-violet-50 px-3 py-3">
+            <p className="text-xs font-bold text-violet-800">어법 선택 제작 중</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-violet-700">
+              나머지 유형은 완성됐습니다. 어법 선택은 끝나는 대로 워크북에 붙습니다.
+            </p>
+            <div
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-white"
+              role="progressbar"
+              aria-label="어법 선택 제작 중"
+            >
+              <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
+            </div>
+          </div>
+        ) : null}
+        <div className="mt-auto space-y-2 border-t border-slate-100 p-4">
+          <Button
+            type="button"
+            size="sm"
+            className="w-full"
+            disabled={grammarChoicePending}
+            onClick={() => window.print()}
+          >
+            {grammarChoicePending ? "어법 선택 완성 후 인쇄" : "인쇄 / PDF 저장"}
+          </Button>
+          <p className="text-[10px] leading-relaxed text-slate-400">
+            인쇄 대화상자에서 「PDF로 저장」을 선택하세요. 표지·빈 페이지 없이
+            문제 → 정답 순입니다.
+          </p>
+        </div>
+      </aside>
+
+      <main className="relative min-w-0 flex-1 overflow-auto print:overflow-visible">
+        <div className="sticky top-0 z-10 flex flex-wrap items-center justify-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 py-2 backdrop-blur print:hidden">
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
+            onClick={() => setZoom(100)}
+          >
+            100%
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
+            onClick={() => setZoom((z) => Math.max(40, z - 10))}
+          >
+            −
+          </button>
+          <span className="text-xs font-semibold text-slate-600">{zoom}%</span>
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs"
+            onClick={() => setZoom((z) => Math.min(120, z + 10))}
+          >
+            +
+          </button>
+        </div>
+
+        <div className="flex justify-center p-6 print:p-0">
+          <div
+            id="workbook-print-root"
+            className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
+            style={previewStyle}
+          >
+            {printPages}
+          </div>
+        </div>
+
+        {measureBlock}
       </main>
     </div>
   );

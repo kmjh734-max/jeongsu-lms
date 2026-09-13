@@ -258,12 +258,15 @@ export function AnalysisReportWorkbench({
   projects: initialProjects,
   logoSrc = LOGO_SRC,
   regenerate = false,
+  embedded = false,
 }: {
   role: "admin" | "teacher";
   projects: AnalysisReportProjectInput[];
   logoSrc?: string;
   /** 제작 버튼으로 열었다: 이미 분석서가 있는 지문도 새로 만든다. */
   regenerate?: boolean;
+  /** 최종통합자료 안에 쪽만 끼워 넣는다(모든 지문의 쪽을 보이고, 만들지 않는다). */
+  embedded?: boolean;
 }) {
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
@@ -284,7 +287,7 @@ export function AnalysisReportWorkbench({
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [prepLoading, setPrepLoading] = useState(
-    () => regenerate || initialProjects.some((p) => !p.report?.sentences?.length)
+    () => !embedded && (regenerate || initialProjects.some((p) => !p.report?.sentences?.length))
   );
   const [zoom, setZoom] = useState(85);
   const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
@@ -315,6 +318,8 @@ export function AnalysisReportWorkbench({
   }, []);
 
   useEffect(() => {
+    // 최종통합자료에 끼워 넣을 때는 저장된 분석서만 보여 준다.
+    if (embedded) return;
     let cancelled = false;
     const regenerateAll = regenerateOnce.current;
     const pending = projects
@@ -560,11 +565,106 @@ export function AnalysisReportWorkbench({
       chunk,
       pageI,
       pageCount: pPages.length,
-      screen: pi === active,
+      screen: embedded || pi === active,
       printable: pSentences.length > 0,
     }));
   });
   const lastPrintable = sheets.map((s) => s.printable).lastIndexOf(true);
+
+  /** 인쇄할 쪽들. 최종통합자료에 끼워 넣을 때(embedded)도 같은 모양을 쓴다. */
+  const sheetPages = (
+    <>
+              {sheets.map((sheet, si) => (
+                <A4Sheet
+                  key={sheet.key}
+                  label={`${sheet.pageI + 1} / ${sheet.pageCount}`}
+                  isLast={si === lastPrintable}
+                  footerLogoSrc={logoSrc}
+                  screenHidden={!sheet.screen}
+                  printHidden={!sheet.printable}
+                >
+                  {sheet.pageI === 0 ? (
+                    <ReportHeader
+                      headerLabel={headerLabelFor(sheet.projectIndex)}
+                      source={sheet.project.source}
+                      title={sheet.project.title}
+                      pageNo={String(sheet.projectIndex + 1).padStart(2, "0")}
+                      accent={accent}
+                    />
+                  ) : null}
+                  <div className="space-y-1">
+                    {sheet.chunk.map((i) => (
+                      <SentenceBlock
+                        key={sheet.sentences[i]?.itemId || i}
+                        sentence={sheet.sentences[i]!}
+                        index={i}
+                        accent={accent}
+                      />
+                    ))}
+                  </div>
+                  {sheet.pageI === sheet.pageCount - 1 && sheet.project.report?.noPointMessage ? (
+                    <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
+                      {sheet.project.report.noPointMessage}
+                    </p>
+                  ) : null}
+                </A4Sheet>
+              ))}
+
+              {logoSrc && !embedded ? (
+                <div className="lesson-pack-print-logo-fixed hidden print:flex">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={logoSrc}
+                    alt=""
+                    className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
+                  />
+                </div>
+              ) : null}
+    </>
+  );
+  const measureTree = (
+    <>
+          {/* Off-screen measure sheet. 높이 0인 틀 안에 둬서 스크롤 길이에 잡히지 않게 한다. */}
+          <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
+          <div
+            ref={measureRef}
+            className="-z-10 w-[210mm] opacity-0"
+            style={{ padding: A4_PAD }}
+          >
+            {projects.map((p, pi) => (
+              <div key={`m-${p.id}`} data-measure-project={p.id}>
+                <ReportHeader
+                  headerLabel={headerLabelFor(pi)}
+                  source={p.source}
+                  title={p.title}
+                  pageNo={String(pi + 1).padStart(2, "0")}
+                  accent={accent}
+                />
+                {(p.report?.sentences ?? NO_SENTENCES).map((s, i) => (
+                  <SentenceBlock
+                    key={`m-${s.itemId || i}`}
+                    sentence={s}
+                    index={i}
+                    accent={accent}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+          </div>
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <div className="relative">
+        <div id="analysis-report-print-root" className="flex flex-col gap-6 print:gap-0">
+          {sheetPages}
+        </div>
+        {measureTree}
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -684,84 +784,12 @@ export function AnalysisReportWorkbench({
             className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
             style={previewStyle}
           >
-            {sheets.map((sheet, si) => (
-              <A4Sheet
-                key={sheet.key}
-                label={`${sheet.pageI + 1} / ${sheet.pageCount}`}
-                isLast={si === lastPrintable}
-                footerLogoSrc={logoSrc}
-                screenHidden={!sheet.screen}
-                printHidden={!sheet.printable}
-              >
-                {sheet.pageI === 0 ? (
-                  <ReportHeader
-                    headerLabel={headerLabelFor(sheet.projectIndex)}
-                    source={sheet.project.source}
-                    title={sheet.project.title}
-                    pageNo={String(sheet.projectIndex + 1).padStart(2, "0")}
-                    accent={accent}
-                  />
-                ) : null}
-                <div className="space-y-1">
-                  {sheet.chunk.map((i) => (
-                    <SentenceBlock
-                      key={sheet.sentences[i]?.itemId || i}
-                      sentence={sheet.sentences[i]!}
-                      index={i}
-                      accent={accent}
-                    />
-                  ))}
-                </div>
-                {sheet.pageI === sheet.pageCount - 1 && sheet.project.report?.noPointMessage ? (
-                  <p className="mt-5 break-inside-avoid rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-[12.5px] leading-relaxed text-slate-600">
-                    {sheet.project.report.noPointMessage}
-                  </p>
-                ) : null}
-              </A4Sheet>
-            ))}
-
-            {logoSrc ? (
-              <div className="lesson-pack-print-logo-fixed hidden print:flex">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoSrc}
-                  alt=""
-                  className="h-7 w-auto max-w-[32mm] object-contain opacity-90"
-                />
-              </div>
-            ) : null}
+            {sheetPages}
           </div>
           </div>
         </div>
 
-        {/* Off-screen measure sheet. 높이 0인 틀 안에 둬서 스크롤 길이에 잡히지 않게 한다. */}
-        <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
-        <div
-          ref={measureRef}
-          className="-z-10 w-[210mm] opacity-0"
-          style={{ padding: A4_PAD }}
-        >
-          {projects.map((p, pi) => (
-            <div key={`m-${p.id}`} data-measure-project={p.id}>
-              <ReportHeader
-                headerLabel={headerLabelFor(pi)}
-                source={p.source}
-                title={p.title}
-                pageNo={String(pi + 1).padStart(2, "0")}
-                accent={accent}
-              />
-              {(p.report?.sentences ?? NO_SENTENCES).map((s, i) => (
-                <SentenceBlock
-                  key={`m-${s.itemId || i}`}
-                  sentence={s}
-                  index={i}
-                  accent={accent}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-        </div>
+        {measureTree}
       </main>
     </div>
   );

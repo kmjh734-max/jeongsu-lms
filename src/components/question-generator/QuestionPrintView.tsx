@@ -452,6 +452,7 @@ export function QuestionPrintView({
   layout: layoutProp = "mixed",
   academyName = ACADEMY_NAME,
   logoSrc = LOGO_SRC,
+  embedded = false,
 }: {
   jobId: string;
   /** ← 뒤로: 내 자료 목록 */
@@ -463,6 +464,8 @@ export function QuestionPrintView({
   /** 학원별 인쇄 브랜딩 */
   academyName?: string;
   logoSrc?: string;
+  /** 최종통합자료 안에 쪽만 끼워 넣는다(설정 창 없이). */
+  embedded?: boolean;
 }) {
   const [title, setTitle] = useState("영어 변형문제");
   const [grade, setGrade] = useState("");
@@ -816,6 +819,68 @@ export function QuestionPrintView({
     );
   }
 
+  /** 측정 영역과 인쇄 쪽들. 최종통합자료에 끼워 넣을 때(embedded)도 같은 모양을 쓴다. */
+  const printBody = (
+    <>
+          <div
+            ref={measureRef}
+            aria-hidden
+            className="qg-print-measure no-print"
+            style={{ width: `${COL_WIDTH_MM}mm` }}
+          >
+            {displayItems.map((item) => (
+              <div key={item.id} data-measure-q={item.id}>
+                {renderDisplayItem(item)}
+              </div>
+            ))}
+          </div>
+
+          <div
+            id="qg-print-root"
+            className="max-w-[210mm] px-4 py-6 print:mx-0 print:max-w-none print:px-0 print:py-0"
+          >
+            {sheetPages.map((page, pageIdx) => (
+              <article
+                key={pageIdx}
+                className={`qg-print-page qg-print-sheet ${
+                  pageIdx < sheetPages.length - 1
+                    ? "qg-print-page-break"
+                    : "qg-print-page-last"
+                }`}
+              >
+                {renderHeader(pageIdx > 0, pageIdx, sheetPages.length)}
+                {page.sectionLabel ? (
+                  <div className="qg-print-type-banner">
+                    <p className="qg-print-type-banner-title">
+                      {page.sectionLabel}
+                    </p>
+                  </div>
+                ) : null}
+                <div className="qg-print-cols">
+                  <div className="qg-print-col">
+                    {page.left.map((ii) => (
+                      <div key={displayItems[ii]?.id ?? ii}>
+                        {renderDisplayItem(displayItems[ii])}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="qg-print-col qg-print-col-right">
+                    {page.right.map((ii) => (
+                      <div key={displayItems[ii]?.id ?? ii}>
+                        {renderDisplayItem(displayItems[ii])}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {renderFooter()}
+              </article>
+            ))}
+          </div>
+    </>
+  );
+
+  if (embedded) return <div className="relative">{printBody}</div>;
+
   return (
     <div className="qg-print-app min-h-screen bg-slate-200 print:min-h-0 print:bg-white">
       <div className="flex min-h-screen print:block print:min-h-0">
@@ -968,60 +1033,7 @@ export function QuestionPrintView({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div
-            ref={measureRef}
-            aria-hidden
-            className="qg-print-measure no-print"
-            style={{ width: `${COL_WIDTH_MM}mm` }}
-          >
-            {displayItems.map((item) => (
-              <div key={item.id} data-measure-q={item.id}>
-                {renderDisplayItem(item)}
-              </div>
-            ))}
-          </div>
-
-          <div
-            id="qg-print-root"
-            className="max-w-[210mm] px-4 py-6 print:mx-0 print:max-w-none print:px-0 print:py-0"
-          >
-            {sheetPages.map((page, pageIdx) => (
-              <article
-                key={pageIdx}
-                className={`qg-print-page qg-print-sheet ${
-                  pageIdx < sheetPages.length - 1
-                    ? "qg-print-page-break"
-                    : "qg-print-page-last"
-                }`}
-              >
-                {renderHeader(pageIdx > 0, pageIdx, sheetPages.length)}
-                {page.sectionLabel ? (
-                  <div className="qg-print-type-banner">
-                    <p className="qg-print-type-banner-title">
-                      {page.sectionLabel}
-                    </p>
-                  </div>
-                ) : null}
-                <div className="qg-print-cols">
-                  <div className="qg-print-col">
-                    {page.left.map((ii) => (
-                      <div key={displayItems[ii]?.id ?? ii}>
-                        {renderDisplayItem(displayItems[ii])}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="qg-print-col qg-print-col-right">
-                    {page.right.map((ii) => (
-                      <div key={displayItems[ii]?.id ?? ii}>
-                        {renderDisplayItem(displayItems[ii])}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {renderFooter()}
-              </article>
-            ))}
-          </div>
+          {printBody}
         </div>
       </div>
     </div>
