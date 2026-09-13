@@ -34,6 +34,8 @@ export function LessonMaterialsSelectionBar({
 
   const base =
     role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
+  const questionBase =
+    role === "admin" ? "/admin/question-generator" : "/teacher/question-generator";
   const singleEditHref =
     selectedIds.length === 1
       ? `${base}/project/${selectedIds[0]}`
@@ -83,15 +85,26 @@ export function LessonMaterialsSelectionBar({
             >
               📄 지문 분석서 제작
             </button>
-            <button type="button" className={btn} disabled title="준비 중">
-              ✒ 문제 제작
-            </button>
             <button
               type="button"
               className={btn}
               onClick={() => setWorkbookOpen(true)}
             >
               📘 워크북 제작
+            </button>
+            <button
+              type="button"
+              className={btn}
+              title="고른 지문으로 AI 변형문제를 만듭니다"
+              onClick={() =>
+                window.open(
+                  `${questionBase}/new?fromLesson=${encodeURIComponent(selectedIds.join(","))}`,
+                  "_blank",
+                  "noopener,noreferrer"
+                )
+              }
+            >
+              ✒ 문제 제작
             </button>
             <button type="button" className={btn} disabled title="준비 중">
               📃 1장 직보자료 제작

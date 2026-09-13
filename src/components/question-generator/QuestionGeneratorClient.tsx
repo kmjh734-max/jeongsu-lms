@@ -155,6 +155,56 @@ export function QuestionGeneratorClient({
       .catch(() => undefined);
   }, []);
 
+  // 자료함에서 지문을 골라 "문제 제작"으로 연 경우(?fromLesson=id,id): 그 지문을 채운다.
+  const fromLesson = searchParams.get("fromLesson");
+  const fromLessonLoaded = useRef(false);
+  useEffect(() => {
+    if (!fromLesson || fromJobId || fromLessonLoaded.current) return;
+    fromLessonLoaded.current = true;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `/api/lesson-materials/passages?ids=${encodeURIComponent(fromLesson)}`
+        );
+        const d = (await res.json()) as {
+          ok: boolean;
+          message?: string;
+          passages?: Array<{ title: string; source: string; text: string }>;
+        };
+        if (cancelled) return;
+        if (!d.ok) {
+          setError(d.message ?? "자료함 지문을 불러오지 못했습니다.");
+          return;
+        }
+        const list = (d.passages ?? []).slice(0, MAX_PASSAGES);
+        if (list.length === 0) {
+          setError("불러올 영어 지문이 없습니다.");
+          return;
+        }
+        setPassages(
+          list.map((p) => ({
+            ...emptyPassageInput(),
+            title: p.title,
+            sourceDetail: p.source,
+            text: p.text,
+          }))
+        );
+        setTitle(
+          list.length > 1 ? `${list[0]!.title} 외 ${list.length - 1}지문` : list[0]!.title
+        );
+        setMessage(
+          `자료함에서 고른 지문 ${list.length}개를 불러왔습니다. 문제 유형을 고르고 생성하세요.`
+        );
+      } catch {
+        if (!cancelled) setError("자료함 지문을 불러오지 못했습니다.");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fromLesson, fromJobId]);
+
   useEffect(() => {
     if (!fromJobId || fromJobLoaded.current) return;
     fromJobLoaded.current = true;
