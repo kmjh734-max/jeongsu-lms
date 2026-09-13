@@ -551,7 +551,7 @@ export async function generateWorkbookBlankFill(input: {
           fromVocabFallback = rawAi.length >= 4;
           if (fromVocabFallback) {
             localNotes.push(
-              `「${p.title}」AI 후보 생성 실패 → 수업용자료 어휘로 대체했습니다.`
+              `「${p.title}」 후보를 만들지 못해 수업용자료 어휘로 대체했습니다.`
             );
           }
         }

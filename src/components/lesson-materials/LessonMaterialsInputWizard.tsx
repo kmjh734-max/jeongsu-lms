@@ -601,7 +601,7 @@ export function LessonMaterialsInputWizard({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-200">
           <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
             <p className="text-center text-lg font-bold text-slate-900">
-              AI 자료 준비 중
+              자료 준비 중
             </p>
             <p className="mt-2 text-center text-sm text-slate-600">
               {prepProgress.label || "잠시만 기다려 주세요…"}
@@ -741,7 +741,7 @@ export function LessonMaterialsInputWizard({
                 onClick={() => void handleNext()}
                 disabled={!canGoNext() || prepLoading}
               >
-                {prepLoading ? "AI 준비 중…" : "다음 단계로 →"}
+                {prepLoading ? "준비 중…" : "다음 단계로 →"}
               </Button>
             </div>
           </div>

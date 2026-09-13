@@ -172,7 +172,7 @@ export async function generateLessonMaterialsOrganizationDraftAction(input: {
   } catch (e) {
     return {
       ok: false,
-      message: e instanceof Error ? e.message : "AI 생성에 실패했습니다.",
+      message: e instanceof Error ? e.message : "생성에 실패했습니다.",
     };
   }
 }

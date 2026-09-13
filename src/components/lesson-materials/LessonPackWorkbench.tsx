@@ -1267,7 +1267,7 @@ export function LessonPackWorkbench({
                 </p>
               ) : (
                 <p className="text-[11px] text-slate-400">
-                  영어 제목은 AI가 자동으로 채웁니다
+                  영어 제목은 자동으로 채워집니다
                 </p>
               )}
               <label className="block space-y-1">
@@ -1428,7 +1428,7 @@ export function LessonPackWorkbench({
               })();
             }}
           >
-            {generating ? "단어 생성 중…" : "단어 AI 재생성"}
+            {generating ? "단어 생성 중…" : "단어 다시 만들기"}
           </Button>
           <Button
             type="button"
