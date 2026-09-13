@@ -1785,7 +1785,7 @@ export function WorkbookWorkbench({
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  text-align: left;
+  text-align: justify;
   white-space: normal;
   word-spacing: normal;
   letter-spacing: normal;
@@ -1801,6 +1801,16 @@ export function WorkbookWorkbench({
   word-break: normal;
   font-weight: 700;
   color: #1e3a5f;
+}
+/* 워크북 본문은 양쪽 맞춤. 한 줄짜리(제목·지시문)는 왼쪽 그대로 보인다. */
+.workbook-a4-body p,
+.workbook-a4-body li,
+.line-translation-english,
+.word-order-korean,
+.full-writing-korean,
+.sentence-order-choice-text {
+  text-align: justify;
+  text-justify: inter-word;
 }
 .grammar-fix-spot {
   white-space: normal;
