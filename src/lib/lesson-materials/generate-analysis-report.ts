@@ -56,6 +56,8 @@ export type AnalysisGrammarPoint = {
   translationConnection?: string;
   studentSummary?: string;
   teacherExplanation?: string;
+  /** 이 문장에서 이 문법이 어떻게 쓰였는지 짧은 설명(학생용, 1~2문장) */
+  explanation?: string;
 };
 
 export type AnalysisImportantConstruction = {
@@ -185,6 +187,7 @@ function mapRawGrammarPoint(raw: {
   bookTerms?: unknown;
   primaryClassification?: unknown;
   relatedUnits?: unknown;
+  explanation?: unknown;
 }): AnalysisGrammarPoint | null {
   const category = stripPriorityLabel(String(raw.category ?? "").trim());
   const targetExpression = String(
@@ -241,6 +244,7 @@ function mapRawGrammarPoint(raw: {
     relatedUnits: relatedUnits.length ? relatedUnits : undefined,
     decisionRule: decisionRule || undefined,
     classificationLabel,
+    explanation: String(raw.explanation ?? "").trim() || undefined,
   };
 }
 
@@ -324,6 +328,7 @@ type RawAnalysisResponse = {
     translationConnection?: string;
     studentSummary?: string;
     teacherExplanation?: string;
+    explanation?: string;
     title?: string;
     detail?: string;
     example?: string;
@@ -539,6 +544,7 @@ function buildGrammarScopePrompt(baseUserContent: string): string {
 이번 응답은 지문 전체의 grammarPoints 선정·분석만 담당한다. 문장별 enChunks·koChunks·contextNote는 따로 작성되므로 쓰지 않는다.
 - "sentences"는 []로 둔다.
 - grammarPoints는 지문 전체를 기준으로 선별한다(권장 3∼6개, 최대 8개, 문장당 독립 포인트 최대 2개, 동일 원리 반복 시 대표만). 각 항목에 itemId·sentenceNumber를 넣고 originalSentence는 생략한다.
+- 각 항목에 explanation(학생이 바로 이해할 한국어 1∼2문장 설명, ～한다체)을 반드시 쓴다.
 - primaryClassification·relatedUnits의 각 분류는 {"unitNumber", "unitTitle"}만 쓴다. PART·CHAPTER는 UNIT 번호로 채워진다. 목차 외 보충이면 unitNumber는 null.
 - 강조할 어법이 없으면 grammarPoints는 [], hasKeyGrammarPoints는 false로 두고 noPointMessage를 쓴다.
 - JSON은 들여쓰기·줄바꿈 없이 한 줄로 출력한다.

@@ -68,12 +68,20 @@ function GrammarPointItem({
     ""
   );
 
+  // 문법 설명: 새로 만든 분석서는 explanation, 옛 분석서는 짧은 판단 근거가 있으면 그것.
+  const explanation = (point.explanation || point.decisionRule || "").trim();
+
   return (
     <li className="text-[13px] leading-relaxed text-slate-800">
       <span className="mr-1 font-bold text-rose-600">{mark}</span>
       <span className="font-bold text-slate-900">{title}</span>
       {point.example ? (
         <span className="text-violet-700"> ({point.example})</span>
+      ) : null}
+      {explanation ? (
+        <p className="mt-0.5 pl-5 text-[12.5px] leading-relaxed text-slate-600">
+          {explanation}
+        </p>
       ) : null}
     </li>
   );

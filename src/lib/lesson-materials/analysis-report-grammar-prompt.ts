@@ -58,6 +58,8 @@ to-v, v(원형부정사), v-ing, p.p.
   주절: you(S) have heard of(V) the Law of Attraction(O) + 관계사절: which(S) states(V) [that절1 and that절2](O)
   금지: 문형·의미 단위·내부·판단을 장황하게 나열하는 구조 설명
 - primaryClassification / relatedUnits / bookTerms: 분류용(있으면). 추측 UNIT 번호 금지
+- explanation: 이 문장에서 이 문법이 어떻게 쓰였는지 학생이 바로 이해하도록 한국어 1∼2문장(～한다체, 80자 안팎). 구조 기호 나열·해석·글의 역할은 쓰지 않는다.
+  예: "앞의 명사 the Law of Attraction을 보충 설명하는 관계사절을 이끌고, 절 안에서 주어 역할을 한다."
 - senseGroups / innerStructure / decisionRule: 비워 두거나 매우 짧게. sentenceStructure에 중복하지 말 것
 문체·선호만으로 which/that 등을 오류로 단정하지 않는다.
 
@@ -96,6 +98,7 @@ role은 s|v|o|c|M|a|io|do (가능하면). koChunks는 해석이며 contextNote�
       "originalSentence": "원문 그대로",
       "targetExpression": "핵심 표현",
       "sentenceStructure": "주절: you(S) have heard of(V) the Law of Attraction(O) + 관계사절: which(S) states(V) [that절1 and that절2](O)",
+      "explanation": "앞의 명사 the Law of Attraction을 보충 설명하는 관계사절을 이끌고, 절 안에서 주어 역할을 한다.",
       "primaryClassification": {
         "partNumber": 4,
         "partTitle": "문장의 확장",
