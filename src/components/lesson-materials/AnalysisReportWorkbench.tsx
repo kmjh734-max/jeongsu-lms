@@ -25,6 +25,7 @@ import { LOGO_SRC } from "@/lib/branding";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
+import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 
 /** 분석서를 동시에 만드는 지문 수. 지문 하나가 모델 호출 하나라 8개도 부담이 작다. */
 const ANALYSIS_REPORT_CONCURRENCY = 8;
@@ -283,6 +284,7 @@ export function AnalysisReportWorkbench({
     () => regenerate || initialProjects.some((p) => !p.report?.sentences?.length)
   );
   const [zoom, setZoom] = useState(85);
+  const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
   const [pageChunksById, setPageChunksById] = useState<Record<string, number[][]>>({});
   const measureRef = useRef<HTMLDivElement>(null);
 
@@ -662,7 +664,9 @@ export function AnalysisReportWorkbench({
         </div>
 
         <div className="flex justify-center p-6 print:p-0">
+          <div style={scaled.frameStyle} className="print:!h-auto print:!overflow-visible">
           <div
+            ref={scaled.ref}
             id="analysis-report-print-root"
             className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
             style={previewStyle}
@@ -714,14 +718,15 @@ export function AnalysisReportWorkbench({
               </div>
             ) : null}
           </div>
+          </div>
         </div>
 
-        {/* Off-screen measure sheet */}
+        {/* Off-screen measure sheet. 높이 0인 틀 안에 둬서 스크롤 길이에 잡히지 않게 한다. */}
+        <div className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden" aria-hidden>
         <div
           ref={measureRef}
-          className="pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0 print:hidden"
+          className="-z-10 w-[210mm] opacity-0"
           style={{ padding: A4_PAD }}
-          aria-hidden
         >
           {projects.map((p, pi) => (
             <div key={`m-${p.id}`} data-measure-project={p.id}>
@@ -742,6 +747,7 @@ export function AnalysisReportWorkbench({
               ))}
             </div>
           ))}
+        </div>
         </div>
       </main>
     </div>

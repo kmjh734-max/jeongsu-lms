@@ -20,6 +20,7 @@ import { LOGO_SRC } from "@/lib/branding";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
+import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 
 /** 수업자료 준비(단어·동반의어, 영어 제목)를 동시에 돌리는 지문 수. */
 const LESSON_PACK_PREP_CONCURRENCY = 8;
@@ -199,6 +200,7 @@ export function LessonPackWorkbench({
   const [fontSizePx, setFontSizePx] = useState(13);
   const [themeColor, setThemeColor] = useState("#DC2626");
   const [zoom, setZoom] = useState(70);
+  const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
 
   const project = projects[0] ?? null;
 
@@ -1553,7 +1555,9 @@ export function LessonPackWorkbench({
         </div>
 
         <div className="flex justify-center p-6 print:p-0">
+          <div style={scaled.frameStyle} className="print:!h-auto print:!overflow-visible">
           <div
+            ref={scaled.ref}
             id="lesson-pack-print-root"
             className="flex origin-top flex-col gap-6 print:gap-0 print:!transform-none"
             style={{
@@ -1599,10 +1603,11 @@ export function LessonPackWorkbench({
               </div>
             ) : null}
 
-            {/* Off-screen measure — must match on-screen interactive heights */}
+            {/* Off-screen measure — must match on-screen interactive heights.
+                높이 0인 틀 안에 둬서 스크롤 길이에 잡히지 않게 한다. */}
+            <div aria-hidden className="pointer-events-none absolute left-0 top-0 h-0 w-0 overflow-hidden print:hidden">
             <div
-              aria-hidden
-              className="lesson-pack-measure pointer-events-none absolute left-[-9999px] top-0 -z-10 w-[210mm] opacity-0 print:hidden"
+              className="lesson-pack-measure -z-10 w-[210mm] opacity-0"
               style={{ padding: A4_PAD, ...previewStyle }}
             >
               <div ref={packMeasureRef} className="flex flex-col gap-2.5">
@@ -1613,6 +1618,8 @@ export function LessonPackWorkbench({
                 ))}
               </div>
             </div>
+            </div>
+          </div>
           </div>
         </div>
       </main>
