@@ -1,7 +1,7 @@
 import { createLimiter, type Limiter } from "@/lib/lesson-materials/grammar-choice-v2/limiter";
 import { callGrammarChoiceV2Json, parseModelJson } from "@/lib/lesson-materials/grammar-choice-v2/openai-call";
 import {
-  ANALYZER_SYSTEM_PROMPT,
+  analyzerSystemPrompt,
   buildAnalyzerUserPayload,
 } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
 import { isKnownPointCode } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
@@ -193,6 +193,7 @@ export async function analyzeAndGeneratePassage(input: {
   const chunks = chunkSentences(input.sentences, perCall);
   const started = Date.now();
   const gate = input.limiter ?? createLimiter(ANALYZER_CHUNK_CONCURRENCY);
+  const systemPrompt = analyzerSystemPrompt();
 
   const calls = await Promise.all(
     chunks.map((chunk) => gate(async () => {
@@ -211,13 +212,13 @@ export async function analyzeAndGeneratePassage(input: {
         candidateCap: chunk.length * ANALYZER_CANDIDATES_PER_SENTENCE,
       });
       const promptChars =
-        ANALYZER_SYSTEM_PROMPT.length + JSON.stringify(payload).length;
+        systemPrompt.length + JSON.stringify(payload).length;
       const called = await callGrammarChoiceV2Json({
         stage: "GENERATOR",
         apiKey: input.apiKey,
         model: input.model,
         reasoningEffort: input.reasoningEffort,
-        system: ANALYZER_SYSTEM_PROMPT,
+        system: systemPrompt,
         user: JSON.stringify(payload),
         schemaName: "grammar_choice_v2_analyze",
         schema: ANALYZER_SCHEMA as unknown as Record<string, unknown>,

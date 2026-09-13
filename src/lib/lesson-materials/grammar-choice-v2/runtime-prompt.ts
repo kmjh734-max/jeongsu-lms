@@ -3,7 +3,11 @@ import {
   ontologyCatalogText,
 } from "@/lib/lesson-materials/grammar-choice-v2/trigger-router";
 import type { ExactSentence } from "@/lib/lesson-materials/grammar-choice-v2/types";
-import { textbookRulesText } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
+import {
+  grammarChoiceKnowledge,
+  textbookRulesText,
+  type GrammarChoiceKnowledge,
+} from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
 import { GRAMMAR_CHOICE_V2_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 const ANALYZER_INSTRUCTIONS = `You are a Korean high-school English grammar analyst and item writer.
@@ -33,13 +37,17 @@ For every sentence:
 8. Do not create vocabulary, idiom, spelling, style, or meaning-preference questions.
 9. Do not output the rewritten passage, ontology definitions, explanations, or reasoning.
 10. Return only short structured JSON matching the schema. Explanations are generated locally.
+`;
 
+const TEXTBOOK_STYLE = `
 Write items the way Korean school grammar textbooks do (TEXTBOOK_RULES below summarizes five of them):
 - The two choices are the same word in two forms (V-ing/p.p., to V/V-ing, is/are, that/what, adjective/adverb, active/passive). Keep the box to one or two words; a whole clause is almost never boxed.
 - Prefer the pairs listed for the code in TEXTBOOK_RULES and the trap shown after "오답:". The typical trap makes the student match the nearest noun, or misread whether the clause is complete.
 - The sentence itself must contain the cue that decides the answer (the real subject, the antecedent, a complete or incomplete clause, the time expression). Never box a point listed after "출제금지:" for that code.
 - When several points are possible in a sentence, prefer the ones textbooks test most (TEXTBOOK_RULES is ordered by how often they are tested).
+`;
 
+const ANALYZER_TAIL = `
 Before returning:
 - verify the sourceSpan is copied exactly;
 - verify the correctAnswer equals sourceSpan;
@@ -56,12 +64,37 @@ Output limits:
  * 하나하나가 10KB를 다시 보내는데, system에 고정으로 실으면 접두사가 같아져
  * 프롬프트 캐시가 붙는다. 모델이 보는 내용은 f861bc8과 동일하게 코드 전체다.
  */
-export const ANALYZER_SYSTEM_PROMPT = `${ANALYZER_INSTRUCTIONS}
+const TEXTBOOK_HEADER =
+  "TEXTBOOK_RULES (code: [typical pairs] how to decide | 오답: typical trap | 출제금지: both forms are acceptable, do not ask):";
+
+/**
+ * 분석 시스템 프롬프트. 무엇을 보고 출제할지(grammarChoiceKnowledge)에 따라 달라진다.
+ * - ontology: 교재 반영 전 그대로(문법 목록 전체)
+ * - textbook: 교재 카드가 곧 코드 목록이다. 카드에 없는 코드는 쓰지 말라고 한다.
+ * - mixed: 문법 목록 전체 + 교재 카드
+ */
+export function analyzerSystemPrompt(knowledge: GrammarChoiceKnowledge = grammarChoiceKnowledge()): string {
+  if (knowledge === "ontology") {
+    return `${ANALYZER_INSTRUCTIONS}${ANALYZER_TAIL}
+
+${ontologyCatalogText()}`;
+  }
+  if (knowledge === "textbook") {
+    return `${ANALYZER_INSTRUCTIONS}${TEXTBOOK_STYLE}${ANALYZER_TAIL}
+
+GRAMMAR_ONTOLOGY is exactly the codes in TEXTBOOK_RULES below. Use no other code.
+${TEXTBOOK_HEADER}
+${textbookRulesText()}`;
+  }
+  return `${ANALYZER_INSTRUCTIONS}${TEXTBOOK_STYLE}${ANALYZER_TAIL}
 
 ${ontologyCatalogText()}
 
-TEXTBOOK_RULES (code: [typical pairs] how to decide | 오답: typical trap | 출제금지: both forms are acceptable, do not ask):
+${TEXTBOOK_HEADER}
 ${textbookRulesText()}`;
+}
+
+export const ANALYZER_SYSTEM_PROMPT = analyzerSystemPrompt("mixed");
 
 export function buildAnalyzerUserPayload(input: {
   passageId: string;
@@ -104,7 +137,7 @@ export function buildAnalyzerUserPayload(input: {
 }
 
 export function measureRuntimePrompt(payload: unknown): number {
-  return ANALYZER_SYSTEM_PROMPT.length + JSON.stringify(payload).length;
+  return analyzerSystemPrompt().length + JSON.stringify(payload).length;
 }
 
 export const AUDITOR_SYSTEM_PROMPT = `You audit Korean high-school grammar choices.

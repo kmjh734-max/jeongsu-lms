@@ -3,7 +3,7 @@ import { mkdirSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import {
   AUDITOR_SYSTEM_PROMPT,
-  ANALYZER_SYSTEM_PROMPT,
+  analyzerSystemPrompt,
   UNIQUENESS_SYSTEM_PROMPT,
 } from "@/lib/lesson-materials/grammar-choice-v2/runtime-prompt";
 import {
@@ -32,7 +32,7 @@ export function snapshotRunDir(): string {
 
 export function promptDigest(): string {
   return createHash("sha256")
-    .update(ANALYZER_SYSTEM_PROMPT)
+    .update(analyzerSystemPrompt())
     .update("\n---\n")
     .update(AUDITOR_SYSTEM_PROMPT)
     .update("\n---\n")

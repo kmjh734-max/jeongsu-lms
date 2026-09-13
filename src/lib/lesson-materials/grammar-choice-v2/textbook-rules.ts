@@ -209,3 +209,18 @@ export function textbookRulesText(): string {
     })
     .join("\n");
 }
+
+/**
+ * 무엇을 보고 출제할지(환경 변수 GRAMMAR_CHOICE_V2_KNOWLEDGE, 기본 mixed).
+ * - ontology: 교재 반영 전처럼 231개 문법 목록(천일문)만 본다.
+ * - textbook: 교재 규칙 카드에 있는 코드만 본다. 교재에 없는 포인트는 내지 않는다.
+ * - mixed: 문법 목록 전체에 교재 카드를 더한다.
+ * 선생님이 이전 방식과 교재 방식을 나란히 보고 고르기로 했다(2026-09-13). 틀린 문항을 거르는
+ * 검사(가짜 낱말, 둘 다 정답, 너무 쉬움 등)는 세 방식 모두 같다.
+ */
+export type GrammarChoiceKnowledge = "mixed" | "ontology" | "textbook";
+
+export function grammarChoiceKnowledge(): GrammarChoiceKnowledge {
+  const value = process.env.GRAMMAR_CHOICE_V2_KNOWLEDGE?.trim();
+  return value === "ontology" || value === "textbook" ? value : "mixed";
+}

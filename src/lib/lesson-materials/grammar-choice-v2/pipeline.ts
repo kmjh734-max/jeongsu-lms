@@ -55,6 +55,7 @@ import type {
 import { buildPassageSegmentsFromSource } from "@/lib/lesson-materials/grammar-choice-display";
 import { checkLabelContract } from "@/lib/lesson-materials/grammar-choice-v2/label-contract";
 import { rejectAtPosition } from "@/lib/lesson-materials/grammar-choice-v2/position-guards";
+import { grammarChoiceKnowledge, TEXTBOOK_RULES } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
 import type {
   GrammarChoiceCandidate,
   WorkbookGrammarChoiceDiagnostics,
@@ -159,9 +160,21 @@ export function resolveAndFilter(input: {
   const resolved: ResolvedCandidate[] = [];
   const rejected: V2Reject[] = [];
   const seenPair = new Set<string>();
+  const knowledge = grammarChoiceKnowledge();
 
   for (const raw of candidates) {
     let candidate = preferWhichOverWhom(repairForbiddenConditionalDistractor(raw));
+    // 교재만 보고 출제하는 방식이면 교재 카드에 없는 코드는 내지 않는다(로컬 검출기 후보 포함).
+    if (knowledge === "textbook" && !TEXTBOOK_RULES[candidate.pointCode]) {
+      rejected.push({
+        candidateId: candidate.candidateId,
+        sentenceId: candidate.sentenceId,
+        pointCode: candidate.pointCode,
+        reason: "NOT_IN_TEXTBOOK",
+        pair: `${candidate.correctAnswer} / ${candidate.distractors[0] ?? ""}`,
+      });
+      continue;
+    }
     const policy = generationPolicyFor(candidate.pointCode);
     if (policy === "NOT_QUESTIONABLE") {
       rejected.push({
