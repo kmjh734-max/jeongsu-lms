@@ -33,6 +33,8 @@ import {
   clampGrammarFixErrors,
   clampTfCount,
   parseGrammarFixMode,
+  GRAMMAR_FIX_ERROR_COUNTS,
+  type WorkbookGrammarFixOptions,
   type WorkbookGrammarFixSection,
   defaultWorkbookTitle,
   formatWorkbookPassage,
@@ -141,7 +143,7 @@ function PageShell({
   columnKey?: string;
   columnCount?: number;
 }) {
-  const fixed = columns === 2 && columnHeightMm != null;
+  const fixed = columnHeightMm != null;
   return (
     <article
       className={`workbook-a4-sheet lesson-pack-a4-sheet relative box-border bg-white shadow-xl print:shadow-none ${
@@ -169,7 +171,11 @@ function PageShell({
       </header>
       <div
         className={`workbook-a4-body${columns === 2 ? " workbook-two-col" : ""}`}
-        style={fixed ? { height: `${columnHeightMm}mm`, columnFill: "auto" } : undefined}
+        style={
+          fixed
+            ? { height: `${columnHeightMm}mm`, ...(columns === 2 ? { columnFill: "auto" } : {}) }
+            : undefined
+        }
         data-col-body={fixed ? columnKey : undefined}
         data-col-count={fixed ? columnCount : undefined}
       >
@@ -1005,55 +1011,33 @@ type ColumnPage = {
   indices: number[];
   typeOrder: number;
   packed: boolean;
+  columns: 1 | 2;
 };
+
+/** 한줄해석·통문장 영작·어순배열 영작: 문항 단위로 쪽을 나누고 지문을 이어 싣는다. */
+type FlowKind = "line_ko" | "full_en" | "word_order";
+type FlowPart = { sectionIndex: number; itemIndices: number[]; continued: boolean };
+
+const FLOW_KIND_BY_TYPE: Partial<Record<WorkbookTypeId, FlowKind>> = {
+  one_line_ko: "line_ko",
+  full_en_writing: "full_en",
+  word_order_writing: "word_order",
+};
+const FLOW_TITLE: Record<FlowKind, string> = {
+  line_ko: "한줄해석",
+  full_en: "통문장 영작",
+  word_order: "어순배열 영작",
+};
+/** 한 쪽에서 앞 지문과 다음 지문 사이 간격(.workbook-flow-part 여백·선과 같게). */
+const FLOW_PART_GAP_PX = 34;
 
 type WorkbookPage =
   | ColumnPage
   | {
-      kind: "blank_q";
-      sectionIndex: number;
+      kind: "flow_q";
+      flow: FlowKind;
+      parts: FlowPart[];
       typeOrder: number;
-    }
-  | {
-      kind: "tf_q";
-      sectionIndex: number;
-      typeOrder: number;
-    }
-  | {
-      kind: "grammar_choice_q";
-      sectionIndex: number;
-      typeOrder: number;
-    }
-  | {
-      kind: "grammar_fix_q";
-      sectionIndex: number;
-      typeOrder: number;
-    }
-  | {
-      kind: "sentence_order_q";
-      questionIndex: number;
-      typeOrder: number;
-    }
-  | {
-      kind: "line_ko_q";
-      sectionIndex: number;
-      typeOrder: number;
-      itemIndices?: number[];
-      continued?: boolean;
-    }
-  | {
-      kind: "full_en_q";
-      sectionIndex: number;
-      typeOrder: number;
-      itemIndices?: number[];
-      continued?: boolean;
-    }
-  | {
-      kind: "word_order_q";
-      sectionIndex: number;
-      typeOrder: number;
-      itemIndices?: number[];
-      continued?: boolean;
     }
   | {
       kind: "answers";
@@ -1093,8 +1077,8 @@ export function WorkbookWorkbench({
   /** 나머지 유형을 먼저 보여 준 뒤 어법 선택을 만드는 중인지. */
   const [grammarChoicePending, setGrammarChoicePending] = useState(false);
   const [zoom, setZoom] = useState(85);
-  /** Measured A4 item chunks: key → pages of item indices */
-  const [a4Chunks, setA4Chunks] = useState<Record<string, number[][]>>({});
+  /** 한줄해석·영작 유형의 쪽 배치(재 둔 높이로 나눈 것). */
+  const [flowPages, setFlowPages] = useState<Partial<Record<FlowKind, FlowPart[][]>>>({});
   /** 2단 유형: 쪽마다 실을 지문(문항) 번호. packed가 아니면 한 쪽보다 긴 지문 하나. */
   const [columnPacks, setColumnPacks] = useState<
     Partial<Record<WorkbookColumnTypeId, { indices: number[]; packed: boolean }[]>>
@@ -1161,6 +1145,23 @@ export function WorkbookWorkbench({
         q.passageId === projectId ? { ...q, ...patch } : q
       ),
     }));
+  }
+
+  /** 어법 수정 출제 방식·틀린 곳 수를 바꾸면 어법 선택 결과로 바로 다시 만든다. */
+  function changeGrammarFix(patch: Partial<WorkbookGrammarFixOptions>) {
+    editWorkbook((w) => {
+      const options: WorkbookGrammarFixOptions = {
+        ...(w.grammarFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS),
+        ...patch,
+      };
+      const fix = buildGrammarFixSections(w.grammarChoiceSections ?? [], options);
+      return {
+        ...w,
+        grammarFixOptions: options,
+        grammarFixSections: fix.sections,
+        grammarFixSkipped: fix.skipped,
+      };
+    });
   }
 
   function columnsFor(type: WorkbookColumnTypeId): 1 | 2 {
@@ -1522,9 +1523,11 @@ export function WorkbookWorkbench({
         const workbook = res.workbook;
         const grammar = await grammarTask;
         if (cancelled) return;
-        if (grammar && wantGrammarChoice) {
+        if (grammar) {
+          // 어법 수정만 골라도 어법 선택 결과를 둔다. 화면에서 출제 방식·틀린 곳 수를 바꿀 때
+          // 이것으로 바로 다시 만든다(어법 선택 쪽은 유형을 고르지 않으면 인쇄되지 않는다).
           workbook.grammarChoiceSections = grammar.sections;
-          workbook.grammarChoiceSkipped = grammar.skipped;
+          if (wantGrammarChoice) workbook.grammarChoiceSkipped = grammar.skipped;
         }
         if (grammar && wantGrammarFix) {
           const fix = buildGrammarFixSections(grammar.sections, grammarFixOptions);
@@ -1855,6 +1858,11 @@ export function WorkbookWorkbench({
   break-inside: avoid;
   page-break-inside: avoid;
 }
+.workbook-flow-part + .workbook-flow-part {
+  margin-top: 18px;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 15px;
+}
 .workbook-col-section {
   margin-bottom: 18px;
 }
@@ -1948,13 +1956,19 @@ export function WorkbookWorkbench({
       tf: workbook.sections.length,
       sentence_order: soQuestions.length,
     };
+    const flowSections: Record<FlowKind, Array<{ items: unknown[] }>> = {
+      line_ko: ltSections,
+      full_en: feSections,
+      word_order: woSections,
+    };
     for (const t of types) {
       const order = typeOrders.get(t) ?? 1;
       const columnType = (WORKBOOK_COLUMN_TYPES as readonly string[]).includes(t)
         ? (t as WorkbookColumnTypeId)
         : null;
-      if (columnType && workbook.columnLayout?.[columnType] === 2) {
+      if (columnType) {
         const count = columnCounts[columnType];
+        const columns = workbook.columnLayout?.[columnType] === 2 ? 2 : 1;
         // 배치를 재기 전(첫 그림)에는 지문마다 한 쪽씩 둔다.
         const packs =
           columnPacks[columnType]?.filter((p) => p.indices.every((i) => i < count)) ??
@@ -1966,99 +1980,33 @@ export function WorkbookWorkbench({
             indices: p.indices,
             typeOrder: order,
             packed: p.packed,
+            columns,
           });
         }
         continue;
       }
-      if (t === "grammar_choice") {
-        gcSections.forEach((_, i) => {
-          out.push({
-            kind: "grammar_choice_q",
-            sectionIndex: i,
-            typeOrder: order,
-          });
-        });
-      }
-      if (t === "grammar_fix") {
-        gfSections.forEach((_, i) => {
-          out.push({ kind: "grammar_fix_q", sectionIndex: i, typeOrder: order });
-        });
-      }
-      if (t === "blank_fill") {
-        workbook.blankSections.forEach((_, i) => {
-          out.push({ kind: "blank_q", sectionIndex: i, typeOrder: order });
-        });
-      }
-      if (t === "tf") {
-        workbook.sections.forEach((_, i) => {
-          out.push({ kind: "tf_q", sectionIndex: i, typeOrder: order });
-        });
-      }
-      if (t === "sentence_order") {
-        soQuestions.forEach((_, i) => {
-          out.push({
-            kind: "sentence_order_q",
-            questionIndex: i,
-            typeOrder: order,
-          });
-        });
-      }
-      if (t === "one_line_ko") {
-        ltSections.forEach((section, i) => {
-          const key = `lt-q-${i}`;
-          const chunks =
-            a4Chunks[key] ??
-            (section.items.length
-              ? [section.items.map((_, idx) => idx)]
-              : [[]]);
-          chunks.forEach((itemIndices, ci) => {
-            out.push({
-              kind: "line_ko_q",
-              sectionIndex: i,
-              typeOrder: order,
-              itemIndices,
-              continued: ci > 0,
-            });
-          });
-        });
-      }
-      if (t === "full_en_writing") {
-        feSections.forEach((section, i) => {
-          const key = `fe-q-${i}`;
-          const chunks =
-            a4Chunks[key] ??
-            (section.items.length
-              ? [section.items.map((_, idx) => idx)]
-              : [[]]);
-          chunks.forEach((itemIndices, ci) => {
-            out.push({
-              kind: "full_en_q",
-              sectionIndex: i,
-              typeOrder: order,
-              itemIndices,
-              continued: ci > 0,
-            });
-          });
-        });
-      }
-      if (t === "word_order_writing") {
-        woSections.forEach((section, i) => {
-          const key = `wo-q-${i}`;
-          const chunks =
-            a4Chunks[key] ??
-            (section.items.length
-              ? [section.items.map((_, idx) => idx)]
-              : [[]]);
-          chunks.forEach((itemIndices, ci) => {
-            out.push({
-              kind: "word_order_q",
-              sectionIndex: i,
-              typeOrder: order,
-              itemIndices,
-              continued: ci > 0,
-            });
-          });
-        });
+      const flow = FLOW_KIND_BY_TYPE[t];
+      if (flow) {
+        const sections = flowSections[flow];
+        const measured = flowPages[flow];
+        const valid =
+          measured &&
+          measured.every((page) =>
+            page.every((part) => part.sectionIndex < sections.length)
+          );
+        // 재기 전에는 지문마다 한 쪽에 다 싣는다.
+        const planned = valid
+          ? measured
+          : sections.map((sec, si) => [
+              {
+                sectionIndex: si,
+                itemIndices: sec.items.map((_, i) => i),
+                continued: false,
+              },
+            ]);
+        for (const parts of planned) {
+          out.push({ kind: "flow_q", flow, parts, typeOrder: order });
+        }
       }
     }
     if (types.length > 0) {
@@ -2075,114 +2023,85 @@ export function WorkbookWorkbench({
       });
     }
     return out;
-  }, [workbook, typeOrders, a4Chunks, columnPacks]);
+  }, [workbook, typeOrders, flowPages, columnPacks]);
 
   useLayoutEffect(() => {
     ensureWorkbookPrintStyles();
   }, []);
 
-  // Measure long bilingual sections into true A4 pages (preview === print).
+  /**
+   * 한줄해석·통문장 영작·어순배열 영작을 A4 쪽으로 나눈다(미리보기 = 인쇄).
+   * 지문이 끝난 자리에서 다음 지문을 이어서 싣는다. 예전에는 지문마다 새 쪽에서 시작해
+   * 짧은 지문 뒤에 여백이 크게 남았다. 지문을 시작할 때는 머리(제목·지시문)와 첫 문항이
+   * 함께 들어갈 자리가 있어야 하고, 쪽을 넘기면 "(계속)" 머리를 단다.
+   */
   useLayoutEffect(() => {
     ensureWorkbookPrintStyles();
-    if (!workbook) {
-      setA4Chunks({});
-      return;
-    }
     const root = measureRef.current;
-    const ltSections = workbook.lineTranslationSections ?? [];
-    const feSections = workbook.fullEnWritingSections ?? [];
-    const woSections = workbook.wordOrderWritingSections ?? [];
-    if (
-      !root ||
-      (ltSections.length === 0 &&
-        feSections.length === 0 &&
-        woSections.length === 0)
-    ) {
-      setA4Chunks({});
+    if (!workbook || !root) {
+      setFlowPages({});
       return;
     }
-
-    const widthPx = root.offsetWidth || 1;
-    const pxPerMm = widthPx / 210;
+    const pxPerMm = (root.offsetWidth || 1) / 210;
     const pageBodyPx = (297 - A4_PAD_MM - A4_FOOTER_MM) * pxPerMm;
     const sheetHeaderH =
       (root.querySelector('[data-wb-measure="sheet-header"]') as HTMLElement | null)
         ?.offsetHeight ?? 72;
-    const gapPx = 8;
-    const next: Record<string, number[][]> = {};
-
-    const packSection = (
-      key: string,
-      itemCount: number,
-      introSel: string,
-      contSel: string,
-      itemSel: (i: number) => string
-    ) => {
-      const introH =
-        (root.querySelector(introSel) as HTMLElement | null)?.offsetHeight ?? 70;
-      const contH =
-        (root.querySelector(contSel) as HTMLElement | null)?.offsetHeight ?? 40;
-      const heights = Array.from({ length: itemCount }, (_, i) => {
-        const el = root.querySelector(itemSel(i)) as HTMLElement | null;
-        return el?.offsetHeight ?? 120;
-      });
-      const firstBudget = Math.max(80, pageBodyPx - sheetHeaderH - introH);
-      const contBudget = Math.max(80, pageBodyPx - sheetHeaderH - contH);
-      const packed: number[][] = [];
-      let current: number[] = [];
-      let used = 0;
-      let budget = firstBudget;
-      heights.forEach((h, i) => {
-        const pad = current.length === 0 ? 0 : gapPx;
-        if (current.length > 0 && used + pad + h > budget) {
-          packed.push(current);
-          current = [];
-          used = 0;
-          budget = contBudget;
-        }
-        used += (current.length === 0 ? 0 : gapPx) + h;
-        current.push(i);
-      });
-      if (current.length) packed.push(current);
-      next[key] = packed.length ? packed : [[]];
+    // 머리글 아래 여백(mb-4)과 쪽 번호와 겹치지 않을 여유를 뺀다.
+    const budget = pageBodyPx - sheetHeaderH - 16 - 4 * pxPerMm;
+    /** 요소 높이 + 아래 여백(문항 사이 간격은 문항의 margin-bottom이다). */
+    const heightOf = (sel: string, fallback: number) => {
+      const el = root.querySelector(sel) as HTMLElement | null;
+      if (!el) return fallback;
+      return el.offsetHeight + (parseFloat(getComputedStyle(el).marginBottom) || 0);
     };
 
-    ltSections.forEach((sec, si) => {
-      packSection(
-        `lt-q-${si}`,
-        sec.items.length,
-        `[data-wb-measure="lt-intro-${si}"]`,
-        `[data-wb-measure="lt-cont-${si}"]`,
-        (i) => `[data-wb-measure="lt-item-${si}-${i}"]`
-      );
-    });
-    feSections.forEach((sec, si) => {
-      packSection(
-        `fe-q-${si}`,
-        sec.items.length,
-        `[data-wb-measure="fe-intro-${si}"]`,
-        `[data-wb-measure="fe-cont-${si}"]`,
-        (i) => `[data-wb-measure="fe-item-${si}-${i}"]`
-      );
-    });
-    woSections.forEach((sec, si) => {
-      packSection(
-        `wo-q-${si}`,
-        sec.items.length,
-        `[data-wb-measure="wo-intro-${si}"]`,
-        `[data-wb-measure="wo-cont-${si}"]`,
-        (i) => `[data-wb-measure="wo-item-${si}-${i}"]`
-      );
-    });
-
-    setA4Chunks((prev) => {
-      const same =
-        Object.keys(next).length === Object.keys(prev).length &&
-        Object.keys(next).every(
-          (k) => JSON.stringify(next[k]) === JSON.stringify(prev[k])
+    const packFlow = (prefix: string, sections: Array<{ items: unknown[] }>): FlowPart[][] => {
+      const pages: FlowPart[][] = [];
+      let page: FlowPart[] = [];
+      let used = 0;
+      const flush = () => {
+        if (page.length) pages.push(page);
+        page = [];
+        used = 0;
+      };
+      sections.forEach((sec, si) => {
+        // 머리 블록은 마지막 줄의 아래 여백(mb-3·mb-4)이 블록 밖으로 빠져 높이에 안 잡힌다.
+        const introH = heightOf(`[data-wb-measure="${prefix}-intro-${si}"]`, 70) + 16;
+        const contH = heightOf(`[data-wb-measure="${prefix}-cont-${si}"]`, 40) + 12;
+        const heights = sec.items.map((_, i) =>
+          heightOf(`[data-wb-measure="${prefix}-item-${si}-${i}"]`, 120)
         );
-      return same ? prev : next;
-    });
+        // 쪽 끝에서 지문을 시작하면 머리와 문항 두 개(한 개뿐이면 그것)가 함께 들어가야 한다.
+        const lead = page.length ? FLOW_PART_GAP_PX : 0;
+        const opening = (heights[0] ?? 0) + (heights[1] ?? 0);
+        if (page.length && used + lead + introH + opening > budget) flush();
+        used += (page.length ? FLOW_PART_GAP_PX : 0) + introH;
+        let part: FlowPart = { sectionIndex: si, itemIndices: [], continued: false };
+        heights.forEach((h, i) => {
+          if (part.itemIndices.length > 0 && used + h > budget) {
+            page.push(part);
+            flush();
+            part = { sectionIndex: si, itemIndices: [], continued: true };
+            used = contH;
+          }
+          used += h;
+          part.itemIndices.push(i);
+        });
+        page.push(part);
+      });
+      flush();
+      return pages;
+    };
+
+    const next: Partial<Record<FlowKind, FlowPart[][]>> = {};
+    const lt = workbook.lineTranslationSections ?? [];
+    const fe = workbook.fullEnWritingSections ?? [];
+    const wo = workbook.wordOrderWritingSections ?? [];
+    if (lt.length) next.line_ko = packFlow("lt", lt);
+    if (fe.length) next.full_en = packFlow("fe", fe);
+    if (wo.length) next.word_order = packFlow("wo", wo);
+    setFlowPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
   }, [workbook]);
 
   // 2단 유형: 단 너비로 잰 지문 높이로 쪽마다 실을 지문을 정한다(왼쪽 단 → 오른쪽 단 → 다음 쪽).
@@ -2200,10 +2119,12 @@ export function WorkbookWorkbench({
     setColumnBodyMm(Math.floor((columnPx / pxPerMm) * 10) / 10);
     // 문항은 단 사이에서 쪼개지지 않고 통째로 넘어가 단 끝에 빈 줄이 생기므로 조금 덜 채운다.
     // 그래도 넘치면 그린 뒤에 넘친 쪽을 찾아 지문 하나를 다음 쪽으로 보낸다(columnLimits).
-    const capacity = columnPx * 2 - 40;
     const next: Partial<Record<WorkbookColumnTypeId, { indices: number[]; packed: boolean }[]>> = {};
     for (const t of WORKBOOK_COLUMN_TYPES) {
-      if (workbook.columnLayout?.[t] !== 2) continue;
+      if (!workbook.selectedTypes.includes(t)) continue;
+      // 1단도 쪽에 자리가 남으면 다음 지문을 이어 싣는다.
+      const capacity =
+        workbook.columnLayout?.[t] === 2 ? columnPx * 2 - 40 : columnPx - 8;
       const heights = Array.from(
         root.querySelectorAll<HTMLElement>(`[data-wb-col="${t}"]`)
       ).map((el) => el.offsetHeight + COLUMN_SECTION_GAP_PX);
@@ -2238,7 +2159,11 @@ export function WorkbookWorkbench({
     const over: Record<string, number> = {};
     document.querySelectorAll<HTMLElement>("[data-col-body]").forEach((el) => {
       const count = Number(el.dataset.colCount ?? "0");
-      if (count > 1 && el.scrollWidth > el.clientWidth + 2) {
+      // 2단은 오른쪽 단 밖으로(가로), 1단은 본문 높이 밖으로(세로) 넘친다.
+      if (
+        count > 1 &&
+        (el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > el.clientHeight + 2)
+      ) {
         over[el.dataset.colBody!] = count - 1;
       }
     });
@@ -2461,9 +2386,8 @@ export function WorkbookWorkbench({
         : type === "tf"
           ? workbook.sections.length
           : soQuestions.length;
-  const columnTypesOn = WORKBOOK_COLUMN_TYPES.filter(
-    (t) => workbook.columnLayout?.[t] === 2 && workbook.selectedTypes.includes(t)
-  );
+  /** 배치를 잴 유형(고른 유형 전부). 1단은 쪽 너비, 2단은 단 너비로 잰다. */
+  const columnTypesOn = WORKBOOK_COLUMN_TYPES.filter((t) => workbook.selectedTypes.includes(t));
 
   return (
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
@@ -2531,6 +2455,59 @@ export function WorkbookWorkbench({
                   </div>
                 </div>
               ))}
+            </div>
+          ) : null}
+
+          {workbook.selectedTypes.includes("grammar_fix") ? (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-bold text-slate-500">어법 수정</p>
+              {(workbook.grammarChoiceSections?.length ?? 0) > 0 ? (
+                <>
+                  <div className="inline-flex rounded-lg border border-slate-200 p-0.5">
+                    {(
+                      [
+                        { id: "underline", label: "밑줄 표시" },
+                        { id: "find", label: "밑줄 없음" },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => changeGrammarFix({ mode: opt.id })}
+                        className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${
+                          (workbook.grammarFixOptions?.mode ?? "underline") === opt.id
+                            ? "bg-violet-600 text-white"
+                            : "text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="mr-1 text-xs text-slate-700">틀린 곳</span>
+                    {GRAMMAR_FIX_ERROR_COUNTS.map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => changeGrammarFix({ errorCount: n })}
+                        className={`rounded-md px-2 py-0.5 text-xs font-semibold ${
+                          (workbook.grammarFixOptions?.errorCount ??
+                            DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS.errorCount) === n
+                            ? "bg-violet-600 text-white"
+                            : "border border-slate-200 text-slate-500 hover:bg-slate-50"
+                        }`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="text-[11px] leading-snug text-slate-400">
+                  이 워크북은 출제 방식을 바꿀 수 없습니다. 워크북을 다시 만들면 바꿀 수 있습니다.
+                </p>
+              )}
             </div>
           ) : null}
 
@@ -2655,7 +2632,7 @@ export function WorkbookWorkbench({
                     showTypeTitle
                     typeTitle={`${page.typeOrder}. ${COLUMN_TYPE_TITLE[page.type]}`}
                     isLast={isLast}
-                    columns={2}
+                    columns={page.columns}
                     columnHeightMm={page.packed ? (columnBodyMm ?? undefined) : undefined}
                     columnKey={`${page.type}:${page.indices[0]}`}
                     columnCount={page.indices.length}
@@ -2669,179 +2646,43 @@ export function WorkbookWorkbench({
                 );
               }
 
-              if (page.kind === "blank_q") {
-                const section = workbook.blankSections[page.sectionIndex]!;
+              if (page.kind === "flow_q") {
                 return (
                   <PageShell
-                    key={`blank-q-${page.sectionIndex}`}
+                    key={`flow-${page.flow}-${page.parts.map((p) => `${p.sectionIndex}.${p.itemIndices[0] ?? 0}`).join("-")}`}
                     pageNo={pageNo}
                     total={total}
                     workbookTitle={title}
                     showTypeTitle
-                    typeTitle={`${page.typeOrder}. 빈칸 채우기`}
-                    isLast={isLast}
-                    columns={columnsFor("blank_fill")}
-                  >
-                    {workbook.blankSections.length > 1 ? (
-                      <p className="mb-2 text-[12px] font-semibold text-slate-500">
-                        {section.title}
-                        {section.source?.trim()
-                          ? ` · ${section.source.trim()}`
-                          : ""}
-                      </p>
-                    ) : null}
-                    <BlankQuestionBody
-                      section={section}
-                      showTranslation={blankOpts.showTranslation}
-                      layout={blankOpts.translationLayout}
-                    />
-                  </PageShell>
-                );
-              }
-
-              if (page.kind === "grammar_choice_q") {
-                const section = gcSections[page.sectionIndex]!;
-                return (
-                  <PageShell
-                    key={`gc-q-${page.sectionIndex}`}
-                    pageNo={pageNo}
-                    total={total}
-                    workbookTitle={title}
-                    showTypeTitle
-                    typeTitle={`${page.typeOrder}. 어법 선택`}
-                    isLast={isLast}
-                    columns={columnsFor("grammar_choice")}
-                  >
-                    <GrammarChoiceQuestionBody
-                      section={section}
-                      multi={gcSections.length > 1}
-                    />
-                  </PageShell>
-                );
-              }
-
-              if (page.kind === "grammar_fix_q") {
-                const section = gfSections[page.sectionIndex]!;
-                return (
-                  <PageShell
-                    key={`gf-q-${page.sectionIndex}`}
-                    pageNo={pageNo}
-                    total={total}
-                    workbookTitle={title}
-                    showTypeTitle
-                    typeTitle={`${page.typeOrder}. 어법 수정`}
+                    typeTitle={`${page.typeOrder}. ${FLOW_TITLE[page.flow]}`}
                     isLast={isLast}
                   >
-                    <GrammarFixQuestionBody section={section} multi={gfSections.length > 1} />
-                  </PageShell>
-                );
-              }
-
-              if (page.kind === "tf_q") {
-                const section = workbook.sections[page.sectionIndex]!;
-                return (
-                  <PageShell
-                    key={`tf-q-${page.sectionIndex}`}
-                    pageNo={pageNo}
-                    total={total}
-                    workbookTitle={title}
-                    showTypeTitle
-                    typeTitle={`${page.typeOrder}. T/F 문제`}
-                    isLast={isLast}
-                    columns={columnsFor("tf")}
-                  >
-                    <TfQuestionBody
-                      section={section}
-                      multi={workbook.sections.length > 1}
-                    />
-                  </PageShell>
-                );
-              }
-
-              if (page.kind === "sentence_order_q") {
-                const question = soQuestions[page.questionIndex]!;
-                return (
-                  <PageShell
-                    key={`so-q-${question.questionId}`}
-                    pageNo={pageNo}
-                    total={total}
-                    workbookTitle={title}
-                    showTypeTitle
-                    typeTitle={sentenceOrderHeading(
-                      page.typeOrder,
-                      question,
-                      soQuestions
-                    )}
-                    isLast={isLast}
-                    columns={columnsFor("sentence_order")}
-                  >
-                    <SentenceOrderQuestionBody
-                      question={question}
-                      showPassageMeta
-                    />
-                  </PageShell>
-                );
-              }
-
-              if (page.kind === "line_ko_q") {
-                const section = ltSections[page.sectionIndex]!;
-                return (
-                  <PageShell
-                    key={`lt-q-${section.projectId}-${page.continued ? "c" : "0"}-${(page.itemIndices ?? []).join("-")}`}
-                    pageNo={pageNo}
-                    total={total}
-                    workbookTitle={title}
-                    showTypeTitle
-                    typeTitle={`${page.typeOrder}. 한줄해석`}
-                    isLast={isLast}
-                  >
-                    <LineTranslationQuestionBody
-                      section={section}
-                      itemIndices={page.itemIndices}
-                      continued={page.continued}
-                    />
-                  </PageShell>
-                );
-              }
-
-              if (page.kind === "full_en_q") {
-                const section = feSections[page.sectionIndex]!;
-                return (
-                  <PageShell
-                    key={`fe-q-${section.projectId}-${page.continued ? "c" : "0"}-${(page.itemIndices ?? []).join("-")}`}
-                    pageNo={pageNo}
-                    total={total}
-                    workbookTitle={title}
-                    showTypeTitle
-                    typeTitle={`${page.typeOrder}. 통문장 영작`}
-                    isLast={isLast}
-                  >
-                    <FullEnWritingQuestionBody
-                      section={section}
-                      itemIndices={page.itemIndices}
-                      continued={page.continued}
-                    />
-                  </PageShell>
-                );
-              }
-
-              if (page.kind === "word_order_q") {
-                const section = woSections[page.sectionIndex]!;
-                return (
-                  <PageShell
-                    key={`wo-q-${section.projectId}-${page.continued ? "c" : "0"}-${(page.itemIndices ?? []).join("-")}`}
-                    pageNo={pageNo}
-                    total={total}
-                    workbookTitle={title}
-                    showTypeTitle
-                    typeTitle={`${page.typeOrder}. 어순배열 영작`}
-                    isLast={isLast}
-                  >
-                    <WordOrderQuestionBody
-                      section={section}
-                      itemIndices={page.itemIndices}
-                      continued={page.continued}
-                    />
+                    {page.parts.map((part) => (
+                      <div
+                        key={`part-${part.sectionIndex}-${part.continued ? "c" : "0"}-${part.itemIndices[0] ?? 0}`}
+                        className="workbook-flow-part"
+                      >
+                        {page.flow === "line_ko" ? (
+                          <LineTranslationQuestionBody
+                            section={ltSections[part.sectionIndex]!}
+                            itemIndices={part.itemIndices}
+                            continued={part.continued}
+                          />
+                        ) : page.flow === "full_en" ? (
+                          <FullEnWritingQuestionBody
+                            section={feSections[part.sectionIndex]!}
+                            itemIndices={part.itemIndices}
+                            continued={part.continued}
+                          />
+                        ) : (
+                          <WordOrderQuestionBody
+                            section={woSections[part.sectionIndex]!}
+                            itemIndices={part.itemIndices}
+                            continued={part.continued}
+                          />
+                        )}
+                      </div>
+                    ))}
                   </PageShell>
                 );
               }
@@ -3033,7 +2874,12 @@ export function WorkbookWorkbench({
           }}
         >
           {columnTypesOn.map((t) => (
-            <div key={`m-col-${t}`} style={{ width: "calc((100% - 26px) / 2)" }}>
+            <div
+              key={`m-col-${t}`}
+              style={{
+                width: workbook.columnLayout?.[t] === 2 ? "calc((100% - 26px) / 2)" : "100%",
+              }}
+            >
               {columnCountFor(t) > 0
                 ? Array.from({ length: columnCountFor(t) }, (_, i) => (
                     <div key={`m-col-${t}-${i}`} className="workbook-col-section" data-wb-col={t}>
