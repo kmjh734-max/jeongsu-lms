@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { createLessonMaterialDocument } from "@/lib/lesson-materials/document-actions";
+import type { createLessonMaterialDocument } from "@/lib/lesson-materials/document-actions";
+import { postJson } from "@/lib/lesson-materials/post-json";
 import { documentPagePath, type LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 
 /**
@@ -50,7 +51,10 @@ export function useCreateDocumentFromUrl(
     const key = window.location.href;
     if (creating.has(key)) return;
     creating.add(key);
-    void createLessonMaterialDocument(role, {
+    // 서버 액션이 아니라 fetch로 부른다(api/lesson-materials/documents/open 참고).
+    void postJson<Awaited<ReturnType<typeof createLessonMaterialDocument>>>("/api/lesson-materials/documents/open", {
+      op: "create",
+      role,
       kind,
       projectIds,
       name: params.get("docName"),

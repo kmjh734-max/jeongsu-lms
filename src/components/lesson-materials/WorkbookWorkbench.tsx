@@ -17,12 +17,12 @@ import {
   loadWorkbookFromSession,
   saveWorkbookToSession,
 } from "@/components/lesson-materials/WorkbookCreateModal";
-import {
+import type {
   generateWorkbookAction,
-  type generateGrammarChoicePassageAction,
+  generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
 import { postJson } from "@/lib/lesson-materials/post-json";
-import {
+import type {
   createLessonMaterialDocument,
   getWorkbookDocument,
 } from "@/lib/lesson-materials/document-actions";
@@ -1014,12 +1014,18 @@ export function WorkbookWorkbench({
         const sourceQuery = new URLSearchParams(searchParams.toString());
         const docName = sourceQuery.get("docName");
         for (const key of ["doc", "newDoc", "docName", "fresh"]) sourceQuery.delete(key);
-        const created = await createLessonMaterialDocument(role, {
-          kind: "workbook",
-          projectIds: ids,
-          name: docName || title,
-          sourceQuery: sourceQuery.toString(),
-        });
+        // 서버 액션이 아니라 fetch로 부른다(api/lesson-materials/documents/open 참고).
+        const created = await postJson<Awaited<ReturnType<typeof createLessonMaterialDocument>>>(
+          "/api/lesson-materials/documents/open",
+          {
+            op: "create",
+            role,
+            kind: "workbook",
+            projectIds: ids,
+            name: docName || title,
+            sourceQuery: sourceQuery.toString(),
+          }
+        );
         if (cancelled) return;
         if (created.ok) {
           docId = created.id;
@@ -1034,7 +1040,10 @@ export function WorkbookWorkbench({
       // 자료함의 워크북 파일을 연 경우: 저장된 결과를 그대로 보여 준다.
       if (docId && !freshRequest) {
         setStatus("워크북 파일을 불러오고 있습니다…");
-        const doc = await getWorkbookDocument(role, { id: docId });
+        const doc = await postJson<Awaited<ReturnType<typeof getWorkbookDocument>>>(
+          "/api/lesson-materials/documents/open",
+          { op: "getWorkbook", role, id: docId }
+        );
         if (cancelled) return;
         if (!doc.ok) {
           setError(doc.message);
@@ -1170,28 +1179,80 @@ export function WorkbookWorkbench({
           wantGrammarChoice &&
           (searchParams.get("fresh") === "1" ||
             searchParams.get("forceRegen") === "1");
-        // 어법 선택은 지문당 요청을 따로 보낸다. 한 요청에 다 묶으면 지문이 늘수록
-        // 서버리스 실행시간 상한을 넘겨 통째로 실패한다.
-        const res = await generateWorkbookAction(role, {
-          projectIds: ids,
-          selectedTypes: types,
-          tfOptions: { count, language, difficulty },
-          blankOptions,
-          title,
-          lineTranslationExcludeIds: ltExclude,
-          forceRegenerate,
-          deferGrammarChoice: wantGrammarChoice,
-        });
+        /**
+         * 어법 선택은 다른 유형과 동시에 시작하고, 다 끝나면 워크북을 한 번에 보여 준다.
+         *
+         * 예전에는 다른 유형이 다 끝난 뒤에 어법 선택을 시작하고 워크북을 먼저 보여 줬다.
+         * 그러면 시간이 두 단계만큼 더해지고(7유형 4지문: 23초 + 40초), 화면을 켜면 그제야
+         * 어법을 만들고 있었다. 선생님이 다른 워크북과 같이 만들어 달라고 했다(2026-09-13).
+         * 어법 선택은 지문당 요청을 따로 보낸다. 한 요청에 다 묶으면 지문이 늘수록
+         * 서버리스 실행시간 상한을 넘겨 통째로 실패한다.
+         */
+        const grammarTask = wantGrammarChoice
+          ? (async () => {
+              const results = new Array<WorkbookGrammarChoiceSection | null>(ids.length).fill(null);
+              const skips = new Array<WorkbookGrammarChoiceSkip | null>(ids.length).fill(null);
+              // 지문끼리는 서로 독립이므로 함께 띄운다. 요청 하나가 지문 하나라 함수 실행시간에는 영향이 없다.
+              let next = 0;
+              const worker = async () => {
+                for (;;) {
+                  const i = next;
+                  next += 1;
+                  if (i >= ids.length || cancelled) return;
+                  const one = await postJson<
+                    Awaited<ReturnType<typeof generateGrammarChoicePassageAction>>
+                  >("/api/lesson-materials/grammar-choice", {
+                    role,
+                    projectId: ids[i]!,
+                    forceRegenerate,
+                  });
+                  if (cancelled) return;
+                  if (!one.ok) {
+                    // 한 지문이 실패해도 나머지는 살린다. 끝난 지문은 이미 캐시에 있다.
+                    skips[i] = { projectId: ids[i]!, title: ids[i]!, reason: one.message };
+                  } else {
+                    results[i] = one.section;
+                    if (one.skipped) skips[i] = one.skipped;
+                  }
+                }
+              };
+              await Promise.all(
+                Array.from({ length: Math.min(GRAMMAR_CHOICE_PASSAGE_CONCURRENCY, ids.length) }, worker)
+              );
+              return {
+                sections: results.filter((section): section is WorkbookGrammarChoiceSection => section !== null),
+                skipped: skips.filter((skip): skip is WorkbookGrammarChoiceSkip => skip !== null),
+              };
+            })()
+          : Promise.resolve(null);
+
+        const res = await postJson<Awaited<ReturnType<typeof generateWorkbookAction>>>(
+          "/api/lesson-materials/workbook",
+          {
+            role,
+            input: {
+              projectIds: ids,
+              selectedTypes: types,
+              tfOptions: { count, language, difficulty },
+              blankOptions,
+              title,
+              lineTranslationExcludeIds: ltExclude,
+              forceRegenerate,
+              deferGrammarChoice: wantGrammarChoice,
+            },
+          }
+        );
         if (timers.status) clearTimeout(timers.status);
         timers.status = null;
         if (cancelled) return;
         if (!res.ok) {
           setError(res.message);
-          if (res.code === "MISSING_TRANSLATION") {
+          const failure = res as { code?: string; lineTranslationExcludeIds?: string[] };
+          if (failure.code === "MISSING_TRANSLATION") {
             setErrorCode("MISSING_TRANSLATION");
-          } else if (res.code === "MISSING_LINE_TRANSLATION") {
+          } else if (failure.code === "MISSING_LINE_TRANSLATION") {
             setErrorCode("MISSING_LINE_TRANSLATION");
-            setLineTranslationExcludeIds(res.lineTranslationExcludeIds ?? []);
+            setLineTranslationExcludeIds(failure.lineTranslationExcludeIds ?? []);
           } else {
             setErrorCode(null);
           }
@@ -1200,79 +1261,11 @@ export function WorkbookWorkbench({
         }
 
         const workbook = res.workbook;
-        /**
-         * 어법 선택은 다른 유형이 다 만들어진 뒤에 만든다. 다른 유형이 함께 있으면
-         * 워크북을 먼저 보여 주고, 어법 선택은 끝나는 대로 붙인다. 어법 선택이
-         * 가장 오래 걸려서, 기다리는 동안 나머지를 볼 수 있게 한다.
-         */
-        const grammarChoiceLater = wantGrammarChoice && types.length > 1;
-        if (grammarChoiceLater) {
-          setSourceNote(creatingNew ? "new" : "existing");
-          saveWorkbookToSession(workbook);
-          setWorkbook(workbook);
-          setGrammarChoicePending(true);
-          setGenerating(false);
-        }
-        if (wantGrammarChoice) {
-          const results = new Array<WorkbookGrammarChoiceSection | null>(
-            ids.length
-          ).fill(null);
-          const skips = new Array<WorkbookGrammarChoiceSkip | null>(
-            ids.length
-          ).fill(null);
-          // 진행률은 보여 주지 않는다. 지문들이 함께 돌아 거의 동시에 끝나므로
-          // 완료 지문 수로 센 퍼센트는 0%에 머물다가 100%로 뛸 뿐이었다.
-
-          // 지문끼리는 서로 독립이므로 함께 띄운다. 순차로 돌리면 지문 수만큼
-          // 그대로 느려진다. 요청 하나가 지문 하나라 함수 실행시간에는 영향이 없다.
-          let next = 0;
-          const worker = async () => {
-            for (;;) {
-              const i = next;
-              next += 1;
-              if (i >= ids.length || cancelled) return;
-              const one = await postJson<
-                Awaited<ReturnType<typeof generateGrammarChoicePassageAction>>
-              >("/api/lesson-materials/grammar-choice", {
-                role,
-                projectId: ids[i]!,
-                forceRegenerate,
-              });
-              if (cancelled) return;
-              if (!one.ok) {
-                // 한 지문이 실패해도 나머지는 살린다. 끝난 지문은 이미 캐시에 있다.
-                skips[i] = {
-                  projectId: ids[i]!,
-                  title: ids[i]!,
-                  reason: one.message,
-                };
-              } else {
-                results[i] = one.section;
-                if (one.skipped) skips[i] = one.skipped;
-              }
-            }
-          };
-          await Promise.all(
-            Array.from({ length: Math.min(GRAMMAR_CHOICE_PASSAGE_CONCURRENCY, ids.length) }, worker)
-          );
-          if (cancelled) return;
-
-          const grammarChoiceSections = results.filter(
-            (section): section is WorkbookGrammarChoiceSection => section !== null
-          );
-          const grammarChoiceSkipped = skips.filter(
-            (skip): skip is WorkbookGrammarChoiceSkip => skip !== null
-          );
-          if (grammarChoiceLater) {
-            const merged = { ...workbook, grammarChoiceSections, grammarChoiceSkipped };
-            saveWorkbookToSession(merged);
-            setWorkbook(merged);
-            setGrammarChoicePending(false);
-            void persistToDocument(merged);
-            return;
-          }
-          workbook.grammarChoiceSections = grammarChoiceSections;
-          workbook.grammarChoiceSkipped = grammarChoiceSkipped;
+        const grammar = await grammarTask;
+        if (cancelled) return;
+        if (grammar) {
+          workbook.grammarChoiceSections = grammar.sections;
+          workbook.grammarChoiceSkipped = grammar.skipped;
         }
         setSourceNote(creatingNew ? "new" : "existing");
         saveWorkbookToSession(workbook);
