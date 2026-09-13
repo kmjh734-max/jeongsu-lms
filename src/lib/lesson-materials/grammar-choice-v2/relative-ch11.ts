@@ -196,10 +196,8 @@ export function relativeLocalDistractor(code: string, sourceSpan: string): strin
   if (code === "RELATIVE_NONRESTRICTIVE" && lower === "which") return "that";
   if (code === "RELATIVE_PREPOSITION_WHICH" && lower === "which") return "that";
   if (code === "RELATIVE_PREPOSITION_WHOM" && lower === "whom") return "that";
-  if (code === "RELATIVE_WHO_WHOM") {
-    if (lower === "who") return "whom";
-    if (lower === "whom") return "who";
-  }
+  // who/whom은 요즘 시험에서 잘 묻지 않는다(선생님, 2026-09-11). 사람 선행사에 which를 오답으로 둔다.
+  if (code === "RELATIVE_WHO_WHOM" && (lower === "who" || lower === "whom")) return "which";
   if (code === "RELATIVE_WHAT" && lower === "what") return "that";
   if (code === "RELATIVE_SUBJECT" && (lower === "that" || lower === "which")) return "what";
   if (code === "RELATIVE_POSSESSIVE" && lower === "whose") return "who";

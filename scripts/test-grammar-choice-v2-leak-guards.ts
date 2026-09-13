@@ -7,6 +7,8 @@ import { rejectFabricatedDistractor } from "../src/lib/lesson-materials/grammar-
 import { checkLabelContract } from "../src/lib/lesson-materials/grammar-choice-v2/label-contract";
 import { rejectCandidate, spanStart } from "../src/lib/lesson-materials/grammar-choice-v2/local-validators";
 import { rejectAtPosition } from "../src/lib/lesson-materials/grammar-choice-v2/position-guards";
+import { preferWhichOverWhom } from "../src/lib/lesson-materials/grammar-choice-v2/pipeline";
+import { relativeLocalDistractor } from "../src/lib/lesson-materials/grammar-choice-v2/relative-ch11";
 import { buildSlotSentence } from "../src/lib/lesson-materials/grammar-choice-v2/uniqueness-audit";
 import type { GrammarCandidate, GrammarPointCode } from "../src/lib/lesson-materials/grammar-choice-v2/types";
 
@@ -42,6 +44,8 @@ const LEAKS: Array<[...Row, string]> = [
   ["RELATIVE_OMISSION", "it would take", "would take it", "However, he believed that one bad race was all it would take for others to doubt his athletic abilities.", "IMPLAUSIBLE_DISTRACTOR"],
   ["OBJECT_COMPLEMENT_BARE_V", "continue functioning", "continue to functioning", "This essential survival mechanism relieves negative feelings and helps us continue functioning effectively.", "IMPLAUSIBLE_DISTRACTOR"],
   ["DUMMY_IT_SUBJECT", "it", "them", "However, it seems you don’t feel up to the task.", "TOO_BASIC_FOR_LEVEL"],
+  // 선생님 지적
+  ["CORRELATIVE_CONJUNCTION", "as a", "a", "Well, Albert Einstein actually thought of himself, at least in his later years, not as a genius but as a fraud!", "BOTH_GRAMMATICAL"],
   // 4차 실행
   ["PARALLEL_NOUN_PHRASES", "songs you don’t", "you don’t songs", "alternating between listening to songs you like and songs you don’t?", "IMPLAUSIBLE_DISTRACTOR"],
   ["SUBJECT_COMPLEMENT", "a", "to a", "The result can be a misunderstood text with the need for further clarification.", "IMPLAUSIBLE_DISTRACTOR"],
@@ -210,3 +214,17 @@ assert.equal(local("NOUN_CLAUSE_THAT", "that", "what", "Studies show that more t
 assert.notEqual(local("PRONOUN_SUBJECT_OBJECT_CASE", "them", "they", "The teacher gave them a lot of homework."), "TOO_BASIC_FOR_LEVEL");
 
 console.log("leak-guards ok");
+
+// 6. who/whom 대신 who/which (선생님: 요즘 who/whom은 잘 안 묻는다)
+{
+  const base = {
+    candidateId: "x", sentenceId: "s", sourceSpan: "who", occurrenceIndex: 0, correctAnswer: "who",
+    transformCode: "FORM_SWAP", priority: "CORE", difficulty: "CORE", evidence: "", ruleSummaryKo: "", riskLevel: "MEDIUM",
+  };
+  const subject = preferWhichOverWhom({ ...base, pointCode: "RELATIVE_WHO_WHOM", distractors: ["whom"] } as unknown as GrammarCandidate);
+  assert.deepEqual([subject.pointCode, subject.distractors[0]], ["RELATIVE_SUBJECT", "which"]);
+  const kept = preferWhichOverWhom({ ...base, pointCode: "RELATIVE_SUBJECT", distractors: ["what"] } as unknown as GrammarCandidate);
+  assert.equal(kept.distractors[0], "what");
+  assert.equal(relativeLocalDistractor("RELATIVE_WHO_WHOM", "whom"), "which");
+  console.log("who/which ok");
+}

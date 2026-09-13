@@ -47,6 +47,7 @@ import type {
   DetectedGrammarPoint,
   ExactSentence,
   GrammarCandidate,
+  GrammarPointCode,
   GrammarPriority,
   LocalRejectCode,
   ResolvedCandidate,
@@ -160,7 +161,7 @@ export function resolveAndFilter(input: {
   const seenPair = new Set<string>();
 
   for (const raw of candidates) {
-    let candidate = repairForbiddenConditionalDistractor(raw);
+    let candidate = preferWhichOverWhom(repairForbiddenConditionalDistractor(raw));
     const policy = generationPolicyFor(candidate.pointCode);
     if (policy === "NOT_QUESTIONABLE") {
       rejected.push({
@@ -1120,6 +1121,26 @@ function testsWordOrder(candidate: GrammarCandidate): boolean {
  * 검사에서 접속사·전치사 대비, Were 도치 가정이 이 사유로 빠졌다). 원문 표기로
  * 바꾸고, 원문이 대문자로 시작하면 오답 첫 글자도 대문자로 맞춘다.
  */
+/**
+ * [who / whom]은 요즘 시험에서 잘 묻지 않고 who / which가 낫다(선생님, 2026-09-11:
+ * an athlete [whom / who] had won). 사람 선행사 자리에 which를 오답으로 바꿔 둔다.
+ * 코드도 주격·목적격 관계대명사로 맞춘다.
+ */
+export function preferWhichOverWhom(candidate: GrammarCandidate): GrammarCandidate {
+  const correct = candidate.correctAnswer.trim();
+  const wrong = (candidate.distractors[0] ?? "").trim();
+  const pair = [correct.toLowerCase(), wrong.toLowerCase()].sort().join("|");
+  if (pair !== "who|whom") return candidate;
+  const which = /^[A-Z]/.test(wrong) ? "Which" : "which";
+  const pointCode: GrammarPointCode =
+    candidate.pointCode === "RELATIVE_WHO_WHOM"
+      ? correct.toLowerCase() === "who"
+        ? "RELATIVE_SUBJECT"
+        : "RELATIVE_OBJECT"
+      : candidate.pointCode;
+  return { ...candidate, pointCode, distractors: [which, ...candidate.distractors.slice(1)] };
+}
+
 function matchSourceCase(candidate: GrammarCandidate, text: string): GrammarCandidate {
   const span = candidate.sourceSpan;
   if (!span || text.includes(span)) return candidate;

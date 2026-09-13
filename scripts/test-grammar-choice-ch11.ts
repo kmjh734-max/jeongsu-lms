@@ -58,7 +58,8 @@ assert.equal(questions(movementThat, "RELATIVE_WHAT").length, 0);
 const darwin = "It preserves the members who are well suited to their environment.";
 assert.deepEqual(spans(darwin, "RELATIVE_WHO_WHOM"), ["who"]);
 assert.equal(questions(darwin, "RELATIVE_AGREEMENT").length, 0);
-assert.equal(relativeLocalDistractor("RELATIVE_WHO_WHOM", "who"), "whom");
+// who/whom 대신 사람 선행사에 which를 오답으로 둔다(선생님, 2026-09-11).
+assert.equal(relativeLocalDistractor("RELATIVE_WHO_WHOM", "who"), "which");
 
 assert.deepEqual(spans("She found the plan which works best here.", "RELATIVE_SUBJECT"), ["which"]);
 assert.deepEqual(spans("This is the idea that will change everything.", "RELATIVE_SUBJECT"), ["that"]);

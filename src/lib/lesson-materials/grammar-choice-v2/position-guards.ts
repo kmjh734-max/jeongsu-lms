@@ -190,6 +190,18 @@ export function rejectAtPosition(input: {
     return "DISTRACTOR_NOT_ALLOWED";
   }
 
+  // not as a genius but [as a / a] fraud: 상관접속사(not … but, both … and …) 뒤에 되풀이한
+  // 전치사는 빼도 문법적이다. 선생님이 짚었다(2026-09-11).
+  if (
+    w.length === c.length - 1 &&
+    (PREPOSITIONS.has(c[0]!) || c[0] === "as") &&
+    c.slice(1).join(" ") === w.join(" ") &&
+    /\b(?:not|both|either|neither|rather than)\b/i.test(sentence) &&
+    new RegExp(`\\b${c[0]}\\b`, "i").test(`${before} ${after}`)
+  ) {
+    return "BOTH_GRAMMATICAL";
+  }
+
   // 3차 실행(2026-09-11)
   // no matter how [much / many] other people believe ...: 뒤가 복수 명사면 many도 문법적이다.
   // (is·seems 같은 동사와 progress처럼 -ss로 끝나는 불가산 명사는 복수로 보지 않는다.)
