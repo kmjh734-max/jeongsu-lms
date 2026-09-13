@@ -1,7 +1,6 @@
 import type {
   GrammarFixRenderSegment,
   WorkbookGrammarChoiceItem,
-  WorkbookGrammarChoiceSection,
   WorkbookGrammarChoiceSkip,
   WorkbookGrammarFixAnswer,
   WorkbookGrammarFixOptions,
@@ -15,6 +14,27 @@ import type {
  * 맞다"는 검수를 이미 거쳤다. 그중 몇 곳에 틀린 형태를 넣으면, 틀린 곳은 확실히 틀리고
  * 밑줄 친 나머지는 확실히 맞는 어법 수정 문항이 된다. 모델을 다시 부르지 않는다.
  */
+
+/**
+ * 어법 선택·어휘 선택 모두 [맞는 것 / 틀린 것] 쌍과 지문 속 위치를 갖고 있어, 같은 방법으로
+ * 수정형(어법 수정·어휘 수정)을 만든다.
+ */
+type PairItem = Pick<
+  WorkbookGrammarChoiceItem,
+  | "startCharIndex"
+  | "endCharIndex"
+  | "correctText"
+  | "incorrectText"
+  | "sentenceId"
+  | "grammarCategoryId"
+> & { learningValue: number };
+type PairSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  sourcePassage: string;
+  items: PairItem[];
+};
 
 /** 밑줄형에서 밑줄 칠 곳 수의 상한. */
 const MAX_UNDERLINES = 8;
@@ -64,7 +84,7 @@ function matchLeadingCase(text: string, like: string): string {
   return text;
 }
 
-function tooClose(a: WorkbookGrammarChoiceItem, b: WorkbookGrammarChoiceItem): boolean {
+function tooClose(a: PairItem, b: PairItem): boolean {
   const gap =
     a.startCharIndex < b.startCharIndex
       ? b.startCharIndex - a.endCharIndex
@@ -77,13 +97,13 @@ function tooClose(a: WorkbookGrammarChoiceItem, b: WorkbookGrammarChoiceItem): b
  * 붙어 있는 자리는 끝까지 함께 고르지 않는다.
  */
 function pickSpread(
-  pool: WorkbookGrammarChoiceItem[],
+  pool: PairItem[],
   count: number,
-  key: (it: WorkbookGrammarChoiceItem) => string
-): WorkbookGrammarChoiceItem[] {
-  const chosen: WorkbookGrammarChoiceItem[] = [];
+  key: (it: PairItem) => string
+): PairItem[] {
+  const chosen: PairItem[] = [];
   const usedKeys = new Set<string>();
-  const fits = (it: WorkbookGrammarChoiceItem) =>
+  const fits = (it: PairItem) =>
     !chosen.includes(it) && !chosen.some((c) => tooClose(c, it));
   for (const it of pool) {
     if (chosen.length >= count) break;
@@ -100,7 +120,7 @@ function pickSpread(
 }
 
 export function buildGrammarFixSection(
-  section: WorkbookGrammarChoiceSection,
+  section: PairSection,
   options: WorkbookGrammarFixOptions
 ): WorkbookGrammarFixSection | null {
   const passage = section.sourcePassage;
@@ -119,8 +139,8 @@ export function buildGrammarFixSection(
   // 학습 가치가 높은 자리를 먼저, 같으면 무작위로.
   const pool = shuffle(usable, rand).sort((a, b) => b.learningValue - a.learningValue);
 
-  let spots: WorkbookGrammarChoiceItem[];
-  let errors: WorkbookGrammarChoiceItem[];
+  let spots: PairItem[];
+  let errors: PairItem[];
   if (options.mode === "underline") {
     // 맞게 쓴 밑줄이 적어도 하나는 있어야 "틀린 것 찾기"가 된다.
     const errorTarget = Math.min(options.errorCount, Math.max(1, usable.length - 1));
@@ -168,8 +188,9 @@ export function buildGrammarFixSection(
 
 /** 어법 선택 결과 전부를 어법 수정으로 바꾼다. 만들 수 없는 지문은 건너뛴 목록에 둔다. */
 export function buildGrammarFixSections(
-  choiceSections: WorkbookGrammarChoiceSection[],
-  options: WorkbookGrammarFixOptions
+  choiceSections: PairSection[],
+  options: WorkbookGrammarFixOptions,
+  skipReason = "어법 수정으로 바꿀 자리가 없어 제외했습니다."
 ): { sections: WorkbookGrammarFixSection[]; skipped: WorkbookGrammarChoiceSkip[] } {
   const sections: WorkbookGrammarFixSection[] = [];
   const skipped: WorkbookGrammarChoiceSkip[] = [];
@@ -180,9 +201,17 @@ export function buildGrammarFixSections(
       skipped.push({
         projectId: s.projectId,
         title: s.title,
-        reason: "어법 수정으로 바꿀 자리가 없어 제외했습니다.",
+        reason: skipReason,
       });
     }
   }
   return { sections, skipped };
+}
+
+/** 어휘 선택 쌍으로 어휘 수정을 만든다. */
+export function buildVocabFixSections(
+  choiceSections: PairSection[],
+  options: WorkbookGrammarFixOptions
+) {
+  return buildGrammarFixSections(choiceSections, options, "어휘 수정으로 바꿀 자리가 없어 제외했습니다.");
 }

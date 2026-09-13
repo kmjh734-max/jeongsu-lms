@@ -53,6 +53,7 @@ export function buildWorkbookHref(
     tfOptions: WorkbookTfOptions;
     blankOptions: WorkbookBlankFillOptions;
     grammarFixOptions?: WorkbookGrammarFixOptions;
+    vocabFixOptions?: WorkbookGrammarFixOptions;
     title: string;
   }
 ) {
@@ -75,6 +76,11 @@ export function buildWorkbookHref(
     const gf = opts.grammarFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS;
     params.set("gfMode", gf.mode);
     params.set("gfErrors", String(clampGrammarFixErrors(gf.errorCount)));
+  }
+  if (types.includes("vocab_fix")) {
+    const vf = opts.vocabFixOptions ?? DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS;
+    params.set("vfMode", vf.mode);
+    params.set("vfErrors", String(clampGrammarFixErrors(vf.errorCount)));
   }
   params.set("title", opts.title.trim() || defaultWorkbookTitle());
   params.set("fresh", "1");
@@ -107,6 +113,9 @@ export function WorkbookCreateModal({
   const [grammarFixOptions, setGrammarFixOptions] = useState<WorkbookGrammarFixOptions>(
     DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS
   );
+  const [vocabFixOptions, setVocabFixOptions] = useState<WorkbookGrammarFixOptions>(
+    DEFAULT_WORKBOOK_GRAMMAR_FIX_OPTIONS
+  );
   const [title, setTitle] = useState(() => defaultWorkbookTitle());
   const [error, setError] = useState<string | null>(null);
 
@@ -130,6 +139,7 @@ export function WorkbookCreateModal({
   const wantBlank = selected.has("blank_fill");
   const wantSentenceOrder = selected.has("sentence_order");
   const wantGrammarFix = selected.has("grammar_fix");
+  const wantVocabFix = selected.has("vocab_fix");
   const wantLineKo = selected.has("one_line_ko");
   const wantFullEn = selected.has("full_en_writing");
   const wantWordOrder = selected.has("word_order_writing");
@@ -180,6 +190,7 @@ export function WorkbookCreateModal({
       },
       blankOptions,
       grammarFixOptions,
+      vocabFixOptions,
       title: title.trim() || defaultWorkbookTitle(),
     });
     // 워크북도 파일로 저장한다. 제목이 곧 파일 이름이고, 만든 조건(유형·옵션)을 함께 둔다.
@@ -461,55 +472,21 @@ export function WorkbookCreateModal({
               ) : null}
 
               {wantGrammarFix ? (
-                <div className="space-y-3">
-                  <p className="text-sm font-bold text-slate-900">어법 수정 옵션</p>
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
-                    <OptionRow tone="violet" label="출제 방식">
-                      <div className="space-y-2">
-                        <TogglePair
-                          tone="violet"
-                          left={{ id: "underline", label: "밑줄 표시" }}
-                          right={{ id: "find", label: "밑줄 없음" }}
-                          value={grammarFixOptions.mode}
-                          onChange={(mode) =>
-                            setGrammarFixOptions((o) => ({
-                              ...o,
-                              mode: mode === "find" ? "find" : "underline",
-                            }))
-                          }
-                        />
-                        <p className="text-[11px] text-violet-600">
-                          {grammarFixOptions.mode === "underline"
-                            ? "밑줄 친 여러 곳 중 어법상 틀린 것을 찾아 고칩니다."
-                            : "밑줄 없이 지문 전체에서 어법상 틀린 곳을 찾아 고칩니다."}
-                        </p>
-                      </div>
-                    </OptionRow>
-                    <OptionRow tone="violet" label="틀린 곳 수">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {GRAMMAR_FIX_ERROR_COUNTS.map((n) => (
-                          <button
-                            key={n}
-                            type="button"
-                            onClick={() =>
-                              setGrammarFixOptions((o) => ({ ...o, errorCount: n }))
-                            }
-                            className={`rounded-md px-3 py-1 text-xs font-bold ${
-                              grammarFixOptions.errorCount === n
-                                ? "bg-violet-600 text-white"
-                                : "border border-slate-200 bg-white text-slate-600"
-                            }`}
-                          >
-                            {n}개
-                          </button>
-                        ))}
-                        <span className="text-[11px] text-slate-500">
-                          지문 1개당, 고칠 자리가 모자란 지문은 적게 나옵니다.
-                        </span>
-                      </div>
-                    </OptionRow>
-                  </div>
-                </div>
+                <FixOptions
+                  title="어법 수정 옵션"
+                  subject="어법상 틀린"
+                  options={grammarFixOptions}
+                  onChange={setGrammarFixOptions}
+                />
+              ) : null}
+
+              {wantVocabFix ? (
+                <FixOptions
+                  title="어휘 수정 옵션"
+                  subject="문맥상 쓰임이 적절하지 않은"
+                  options={vocabFixOptions}
+                  onChange={setVocabFixOptions}
+                />
               ) : null}
 
               {wantSentenceOrder ? (
@@ -598,6 +575,66 @@ export function WorkbookCreateModal({
             </>
           )}
         </footer>
+      </div>
+    </div>
+  );
+}
+
+/** 어법 수정·어휘 수정 공통 옵션: 출제 방식(밑줄 표시/없음)과 지문당 틀린 곳 수. */
+function FixOptions({
+  title,
+  subject,
+  options,
+  onChange,
+}: {
+  title: string;
+  subject: string;
+  options: WorkbookGrammarFixOptions;
+  onChange: (next: WorkbookGrammarFixOptions) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-bold text-slate-900">{title}</p>
+      <div className="overflow-hidden rounded-xl border border-slate-200">
+        <OptionRow tone="violet" label="출제 방식">
+          <div className="space-y-2">
+            <TogglePair
+              tone="violet"
+              left={{ id: "underline", label: "밑줄 표시" }}
+              right={{ id: "find", label: "밑줄 없음" }}
+              value={options.mode}
+              onChange={(mode) =>
+                onChange({ ...options, mode: mode === "find" ? "find" : "underline" })
+              }
+            />
+            <p className="text-[11px] text-violet-600">
+              {options.mode === "underline"
+                ? `밑줄 친 여러 곳 중 ${subject} 것을 찾아 고칩니다.`
+                : `밑줄 없이 지문 전체에서 ${subject} 곳을 찾아 고칩니다.`}
+            </p>
+          </div>
+        </OptionRow>
+        <OptionRow tone="violet" label="틀린 곳 수">
+          <div className="flex flex-wrap items-center gap-2">
+            {GRAMMAR_FIX_ERROR_COUNTS.map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => onChange({ ...options, errorCount: n })}
+                className={`rounded-md px-3 py-1 text-xs font-bold ${
+                  options.errorCount === n
+                    ? "bg-violet-600 text-white"
+                    : "border border-slate-200 bg-white text-slate-600"
+                }`}
+              >
+                {n}개
+              </button>
+            ))}
+            <span className="text-[11px] text-slate-500">
+              지문 1개당, 고칠 자리가 모자란 지문은 적게 나옵니다.
+            </span>
+          </div>
+        </OptionRow>
       </div>
     </div>
   );

@@ -74,7 +74,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "vocab_choice",
     title: "어휘 선택",
     subtitle: "[A/B] 중 문맥에 알맞은 어휘 고르기",
-    ready: false,
+    ready: true,
     displayOrder: 6,
     printOrder: 6,
   },
@@ -82,7 +82,7 @@ export const WORKBOOK_TYPE_CATALOG: WorkbookTypeMeta[] = [
     id: "vocab_fix",
     title: "어휘 수정",
     subtitle: "문맥상 어색한 어휘를 고치는 서술형",
-    ready: false,
+    ready: true,
     displayOrder: 7,
     printOrder: 7,
   },
@@ -620,6 +620,13 @@ export type WorkbookData = {
   grammarFixSections?: WorkbookGrammarFixSection[];
   grammarFixSkipped?: WorkbookGrammarChoiceSkip[];
   grammarFixOptions?: WorkbookGrammarFixOptions;
+  /** 어휘 선택: [원래 낱말 / 문맥상 틀린 낱말] 중 고르기. 어휘 수정의 재료이기도 하다. */
+  vocabChoiceSections?: WorkbookVocabChoiceSection[];
+  vocabChoiceSkipped?: WorkbookGrammarChoiceSkip[];
+  /** 어휘 수정: 어휘 선택 쌍으로 만든다(구조는 어법 수정과 같다). */
+  vocabFixSections?: WorkbookGrammarFixSection[];
+  vocabFixSkipped?: WorkbookGrammarChoiceSkip[];
+  vocabFixOptions?: WorkbookGrammarFixOptions;
   /** 유형별 단 수. 없으면 1단. 한줄해석·통문장 영작·어순배열 영작은 늘 1단이다. */
   columnLayout?: Partial<Record<WorkbookColumnTypeId, 1 | 2>>;
   timing?: WorkbookGenerationTiming;
@@ -629,6 +636,8 @@ export type WorkbookData = {
 export const WORKBOOK_COLUMN_TYPES = [
   "grammar_choice",
   "grammar_fix",
+  "vocab_choice",
+  "vocab_fix",
   "blank_fill",
   "tf",
   "sentence_order",
@@ -675,6 +684,36 @@ export type WorkbookGrammarFixAnswer = {
   number: number | null;
   wrongText: string;
   correctText: string;
+};
+
+export type WorkbookVocabChoiceItem = {
+  number: number;
+  choiceId: string;
+  sentenceId: string;
+  /** Inclusive start / exclusive end in sourcePassage */
+  startCharIndex: number;
+  endCharIndex: number;
+  correctText: string;
+  incorrectText: string;
+  leftText: string;
+  rightText: string;
+  correctSide: "left" | "right";
+  /** 문맥상 원래 낱말의 뜻 */
+  meaningKo: string;
+  relation: string;
+  learningValue: number;
+  /** 수정형을 만들 때 자리를 고르게 퍼뜨리는 열쇠(어법의 문법 항목 자리) */
+  grammarCategoryId: string;
+};
+
+export type WorkbookVocabChoiceSection = {
+  projectId: string;
+  title: string;
+  source: string | null;
+  sourcePassage: string;
+  segments: GrammarChoiceRenderSegment[];
+  items: WorkbookVocabChoiceItem[];
+  algorithmVersion: string;
 };
 
 export type WorkbookGrammarFixSection = {

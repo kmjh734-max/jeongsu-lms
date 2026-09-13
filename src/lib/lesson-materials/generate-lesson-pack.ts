@@ -28,6 +28,8 @@ export type LessonPackData = {
   grammarChoiceV5Cache?: import("@/lib/lesson-materials/grammar-choice-v5-cache").StoredGrammarChoiceV5Cache | null;
   /** Grammar Choice V2 cache. Never copy V1 items into this field. */
   grammarChoiceV2Cache?: import("@/lib/lesson-materials/grammar-choice-v2/cache").StoredGrammarChoiceV2Cache | null;
+  /** 어휘 선택·어휘 수정 재료(검수 통과한 [원래 낱말 / 틀린 낱말] 쌍) */
+  vocabChoiceCache?: import("@/lib/lesson-materials/vocab-choice").StoredVocabChoiceCache | null;
 };
 
 function parseJsonSafe<T>(text: string): T | null {

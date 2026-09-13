@@ -23,6 +23,10 @@ import { SENTENCE_ORDER_SKIP_TOO_FEW } from "@/lib/lesson-materials/sentence-ord
 import type { LessonPackData, LessonPackVocabItem } from "@/lib/lesson-materials/generate-lesson-pack";
 import type { StoredBlankCandidatePool } from "@/lib/lesson-materials/workbook-blank-cache";
 import {
+  generateVocabChoiceForPassage,
+  type StoredVocabChoiceCache,
+} from "@/lib/lesson-materials/vocab-choice";
+import {
   DEFAULT_WORKBOOK_TF_OPTIONS,
   READY_WORKBOOK_TYPE_IDS,
   clampTfCount,
@@ -37,6 +41,7 @@ import {
   type WorkbookGrammarChoiceSection,
   type WorkbookGrammarChoiceSkip,
   type WorkbookTypeId,
+  type WorkbookVocabChoiceSection,
 } from "@/lib/lesson-materials/workbook-types";
 
 type Role = "admin" | "teacher";
@@ -223,13 +228,17 @@ export async function generateWorkbookAction(
       source: (p!.source as string | null) ?? null,
       sentences,
       englishLines: sentences.map((s) => s.english),
-      blankPool: (pack.blankCandidatePool as StoredBlankCandidatePool) ?? null,
+      // 자료함에서 제작을 누른 경우(forceRegenerate)는 저장된 빈칸 후보·어순 청크도 쓰지 않고 새로 만든다.
+      blankPool: input.forceRegenerate
+        ? null
+        : ((pack.blankCandidatePool as StoredBlankCandidatePool) ?? null),
       vocabLemmas: (pack.vocab ?? []).map((v) => v.word),
       vocab: pack.vocab ?? [],
       sentenceTranslations: pack.sentenceTranslations ?? [],
       packJson: pack,
-      wordOrderChunkCache:
-        (pack.wordOrderChunkCache as StoredWordOrderChunkCache) ?? null,
+      wordOrderChunkCache: input.forceRegenerate
+        ? null
+        : ((pack.wordOrderChunkCache as StoredWordOrderChunkCache) ?? null),
       grammarChoiceCache:
         (pack.grammarChoiceCache as StoredGrammarChoiceCache) ?? null,
       grammarBlueprintCache:
@@ -346,6 +355,7 @@ export async function generateWorkbookAction(
         const proj = byId.get(projectId);
         const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
         const next: LessonPackData = {
+          ...prev,
           headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
           vocab: prev.vocab ?? [],
           updatedAt: new Date().toISOString(),
@@ -480,6 +490,7 @@ export async function generateWorkbookAction(
         const proj = byId.get(projectId);
         const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
         const next: LessonPackData = {
+          ...prev,
           headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
           vocab: prev.vocab ?? [],
           updatedAt: new Date().toISOString(),
@@ -591,6 +602,7 @@ export async function generateWorkbookAction(
           const proj = byId.get(projectId);
           const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
           const next: LessonPackData = {
+            ...prev,
             headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
             vocab: prev.vocab ?? [],
             updatedAt: new Date().toISOString(),
@@ -822,32 +834,12 @@ export async function generateGrammarChoicePassageAction(
 
     // 이 지문이 끝나는 즉시 캐시에 남긴다. 뒤 지문이 실패해도 다시 만들지 않는다.
     for (const { cache } of gc.cachesToSave) {
-      const next: LessonPackData = {
-        headerLabel: pack.headerLabel || "26년도 1학기 중간고사 대비",
-        vocab: pack.vocab ?? [],
-        updatedAt: new Date().toISOString(),
-        blankCandidatePool: pack.blankCandidatePool,
-        passageSourceHash: pack.passageSourceHash,
-        sentenceTranslations: pack.sentenceTranslations,
-        wordOrderChunkCache: pack.wordOrderChunkCache,
-        grammarChoiceCache: pack.grammarChoiceCache,
-        grammarBlueprintCache: pack.grammarBlueprintCache,
-        grammarChoiceV5Cache:
-          engine === "v2"
-            ? pack.grammarChoiceV5Cache
-            : (cache as StoredGrammarChoiceV5Cache),
-        grammarChoiceV2Cache:
-          engine === "v2"
-            ? (cache as StoredGrammarChoiceV2Cache)
-            : pack.grammarChoiceV2Cache,
-      };
-      await supabase
-        .from("lesson_material_projects")
-        .update({
-          lesson_pack_json: next,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", project.id);
+      // 어휘 선택이 같은 지문에 동시에 캐시를 저장할 수 있어, 저장 직전에 다시 읽어 합친다.
+      await patchLessonPack(supabase, project.id, pack,
+        engine === "v2"
+          ? { grammarChoiceV2Cache: cache as StoredGrammarChoiceV2Cache }
+          : { grammarChoiceV5Cache: cache as StoredGrammarChoiceV5Cache }
+      );
     }
 
     const stamped = stampGrammarChoiceEngineDiagnostics(gc.sections, selection);
@@ -861,6 +853,132 @@ export async function generateGrammarChoicePassageAction(
     return {
       ok: false,
       message: e instanceof Error ? e.message : "어법 선택 생성 실패",
+    };
+  }
+}
+
+type ServerSupabase = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * lesson_pack_json의 일부 필드만 바꿔 저장한다. 저장 직전에 다시 읽어 합치므로, 같은 지문에
+ * 어법 선택·어휘 선택 캐시가 동시에 저장돼도 서로의 캐시를 지우지 않는다.
+ */
+async function patchLessonPack(
+  supabase: ServerSupabase,
+  projectId: string,
+  fallback: Partial<LessonPackData>,
+  patch: Partial<LessonPackData>
+): Promise<void> {
+  const { data } = await supabase
+    .from("lesson_material_projects")
+    .select("lesson_pack_json")
+    .eq("id", projectId)
+    .maybeSingle();
+  const base = ((data?.lesson_pack_json as Partial<LessonPackData> | null) ?? fallback) || {};
+  const next: LessonPackData = {
+    ...base,
+    ...patch,
+    headerLabel: base.headerLabel || "26년도 1학기 중간고사 대비",
+    vocab: base.vocab ?? [],
+    updatedAt: new Date().toISOString(),
+  };
+  await supabase
+    .from("lesson_material_projects")
+    .update({ lesson_pack_json: next, updated_at: new Date().toISOString() })
+    .eq("id", projectId);
+}
+
+/**
+ * 지문 하나의 어휘 선택 재료를 만든다(어휘 수정도 이것으로 만든다). 어법 선택처럼
+ * 브라우저가 지문마다 따로 부른다(/api/lesson-materials/vocab-choice).
+ */
+export async function generateVocabChoicePassageAction(
+  role: Role,
+  input: { projectId: string; forceRegenerate?: boolean }
+): Promise<
+  | {
+      ok: true;
+      section: WorkbookVocabChoiceSection | null;
+      skipped: WorkbookGrammarChoiceSkip | null;
+    }
+  | { ok: false; message: string }
+> {
+  const { profile, error } = await requireRole(role);
+  if (error) return { ok: false, message: error };
+  const projectId = input.projectId?.trim();
+  if (!projectId) return { ok: false, message: "선택된 자료가 없습니다." };
+
+  const supabase = await createClient();
+  let pq = supabase
+    .from("lesson_material_projects")
+    .select("id,title,source,lesson_pack_json,deleted_at")
+    .eq("id", projectId)
+    .eq("academy_id", profile!.academy_id!)
+    .is("deleted_at", null);
+  if (role === "teacher") {
+    pq = pq.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+  }
+  const { data: projects, error: pErr } = await pq;
+  if (pErr) return { ok: false, message: pErr.message };
+  const project = (projects ?? [])[0];
+  if (!project) return { ok: false, message: "프로젝트를 찾을 수 없습니다." };
+
+  const { data: items, error: iErr } = await supabase
+    .from("lesson_material_items")
+    .select("id,english_text,order_index")
+    .eq("project_id", project.id)
+    .order("order_index", { ascending: true });
+  if (iErr) return { ok: false, message: iErr.message };
+
+  const sentences = (items ?? []).map((it, idx) => ({
+    id: String(it.id ?? `s${idx}`),
+    english: String(it.english_text ?? ""),
+  }));
+  const pack = (project.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+  // 빈칸 후보(핵심 어휘)와 단어장(반의어)을 자리·오답의 참고로 준다.
+  const hints = [
+    ...((pack.blankCandidatePool as StoredBlankCandidatePool | null | undefined)?.candidates ?? [])
+      .slice()
+      .sort((a, b) => (b.finalScore ?? b.priority ?? 0) - (a.finalScore ?? a.priority ?? 0))
+      .slice(0, 16)
+      .map((c) => ({ word: c.answerText, meaningKo: c.meaningKo })),
+    ...(pack.vocab ?? []).map((v) => ({
+      word: v.word,
+      meaningKo: v.meaning,
+      antonyms: v.antonyms ?? [],
+    })),
+  ];
+
+  try {
+    const result = await generateVocabChoiceForPassage({
+      projectId: project.id,
+      title: project.title,
+      source: (project.source as string | null) ?? null,
+      sentences,
+      hints,
+      cache: (pack.vocabChoiceCache as StoredVocabChoiceCache | null | undefined) ?? null,
+      forceRegenerate: input.forceRegenerate === true,
+    });
+    if (result.cacheToSave) {
+      await patchLessonPack(supabase, project.id, pack, {
+        vocabChoiceCache: result.cacheToSave,
+      });
+    }
+    return {
+      ok: true,
+      section: result.section,
+      skipped: result.section
+        ? null
+        : {
+            projectId: project.id,
+            title: project.title,
+            reason: result.reason ?? "어휘 문항을 만들지 못했습니다.",
+          },
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      message: e instanceof Error ? e.message : "어휘 선택 생성 실패",
     };
   }
 }
