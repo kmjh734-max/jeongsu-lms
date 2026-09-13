@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import {
   renameLessonMaterialDocument,
@@ -51,7 +50,6 @@ export function LessonMaterialDocumentList({
   kind: LessonMaterialDocumentKind;
   documents: LessonMaterialDocumentRow[];
 }) {
-  const router = useRouter();
   const [rows, setRows] = useState(documents);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -110,7 +108,6 @@ export function LessonMaterialDocumentList({
       setRows((prev) => prev.map((r) => (r.id === id ? { ...r, name: before } : r)));
       return;
     }
-    router.refresh();
   }
 
   async function trash(ids: string[], question: string) {
@@ -126,7 +123,6 @@ export function LessonMaterialDocumentList({
     const gone = new Set(ids);
     setRows((prev) => prev.filter((r) => !gone.has(r.id)));
     setSelected((prev) => new Set([...prev].filter((id) => !gone.has(id))));
-    router.refresh();
   }
 
   return (

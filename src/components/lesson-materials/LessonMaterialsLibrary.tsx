@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { LessonMaterialDocumentList } from "@/components/lesson-materials/LessonMaterialDocumentList";
 import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 import { Button } from "@/components/ui/Button";
@@ -91,11 +90,20 @@ export function LessonMaterialsLibrary({
   role: "admin" | "teacher";
   data: LessonMaterialLibraryData;
 }) {
-  const router = useRouter();
   useReloadOnNewDeploy();
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
-  const [folderFilter, setFolderFilter] = useState<FolderFilter>("all");
+  const [folderChoice, setFolderChoice] = useState<FolderFilter>("all");
   const [libraryTab, setLibraryTab] = useState<LibraryTab>("materials");
+  /**
+   * 폴더는 지문자료 탭에서만 쓴다. 수업용자료·분석서·워크북 탭은 고른 폴더와 상관없이
+   * 전체를 보여 주고, 왼쪽에서 폴더를 누르면 지문자료 탭으로 돌아간다.
+   */
+  const folderScoped = libraryTab === "materials";
+  const folderFilter: FolderFilter = folderScoped ? folderChoice : "all";
+  function setFolderFilter(next: FolderFilter) {
+    setFolderChoice(next);
+    setLibraryTab("materials");
+  }
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [sortNewest, setSortNewest] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -226,8 +234,9 @@ export function LessonMaterialsLibrary({
   );
   const showProjectList = libraryTab !== "workbook";
 
-  const currentFolderLabel =
-    folderFilter === "all"
+  const currentFolderLabel = !folderScoped
+    ? (LIBRARY_TABS.find((t) => t.id === libraryTab)?.label ?? "전체")
+    : folderFilter === "all"
       ? "전체"
       : folderFilter === "unfiled"
         ? "미분류"
@@ -293,9 +302,9 @@ export function LessonMaterialsLibrary({
           return;
         }
       }
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "순서 저장에 실패했습니다.");
+      // 저장 응답에 새 목록이 실려 오므로 따로 새로 고치지 않는다(runAction 참고).
+    } catch {
+      setError("서버 응답이 늦어 순서를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
       setOrderedProjects(visibleProjects);
     } finally {
       savingOrder.current = false;
@@ -351,18 +360,26 @@ export function LessonMaterialsLibrary({
     setSelected(new Set(orderedProjects.map((p) => p.id)));
   }
 
+  /**
+   * 서버 작업을 부르고 결과를 반영한다. 작업들이 revalidatePath를 부르므로 응답에 새 목록이
+   * 이미 실려 온다. 예전에는 그 뒤에 router.refresh()로 목록을 한 번 더 불러와 이동·복사
+   * 때마다 기다림이 두 배였다.
+   */
   function runAction(fn: () => Promise<{ ok: boolean; message: string }>) {
     setError(null);
+    setMoveOpen(false);
+    setCopyOpen(false);
     startTransition(async () => {
-      const res = await fn();
-      if (!res.ok) {
-        setError(res.message);
-        return;
+      try {
+        const res = await fn();
+        if (!res.ok) {
+          setError(res.message);
+          return;
+        }
+        setSelected(new Set());
+      } catch {
+        setError("서버 응답이 늦어 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.");
       }
-      setSelected(new Set());
-      setMoveOpen(false);
-      setCopyOpen(false);
-      router.refresh();
     });
   }
 
@@ -626,7 +643,7 @@ export function LessonMaterialsLibrary({
               setSelected(new Set());
             }}
             className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
-              folderFilter === "all"
+              folderScoped && folderChoice === "all"
                 ? "bg-violet-100 font-semibold text-violet-800"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
@@ -642,7 +659,7 @@ export function LessonMaterialsLibrary({
               setSelected(new Set());
             }}
             className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
-              folderFilter === "unfiled"
+              folderScoped && folderChoice === "unfiled"
                 ? "bg-violet-100 font-semibold text-violet-800"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
@@ -751,10 +768,10 @@ export function LessonMaterialsLibrary({
                     선택 이동 ({selectedCount})
                   </Button>
                   {moveOpen ? (
-                    <div className="absolute right-0 z-20 mt-1 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+                    <div className="absolute right-0 z-20 mt-1 max-h-80 w-52 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
                       <button
                         type="button"
-                        className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50"
+                        className="block w-full truncate rounded-md px-2.5 py-1 text-left text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700"
                         onClick={() =>
                           runAction(() =>
                             moveLessonMaterialProjects(role, {
@@ -770,8 +787,8 @@ export function LessonMaterialsLibrary({
                         <button
                           key={f.id}
                           type="button"
-                          className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50"
-                          style={{ paddingLeft: 12 + depth * 12 }}
+                          className="block w-full truncate rounded-md px-2.5 py-1 text-left text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700"
+                          style={{ paddingLeft: 10 + depth * 10 }}
                           onClick={() =>
                             runAction(() =>
                               moveLessonMaterialProjects(role, {
@@ -801,10 +818,10 @@ export function LessonMaterialsLibrary({
                     복사 ({selectedCount})
                   </Button>
                   {copyOpen ? (
-                    <div className="absolute right-0 z-20 mt-1 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
+                    <div className="absolute right-0 z-20 mt-1 max-h-80 w-52 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
                       <button
                         type="button"
-                        className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50"
+                        className="block w-full truncate rounded-md px-2.5 py-1 text-left text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700"
                         onClick={() =>
                           runAction(() =>
                             copyLessonMaterialProjects(role, {
@@ -820,8 +837,8 @@ export function LessonMaterialsLibrary({
                         <button
                           key={f.id}
                           type="button"
-                          className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-50"
-                          style={{ paddingLeft: 12 + depth * 12 }}
+                          className="block w-full truncate rounded-md px-2.5 py-1 text-left text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700"
+                          style={{ paddingLeft: 10 + depth * 10 }}
                           onClick={() =>
                             runAction(() =>
                               copyLessonMaterialProjects(role, {
