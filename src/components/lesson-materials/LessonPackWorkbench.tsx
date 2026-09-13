@@ -513,7 +513,7 @@ export function LessonPackWorkbench({
     );
   }
 
-  async function handleSave() {
+  async function handleSave(): Promise<boolean> {
     setSaving(true);
     setError(null);
     setMessage(null);
@@ -529,7 +529,7 @@ export function LessonPackWorkbench({
         });
         if (!res.ok) {
           setError(res.message);
-          return;
+          return false;
         }
       }
       setMessage(
@@ -537,9 +537,28 @@ export function LessonPackWorkbench({
           ? `${projects.length}개 지문을 저장했습니다.`
           : "저장되었습니다."
       );
+      return true;
+    } catch {
+      setError("저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      return false;
     } finally {
       setSaving(false);
     }
+  }
+
+  /**
+   * 「저장 후 닫기」: 예전에는 자료함으로 가는 링크라 저장하지 않고 나갔다.
+   * 저장한 뒤 제작 버튼으로 연 탭이면 닫고, 닫히지 않으면(직접 연 탭) 자료함으로 간다.
+   */
+  async function saveAndClose() {
+    if (generating) {
+      window.location.assign(base);
+      return;
+    }
+    const ok = await handleSave();
+    if (!ok) return;
+    window.close();
+    setTimeout(() => window.location.assign(base), 300);
   }
 
   // Titles/subtitles stay fixed; only body blocks use fontSizePx / lineHeight.
@@ -1207,12 +1226,14 @@ export function LessonPackWorkbench({
       {/* Settings sidebar */}
       <aside className="flex w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
-          <Link
-            href={base}
-            className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100"
+          <button
+            type="button"
+            disabled={saving}
+            onClick={() => void saveAndClose()}
+            className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-50"
           >
-            ← 저장 후 닫기
-          </Link>
+            {saving ? "저장 중…" : "← 저장 후 닫기"}
+          </button>
           <span className="text-sm font-bold text-slate-900">문서 설정</span>
         </div>
 

@@ -20,6 +20,9 @@ export function openNewDocument(
   const params = new URLSearchParams(extra?.query ?? "");
   if (!params.has("ids")) params.set("ids", projectIds.join(","));
   params.set("newDoc", "1");
+  // 누를 때마다 다른 주소로 연다. 같은 주소면 브라우저가 앞서 연 페이지(뒤로 가기 캐시)를
+  // 되살려, 저장·뒤로 가기 뒤에 다시 제작을 눌러도 새로 만들지 않고 예전 것이 보일 수 있다.
+  params.set("t", Date.now().toString(36));
   if (extra?.name) params.set("docName", extra.name);
   const win = window.open(
     `${documentPagePath(role, kind)}?${params.toString()}`,

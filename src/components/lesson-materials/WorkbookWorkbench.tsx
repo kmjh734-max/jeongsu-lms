@@ -1150,7 +1150,7 @@ export function WorkbookWorkbench({
       if (newDocRequest && ids.length > 0) {
         const sourceQuery = new URLSearchParams(searchParams.toString());
         const docName = sourceQuery.get("docName");
-        for (const key of ["doc", "newDoc", "docName", "fresh"]) sourceQuery.delete(key);
+        for (const key of ["doc", "newDoc", "docName", "fresh", "t"]) sourceQuery.delete(key);
         // 서버 액션이 아니라 fetch로 부른다(api/lesson-materials/documents/open 참고).
         const created = await postJson<Awaited<ReturnType<typeof createLessonMaterialDocument>>>(
           "/api/lesson-materials/documents/open",
