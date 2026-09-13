@@ -270,6 +270,334 @@ function compactStructureLine(raw: string): string {
   return s;
 }
 
+type RawAnalysisSentence = {
+  itemId?: string;
+  enChunks?: Array<{ text?: string; role?: string }>;
+  koChunks?: unknown;
+  easyUnderstanding?: string;
+  contextNote?: string;
+  discourseRole?: string;
+  connectionType?: string;
+  grammarPoints?: Array<{
+    title?: string;
+    detail?: string;
+    example?: string;
+    category?: string;
+    sentenceStructure?: string;
+  }>;
+};
+
+type RawSentenceNote = {
+  sentenceId?: string;
+  sentenceNumber?: number;
+  discourseRole?: string;
+  connectionType?: string;
+  contextNote?: string;
+};
+
+type RawAnalysisResponse = {
+  sentences?: RawAnalysisSentence[];
+  sentenceNotes?: RawSentenceNote[];
+  hasKeyGrammarPoints?: boolean;
+  analysisSummary?: string;
+  grammarPoints?: Array<{
+    priority?: string;
+    category?: string;
+    itemId?: string;
+    sentenceNumber?: number;
+    originalSentence?: string;
+    targetExpression?: string;
+    sentenceStructure?: string;
+    outerStructure?: string;
+    senseGroups?: string;
+    sentencePattern?: string;
+    innerStructure?: string;
+    restoredStructure?: string;
+    decisionRule?: string;
+    correctReason?: string;
+    contextualExplanation?: string;
+    bookTerms?: unknown;
+    primaryClassification?: unknown;
+    relatedUnits?: unknown;
+    wrongForms?: unknown;
+    wrongReasons?: unknown;
+    translationConnection?: string;
+    studentSummary?: string;
+    teacherExplanation?: string;
+    title?: string;
+    detail?: string;
+    example?: string;
+  }>;
+  importantConstructions?: Array<{
+    itemId?: string;
+    originalSentence?: string;
+    targetConstruction?: string;
+    structure?: string;
+    restoredElements?: string;
+    translation?: string;
+    readingTip?: string;
+  }>;
+  noPointMessage?: string;
+};
+
+/** Whole-report deadline; the route allows 300s and still has to save. */
+const REPORT_DEADLINE_MS = 240_000;
+/** A passage up to this many sentences is written by a single sentence call. */
+const SINGLE_GROUP_MAX_SENTENCES = 5;
+/** Target sentences per parallel sentence call once a passage is split. */
+const SENTENCES_PER_GROUP = 4;
+/** Upper bound on parallel sentence calls per passage (8 passages run at once). */
+const MAX_SENTENCE_GROUPS = 6;
+/** Each call (grammar or one sentence group) is tried at most this many times. */
+const CALL_ATTEMPTS = 2;
+
+class ReportDeadlineError extends Error {}
+
+function sleep(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new ReportDeadlineError("aborted"));
+      return;
+    }
+    const t = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(t);
+      reject(new ReportDeadlineError("aborted"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+function isTransientStatus(status: number): boolean {
+  return status === 408 || status === 409 || status === 429 || status >= 500;
+}
+
+function retryDelayMs(res: Response, attempt: number): number {
+  const header = Number(res.headers.get("retry-after"));
+  if (Number.isFinite(header) && header > 0) {
+    return Math.min(20_000, header * 1000);
+  }
+  return Math.min(20_000, 1500 * 2 ** attempt + Math.floor(Math.random() * 500));
+}
+
+/**
+ * One chat-completions call with the same model / parameter fallbacks as
+ * before (temperature, reasoning_effort, response_format, unavailable model),
+ * plus a couple of waits on rate-limit / server errors before falling through.
+ * Returns the message content.
+ */
+async function requestAnalysisContent(
+  apiKey: string,
+  userContent: string,
+  signal: AbortSignal
+): Promise<string> {
+  const configured = process.env.OPENAI_MODEL_ANALYSIS_REPORT?.trim();
+  const candidates = configured
+    ? configured === "gpt-5.5"
+      ? ["gpt-5.5", "gpt-5"]
+      : [configured]
+    : ["gpt-5.5", "gpt-5"];
+
+  let bodyText = "";
+  let lastErr = "";
+  let ok = false;
+
+  for (const model of candidates) {
+    let includeTemperature = studentRecordModelSupportsTemperature(model);
+    let includeReasoningEffort = isGpt5FamilyModel(model);
+    let includeJsonMode = true;
+    let transientRetries = 0;
+
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const body: Record<string, unknown> = {
+        model,
+        messages: [
+          { role: "system", content: ANALYSIS_REPORT_SYSTEM_PROMPT },
+          { role: "user", content: userContent },
+        ],
+      };
+      if (includeJsonMode) {
+        body.response_format = { type: "json_object" };
+      }
+      if (includeTemperature) {
+        body.temperature = 0.25;
+      } else {
+        delete body.temperature;
+      }
+      if (isGpt5FamilyModel(model)) {
+        body.max_completion_tokens = 16_384;
+        if (includeReasoningEffort) body.reasoning_effort = "medium";
+        else delete body.reasoning_effort;
+      } else {
+        body.max_tokens = 8192;
+      }
+
+      let res: Response;
+      try {
+        res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          signal,
+          body: JSON.stringify(body),
+        });
+        bodyText = await res.text();
+      } catch (e) {
+        if (signal.aborted) throw new ReportDeadlineError("aborted");
+        // Dropped connection: wait briefly and try the same model again.
+        lastErr = e instanceof Error ? e.message : String(e);
+        if (transientRetries < 2) {
+          transientRetries++;
+          await sleep(1500 * transientRetries, signal);
+          continue;
+        }
+        break;
+      }
+      if (res.ok) {
+        ok = true;
+        break;
+      }
+      if (includeTemperature && isUnsupportedTemperatureError(bodyText)) {
+        includeTemperature = false;
+        continue;
+      }
+      if (
+        includeReasoningEffort &&
+        isUnsupportedParameterError(bodyText, "reasoning_effort")
+      ) {
+        includeReasoningEffort = false;
+        continue;
+      }
+      if (
+        includeJsonMode &&
+        isUnsupportedParameterError(bodyText, "response_format")
+      ) {
+        includeJsonMode = false;
+        continue;
+      }
+      if (isModelUnavailableError(res.status, bodyText)) {
+        lastErr = bodyText.slice(0, 200);
+        break;
+      }
+      lastErr = bodyText.slice(0, 200);
+      if (isTransientStatus(res.status) && transientRetries < 2) {
+        await sleep(retryDelayMs(res, transientRetries), signal);
+        transientRetries++;
+        continue;
+      }
+      break;
+    }
+    if (ok) break;
+  }
+
+  if (!ok) {
+    throw new Error(
+      `분석서 생성 실패${lastErr ? `: ${lastErr}` : ""}`.slice(0, 180)
+    );
+  }
+
+  const envelope = parseJsonSafe<{
+    choices?: { message?: { content?: string } }[];
+  }>(bodyText);
+  return envelope?.choices?.[0]?.message?.content ?? bodyText;
+}
+
+/** Splits sentences into contiguous, evenly sized groups. */
+function splitSentenceGroups<T>(items: T[]): T[][] {
+  if (items.length <= SINGLE_GROUP_MAX_SENTENCES) return [items];
+  const count = Math.min(
+    MAX_SENTENCE_GROUPS,
+    Math.ceil(items.length / SENTENCES_PER_GROUP)
+  );
+  const base = Math.floor(items.length / count);
+  const extra = items.length % count;
+  const groups: T[][] = [];
+  let at = 0;
+  for (let g = 0; g < count; g++) {
+    const size = base + (g < extra ? 1 : 0);
+    groups.push(items.slice(at, at + size));
+    at += size;
+  }
+  return groups;
+}
+
+/**
+ * Grammar points stay a single passage-wide call so selection (count, one
+ * representative per principle) is judged over the whole passage. Its output
+ * is kept short: PART/CHAPTER are rebuilt from the UNIT number by
+ * mapClassification, and itemId replaces the copied original sentence.
+ */
+function buildGrammarScopePrompt(baseUserContent: string): string {
+  return `${baseUserContent}
+
+<output_scope>
+이번 응답은 지문 전체의 grammarPoints 선정·분석만 담당한다. 문장별 enChunks·koChunks·contextNote는 따로 작성되므로 쓰지 않는다.
+- "sentences"는 []로 둔다.
+- grammarPoints는 지문 전체를 기준으로 선별한다(권장 3∼6개, 최대 8개, 문장당 독립 포인트 최대 2개, 동일 원리 반복 시 대표만). 각 항목에 itemId·sentenceNumber를 넣고 originalSentence는 생략한다.
+- primaryClassification·relatedUnits의 각 분류는 {"unitNumber", "unitTitle"}만 쓴다. PART·CHAPTER는 UNIT 번호로 채워진다. 목차 외 보충이면 unitNumber는 null.
+- 강조할 어법이 없으면 grammarPoints는 [], hasKeyGrammarPoints는 false로 두고 noPointMessage를 쓴다.
+- JSON은 들여쓰기·줄바꿈 없이 한 줄로 출력한다.
+</output_scope>`;
+}
+
+function buildSentenceGroupScopePrompt(
+  baseUserContent: string,
+  group: Array<{ id: string; number: number }>
+): string {
+  const first = group[0]?.number ?? 1;
+  const last = group[group.length - 1]?.number ?? first;
+  return `${baseUserContent}
+
+<output_scope>
+이번 응답은 전체 문장 중 ${first}번∼${last}번 문장(${group.length}개)만 담당한다. 지문 전체 흐름은 위 full_passage와 sentences로 파악하되, 출력은 아래 대상 문장만 쓴다.
+target_sentence_ids: ${JSON.stringify(group.map((g) => g.id))}
+- "sentences"에는 대상 문장만 입력 순서대로 하나씩 넣는다. 대상 밖 문장은 출력하지 않는다(문장 개수·순서 유지 규칙은 대상 범위에 적용한다).
+- contextNote·discourseRole·connectionType은 대상 밖 문장을 포함한 앞뒤 문장과 지문 전체 흐름 속에서 판단한다.
+- 어법 포인트는 따로 선정되므로 "grammarPoints"는 []로 두고 hasKeyGrammarPoints·noPointMessage는 쓰지 않는다.
+- JSON은 들여쓰기·줄바꿈 없이 한 줄로 출력한다.
+</output_scope>`;
+}
+
+/**
+ * Runs one call, parses it and checks it with `score` (0 = unusable).
+ * Retries once when the answer is unusable or incomplete, keeping the better
+ * of the two; throws only when nothing usable came back.
+ */
+async function runScopedCall(
+  apiKey: string,
+  userContent: string,
+  signal: AbortSignal,
+  score: (parsed: RawAnalysisResponse) => { value: number; complete: boolean }
+): Promise<RawAnalysisResponse> {
+  let best: { parsed: RawAnalysisResponse; value: number } | null = null;
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < CALL_ATTEMPTS; attempt++) {
+    let content: string;
+    try {
+      content = await requestAnalysisContent(apiKey, userContent, signal);
+    } catch (e) {
+      if (e instanceof ReportDeadlineError || signal.aborted) throw e;
+      lastError = e;
+      continue;
+    }
+    const parsed = parseJsonSafe<RawAnalysisResponse>(content);
+    if (!parsed || typeof parsed !== "object") continue;
+    const s = score(parsed);
+    if (s.value > 0 && (!best || s.value > best.value)) {
+      best = { parsed, value: s.value };
+    }
+    if (s.value > 0 && s.complete) break;
+  }
+  if (best) return best.parsed;
+  if (lastError instanceof Error) throw lastError;
+  throw new Error("분석서 생성 실패: 응답을 읽지 못했습니다.");
+}
+
 export async function generateAnalysisReport(input: {
   lines: InputLine[];
   title?: string;
@@ -288,171 +616,107 @@ export async function generateAnalysisReport(input: {
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 180_000);
+  const timer = setTimeout(() => controller.abort(), REPORT_DEADLINE_MS);
 
   try {
-    const userContent = buildAnalysisReportUserPrompt({
+    // Every call sees the whole passage (so notes and grammar choice stay
+    // passage-aware) but writes only its own part: one call picks the
+    // passage's grammar points and the sentences are written in groups, all
+    // in parallel. A single call was slow because of how much it had to write.
+    const baseUserContent = buildAnalysisReportUserPrompt({
       title: input.title,
       lines,
     });
 
-    const configured = process.env.OPENAI_MODEL_ANALYSIS_REPORT?.trim();
-    const candidates = configured
-      ? configured === "gpt-5.5"
-        ? ["gpt-5.5", "gpt-5"]
-        : [configured]
-      : ["gpt-5.5", "gpt-5"];
+    const numbered = lines.map((l, i) => ({ id: l.id, number: i + 1 }));
+    const groups = splitSentenceGroups(numbered);
 
-    let bodyText = "";
-    let lastErr = "";
-    let ok = false;
-
-    for (const model of candidates) {
-      let includeTemperature = studentRecordModelSupportsTemperature(model);
-      let includeReasoningEffort = isGpt5FamilyModel(model);
-      let includeJsonMode = true;
-
-      for (let attempt = 0; attempt < 4; attempt++) {
-        const body: Record<string, unknown> = {
-          model,
-          messages: [
-            { role: "system", content: ANALYSIS_REPORT_SYSTEM_PROMPT },
-            { role: "user", content: userContent },
-          ],
-        };
-        if (includeJsonMode) {
-          body.response_format = { type: "json_object" };
-        }
-        if (includeTemperature) {
-          body.temperature = 0.25;
-        } else {
-          delete body.temperature;
-        }
-        if (isGpt5FamilyModel(model)) {
-          body.max_completion_tokens = 16_384;
-          if (includeReasoningEffort) body.reasoning_effort = "medium";
-          else delete body.reasoning_effort;
-        } else {
-          body.max_tokens = 8192;
-        }
-
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          signal: controller.signal,
-          body: JSON.stringify(body),
-        });
-        bodyText = await res.text();
-        if (res.ok) {
-          ok = true;
-          break;
-        }
-        if (includeTemperature && isUnsupportedTemperatureError(bodyText)) {
-          includeTemperature = false;
-          continue;
-        }
-        if (
-          includeReasoningEffort &&
-          isUnsupportedParameterError(bodyText, "reasoning_effort")
-        ) {
-          includeReasoningEffort = false;
-          continue;
-        }
-        if (
-          includeJsonMode &&
-          isUnsupportedParameterError(bodyText, "response_format")
-        ) {
-          includeJsonMode = false;
-          continue;
-        }
-        if (isModelUnavailableError(res.status, bodyText)) {
-          lastErr = bodyText.slice(0, 200);
-          break;
-        }
-        lastErr = bodyText.slice(0, 200);
-        break;
+    const grammarTask = runScopedCall(
+      apiKey,
+      buildGrammarScopePrompt(baseUserContent),
+      controller.signal,
+      (p) => {
+        const said =
+          Array.isArray(p.grammarPoints) ||
+          !!String(p.noPointMessage ?? "").trim() ||
+          p.hasKeyGrammarPoints === false;
+        return { value: said ? 1 : 0, complete: said };
       }
-      if (ok) break;
+    );
+
+    const groupTasks = groups.map((group) => {
+      const targetIds = new Set(group.map((g) => g.id));
+      const numberToId = new Map(group.map((g) => [g.number, g.id] as const));
+      // This group's sentences only, keyed by the input id.
+      const ownSentences = (p: RawAnalysisResponse): RawAnalysisSentence[] =>
+        (Array.isArray(p.sentences) ? p.sentences : [])
+          .filter((s): s is RawAnalysisSentence => !!s && typeof s === "object")
+          .map((s) => {
+            const loose = s as RawAnalysisSentence & {
+              sentenceId?: unknown;
+              sentenceNumber?: unknown;
+            };
+            let id = String(loose.itemId ?? loose.sentenceId ?? "").trim();
+            if (!targetIds.has(id) && typeof loose.sentenceNumber === "number") {
+              id = numberToId.get(Math.floor(loose.sentenceNumber)) ?? id;
+            }
+            return { ...s, itemId: id };
+          })
+          .filter((s) => targetIds.has(s.itemId ?? ""));
+      return runScopedCall(
+        apiKey,
+        buildSentenceGroupScopePrompt(baseUserContent, group),
+        controller.signal,
+        (p) => {
+          const got = new Set(ownSentences(p).map((s) => s.itemId));
+          return { value: got.size, complete: got.size === targetIds.size };
+        }
+      ).then((p) => ({
+        sentences: ownSentences(p),
+        sentenceNotes: (Array.isArray(p.sentenceNotes)
+          ? p.sentenceNotes
+          : []
+        ).filter((n) => {
+          const id = String(n?.sentenceId ?? "").trim();
+          if (id) return targetIds.has(id);
+          return (
+            typeof n?.sentenceNumber === "number" &&
+            numberToId.has(Math.floor(n.sentenceNumber))
+          );
+        }),
+      }));
+    });
+
+    let grammarPart: RawAnalysisResponse;
+    let sentenceParts: Array<{
+      sentences: RawAnalysisSentence[];
+      sentenceNotes: RawSentenceNote[];
+    }>;
+    try {
+      [grammarPart, sentenceParts] = await Promise.all([
+        grammarTask,
+        Promise.all(groupTasks),
+      ]);
+    } catch (e) {
+      // Stop the sibling calls; the caller shows the error and offers a retry.
+      controller.abort();
+      if (e instanceof ReportDeadlineError) {
+        throw new Error(
+          "분석서 생성 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요."
+        );
+      }
+      throw e;
     }
 
-    if (!ok) {
-      throw new Error(
-        `분석서 생성 실패${lastErr ? `: ${lastErr}` : ""}`.slice(0, 180)
-      );
-    }
-
-    const envelope = parseJsonSafe<{
-      choices?: { message?: { content?: string } }[];
-    }>(bodyText);
-    const content = envelope?.choices?.[0]?.message?.content ?? bodyText;
-    const parsed = parseJsonSafe<{
-      sentences?: Array<{
-        itemId?: string;
-        enChunks?: Array<{ text?: string; role?: string }>;
-        koChunks?: unknown;
-        easyUnderstanding?: string;
-        contextNote?: string;
-        discourseRole?: string;
-        connectionType?: string;
-        grammarPoints?: Array<{
-          title?: string;
-          detail?: string;
-          example?: string;
-          category?: string;
-          sentenceStructure?: string;
-        }>;
-      }>;
-      sentenceNotes?: Array<{
-        sentenceId?: string;
-        sentenceNumber?: number;
-        discourseRole?: string;
-        connectionType?: string;
-        contextNote?: string;
-      }>;
-      hasKeyGrammarPoints?: boolean;
-      analysisSummary?: string;
-      grammarPoints?: Array<{
-        priority?: string;
-        category?: string;
-        itemId?: string;
-        sentenceNumber?: number;
-        originalSentence?: string;
-        targetExpression?: string;
-        sentenceStructure?: string;
-        outerStructure?: string;
-        senseGroups?: string;
-        sentencePattern?: string;
-        innerStructure?: string;
-        restoredStructure?: string;
-        decisionRule?: string;
-        correctReason?: string;
-        contextualExplanation?: string;
-        bookTerms?: unknown;
-        primaryClassification?: unknown;
-        relatedUnits?: unknown;
-        wrongForms?: unknown;
-        wrongReasons?: unknown;
-        translationConnection?: string;
-        studentSummary?: string;
-        teacherExplanation?: string;
-        title?: string;
-        detail?: string;
-        example?: string;
-      }>;
-      importantConstructions?: Array<{
-        itemId?: string;
-        originalSentence?: string;
-        targetConstruction?: string;
-        structure?: string;
-        restoredElements?: string;
-        translation?: string;
-        readingTip?: string;
-      }>;
-      noPointMessage?: string;
-    }>(content);
+    const parsed: RawAnalysisResponse = {
+      sentences: sentenceParts.flatMap((p) => p.sentences),
+      sentenceNotes: sentenceParts.flatMap((p) => p.sentenceNotes),
+      hasKeyGrammarPoints: grammarPart.hasKeyGrammarPoints,
+      grammarPoints: Array.isArray(grammarPart.grammarPoints)
+        ? grammarPart.grammarPoints
+        : [],
+      noPointMessage: grammarPart.noPointMessage,
+    };
 
     const byId = new Map(
       (parsed?.sentences ?? []).map((s) => [String(s.itemId ?? ""), s] as const)
