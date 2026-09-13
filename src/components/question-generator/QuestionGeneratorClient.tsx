@@ -7,11 +7,9 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
-  GRADES,
   MAX_PASSAGES,
   MAX_SETS_PER_TYPE,
   MAX_TOTAL_QUESTIONS,
-  OVERALL_DIFFICULTIES,
   SOURCE_TYPES,
 } from "@/lib/question-generator/constants";
 import { emptyPassageInput } from "@/lib/question-generator/passages";
@@ -1068,28 +1066,6 @@ export function QuestionGeneratorClient({
                 />
               </label>
               <label className="block">
-                <span className="ui-label">학교명 (선택)</span>
-                <input
-                  className="ui-input mt-1"
-                  value={schoolName}
-                  onChange={(e) => setSchoolName(e.target.value)}
-                />
-              </label>
-              <label className="block">
-                <span className="ui-label">학년</span>
-                <select
-                  className="ui-select mt-1"
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                >
-                  {GRADES.map((g) => (
-                    <option key={g.value} value={g.value}>
-                      {g.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
                 <span className="ui-label">출처</span>
                 <select
                   className="ui-select mt-1"
@@ -1102,29 +1078,6 @@ export function QuestionGeneratorClient({
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="block">
-                <span className="ui-label">전체 난이도 기준</span>
-                <select
-                  className="ui-select mt-1"
-                  value={overallDifficulty}
-                  onChange={(e) => setOverallDifficulty(e.target.value)}
-                >
-                  {OVERALL_DIFFICULTIES.map((d) => (
-                    <option key={d.value} value={d.value}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block sm:col-span-2">
-                <span className="ui-label">공통 출처 상세</span>
-                <input
-                  className="ui-input mt-1"
-                  value={sourceDetail}
-                  onChange={(e) => setSourceDetail(e.target.value)}
-                  placeholder="예: 2026년 3월 고1 모의고사 (지문별로 덮어쓸 수 있음)"
-                />
               </label>
             </div>
             <p className="mt-2 text-xs text-slate-500">
@@ -1191,7 +1144,7 @@ export function QuestionGeneratorClient({
                               sourceDetail: e.target.value,
                             })
                           }
-                          placeholder={sourceDetail || "공통 출처"}
+                          placeholder={sourceDetail || "출처"}
                           aria-label={`지문 ${index + 1} 출처`}
                         />
                       </td>
