@@ -7,7 +7,38 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { questionGeneratorChatJsonWithRetry } from "@/lib/question-generator/openai";
 import {
   getListeningGeneratorModelCandidates,
+  isGpt5FamilyModel,
+  listeningModelSupportsCustomTemperature,
 } from "@/lib/listening/openai-listening-model";
+
+/** 그림 검수(비전) 응답 상한 — GPT-5 계열은 추론 토큰도 여기서 차감되므로 넉넉히 */
+const VERIFY_GPT5_MAX_COMPLETION_TOKENS = 2000;
+const VERIFY_MAX_TOKENS = 400;
+
+/**
+ * 그림 검수 요청 본문. GPT-5 계열은 temperature(0)·max_tokens를 받지 않으므로
+ * max_completion_tokens만 보내고 temperature는 생략한다.
+ */
+function buildVerifyBody(
+  model: string,
+  messages: unknown[]
+): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    model,
+    response_format: { type: "json_object" },
+    messages,
+  };
+  if (listeningModelSupportsCustomTemperature(model)) {
+    body.temperature = 0;
+  }
+  if (isGpt5FamilyModel(model)) {
+    body.max_completion_tokens = VERIFY_GPT5_MAX_COMPLETION_TOKENS;
+    body.reasoning_effort = "low";
+  } else {
+    body.max_tokens = VERIFY_MAX_TOKENS;
+  }
+  return body;
+}
 
 export const LISTENING_IMAGES_BUCKET = "listening-images";
 
@@ -114,7 +145,8 @@ Hard rules:
       }),
       temperature: 0.25,
       maxTokens: 2500,
-      reasoningEffort: "high",
+      // 무엇을 그릴지 계획만 하는 단계라 깊은 추론이 필요 없음
+      reasoningEffort: "low",
       preferredModels: preferred,
     })) as { imagePrompt?: string };
 
@@ -258,11 +290,8 @@ async function verifyCompositeHasAllLabels(
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model,
-          temperature: 0,
-          response_format: { type: "json_object" },
-          messages: [
+        body: JSON.stringify(
+          buildVerifyBody(model, [
             {
               role: "system",
               content:
@@ -278,9 +307,8 @@ async function verifyCompositeHasAllLabels(
                 { type: "image_url", image_url: { url: dataUrl } },
               ],
             },
-          ],
-          max_tokens: 400,
-        }),
+          ])
+        ),
       });
       const text = await res.text();
       if (!res.ok) {

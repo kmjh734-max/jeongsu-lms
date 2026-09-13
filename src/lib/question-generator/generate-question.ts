@@ -1189,6 +1189,18 @@ export function assertBasicQuestionShape(
   return null;
 }
 
+/**
+ * 모든 문항에 공통인 규칙 — 유형·지문과 무관하게 항상 같은 문자열이어야
+ * 같은 지문의 여러 문항에서 프롬프트 캐시가 앞부분을 재사용한다.
+ * 유형·문항별 규칙은 user 메시지 끝(ITEM RULES)에 붙인다.
+ */
+const QUESTION_WRITER_SHARED_SYSTEM = `Korean HS English exam writer. ONE question JSON only. Fast & concise.
+- No meta tags.
+- NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
+- For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
+- hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. Target ≈ 중3+ / Lexile ≥~1000L (US Grade 8 CCSS text ~1010L–1185L). Prefer the HARDER lemmas that appear in THIS item's English — skip ultra-basics (people/important/money/make/need). Include short non-basic lemmas when apt (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Single dictionary token only (never phrases like "national monies"). Fake plurals (monies/datas) forbidden. meaning = short Korean gloss. Rotate lemmas across same-passage slots. If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
+- The user message gives the passage data (JSON) first, then ITEM RULES for this question. Follow every ITEM RULE exactly, with the same priority as the rules above.`;
+
 export async function generateOneQuestion(opts: {
   passage: string;
   analysis: PassageAnalysis;
@@ -1328,169 +1340,164 @@ export async function generateOneQuestion(opts: {
         meta?.aingkaCode === "함축의미추론")) ||
     isReferenceWriting;
 
-  const raw = (await questionGeneratorChatJsonWithRetry({
-    system: `Korean HS English exam writer. ONE question JSON only. Fast & concise.
-- instruction EXACTLY: ${JSON.stringify(forcedInstruction)}
-- No meta tags. ${
-      needsQuestionText
-        ? option.type === "sentence_insertion"
-          ? "Fill questionText with the ENGLISH given sentence to insert."
-          : isWordOrder
-            ? "Fill questionText with <조건>, <보기>, <해석>. Blank = IMPORTANT passage sentence reflecting the sampled GRAMMAR POINT (not a trivial SVO)."
-            : isSummaryBlank
-              ? "Fill questionText with <조건>, optional <보기>, and <요약문> with ⓐ/ⓑ blanks."
-              : isReferenceWriting
-                ? "Fill questionText with <지칭답란> and ⓐ. passageModified needs <u>underline</u>."
-              : isGrammarFix
-                ? "Fill questionText with <조건> and <답안행>N. No MCQ choices."
-            : option.type === "content_count"
-              ? "Fill questionText with (1)(2)… statements."
-              : "Fill questionText with <조건>/<보기> as needed."
-        : 'questionText usually "".'
-    }
-- NEVER create 요약문완성 (Korean summary with (A)/(B) blanks and …… pair choices). That type is removed.
-- ${
-      needsModified
-        ? isWordOrder
-          ? "passageModified MUST include blank ⓐ__________ in the ENGLISH passage."
+  const questionTextRule = needsQuestionText
+    ? option.type === "sentence_insertion"
+      ? "Fill questionText with the ENGLISH given sentence to insert."
+      : isWordOrder
+        ? "Fill questionText with <조건>, <보기>, <해석>. Blank = IMPORTANT passage sentence reflecting the sampled GRAMMAR POINT (not a trivial SVO)."
+        : isSummaryBlank
+          ? "Fill questionText with <조건>, optional <보기>, and <요약문> with ⓐ/ⓑ blanks."
           : isReferenceWriting
-            ? "passageModified MUST underline the pronoun/expression with <u>…</u> (대명사는 ⓐ<u>it</u>)."
-          : "Use passageModified when needed."
-        : "Do NOT change passage; omit passageModified."
-    }
-- explanation: ${
-      isWordOrder
-        ? "한글: 정답 문장 + 배열/어형 포인트."
-        : isReferenceWriting
-          ? "한글: 정답(본문 구) + 왜 그것이 가리키는 바/문맥 의미인지."
-        : isGrammarFix
-          ? "학생용 한글: 각 기호/번호 + 틀린 점 → 바른 형태 + 쉬운 이유. 영어 은어 금지."
+            ? "Fill questionText with <지칭답란> and ⓐ. passageModified needs <u>underline</u>."
+            : isGrammarFix
+              ? "Fill questionText with <조건> and <답안행>N. No MCQ choices."
+              : option.type === "content_count"
+                ? "Fill questionText with (1)(2)… statements."
+                : "Fill questionText with <조건>/<보기> as needed."
+    : 'questionText usually "".';
+
+  const passageModifiedRule = needsModified
+    ? isWordOrder
+      ? "passageModified MUST include blank ⓐ__________ in the ENGLISH passage."
+      : isReferenceWriting
+        ? "passageModified MUST underline the pronoun/expression with <u>…</u> (대명사는 ⓐ<u>it</u>)."
+        : "Use passageModified when needed."
+    : "Do NOT change passage; omit passageModified.";
+
+  const explanationRule = isWordOrder
+    ? "한글: 정답 문장 + 배열/어형 포인트."
+    : isReferenceWriting
+      ? "한글: 정답(본문 구) + 왜 그것이 가리키는 바/문맥 의미인지."
+      : isGrammarFix
+        ? "학생용 한글: 각 기호/번호 + 틀린 점 → 바른 형태 + 쉬운 이유. 영어 은어 금지."
         : option.type === "grammar"
-        ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
-        : option.type === "underlined_inference" &&
-            option.aingkaCode === "함축의미추론"
-          ? "학생용 한글: 정답 번호 + 밑줄의 문맥 의미 + 왜 사전적 풀이(두 가지 기능을 한다 등)가 아닌지."
-          : "1-2 Korean sentences."
-    }
-- For MCQ: correctAnswer is 1-5. Prefer varied positions (not always 1).
-- hardWords: When (a) English MCQ choices or (b) 일치개수 English <보기> (or Korean <보기>→passage): include 4~6 {word, meaning}. Target ≈ 중3+ / Lexile ≥~1000L (US Grade 8 CCSS text ~1010L–1185L). Prefer the HARDER lemmas that appear in THIS item's English — skip ultra-basics (people/important/money/make/need). Include short non-basic lemmas when apt (swap, skim, grasp, yield, burden, voucher, reluctant, scrutinize, comparable, misprint, conscious). Single dictionary token only (never phrases like "national monies"). Fake plurals (monies/datas) forbidden. meaning = short Korean gloss. Rotate lemmas across same-passage slots. If none fit → []. For Korean-only MCQ / count-only / subjective without English 보기 → [].
-${englishOnlyHint}
-${
-  allowSkip
-    ? isReferenceWriting
-      ? '- 지칭 서술: 명확한 선행사/문맥 동의 구가 있을 때만. 없으면 {"skip":true,"reason":"..."}.'
-      : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.'
-    : ""
-}
-${
-  option.type === "sentence_insertion"
-    ? "- Do NOT return choices for 문장삽입; slots ①~⑤ in passageModified are the options."
-    : ""
-}
-${
-  option.type === "irrelevant_sentence"
-    ? "- Do NOT return choices for 무관한문장; mark ⓐⓑⓒⓓⓔ IN the passage. The irrelevant sentence must reuse similar passage words but shift topic/point (not bizarre)."
-    : ""
-}
-${
-  option.aingkaCode === "어휘추론"
-    ? "- Do NOT return bottom choices for 어휘 고르기; ①~⑤ in the passage are enough. correctAnswer is the wrong number."
-    : ""
-}
-${
-  option.aingkaCode === "어법추론" || option.aingkaCode === "어법모두고르기"
-    ? "- Do NOT return bottom choices for 어법 추론; ⓐ~ⓔ in the passage are enough. correctAnswer is the ONE wrong underline (1-5)."
-    : ""
-}
-${
-  option.aingkaCode === "어법개수" || option.aingkaCode === "어휘개수"
-    ? '- Count choices MUST be exactly ["1개","2개","3개","4개","5개"] in order — never sparse options.'
-    : ""
-}
-${
-  option.type === "grammar"
-    ? "- 어법: ‘이번 문항’ 문법을 따르고, 해설은 쉬운 한글만(voice/relative/CASE id 금지)."
-    : ""
-}
-${paraphraseSystemHint}
-${craftSystemHint}
-${diversityHint}
-${typeRules(option)}`,
-    user: JSON.stringify({
-      grade: opts.grade,
-      difficulty: option.difficulty,
-      forcedInstruction,
-      passage,
-      diversitySlot: opts.diversitySlot
+          ? "학생용 한글 답지(정답 번호 + 틀린형→바른형 + 쉬운 이유). 영어 은어·코드 금지."
+          : option.type === "underlined_inference" &&
+              option.aingkaCode === "함축의미추론"
+            ? "학생용 한글: 정답 번호 + 밑줄의 문맥 의미 + 왜 사전적 풀이(두 가지 기능을 한다 등)가 아닌지."
+            : "1-2 Korean sentences.";
+
+  // 유형·문항별 규칙 (예전 system 중간에 있던 가변 부분 — 문구 그대로, 순서만 뒤로)
+  const itemRules = [
+    `- instruction EXACTLY: ${JSON.stringify(forcedInstruction)}`,
+    `- ${questionTextRule}`,
+    `- ${passageModifiedRule}`,
+    `- explanation: ${explanationRule}`,
+    englishOnlyHint,
+    allowSkip
+      ? isReferenceWriting
+        ? '- 지칭 서술: 명확한 선행사/문맥 동의 구가 있을 때만. 없으면 {"skip":true,"reason":"..."}.'
+        : '- 함축의미: 문맥 의존 표현만. 정답은 사전 뜻이 아니라 지문 구체 paraphrase (do double duty ≠ "do two things"). 없으면 {"skip":true,"reason":"..."}. 본문은 (A)<u>…</u>.'
+      : "",
+    option.type === "sentence_insertion"
+      ? "- Do NOT return choices for 문장삽입; slots ①~⑤ in passageModified are the options."
+      : "",
+    option.type === "irrelevant_sentence"
+      ? "- Do NOT return choices for 무관한문장; mark ⓐⓑⓒⓓⓔ IN the passage. The irrelevant sentence must reuse similar passage words but shift topic/point (not bizarre)."
+      : "",
+    option.aingkaCode === "어휘추론"
+      ? "- Do NOT return bottom choices for 어휘 고르기; ①~⑤ in the passage are enough. correctAnswer is the wrong number."
+      : "",
+    option.aingkaCode === "어법추론" || option.aingkaCode === "어법모두고르기"
+      ? "- Do NOT return bottom choices for 어법 추론; ⓐ~ⓔ in the passage are enough. correctAnswer is the ONE wrong underline (1-5)."
+      : "",
+    option.aingkaCode === "어법개수" || option.aingkaCode === "어휘개수"
+      ? '- Count choices MUST be exactly ["1개","2개","3개","4개","5개"] in order — never sparse options.'
+      : "",
+    option.type === "grammar"
+      ? "- 어법: ‘이번 문항’ 문법을 따르고, 해설은 쉬운 한글만(voice/relative/CASE id 금지)."
+      : "",
+    paraphraseSystemHint,
+    craftSystemHint,
+    typeRules(option),
+  ]
+    .filter((line) => line.trim())
+    .join("\n");
+
+  // 슬롯 정보는 같은 유형 문항끼리도 달라지므로 맨 끝에 둔다
+  const slotTail = opts.diversitySlot
+    ? `\n\nITEM SLOT: ${JSON.stringify({
+        diversitySlot: {
+          index: opts.diversitySlot.index + 1,
+          total: opts.diversitySlot.total,
+          label: opts.diversitySlot.label,
+        },
+      })}${diversityHint ? `\n${diversityHint}` : ""}`
+    : "";
+
+  // 순서: 공통 규칙(system) → 지문 → 유형·문항별 데이터/규칙 → 슬롯 (앞부분일수록 여러 문항이 공유)
+  const itemData = JSON.stringify({
+    grade: opts.grade,
+    passage,
+    difficulty: option.difficulty,
+    forcedInstruction,
+    hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis,
+    schema: {
+      ...(option.type === "sentence_insertion"
         ? {
-            index: opts.diversitySlot.index + 1,
-            total: opts.diversitySlot.total,
-            label: opts.diversitySlot.label,
+            questionText: "ENGLISH given sentence",
+            passageModified: "ENGLISH passage with ① ② ③ ④ ⑤ slots",
+            choices: [],
+            correctAnswer: "integer 1-5",
           }
-        : undefined,
-      hint: englishBodyTypes.has(option.type) ? undefined : slimAnalysis,
-      schema: {
-        ...(option.type === "sentence_insertion"
+        : option.type === "irrelevant_sentence"
           ? {
-              questionText: "ENGLISH given sentence",
-              passageModified: "ENGLISH passage with ① ② ③ ④ ⑤ slots",
+              passageModified:
+                "ENGLISH passage with ⓐ ⓑ ⓒ ⓓ ⓔ; one sentence similar in wording but off-point",
               choices: [],
-              correctAnswer: "integer 1-5",
+              correctAnswer: "integer 1-5 (ⓐ=1 … ⓔ=5)",
             }
-          : option.type === "irrelevant_sentence"
+          : option.aingkaCode === "어휘추론"
             ? {
                 passageModified:
-                  "ENGLISH passage with ⓐ ⓑ ⓒ ⓓ ⓔ; one sentence similar in wording but off-point",
+                  "ENGLISH passage with ①<u>…</u> … ⑤<u>…</u>; exactly one wrong",
                 choices: [],
-                correctAnswer: "integer 1-5 (ⓐ=1 … ⓔ=5)",
+                correctAnswer: "integer 1-5",
               }
-            : option.aingkaCode === "어휘추론"
+            : option.aingkaCode === "어법개수" ||
+                option.aingkaCode === "어휘개수"
               ? {
-                  passageModified:
-                    "ENGLISH passage with ①<u>…</u> … ⑤<u>…</u>; exactly one wrong",
-                  choices: [],
-                  correctAnswer: "integer 1-5",
+                  passageModified: "ENGLISH passage with underlined spots",
+                  choices: [
+                    { number: 1, text: "1개" },
+                    { number: 2, text: "2개" },
+                    { number: 3, text: "3개" },
+                    { number: 4, text: "4개" },
+                    { number: 5, text: "5개" },
+                  ],
+                  correctAnswer: "integer 1-5 (= count of wrong spots)",
                 }
-              : option.aingkaCode === "어법개수" ||
-                  option.aingkaCode === "어휘개수"
+              : allowSkip
                 ? {
-                    passageModified: "ENGLISH passage with underlined spots",
+                    passageModified: "ENGLISH passage with <u>target</u>",
                     choices: [
-                      { number: 1, text: "1개" },
-                      { number: 2, text: "2개" },
-                      { number: 3, text: "3개" },
-                      { number: 4, text: "4개" },
-                      { number: 5, text: "5개" },
+                      { number: 1, text: "ENGLISH meaning paraphrase" },
                     ],
-                    correctAnswer: "integer 1-5 (= count of wrong spots)",
+                    correctAnswer: "integer 1-5",
+                    skip: "boolean optional",
+                    reason: "string optional",
                   }
-                : allowSkip
-                  ? {
-                      passageModified: "ENGLISH passage with <u>target</u>",
-                      choices: [
-                        { number: 1, text: "ENGLISH meaning paraphrase" },
-                      ],
-                      correctAnswer: "integer 1-5",
-                      skip: "boolean optional",
-                      reason: "string optional",
-                    }
-                  : {
-                      choices: [{ number: 1, text: "string" }],
-                      correctAnswer: "integer 1-5 (vary; not always 1)",
-                      ...(needsModified ? { passageModified: "string" } : {}),
-                      ...(needsQuestionText
-                        ? {
-                            questionText:
-                              "(1) ...\\n(2) ...\\n(3) ...\\n(4) ...\\n(5) ...\\n(6) ...",
-                            correctAnswer: "integer count of FALSE statements",
-                            choices: [],
-                          }
-                        : {}),
-                    }),
-        explanation: "ko",
-        hardWords: [{ word: "EN", meaning: "한글뜻" }],
-      },
-    }),
+                : {
+                    choices: [{ number: 1, text: "string" }],
+                    correctAnswer: "integer 1-5 (vary; not always 1)",
+                    ...(needsModified ? { passageModified: "string" } : {}),
+                    ...(needsQuestionText
+                      ? {
+                          questionText:
+                            "(1) ...\\n(2) ...\\n(3) ...\\n(4) ...\\n(5) ...\\n(6) ...",
+                          correctAnswer: "integer count of FALSE statements",
+                          choices: [],
+                        }
+                      : {}),
+                  }),
+      explanation: "ko",
+      hardWords: [{ word: "EN", meaning: "한글뜻" }],
+    },
+  });
+
+  const raw = (await questionGeneratorChatJsonWithRetry({
+    system: QUESTION_WRITER_SHARED_SYSTEM,
+    user: `${itemData}\n\nITEM RULES:\n${itemRules}${slotTail}`,
     temperature:
       option.type === "grammar"
         ? 0.55
