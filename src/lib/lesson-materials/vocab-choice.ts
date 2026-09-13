@@ -321,6 +321,8 @@ async function generatePairs(input: {
     schemaName: "vocab_choice_generate",
     schema: GENERATOR_SCHEMA as unknown as Record<string, unknown>,
     maxCompletionTokens: 8_000,
+    // 지문 전체를 한 번에 만들어 정상 응답이 15~25초다. 어법 문턱(20초)을 쓰면 복제 요청이 자주 붙는다.
+    hedgeAfterMs: 60_000,
   });
   const parsed = parse<{ items?: Array<Partial<StoredVocabChoicePair>> }>(called.content);
   return (parsed?.items ?? []).map((it) => ({
@@ -362,6 +364,9 @@ async function auditPairs(input: {
     schemaName: "vocab_choice_audit",
     schema: AUDITOR_SCHEMA as unknown as Record<string, unknown>,
     maxCompletionTokens: 4_000,
+    // 10여 개를 한 번에 판정해 어법 판정(3문항)보다 길다. 어법용 12초 복제·35초 상한을 쓰지 않는다.
+    hedgeAfterMs: 45_000,
+    deadlineMs: 120_000,
   });
   const parsed = parse<{ results?: Array<{ id?: string; verdict?: string }> }>(called.content);
   const keep = new Set(

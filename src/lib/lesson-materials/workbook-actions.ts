@@ -352,35 +352,13 @@ export async function generateWorkbookAction(
       };
 
       for (const { projectId, cache } of gc.cachesToSave) {
-        const proj = byId.get(projectId);
-        const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
-        const next: LessonPackData = {
-          ...prev,
-          headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
-          vocab: prev.vocab ?? [],
-          updatedAt: new Date().toISOString(),
-          blankCandidatePool: prev.blankCandidatePool,
-          passageSourceHash: prev.passageSourceHash,
-          sentenceTranslations: prev.sentenceTranslations,
-          wordOrderChunkCache: prev.wordOrderChunkCache,
-          grammarChoiceCache: prev.grammarChoiceCache,
-          grammarBlueprintCache: prev.grammarBlueprintCache,
-          grammarChoiceV5Cache:
-            engine === "v2"
-              ? prev.grammarChoiceV5Cache
-              : (cache as StoredGrammarChoiceV5Cache),
-          grammarChoiceV2Cache:
-            engine === "v2"
-              ? (cache as StoredGrammarChoiceV2Cache)
-              : prev.grammarChoiceV2Cache,
-        };
-        await supabase
-          .from("lesson_material_projects")
-          .update({
-            lesson_pack_json: next,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", projectId);
+        const prev = (byId.get(projectId)?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+        // 저장 직전에 다시 읽어 합친다(같은 지문의 다른 캐시를 되돌리지 않게).
+        await patchLessonPack(supabase, projectId, prev,
+          engine === "v2"
+            ? { grammarChoiceV2Cache: cache as StoredGrammarChoiceV2Cache }
+            : { grammarChoiceV5Cache: cache as StoredGrammarChoiceV5Cache }
+        );
       }
     }
 
@@ -487,29 +465,12 @@ export async function generateWorkbookAction(
 
       // Persist newly generated pools for next time (0 OpenAI)
       for (const { projectId, pool } of blankResult.poolsToSave) {
-        const proj = byId.get(projectId);
-        const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
-        const next: LessonPackData = {
-          ...prev,
-          headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
-          vocab: prev.vocab ?? [],
-          updatedAt: new Date().toISOString(),
+        const prev = (byId.get(projectId)?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+        // 생성 시작 때 읽은 옛 값으로 덮지 않게 저장 직전에 다시 읽어 합친다.
+        await patchLessonPack(supabase, projectId, prev, {
           blankCandidatePool: pool,
           passageSourceHash: pool.sourceHash,
-          sentenceTranslations: prev.sentenceTranslations,
-          wordOrderChunkCache: prev.wordOrderChunkCache,
-          grammarChoiceCache: prev.grammarChoiceCache,
-          grammarBlueprintCache: prev.grammarBlueprintCache,
-          grammarChoiceV5Cache: prev.grammarChoiceV5Cache,
-          grammarChoiceV2Cache: prev.grammarChoiceV2Cache,
-        };
-        await supabase
-          .from("lesson_material_projects")
-          .update({
-            lesson_pack_json: next,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", projectId);
+        });
       }
 
       if (blankResult.statusNotes.length && process.env.NODE_ENV !== "production") {
@@ -599,29 +560,9 @@ export async function generateWorkbookAction(
         workbook.wordOrderWritingSkipped = skipped;
 
         for (const { projectId, cache } of wo.cachesToSave) {
-          const proj = byId.get(projectId);
-          const prev = (proj?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
-          const next: LessonPackData = {
-            ...prev,
-            headerLabel: prev.headerLabel || "26년도 1학기 중간고사 대비",
-            vocab: prev.vocab ?? [],
-            updatedAt: new Date().toISOString(),
-            blankCandidatePool: prev.blankCandidatePool,
-            passageSourceHash: prev.passageSourceHash,
-            sentenceTranslations: prev.sentenceTranslations,
-          wordOrderChunkCache: cache,
-          grammarChoiceCache: prev.grammarChoiceCache,
-          grammarBlueprintCache: prev.grammarBlueprintCache,
-          grammarChoiceV5Cache: prev.grammarChoiceV5Cache,
-          grammarChoiceV2Cache: prev.grammarChoiceV2Cache,
-          };
-          await supabase
-            .from("lesson_material_projects")
-            .update({
-              lesson_pack_json: next,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", projectId);
+          const prev = (byId.get(projectId)?.lesson_pack_json ?? {}) as Partial<LessonPackData>;
+          // 빈칸 후보 저장을 되돌리지 않게 저장 직전에 다시 읽어 합친다.
+          await patchLessonPack(supabase, projectId, prev, { wordOrderChunkCache: cache });
         }
 
         if (!workbook.timing) {

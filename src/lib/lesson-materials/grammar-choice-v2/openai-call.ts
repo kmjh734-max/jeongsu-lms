@@ -98,6 +98,14 @@ type GrammarChoiceV2CallInput = {
   schemaName: string;
   schema: Record<string, unknown>;
   maxCompletionTokens?: number;
+  /**
+   * 복제 요청을 보낼 시각(ms). 없으면 단계 기본값, null이면 복제하지 않는다.
+   * 지문 전체를 한 번에 다루는 호출(어휘 선택)은 정상 응답도 기본 문턱보다 길어,
+   * 문턱을 그대로 두면 거의 매번 같은 요청이 한 번 더 나가 비용이 두 배가 된다.
+   */
+  hedgeAfterMs?: number | null;
+  /** 판정 단계 상한(ms). 없으면 단계 기본값, null이면 상한 없음(REQUEST_TIMEOUT_MS만). */
+  deadlineMs?: number | null;
 };
 
 type GrammarChoiceV2CallResult = {
@@ -113,8 +121,10 @@ type GrammarChoiceV2CallResult = {
 export async function callGrammarChoiceV2Json(
   input: GrammarChoiceV2CallInput
 ): Promise<GrammarChoiceV2CallResult> {
-  const hedgeAfterMs = HEDGE_AFTER_MS[input.stage];
-  const deadlineMs = STAGE_DEADLINE_MS[input.stage];
+  const hedgeAfterMs =
+    input.hedgeAfterMs === undefined ? HEDGE_AFTER_MS[input.stage] : input.hedgeAfterMs;
+  const deadlineMs =
+    input.deadlineMs === undefined ? STAGE_DEADLINE_MS[input.stage] : input.deadlineMs;
   const primary = new AbortController();
   const backup = new AbortController();
   const started = Date.now();
@@ -151,11 +161,14 @@ export async function callGrammarChoiceV2Json(
       );
     };
 
-    const hedgeTimer = setTimeout(() => {
-      if (settled) return;
-      launched = 2;
-      run(backup, primary);
-    }, hedgeAfterMs);
+    const hedgeTimer =
+      hedgeAfterMs === null
+        ? undefined
+        : setTimeout(() => {
+            if (settled) return;
+            launched = 2;
+            run(backup, primary);
+          }, hedgeAfterMs);
 
     const deadlineTimer =
       deadlineMs === null
