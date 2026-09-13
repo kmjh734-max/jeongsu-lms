@@ -1,4 +1,5 @@
 import { ontologyPoint } from "@/lib/lesson-materials/grammar-choice-v2/grammar-ontology";
+import { textbookFrequency } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
 import type {
   ExactSentence,
   GrammarPriority,
@@ -43,6 +44,11 @@ export function rankCandidates(
   const sorted = [...items].sort((a, b) => {
     const pr = RANK[a.priority] - RANK[b.priority];
     if (pr !== 0) return pr;
+    // 같은 우선순위끼리는 교재가 자주 묻는 포인트를 앞세운다(겹치는 자리에서 이긴다).
+    // 빈도는 거칠게 네 단계로만 본다: 조금 차이로 순서가 흔들리지 않게.
+    const tier = (code: string) => Math.min(3, Math.floor(textbookFrequency(code) / 15));
+    const tr = tier(b.pointCode) - tier(a.pointCode);
+    if (tr !== 0) return tr;
     if (a.passageStart !== b.passageStart) return a.passageStart - b.passageStart;
     return a.candidateId.localeCompare(b.candidateId);
   });

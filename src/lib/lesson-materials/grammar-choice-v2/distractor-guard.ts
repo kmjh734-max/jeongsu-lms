@@ -117,8 +117,12 @@ export function isInventedInflection(base: string, derived: string): boolean {
   const right = derived.trim().toLowerCase();
   if (!left || !right || left === right) return false;
   if (right === `${left.replace(/e$/, "")}ing` || right === `${left}ing`) {
+    // take them in and [out / outing]: 전치사·부사 불변화사에는 -ing가 붙지 않는다(outing은 다른 낱말)
+    if (PARTICLES.has(left)) return true;
     return !canTakeIng(left);
   }
+  // [error-free / error-freely]: 하이픈 복합 형용사에는 -ly 부사형이 없다
+  if (left.includes("-") && right === `${left}ly`) return true;
   if (right === `${left}ed` || right === `${left}d`) {
     return !canTakeIng(left);
   }
@@ -222,6 +226,10 @@ const FLAT_ADVERBS = new Set([
   "worse",
   "worst",
   "straight",
+]);
+
+const PARTICLES = new Set([
+  "out", "in", "up", "down", "off", "on", "over", "away", "back", "around", "through", "along", "about",
 ]);
 
 /** -ly 부사형이 없는 흔한 형용사(bigly, oldly, youngly는 없는 말이다). */

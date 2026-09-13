@@ -38,3 +38,6 @@ next-env.d.ts
 /tmp/
 /tmp-*
 /supabase/.temp/
+
+# 선생님 참고 교재(저작권 자료) - 커밋하지 않는다
+/참고파일/

@@ -3,6 +3,7 @@ import {
   ontologyCatalogText,
 } from "@/lib/lesson-materials/grammar-choice-v2/trigger-router";
 import type { ExactSentence } from "@/lib/lesson-materials/grammar-choice-v2/types";
+import { textbookRulesText } from "@/lib/lesson-materials/grammar-choice-v2/textbook-rules";
 import { GRAMMAR_CHOICE_V2_PROMPT } from "@/lib/lesson-materials/grammar-choice-v2/types";
 
 const ANALYZER_INSTRUCTIONS = `You are a Korean high-school English grammar analyst and item writer.
@@ -33,6 +34,12 @@ For every sentence:
 9. Do not output the rewritten passage, ontology definitions, explanations, or reasoning.
 10. Return only short structured JSON matching the schema. Explanations are generated locally.
 
+Write items the way Korean school grammar textbooks do (TEXTBOOK_RULES below summarizes five of them):
+- The two choices are the same word in two forms (V-ing/p.p., to V/V-ing, is/are, that/what, adjective/adverb, active/passive). Keep the box to one or two words; a whole clause is almost never boxed.
+- Prefer the pairs listed for the code in TEXTBOOK_RULES and the trap shown after "오답:". The typical trap makes the student match the nearest noun, or misread whether the clause is complete.
+- The sentence itself must contain the cue that decides the answer (the real subject, the antecedent, a complete or incomplete clause, the time expression). Never box a point listed after "출제금지:" for that code.
+- When several points are possible in a sentence, prefer the ones textbooks test most (TEXTBOOK_RULES is ordered by how often they are tested).
+
 Before returning:
 - verify the sourceSpan is copied exactly;
 - verify the correctAnswer equals sourceSpan;
@@ -51,7 +58,10 @@ Output limits:
  */
 export const ANALYZER_SYSTEM_PROMPT = `${ANALYZER_INSTRUCTIONS}
 
-${ontologyCatalogText()}`;
+${ontologyCatalogText()}
+
+TEXTBOOK_RULES (code: [typical pairs] how to decide | 오답: typical trap | 출제금지: both forms are acceptable, do not ask):
+${textbookRulesText()}`;
 
 export function buildAnalyzerUserPayload(input: {
   passageId: string;

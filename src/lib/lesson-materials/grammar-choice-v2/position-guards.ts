@@ -51,6 +51,83 @@ function lastWord(text: string): string {
   return (words(text).at(-1) ?? "").replace(/[^a-z']/g, "");
 }
 
+/**
+ * 교재(textbook-rules.ts의 avoid)가 둘 다 된다고 한 대비. 고르는 문항이 되지 않는다.
+ * 모양만으로 확실히 가를 수 있는 것만 여기 둔다.
+ */
+function bothPossibleInTextbooks(
+  c: string[],
+  w: string[],
+  before: string,
+  after: string
+): LocalRejectCode | null {
+  const a = c.join(" ");
+  const b = w.join(" ");
+  const pair = [a, b].sort().join("|");
+  const toPair = (x: string, y: string) => x === `to ${y}` || y === `to ${x}`;
+  const bare = (x: string, y: string) => (x.startsWith("to ") ? y : x);
+  const toIng = (x: string, y: string) => {
+    const [to, ing] = x.startsWith("to ") ? [x, y] : [y, x];
+    return to.startsWith("to ") && !to.slice(3).includes(" ") && /^[a-z]+ing$/.test(ing) && stemVerb(to.slice(3)) === stemVerb(ing);
+  };
+
+  // help (+목적어) [to V / V]
+  if (toPair(a, b) && /\bhelp(?:s|ed|ing)?\b(?:\s+[\w'’]+){0,3}\s*$/i.test(before)) return "BOTH_GRAMMATICAL";
+  // 지각동사 + 목적어 [V / V-ing] (p.p.와의 대비는 능동·수동이라 둔다)
+  if (
+    c.length === 1 && w.length === 1 &&
+    /ing$/.test(a) !== /ing$/.test(b) && !/(?:ed|en)$/.test(bare(a, b)) &&
+    stemVerb(a) === stemVerb(b) &&
+    /\b(?:see|sees|saw|seen|watch|watches|watched|hear|hears|heard|feel|feels|felt|notice|notices|noticed|observe|observes|observed|look(?:s|ed)? at|listen(?:s|ed)? to)\b(?:\s+[\w'’]+){1,3}\s*$/i.test(before)
+  ) {
+    return "BOTH_GRAMMATICAL";
+  }
+  // like·love·hate·prefer·start·begin·continue [to V / V-ing]
+  if (toIng(a, b) && /\b(?:like|likes|liked|love|loves|loved|hate|hates|hated|prefer|prefers|preferred|start|starts|started|begin|begins|began|begun|continue|continues|continued)\s*$/i.test(before)) {
+    return "BOTH_GRAMMATICAL";
+  }
+  // 문장 첫머리 주어 [To V / V-ing] + 동사: 동명사·to부정사 주어 둘 다 된다
+  if (toIng(a, b) && CLAUSE_OPENING.test(before) && /^(?:\s+[\w'’]+){0,6}?\s+(?:is|was|are|were|has|can|will|may|would|could|should|must|makes|made|helps|seems|takes|requires|means)\b/i.test(after)) {
+    return "BOTH_GRAMMATICAL";
+  }
+  // no more complex than [knowing / to know]: than 뒤 비교 대상은 동명사·to부정사 둘 다 된다.
+  // 앞의 비교 대상이 동명사·to부정사면(Speaking … is easier than [writing]) 그 형태에 맞추는 병렬 문항이라 둔다.
+  if (
+    toIng(a, b) &&
+    /\bthan\s*$/i.test(before) &&
+    !/^\s*["“]?[a-z]+ing\b/i.test(before) &&
+    !/\bit(?:\s+is|'s|\s+was)\b[^,;]*\bto\s+[a-z]+/i.test(before)
+  ) {
+    return "BOTH_GRAMMATICAL";
+  }
+  // It is/was X [that / who] ...(강조 구문의 사람)
+  if (pair === "that|who" && /\bit\s+(?:is|was)\b[^,.;!?]{1,40}$/i.test(before)) return "BOTH_GRAMMATICAL";
+  // 동사의 목적어 자리 [if / whether]. 전치사 뒤, 문장 첫머리(주어), or not·to부정사 앞은 whether만 된다.
+  if (pair === "if|whether") {
+    const prev = lastWord(before);
+    const onlyWhether =
+      PREPOSITIONS.has(prev) || CLAUSE_OPENING.test(before) || /^\s+(?:or not|to)\b/i.test(after);
+    if (!onlyWhether) return "BOTH_GRAMMATICAL";
+  }
+  // 반복된 과거 습관 [used to / would]. 상태(be·have·live·know …)는 used to만 된다.
+  if ((a === "used to" && b === "would") || (a === "would" && b === "used to")) {
+    if (!/^\s+(?:be|have|live|know|own|like|love|believe|seem|belong|stand|feel)\b/i.test(after)) return "BOTH_GRAMMATICAL";
+  }
+  // [Without / But for], [where / in which], [the way / how]
+  if (pair === "but for|without" || /^(?:at|in|on) which\|where$/.test(pair) || pair === "how|the way") {
+    return "BOTH_GRAMMATICAL";
+  }
+  // 명사절(know/wonder/ask … when·if) 안에서는 will을 쓴다. will을 오답으로 둔 시간·조건 부사절
+  // 문항은 정답이 틀린 것이다. (will이 정답인 명사절 문항은 교재가 묻는 포인트라 둔다.)
+  if (
+    w.includes("will") && !c.includes("will") &&
+    /\b(?:know|knows|knew|wonder|wonders|wondered|ask|asks|asked|sure|decide|decided|tell|told|idea)\s+(?:when|if)\b[^,;]*$/i.test(before)
+  ) {
+    return "BOTH_GRAMMATICAL";
+  }
+  return null;
+}
+
 /** -ing로 끝나지만 동명사가 아닌 낱말(spoke clearly during ..., keep the door open during ...). */
 const NOT_GERUND_ING = new Set([
   "during", "including", "regarding", "concerning", "considering", "following", "according",
@@ -73,6 +150,47 @@ function isAdjAdvPair(a: string, b: string): boolean {
     (short.endsWith("le") && long === `${short.slice(0, -1)}y`) ||
     (short.endsWith("ic") && long === `${short}ally`) ||
     (short.endsWith("ll") && long === `${short}y`)
+  );
+}
+
+/** 네모 전후 문맥까지 이은 문자열(정규식 검사용). */
+function joined(tokens: string[]): string {
+  return tokens.join(" ");
+}
+
+const NUMBER_WORD_PAIRS = new Set(["are|is", "was|were", "has|have", "do|does", "don't|doesn't", "aren't|isn't", "wasn't|weren't"]);
+
+/** 한 낱말의 단수·복수 동사 대비(is/are, comes/come). */
+function isNumberPair(c: string[], w: string[]): boolean {
+  if (c.length !== 1 || w.length !== 1) return false;
+  const [x, y] = [c[0]!, w[0]!];
+  if (NUMBER_WORD_PAIRS.has([x, y].sort().join("|"))) return true;
+  const [short, long] = [x, y].sort((p, q) => p.length - q.length);
+  return (long === `${short}s` || long === `${short}es` || (short.endsWith("y") && long === `${short.slice(0, -1)}ies`)) && !/(?:ing|ed)$/.test(short);
+}
+
+const CLAUSE_MARKER =
+  /\b(?:that|which|who|whom|when|if|because|while|where|whereas|although|though|since|as|once|until|before|after|unless)\b/gi;
+const SUBJECT_PRONOUN = /^(?:i|you|he|she|we|they|it)$/;
+
+/**
+ * 동사 바로 앞 주어가 짧은지(한두 낱말, 수식어 없음). 마지막 문장부호·절 표지 뒤 낱말만 센다.
+ * 동명사 주어(Writing is), 부분 표현(Some of), there, 등위 주어(A and B)는 교재 포인트라 뺀다.
+ * The book that I bought [is]처럼 절 표지 뒤가 "대명사 + 동사"면 그 절이 주어를 꾸미는 것이라 뺀다.
+ */
+function isTrivialSubject(before: string): boolean {
+  let tail = before.split(/[,;:—–()"“”]/).pop() ?? before;
+  const marker = [...tail.matchAll(CLAUSE_MARKER)].pop();
+  if (marker) tail = tail.slice((marker.index ?? 0) + marker[0].length);
+  const tokens = words(tail).map((t) => t.replace(/[^a-z'-]/g, "")).filter(Boolean);
+  while (tokens.length && /^(?:and|but|or|so|yet)$/.test(tokens[0]!)) tokens.shift();
+  const content = tokens.filter((t) => !/ly$/.test(t));
+  if (content.length === 0 || content.length > 3) return false;
+  // 동명사 주어는 첫 낱말이 -ing다(Learning foreign languages is ...).
+  if (content[0] === "there" || /ing$/.test(content[0]!) || /ing$/.test(content.at(-1)!)) return false;
+  if (content.slice(1).some((t) => SUBJECT_PRONOUN.test(t)) || (SUBJECT_PRONOUN.test(content[0]!) && content.length > 1)) return false;
+  return !content.some((t) =>
+    /^(?:and|or|of|with|in|on|at|for|from|to|by|about|each|every|none|either|neither|number|kind|kinds|percent|half|all|most|some|many|much|both)$/.test(t)
   );
 }
 
@@ -200,6 +318,41 @@ export function rejectAtPosition(input: {
     new RegExp(`\\b${c[0]}\\b`, "i").test(`${before} ${after}`)
   ) {
     return "BOTH_GRAMMATICAL";
+  }
+
+  const textbookBoth = bothPossibleInTextbooks(c, w, before, after);
+  if (textbookBoth) return textbookBoth;
+
+  // 교재 규칙 반영 뒤 실행(2026-09-13)
+  // happiness [comes / come], your brain [uses / use]: 주어가 바로 앞 한두 낱말이면 수일치가 너무 쉽다.
+  // 교재가 묻는 것은 수식어로 주어와 동사가 떨어진 경우다.
+  if (isNumberPair(c, w) && isTrivialSubject(before)) return "TOO_TRIVIAL_SHORT_AGREEMENT";
+  // [starting to read / starting to reading]: to 뒤에 -ing를 붙인 오답(전치사 to 뒤는 교재 포인트라 둔다)
+  for (let i = 0; i + 1 < Math.min(c.length, w.length); i += 1) {
+    if (c[i] === "to" && w[i] === "to" && /ing$/.test(w[i + 1]!) && !/ing$/.test(c[i + 1]!) && stemVerb(c[i + 1]!) === stemVerb(w[i + 1]!)) {
+      if (!/\b(?:look(?:s|ed|ing)? forward|object(?:s|ed)?|used|accustomed|devoted|committed|contribute[sd]?|when it comes)\s*$/i.test(`${before} ${c.slice(0, i).join(" ")}`)) {
+        return "IMPLAUSIBLE_DISTRACTOR";
+      }
+    }
+  }
+  // the work [everyone / everyone what] feels: 관계사를 주어 뒤에 붙인 오답
+  if (w.length === c.length + 1 && /^(?:what|which|that|who)$/.test(w.at(-1)!) && w.slice(0, -1).join(" ") === c.join(" ")) {
+    return "IMPLAUSIBLE_DISTRACTOR";
+  }
+  // [all the potential / all potentially]: 한정사를 빼면서 같은 낱말의 형태도 바꿨다
+  if (w.length === c.length - 1) {
+    const at = c.findIndex((t) => t === "the" || t === "a" || t === "an");
+    if (at >= 0) {
+      const rest = [...c.slice(0, at), ...c.slice(at + 1)];
+      const d = rest.map((t, i) => (t === w[i] ? -1 : i)).filter((i) => i >= 0);
+      if (d.length === 1 && sharedPrefix(rest[d[0]!]!, w[d[0]!]!) >= 4) return "DISTRACTOR_NOT_ALLOWED";
+    }
+  }
+  // just [as / more] much customer response: more much는 없는 말이다
+  const moreMuch = /\b(?:more|most|less)\s+(?:much|many)\b/i;
+  const nextWords = after.trimStart().split(/\s+/).slice(0, 1).join(" ");
+  if (moreMuch.test(`${joined(w)} ${nextWords}`) && !moreMuch.test(`${joined(c)} ${nextWords}`)) {
+    return "IMPLAUSIBLE_DISTRACTOR";
   }
 
   // 3차 실행(2026-09-11)

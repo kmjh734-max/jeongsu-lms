@@ -243,7 +243,16 @@ assert.ok(codes.some((c) => c.includes("you have/do you have")), codes.join("\n"
 assert.ok(codes.some((c) => c.includes("both:CORRELATIVE_BOTH_AND:and/or")), codes.join("\n"));
 assert.ok(codes.some((c) => c.includes("culture:CORRELATIVE_BOTH_AND:and/or")), codes.join("\n"));
 assert.equal(filtered.rejected.some((item) => item.sentenceId === "imagine" && item.reason === "BOTH_CHOICES_GRAMMATICAL_IN_CONTEXT"), true);
-assert.ok(codes.some((c) => c.includes("PARALLEL_VERBS") && c.includes("become/becoming")), codes.join("\n"));
+// 짧은 문장이라 한 문항만 남는다. 교재 빈도로 순위를 매기면서(2026-09-13) 교재가 더 자주 묻는
+// 감정 분사(frightened/frightening)가 병렬(become/becoming)보다 앞선다. 둘 중 하나면 된다.
+assert.ok(
+  codes.some(
+    (c) =>
+      (c.includes("PARALLEL_VERBS") && c.includes("become/becoming")) ||
+      (c.startsWith("parallel:PARTICIPLE_EMOTION") && c.includes("frightened/frightening"))
+  ),
+  codes.join("\n")
+);
 assert.ok(codes.some((c) => c.includes("which/that")), codes.join("\n"));
 // 이 문장에서 확인할 것은 "긴 주어 뒤 수일치"가 주어 경계가 모호해 떨어진다는 것이다.
 // 예전에는 이 문장의 후보가 그것뿐이어서 "이 문장에서 아무것도 살아남지 않는다"로

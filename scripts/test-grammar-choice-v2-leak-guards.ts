@@ -228,3 +228,86 @@ console.log("leak-guards ok");
   assert.equal(relativeLocalDistractor("RELATIVE_WHO_WHOM", "whom"), "which");
   console.log("who/which ok");
 }
+
+// 7. 교재 5권이 "둘 다 가능"이라 한 대비(textbook-rules.ts의 avoid)
+{
+  const both: Row[] = [
+    ["OBJECT_COMPLEMENT_BARE_V", "continue", "to continue", "This mechanism helps us continue functioning effectively."],
+    ["PERCEPTION_COMPLEMENT", "cross", "crossing", "I saw him cross the street."],
+    ["GERUND_VERB_OBJECT", "to read", "reading", "She started to read the novel."],
+    ["GERUND_SUBJECT", "Writing", "To write", "Writing short paragraphs is a good habit."],
+    ["CLEFT_IT_THAT", "who", "that", "It was my brother who broke the window."],
+    ["NOUN_CLAUSE_WHETHER_IF", "whether", "if", "I don’t know whether he will come."],
+    ["USED_TO", "used to", "would", "We used to play soccer after school."],
+    ["RELATIVE_ADVERB_WHERE", "where", "in which", "This is the house where I was born."],
+    ["TENSE_TIME_CONDITION_CLAUSE", "comes", "will come", "I don’t know when he comes back."],
+  ];
+  for (const [code, correct, wrong, sentence] of both) {
+    assert.equal(position(code, correct, wrong, sentence), "BOTH_GRAMMATICAL", `${correct} / ${wrong}`);
+  }
+  const unique: Row[] = [
+    ["PERCEPTION_COMPLEMENT", "called", "calling", "I heard my name called in the hall."],
+    ["NOUN_CLAUSE_WHETHER_IF", "whether", "if", "It depends on whether he agrees."],
+    ["NOUN_CLAUSE_WHETHER_IF", "Whether", "If", "Whether he will come is not certain."],
+    ["NOUN_CLAUSE_WHETHER_IF", "whether", "if", "I can’t decide whether or not to go."],
+    ["USED_TO", "used to", "would", "There used to be a tall tree here."],
+    ["TENSE_TIME_CONDITION_CLAUSE", "comes", "will come", "Call me when he comes back."],
+    ["TENSE_TIME_CONDITION_CLAUSE", "will come", "comes", "I don’t know when he will come back."],
+    ["GERUND_VERB_OBJECT", "reading", "to read", "She enjoys reading novels."],
+    ["OBJECT_COMPLEMENT_TO_V", "to enter", "enter", "They allowed us to enter the room."],
+  ];
+  for (const [code, correct, wrong, sentence] of unique) {
+    assert.equal(position(code, correct, wrong, sentence), null, `${correct} / ${wrong}`);
+  }
+  console.log("textbook both-possible ok");
+}
+
+// 8. 교재 규칙 반영 뒤 실행(2026-09-13)
+{
+  const leaks: Array<[...Row, string]> = [
+    ["AGREEMENT_PREPOSITIONAL_MODIFIER", "comes", "come", "In other words, happiness comes from accumulating small happy moments.", "TOO_TRIVIAL_SHORT_AGREEMENT"],
+    ["AGREEMENT_RELATIVE_ANTECEDENT", "uses", "use", "hints from studies by Steve Kosslyn showing that your brain uses the same regions.", "TOO_TRIVIAL_SHORT_AGREEMENT"],
+    ["AGREEMENT_RELATIVE_ANTECEDENT", "eat", "eats", "the fungus blossoms into small fruiting bodies which the ants later eat.", "TOO_TRIVIAL_SHORT_AGREEMENT"],
+    ["PARALLEL_VERBS", "turns", "turn", "You may bump into someone on the street, and the person turns out to be a friend.", "TOO_TRIVIAL_SHORT_AGREEMENT"],
+    ["PARALLEL_VERBS", "starting to read", "starting to reading", "a long chunk of type can discourage a reader from even starting to read.", "IMPLAUSIBLE_DISTRACTOR"],
+    ["RELATIVE_OMISSION", "everyone", "everyone what", "So get out there and do the work everyone feels you are competent enough to handle!", "IMPLAUSIBLE_DISTRACTOR"],
+    ["PARALLEL_NOUN_PHRASES", "all the potential", "all potentially", "You have every right and all the potential to be happy.", "DISTRACTOR_NOT_ALLOWED"],
+    ["AS_AS", "as", "more", "coupons produced just as much customer response as did error-free coupons.", "IMPLAUSIBLE_DISTRACTOR"],
+  ];
+  for (const [code, correct, wrong, sentence, expected] of leaks) {
+    assert.equal(position(code, correct, wrong, sentence), expected, `${correct} / ${wrong}`);
+  }
+  // 교재가 묻는 수일치는 그대로
+  const keep: Row[] = [
+    ["AGREEMENT_RELATIVE_ANTECEDENT", "concludes", "conclude", "You’re probably used to the quote above—the ending that concludes every fairy tale."],
+    ["AGREEMENT_GERUND_SUBJECT", "is", "are", "If we do it while we are eating, our multi-tasking is overloading us."],
+    ["AGREEMENT_GERUND_SUBJECT", "is", "are", "Writing is visual."],
+    ["AGREEMENT_PARTITIVE", "set", "sets", "Some of the ants set forth from the nest to find fresh vegetation."],
+    ["AGREEMENT_LONG_SUBJECT", "are", "is", "Interruptions, agenda changes, and frequent shifts in direction are seen as natural."],
+    ["AGREEMENT_LONG_SUBJECT", "is", "are", "The book that I bought yesterday is very interesting."],
+    ["AGREEMENT_LONG_SUBJECT", "create", "creates", "but where unexpected chords and modulations create drama."],
+    ["AGREEMENT_THERE_BE", "are", "is", "You may not realize it, but there are many small moments of happiness."],
+    ["RELATIVE_AGREEMENT", "experiences", "experience", "a person who occasionally experiences intense happiness."],
+  ];
+  for (const [code, correct, wrong, sentence] of keep) {
+    assert.equal(position(code, correct, wrong, sentence), null, `${correct} / ${wrong}`);
+  }
+  for (const [correct, wrong] of [["out", "outing"], ["error-free", "error-freely"]] as const) {
+    assert.equal(rejectFabricatedDistractor({ pointCode: "PARALLEL_AND_OR_BUT", correct, wrong, sentence: "" }), "FABRICATED_INFLECTION", `${correct} / ${wrong}`);
+  }
+  assert.equal(label("AGREEMENT_ONE_OF", "was", "were", "However, he believed that one bad race was all it would take.").showLabel, false);
+  console.log("after-textbook ok");
+}
+
+// 9. 마지막 실행
+{
+  assert.equal(position("AGREEMENT_LONG_SUBJECT", "was", "were", "However, he believed that one bad race was all it would take."), "TOO_TRIVIAL_SHORT_AGREEMENT");
+  assert.equal(position("AGREEMENT_GERUND_SUBJECT", "is", "are", "Learning foreign languages is fun for many students."), null);
+  assert.equal(position("AGREEMENT_ONE_OF", "is", "are", "One of the students is absent today."), null);
+  assert.equal(position("GERUND_COMPLEMENT", "knowing", "to know", "the definition can be no more complex than knowing that a unit was equal to a body part."), "BOTH_GRAMMATICAL");
+  assert.deepEqual(
+    label("PRONOUN_REFLEXIVE", "their", "them", "With millions of members in a colony, leaf-cutter ants cultivate their own food."),
+    { pointCode: "POSSESSIVE", showLabel: true }
+  );
+  console.log("final-run ok");
+}

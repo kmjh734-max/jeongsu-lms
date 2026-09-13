@@ -199,6 +199,15 @@ function contextLabel(code: string, correct: string, wrong: string, before: stri
   ) {
     return { pointCode: "INFINITIVE_NOUN_ROLE", showLabel: true };
   }
+  // cultivate [their / them] own food -> 재귀대명사가 아니라 소유격
+  if (
+    /^(?:their\|them|our\|us|your\|you|his\|him|its\|it|my\|me)$/.test(`${c}|${w}`) &&
+    code !== "POSSESSIVE" && code !== "PRONOUN_ANTECEDENT" && code !== "GERUND_SUBJECT"
+  ) {
+    return { pointCode: "POSSESSIVE", showLabel: true };
+  }
+  // 교재 규칙 반영 뒤: one bad race [was / were] -> one of가 없으면 one of 수일치가 아니다
+  if (code === "AGREEMENT_ONE_OF" && !/\bone of\b/i.test(before)) return { pointCode: code, showLabel: false };
   // 4차 실행
   // it's therefore [unsurprising / unsurprisingly] -> 정답이 형용사인데 부사 코드(또는 그 반대)
   if (axisOf(correct, wrong) === "ADJ_ADV") {
