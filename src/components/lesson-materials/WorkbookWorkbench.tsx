@@ -22,6 +22,7 @@ import type {
   generateGrammarChoicePassageAction,
 } from "@/lib/lesson-materials/workbook-actions";
 import { postJson } from "@/lib/lesson-materials/post-json";
+import { closeTabOrGo } from "@/components/lesson-materials/open-new-document";
 import type {
   createLessonMaterialDocument,
   getWorkbookDocument,
@@ -1288,6 +1289,23 @@ export function WorkbookWorkbench({
     }, 800);
   }
 
+  /** 탭을 닫고 자료함 탭으로 돌아간다. 아직 보내지 않은 고친 내용이 있으면 먼저 저장한다. */
+  async function leaveWorkbook() {
+    if (saveTimer.current && workbook) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      const docId = new URLSearchParams(window.location.search).get("doc")?.trim();
+      if (docId) {
+        await postJson<{ ok: true }>("/api/lesson-materials/documents/workbook", {
+          id: docId,
+          workbook,
+        });
+      }
+    }
+    await saveChain.current;
+    closeTabOrGo(base);
+  }
+
   /** 지문 제목·출처는 유형마다 따로 들어 있어 같은 지문을 모두 고친다. */
   function editPassage(projectId: string, patch: { title: string } | { source: string }) {
     const apply = <T extends { projectId: string; title: string; source: string | null }>(
@@ -2416,9 +2434,13 @@ export function WorkbookWorkbench({
             <div className="h-full w-2/5 animate-indeterminate rounded-full bg-violet-600" />
           </div>
         </div>
-        <Link href={base} className="text-xs font-semibold text-violet-700">
+        <button
+          type="button"
+          onClick={() => closeTabOrGo(base)}
+          className="text-xs font-semibold text-violet-700"
+        >
           ← 자료함으로 돌아가기
-        </Link>
+        </button>
       </div>
     );
   }
@@ -2640,9 +2662,13 @@ export function WorkbookWorkbench({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[260px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-2 border-b border-slate-100 p-4">
-          <Link href={base} className="text-xs font-semibold text-violet-700">
+          <button
+            type="button"
+            onClick={() => void leaveWorkbook()}
+            className="text-left text-xs font-semibold text-violet-700"
+          >
             ← 자료함
-          </Link>
+          </button>
           <h1 className="text-base font-bold text-slate-900">워크북</h1>
           <p className="text-xs font-semibold text-slate-700">
             {sourceNote === "new"

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { LessonMaterialDocumentList } from "@/components/lesson-materials/LessonMaterialDocumentList";
+import { LessonQuestionJobList } from "@/components/lesson-materials/LessonQuestionJobList";
 import type { LessonMaterialDocumentKind } from "@/lib/lesson-materials/documents";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -91,6 +93,23 @@ export function LessonMaterialsLibrary({
   data: LessonMaterialLibraryData;
 }) {
   useReloadOnNewDeploy();
+  const router = useRouter();
+  // 제작 탭에서 저장·닫기 후 이 탭으로 돌아오면 새 파일이 보이도록 목록을 다시 받는다.
+  useEffect(() => {
+    let last = Date.now();
+    const onBack = () => {
+      if (document.visibilityState !== "visible") return;
+      if (Date.now() - last < 5_000) return;
+      last = Date.now();
+      router.refresh();
+    };
+    window.addEventListener("focus", onBack);
+    document.addEventListener("visibilitychange", onBack);
+    return () => {
+      window.removeEventListener("focus", onBack);
+      document.removeEventListener("visibilitychange", onBack);
+    };
+  }, [router]);
   const base = role === "admin" ? "/admin/lesson-materials" : "/teacher/lesson-materials";
   const [folderChoice, setFolderChoice] = useState<FolderFilter>("all");
   const [libraryTab, setLibraryTab] = useState<LibraryTab>("materials");
@@ -216,9 +235,7 @@ export function LessonMaterialsLibrary({
   const selectedIds = [...selected];
   const selectedCount = selectedIds.length;
   const inTrash = folderFilter === "trash";
-  const tabComingSoon =
-    libraryTab === "questions" ||
-    libraryTab === "integrated";
+  const tabComingSoon = libraryTab === "integrated";
   /** 만든 파일을 보여 주는 탭. 워크북 탭은 파일만 있고 지문별 목록이 없다. */
   const documentKind: LessonMaterialDocumentKind | null =
     libraryTab === "lesson"
@@ -232,7 +249,8 @@ export function LessonMaterialsLibrary({
     () => (documentKind ? (data.documents ?? []).filter((d) => d.kind === documentKind) : []),
     [data.documents, documentKind]
   );
-  const showProjectList = libraryTab !== "workbook";
+  /** 워크북·변형문제 탭은 만든 결과만 있고 지문별 목록이 없다. */
+  const showProjectList = libraryTab !== "workbook" && libraryTab !== "questions";
 
   const currentFolderLabel = !folderScoped
     ? (LIBRARY_TABS.find((t) => t.id === libraryTab)?.label ?? "전체")
@@ -721,7 +739,9 @@ export function LessonMaterialsLibrary({
             <p className="mt-1 text-sm text-slate-600">
               {tabComingSoon
                 ? "준비 중"
-                : documentKind === "workbook"
+                : libraryTab === "questions"
+                  ? `${data.questionJobs.length}개의 변형문제가 있습니다.`
+                  : documentKind === "workbook"
                   ? `${tabDocuments.length}개의 파일이 있습니다.`
                   : documentKind
                     ? `파일 ${tabDocuments.length}개 · 지문 ${visibleProjects.length}개`
@@ -914,6 +934,9 @@ export function LessonMaterialsLibrary({
           </Alert>
         ) : null}
 
+        {libraryTab === "questions" && !inTrash ? (
+          <LessonQuestionJobList role={role} jobs={data.questionJobs} />
+        ) : null}
         {documentKind && !inTrash ? (
           <LessonMaterialDocumentList
             key={documentKind}

@@ -19,7 +19,10 @@ import {
 import { LOGO_SRC } from "@/lib/branding";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
-import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
+import {
+  closeTabOrGo,
+  useCreateDocumentFromUrl,
+} from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 
 /** 수업자료 준비(단어·동반의어, 영어 제목)를 동시에 돌리는 지문 수. */
@@ -554,13 +557,12 @@ export function LessonPackWorkbench({
    */
   async function saveAndClose() {
     if (generating) {
-      window.location.assign(base);
+      closeTabOrGo(base);
       return;
     }
     const ok = await handleSave();
     if (!ok) return;
-    window.close();
-    setTimeout(() => window.location.assign(base), 300);
+    closeTabOrGo(base);
   }
 
   // Titles/subtitles stay fixed; only body blocks use fontSizePx / lineHeight.
@@ -1513,9 +1515,9 @@ export function LessonPackWorkbench({
             variant="primary"
             className="w-full"
             disabled={saving || generating}
-            onClick={() => void handleSave()}
+            onClick={() => void saveAndClose()}
           >
-            {saving ? "저장 중…" : "저장"}
+            {saving ? "저장 중…" : "저장 후 닫기"}
           </Button>
           <button
             type="button"

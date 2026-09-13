@@ -107,6 +107,9 @@ export function LessonMaterialsSelectionBar({
               ✒ 문제 제작
             </button>
             <button type="button" className={btn} disabled title="준비 중">
+              🗂 최종통합자료 제작
+            </button>
+            <button type="button" className={btn} disabled title="준비 중">
               📃 1장 직보자료 제작
             </button>
           </div>

@@ -35,6 +35,15 @@ export function openNewDocument(
   return null;
 }
 
+/**
+ * 제작 버튼으로 연 탭을 닫고 원래 자료함 탭으로 돌아간다. 제작할 때마다 새 탭이 열려 탭이
+ * 쌓였다. 스크립트로 연 탭(또는 기록이 한 페이지뿐인 탭)만 닫히므로, 닫히지 않으면 자료함으로 간다.
+ */
+export function closeTabOrGo(fallbackHref: string) {
+  window.close();
+  setTimeout(() => window.location.assign(fallbackHref), 300);
+}
+
 /** 이 페이지 방문에서 이미 파일을 만들었는지(개발 모드의 effect 두 번 실행 대비). */
 const creating = new Set<string>();
 

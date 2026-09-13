@@ -61,6 +61,8 @@ export function QuestionGeneratorClient({
     emptyPassageInput(),
   ]);
   const [counts, setCounts] = useState<Record<string, number>>(emptyCounts);
+  /** 자료함에서 넘어온 지문 id. 생성한 자료가 자료함 변형문제 탭에도 보이게 함께 저장한다. */
+  const [lessonProjectIds, setLessonProjectIds] = useState<string[]>([]);
   const [modeTab, setModeTab] = useState<string>("custom");
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({
     main_idea: true,
@@ -131,8 +133,10 @@ export function QuestionGeneratorClient({
       mode: modeTab === "custom" ? "custom" : "preset",
       presetId: modeTab.startsWith("preset:") ? modeTab.slice(7) : null,
       counts,
+      ...(lessonProjectIds.length ? { lessonProjectIds } : {}),
     }),
     [
+      lessonProjectIds,
       title,
       schoolName,
       grade,
@@ -178,6 +182,9 @@ export function QuestionGeneratorClient({
           return;
         }
         const list = (d.passages ?? []).slice(0, MAX_PASSAGES);
+        setLessonProjectIds(
+          (d.passages ?? []).slice(0, MAX_PASSAGES).map((p) => (p as { id?: string }).id ?? "").filter(Boolean)
+        );
         if (list.length === 0) {
           setError("불러올 영어 지문이 없습니다.");
           return;
@@ -225,6 +232,7 @@ export function QuestionGeneratorClient({
         setSourceDetail(cfg.sourceDetail ?? "");
         setOverallDifficulty(cfg.overallDifficulty || "내신");
         setCounts(sanitizeCounts(cfg.counts, MAX_SETS_PER_TYPE));
+        setLessonProjectIds(Array.isArray(cfg.lessonProjectIds) ? cfg.lessonProjectIds : []);
         if (cfg.presetId) setModeTab(`preset:${cfg.presetId}`);
         else setModeTab("custom");
 

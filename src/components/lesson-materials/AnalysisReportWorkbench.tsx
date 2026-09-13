@@ -24,7 +24,10 @@ import type {
 import { LOGO_SRC } from "@/lib/branding";
 import { postJson } from "@/lib/lesson-materials/post-json";
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
-import { useCreateDocumentFromUrl } from "@/components/lesson-materials/open-new-document";
+import {
+  closeTabOrGo,
+  useCreateDocumentFromUrl,
+} from "@/components/lesson-materials/open-new-document";
 import { useScaledHeight } from "@/components/lesson-materials/use-scaled-height";
 
 /** 분석서를 동시에 만드는 지문 수. 지문 하나가 모델 호출 하나라 8개도 부담이 작다. */
@@ -477,8 +480,8 @@ export function AnalysisReportWorkbench({
     }
   }
 
-  async function handleSave() {
-    if (!project?.report) return;
+  async function handleSave(): Promise<boolean> {
+    if (!project?.report) return false;
     setSaving(true);
     setError(null);
     try {
@@ -492,13 +495,17 @@ export function AnalysisReportWorkbench({
       });
       if (!res.ok) {
         setError(res.message);
-        return;
+        return false;
       }
       setProjects((prev) =>
         prev.map((row, idx) =>
           idx === active ? { ...row, report: next, headerLabel } : row
         )
       );
+      return true;
+    } catch {
+      setError("저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      return false;
     } finally {
       setSaving(false);
     }
@@ -561,9 +568,13 @@ export function AnalysisReportWorkbench({
     <div className="fixed inset-0 z-50 flex bg-slate-200 print:static print:z-auto print:block print:bg-white">
       <aside className="flex w-[280px] shrink-0 flex-col border-r border-slate-200 bg-white print:hidden">
         <div className="space-y-3 border-b border-slate-100 p-4">
-          <Link href={base} className="text-xs font-semibold text-violet-700">
+          <button
+            type="button"
+            onClick={() => closeTabOrGo(base)}
+            className="text-left text-xs font-semibold text-violet-700"
+          >
             ← 자료함
-          </Link>
+          </button>
           <h1 className="text-base font-bold text-slate-900">분석서</h1>
           {projects.length > 1 ? (
             <div className="flex flex-wrap gap-1">
@@ -621,9 +632,9 @@ export function AnalysisReportWorkbench({
             variant="secondary"
             className="w-full"
             disabled={generating || saving || !report}
-            onClick={() => void handleSave()}
+            onClick={() => void handleSave().then((ok) => ok && closeTabOrGo(base))}
           >
-            {saving ? "저장 중…" : "저장"}
+            {saving ? "저장 중…" : "저장 후 닫기"}
           </Button>
           <Button
             type="button"

@@ -99,6 +99,8 @@ export interface GenerationRequestConfig {
   presetId: string | null;
   counts: GenerationRequestCounts;
   forceGenerateDespiteWarnings?: boolean;
+  /** 자료함(수업자료)에서 지문을 골라 만든 경우 그 지문 id. 있으면 자료함 변형문제 탭에 보인다. */
+  lessonProjectIds?: string[];
 }
 
 export interface PassageAnalysis {
