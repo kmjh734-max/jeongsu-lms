@@ -293,6 +293,11 @@ export function AnalysisReportWorkbench({
   const scaled = useScaledHeight<HTMLDivElement>(zoom / 100);
   const [pageChunksById, setPageChunksById] = useState<Record<string, number[][]>>({});
   const measureRef = useRef<HTMLDivElement>(null);
+  /** 아직 만드는 중인 지문. 보고 있는 지문이 먼저 끝나면 나머지를 기다리지 않고 화면을 연다. */
+  const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
+  const [prepTotal, setPrepTotal] = useState(0);
+  const activeIdRef = useRef<string | undefined>(initialProjects[0]?.id);
+  activeIdRef.current = projects[active]?.id;
 
   const project = projects[active];
   const report = project?.report;
@@ -332,6 +337,8 @@ export function AnalysisReportWorkbench({
 
     setPrepLoading(true);
     setGenerating(true);
+    setPrepTotal(pending.length);
+    setPendingIds(new Set(pending.map(({ p }) => p.id)));
     (async () => {
       // 지문끼리는 독립이라 함께 만든다. 서버 액션은 브라우저에서 한 번에 하나씩만
       // 돌기 때문에 API 라우트로 보낸다(post-json.ts).
@@ -340,6 +347,16 @@ export function AnalysisReportWorkbench({
         ANALYSIS_REPORT_CONCURRENCY,
         async ({ p, i }) => {
           if (cancelled) return null;
+          const done = () => {
+            if (cancelled) return;
+            setPendingIds((prev) => {
+              const next = new Set(prev);
+              next.delete(p.id);
+              return next;
+            });
+            // 보고 있는 지문이 끝나면 로딩 화면을 내린다. 나머지는 뒤에서 이어서 채운다.
+            if (p.id === activeIdRef.current) setPrepLoading(false);
+          };
           const res = await postJson<
             Awaited<ReturnType<typeof generateAndSaveAnalysisReportAction>>
           >("/api/lesson-materials/analysis-report", {
@@ -349,7 +366,10 @@ export function AnalysisReportWorkbench({
             // 원문이 그대로인 분석서는 다시 만들지 않는다(비용 절감). 지문별 "다시 만들기"는 강제로 만든다.
             onlyIfChanged: true,
           });
-          if (!res.ok) return `${String(i + 1).padStart(2, "0")}: ${res.message}`;
+          if (!res.ok) {
+            done();
+            return `${String(i + 1).padStart(2, "0")}: ${res.message}`;
+          }
           if (cancelled) return null;
           setProjects((prev) =>
             prev.map((row, idx) =>
@@ -362,6 +382,7 @@ export function AnalysisReportWorkbench({
                 : row
             )
           );
+          done();
           return null;
         }
       );
@@ -373,6 +394,7 @@ export function AnalysisReportWorkbench({
       // 유지하면 스피너만 도는 채로 무엇이 잘못됐는지 보이지 않는다.
       if (!cancelled) {
         setPrepLoading(false);
+        setPendingIds(new Set());
         regenerateOnce.current = false;
       }
       setGenerating(false);
@@ -541,7 +563,11 @@ export function AnalysisReportWorkbench({
           <p className="text-sm font-semibold text-slate-800">
             분석서를 만들고 있습니다…
           </p>
-          <p className="mt-1 text-xs text-slate-500">문장 단위로 정리 중</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {prepTotal > 1
+              ? `지문 ${prepTotal}개 중 ${prepTotal - pendingIds.size}개 완료 · 첫 지문이 끝나면 바로 보여 드립니다`
+              : "문장 단위로 정리 중"}
+          </p>
         </div>
       </div>
     );
@@ -692,7 +718,8 @@ export function AnalysisReportWorkbench({
                     i === active
                       ? "bg-violet-600 text-white"
                       : "bg-slate-100 text-slate-600"
-                  }`}
+                  } ${pendingIds.has(p.id) ? "animate-pulse opacity-60" : ""}`}
+                  title={pendingIds.has(p.id) ? "만드는 중" : undefined}
                 >
                   {String(i + 1).padStart(2, "0")}
                 </button>
@@ -743,9 +770,12 @@ export function AnalysisReportWorkbench({
             size="sm"
             variant="secondary"
             className="w-full"
+            disabled={generating}
             onClick={() => window.print()}
           >
-            인쇄 / PDF
+            {generating && pendingIds.size > 0
+              ? `나머지 지문 만드는 중 (${prepTotal - pendingIds.size}/${prepTotal})`
+              : "인쇄 / PDF"}
           </Button>
         </div>
       </aside>
@@ -776,7 +806,12 @@ export function AnalysisReportWorkbench({
           </button>
         </div>
 
-        <div className="flex justify-center p-6 print:p-0">
+        <div className="flex flex-col items-center gap-4 p-6 print:block print:p-0">
+          {project && pendingIds.has(project.id) ? (
+            <p className="rounded-lg bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm print:hidden">
+              이 지문의 분석서를 만들고 있습니다… 끝나면 자동으로 채워집니다.
+            </p>
+          ) : null}
           <div style={scaled.frameStyle} className="print:!h-auto print:!overflow-visible">
           <div
             ref={scaled.ref}

@@ -53,8 +53,8 @@ const LIBRARY_TABS: Array<{ id: LibraryTab; label: string }> = [
 function GripIcon() {
   return (
     <svg
-      width="14"
-      height="20"
+      width="10"
+      height="14"
       viewBox="0 0 14 20"
       fill="none"
       stroke="currentColor"
@@ -462,17 +462,17 @@ export function LessonMaterialsLibrary({
     return (
       <div key={folder.id}>
         <div
-          className={`group flex w-full items-center gap-1 rounded-xl px-2 py-1.5 text-left text-sm ${
+          className={`group flex w-full items-center gap-1 rounded-md px-2 py-[3px] text-left text-[13px] ${
             isActive
               ? "bg-violet-100 font-semibold text-violet-800"
               : "text-slate-700 hover:bg-slate-50"
           }`}
-          style={{ paddingLeft: 8 + depth * 14 }}
+          style={{ paddingLeft: 6 + depth * 12 }}
         >
           {kids.length > 0 ? (
             <button
               type="button"
-              className="h-5 w-5 shrink-0 text-xs text-slate-400"
+              className="h-4 w-4 shrink-0 text-[10px] text-slate-400"
               onClick={() =>
                 setExpandedFolders((prev) => {
                   const next = new Set(prev);
@@ -485,11 +485,11 @@ export function LessonMaterialsLibrary({
               {expanded ? "▾" : "▸"}
             </button>
           ) : (
-            <span className="inline-block h-5 w-5 shrink-0" />
+            <span className="inline-block h-4 w-4 shrink-0" />
           )}
           {renamingId === folder.id ? (
             <input
-              className="min-w-0 flex-1 rounded border border-violet-300 px-2 py-0.5 text-sm"
+              className="min-w-0 flex-1 rounded border border-violet-300 px-1.5 py-0 text-[13px]"
               value={renameValue}
               autoFocus
               onChange={(e) => setRenameValue(e.target.value)}
@@ -512,7 +512,7 @@ export function LessonMaterialsLibrary({
               {folder.name}
             </button>
           )}
-          <span className="text-xs text-slate-500">{count}</span>
+          <span className="text-[11px] tabular-nums text-slate-400">{count}</span>
           <div className="relative">
             <button
               type="button"
@@ -576,17 +576,13 @@ export function LessonMaterialsLibrary({
   }
 
   return (
-    <div className="flex gap-6 pb-28">
-      <aside className="w-72 shrink-0 rounded-2xl border border-slate-200 bg-white p-4">
-        <div className="mb-3 flex items-start justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              자료함 폴더
-            </p>
-            <p className="mt-1 text-sm text-slate-600">
-              {data.folders.length}개 폴더
-            </p>
-          </div>
+    <div className="flex gap-4 pb-28">
+      <aside className="w-60 shrink-0 self-start rounded-xl border border-slate-200 bg-white p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-bold text-slate-600">
+            자료함 폴더{" "}
+            <span className="font-medium text-slate-400">{data.folders.length}</span>
+          </p>
           <button
             type="button"
             title="휴지통"
@@ -594,7 +590,7 @@ export function LessonMaterialsLibrary({
               setFolderFilter("trash");
               setSelected(new Set());
             }}
-            className={`rounded-lg p-2 text-slate-500 hover:bg-slate-100 ${
+            className={`rounded-md px-1.5 py-0.5 text-sm text-slate-500 hover:bg-slate-100 ${
               folderFilter === "trash" ? "bg-violet-50 text-violet-700" : ""
             }`}
           >
@@ -609,7 +605,7 @@ export function LessonMaterialsLibrary({
             setCreateParentId(null);
             setError(null);
           }}
-          className="mb-3 flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-violet-300 bg-violet-50 py-2.5 text-sm font-semibold text-violet-700 hover:bg-violet-100"
+          className="mb-2 flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-violet-300 bg-violet-50 py-1 text-xs font-semibold text-violet-700 hover:bg-violet-100"
         >
           + 폴더 생성
         </button>
@@ -654,26 +650,21 @@ export function LessonMaterialsLibrary({
           </div>
         ) : null}
 
-        <div className="mb-3 flex items-center justify-between text-xs text-slate-500">
-          <span>전체 자료 {totalActive}</span>
-          <span>미분류: {data.unfiledProjects.length}</span>
-        </div>
-
-        <div className="space-y-1.5">
+        <div className="space-y-px">
           <button
             type="button"
             onClick={() => {
               setFolderFilter("all");
               setSelected(new Set());
             }}
-            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
+            className={`flex w-full items-center justify-between rounded-md px-2 py-[3px] text-left text-[13px] ${
               folderScoped && folderChoice === "all"
                 ? "bg-violet-100 font-semibold text-violet-800"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
             <span>전체</span>
-            <span className="text-xs text-slate-500">{totalActive}</span>
+            <span className="text-[11px] tabular-nums text-slate-400">{totalActive}</span>
           </button>
 
           <button
@@ -682,14 +673,14 @@ export function LessonMaterialsLibrary({
               setFolderFilter("unfiled");
               setSelected(new Set());
             }}
-            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm ${
+            className={`flex w-full items-center justify-between rounded-md px-2 py-[3px] text-left text-[13px] ${
               folderScoped && folderChoice === "unfiled"
                 ? "bg-violet-100 font-semibold text-violet-800"
                 : "text-slate-700 hover:bg-slate-50"
             }`}
           >
             <span>미분류</span>
-            <span className="text-xs text-slate-500">
+            <span className="text-[11px] tabular-nums text-slate-400">
               {data.unfiledProjects.length}
             </span>
           </button>
@@ -699,10 +690,10 @@ export function LessonMaterialsLibrary({
           )}
         </div>
 
-        <div className="mt-4">
+        <div className="mt-3">
           <Link
             href={`${base}/input`}
-            className="inline-flex w-full items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-700"
+            className="inline-flex w-full items-center justify-center rounded-md bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700"
           >
             + 새 자료 추가
           </Link>
@@ -724,7 +715,7 @@ export function LessonMaterialsLibrary({
                   setLibraryTab(tab.id);
                   setSelected(new Set());
                 }}
-                className={`-mb-px border-b-2 px-3 py-2.5 text-sm transition-colors ${
+                className={`-mb-px border-b-2 px-3 py-2 text-[13px] transition-colors ${
                   active
                     ? "border-violet-600 font-bold text-slate-900"
                     : "border-transparent font-medium text-slate-500 hover:text-slate-800"
@@ -736,13 +727,13 @@ export function LessonMaterialsLibrary({
           })}
         </nav>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-          <div>
-            <h1 className="text-lg font-bold text-violet-700">
+        <div className="rounded-xl border border-slate-200 bg-white p-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-2.5">
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-base font-bold text-violet-700">
               {currentFolderLabel}
             </h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="text-xs text-slate-500">
               {tabComingSoon
                 ? "준비 중"
                 : libraryTab === "questions"
@@ -962,11 +953,11 @@ export function LessonMaterialsLibrary({
           />
         ) : null}
         {documentKind && showProjectList && !inTrash ? (
-          <h2 className="mt-6 text-sm font-bold text-slate-800">지문별 자료</h2>
+          <h2 className="mt-4 text-sm font-bold text-slate-800">지문별 자료</h2>
         ) : null}
 
         {!tabComingSoon && showProjectList ? (
-        <div className="mt-3 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600">
+        <div className="mt-2 flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-slate-600">
           <label className="inline-flex items-center gap-2 font-semibold">
             <input
               type="checkbox"
@@ -978,7 +969,7 @@ export function LessonMaterialsLibrary({
             />
             전체 선택
           </label>
-          <span className="text-xs text-slate-400">
+          <span className="text-[11px] text-slate-400">
             {canReorder
               ? "왼쪽 손잡이를 끌어 순서를 바꾸세요 · Shift + 클릭으로 범위 선택"
               : "Shift + 클릭으로 범위 선택"}
@@ -987,9 +978,13 @@ export function LessonMaterialsLibrary({
         </div>
         ) : null}
 
-        <ul className={`mt-3 space-y-2 ${showProjectList ? "" : "hidden"}`}>
+        <ul
+          className={`mt-1.5 divide-y divide-slate-100 rounded-lg border border-slate-200 ${
+            showProjectList ? "" : "hidden"
+          }`}
+        >
           {tabComingSoon || orderedProjects.length === 0 ? (
-            <li className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
+            <li className="px-4 py-8 text-center text-sm text-slate-500">
               {tabEmptyMessage}
             </li>
           ) : (
@@ -1016,15 +1011,13 @@ export function LessonMaterialsLibrary({
                     e.preventDefault();
                     handleDropOn(p.id);
                   }}
-                  className={`rounded-xl border px-4 py-3 ${
-                    checked
-                      ? "border-violet-300 bg-violet-50"
-                      : "border-slate-200 bg-white"
+                  className={`px-2.5 py-1 first:rounded-t-lg last:rounded-b-lg ${
+                    checked ? "bg-violet-50" : "bg-white hover:bg-slate-50"
                   } ${isDragging ? "opacity-50" : ""} ${
-                    isOver ? "ring-2 ring-violet-400 ring-offset-1" : ""
+                    isOver ? "ring-2 ring-inset ring-violet-400" : ""
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     {canReorder ? (
                       <span
                         draggable
@@ -1037,9 +1030,9 @@ export function LessonMaterialsLibrary({
                           setDraggingId(null);
                           setDragOverId(null);
                         }}
-                        className={`flex h-9 w-7 shrink-0 cursor-grab select-none items-center justify-center rounded-lg border shadow-sm transition-all duration-150 hover:-translate-y-px hover:border-violet-300 hover:bg-violet-600 hover:text-white hover:shadow-md hover:shadow-violet-200 active:translate-y-0 active:scale-95 active:cursor-grabbing ${
+                        className={`flex h-6 w-5 shrink-0 cursor-grab select-none items-center justify-center rounded border shadow-sm transition-all duration-150 hover:border-violet-300 hover:bg-violet-600 hover:text-white active:scale-95 active:cursor-grabbing ${
                           isDragging
-                            ? "border-violet-500 bg-violet-600 text-white shadow-md shadow-violet-200"
+                            ? "border-violet-500 bg-violet-600 text-white"
                             : "border-slate-200 bg-gradient-to-b from-white to-slate-50 text-slate-400"
                         }`}
                         title="끌어서 순서 변경"
@@ -1048,7 +1041,7 @@ export function LessonMaterialsLibrary({
                         <GripIcon />
                       </span>
                     ) : (
-                      <span className="flex h-9 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-100 text-slate-200" aria-hidden>
+                      <span className="flex h-6 w-5 shrink-0 items-center justify-center rounded border border-slate-100 text-slate-200" aria-hidden>
                         <GripIcon />
                       </span>
                     )}
@@ -1068,13 +1061,13 @@ export function LessonMaterialsLibrary({
                     />
                     <div className="min-w-0 flex-1">
                       {inTrash ? (
-                        <div className="truncate font-semibold text-slate-900">
+                        <div className="truncate text-[13px] font-semibold text-slate-900">
                           {p.title}
                         </div>
                       ) : editingMetaId === p.id ? (
                         <div className="flex flex-wrap items-center gap-2">
                           <input
-                            className="min-w-0 flex-1 rounded-lg border border-violet-300 px-2.5 py-1.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-violet-200"
+                            className="min-w-0 flex-1 rounded-md border border-violet-300 px-2 py-0.5 text-[13px] font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-violet-200"
                             value={editTitle}
                             autoFocus
                             onChange={(e) => setEditTitle(e.target.value)}
@@ -1129,7 +1122,7 @@ export function LessonMaterialsLibrary({
                         <div className="flex items-center gap-1.5">
                           <Link
                             href={openHref ?? `${base}/project/${p.id}`}
-                            className="min-w-0 flex-1 truncate font-semibold text-slate-900 hover:text-violet-700"
+                            className="min-w-0 truncate text-[13px] font-semibold text-slate-900 hover:text-violet-700"
                             target={
                               libraryTab === "lesson" ||
                               libraryTab === "analysis"
@@ -1149,7 +1142,7 @@ export function LessonMaterialsLibrary({
                             type="button"
                             title="이름 변경"
                             aria-label="이름 변경"
-                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-violet-50 hover:text-violet-700"
+                            className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-slate-300 hover:bg-violet-50 hover:text-violet-700"
                             onClick={() => {
                               setEditingMetaId(p.id);
                               setEditTitle(p.title);
@@ -1158,19 +1151,18 @@ export function LessonMaterialsLibrary({
                             <svg
                               viewBox="0 0 20 20"
                               fill="currentColor"
-                              className="h-4 w-4"
+                              className="h-3.5 w-3.5"
                               aria-hidden
                             >
                               <path d="M13.586 3.586a2 2 0 1 1 2.828 2.828l-.793.793-2.828-2.828.793-.793ZM11.379 5.793 3 14.172V17h2.828l8.38-8.379-2.83-2.828Z" />
                             </svg>
                           </button>
+                          {/* 출처는 제목 옆에 작게 둔다. 줄을 따로 두면 한 칸이 두 줄로 커졌다. */}
+                          <span className="min-w-0 flex-1 truncate text-[11px] text-slate-400">
+                            {p.source?.trim() ?? ""}
+                          </span>
                         </div>
                       )}
-                      {p.source?.trim() ? (
-                        <p className="mt-0.5 truncate text-xs text-slate-500">
-                          출처: {p.source}
-                        </p>
-                      ) : null}
                     </div>
                   </div>
                 </li>

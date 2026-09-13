@@ -38,7 +38,7 @@ export function LessonQuestionJobList({
   const base = role === "admin" ? "/admin/question-generator" : "/teacher/question-generator";
   const open = (path: string) => window.open(path, "_blank", "noopener,noreferrer");
   const link =
-    "rounded-lg px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40";
+    "rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 disabled:opacity-40";
 
   return (
     <section className="mt-3">
@@ -50,31 +50,31 @@ export function LessonQuestionJobList({
           지문자료 탭에서 지문을 골라 문제 제작을 누르면, 만든 변형문제가 여기에 모입니다.
         </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200">
           {jobs.map((job) => {
             const ready = (job.total_completed ?? 0) > 0;
             return (
               <li
                 key={job.id}
-                className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+                className="flex items-center gap-2.5 bg-white px-3 py-1.5 hover:bg-slate-50"
               >
-                <span className="text-base" aria-hidden>
+                <span className="text-xs" aria-hidden>
                   ✒
                 </span>
-                <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 flex-1 items-baseline gap-2">
                   <button
                     type="button"
                     onClick={() => open(`${base}/generations/${job.id}`)}
-                    className="truncate text-left text-sm font-semibold text-slate-900 hover:text-violet-700 hover:underline"
+                    className="min-w-0 truncate text-left text-[13px] font-semibold text-slate-900 hover:text-violet-700 hover:underline"
                     title="새 탭에서 열기"
                   >
                     {job.title}
                   </button>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <span className="shrink-0 text-[11px] text-slate-400">
                     지문 {job.project_ids.length}개 · 문항 {job.total_completed ?? 0}
                     {job.total_requested ? `/${job.total_requested}` : ""} ·{" "}
                     {STATUS_LABEL[job.status] ?? job.status} · {formatWhen(job.created_at)}
-                  </p>
+                  </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   <button

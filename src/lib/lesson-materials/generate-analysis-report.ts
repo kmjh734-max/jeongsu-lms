@@ -367,6 +367,18 @@ const CALL_ATTEMPTS = 2;
 
 class ReportDeadlineError extends Error {}
 
+type ReasoningEffort = "low" | "medium";
+/**
+ * The grammar call is the one every passage waits on (24-56s at medium against
+ * 11-19s for the sentence calls, 3 passages). At low it took 15-18s and picked
+ * and classified the same points; the sentence calls stay at medium because
+ * lowering them does not shorten the report and chunking benefits from it.
+ */
+const GRAMMAR_EFFORT: ReasoningEffort = "low";
+const SENTENCE_EFFORT: ReasoningEffort = "medium";
+/** See requestHedged. Normal calls finish well inside this. */
+const HEDGE_AFTER_MS = 30_000;
+
 function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
@@ -406,7 +418,8 @@ function retryDelayMs(res: Response, attempt: number): number {
 async function requestAnalysisContent(
   apiKey: string,
   userContent: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  effort: ReasoningEffort
 ): Promise<string> {
   const configured = process.env.OPENAI_MODEL_ANALYSIS_REPORT?.trim();
   const candidates = configured
@@ -445,7 +458,7 @@ async function requestAnalysisContent(
       }
       if (isGpt5FamilyModel(model)) {
         body.max_completion_tokens = 16_384;
-        if (includeReasoningEffort) body.reasoning_effort = "medium";
+        if (includeReasoningEffort) body.reasoning_effort = effort;
         else delete body.reasoning_effort;
       } else {
         body.max_tokens = 8192;
@@ -581,6 +594,58 @@ target_sentence_ids: ${JSON.stringify(group.map((g) => g.id))}
 }
 
 /**
+ * requestAnalysisContent with a hedge: when the answer has not come back after
+ * HEDGE_AFTER_MS, the same request is sent once more and whichever answers
+ * first wins (the other is aborted). Now and then one call takes several
+ * times longer than its siblings and the whole report waits on it.
+ */
+function requestHedged(
+  apiKey: string,
+  userContent: string,
+  signal: AbortSignal,
+  effort: ReasoningEffort
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const children: AbortController[] = [];
+    let settled = false;
+    let failures = 0;
+    const abortChildren = () => {
+      for (const c of children) c.abort();
+    };
+    signal.addEventListener("abort", abortChildren, { once: true });
+    const finish = () => {
+      settled = true;
+      clearTimeout(hedgeTimer);
+      signal.removeEventListener("abort", abortChildren);
+    };
+    const launch = () => {
+      const child = new AbortController();
+      children.push(child);
+      requestAnalysisContent(apiKey, userContent, child.signal, effort).then(
+        (content) => {
+          if (settled) return;
+          finish();
+          for (const c of children) if (c !== child) c.abort();
+          resolve(content);
+        },
+        (e) => {
+          if (settled) return;
+          failures++;
+          // The other request is still running: wait for it.
+          if (failures < children.length) return;
+          finish();
+          reject(signal.aborted ? new ReportDeadlineError("aborted") : e);
+        }
+      );
+    };
+    const hedgeTimer = setTimeout(() => {
+      if (!settled && failures === 0 && children.length === 1) launch();
+    }, HEDGE_AFTER_MS);
+    launch();
+  });
+}
+
+/**
  * Runs one call, parses it and checks it with `score` (0 = unusable).
  * Retries once when the answer is unusable or incomplete, keeping the better
  * of the two; throws only when nothing usable came back.
@@ -589,6 +654,7 @@ async function runScopedCall(
   apiKey: string,
   userContent: string,
   signal: AbortSignal,
+  effort: ReasoningEffort,
   score: (parsed: RawAnalysisResponse) => { value: number; complete: boolean }
 ): Promise<RawAnalysisResponse> {
   let best: { parsed: RawAnalysisResponse; value: number } | null = null;
@@ -596,7 +662,7 @@ async function runScopedCall(
   for (let attempt = 0; attempt < CALL_ATTEMPTS; attempt++) {
     let content: string;
     try {
-      content = await requestAnalysisContent(apiKey, userContent, signal);
+      content = await requestHedged(apiKey, userContent, signal, effort);
     } catch (e) {
       if (e instanceof ReportDeadlineError || signal.aborted) throw e;
       lastError = e;
@@ -652,6 +718,7 @@ export async function generateAnalysisReport(input: {
       apiKey,
       buildGrammarScopePrompt(baseUserContent),
       controller.signal,
+      GRAMMAR_EFFORT,
       (p) => {
         const said =
           Array.isArray(p.grammarPoints) ||
@@ -684,6 +751,7 @@ export async function generateAnalysisReport(input: {
         apiKey,
         buildSentenceGroupScopePrompt(baseUserContent, group),
         controller.signal,
+        SENTENCE_EFFORT,
         (p) => {
           const got = new Set(ownSentences(p).map((s) => s.itemId));
           return { value: got.size, complete: got.size === targetIds.size };
