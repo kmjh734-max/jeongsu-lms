@@ -1604,7 +1604,7 @@ export function LessonPackWorkbench({
       </aside>
 
       {/* Preview canvas — continuous flow, soft A4 page breaks between blocks */}
-      <main className="relative min-w-0 flex-1 overflow-auto print:overflow-visible">
+      <main className="relative min-w-0 flex-1 overflow-auto print:static print:overflow-visible">
         <div className="sticky top-0 z-10 flex flex-wrap items-center justify-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 py-2 backdrop-blur print:hidden">
           <button
             type="button"

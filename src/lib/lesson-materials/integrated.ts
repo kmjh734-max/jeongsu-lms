@@ -48,7 +48,7 @@ export type IntegratedPayload = {
 };
 
 export const DEFAULT_INTEGRATED_COVER: IntegratedCover = {
-  presetId: "typo",
+  presetId: "navy",
   label: "",
   title: "",
   progress: "",
@@ -88,133 +88,102 @@ export function normalizeIntegratedPayload(raw: unknown): IntegratedPayload {
   };
 }
 
-export type CoverPresetCategory = "pastel" | "basic";
+
+/** 표지 배치. 네 가지 표지가 각각 하나씩 쓴다(BundleSheets.tsx). */
+export type CoverLayout = "classic" | "minimal" | "gradient" | "block";
 
 export type CoverPreset = {
   id: string;
   name: string;
-  category: CoverPresetCategory;
-  /** 표지 배경 */
+  /** 고르는 창에 쓰는 한 줄 설명 */
+  description: string;
+  layout: CoverLayout;
+  /** 앞표지 배경 */
   background: string;
   /** 제목 색 */
   ink: string;
   /** 보조 글자 색 */
   muted: string;
-  /** 간지·목차에 쓰는 강조색 */
+  /** 선·장식 색 */
+  rule: string;
+  /** 목차 번호·간지 글자처럼 흰 종이 위에 쓰는 강조색(흰 바탕에서 읽히는 진한 색) */
   accent: string;
-  /** 장식 모양 */
-  motif: "orb" | "typo" | "waves" | "metal" | "modern" | "classic" | "arch";
-  /** 원형 장식의 그라데이션 */
-  orb?: string;
+  /** 간지 왼쪽 띠 */
+  strip: string;
+  /** 뒤표지 배경·글자 */
+  backBackground: string;
+  backInk: string;
+  backMuted: string;
 };
 
+/**
+ * 표지 네 가지. 예전 열 가지는 비슷한 원형 장식이 많아 고르기만 번거로워, 성격이 뚜렷한
+ * 넷으로 줄였다. 모두 인쇄에서 배경색까지 그대로 찍힌다.
+ */
 export const COVER_PRESETS: CoverPreset[] = [
   {
-    id: "orb-pink",
-    name: "원형 핑크",
-    category: "pastel",
-    background: "linear-gradient(160deg,#fdf2f8 0%,#f5f3ff 55%,#eff6ff 100%)",
-    ink: "#3b0764",
-    muted: "#7c3aed",
-    accent: "#db2777",
-    motif: "orb",
-    orb: "radial-gradient(circle at 30% 30%,#f9a8d4,#c4b5fd 55%,#93c5fd)",
+    id: "navy",
+    name: "클래식 네이비",
+    description: "남색 바탕 · 금색 테두리",
+    layout: "classic",
+    background: "#13213c",
+    ink: "#f7f1e3",
+    muted: "#cdbd98",
+    rule: "#d6be8c",
+    accent: "#1f3a68",
+    strip: "#13213c",
+    backBackground: "#13213c",
+    backInk: "#f7f1e3",
+    backMuted: "#cdbd98",
   },
   {
-    id: "orb-sunset",
-    name: "원형 선셋",
-    category: "pastel",
-    background: "linear-gradient(160deg,#fff7ed 0%,#eff6ff 100%)",
-    ink: "#1e3a8a",
-    muted: "#c2410c",
-    accent: "#ea580c",
-    motif: "orb",
-    orb: "linear-gradient(135deg,#60a5fa,#fb923c)",
+    id: "minimal",
+    name: "미니멀 화이트",
+    description: "흰 바탕 · 굵은 제목",
+    layout: "minimal",
+    background: "#ffffff",
+    ink: "#0f172a",
+    muted: "#475569",
+    rule: "#0f172a",
+    accent: "#2563eb",
+    strip: "#0f172a",
+    backBackground: "#ffffff",
+    backInk: "#0f172a",
+    backMuted: "#64748b",
   },
   {
-    id: "orb-green",
-    name: "원형 그린",
-    category: "pastel",
-    background: "linear-gradient(160deg,#f0fdf4 0%,#fefce8 100%)",
-    ink: "#14532d",
-    muted: "#15803d",
-    accent: "#16a34a",
-    motif: "orb",
-    orb: "radial-gradient(circle at 30% 30%,#86efac,#7dd3fc 55%,#fde68a)",
+    id: "soft",
+    name: "소프트 그라데이션",
+    description: "연보라·하늘 · 부드러운 느낌",
+    layout: "gradient",
+    background: "linear-gradient(160deg,#eef2ff 0%,#faf5ff 48%,#ecfeff 100%)",
+    ink: "#1e1b4b",
+    muted: "#4338ca",
+    rule: "#7c3aed",
+    accent: "#6d28d9",
+    strip: "linear-gradient(180deg,#a78bfa 0%,#67e8f9 100%)",
+    backBackground: "linear-gradient(160deg,#eef2ff 0%,#faf5ff 48%,#ecfeff 100%)",
+    backInk: "#1e1b4b",
+    backMuted: "#4338ca",
   },
   {
-    id: "orb-teal",
-    name: "원형 틸",
-    category: "pastel",
-    background: "linear-gradient(160deg,#f8fafc 0%,#ecfeff 100%)",
-    ink: "#134e4a",
-    muted: "#0f766e",
-    accent: "#0d9488",
-    motif: "orb",
-    orb: "linear-gradient(135deg,#cbd5e1,#2dd4bf)",
-  },
-  {
-    id: "typo",
-    name: "Typo",
-    category: "basic",
-    background: "#0f3b3f",
-    ink: "#7ff2d4",
-    muted: "#9fc7c2",
-    accent: "#0f766e",
-    motif: "typo",
-  },
-  {
-    id: "blue-pink",
-    name: "블루핑크",
-    category: "pastel",
-    background: "linear-gradient(180deg,#bfdbfe 0%,#e0f2fe 100%)",
-    ink: "#1e3a8a",
-    muted: "#be185d",
-    accent: "#ec4899",
-    motif: "waves",
-  },
-  {
-    id: "dark-metal",
-    name: "다크 메탈",
-    category: "basic",
-    background: "#0b0b0f",
-    ink: "#f4f4f5",
-    muted: "#a1a1aa",
-    accent: "#52525b",
-    motif: "metal",
-  },
-  {
-    id: "modern",
-    name: "Modern",
-    category: "basic",
-    background: "#1e2a5a",
+    id: "block",
+    name: "컬러 블록",
+    description: "청록 블록 · 호박색 띠",
+    layout: "block",
+    background: "#f6f4ee",
     ink: "#ffffff",
-    muted: "#c7d2fe",
-    accent: "#f97316",
-    motif: "modern",
-  },
-  {
-    id: "classic",
-    name: "Classic",
-    category: "basic",
-    background: "#faf7f0",
-    ink: "#1f2937",
-    muted: "#6b7280",
-    accent: "#374151",
-    motif: "classic",
-  },
-  {
-    id: "arch",
-    name: "Arch",
-    category: "basic",
-    background: "#123c3a",
-    ink: "#123c3a",
-    muted: "#d6b98c",
-    accent: "#b08d57",
-    motif: "arch",
+    muted: "#374151",
+    rule: "#f0b429",
+    accent: "#0f4c43",
+    strip: "#0f4c43",
+    backBackground: "#0f4c43",
+    backInk: "#ffffff",
+    backMuted: "#b9d3cc",
   },
 ];
 
+/** 저장된 표지 id가 없거나 예전 표지(열 가지 시절)면 첫 표지를 쓴다. */
 export function coverPreset(id: string | undefined): CoverPreset {
-  return COVER_PRESETS.find((p) => p.id === id) ?? COVER_PRESETS.find((p) => p.id === "typo")!;
+  return COVER_PRESETS.find((p) => p.id === id) ?? COVER_PRESETS[0]!;
 }

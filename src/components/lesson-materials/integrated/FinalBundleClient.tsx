@@ -14,7 +14,6 @@ import {
   COVER_PRESETS,
   INTEGRATED_SECTION_META,
   coverPreset,
-  type CoverPresetCategory,
   type IntegratedPayload,
   type IntegratedSectionKind,
 } from "@/lib/lesson-materials/integrated";
@@ -115,7 +114,6 @@ export function FinalBundleClient({
       academy: initialPayload.cover.academy || academyName,
     },
   }));
-  const [presetFilter, setPresetFilter] = useState<"all" | CoverPresetCategory>("all");
   const [zoom, setZoom] = useState(60);
   const [pageCounts, setPageCounts] = useState<Record<string, number>>({});
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -267,41 +265,28 @@ export function FinalBundleClient({
 
         <div className="min-h-0 flex-1 space-y-4 overflow-auto p-4">
           <section className="space-y-2">
-            <p className="text-xs font-bold text-slate-600">표지 프리셋</p>
-            <div className="flex gap-1.5">
-              {(
-                [
-                  { id: "all", label: "전체" },
-                  { id: "pastel", label: "파스텔" },
-                  { id: "basic", label: "기본" },
-                ] as const
-              ).map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setPresetFilter(c.id)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    presetFilter === c.id ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-500"
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {COVER_PRESETS.filter((p) => presetFilter === "all" || p.category === presetFilter).map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => updateCover({ presetId: p.id })}
-                  className={`overflow-hidden rounded-lg border-2 text-left ${
-                    payload.cover.presetId === p.id ? "border-violet-600" : "border-slate-200"
-                  }`}
-                >
-                  <CoverThumb preset={p} cover={payload.cover} widthPx={92} />
-                  <p className="truncate bg-white px-1.5 py-1 text-[11px] font-semibold text-slate-700">{p.name}</p>
-                </button>
-              ))}
+            <p className="text-xs font-bold text-slate-600">표지</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {COVER_PRESETS.map((p) => {
+                const on = preset.id === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => updateCover({ presetId: p.id })}
+                    aria-pressed={on}
+                    className={`overflow-hidden rounded-lg border-2 bg-white text-left transition ${
+                      on ? "border-violet-600 shadow-md" : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <CoverThumb preset={p} cover={payload.cover} widthPx={144} />
+                    <div className="px-2 py-1.5">
+                      <p className="truncate text-[12px] font-bold text-slate-800">{p.name}</p>
+                      <p className="truncate text-[10.5px] text-slate-500">{p.description}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
@@ -380,7 +365,7 @@ export function FinalBundleClient({
         </div>
       </aside>
 
-      <main className="relative min-w-0 flex-1 overflow-auto print:overflow-visible">
+      <main className="relative min-w-0 flex-1 overflow-auto print:static print:overflow-visible">
         <div className="sticky top-0 z-10 flex items-center justify-center gap-2 border-b border-slate-200/80 bg-white/90 px-4 py-2 backdrop-blur print:hidden">
           <button type="button" className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs" onClick={() => setZoom((z) => Math.max(30, z - 10))}>
             −
@@ -398,7 +383,7 @@ export function FinalBundleClient({
             style={{ ["--bundle-zoom" as string]: String(zoom / 100) }}
           >
             <FrontCover preset={preset} cover={payload.cover} />
-            <ContentsPage entries={contents} cover={payload.cover} accent={preset.accent === "#52525b" ? "#111827" : preset.accent} />
+            <ContentsPage entries={contents} cover={payload.cover} accent={preset.accent} />
             {sections.map((s, i) => (
               <div key={s.key} className="bundle-section flex flex-col items-center gap-6 print:gap-0">
                 {payload.dividers ? (
