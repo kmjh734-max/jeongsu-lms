@@ -28,6 +28,8 @@ const PUBLIC_PREFIXES = [
   "/api/nelt/share",
   "/exam-vocab",
   "/api/exam-vocab",
+  // 서버끼리 부르는 변형문제 생성 이어 받기. 라우트에서 서명으로 확인한다.
+  "/api/question-generator/continue",
 ];
 
 function isPublicPath(pathname: string): boolean {

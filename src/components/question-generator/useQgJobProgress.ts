@@ -193,6 +193,8 @@ export function useQgJobProgress(options: Options = {}) {
       !jobProgress.done &&
       (ACTIVE.has(jobProgress.status) ||
         jobProgress.status === "generating" ||
+        // 문항이 많으면 서버가 나눠 만들고, 사이사이 잠깐 pending이 된다.
+        (jobProgress.status === "pending" && jobProgress.completed > 0) ||
         (jobProgress.status === "pending" &&
           Date.now() <= pendingGraceUntil.current))
   );

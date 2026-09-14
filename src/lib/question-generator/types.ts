@@ -101,6 +101,11 @@ export interface GenerationRequestConfig {
   forceGenerateDespiteWarnings?: boolean;
   /** 자료함(수업자료)에서 지문을 골라 만든 경우 그 지문 id. 있으면 자료함 변형문제 탭에 보인다. */
   lessonProjectIds?: string[];
+  /**
+   * 서버 실행 기록. 한 번의 실행은 5분 제한이 있어 문항이 많으면 여러 번에 나눠 이어서
+   * 만든다(run-generation-job.ts). claimedAt은 지금 실행이 작업을 가져간 시각.
+   */
+  _run?: { claimedAt: string; chunk: number };
 }
 
 export interface PassageAnalysis {

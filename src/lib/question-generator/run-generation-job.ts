@@ -245,9 +245,73 @@ async function finalizeGenerationJob(
 }
 
 /**
- * Long-running job processor. Safe to call once; ignores if already running/done.
+ * 한 번의 서버 실행(Vercel 함수)은 300초에 끊긴다. 예전에는 작업 전체를 한 실행에서
+ * 돌려, 210문항짜리가 141번째에서 끊기고 "생성 중"으로 멈춰 있었다. 이제는 실행마다
+ * 정해진 시간만큼만 새 문항을 시작하고, 남으면 작업을 pending으로 돌려놓고 다음 실행이
+ * 이어 받는다(runGenerationJob의 반환값 more, api/question-generator/continue).
  */
-export async function runGenerationJob(jobId: string): Promise<void> {
+/** 이 시간이 지나면 새 문항을 시작하지 않는다. */
+const CHUNK_DISPATCH_MS = 190_000;
+/** 이 시간까지 끝나지 않은 문항은 버리고(저장 안 함) 다음 실행에 넘긴다. */
+const CHUNK_HARD_STOP_MS = 265_000;
+/** 실행 하나가 살아 있을 수 있는 최대 시간(300초 + 여유). 넘으면 멈춘 작업으로 본다. */
+const RUNNER_MAX_LIFETIME_MS = 330_000;
+/** 이어 받기 횟수 상한(최대 500문항도 이 안에 끝난다). */
+const MAX_CHUNKS = 20;
+
+/** 실행 중으로 표시되는 상태. 이 상태의 작업은 실행 하나가 가져간 것이다. */
+const HELD_STATUSES = ["analyzing", "generating", "validating"];
+/** 실행이 새로 가져갈 수 있는 상태. */
+const FREE_STATUSES = ["pending", "failed", "partially_completed"];
+
+/**
+ * 실행 중으로 표시돼 있지만 그 실행이 이미 끝났을(끊겼을) 작업인지. 실행을 가져간
+ * 시각이 없으면(예전 작업) 작업을 만든 시각으로 판단한다.
+ */
+export function isGenerationJobStale(job: {
+  status: string;
+  created_at?: string | null;
+  request_config?: unknown;
+}): boolean {
+  if (!HELD_STATUSES.includes(job.status)) return false;
+  const run = (job.request_config as GenerationRequestConfig | null)?._run;
+  const since = Date.parse(run?.claimedAt ?? job.created_at ?? "");
+  if (!Number.isFinite(since)) return false;
+  return Date.now() - since > RUNNER_MAX_LIFETIME_MS;
+}
+
+/**
+ * 끊긴 작업을 다시 가져갈 수 있게 pending으로 돌린다. 여럿이 동시에 불러도 상태가
+ * 바뀐 뒤에는 조건이 맞지 않아 한 번만 바뀐다. 바꿨으면 true.
+ */
+export async function releaseStaleGenerationJob(jobId: string): Promise<boolean> {
+  const admin = createAdminClient();
+  const { data: job } = await admin
+    .from("question_generation_jobs")
+    .select("id,status,created_at,request_config")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (!job || !isGenerationJobStale(job)) return false;
+  const { data: updated } = await admin
+    .from("question_generation_jobs")
+    .update({ status: "pending", progress_message: "이어서 만드는 중…" })
+    .eq("id", jobId)
+    .eq("status", job.status)
+    .select("id")
+    .maybeSingle();
+  return !!updated;
+}
+
+/**
+ * 작업을 한 번 실행한다. 이미 다른 실행이 가져갔거나 끝난 작업이면 아무것도 하지 않는다.
+ * 시간 안에 다 못 만들면 { more: true }를 돌려주고, 부른 쪽이 다음 실행을 이어 붙인다.
+ * continuation은 이어 받는 실행(진행 문구와 이어 받기 횟수만 다르다).
+ */
+export async function runGenerationJob(
+  jobId: string,
+  opts: { continuation?: boolean } = {}
+): Promise<{ more: boolean }> {
+  const startedAt = Date.now();
   const admin = createAdminClient();
   const { data: job, error } = await admin
     .from("question_generation_jobs")
@@ -270,31 +334,32 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     throw new Error("생성 작업에 학원 정보가 없습니다.");
   }
 
-  const startable = new Set([
-    "pending",
-    "failed",
-    "partially_completed",
-    "analyzing",
-    "generating",
-    "validating",
-  ]);
-  if (!startable.has(job.status)) {
-    return;
-  }
+  // 실행 중인 작업은 가져가지 않는다. 끊긴 작업은 releaseStaleGenerationJob이 먼저
+  // pending으로 돌려놓는다.
+  if (!FREE_STATUSES.includes(job.status)) return { more: false };
 
-  // 동시 실행 방지: 한 번에 하나만 claim
+  const prevRun = (job.request_config as GenerationRequestConfig | null)?._run;
+  const chunk = opts.continuation ? (prevRun?.chunk ?? 0) + 1 : 1;
+  const config: GenerationRequestConfig = {
+    ...(job.request_config as GenerationRequestConfig),
+    _run: { claimedAt: new Date().toISOString(), chunk },
+  };
+
+  // 동시 실행 방지: 가져갈 수 있는 상태에서 실행 중 상태로 바꾼 쪽 하나만 이어 간다.
+  // 둘이 동시에 바꾸려 해도 뒤쪽은 이미 바뀐 상태를 보고 0건이 된다.
   const { data: claimed, error: claimErr } = await admin
     .from("question_generation_jobs")
     .update({
       status: "analyzing",
-      progress_message: "준비 중…",
+      progress_message: opts.continuation ? "이어서 만드는 중…" : "준비 중…",
       error_message: null,
+      request_config: config,
     })
     .eq("id", jobId)
-    .in("status", [...startable])
+    .in("status", FREE_STATUSES)
     .select("id")
     .maybeSingle();
-  if (claimErr || !claimed) return;
+  if (claimErr || !claimed) return { more: false };
 
   const { data: existingRows } = await admin
     .from("generated_english_questions")
@@ -315,7 +380,6 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       .eq("generation_job_id", jobId);
   }
 
-  const config = job.request_config as GenerationRequestConfig;
   config.counts = sanitizeCounts(config.counts, MAX_SETS_PER_TYPE);
   const userId = job.created_by as string;
 
@@ -359,7 +423,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
           error_message: `지문 ${pi + 1}을(를) 찾을 수 없습니다.`,
           completed_at: new Date().toISOString(),
         });
-        return;
+        return { more: false };
       }
     }
 
@@ -447,13 +511,14 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       };
     }
 
-    // 재시도 시 남은 슬롯이 없으면 바로 완료 처리
-    if (work.length === 0) {
+    // 재시도 시 남은 슬롯이 없으면 바로 완료 처리. 이어 받기가 너무 많이 반복되면
+    // (계속 실패하는 유형 등) 거기서 끝낸다.
+    if (work.length === 0 || chunk > MAX_CHUNKS) {
       await finalizeGenerationJob(jobId, {
         totalRequested,
         skipped: 0,
       });
-      return;
+      return { more: false };
     }
 
     const initialCompleted = existingSlots.size;
@@ -462,9 +527,11 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       jobId,
       {
         status: "generating",
-        progress_message: isResume
-          ? `실패 유형 재생성 중 (0/${work.length})`
-          : `문제 생성 중 (0/${work.length})`,
+        progress_message: opts.continuation
+          ? `${initialCompleted}/${totalRequested} 완료 · 이어서 만드는 중`
+          : isResume
+            ? `실패 유형 재생성 중 (0/${work.length})`
+            : `문제 생성 중 (0/${work.length})`,
         total_requested: totalRequested,
         total_completed: initialCompleted,
         total_failed: 0,
@@ -475,8 +542,18 @@ export async function runGenerationJob(jobId: string): Promise<void> {
     let completed = initialCompleted;
     let failed = 0;
     let skipped = 0;
+    /** 시간이 모자라 이번 실행에서 시작하지 않은 문항 수. */
+    let deferred = 0;
+    /** 시간 초과로 이번 실행을 접었다. 이후에 끝나는 문항은 저장하지 않는다. */
+    let abandoned = false;
+    const inserts = new Set<Promise<unknown>>();
+    const dispatchUntil = startedAt + CHUNK_DISPATCH_MS;
 
-    await mapPool(work, GENERATION_CONCURRENCY, async (item) => {
+    const pool = mapPool(work, GENERATION_CONCURRENCY, async (item) => {
+      if (Date.now() > dispatchUntil) {
+        deferred += 1;
+        return;
+      }
       // 문장삽입·무관한문장: 문장 5개 이하면 AI 호출 없이 생략
       if (
         (item.option.type === "sentence_insertion" ||
@@ -504,6 +581,8 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         sourceDetail: item.sourceDetail,
         diversitySlot: item.diversitySlot,
       });
+      // 다음 실행이 이 문항을 다시 만든다. 여기서 저장하면 같은 칸이 두 번 생긴다.
+      if (abandoned) return;
 
       if (result.skipped) {
         skipped += 1;
@@ -511,7 +590,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         failed += 1;
       } else {
         completed += 1;
-        await admin.from("generated_english_questions").insert(
+        const insert = admin.from("generated_english_questions").insert(
           toRow(result.payload, {
             passageId: item.passageId,
             jobId,
@@ -524,6 +603,9 @@ export async function runGenerationJob(jobId: string): Promise<void> {
             errorMessage: null,
           })
         );
+        const tracked = Promise.resolve(insert).finally(() => inserts.delete(tracked));
+        inserts.add(tracked);
+        await tracked;
       }
 
       await updateProgress(jobId, {
@@ -535,10 +617,38 @@ export async function runGenerationJob(jobId: string): Promise<void> {
       });
     });
 
+    let hardStop: ReturnType<typeof setTimeout> | undefined;
+    const finishedInTime = await Promise.race([
+      pool.then(() => true),
+      new Promise<false>((resolve) => {
+        hardStop = setTimeout(
+          () => resolve(false),
+          Math.max(0, startedAt + CHUNK_HARD_STOP_MS - Date.now())
+        );
+      }),
+    ]);
+    clearTimeout(hardStop);
+
+    if (!finishedInTime || deferred > 0) {
+      // 남은 문항은 다음 실행에 넘긴다. 저장 중이던 문항까지 끝난 뒤에 세어야
+      // 다음 실행이 이미 만든 칸을 다시 만들지 않는다.
+      abandoned = true;
+      await Promise.allSettled([...inserts]);
+      const saved = await countSavedQuestions(jobId);
+      await updateJob(jobId, {
+        status: "pending",
+        total_completed: saved,
+        total_failed: 0,
+        progress_message: `${saved}/${totalRequested} 완료 · 이어서 만드는 중`,
+      });
+      return { more: true };
+    }
+
     await finalizeGenerationJob(jobId, {
       totalRequested,
       skipped,
     });
+    return { more: false };
   } catch (e) {
     const saved = await countSavedQuestions(jobId);
     const totalRequested = (job.request_config as GenerationRequestConfig)
@@ -574,6 +684,7 @@ export async function runGenerationJob(jobId: string): Promise<void> {
         completed_at: new Date().toISOString(),
       });
     }
+    return { more: false };
   }
 }
 
