@@ -89,8 +89,14 @@ function allIndexes(count: number) {
 
 export function LessonMaterialsInputWizard({
   role,
+  folderId = null,
+  folderLabel = null,
 }: {
   role: "admin" | "teacher";
+  /** 자료함에서 고른 폴더("unfiled"는 미분류). 없으면 기본 폴더에 넣는다. */
+  folderId?: string | null;
+  /** 저장 위치로 보여 줄 폴더 이름 */
+  folderLabel?: string | null;
 }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [passages, setPassages] = useState<PassageDraft[]>([
@@ -532,11 +538,9 @@ export function LessonMaterialsInputWizard({
       const createdIds: string[] = [];
       let totalItems = 0;
 
-      // 마지막 지문부터 저장한다. 자료함은 새 지문이 order_index 0으로 들어가
-      // 최근 수정순(기본: 최신 위)으로 정렬되므로, 앞에서부터 저장하면 한 번에 만든
-      // 지문이 8·7·…·1 순으로 보인다. 거꾸로 저장해야 1번이 맨 위, 8번이 맨 아래다.
-      // 선택 순서가 곧 수업자료·분석서의 지문 순서라 그쪽도 1번부터 나온다.
-      for (const board of workbenches.slice().reverse()) {
+      // 1번 지문부터 저장한다. 새 지문은 폴더 맨 뒤에 붙으므로(project-order.ts) 이 순서대로
+      // 1번이 위, 마지막 지문이 아래에 놓인다. (예전에는 새 지문이 맨 위에 붙어 거꾸로 저장했다.)
+      for (const board of workbenches) {
         const items = board.selected
           .slice()
           .sort((a, b) => a - b)
@@ -559,6 +563,7 @@ export function LessonMaterialsInputWizard({
           illustrationUrl: board.illustrationUrl,
           illustrationCaptions:
             board.comicCaptions.length > 0 ? board.comicCaptions : null,
+          folderId,
         });
         if (!res.ok) {
           setError(res.message);
@@ -596,6 +601,9 @@ export function LessonMaterialsInputWizard({
   return (
     <div className="relative px-4">
       <LessonMaterialsStepTop current={step} />
+      <p className="-mt-1 mb-3 text-center text-xs text-slate-500">
+        저장 위치: <span className="font-semibold text-slate-700">{folderLabel || "기본 폴더"}</span>
+      </p>
 
       {prepLoading ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-200">

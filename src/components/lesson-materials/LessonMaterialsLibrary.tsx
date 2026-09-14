@@ -282,6 +282,12 @@ export function LessonMaterialsLibrary({
   const showProjectList =
     libraryTab !== "workbook" && libraryTab !== "questions" && libraryTab !== "integrated";
 
+  /** 폴더(또는 미분류)를 고른 채 새 자료를 추가하면 그 폴더에 들어간다. */
+  const newMaterialHref =
+    folderScoped && folderChoice !== "all" && folderChoice !== "trash"
+      ? `${base}/input?folder=${encodeURIComponent(folderChoice)}`
+      : `${base}/input`;
+
   const currentFolderLabel = !folderScoped
     ? (LIBRARY_TABS.find((t) => t.id === libraryTab)?.label ?? "전체")
     : folderFilter === "all"
@@ -717,7 +723,7 @@ export function LessonMaterialsLibrary({
 
         <div className="mt-3">
           <Link
-            href={`${base}/input`}
+            href={newMaterialHref}
             className="inline-flex w-full items-center justify-center rounded-md bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700"
           >
             + 새 자료 추가
@@ -952,7 +958,7 @@ export function LessonMaterialsLibrary({
               </button>
             ) : (
               <Link
-                href={`${base}/input`}
+                href={newMaterialHref}
                 className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700"
               >
                 + 새 자료 추가
