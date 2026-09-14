@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import {
   buildNeltParentMessageFallback,
   ensureNeltMessageTitle,
@@ -114,7 +116,20 @@ export async function POST(request: Request) {
     );
   }
 
+  const shortfall = await lessonCreditShortfall(auth.academyId, CREDIT_FEATURES.nelt_parent_message);
+  if (shortfall) {
+    return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
+  }
   const ai = await generateNeltParentMessageAi(analysis, meta, tone);
+  // 기본 문구로 대신한 경우(생성 실패)는 받지 않는다.
+  if (ai.ok) {
+    await debitLessonCredits({
+      academyId: auth.academyId,
+      actorId: auth.profile.id,
+      featureKey: CREDIT_FEATURES.nelt_parent_message,
+      note: `NELT 학부모 안내문 · ${analysis.studentName}`,
+    });
+  }
   const message = ensureNeltMessageTitle(
     ai.ok
       ? ai.message

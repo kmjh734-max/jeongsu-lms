@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
 import {
@@ -98,18 +100,30 @@ export async function POST(request: Request) {
     });
   }
 
+  // 새로 만들 때만 크레딧을 쓴다(저장된 서술을 다시 쓰면 위에서 이미 돌아갔다).
+  const shortfall = await lessonCreditShortfall(auth.academyId, CREDIT_FEATURES.nelt_report_narratives);
+  if (shortfall) {
+    return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
+  }
   const result = await generateNeltReportNarrativesAi(analysis);
   if (!result.ok) {
     return NextResponse.json(
       {
         ok: false,
-        message: result.message || "AI 서술 생성에 실패했습니다.",
+        message: result.message || "서술을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
         source: "fallback",
         narratives: null,
       },
       { status: 502 }
     );
   }
+
+  await debitLessonCredits({
+    academyId: auth.academyId,
+    actorId: auth.profile.id,
+    featureKey: CREDIT_FEATURES.nelt_report_narratives,
+    note: `NELT 성장 리포트 서술 · ${analysis.studentName}`,
+  });
 
   const narratives: NeltAiNarratives = {
     ...result.narratives,

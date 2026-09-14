@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireNeltStaff } from "@/lib/nelt/require-nelt-staff";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { upsertNeltGrowthReport } from "@/lib/nelt/upsert-growth-report";
 import { resolveNeltShareAttempts } from "@/lib/nelt/resolve-share-attempts";
@@ -131,8 +133,20 @@ export async function POST(request: Request) {
     parseStoredNarratives(growthRow?.generated_summary);
   // 공유 시에도 저장된 서술이 있으면 재생성하지 않음
   if (!narratives?.overallSummary?.trim()) {
+    const shortfall = await lessonCreditShortfall(auth.academyId, CREDIT_FEATURES.nelt_report_narratives);
+    if (shortfall) {
+      return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
+    }
     const generated = await generateNeltReportNarrativesAi(analysis);
     narratives = generated.narratives;
+    if (generated.ok) {
+      await debitLessonCredits({
+        academyId: auth.academyId,
+        actorId: auth.profile.id,
+        featureKey: CREDIT_FEATURES.nelt_report_narratives,
+        note: `NELT 성장 리포트 서술 · ${analysis.studentName}`,
+      });
+    }
     await auth.supabase
       .from("nelt_growth_reports")
       .update({
@@ -156,7 +170,19 @@ export async function POST(request: Request) {
 
   let parentMessage = body.parentMessage?.trim() || "";
   if (!parentMessage) {
+    const shortfall = await lessonCreditShortfall(auth.academyId, CREDIT_FEATURES.nelt_parent_message);
+    if (shortfall) {
+      return NextResponse.json({ ok: false, message: shortfall }, { status: 402 });
+    }
     const ai = await generateNeltParentMessageAi(snapshotAnalysis, meta);
+    if (ai.ok) {
+      await debitLessonCredits({
+        academyId: auth.academyId,
+        actorId: auth.profile.id,
+        featureKey: CREDIT_FEATURES.nelt_parent_message,
+        note: `NELT 학부모 안내문 · ${snapshotAnalysis.studentName}`,
+      });
+    }
     parentMessage = ai.ok
       ? ai.message
       : buildNeltParentMessageFallback(snapshotAnalysis, meta);

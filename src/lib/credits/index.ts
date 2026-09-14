@@ -18,6 +18,10 @@ export const CREDIT_FEATURES = {
   report_ai_draft: "report_ai_draft",
   vocab_student_monthly: "vocab_student_monthly",
   listening_student_monthly: "listening_student_monthly",
+  /** NELT 성장 리포트 서술(새로 만들 때 1회) */
+  nelt_report_narratives: "nelt_report_narratives",
+  /** NELT 학부모 안내문(새로 만들 때 1회) */
+  nelt_parent_message: "nelt_parent_message",
 } as const;
 
 export type CreditFeatureKey =
