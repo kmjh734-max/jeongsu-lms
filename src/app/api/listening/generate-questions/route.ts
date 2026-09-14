@@ -7,10 +7,8 @@ import { generateListeningQuestionsWithAi } from "@/lib/listening/generate-quest
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import type { GeneratedListeningQuestion, ListeningGenerationMode } from "@/lib/listening/types";
-import {
-  chargeFeatureOrError,
-  CREDIT_FEATURES,
-} from "@/lib/credits/charge";
+import { CREDIT_FEATURES } from "@/lib/credits/charge";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 
 export const maxDuration = 300;
 
@@ -47,15 +45,6 @@ export async function POST(request: Request) {
     if (!setId) {
       return jsonError("setId가 필요합니다.");
     }
-
-    const chargeErr = await chargeFeatureOrError({
-      academyId: profile.academy_id,
-      featureKey: CREDIT_FEATURES.listening_generate_questions,
-      actorId: profile.id,
-      idempotencyKey: `listening_generate_questions:${setId}:${Date.now()}`,
-      metadata: { set_id: setId },
-    });
-    if (chargeErr) return chargeErr;
 
     const admin = createAdminClient();
     const { data: setRow, error: setErr } = await admin
@@ -95,6 +84,16 @@ export async function POST(request: Request) {
       body.mode === "exam" ? "exam" : "free";
     const count = Math.min(Math.max(body.count ?? 5, 1), 20);
 
+    // 저장만 할 때(위)는 크레딧을 쓰지 않고, 새로 만든 문항 수만큼만 쓴다.
+    if (profile.academy_id) {
+      const shortfall = await lessonCreditShortfall(
+        profile.academy_id,
+        CREDIT_FEATURES.listening_generate_questions,
+        count
+      );
+      if (shortfall) return jsonError(shortfall, 402);
+    }
+
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
 
     const { questions: generated } = await generateListeningQuestionsWithAi(apiKey, {
@@ -104,6 +103,17 @@ export async function POST(request: Request) {
       difficultyMode: body.difficultyMode ?? "auto",
       gradeLevel,
     });
+
+    if (profile.academy_id && generated.length > 0) {
+      await debitLessonCredits({
+        academyId: profile.academy_id,
+        actorId: profile.id,
+        featureKey: CREDIT_FEATURES.listening_generate_questions,
+        quantity: generated.length,
+        metadata: { set_id: setId },
+        note: `듣기 문항 ${generated.length}개 생성`,
+      });
+    }
 
     const persist = body.persist !== false;
     if (persist) {

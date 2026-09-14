@@ -11,6 +11,8 @@ import {
   findType1SubjectFromAnswer,
 } from "@/lib/listening/type1-subject-pool";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
 import { getExamTypeById, getExamTypesForGrade } from "@/lib/listening/exam-types";
 
@@ -47,6 +49,13 @@ export async function POST(request: Request) {
 
     const access = await assertListeningSetWritable(setId);
     if (!access.ok) return jsonError(access.message, access.status);
+
+    // 문항 하나를 새로 만들 때마다 한 문항 값을 쓴다.
+    const academyId = access.setRow.academy_id ?? access.profile.academy_id ?? null;
+    if (academyId) {
+      const shortfall = await lessonCreditShortfall(academyId, CREDIT_FEATURES.listening_generate_questions);
+      if (shortfall) return jsonError(shortfall, 402);
+    }
 
     const { data: existing } = await access.admin
       .from("listening_questions")
@@ -138,6 +147,15 @@ export async function POST(request: Request) {
       type1Regeneration
     );
 
+    if (academyId) {
+      await debitLessonCredits({
+        academyId,
+        actorId: access.profile.id,
+        featureKey: CREDIT_FEATURES.listening_generate_questions,
+        metadata: { set_id: setId },
+        note: "듣기 문항 1개 다시 만들기",
+      });
+    }
     const saved = await replaceGeneratedQuestion(
       setId,
       questionId,

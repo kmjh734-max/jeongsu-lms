@@ -12,6 +12,8 @@ import {
 } from "@/lib/listening/type1-subject-pool";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
 import type { ListeningGenerationMode } from "@/lib/listening/types";
 
@@ -51,6 +53,13 @@ export async function POST(request: Request) {
 
     const access = await assertListeningSetWritable(setId);
     if (!access.ok) return jsonError(access.message, access.status);
+
+    // 문항 하나를 새로 만들 때마다 한 문항 값을 쓴다.
+    const academyId = access.setRow.academy_id ?? access.profile.academy_id ?? null;
+    if (academyId) {
+      const shortfall = await lessonCreditShortfall(academyId, CREDIT_FEATURES.listening_generate_questions);
+      if (shortfall) return jsonError(shortfall, 402);
+    }
 
     const mode: ListeningGenerationMode = body.mode === "free" ? "free" : "exam";
     const typeId = body.typeId ?? body.orderIndex ?? 1;
@@ -106,6 +115,16 @@ export async function POST(request: Request) {
             body.previousProblems,
             gradeLevel
           );
+
+    if (academyId) {
+      await debitLessonCredits({
+        academyId,
+        actorId: access.profile.id,
+        featureKey: CREDIT_FEATURES.listening_generate_questions,
+        metadata: { set_id: setId },
+        note: "듣기 문항 1개 생성",
+      });
+    }
 
     if (body.persist) {
       const [saved] = await persistGeneratedQuestions(setId, [generated]);

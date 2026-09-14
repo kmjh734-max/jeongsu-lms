@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import {
   extractStudentIdentityFromRecordText,
   extractStudentNameFromReportHtml,
@@ -51,12 +53,29 @@ export async function POST(request: Request) {
     }
     const branding = await getAcademyBranding(academyId);
 
+    // 화면의 학생부 분석은 이 경로로 보고서를 만든다(내용 추출은 그 준비 단계라 따로 받지 않는다).
+    // 보고서 한 건을 만들 때 한 번 쓴다. 모자라면 만들지 않는다.
+    const payerAcademyId = (profile.academy_id as string | null) ?? null;
+    if (payerAcademyId) {
+      const shortfall = await lessonCreditShortfall(payerAcademyId, CREDIT_FEATURES.student_record_analyze);
+      if (shortfall) return jsonError(shortfall, 402);
+    }
+
     const result = await generateStudentRecordReport(studentName, text, {
       analysisInstructions,
       branding,
     });
     if (!result.ok) {
       return jsonError(result.message);
+    }
+    if (payerAcademyId) {
+      await debitLessonCredits({
+        academyId: payerAcademyId,
+        actorId: profile.id,
+        featureKey: CREDIT_FEATURES.student_record_analyze,
+        metadata: { student_id: studentId },
+        note: `학생부 분석 · ${studentName}`,
+      });
     }
 
     const generatedAt = new Date().toISOString();
