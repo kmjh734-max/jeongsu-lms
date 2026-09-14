@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  debitLessonCredits,
+  LESSON_CREDIT_FEATURES,
+  lessonCreditShortfall,
+} from "@/lib/credits/lesson-credits";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateWorkbookBlankFill } from "@/lib/lesson-materials/generate-workbook-blank";
@@ -395,6 +400,12 @@ export async function generateWorkbookAction(
           excludeProjectIds: lineTranslationExcludeIds,
         })
       : null;
+    // T/F는 만들 때마다 새로 생성한다(지문당, 10문항을 넘으면 2배). 모자라면 시작하지 않는다.
+    const tfCreditQty = passages.length * (tfOptions.count > 10 ? 2 : 1);
+    if (wantTf) {
+      const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.workbookTf, tfCreditQty);
+      if (shortfall) return { ok: false, message: shortfall };
+    }
     const blankTask = wantBlank
       ? settle(
           generateWorkbookBlankFill({
@@ -491,6 +502,13 @@ export async function generateWorkbookAction(
     if (wantTf) {
       const tf = unwrap(await tfTask!);
       workbook.sections = tf.sections;
+      await debitLessonCredits({
+        academyId: profile!.academy_id!,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.workbookTf,
+        quantity: tfCreditQty,
+        note: `워크북 T/F · 지문 ${passages.length}개 · ${tfOptions.count}문항`,
+      });
       // TF still uses OpenAI — timing note only for blank path when TF absent
       if (workbook.timing && !wantBlank) {
         workbook.timing.openAiRequestCount = passages.length;
@@ -735,6 +753,9 @@ export async function generateGrammarChoicePassageAction(
       : null;
 
   const forceRegenerate = input.forceRegenerate === true;
+  // 새로 만들 때만 크레딧을 쓴다(저장된 문항을 다시 쓰면 0). 모자라면 만들지 않는다.
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.workbookGrammarChoice);
+  if (shortfall) return { ok: false, message: shortfall };
   const selection = resolveGrammarChoiceEngineVersion();
   const engine = selection.version;
 
@@ -783,6 +804,15 @@ export async function generateGrammarChoicePassageAction(
       );
     }
 
+    if (gc.timing.openAiRequestCount > 0) {
+      await debitLessonCredits({
+        academyId: profile!.academy_id!,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.workbookGrammarChoice,
+        projectId: project.id,
+        note: `워크북 어법 선택 · ${project.title}`,
+      });
+    }
     const stamped = stampGrammarChoiceEngineDiagnostics(gc.sections, selection);
     return {
       ok: true,
@@ -890,6 +920,9 @@ export async function generateVocabChoicePassageAction(
     })),
   ];
 
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.workbookVocabChoice);
+  if (shortfall) return { ok: false, message: shortfall };
+
   try {
     const result = await generateVocabChoiceForPassage({
       projectId: project.id,
@@ -903,6 +936,14 @@ export async function generateVocabChoicePassageAction(
     if (result.cacheToSave) {
       await patchLessonPack(supabase, project.id, pack, {
         vocabChoiceCache: result.cacheToSave,
+      });
+      // 저장할 새 결과가 있을 때만 새로 만든 것이다(저장본을 쓰면 cacheToSave가 없다).
+      await debitLessonCredits({
+        academyId: profile!.academy_id!,
+        actorId: profile!.id,
+        featureKey: LESSON_CREDIT_FEATURES.workbookVocabChoice,
+        projectId: project.id,
+        note: `워크북 어휘 선택 · ${project.title}`,
       });
     }
     return {

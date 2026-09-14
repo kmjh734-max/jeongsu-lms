@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  debitLessonCredits,
+  LESSON_CREDIT_FEATURES,
+  lessonCreditShortfall,
+} from "@/lib/credits/lesson-credits";
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -92,6 +97,10 @@ export async function generateAndSaveAnalysisReportAction(
     return { ok: true, report: { ...(prev as AnalysisReportData), headerLabel }, reused: true };
   }
 
+  // 새로 만들 때만 크레딧을 쓴다. 모자라면 만들지 않고 안내한다.
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.analysisReport);
+  if (shortfall) return { ok: false, message: shortfall };
+
   try {
     const generated = await generateAnalysisReport({
       title: project.title,
@@ -116,6 +125,13 @@ export async function generateAndSaveAnalysisReportAction(
       })
       .eq("id", projectId);
     if (uErr) return { ok: false, message: uErr.message };
+    await debitLessonCredits({
+      academyId: profile!.academy_id!,
+      actorId: profile!.id,
+      featureKey: LESSON_CREDIT_FEATURES.analysisReport,
+      projectId,
+      note: `지문 분석서 · ${project.title}`,
+    });
 
     revalidatePath(`/${role}/lesson-materials`);
     revalidatePath(`/${role}/lesson-materials/analysis-report`);

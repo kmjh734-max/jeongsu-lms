@@ -1,0 +1,76 @@
+import { randomUUID } from "node:crypto";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { CreditError, debitFeatureCredits, getFeatureCost } from "@/lib/credits";
+
+/**
+ * 수업자료 기능 크레딧(가격은 feature_pricing). 원가(2026-09-14 실측)의 약 2배로 잡았다.
+ * 새로 만들 때만 차감하고, 저장해 둔 결과를 다시 쓰면 차감하지 않는다.
+ */
+export const LESSON_CREDIT_FEATURES = {
+  /** 수업용 자료(어휘·번역·빈칸 후보), 지문당 */
+  lessonPack: "lesson_pack",
+  /** 지문 분석서, 지문당 */
+  analysisReport: "lesson_analysis_report",
+  /** 워크북 어법 선택(어법 수정 포함), 지문당 */
+  workbookGrammarChoice: "lesson_workbook_grammar_choice",
+  /** 워크북 어휘 선택(어휘 수정 포함), 지문당 */
+  workbookVocabChoice: "lesson_workbook_vocab_choice",
+  /** 워크북 T/F, 지문당(10문항 넘으면 2배) */
+  workbookTf: "lesson_workbook_tf",
+  /** 지문 삽화, 장당 */
+  illustration: "lesson_illustration",
+} as const;
+
+export type LessonCreditFeature =
+  (typeof LESSON_CREDIT_FEATURES)[keyof typeof LESSON_CREDIT_FEATURES];
+
+/**
+ * 만들기 전에 부른다. 잔액이 모자라면 안내 문구를, 넉넉하면(또는 가격이 꺼져 있으면) null.
+ * 실제 차감은 새로 만든 뒤 debitLessonCredits로 한다. 만들다 실패하면 차감하지 않는다.
+ */
+export async function lessonCreditShortfall(
+  academyId: string,
+  featureKey: LessonCreditFeature,
+  quantity = 1
+): Promise<string | null> {
+  const admin = createAdminClient();
+  const pricing = await getFeatureCost(admin, featureKey);
+  if (!pricing || !pricing.active || pricing.cost <= 0) return null;
+  const need = pricing.cost * Math.max(1, Math.floor(quantity));
+  const { data } = await admin
+    .from("academy_wallets")
+    .select("balance")
+    .eq("academy_id", academyId)
+    .maybeSingle();
+  const balance = Number(data?.balance ?? 0);
+  if (balance >= need) return null;
+  return `크레딧이 부족합니다. ${pricing.label}에 ${need}크레딧이 필요한데 남은 크레딧은 ${balance}입니다. 학원 관리자에게 충전을 요청해 주세요.`;
+}
+
+/**
+ * 새로 만든 뒤 차감한다. 이미 만든 결과는 버리지 않으므로 차감이 실패해도 결과를 돌려준다
+ * (그 사이 잔액이 바닥난 드문 경우). 가격 설정이 아직 없으면 넘어간다.
+ */
+export async function debitLessonCredits(params: {
+  academyId: string;
+  actorId: string;
+  featureKey: LessonCreditFeature;
+  quantity?: number;
+  projectId?: string;
+  note?: string;
+}): Promise<void> {
+  try {
+    await debitFeatureCredits(createAdminClient(), {
+      academyId: params.academyId,
+      featureKey: params.featureKey,
+      actorId: params.actorId,
+      idempotencyKey: `${params.featureKey}:${params.projectId ?? "-"}:${randomUUID()}`,
+      metadata: params.projectId ? { project_id: params.projectId } : undefined,
+      note: params.note,
+      quantity: params.quantity,
+    });
+  } catch (e) {
+    if (e instanceof CreditError && e.code === "unknown_feature") return;
+    console.error("[lesson-credits] debit failed", params.featureKey, e);
+  }
+}

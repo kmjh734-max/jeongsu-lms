@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { generateLessonMaterialComicIllustration } from "@/lib/lesson-materials/generate-illustration";
+import {
+  debitLessonCredits,
+  LESSON_CREDIT_FEATURES,
+  lessonCreditShortfall,
+} from "@/lib/credits/lesson-credits";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -32,11 +37,21 @@ export async function POST(request: Request) {
       return jsonError("삽화 프롬프트가 비어 있습니다.");
     }
 
+    const shortfall = await lessonCreditShortfall(academyId, LESSON_CREDIT_FEATURES.illustration);
+    if (shortfall) return jsonError(shortfall);
+
     const out = await generateLessonMaterialComicIllustration({
       academyId,
       illustrationPrompt: prompt,
       passageHint: body.passageHint,
       captions: body.captions,
+    });
+
+    await debitLessonCredits({
+      academyId,
+      actorId: profile.id,
+      featureKey: LESSON_CREDIT_FEATURES.illustration,
+      note: "지문 삽화",
     });
 
     return NextResponse.json({

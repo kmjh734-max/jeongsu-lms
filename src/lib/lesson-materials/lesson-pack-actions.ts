@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  debitLessonCredits,
+  LESSON_CREDIT_FEATURES,
+  lessonCreditShortfall,
+} from "@/lib/credits/lesson-credits";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
@@ -81,6 +86,10 @@ export async function generateAndSaveLessonPackVocabAction(
   if (pErr || !project) {
     return { ok: false, message: "프로젝트를 찾을 수 없습니다." };
   }
+
+  // 수업용 자료는 새로 만들 때마다 크레딧을 쓴다. 모자라면 만들지 않고 안내한다.
+  const shortfall = await lessonCreditShortfall(profile!.academy_id!, LESSON_CREDIT_FEATURES.lessonPack);
+  if (shortfall) return { ok: false, message: shortfall };
 
   const { data: items, error: iErr } = await supabase
     .from("lesson_material_items")
@@ -313,6 +322,13 @@ export async function generateAndSaveLessonPackVocabAction(
       .update(patch)
       .eq("id", projectId);
     if (uErr) return { ok: false, message: uErr.message };
+    await debitLessonCredits({
+      academyId: profile!.academy_id!,
+      actorId: profile!.id,
+      featureKey: LESSON_CREDIT_FEATURES.lessonPack,
+      projectId,
+      note: `수업용 자료 · ${project.title}`,
+    });
 
     revalidatePath(`/${role}/lesson-materials`);
     revalidatePath(`/${role}/lesson-materials/lesson-pack`);
