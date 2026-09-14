@@ -4,7 +4,7 @@ import { NeltGrowthReportView } from "@/components/nelt/NeltGrowthReportView";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
-import { ACADEMY_NAME } from "@/lib/branding";
+import { getAcademyBranding } from "@/lib/tenant/academy-branding";
 
 interface PageProps {
   params: Promise<{ token: string }>;
@@ -20,11 +20,13 @@ export async function generateMetadata({
   const admin = createAdminClient();
   const { data } = await admin
     .from("nelt_shared_reports")
-    .select("student_name_raw")
+    .select("student_name_raw, academy_id")
     .eq("token", token)
     .maybeSingle();
 
   const name = data?.student_name_raw?.trim();
+  // 공유한 학원의 이름을 쓴다(학원마다 다르다).
+  const academyName = data?.academy_id ? (await getAcademyBranding(data.academy_id)).name : "";
   const title = name
     ? `[NELT 성장 리포트] ${name}`
     : "[NELT 성장 리포트]";
@@ -33,7 +35,7 @@ export async function generateMetadata({
     title,
     openGraph: {
       title,
-      description: `${ACADEMY_NAME} NELT 영어 누적 성장 리포트`,
+      description: `${academyName ? `${academyName} ` : ""}NELT 영어 누적 성장 리포트`,
       type: "website",
     },
   };
@@ -47,7 +49,7 @@ export default async function NeltSharePage({ params }: PageProps) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("nelt_shared_reports")
-    .select("expires_at, report_snapshot, student_name_raw")
+    .select("expires_at, report_snapshot, student_name_raw, academy_id")
     .eq("token", token)
     .maybeSingle();
 
@@ -63,6 +65,7 @@ export default async function NeltSharePage({ params }: PageProps) {
     );
   }
 
+  const academyName = data.academy_id ? (await getAcademyBranding(data.academy_id)).name : "";
   let analysis = data.report_snapshot as unknown as NeltGrowthAnalysis;
   if (!analysis?.attempts || analysis.attempts.length < 2) notFound();
   if (!analysis.attemptSteps || !analysis.trendPoints) {
@@ -74,7 +77,7 @@ export default async function NeltSharePage({ params }: PageProps) {
   return (
     <main className="mx-auto max-w-[1180px] bg-[#f4f7fb] px-3 py-6 sm:px-5 sm:py-10">
       <p className="mb-4 text-center text-xs font-semibold tracking-wide text-[#68748a]">
-        {ACADEMY_NAME} · NELT 영어 성장 리포트
+        {academyName ? `${academyName} · ` : ""}NELT 영어 성장 리포트
       </p>
       {/* 카톡에 이미 안내문을 보냈으므로 공개 페이지에는 리포트만 표시 */}
       <NeltGrowthReportView

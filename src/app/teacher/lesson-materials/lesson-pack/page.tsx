@@ -7,7 +7,6 @@ import type {
   LessonPackVocabItem,
 } from "@/lib/lesson-materials/generate-lesson-pack";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
-import { LOGO_SRC } from "@/lib/branding";
 import Link from "next/link";
 
 export default async function TeacherLessonPackPage({
@@ -115,7 +114,7 @@ export default async function TeacherLessonPackPage({
       regenerate={regenerate}
       role="teacher"
       projects={payload}
-      logoSrc={branding.logoUrl || LOGO_SRC}
+      logoSrc={branding.logoUrl}
     />
   );
 }

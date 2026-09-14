@@ -11,7 +11,7 @@ import {
 } from "@/lib/nelt/generate-parent-message";
 import { buildNeltGrowthAnalysis } from "@/lib/nelt/compare/build-growth";
 import { loadStudentNeltAttempts } from "@/lib/nelt/load-student-attempts";
-import { ACADEMY_NAME } from "@/lib/branding";
+import { getAcademyBranding } from "@/lib/tenant/academy-branding";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 
 export const runtime = "nodejs";
@@ -24,7 +24,7 @@ function normalizeTone(value: unknown): NeltParentMessageTone {
   return "standard";
 }
 
-function pickMeta(body: {
+function pickMeta(defaultAcademyName: string, body: {
   meta?: NeltParentMessageMeta;
   parentTitle?: string;
   senderRole?: string;
@@ -35,7 +35,7 @@ function pickMeta(body: {
 }): NeltParentMessageMeta {
   const m = body.meta ?? {};
   return {
-    academyName: m.academyName ?? ACADEMY_NAME,
+    academyName: m.academyName ?? defaultAcademyName,
     parentTitle: body.parentTitle ?? m.parentTitle,
     senderRole: body.senderRole ?? m.senderRole,
     senderName: body.senderName ?? m.senderName,
@@ -83,7 +83,8 @@ export async function POST(request: Request) {
         ? body.meta.messageVersion
         : null;
   const meta: NeltParentMessageMeta = {
-    ...pickMeta(body),
+    // 학원 이름이 따로 오지 않으면 보내는 선생님의 학원 이름을 쓴다.
+    ...pickMeta((await getAcademyBranding(auth.profile.academy_id)).name, body),
     variationSeed:
       body.variationSeed ??
       body.meta?.variationSeed ??

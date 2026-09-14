@@ -19,10 +19,13 @@ const NAME_SEARCH_DEBOUNCE_MS = 400;
 
 interface ListeningStatusPanelProps {
   initialClasses?: ReportClassOption[];
+  /** 학부모 안내 문구에 넣을 접속한 학원 이름 */
+  academyName?: string;
 }
 
 export function ListeningStatusPanel({
   initialClasses = [],
+  academyName,
 }: ListeningStatusPanelProps) {
   const { year, month } = getKoreaYearMonth();
   const [classes] = useState<ReportClassOption[]>(initialClasses);
@@ -289,6 +292,7 @@ export function ListeningStatusPanel({
                           row={row}
                           year={table.year}
                           month={table.month}
+                          academyName={academyName}
                         />
                       </td>
                     </tr>

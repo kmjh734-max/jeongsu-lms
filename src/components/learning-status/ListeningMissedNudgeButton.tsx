@@ -14,12 +14,15 @@ interface ListeningMissedNudgeButtonProps {
   row: ListeningStatusRow;
   year: number;
   month: number;
+  /** 안내 문구의 학원 이름(접속한 학원). 없으면 문구 쪽 기본값. */
+  academyName?: string;
 }
 
 export function ListeningMissedNudgeButton({
   row,
   year,
   month,
+  academyName,
 }: ListeningMissedNudgeButtonProps) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,8 +44,9 @@ export function ListeningMissedNudgeButton({
         correctCount: row.correctCount,
         answeredCount: row.answeredCount,
         siteUrl,
+        ...(academyName ? { academyName } : {}),
       }),
-    [row, monthLabel, siteUrl]
+    [row, monthLabel, siteUrl, academyName]
   );
 
   useEffect(() => {

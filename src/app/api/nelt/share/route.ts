@@ -21,7 +21,7 @@ import {
   generateNeltReportNarrativesAi,
   parseStoredNarratives,
 } from "@/lib/nelt/generate-report-narratives";
-import { ACADEMY_NAME } from "@/lib/branding";
+import { getAcademyBranding } from "@/lib/tenant/academy-branding";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { NeltGrowthAnalysis } from "@/lib/nelt/compare/types";
 
@@ -148,8 +148,9 @@ export async function POST(request: Request) {
     };
   }
 
+  // 안내문에는 공유하는 선생님의 학원 이름을 쓴다.
   const meta: NeltParentMessageMeta = {
-    academyName: ACADEMY_NAME,
+    academyName: (await getAcademyBranding(auth.profile.academy_id)).name,
     ...(body.meta ?? {}),
   };
 

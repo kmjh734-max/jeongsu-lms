@@ -3,6 +3,7 @@ import { ListeningStatusPanel } from "@/components/learning-status/ListeningStat
 import { PageHeader } from "@/components/ui/PageHeader";
 import { loadListeningPageData } from "@/lib/listening/load-listening-page-data";
 import { createClient } from "@/lib/supabase/server";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 
 export default async function TeacherListeningStatusPage() {
   const profile = await getCurrentProfile();
@@ -19,7 +20,10 @@ export default async function TeacherListeningStatusPage() {
         title="듣기학습 현황"
         description="숙제 현황과 학생별 OMR 시험 결과를 각각 확인합니다."
       />
-      <ListeningStatusPanel initialClasses={statusClasses} />
+      <ListeningStatusPanel
+        initialClasses={statusClasses}
+        academyName={(await getAcademyBrandingForCurrentUser()).name}
+      />
     </div>
   );
 }

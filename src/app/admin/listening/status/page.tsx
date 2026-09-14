@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { loadListeningPageData } from "@/lib/listening/load-listening-page-data";
 import { createClient } from "@/lib/supabase/server";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 
 export default async function AdminListeningStatusPage() {
   const profile = await getCurrentProfile();
@@ -19,7 +20,10 @@ export default async function AdminListeningStatusPage() {
         title="듣기학습 현황"
         description="학생별 월간 듣기학습 완료 여부를 확인합니다."
       />
-      <ListeningStatusPanel initialClasses={statusClasses} />
+      <ListeningStatusPanel
+        initialClasses={statusClasses}
+        academyName={(await getAcademyBrandingForCurrentUser()).name}
+      />
     </div>
   );
 }

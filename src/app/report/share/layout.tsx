@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { ACADEMY_NAME } from "@/lib/branding";
 
 export const metadata: Metadata = {
-  title: `${ACADEMY_NAME} 학습 리포트`,
+  title: "학습 리포트",
   robots: { index: false, follow: false },
 };
 

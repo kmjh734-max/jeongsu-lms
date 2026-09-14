@@ -3,7 +3,6 @@ import { resolveDocumentProjectIds } from "@/lib/lesson-materials/document-page"
 import { AnalysisReportWorkbench } from "@/components/lesson-materials/AnalysisReportWorkbench";
 import type { AnalysisReportData } from "@/lib/lesson-materials/generate-analysis-report";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
-import { LOGO_SRC } from "@/lib/branding";
 import Link from "next/link";
 
 export default async function TeacherAnalysisReportPage({
@@ -61,7 +60,7 @@ export default async function TeacherAnalysisReportPage({
       regenerate={regenerate}
       role="teacher"
       projects={payload}
-      logoSrc={branding.logoUrl || LOGO_SRC}
+      logoSrc={branding.logoUrl}
     />
   );
 }

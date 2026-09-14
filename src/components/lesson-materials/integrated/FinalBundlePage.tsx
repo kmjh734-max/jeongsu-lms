@@ -2,7 +2,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
-import { LOGO_SRC } from "@/lib/branding";
 import { normalizeIntegratedPayload } from "@/lib/lesson-materials/integrated";
 import {
   loadAnalysisReportProjects,
@@ -112,7 +111,7 @@ export async function FinalBundlePage({ role, docId }: { role: "admin" | "teache
       name={row.name as string}
       initialPayload={payload}
       materials={materials}
-      logoSrc={branding.logoUrl || LOGO_SRC}
+      logoSrc={branding.logoUrl}
       academyName={branding.name || ""}
     />
   );

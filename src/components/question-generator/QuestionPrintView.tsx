@@ -744,7 +744,7 @@ export function QuestionPrintView({
         } ${showVocabQr ? "qg-print-header-with-qr" : ""}`}
       >
         <div className="qg-print-header-main">
-          {branding.showLogo && (
+          {branding.showLogo && logoSrc && (
             <div className="qg-print-logo-box">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -811,7 +811,7 @@ export function QuestionPrintView({
     return (
       <footer className="qg-print-footer">
         <div className="qg-print-footer-left">
-          {branding.showLogo && (
+          {branding.showLogo && logoSrc && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={logoSrc}

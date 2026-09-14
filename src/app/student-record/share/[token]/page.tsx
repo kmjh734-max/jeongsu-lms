@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ACADEMY_NAME, SITE_URL } from "@/lib/branding";
+import { SITE_URL } from "@/lib/branding";
 import { lookupSharedStudentRecord } from "@/lib/student-records/get-shared-record";
 import { buildStudentRecordShareUrl } from "@/lib/student-records/share-token";
 
@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (lookup.status !== "ok") {
     return {
-      title: `학생부 분석 리포트 | ${ACADEMY_NAME}`,
+      title: "학생부 분석 리포트",
       robots: { index: false, follow: false },
     };
   }
@@ -62,7 +62,7 @@ export default async function SharedStudentRecordPage({ params }: PageProps) {
               ? "이 링크는 열람 기간이 만료되었습니다."
               : "유효하지 않은 링크입니다."}
             <br />
-            {ACADEMY_NAME}에 새 링크를 요청해 주세요.
+            학원에 새 링크를 요청해 주세요.
           </p>
         </div>
       </div>

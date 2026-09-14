@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ACADEMY_NAME, SITE_URL } from "@/lib/branding";
+import { SITE_URL } from "@/lib/branding";
 import { lookupSharedReport } from "@/lib/reports/get-shared-report";
 import { buildShareUrl } from "@/lib/reports/share-token";
 import { SharedReportPrintView } from "@/components/reports/SharedReportPrintView";
@@ -21,7 +21,7 @@ export async function generateMetadata({
 
   if (lookup.status !== "ok") {
     return {
-      title: `학습 리포트 | ${ACADEMY_NAME}`,
+      title: "학습 리포트",
       robots: { index: false, follow: false },
     };
   }
@@ -71,7 +71,7 @@ export default async function SharedReportPage({
               ? "이 링크는 열람 기간이 만료되었습니다."
               : "유효하지 않은 링크입니다."}
             <br />
-            {ACADEMY_NAME} 강사에게 새 링크를 요청해 주세요.
+            담당 선생님께 새 링크를 요청해 주세요.
           </p>
         </div>
       </div>
