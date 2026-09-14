@@ -106,7 +106,8 @@ function relaxProfile(
  * - 한 모델당 실제 요청은 최대 3회 (첫 요청 + 재시도 2회)
  *   · finish_reason "length"(토큰 상한으로 잘림) → 상한을 올려 1회
  *   · 빈 응답 / JSON 해석 실패 → 1회
- *   · 429·5xx·네트워크 오류 → 짧은 대기 후 1회 (총 2회 시도)
+ *   · 5xx·네트워크 오류 → 짧은 대기 후 1회 (총 2회 시도)
+ *   · 사용 한도(429) → 버리지 않고 기다렸다 다시(최대 90초, 횟수에 넣지 않음). 그 뒤는 위와 같다.
  * - 파라미터 미지원 400(temperature·reasoning_effort·response_format)은
  *   해당 파라미터를 빼고 다시 보냄 (과금 없는 거절이라 위 횟수에 포함하지 않음)
  * - 모델 폴백은 1회 (사용할 수 없는 모델은 건너뛰고 세지 않음)
@@ -146,6 +147,42 @@ function transientBackoffMs(res: Response | null): number {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * 사용 한도(429)는 여러 학원이 한 키를 함께 쓰다 몰릴 때 난다. 이때는 문항을 버리거나
+ * 다른 모델로 넘기지 않고, OpenAI가 알려 주는 만큼 기다렸다가 다시 보낸다(시도 횟수에
+ * 넣지 않는다). 기다린 시간이 이만큼을 넘으면 그때부터는 일반 오류처럼 다룬다.
+ */
+const RATE_LIMIT_WAIT_BUDGET_MS = 90_000;
+const RATE_LIMIT_BACKOFF_MAX_MS = 20_000;
+
+/** 이 프로세스에서 마지막으로 한도에 걸린 시각 / 남은 토큰이 적다고 본 시각. */
+let rateLimitedAt = 0;
+let tokensLowAt = 0;
+
+/**
+ * 지금 OpenAI 한도가 빠듯한지. 생성 작업이 동시에 보내는 문항 수를 줄이는 데 쓴다
+ * (run-generation-job.ts).
+ */
+export function openAiUnderPressure(): boolean {
+  const now = Date.now();
+  return now - rateLimitedAt < 30_000 || now - tokensLowAt < 15_000;
+}
+
+function noteRateLimitHeaders(res: Response) {
+  const limit = Number(res.headers.get("x-ratelimit-limit-tokens"));
+  const remaining = Number(res.headers.get("x-ratelimit-remaining-tokens"));
+  if (limit > 0 && Number.isFinite(remaining) && remaining / limit < 0.15) {
+    tokensLowAt = Date.now();
+  }
+}
+
+function rateLimitBackoffMs(res: Response, waitedMs: number): number {
+  const hinted = transientBackoffMs(res);
+  // 알려 준 시간이 없으면 기다릴수록 조금씩 길게, 여럿이 한꺼번에 다시 몰리지 않게 흩는다.
+  const base = Math.max(hinted, Math.min(RATE_LIMIT_BACKOFF_MAX_MS, 2000 + waitedMs / 3));
+  return Math.min(RATE_LIMIT_BACKOFF_MAX_MS, base) + Math.floor(Math.random() * 1500);
 }
 
 function extractJsonObject(text: string): unknown {
@@ -193,6 +230,7 @@ export async function questionGeneratorChatJson(opts: {
     let contentRetried = false;
     let transientRetried = false;
     let reachedModel = false;
+    let rateWaitedMs = 0;
 
     while (attempts < MAX_ATTEMPTS_PER_MODEL) {
       let res: Response;
@@ -217,6 +255,7 @@ export async function questionGeneratorChatJson(opts: {
           ),
         });
         bodyText = await res.text();
+        noteRateLimitHeaders(res);
       } catch {
         // 네트워크 오류 — 짧게 쉬고 1회만 더
         reachedModel = true;
@@ -244,6 +283,17 @@ export async function questionGeneratorChatJson(opts: {
         if (isListeningModelUnavailableError(res.status, bodyText)) {
           lastError = `모델 ${model}을(를) 사용할 수 없습니다.`;
           break;
+        }
+        if (
+          res.status === 429 &&
+          isTransientStatus(429, bodyText) &&
+          rateWaitedMs < RATE_LIMIT_WAIT_BUDGET_MS
+        ) {
+          rateLimitedAt = Date.now();
+          const wait = rateLimitBackoffMs(res, rateWaitedMs);
+          rateWaitedMs += wait;
+          await sleep(wait);
+          continue;
         }
         reachedModel = true;
         attempts++;

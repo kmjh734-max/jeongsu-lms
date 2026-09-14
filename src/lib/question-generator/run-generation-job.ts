@@ -8,6 +8,7 @@ import {
 } from "@/lib/question-generator/constants";
 import { syncExamVocabSetFromJob, diversifyJobHardWords } from "@/lib/question-generator/exam-vocab";
 import { generateOneQuestion, SkipQuestionError } from "@/lib/question-generator/generate-question";
+import { openAiUnderPressure } from "@/lib/question-generator/openai";
 import { resolvePassages } from "@/lib/question-generator/passages";
 import {
   expandCountRequests,
@@ -48,25 +49,74 @@ function createProgressThrottler(minIntervalMs = 350) {
   };
 }
 
-async function mapPool<T, R>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T, index: number) => Promise<R>
-): Promise<R[]> {
-  const results: R[] = new Array(items.length);
-  let next = 0;
-  async function worker() {
-    while (next < items.length) {
-      const i = next++;
-      results[i] = await fn(items[i]!, i);
-    }
+/**
+ * 모든 학원의 생성 작업이 함께 쓰는 동시 호출 몫. OpenAI 키 하나를 같이 쓰므로, 작업이
+ * 여럿 돌면 이 몫을 나눠 쓴다(혼자면 GENERATION_CONCURRENCY까지). 120개는 gpt-5.5 분당
+ * 토큰 한도의 절반쯤이라 분석서·워크북 같은 다른 기능이 쓸 자리가 남는다.
+ */
+const GLOBAL_CALL_BUDGET = 120;
+/** 작업이 아무리 많아도 한 작업에 보장하는 동시 호출 수. */
+const MIN_JOB_CONCURRENCY = 4;
+/** 지금 돌고 있는 작업 수를 다시 세는 간격. */
+const SHARE_REFRESH_MS = 20_000;
+
+/** 지금 실행 중인(끊기지 않은) 생성 작업 수. 자기 자신을 포함한다. */
+async function countRunningJobs(selfId: string): Promise<number> {
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("question_generation_jobs")
+    .select("id, _run:request_config->_run")
+    .in("status", [...HELD_STATUSES, "pending"]);
+  const now = Date.now();
+  let n = 1;
+  for (const row of (data ?? []) as Array<{ id: string; _run: { claimedAt?: string } | null }>) {
+    if (row.id === selfId) continue;
+    const at = Date.parse(row._run?.claimedAt ?? "");
+    // 실행 기록이 없는 pending(아직 시작 전·복사만 한 작업)과 끊긴 작업은 세지 않는다.
+    if (Number.isFinite(at) && now - at < RUNNER_MAX_LIFETIME_MS) n += 1;
   }
-  const workers = Array.from(
-    { length: Math.min(concurrency, items.length) },
-    () => worker()
-  );
-  await Promise.all(workers);
-  return results;
+  return n;
+}
+
+/**
+ * items를 동시에 limit()개까지 처리한다. limit은 처리 중에도 바뀔 수 있다(다른 작업이
+ * 시작되거나 한도가 빠듯해지면 줄고, 풀리면 는다). fn이 던지면 전체가 실패한다.
+ */
+export function runAdaptivePool<T>(
+  items: T[],
+  limit: () => number,
+  fn: (item: T) => Promise<void>
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let next = 0;
+    let inFlight = 0;
+    let failed = false;
+    const pump = () => {
+      if (failed) return;
+      while (inFlight < Math.max(1, limit()) && next < items.length) {
+        const item = items[next++]!;
+        inFlight += 1;
+        fn(item).then(
+          () => {
+            inFlight -= 1;
+            pump();
+          },
+          (e) => {
+            failed = true;
+            clearInterval(timer);
+            reject(e);
+          }
+        );
+      }
+      if (next >= items.length && inFlight === 0) {
+        clearInterval(timer);
+        resolve();
+      }
+    };
+    // 끝나는 문항이 없어도 몫이 늘어나면 새로 시작하도록 가끔 다시 본다.
+    const timer = setInterval(pump, 2_000);
+    pump();
+  });
 }
 
 function toRow(
@@ -549,7 +599,25 @@ export async function runGenerationJob(
     const inserts = new Set<Promise<unknown>>();
     const dispatchUntil = startedAt + CHUNK_DISPATCH_MS;
 
-    const pool = mapPool(work, GENERATION_CONCURRENCY, async (item) => {
+    // 동시에 만드는 문항 수: 돌고 있는 작업끼리 몫을 나누고(20초마다 다시 셈), 한도가
+    // 빠듯하면 절반으로 줄인다. 혼자 돌면 GENERATION_CONCURRENCY.
+    let share = GENERATION_CONCURRENCY;
+    const refreshShare = async () => {
+      const running = await countRunningJobs(jobId);
+      share = Math.max(
+        MIN_JOB_CONCURRENCY,
+        Math.min(GENERATION_CONCURRENCY, Math.floor(GLOBAL_CALL_BUDGET / running))
+      );
+    };
+    await refreshShare().catch(() => undefined);
+    const shareTimer = setInterval(() => void refreshShare().catch(() => undefined), SHARE_REFRESH_MS);
+    const limit = () =>
+      openAiUnderPressure() ? Math.max(MIN_JOB_CONCURRENCY, Math.floor(share / 2)) : share;
+    /** 이용자가 많아 몫이 줄었으면 진행 문구에 알린다. */
+    const busyNote = () =>
+      limit() < GENERATION_CONCURRENCY ? " · 이용자가 많아 조금 천천히 만드는 중" : "";
+
+    const pool = runAdaptivePool(work, limit, async (item) => {
       if (Date.now() > dispatchUntil) {
         deferred += 1;
         return;
@@ -567,7 +635,7 @@ export async function runGenerationJob(
           total_failed: failed,
           progress_message: `${completed + failed + skipped}/${totalRequested} 완료${
             skipped > 0 ? ` (생략 ${skipped})` : ""
-          }`,
+          }${busyNote()}`,
         });
         return;
       }
@@ -613,21 +681,26 @@ export async function runGenerationJob(
         total_failed: failed,
         progress_message: `${completed + failed + skipped}/${totalRequested} 완료${
           skipped > 0 ? ` (생략 ${skipped})` : ""
-        }`,
+        }${busyNote()}`,
       });
     });
 
     let hardStop: ReturnType<typeof setTimeout> | undefined;
-    const finishedInTime = await Promise.race([
-      pool.then(() => true),
-      new Promise<false>((resolve) => {
-        hardStop = setTimeout(
-          () => resolve(false),
-          Math.max(0, startedAt + CHUNK_HARD_STOP_MS - Date.now())
-        );
-      }),
-    ]);
-    clearTimeout(hardStop);
+    let finishedInTime: boolean;
+    try {
+      finishedInTime = await Promise.race([
+        pool.then(() => true),
+        new Promise<false>((resolve) => {
+          hardStop = setTimeout(
+            () => resolve(false),
+            Math.max(0, startedAt + CHUNK_HARD_STOP_MS - Date.now())
+          );
+        }),
+      ]);
+    } finally {
+      clearTimeout(hardStop);
+      clearInterval(shareTimer);
+    }
 
     if (!finishedInTime || deferred > 0) {
       // 남은 문항은 다음 실행에 넘긴다. 저장 중이던 문항까지 끝난 뒤에 세어야
