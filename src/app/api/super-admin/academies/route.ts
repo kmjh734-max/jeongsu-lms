@@ -5,6 +5,8 @@ import { cloneVocabCurriculumToAcademy } from "@/lib/vocab/clone-curriculum";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
+// 새 학원을 만들 때 듣기·단어 교재를 복사한다(수십 초 걸릴 수 있다).
+export const maxDuration = 300;
 
 export async function GET() {
   try {

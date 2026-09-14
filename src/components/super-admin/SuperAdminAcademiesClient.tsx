@@ -52,6 +52,24 @@ export function SuperAdminAcademiesClient({
   }, [initialRows]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [syncingCurriculum, setSyncingCurriculum] = useState(false);
+
+  /** 정수학원 교재(잠근 듣기·단어 세트)를 다른 모든 학원에 채운다. */
+  async function syncCurriculum() {
+    setSyncingCurriculum(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/super-admin/curriculum-sync", { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
+      if (!res.ok || !data.ok) setError(data.message ?? "교재를 맞추지 못했습니다.");
+      else setMessage(data.message ?? "교재를 맞췄습니다.");
+    } catch {
+      setError("교재를 맞추지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setSyncingCurriculum(false);
+    }
+  }
   const [busy, setBusy] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -385,13 +403,24 @@ export function SuperAdminAcademiesClient({
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-base font-semibold text-slate-900">학원 목록</h2>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => setShowForm((v) => !v)}
-        >
-          {showForm ? "취소" : "+ 학원 추가"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={syncingCurriculum}
+            title="정수학원에서 잠근 듣기·단어 세트(교재)를 다른 모든 학원에 채웁니다. 이미 있는 세트는 건너뜁니다."
+            onClick={() => void syncCurriculum()}
+          >
+            {syncingCurriculum ? "교재 맞추는 중…" : "교재를 모든 학원에 맞추기"}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setShowForm((v) => !v)}
+          >
+            {showForm ? "취소" : "+ 학원 추가"}
+          </Button>
+        </div>
       </div>
 
       {showForm && (

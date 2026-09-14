@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { runWithConcurrency } from "@/lib/run-with-concurrency";
 
 const TEMPLATE_ACADEMY_SLUG = "jeongsu";
 export const VOCAB_CURRICULUM_LOCK_MARKER = "curriculum_locked";
@@ -168,7 +169,8 @@ export async function cloneVocabCurriculumToAcademy(opts: {
   let setsSkipped = 0;
   let itemsCloned = 0;
 
-  for (const src of sourceSets) {
+  // 세트끼리는 독립이라 여섯 개씩 함께 복사한다(새 학원 생성 요청이 시간 제한에 걸리지 않게).
+  await runWithConcurrency(sourceSets, 6, async (src) => {
     const targetFolderId = src.folder_id
       ? (folderIdMap.get(src.folder_id as string) ?? null)
       : null;
@@ -191,20 +193,17 @@ export async function cloneVocabCurriculumToAcademy(opts: {
       const dstN = await countItems(admin, existingSet.id as string);
       if (dstN >= srcN && srcN > 0) {
         setsSkipped += 1;
-        continue;
+        return;
       }
       if (srcN === 0) {
         setsSkipped += 1;
-        continue;
+        return;
       }
       await admin.from("vocab_items").delete().eq("set_id", existingSet.id);
-      itemsCloned += await copyVocabItems(
-        admin,
-        src.id as string,
-        existingSet.id as string
-      );
+      const copiedAgain = await copyVocabItems(admin, src.id as string, existingSet.id as string);
+      itemsCloned += copiedAgain;
       setsCloned += 1;
-      continue;
+      return;
     }
 
     const {
@@ -245,8 +244,9 @@ export async function cloneVocabCurriculumToAcademy(opts: {
 
     const newSetId = newSet.id as string;
     setsCloned += 1;
-    itemsCloned += await copyVocabItems(admin, src.id as string, newSetId);
-  }
+    const copied = await copyVocabItems(admin, src.id as string, newSetId);
+    itemsCloned += copied;
+  });
 
   return {
     sourceAcademyId,
