@@ -612,11 +612,14 @@ export function QuestionPrintView({
     const run = () => {
       const root = measureRef.current;
       if (!root) return;
+      // offsetHeight로 잰다. getBoundingClientRect는 화면 배율(CSS zoom)이 곱해진 값이라,
+      // 최종통합자료 미리보기(60%) 안에서는 문항이 실제보다 작게 재어져 한 쪽에 너무 많이
+      // 담기고 인쇄에서 아래가 잘렸다.
       const heights = displayItems.map((item) => {
         const el = root.querySelector<HTMLElement>(
           `[data-measure-q="${item.id}"]`
         );
-        return el ? Math.ceil(el.getBoundingClientRect().height) : 40;
+        return el ? el.offsetHeight + 1 : 40;
       });
 
       const mmToPx = (mm: number) => (mm * 96) / 25.4;

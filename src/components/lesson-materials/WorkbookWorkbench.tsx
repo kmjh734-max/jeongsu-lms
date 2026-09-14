@@ -870,17 +870,46 @@ function LineTranslationQuestionBody({
   );
 }
 
+/** 정답지에서 쪽을 넘겨 이어지는 지문 위에 다는 한 줄. */
+function AnswerContinued({
+  typeOrder,
+  label,
+  title,
+}: {
+  typeOrder: number;
+  label: string;
+  title: string;
+}) {
+  return (
+    <p className="mb-2 text-[12px] font-semibold text-slate-500">
+      {typeOrder}. {label} · {title} (계속)
+    </p>
+  );
+}
+
 function LineTranslationAnswerBody({
   section,
   typeOrder,
   multi,
+  itemIndices,
+  showHeader = true,
 }: {
   section: WorkbookLineTranslationSection;
   typeOrder: number;
   multi: boolean;
+  /** 정답지 쪽 나눔: 이 문장들만 그린다(없으면 전부). */
+  itemIndices?: number[];
+  /** 유형 제목·지문 제목을 그린다. 쪽을 넘겨 이어지는 문장이면 false. */
+  showHeader?: boolean;
 }) {
+  const items =
+    itemIndices != null
+      ? itemIndices.map((i) => section.items[i]!).filter(Boolean)
+      : section.items;
   return (
     <div className="line-translation-answer-key">
+      {showHeader ? (
+      <>
       <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. 한줄해석
         {multi ? ` · ${section.title}` : ""}
@@ -901,8 +930,10 @@ function LineTranslationAnswerBody({
           · {section.source.trim()}
         </p>
       ) : null}
+      </>
+      ) : null}
       <div className="space-y-2.5">
-        {section.items.map((it) => (
+        {items.map((it) => (
           <div
             key={`lta-${section.projectId}-${it.sentenceId}`}
             className="break-inside-avoid"
@@ -982,13 +1013,25 @@ function FullEnWritingAnswerBody({
   section,
   typeOrder,
   multi,
+  itemIndices,
+  showHeader = true,
 }: {
   section: WorkbookFullEnWritingSection;
   typeOrder: number;
   multi: boolean;
+  /** 정답지 쪽 나눔: 이 문장들만 그린다(없으면 전부). */
+  itemIndices?: number[];
+  /** 유형 제목·지문 제목을 그린다. 쪽을 넘겨 이어지는 문장이면 false. */
+  showHeader?: boolean;
 }) {
+  const items =
+    itemIndices != null
+      ? itemIndices.map((i) => section.items[i]!).filter(Boolean)
+      : section.items;
   return (
     <div className="full-writing-answer-key">
+      {showHeader ? (
+      <>
       <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
         {typeOrder}. 통문장 영작
         {multi ? ` · ${section.title}` : ""}
@@ -1009,8 +1052,10 @@ function FullEnWritingAnswerBody({
           · {section.source.trim()}
         </p>
       ) : null}
+      </>
+      ) : null}
       <div className="space-y-4">
-        {section.items.map((it) => (
+        {items.map((it) => (
           <div
             key={`fwa-${section.projectId}-${it.sentenceId}`}
             className="break-inside-avoid"
@@ -1103,13 +1148,25 @@ function WordOrderAnswerBody({
   section,
   typeOrder,
   multi,
+  itemIndices,
+  showHeader = true,
 }: {
   section: WorkbookWordOrderWritingSection;
   typeOrder: number;
   multi: boolean;
+  /** 정답지 쪽 나눔: 이 문장들만 그린다(없으면 전부). */
+  itemIndices?: number[];
+  /** 유형 제목·지문 제목을 그린다. 쪽을 넘겨 이어지는 문장이면 false. */
+  showHeader?: boolean;
 }) {
+  const items =
+    itemIndices != null
+      ? itemIndices.map((i) => section.items[i]!).filter(Boolean)
+      : section.items;
   return (
     <div className="word-order-answer-key word-order-sheet">
+      {showHeader ? (
+      <>
       <h3 className="word-order-title mb-3 font-black" style={{ color: ACCENT }}>
         {typeOrder}. 어순배열 영작
         {multi ? ` · ${section.title}` : ""}
@@ -1130,8 +1187,10 @@ function WordOrderAnswerBody({
           · {section.source.trim()}
         </p>
       ) : null}
+      </>
+      ) : null}
       <div className="space-y-2">
-        {section.items.map((it) => (
+        {items.map((it) => (
           <div
             key={`woa-${it.questionId}`}
             className="break-inside-avoid"
@@ -1201,17 +1260,31 @@ type WorkbookPage =
     }
   | {
       kind: "answers";
-      typeOrderBlank: number | null;
-      typeOrderGrammarChoice: number | null;
-      typeOrderGrammarFix: number | null;
-      typeOrderVocabChoice: number | null;
-      typeOrderVocabFix: number | null;
-      typeOrderTf: number | null;
-      typeOrderSentenceOrder: number | null;
-      typeOrderLineKo: number | null;
-      typeOrderFullEn: number | null;
-      typeOrderWordOrder: number | null;
+      /** 이 쪽에 싣는 정답 블록(answerBlocks의 key). null이면 전부(쪽 나눔을 재기 전). */
+      keys: string[] | null;
+      continued: boolean;
     };
+
+/** 정답지 블록 사이 간격(px): 같은 유형 안 / 유형이 바뀔 때. */
+const ANSWER_GAP_SAME_PX = 24;
+const ANSWER_GAP_TYPE_PX = 32;
+
+/** 정답지의 한 덩어리(지문 하나의 정답, 또는 긴 유형은 문장 하나). */
+type AnswerBlock = {
+  key: string;
+  /** 유형 번호. 블록은 이 순서로 놓인다. */
+  order: number;
+  /** 앞 블록과의 간격(px). 없으면 유형이 같은지로 정한다. */
+  gap?: number;
+  /** 쪽을 넘겨 이 블록부터 시작할 때 위에 다는 "(계속)" 줄. */
+  cont?: ReactNode;
+  node: ReactNode;
+};
+
+function answerGapBefore(prev: { order: number }, b: { order: number; gap?: number }): number {
+  if (b.gap != null) return b.gap;
+  return prev.order === b.order ? ANSWER_GAP_SAME_PX : ANSWER_GAP_TYPE_PX;
+}
 
 export function WorkbookWorkbench({
   role,
@@ -1250,6 +1323,19 @@ export function WorkbookWorkbench({
   >({});
   /** 2단 쪽의 본문(단) 높이. 머리글 높이를 잰 뒤에 정해진다. */
   const [columnBodyMm, setColumnBodyMm] = useState<number | null>(null);
+  /** 정답지 쪽마다 실을 블록(key). 재기 전에는 null(한 쪽에 전부). */
+  const [answerPages, setAnswerPages] = useState<string[][] | null>(null);
+  /** 글꼴을 다 받은 뒤 정답지 높이를 다시 잰다(글꼴이 바뀌면 줄 수가 달라진다). */
+  const [fontsReady, setFontsReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void document.fonts?.ready.then(() => {
+      if (alive) setFontsReady(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
   /** 그려 보니 넘친 2단 쪽: "유형:첫 지문 번호" → 그 쪽에 실을 수 있는 지문 수. */
   const [columnLimits, setColumnLimits] = useState<Record<string, number>>({});
   const measureRef = useRef<HTMLDivElement>(null);
@@ -2270,22 +2356,13 @@ export function WorkbookWorkbench({
       }
     }
     if (types.length > 0) {
-      out.push({
-        kind: "answers",
-        typeOrderBlank: typeOrders.get("blank_fill") ?? null,
-        typeOrderGrammarChoice: typeOrders.get("grammar_choice") ?? null,
-        typeOrderGrammarFix: typeOrders.get("grammar_fix") ?? null,
-        typeOrderVocabChoice: typeOrders.get("vocab_choice") ?? null,
-        typeOrderVocabFix: typeOrders.get("vocab_fix") ?? null,
-        typeOrderTf: typeOrders.get("tf") ?? null,
-        typeOrderSentenceOrder: typeOrders.get("sentence_order") ?? null,
-        typeOrderLineKo: typeOrders.get("one_line_ko") ?? null,
-        typeOrderFullEn: typeOrders.get("full_en_writing") ?? null,
-        typeOrderWordOrder: typeOrders.get("word_order_writing") ?? null,
-      });
+      // 정답지도 A4 쪽으로 나눈다. 예전에는 한 장에 전부 실어 인쇄에서 여러 쪽으로
+      // 잘렸고, 가운데 쪽들은 위아래 여백 없이 종이 끝까지 찍혔다.
+      const planned = answerPages && answerPages.length > 0 ? answerPages : [null];
+      planned.forEach((keys, i) => out.push({ kind: "answers", keys, continued: i > 0 }));
     }
     return out;
-  }, [workbook, typeOrders, flowPages, columnPacks]);
+  }, [workbook, typeOrders, flowPages, columnPacks, answerPages]);
 
   useLayoutEffect(() => {
     ensureWorkbookPrintStyles();
@@ -2415,6 +2492,49 @@ export function WorkbookWorkbench({
     }
     setColumnPacks((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
   }, [workbook, columnLimits]);
+
+  // 정답지: 블록(유형·지문별 정답) 높이를 재서 A4 쪽마다 나눈다. 본문 높이는 한줄해석과 같다.
+  useLayoutEffect(() => {
+    const root = measureRef.current;
+    if (!workbook || !root) {
+      setAnswerPages(null);
+      return;
+    }
+    const pxPerMm = (root.offsetWidth || 1) / 210;
+    const pageBodyPx = (297 - A4_PAD_MM - A4_FOOTER_MM) * pxPerMm;
+    const sheetHeaderH =
+      (root.querySelector('[data-wb-measure="sheet-header"]') as HTMLElement | null)
+        ?.offsetHeight ?? 72;
+    const budget = pageBodyPx - sheetHeaderH - 16 - 4 * pxPerMm;
+    /** 쪽을 넘겨 이어지는 문장 위의 "(계속)" 줄(flow-root라 아래 여백까지 잡힌다). */
+    const contEl = root.querySelector<HTMLElement>("[data-wb-answer-conthead]");
+    const contH = contEl ? contEl.offsetHeight : 26;
+    const next: string[][] = [];
+    let page: string[] = [];
+    let used = 0;
+    let prev: { order: number } | null = null;
+    root.querySelectorAll<HTMLElement>("[data-wb-answer]").forEach((el) => {
+      const cur = {
+        order: Number(el.dataset.wbAnswerOrder),
+        gap: el.dataset.wbAnswerGap ? Number(el.dataset.wbAnswerGap) : undefined,
+      };
+      const gap = prev ? answerGapBefore(prev, cur) : 0;
+      const h = el.offsetHeight;
+      // 한 쪽보다 긴 블록은 혼자 한 쪽을 쓴다.
+      if (page.length && used + gap + h > budget) {
+        next.push(page);
+        page = [];
+        used = 0;
+      }
+      if (page.length) used += gap;
+      else if (el.dataset.wbAnswerCont) used += contH;
+      used += h;
+      page.push(el.dataset.wbAnswer!);
+      prev = cur;
+    });
+    if (page.length) next.push(page);
+    setAnswerPages((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
+  }, [workbook, typeOrders, fontsReady]);
 
   // 그린 2단 쪽이 오른쪽 단 밖으로 넘치면(재 둔 높이와 실제가 다를 때) 그 쪽에 싣는 지문을 하나 줄인다.
   useLayoutEffect(() => {
@@ -2601,6 +2721,226 @@ export function WorkbookWorkbench({
   const vfSections = workbook.vocabFixSections ?? [];
   const vfSkipped = workbook.vocabFixSkipped ?? [];
 
+  /**
+   * 정답지 블록: 유형 번호 순, 같은 유형 안에서는 지문 순. 쪽 나눔(측정 영역)과 정답
+   * 쪽이 같은 블록을 그린다. key는 answerPages가 가리키는 이름이다.
+   */
+  const answerBlocks: AnswerBlock[] = [];
+  /**
+   * 한줄해석·영작 정답은 지문 하나가 한 쪽보다 길 수 있어 문장마다 블록으로 나눈다.
+   * 첫 블록에 유형·지문 제목을 함께 둬 제목만 쪽 끝에 남지 않게 하고, 쪽을 넘겨 이어지는
+   * 문장 위에는 "(계속)" 줄을 단다.
+   */
+  const addSentenceBlocks = <S extends { title: string; items: unknown[] }>(
+    prefix: string,
+    order: number,
+    label: string,
+    sections: S[],
+    itemGapPx: number,
+    render: (section: S, itemIndex: number, showHeader: boolean) => ReactNode
+  ) => {
+    sections.forEach((section, si) => {
+      section.items.forEach((_, ii) => {
+        answerBlocks.push({
+          key: `${prefix}-${si}-${ii}`,
+          order,
+          gap: ii === 0 ? undefined : itemGapPx,
+          cont:
+            ii === 0 ? undefined : (
+              <AnswerContinued typeOrder={order} label={label} title={section.title} />
+            ),
+          node: render(section, ii, ii === 0),
+        });
+      });
+    });
+  };
+  const addSkipped = (
+    key: string,
+    order: number,
+    list: ReadonlyArray<{ projectId: string; title: string; reason: string }>
+  ) => {
+    if (list.length === 0) return;
+    answerBlocks.push({
+      key,
+      order,
+      node: (
+        <ul className="space-y-1 text-[11px] text-amber-700">
+          {list.map((s) => (
+            <li key={`${key}-${s.projectId}`}>
+              「{s.title}」 {s.reason}
+            </li>
+          ))}
+        </ul>
+      ),
+    });
+  };
+  {
+    const ob = typeOrders.get("blank_fill");
+    if (ob != null) {
+      workbook.blankSections.forEach((section, i) =>
+        answerBlocks.push({
+          key: `ba-${i}`,
+          order: ob,
+          node: (
+            <>
+              <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+                {ob}. 빈칸 채우기
+                {workbook.blankSections.length > 1 ? ` · ${section.title}` : ""}
+              </h3>
+              <BlankAnswerBody section={section} />
+            </>
+          ),
+        })
+      );
+    }
+    const ogc = typeOrders.get("grammar_choice");
+    if (ogc != null) {
+      gcSections.forEach((section, i) =>
+        answerBlocks.push({
+          key: `gca-${i}`,
+          order: ogc,
+          node: <GrammarChoiceAnswerBody section={section} typeOrder={ogc} multi={gcSections.length > 1} />,
+        })
+      );
+    }
+    const ogf = typeOrders.get("grammar_fix");
+    if (ogf != null) {
+      gfSections.forEach((section, i) =>
+        answerBlocks.push({
+          key: `gfa-${i}`,
+          order: ogf,
+          node: <GrammarFixAnswerBody section={section} typeOrder={ogf} multi={gfSections.length > 1} />,
+        })
+      );
+      addSkipped("gfs", ogf, gfSkipped);
+    }
+    const ovc = typeOrders.get("vocab_choice");
+    if (ovc != null) {
+      vcSections.forEach((section, i) =>
+        answerBlocks.push({
+          key: `vca-${i}`,
+          order: ovc,
+          node: <VocabChoiceAnswerBody section={section} typeOrder={ovc} multi={vcSections.length > 1} />,
+        })
+      );
+      addSkipped("vcs", ovc, vcSkipped);
+    }
+    const ovf = typeOrders.get("vocab_fix");
+    if (ovf != null) {
+      vfSections.forEach((section, i) =>
+        answerBlocks.push({
+          key: `vfa-${i}`,
+          order: ovf,
+          node: (
+            <GrammarFixAnswerBody
+              section={section}
+              typeOrder={ovf}
+              multi={vfSections.length > 1}
+              label="어휘 수정"
+            />
+          ),
+        })
+      );
+      addSkipped("vfs", ovf, vfSkipped);
+    }
+    const otf = typeOrders.get("tf");
+    if (otf != null) {
+      workbook.sections.forEach((section, i) =>
+        answerBlocks.push({
+          key: `ta-${i}`,
+          order: otf,
+          node: <TfAnswerBody section={section} typeOrder={otf} multi={workbook.sections.length > 1} />,
+        })
+      );
+    }
+    const oso = typeOrders.get("sentence_order");
+    if (oso != null) {
+      answerBlocks.push({
+        key: "so",
+        order: oso,
+        node: (
+          <>
+            <h3 className="mb-3 text-[16px] font-black" style={{ color: ACCENT }}>
+              {oso}. 문장 순서 배열
+            </h3>
+            <div className="space-y-3">
+              {soQuestions.map((q) => (
+                <SentenceOrderAnswerBody
+                  key={`soa-${q.questionId}`}
+                  question={q}
+                  typeOrder={oso}
+                  all={soQuestions}
+                />
+              ))}
+            </div>
+          </>
+        ),
+      });
+      addSkipped("sos", oso, soSkipped);
+    }
+    // 문장 사이 간격은 각 정답 목록의 space-y(2.5 = 10px, 4 = 16px, 2 = 8px)와 같다.
+    const olt = typeOrders.get("one_line_ko");
+    if (olt != null) {
+      addSentenceBlocks("lta", olt, "한줄해석", ltSections, 10, (section, ii, showHeader) => (
+        <LineTranslationAnswerBody
+          section={section}
+          typeOrder={olt}
+          multi={ltSections.length > 1}
+          itemIndices={[ii]}
+          showHeader={showHeader}
+        />
+      ));
+      addSkipped("lts", olt, ltSkipped);
+    }
+    const ofe = typeOrders.get("full_en_writing");
+    if (ofe != null) {
+      addSentenceBlocks("fea", ofe, "통문장 영작", feSections, 16, (section, ii, showHeader) => (
+        <FullEnWritingAnswerBody
+          section={section}
+          typeOrder={ofe}
+          multi={feSections.length > 1}
+          itemIndices={[ii]}
+          showHeader={showHeader}
+        />
+      ));
+      addSkipped("fes", ofe, feSkipped);
+    }
+    const owo = typeOrders.get("word_order_writing");
+    if (owo != null) {
+      addSentenceBlocks("woa", owo, "어순배열 영작", woSections, 8, (section, ii, showHeader) => (
+        <WordOrderAnswerBody
+          section={section}
+          typeOrder={owo}
+          multi={woSections.length > 1}
+          itemIndices={[ii]}
+          showHeader={showHeader}
+        />
+      ));
+      addSkipped("wos", owo, woSkipped);
+    }
+  }
+  answerBlocks.sort((a, b) => a.order - b.order);
+  const answerBlockByKey = new Map(answerBlocks.map((b) => [b.key, b] as const));
+  /**
+   * 정답 블록 목록을 쪽 본문으로 그린다(블록 사이 간격은 쪽 나눔 계산과 같다). 쪽의 첫
+   * 블록이 이어지는 문장이면 "(계속)" 줄을 먼저 단다. measure는 쪽 나눔 측정용.
+   */
+  const renderAnswerBlocks = (blocks: ReadonlyArray<AnswerBlock>, measure = false) =>
+    blocks.map((b, i) => (
+      <div
+        key={`${measure ? "m-" : ""}${b.key}`}
+        className="flow-root"
+        style={{ marginTop: i === 0 ? 0 : answerGapBefore(blocks[i - 1]!, b) }}
+        data-wb-answer={measure ? b.key : undefined}
+        data-wb-answer-order={measure ? b.order : undefined}
+        data-wb-answer-gap={measure && b.gap != null ? b.gap : undefined}
+        data-wb-answer-cont={measure && b.cont ? "1" : undefined}
+      >
+        {!measure && i === 0 ? b.cont : null}
+        {b.node}
+      </div>
+    ));
+
   /** 2단 쪽에 싣는 지문(문장 순서 배열은 문항) 하나. 쪽과 배치 측정이 같은 모양을 쓴다. */
   const renderColumnSection = (type: WorkbookColumnTypeId, i: number): ReactNode => {
     if (type === "grammar_choice") {
@@ -2760,216 +3100,22 @@ export function WorkbookWorkbench({
               }
 
               // answers
+              const shown = page.keys
+                ? page.keys
+                    .map((k) => answerBlockByKey.get(k))
+                    .filter((blk): blk is NonNullable<typeof blk> => !!blk)
+                : answerBlocks;
               return (
                 <PageShell
-                  key="answers"
+                  key={`answers-${pageI}`}
                   pageNo={pageNo}
                   total={total}
                   workbookTitle={title}
                   showTypeTitle
-                  typeTitle="정답"
+                  typeTitle={page.continued ? "정답 (계속)" : "정답"}
                   isLast={isLast}
                 >
-                  {/* 정답은 유형 번호 순으로 보인다(CSS order). 유형 순서가 바뀌어도 여기를 고칠 필요가 없다. */}
-                  <div className="flex flex-col gap-8">
-                    {page.typeOrderBlank != null
-                      ? workbook.blankSections.map((section, i) => (
-                          <div key={`ba-${section.projectId}-${i}`} style={{ order: page.typeOrderBlank! }}>
-                            <h3
-                              className="mb-3 text-[16px] font-black"
-                              style={{ color: ACCENT }}
-                            >
-                              {page.typeOrderBlank}. 빈칸 채우기
-                              {workbook.blankSections.length > 1
-                                ? ` · ${section.title}`
-                                : ""}
-                            </h3>
-                            <BlankAnswerBody section={section} />
-                          </div>
-                        ))
-                      : null}
-                    {page.typeOrderGrammarChoice != null
-                      ? gcSections.map((section, i) => (
-                          <div key={`gca-${section.projectId}-${i}`} style={{ order: page.typeOrderGrammarChoice! }}>
-                            <GrammarChoiceAnswerBody
-                              section={section}
-                              typeOrder={page.typeOrderGrammarChoice!}
-                              multi={gcSections.length > 1}
-                            />
-                          </div>
-                        ))
-                      : null}
-                    {page.typeOrderGrammarFix != null ? (
-                      <div className="space-y-6" style={{ order: page.typeOrderGrammarFix }}>
-                        {gfSections.map((section, i) => (
-                          <div key={`gfa-${section.projectId}-${i}`}>
-                            <GrammarFixAnswerBody
-                              section={section}
-                              typeOrder={page.typeOrderGrammarFix!}
-                              multi={gfSections.length > 1}
-                            />
-                          </div>
-                        ))}
-                        {gfSkipped.length > 0 ? (
-                          <ul className="space-y-1 text-[11px] text-amber-700">
-                            {gfSkipped.map((s) => (
-                              <li key={`gfs-${s.projectId}`}>
-                                「{s.title}」 {s.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {page.typeOrderVocabChoice != null ? (
-                      <div className="space-y-6" style={{ order: page.typeOrderVocabChoice }}>
-                        {vcSections.map((section, i) => (
-                          <div key={`vca-${section.projectId}-${i}`}>
-                            <VocabChoiceAnswerBody
-                              section={section}
-                              typeOrder={page.typeOrderVocabChoice!}
-                              multi={vcSections.length > 1}
-                            />
-                          </div>
-                        ))}
-                        {vcSkipped.length > 0 ? (
-                          <ul className="space-y-1 text-[11px] text-amber-700">
-                            {vcSkipped.map((s) => (
-                              <li key={`vcs-${s.projectId}`}>
-                                「{s.title}」 {s.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {page.typeOrderVocabFix != null ? (
-                      <div className="space-y-6" style={{ order: page.typeOrderVocabFix }}>
-                        {vfSections.map((section, i) => (
-                          <div key={`vfa-${section.projectId}-${i}`}>
-                            <GrammarFixAnswerBody
-                              section={section}
-                              typeOrder={page.typeOrderVocabFix!}
-                              multi={vfSections.length > 1}
-                              label="어휘 수정"
-                            />
-                          </div>
-                        ))}
-                        {vfSkipped.length > 0 ? (
-                          <ul className="space-y-1 text-[11px] text-amber-700">
-                            {vfSkipped.map((s) => (
-                              <li key={`vfs-${s.projectId}`}>
-                                「{s.title}」 {s.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {page.typeOrderTf != null
-                      ? workbook.sections.map((section, i) => (
-                          <div key={`ta-${section.projectId}-${i}`} style={{ order: page.typeOrderTf! }}>
-                            <TfAnswerBody
-                              section={section}
-                              typeOrder={page.typeOrderTf!}
-                              multi={workbook.sections.length > 1}
-                            />
-                          </div>
-                        ))
-                      : null}
-                    {page.typeOrderSentenceOrder != null ? (
-                      <div style={{ order: page.typeOrderSentenceOrder }}>
-                        <h3
-                          className="mb-3 text-[16px] font-black"
-                          style={{ color: ACCENT }}
-                        >
-                          {page.typeOrderSentenceOrder}. 문장 순서 배열
-                        </h3>
-                        <div className="space-y-3">
-                          {soQuestions.map((q) => (
-                            <SentenceOrderAnswerBody
-                              key={`soa-${q.questionId}`}
-                              question={q}
-                              typeOrder={page.typeOrderSentenceOrder!}
-                              all={soQuestions}
-                            />
-                          ))}
-                        </div>
-                        {soSkipped.length > 0 ? (
-                          <ul className="mt-4 space-y-1 text-[11px] text-amber-700">
-                            {soSkipped.map((s) => (
-                              <li key={`sos-${s.projectId}`}>
-                                「{s.title}」 {s.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {page.typeOrderLineKo != null ? (
-                      <div className="space-y-8" style={{ order: page.typeOrderLineKo }}>
-                        {ltSections.map((section) => (
-                          <LineTranslationAnswerBody
-                            key={`lta-${section.projectId}`}
-                            section={section}
-                            typeOrder={page.typeOrderLineKo!}
-                            multi={ltSections.length > 1}
-                          />
-                        ))}
-                        {ltSkipped.length > 0 ? (
-                          <ul className="space-y-1 text-[11px] text-amber-700">
-                            {ltSkipped.map((s) => (
-                              <li key={`lts-${s.projectId}`}>
-                                「{s.title}」 {s.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {page.typeOrderFullEn != null ? (
-                      <div className="space-y-8" style={{ order: page.typeOrderFullEn }}>
-                        {feSections.map((section) => (
-                          <FullEnWritingAnswerBody
-                            key={`fea-${section.projectId}`}
-                            section={section}
-                            typeOrder={page.typeOrderFullEn!}
-                            multi={feSections.length > 1}
-                          />
-                        ))}
-                        {feSkipped.length > 0 ? (
-                          <ul className="space-y-1 text-[11px] text-amber-700">
-                            {feSkipped.map((s) => (
-                              <li key={`fes-${s.projectId}`}>
-                                「{s.title}」 {s.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                    {page.typeOrderWordOrder != null ? (
-                      <div className="space-y-8" style={{ order: page.typeOrderWordOrder }}>
-                        {woSections.map((section) => (
-                          <WordOrderAnswerBody
-                            key={`woa-${section.projectId}`}
-                            section={section}
-                            typeOrder={page.typeOrderWordOrder!}
-                            multi={woSections.length > 1}
-                          />
-                        ))}
-                        {woSkipped.length > 0 ? (
-                          <ul className="space-y-1 text-[11px] text-amber-700">
-                            {woSkipped.map((s) => (
-                              <li key={`wos-${s.projectId}`}>
-                                「{s.title}」 {s.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </div>
+                  {renderAnswerBlocks(shown)}
                 </PageShell>
               );
             })}
@@ -3007,6 +3153,10 @@ export function WorkbookWorkbench({
                 : null}
             </div>
           ))}
+          <div>{renderAnswerBlocks(answerBlocks, true)}</div>
+          <div className="flow-root" data-wb-answer-conthead>
+            <AnswerContinued typeOrder={1} label="한줄해석" title={title} />
+          </div>
           <header className="mb-4" data-wb-measure="sheet-header">
             <p className="text-[13px] font-bold text-slate-800">{title}</p>
             <div
