@@ -440,12 +440,21 @@ function defaultFooterRight(title: string, mode: "exam" | "answers"): string {
   return mode === "answers" ? `${name} · 정답` : name;
 }
 
-/** 저장해 둔 머리말·꼬리말. jobId를 주면 그 자료에만 저장한 값(제목·출처·꼬리말). */
-function loadStoredBranding(jobId?: string): Partial<PrintBranding> | null {
+/**
+ * 머리말·꼬리말 저장 위치. 학원 이름·로고는 학원마다(한 브라우저로 여러 학원에 들어가도 다른
+ * 학원 이름이 남지 않게), 제목·출처·꼬리말은 자료마다 저장한다.
+ */
+function brandingKey(scope: { academy: string } | { jobId: string }): string {
+  return "jobId" in scope
+    ? `${BRANDING_STORAGE_KEY}:${scope.jobId}`
+    : `${BRANDING_STORAGE_KEY}:academy:${scope.academy}`;
+}
+
+function loadStoredBranding(
+  scope: { academy: string } | { jobId: string }
+): Partial<PrintBranding> | null {
   try {
-    const raw = localStorage.getItem(
-      jobId ? `${BRANDING_STORAGE_KEY}:${jobId}` : BRANDING_STORAGE_KEY
-    );
+    const raw = localStorage.getItem(brandingKey(scope));
     if (!raw) return null;
     return JSON.parse(raw) as Partial<PrintBranding>;
   } catch {
@@ -541,8 +550,9 @@ export function QuestionPrintView({
     }
 
     setBranding((prev) => {
-      const shared = typeof window !== "undefined" ? loadStoredBranding() : null;
-      const own = typeof window !== "undefined" ? loadStoredBranding(jobId) : null;
+      const shared =
+        typeof window !== "undefined" ? loadStoredBranding({ academy: academyName }) : null;
+      const own = typeof window !== "undefined" ? loadStoredBranding({ jobId }) : null;
       return {
         headerKicker:
           shared?.headerKicker ??
@@ -565,21 +575,22 @@ export function QuestionPrintView({
   useEffect(() => {
     if (!brandingReady) return;
     try {
-      // 학원 이름·로고는 모든 자료에 같게, 제목·출처·꼬리말은 이 자료에만 저장한다.
-      // 예전에는 전부 한 벌이라, 한 번 고친 제목이 다음 자료에도 그대로 붙었다.
+      // 학원 이름·로고는 이 학원의 모든 자료에 같게, 제목·출처·꼬리말은 이 자료에만 저장한다.
+      // 예전에는 전부 브라우저에 한 벌이라, 고친 제목이 다음 자료에, 한 학원 이름이 다른
+      // 학원 계정의 머리말에 그대로 붙었다.
       const { headerKicker, footerLeft, showLogo, headerTitle, headerSub, footerRight } = branding;
       localStorage.setItem(
-        BRANDING_STORAGE_KEY,
+        brandingKey({ academy: academyName }),
         JSON.stringify({ headerKicker, footerLeft, showLogo })
       );
       localStorage.setItem(
-        `${BRANDING_STORAGE_KEY}:${jobId}`,
+        brandingKey({ jobId }),
         JSON.stringify({ headerTitle, headerSub, footerRight })
       );
     } catch {
       /* ignore */
     }
-  }, [branding, brandingReady, jobId]);
+  }, [branding, brandingReady, jobId, academyName]);
 
   const bannerNo = extractBannerNo(sourceDetail);
   const sheetTitle =
