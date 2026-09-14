@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { nextOrderIndexInFolder } from "@/lib/lesson-materials/project-order";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { actionError, actionSuccess, type ActionResult } from "@/lib/vocab/actions-shared";
 import {
@@ -81,6 +82,9 @@ export async function saveLessonMaterialsFromWizard(input: {
   const projectTitleEn = input.projectTitleEn?.trim() || null;
   const projectSource = input.projectSource?.trim() || null;
 
+  // 새 지문은 그 폴더 맨 뒤에 붙인다(project-order.ts).
+  const orderIndex = await nextOrderIndexInFolder(supabase, academyId, folderId ?? null);
+
   const { data: projectInsert, error: projectInsertErr } = await supabase
     .from("lesson_material_projects")
     .insert({
@@ -91,7 +95,7 @@ export async function saveLessonMaterialsFromWizard(input: {
       teacher_id: profile.id,
       created_by: profile.id,
       academy_id: academyId,
-      order_index: 0,
+      order_index: orderIndex,
       analysis_json: input.analysisCards?.length ? input.analysisCards : null,
       illustration_prompt: input.illustrationPrompt?.trim()
         ? input.illustrationPrompt

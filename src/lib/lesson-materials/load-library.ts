@@ -26,6 +26,7 @@ export interface LessonMaterialProjectRow {
   title_en: string | null;
   source: string | null;
   folder_id: string | null;
+  created_at: string;
   updated_at: string;
   deleted_at: string | null;
   order_index: number;
@@ -99,10 +100,10 @@ export async function loadLessonMaterialsLibraryData(
     supabase
       .from("lesson_material_projects")
       .select(
-        "id,title,title_en,source,folder_id,updated_at,deleted_at,order_index,analysis_first:analysis_json->0,pack_vocab:lesson_pack_json->vocab,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0"
+        "id,title,title_en,source,folder_id,created_at,updated_at,deleted_at,order_index,analysis_first:analysis_json->0,pack_vocab:lesson_pack_json->vocab,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0"
       )
       .order("order_index", { ascending: true })
-      .order("updated_at", { ascending: false }),
+      .order("created_at", { ascending: true }),
     supabase
       .from("lesson_material_items")
       .select("project_id,id")

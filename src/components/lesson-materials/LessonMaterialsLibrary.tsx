@@ -125,7 +125,8 @@ export function LessonMaterialsLibrary({
     setLibraryTab("materials");
   }
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [sortNewest, setSortNewest] = useState(true);
+  /** 내 순서(끌어서 정한 순서) / 최근 추가순. */
+  const [sortMode, setSortMode] = useState<"custom" | "recent">("custom");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [creatingFolder, setCreatingFolder] = useState(false);
@@ -216,13 +217,27 @@ export function LessonMaterialsLibrary({
       list = [];
     }
 
-    list.sort((a, b) => {
-      const oi = (a.order_index ?? 0) - (b.order_index ?? 0);
-      if (oi !== 0) return oi;
-      const ta = new Date(a.updated_at).getTime();
-      const tb = new Date(b.updated_at).getTime();
-      return sortNewest ? tb - ta : ta - tb;
-    });
+    // 같은 번호끼리는 처음 만든 순서로 둔다. 예전에는 마지막으로 고친 시각을 써서,
+    // 옮기거나 내용을 고칠 때마다 자리가 바뀌었다.
+    const createdAt = (p: LessonMaterialProjectRow) =>
+      Date.parse(p.created_at ?? p.updated_at) || 0;
+    if (sortMode === "recent") {
+      list.sort((a, b) => createdAt(b) - createdAt(a));
+    } else {
+      // 순서 번호는 폴더 안에서의 순서라, 여러 폴더를 함께 볼 때(전체·하위 폴더 포함)는
+      // 폴더 차례(미분류 먼저)대로 묶고 그 안에서 번호순으로 둔다. 묶지 않으면 폴더마다
+      // 0번끼리, 1번끼리 번갈아 섞였다.
+      const folderRank = new Map(foldersFlat.map(({ folder }, i) => [folder.id, i] as const));
+      const rank = (p: LessonMaterialProjectRow) =>
+        p.folder_id ? (folderRank.get(p.folder_id) ?? foldersFlat.length) : -1;
+      list.sort((a, b) => {
+        const fr = rank(a) - rank(b);
+        if (fr !== 0) return fr;
+        const oi = (a.order_index ?? 0) - (b.order_index ?? 0);
+        if (oi !== 0) return oi;
+        return createdAt(a) - createdAt(b);
+      });
+    }
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -230,13 +245,22 @@ export function LessonMaterialsLibrary({
     libraryTab,
     data,
     activeProjects,
-    sortNewest,
+    sortMode,
     childrenByParent,
+    foldersFlat,
   ]);
 
   const totalActive = activeProjects.length;
   const selectedIds = [...selected];
   const selectedCount = selectedIds.length;
+  /**
+   * 고른 자료를 화면에 보이는 순서대로. 옮기기·복사는 이 순서대로 대상 폴더 맨 뒤에 붙는다
+   * (selectedIds는 누른 순서라, 그대로 보내면 옮긴 뒤 순서가 누른 순서로 바뀌었다).
+   */
+  const selectedInViewOrder = [
+    ...visibleProjects.filter((p) => selected.has(p.id)).map((p) => p.id),
+    ...selectedIds.filter((id) => !visibleProjects.some((p) => p.id === id)),
+  ];
   const inTrash = folderFilter === "trash";
   const tabComingSoon = false;
   /** 만든 파일을 보여 주는 탭. 워크북 탭은 파일만 있고 지문별 목록이 없다. */
@@ -294,6 +318,7 @@ export function LessonMaterialsLibrary({
   const canReorder =
     !inTrash &&
     !tabComingSoon &&
+    sortMode === "custom" &&
     (libraryTab === "materials" ||
       libraryTab === "lesson" ||
       libraryTab === "analysis");
@@ -749,9 +774,10 @@ export function LessonMaterialsLibrary({
             <button
               type="button"
               className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600"
-              onClick={() => setSortNewest((v) => !v)}
+              title="내 순서: 끌어서 정한 순서 / 최근 추가순: 새로 만든 자료부터"
+              onClick={() => setSortMode((m) => (m === "custom" ? "recent" : "custom"))}
             >
-              {sortNewest ? "최신순 ▾" : "오래된순 ▾"}
+              {sortMode === "custom" ? "내 순서 ▾" : "최근 추가순 ▾"}
             </button>
 
             {selectedCount > 0 && !inTrash ? (
@@ -792,7 +818,7 @@ export function LessonMaterialsLibrary({
                         onClick={() =>
                           runAction(() =>
                             moveLessonMaterialProjects(role, {
-                              projectIds: selectedIds,
+                              projectIds: selectedInViewOrder,
                               folderId: null,
                             })
                           )
@@ -809,7 +835,7 @@ export function LessonMaterialsLibrary({
                           onClick={() =>
                             runAction(() =>
                               moveLessonMaterialProjects(role, {
-                                projectIds: selectedIds,
+                                projectIds: selectedInViewOrder,
                                 folderId: f.id,
                               })
                             )
@@ -842,7 +868,7 @@ export function LessonMaterialsLibrary({
                         onClick={() =>
                           runAction(() =>
                             copyLessonMaterialProjects(role, {
-                              projectIds: selectedIds,
+                              projectIds: selectedInViewOrder,
                               folderId: null,
                             })
                           )
@@ -859,7 +885,7 @@ export function LessonMaterialsLibrary({
                           onClick={() =>
                             runAction(() =>
                               copyLessonMaterialProjects(role, {
-                                projectIds: selectedIds,
+                                projectIds: selectedInViewOrder,
                                 folderId: f.id,
                               })
                             )
@@ -1177,8 +1203,8 @@ export function LessonMaterialsLibrary({
         <LessonMaterialsSelectionBar
           role={role}
           selectedCount={selectedCount}
-          selectedIds={selectedIds}
-          onIntegrated={() => setIntegratedOpen({ preselected: selectedIds })}
+          selectedIds={selectedInViewOrder}
+          onIntegrated={() => setIntegratedOpen({ preselected: selectedInViewOrder })}
         />
       ) : null}
       {integratedOpen ? (

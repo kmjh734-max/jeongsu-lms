@@ -8,6 +8,7 @@ import {
   actionSuccess,
   type ActionResult,
 } from "@/lib/vocab/actions-shared";
+import { nextOrderIndexInFolder } from "@/lib/lesson-materials/project-order";
 
 type Role = "admin" | "teacher";
 
@@ -149,21 +150,28 @@ export async function moveLessonMaterialProjects(
   }
 
   const supabase = await createClient();
-  let q = supabase
-    .from("lesson_material_projects")
-    .update({
-      folder_id: input.folderId,
-      deleted_at: null,
-      updated_at: new Date().toISOString(),
+  // 옮겨 가는 폴더의 맨 뒤에, 받은 순서(화면에 보이던 순서) 그대로 붙인다.
+  const start = await nextOrderIndexInFolder(supabase, profile!.academy_id!, input.folderId, ids);
+  const now = new Date().toISOString();
+  const results = await Promise.all(
+    ids.map((id, k) => {
+      let q = supabase
+        .from("lesson_material_projects")
+        .update({
+          folder_id: input.folderId,
+          order_index: start + k,
+          deleted_at: null,
+          updated_at: now,
+        })
+        .eq("id", id)
+        .eq("academy_id", profile!.academy_id!);
+      if (role === "teacher") {
+        q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
+      }
+      return q;
     })
-    .in("id", ids)
-    .eq("academy_id", profile!.academy_id!);
-
-  if (role === "teacher") {
-    q = q.or(`teacher_id.eq.${profile!.id},created_by.eq.${profile!.id}`);
-  }
-
-  const { error: updateError } = await q;
+  );
+  const updateError = results.find((r) => r.error)?.error;
   if (updateError) return actionError(updateError.message);
 
   revalidateLibrary(role);
@@ -325,6 +333,11 @@ export async function copyLessonMaterialProjects(
     itemsByProject.set(it.project_id, list);
   }
 
+  // 복사본은 대상 폴더 맨 뒤에, 받은 순서(화면에 보이던 순서) 그대로 붙인다.
+  const orderOf = new Map(ids.map((id, i) => [id, i] as const));
+  projects.sort((a, b) => (orderOf.get(a.id) ?? 0) - (orderOf.get(b.id) ?? 0));
+  let nextIndex = await nextOrderIndexInFolder(supabase, profile!.academy_id!, input.folderId);
+
   let copied = 0;
   for (const src of projects) {
     const { data: inserted, error: insertErr } = await supabase
@@ -338,7 +351,7 @@ export async function copyLessonMaterialProjects(
           role === "teacher" ? profile!.id : (src.teacher_id ?? null),
         created_by: profile!.id,
         academy_id: profile!.academy_id,
-        order_index: 0,
+        order_index: nextIndex++,
         analysis_json: src.analysis_json ?? null,
         illustration_prompt: src.illustration_prompt ?? null,
         illustration_url: src.illustration_url ?? null,
