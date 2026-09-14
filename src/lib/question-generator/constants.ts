@@ -13,8 +13,13 @@ export const VALIDATION_PASS_SCORE = 70;
 /** 문항당 최대 재생성 횟수 (요약문 오생성 등 1회 재시도) */
 export const MAX_REGENERATION_ATTEMPTS = 1;
 
-/** AI 동시 요청 수 */
-export const GENERATION_CONCURRENCY = 8;
+/**
+ * 동시에 만드는 문항 수. 문항 하나는 보통 8~12초인데, 호출 셋 중 하나꼴로 같은 양을
+ * 26~42초에 걸쳐 돌려준다(OpenAI 쪽 처리 시간). 8개씩이면 이 느린 호출에 묶여 초당 0.3~0.4문항에
+ * 그쳤다. 24개로 올려도 호출 속도는 같고 오류(429)도 없었으며(63문항 167초 → 87초), gpt-5.5 한도
+ * (분당 10,000건·400만 토큰)에 비해 여유가 크다.
+ */
+export const GENERATION_CONCURRENCY = 24;
 
 /** 지문 최소 단어 수 (경고) */
 export const MIN_PASSAGE_WORDS = 40;

@@ -250,8 +250,8 @@ async function finalizeGenerationJob(
  * 정해진 시간만큼만 새 문항을 시작하고, 남으면 작업을 pending으로 돌려놓고 다음 실행이
  * 이어 받는다(runGenerationJob의 반환값 more, api/question-generator/continue).
  */
-/** 이 시간이 지나면 새 문항을 시작하지 않는다. */
-const CHUNK_DISPATCH_MS = 190_000;
+/** 이 시간이 지나면 새 문항을 시작하지 않는다. 느린 호출(최대 1분 남짓)이 끝날 자리를 남긴다. */
+const CHUNK_DISPATCH_MS = 180_000;
 /** 이 시간까지 끝나지 않은 문항은 버리고(저장 안 함) 다음 실행에 넘긴다. */
 const CHUNK_HARD_STOP_MS = 265_000;
 /** 실행 하나가 살아 있을 수 있는 최대 시간(300초 + 여유). 넘으면 멈춘 작업으로 본다. */
