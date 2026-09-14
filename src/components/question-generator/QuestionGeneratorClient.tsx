@@ -449,11 +449,18 @@ export function QuestionGeneratorClient({
         grandTotal,
         title.trim() || "영어 변형문제"
       );
-      void fetch(`/api/question-generator/jobs/${data.jobId}`, {
+      // 서버는 바로 응답하고 뒤에서 만든다. 크레딧이 모자라면 여기서 안내한다.
+      const started = await fetch(`/api/question-generator/jobs/${data.jobId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "process" }),
       });
+      if (!started.ok) {
+        const info = (await started.json().catch(() => ({}))) as { message?: string };
+        dismiss();
+        setError(info.message ?? "생성을 시작하지 못했습니다.");
+        return;
+      }
       if (fromJobId && data.reused) {
         setMessage("복사한 자료에 문항을 생성합니다.");
       }

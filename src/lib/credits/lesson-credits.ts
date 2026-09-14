@@ -30,7 +30,7 @@ export type LessonCreditFeature =
  */
 export async function lessonCreditShortfall(
   academyId: string,
-  featureKey: LessonCreditFeature,
+  featureKey: LessonCreditFeature | string,
   quantity = 1
 ): Promise<string | null> {
   const admin = createAdminClient();
@@ -49,28 +49,38 @@ export async function lessonCreditShortfall(
 
 /**
  * 새로 만든 뒤 차감한다. 이미 만든 결과는 버리지 않으므로 차감이 실패해도 결과를 돌려준다
- * (그 사이 잔액이 바닥난 드문 경우). 가격 설정이 아직 없으면 넘어간다.
+ * (그 사이 잔액이 바닥난 드문 경우). 가격 설정이 아직 없으면 넘어간다. 차감했으면(또는
+ * 차감할 가격이 없으면) true.
  */
 export async function debitLessonCredits(params: {
   academyId: string;
   actorId: string;
-  featureKey: LessonCreditFeature;
+  featureKey: LessonCreditFeature | string;
   quantity?: number;
   projectId?: string;
+  /** 같은 차감을 두 번 하지 않게 하는 키. 없으면 매번 새로 차감한다. */
+  idempotencyKey?: string;
+  metadata?: Record<string, unknown>;
   note?: string;
-}): Promise<void> {
+}): Promise<boolean> {
   try {
     await debitFeatureCredits(createAdminClient(), {
       academyId: params.academyId,
       featureKey: params.featureKey,
       actorId: params.actorId,
-      idempotencyKey: `${params.featureKey}:${params.projectId ?? "-"}:${randomUUID()}`,
-      metadata: params.projectId ? { project_id: params.projectId } : undefined,
+      idempotencyKey:
+        params.idempotencyKey ?? `${params.featureKey}:${params.projectId ?? "-"}:${randomUUID()}`,
+      metadata: {
+        ...(params.projectId ? { project_id: params.projectId } : {}),
+        ...(params.metadata ?? {}),
+      },
       note: params.note,
       quantity: params.quantity,
     });
+    return true;
   } catch (e) {
-    if (e instanceof CreditError && e.code === "unknown_feature") return;
+    if (e instanceof CreditError && e.code === "unknown_feature") return true;
     console.error("[lesson-credits] debit failed", params.featureKey, e);
+    return false;
   }
 }

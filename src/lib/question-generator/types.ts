@@ -106,6 +106,11 @@ export interface GenerationRequestConfig {
    * 만든다(run-generation-job.ts). claimedAt은 지금 실행이 작업을 가져간 시각.
    */
   _run?: { claimedAt: string; chunk: number };
+  /**
+   * 크레딧 후불: 작업이 끝날 때 만들어진 문항 수만큼 차감한다. billed는 이미 차감한 문항 수
+   * (예전에 미리 차감한 작업은 그때까지 저장된 수).
+   */
+  _billing?: { mode: "post"; billed: number };
 }
 
 export interface PassageAnalysis {

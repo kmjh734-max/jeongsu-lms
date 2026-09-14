@@ -9,6 +9,8 @@ import {
 import { syncExamVocabSetFromJob, diversifyJobHardWords } from "@/lib/question-generator/exam-vocab";
 import { generateOneQuestion, SkipQuestionError } from "@/lib/question-generator/generate-question";
 import { openAiUnderPressure } from "@/lib/question-generator/openai";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits } from "@/lib/credits/lesson-credits";
 import { resolvePassages } from "@/lib/question-generator/passages";
 import {
   expandCountRequests,
@@ -243,6 +245,38 @@ async function countSavedQuestions(jobId: string): Promise<number> {
   return count ?? 0;
 }
 
+/**
+ * 후불 작업: 새로 만들어진 문항 수만큼 크레딧을 차감한다(버려지거나 생략된 문항은 받지 않는다).
+ * 같은 완료 수로 두 번 불려도 한 번만 차감되고, 이어서 재시도하면 새로 생긴 문항만 받는다.
+ */
+async function billGeneratedQuestions(jobId: string, completed: number): Promise<void> {
+  const admin = createAdminClient();
+  const { data: job } = await admin
+    .from("question_generation_jobs")
+    .select("academy_id, created_by, request_config")
+    .eq("id", jobId)
+    .maybeSingle();
+  const rc = (job?.request_config ?? null) as GenerationRequestConfig | null;
+  const billing = rc?._billing;
+  if (!job?.academy_id || !job.created_by || !rc || billing?.mode !== "post") return;
+  const toBill = completed - (billing.billed ?? 0);
+  if (toBill <= 0) return;
+  const ok = await debitLessonCredits({
+    academyId: job.academy_id as string,
+    actorId: job.created_by as string,
+    featureKey: CREDIT_FEATURES.qg_generate_job,
+    quantity: toBill,
+    idempotencyKey: `qg_generate_job:${jobId}:upto-${completed}`,
+    metadata: { job_id: jobId },
+    note: `변형문제 ${toBill}문항`,
+  });
+  if (!ok) return;
+  await admin
+    .from("question_generation_jobs")
+    .update({ request_config: { ...rc, _billing: { mode: "post", billed: completed } } })
+    .eq("id", jobId);
+}
+
 async function finalizeGenerationJob(
   jobId: string,
   opts: {
@@ -279,6 +313,8 @@ async function finalizeGenerationJob(
     total_completed: completed,
     total_failed: failed,
   });
+
+  await billGeneratedQuestions(jobId, completed);
 
   if (completed > 0) {
     try {

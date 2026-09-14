@@ -4,6 +4,9 @@ import {
   requireStaffProfile,
 } from "@/lib/question-generator/api-helpers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { CREDIT_FEATURES } from "@/lib/credits";
+import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { regenerateSingleQuestion } from "@/lib/question-generator/run-generation-job";
 
 export const maxDuration = 300;
@@ -124,25 +127,46 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireStaffProfile();
+    const profile = await requireStaffProfile();
     const { id } = await ctx.params;
     const body = (await req.json()) as { action?: string };
-    if (body.action === "regenerate" || body.action === "regenerate_choices") {
+    if (
+      body.action === "regenerate" ||
+      body.action === "regenerate_choices" ||
+      body.action === "revalidate"
+    ) {
+      // 다른 학원 문항은 고칠 수 없다. 문항 하나를 새로 만들 때마다 변형문제 1문항 값을 받는다.
+      const admin = createAdminClient();
+      const { data: owner } = await admin
+        .from("generated_english_questions")
+        .select("academy_id, created_by")
+        .eq("id", id)
+        .maybeSingle();
+      if (!owner) return jsonError("문제를 찾을 수 없습니다.", 404);
+      if (owner.academy_id && profile.academy_id && owner.academy_id !== profile.academy_id) {
+        return jsonError("다른 학원 문항입니다.", 403);
+      }
+      if (profile.role === "teacher" && owner.created_by !== profile.id) {
+        return jsonError("권한이 없습니다.", 403);
+      }
+      const academyId = (owner.academy_id as string | null) ?? profile.academy_id;
+      if (academyId) {
+        const shortfall = await lessonCreditShortfall(academyId, CREDIT_FEATURES.qg_generate_job);
+        if (shortfall) return jsonError(shortfall, 402);
+      }
       await regenerateSingleQuestion({
         questionId: id,
         mode: body.action === "regenerate_choices" ? "choices" : "full",
       });
-      const supabase = await createClient();
-      const { data } = await supabase
-        .from("generated_english_questions")
-        .select("*")
-        .eq("id", id)
-        .single();
-      return jsonOk({ question: data });
-    }
-    if (body.action === "revalidate") {
-      // soft: mark needs_review if score low — reuse regenerate validation path lightly
-      await regenerateSingleQuestion({ questionId: id, mode: "full" });
+      if (academyId) {
+        await debitLessonCredits({
+          academyId,
+          actorId: profile.id,
+          featureKey: CREDIT_FEATURES.qg_generate_job,
+          metadata: { question_id: id, action: body.action },
+          note: "변형문제 1문항 다시 만들기",
+        });
+      }
       const supabase = await createClient();
       const { data } = await supabase
         .from("generated_english_questions")

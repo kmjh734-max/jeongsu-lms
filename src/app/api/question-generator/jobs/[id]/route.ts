@@ -9,10 +9,9 @@ import {
   runGenerationChunkAndChain,
 } from "@/lib/question-generator/job-chain";
 import { isGenerationJobStale } from "@/lib/question-generator/run-generation-job";
-import {
-  chargeFeatureOrError,
-  CREDIT_FEATURES,
-} from "@/lib/credits/charge";
+import { CREDIT_FEATURES } from "@/lib/credits/charge";
+import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
+import type { GenerationRequestConfig } from "@/lib/question-generator/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -105,23 +104,30 @@ export async function POST(
       const quantity =
         body.action === "retry" && failed > 0 ? failed : requested;
 
-      const chargeErr = await chargeFeatureOrError({
-        academyId: (jobRow.academy_id as string) || profile.academy_id,
-        featureKey: CREDIT_FEATURES.qg_generate_job,
-        actorId: profile.id,
-        idempotencyKey: `qg_generate_job:${id}:${body.action === "retry" ? `retry-${Date.now()}` : "run"}`,
-        quantity,
-        note:
-          body.action === "retry"
-            ? `변형문제 재시도 ${quantity}문항`
-            : `변형문제 생성 ${quantity}문항`,
-        metadata: {
-          job_id: id,
-          action: body.action,
-          quantity,
-        },
-      });
-      if (chargeErr) return chargeErr;
+      // 크레딧은 실제로 만들어진 문항 수만큼 작업이 끝날 때 차감한다(run-generation-job의
+      // finalizeGenerationJob). 예전에는 요청한 문항 수를 먼저 차감해, 품질 기준에 떨어져
+      // 버려지거나 생략된 문항까지 값을 받았다. 여기서는 잔액이 충분한지만 본다.
+      const academyId = (jobRow.academy_id as string) || profile.academy_id;
+      if (!academyId) return jsonError("소속 학원 정보가 없습니다.", 403);
+      const shortfall = await lessonCreditShortfall(
+        academyId,
+        CREDIT_FEATURES.qg_generate_job,
+        quantity
+      );
+      if (shortfall) return jsonError(shortfall, 402);
+      const rc = (jobRow.request_config ?? {}) as GenerationRequestConfig;
+      if (!rc._billing) {
+        // 이미 저장된 문항(예전에 미리 차감한 작업의 재시도 등)은 다시 받지 않는다.
+        await admin
+          .from("question_generation_jobs")
+          .update({
+            request_config: {
+              ...rc,
+              _billing: { mode: "post", billed: Number(jobRow.total_completed) || 0 },
+            },
+          })
+          .eq("id", id);
+      }
 
       if (body.action === "retry") {
         const { data: updated, error: updErr } = await admin
