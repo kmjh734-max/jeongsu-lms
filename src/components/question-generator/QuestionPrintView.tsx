@@ -434,9 +434,18 @@ function AnswerBlock({
   );
 }
 
-function loadStoredBranding(): Partial<PrintBranding> | null {
+/** 꼬리말 오른쪽 기본값: 자료 이름(정답지는 뒤에 "정답"). */
+function defaultFooterRight(title: string, mode: "exam" | "answers"): string {
+  const name = title.trim() || "영어 변형문제";
+  return mode === "answers" ? `${name} · 정답` : name;
+}
+
+/** 저장해 둔 머리말·꼬리말. jobId를 주면 그 자료에만 저장한 값(제목·출처·꼬리말). */
+function loadStoredBranding(jobId?: string): Partial<PrintBranding> | null {
   try {
-    const raw = localStorage.getItem(BRANDING_STORAGE_KEY);
+    const raw = localStorage.getItem(
+      jobId ? `${BRANDING_STORAGE_KEY}:${jobId}` : BRANDING_STORAGE_KEY
+    );
     if (!raw) return null;
     return JSON.parse(raw) as Partial<PrintBranding>;
   } catch {
@@ -532,18 +541,18 @@ export function QuestionPrintView({
     }
 
     setBranding((prev) => {
-      const stored = typeof window !== "undefined" ? loadStoredBranding() : null;
-      const kind = mode === "answers" ? "해설지" : "변형문제";
+      const shared = typeof window !== "undefined" ? loadStoredBranding() : null;
+      const own = typeof window !== "undefined" ? loadStoredBranding(jobId) : null;
       return {
         headerKicker:
-          stored?.headerKicker ??
+          shared?.headerKicker ??
           prev.headerKicker ??
           `${academyName}${nextGrade ? ` · ${nextGrade}` : ""}`,
-        headerTitle: stored?.headerTitle || nextTitle,
-        headerSub: stored?.headerSub ?? nextDetail,
-        footerLeft: stored?.footerLeft ?? academyName,
-        footerRight: stored?.footerRight ?? `영어 ${kind}`,
-        showLogo: stored?.showLogo ?? true,
+        headerTitle: own?.headerTitle || nextTitle,
+        headerSub: own?.headerSub ?? nextDetail,
+        footerLeft: shared?.footerLeft ?? academyName,
+        footerRight: own?.footerRight ?? defaultFooterRight(nextTitle, mode),
+        showLogo: shared?.showLogo ?? true,
       };
     });
     setBrandingReady(true);
@@ -556,11 +565,21 @@ export function QuestionPrintView({
   useEffect(() => {
     if (!brandingReady) return;
     try {
-      localStorage.setItem(BRANDING_STORAGE_KEY, JSON.stringify(branding));
+      // 학원 이름·로고는 모든 자료에 같게, 제목·출처·꼬리말은 이 자료에만 저장한다.
+      // 예전에는 전부 한 벌이라, 한 번 고친 제목이 다음 자료에도 그대로 붙었다.
+      const { headerKicker, footerLeft, showLogo, headerTitle, headerSub, footerRight } = branding;
+      localStorage.setItem(
+        BRANDING_STORAGE_KEY,
+        JSON.stringify({ headerKicker, footerLeft, showLogo })
+      );
+      localStorage.setItem(
+        `${BRANDING_STORAGE_KEY}:${jobId}`,
+        JSON.stringify({ headerTitle, headerSub, footerRight })
+      );
     } catch {
       /* ignore */
     }
-  }, [branding, brandingReady]);
+  }, [branding, brandingReady, jobId]);
 
   const bannerNo = extractBannerNo(sourceDetail);
   const sheetTitle =
@@ -691,13 +710,12 @@ export function QuestionPrintView({
   }
 
   function resetBranding() {
-    const kind = mode === "answers" ? "해설지" : "변형문제";
     setBranding({
       headerKicker: `${academyName}${grade ? ` · ${grade}` : ""}`,
       headerTitle: title,
       headerSub: sourceDetail,
       footerLeft: academyName,
-      footerRight: `영어 ${kind}`,
+      footerRight: defaultFooterRight(title, mode),
       showLogo: true,
     });
   }

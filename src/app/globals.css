@@ -1713,7 +1713,11 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 }
 
 .qg-print-footer-right {
-  flex-shrink: 0;
+  /* 자료 이름이 길면 줄여서 한 줄로 둔다(꼬리말이 두 줄이 되면 쪽이 넘친다). */
+  min-width: 0;
+  max-width: 62%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
