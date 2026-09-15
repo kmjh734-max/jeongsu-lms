@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
@@ -17,9 +17,40 @@ import {
   loadExamGuestProgress,
   saveExamGuestProgress,
 } from "@/lib/vocab/exam-guest-progress";
+import { notifyStudentTodayChanged } from "@/lib/student/today-refresh";
 
 function answerKey(q: Stage3ClientQuestion): string {
   return `${q.itemId}:${q.questionType}`;
+}
+
+/** 버튼을 눌러도 입력칸 초점(휴대폰 키보드)이 유지되게 */
+const keepInputFocus = (e: MouseEvent) => e.preventDefault();
+
+/** 풀던 답을 잠깐 보관 (새로고침·실수로 나가도 이어서 풀게) */
+function draftKey(setId: string, attemptNumber: number | undefined): string {
+  return `vocab-test-draft:${setId}:${attemptNumber ?? "guest"}`;
+}
+
+type Draft = { index: number; answers: Record<string, string> };
+
+function loadDraft(key: string): Draft | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const d = JSON.parse(raw) as Draft;
+    return d && typeof d === "object" && d.answers ? d : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(key: string, draft: Draft | null) {
+  try {
+    if (draft) sessionStorage.setItem(key, JSON.stringify(draft));
+    else sessionStorage.removeItem(key);
+  } catch {
+    /* 저장 공간을 못 쓰면 그냥 넘어간다 */
+  }
 }
 
 interface VocabStage3TestProps {
@@ -57,6 +88,32 @@ export function VocabStage3Test({
   const current = questions[index];
   const isLast = index >= questions.length - 1;
   const currentKey = current ? answerKey(current) : "";
+  const storageKey = draftKey(setId, attemptNumber);
+  const restoredRef = useRef(false);
+  const [restoredCount, setRestoredCount] = useState(0);
+
+  // 새로고침해도 풀던 답과 위치를 되살린다
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    const draft = loadDraft(storageKey);
+    if (!draft) return;
+    const valid = new Set(questions.map(answerKey));
+    const answersBack = Object.fromEntries(
+      Object.entries(draft.answers).filter(([k, v]) => valid.has(k) && typeof v === "string")
+    );
+    const count = Object.values(answersBack).filter((v) => v.trim()).length;
+    if (count === 0) return;
+    setAnswers(answersBack);
+    setIndex(Math.min(Math.max(0, draft.index | 0), questions.length - 1));
+    setRestoredCount(count);
+  }, [storageKey, questions]);
+
+  useEffect(() => {
+    if (!restoredRef.current || submitting) return;
+    if (Object.keys(answers).length === 0) return;
+    saveDraft(storageKey, { index, answers });
+  }, [answers, index, storageKey, submitting]);
 
   useEffect(() => {
     if (!current || submitting) return;
@@ -66,6 +123,7 @@ export function VocabStage3Test({
 
   const goNext = useCallback(() => {
     setMessage(null);
+    setRestoredCount(0);
     setIndex((i) => Math.min(i + 1, questions.length - 1));
   }, [questions.length]);
 
@@ -89,6 +147,7 @@ export function VocabStage3Test({
       stage4Passed: prev.stage4Passed || passed,
       stage4Attempts: prev.stage4Attempts + 1,
     });
+    saveDraft(storageKey, null);
     setSubmitting(false);
     router.push(
       `${hub}?score=${score}&passed=${passed ? "1" : "0"}`
@@ -130,6 +189,8 @@ export function VocabStage3Test({
           return;
         }
         // 이동이 끝날 때까지 다시 제출하지 못하게 잠가 둔다
+        saveDraft(storageKey, null);
+        notifyStudentTodayChanged();
         if (result.attemptId) {
           router.push(
             `/student/vocab/${setId}/stage4/result?attemptId=${result.attemptId}`
@@ -171,7 +232,8 @@ export function VocabStage3Test({
   }
 
   const isMeaning = current?.questionType === "meaning";
-  const progressPercent = Math.round(((index + 1) / questions.length) * 100);
+  const answeredCount = questions.filter((q) => (answers[answerKey(q)] ?? "").trim()).length;
+  const progressPercent = Math.round((answeredCount / questions.length) * 100);
 
   return (
     <div className="flex w-full flex-col gap-6 sm:gap-8">
@@ -180,11 +242,16 @@ export function VocabStage3Test({
         backLabel={setTitle}
         stageLabel={`${stageNumber}단계`}
         title="종합테스트"
-        progressLabel={`${index + 1} / ${questions.length}`}
+        progressLabel={`${index + 1}번 문제 · 답한 문항 ${answeredCount} / ${questions.length}`}
         percent={progressPercent}
       />
 
-      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 sm:mt-6 sm:gap-[22px]">
+      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 sm:mt-2 sm:gap-[22px]">
+        {restoredCount > 0 && (
+          <p className="rounded-md border border-brand-100 bg-brand-50 px-3.5 py-2 text-[13px] text-brand-700">
+            풀던 답 {restoredCount}개를 불러왔어요. 이어서 풀면 돼요.
+          </p>
+        )}
         <div className="flex flex-col gap-[18px] rounded-lg border border-slate-200 bg-white px-5 py-6 shadow-card sm:px-8 sm:py-7">
           <div className="flex items-center justify-between gap-3">
             <span className="inline-flex h-[22px] items-center rounded bg-brand-50 px-2 text-xs font-semibold text-brand-700">
@@ -216,6 +283,7 @@ export function VocabStage3Test({
               }
             }}
             placeholder={isMeaning ? "뜻 입력" : "영어 스펠링 입력"}
+            enterKeyHint={isLast ? "done" : "next"}
             autoComplete="off"
             autoCapitalize="none"
             autoCorrect="off"
@@ -228,6 +296,12 @@ export function VocabStage3Test({
               {message}
             </p>
           )}
+          {submitting && !guestMode && (
+            <p className="flex items-center justify-center gap-2 text-center text-sm text-slate-500" role="status">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600" />
+              채점하고 있어요. 뜻 문제는 몇 초 걸릴 수 있어요.
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-2.5 sm:mx-auto sm:w-[420px]">
@@ -236,6 +310,7 @@ export function VocabStage3Test({
             variant="secondary"
             className="h-12 px-5 text-[15px] sm:h-11"
             disabled={index === 0 || submitting}
+            onMouseDown={keepInputFocus}
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
           >
             <Icon name="left" size={16} strokeWidth={2} />
@@ -245,11 +320,12 @@ export function VocabStage3Test({
             type="button"
             className="h-12 px-5 text-[15px] sm:h-11"
             disabled={submitting}
+            onMouseDown={keepInputFocus}
             onClick={handleEnter}
           >
             {isLast ? (
               submitting ? (
-                "제출 중…"
+                "채점 중…"
               ) : (
                 "제출"
               )

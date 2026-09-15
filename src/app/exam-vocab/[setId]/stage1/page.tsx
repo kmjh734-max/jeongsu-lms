@@ -54,6 +54,8 @@ export default function ExamVocabStage1Page() {
           initialSeenIds={seen}
           stage1Completed={done}
           hubHref={hub}
+          nextHref={done ? undefined : `${hub}/stage2`}
+          nextLabel="2단계 스펠링 시작"
           guestMode
         />
       </div>

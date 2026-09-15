@@ -121,12 +121,14 @@ export function VocabStage3ResultView({
   autoReturnSeconds = 0,
 }: VocabStage3ResultViewProps) {
   const router = useRouter();
-  const hub = hubHref ?? "/student/vocab";
   const setHref = hubHref ?? `/student/vocab/${setId}`;
-  const [onlyWrong, setOnlyWrong] = useState(false);
+  const hub = setHref;
+  const wrongTotal = answers.filter((a) => !a.is_correct).length;
+  // 불합격이면 틀린 문제부터 보여 준다
+  const [onlyWrong, setOnlyWrong] = useState(!attempt.passed && wrongTotal > 0);
   const meaningAnswers = answers.filter((a) => a.question_type === "meaning");
   const spellingAnswers = answers.filter((a) => a.question_type === "spelling");
-  const wrongTotal = answers.filter((a) => !a.is_correct).length;
+  const needed = Math.max(0, STAGE4_PASS_SCORE - attempt.score);
   const pick = (list: VocabFinalTestAnswer[]) =>
     onlyWrong ? list.filter((a) => !a.is_correct) : list;
   const shownMeaning = pick(meaningAnswers);
@@ -164,9 +166,18 @@ export function VocabStage3ResultView({
         {/* 점수 */}
         <div className="flex flex-col gap-3 sm:gap-4 lg:self-start">
           <div className="flex flex-col gap-4 rounded-lg bg-side px-6 py-6 text-white sm:px-[26px] sm:py-7">
-            <span className="text-[13px] text-side-muted">
-              {stageNumber}단계 종합테스트 결과
-            </span>
+            <div className="flex flex-col gap-1">
+              <span className="text-[13px] text-side-muted">
+                {stageNumber}단계 종합테스트 결과
+              </span>
+              <span className="text-lg font-bold leading-snug">
+                {attempt.passed
+                  ? "합격! 이 단어장을 끝냈어요"
+                  : needed > 0
+                    ? `${needed}점만 더 올리면 합격이에요`
+                    : "아쉬워요. 다시 도전해 보세요"}
+              </span>
+            </div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-[56px] font-extrabold leading-none tracking-tighter tabular-nums sm:text-[64px]">
                 {attempt.score}
@@ -205,17 +216,44 @@ export function VocabStage3ResultView({
             </div>
           </div>
 
-          <ButtonLink href={hub} className="h-11 w-full px-5 text-[15px]">
-            단어장으로 돌아가기
-          </ButtonLink>
-          <ButtonLink
-            href={`/student/vocab/${setId}/stage4`}
-            variant="secondary"
-            className="h-11 w-full px-5 text-[15px]"
-          >
-            <Icon name="rotate" size={16} strokeWidth={2} />
-            다시 도전하기
-          </ButtonLink>
+          {attempt.passed ? (
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-1">
+              <ButtonLink href={hub} className="h-11 w-full px-5 text-[15px]">
+                단어장으로
+              </ButtonLink>
+              <ButtonLink
+                href={`/student/vocab/${setId}/stage4`}
+                variant="secondary"
+                className="h-11 w-full px-5 text-[15px]"
+              >
+                <Icon name="rotate" size={16} strokeWidth={2} />
+                한 번 더 풀기
+              </ButtonLink>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-1">
+              <ButtonLink
+                href={`/student/vocab/${setId}/stage4`}
+                className="h-11 w-full px-5 text-[15px]"
+              >
+                <Icon name="rotate" size={16} strokeWidth={2} />
+                다시 도전하기
+              </ButtonLink>
+              <ButtonLink
+                href={hub}
+                variant="secondary"
+                className="h-11 w-full px-5 text-[15px]"
+              >
+                단어장으로
+              </ButtonLink>
+            </div>
+          )}
+          {!attempt.passed && wrongTotal > 0 && (
+            <p className="text-center text-xs leading-relaxed text-slate-500">
+              틀린 {wrongTotal}문제의 정답을 먼저 확인하고 다시 도전해 보세요.
+              다시 풀면 뜻 쓰기·스펠링 문제가 새로 섞여요.
+            </p>
+          )}
           <p className="text-center text-xs text-slate-400">
             {submittedAt} 제출
           </p>

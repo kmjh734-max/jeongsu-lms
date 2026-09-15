@@ -25,6 +25,7 @@ import { createClient } from "@/lib/supabase/client";
 import { clearKeepLoginCookieClient } from "@/lib/auth/keep-login";
 import { clearRoleCookieClient } from "@/lib/auth/role-cookie";
 import { ENGCORE_PRODUCTS, SITE_NAME } from "@/lib/branding";
+import { STUDENT_TODAY_CHANGED_EVENT } from "@/lib/student/today-refresh";
 import type { Profile } from "@/types/database";
 
 /* ── 모바일 메뉴 열림 상태 (위 막대의 메뉴 버튼 ↔ 왼쪽 메뉴) ── */
@@ -227,6 +228,17 @@ let todayCache: { at: number; data: TodayCardData } | null = null;
 function StudentTodayCard({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const [data, setData] = useState<TodayCardData | null>(todayCache?.data ?? null);
+  const [changedAt, setChangedAt] = useState(0);
+
+  // 단계를 끝내거나 시험을 내면 20초를 기다리지 않고 바로 다시 읽는다
+  useEffect(() => {
+    const onChanged = () => {
+      todayCache = null;
+      setChangedAt(Date.now());
+    };
+    window.addEventListener(STUDENT_TODAY_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(STUDENT_TODAY_CHANGED_EVENT, onChanged);
+  }, []);
 
   useEffect(() => {
     // 화면을 옮길 때마다 새로 읽되, 20초 안에는 다시 묻지 않는다
@@ -250,7 +262,7 @@ function StudentTodayCard({ onNavigate }: { onNavigate?: () => void }) {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, changedAt]);
 
   if (data && data.items.length === 0) return null;
   const total = data?.items.length ?? 0;

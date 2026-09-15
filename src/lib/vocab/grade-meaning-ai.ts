@@ -1,4 +1,8 @@
-import { cleanMeaningFeedback, gradeMeaningAnswer } from "@/lib/vocab/grade-stage3";
+import {
+  cleanMeaningFeedback,
+  gradeMeaningAnswer,
+  gradeMeaningExact,
+} from "@/lib/vocab/grade-stage3";
 
 export { cleanMeaningFeedback };
 
@@ -29,9 +33,10 @@ const SYSTEM_PROMPT = `너는 영어 단어 뜻 시험의 채점자다.
 - 피드백은 학생에게 보여 줄 짧고 친절한 한국어 한 문장. 채점 방식이나 시스템 이야기는 쓰지 않는다.
 - 결과는 반드시 JSON으로만 반환`;
 
-const MEANING_CHUNK_SIZE = 12;
+// 작은 묶음을 한꺼번에 보내야 기다리는 시간이 짧다 (답이 길수록 한 묶음 채점이 느려진다)
+const MEANING_CHUNK_SIZE = 6;
 const MEANING_AI_TIMEOUT_MS = 18_000;
-const MEANING_CHUNK_CONCURRENCY = 2;
+const MEANING_CHUNK_CONCURRENCY = 4;
 
 /** 서버 로그용 (학생 화면에는 쓰지 않음) */
 function upstreamErrorMessage(status: number, bodyText: string): string {
@@ -178,9 +183,13 @@ export async function gradeMeaningWithAi(
     return { ok: true, results: [] };
   }
 
+  // 정답 뜻과 똑같이 쓴 답은 바로 정답 — 나머지만 따로 채점한다
+  const exact = items.map((it) => gradeMeaningExact(it.correctMeaning, it.studentAnswer));
+  const pending = items.filter((_, i) => !exact[i]);
+
   const chunks: MeaningGradeInput[][] = [];
-  for (let i = 0; i < items.length; i += MEANING_CHUNK_SIZE) {
-    chunks.push(items.slice(i, i + MEANING_CHUNK_SIZE));
+  for (let i = 0; i < pending.length; i += MEANING_CHUNK_SIZE) {
+    chunks.push(pending.slice(i, i + MEANING_CHUNK_SIZE));
   }
 
   const allResults: MeaningGradeResult[] = [];
@@ -200,7 +209,13 @@ export async function gradeMeaningWithAi(
     }
   }
 
-  return { ok: true, results: allResults };
+  let next = 0;
+  return {
+    ok: true,
+    results: items.map((_, i) =>
+      exact[i] ? { isCorrect: true } : (allResults[next++] ?? { isCorrect: false })
+    ),
+  };
 }
 
 /** 규칙 채점 (부분 문자열 불인정) — grade-stage3의 뜻 채점과 같다 */

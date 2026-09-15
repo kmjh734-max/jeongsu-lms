@@ -32,6 +32,20 @@ export default async function StudentVocabStage3Page({ params }: PageProps) {
   const questions = buildExampleBlankQuestions(ctx.items);
   const excludedCount = ctx.items.length - questions.length;
 
+  // 아직 끝내지 않았으면 지난번에 맞힌 문제는 건너뛰고 이어서 푼다 (완료 확인도 이 기록을 센다)
+  let initialCorrectIds: string[] = [];
+  if (!ctx.progress.stage3_completed) {
+    const { data } = await supabase
+      .from("vocab_example_attempts")
+      .select("item_id")
+      .eq("student_id", profile!.id)
+      .eq("set_id", setId)
+      .eq("is_correct", true);
+    initialCorrectIds = [
+      ...new Set(((data ?? []) as { item_id: string }[]).map((r) => r.item_id)),
+    ];
+  }
+
   return (
     <VocabStage3ExampleBlank
       setId={setId}
@@ -39,6 +53,11 @@ export default async function StudentVocabStage3Page({ params }: PageProps) {
       itemCount={ctx.itemCount}
       questions={questions}
       excludedCount={excludedCount}
+      initialCorrectIds={initialCorrectIds}
+      nextHref={
+        ctx.progress.stage4_passed ? undefined : `/student/vocab/${setId}/stage4`
+      }
+      nextLabel="4단계 종합테스트 시작"
     />
   );
 }

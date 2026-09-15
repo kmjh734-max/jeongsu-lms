@@ -56,12 +56,17 @@ function Pill({
   );
 }
 
+/**
+ * 단계 카드. 휴대폰에서는 한 줄(번호 · 이름 · 버튼)로 줄여 네 단계가 한 화면에 들어오게 하고,
+ * 넓은 화면에서는 설명까지 보이는 카드로 보여 준다.
+ */
 function StageCard({
   n,
   title,
   desc,
   state,
   pill,
+  wideAction = false,
   children,
 }: {
   n: number;
@@ -69,6 +74,8 @@ function StageCard({
   desc: string;
   state: CardState;
   pill: ReactNode;
+  /** 휴대폰에서 버튼 줄을 아래 전체 폭으로 (버튼이 둘일 때) */
+  wideAction?: boolean;
   children: ReactNode;
 }) {
   const locked = state === "locked";
@@ -77,7 +84,7 @@ function StageCard({
 
   return (
     <div
-      className={`flex flex-col gap-3.5 rounded-lg border bg-white p-5 shadow-card ${
+      className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2.5 rounded-lg border bg-white px-4 py-3.5 shadow-card sm:flex sm:flex-col sm:items-stretch sm:gap-3.5 sm:p-5 ${
         current ? "border-brand-600 ring-4 ring-brand-50" : "border-slate-200"
       }`}
     >
@@ -97,44 +104,54 @@ function StageCard({
             <span className="text-[15px] font-bold tabular-nums">{n}</span>
           )}
         </span>
-        {pill}
+        <span className="hidden sm:contents">{pill}</span>
       </div>
-      <div className="flex flex-col gap-1">
-        <span
-          className={`text-[13px] font-semibold ${
-            locked ? "text-slate-400" : "text-slate-500"
-          }`}
-        >
-          {n}단계
-        </span>
+      <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-xs font-semibold sm:text-[13px] ${
+              locked ? "text-slate-400" : "text-slate-500"
+            }`}
+          >
+            {n}단계
+          </span>
+          <span className="contents sm:hidden">{pill}</span>
+        </div>
         <h2
-          className={`text-lg font-bold tracking-tight ${
+          className={`truncate text-base font-bold tracking-tight sm:text-lg ${
             locked ? "text-slate-400" : "text-slate-900"
           }`}
         >
           {title}
         </h2>
         <p
-          className={`text-[13px] leading-relaxed ${
+          className={`hidden text-[13px] leading-relaxed sm:block ${
             locked ? "text-slate-400" : "text-slate-500"
           }`}
         >
           {desc}
         </p>
       </div>
-      <div className="flex-1" />
-      {children}
+      <div className="hidden flex-1 sm:block" />
+      <div
+        className={`flex flex-col gap-2 sm:col-auto ${
+          wideAction ? "col-span-3" : ""
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 }
 
-const BTN = "h-11 w-full px-4 text-sm sm:h-10";
+const BTN = "h-10 w-auto px-4 text-sm sm:w-full";
 
 function LockedButton({ label }: { label: string }) {
+  // 휴대폰 한 줄 카드에서는 '잠김' 표시로 충분하다
   return (
     <span
       aria-disabled
-      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 py-1.5 text-center text-sm font-semibold text-slate-400 sm:min-h-[40px]"
+      className="hidden min-h-[40px] w-full items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 py-1.5 text-center text-sm font-semibold text-slate-400 sm:inline-flex"
     >
       {label}
     </span>
@@ -311,6 +328,7 @@ export function VocabSetStageHub({
               title="종합테스트"
               desc={`뜻 쓰기 50% + 스펠링 50%. ${STAGE4_PASS_SCORE}점 이상이면 합격이에요.`}
               state={s4}
+              wideAction={hasAttempt && s4 !== "locked"}
               pill={
                 s4 === "locked" ? (
                   statePill(s4)
@@ -333,7 +351,7 @@ export function VocabSetStageHub({
               {s4 === "locked" ? (
                 <LockedButton label={`${testNo - 1}단계를 먼저 끝내세요`} />
               ) : hasAttempt ? (
-                <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
                   <ButtonLink
                     href={`${base}/stage4`}
                     variant={stage4Pass ? "secondary" : "primary"}

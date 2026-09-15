@@ -1,19 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
 import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
 import {
-  completeStage3,
-  recordStage3ExampleAttempt,
-} from "@/app/student/vocab/actions";
+  VocabStageComplete,
+  type StageCompletePhase,
+} from "@/components/vocab/VocabStageComplete";
+import { completeStage3 } from "@/app/student/vocab/actions";
 import {
   gradeExampleBlankAnswer,
   type ExampleBlankQuestion,
 } from "@/lib/vocab/example-blank";
+import { useStudyRecorder } from "@/lib/vocab/use-study-recorder";
 
 function shuffleQuestions(questions: ExampleBlankQuestion[]): ExampleBlankQuestion[] {
   const copy = [...questions];
@@ -24,13 +24,30 @@ function shuffleQuestions(questions: ExampleBlankQuestion[]): ExampleBlankQuesti
   return copy;
 }
 
+/** 버튼을 눌러도 입력칸 초점(휴대폰 키보드)이 유지되게 */
+const keepInputFocus = (e: MouseEvent) => e.preventDefault();
+
+/** 정답을 맞힌 뒤 위쪽에 잠깐 보여 주는 표시 (다음 문제는 바로 나온다) */
+const CORRECT_FLASH_MS = 1100;
+
 interface VocabStage3ExampleBlankProps {
   setId: string;
   setTitle: string;
   itemCount: number;
   questions: ExampleBlankQuestion[];
   excludedCount: number;
+  /** 지난번에 이미 맞힌 문제의 단어 (이어 하기) */
+  initialCorrectIds?: string[];
   hubHref?: string;
+  /** 완료 화면의 다음 단계 버튼 */
+  nextHref?: string;
+  nextLabel?: string;
+}
+
+type Attempt = { itemId: string; answer: string; round: number };
+
+function displayAnswerOf(q: ExampleBlankQuestion): string {
+  return q.acceptedAnswers.length > 1 ? q.acceptedAnswers.join(" / ") : q.word;
 }
 
 export function VocabStage3ExampleBlank({
@@ -39,79 +56,108 @@ export function VocabStage3ExampleBlank({
   itemCount,
   questions: initialQuestions,
   excludedCount,
+  initialCorrectIds = [],
   hubHref,
+  nextHref,
+  nextLabel,
 }: VocabStage3ExampleBlankProps) {
-  const router = useRouter();
-  const hub = hubHref ?? "/student/vocab";
   const setHref = hubHref ?? `/student/vocab/${setId}`;
   const inputRef = useRef<HTMLInputElement>(null);
+  const [resumedIds] = useState(() => {
+    const ids = new Set(initialQuestions.map((q) => q.itemId));
+    return initialCorrectIds.filter((id) => ids.has(id));
+  });
+  const [resumedCount, setResumedCount] = useState(resumedIds.length);
   // 서버 렌더와 첫 화면이 같도록 처음엔 원래 순서, 화면에 붙은 뒤 한 번 섞는다
-  const [queue, setQueue] = useState(() => initialQuestions);
+  const [queue, setQueue] = useState(() => {
+    const done = new Set(resumedIds);
+    return initialQuestions.filter((q) => !done.has(q.itemId));
+  });
   const shuffledRef = useRef(false);
   const [answer, setAnswer] = useState("");
-  const [feedback, setFeedback] = useState<{
-    showAnswer: boolean;
-    displayAnswer: string;
-  } | null>(null);
+  const [wrong, setWrong] = useState(false);
   const [round, setRound] = useState(1);
-  const [mastered, setMastered] = useState(0);
+  const [mastered, setMastered] = useState(resumedIds.length);
   const [message, setMessage] = useState<string | null>(null);
-  const [autoCompleting, setAutoCompleting] = useState(false);
-  const [finishing, setFinishing] = useState(false);
+  const [phase, setPhase] = useState<"study" | StageCompletePhase>("study");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [flash, setFlash] = useState<{ word: string; n: number } | null>(null);
+  /** 이번에 한 번이라도 틀린 문제 */
+  const [wrongQs, setWrongQs] = useState<ExampleBlankQuestion[]>([]);
   /** 같은 문제를 두 번 채점하지 않게 (Enter 연타·버튼 동시 클릭) */
   const lockRef = useRef(false);
-  const finishingRef = useRef(false);
   /** 이번에 맞힌 답 — 완료할 때 서버가 다시 확인한다 */
   const correctRef = useRef(new Map<string, string>());
+
+  const recorder = useStudyRecorder<Attempt>({
+    stage: 3,
+    setId,
+    enabled: true,
+    onError: (msg) => setMessage(msg),
+  });
 
   const total = initialQuestions.length;
   const current = queue[0];
   const progressPercent = total > 0 ? Math.round((mastered / total) * 100) : 0;
-  const wrong = Boolean(feedback?.showAnswer);
 
   useLayoutEffect(() => {
     if (shuffledRef.current) return;
     shuffledRef.current = true;
-    setQueue(shuffleQuestions(initialQuestions));
+    setQueue((q) => shuffleQuestions(q));
     // 처음 한 번만 섞는다 (틀린 문제 다시 풀기 순서는 유지)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     lockRef.current = false;
-  }, [queue, feedback]);
+  }, [queue, wrong]);
 
   useEffect(() => {
-    if (!current || feedback?.showAnswer) return;
+    if (!flash) return;
+    const t = window.setTimeout(() => setFlash(null), CORRECT_FLASH_MS);
+    return () => window.clearTimeout(t);
+  }, [flash]);
+
+  useEffect(() => {
+    if (phase !== "study" || !current) return;
     const t = window.setTimeout(() => inputRef.current?.focus(), 30);
     return () => window.clearTimeout(t);
-  }, [current, feedback]);
+  }, [current, wrong, phase]);
 
-  const finishStage = useCallback(async () => {
-    const result = await completeStage3(
-      setId,
-      [...correctRef.current].map(([itemId, answer]) => ({ itemId, answer }))
-    );
-    if (!result.ok && total > 0) {
-      finishingRef.current = false;
-      setFinishing(false);
-      lockRef.current = false;
-      setMessage(result.message);
+  // 다 풀었거나(마지막 정답) 풀 문제가 없으면 완료 저장
+  const autoFinishRef = useRef(false);
+  useEffect(() => {
+    if (autoFinishRef.current || itemCount === 0 || queue.length > 0) return;
+    if (phase !== "study") return;
+    autoFinishRef.current = true;
+    void finishStage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queue.length, itemCount, phase]);
+
+  async function finishStage() {
+    setPhase("saving");
+    setSaveError(null);
+    // 남은 입력 기록과 완료 확인을 함께 보낸다 (완료는 맞힌 답으로 서버가 다시 확인)
+    const [, result] = await Promise.all([
+      recorder.flush(),
+      completeStage3(
+        setId,
+        [...correctRef.current].map(([itemId, answer]) => ({ itemId, answer }))
+      ).catch(() => ({
+        ok: false as const,
+        message: "인터넷 연결을 확인하고 다시 저장해 주세요.",
+      })),
+    ]);
+    if (!result.ok) {
+      setSaveError(result.message);
+      setPhase("error");
       return;
     }
-    router.push(hub);
-    router.refresh();
-  }, [setId, router, hub, total]);
-
-  useEffect(() => {
-    if (total > 0 || itemCount === 0 || autoCompleting) return;
-    setAutoCompleting(true);
-    void finishStage();
-  }, [total, itemCount, autoCompleting, finishStage]);
+    setPhase("done");
+  }
 
   function checkAnswer() {
-    if (!current || feedback?.showAnswer) return;
-    if (lockRef.current || finishingRef.current) return;
+    if (!current || wrong || phase !== "study") return;
+    if (lockRef.current) return;
     const trimmed = answer.trim();
     if (!trimmed) {
       setMessage("답을 입력해주세요.");
@@ -122,54 +168,43 @@ export function VocabStage3ExampleBlank({
     setMessage(null);
 
     const isCorrect = gradeExampleBlankAnswer(current.acceptedAnswers, trimmed);
-    const displayAnswer =
-      current.acceptedAnswers.length > 1
-        ? current.acceptedAnswers.join(" / ")
-        : current.word;
-    const attemptRound = round;
+    recorder.push({ itemId: current.itemId, answer: trimmed, round });
 
     if (isCorrect) {
       correctRef.current.set(current.itemId, trimmed);
       setMastered((m) => m + 1);
-      const next = queue.slice(1);
-      if (next.length === 0) {
-        finishingRef.current = true;
-        setFinishing(true);
-        const itemId = current.itemId;
-        void (async () => {
-          await recordStage3ExampleAttempt(setId, itemId, trimmed, attemptRound);
-          await finishStage();
-        })();
-        return;
-      }
-      void recordStage3ExampleAttempt(
-        setId,
-        current.itemId,
-        trimmed,
-        attemptRound
-      );
-      setQueue(next);
+      setFlash((f) => ({ word: trimmed, n: (f?.n ?? 0) + 1 }));
+      setQueue(queue.slice(1));
       setAnswer("");
-      setFeedback(null);
     } else {
-      void recordStage3ExampleAttempt(
-        setId,
-        current.itemId,
-        trimmed,
-        attemptRound
+      setWrong(true);
+      setWrongQs((qs) =>
+        qs.some((q) => q.itemId === current.itemId) ? qs : [...qs, current]
       );
-      setFeedback({ showAnswer: true, displayAnswer });
       setRound((r) => r + 1);
     }
   }
 
   function continueAfterWrong() {
-    if (!current || finishingRef.current) return;
+    if (!current || phase !== "study") return;
     const rest = queue.slice(1);
     setQueue([...rest, current]);
     setAnswer("");
-    setFeedback(null);
+    setWrong(false);
     setMessage(null);
+    inputRef.current?.focus();
+  }
+
+  function restartAll() {
+    setQueue(shuffleQuestions(initialQuestions));
+    setMastered(0);
+    setResumedCount(0);
+    setWrongQs([]);
+    setAnswer("");
+    setWrong(false);
+    setMessage(null);
+    correctRef.current.clear();
+    inputRef.current?.focus();
   }
 
   if (itemCount === 0) {
@@ -180,30 +215,58 @@ export function VocabStage3ExampleBlank({
     );
   }
 
-  if (total === 0) {
+  if (phase !== "study" || !current) {
+    const answeredNow = total - resumedCount;
     return (
-      <EmptyQuestionsView
-        backHref={setHref}
-        setTitle={setTitle}
-        message="예문이 있는 단어가 없어 3단계를 자동 완료합니다."
-      />
-    );
-  }
-
-  if (!current) {
-    return (
-      <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4 rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-card">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-700 text-white">
-          <Icon name="check" size={24} strokeWidth={2.6} />
-        </span>
-        <p className="text-lg font-bold text-slate-900">3단계 완료</p>
-        <Button
-          type="button"
-          className="h-11 w-full px-5 text-[15px] sm:w-[200px]"
-          onClick={() => router.push(hub)}
-        >
-          단어장으로
-        </Button>
+      <div className="flex w-full flex-col gap-5 sm:gap-6">
+        <VocabStudyHeader
+          backHref={setHref}
+          backLabel={setTitle}
+          stageLabel="3단계"
+          title="예문 빈칸"
+          progressLabel={`맞춘 문제 ${total} / ${total}`}
+          percent={100}
+        />
+        <VocabStageComplete
+          phase={phase === "study" ? "saving" : phase}
+          stageLabel="3단계 · 예문 빈칸"
+          title="3단계 완료!"
+          subtitle={
+            total === 0
+              ? "예문이 있는 단어가 없어 3단계는 바로 넘어가요"
+              : `예문 빈칸 ${total}문제를 모두 맞혔어요${
+                  resumedCount > 0 ? ` (지난번에 맞힌 ${resumedCount}개 포함)` : ""
+                }`
+          }
+          stats={
+            total === 0
+              ? []
+              : [
+                  {
+                    label: "한 번에 맞힘",
+                    value: Math.max(0, answeredNow - wrongQs.length),
+                    tone: "good",
+                  },
+                  {
+                    label: "틀렸던 문제",
+                    value: wrongQs.length,
+                    tone: wrongQs.length > 0 ? "bad" : "neutral",
+                  },
+                  { label: "전체 문제", value: total },
+                ]
+          }
+          reviewTitle="틀렸던 단어"
+          reviewWords={wrongQs.map((q) => ({
+            id: q.itemId,
+            word: displayAnswerOf(q),
+            meaning: q.exampleMeaning,
+          }))}
+          errorMessage={saveError}
+          onRetry={() => void finishStage()}
+          next={nextHref ? { href: nextHref, label: nextLabel ?? "종합테스트 시작" } : null}
+          back={{ href: setHref, label: "단어장으로" }}
+          notifyToday
+        />
       </div>
     );
   }
@@ -223,16 +286,41 @@ export function VocabStage3ExampleBlank({
         percent={progressPercent}
       />
 
-      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 sm:mt-6 sm:gap-[22px]">
+      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 sm:mt-2 sm:gap-[22px]">
         {excludedCount > 0 && (
           <p className="rounded-md border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[13px] text-amber-700">
             예문이 없는 단어 {excludedCount}개는 3단계에서 빠졌어요.
           </p>
         )}
+        {resumedCount > 0 && (
+          <div className="flex items-center justify-between gap-3 rounded-md border border-brand-100 bg-brand-50 px-3.5 py-2 text-[13px] text-brand-700">
+            <span>지난번에 맞힌 {resumedCount}개는 건너뛰고 이어서 풀어요</span>
+            <button
+              type="button"
+              onMouseDown={keepInputFocus}
+              onClick={restartAll}
+              className="shrink-0 font-semibold underline-offset-2 hover:underline"
+            >
+              처음부터
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-col gap-[18px] rounded-lg border border-slate-200 bg-white px-5 py-6 shadow-card sm:px-8 sm:py-7">
-          <p className="text-center text-[13px] font-semibold text-slate-500">
-            빈칸에 들어갈 영어 단어를 입력하세요
+          <p
+            className={`flex h-5 items-center justify-center gap-1 text-center text-[13px] font-semibold ${
+              flash ? "text-green-700" : "text-slate-500"
+            }`}
+            aria-live="polite"
+          >
+            {flash ? (
+              <>
+                <Icon name="check" size={14} strokeWidth={2.6} />
+                정답! {flash.word}
+              </>
+            ) : (
+              "빈칸에 들어갈 영어 단어를 입력하세요"
+            )}
           </p>
           <div className="flex flex-col gap-2.5">
             {current.exampleMeaning && (
@@ -251,7 +339,7 @@ export function VocabStage3ExampleBlank({
                         : "border-brand-600"
                     }`}
                   >
-                    {wrong ? feedback?.displayAnswer : "\u00a0"}
+                    {wrong ? displayAnswerOf(current) : " "}
                   </span>
                   {after}
                 </>
@@ -265,12 +353,13 @@ export function VocabStage3ExampleBlank({
             ref={inputRef}
             className={`h-14 w-full rounded-lg border-2 px-4 text-center text-2xl font-semibold tracking-wide transition placeholder:text-lg placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400 focus:outline-none sm:h-[60px] ${
               wrong
-                ? "border-rose-600 bg-rose-50 text-rose-700"
+                ? "border-rose-600 bg-rose-50 text-rose-700 caret-transparent"
                 : "border-slate-300 bg-white text-slate-900 focus:border-brand-600 focus:ring-4 focus:ring-brand-50"
             }`}
             value={answer}
-            readOnly={wrong || finishing}
             onChange={(e) => {
+              // 틀린 답을 보여 주는 동안에는 입력을 받지 않는다 (키보드는 그대로 둔다)
+              if (wrong) return;
               setAnswer(e.target.value.toLowerCase());
               if (message === "답을 입력해주세요.") setMessage(null);
             }}
@@ -289,11 +378,12 @@ export function VocabStage3ExampleBlank({
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
+            enterKeyHint="next"
             aria-label="빈칸 영어 단어 입력"
             aria-invalid={wrong || undefined}
           />
 
-          {wrong && feedback && (
+          {wrong && (
             <>
               <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3.5">
                 <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
@@ -305,12 +395,12 @@ export function VocabStage3ExampleBlank({
                   </span>
                   <span className="text-sm text-slate-500">정답</span>
                   <span className="break-all text-xl font-bold text-green-700">
-                    {feedback.displayAnswer}
+                    {displayAnswerOf(current)}
                   </span>
                 </div>
               </div>
               <p className="text-center text-xs text-slate-400">
-                틀린 단어는 마지막에 한 번 더 나와요
+                틀린 문제는 마지막에 한 번 더 나와요 · Enter로 다음
               </p>
             </>
           )}
@@ -322,13 +412,8 @@ export function VocabStage3ExampleBlank({
               key="next"
               type="button"
               className="h-12 w-full gap-1.5 px-5 text-[15px] sm:h-11 sm:w-[200px]"
+              onMouseDown={keepInputFocus}
               onClick={continueAfterWrong}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  continueAfterWrong();
-                }
-              }}
             >
               다음으로
               <Icon name="chevron" size={16} strokeWidth={2} />
@@ -338,10 +423,10 @@ export function VocabStage3ExampleBlank({
               key="check"
               type="button"
               className="h-12 w-full px-5 text-[15px] sm:h-11 sm:w-[200px]"
+              onMouseDown={keepInputFocus}
               onClick={checkAnswer}
-              disabled={finishing}
             >
-              {finishing ? "저장 중…" : "정답 확인"}
+              정답 확인
             </Button>
           )}
         </div>
@@ -354,29 +439,6 @@ export function VocabStage3ExampleBlank({
             {message}
           </p>
         )}
-      </div>
-    </div>
-  );
-}
-
-function EmptyQuestionsView(props: {
-  backHref: string;
-  setTitle: string;
-  message: string;
-}) {
-  return (
-    <div className="flex w-full flex-col gap-6">
-      <Link
-        href={props.backHref}
-        className="-ml-1 inline-flex min-h-[44px] items-center gap-1 self-start px-1 text-[13px] font-medium text-slate-500 transition hover:text-slate-900 sm:min-h-0"
-      >
-        <Icon name="left" size={16} />
-        {props.setTitle}
-      </Link>
-      <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-card">
-        <p className="text-xs font-semibold text-brand-700">3단계 예문 빈칸</p>
-        <p className="text-sm text-slate-700">{props.message}</p>
-        <p className="text-sm text-slate-400">잠시만 기다려 주세요...</p>
       </div>
     </div>
   );

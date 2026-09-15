@@ -50,6 +50,8 @@ export default function ExamVocabStage2Page() {
           setTitle={title}
           items={items}
           hubHref={hub}
+          nextHref={`${hub}/stage4`}
+          nextLabel="3단계 종합테스트 시작"
           guestMode
         />
       </div>

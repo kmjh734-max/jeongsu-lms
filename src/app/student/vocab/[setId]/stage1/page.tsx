@@ -28,6 +28,19 @@ export default async function StudentVocabStage1Page({ params }: PageProps) {
     currentIds.has(id)
   );
 
+  // 지난번 알아요/몰라요 (이어 할 때 완료 화면에서 함께 센다)
+  const { data: statusRows } = await supabase
+    .from("vocab_progress")
+    .select("item_id, status")
+    .eq("student_id", profile!.id)
+    .in("item_id", [...currentIds]);
+  const initialStatuses: Record<string, "known" | "review"> = {};
+  for (const row of (statusRows ?? []) as { item_id: string; status: string }[]) {
+    if (row.status === "known" || row.status === "review") {
+      initialStatuses[row.item_id] = row.status;
+    }
+  }
+
   return (
     <VocabStage1Study
       setId={setId}
@@ -35,6 +48,11 @@ export default async function StudentVocabStage1Page({ params }: PageProps) {
       items={ctx.items}
       initialSeenIds={seenIds}
       stage1Completed={ctx.progress.stage1_completed}
+      initialStatuses={initialStatuses}
+      nextHref={
+        ctx.progress.stage2_completed ? undefined : `/student/vocab/${setId}/stage2`
+      }
+      nextLabel="2단계 스펠링 시작"
     />
   );
 }

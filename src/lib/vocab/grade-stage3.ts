@@ -104,6 +104,31 @@ export function gradeMeaningAnswer(
   return answers.some((a) => senses.some((s) => senseMatches(s, a)));
 }
 
+/**
+ * 확실한 정답만 가려낸다 (정답 뜻 가운데 하나와 똑같거나 어미만 다른 경우).
+ * 오타 허용 같은 너그러운 규칙은 쓰지 않는다 — 서버가 이 답은 따로 채점하지 않고 바로 정답 처리한다.
+ */
+export function gradeMeaningExact(
+  correctMeaning: string,
+  studentAnswer: string
+): boolean {
+  const whole = normalizeSense(studentAnswer);
+  if (whole.length < 2) return false;
+  const fullCorrect = normalizeSense(correctMeaning);
+  if (fullCorrect && whole === fullCorrect) return true;
+  const senses = splitSenses(correctMeaning);
+  const answers = splitSenses(studentAnswer)
+    .filter((a) => a.length >= 2)
+    .slice(0, 3);
+  return answers.some((a) =>
+    senses.some((sense) => {
+      if (sense === a) return true;
+      const st = stemSense(sense);
+      return st.length >= 2 && st === stemSense(a);
+    })
+  );
+}
+
 /** 채점 결과 피드백에 내부 동작·오류 이야기가 섞였으면 버린다 */
 export function cleanMeaningFeedback(
   feedback: string | null | undefined

@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
 import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
-import { recordStage1Item } from "@/app/student/vocab/actions";
+import { VocabStageComplete } from "@/components/vocab/VocabStageComplete";
+import { recordStage1Items } from "@/app/student/vocab/actions";
 import {
   isSpeechSupported,
   speakEnglish,
@@ -16,6 +16,7 @@ import {
   loadExamGuestProgress,
   saveExamGuestProgress,
 } from "@/lib/vocab/exam-guest-progress";
+import { useStudyRecorder } from "@/lib/vocab/use-study-recorder";
 import type { VocabItem } from "@/types/database";
 
 interface VocabStage1StudyProps {
@@ -24,14 +25,22 @@ interface VocabStage1StudyProps {
   items: VocabItem[];
   initialSeenIds: string[];
   stage1Completed: boolean;
-  /** 완료 후 이동 경로 (기본: 학생 단어장 허브) */
+  /** 지난번까지의 알아요/몰라요 (이어 할 때 완료 화면 집계용) */
+  initialStatuses?: Record<string, "known" | "review">;
+  /** 단어장(단계 목록) 경로 (기본: 학생 단어장 화면) */
   hubHref?: string;
+  /** 완료 화면의 다음 단계 버튼 (없으면 단어장 버튼만) */
+  nextHref?: string;
+  nextLabel?: string;
   /** 로그인 없이 localStorage에만 저장 */
   guestMode?: boolean;
 }
 
 /** 진행 칸을 하나씩 그릴 최대 단어 수 (넘으면 얇은 막대) */
 const MAX_SEGMENTS = 40;
+
+type Phase = "study" | "saving" | "done" | "error";
+type Response = { itemId: string; known: boolean };
 
 /** 예문 속 단어(변화형 포함)를 파란 글씨로 강조 */
 function HighlightedExample({ sentence, word }: { sentence: string; word: string }) {
@@ -64,17 +73,21 @@ export function VocabStage1Study({
   items,
   initialSeenIds,
   stage1Completed,
+  initialStatuses,
   hubHref,
+  nextHref,
+  nextLabel,
   guestMode = false,
 }: VocabStage1StudyProps) {
-  const router = useRouter();
-  const hub = hubHref ?? "/student/vocab";
   const setHref = hubHref ?? `/student/vocab/${setId}`;
   // 지금 단어장에 있는 단어만 센다 (지워진 단어 기록으로 일찍 끝나지 않게)
   const [validSeenIds] = useState(() => {
     const current = new Set(items.map((it) => it.id));
     return initialSeenIds.filter((id) => current.has(id));
   });
+  /** 지금 넘기는 카드 묶음 (처음엔 전체, 끝낸 뒤 '몰라요 다시 보기'면 그 단어들) */
+  const [deck, setDeck] = useState<VocabItem[]>(items);
+  const [reviewPass, setReviewPass] = useState(false);
   const [index, setIndex] = useState(() => {
     if (stage1Completed) return 0;
     const seen = new Set(validSeenIds);
@@ -90,12 +103,40 @@ export function VocabStage1Study({
   const [message, setMessage] = useState<string | null>(null);
   const lastHandledRef = useRef<string | null>(null);
   const [speechOk, setSpeechOk] = useState(false);
+  const [phase, setPhase] = useState<Phase>("study");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  /** 단어별 마지막 답 (true = 알아요) — 지난번 기록 + 이번 기록 */
+  const statusRef = useRef<Map<string, boolean>>(
+    new Map(
+      Object.entries(initialStatuses ?? {}).map(([id, st]) => [id, st === "known"])
+    )
+  );
+  const [summary, setSummary] = useState<{ known: number; unknown: VocabItem[] }>({
+    known: 0,
+    unknown: [],
+  });
 
+  /** 1단계를 처음 끝내는 중인지 (본 카드를 세고, 다 보면 완료) */
+  const trackSeen = !stage1Completed && !reviewPass;
+  const trackSeenRef = useRef(trackSeen);
+  trackSeenRef.current = trackSeen;
   const total = items.length;
-  const current = items[index];
-  const seenCount = stage1Completed ? index + 1 : seenIds.size;
+  const deckTotal = deck.length;
+  const current = deck[index];
+  const seenCount = trackSeen ? seenIds.size : Math.min(index + 1, deckTotal);
+  const countTotal = trackSeen ? total : deckTotal;
   const roundPercent =
-    total > 0 ? Math.round((seenCount / total) * 100) : 0;
+    countTotal > 0 ? Math.round((seenCount / countTotal) * 100) : 0;
+
+  const recorder = useStudyRecorder<Response>({
+    stage: 1,
+    setId,
+    enabled: !guestMode,
+    // 동시에 저장될 때 서로 덮어쓰지 않게 지금까지 본 카드를 함께 보낸다
+    extra: () =>
+      trackSeenRef.current ? { seenIds: [...seenIdsRef.current] } : {},
+    onError: (msg) => setMessage(msg),
+  });
 
   useEffect(() => {
     setSpeechOk(isSpeechSupported());
@@ -110,98 +151,195 @@ export function VocabStage1Study({
   }, []);
 
   useEffect(() => {
-    if (!speechOk || !current || flipped) return;
+    if (phase !== "study" || !speechOk || !current || flipped) return;
     const t = window.setTimeout(() => speakEnglish(current.word), 80);
     return () => window.clearTimeout(t);
-  }, [index, speechOk, current, flipped]);
+  }, [index, speechOk, current, flipped, phase]);
 
   useEffect(() => () => stopSpeaking(), []);
 
-  // 스페이스 키로 카드 뒤집기 (버튼·입력칸에 초점이 있을 때는 그대로 둔다)
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key !== " " && e.code !== "Space") return;
-      const el = e.target as HTMLElement | null;
-      if (
-        el &&
-        (el.isContentEditable ||
-          ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(el.tagName))
-      ) {
-        return;
-      }
-      e.preventDefault();
-      setFlipped((f) => !f);
+  /** 마지막 카드 뒤: 남은 기록을 저장하고 완료 화면으로 */
+  async function saveAndFinish(firstPass: boolean) {
+    stopSpeaking();
+    setSummary({
+      known: items.filter((it) => statusRef.current.get(it.id) === true).length,
+      unknown: items.filter((it) => statusRef.current.get(it.id) === false),
+    });
+    if (guestMode) {
+      setPhase("done");
+      return;
     }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  function finishToHub() {
-    router.push(hub);
-    if (!guestMode) router.refresh();
+    setPhase("saving");
+    setSaveError(null);
+    // 처음 끝낼 때는 서버 액션으로 마무리한다 (완료를 확인하고 단어장 화면 캐시를 새로 고친다)
+    const result = firstPass
+      ? await recorder.flush((batch) =>
+          recordStage1Items(setId, batch, [...seenIdsRef.current])
+        )
+      : await recorder.flush();
+    if (!result.ok) {
+      setSaveError(result.message);
+      setPhase("error");
+      return;
+    }
+    if (firstPass && result.completed === false) {
+      setSaveError("아직 넘기지 않은 카드가 있어요. 새로고침한 뒤 이어서 넘겨 주세요.");
+      setPhase("error");
+      return;
+    }
+    setPhase("done");
   }
 
   function handleResponse(known: boolean) {
-    if (!current) return;
+    if (!current || phase !== "study") return;
 
-    const handleKey = `${index}-${current.id}`;
+    const handleKey = `${reviewPass ? "r" : "f"}-${index}-${current.id}`;
     if (lastHandledRef.current === handleKey) return;
     lastHandledRef.current = handleKey;
 
     const itemId = current.id;
     const currentIndex = index;
+    statusRef.current.set(itemId, known);
 
     const nextSeen = new Set(seenIdsRef.current);
-    if (!stage1Completed) nextSeen.add(itemId);
-    seenIdsRef.current = nextSeen;
-    if (!stage1Completed) {
+    if (trackSeen) {
+      nextSeen.add(itemId);
+      seenIdsRef.current = nextSeen;
       setSeenIds(nextSeen);
     }
 
-    const allSeenNow = !stage1Completed && nextSeen.size >= total;
-    const atLastCard = currentIndex >= total - 1;
-
-    if ((allSeenNow && atLastCard) || (stage1Completed && atLastCard)) {
-      finishToHub();
-    } else if (!atLastCard) {
-      goTo(currentIndex + 1);
-    } else {
-      const firstUnseen = items.findIndex((it) => !nextSeen.has(it.id));
-      if (firstUnseen >= 0) goTo(firstUnseen);
-    }
-
     if (guestMode) {
-      if (!stage1Completed) {
+      if (trackSeen) {
         const prev = loadExamGuestProgress(setId);
         saveExamGuestProgress(setId, {
           ...prev,
           stage1Seen: [...nextSeen],
-          stage1Done: allSeenNow || prev.stage1Done,
+          stage1Done: nextSeen.size >= total || prev.stage1Done,
         });
       }
-      return;
+    } else {
+      // 답마다 서버를 기다리지 않는다 — 모아서 보내고 바로 다음 카드
+      recorder.push({ itemId, known });
     }
 
-    void recordStage1Item(
-      setId,
-      itemId,
-      known,
-      stage1Completed ? undefined : [...nextSeen]
-    ).then((result) => {
-      if (!result.ok) {
-        setMessage(result.message);
-        return;
-      }
-      if (result.message.startsWith("1단계를 완료")) {
-        router.refresh();
-      }
-    });
+    const atLastCard = currentIndex >= deckTotal - 1;
+    const allSeenNow = trackSeen && nextSeen.size >= total;
+
+    if (allSeenNow || (!trackSeen && atLastCard)) {
+      void saveAndFinish(allSeenNow);
+    } else if (!atLastCard) {
+      goTo(currentIndex + 1);
+    } else {
+      const firstUnseen = deck.findIndex((it) => !nextSeen.has(it.id));
+      if (firstUnseen >= 0) goTo(firstUnseen);
+    }
   }
+
+  function startUnknownReview() {
+    if (summary.unknown.length === 0) return;
+    setDeck(summary.unknown);
+    setReviewPass(true);
+    setPhase("study");
+    goTo(0);
+  }
+
+  // 키보드: 스페이스 = 카드 뒤집기, 뒤집은 뒤 ← 몰라요 · → 알아요
+  // (버튼·입력칸에 초점이 있을 때 스페이스는 그대로 둔다)
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyHandlerRef.current = (e: KeyboardEvent) => {
+    if (phase !== "study") return;
+    const el = e.target as HTMLElement | null;
+    if (
+      e.altKey ||
+      e.ctrlKey ||
+      e.metaKey ||
+      (el &&
+        (el.isContentEditable ||
+          ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName)))
+    ) {
+      return;
+    }
+    if (e.key === " " || e.code === "Space") {
+      if (el && ["BUTTON", "A"].includes(el.tagName)) return;
+      e.preventDefault();
+      setFlipped((f) => !f);
+      return;
+    }
+    if (!flipped || e.repeat) return;
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      handleResponse(true);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      handleResponse(false);
+    }
+  };
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => keyHandlerRef.current(e);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   if (total === 0) {
     return (
       <div className="rounded-lg border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500 shadow-card">
         단어가 없어요.
+      </div>
+    );
+  }
+
+  if (phase !== "study") {
+    const firstFinish = !stage1Completed && !reviewPass;
+    const unknownCount = summary.unknown.length;
+    return (
+      <div className="flex w-full flex-col gap-5 sm:gap-6">
+        <VocabStudyHeader
+          backHref={setHref}
+          backLabel={setTitle}
+          stageLabel="1단계"
+          title="뜻 익히기"
+          progressLabel={
+            reviewPass ? `다시 보기 ${deckTotal} / ${deckTotal}` : `학습 ${total} / ${total}`
+          }
+          percent={100}
+        />
+        <VocabStageComplete
+          phase={phase}
+          stageLabel="1단계 · 뜻 익히기"
+          title={firstFinish ? "1단계 완료!" : "다시 보기 완료!"}
+          subtitle={
+            reviewPass
+              ? `몰라요 단어 ${deckTotal}개를 다시 봤어요`
+              : firstFinish
+                ? `${total}개 단어를 모두 익혔어요${nextHref ? ". 이제 스펠링을 연습해요." : ""}`
+                : `${total}개 단어를 다시 봤어요`
+          }
+          stats={[
+            { label: "알아요", value: summary.known, tone: "good" },
+            {
+              label: "몰라요",
+              value: unknownCount,
+              tone: unknownCount > 0 ? "bad" : "neutral",
+            },
+            { label: "전체 단어", value: total },
+          ]}
+          reviewTitle="몰라요 한 단어"
+          reviewWords={summary.unknown.map((it) => ({
+            id: it.id,
+            word: it.word,
+            meaning: it.meaning,
+          }))}
+          errorMessage={saveError}
+          onRetry={() => void saveAndFinish(firstFinish)}
+          next={nextHref ? { href: nextHref, label: nextLabel ?? "2단계 시작" } : null}
+          back={{ href: setHref, label: "단어장으로" }}
+          extraAction={
+            unknownCount > 0
+              ? { label: `몰라요 단어 ${unknownCount}개 다시 보기`, onClick: startUnknownReview }
+              : null
+          }
+          notifyToday={!guestMode && firstFinish}
+        />
       </div>
     );
   }
@@ -213,9 +351,17 @@ export function VocabStage1Study({
       <VocabStudyHeader
         backHref={setHref}
         backLabel={setTitle}
-        stageLabel={stage1Completed ? "1단계 · 다시 보기" : "1단계"}
+        stageLabel={
+          reviewPass
+            ? "1단계 · 몰라요 단어 다시 보기"
+            : stage1Completed
+              ? "1단계 · 다시 보기"
+              : "1단계"
+        }
         title="뜻 익히기"
-        progressLabel={`학습 ${seenCount} / ${total}`}
+        progressLabel={
+          trackSeen ? `학습 ${seenCount} / ${total}` : `${seenCount} / ${deckTotal}`
+        }
         percent={roundPercent}
       />
 
@@ -246,7 +392,7 @@ export function VocabStage1Study({
                 영어 단어
               </span>
               <span className="absolute right-5 top-5 text-xs font-semibold tabular-nums text-slate-400 sm:right-6">
-                {index + 1} / {total}
+                {index + 1} / {deckTotal}
               </span>
               <p className="max-w-full break-words text-center text-[40px] font-bold leading-tight tracking-tight text-slate-900 sm:text-[56px]">
                 {current.word}
@@ -323,7 +469,7 @@ export function VocabStage1Study({
           </div>
         </div>
 
-        <div className="flex min-h-[50px] w-full justify-center sm:min-h-[44px]">
+        <div className="flex min-h-[50px] w-full flex-col items-center gap-1.5 sm:min-h-[44px]">
           {flipped ? (
             <div className="grid w-full grid-cols-2 gap-2.5 sm:w-[420px]">
               <Button
@@ -351,6 +497,11 @@ export function VocabStage1Study({
               뜻 보기
             </Button>
           )}
+          <p className="hidden text-xs text-slate-400 sm:block">
+            {flipped
+              ? "키보드 ← 몰라요 · → 알아요"
+              : "스페이스 키로 뜻 보기"}
+          </p>
         </div>
 
         {message && (
@@ -372,12 +523,11 @@ export function VocabStage1Study({
           이전 단어
         </Button>
 
-        {total <= MAX_SEGMENTS ? (
+        {deckTotal <= MAX_SEGMENTS ? (
           <div className="hidden min-w-0 flex-1 justify-center gap-1 sm:flex">
-            {items.map((it, i) => {
+            {deck.map((it, i) => {
               const done =
-                i !== index &&
-                (stage1Completed ? i < index : seenIds.has(it.id));
+                i !== index && (trackSeen ? seenIds.has(it.id) : i < index);
               return (
                 <span
                   key={it.id}
@@ -403,14 +553,14 @@ export function VocabStage1Study({
           </div>
         )}
         <span className="text-sm tabular-nums text-slate-500 sm:hidden">
-          {index + 1} / {total}
+          {index + 1} / {deckTotal}
         </span>
 
         <Button
           type="button"
           variant="secondary"
           className="h-11 sm:h-9"
-          disabled={index >= total - 1}
+          disabled={index >= deckTotal - 1}
           onClick={() => goTo(index + 1)}
         >
           다음 단어
