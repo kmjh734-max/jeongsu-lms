@@ -21,6 +21,53 @@ import { matchesSearch } from "@/lib/ui/filter-by-search";
 
 type KindFilter = "all" | "class" | "student";
 
+type OverviewSet = AssignmentOverviewGroup["sets"][number];
+
+/** "EngCore 올인원 고교기본 Day12 핵심 빈출 단어 ★★★★" → 묶음 "EngCore 올인원 고교기본", 번호 12 */
+function splitSeries(title: string): { series: string; day: number | null; rest: string } {
+  const m = title.match(/^(.*?)\s*day\s*(\d+)\s*(.*)$/i);
+  if (!m || !m[1]!.trim()) return { series: title, day: null, rest: "" };
+  return { series: m[1]!.trim(), day: Number(m[2]), rest: m[3]!.trim() };
+}
+
+type SeriesGroup = {
+  series: string;
+  items: Array<OverviewSet & { day: number | null; rest: string }>;
+};
+
+/** 같은 교재(Day 번호만 다른 단어장)끼리 묶는다. 번호가 없는 단어장은 하나씩 따로 둔다. */
+function groupBySeries(sets: OverviewSet[]): SeriesGroup[] {
+  const map = new Map<string, SeriesGroup>();
+  for (const set of sets) {
+    const { series, day, rest } = splitSeries(set.title);
+    const key = day === null ? `__${set.setId}` : series;
+    const group = map.get(key) ?? { series, items: [] };
+    group.items.push({ ...set, day, rest });
+    map.set(key, group);
+  }
+  for (const g of map.values()) g.items.sort((a, b) => (a.day ?? 0) - (b.day ?? 0));
+  return [...map.values()];
+}
+
+/** [1,2,3,5,7,8] → "1–3, 5, 7–8" (구간이 많으면 앞 3개만) */
+function formatDayRanges(days: number[]): string {
+  const sorted = [...new Set(days)].sort((a, b) => a - b);
+  if (sorted.length === 0) return "";
+  const ranges: string[] = [];
+  let start = sorted[0]!;
+  let prev = start;
+  for (const d of [...sorted.slice(1), Number.NaN]) {
+    if (d === prev + 1) {
+      prev = d;
+      continue;
+    }
+    ranges.push(start === prev ? `${start}` : `${start}–${prev}`);
+    start = d;
+    prev = d;
+  }
+  return ranges.length > 3 ? `${ranges.slice(0, 3).join(", ")} 외` : ranges.join(", ");
+}
+
 export function VocabAssignmentsOverview({
   role,
   groups,
@@ -41,6 +88,16 @@ export function VocabAssignmentsOverview({
   const [busy, setBusy] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [assignIds, setAssignIds] = useState<string[] | null>(null);
+  const [openKeys, setOpenKeys] = useState<Set<string>>(new Set());
+
+  function toggleOpen(key: string) {
+    setOpenKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   const classCount = groups.filter((g) => g.kind === "class").length;
   const studentCount = groups.length - classCount;
@@ -139,37 +196,15 @@ export function VocabAssignmentsOverview({
                       </span>
                     </span>
                   </div>
-                  <ul className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                    {g.sets.map((s) => (
-                      <li
-                        key={s.setId}
-                        className="flex max-w-full items-center gap-1 rounded-md border border-slate-200 bg-slate-50 py-1 pl-2.5 pr-1 text-[13px] text-slate-700"
-                      >
-                        <Link
-                          href={`${base}/set/${s.setId}`}
-                          className="truncate hover:text-brand-700"
-                        >
-                          {s.title}
-                        </Link>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() =>
-                            void remove(
-                              s.assignmentIds,
-                              `‘${g.name}’에서 ‘${s.title}’ 배정을 해제할까요?`,
-                              "배정을 해제했어요."
-                            )
-                          }
-                          className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-700"
-                          aria-label={`${s.title} 배정 해제`}
-                          title="해제"
-                        >
-                          <Icon name="x" size={13} strokeWidth={2.2} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                  <SeriesSummary
+                    groupName={g.name}
+                    sets={g.sets}
+                    open={openKeys.has(g.key)}
+                    onToggle={() => toggleOpen(g.key)}
+                    busy={busy}
+                    base={base}
+                    onRemove={(ids, confirmText, done) => void remove(ids, confirmText, done)}
+                  />
                   <div className="flex shrink-0 items-center gap-1 self-end sm:self-start">
                     <span className="text-xs text-slate-400">{g.sets.length}개</span>
                     <button
@@ -211,6 +246,134 @@ export function VocabAssignmentsOverview({
         setIds={assignIds ?? []}
       />
       {toast}
+    </div>
+  );
+}
+
+/**
+ * 배정한 단어장을 교재별 한 줄로 줄여 보여 준다(예: EngCore 올인원 고교기본 · Day 1–85 · 85개).
+ * 펼치면 Day 번호만 촘촘히 늘어놓아 하나씩 해제할 수 있다.
+ */
+function SeriesSummary({
+  groupName,
+  sets,
+  open,
+  onToggle,
+  busy,
+  base,
+  onRemove,
+}: {
+  groupName: string;
+  sets: OverviewSet[];
+  open: boolean;
+  onToggle: () => void;
+  busy: boolean;
+  base: string;
+  onRemove: (ids: string[], confirmText: string, done: string) => void;
+}) {
+  const series = useMemo(() => groupBySeries(sets), [sets]);
+  const compact = series.length < sets.length;
+
+  const removeButton = (ids: string[], label: string, confirmText: string) => (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={() => onRemove(ids, confirmText, "배정을 해제했어요.")}
+      className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-slate-400 hover:bg-rose-50 hover:text-rose-700"
+      aria-label={`${label} 배정 해제`}
+      title="해제"
+    >
+      <Icon name="x" size={13} strokeWidth={2.2} />
+    </button>
+  );
+
+  return (
+    <div className="min-w-0 flex-1">
+      <ul className="flex flex-wrap gap-1.5">
+        {series.map((sr) => {
+          const ids = sr.items.flatMap((it) => it.assignmentIds);
+          const single = sr.items.length === 1 ? sr.items[0]! : null;
+          const days = sr.items.map((it) => it.day).filter((d): d is number => d !== null);
+          return (
+            <li
+              key={single ? single.setId : sr.series}
+              className="flex max-w-full items-center gap-1 rounded-md border border-slate-200 bg-slate-50 py-1 pl-2.5 pr-1 text-[13px] text-slate-700"
+            >
+              {single ? (
+                <Link href={`${base}/set/${single.setId}`} className="truncate hover:text-brand-700">
+                  {single.title}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onToggle}
+                  className="flex min-w-0 items-center gap-1.5 hover:text-brand-700"
+                  title="펼쳐서 하나씩 보기"
+                >
+                  <span className="truncate font-medium">{sr.series}</span>
+                  <span className="shrink-0 text-slate-500">Day {formatDayRanges(days)}</span>
+                  <span className="shrink-0 rounded bg-white px-1.5 text-[11px] font-semibold text-slate-500">
+                    {sr.items.length}개
+                  </span>
+                </button>
+              )}
+              {removeButton(
+                ids,
+                single ? single.title : sr.series,
+                single
+                  ? `‘${groupName}’에서 ‘${single.title}’ 배정을 해제할까요?`
+                  : `‘${groupName}’에서 ‘${sr.series}’ ${sr.items.length}개 배정을 해제할까요?`
+              )}
+            </li>
+          );
+        })}
+        {compact ? (
+          <li>
+            <button
+              type="button"
+              onClick={onToggle}
+              className="flex h-full items-center gap-0.5 rounded-md px-2 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              aria-expanded={open}
+            >
+              {open ? "접기" : "펼치기"}
+              <Icon name="down" size={13} className={open ? "rotate-180" : undefined} />
+            </button>
+          </li>
+        ) : null}
+      </ul>
+      {open && compact ? (
+        <div className="mt-2 space-y-2 rounded-md border border-slate-100 bg-slate-50/60 p-2">
+          {series
+            .filter((sr) => sr.items.length > 1)
+            .map((sr) => (
+              <div key={sr.series}>
+                <p className="mb-1 text-[11px] font-semibold text-slate-500">{sr.series}</p>
+                <ul className="grid grid-cols-[repeat(auto-fill,minmax(190px,1fr))] gap-1">
+                  {sr.items.map((it) => (
+                    <li
+                      key={it.setId}
+                      className="flex min-w-0 items-center gap-1 rounded border border-slate-200 bg-white py-0.5 pl-2 pr-0.5 text-xs text-slate-700"
+                    >
+                      <Link
+                        href={`${base}/set/${it.setId}`}
+                        className="min-w-0 flex-1 truncate hover:text-brand-700"
+                        title={it.title}
+                      >
+                        <span className="font-semibold">Day{it.day}</span>
+                        {it.rest ? <span className="text-slate-500"> {it.rest}</span> : null}
+                      </Link>
+                      {removeButton(
+                        it.assignmentIds,
+                        it.title,
+                        `‘${groupName}’에서 ‘${it.title}’ 배정을 해제할까요?`
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+        </div>
+      ) : null}
     </div>
   );
 }
