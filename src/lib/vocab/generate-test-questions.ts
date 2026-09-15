@@ -10,10 +10,10 @@ export interface SerializedTestQuestion {
   choices: string[] | null;
 }
 
-function shuffle<T>(arr: T[]): T[] {
+function shuffle<T>(arr: T[], rand: () => number = Math.random): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
@@ -26,10 +26,11 @@ function escapeRegExp(s: string): string {
 function pickDistractors(
   pool: string[],
   correct: string,
-  count: number
+  count: number,
+  rand: () => number = Math.random
 ): string[] {
   const unique = [...new Set(pool.filter((v) => v.trim() && v !== correct))];
-  return shuffle(unique).slice(0, count);
+  return shuffle(unique, rand).slice(0, count);
 }
 
 export function buildSpellingPrompt(item: VocabItem): string {
@@ -47,7 +48,9 @@ export function buildSpellingPrompt(item: VocabItem): string {
 export function buildChoices(
   items: VocabItem[],
   target: VocabItem,
-  pick: (item: VocabItem) => string
+  pick: (item: VocabItem) => string,
+  /** 인쇄 시험지는 시드를 넘겨 서버·브라우저가 같은 보기를 만든다 */
+  rand: () => number = Math.random
 ): string[] | null {
   const correct = pick(target).trim();
   if (!correct) return null;
@@ -56,8 +59,8 @@ export function buildChoices(
   const distractorCount = Math.min(3, pool.length - 1);
   if (distractorCount < 1) return [correct];
 
-  const distractors = pickDistractors(pool, correct, distractorCount);
-  const choices = shuffle([correct, ...distractors]);
+  const distractors = pickDistractors(pool, correct, distractorCount, rand);
+  const choices = shuffle([correct, ...distractors], rand);
   return choices.length >= 2 ? choices : [correct, ...distractors].slice(0, 2);
 }
 

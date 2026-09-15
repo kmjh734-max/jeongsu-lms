@@ -39,19 +39,45 @@ function itemsWithBlankableExample(items: VocabItem[]): VocabItem[] {
   return items.filter((item) => blankExampleSentence(item) !== null);
 }
 
-function shuffle<T>(arr: T[]): T[] {
+type Rng = () => number;
+
+/** 같은 시드면 서버·브라우저가 같은 순서를 만든다(화면과 인쇄가 어긋나지 않게). */
+function seededRng(seed: number): Rng {
+  let a = seed >>> 0 || 0x9e3779b9;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** 시드가 없으면 단어 목록으로 정한다 — 같은 단어장·설정이면 늘 같은 시험지 */
+function seedFromItems(items: VocabItem[]): number {
+  let h = 2166136261;
+  for (const item of items) {
+    for (let i = 0; i < item.id.length; i++) {
+      h ^= item.id.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+  }
+  return h >>> 0;
+}
+
+function shuffle<T>(arr: T[], rng: Rng): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
 }
 
 /** 재사용 없이 count개만 뽑음 (부족하면 그만큼만) */
-function pickItemsNoReuse(pool: VocabItem[], count: number): VocabItem[] {
+function pickItemsNoReuse(pool: VocabItem[], count: number, rng: Rng): VocabItem[] {
   if (count <= 0 || pool.length === 0) return [];
-  return shuffle(pool).slice(0, Math.min(count, pool.length));
+  return shuffle(pool, rng).slice(0, Math.min(count, pool.length));
 }
 
 const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
@@ -59,11 +85,12 @@ const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
 function buildQuestion(
   kind: ExamQuestionKind,
   item: VocabItem,
-  pool: VocabItem[]
+  pool: VocabItem[],
+  rng: Rng
 ): PrintExamQuestion | null {
   switch (kind) {
     case "word_mc": {
-      const choices = buildChoices(pool, item, (i) => i.meaning);
+      const choices = buildChoices(pool, item, (i) => i.meaning, rng);
       if (!choices || choices.length < 2) return null;
       const idx = choices.findIndex((c) => c === item.meaning.trim());
       const mark = CHOICE_MARKS[idx >= 0 ? idx : 0] ?? "①";
@@ -84,7 +111,7 @@ function buildQuestion(
         answer: item.meaning.trim(),
       };
     case "meaning_mc": {
-      const choices = buildChoices(pool, item, (i) => i.word);
+      const choices = buildChoices(pool, item, (i) => i.word, rng);
       if (!choices || choices.length < 2) return null;
       const idx = choices.findIndex((c) => c === item.word.trim());
       const mark = CHOICE_MARKS[idx >= 0 ? idx : 0] ?? "①";
@@ -107,7 +134,7 @@ function buildQuestion(
     case "example_mc": {
       const blanked = blankExampleSentence(item);
       if (!blanked) return null;
-      const choices = buildChoices(pool, item, (i) => i.word);
+      const choices = buildChoices(pool, item, (i) => i.word, rng);
       if (!choices || choices.length < 2) return null;
       const idx = choices.findIndex((c) => c === item.word.trim());
       const mark = CHOICE_MARKS[idx >= 0 ? idx : 0] ?? "①";
@@ -161,6 +188,7 @@ export function generatePrintExamQuestions(
   const exampleQuestions: PrintExamQuestion[] = [];
   let skipped = 0;
 
+  const rng = seededRng(options?.shuffleSeed || seedFromItems(items));
   const examplePoolAll = itemsWithBlankableExample(items);
   const usedIds = new Set<string>();
 
@@ -176,13 +204,13 @@ export function generatePrintExamQuestions(
       continue;
     }
 
-    const picked = pickItemsNoReuse(pool, count);
+    const picked = pickItemsNoReuse(pool, count, rng);
     skipped += Math.max(0, count - picked.length);
     const bucket = isExample ? exampleQuestions : basicQuestions;
 
     for (const item of picked) {
       usedIds.add(item.id);
-      const q = buildQuestion(kind, item, items);
+      const q = buildQuestion(kind, item, items, rng);
       if (!q) {
         skipped += 1;
         usedIds.delete(item.id);
@@ -192,12 +220,11 @@ export function generatePrintExamQuestions(
     }
   }
 
-  void options?.shuffleSeed;
 
   const doShuffle = options?.shuffle !== false;
-  const orderedBasic = doShuffle ? shuffle(basicQuestions) : basicQuestions;
+  const orderedBasic = doShuffle ? shuffle(basicQuestions, rng) : basicQuestions;
   const orderedExamples = doShuffle
-    ? shuffle(exampleQuestions)
+    ? shuffle(exampleQuestions, rng)
     : exampleQuestions;
 
   return {

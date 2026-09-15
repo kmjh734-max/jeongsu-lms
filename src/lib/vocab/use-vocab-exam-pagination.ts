@@ -97,7 +97,10 @@ export function useVocabExamPagination(opts: {
     const bodyZone = probe.querySelector<HTMLElement>("[data-exam-body-zone]");
     const bodyH = bodyZone?.clientHeight ?? 0;
     if (bodyH > 0) bodyHeightRef.current = bodyH;
-    const maxBodyHeightPx = bodyHeightRef.current;
+    // 인쇄할 때는 쪽 높이가 줄어든다(globals.css: A4 297→286mm, B5 257→248mm, 빈 쪽 방지).
+    // 화면 기준 높이로 나누면 인쇄에서 아래가 넘치므로 그만큼(+여유 1.5mm) 빼고 나눈다.
+    const printShrinkPx = (((size === "b5" ? 9 : 11) + 1.5) * 96) / 25.4;
+    const maxBodyHeightPx = bodyHeightRef.current - printShrinkPx;
     if (maxBodyHeightPx <= 0) return;
 
     const basicHeights = measureHeights(
