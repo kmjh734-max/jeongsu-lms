@@ -88,6 +88,8 @@ export function VocabStage1Study({
   /** 지금 넘기는 카드 묶음 (처음엔 전체, 끝낸 뒤 '몰라요 다시 보기'면 그 단어들) */
   const [deck, setDeck] = useState<VocabItem[]>(items);
   const [reviewPass, setReviewPass] = useState(false);
+  // 저장 뒤 화면을 새로 받으면 stage1Completed가 true로 바뀐다. 처음 끝낸 것인지는 들어올 때 값으로 판단한다.
+  const [completedAtStart] = useState(stage1Completed);
   const [index, setIndex] = useState(() => {
     if (stage1Completed) return 0;
     const seen = new Set(validSeenIds);
@@ -289,7 +291,7 @@ export function VocabStage1Study({
   }
 
   if (phase !== "study") {
-    const firstFinish = !stage1Completed && !reviewPass;
+    const firstFinish = !completedAtStart && !reviewPass;
     const unknownCount = summary.unknown.length;
     return (
       <div className="flex w-full flex-col gap-5 sm:gap-6">

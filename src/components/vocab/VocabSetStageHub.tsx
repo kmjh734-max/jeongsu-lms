@@ -357,7 +357,7 @@ export function VocabSetStageHub({
                     variant={stage4Pass ? "secondary" : "primary"}
                     className={BTN}
                   >
-                    다시 도전하기
+                    {stage4Pass ? "한 번 더 풀기" : "다시 도전하기"}
                   </ButtonLink>
                   <ButtonLink
                     href={`${base}/stage4/result`}
