@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { clearKeepLoginCookieClient } from "@/lib/auth/keep-login";
 import { clearRoleCookieClient } from "@/lib/auth/role-cookie";
 import { Button } from "@/components/ui/Button";
 
@@ -9,6 +10,7 @@ export function SignOutButton() {
     clearRoleCookieClient();
     const supabase = createClient();
     await supabase.auth.signOut();
+    clearKeepLoginCookieClient();
     window.location.assign("/login");
   }
 

@@ -202,6 +202,7 @@ function buildStudentDays(
   todayIso: string,
   effectiveStartByAssignmentId: Map<string, string>
 ): HomeworkDayCell[] {
+  const activeAssignmentIds = new Set(assignments.map((a) => a.id));
   const days: HomeworkDayCell[] = [];
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -215,8 +216,11 @@ function buildStudentDays(
         effectiveStartByAssignmentId.get(a.id)
       )
     );
-    const isStudyDayFlag = studyAssignments.length > 0;
     const rows = tasksByDate.get(taskDate) ?? [];
+    // 요일·기간을 바꾼 뒤에도 이미 나간 과제는 표에 남긴다
+    const isStudyDayFlag =
+      studyAssignments.length > 0 ||
+      rows.some((r) => activeAssignmentIds.has(r.assignment_id));
     const aggregated = aggregateTasksForDay(rows);
 
     const completedCount = aggregated.completedCount;

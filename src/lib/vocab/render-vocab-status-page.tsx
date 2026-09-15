@@ -2,6 +2,7 @@ import { VocabTodayStatusPanel } from "@/components/learning-status/VocabTodaySt
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { listReportClasses } from "@/lib/reports/list-students";
 import { createClient } from "@/lib/supabase/server";
+import { getAcademyBrandingForCurrentUser } from "@/lib/tenant/academy-branding";
 import { loadVocabModuleData } from "@/lib/vocab/load-module-data";
 import type { VocabRole } from "@/lib/vocab/module-types";
 
@@ -9,9 +10,10 @@ import type { VocabRole } from "@/lib/vocab/module-types";
 export async function renderVocabStatusPage(role: VocabRole) {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const [classes, data] = await Promise.all([
+  const [classes, data, branding] = await Promise.all([
     listReportClasses(supabase, role, profile!.id),
     loadVocabModuleData(role),
+    getAcademyBrandingForCurrentUser(),
   ]);
 
   const scopeOptions = [
@@ -26,5 +28,11 @@ export async function renderVocabStatusPage(role: VocabRole) {
       : []),
   ];
 
-  return <VocabTodayStatusPanel initialClasses={classes} scopeOptions={scopeOptions} />;
+  return (
+    <VocabTodayStatusPanel
+      initialClasses={classes}
+      scopeOptions={scopeOptions}
+      academyName={branding.name}
+    />
+  );
 }

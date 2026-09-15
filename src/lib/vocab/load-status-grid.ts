@@ -29,6 +29,8 @@ export interface VocabStatusGridRow {
   cells: (StageCell | null)[];
   hasAssignments: boolean;
   studiedToday: boolean;
+  /** 불합격 후 그날 다시 안 한 첫 단어장의 칸 번호 (없으면 null) */
+  failedIdleColumn: number | null;
 }
 
 export interface VocabStatusGrid {
@@ -182,8 +184,8 @@ export async function loadVocabStatusGrid(
     const assigned = assignedByStudent.get(s.id);
     let passed = 0;
     let anyColumn = false;
-    let failedIdle = false;
-    const cells = columns.map((c) => {
+    let failedIdleColumn: number | null = null;
+    const cells = columns.map((c, ci) => {
       if (!assigned?.has(c.id)) return null;
       anyColumn = true;
       const p = progressByKey.get(`${s.id}:${c.id}`);
@@ -197,14 +199,16 @@ export async function loadVocabStatusGrid(
         bestScore: p ? stage4BestScore(p) : 0,
       });
       if (cell.passed) passed += 1;
-      if (cell.failed && !studiedPairs.has(`${s.id}:${c.id}`)) failedIdle = true;
+      if (cell.failed && !studiedPairs.has(`${s.id}:${c.id}`) && failedIdleColumn === null) {
+        failedIdleColumn = ci;
+      }
       return cell;
     });
     if (anyColumn) {
       passedSum += passed;
       passedStudents += 1;
     }
-    if (failedIdle) failedNotRetried += 1;
+    if (failedIdleColumn !== null) failedNotRetried += 1;
     return {
       studentId: s.id,
       name: s.name,
@@ -212,6 +216,7 @@ export async function loadVocabStatusGrid(
       cells,
       hasAssignments: Boolean(assigned?.size),
       studiedToday: studiedStudents.has(s.id),
+      failedIdleColumn,
     };
   });
 

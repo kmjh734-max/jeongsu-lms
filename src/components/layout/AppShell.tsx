@@ -20,7 +20,9 @@ import {
 } from "@/components/layout/AppHeader";
 import { useCreditBalance } from "@/components/layout/HeaderCreditsBadge";
 import { Icon, navIconName } from "@/components/layout/NavIcon";
+import { StudentRecordJobIndicator } from "@/components/student-records/StudentRecordJobIndicator";
 import { createClient } from "@/lib/supabase/client";
+import { clearKeepLoginCookieClient } from "@/lib/auth/keep-login";
 import { clearRoleCookieClient } from "@/lib/auth/role-cookie";
 import { ENGCORE_PRODUCTS, SITE_NAME } from "@/lib/branding";
 import type { Profile } from "@/types/database";
@@ -71,6 +73,7 @@ async function signOut() {
   clearRoleCookieClient();
   const supabase = createClient();
   await supabase.auth.signOut();
+  clearKeepLoginCookieClient();
   window.location.assign("/login");
 }
 
@@ -445,6 +448,7 @@ export function AppTopbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <StudentRecordJobIndicator />
         <span className="hidden text-[13px] text-slate-500 md:inline">
           {ROLE_TEXT[profile.role]}
         </span>

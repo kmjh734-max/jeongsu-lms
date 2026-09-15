@@ -101,6 +101,16 @@ export async function reconcileDailyTaskDictationProgress(
       continue;
     }
 
+    // 그때 통과 점수로 서버가 통과 처리한 문항(제출 점수가 기록과 같음)은
+    // 선생님이 나중에 통과 점수를 올려도 그대로 둔다 — 새 점수는 아직 못 넘은 문항부터
+    const passedUnderEarlierScore =
+      !!row.completed &&
+      !!row.dictation_completed &&
+      row.dictation_score != null &&
+      score != null &&
+      score >= (row.dictation_score as number);
+    if (passedUnderEarlierScore) continue;
+
     // 실제 통과 점수 미달인데 완료로 남아 있으면 되돌림
     if (row.completed || row.dictation_completed) {
       await admin

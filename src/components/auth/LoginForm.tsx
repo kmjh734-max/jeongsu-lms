@@ -9,6 +9,10 @@ import {
   clearRoleCookieClient,
   setRoleCookieClient,
 } from "@/lib/auth/role-cookie";
+import {
+  clearKeepLoginCookieClient,
+  setKeepLoginCookieClient,
+} from "@/lib/auth/keep-login";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import type { UserRole } from "@/types/database";
@@ -54,6 +58,7 @@ export function LoginForm({
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [keepLogin, setKeepLogin] = useState(true);
 
   useEffect(() => {
     if (initialError) setError(initialError);
@@ -65,6 +70,8 @@ export function LoginForm({
     setError(null);
 
     const loginEmail = resolveLoginEmail(identifier);
+    // 인증 쿠키가 쓰이기 전에 선택을 남긴다 (끄면 브라우저를 닫을 때 로그아웃)
+    setKeepLoginCookieClient(keepLogin);
     const supabase = createClient();
 
     const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -88,6 +95,7 @@ export function LoginForm({
       if (profile && profile.is_active === false) {
         clearRoleCookieClient();
         await supabase.auth.signOut();
+        clearKeepLoginCookieClient();
         setError(
           profile.role === "teacher"
             ? "쉬는 중인 계정이에요. 관리자에게 문의해 주세요."
@@ -105,6 +113,7 @@ export function LoginForm({
       ) {
         clearRoleCookieClient();
         await supabase.auth.signOut();
+        clearKeepLoginCookieClient();
         setError(
           expectedAcademyName
             ? `이 계정은 ${expectedAcademyName} 계정이 아니에요. 다니는 학원의 로그인 주소로 들어와 주세요.`
@@ -184,7 +193,16 @@ export function LoginForm({
         </div>
       </div>
 
-      <div className="-mt-1 flex justify-end">
+      <div className="-mt-1 flex items-center justify-between gap-3">
+        <label className="flex cursor-pointer select-none items-center gap-2 text-[13px] font-medium text-slate-700">
+          <input
+            type="checkbox"
+            checked={keepLogin}
+            onChange={(e) => setKeepLogin(e.target.checked)}
+            className="h-4 w-4 cursor-pointer rounded border-slate-300 accent-brand-600"
+          />
+          로그인 유지
+        </label>
         <button
           type="button"
           onClick={() => setShowHint((v) => !v)}

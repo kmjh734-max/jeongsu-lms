@@ -12,6 +12,7 @@ import { ListeningScheduleAddSetsModal } from "@/components/listening/ListeningS
 import {
   ListeningScheduleAssignPanel,
   type AssignPanelClass,
+  type AssignPanelEditTarget,
   type AssignPanelSet,
   type AssignPanelStudent,
 } from "@/components/listening/ListeningScheduleAssignPanel";
@@ -72,6 +73,8 @@ export function ListeningScheduleManageClient({
   const [panelOpen, setPanelOpen] = useState(Boolean(presetSetId));
   const [panelKey, setPanelKey] = useState(0);
   const [addSetsTarget, setAddSetsTarget] = useState<ScheduleAssignmentListItem | null>(null);
+  /** 「수정」으로 연 배정 — 있으면 오른쪽 창이 「배정 수정」 */
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // 넓은 화면에서는 배정 창을 처음부터 옆에 열어 둔다
   useEffect(() => {
@@ -147,10 +150,49 @@ export function ListeningScheduleManageClient({
   }
 
   function openPanel() {
+    setEditingId(null);
     setPanelKey((k) => k + 1);
     setPanelOpen(true);
     setNotice(null);
   }
+
+  function subLabelOf(a: ScheduleAssignmentListItem): string {
+    return a.targetType === "class"
+      ? a.targetClassId && classStudentCounts[a.targetClassId]
+        ? `${classStudentCounts[a.targetClassId]}명`
+        : "반"
+      : (a.targetStudentId && studentClassNames[a.targetStudentId]) || "학생";
+  }
+
+  function openEdit(a: ScheduleAssignmentListItem) {
+    setEditingId(a.id);
+    setPanelKey((k) => k + 1);
+    setPanelOpen(true);
+    setNotice(null);
+    setError(null);
+  }
+
+  const editingAssignment = editingId
+    ? (assignments.find((a) => a.id === editingId) ?? null)
+    : null;
+  const editTarget: AssignPanelEditTarget | undefined = editingAssignment
+    ? {
+        id: editingAssignment.id,
+        title: editingAssignment.title,
+        targetType: editingAssignment.targetType,
+        targetLabel: editingAssignment.targetLabel,
+        targetSub: subLabelOf(editingAssignment),
+        setIds: editingAssignment.setIds,
+        setTitles: editingAssignment.setTitles,
+        daysOfWeek: editingAssignment.daysOfWeek,
+        questionsPerDay: editingAssignment.questionsPerDay,
+        startDate: editingAssignment.startDate,
+        endDate: editingAssignment.endDate,
+        requireDictationPass: editingAssignment.requireDictationPass,
+        dictationPassScore: editingAssignment.dictationPassScore,
+        isActive: editingAssignment.isActive,
+      }
+    : undefined;
 
   const segments: Array<[ViewFilter, string, number]> = [
     ["all", "전체", assignments.length],
@@ -249,17 +291,13 @@ export function ListeningScheduleManageClient({
                 <AssignmentCard
                   key={a.id}
                   a={a}
-                  sub={
-                    a.targetType === "class"
-                      ? a.targetClassId && classStudentCounts[a.targetClassId]
-                        ? `${classStudentCounts[a.targetClassId]}명`
-                        : "반"
-                      : (a.targetStudentId && studentClassNames[a.targetStudentId]) || "학생"
-                  }
+                  sub={subLabelOf(a)}
                   progress={progressByAssignment[a.id]}
                   todayIso={todayIso}
                   busy={busyId === a.id}
+                  editing={editTarget?.id === a.id}
                   canAddSets={a.isActive && sets.some((s) => !a.setIds.includes(s.id))}
+                  onEdit={() => openEdit(a)}
                   onAddSets={() => setAddSetsTarget(a)}
                   onPause={() => void setPaused(a, true)}
                   onResume={() => void setPaused(a, false)}
@@ -272,13 +310,24 @@ export function ListeningScheduleManageClient({
 
         {panelOpen ? (
           <ListeningScheduleAssignPanel
-            key={panelKey}
+            key={editTarget ? `edit-${editTarget.id}-${panelKey}` : `new-${panelKey}`}
             classes={classes}
             students={students}
             sets={sets}
             folders={folders}
             initialSetIds={presetSetId && sets.some((s) => s.id === presetSetId) ? [presetSetId] : []}
-            onClose={() => setPanelOpen(false)}
+            editing={editTarget}
+            onSaved={(message) => {
+              setNotice(message);
+              setEditingId(null);
+              setPanelKey((k) => k + 1);
+              if (!window.matchMedia("(min-width: 1024px)").matches) setPanelOpen(false);
+              router.refresh();
+            }}
+            onClose={() => {
+              setEditingId(null);
+              setPanelOpen(false);
+            }}
             onSuccess={(label) => {
               setNotice(`${label}에게 배정했어요.`);
               setPanelKey((k) => k + 1);
@@ -310,7 +359,9 @@ function AssignmentCard({
   progress,
   todayIso,
   busy,
+  editing,
   canAddSets,
+  onEdit,
   onAddSets,
   onPause,
   onResume,
@@ -321,7 +372,9 @@ function AssignmentCard({
   progress?: ScheduleAssignmentProgress;
   todayIso: string;
   busy: boolean;
+  editing: boolean;
   canAddSets: boolean;
+  onEdit: () => void;
   onAddSets: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -349,9 +402,9 @@ function AssignmentCard({
 
   return (
     <article
-      className={`flex flex-col gap-2.5 rounded-lg border border-slate-200 bg-white px-[18px] py-4 shadow-card ${
-        busy ? "opacity-60" : ""
-      }`}
+      className={`flex flex-col gap-2.5 rounded-lg border bg-white px-[18px] py-4 shadow-card ${
+        editing ? "border-brand-300 ring-2 ring-brand-100" : "border-slate-200"
+      } ${busy ? "opacity-60" : ""}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
@@ -416,7 +469,11 @@ function AssignmentCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button variant="ghost" size="sm" disabled={busy} onClick={onEdit} aria-pressed={editing}>
+          <Icon name="edit" size={14} />
+          수정
+        </Button>
         {canAddSets ? (
           <Button variant="ghost" size="sm" disabled={busy} onClick={onAddSets}>
             세트 더하기

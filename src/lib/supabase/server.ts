@@ -4,6 +4,11 @@ import {
   type CookieOptions,
 } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import {
+  applyKeepLoginToCookieOptions,
+  isKeepLoginOff,
+  KEEP_LOGIN_COOKIE,
+} from "@/lib/auth/keep-login";
 
 /** 요청당 1개 클라이언트 (cookies() + 인스턴스 재사용) */
 export const createClient = cache(async function createClient() {
@@ -24,9 +29,15 @@ export const createClient = cache(async function createClient() {
             options?: CookieOptions;
           }[]
         ) {
+          // 로그인 유지를 끄면 인증 쿠키를 세션 쿠키로 (브라우저를 닫으면 로그아웃)
+          const keepLoginOff = isKeepLoginOff(cookieStore.get(KEEP_LOGIN_COOKIE)?.value);
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(
+                name,
+                value,
+                applyKeepLoginToCookieOptions(options, keepLoginOff)
+              )
             );
           } catch {
             // Called from Server Component; middleware will refresh session.

@@ -17,41 +17,33 @@ import type {
   ReportStudentOption,
 } from "@/lib/reports/types";
 import {
-  chunkStudentRecordFiles,
-  fetchStudentRecordApi,
   formatBytes,
-  prepareStudentRecordFiles,
-  readStudentRecordApiResponse,
   STUDENT_RECORD_MAX_PDF_PAGES,
-  validatePreparedExtractChunk,
-  validatePreparedStudentRecordFiles,
   validateStudentRecordFiles,
 } from "@/lib/student-records/client-upload";
 import { STUDENT_RECORD_MAX_IMAGE_BYTES } from "@/lib/student-records/limits";
 import { DEFAULT_ANALYSIS_INSTRUCTIONS } from "@/lib/student-records/simple-analysis-prompt";
 import { isPdfUpload } from "@/lib/student-records/file-types";
-import { STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL } from "@/lib/student-records/limits";
-import { isReliableStudentRecordExtract } from "@/lib/student-records/ocr-quality";
+import {
+  clearRecordJob,
+  getRecordJobState,
+  startRecordJob,
+  useRecordJob,
+  type RecordJobInput,
+} from "@/lib/student-records/record-job-runner";
 import type { StudentRecordAnalysisResult } from "@/lib/student-records/types";
-
-const PROGRESS_PREP_END = 12;
-const PROGRESS_OCR_END = 72;
-const PROGRESS_GENERATE_END = 98;
 
 const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
 const ACCEPT_TYPES = ACCEPT.split(",");
 
 /** 0 파일 읽기 · 1 내용 정리 · 2 보고서 쓰기 */
-type ProgressStage = 0 | 1 | 2;
 const STAGE_LABELS = ["파일 읽기", "내용 정리", "보고서 쓰기"] as const;
 
-type ExtractApiResult = {
-  ok: boolean;
-  message?: string;
-  text?: string;
-  studentId?: string | null;
-  studentName?: string;
-};
+/** 다른 메뉴에 다녀오는 동안 도는(또는 실패한) 작업이 있으면 그때 고른 값으로 양식을 채운다 */
+function jobInputToRestore(): RecordJobInput | null {
+  const job = getRecordJobState();
+  return job.status === "running" || job.status === "error" ? job.input : null;
+}
 
 type HistoryRecord = {
   id: string;
@@ -137,23 +129,24 @@ export function StudentRecordWorkspace({
   academyName,
   logoSrc,
 }: StudentRecordWorkspaceProps) {
+  const [restoredInput] = useState(jobInputToRestore);
   const [classes, setClasses] = useState<ReportClassOption[]>(initialClasses);
   const [students, setStudents] = useState<ReportStudentOption[]>(initialStudents);
   const [classId, setClassId] = useState("");
   const [nameQuery, setNameQuery] = useState("");
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [manualStudentName, setManualStudentName] = useState("");
-  const [analysisInstructions, setAnalysisInstructions] = useState(
-    DEFAULT_ANALYSIS_INSTRUCTIONS
+  const [selectedStudentId, setSelectedStudentId] = useState(
+    restoredInput?.studentId ?? ""
   );
-  const [files, setFiles] = useState<File[]>([]);
+  const [manualStudentName, setManualStudentName] = useState(
+    restoredInput?.manualStudentName ?? ""
+  );
+  const [analysisInstructions, setAnalysisInstructions] = useState(
+    restoredInput?.analysisInstructions ?? DEFAULT_ANALYSIS_INSTRUCTIONS
+  );
+  const [files, setFiles] = useState<File[]>(restoredInput?.files ?? []);
   const [dragOver, setDragOver] = useState(false);
   const [result, setResult] = useState<StudentRecordAnalysisResult | null>(null);
   const [listLoading, setListLoading] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [progressLabel, setProgressLabel] = useState<string | null>(null);
-  const [progressPercent, setProgressPercent] = useState(0);
-  const [progressStage, setProgressStage] = useState<ProgressStage>(0);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryRecord[]>([]);
   const [historyQuery, setHistoryQuery] = useState("");
@@ -162,14 +155,12 @@ export function StudentRecordWorkspace({
   const [editingTitle, setEditingTitle] = useState("");
   const firstClassLoad = useRef(true);
 
-  const updateProgress = useCallback(
-    (stage: ProgressStage, label: string, percent: number) => {
-      setProgressStage(stage);
-      setProgressLabel(label);
-      setProgressPercent(Math.min(100, Math.max(0, Math.round(percent))));
-    },
-    []
-  );
+  // 분석은 화면 밖 진행기에서 돈다 — 다른 메뉴에 다녀와도 이어서 보여 준다
+  const job = useRecordJob();
+  const analyzing = job.status === "running";
+  const progressStage = job.stage;
+  const progressLabel = analyzing ? job.label : null;
+  const progressPercent = analyzing ? job.percent : 0;
 
   // 반을 바꾸면 그 반 학생만 다시 불러온다 (이름은 화면에서 바로 거른다)
   useEffect(() => {
@@ -219,6 +210,31 @@ export function StudentRecordWorkspace({
   useEffect(() => {
     void loadHistory();
   }, [loadHistory]);
+
+  // 작업이 끝나면(이 화면에 있든, 다른 메뉴에 있다 돌아왔든) 결과를 받아 와 연다
+  useEffect(() => {
+    if (job.status === "done" && job.result) {
+      setResult(job.result);
+      setError(null);
+      // 다 만들었으면 다음 「새 분석」은 빈 양식으로 시작
+      setFiles([]);
+      setSelectedStudentId("");
+      setManualStudentName("");
+      void loadHistory();
+      clearRecordJob(job.id);
+    } else if (job.status === "error") {
+      // 실패하면 그때 고른 파일·학생을 그대로 두어 바로 다시 해 볼 수 있게
+      if (job.input) {
+        setFiles(job.input.files);
+        setSelectedStudentId(job.input.studentId ?? "");
+        setManualStudentName(job.input.manualStudentName);
+        setAnalysisInstructions(job.input.analysisInstructions);
+      }
+      setResult(null);
+      setError(job.error ?? "문제가 생겼어요. 다시 해 주세요.");
+      clearRecordJob(job.id);
+    }
+  }, [job, loadHistory]);
 
   const visibleStudents = useMemo(() => {
     const q = nameQuery.trim().toLowerCase();
@@ -346,7 +362,7 @@ export function StudentRecordWorkspace({
     });
   }
 
-  async function runAnalysis() {
+  function runAnalysis() {
     if (files.length === 0) {
       setError("분석할 PDF나 이미지를 올려 주세요.");
       return;
@@ -358,197 +374,20 @@ export function StudentRecordWorkspace({
       return;
     }
 
-    setAnalyzing(true);
+    const started = startRecordJob({
+      files,
+      studentId: selectedStudentId || null,
+      manualStudentName,
+      analysisInstructions,
+      displayName: selectedStudent?.name || manualStudentName.trim() || "",
+      returnPath: window.location.pathname,
+    });
+    if (!started) {
+      setError("이미 만들고 있는 학생부 분석이 있어요. 끝난 뒤에 다시 해 주세요.");
+      return;
+    }
     setError(null);
     setResult(null);
-    updateProgress(0, "파일 여는 중", 0);
-    try {
-      let resolvedStudentId: string | null = null;
-      let resolvedStudentName = "";
-      let combinedExtractedText = "";
-
-      const buildFormData = () => {
-        const formData = new FormData();
-        if (selectedStudentId) formData.set("studentId", selectedStudentId);
-        if (!selectedStudentId && manualStudentName.trim()) {
-          formData.set("studentName", manualStudentName.trim());
-        }
-        return formData;
-      };
-
-      const postExtract = async (formData: FormData) => {
-        const extractRes = await fetchStudentRecordApi("/api/student-records/extract", {
-          method: "POST",
-          body: formData,
-        });
-        const { data, error } = await readStudentRecordApiResponse<ExtractApiResult>(extractRes);
-        if (error) throw new Error(error);
-        return data;
-      };
-
-      if (!combinedExtractedText) {
-        updateProgress(0, "파일 여는 중", 4);
-        const preparedFiles = await prepareStudentRecordFiles(files, (label) => {
-          if (label.startsWith("PDF 변환")) {
-            const match = label.match(/(\d+)\/(\d+)/);
-            if (match) {
-              const current = Number(match[1]);
-              const total = Number(match[2]);
-              const pct = 4 + (current / Math.max(total, 1)) * (PROGRESS_PREP_END - 4);
-              updateProgress(0, `파일 여는 중 · ${current}/${total}쪽`, pct);
-              return;
-            }
-          }
-          updateProgress(0, "파일 여는 중", 6);
-        });
-        const preparedError = validatePreparedStudentRecordFiles(preparedFiles);
-        if (preparedError) {
-          throw new Error(preparedError);
-        }
-
-        const imageChunks =
-          preparedFiles.length > 0 ? chunkStudentRecordFiles(preparedFiles) : [];
-        const ocrTexts: string[] = [];
-
-        if (imageChunks.length === 0) {
-          throw new Error("올린 파일에서 읽을 쪽을 찾지 못했어요. 파일을 확인해 주세요.");
-        } else {
-          const ocrSpan = PROGRESS_OCR_END - PROGRESS_PREP_END;
-
-          const extractChunk = async (chunkIndex: number) => {
-            const chunk = imageChunks[chunkIndex]!;
-            const chunkError = validatePreparedExtractChunk(chunk);
-            if (chunkError) throw new Error(chunkError);
-
-            const formData = buildFormData();
-            for (const file of chunk) {
-              formData.append("files", file);
-            }
-
-            const extracted = await postExtract(formData);
-            if (!extracted?.ok || !extracted.text || !extracted.studentName) {
-              throw new Error(
-                extracted?.message ?? `${chunkIndex + 1}번째 묶음을 읽지 못했어요.`
-              );
-            }
-            return extracted;
-          };
-
-          const totalPages = preparedFiles.length;
-          let pagesDone = 0;
-
-          for (let i = 0; i < imageChunks.length; i += STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL) {
-            const batchIndices = Array.from(
-              {
-                length: Math.min(STUDENT_RECORD_EXTRACT_CHUNK_PARALLEL, imageChunks.length - i),
-              },
-              (_, j) => i + j
-            );
-            const batchPages = batchIndices.reduce(
-              (sum, idx) => sum + imageChunks[idx]!.length,
-              0
-            );
-
-            updateProgress(
-              1,
-              `학생부 내용 읽는 중 · ${Math.min(pagesDone + batchPages, totalPages)}/${totalPages}쪽`,
-              PROGRESS_PREP_END + (pagesDone / totalPages) * ocrSpan
-            );
-
-            const batchResults = await Promise.all(
-              batchIndices.map((chunkIndex) => extractChunk(chunkIndex))
-            );
-
-            for (const extracted of batchResults) {
-              resolvedStudentId = extracted.studentId ?? resolvedStudentId;
-              resolvedStudentName = extracted.studentName!;
-              ocrTexts.push(extracted.text!);
-            }
-
-            pagesDone = Math.min(pagesDone + batchPages, totalPages);
-
-            updateProgress(
-              1,
-              `학생부 내용 읽는 중 · ${pagesDone}/${totalPages}쪽`,
-              PROGRESS_PREP_END + (pagesDone / totalPages) * ocrSpan
-            );
-          }
-        }
-
-        combinedExtractedText = ocrTexts.join("\n\n");
-        if (!isReliableStudentRecordExtract(combinedExtractedText)) {
-          throw new Error(
-            "학생부 글자를 충분히 읽지 못했어요. 더 선명한 파일로 다시 올려 주세요."
-          );
-        }
-      }
-
-      updateProgress(2, "보고서 쓰는 중", PROGRESS_OCR_END + 3);
-
-      // 생성 단계는 1~3분 걸리므로 멈춰 보이지 않게 진행률을 천천히 올린다
-      const generateTicker = setInterval(() => {
-        setProgressPercent((p) => (p < PROGRESS_GENERATE_END ? p + 1 : p));
-      }, 5000);
-
-      let generateRes: Response;
-      try {
-        generateRes = await fetchStudentRecordApi(
-          "/api/student-records/generate",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              studentId: resolvedStudentId,
-              studentName: resolvedStudentName,
-              text: combinedExtractedText,
-              analysisInstructions: analysisInstructions.trim(),
-            }),
-          },
-          // 보고서 생성은 1회 2~3분 걸릴 수 있어 재시도는 1회만
-          1
-        );
-      } finally {
-        clearInterval(generateTicker);
-      }
-      const { data: generated, error: generateError } =
-        await readStudentRecordApiResponse<{
-          ok: boolean;
-          message?: string;
-          html?: string;
-          studentName?: string;
-          generatedAt?: string;
-          recordId?: string | null;
-        }>(generateRes);
-
-      if (generateError) {
-        throw new Error(generateError);
-      }
-      if (!generated?.ok || !generated.html || !generated.generatedAt) {
-        throw new Error(generated?.message ?? "보고서를 만들지 못했어요.");
-      }
-
-      updateProgress(2, "다 만들었어요", 100);
-      setResult({
-        studentId: resolvedStudentId,
-        // 학생 미선택 시 서버가 학생부 본문에서 찾아낸 실제 이름 사용
-        studentName: generated.studentName ?? resolvedStudentName,
-        html: generated.html,
-        generatedAt: generated.generatedAt,
-        recordId: generated.recordId ?? null,
-      });
-      // 다 만들었으면 다음 「새 분석」은 빈 양식으로 시작
-      setFiles([]);
-      setSelectedStudentId("");
-      setManualStudentName("");
-      void loadHistory();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "문제가 생겼어요. 다시 해 주세요.");
-    } finally {
-      setAnalyzing(false);
-      setProgressLabel(null);
-      setProgressPercent(0);
-      setProgressStage(0);
-    }
   }
 
   const pdfCount = files.filter(isPdfUpload).length;
@@ -567,7 +406,7 @@ export function StudentRecordWorkspace({
       }`
     : manualStudentName.trim() || "학생부에서 이름 읽기";
   const runningName =
-    selectedStudent?.name || manualStudentName.trim() || "";
+    job.input?.displayName || selectedStudent?.name || manualStudentName.trim() || "";
 
   const openRecordId = result?.recordId ?? null;
   const openRecord = openRecordId ? history.find((r) => r.id === openRecordId) : undefined;
@@ -757,7 +596,7 @@ export function StudentRecordWorkspace({
                   {runningName ? `${runningName} 학생부를` : "학생부를"} 분석하고 있어요
                 </h2>
                 <p className="mt-1.5 text-sm text-slate-500">
-                  보통 1~3분 걸려요. 이 화면을 닫지 말고 기다려 주세요.
+                  보통 1~3분 걸려요. 다른 메뉴로 가도 계속 만들어져요. (이 탭을 닫으면 멈춰요)
                 </p>
                 <div className="mx-auto mt-6 max-w-md text-left">
                   <div className="flex items-center justify-between gap-3 text-sm">
@@ -999,7 +838,7 @@ export function StudentRecordWorkspace({
                 <StepSection index={4} title="만들기">
                   {error ? <Alert variant="error" className="mb-3">{error}</Alert> : null}
                   <div className="flex flex-wrap items-center gap-3">
-                    <Button disabled={files.length === 0} onClick={() => void runAnalysis()}>
+                    <Button disabled={files.length === 0} onClick={runAnalysis}>
                       <Icon name="sparkle" size={16} />
                       분석 보고서 만들기
                     </Button>

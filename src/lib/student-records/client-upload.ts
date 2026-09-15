@@ -218,13 +218,15 @@ export async function fetchStudentRecordApi(
   for (;;) {
     try {
       const res = await fetch(input, init);
-      if (res.status >= 500 && attempt < retries) {
+      if (res.status >= 500 && attempt < retries && !init.signal?.aborted) {
         attempt += 1;
         await new Promise((r) => setTimeout(r, 1200 * attempt));
         continue;
       }
       return res;
     } catch (e) {
+      // 사용자가 멈춘 요청은 다시 보내지 않는다
+      if (init.signal?.aborted) throw e;
       if (attempt < retries) {
         attempt += 1;
         await new Promise((r) => setTimeout(r, 1200 * attempt));

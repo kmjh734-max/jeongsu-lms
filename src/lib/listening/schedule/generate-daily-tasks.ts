@@ -1,18 +1,15 @@
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  getStudyDayIndex,
-  isStudyDay,
-  listStudyDatesInclusive,
   parseDateOnly,
   toDateOnlyString,
 } from "@/lib/listening/schedule/days-of-week";
 import {
-  buildLeftoverDailySlices,
-  buildQuestionQueueForAssignment,
-  remainingQueueAfterConsumed,
-  sliceQuestionsForStudyDay,
-} from "@/lib/listening/schedule/question-queue";
+  isTaskStarted,
+  planStudentDailyTasks,
+  type PlanExistingTaskRow,
+} from "@/lib/listening/schedule/plan-daily-tasks";
+import { buildQuestionQueueForAssignment } from "@/lib/listening/schedule/question-queue";
 import { resolveStudentIdsForScheduleAssignment } from "@/lib/listening/schedule/resolve-students";
 import {
   getStudentListeningEffectiveStartIso,
@@ -34,66 +31,26 @@ type DailyTaskInsert = {
   total_count: number;
 };
 
-function isTaskDateInAssignment(
-  taskDateIso: string,
-  assignment: ScheduleAssignmentRow
-): boolean {
-  const taskDate = parseDateOnly(taskDateIso);
-  const start = parseDateOnly(assignment.start_date);
-  const end = assignment.end_date ? parseDateOnly(assignment.end_date) : null;
-  if (taskDate < start) return false;
-  if (end && taskDate > end) return false;
-  return isStudyDay(taskDate, assignment.days_of_week);
+/** 진행 기록(객관식·받아쓰기 중 하나라도)이 있는 과제 id */
+const STARTED_PROGRESS_FILTER =
+  "objective_completed.eq.true,dictation_completed.eq.true,completed.eq.true,dictation_score.not.is.null";
+
+export async function loadStartedTaskIds(
+  admin: SupabaseClient,
+  taskIds: string[]
+): Promise<Set<string>> {
+  const started = new Set<string>();
+  for (let i = 0; i < taskIds.length; i += 100) {
+    const chunk = taskIds.slice(i, i + 100);
+    const { data } = await admin
+      .from("listening_daily_task_progress")
+      .select("daily_task_id")
+      .in("daily_task_id", chunk)
+      .or(STARTED_PROGRESS_FILTER);
+    for (const row of data ?? []) started.add(row.daily_task_id as string);
+  }
+  return started;
 }
-
-function buildTaskRowForDate(
-  assignment: ScheduleAssignmentRow,
-  studentId: string,
-  taskDateIso: string,
-  queue: QuestionQueueItem[]
-): DailyTaskInsert | null {
-  if (!isTaskDateInAssignment(taskDateIso, assignment)) return null;
-
-  const studyDayIndex = getStudyDayIndex(
-    assignment.start_date,
-    taskDateIso,
-    assignment.days_of_week
-  );
-  if (studyDayIndex < 0) return null;
-
-  const slice = sliceQuestionsForStudyDay(
-    queue,
-    studyDayIndex,
-    assignment.questions_per_day
-  );
-  if (!slice || slice.questionIds.length === 0) return null;
-
-  return {
-    assignment_id: assignment.id,
-    student_id: studentId,
-    task_date: taskDateIso,
-    set_id: slice.setId,
-    question_ids: slice.questionIds,
-    status: "pending",
-    completed_count: 0,
-    total_count: slice.questionIds.length,
-  };
-}
-
-function sameIdList(a: string[] | null | undefined, b: string[]): boolean {
-  const left = a ?? [];
-  if (left.length !== b.length) return false;
-  return left.every((id, i) => id === b[i]);
-}
-
-type ExistingTaskRow = {
-  id: string;
-  task_date: string;
-  status: string;
-  completed_count: number | null;
-  question_ids: string[] | null;
-  set_id: string;
-};
 
 async function insertDailyTasksBatch(
   admin: SupabaseClient,
@@ -207,14 +164,9 @@ export async function ensureDailyTasksForStudentRange(
     .eq("assignment_id", assignment.id)
     .eq("student_id", studentId);
 
-  const existingRows = (existingAll ?? []) as ExistingTaskRow[];
-  const pastRows = existingRows.filter((row) => row.task_date < todayIso);
+  const existingRows = (existingAll ?? []) as PlanExistingTaskRow[];
 
-  const consumed = new Set<string>();
-  for (const row of pastRows) {
-    for (const id of row.question_ids ?? []) consumed.add(id);
-  }
-
+  const completedQuestionIds = new Set<string>();
   const queueIds = resolvedQueue.map((q) => q.questionId);
   for (let i = 0; i < queueIds.length; i += 100) {
     const chunk = queueIds.slice(i, i + 100);
@@ -225,133 +177,39 @@ export async function ensureDailyTasksForStudentRange(
       .eq("completed", true)
       .in("question_id", chunk);
     for (const row of doneRows ?? []) {
-      consumed.add(row.question_id as string);
+      completedQuestionIds.add(row.question_id as string);
     }
   }
 
-  const leftoverIds = new Set(
-    remainingQueueAfterConsumed(resolvedQueue, consumed).map(
-      (q) => q.questionId
-    )
+  // 오늘 과제를 풀기 시작했으면(끝낸 문항이 아직 없어도) 그대로 둔다
+  const startedTaskIds = await loadStartedTaskIds(
+    admin,
+    existingRows
+      .filter((row) => row.task_date >= todayIso && !isTaskStarted(row))
+      .map((row) => row.id)
   );
 
-  const locked: ExistingTaskRow[] = [];
-  const unlockedInRange: ExistingTaskRow[] = [];
-  for (const row of existingRows) {
-    if (row.task_date < todayIso) {
-      locked.push(row);
-      continue;
-    }
-
-    const remainingIds = (row.question_ids ?? []).filter(
-      (id) => !consumed.has(id)
-    );
-    const sequential =
-      remainingIds.length > 0 &&
-      remainingIds.every((id) => leftoverIds.has(id));
-    const keep =
-      row.status === "completed" ||
-      ((row.completed_count ?? 0) > 0 && sequential);
-
-    if (keep) {
-      locked.push(row);
-      for (const id of row.question_ids ?? []) consumed.add(id);
-      continue;
-    }
-
-    if (row.task_date >= clampedFrom && row.task_date <= toIso) {
-      unlockedInRange.push(row);
-    }
-  }
-
-  const lockedByDate = new Map(locked.map((row) => [row.task_date, row]));
-  const unlockedByDate = new Map(
-    unlockedInRange.map((row) => [row.task_date, row])
-  );
-  const existingByDate = new Map(
-    existingRows.map((row) => [row.task_date, row])
-  );
-
-  const studyDates = listStudyDatesInclusive(
-    clampedFrom,
+  const { idsToDelete, inserts } = planStudentDailyTasks({
+    assignment,
+    queue: resolvedQueue,
+    existingRows,
+    completedQuestionIds,
+    startedTaskIds,
+    todayIso,
+    fromIso: clampedFrom,
     toIso,
-    assignment.days_of_week
-  ).filter((iso) => isTaskDateInAssignment(iso, assignment));
+  });
 
-  const pending: DailyTaskInsert[] = [];
-  const idsToDelete: string[] = [];
-
-  const futureDates = studyDates.filter(
-    (iso) => iso >= todayIso && !lockedByDate.has(iso)
-  );
-
-  if (consumed.size === 0) {
-    for (const iso of studyDates) {
-      if (iso >= todayIso) continue;
-      if (existingByDate.has(iso)) continue;
-      const row = buildTaskRowForDate(
-        assignment,
-        studentId,
-        iso,
-        resolvedQueue
-      );
-      if (row) pending.push(row);
-    }
-    for (const iso of futureDates) {
-      const expected = buildTaskRowForDate(
-        assignment,
-        studentId,
-        iso,
-        resolvedQueue
-      );
-      const existing = unlockedByDate.get(iso);
-      if (!expected) {
-        if (existing) idsToDelete.push(existing.id);
-        continue;
-      }
-      if (
-        existing &&
-        existing.set_id === expected.set_id &&
-        sameIdList(existing.question_ids, expected.question_ids)
-      ) {
-        continue;
-      }
-      if (existing) idsToDelete.push(existing.id);
-      pending.push(expected);
-    }
-  } else {
-    const slices = buildLeftoverDailySlices(
-      resolvedQueue,
-      consumed,
-      assignment.questions_per_day
-    );
-    futureDates.forEach((iso, i) => {
-      const slice = slices[i];
-      const existing = unlockedByDate.get(iso);
-      if (!slice) {
-        if (existing) idsToDelete.push(existing.id);
-        return;
-      }
-      if (
-        existing &&
-        existing.set_id === slice.setId &&
-        sameIdList(existing.question_ids, slice.questionIds)
-      ) {
-        return;
-      }
-      if (existing) idsToDelete.push(existing.id);
-      pending.push({
-        assignment_id: assignment.id,
-        student_id: studentId,
-        task_date: iso,
-        set_id: slice.setId,
-        question_ids: slice.questionIds,
-        status: "pending",
-        completed_count: 0,
-        total_count: slice.questionIds.length,
-      });
-    });
-  }
+  const pending: DailyTaskInsert[] = inserts.map((task) => ({
+    assignment_id: assignment.id,
+    student_id: studentId,
+    task_date: task.task_date,
+    set_id: task.set_id,
+    question_ids: task.question_ids,
+    status: "pending",
+    completed_count: 0,
+    total_count: task.question_ids.length,
+  }));
 
   if (idsToDelete.length > 0) {
     await admin.from("listening_daily_tasks").delete().in("id", idsToDelete);

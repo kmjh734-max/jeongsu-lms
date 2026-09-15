@@ -1,7 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Icon } from "@/components/layout/NavIcon";
+import {
+  countVocabNudgeTargets,
+  VocabNudgeDialog,
+  VocabNudgeQueueDialog,
+} from "@/components/learning-status/VocabMissedNudge";
+import { Button } from "@/components/ui/Button";
 import { Pill, StageCellView, StageLegend } from "@/components/vocab/VocabUi";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import type { ReportClassOption } from "@/lib/reports/types";
@@ -13,6 +19,8 @@ interface VocabTodayStatusPanelProps {
   initialClasses?: ReportClassOption[];
   /** 단어장 범위 — 폴더·미분류 */
   scopeOptions?: { value: string; label: string }[];
+  /** 학부모 안내 문구에 넣을 접속한 학원 이름 */
+  academyName?: string;
 }
 
 function dayWord(dateIso: string) {
@@ -26,14 +34,20 @@ function StatCard({
   value,
   sub,
   tone,
+  action,
 }: {
   label: string;
   value: string | number;
   sub: string;
   tone?: "bad" | "warn";
+  action?: ReactNode;
 }) {
   return (
-    <div className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-[18px] py-4 shadow-card">
+    <div
+      className={`min-w-0 flex-1 rounded-lg border bg-white px-[18px] py-4 shadow-card ${
+        action ? "border-amber-200" : "border-slate-200"
+      }`}
+    >
       <p className="truncate text-[13px] text-slate-500">{label}</p>
       <p className="mt-1.5 flex items-baseline gap-1.5">
         <span
@@ -45,6 +59,7 @@ function StatCard({
         </span>
         <span className="text-[13px] text-slate-500">{sub}</span>
       </p>
+      {action ? <div className="mt-2.5">{action}</div> : null}
     </div>
   );
 }
@@ -52,6 +67,7 @@ function StatCard({
 export function VocabTodayStatusPanel({
   initialClasses = [],
   scopeOptions = [],
+  academyName,
 }: VocabTodayStatusPanelProps) {
   const [classId, setClassId] = useState("");
   const [scope, setScope] = useState("recent");
@@ -61,6 +77,8 @@ export function VocabTodayStatusPanel({
   const [grid, setGrid] = useState<VocabStatusGrid | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const [nudgeStudentId, setNudgeStudentId] = useState<string | null>(null);
 
   const abortRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
@@ -117,6 +135,12 @@ export function VocabTodayStatusPanel({
   const cols = grid?.sets.length ?? 0;
   const template = `minmax(140px,1fr) repeat(${cols}, 118px) 90px`;
   const minWidth = 140 + cols * 118 + 90 + 36 + cols * 8;
+  const isToday = (grid?.dateIso ?? dateIso) === getTodayIsoKorea();
+  const gridDay = grid ? dayWord(grid.dateIso) : day;
+  const nudgeTargets = useMemo(() => countVocabNudgeTargets(grid?.rows ?? []), [grid]);
+  const nudgeRow = nudgeStudentId
+    ? grid?.rows.find((r) => r.studentId === nudgeStudentId) ?? null
+    : null;
 
   return (
     <div className="space-y-4">
@@ -219,6 +243,14 @@ export function VocabTodayStatusPanel({
               value={summary.notStudiedToday}
               sub="명"
               tone="warn"
+              action={
+                nudgeTargets > 0 ? (
+                  <Button size="sm" className="w-full" onClick={() => setQueueOpen(true)}>
+                    <Icon name="send" size={15} />
+                    학부모께 알림 보내기
+                  </Button>
+                ) : undefined
+              }
             />
           </div>
 
@@ -261,10 +293,15 @@ export function VocabTodayStatusPanel({
                       }`}
                       style={{ gridTemplateColumns: template }}
                     >
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate text-sm font-semibold text-slate-900">
+                      <span className="flex min-w-0 flex-col items-start">
+                        <button
+                          type="button"
+                          onClick={() => setNudgeStudentId(row.studentId)}
+                          title="학부모께 알림 보내기"
+                          className="max-w-full truncate text-left text-sm font-semibold text-slate-900 hover:text-brand-700 hover:underline"
+                        >
                           {row.name}
-                        </span>
+                        </button>
                         {!classId ? (
                           <span className="truncate text-[11px] text-slate-400">
                             {row.classLabel}
@@ -298,7 +335,32 @@ export function VocabTodayStatusPanel({
               </div>
             )}
           </div>
+          {grid.rows.length > 0 ? (
+            <p className="px-1 text-xs text-slate-400">
+              학생 이름을 누르면 학부모께 알림을 보낼 수 있어요.
+            </p>
+          ) : null}
         </>
+      ) : null}
+
+      {queueOpen && grid ? (
+        <VocabNudgeQueueDialog
+          grid={grid}
+          isToday={isToday}
+          dayLabel={gridDay}
+          academyName={academyName}
+          onClose={() => setQueueOpen(false)}
+        />
+      ) : null}
+      {nudgeRow && grid ? (
+        <VocabNudgeDialog
+          row={nudgeRow}
+          grid={grid}
+          isToday={isToday}
+          dayLabel={gridDay}
+          academyName={academyName}
+          onClose={() => setNudgeStudentId(null)}
+        />
       ) : null}
     </div>
   );

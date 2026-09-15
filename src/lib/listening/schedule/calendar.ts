@@ -117,6 +117,7 @@ export async function getStudentListeningCalendar(
 
   type TaskRow = {
     id: string;
+    assignment_id: string;
     task_date: string;
     status: DailyTaskStatus;
     completed_count: number;
@@ -128,7 +129,7 @@ export async function getStudentListeningCalendar(
   const { data: taskRows } = await admin
     .from("listening_daily_tasks")
     .select(
-      "id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
+      "id, assignment_id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
     )
     .eq("student_id", studentId)
     .gte("task_date", start)
@@ -142,6 +143,7 @@ export async function getStudentListeningCalendar(
     tasksByDate.set(iso, list);
   }
 
+  const activeAssignmentIds = new Set(assignments.map((a) => a.id));
   const days: ListeningCalendarDay[] = [];
 
   for (let day = 1; day <= daysInMonth; day++) {
@@ -155,8 +157,11 @@ export async function getStudentListeningCalendar(
         effectiveStartByAssignment.get(a.id)
       )
     );
-    const isStudyDayFlag = studyAssignments.length > 0;
     const rows = tasksByDate.get(taskDate) ?? [];
+    // 요일·기간을 바꾼 뒤에도 이미 나간 과제는 달력에 남긴다
+    const isStudyDayFlag =
+      studyAssignments.length > 0 ||
+      rows.some((r) => activeAssignmentIds.has(r.assignment_id));
 
     if (!isStudyDayFlag) {
       days.push({

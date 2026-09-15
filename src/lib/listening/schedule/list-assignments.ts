@@ -15,7 +15,10 @@ export interface ScheduleAssignmentListItem {
   startDate: string;
   endDate: string | null;
   daysLabel: string;
+  daysOfWeek: number[];
   questionsPerDay: number;
+  requireDictationPass: boolean;
+  dictationPassScore: number;
   isActive: boolean;
   createdAt: string;
 }
@@ -43,7 +46,7 @@ export async function listScheduleAssignments(
   let query = admin
     .from("listening_schedule_assignments")
     .select(
-      "id, title, target_type, target_class_id, target_student_id, start_date, end_date, days_of_week, questions_per_day, is_active, created_at, assigned_by, academy_id"
+      "id, title, target_type, target_class_id, target_student_id, start_date, end_date, days_of_week, questions_per_day, require_dictation_pass, dictation_pass_score, is_active, created_at, assigned_by, academy_id"
     )
     .eq("academy_id", academyId)
     .order("created_at", { ascending: false })
@@ -144,7 +147,10 @@ export async function listScheduleAssignments(
       startDate: row.start_date as string,
       endDate: (row.end_date as string | null) ?? null,
       daysLabel: formatDaysOfWeek((row.days_of_week as number[]) ?? []),
+      daysOfWeek: ((row.days_of_week as number[]) ?? []).slice(),
       questionsPerDay: row.questions_per_day as number,
+      requireDictationPass: (row.require_dictation_pass as boolean) !== false,
+      dictationPassScore: (row.dictation_pass_score as number | null) ?? 80,
       isActive: row.is_active as boolean,
       createdAt: row.created_at as string,
     };
