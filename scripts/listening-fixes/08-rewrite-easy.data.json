@@ -1,0 +1,4825 @@
+{
+ "note": "너무 쉬운 듣기 문항 다시 쓰기 (2026-09-16). 지시문·선택지·정답 번호는 그대로, 대본·해석·해설·정답 근거만 바뀐다. before_sha = 바꾸기 전 정수학원 원본 내용 서명(sha256).",
+ "items": [
+  {
+   "key": "고1 듣기 1회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "최종 금액 $35를 \"thirty-five dollars, right?\"로 말하고 \"Exactly\"로 확인함",
+   "before_sha": "f027ad62f8688463d4ff2055187b910b99066cb6acfbea76606ffa89484abab8",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Hello. Are you here for tickets to the school drama festival?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I need three student tickets for the Friday evening show."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. Front-row seats are fifteen dollars, and regular seats are twelve dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "Front-row seats sound nice, but regular seats will be fine for us."
+    },
+    {
+     "speaker": "M",
+     "text": "All right. Would you like a program booklet? It's four dollars and has photos of the cast."
+    },
+    {
+     "speaker": "W",
+     "text": "I was going to get one for each of us, but one is enough. We can share it."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. Do you have the festival coupon from the school app?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, here it is. It says five dollars off the total price."
+    },
+    {
+     "speaker": "M",
+     "text": "Let me check. Yes, you can use it for this purchase."
+    },
+    {
+     "speaker": "W",
+     "text": "Great. Here's my credit card."
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 학교 연극제 표를 사러 오셨나요?\n여: 네. 금요일 저녁 공연 학생표 세 장이 필요해요.\n남: 알겠습니다. 앞줄 좌석은 15달러이고, 일반 좌석은 한 장에 12달러입니다.\n여: 앞줄 좌석이 좋아 보이지만, 저희는 일반 좌석이면 괜찮아요.\n남: 좋습니다. 프로그램 책자도 필요하신가요? 4달러이고 출연진 사진이 들어 있어요.\n여: 한 사람당 한 권씩 사려고 했는데, 한 권이면 충분해요. 같이 보면 되니까요.\n남: 그러세요. 학교 앱에서 받은 축제 쿠폰이 있으신가요?\n여: 네, 여기 있어요. 총액에서 5달러 할인이라고 되어 있어요.\n남: 확인해 볼게요. 네, 이번 구매에 사용하실 수 있습니다.\n여: 좋아요. 여기 제 신용 카드요.",
+   "answer_clue": "regular seats are twelve dollars each / one is enough / five dollars off the total price",
+   "explanation": "여자는 앞줄 좌석 대신 12달러짜리 일반 좌석 표 3장(36달러)을 사고, 4달러짜리 프로그램 책자는 한 권만 사서 합계가 40달러이다. 앱 쿠폰으로 총액에서 5달러를 할인받으므로 지불할 금액은 35달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "regular seat",
+      "unit_price": 12,
+      "quantity": 3
+     },
+     {
+      "label": "program booklet",
+      "unit_price": 4,
+      "quantity": 1
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 5
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 3회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "\"your total twenty-eight dollars and eighty cents\"로 최종액을 직접 말함",
+   "before_sha": "76b80698cadfefd085d14a50e667e307af4186946955f53bc9c9f08a4aa3ce8b",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Hello. How can I help you at the school festival store today?"
+    },
+    {
+     "speaker": "W",
+     "text": "I need some eco-friendly notebooks for the members of my club."
+    },
+    {
+     "speaker": "M",
+     "text": "Recycled paper notebooks are six dollars each, and hardcover ones are eight dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "The hardcover ones look nice, but the recycled ones fit our club's green theme better."
+    },
+    {
+     "speaker": "M",
+     "text": "Good choice. How many would you like?"
+    },
+    {
+     "speaker": "W",
+     "text": "Four, please. Do you have pens that go with these notebooks?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. These bamboo pens are two dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "Then I'll take four pens as well. Oh, I also have this student council coupon."
+    },
+    {
+     "speaker": "M",
+     "text": "Let me see. It gives ten percent off stationery, so it covers everything you're buying."
+    },
+    {
+     "speaker": "W",
+     "text": "Wonderful. Here's my card. Could you put everything in one paper bag?"
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 오늘 학교 축제 매장에서 무엇을 도와드릴까요?\n여: 저희 동아리 회원들을 위한 친환경 공책이 필요해요.\n남: 재생지 공책은 한 권에 6달러이고, 하드커버 공책은 한 권에 8달러입니다.\n여: 하드커버 공책도 멋지지만, 재생지 공책이 저희 동아리의 친환경 주제에 더 잘 맞아요.\n남: 좋은 선택이에요. 몇 권 드릴까요?\n여: 네 권 주세요. 이 공책과 어울리는 펜도 있나요?\n남: 네. 이 대나무 펜은 한 자루에 2달러입니다.\n여: 그럼 펜도 네 자루 살게요. 아, 학생회 쿠폰도 있어요.\n남: 볼게요. 문구류 10퍼센트 할인 쿠폰이라서 사시는 물건 모두에 적용됩니다.\n여: 잘됐네요. 여기 제 카드요. 전부 종이봉투 하나에 넣어 주시겠어요?",
+   "answer_clue": "the recycled ones fit our club's green theme / Four, please / four pens as well / ten percent off stationery, so it covers everything",
+   "explanation": "여자는 6달러짜리 재생지 공책 4권(24달러)과 2달러짜리 펜 4자루(8달러)를 사서 합계가 32달러이다. 학생회 쿠폰으로 전체 금액의 10퍼센트를 할인받으므로 지불할 금액은 $28.80이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "recycled notebook",
+      "unit_price": 6,
+      "quantity": 4
+     },
+     {
+      "label": "bamboo pen",
+      "unit_price": 2,
+      "quantity": 4
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 4회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "할인·기부 후 최종액 $34.40을 점원이 그대로 말함",
+   "before_sha": "b8ed564df9b0156acc2a82f1b252c2ea3b0bcd6034a7498d5ff8d34d1a151c72",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Good afternoon. Are you here for tickets to the school music festival?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I need three student tickets, and one adult ticket for my mother."
+    },
+    {
+     "speaker": "M",
+     "text": "Student tickets are eight dollars each, and adult tickets are twelve dollars."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. I also saw a poster about a photo booklet. How much is it?"
+    },
+    {
+     "speaker": "M",
+     "text": "It's usually five dollars, but it's free if you buy four or more tickets."
+    },
+    {
+     "speaker": "W",
+     "text": "Oh, nice. Then I'll just take the free one."
+    },
+    {
+     "speaker": "M",
+     "text": "Do you have the online coupon? It gives ten percent off the ticket prices."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, here it is. And I'd like to give two dollars to the stage decoration fund."
+    },
+    {
+     "speaker": "M",
+     "text": "Thank you. The donation isn't discounted, so it's added after the coupon."
+    },
+    {
+     "speaker": "W",
+     "text": "That's fine. Here's my card."
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 학교 음악 축제 표를 사러 오셨나요?\n여: 네. 학생표 세 장과 어머니를 위한 성인표 한 장이 필요해요.\n남: 학생표는 한 장에 8달러이고, 성인표는 12달러입니다.\n여: 알겠습니다. 사진 책자에 관한 포스터도 봤는데요. 얼마인가요?\n남: 원래는 5달러인데, 표를 네 장 이상 사시면 무료입니다.\n여: 아, 좋네요. 그럼 무료 책자만 받을게요.\n남: 온라인 쿠폰이 있으신가요? 표 가격에서 10퍼센트 할인됩니다.\n여: 네, 여기 있어요. 그리고 무대 장식 기금으로 2달러를 기부하고 싶어요.\n남: 감사합니다. 기부금은 할인되지 않아서 쿠폰 적용 후에 더해집니다.\n여: 괜찮아요. 여기 제 카드요.",
+   "answer_clue": "three student tickets, and one adult ticket / it's free if you buy four or more tickets / ten percent off the ticket prices / two dollars ... added after the coupon",
+   "explanation": "학생표 3장(24달러)과 성인표 1장(12달러)을 합한 36달러에서 쿠폰으로 10퍼센트를 할인받으면 32.40달러이고, 사진 책자는 표를 네 장 샀으므로 무료이다. 여기에 기부금 2달러를 더하므로 지불할 금액은 $34.40이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "student ticket",
+      "unit_price": 8,
+      "quantity": 3
+     },
+     {
+      "label": "adult ticket",
+      "unit_price": 12,
+      "quantity": 1
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     },
+     {
+      "kind": "add",
+      "value": 2,
+      "label": "donation"
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 5회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "할인 전 합계 28달러를 말해 줘서 5달러 빼기 한 번이면 끝남",
+   "before_sha": "cbe2d1cbe708c22c4b3cf6883e76f54a6fe158bef0a09965493f3d62e76090cd",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Welcome to Green Spoon Cafe. Are you ready to order?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I'd like three chicken sandwiches and two bottles of orange juice."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. The sandwiches are six dollars each, and the juice is three dollars a bottle."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. Do you still sell those fruit cups near the counter?"
+    },
+    {
+     "speaker": "M",
+     "text": "We do. They're four dollars each, but today they're buy one, get one free."
+    },
+    {
+     "speaker": "W",
+     "text": "Great! Then I'll take two fruit cups."
+    },
+    {
+     "speaker": "M",
+     "text": "Good choice. Do you have a membership card or a coupon?"
+    },
+    {
+     "speaker": "W",
+     "text": "I have this school coupon. It says five dollars off."
+    },
+    {
+     "speaker": "M",
+     "text": "Let me check. Yes, you can use it today."
+    },
+    {
+     "speaker": "W",
+     "text": "Perfect. I'll pay with my debit card."
+    }
+   ],
+   "script_translation": "남: Green Spoon Cafe에 오신 것을 환영합니다. 주문하시겠어요?\n여: 네. 치킨 샌드위치 세 개와 오렌지 주스 두 병 주세요.\n남: 네. 샌드위치는 한 개에 6달러이고, 주스는 한 병에 3달러입니다.\n여: 알겠습니다. 계산대 옆에 있던 과일 컵도 아직 파나요?\n남: 네. 한 개에 4달러인데, 오늘은 하나를 사시면 하나를 무료로 드려요.\n여: 잘됐네요! 그럼 과일 컵 두 개 주세요.\n남: 좋은 선택이에요. 멤버십 카드나 쿠폰이 있으신가요?\n여: 학교 쿠폰이 있어요. 5달러 할인이라고 되어 있어요.\n남: 확인해 볼게요. 네, 오늘 사용하실 수 있어요.\n여: 좋아요. 직불 카드로 결제할게요.",
+   "answer_clue": "three chicken sandwiches and two bottles of orange juice / buy one, get one free / I'll take two fruit cups / five dollars off",
+   "explanation": "샌드위치 3개는 18달러, 주스 2병은 6달러이고, 과일 컵 2개는 하나를 사면 하나가 무료라서 4달러만 내면 되므로 합계는 28달러이다. 학교 쿠폰으로 5달러를 할인받아 지불할 금액은 23달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "chicken sandwich",
+      "unit_price": 6,
+      "quantity": 3
+     },
+     {
+      "label": "orange juice",
+      "unit_price": 3,
+      "quantity": 2
+     },
+     {
+      "label": "fruit cup (buy one, get one free)",
+      "unit_price": 4,
+      "quantity": 1
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 5
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 7회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "최종액 18달러를 점원과 여자가 두 번 말함",
+   "before_sha": "83d267c538ae87729701031533db6de6175304dc689c20a285836a7ba928ebe6",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Welcome to Green Stationery. Are you looking for anything in particular?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, I need notebooks for our history project group. How much are these blue ones?"
+    },
+    {
+     "speaker": "M",
+     "text": "They're three dollars each. The recycled paper folders next to them are two dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "I'll take four notebooks. And three folders should be enough for our handouts."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. Would you like name stickers too? They're one dollar per sheet."
+    },
+    {
+     "speaker": "W",
+     "text": "We have four members, but two sheets will do. We can cut them in half."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. Is there anything else you need today?"
+    },
+    {
+     "speaker": "W",
+     "text": "No, that's all. Oh, I have a ten percent discount coupon from the school newspaper."
+    },
+    {
+     "speaker": "M",
+     "text": "Let me check the date. Yes, it's still good today."
+    },
+    {
+     "speaker": "W",
+     "text": "Great. Here's my card."
+    }
+   ],
+   "script_translation": "남: Green Stationery에 오신 것을 환영합니다. 특별히 찾으시는 것이 있나요?\n여: 네, 역사 프로젝트 모둠에서 쓸 공책이 필요해요. 이 파란 공책은 얼마인가요?\n남: 한 권에 3달러입니다. 그 옆에 있는 재생지 폴더는 한 개에 2달러예요.\n여: 공책 네 권 살게요. 그리고 유인물용 폴더는 세 개면 충분할 거예요.\n남: 알겠습니다. 이름 스티커도 필요하신가요? 한 장에 1달러입니다.\n여: 모둠원이 네 명이지만 두 장이면 돼요. 반으로 잘라 쓰면 되거든요.\n남: 네. 오늘 더 필요하신 건 없나요?\n여: 아니요, 그게 다예요. 아, 학교 신문에서 받은 10퍼센트 할인 쿠폰이 있어요.\n남: 날짜를 확인해 볼게요. 네, 오늘까지 사용 가능합니다.\n여: 좋네요. 여기 제 카드요.",
+   "answer_clue": "four notebooks / three folders / two sheets will do / a ten percent discount coupon",
+   "explanation": "공책 4권은 12달러, 폴더 3개는 6달러, 이름 스티커 2장은 2달러로 합계는 20달러이다. 학교 신문 쿠폰으로 10퍼센트를 할인받으므로 지불할 금액은 18달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "notebook",
+      "unit_price": 3,
+      "quantity": 4
+     },
+     {
+      "label": "folder",
+      "unit_price": 2,
+      "quantity": 3
+     },
+     {
+      "label": "name sticker sheet",
+      "unit_price": 1,
+      "quantity": 2
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 8회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "할인 전 합계 65달러를 말해 줘서 10% 할인 계산 한 번이면 끝남",
+   "before_sha": "d537fd19e543af1d89fa4075473ce8a4ee181fabfdc0b94abb0991675143793a",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Welcome to Green Print Shop. How can I help you today?"
+    },
+    {
+     "speaker": "M",
+     "text": "I need some posters for our school music club concert."
+    },
+    {
+     "speaker": "W",
+     "text": "Sure. A color poster is three dollars, and a black-and-white one is two dollars."
+    },
+    {
+     "speaker": "M",
+     "text": "I'll take fifteen color posters and ten black-and-white posters, please."
+    },
+    {
+     "speaker": "W",
+     "text": "Would you like them laminated? It's one dollar more for each poster."
+    },
+    {
+     "speaker": "M",
+     "text": "Hmm, no, thanks. We'll put them up inside the school building."
+    },
+    {
+     "speaker": "W",
+     "text": "All right. Do you have a student club coupon? It gives you ten percent off."
+    },
+    {
+     "speaker": "M",
+     "text": "Yes, here it is. Can I use it for all the posters?"
+    },
+    {
+     "speaker": "W",
+     "text": "Of course. It applies to your whole order."
+    },
+    {
+     "speaker": "M",
+     "text": "Great. I'll pay by card."
+    }
+   ],
+   "script_translation": "여: Green Print Shop에 오신 것을 환영합니다. 무엇을 도와드릴까요?\n남: 학교 음악 동아리 공연에 쓸 포스터가 필요해요.\n여: 네. 컬러 포스터는 3달러이고, 흑백 포스터는 2달러입니다.\n남: 컬러 포스터 15장과 흑백 포스터 10장 주세요.\n여: 코팅도 해 드릴까요? 포스터 한 장당 1달러가 추가됩니다.\n남: 음, 아니요, 괜찮아요. 학교 건물 안에 붙일 거라서요.\n여: 알겠습니다. 학생 동아리 쿠폰이 있으신가요? 10퍼센트 할인됩니다.\n남: 네, 여기 있어요. 포스터 전체에 쓸 수 있나요?\n여: 물론이죠. 주문 전체에 적용됩니다.\n남: 좋아요. 카드로 결제할게요.",
+   "answer_clue": "fifteen color posters and ten black-and-white posters / no, thanks (laminating) / ten percent off ... your whole order",
+   "explanation": "컬러 포스터 15장은 45달러, 흑백 포스터 10장은 20달러로 합계는 65달러이며, 코팅은 하지 않기로 했다. 동아리 쿠폰으로 10퍼센트를 할인받으므로 남자가 지불할 금액은 $58.50이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "color poster",
+      "unit_price": 3,
+      "quantity": 15
+     },
+     {
+      "label": "black-and-white poster",
+      "unit_price": 2,
+      "quantity": 10
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 10회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "할인 후 자전거 금액과 최종 합계 $26.60을 모두 말함",
+   "before_sha": "935f1946832c9736e50071e953cc87a26f93b57455b894c9bdadb85d0e5b1dfd",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Welcome to Green Bike Rental. How can I help you today?"
+    },
+    {
+     "speaker": "W",
+     "text": "Hi. I'd like to rent two regular bikes for three hours this afternoon."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. The first hour is six dollars per bike, and each extra hour is three dollars per bike."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. My little brother is coming with us. Do you have child seats?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. A child seat is five dollars for the whole rental, no matter how long you use it."
+    },
+    {
+     "speaker": "W",
+     "text": "Great, I'll take one. Are helmets included?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes, they're free. Do you have any discount coupons?"
+    },
+    {
+     "speaker": "W",
+     "text": "I have this one from the city tourism website. It says ten percent off."
+    },
+    {
+     "speaker": "M",
+     "text": "Let me see. It works for the bike rental fee, but not for extra items like child seats."
+    },
+    {
+     "speaker": "W",
+     "text": "I see. That's fine. Here's my card."
+    }
+   ],
+   "script_translation": "남: Green Bike Rental에 오신 것을 환영합니다. 무엇을 도와드릴까요?\n여: 안녕하세요. 오늘 오후에 일반 자전거 두 대를 세 시간 동안 빌리고 싶어요.\n남: 네. 첫 한 시간은 자전거 한 대당 6달러이고, 추가 시간은 한 시간마다 자전거 한 대당 3달러입니다.\n여: 알겠습니다. 어린 남동생도 같이 가는데요. 어린이 좌석이 있나요?\n남: 네. 어린이 좌석은 얼마나 오래 쓰시든 대여 기간 전체에 5달러입니다.\n여: 좋아요, 하나 빌릴게요. 헬멧도 포함되나요?\n남: 네, 무료입니다. 할인 쿠폰이 있으신가요?\n여: 시 관광 웹사이트에서 받은 쿠폰이 있어요. 10퍼센트 할인이라고 되어 있어요.\n남: 볼게요. 자전거 대여료에는 적용되지만, 어린이 좌석 같은 추가 물품에는 적용되지 않습니다.\n여: 그렇군요. 괜찮아요. 여기 제 카드요.",
+   "answer_clue": "two regular bikes for three hours / first hour is six dollars per bike, each extra hour is three dollars per bike / child seat is five dollars / ten percent off ... not for extra items",
+   "explanation": "자전거 한 대를 세 시간 빌리면 6달러에 추가 두 시간 6달러를 더해 12달러이므로 두 대는 24달러이고, 쿠폰으로 대여료만 10퍼센트 할인받아 21.60달러가 된다. 여기에 할인되지 않는 어린이 좌석 5달러를 더하므로 지불할 금액은 $26.60이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "first hour",
+      "unit_price": 6,
+      "quantity": 2
+     },
+     {
+      "label": "extra hour",
+      "unit_price": 3,
+      "quantity": 4
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     },
+     {
+      "kind": "add",
+      "value": 5,
+      "label": "child seat"
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 11회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "\"With the coupon, your total is thirty dollars and sixty cents\"로 정답을 말함",
+   "before_sha": "2b391e1bdcc3b6e5449cadeab3bd060a90891b2161a97096496571a41d75e706",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Good afternoon. Are you here for the school festival photo booth?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I'd like to print some photos for our club members and buy a couple of frames."
+    },
+    {
+     "speaker": "M",
+     "text": "Each printed photo is three dollars. Small frames are five dollars, and large ones are eight."
+    },
+    {
+     "speaker": "W",
+     "text": "I'll print eight photos, one for each member."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. And which frames would you like?"
+    },
+    {
+     "speaker": "W",
+     "text": "The large ones are nice, but they won't fit on our club room shelf. Two small ones, please."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. Do you have any coupons today?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, this student council coupon. It says ten percent off everything at the booth."
+    },
+    {
+     "speaker": "M",
+     "text": "Great. Then I'll apply it to your whole order."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. Here's my card. Could you put the photos in one envelope?"
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 학교 축제 사진 부스에 오셨나요?\n여: 네. 동아리 회원들에게 줄 사진을 인화하고 액자도 두어 개 사고 싶어요.\n남: 인화 사진은 한 장에 3달러입니다. 작은 액자는 5달러이고, 큰 액자는 8달러예요.\n여: 회원 한 명당 한 장씩, 사진 여덟 장을 인화할게요.\n남: 네. 그리고 액자는 어떤 걸로 하시겠어요?\n여: 큰 액자가 멋지지만 동아리방 선반에 맞지 않을 거예요. 작은 액자 두 개 주세요.\n남: 알겠습니다. 오늘 쿠폰이 있으신가요?\n여: 네, 학생회 쿠폰이요. 부스의 모든 상품 10퍼센트 할인이라고 되어 있어요.\n남: 좋습니다. 그럼 주문 전체에 적용해 드릴게요.\n여: 감사합니다. 여기 제 카드요. 사진은 봉투 하나에 넣어 주시겠어요?",
+   "answer_clue": "I'll print eight photos / Two small ones, please / ten percent off everything",
+   "explanation": "사진 8장은 24달러이고, 큰 액자 대신 5달러짜리 작은 액자 2개를 골라 10달러이므로 합계는 34달러이다. 학생회 쿠폰으로 전체 금액의 10퍼센트를 할인받으므로 지불할 금액은 $30.60이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "printed photo",
+      "unit_price": 3,
+      "quantity": 8
+     },
+     {
+      "label": "small frame",
+      "unit_price": 5,
+      "quantity": 2
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 13회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "\"your total after the coupon comes to thirty-seven dollars\"로 정답을 말함",
+   "before_sha": "2486301970e4dd0c1a8cd71039de8db1290d99b344ea062449c970a497edfd16",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Hello. Welcome to our handmade candle booth. Can I help you?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I want to buy some candles as gifts for my club members."
+    },
+    {
+     "speaker": "M",
+     "text": "Small candles are six dollars each, and large ones are ten dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "I'll take three small ones and two large ones."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. Would you like gift boxes? They're two dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "Only for the large candles, please. The small ones can go in a paper bag."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. Do you have a festival coupon? Many visitors got one at the entrance."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, I have one here. It says five dollars off."
+    },
+    {
+     "speaker": "M",
+     "text": "It can be used on orders over thirty dollars, so it works for you."
+    },
+    {
+     "speaker": "W",
+     "text": "Perfect. Here's my card."
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 수제 양초 부스에 오신 것을 환영합니다. 도와드릴까요?\n여: 네. 동아리 회원들에게 선물할 양초를 사고 싶어요.\n남: 작은 양초는 한 개에 6달러이고, 큰 양초는 한 개에 10달러입니다.\n여: 작은 것 세 개와 큰 것 두 개 주세요.\n남: 네. 선물 상자도 필요하신가요? 한 개에 2달러입니다.\n여: 큰 양초에만 해 주세요. 작은 것들은 종이봉투에 넣어도 돼요.\n남: 알겠습니다. 축제 쿠폰이 있으신가요? 많은 분들이 입구에서 받으셨어요.\n여: 네, 여기 하나 있어요. 5달러 할인이라고 되어 있어요.\n남: 30달러가 넘는 주문에 쓸 수 있으니 사용하실 수 있어요.\n여: 좋아요. 여기 제 카드요.",
+   "answer_clue": "three small ones and two large ones / gift boxes ... Only for the large candles / five dollars off",
+   "explanation": "작은 양초 3개는 18달러, 큰 양초 2개는 20달러이고, 큰 양초에만 선물 상자 2개(4달러)를 더해 합계는 42달러이다. 축제 쿠폰으로 5달러를 할인받으므로 지불할 금액은 37달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "small candle",
+      "unit_price": 6,
+      "quantity": 3
+     },
+     {
+      "label": "large candle",
+      "unit_price": 10,
+      "quantity": 2
+     },
+     {
+      "label": "gift box",
+      "unit_price": 2,
+      "quantity": 2
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 5
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 14회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "할인 전 합계 29달러를 말해 줘서 3달러 빼기 한 번이면 끝남",
+   "before_sha": "c43b0f0f94cb4da09276afa4828b3abe3288cb76214d695a68f3004a0cb7387c",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Welcome to Green Stationery. Are you looking for anything special today?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, I need notebooks for our history group. How much are these blue ones?"
+    },
+    {
+     "speaker": "M",
+     "text": "They're four dollars each. The thicker black ones are six dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "I'll take three blue notebooks, and two black ones for our note takers."
+    },
+    {
+     "speaker": "M",
+     "text": "All right. We also have recycled pen sets for five dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "That sounds useful. I'll add one pen set for our group leader."
+    },
+    {
+     "speaker": "M",
+     "text": "Good. Is there anything else you need?"
+    },
+    {
+     "speaker": "W",
+     "text": "No, that's all. I have this school club coupon. Can I use it today?"
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. It takes three dollars off when you spend over twenty dollars."
+    },
+    {
+     "speaker": "W",
+     "text": "Great. I'll pay by card, then."
+    }
+   ],
+   "script_translation": "남: Green Stationery에 오신 것을 환영합니다. 오늘 특별히 찾으시는 것이 있나요?\n여: 네, 역사 모둠에서 쓸 공책이 필요해요. 이 파란 공책은 얼마인가요?\n남: 한 권에 4달러입니다. 더 두꺼운 검은 공책은 한 권에 6달러예요.\n여: 파란 공책 세 권, 그리고 기록 담당자들이 쓸 검은 공책 두 권 살게요.\n남: 알겠습니다. 재활용 펜 세트도 한 세트에 5달러에 있어요.\n여: 유용하겠네요. 모둠장을 위해 펜 세트 하나를 추가할게요.\n남: 좋습니다. 더 필요하신 건 없나요?\n여: 아니요, 그게 다예요. 학교 동아리 쿠폰이 있는데, 오늘 쓸 수 있나요?\n남: 물론이죠. 20달러 넘게 사시면 3달러가 할인됩니다.\n여: 좋아요. 그럼 카드로 결제할게요.",
+   "answer_clue": "three blue notebooks, and two black ones / one pen set / three dollars off when you spend over twenty dollars",
+   "explanation": "파란 공책 3권은 12달러, 검은 공책 2권은 12달러, 펜 세트 1개는 5달러로 합계는 29달러이다. 20달러가 넘으므로 동아리 쿠폰으로 3달러를 할인받아 지불할 금액은 26달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "blue notebook",
+      "unit_price": 4,
+      "quantity": 3
+     },
+     {
+      "label": "black notebook",
+      "unit_price": 6,
+      "quantity": 2
+     },
+     {
+      "label": "pen set",
+      "unit_price": 5,
+      "quantity": 1
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 3
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 15회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "소계를 불러 준 뒤 \"the final amount is sixteen dollars\"로 정답을 말함",
+   "before_sha": "bb674889febfbce99e436120ae94bd2e00a81300b8a2802529e693ad147179c5",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Welcome to Green Table, the festival snack booth. What can I get you?"
+    },
+    {
+     "speaker": "W",
+     "text": "Hi. I'd like three vegetable sandwiches, please. How much are they?"
+    },
+    {
+     "speaker": "M",
+     "text": "They're five dollars each. We also have chicken sandwiches for six dollars."
+    },
+    {
+     "speaker": "W",
+     "text": "The vegetable ones are fine. And what drinks do you have?"
+    },
+    {
+     "speaker": "M",
+     "text": "Orange juice is two dollars a bottle, and lemonade is three dollars a cup."
+    },
+    {
+     "speaker": "W",
+     "text": "I'll take two bottles of orange juice. My friend brought her own water."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. Did you see the festival coupon sign at the entrance?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. It said three dollars off if you spend more than fifteen dollars, right?"
+    },
+    {
+     "speaker": "M",
+     "text": "That's right, and your order is over that amount."
+    },
+    {
+     "speaker": "W",
+     "text": "Great. I'll pay in cash, then."
+    }
+   ],
+   "script_translation": "남: 축제 간식 부스 Green Table에 오신 것을 환영합니다. 무엇을 드릴까요?\n여: 안녕하세요. 채소 샌드위치 세 개 주세요. 얼마인가요?\n남: 한 개에 5달러입니다. 6달러짜리 치킨 샌드위치도 있어요.\n여: 채소 샌드위치면 돼요. 그리고 음료는 뭐가 있나요?\n남: 오렌지 주스는 한 병에 2달러이고, 레모네이드는 한 컵에 3달러입니다.\n여: 오렌지 주스 두 병 주세요. 제 친구는 물을 가져왔거든요.\n남: 알겠습니다. 입구에 있는 축제 쿠폰 안내문 보셨나요?\n여: 네. 15달러 넘게 사면 3달러 할인이라고 했죠?\n남: 맞습니다. 그리고 주문하신 금액이 그보다 많아요.\n여: 좋아요. 그럼 현금으로 낼게요.",
+   "answer_clue": "three vegetable sandwiches ... five dollars each / two bottles of orange juice / three dollars off if you spend more than fifteen dollars",
+   "explanation": "5달러짜리 채소 샌드위치 3개는 15달러, 2달러짜리 오렌지 주스 2병은 4달러로 합계는 19달러이다. 15달러가 넘어 축제 쿠폰으로 3달러를 할인받으므로 지불할 금액은 16달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "vegetable sandwich",
+      "unit_price": 5,
+      "quantity": 3
+     },
+     {
+      "label": "orange juice",
+      "unit_price": 2,
+      "quantity": 2
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 3
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 16회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "소계 22달러를 말하고 \"you need to pay twenty dollars\"로 정답까지 말함",
+   "before_sha": "edb0a7cfb712a5f99ae3129fdb87b92de68996945da2f9ced7872ac0f5594cfa",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Good afternoon. Welcome to the festival photo booth. What would you like?"
+    },
+    {
+     "speaker": "W",
+     "text": "I'd like some printed photo strips of my friends and me. How much are they?"
+    },
+    {
+     "speaker": "M",
+     "text": "Each printed strip is three dollars. We can also send digital copies for five dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "Then four printed strips, please. One for each of us."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. Would you like any digital copies?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, two, please. I'd like to upload them to our class website."
+    },
+    {
+     "speaker": "M",
+     "text": "All right. Do you have a coupon from the student council?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. It's for two dollars off. Can I use it today?"
+    },
+    {
+     "speaker": "M",
+     "text": "Let me see. It's good for orders over fifteen dollars, so yes, you can."
+    },
+    {
+     "speaker": "W",
+     "text": "Great. Here's my card. Please send the digital copies to my email."
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 축제 사진 부스에 오신 것을 환영합니다. 무엇을 원하세요?\n여: 친구들과 제가 나온 인화 사진 스트립을 사고 싶어요. 얼마인가요?\n남: 인화 스트립은 한 장에 3달러입니다. 디지털 사본도 한 개에 5달러로 보내 드릴 수 있어요.\n여: 그럼 인화 스트립 네 장 주세요. 한 사람당 한 장씩이요.\n남: 네. 디지털 사본도 필요하신가요?\n여: 네, 두 개 주세요. 저희 반 웹사이트에 올리고 싶어요.\n남: 알겠습니다. 학생회에서 받은 쿠폰이 있으신가요?\n여: 네. 2달러 할인 쿠폰이에요. 오늘 쓸 수 있나요?\n남: 볼게요. 15달러가 넘는 주문에 쓸 수 있으니, 네, 사용하실 수 있어요.\n여: 좋아요. 여기 제 카드요. 디지털 사본은 제 이메일로 보내 주세요.",
+   "answer_clue": "four printed strips / two (digital copies) / two dollars off ... orders over fifteen dollars",
+   "explanation": "3달러짜리 인화 스트립 4장은 12달러, 5달러짜리 디지털 사본 2개는 10달러로 합계는 22달러이다. 15달러가 넘어 학생회 쿠폰으로 2달러를 할인받으므로 지불할 금액은 20달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "printed strip",
+      "unit_price": 3,
+      "quantity": 4
+     },
+     {
+      "label": "digital copy",
+      "unit_price": 5,
+      "quantity": 2
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 2
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 17회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "책값·할인액을 말한 뒤 여자가 $47.20을 직접 말함",
+   "before_sha": "74325b057631ac4e8964fb8717d2919f926307f482a247f3ffbc8103b6829e7e",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Good afternoon. Are you ready to order the photo books for your club?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I need three small photo books and two large ones."
+    },
+    {
+     "speaker": "M",
+     "text": "Small books are eight dollars each, and large books are twelve dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. Can I also get gift wrapping? It's only for the two large books."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. Gift wrapping is two dollars per book."
+    },
+    {
+     "speaker": "W",
+     "text": "Good. I also have a school festival coupon. It says ten percent off."
+    },
+    {
+     "speaker": "M",
+     "text": "Let me check. The coupon covers the photo books, but not the gift wrapping."
+    },
+    {
+     "speaker": "W",
+     "text": "I see. That's fine with me."
+    },
+    {
+     "speaker": "M",
+     "text": "Would you like to pick them up tomorrow, or should we deliver them?"
+    },
+    {
+     "speaker": "W",
+     "text": "I'll pick them up tomorrow. Here's my card."
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 동아리 사진첩을 주문하시겠어요?\n여: 네. 작은 사진첩 세 권과 큰 사진첩 두 권이 필요해요.\n남: 작은 사진첩은 한 권에 8달러이고, 큰 사진첩은 한 권에 12달러입니다.\n여: 알겠습니다. 선물 포장도 할 수 있나요? 큰 사진첩 두 권만요.\n남: 물론이죠. 선물 포장은 한 권당 2달러입니다.\n여: 좋아요. 학교 축제 쿠폰도 있어요. 10퍼센트 할인이라고 되어 있어요.\n남: 확인해 볼게요. 쿠폰은 사진첩에는 적용되지만 선물 포장에는 적용되지 않습니다.\n여: 그렇군요. 저는 괜찮아요.\n남: 내일 찾으러 오시겠어요, 아니면 배달해 드릴까요?\n여: 내일 찾으러 올게요. 여기 제 카드요.",
+   "answer_clue": "three small photo books and two large ones / gift wrapping ... only for the two large books / ten percent off ... covers the photo books, but not the gift wrapping",
+   "explanation": "작은 사진첩 3권(24달러)과 큰 사진첩 2권(24달러)의 합계 48달러에서 쿠폰으로 10퍼센트를 할인받으면 43.20달러이다. 할인되지 않는 큰 사진첩 2권의 선물 포장비 4달러를 더하므로 지불할 금액은 $47.20이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "small photo book",
+      "unit_price": 8,
+      "quantity": 3
+     },
+     {
+      "label": "large photo book",
+      "unit_price": 12,
+      "quantity": 2
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     },
+     {
+      "kind": "add",
+      "value": 4,
+      "label": "gift wrapping x2"
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 18회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "할인 전 합계 28달러를 말해 줘서 10% 할인 계산 한 번이면 끝남",
+   "before_sha": "840ce34cc9eab209a726cf298c50de5fe30bceecb71bcc1114e2cd98c7587212",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Welcome to Green Leaf Stationery. How can I help you today?"
+    },
+    {
+     "speaker": "W",
+     "text": "I need notebooks for my study group. How much is this blue one?"
+    },
+    {
+     "speaker": "M",
+     "text": "It's three dollars. The thicker red one is five dollars."
+    },
+    {
+     "speaker": "W",
+     "text": "The red ones look nice, too. I'll take four blue notebooks and two red ones."
+    },
+    {
+     "speaker": "M",
+     "text": "All right. Do you need anything to write with? Pen sets are two dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "Good idea. I'll take three pen sets for tomorrow's group meeting."
+    },
+    {
+     "speaker": "M",
+     "text": "Would you like a gift bag, too? It's one dollar."
+    },
+    {
+     "speaker": "W",
+     "text": "No, thanks. I'll just put everything in my backpack."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. Are you a student? Students get ten percent off everything in the store."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, I am. Here's my student ID, and I'll pay by card."
+    }
+   ],
+   "script_translation": "남: Green Leaf Stationery에 오신 것을 환영합니다. 무엇을 도와드릴까요?\n여: 스터디 모임에서 쓸 공책이 필요해요. 이 파란 공책은 얼마인가요?\n남: 3달러입니다. 더 두꺼운 빨간 공책은 5달러예요.\n여: 빨간 공책도 예쁘네요. 파란 공책 네 권과 빨간 공책 두 권 살게요.\n남: 알겠습니다. 필기구도 필요하신가요? 펜 세트는 한 세트에 2달러예요.\n여: 좋은 생각이에요. 내일 모임에 쓸 펜 세트 세 개 주세요.\n남: 선물 봉투도 드릴까요? 1달러입니다.\n여: 아니요, 괜찮아요. 그냥 전부 제 배낭에 넣을게요.\n남: 알겠습니다. 학생이신가요? 학생은 매장의 모든 상품을 10퍼센트 할인받아요.\n여: 네, 학생이에요. 여기 학생증이 있고, 카드로 결제할게요.",
+   "answer_clue": "four blue notebooks and two red ones / three pen sets / No, thanks (gift bag) / Students get ten percent off everything",
+   "explanation": "파란 공책 4권은 12달러, 빨간 공책 2권은 10달러, 펜 세트 3개는 6달러로 합계는 28달러이고, 선물 봉투는 사지 않았다. 학생 할인으로 10퍼센트를 할인받으므로 지불할 금액은 $25.20이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "blue notebook",
+      "unit_price": 3,
+      "quantity": 4
+     },
+     {
+      "label": "red notebook",
+      "unit_price": 5,
+      "quantity": 2
+     },
+     {
+      "label": "pen set",
+      "unit_price": 2,
+      "quantity": 3
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "percent_off",
+      "value": 10
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 19회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "\"Your total comes to thirty-four dollars after the discount\"로 정답을 말함",
+   "before_sha": "792b7c32f71d672b213f8a7bf9ea5bd98d64b54e2f7dcd637d7866f8f127a54f",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Hi. Are you here for tickets to the school orchestra concert?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I need three student tickets and one adult ticket for my mother."
+    },
+    {
+     "speaker": "M",
+     "text": "Student tickets are eight dollars each, and adult tickets are twelve dollars each."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. I heard there's a program booklet for the concert, too."
+    },
+    {
+     "speaker": "M",
+     "text": "Right. It's three dollars, and it tells the story of each piece."
+    },
+    {
+     "speaker": "W",
+     "text": "My family can share one, so just one booklet, please."
+    },
+    {
+     "speaker": "M",
+     "text": "Sure. Do you have the student council coupon? It gives five dollars off."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, I got it on my phone this morning. Here it is."
+    },
+    {
+     "speaker": "M",
+     "text": "Great. You can use it for both the tickets and the book."
+    },
+    {
+     "speaker": "W",
+     "text": "Perfect. Here's my card."
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 학교 오케스트라 공연 표를 사러 오셨나요?\n여: 네. 학생표 세 장과 어머니를 위한 성인표 한 장이 필요해요.\n남: 학생표는 한 장에 8달러이고, 성인표는 한 장에 12달러입니다.\n여: 알겠습니다. 공연 프로그램 책자도 있다고 들었어요.\n남: 맞아요. 3달러이고, 곡마다 담긴 이야기를 알려 줘요.\n여: 가족이 한 권을 같이 보면 되니까 책자는 한 권만 주세요.\n남: 알겠습니다. 학생회 쿠폰이 있으신가요? 5달러 할인됩니다.\n여: 네, 오늘 아침에 휴대폰으로 받았어요. 여기 있어요.\n남: 좋습니다. 표와 책자 모두에 사용하실 수 있어요.\n여: 좋아요. 여기 제 카드요.",
+   "answer_clue": "three student tickets and one adult ticket / just one booklet / five dollars off",
+   "explanation": "학생표 3장은 24달러, 성인표 1장은 12달러이고, 3달러짜리 프로그램 책자 한 권을 더해 합계는 39달러이다. 학생회 쿠폰으로 5달러를 할인받으므로 지불할 금액은 34달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "student ticket",
+      "unit_price": 8,
+      "quantity": 3
+     },
+     {
+      "label": "adult ticket",
+      "unit_price": 12,
+      "quantity": 1
+     },
+     {
+      "label": "program booklet",
+      "unit_price": 3,
+      "quantity": 1
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 5
+     }
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 20회#6",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "금액 계산",
+   "reason": "\"forty-five dollars before the coupon, so you pay forty dollars\"로 정답을 말함",
+   "before_sha": "0469a48c63c44c51d252cca8fe8f08dec351168e0e580d5bec98a851fb7bbdb5",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Good afternoon. Are you ready to order your school festival T-shirts?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I need two regular shirts and one long-sleeved shirt."
+    },
+    {
+     "speaker": "M",
+     "text": "Regular shirts are twelve dollars each, and long-sleeved ones are eighteen dollars."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. Can I add name printing to just the long-sleeved one? It's for our club leader."
+    },
+    {
+     "speaker": "M",
+     "text": "Of course. Name printing is three dollars per shirt."
+    },
+    {
+     "speaker": "W",
+     "text": "Good. Oh, I have a student council coupon. Can I use it today?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. It takes five dollars off any order over thirty dollars."
+    },
+    {
+     "speaker": "W",
+     "text": "Great. My order is definitely over that."
+    },
+    {
+     "speaker": "M",
+     "text": "Your shirts will be ready by Friday. You can pay now or when you pick them up."
+    },
+    {
+     "speaker": "W",
+     "text": "I'll pay now. Here's my card."
+    }
+   ],
+   "script_translation": "남: 안녕하세요. 학교 축제 티셔츠를 주문하시겠어요?\n여: 네. 일반 티셔츠 두 장과 긴팔 티셔츠 한 장이 필요해요.\n남: 일반 티셔츠는 한 장에 12달러이고, 긴팔 티셔츠는 18달러입니다.\n여: 알겠습니다. 긴팔 티셔츠에만 이름 인쇄를 추가할 수 있나요? 동아리 회장 거예요.\n남: 물론이죠. 이름 인쇄는 한 장당 3달러입니다.\n여: 좋아요. 아, 학생회 쿠폰이 있는데요. 오늘 쓸 수 있나요?\n남: 네. 30달러가 넘는 주문이면 5달러가 할인됩니다.\n여: 잘됐네요. 제 주문은 확실히 그보다 많아요.\n남: 티셔츠는 금요일까지 준비됩니다. 지금 결제하셔도 되고 찾으러 오실 때 하셔도 돼요.\n여: 지금 낼게요. 여기 제 카드요.",
+   "answer_clue": "two regular shirts and one long-sleeved shirt / name printing to just the long-sleeved one / five dollars off any order over thirty dollars",
+   "explanation": "일반 티셔츠 2장은 24달러, 긴팔 티셔츠 1장은 18달러이고, 긴팔 티셔츠에만 이름 인쇄 3달러를 더해 합계는 45달러이다. 30달러가 넘어 학생회 쿠폰으로 5달러를 할인받으므로 지불할 금액은 40달러이다.",
+   "price_calculation": {
+    "items": [
+     {
+      "label": "regular shirt",
+      "unit_price": 12,
+      "quantity": 2
+     },
+     {
+      "label": "long-sleeved shirt",
+      "unit_price": 18,
+      "quantity": 1
+     },
+     {
+      "label": "name printing",
+      "unit_price": 3,
+      "quantity": 1
+     }
+    ],
+    "adjustments": [
+     {
+      "kind": "amount_off",
+      "value": 5
+     }
+    ]
+   }
+  },
+  {
+   "key": "중1 6회#4",
+   "status": "ready",
+   "grade": "middle1",
+   "question_type": "마지막 말의 의도 파악",
+   "reason": "긴장한 사람이 도와준 상대에게 'You can do it'이라고 말해 격려 정답이 성립하지 않음(역할 뒤바뀜)",
+   "before_sha": "9a82d7ab946ef0d4f72fbffae1537c61dafc73dbdc9afb8b16ab1825fab5800f",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minsu, did you finish your poster for the school festival?"
+    },
+    {
+     "speaker": "M",
+     "text": "Not yet. Drawing the title is really hard for me."
+    },
+    {
+     "speaker": "W",
+     "text": "Let me see. Wow, your pictures look bright and clear."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks, but the letters in the title look strange."
+    },
+    {
+     "speaker": "W",
+     "text": "Why don't you draw the letters with a pencil first?"
+    },
+    {
+     "speaker": "M",
+     "text": "Okay, I'll try. But I'm afraid it won't look good."
+    },
+    {
+     "speaker": "W",
+     "text": "Your poster will look great. Don't give up now!"
+    }
+   ],
+   "script_translation": "여: 민수야, 학교 축제 포스터 다 끝냈니?\n남: 아직. 제목을 그리는 게 나한테는 정말 어려워.\n여: 어디 보자. 와, 네 그림은 밝고 선명해 보여.\n남: 고마워, 그런데 제목 글자가 이상해 보여.\n여: 먼저 연필로 글자를 그려 보는 게 어때?\n남: 알았어, 해 볼게. 그런데 잘 안 될까 봐 걱정이야.\n여: 네 포스터는 멋지게 나올 거야. 지금 포기하지 마!",
+   "answer_clue": "Your poster will look great. Don't give up now!",
+   "explanation": "제목 그리기가 어려워 걱정하는 남자에게 여자가 포스터가 멋지게 나올 거라며 포기하지 말라고 말하므로, 여자가 한 마지막 말의 의도는 격려이다.",
+   "fields": {
+    "last_speaker": "W",
+    "final_utterance": "Your poster will look great. Don't give up now!",
+    "target_intention": "격려"
+   }
+  },
+  {
+   "key": "중1 8회#4",
+   "status": "ready",
+   "grade": "middle1",
+   "question_type": "마지막 말의 의도 파악",
+   "reason": "긴장한 사람이 도와준 상대에게 'You can do it'이라고 말해 격려 정답이 성립하지 않음(역할 뒤바뀜)",
+   "before_sha": "3c3d9a89bbec46fee10982790cee4bcc9029454217d9a28ee1355c4189963d56",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Hi, Junho. Are you ready for the music show?"
+    },
+    {
+     "speaker": "M",
+     "text": "Not really. My hands shake when I play the piano."
+    },
+    {
+     "speaker": "W",
+     "text": "But you practiced every day this week."
+    },
+    {
+     "speaker": "M",
+     "text": "I know, but so many students will watch us."
+    },
+    {
+     "speaker": "W",
+     "text": "Your song sounded really nice during practice."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. I just hope I don't make a mistake."
+    },
+    {
+     "speaker": "W",
+     "text": "You'll do a great job. Just enjoy the music!"
+    }
+   ],
+   "script_translation": "여: 안녕, 준호야. 음악 발표회 준비됐니?\n남: 별로. 피아노를 칠 때 손이 떨려.\n여: 그래도 이번 주에 매일 연습했잖아.\n남: 알아, 그런데 정말 많은 학생들이 우리를 볼 거야.\n여: 연습할 때 네 곡은 정말 좋게 들렸어.\n남: 고마워. 실수만 안 했으면 좋겠어.\n여: 넌 아주 잘할 거야. 그냥 음악을 즐겨!",
+   "answer_clue": "You'll do a great job. Just enjoy the music!",
+   "explanation": "발표회를 앞두고 손이 떨린다는 남자에게 여자가 아주 잘할 거라며 음악을 즐기라고 말하므로, 여자가 한 마지막 말의 의도는 격려이다.",
+   "fields": {
+    "last_speaker": "W",
+    "final_utterance": "You'll do a great job. Just enjoy the music!",
+    "target_intention": "격려"
+   }
+  },
+  {
+   "key": "중2 2회#4",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "마지막 말의 의도 파악",
+   "reason": "긴장한 사람이 도와준 상대에게 'You can do it'이라고 말해 격려 정답이 성립하지 않음(역할 뒤바뀜)",
+   "before_sha": "0f395e375e2e120aeb37b269ecc1fde9f863b75c87dbe3ca9e1c936ed453ce5f",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Jiho, you look worried. Is it about your science talk tomorrow?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. I practiced twice, but my voice still shakes."
+    },
+    {
+     "speaker": "W",
+     "text": "Your posters are clear, and your examples are easy to follow."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks, but I might forget the first part in class."
+    },
+    {
+     "speaker": "W",
+     "text": "Then why don't you write short notes on a small card?"
+    },
+    {
+     "speaker": "M",
+     "text": "Good idea. I'll practice with the card tonight."
+    },
+    {
+     "speaker": "W",
+     "text": "You worked hard for this, so believe in yourself. You'll do well!"
+    }
+   ],
+   "script_translation": "여: 지호야, 걱정이 있어 보여. 내일 과학 발표 때문이니?\n남: 응. 두 번 연습했는데 아직도 목소리가 떨려.\n여: 네 포스터는 분명하고, 예시도 따라가기 쉬워.\n남: 고마워, 그런데 수업 시간에 첫 부분을 잊어버릴지도 몰라.\n여: 그러면 작은 카드에 짧게 메모를 해 보는 게 어때?\n남: 좋은 생각이야. 오늘 밤에 그 카드로 연습할게.\n여: 너는 이번 발표를 위해 열심히 했으니까 너 자신을 믿어. 잘할 거야!",
+   "answer_clue": "You worked hard for this, so believe in yourself. You'll do well!",
+   "explanation": "발표를 앞두고 목소리가 떨린다는 남자에게 여자가 열심히 했으니 자신을 믿으라며 잘할 거라고 말하므로, 여자가 한 마지막 말의 의도는 격려이다.",
+   "fields": {
+    "last_speaker": "W",
+    "final_utterance": "You worked hard for this, so believe in yourself. You'll do well!",
+    "target_intention": "격려"
+   }
+  },
+  {
+   "key": "중2 8회#4",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "마지막 말의 의도 파악",
+   "reason": "긴장한 사람이 도와준 상대에게 'You can do it'이라고 말해 격려 정답이 성립하지 않음(역할 뒤바뀜)",
+   "before_sha": "c8be03d5240cbf32432c785bfbaf21a2f90badd7ef540ddde9344ff509960893",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Yuna, you look worried about your science talk tomorrow."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I went over it many times, but I still feel nervous."
+    },
+    {
+     "speaker": "M",
+     "text": "Your photos are clear, and your voice sounded good today."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks, but I forgot one word this morning."
+    },
+    {
+     "speaker": "M",
+     "text": "We all forget small things. It's no big deal."
+    },
+    {
+     "speaker": "W",
+     "text": "I just hope my friends can follow each step."
+    },
+    {
+     "speaker": "M",
+     "text": "Don't worry. Your steps are simple, so you'll do great."
+    }
+   ],
+   "script_translation": "남: 유나야, 내일 과학 발표 때문에 걱정하는 것 같구나.\n여: 응. 여러 번 연습했는데도 아직 긴장돼.\n남: 네 사진은 선명하고, 오늘 목소리도 좋았어.\n여: 고마워, 그런데 오늘 아침에 단어 하나를 잊어버렸어.\n남: 누구나 작은 건 잊어버려. 별일 아니야.\n여: 친구들이 단계 하나하나를 잘 따라왔으면 좋겠어.\n남: 걱정하지 마. 네 단계는 간단하니까 넌 잘할 거야.",
+   "answer_clue": "Don't worry. Your steps are simple, so you'll do great.",
+   "explanation": "발표를 앞두고 긴장한 여자에게 남자가 걱정하지 말라며 잘할 거라고 말하므로, 남자가 한 마지막 말의 의도는 격려이다.",
+   "fields": {
+    "last_speaker": "M",
+    "final_utterance": "Don't worry. Your steps are simple, so you'll do great.",
+    "target_intention": "격려"
+   }
+  },
+  {
+   "key": "중2 11회#4",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "마지막 말의 의도 파악",
+   "reason": "긴장한 사람이 도와준 상대에게 'You can do it'이라고 말해 격려 정답이 성립하지 않음(역할 뒤바뀜)",
+   "before_sha": "39d08cb9b114c21272e8e99590cac090a366cf7a0e1592013b710f6106bf98e8",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minjun, the English speech contest is after lunch, right?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. My hands shake when I think about the stage."
+    },
+    {
+     "speaker": "W",
+     "text": "But you did well at practice, and your speech was funny."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks, but the judges will ask me some questions."
+    },
+    {
+     "speaker": "W",
+     "text": "Just listen well and answer slowly. You know a lot."
+    },
+    {
+     "speaker": "M",
+     "text": "I hope so. What if I forget the first line?"
+    },
+    {
+     "speaker": "W",
+     "text": "You won't forget it. Take a deep breath. I believe in you."
+    }
+   ],
+   "script_translation": "여: 민준아, 영어 말하기 대회가 점심 먹고 나서지?\n남: 응. 무대를 생각하면 손이 떨려.\n여: 그래도 연습 때 잘했고, 네 연설은 재미있었어.\n남: 고마워, 그런데 심사위원들이 나한테 질문을 할 거야.\n여: 잘 듣고 천천히 대답하면 돼. 넌 아는 게 많잖아.\n남: 그랬으면 좋겠다. 첫 줄을 잊어버리면 어떡하지?\n여: 안 잊어버릴 거야. 숨을 크게 쉬어. 난 널 믿어.",
+   "answer_clue": "You won't forget it. Take a deep breath. I believe in you.",
+   "explanation": "대회를 앞두고 첫 줄을 잊어버릴까 봐 걱정하는 남자에게 여자가 잊지 않을 거라며 자신은 남자를 믿는다고 말하므로, 여자가 한 마지막 말의 의도는 격려이다.",
+   "fields": {
+    "last_speaker": "W",
+    "final_utterance": "You won't forget it. Take a deep breath. I believe in you.",
+    "target_intention": "격려"
+   }
+  },
+  {
+   "key": "중3 13회#4",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "마지막 말의 의도 파악",
+   "reason": "긴장한 사람이 도와준 상대에게 'You can do it'이라고 말해 격려 정답이 성립하지 않음(역할 뒤바뀜)",
+   "before_sha": "8bd487b94fd3f9a549390488c9c11c45d6faa67e03b7b58d0e4c5305d283a105",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Jiwoo, are you ready for your science club talk tomorrow?"
+    },
+    {
+     "speaker": "W",
+     "text": "Not really. I went over it twice, but I still forget some key words."
+    },
+    {
+     "speaker": "M",
+     "text": "That happens to a lot of people when they speak in front of a crowd."
+    },
+    {
+     "speaker": "W",
+     "text": "I know, but I feel nervous because many parents will watch us."
+    },
+    {
+     "speaker": "M",
+     "text": "Why don't you run through it once more with me after school today?"
+    },
+    {
+     "speaker": "W",
+     "text": "That would help a lot. Thanks for giving me your time, Minho."
+    },
+    {
+     "speaker": "M",
+     "text": "No problem. You've worked on it for weeks, so trust yourself. You'll do just fine."
+    }
+   ],
+   "script_translation": "남: 지우야, 내일 과학 동아리 발표 준비됐니?\n여: 별로. 두 번 연습했는데 아직도 중요한 단어 몇 개를 잊어버려.\n남: 사람들 앞에서 말할 때 많은 사람들에게 그런 일이 생겨.\n여: 알아, 그런데 학부모님들이 많이 보실 거라서 긴장돼.\n남: 오늘 방과 후에 나랑 한 번 더 연습해 보는 게 어때?\n여: 그러면 정말 도움이 되겠다. 시간 내 줘서 고마워, 민호야.\n남: 천만에. 넌 몇 주 동안 준비했으니까 너 자신을 믿어. 넌 잘할 거야.",
+   "answer_clue": "You've worked on it for weeks, so trust yourself. You'll do just fine.",
+   "explanation": "발표를 앞두고 긴장한 여자에게 남자가 몇 주 동안 준비했으니 자신을 믿으라며 잘할 거라고 말하므로, 남자가 한 마지막 말의 의도는 격려이다. 고맙다는 말은 여자가 한 것이다.",
+   "fields": {
+    "last_speaker": "M",
+    "final_utterance": "No problem. You've worked on it for weeks, so trust yourself. You'll do just fine.",
+    "target_intention": "격려"
+   }
+  },
+  {
+   "key": "고1 듣기 10회#13",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "긴 응답",
+   "reason": "정답 범주(life science)와 이유가 대화 중 두 번 확정된 뒤, 마지막 말이 그걸 다시 묻기만 함",
+   "before_sha": "b02020aa02e282ca16a4f23e2bc5175aa5e005136e522d2ea984694a0bd37390",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Mr. Carter, can I ask about the science fair sign-up form?"
+    },
+    {
+     "speaker": "M",
+     "text": "Sure, Sora. Is it hard to pick a category?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. My project is about plant growth, but I also built a small watering device."
+    },
+    {
+     "speaker": "M",
+     "text": "Then it could fit either life science or engineering. It depends on your main question."
+    },
+    {
+     "speaker": "W",
+     "text": "My question is whether plants grow better with water at set times or at random times."
+    },
+    {
+     "speaker": "M",
+     "text": "And what exactly does your device do in the test?"
+    },
+    {
+     "speaker": "W",
+     "text": "It gives each pot water at set times and keeps a record of how much it gives."
+    },
+    {
+     "speaker": "M",
+     "text": "I see. Keep in mind that engineering projects test how well a device itself works."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. Also, my data table is ready, but my graph still needs labels."
+    },
+    {
+     "speaker": "M",
+     "text": "Labels matter. Judges may read your poster when you're not there."
+    },
+    {
+     "speaker": "W",
+     "text": "I'll fix them tonight and ask my partner to check the spelling."
+    },
+    {
+     "speaker": "M",
+     "text": "Good plan. After that, what will you write as your project category on the form?"
+    }
+   ],
+   "script_translation": "여: Carter 선생님, 과학 박람회 신청서에 대해 여쭤봐도 될까요?\n남: 물론이지, 소라야. 분야를 고르기가 어렵니?\n여: 네. 제 프로젝트는 식물 성장에 관한 건데, 작은 급수 장치도 만들었거든요.\n남: 그렇다면 생명과학과 공학 어느 쪽에도 맞을 수 있겠구나. 네 주된 질문에 달려 있단다.\n여: 제 질문은 식물이 정해진 시간에 물을 받을 때와 아무 때나 받을 때 중 언제 더 잘 자라는지예요.\n남: 그럼 실험에서 그 장치가 정확히 무슨 일을 하니?\n여: 정해진 시간에 화분마다 물을 주고, 물을 얼마나 줬는지 기록해요.\n남: 그렇구나. 공학 분야 프로젝트는 장치 자체가 얼마나 잘 작동하는지를 시험한다는 걸 기억하렴.\n여: 알겠습니다. 그리고 데이터 표는 준비됐는데, 그래프에는 아직 라벨이 필요해요.\n남: 라벨은 중요해. 네가 없을 때 심사위원들이 포스터를 읽을 수도 있거든.\n여: 오늘 밤에 고치고, 제 파트너에게 철자를 확인해 달라고 할게요.\n남: 좋은 계획이구나. 그다음에 신청서의 프로젝트 분야 칸에는 뭐라고 쓸 거니?",
+   "answer_clue": "My question is whether plants grow better with water at set times or at random times / It gives each pot water at set times and keeps a record of how much it gives / engineering projects test how well a device itself works",
+   "explanation": "여자의 핵심 질문은 물 주는 방식에 따른 식물의 성장이고, 장치는 정해진 일정에 물을 주고 그 양을 기록하는 도구일 뿐이다. 선생님이 공학 분야는 장치 자체의 성능을 시험하는 프로젝트라고 했으므로, 장치는 자료 수집을 돕기만 하니 생명과학을 선택하겠다는 응답이 가장 적절하다.",
+   "fields": {
+    "previous_turn": "Good plan. After that, what will you write as your project category on the form?",
+    "correct_response_function": "stating the category decision inferred from the teacher's explanation",
+    "distractor_reason": [
+     "2 introduces canceling the fair, which is never suggested.",
+     "3 contradicts the teacher's point that engineering projects test a device itself.",
+     "4 ignores the teacher's point that labels matter to the judges.",
+     "5 avoids making the decision the form requires.",
+     ""
+    ]
+   }
+  },
+  {
+   "key": "고1 듣기 2회#10",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "표 선택",
+   "reason": "마지막 말 \"twelve-kilometer tour at eleven thirty\"가 표의 정답 값을 그대로 말함",
+   "before_sha": "8c5823a02d7c7d4febdc46284d5cd2831563964cb3e66beaddef96b927065d45",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Look at these city bike tours for our club trip next month."
+    },
+    {
+     "speaker": "M",
+     "text": "Our bus arrives in the city at ten, so the tour should start after that."
+    },
+    {
+     "speaker": "W",
+     "text": "Right. Then we can't choose these first two tours."
+    },
+    {
+     "speaker": "M",
+     "text": "Our teacher also said the price must be under twenty dollars per person."
+    },
+    {
+     "speaker": "W",
+     "text": "Okay. Then there's one more tour we can't take."
+    },
+    {
+     "speaker": "M",
+     "text": "Now, do we need a guide who explains local history during the ride?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. Our history teacher wants students to hear those explanations."
+    },
+    {
+     "speaker": "M",
+     "text": "Then the tour without a guide isn't a good choice for us."
+    },
+    {
+     "speaker": "W",
+     "text": "Right. Let's book the one that's left."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. I'll make the reservation online tonight."
+    }
+   ],
+   "script_translation": "여: 다음 달 동아리 여행을 위한 이 도시 자전거 투어들을 봐.\n남: 우리 버스가 10시에 도시에 도착하니까 투어는 그 이후에 시작해야 해.\n여: 맞아. 그러면 처음 두 투어는 고를 수 없겠다.\n남: 선생님께서 가격도 1인당 20달러 미만이어야 한다고 하셨어.\n여: 알았어. 그러면 못 가는 투어가 하나 더 있네.\n남: 이제, 타는 동안 지역 역사를 설명해 주는 가이드가 필요할까?\n여: 응. 역사 선생님께서 학생들이 그런 설명을 듣기를 원하셔.\n남: 그럼 가이드가 없는 투어는 우리에게 좋은 선택이 아니야.\n여: 맞아. 남은 투어로 예약하자.\n남: 좋아. 오늘 밤에 온라인으로 예약할게.",
+   "answer_clue": "start after (ten) / under twenty dollars per person / the tour without a guide isn't a good choice / the one that's left",
+   "explanation": "버스가 10시에 도착하므로 9시 30분과 10시에 시작하는 투어는 제외되고, 1인당 20달러 미만이어야 하므로 21달러 투어도 제외된다. 남은 두 투어 중 가이드가 없는 투어를 빼면 두 사람이 선택할 투어는 D이다.",
+   "fields": {
+    "table_data": {
+     "rows": [
+      {
+       "no": 1,
+       "label": "A",
+       "value": "9:30 / 15 km / $18 / Guide: Yes"
+      },
+      {
+       "no": 2,
+       "label": "B",
+       "value": "10:00 / 10 km / $22 / Guide: Yes"
+      },
+      {
+       "no": 3,
+       "label": "C",
+       "value": "10:30 / 20 km / $19 / Guide: No"
+      },
+      {
+       "no": 4,
+       "label": "D",
+       "value": "11:30 / 12 km / $19 / Guide: Yes"
+      },
+      {
+       "no": 5,
+       "label": "E",
+       "value": "12:00 / 15 km / $21 / Guide: Yes"
+      }
+     ],
+     "title": "City Bike Tours",
+     "mismatch_no": 4,
+     "mismatch_reason": "정답 행: 10시 이후 시작, 1인당 20달러 미만, 가이드 있음 조건을 모두 만족하는 투어는 D뿐이다."
+    }
+   }
+  },
+  {
+   "key": "고1 듣기 4회#10",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "표 선택",
+   "reason": "정답에만 있는 특징(토론+글쓰기)을 직접 말함, 기간 조건은 없어도 되는 조건",
+   "before_sha": "b3dd0ab3b8af8393ebe3de3f13776fbd64b9b53c3033c7bf78688f99330a4534",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Look. I found some summer reading camps we can join together."
+    },
+    {
+     "speaker": "M",
+     "text": "Great. Let's see. I'd rather not spend seventy dollars or more."
+    },
+    {
+     "speaker": "W",
+     "text": "Me neither. And a three-day camp seems too short to finish a whole book."
+    },
+    {
+     "speaker": "M",
+     "text": "I agree. What about the time? My math class ends at noon on weekdays."
+    },
+    {
+     "speaker": "W",
+     "text": "Then we should choose a camp that meets in the afternoon."
+    },
+    {
+     "speaker": "M",
+     "text": "Right. Now there are two left. Which activity do you prefer?"
+    },
+    {
+     "speaker": "W",
+     "text": "I like writing, but I'd also love to talk about books with other students."
+    },
+    {
+     "speaker": "M",
+     "text": "Then let's choose the one with a book discussion as well."
+    },
+    {
+     "speaker": "W",
+     "text": "Sounds good. Let's sign up today before it fills up."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. I'll send the application form tonight."
+    }
+   ],
+   "script_translation": "여: 이것 봐. 우리가 같이 참가할 수 있는 여름 독서 캠프를 찾았어.\n남: 좋아. 어디 보자. 나는 70달러 이상은 쓰고 싶지 않아.\n여: 나도 그래. 그리고 3일짜리 캠프는 책 한 권을 다 읽기에는 너무 짧은 것 같아.\n남: 동감이야. 시간은 어때? 내 수학 수업이 평일에는 정오에 끝나.\n여: 그러면 오후에 하는 캠프를 골라야겠다.\n남: 맞아. 이제 두 개가 남았어. 너는 어떤 활동이 더 좋니?\n여: 글쓰기도 좋지만, 다른 학생들과 책에 대해 이야기도 해 보고 싶어.\n남: 그럼 책 토론도 함께 하는 캠프로 고르자.\n여: 좋아. 자리가 차기 전에 오늘 신청하자.\n남: 알았어. 오늘 밤에 신청서를 보낼게.",
+   "answer_clue": "not spend seventy dollars or more / a three-day camp seems too short / a camp that meets in the afternoon / the one with a book discussion as well",
+   "explanation": "70달러짜리 캠프와 3일짜리 캠프가 제외되고, 남자의 수학 수업 때문에 오전 캠프도 제외된다. 남은 두 캠프 중 글쓰기뿐 아니라 책 토론도 하는 캠프를 고르므로 두 사람이 선택할 캠프는 D이다.",
+   "fields": {
+    "table_data": {
+     "rows": [
+      {
+       "no": 1,
+       "label": "A",
+       "value": "Morning / $55 / 3 days / Book discussion"
+      },
+      {
+       "no": 2,
+       "label": "B",
+       "value": "Afternoon / $65 / 4 days / Writing activity"
+      },
+      {
+       "no": 3,
+       "label": "C",
+       "value": "Afternoon / $70 / 4 days / Book discussion"
+      },
+      {
+       "no": 4,
+       "label": "D",
+       "value": "Afternoon / $60 / 4 days / Book discussion and writing activity"
+      },
+      {
+       "no": 5,
+       "label": "E",
+       "value": "Morning / $50 / 5 days / Writing activity"
+      }
+     ],
+     "title": "Summer Reading Camps",
+     "mismatch_no": 4,
+     "mismatch_reason": "70달러 미만, 3일보다 긴 기간, 오후 진행, 책 토론 포함 조건을 모두 만족하는 캠프는 D뿐이다."
+    }
+   }
+  },
+  {
+   "key": "고1 듣기 15회#10",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "표 선택",
+   "reason": "\"Tuesday at five thirty… thirty-five dollars\"로 정답 행을 그대로 불러줌",
+   "before_sha": "99192769435d41d23cc62fa3a2c72a31601fbc22da5551dd593cd250ca862d52",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "We should pick an after-school coding class before registration ends."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. I have soccer practice until five, so the class should start after that."
+    },
+    {
+     "speaker": "W",
+     "text": "Then we can cross this one off the list."
+    },
+    {
+     "speaker": "M",
+     "text": "Also, I don't want to spend forty dollars or more."
+    },
+    {
+     "speaker": "W",
+     "text": "Me neither. That leaves three classes."
+    },
+    {
+     "speaker": "M",
+     "text": "I'd like to work with other students. Let's take a class with a team project."
+    },
+    {
+     "speaker": "W",
+     "text": "Good idea. But I have debate club every Friday."
+    },
+    {
+     "speaker": "M",
+     "text": "Then that one won't work either. So there's only one choice left."
+    },
+    {
+     "speaker": "W",
+     "text": "Great. Let's sign up for it right now."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. I'll fill out the form for both of us."
+    }
+   ],
+   "script_translation": "여: 등록이 끝나기 전에 방과 후 코딩 강좌를 골라야 해.\n남: 좋아. 나는 5시까지 축구 연습이 있으니까 강좌는 그 이후에 시작해야 해.\n여: 그러면 이건 목록에서 지워도 되겠다.\n남: 그리고 나는 40달러 이상은 쓰고 싶지 않아.\n여: 나도 그래. 그럼 강좌가 세 개 남아.\n남: 다른 학생들과 함께 해 보고 싶어. 팀 프로젝트가 있는 강좌를 듣자.\n여: 좋은 생각이야. 그런데 나는 매주 금요일에 토론 동아리가 있어.\n남: 그러면 그것도 안 되겠다. 그럼 남은 건 하나뿐이네.\n여: 잘됐다. 지금 바로 신청하자.\n남: 알았어. 우리 둘 신청서는 내가 작성할게.",
+   "answer_clue": "start after (five) / don't want to spend forty dollars or more / a class with a team project / I have debate club every Friday / only one choice left",
+   "explanation": "남자의 축구 연습 때문에 5시 이후에 시작해야 하므로 4시 30분 강좌가 제외되고, 40달러 이상은 쓰지 않기로 해 45달러 강좌가 제외된다. 팀 프로젝트가 없는 강좌와 여자의 토론 동아리와 겹치는 금요일 강좌도 제외되므로 두 사람은 화요일 Game Coding 강좌를 선택한다.",
+   "fields": {
+    "table_data": {
+     "rows": [
+      {
+       "no": 1,
+       "label": "Python Basics",
+       "value": "Mon. 4:30 p.m. / $30 / Team project: Yes"
+      },
+      {
+       "no": 2,
+       "label": "Web Design",
+       "value": "Wed. 5:30 p.m. / $45 / Team project: Yes"
+      },
+      {
+       "no": 3,
+       "label": "Game Coding",
+       "value": "Tue. 5:30 p.m. / $35 / Team project: Yes"
+      },
+      {
+       "no": 4,
+       "label": "Robotics",
+       "value": "Fri. 5:10 p.m. / $38 / Team project: Yes"
+      },
+      {
+       "no": 5,
+       "label": "App Making",
+       "value": "Thu. 6:00 p.m. / $32 / Team project: No"
+      }
+     ],
+     "title": "After-school Coding Classes",
+     "mismatch_no": 3,
+     "mismatch_reason": "5시 이후 시작, 40달러 미만, 팀 프로젝트 포함, 금요일 제외 조건을 모두 만족하는 강좌는 Game Coding뿐이다."
+    }
+   }
+  },
+  {
+   "key": "고1 듣기 19회#10",
+   "status": "ready",
+   "grade": "high1",
+   "question_type": "표 선택",
+   "reason": "\"starting at 4:30, costing $10, guest writer\"로 정답 행 값을 모두 말함",
+   "before_sha": "17d12c872788db033239a76329bb48ba20dcade656f1da412e20dba294f98e52",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "We have to pick a workshop for the reading club next month."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. Let me see the list. Many members have classes until four, so it should start at four or later."
+    },
+    {
+     "speaker": "W",
+     "text": "Then we can't choose the two earliest ones."
+    },
+    {
+     "speaker": "M",
+     "text": "Right. Also, our club budget is ten dollars or less per person."
+    },
+    {
+     "speaker": "W",
+     "text": "Then one more is out. It costs more than we can pay."
+    },
+    {
+     "speaker": "M",
+     "text": "Now, what about a guest writer? I think that's important for our members."
+    },
+    {
+     "speaker": "W",
+     "text": "I agree. They really want to hear from someone who writes for a living."
+    },
+    {
+     "speaker": "M",
+     "text": "Then we should skip the one without a guest writer."
+    },
+    {
+     "speaker": "W",
+     "text": "Good. Let's book the one that's left right away."
+    },
+    {
+     "speaker": "M",
+     "text": "Okay. I'll send an email to the library today."
+    }
+   ],
+   "script_translation": "여: 다음 달 독서 동아리 워크숍을 골라야 해.\n남: 좋아. 목록 좀 보자. 많은 회원들이 4시까지 수업이 있으니까 4시나 그 이후에 시작해야 해.\n여: 그러면 가장 이른 두 개는 고를 수 없겠다.\n남: 맞아. 그리고 우리 동아리 예산은 1인당 10달러 이하야.\n여: 그러면 하나가 더 빠지네. 우리가 낼 수 있는 것보다 비싸.\n남: 이제 초청 작가는 어때? 회원들에게는 그게 중요하다고 생각해.\n여: 동의해. 회원들은 글을 써서 생활하는 사람의 이야기를 정말 듣고 싶어 해.\n남: 그럼 초청 작가가 없는 건 빼야겠다.\n여: 좋아. 남은 하나로 바로 예약하자.\n남: 알았어. 오늘 도서관에 이메일을 보낼게.",
+   "answer_clue": "start at four or later / ten dollars or less per person / skip the one without a guest writer / the one that's left",
+   "explanation": "4시 이후에 시작해야 하므로 3시 30분에 시작하는 워크숍 두 개가 제외되고, 1인당 10달러 이하 예산 때문에 12달러 워크숍이 제외된다. 남은 두 워크숍 중 초청 작가가 없는 것을 빼면 두 사람이 선택할 워크숍은 D이다.",
+   "fields": {
+    "table_data": {
+     "rows": [
+      {
+       "no": 1,
+       "label": "A",
+       "value": "Book Cover Design / 3:30 p.m. / $8 / No guest writer"
+      },
+      {
+       "no": 2,
+       "label": "B",
+       "value": "Reading Journal Basics / 3:30 p.m. / $6 / Guest writer"
+      },
+      {
+       "no": 3,
+       "label": "C",
+       "value": "Poetry Writing / 4:00 p.m. / $12 / Guest writer"
+      },
+      {
+       "no": 4,
+       "label": "D",
+       "value": "Short Story Workshop / 4:30 p.m. / $10 / Guest writer"
+      },
+      {
+       "no": 5,
+       "label": "E",
+       "value": "Library Podcasting / 5:00 p.m. / $9 / No guest writer"
+      }
+     ],
+     "title": "Reading Club Workshops",
+     "mismatch_no": 4,
+     "mismatch_reason": "4시 이후 시작, 1인당 10달러 이하, 초청 작가 있음 조건을 모두 만족하는 워크숍은 D뿐이다."
+    }
+   }
+  },
+  {
+   "key": "중2 2회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel disappointed' 직접 발화",
+   "before_sha": "2cf61e016e6798249b2c388b7e3dbfc8cc9c4a9ef55e5c7669c18eba0d3a872e",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, the science contest results came out this morning."
+    },
+    {
+     "speaker": "W",
+     "text": "I know. I've been waiting for them all week."
+    },
+    {
+     "speaker": "M",
+     "text": "So? Your robot moved so well in the last test."
+    },
+    {
+     "speaker": "W",
+     "text": "Our team's name wasn't on the list at all. Not even third place."
+    },
+    {
+     "speaker": "M",
+     "text": "Maybe the judges cared more about the written report."
+    },
+    {
+     "speaker": "W",
+     "text": "Maybe. But we stayed at school until nine every night for weeks."
+    },
+    {
+     "speaker": "M",
+     "text": "Your design still helped a lot of kids in our class."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I just really wanted to see our name up there."
+    }
+   ],
+   "script_translation": "남: 소라야, 오늘 아침에 과학 대회 결과가 나왔어.\n여: 알아. 일주일 내내 결과만 기다렸어.\n남: 그래서? 너희 로봇은 마지막 테스트에서 정말 잘 움직였잖아.\n여: 우리 팀 이름은 목록에 아예 없었어. 3등조차도 못 했어.\n남: 심사위원들이 보고서를 더 중요하게 봤나 봐.\n여: 그럴지도. 그래도 우리는 몇 주 동안 매일 밤 9시까지 학교에 남아 있었어.\n남: 그래도 네 설계가 우리 반 친구들한테 많은 도움이 됐어.\n여: 고마워. 그냥 거기서 우리 이름을 정말 보고 싶었어.",
+   "answer_clue": "Our team's name wasn't on the list at all. Not even third place. / Thanks. I just really wanted to see our name up there.",
+   "explanation": "여자는 몇 주 동안 밤늦게까지 준비한 과학 대회 수상 목록에 팀 이름이 없었고 그 이름을 정말 보고 싶었다고 하므로 실망한 심정이다. 일주일 내내 결과를 기다린 모습은 설렘처럼 들리지만 결과를 확인한 뒤의 심정은 아니다.",
+   "fields": {
+    "target_person": "여자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "Our team's name wasn't on the list at all.",
+     "we stayed at school until nine every night for weeks",
+     "I just really wanted to see our name up there."
+    ]
+   }
+  },
+  {
+   "key": "중2 3회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel proud of myself' 직접 발화",
+   "before_sha": "282fc54efcd582f005d1c30c3fdbe9b170ae25ce30e62784bc46508054ccbdfd",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, the art contest results are on the school website."
+    },
+    {
+     "speaker": "M",
+     "text": "I know. I almost didn't look. I thought my poster was too simple."
+    },
+    {
+     "speaker": "W",
+     "text": "And? Don't keep me waiting!"
+    },
+    {
+     "speaker": "M",
+     "text": "Second prize. Out of over two hundred posters!"
+    },
+    {
+     "speaker": "W",
+     "text": "Wow! You stayed in the art room every evening for two weeks."
+    },
+    {
+     "speaker": "M",
+     "text": "My hands hurt every night, but every hour was worth it."
+    },
+    {
+     "speaker": "W",
+     "text": "Your parents are going to love this news."
+    },
+    {
+     "speaker": "M",
+     "text": "I'm calling them right now. And I'm putting a copy on my wall."
+    }
+   ],
+   "script_translation": "여: 민호야, 학교 웹사이트에 미술 대회 결과가 올라왔어.\n남: 알아. 하마터면 안 볼 뻔했어. 내 포스터가 너무 단순하다고 생각했거든.\n여: 그래서? 애태우지 말고 말해 줘!\n남: 2등이야. 포스터가 200장이 넘었는데!\n여: 와! 너 2주 동안 매일 저녁 미술실에 남아 있었잖아.\n남: 매일 밤 손이 아팠지만, 그 한 시간 한 시간이 다 그만한 가치가 있었어.\n여: 부모님이 이 소식을 정말 좋아하시겠다.\n남: 지금 바로 전화할 거야. 그리고 한 장 뽑아서 내 방 벽에 붙일 거야.",
+   "answer_clue": "Second prize. Out of over two hundred posters! / My hands hurt every night, but every hour was worth it.",
+   "explanation": "남자는 200장이 넘는 포스터 중에서 2등을 했고, 힘들었던 시간이 모두 그만한 가치가 있었다며 부모님께 바로 알리려 하므로 자랑스러운 심정이다. 결과를 보기 전 포스터가 너무 단순하다고 한 말은 걱정처럼 들리지만 결과를 확인한 뒤의 심정은 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "자랑스러움",
+    "emotion_clues": [
+     "Second prize. Out of over two hundred posters!",
+     "every hour was worth it",
+     "I'm putting a copy on my wall"
+    ]
+   }
+  },
+  {
+   "key": "중2 4회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel disappointed' 직접 발화에 'hard to smile'까지 겹침",
+   "before_sha": "41e85e9ed397e5b0d786888945ebf4d5d8231d7e5b57c39719d83ceabc28ec58",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, did you see the list for the city speech contest?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. I ran to the office the moment the bell rang."
+    },
+    {
+     "speaker": "W",
+     "text": "So? Are you going to the finals?"
+    },
+    {
+     "speaker": "M",
+     "text": "I read it three times. My name just wasn't there."
+    },
+    {
+     "speaker": "W",
+     "text": "But you practiced every lunch break for almost three weeks."
+    },
+    {
+     "speaker": "M",
+     "text": "I know. I even wrote a new ending last weekend."
+    },
+    {
+     "speaker": "W",
+     "text": "There's another contest at school next month. You could try that."
+    },
+    {
+     "speaker": "M",
+     "text": "Maybe. But for today, I just want to go home."
+    }
+   ],
+   "script_translation": "여: 민호야, 시 말하기 대회 명단 봤어?\n남: 응. 종이 울리자마자 교무실로 뛰어갔어.\n여: 그래서? 결선에 나가는 거야?\n남: 세 번이나 읽었어. 내 이름은 그냥 없었어.\n여: 하지만 넌 거의 3주 동안 점심시간마다 연습했잖아.\n남: 알아. 지난 주말에는 마지막 부분도 새로 썼어.\n여: 다음 달에 학교에서 다른 대회가 있어. 그거 나가 봐도 되잖아.\n남: 그럴지도. 그래도 오늘은 그냥 집에 가고 싶어.",
+   "answer_clue": "I read it three times. My name just wasn't there. / Maybe. But for today, I just want to go home.",
+   "explanation": "남자는 3주 가까이 연습한 말하기 대회의 결선 명단에 자신의 이름이 없어서 오늘은 그냥 집에 가고 싶다고 하므로 실망한 심정이다. 명단을 보러 뛰어간 모습은 설렘을 떠올리게 하지만 결과를 확인한 뒤의 심정은 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "My name just wasn't there.",
+     "I even wrote a new ending last weekend.",
+     "for today, I just want to go home"
+    ]
+   }
+  },
+  {
+   "key": "중2 5회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel proud' 직접 발화",
+   "before_sha": "7a3a1da4434f4ec08a4af23f8ff95039e0c4ab8726cf7b0d28af0bdda562ef4c",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, I heard your name at the morning assembly!"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes! When the principal called me up, my face turned bright red."
+    },
+    {
+     "speaker": "M",
+     "text": "So what was it for? The drawing contest?"
+    },
+    {
+     "speaker": "W",
+     "text": "First prize! My parents were almost crying on the phone."
+    },
+    {
+     "speaker": "M",
+     "text": "You worked on that picture every evening for two weeks."
+    },
+    {
+     "speaker": "W",
+     "text": "I redrew the whole sky three times. And it finally paid off."
+    },
+    {
+     "speaker": "M",
+     "text": "You should show the certificate to Ms. Han tomorrow."
+    },
+    {
+     "speaker": "W",
+     "text": "I will. Then I'll put it in a frame for our living room."
+    }
+   ],
+   "script_translation": "남: 소라야, 아침 조회 때 네 이름 들었어!\n여: 응! 교장 선생님이 앞으로 부르셨을 때 얼굴이 새빨개졌어.\n남: 그래서 무슨 상이었어? 그림 대회야?\n여: 1등이야! 부모님은 전화로 거의 우실 뻔했어.\n남: 너 2주 동안 매일 저녁 그 그림을 그렸잖아.\n여: 하늘 부분을 세 번이나 다시 그렸어. 그리고 결국 그 보람이 있었어.\n남: 내일 한 선생님께 상장을 보여 드려.\n여: 그럴 거야. 그다음에 액자에 넣어서 우리 집 거실에 걸 거야.",
+   "answer_clue": "First prize! My parents were almost crying on the phone. / I redrew the whole sky three times. And it finally paid off.",
+   "explanation": "여자는 하늘을 세 번이나 다시 그린 노력 끝에 그림 대회에서 1등을 했고, 상장을 액자에 넣어 거실에 걸겠다고 하므로 자랑스러운 심정이다. 조회 시간에 얼굴이 새빨개졌다는 말은 당황처럼 들리지만 대화 전체에 드러난 심정은 아니다.",
+   "fields": {
+    "target_person": "여자",
+    "target_emotion": "자랑스러움",
+    "emotion_clues": [
+     "First prize!",
+     "I redrew the whole sky three times. And it finally paid off.",
+     "I'll put it in a frame for our living room"
+    ]
+   }
+  },
+  {
+   "key": "중2 7회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'finally breathe easily'에 'I'm so relieved'까지 두 번 제시",
+   "before_sha": "bcd3446c549f941ba2181ea539aef95ff7e830702dfe5310b6fdf74889bbf836",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, how did the science contest go this morning?"
+    },
+    {
+     "speaker": "M",
+     "text": "Don't ask. On the bus, my water filter model fell off my lap."
+    },
+    {
+     "speaker": "W",
+     "text": "Oh no! After all those weeks of work? Was it broken?"
+    },
+    {
+     "speaker": "M",
+     "text": "That's what I thought. I couldn't even look at it."
+    },
+    {
+     "speaker": "W",
+     "text": "So what happened at the contest?"
+    },
+    {
+     "speaker": "M",
+     "text": "Only one small tube came loose. I fixed it in two minutes."
+    },
+    {
+     "speaker": "W",
+     "text": "And did it work in front of the judges?"
+    },
+    {
+     "speaker": "M",
+     "text": "Perfectly. Phew, now I can finally sit down and breathe."
+    }
+   ],
+   "script_translation": "여: 민호야, 오늘 아침 과학 대회는 어땠어?\n남: 묻지도 마. 버스에서 내 정수 필터 모형이 무릎에서 떨어졌어.\n여: 저런! 몇 주 동안 만든 건데? 망가졌어?\n남: 나도 그런 줄 알았어. 쳐다볼 수도 없었어.\n여: 그래서 대회에서는 어떻게 됐어?\n남: 작은 관 하나만 빠져 있었어. 2분 만에 고쳤어.\n여: 그럼 심사위원들 앞에서 잘 작동했어?\n남: 완벽하게. 휴, 이제야 좀 앉아서 숨 좀 쉴 수 있겠다.",
+   "answer_clue": "Only one small tube came loose. I fixed it in two minutes. / Perfectly. Phew, now I can finally sit down and breathe.",
+   "explanation": "남자는 모형이 망가진 줄 알았지만 작은 관 하나만 빠져 있어 금방 고쳤고 심사위원 앞에서도 잘 작동해 이제야 숨을 쉴 수 있다고 하므로 안도한 심정이다. 모형이 떨어졌을 때의 반응은 실망이나 당황처럼 들리지만 마지막 심정은 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "안도",
+    "emotion_clues": [
+     "I couldn't even look at it.",
+     "Only one small tube came loose.",
+     "Phew, now I can finally sit down and breathe."
+    ]
+   }
+  },
+  {
+   "key": "중2 8회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "마지막 줄 'I feel disappointed' 직접 발화",
+   "before_sha": "f080ff873cde91e0d4cf55a2adbbb9a7af943e8eb4c4538421d26a53d90fbeac",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Jinsu, you went straight to your seat after the music contest."
+    },
+    {
+     "speaker": "M",
+     "text": "I missed three notes in the middle of my guitar solo."
+    },
+    {
+     "speaker": "W",
+     "text": "Really? I only heard a tiny pause."
+    },
+    {
+     "speaker": "M",
+     "text": "It felt like ten minutes to me. I practiced that part every night."
+    },
+    {
+     "speaker": "W",
+     "text": "Well, it's over now. And everyone clapped loudly at the end."
+    },
+    {
+     "speaker": "M",
+     "text": "They clapped for the team, not for my part."
+    },
+    {
+     "speaker": "W",
+     "text": "The school festival is next month. You can play it again."
+    },
+    {
+     "speaker": "M",
+     "text": "Maybe. But I really wanted to get it right today."
+    }
+   ],
+   "script_translation": "여: 진수야, 음악 대회 끝나고 곧장 네 자리로 가 버렸네.\n남: 기타 솔로 중간에 음을 세 개나 놓쳤어.\n여: 정말? 난 아주 잠깐 멈춘 것만 들었는데.\n남: 나한테는 10분처럼 느껴졌어. 그 부분을 매일 밤 연습했거든.\n여: 뭐, 이제 끝났잖아. 그리고 마지막에 다들 크게 박수 쳤어.\n남: 그건 팀에게 친 박수지, 내 부분 때문이 아니야.\n여: 다음 달에 학교 축제가 있잖아. 그때 다시 연주하면 돼.\n남: 그럴지도. 하지만 오늘은 정말 제대로 해내고 싶었어.",
+   "answer_clue": "It felt like ten minutes to me. I practiced that part every night. / Maybe. But I really wanted to get it right today.",
+   "explanation": "남자는 매일 밤 연습한 기타 솔로에서 실수를 했고 오늘은 정말 제대로 해내고 싶었다고 하므로 실망한 심정이다. 대회가 끝났고 박수를 받았다는 여자의 말은 안도나 자랑스러움을 떠올리게 하지만 남자는 그렇게 받아들이지 않는다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "I missed three notes in the middle of my guitar solo.",
+     "I practiced that part every night.",
+     "I really wanted to get it right today."
+    ]
+   }
+  },
+  {
+   "key": "중2 10회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel sad and a little disappointed' 직접 발화",
+   "before_sha": "75cc656d44637e5c0e71794fe66ae1719b2240e83f1c89a8a7abd5498f9db1c5",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Did you check the art contest results on the website?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. Twice. I even searched for my name. Nothing."
+    },
+    {
+     "speaker": "W",
+     "text": "But your drawing of the old market was so warm and detailed."
+    },
+    {
+     "speaker": "M",
+     "text": "I really thought it could win at least a small prize."
+    },
+    {
+     "speaker": "W",
+     "text": "The winners' pictures go up in city hall next week, right?"
+    },
+    {
+     "speaker": "M",
+     "text": "Right. I already told my grandma to go see mine there."
+    },
+    {
+     "speaker": "W",
+     "text": "Maybe you can ask Mr. Park for some advice tomorrow."
+    },
+    {
+     "speaker": "M",
+     "text": "I will. But now I have to call Grandma and tell her."
+    }
+   ],
+   "script_translation": "여: 웹사이트에서 미술 대회 결과 확인했어?\n남: 응. 두 번이나. 내 이름을 검색까지 해 봤어. 없었어.\n여: 하지만 네 옛날 시장 그림은 정말 따뜻하고 섬세했는데.\n남: 적어도 작은 상 하나는 탈 수 있을 거라고 정말 생각했어.\n여: 수상작은 다음 주에 시청에 걸리지?\n남: 맞아. 할머니께 거기 가서 내 그림 보시라고 벌써 말씀드렸어.\n여: 내일 박 선생님께 조언을 좀 구해 봐.\n남: 그럴게. 그런데 지금은 할머니께 전화해서 말씀드려야 해.",
+   "answer_clue": "Yes. Twice. I even searched for my name. Nothing. / I really thought it could win at least a small prize.",
+   "explanation": "남자는 적어도 작은 상은 탈 거라 기대하고 할머니께 시청에 가서 그림을 보시라고까지 했지만 결과에 이름이 없어 실망한 심정이다. 할머니께 미리 말씀드린 일은 설렘을 떠올리게 하지만 결과를 확인한 지금의 심정은 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "I even searched for my name. Nothing.",
+     "I really thought it could win at least a small prize.",
+     "now I have to call Grandma and tell her"
+    ]
+   }
+  },
+  {
+   "key": "중2 12회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel so relieved, can breathe easily' 직접 발화",
+   "before_sha": "08daf417be8eb5f8f19e8ec2dd1a84ca4c27abe922ee5a34f7405634becfb0ec",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, you look a lot better than you did this morning."
+    },
+    {
+     "speaker": "W",
+     "text": "This morning my music file for tomorrow's dance show was gone."
+    },
+    {
+     "speaker": "M",
+     "text": "I remember. Your whole team was just staring at you."
+    },
+    {
+     "speaker": "W",
+     "text": "I was the one in charge of it. My face was burning."
+    },
+    {
+     "speaker": "M",
+     "text": "So did you find it?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes! It was in an old folder from last month."
+    },
+    {
+     "speaker": "M",
+     "text": "Great. Now your team can practice with the right song."
+    },
+    {
+     "speaker": "W",
+     "text": "Thank goodness. Now I can finally eat something."
+    }
+   ],
+   "script_translation": "남: 소라야, 오늘 아침보다 훨씬 나아 보인다.\n여: 오늘 아침에 내일 춤 공연에 쓸 음악 파일이 없어졌었어.\n남: 기억나. 너희 팀 모두가 너만 쳐다보고 있었잖아.\n여: 그걸 맡은 사람이 나였거든. 얼굴이 화끈거렸어.\n남: 그래서 찾았어?\n여: 응! 지난달에 만든 옛날 폴더에 있었어.\n남: 잘됐다. 이제 너희 팀이 제대로 된 노래로 연습할 수 있겠네.\n여: 정말 다행이야. 이제야 뭘 좀 먹을 수 있겠어.",
+   "answer_clue": "Yes! It was in an old folder from last month. / Thank goodness. Now I can finally eat something.",
+   "explanation": "여자는 사라졌던 공연 음악 파일을 옛날 폴더에서 찾았고 이제야 뭘 좀 먹을 수 있겠다고 하므로 안도한 심정이다. 아침에 팀원들 앞에서 얼굴이 화끈거렸다는 말은 당황처럼 들리지만 파일을 찾은 지금의 심정은 아니다.",
+   "fields": {
+    "target_person": "여자",
+    "target_emotion": "안도",
+    "emotion_clues": [
+     "It was in an old folder from last month.",
+     "Thank goodness.",
+     "Now I can finally eat something."
+    ]
+   }
+  },
+  {
+   "key": "중2 13회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel really disappointed' 직접 발화",
+   "before_sha": "35fbb0f6a286b495a6dafdd7d1fa5280b08dc04ac8623f45eeb09cedb27cc85a",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, how did your team do at the robot contest?"
+    },
+    {
+     "speaker": "M",
+     "text": "We made it to the final round. Everyone was cheering for us."
+    },
+    {
+     "speaker": "W",
+     "text": "That's amazing! So did you win?"
+    },
+    {
+     "speaker": "M",
+     "text": "Halfway through, our robot just stopped moving. It never started again."
+    },
+    {
+     "speaker": "W",
+     "text": "Oh no. Maybe the battery was weak, or a wire came loose."
+    },
+    {
+     "speaker": "M",
+     "text": "We checked every wire twice this morning. I still don't understand it."
+    },
+    {
+     "speaker": "W",
+     "text": "Still, reaching the final is a big deal."
+    },
+    {
+     "speaker": "M",
+     "text": "I know. But I wanted people to see it finish the course."
+    }
+   ],
+   "script_translation": "여: 민호야, 로봇 대회에서 너희 팀 어떻게 됐어?\n남: 결승전까지 올라갔어. 모두가 우리를 응원해 줬어.\n여: 대단하다! 그래서 우승했어?\n남: 중간쯤에서 우리 로봇이 그냥 멈춰 버렸어. 다시는 움직이지 않았어.\n여: 저런. 배터리가 약했거나 전선이 헐거워졌나 봐.\n남: 오늘 아침에 전선을 전부 두 번씩 확인했어. 아직도 이해가 안 돼.\n여: 그래도 결승까지 간 건 대단한 일이야.\n남: 알아. 하지만 사람들이 로봇이 코스를 끝까지 가는 걸 봐 주길 바랐어.",
+   "answer_clue": "Halfway through, our robot just stopped moving. It never started again. / I know. But I wanted people to see it finish the course.",
+   "explanation": "남자는 결승전 도중 로봇이 멈춰 버렸고 사람들에게 로봇이 코스를 끝내는 모습을 보여 주고 싶었다고 하므로 실망한 심정이다. 결승까지 올라가 응원을 받았다는 말은 자랑스러움을 떠올리게 하지만 마지막 심정은 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "our robot just stopped moving",
+     "We checked every wire twice this morning.",
+     "I wanted people to see it finish the course."
+    ]
+   }
+  },
+  {
+   "key": "중2 15회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "첫 응답부터 'I felt really disappointed' 직접 발화",
+   "before_sha": "fd6cf61afac75c59e59fad29ca7206f9bcd5009dd727e94e727e717daaef995d",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, did you hear from the school art contest?"
+    },
+    {
+     "speaker": "M",
+     "text": "An email came last night. My heart was pounding as I opened it."
+    },
+    {
+     "speaker": "W",
+     "text": "And? Did your city painting win something?"
+    },
+    {
+     "speaker": "M",
+     "text": "It just said, \"Thank you for joining.\" Nothing else."
+    },
+    {
+     "speaker": "W",
+     "text": "Oh, you spent three whole weekends on that painting."
+    },
+    {
+     "speaker": "M",
+     "text": "And I planned to show it to everyone at the festival."
+    },
+    {
+     "speaker": "W",
+     "text": "You could still put it up on our class board."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. But right now I don't even want to look at it."
+    }
+   ],
+   "script_translation": "여: 민호야, 학교 미술 대회에서 연락 왔어?\n남: 어젯밤에 이메일이 왔어. 열어 볼 때 가슴이 쿵쾅거렸어.\n여: 그래서? 네 도시 그림이 상 받았어?\n남: \"참가해 주셔서 감사합니다.\"라고만 쓰여 있었어. 다른 말은 없었어.\n여: 아, 너 그 그림에 주말을 세 번이나 통째로 썼잖아.\n남: 그리고 축제 때 모두에게 보여 줄 계획이었어.\n여: 그래도 우리 반 게시판에 붙일 수 있잖아.\n남: 고마워. 그런데 지금은 그 그림을 쳐다보고 싶지도 않아.",
+   "answer_clue": "It just said, \"Thank you for joining.\" Nothing else. / Thanks. But right now I don't even want to look at it.",
+   "explanation": "남자는 주말을 세 번이나 들여 그린 그림이 상을 받지 못했다는 이메일을 받고 지금은 그림을 쳐다보고 싶지도 않다고 하므로 실망한 심정이다. 이메일을 열 때 가슴이 쿵쾅거렸다는 말은 설렘처럼 들리지만 결과를 확인한 뒤의 심정은 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "Thank you for joining.",
+     "I planned to show it to everyone at the festival",
+     "right now I don't even want to look at it"
+    ]
+   }
+  },
+  {
+   "key": "중2 18회#8",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "심정 파악",
+   "reason": "'I feel proud' 직접 발화. 다른 감정 전환 없음",
+   "before_sha": "9dc61695890185a5060e665ebdce5d86c02f92591ee66fc43d8b5e918cea4312",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, did you check the writing contest results?"
+    },
+    {
+     "speaker": "M",
+     "text": "At first I didn't see my name, and my heart sank."
+    },
+    {
+     "speaker": "W",
+     "text": "Oh no. But you worked on that story for three weeks."
+    },
+    {
+     "speaker": "M",
+     "text": "Then I scrolled down. I won first prize!"
+    },
+    {
+     "speaker": "W",
+     "text": "Wow! Your family will be so happy."
+    },
+    {
+     "speaker": "M",
+     "text": "I rewrote the ending five times. I never gave up on it."
+    },
+    {
+     "speaker": "W",
+     "text": "You should thank Ms. Lee for helping you with it."
+    },
+    {
+     "speaker": "M",
+     "text": "I will. I'm going to show her the list myself right now."
+    }
+   ],
+   "script_translation": "여: 민호야, 글쓰기 대회 결과 확인했어?\n남: 처음에는 내 이름이 안 보여서 가슴이 철렁했어.\n여: 저런. 하지만 너 그 이야기를 3주 동안이나 썼잖아.\n남: 그러다 아래로 내려 봤어. 내가 1등이야!\n여: 와! 가족들이 정말 기뻐하겠다.\n남: 결말을 다섯 번이나 고쳐 썼어. 한 번도 포기하지 않았어.\n여: 도와주신 이 선생님께 감사 인사를 드려.\n남: 그럴 거야. 지금 바로 직접 가서 명단을 보여 드릴 거야.",
+   "answer_clue": "Then I scrolled down. I won first prize! / I rewrote the ending five times. I never gave up on it.",
+   "explanation": "남자는 결말을 다섯 번이나 고쳐 쓰며 포기하지 않은 끝에 글쓰기 대회에서 1등을 했고 선생님께 직접 명단을 보여 드리겠다고 하므로 자랑스러운 심정이다. 처음에 이름이 안 보여 가슴이 철렁했다는 말은 실망처럼 들리지만 결과를 확인한 뒤의 심정은 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "자랑스러움",
+    "emotion_clues": [
+     "I won first prize!",
+     "I rewrote the ending five times. I never gave up on it.",
+     "I'm going to show her the list myself right now."
+    ]
+   }
+  },
+  {
+   "key": "중3 2회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel sad and disappointed' 직접 발화",
+   "before_sha": "8c94f5a7576f155773a4073b9d98290ffcc9fbaa1d8081b74e16f87a230f1593",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, the results of the city writing contest came out this morning, right?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. Last night I could hardly sleep because I kept picturing the award ceremony."
+    },
+    {
+     "speaker": "W",
+     "text": "So? Tell me! Did your story about your grandfather win a prize?"
+    },
+    {
+     "speaker": "M",
+     "text": "I read the whole list twice, but my name wasn't anywhere on it."
+    },
+    {
+     "speaker": "W",
+     "text": "Oh no. But your teacher said your characters felt really alive."
+    },
+    {
+     "speaker": "M",
+     "text": "That's nice to hear, but I spent three weeks on that story for nothing."
+    },
+    {
+     "speaker": "W",
+     "text": "It's not for nothing. You can send it to another contest next month."
+    },
+    {
+     "speaker": "M",
+     "text": "Maybe later. Right now I don't feel like writing anything at all."
+    }
+   ],
+   "script_translation": "여: 민호야, 시 글쓰기 대회 결과가 오늘 아침에 나왔지?\n남: 응. 어젯밤에 시상식 장면을 계속 떠올리느라 잠을 거의 못 잤어.\n여: 그래서? 말해 봐! 할아버지에 관한 네 이야기가 상 받았어?\n남: 명단을 두 번이나 다 읽었는데, 내 이름은 어디에도 없었어.\n여: 이런. 그래도 선생님께서 네 등장인물들이 정말 살아 있는 것 같다고 하셨잖아.\n남: 그 말은 고맙지만, 난 그 이야기에 3주를 쏟았는데 헛수고였어.\n여: 헛수고가 아니야. 다음 달에 다른 대회에 보낼 수 있잖아.\n남: 나중에. 지금은 아무것도 쓰고 싶지 않아.",
+   "answer_clue": "I read the whole list twice, but my name wasn't anywhere on it. / That's nice to hear, but I spent three weeks on that story for nothing.",
+   "explanation": "남자는 시상식을 기대하며 잠을 설쳤지만 수상자 명단에 이름이 없자 3주 동안의 노력이 헛수고였다며 지금은 아무것도 쓰고 싶지 않다고 하므로 실망한 심정이다. 처음의 기대감은 결과 발표 전의 마음이므로 설렘은 답이 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "my name wasn't anywhere on it",
+     "I spent three weeks on that story for nothing",
+     "Right now I don't feel like writing anything at all"
+    ]
+   }
+  },
+  {
+   "key": "중3 3회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel relieved' 직접 발화. 걱정은 선택지 없음",
+   "before_sha": "38492759c3f232de04de4247f8c1fd4449f4e7d6d052cc901bff3acd0d8bdf6b",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, this morning you were searching every corner of the classroom. What happened?"
+    },
+    {
+     "speaker": "M",
+     "text": "I couldn't find my speech notes, and my turn in the contest was at two."
+    },
+    {
+     "speaker": "W",
+     "text": "I remember. Your face turned red when the teacher asked about them."
+    },
+    {
+     "speaker": "M",
+     "text": "Right. Everyone was looking at me, and I didn't know what to say."
+    },
+    {
+     "speaker": "W",
+     "text": "So what changed? You're smiling and eating your snack now."
+    },
+    {
+     "speaker": "M",
+     "text": "My friend found them in the music room. I left them there after practice."
+    },
+    {
+     "speaker": "W",
+     "text": "That's lucky. You still have almost an hour to go over them again."
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. Phew, my heart finally slowed down. Now I can actually think again."
+    }
+   ],
+   "script_translation": "여: 민호야, 오늘 아침에 너 교실 구석구석을 뒤지고 있던데. 무슨 일이었어?\n남: 발표 메모를 못 찾았는데, 대회에서 내 차례가 2시였거든.\n여: 기억나. 선생님이 메모에 대해 물으셨을 때 네 얼굴이 빨개졌잖아.\n남: 맞아. 모두가 나를 쳐다보고 있었는데, 뭐라고 해야 할지 몰랐어.\n여: 그럼 뭐가 달라진 거야? 지금은 웃으면서 간식까지 먹고 있네.\n남: 친구가 음악실에서 찾아 줬어. 연습 끝나고 거기 두고 왔더라고.\n여: 운이 좋았네. 아직 다시 훑어볼 시간이 거의 한 시간이나 있어.\n남: 응. 휴, 이제야 심장이 좀 진정됐어. 이제 다시 제대로 생각할 수 있겠어.",
+   "answer_clue": "My friend found them in the music room. / Phew, my heart finally slowed down. Now I can actually think again.",
+   "explanation": "남자는 대회 직전에 잃어버린 줄 알았던 발표 메모를 친구가 찾아 주자 이제야 심장이 진정되었다고 하므로 안도한 심정이다. 모두 앞에서 얼굴이 빨개졌던 것은 아침의 일이므로 당황은 지금의 심정이 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "안도",
+    "emotion_clues": [
+     "My friend found them in the music room.",
+     "Phew, my heart finally slowed down.",
+     "Now I can actually think again."
+    ]
+   }
+  },
+  {
+   "key": "중3 4회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "hands shaking, 'I am worried', 'I feel nervous'로 걱정 3중 제시",
+   "before_sha": "a2051afe78eedad71cd1d9a9db060cf1db3579836348ecd238bec3f116557328",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Dohyun, the robot contest results are posted outside the science room."
+    },
+    {
+     "speaker": "M",
+     "text": "Already? I've been checking the website since lunch, and nothing showed up."
+    },
+    {
+     "speaker": "W",
+     "text": "Your team did great in the final round. All the kids clapped for your robot."
+    },
+    {
+     "speaker": "M",
+     "text": "That part went well, but our robot stopped for a few seconds yesterday."
+    },
+    {
+     "speaker": "W",
+     "text": "You fixed it quickly, though. I'm sure the judges understood."
+    },
+    {
+     "speaker": "M",
+     "text": "What if they took points off for that? My hands won't stop shaking."
+    },
+    {
+     "speaker": "W",
+     "text": "Come on, let's go and look at the list together."
+    },
+    {
+     "speaker": "M",
+     "text": "Can you read it first? I don't think I can look at it myself."
+    }
+   ],
+   "script_translation": "여: 도현아, 로봇 대회 결과가 과학실 밖에 붙었어.\n남: 벌써? 점심 이후로 계속 웹사이트를 확인했는데 아무것도 안 떴어.\n여: 너희 팀 결승에서 정말 잘했잖아. 모두가 너희 로봇에 박수를 쳤어.\n남: 그 부분은 잘됐지만, 어제 우리 로봇이 몇 초 동안 멈췄었어.\n여: 그래도 금방 고쳤잖아. 심사위원들도 분명 이해했을 거야.\n남: 그것 때문에 점수가 깎였으면 어떡하지? 손이 계속 떨려.\n여: 자, 같이 가서 명단을 보자.\n남: 네가 먼저 읽어 줄래? 내가 직접은 못 볼 것 같아.",
+   "answer_clue": "What if they took points off for that? My hands won't stop shaking. / Can you read it first? I don't think I can look at it myself.",
+   "explanation": "남자는 로봇이 멈춘 일로 점수가 깎였을까 봐 손이 떨리고 결과를 직접 보지도 못하겠다고 하므로 걱정하는 심정이다. 결승에서 잘했다는 칭찬을 들었지만 만족이나 자랑스러움을 드러내지는 않는다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "걱정",
+    "emotion_clues": [
+     "our robot stopped for a few seconds yesterday",
+     "What if they took points off for that?",
+     "My hands won't stop shaking.",
+     "I don't think I can look at it myself."
+    ]
+   }
+  },
+  {
+   "key": "중3 6회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I'm really relieved' 직접 발화. nervous에 해당하는 선택지 없음",
+   "before_sha": "86a40c43ee79f2a8fcee0fd74fc2a7172af1b7aee4cca73cb80446f2e733ba7e",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Jiyun, you were so upset this morning. You even yelled at your little brother."
+    },
+    {
+     "speaker": "W",
+     "text": "I thought he took my wallet again, but he didn't. I lost it on the bus."
+    },
+    {
+     "speaker": "M",
+     "text": "Did you call the bus company? Your student card was in it, right?"
+    },
+    {
+     "speaker": "W",
+     "text": "I called twice, and they kept saying nobody had turned it in."
+    },
+    {
+     "speaker": "M",
+     "text": "So why are you smiling now? Did something change?"
+    },
+    {
+     "speaker": "W",
+     "text": "A driver found it under a seat this afternoon, with everything still inside."
+    },
+    {
+     "speaker": "M",
+     "text": "That's great news. You can pick it up after school, then."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. Phew, now I can finally breathe. I should apologize to my brother, too."
+    }
+   ],
+   "script_translation": "남: 지윤아, 너 오늘 아침에 엄청 화나 있었잖아. 남동생한테 소리까지 질렀고.\n여: 동생이 또 내 지갑을 가져간 줄 알았는데, 아니었어. 버스에서 잃어버린 거였어.\n남: 버스 회사에 전화해 봤어? 지갑 안에 학생증이 있었잖아, 그렇지?\n여: 두 번 전화했는데, 아무도 맡기지 않았다는 말만 계속했어.\n남: 그런데 지금은 왜 웃고 있어? 뭔가 달라졌어?\n여: 오늘 오후에 기사님이 좌석 밑에서 찾으셨대. 안에 든 것도 전부 그대로래.\n남: 잘됐다. 그럼 방과 후에 찾으러 가면 되겠네.\n여: 응. 휴, 이제야 숨을 좀 쉬겠어. 동생한테도 사과해야겠다.",
+   "answer_clue": "A driver found it under a seat this afternoon, with everything still inside. / Phew, now I can finally breathe.",
+   "explanation": "여자는 버스에서 잃어버린 지갑을 기사님이 그대로 찾아 주었다는 소식에 이제야 숨을 쉬겠다고 하므로 안도한 심정이다. 아침에 동생에게 소리를 지른 것은 지난 일이라 분노는 지금의 심정이 아니다.",
+   "fields": {
+    "target_person": "여자",
+    "target_emotion": "안도",
+    "emotion_clues": [
+     "A driver found it under a seat this afternoon, with everything still inside.",
+     "Phew, now I can finally breathe.",
+     "I should apologize to my brother, too."
+    ]
+   }
+  },
+  {
+   "key": "중3 8회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel disappointed' 직접 발화",
+   "before_sha": "e8acc1df859c230b3b6348f08c87c2e1a9aad4e597a25e8c2dcf211ae202e4cc",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, the list for the school band concert is up on the board."
+    },
+    {
+     "speaker": "M",
+     "text": "I know. I even bought new guitar strings last week to get ready for it."
+    },
+    {
+     "speaker": "W",
+     "text": "So? Are you playing with the band in December?"
+    },
+    {
+     "speaker": "M",
+     "text": "They picked only two guitar players, and neither of them is me."
+    },
+    {
+     "speaker": "W",
+     "text": "Really? You practiced during every lunch break for almost three weeks."
+    },
+    {
+     "speaker": "M",
+     "text": "I did. I honestly thought my audition went better than last year's."
+    },
+    {
+     "speaker": "W",
+     "text": "Why don't you ask the teacher what you can do better next time?"
+    },
+    {
+     "speaker": "M",
+     "text": "Maybe next week. Today I just want to put my guitar away and go home."
+    }
+   ],
+   "script_translation": "여: 민호야, 학교 밴드 공연 명단이 게시판에 붙었어.\n남: 알아. 준비하려고 지난주에 새 기타 줄까지 샀어.\n여: 그래서? 12월에 밴드랑 같이 공연하는 거야?\n남: 기타 연주자는 두 명만 뽑았는데, 둘 다 내가 아니야.\n여: 정말? 너 거의 3주 동안 점심시간마다 연습했잖아.\n남: 그랬지. 솔직히 이번 오디션이 작년보다 더 잘됐다고 생각했어.\n여: 다음번에 뭘 더 잘하면 되는지 선생님께 여쭤보는 게 어때?\n남: 다음 주에나. 오늘은 그냥 기타 치워 두고 집에 가고 싶어.",
+   "answer_clue": "They picked only two guitar players, and neither of them is me. / Today I just want to put my guitar away and go home.",
+   "explanation": "남자는 새 기타 줄까지 사며 준비했지만 밴드 공연 기타 연주자로 뽑히지 못해 오늘은 기타를 치워 두고 집에 가고 싶다고 하므로 실망한 심정이다. 새 줄을 샀던 것은 명단 발표 전의 기대이므로 설렘은 답이 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "neither of them is me",
+     "I honestly thought my audition went better than last year's",
+     "Today I just want to put my guitar away and go home."
+    ]
+   }
+  },
+  {
+   "key": "중3 9회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel really disappointed' 직접 발화",
+   "before_sha": "0c221f4eb4799a7a840d9be42eb7e4c566ee0ce6492393f95400b4cbba9fc3f1",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, why are you standing outside the music room all by yourself?"
+    },
+    {
+     "speaker": "M",
+     "text": "The audition results for the festival concert just went up on the door."
+    },
+    {
+     "speaker": "W",
+     "text": "And? I saw your name on the list when I walked by!"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes, but only as a backup player. Someone else got the guitar solo."
+    },
+    {
+     "speaker": "W",
+     "text": "That's still good news. Lots of people didn't get in at all."
+    },
+    {
+     "speaker": "M",
+     "text": "I know, but I practiced that solo every night. It was the only part I wanted."
+    },
+    {
+     "speaker": "W",
+     "text": "You can ask the teacher for another chance at the winter concert."
+    },
+    {
+     "speaker": "M",
+     "text": "Maybe. Right now I don't even want to open my guitar case."
+    }
+   ],
+   "script_translation": "여: 민호야, 왜 혼자 음악실 밖에 서 있어?\n남: 축제 공연 오디션 결과가 방금 문에 붙었거든.\n여: 그래서? 지나가다가 명단에서 네 이름 봤어!\n남: 응, 그런데 대기 연주자로만 뽑혔어. 기타 독주는 다른 사람이 맡았어.\n여: 그래도 좋은 소식이잖아. 아예 못 뽑힌 사람도 많아.\n남: 알아, 그런데 난 매일 밤 그 독주를 연습했어. 내가 원한 건 그 부분뿐이었어.\n여: 겨울 공연 때 다시 기회를 달라고 선생님께 부탁해 봐.\n남: 글쎄. 지금은 기타 케이스도 열고 싶지 않아.",
+   "answer_clue": "I know, but I practiced that solo every night. It was the only part I wanted. / Right now I don't even want to open my guitar case.",
+   "explanation": "남자는 매일 밤 연습한 기타 독주를 다른 사람이 맡고 자신은 대기 연주자로만 뽑히자 기타 케이스도 열기 싫다고 하므로 실망한 심정이다. 명단에 이름이 있다는 말만 듣고 자랑스러움이나 설렘을 고르면 안 된다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "Someone else got the guitar solo.",
+     "It was the only part I wanted.",
+     "Right now I don't even want to open my guitar case."
+    ]
+   }
+  },
+  {
+   "key": "중3 12회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'finally breathe'에 'I'm so relieved'까지 두 번 제시",
+   "before_sha": "9b5561b2b754cd34242c821ce8357c8e2d3a3ede4e58ef145debe3a0b9fd47dc",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, you look a lot brighter than you did this morning."
+    },
+    {
+     "speaker": "M",
+     "text": "I just got an email from the contest. They accepted our video after all."
+    },
+    {
+     "speaker": "W",
+     "text": "Wait, wasn't it uploaded after the deadline? Your internet stopped working, right?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes, three minutes late. I thought two months of work was gone."
+    },
+    {
+     "speaker": "W",
+     "text": "So your team is still in the contest? That's amazing."
+    },
+    {
+     "speaker": "M",
+     "text": "We are. The first round is next Friday, so we still have time."
+    },
+    {
+     "speaker": "W",
+     "text": "Your robot video is really creative. I'm sure you'll do well there."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. Phew, I didn't sleep at all last night, but now I can finally rest."
+    }
+   ],
+   "script_translation": "여: 민호야, 아침보다 훨씬 밝아 보이네.\n남: 방금 대회 측에서 이메일을 받았어. 결국 우리 영상을 받아 줬대.\n여: 잠깐, 마감 뒤에 올리지 않았어? 너희 집 인터넷이 끊겼다며?\n남: 응, 3분 늦었어. 두 달 동안 한 게 다 날아간 줄 알았어.\n여: 그럼 너희 팀 아직 대회에 나가는 거야? 대단하다.\n남: 응. 1차 심사가 다음 주 금요일이라 아직 시간이 있어.\n여: 너희 로봇 영상 정말 창의적이야. 거기서도 분명 잘할 거야.\n남: 고마워. 휴, 어젯밤엔 한숨도 못 잤는데, 이제야 좀 쉴 수 있겠어.",
+   "answer_clue": "They accepted our video after all. / Phew, I didn't sleep at all last night, but now I can finally rest.",
+   "explanation": "남자는 마감보다 늦게 올린 영상이 결국 받아들여졌다는 소식에 어젯밤 한숨도 못 잤지만 이제야 쉴 수 있다고 하므로 안도한 심정이다. 로봇 영상이 창의적이라는 칭찬에는 고맙다고만 할 뿐 자랑스러움을 드러내지 않는다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "안도",
+    "emotion_clues": [
+     "They accepted our video after all.",
+     "I thought two months of work was gone.",
+     "now I can finally rest"
+    ]
+   }
+  },
+  {
+   "key": "중3 14회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "여자 'You should be proud', 남자 'I feel so proud'로 반복",
+   "before_sha": "eb0e8ec50868c4a4da6a98e86b4c7f87b08b81120de4cfe559b6dcf66aeda7ac",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, the city drawing contest results are on the website now."
+    },
+    {
+     "speaker": "M",
+     "text": "Don't tell me yet. Lots of high school students entered, so I probably lost."
+    },
+    {
+     "speaker": "W",
+     "text": "Just look at this page. Your name is right at the top."
+    },
+    {
+     "speaker": "M",
+     "text": "First prize? For my picture of the night market? Let me see that!"
+    },
+    {
+     "speaker": "W",
+     "text": "The judges said your colors made the whole market feel alive."
+    },
+    {
+     "speaker": "M",
+     "text": "I spent every weekend for two months on those lights and faces."
+    },
+    {
+     "speaker": "W",
+     "text": "And your drawing will be shown at City Hall next Saturday."
+    },
+    {
+     "speaker": "M",
+     "text": "All that hard work paid off. I'm bringing my whole family to see it."
+    }
+   ],
+   "script_translation": "여: 민호야, 시 그림 대회 결과가 지금 웹사이트에 올라왔어.\n남: 아직 말하지 마. 고등학생들이 많이 참가해서 난 아마 떨어졌을 거야.\n여: 이 페이지 좀 봐. 네 이름이 맨 위에 있어.\n남: 1등이라고? 내 야시장 그림이? 나도 좀 보자!\n여: 심사위원들이 네 색깔 덕분에 시장 전체가 살아 있는 것 같았대.\n남: 그 불빛이랑 사람들 얼굴을 그리느라 두 달 동안 주말마다 매달렸어.\n여: 그리고 네 그림이 다음 주 토요일에 시청에 전시된대.\n남: 그 모든 노력이 결실을 맺었네. 가족들 다 데리고 보러 갈 거야.",
+   "answer_clue": "All that hard work paid off. I'm bringing my whole family to see it.",
+   "explanation": "남자는 두 달 동안 주말마다 공들인 그림이 1등을 하자 노력이 결실을 맺었다며 가족을 모두 데리고 전시를 보러 가겠다고 하므로 자랑스러운 심정이다. 떨어졌을 거라며 걱정한 것은 결과를 보기 전의 마음이다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "자랑스러움",
+    "emotion_clues": [
+     "I spent every weekend for two months on those lights and faces.",
+     "All that hard work paid off.",
+     "I'm bringing my whole family to see it."
+    ]
+   }
+  },
+  {
+   "key": "중3 15회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel really disappointed' 직접 발화",
+   "before_sha": "e93241988d16655872b06c5ee7b0acd21b1a90cefce93f83a8ca675be8ae8069",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, did you see the final team list for the city speech contest?"
+    },
+    {
+     "speaker": "M",
+     "text": "I did. Three names from our school, and mine isn't one of them."
+    },
+    {
+     "speaker": "W",
+     "text": "Well, you always said speaking in front of big crowds scared you."
+    },
+    {
+     "speaker": "M",
+     "text": "Not anymore. This time I really wanted to stand on that stage."
+    },
+    {
+     "speaker": "W",
+     "text": "You recorded your speech every night. Your pronunciation got so much better."
+    },
+    {
+     "speaker": "M",
+     "text": "I thought so, too. I even practiced in front of my family on Sunday."
+    },
+    {
+     "speaker": "W",
+     "text": "The school English festival is next month. You can try that one."
+    },
+    {
+     "speaker": "M",
+     "text": "It's not the same. I think I'll just skip dinner and go to bed early."
+    }
+   ],
+   "script_translation": "여: 민호야, 시 말하기 대회 최종 팀 명단 봤어?\n남: 봤어. 우리 학교에서 세 명이 뽑혔는데, 거기에 내 이름은 없어.\n여: 음, 너 늘 많은 사람들 앞에서 말하는 게 무섭다고 했잖아.\n남: 이젠 아니야. 이번엔 정말 그 무대에 서고 싶었어.\n여: 너 매일 밤 연설을 녹음했잖아. 발음도 정말 많이 좋아졌고.\n남: 나도 그렇게 생각했어. 일요일에는 가족들 앞에서 연습까지 했어.\n여: 다음 달에 학교 영어 축제가 있어. 거기 나가 봐.\n남: 그건 달라. 그냥 저녁 거르고 일찍 잘래.",
+   "answer_clue": "This time I really wanted to stand on that stage. / It's not the same. I think I'll just skip dinner and go to bed early.",
+   "explanation": "남자는 정말 서고 싶었던 무대의 최종 명단에 들지 못하자 다른 행사는 같지 않다며 저녁도 거르고 일찍 자겠다고 하므로 실망한 심정이다. 여자가 큰 무대를 무서워하지 않았냐고 묻지만 남자가 이젠 아니라고 답하므로 안도는 답이 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "mine isn't one of them",
+     "This time I really wanted to stand on that stage.",
+     "I think I'll just skip dinner and go to bed early."
+    ]
+   }
+  },
+  {
+   "key": "중3 16회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel really disappointed' 직접 발화",
+   "before_sha": "1d9529116a493280501695803d4a53b7cbac700d1d3264f43fef8a56c0af784f",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, you look tired. Did the robot club results come out today?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. Five teams made the final round, and we came in sixth."
+    },
+    {
+     "speaker": "W",
+     "text": "Sixth? Oh, you and your team worked on that robot for two months."
+    },
+    {
+     "speaker": "M",
+     "text": "We did. I even told my parents to save the date for the final."
+    },
+    {
+     "speaker": "W",
+     "text": "Did the teacher say anything about your project?"
+    },
+    {
+     "speaker": "M",
+     "text": "She loved our design, but the arm moved too slowly in the test."
+    },
+    {
+     "speaker": "W",
+     "text": "That's useful advice. You can fix it before the city festival."
+    },
+    {
+     "speaker": "M",
+     "text": "I guess, but I really wanted our robot on the big stage this time."
+    }
+   ],
+   "script_translation": "여: 민호야, 피곤해 보이네. 로봇 동아리 결과 오늘 나왔어?\n남: 응. 다섯 팀이 결선에 올랐는데, 우리는 6등이었어.\n여: 6등? 아, 너희 팀 그 로봇 두 달 동안 만들었잖아.\n남: 그랬지. 부모님께 결선 날짜 비워 두시라고까지 말씀드렸어.\n여: 선생님께서 너희 작품에 대해 뭐라고 하셨어?\n남: 디자인은 아주 마음에 들어 하셨는데, 시험에서 팔이 너무 느리게 움직였대.\n여: 도움이 되는 조언이네. 시 축제 전에 고치면 되잖아.\n남: 그렇겠지, 그래도 이번엔 정말 우리 로봇을 큰 무대에 올리고 싶었어.",
+   "answer_clue": "Five teams made the final round, and we came in sixth. / I guess, but I really wanted our robot on the big stage this time.",
+   "explanation": "남자는 두 달 동안 만든 로봇이 한 등수 차이로 결선에 오르지 못하자 이번엔 정말 큰 무대에 올리고 싶었다고 하므로 실망한 심정이다. 선생님이 디자인을 칭찬했지만 남자가 그것을 자랑스러워하는 반응은 없다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "실망",
+    "emotion_clues": [
+     "we came in sixth",
+     "I even told my parents to save the date for the final.",
+     "I really wanted our robot on the big stage this time."
+    ]
+   }
+  },
+  {
+   "key": "중3 19회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel so nervous'(=불안) 직접 발화에 can't relax, 떨림까지 겹침",
+   "before_sha": "181455c77a86ac753cb25093716f41d8d1e8f7036e51f92261a6df09b6667a5e",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Jina, you've checked your phone about ten times in five minutes."
+    },
+    {
+     "speaker": "W",
+     "text": "The speech contest results were supposed to go up at four o'clock."
+    },
+    {
+     "speaker": "M",
+     "text": "You did really well yesterday. Even the judges were nodding while you spoke."
+    },
+    {
+     "speaker": "W",
+     "text": "I was happy with my speech, too. But now it's twenty past four."
+    },
+    {
+     "speaker": "M",
+     "text": "The teachers are probably checking the scores one more time."
+    },
+    {
+     "speaker": "W",
+     "text": "Maybe. But what if I didn't make it? I can't even sit still."
+    },
+    {
+     "speaker": "M",
+     "text": "Look, the page just changed. The list is up now. Open it."
+    },
+    {
+     "speaker": "W",
+     "text": "Can you open it for me? My hands are shaking too much to tap."
+    }
+   ],
+   "script_translation": "남: 지나야, 너 5분 동안 휴대폰을 열 번은 확인했어.\n여: 말하기 대회 결과가 4시에 올라오기로 되어 있었거든.\n남: 어제 정말 잘했잖아. 네가 말하는 동안 심사위원들도 고개를 끄덕였어.\n여: 나도 내 연설이 마음에 들었어. 그런데 벌써 4시 20분이야.\n남: 선생님들이 아마 점수를 한 번 더 확인하고 계실 거야.\n여: 그럴지도. 그런데 내가 떨어졌으면 어떡해? 가만히 앉아 있을 수가 없어.\n남: 봐, 페이지가 방금 바뀌었어. 명단이 올라왔어. 열어 봐.\n여: 네가 대신 열어 줄래? 손이 너무 떨려서 누를 수가 없어.",
+   "answer_clue": "But what if I didn't make it? I can't even sit still. / My hands are shaking too much to tap.",
+   "explanation": "여자는 발표가 늦어지자 떨어졌으면 어떡하냐며 가만히 앉아 있지 못하고 손이 떨려 결과도 직접 열지 못하므로 불안한 심정이다. 연설이 마음에 들었다는 말은 어제의 발표에 대한 것이므로 만족은 지금의 심정이 아니다.",
+   "fields": {
+    "target_person": "여자",
+    "target_emotion": "불안",
+    "emotion_clues": [
+     "But what if I didn't make it?",
+     "I can't even sit still.",
+     "My hands are shaking too much to tap."
+    ]
+   }
+  },
+  {
+   "key": "중3 20회#8",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "심정 파악",
+   "reason": "'I feel relieved' 직접 발화",
+   "before_sha": "fd555da50364b1969872656f83dbfebd55f51b644e5e986c21c373cae37f1d34",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Jun, have you heard anything about the robot contest results yet?"
+    },
+    {
+     "speaker": "M",
+     "text": "Not yet. Our robot stopped in the middle of the final test, remember?"
+    },
+    {
+     "speaker": "W",
+     "text": "I saw that. Everyone in the hall was watching, and you froze for a second."
+    },
+    {
+     "speaker": "M",
+     "text": "My face went red. I had no idea what to do in front of the judges."
+    },
+    {
+     "speaker": "W",
+     "text": "Well, the judges checked. A loose cable in the hall caused it, not your robot."
+    },
+    {
+     "speaker": "M",
+     "text": "Wait, so it wasn't our fault? Does that mean our score still counts?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. And your team got second prize for creative design."
+    },
+    {
+     "speaker": "M",
+     "text": "Phew. I thought everything was over. My shoulders feel so much lighter now."
+    }
+   ],
+   "script_translation": "여: 준아, 로봇 대회 결과에 대해 뭐 들은 거 있어?\n남: 아직. 우리 로봇이 결승 시험 도중에 멈췄잖아, 기억나?\n여: 봤어. 강당에 있던 모두가 보고 있었고, 너는 잠깐 얼어붙었지.\n남: 얼굴이 빨개졌어. 심사위원들 앞에서 어떻게 해야 할지 전혀 몰랐어.\n여: 그런데 심사위원들이 확인해 봤대. 로봇이 아니라 강당의 헐거운 전선 때문이었대.\n남: 잠깐, 그럼 우리 잘못이 아니었다는 거야? 우리 점수가 그대로 인정된다는 뜻이야?\n여: 응. 그리고 너희 팀이 창의적 디자인 부문에서 2등 상을 받았어.\n남: 휴. 다 끝난 줄 알았어. 이제야 어깨가 훨씬 가벼워졌어.",
+   "answer_clue": "Phew. I thought everything was over. My shoulders feel so much lighter now.",
+   "explanation": "남자는 결승 시험 중 로봇이 멈춰 다 끝난 줄 알았지만 로봇 잘못이 아니었고 상까지 받았다는 말에 어깨가 훨씬 가벼워졌다고 하므로 안도한 심정이다. 심사위원 앞에서 얼굴이 빨개졌던 것은 지난 일이므로 당황은 지금의 심정이 아니다.",
+   "fields": {
+    "target_person": "남자",
+    "target_emotion": "안도",
+    "emotion_clues": [
+     "Wait, so it wasn't our fault?",
+     "I thought everything was over.",
+     "My shoulders feel so much lighter now."
+    ]
+   }
+  },
+  {
+   "key": "중2 1회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 이야기 쓰기 뒤 writer 직접 발화",
+   "before_sha": "f42111ac6861737eb8e6541b8a9dd94d2264391357e5c8bde4daacc53ae8dd03",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "You're always writing something in that notebook. Is it homework?"
+    },
+    {
+     "speaker": "W",
+     "text": "No, it's a short story about a girl and her lost dog."
+    },
+    {
+     "speaker": "M",
+     "text": "Wow. Do you want to do something with writing later?"
+    },
+    {
+     "speaker": "W",
+     "text": "Well, my mom thinks I should be a teacher like her."
+    },
+    {
+     "speaker": "M",
+     "text": "You'd be a good teacher. You explain things really well."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks, but I'd rather spend my days making up stories."
+    },
+    {
+     "speaker": "M",
+     "text": "So what's your dream, then?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a writer. I'm entering a story contest next month."
+    }
+   ],
+   "script_translation": "남: 요즘 그 공책에 항상 뭔가를 쓰고 있네. 숙제야?\n여: 아니, 한 소녀와 잃어버린 강아지에 관한 짧은 이야기야.\n남: 와. 나중에 글 쓰는 일을 하고 싶어?\n여: 음, 우리 엄마는 내가 엄마처럼 선생님이 돼야 한다고 생각하셔.\n남: 너는 좋은 선생님이 될 거야. 설명을 정말 잘하잖아.\n여: 고마워, 하지만 나는 이야기를 지어내면서 하루하루를 보내고 싶어.\n남: 그럼 네 꿈은 뭐야?\n여: 나는 작가가 되고 싶어. 다음 달에 이야기 대회에 나갈 거야.",
+   "answer_clue": "Thanks, but I'd rather spend my days making up stories. / I want to be a writer.",
+   "explanation": "여자의 엄마는 교사를 권하지만, 여자는 이야기를 지어내며 지내고 싶다며 작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "작가",
+    "interest_clues": [
+     "it's a short story about a girl and her lost dog",
+     "I'd rather spend my days making up stories",
+     "I'm entering a story contest next month"
+    ]
+   }
+  },
+  {
+   "key": "중2 2회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 'use photography for your job?' 뒤 photographer",
+   "before_sha": "1850cbd5f8a1d36956c3c6f73a29adaf2ec9cc20cf702332e272c7caecd7f1b3",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, you brought your camera to the soccer game again."
+    },
+    {
+     "speaker": "M",
+     "text": "Yeah, I took over two hundred pictures of our team today."
+    },
+    {
+     "speaker": "W",
+     "text": "Didn't you want to play on the team yourself?"
+    },
+    {
+     "speaker": "M",
+     "text": "I did. I wanted to be a soccer player when I was little."
+    },
+    {
+     "speaker": "W",
+     "text": "What changed? You were really fast back then."
+    },
+    {
+     "speaker": "M",
+     "text": "I hurt my knee, so I started watching games through a lens."
+    },
+    {
+     "speaker": "W",
+     "text": "And now you're the one everyone asks for photos."
+    },
+    {
+     "speaker": "M",
+     "text": "Right. I want to be a photographer for sports magazines."
+    }
+   ],
+   "script_translation": "여: 민호야, 축구 경기에 또 카메라를 가져왔네.\n남: 응, 오늘 우리 팀 사진을 200장 넘게 찍었어.\n여: 너도 직접 팀에서 뛰고 싶지 않았어?\n남: 그랬지. 어렸을 때는 축구 선수가 되고 싶었어.\n여: 뭐가 바뀐 거야? 그때 너 정말 빨랐잖아.\n남: 무릎을 다쳐서, 렌즈를 통해 경기를 보기 시작했어.\n여: 그리고 이제는 모두가 사진을 부탁하는 사람이 됐구나.\n남: 맞아. 나는 스포츠 잡지 사진작가가 되고 싶어.",
+   "answer_clue": "I hurt my knee, so I started watching games through a lens. / I want to be a photographer for sports magazines.",
+   "explanation": "남자는 어렸을 때 축구 선수를 꿈꿨지만 무릎을 다친 뒤 사진을 찍기 시작했고, 이제는 스포츠 잡지 사진작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "I took over two hundred pictures of our team today",
+     "I started watching games through a lens"
+    ]
+   }
+  },
+  {
+   "key": "중2 4회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 사진 이야기 뒤 photographer 직접 발화",
+   "before_sha": "8d92ac5e7ec863e4f1e7e85899010c9144bd00bfeb6d347e9340917401555b5b",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, thanks for coming to my piano concert last night."
+    },
+    {
+     "speaker": "W",
+     "text": "It was great! I took a lot of pictures of you."
+    },
+    {
+     "speaker": "M",
+     "text": "The one under the blue light looked amazing."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I waited almost ten minutes for that exact moment."
+    },
+    {
+     "speaker": "M",
+     "text": "My dream is to become a pianist and play all over the world."
+    },
+    {
+     "speaker": "W",
+     "text": "Then I'll come along and take pictures at every concert."
+    },
+    {
+     "speaker": "M",
+     "text": "Ha! So is that your plan for the future?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, really. I want to be a photographer who travels the world."
+    }
+   ],
+   "script_translation": "남: 소라야, 어젯밤 내 피아노 연주회에 와 줘서 고마워.\n여: 정말 멋졌어! 너 사진을 많이 찍었어.\n남: 파란 조명 아래에서 찍은 사진이 정말 멋져 보였어.\n여: 고마워. 딱 그 순간을 위해서 거의 10분을 기다렸어.\n남: 내 꿈은 피아니스트가 되어서 전 세계에서 연주하는 거야.\n여: 그럼 내가 따라가서 모든 연주회에서 사진을 찍을게.\n남: 하하! 그게 네 장래 계획이야?\n여: 응, 진짜로. 나는 세계를 여행하는 사진작가가 되고 싶어.",
+   "answer_clue": "I want to be a photographer who travels the world.",
+   "explanation": "피아니스트가 되는 것은 남자의 꿈이고, 여자는 세계를 여행하는 사진작가가 되고 싶다고 말하므로 정답은 사진작가이다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "I took a lot of pictures of you",
+     "I waited almost ten minutes for that exact moment",
+     "I'll come along and take pictures at every concert"
+    ]
+   }
+  },
+  {
+   "key": "중2 5회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 동물병원·보호소 이야기 뒤 vet 직접 발화",
+   "before_sha": "744b9b69883f38ff34e1022322223b6211d32414fa77a27610dfb99203fb9688",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, why are you reading a book about animal hospitals?"
+    },
+    {
+     "speaker": "M",
+     "text": "I'm helping at the shelter on Saturdays, and I want to learn more."
+    },
+    {
+     "speaker": "W",
+     "text": "You take great pictures of those dogs, too."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. I thought about becoming an animal photographer at first."
+    },
+    {
+     "speaker": "W",
+     "text": "Why not? Your dog photos are really popular online."
+    },
+    {
+     "speaker": "M",
+     "text": "Pictures can't help a dog with a hurt leg, though."
+    },
+    {
+     "speaker": "W",
+     "text": "Then what do you want to do in the future?"
+    },
+    {
+     "speaker": "M",
+     "text": "I want to be a vet and open my own animal hospital."
+    }
+   ],
+   "script_translation": "여: 민호야, 왜 동물 병원에 관한 책을 읽고 있어?\n남: 토요일마다 보호소에서 돕고 있어서 더 배우고 싶어.\n여: 너 그 강아지들 사진도 정말 잘 찍잖아.\n남: 고마워. 처음에는 동물 사진작가가 될까 생각했어.\n여: 왜 안 해? 네 강아지 사진은 인터넷에서 정말 인기 있잖아.\n남: 그래도 사진으로는 다리를 다친 강아지를 도울 수 없어.\n여: 그럼 앞으로 뭘 하고 싶어?\n남: 나는 수의사가 되어서 내 동물 병원을 열고 싶어.",
+   "answer_clue": "Pictures can't help a dog with a hurt leg, though. / I want to be a vet and open my own animal hospital.",
+   "explanation": "남자는 처음에 동물 사진작가를 생각했지만 사진으로는 다친 동물을 도울 수 없다며 수의사가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "수의사",
+    "interest_clues": [
+     "I'm helping at the shelter on Saturdays",
+     "Pictures can't help a dog with a hurt leg, though"
+    ]
+   }
+  },
+  {
+   "key": "중2 6회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 요리 이야기 뒤 chef 직접 발화",
+   "before_sha": "611a3aede19d57817ec169b40a6052683cf82e70c647c20ac3661a1e557cd4c0",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Jiyun, you stayed in the cooking room after school again."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, I made vegetable soup and colorful rice balls."
+    },
+    {
+     "speaker": "M",
+     "text": "Wait, weren't you in the art club last year?"
+    },
+    {
+     "speaker": "W",
+     "text": "I was. Back then, I wanted to be a painter."
+    },
+    {
+     "speaker": "M",
+     "text": "So why did you change your mind?"
+    },
+    {
+     "speaker": "W",
+     "text": "Food is like art, but people can actually enjoy eating it."
+    },
+    {
+     "speaker": "M",
+     "text": "That's true. Your rice balls looked like little paintings."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks! I want to be a chef and run a small restaurant."
+    }
+   ],
+   "script_translation": "남: 지윤아, 방과 후에 또 요리실에 남아 있었네.\n여: 응, 채소 수프랑 알록달록한 주먹밥을 만들었어.\n남: 잠깐, 너 작년에 미술 동아리 아니었어?\n여: 맞아. 그때는 화가가 되고 싶었어.\n남: 그럼 왜 마음을 바꿨어?\n여: 음식도 예술 같은데, 사람들이 실제로 맛있게 먹을 수 있잖아.\n남: 맞아. 네 주먹밥은 작은 그림 같아 보였어.\n여: 고마워! 나는 요리사가 되어서 작은 식당을 운영하고 싶어.",
+   "answer_clue": "Food is like art, but people can actually enjoy eating it. / I want to be a chef and run a small restaurant.",
+   "explanation": "여자는 작년까지 화가를 꿈꿨지만 음식도 예술 같다며 마음을 바꿨고, 이제는 요리사가 되어 작은 식당을 운영하고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "요리사",
+    "interest_clues": [
+     "I made vegetable soup and colorful rice balls",
+     "Food is like art, but people can actually enjoy eating it"
+    ]
+   }
+  },
+  {
+   "key": "중2 7회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "취미냐 직업이냐만 묻고 다른 직업 없음. photographer 직접 발화",
+   "before_sha": "ea8acb9422bc18f2034e3e7a8d5b0643530eacea6bed71586ba1908cb91925f4",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Yujin, your photos of insects at the science fair were amazing."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I spent a whole weekend in the forest taking them."
+    },
+    {
+     "speaker": "M",
+     "text": "You're great at science, too. You won first place last year."
+    },
+    {
+     "speaker": "W",
+     "text": "Yeah, so my dad says I should be a scientist."
+    },
+    {
+     "speaker": "M",
+     "text": "That makes sense. What do you think?"
+    },
+    {
+     "speaker": "W",
+     "text": "Science is fun, but I liked the camera part best."
+    },
+    {
+     "speaker": "M",
+     "text": "So you'd rather take photos than do tests in a lab?"
+    },
+    {
+     "speaker": "W",
+     "text": "Right. I want to be a photographer for nature magazines."
+    }
+   ],
+   "script_translation": "남: 유진아, 과학 박람회에 낸 네 곤충 사진 정말 멋졌어.\n여: 고마워. 그 사진을 찍느라 주말 내내 숲에 있었어.\n남: 너 과학도 잘하잖아. 작년에 1등도 했고.\n여: 응, 그래서 아빠는 내가 과학자가 돼야 한다고 하셔.\n남: 그럴 만하네. 너는 어떻게 생각해?\n여: 과학도 재미있지만, 사진 찍는 부분이 제일 좋았어.\n남: 그럼 실험실에서 실험하는 것보다 사진 찍는 게 더 좋은 거야?\n여: 맞아. 나는 자연 잡지 사진작가가 되고 싶어.",
+   "answer_clue": "Science is fun, but I liked the camera part best. / I want to be a photographer for nature magazines.",
+   "explanation": "여자의 아빠는 과학자를 권하지만, 여자는 실험보다 사진 찍는 것이 좋다며 자연 잡지 사진작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "I spent a whole weekend in the forest taking them",
+     "I liked the camera part best"
+    ]
+   }
+  },
+  {
+   "key": "중2 8회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 이야기 쓰기 뒤 writer 직접 발화",
+   "before_sha": "97580ab67e3706d668d3cff8dcf9baed89d9adc89a11a0db9ccfc654ef1b4161",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Are you still reading your stories to the kids at the library?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, every Saturday. They always ask me for a new one."
+    },
+    {
+     "speaker": "M",
+     "text": "My dream is to become a teacher. You'd be a great one, too."
+    },
+    {
+     "speaker": "W",
+     "text": "Maybe, but I like writing the stories more than reading them."
+    },
+    {
+     "speaker": "M",
+     "text": "Really? You write all of them yourself?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I've already filled three notebooks with stories."
+    },
+    {
+     "speaker": "M",
+     "text": "So what's your dream for the future?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a writer and publish my own storybook."
+    }
+   ],
+   "script_translation": "남: 아직도 도서관에서 아이들에게 네 이야기를 읽어 주고 있어?\n여: 응, 토요일마다. 아이들이 항상 새 이야기를 해 달라고 해.\n남: 내 꿈은 선생님이 되는 거야. 너도 좋은 선생님이 될 거야.\n여: 그럴 수도 있지만, 나는 이야기를 읽어 주는 것보다 쓰는 게 더 좋아.\n남: 정말? 그걸 다 네가 직접 쓰는 거야?\n여: 응. 벌써 공책 세 권을 이야기로 채웠어.\n남: 그럼 네 장래 꿈은 뭐야?\n여: 나는 작가가 되어서 내 동화책을 내고 싶어.",
+   "answer_clue": "Maybe, but I like writing the stories more than reading them. / I want to be a writer and publish my own storybook.",
+   "explanation": "교사는 남자의 꿈이고, 여자는 이야기를 읽어 주는 것보다 쓰는 것이 더 좋다며 작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "작가",
+    "interest_clues": [
+     "I like writing the stories more than reading them",
+     "I've already filled three notebooks with stories"
+    ]
+   }
+  },
+  {
+   "key": "중2 9회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 컴퓨터·앱 이야기 뒤 programmer 직접 발화",
+   "before_sha": "95251d353bf569b030f10566705253ea49033c2b07c031e7bb4969878e4ab884",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, what's that on your phone? A new game?"
+    },
+    {
+     "speaker": "M",
+     "text": "No, it's an app I made. It reminds us to feed our dog."
+    },
+    {
+     "speaker": "W",
+     "text": "You made that yourself? That's so cool!"
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. My mom says I should be a vet because I love animals."
+    },
+    {
+     "speaker": "W",
+     "text": "Well, you do take good care of your dog."
+    },
+    {
+     "speaker": "M",
+     "text": "True, but building the app was the most fun part."
+    },
+    {
+     "speaker": "W",
+     "text": "So you'd like to make more apps like this?"
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. I want to be a computer programmer and make useful apps."
+    }
+   ],
+   "script_translation": "여: 민호야, 휴대폰에 그거 뭐야? 새 게임이야?\n남: 아니, 내가 만든 앱이야. 우리 개한테 밥 줄 시간을 알려 줘.\n여: 그걸 네가 직접 만들었어? 정말 멋지다!\n남: 고마워. 엄마는 내가 동물을 좋아하니까 수의사가 돼야 한다고 하셔.\n여: 음, 너 강아지를 정말 잘 돌보긴 하지.\n남: 맞아, 그런데 앱을 만드는 게 제일 재미있었어.\n여: 그럼 이런 앱을 더 만들고 싶은 거야?\n남: 응. 나는 컴퓨터 프로그래머가 되어서 유용한 앱을 만들고 싶어.",
+   "answer_clue": "True, but building the app was the most fun part. / I want to be a computer programmer and make useful apps.",
+   "explanation": "남자의 엄마는 수의사를 권하지만, 남자는 앱을 만드는 것이 가장 재미있었다며 컴퓨터 프로그래머가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "컴퓨터 프로그래머",
+    "interest_clues": [
+     "it's an app I made",
+     "building the app was the most fun part"
+    ]
+   }
+  },
+  {
+   "key": "중2 11회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 동물병원 이야기 뒤 vet 직접 발화",
+   "before_sha": "8721b90cf594a3e2576a5d8502733254c6d627b37c59a38b81a0157767e0c639",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Minji, I heard you won the swimming race last Sunday."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes! My coach even says I could become a pro athlete."
+    },
+    {
+     "speaker": "M",
+     "text": "Wow! Is that what you're planning to do?"
+    },
+    {
+     "speaker": "W",
+     "text": "Not really. Swimming is fun, but it's just a hobby."
+    },
+    {
+     "speaker": "M",
+     "text": "Then what do you do on weekends?"
+    },
+    {
+     "speaker": "W",
+     "text": "I help at my aunt's animal hospital. I feed sick puppies."
+    },
+    {
+     "speaker": "M",
+     "text": "Oh, that's why you always talk about dogs and cats!"
+    },
+    {
+     "speaker": "W",
+     "text": "Right. I want to be a vet and help animals like them."
+    }
+   ],
+   "script_translation": "남: 민지야, 지난 일요일에 수영 대회에서 이겼다며.\n여: 응! 코치님은 내가 프로 운동선수가 될 수도 있다고까지 하셔.\n남: 와! 그렇게 할 계획이야?\n여: 그렇진 않아. 수영은 재미있지만 그냥 취미야.\n남: 그럼 주말에는 뭐 해?\n여: 이모네 동물 병원에서 도와. 아픈 강아지들에게 먹이를 줘.\n남: 아, 그래서 네가 항상 개와 고양이 이야기를 하는구나!\n여: 맞아. 나는 수의사가 되어서 그런 동물들을 돕고 싶어.",
+   "answer_clue": "Not really. Swimming is fun, but it's just a hobby. / I want to be a vet and help animals like them.",
+   "explanation": "코치는 여자가 운동선수가 될 수 있다고 하지만 여자는 수영은 취미일 뿐이라며, 동물을 돕는 수의사가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "수의사",
+    "interest_clues": [
+     "I help at my aunt's animal hospital",
+     "I feed sick puppies"
+    ]
+   }
+  },
+  {
+   "key": "중2 12회#7",
+   "status": "later",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. reporter 직접 발화",
+   "before_sha": "aa745570aef97da5c710d80b4409f6db3f781bd4886db78eedc33f725213630b",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, I read your article about our soccer team. Great job!"
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. Asking the coach questions was the best part."
+    },
+    {
+     "speaker": "W",
+     "text": "And I took the photos for it, remember?"
+    },
+    {
+     "speaker": "M",
+     "text": "Of course. Your photos made my story look much better."
+    },
+    {
+     "speaker": "W",
+     "text": "My dream is to become a photographer for a big newspaper."
+    },
+    {
+     "speaker": "M",
+     "text": "I thought about that too, but I'm better with words."
+    },
+    {
+     "speaker": "W",
+     "text": "So what's your plan for the future, then?"
+    },
+    {
+     "speaker": "M",
+     "text": "I want to be a reporter and cover big news stories."
+    }
+   ],
+   "script_translation": "여: 민호야, 우리 축구부에 관한 네 기사 읽었어. 잘했어!\n남: 고마워. 코치님께 질문하는 게 제일 좋았어.\n여: 그리고 그 기사 사진은 내가 찍었잖아, 기억나?\n남: 물론이지. 네 사진 덕분에 내 기사가 훨씬 좋아 보였어.\n여: 내 꿈은 큰 신문사의 사진작가가 되는 거야.\n남: 나도 그걸 생각해 봤는데, 나는 글 쓰는 걸 더 잘해.\n여: 그럼 너는 장래 계획이 뭐야?\n남: 나는 기자가 되어서 큰 뉴스를 취재하고 싶어.",
+   "answer_clue": "I thought about that too, but I'm better with words. / I want to be a reporter and cover big news stories.",
+   "explanation": "사진작가는 여자의 꿈이며, 남자도 생각해 봤지만 글을 더 잘 쓴다며 기자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "기자",
+    "interest_clues": [
+     "I read your article about our soccer team",
+     "Asking the coach questions was the best part",
+     "I'm better with words"
+    ]
+   }
+  },
+  {
+   "key": "중2 13회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 사진 이야기 뒤 photographer 직접 발화",
+   "before_sha": "f8a2132e8f29edfa036c82c0d28844b6c22a56f0b9c504ba911be21199f52d8f",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, you have a camera today. Where's your violin?"
+    },
+    {
+     "speaker": "W",
+     "text": "At home. These days, I spend more time taking photos."
+    },
+    {
+     "speaker": "M",
+     "text": "Really? You always talked about becoming a violinist."
+    },
+    {
+     "speaker": "W",
+     "text": "I know. But something changed at our last concert."
+    },
+    {
+     "speaker": "M",
+     "text": "What happened at the concert?"
+    },
+    {
+     "speaker": "W",
+     "text": "I took photos of all the players on stage, and I loved it."
+    },
+    {
+     "speaker": "M",
+     "text": "So you're not going to be a musician?"
+    },
+    {
+     "speaker": "W",
+     "text": "No. I want to be a photographer for concerts and shows."
+    }
+   ],
+   "script_translation": "남: 소라야, 오늘은 카메라를 가져왔네. 바이올린은 어디 있어?\n여: 집에. 요즘은 사진 찍는 데 시간을 더 많이 써.\n남: 정말? 너 항상 바이올린 연주자가 되고 싶다고 말했잖아.\n여: 알아. 그런데 지난 연주회에서 뭔가 달라졌어.\n남: 연주회에서 무슨 일이 있었는데?\n여: 무대 위의 연주자들을 모두 사진으로 찍었는데, 그게 정말 좋았어.\n남: 그럼 음악가는 안 될 거야?\n여: 아니. 나는 공연과 쇼를 찍는 사진작가가 되고 싶어.",
+   "answer_clue": "I took photos of all the players on stage, and I loved it. / I want to be a photographer for concerts and shows.",
+   "explanation": "여자는 예전에 바이올린 연주자를 꿈꿨지만 연주회에서 사진을 찍으며 마음이 바뀌어, 공연 사진작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "These days, I spend more time taking photos",
+     "I took photos of all the players on stage, and I loved it"
+    ]
+   }
+  },
+  {
+   "key": "중2 15회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 'job that uses photography?' 뒤 photographer",
+   "before_sha": "d9bd94bf5d478098858e65d262ff6974842f594a07f4bf1fff40ff45e0189bf1",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Your food pictures online look so delicious. Did you make everything?"
+    },
+    {
+     "speaker": "W",
+     "text": "Some of it. I took a cooking class last summer."
+    },
+    {
+     "speaker": "M",
+     "text": "So are you thinking about becoming a chef?"
+    },
+    {
+     "speaker": "W",
+     "text": "I thought about it, but I burn things too often."
+    },
+    {
+     "speaker": "M",
+     "text": "Ha! But your photos make even simple food look special."
+    },
+    {
+     "speaker": "W",
+     "text": "That's the part I love. I play with light and colors."
+    },
+    {
+     "speaker": "M",
+     "text": "Then what's your plan for the future?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a photographer and make my own photo book."
+    }
+   ],
+   "script_translation": "남: 인터넷에 올린 네 음식 사진이 정말 맛있어 보여. 전부 네가 만든 거야?\n여: 일부는. 지난여름에 요리 수업을 들었거든.\n남: 그럼 요리사가 될 생각이야?\n여: 생각해 봤는데, 음식을 너무 자주 태워.\n남: 하하! 그래도 네 사진은 평범한 음식도 특별해 보이게 해.\n여: 그게 내가 좋아하는 부분이야. 빛과 색깔을 이리저리 바꿔 봐.\n남: 그럼 장래 계획이 뭐야?\n여: 나는 사진작가가 되어서 나만의 사진집을 만들고 싶어.",
+   "answer_clue": "I thought about it, but I burn things too often. / I want to be a photographer and make my own photo book.",
+   "explanation": "여자는 요리사를 생각해 봤지만 음식을 자주 태운다며 접었고, 빛과 색을 다루는 사진 찍기가 좋아서 사진작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "That's the part I love",
+     "I play with light and colors"
+    ]
+   }
+  },
+  {
+   "key": "중2 17회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 웹사이트·프로그램 이야기 뒤 programmer 발화",
+   "before_sha": "5352b312f00e0c6cffa7e0efe396d52262c318f0f6d57a5f24db6997f686cfd1",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Thanks for making our band's website. All our fans love it!"
+    },
+    {
+     "speaker": "W",
+     "text": "No problem. It was fun to build."
+    },
+    {
+     "speaker": "M",
+     "text": "You even added a page where people can hear our songs."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, that part took me three whole nights."
+    },
+    {
+     "speaker": "M",
+     "text": "My dream is to become a musician. Do you play any music?"
+    },
+    {
+     "speaker": "W",
+     "text": "Not really. I'd rather write code behind the music."
+    },
+    {
+     "speaker": "M",
+     "text": "So you like computers more than playing music?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. I want to be a computer programmer and build music apps."
+    }
+   ],
+   "script_translation": "남: 우리 밴드 웹사이트를 만들어 줘서 고마워. 팬들이 다 정말 좋아해!\n여: 별거 아니야. 만드는 게 재미있었어.\n남: 사람들이 우리 노래를 들을 수 있는 페이지까지 넣었더라.\n여: 응, 그 부분은 꼬박 사흘 밤이 걸렸어.\n남: 내 꿈은 음악가가 되는 거야. 너도 음악을 연주해?\n여: 별로. 나는 음악 뒤에서 코드를 짜는 게 더 좋아.\n남: 그럼 음악을 연주하는 것보다 컴퓨터가 더 좋은 거야?\n여: 응. 나는 컴퓨터 프로그래머가 되어서 음악 앱을 만들고 싶어.",
+   "answer_clue": "Not really. I'd rather write code behind the music. / I want to be a computer programmer and build music apps.",
+   "explanation": "음악가는 남자의 꿈이고, 여자는 음악을 연주하기보다 음악 뒤에서 코드를 짜는 것이 좋다며 컴퓨터 프로그래머가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "컴퓨터 프로그래머",
+    "interest_clues": [
+     "It was fun to build",
+     "that part took me three whole nights",
+     "I'd rather write code behind the music"
+    ]
+   }
+  },
+  {
+   "key": "중2 19회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 코딩 이야기 뒤 programmer 직접 발화",
+   "before_sha": "126f3e7dd4f46d12d98e2adb17b84900729608fc66de3f9a3c19289c327f9e19",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Is that a new game? The animals look so cute."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I made it myself for the school coding contest."
+    },
+    {
+     "speaker": "M",
+     "text": "You made a zoo game? You really love animals, don't you?"
+    },
+    {
+     "speaker": "W",
+     "text": "I do. I wanted to be a zookeeper when I was little."
+    },
+    {
+     "speaker": "M",
+     "text": "So is that still your dream?"
+    },
+    {
+     "speaker": "W",
+     "text": "Not anymore. Now I love making games more than anything."
+    },
+    {
+     "speaker": "M",
+     "text": "You're really good at it. Is this your future job?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes! I want to be a computer programmer who makes games."
+    }
+   ],
+   "script_translation": "남: 그거 새 게임이야? 동물들이 정말 귀엽다.\n여: 고마워. 학교 코딩 대회에 내려고 내가 직접 만들었어.\n남: 동물원 게임을 만들었어? 너 정말 동물을 좋아하는구나, 그렇지?\n여: 응. 어렸을 때는 동물 사육사가 되고 싶었어.\n남: 그럼 아직도 그게 네 꿈이야?\n여: 이제는 아니야. 지금은 무엇보다 게임 만드는 게 좋아.\n남: 너 정말 잘한다. 이게 네 장래 직업이야?\n여: 응! 나는 게임을 만드는 컴퓨터 프로그래머가 되고 싶어.",
+   "answer_clue": "Not anymore. Now I love making games more than anything. / I want to be a computer programmer who makes games.",
+   "explanation": "여자는 어렸을 때 동물 사육사를 꿈꿨지만 지금은 게임 만드는 것이 가장 좋다며 컴퓨터 프로그래머가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "컴퓨터 프로그래머",
+    "interest_clues": [
+     "I made it myself for the school coding contest",
+     "Now I love making games more than anything"
+    ]
+   }
+  },
+  {
+   "key": "중2 20회#7",
+   "status": "ready",
+   "grade": "middle2",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 우주 이야기 뒤 scientist 직접 발화",
+   "before_sha": "7ff5e7318ccf220e72a84124947b42c0c0d960652285c4b3e7b42f98c80e7457",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, did you take this picture of the moon yourself?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, with my uncle's telescope. I stayed up until midnight."
+    },
+    {
+     "speaker": "M",
+     "text": "It's amazing. You could become a space photographer!"
+    },
+    {
+     "speaker": "W",
+     "text": "My mom says that too, but pictures are just the start."
+    },
+    {
+     "speaker": "M",
+     "text": "What do you mean by that?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to know why stars shine and how planets move."
+    },
+    {
+     "speaker": "M",
+     "text": "So you want to study space, not just take pictures?"
+    },
+    {
+     "speaker": "W",
+     "text": "Exactly. I want to be a scientist who studies stars."
+    }
+   ],
+   "script_translation": "남: 소라야, 이 달 사진 네가 직접 찍었어?\n여: 응, 삼촌의 망원경으로. 자정까지 안 자고 있었어.\n남: 정말 멋지다. 너 우주 사진작가가 될 수도 있겠어!\n여: 엄마도 그렇게 말씀하시는데, 사진은 시작일 뿐이야.\n남: 그게 무슨 뜻이야?\n여: 별이 왜 빛나는지, 행성이 어떻게 움직이는지 알고 싶어.\n남: 그럼 사진만 찍는 게 아니라 우주를 연구하고 싶은 거야?\n여: 바로 그거야. 나는 별을 연구하는 과학자가 되고 싶어.",
+   "answer_clue": "I want to know why stars shine and how planets move. / I want to be a scientist who studies stars.",
+   "explanation": "남자와 엄마는 우주 사진작가를 말하지만, 여자는 별과 행성의 원리를 알고 싶다며 별을 연구하는 과학자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "과학자",
+    "interest_clues": [
+     "I want to know why stars shine and how planets move",
+     "pictures are just the start"
+    ]
+   }
+  },
+  {
+   "key": "중3 1회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 기사·인터뷰 이야기 뒤 reporter 직접 발화",
+   "before_sha": "bbc26b4457187b0a44c20d2e1e52560b79c0146377bc9b0b792511a9622d98d0",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, your article about the school garden was posted on the main board."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I talked to three students who take care of the flowers every morning."
+    },
+    {
+     "speaker": "M",
+     "text": "It read like a story. Are you still planning to become a writer?"
+    },
+    {
+     "speaker": "W",
+     "text": "I used to dream about writing novels, but now I prefer real stories about real people."
+    },
+    {
+     "speaker": "M",
+     "text": "You also explain math so well. Have you ever thought about being a teacher?"
+    },
+    {
+     "speaker": "W",
+     "text": "My mom says the same thing, but I'd rather meet people and ask them questions."
+    },
+    {
+     "speaker": "M",
+     "text": "So what kind of job are you thinking about these days?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a reporter and find out true stories in our town."
+    }
+   ],
+   "script_translation": "남: 소라야, 학교 정원에 관한 네 기사가 중앙 게시판에 붙었더라.\n여: 고마워. 매일 아침 꽃을 돌보는 학생 세 명과 이야기를 나눴어.\n남: 한 편의 이야기처럼 읽히더라. 아직도 작가가 될 생각이야?\n여: 예전에는 소설 쓰는 게 꿈이었는데, 지금은 실제 사람들의 실제 이야기가 더 좋아.\n남: 너는 수학도 정말 잘 설명해 주잖아. 교사가 되는 건 생각해 본 적 있어?\n여: 우리 엄마도 똑같이 말씀하시는데, 나는 사람들을 만나서 질문하는 게 더 좋아.\n남: 그럼 요즘은 어떤 직업을 생각하고 있어?\n여: 나는 기자가 되어서 우리 동네의 진짜 이야기를 알아내고 싶어.",
+   "answer_clue": "My mom says the same thing, but I'd rather meet people and ask them questions. / I want to be a reporter and find out true stories in our town.",
+   "explanation": "여자는 예전에는 작가를 꿈꿨고 엄마는 교사를 권하지만, 사람들을 만나 질문하는 것이 더 좋다며 기자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "기자",
+    "interest_clues": [
+     "I talked to three students",
+     "I prefer real stories about real people",
+     "I'd rather meet people and ask them questions"
+    ]
+   }
+  },
+  {
+   "key": "중3 2회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 남자가 'an astronomer'라고 정답을 직접 말함",
+   "before_sha": "bc093f9bacb754a9ff13c2cc5a428c58c96c265996d189107070d680b108b5b8",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, your photos of the moon on the science club board look amazing."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I've taken pictures of the night sky since elementary school."
+    },
+    {
+     "speaker": "M",
+     "text": "They're so clear. You could be a photographer for a science magazine."
+    },
+    {
+     "speaker": "W",
+     "text": "Taking photos is just a hobby. I care more about what's actually up there."
+    },
+    {
+     "speaker": "M",
+     "text": "Your dad owns a restaurant, right? Doesn't he want you to become a chef?"
+    },
+    {
+     "speaker": "W",
+     "text": "He does, but I'd rather spend my nights at the observatory than in a kitchen."
+    },
+    {
+     "speaker": "M",
+     "text": "Then what are you planning to study in college?"
+    },
+    {
+     "speaker": "W",
+     "text": "Physics. I want to be an astronomer and discover a new planet someday."
+    }
+   ],
+   "script_translation": "남: 소라야, 과학 동아리 게시판에 붙은 네 달 사진 정말 멋지다.\n여: 고마워. 초등학생 때부터 밤하늘 사진을 찍어 왔어.\n남: 정말 선명하다. 과학 잡지 사진작가가 될 수도 있겠어.\n여: 사진 찍는 건 그냥 취미야. 나는 저 위에 실제로 무엇이 있는지에 더 관심이 있어.\n남: 너희 아빠가 식당을 하시지? 아빠는 네가 요리사가 되길 바라지 않으셔?\n여: 바라시긴 하는데, 나는 부엌보다 천문대에서 밤을 보내는 게 더 좋아.\n남: 그럼 대학에서 뭘 공부할 계획이야?\n여: 물리학. 나는 천문학자가 되어서 언젠가 새로운 행성을 발견하고 싶어.",
+   "answer_clue": "I care more about what's actually up there. / Physics. I want to be an astronomer and discover a new planet someday.",
+   "explanation": "여자는 사진은 취미일 뿐이고 아빠가 바라는 요리사보다 천문대에서 밤을 보내는 것이 좋다며 천문학자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "천문학자",
+    "interest_clues": [
+     "I've taken pictures of the night sky since elementary school",
+     "I care more about what's actually up there",
+     "spend my nights at the observatory"
+    ]
+   }
+  },
+  {
+   "key": "중3 3회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 식물 연구 이야기 뒤 scientist 직접 발화",
+   "before_sha": "f8a98a34c22b611d57c4823940cf23f306be45750f750115b43dfc688d5d999c",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sumi, I heard you stayed late in the science room again yesterday."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes, I was looking at the tomato plants our class started growing in May."
+    },
+    {
+     "speaker": "M",
+     "text": "You made a great salad with those tomatoes last week. Maybe you should be a chef."
+    },
+    {
+     "speaker": "W",
+     "text": "Cooking is fun, but I'm more curious about why some plants grow faster."
+    },
+    {
+     "speaker": "M",
+     "text": "I thought you wanted to be a soccer player, like your older brother."
+    },
+    {
+     "speaker": "W",
+     "text": "Only in elementary school. Now I spend my free time taking notes on soil and sunlight."
+    },
+    {
+     "speaker": "M",
+     "text": "So what kind of job are you thinking about now?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a scientist and help farmers grow better food."
+    }
+   ],
+   "script_translation": "남: 수미야, 어제 또 과학실에 늦게까지 있었다며.\n여: 응, 5월부터 우리 반이 기르기 시작한 토마토 모종을 살펴보고 있었어.\n남: 지난주에 그 토마토로 만든 샐러드 정말 맛있었어. 요리사가 되는 게 어때?\n여: 요리도 재미있지만, 나는 왜 어떤 식물이 더 빨리 자라는지가 더 궁금해.\n남: 나는 네가 오빠처럼 축구 선수가 되고 싶어 하는 줄 알았어.\n여: 초등학생 때만 그랬어. 요즘은 쉬는 시간에 흙과 햇빛에 대해 기록을 해.\n남: 그럼 지금은 어떤 직업을 생각하고 있어?\n여: 나는 과학자가 되어서 농부들이 더 좋은 식량을 기르도록 돕고 싶어.",
+   "answer_clue": "I'm more curious about why some plants grow faster. / I want to be a scientist and help farmers grow better food.",
+   "explanation": "여자는 요리사를 권하는 말에도 식물이 자라는 이유가 더 궁금하다고 하고, 축구 선수는 어릴 때 꿈이었다며 과학자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "과학자",
+    "interest_clues": [
+     "looking at the tomato plants",
+     "I'm more curious about why some plants grow faster",
+     "taking notes on soil and sunlight"
+    ]
+   }
+  },
+  {
+   "key": "중3 4회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 사진 이야기 뒤 photographer 직접 발화",
+   "before_sha": "0c4cf7d28a6d877d353b37d1af14ef569052bc0fbb75e83368f9f3e171456919",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, your picture is on the festival poster! Did you design the whole poster?"
+    },
+    {
+     "speaker": "W",
+     "text": "No, the art club designed it. I only took the photo of the garden."
+    },
+    {
+     "speaker": "M",
+     "text": "Still, you have a great eye. You'd make a good designer."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks, but I'm not good with computer tools. I'd rather be outside looking for light."
+    },
+    {
+     "speaker": "M",
+     "text": "Didn't you use to paint a lot? I remember your watercolors."
+    },
+    {
+     "speaker": "W",
+     "text": "I dreamed of becoming a painter, but painting takes too long to catch a moment."
+    },
+    {
+     "speaker": "M",
+     "text": "So is that why you always carry your camera around?"
+    },
+    {
+     "speaker": "W",
+     "text": "Exactly. I want to be a photographer and catch moments people usually miss."
+    }
+   ],
+   "script_translation": "남: 소라야, 축제 포스터에 네 사진이 실렸네! 포스터 전체를 네가 디자인했어?\n여: 아니, 미술 동아리가 디자인했어. 나는 정원 사진만 찍었어.\n남: 그래도 너는 보는 눈이 있어. 좋은 디자이너가 될 것 같아.\n여: 고마워, 하지만 나는 컴퓨터 작업은 잘 못해. 밖에서 빛을 찾아다니는 게 더 좋아.\n남: 너 예전에 그림 많이 그리지 않았어? 네 수채화가 기억나.\n여: 화가가 되는 게 꿈이었는데, 그림은 한순간을 담기에는 시간이 너무 오래 걸려.\n남: 그래서 늘 카메라를 들고 다니는 거야?\n여: 맞아. 나는 사진작가가 되어서 사람들이 보통 놓치는 순간을 담고 싶어.",
+   "answer_clue": "I only took the photo of the garden. / Exactly. I want to be a photographer and catch moments people usually miss.",
+   "explanation": "여자는 디자이너가 되라는 말을 사양하고 화가는 예전 꿈이었다고 하며, 순간을 담는 사진작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "I only took the photo of the garden",
+     "I'd rather be outside looking for light",
+     "catch moments people usually miss"
+    ]
+   }
+  },
+  {
+   "key": "중3 6회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 게임 수정 이야기 뒤 programmer 직접 발화",
+   "before_sha": "f91bd6f4a0d80b1586c91b484ce7d253eba2d0495a00d46f43b97cb8284e3115",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, you stayed in the computer room again after school today."
+    },
+    {
+     "speaker": "M",
+     "text": "Yes, our team's game kept stopping, so I fixed the problem."
+    },
+    {
+     "speaker": "W",
+     "text": "You've worked on that game for two months. Don't you get tired of it?"
+    },
+    {
+     "speaker": "M",
+     "text": "Not at all. Finding what's wrong in the code is like solving a puzzle."
+    },
+    {
+     "speaker": "W",
+     "text": "I heard your dad wants you to be a baseball player."
+    },
+    {
+     "speaker": "M",
+     "text": "Baseball is fun, but I'd rather spend my weekends making apps than training."
+    },
+    {
+     "speaker": "W",
+     "text": "My dream is to become a zookeeper, because I love animals. What about you?"
+    },
+    {
+     "speaker": "M",
+     "text": "I want to be a computer programmer and make games for kids around the world."
+    }
+   ],
+   "script_translation": "여: 민호야, 오늘도 방과 후에 컴퓨터실에 있었구나.\n남: 응, 우리 팀 게임이 자꾸 멈춰서 문제를 고쳤어.\n여: 그 게임을 두 달째 만들고 있잖아. 지겹지 않아?\n남: 전혀. 코드에서 잘못된 곳을 찾는 건 퍼즐을 푸는 것 같아.\n여: 너희 아빠는 네가 야구 선수가 되길 바라신다고 들었어.\n남: 야구도 재미있지만, 나는 주말에 훈련보다 앱을 만드는 데 시간을 쓰는 게 더 좋아.\n여: 나는 동물을 좋아해서 동물 사육사가 되는 게 꿈이야. 너는?\n남: 나는 컴퓨터 프로그래머가 되어서 전 세계 아이들을 위한 게임을 만들고 싶어.",
+   "answer_clue": "Finding what's wrong in the code is like solving a puzzle. / I want to be a computer programmer and make games for kids around the world.",
+   "explanation": "동물 사육사는 여자의 꿈이고 야구 선수는 아빠의 바람일 뿐이며, 남자는 컴퓨터 프로그래머가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "컴퓨터 프로그래머",
+    "interest_clues": [
+     "I fixed the problem",
+     "Finding what's wrong in the code is like solving a puzzle",
+     "I'd rather spend my weekends making apps"
+    ]
+   }
+  },
+  {
+   "key": "중3 7회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 사진 이야기 뒤 photographer 직접 발화",
+   "before_sha": "33950d75070670c4b7fcf3e52cc88d8fd9f249d718e4834e52494c4decff5d36",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, your photo of the old bridge was chosen for the school calendar."
+    },
+    {
+     "speaker": "W",
+     "text": "Really? I went there three mornings in a row for the right light."
+    },
+    {
+     "speaker": "M",
+     "text": "The short poem under the photo was beautiful too. Did you write it?"
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. My mom thinks I should be a writer, but writing is just for fun."
+    },
+    {
+     "speaker": "M",
+     "text": "Last year you made that short movie. Aren't you dreaming of being a film director?"
+    },
+    {
+     "speaker": "W",
+     "text": "I tried it, but working with a big team made me tired. I like working alone."
+    },
+    {
+     "speaker": "M",
+     "text": "Then what do you want to do after high school?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a photographer and show the quiet beauty of small towns."
+    }
+   ],
+   "script_translation": "남: 소라야, 오래된 다리를 찍은 네 사진이 학교 달력에 뽑혔어.\n여: 정말? 알맞은 빛을 찾으려고 사흘 아침 연속으로 거기에 갔었어.\n남: 사진 아래에 있는 짧은 시도 아름답더라. 네가 쓴 거야?\n여: 응. 엄마는 내가 작가가 되어야 한다고 생각하시지만, 글쓰기는 그냥 재미로 하는 거야.\n남: 작년에 너 단편 영화도 만들었잖아. 영화감독이 꿈 아니야?\n여: 해 봤는데, 큰 팀과 함께 일하는 게 힘들었어. 나는 혼자 일하는 게 좋아.\n남: 그럼 고등학교 졸업 후에는 뭘 하고 싶어?\n여: 나는 사진작가가 되어서 작은 마을의 조용한 아름다움을 보여 주고 싶어.",
+   "answer_clue": "I went there three mornings in a row for the right light. / I want to be a photographer and show the quiet beauty of small towns.",
+   "explanation": "여자는 엄마가 권하는 작가나 해 본 적 있는 영화감독이 아니라, 사진작가가 되어 작은 마을의 아름다움을 보여 주고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "I went there three mornings in a row for the right light",
+     "I like working alone",
+     "show the quiet beauty of small towns"
+    ]
+   }
+  },
+  {
+   "key": "중3 8회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 컴퓨터 이야기 뒤 programmer 직접 발화",
+   "before_sha": "1697c04206b93b81e42cb72c5344131886d22427e389759f2c87728248c9966b",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, I heard your club made an app for the city zoo."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. Visitors can check feeding times and find the animals on a map."
+    },
+    {
+     "speaker": "M",
+     "text": "You love animals so much. Are you going to be a zookeeper someday?"
+    },
+    {
+     "speaker": "W",
+     "text": "I love visiting them, but I enjoy building the app much more than feeding animals."
+    },
+    {
+     "speaker": "M",
+     "text": "In elementary school, you were on the swim team and wanted to be an athlete."
+    },
+    {
+     "speaker": "W",
+     "text": "I gave that up long ago. Now I stay up late fixing bugs in my code."
+    },
+    {
+     "speaker": "M",
+     "text": "So what's your plan after you finish high school?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a computer programmer and make apps that help people."
+    }
+   ],
+   "script_translation": "남: 소라야, 너희 동아리가 시립 동물원 앱을 만들었다며.\n여: 응. 방문객들이 먹이 주는 시간을 확인하고 지도에서 동물을 찾을 수 있어.\n남: 너 동물을 정말 좋아하잖아. 언젠가 동물 사육사가 될 거야?\n여: 동물을 보러 가는 건 좋지만, 먹이를 주는 것보다 앱을 만드는 게 훨씬 즐거워.\n남: 초등학생 때 너는 수영팀이었고 운동선수가 되고 싶어 했잖아.\n여: 그건 오래전에 포기했어. 요즘은 밤늦게까지 내 코드의 오류를 고쳐.\n남: 그럼 고등학교를 마친 후의 계획은 뭐야?\n여: 나는 컴퓨터 프로그래머가 되어서 사람들을 돕는 앱을 만들고 싶어.",
+   "answer_clue": "I enjoy building the app much more than feeding animals. / I want to be a computer programmer and make apps that help people.",
+   "explanation": "여자는 동물원 앱을 만들었지만 동물 사육사보다 앱 만드는 일이 더 즐겁다고 하고, 운동선수는 어릴 때 꿈이었다며 컴퓨터 프로그래머가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "컴퓨터 프로그래머",
+    "interest_clues": [
+     "I enjoy building the app much more than feeding animals",
+     "fixing bugs in my code",
+     "make apps that help people"
+    ]
+   }
+  },
+  {
+   "key": "중3 9회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 사진 동아리 이야기 뒤 photographer 직접 발화",
+   "before_sha": "e7fb94be686c84aaa40921c114ccc74c4b94d4b1c9c4a9f093aa39b217b9b01a",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, I saw your pictures from the sports festival on the school website."
+    },
+    {
+     "speaker": "W",
+     "text": "Really? I ran around the field all day to catch the best moments."
+    },
+    {
+     "speaker": "M",
+     "text": "The one of our class cheering together looked so bright and natural."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. My cousin, a vet, even asked me to take photos of her animal hospital."
+    },
+    {
+     "speaker": "M",
+     "text": "I thought you'd become a musician. You played the piano so well at the concert."
+    },
+    {
+     "speaker": "W",
+     "text": "My parents hoped so, but I'd rather hold a camera than sit at a piano all day."
+    },
+    {
+     "speaker": "M",
+     "text": "So what are you going to do with your camera in the future?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a photographer and take pictures for sports magazines."
+    }
+   ],
+   "script_translation": "남: 소라야, 학교 웹사이트에서 체육대회 때 찍은 네 사진들을 봤어.\n여: 정말? 최고의 순간을 담으려고 하루 종일 운동장을 뛰어다녔어.\n남: 우리 반이 함께 응원하는 사진이 정말 밝고 자연스러워 보였어.\n여: 고마워. 수의사인 사촌 언니는 자기 동물 병원 사진까지 찍어 달라고 했어.\n남: 나는 네가 음악가가 될 줄 알았어. 연주회에서 피아노를 정말 잘 쳤잖아.\n여: 부모님도 그러길 바라셨지만, 나는 하루 종일 피아노 앞에 앉아 있기보다 카메라를 들고 싶어.\n남: 그럼 앞으로 네 카메라로 뭘 할 거야?\n여: 나는 사진작가가 되어서 스포츠 잡지에 실릴 사진을 찍고 싶어.",
+   "answer_clue": "I'd rather hold a camera than sit at a piano all day. / I want to be a photographer and take pictures for sports magazines.",
+   "explanation": "수의사는 여자의 사촌 언니 직업이고 음악가는 부모님의 바람일 뿐이며, 여자는 사진작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "I ran around the field all day to catch the best moments",
+     "I'd rather hold a camera than sit at a piano all day",
+     "take pictures for sports magazines"
+    ]
+   }
+  },
+  {
+   "key": "중3 11회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 사진 이야기 뒤 photographer 직접 발화",
+   "before_sha": "3e7f8954847b847faba9ff891d1c315c21a2946c9e419d90b73b68fa85503980",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, you took pictures at every school event this year, even the soccer games."
+    },
+    {
+     "speaker": "M",
+     "text": "I did. But I played in some of those games too, you know."
+    },
+    {
+     "speaker": "W",
+     "text": "Right! Coach Kim says you could be a professional soccer player."
+    },
+    {
+     "speaker": "M",
+     "text": "He tells me that a lot, but I enjoy watching the game through my camera more."
+    },
+    {
+     "speaker": "W",
+     "text": "Your photo of the final goal was posted on the school website."
+    },
+    {
+     "speaker": "M",
+     "text": "Yes. Some friends asked me for copies, and that made my whole week."
+    },
+    {
+     "speaker": "W",
+     "text": "My dream is to become a writer. Maybe we can make a book together someday."
+    },
+    {
+     "speaker": "M",
+     "text": "That sounds great. I want to be a photographer, so I can take the pictures."
+    }
+   ],
+   "script_translation": "여: 민호야, 너 올해 학교 행사마다 사진을 찍었더라, 축구 경기까지.\n남: 응. 그런데 그 경기 중 몇 번은 나도 뛰었어.\n여: 맞다! 김 코치님이 네가 프로 축구 선수가 될 수 있다고 하시던데.\n남: 자주 그렇게 말씀하시지만, 나는 카메라로 경기를 보는 게 더 즐거워.\n여: 결승 골 장면을 찍은 네 사진이 학교 웹사이트에 올라왔더라.\n남: 응. 몇몇 친구들이 사진을 달라고 해서 한 주 내내 기분이 좋았어.\n여: 내 꿈은 작가가 되는 거야. 언젠가 우리 같이 책을 만들 수도 있겠다.\n남: 좋은 생각이야. 나는 사진작가가 되고 싶으니까, 사진은 내가 찍으면 되겠네.",
+   "answer_clue": "I enjoy watching the game through my camera more. / That sounds great. I want to be a photographer, so I can take the pictures.",
+   "explanation": "남자는 코치가 권하는 축구 선수보다 카메라로 경기를 보는 것이 좋다고 하며 사진작가가 되고 싶다고 말하고, 작가는 여자의 꿈이다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "사진작가",
+    "interest_clues": [
+     "you took pictures at every school event this year",
+     "I enjoy watching the game through my camera more",
+     "Some friends asked me for copies"
+    ]
+   }
+  },
+  {
+   "key": "중3 12회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 기사·인터뷰 이야기 뒤 reporter 직접 발화",
+   "before_sha": "20fe5c3e78b325f0fe009fe2d8f129bfbbfbeb92ceb730ddf9e12a2cca962941",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, I heard your voice on the school radio this morning. You sounded great."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I read the news about the new recycling club I visited yesterday."
+    },
+    {
+     "speaker": "M",
+     "text": "Your voice is so clear. You could be an announcer on TV."
+    },
+    {
+     "speaker": "W",
+     "text": "Reading the news is fun, but finding the stories myself is the best part."
+    },
+    {
+     "speaker": "M",
+     "text": "Both of your parents teach at our school. Do they want you to be a teacher?"
+    },
+    {
+     "speaker": "W",
+     "text": "They do, but I'd rather go out, meet people, and ask them lots of questions."
+    },
+    {
+     "speaker": "M",
+     "text": "So which job are you thinking about most seriously these days?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a reporter and write stories about people in our community."
+    }
+   ],
+   "script_translation": "남: 소라야, 오늘 아침 학교 방송에서 네 목소리 들었어. 정말 잘하더라.\n여: 고마워. 어제 내가 찾아간 새 재활용 동아리에 관한 뉴스를 읽었어.\n남: 목소리가 정말 또렷해. TV 아나운서가 될 수도 있겠어.\n여: 뉴스를 읽는 것도 재미있지만, 이야기를 직접 찾아내는 게 제일 좋아.\n남: 너희 부모님 두 분 다 우리 학교에서 가르치시잖아. 네가 교사가 되길 바라셔?\n여: 그러시긴 한데, 나는 밖에 나가서 사람들을 만나고 질문을 많이 하는 게 더 좋아.\n남: 그럼 요즘 어떤 직업을 가장 진지하게 생각하고 있어?\n여: 나는 기자가 되어서 우리 지역 사람들에 관한 기사를 쓰고 싶어.",
+   "answer_clue": "Reading the news is fun, but finding the stories myself is the best part. / I want to be a reporter and write stories about people in our community.",
+   "explanation": "여자는 방송 진행자가 될 수 있다는 말에도 이야기를 직접 찾는 것이 좋다고 하고, 부모님이 바라는 교사보다 사람들을 만나 질문하는 것이 좋다며 기자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "기자",
+    "interest_clues": [
+     "finding the stories myself is the best part",
+     "meet people, and ask them lots of questions",
+     "write stories about people in our community"
+    ]
+   }
+  },
+  {
+   "key": "중3 13회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 'work with computers?' 뒤 programmer 발화",
+   "before_sha": "b4ba43b48cdf1e3435ad5b620b757b3cdd614c32d9aba3ea445a5ea39f60cd35",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, your computer club won the school app contest again this year."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. I made the part that helps students find their lost things."
+    },
+    {
+     "speaker": "W",
+     "text": "I thought you wanted to be a vet. You talked about animals all the time."
+    },
+    {
+     "speaker": "M",
+     "text": "I did when I was young, but I'm afraid of blood, so I gave up."
+    },
+    {
+     "speaker": "W",
+     "text": "You also cook really well. Why not become a chef?"
+    },
+    {
+     "speaker": "M",
+     "text": "Cooking is only for my family. Solving problems with code is what I really love."
+    },
+    {
+     "speaker": "W",
+     "text": "Then you should keep practicing for next year's contest. What's your final goal?"
+    },
+    {
+     "speaker": "M",
+     "text": "I want to be a computer programmer who makes apps for everyone."
+    }
+   ],
+   "script_translation": "여: 민호야, 너희 컴퓨터 동아리가 올해도 학교 앱 대회에서 우승했더라.\n남: 고마워. 나는 학생들이 잃어버린 물건을 찾도록 돕는 부분을 만들었어.\n여: 나는 네가 수의사가 되고 싶어 하는 줄 알았어. 늘 동물 얘기를 했잖아.\n남: 어릴 때는 그랬는데, 피를 무서워해서 포기했어.\n여: 너 요리도 정말 잘하잖아. 요리사가 되는 건 어때?\n남: 요리는 가족을 위해서만 해. 내가 정말 좋아하는 건 코드로 문제를 해결하는 거야.\n여: 그럼 내년 대회를 위해 계속 연습해야겠네. 네 최종 목표는 뭐야?\n남: 나는 모두를 위한 앱을 만드는 컴퓨터 프로그래머가 되고 싶어.",
+   "answer_clue": "Solving problems with code is what I really love. / I want to be a computer programmer who makes apps for everyone.",
+   "explanation": "남자는 수의사의 꿈은 어릴 때 포기했고 요리는 가족을 위해서만 한다고 하며, 컴퓨터 프로그래머가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "컴퓨터 프로그래머",
+    "interest_clues": [
+     "I made the part that helps students find their lost things",
+     "Solving problems with code is what I really love",
+     "makes apps for everyone"
+    ]
+   }
+  },
+  {
+   "key": "중3 15회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 동물 돌봄 이야기 뒤 vet 직접 발화",
+   "before_sha": "1414ca6380cf22c773445c9a0e6f4be6cef57c84926380b3543a4c81cf12579e",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "You've been reading that animal care book every lunch break this week."
+    },
+    {
+     "speaker": "W",
+     "text": "Yes. It explains what to do when a pet gets sick or hurt."
+    },
+    {
+     "speaker": "M",
+     "text": "You also write that blog about the shelter dogs. It's really popular."
+    },
+    {
+     "speaker": "W",
+     "text": "I post their photos and stories so more people can adopt them."
+    },
+    {
+     "speaker": "M",
+     "text": "Your stories and pictures are so good. You could be a writer or a photographer."
+    },
+    {
+     "speaker": "W",
+     "text": "They help the dogs find homes, but I'd rather treat them when they're in pain."
+    },
+    {
+     "speaker": "M",
+     "text": "So is the blog just a hobby for you?"
+    },
+    {
+     "speaker": "W",
+     "text": "Pretty much. I want to be a vet and look after sick animals myself."
+    }
+   ],
+   "script_translation": "남: 너 이번 주 점심시간마다 그 동물 돌보기 책을 읽고 있더라.\n여: 응. 반려동물이 아프거나 다쳤을 때 어떻게 해야 하는지 설명해 줘.\n남: 너 보호소 개들에 관한 블로그도 쓰잖아. 정말 인기 많던데.\n여: 더 많은 사람이 입양할 수 있도록 개들의 사진과 이야기를 올려.\n남: 네 글과 사진은 정말 훌륭해. 작가나 사진작가가 될 수도 있겠어.\n여: 그게 개들이 집을 찾는 데 도움이 되긴 하지만, 나는 개들이 아플 때 치료해 주는 쪽이 더 좋아.\n남: 그럼 블로그는 그냥 취미야?\n여: 거의 그래. 나는 수의사가 되어서 아픈 동물들을 직접 돌보고 싶어.",
+   "answer_clue": "They help the dogs find homes, but I'd rather treat them when they're in pain. / Pretty much. I want to be a vet and look after sick animals myself.",
+   "explanation": "여자는 블로그의 글과 사진은 취미라고 하며 작가나 사진작가보다 아픈 동물을 직접 치료하고 싶어 하므로 수의사가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "수의사",
+    "interest_clues": [
+     "reading that animal care book",
+     "what to do when a pet gets sick or hurt",
+     "I'd rather treat them when they're in pain"
+    ]
+   }
+  },
+  {
+   "key": "중3 16회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 글쓰기 대회 이야기 뒤 writer 직접 발화",
+   "before_sha": "3f6947f00d182201d613d78b2582f3b2e9d261abb40ca663aa46a4fba927d715",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Jiyun, you always carry a small notebook these days. What's in it?"
+    },
+    {
+     "speaker": "W",
+     "text": "Short stories. I write about people I see on the bus every day."
+    },
+    {
+     "speaker": "M",
+     "text": "You're in the school newspaper club too. Are you going to be a reporter?"
+    },
+    {
+     "speaker": "W",
+     "text": "The club is fun, but I don't like writing only facts. I like making things up."
+    },
+    {
+     "speaker": "M",
+     "text": "Your mom is an English teacher. Does she want you to teach too?"
+    },
+    {
+     "speaker": "W",
+     "text": "She does, but I'd rather spend my days creating characters and their adventures."
+    },
+    {
+     "speaker": "M",
+     "text": "Then what's your biggest goal for the future?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a writer and publish a book for young readers someday."
+    }
+   ],
+   "script_translation": "남: 지윤아, 요즘 늘 작은 공책을 들고 다니더라. 안에 뭐가 있어?\n여: 짧은 이야기들이야. 매일 버스에서 보는 사람들에 대해 써.\n남: 너 학교 신문 동아리도 하잖아. 기자가 될 거야?\n여: 동아리는 재미있지만, 사실만 쓰는 건 싫어. 나는 이야기를 지어내는 게 좋아.\n남: 너희 엄마가 영어 교사시잖아. 엄마는 너도 가르치는 일을 하길 바라셔?\n여: 그러시긴 한데, 나는 등장인물과 그들의 모험을 만들어 내며 지내는 게 더 좋아.\n남: 그럼 미래의 가장 큰 목표는 뭐야?\n여: 나는 작가가 되어서 언젠가 어린 독자들을 위한 책을 내고 싶어.",
+   "answer_clue": "I like making things up. / I want to be a writer and publish a book for young readers someday.",
+   "explanation": "여자는 사실만 쓰는 기자보다 이야기를 지어내는 것이 좋고 엄마처럼 교사가 되기보다 인물과 모험을 만들고 싶다며 작가가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "작가",
+    "interest_clues": [
+     "I write about people I see on the bus every day",
+     "I like making things up",
+     "creating characters and their adventures"
+    ]
+   }
+  },
+  {
+   "key": "중3 17회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 기사·인터뷰 이야기 뒤 reporter 직접 발화",
+   "before_sha": "d2893cb3b2f69d63cc7cc312494ffd012ec83fa2335bb55342ea25efce2d258c",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, I read your article about the new garden club on the school website."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I spent two days talking with the members and their teacher."
+    },
+    {
+     "speaker": "M",
+     "text": "The photos were amazing too. You'd be a great photographer."
+    },
+    {
+     "speaker": "W",
+     "text": "Oh, my friend Jina took those. I only wrote the story and asked questions."
+    },
+    {
+     "speaker": "M",
+     "text": "Really? I thought you wanted to be a vet. You love your dogs so much."
+    },
+    {
+     "speaker": "W",
+     "text": "I used to, but now I love finding facts and sharing them with everyone."
+    },
+    {
+     "speaker": "M",
+     "text": "So what are you going to do after you graduate?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a reporter and cover news for teenagers like us."
+    }
+   ],
+   "script_translation": "남: 소라야, 학교 웹사이트에서 새 정원 동아리에 관한 네 기사를 읽었어.\n여: 고마워. 이틀 동안 동아리 회원들과 담당 선생님과 이야기를 나눴어.\n남: 사진도 정말 멋졌어. 너는 훌륭한 사진작가가 될 거야.\n여: 아, 그건 내 친구 지나가 찍었어. 나는 기사를 쓰고 질문만 했어.\n남: 정말? 나는 네가 수의사가 되고 싶어 하는 줄 알았어. 너희 개들을 정말 좋아하잖아.\n여: 예전엔 그랬는데, 지금은 사실을 찾아내서 모두와 나누는 게 정말 좋아.\n남: 그럼 졸업하고 나서 뭘 할 거야?\n여: 나는 기자가 되어서 우리 같은 십 대를 위한 뉴스를 취재하고 싶어.",
+   "answer_clue": "I used to, but now I love finding facts and sharing them with everyone. / I want to be a reporter and cover news for teenagers like us.",
+   "explanation": "기사 속 사진은 여자의 친구가 찍었고 수의사는 예전 꿈이었으며, 여자는 사실을 찾아 알리는 기자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "기자",
+    "interest_clues": [
+     "I spent two days talking with the members",
+     "I only wrote the story and asked questions",
+     "finding facts and sharing them with everyone"
+    ]
+   }
+  },
+  {
+   "key": "중3 18회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 기사·인터뷰 이야기 뒤 reporter 직접 발화",
+   "before_sha": "0210c64cb78ec77f72f4d75009f90fd527ec49c3b2b075ebde4755f9567b5093",
+   "segments": [
+    {
+     "speaker": "W",
+     "text": "Minho, I read your article about our basketball team on the school website."
+    },
+    {
+     "speaker": "M",
+     "text": "Thanks. I talked to every player after the final game last Friday."
+    },
+    {
+     "speaker": "W",
+     "text": "You play basketball well too. Don't you dream of being an athlete?"
+    },
+    {
+     "speaker": "M",
+     "text": "Not really. I'm happier asking the players questions than playing in the games."
+    },
+    {
+     "speaker": "W",
+     "text": "Your dad runs a Korean restaurant, right? Will you become a chef like him?"
+    },
+    {
+     "speaker": "M",
+     "text": "He hopes so, but I'd rather write about what happens around our town."
+    },
+    {
+     "speaker": "W",
+     "text": "Then what do you want to do in the future?"
+    },
+    {
+     "speaker": "M",
+     "text": "I want to be a reporter and tell people stories they need to hear."
+    }
+   ],
+   "script_translation": "여: 민호야, 학교 웹사이트에서 우리 농구팀에 관한 네 기사를 읽었어.\n남: 고마워. 지난 금요일 결승전이 끝나고 선수 모두와 이야기를 나눴어.\n여: 너도 농구를 잘하잖아. 운동선수가 되는 게 꿈 아니야?\n남: 별로. 나는 경기에서 뛰는 것보다 선수들에게 질문하는 게 더 즐거워.\n여: 너희 아빠가 한식당을 하시지? 아빠처럼 요리사가 될 거야?\n남: 아빠는 그러길 바라시지만, 나는 우리 동네에서 일어나는 일에 대해 쓰는 게 더 좋아.\n여: 그럼 앞으로 뭘 하고 싶어?\n남: 나는 기자가 되어서 사람들이 꼭 들어야 할 이야기를 전하고 싶어.",
+   "answer_clue": "I'm happier asking the players questions than playing in the games. / I want to be a reporter and tell people stories they need to hear.",
+   "explanation": "남자는 운동선수보다 선수들에게 질문하는 것이 즐겁고 아빠가 바라는 요리사보다 동네 소식을 쓰는 것이 좋다며 기자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "남자",
+    "dream_job": "기자",
+    "interest_clues": [
+     "I talked to every player after the final game",
+     "I'm happier asking the players questions",
+     "write about what happens around our town"
+    ]
+   }
+  },
+  {
+   "key": "중3 20회#7",
+   "status": "ready",
+   "grade": "middle3",
+   "question_type": "장래 희망 파악",
+   "reason": "다른 직업 언급 없음. 기사·인터뷰 이야기 뒤 reporter 직접 발화",
+   "before_sha": "89915613ecfe58d8c655f1ec671a1c56bb0c27f8f9b6c64fc1c4a921860cee3e",
+   "segments": [
+    {
+     "speaker": "M",
+     "text": "Sora, I read your article about the students cleaning the river."
+    },
+    {
+     "speaker": "W",
+     "text": "Thanks. I went with them three Saturdays in a row to ask questions."
+    },
+    {
+     "speaker": "M",
+     "text": "Your writing was so beautiful. Are you planning to be a writer?"
+    },
+    {
+     "speaker": "W",
+     "text": "Not really. I don't want to make up stories. I'd rather write about things that really happen."
+    },
+    {
+     "speaker": "M",
+     "text": "Last year you said you wanted to be a tour guide, didn't you?"
+    },
+    {
+     "speaker": "W",
+     "text": "I did, because I love traveling. But now I'd rather travel to find news."
+    },
+    {
+     "speaker": "M",
+     "text": "So what's your dream job these days, then?"
+    },
+    {
+     "speaker": "W",
+     "text": "I want to be a reporter and let everyone know about important local news."
+    }
+   ],
+   "script_translation": "남: 소라야, 강을 청소하는 학생들에 관한 네 기사를 읽었어.\n여: 고마워. 질문하려고 세 번의 토요일 연속으로 그들과 함께 갔어.\n남: 글이 정말 아름다웠어. 작가가 될 계획이야?\n여: 별로. 이야기를 지어내고 싶지는 않아. 나는 실제로 일어나는 일에 대해 쓰는 게 더 좋아.\n남: 작년에 너 여행 안내원이 되고 싶다고 했잖아, 그렇지?\n여: 그랬지, 여행을 좋아하니까. 하지만 지금은 뉴스를 찾으러 여행하는 게 더 좋아.\n남: 그럼 요즘 네 꿈의 직업은 뭐야?\n여: 나는 기자가 되어서 모두에게 중요한 지역 뉴스를 알리고 싶어.",
+   "answer_clue": "I'd rather write about things that really happen. / I want to be a reporter and let everyone know about important local news.",
+   "explanation": "여자는 이야기를 지어내는 작가보다 실제로 일어나는 일에 대해 쓰는 것이 좋다고 하고 안내원은 작년의 꿈이었다며 기자가 되고 싶다고 말한다.",
+   "fields": {
+    "target_person": "여자",
+    "dream_job": "기자",
+    "interest_clues": [
+     "I went with them three Saturdays in a row to ask questions",
+     "I'd rather write about things that really happen",
+     "I'd rather travel to find news"
+    ]
+   }
+  }
+ ]
+}
