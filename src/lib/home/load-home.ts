@@ -105,66 +105,56 @@ export async function loadHomeDashboard(
   const day1Utc = new Date(now - 86_400_000).toISOString();
 
   // 1) 반과 학생 범위
+  //    관리자는 학원 전체(RLS)라 학생·학습 기록 조회가 반 목록을 기다릴 필요가 없다.
+  //    강사는 담당 반 → 반 학생 → 학생 id 로 좁혀야 해서 그 순서만 지킨다.
+  //    반·학생과 상관없는 조회(변형문제·잔액·크레딧·리포트)는 처음부터 같이 출발한다.
   let classQuery = supabase
     .from("classes")
     .select("id, name")
     .eq("is_active", true)
     .order("name");
   if (role === "teacher") classQuery = classQuery.eq("teacher_id", viewerId);
-  const { data: classData } = await classQuery;
-  const classes = (classData ?? []) as ClassRow[];
-  const classIds = classes.map((c) => c.id);
+  const classesPromise = Promise.resolve(classQuery).then(
+    ({ data }) => (data ?? []) as ClassRow[]
+  );
+  const classIdsPromise = classesPromise.then((rows) => rows.map((c) => c.id));
 
-  const links = classIds.length
-    ? await fetchByIdChunks<LinkRow>(classIds, (ids, from, to) =>
-        supabase
-          .from("class_students")
-          .select("class_id, student_id")
-          .in("class_id", ids)
-          .range(from, to)
-      ).catch(() => [] as LinkRow[])
-    : [];
+  const linksPromise = classIdsPromise.then((classIds) =>
+    classIds.length
+      ? fetchByIdChunks<LinkRow>(classIds, (ids, from, to) =>
+          supabase
+            .from("class_students")
+            .select("class_id, student_id")
+            .in("class_id", ids)
+            .range(from, to)
+        ).catch(() => [] as LinkRow[])
+      : ([] as LinkRow[])
+  );
 
   type StudentRow = { id: string; is_active: boolean; created_at: string };
-  let students: StudentRow[];
-  if (role === "admin") {
-    students = await fetchAllPages<StudentRow>((from, to) =>
-      supabase
-        .from("profiles")
-        .select("id, is_active, created_at")
-        .eq("role", "student")
-        .order("id")
-        .range(from, to)
-    ).catch(() => []);
-  } else {
-    const ids = [...new Set(links.map((l) => l.student_id))];
-    students = await fetchByIdChunks<StudentRow>(ids, (chunk, from, to) =>
-      supabase
-        .from("profiles")
-        .select("id, is_active, created_at")
-        .in("id", chunk)
-        .range(from, to)
-    ).catch(() => []);
-  }
-  const activeIds = students.filter((s) => s.is_active !== false).map((s) => s.id);
-  const activeSet = new Set(activeIds);
-  const newThisMonth = students.filter(
-    (s) => s.is_active !== false && s.created_at >= monthUtc
-  ).length;
-
-  const classNameById = new Map(classes.map((c) => [c.id, c.name]));
-  const studentsByClass = new Map<string, Set<string>>();
-  const firstClassOf = new Map<string, string>();
-  for (const l of links) {
-    if (!activeSet.has(l.student_id)) continue;
-    const set = studentsByClass.get(l.class_id) ?? new Set<string>();
-    set.add(l.student_id);
-    studentsByClass.set(l.class_id, set);
-    if (!firstClassOf.has(l.student_id)) {
-      firstClassOf.set(l.student_id, classNameById.get(l.class_id) ?? "");
-    }
-  }
-  const firstClassName = (id: string) => firstClassOf.get(id) || null;
+  const studentsPromise: Promise<StudentRow[]> =
+    role === "admin"
+      ? fetchAllPages<StudentRow>((from, to) =>
+          supabase
+            .from("profiles")
+            .select("id, is_active, created_at")
+            .eq("role", "student")
+            .order("id")
+            .range(from, to)
+        ).catch(() => [])
+      : linksPromise.then((links) => {
+          const ids = [...new Set(links.map((l) => l.student_id))];
+          return fetchByIdChunks<StudentRow>(ids, (chunk, from, to) =>
+            supabase
+              .from("profiles")
+              .select("id, is_active, created_at")
+              .in("id", chunk)
+              .range(from, to)
+          ).catch(() => []);
+        });
+  const activeIdsPromise = studentsPromise.then((students) =>
+    students.filter((s) => s.is_active !== false).map((s) => s.id)
+  );
 
   /** 관리자는 학원 전체(RLS), 강사는 담당 학생 id로 좁힌다 */
   async function scoped<T>(
@@ -176,6 +166,7 @@ export async function loadHomeDashboard(
   ): Promise<T[]> {
     try {
       if (role === "admin") return await fetchAllPages<T>((f, t) => build(null, f, t));
+      const activeIds = await activeIdsPromise;
       return await fetchByIdChunks<T>(activeIds, (chunk, f, t) => build(chunk, f, t));
     } catch {
       return [];
@@ -183,6 +174,9 @@ export async function loadHomeDashboard(
   }
 
   const [
+    classes,
+    links,
+    students,
     tasks,
     vocabWeek,
     vocabFailing,
@@ -194,15 +188,25 @@ export async function loadHomeDashboard(
     spent30,
     reportInfo,
   ] = await Promise.all([
-    scoped<TaskRow>((ids, from, to) => {
-      let q = supabase
-        .from("listening_daily_tasks")
-        .select("student_id, task_date, status")
-        .gte("task_date", weekIso)
-        .lte("task_date", todayIso);
-      if (ids) q = q.in("student_id", ids);
-      return q.order("id").range(from, to);
-    }),
+    classesPromise,
+    linksPromise,
+    studentsPromise,
+    // 듣기 일일 과제는 학생 본인만 읽을 수 있어서(RLS) 관리자 키로 읽되,
+    // 이 학원(강사는 담당) 학생 id로만 좁힌다.
+    activeIdsPromise
+      .then((ids) =>
+        fetchByIdChunks<TaskRow>(ids, (chunk, from, to) =>
+          createAdminClient()
+            .from("listening_daily_tasks")
+            .select("student_id, task_date, status")
+            .gte("task_date", weekIso)
+            .lte("task_date", todayIso)
+            .in("student_id", chunk)
+            .order("id")
+            .range(from, to)
+        )
+      )
+      .catch(() => [] as TaskRow[]),
     scoped<{ student_id: string; stage4_passed_at: string | null }>((ids, from, to) => {
       let q = supabase
         .from("vocab_stage_progress")
@@ -231,16 +235,20 @@ export async function loadHomeDashboard(
       if (ids) q = q.in("student_id", ids);
       return q.order("id").range(from, to);
     }),
-    classIds.length
-      ? fetchByIdChunks<{ class_id: string }>(classIds, (ids, from, to) =>
-          supabase.from("class_courses").select("class_id").in("class_id", ids).range(from, to)
-        ).catch(() => [])
-      : Promise.resolve([] as { class_id: string }[]),
-    classIds.length
-      ? fetchByIdChunks<{ class_id: string | null }>(classIds, (ids, from, to) =>
-          supabase.from("vocab_assignments").select("class_id").in("class_id", ids).range(from, to)
-        ).catch(() => [])
-      : Promise.resolve([] as { class_id: string | null }[]),
+    classIdsPromise.then((classIds) =>
+      classIds.length
+        ? fetchByIdChunks<{ class_id: string }>(classIds, (ids, from, to) =>
+            supabase.from("class_courses").select("class_id").in("class_id", ids).range(from, to)
+          ).catch(() => [])
+        : ([] as { class_id: string }[])
+    ),
+    classIdsPromise.then((classIds) =>
+      classIds.length
+        ? fetchByIdChunks<{ class_id: string | null }>(classIds, (ids, from, to) =>
+            supabase.from("vocab_assignments").select("class_id").in("class_id", ids).range(from, to)
+          ).catch(() => [])
+        : ([] as { class_id: string | null }[])
+    ),
     (async () => {
       let q = supabase
         .from("question_generation_jobs")
@@ -284,6 +292,26 @@ export async function loadHomeDashboard(
       : Promise.resolve(0),
     loadReportShareInfo(academyId, monthUtc),
   ]);
+
+  const activeIds = students.filter((s) => s.is_active !== false).map((s) => s.id);
+  const activeSet = new Set(activeIds);
+  const newThisMonth = students.filter(
+    (s) => s.is_active !== false && s.created_at >= monthUtc
+  ).length;
+
+  const classNameById = new Map(classes.map((c) => [c.id, c.name]));
+  const studentsByClass = new Map<string, Set<string>>();
+  const firstClassOf = new Map<string, string>();
+  for (const l of links) {
+    if (!activeSet.has(l.student_id)) continue;
+    const set = studentsByClass.get(l.class_id) ?? new Set<string>();
+    set.add(l.student_id);
+    studentsByClass.set(l.class_id, set);
+    if (!firstClassOf.has(l.student_id)) {
+      firstClassOf.set(l.student_id, classNameById.get(l.class_id) ?? "");
+    }
+  }
+  const firstClassName = (id: string) => firstClassOf.get(id) || null;
 
   // 2) 오늘 듣기
   const todayByStudent = new Map<string, boolean>();
@@ -441,21 +469,24 @@ async function loadReportShareInfo(
   try {
     const admin = createAdminClient();
     const since90 = new Date(Date.now() - 90 * 86_400_000).toISOString();
-    const { count } = await admin
-      .from("shared_reports")
-      .select("id", { count: "exact", head: true })
-      .eq("academy_id", academyId)
-      .gte("created_at", since90);
-    if (!count) return null;
-    const rows = await fetchAllPages<{ student_id: string }>((from, to) =>
+    // 90일 사용 여부와 이번 달 발송 목록은 같이 읽는다 (안 쓰는 학원이면 목록은 버림)
+    const [{ count }, rows] = await Promise.all([
       admin
         .from("shared_reports")
-        .select("student_id")
+        .select("id", { count: "exact", head: true })
         .eq("academy_id", academyId)
-        .gte("created_at", monthUtc)
-        .order("id")
-        .range(from, to)
-    );
+        .gte("created_at", since90),
+      fetchAllPages<{ student_id: string }>((from, to) =>
+        admin
+          .from("shared_reports")
+          .select("student_id")
+          .eq("academy_id", academyId)
+          .gte("created_at", monthUtc)
+          .order("id")
+          .range(from, to)
+      ),
+    ]);
+    if (!count) return null;
     return { sentIds: new Set(rows.map((r) => r.student_id)) };
   } catch {
     return null;

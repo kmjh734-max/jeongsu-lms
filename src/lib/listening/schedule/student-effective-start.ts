@@ -21,11 +21,7 @@ export async function getStudentListeningEffectiveStartIso(
   assignment: ScheduleAssignmentRow & { created_at?: string | null },
   studentId: string
 ): Promise<string> {
-  const assignmentCreatedIso = assignment.created_at
-    ? getTodayIsoKorea(new Date(assignment.created_at))
-    : null;
-
-  let membershipIso: string | null = null;
+  let membershipCreatedAt: string | null = null;
   if (assignment.target_type === "class" && assignment.target_class_id) {
     const { data } = await admin
       .from("class_students")
@@ -33,10 +29,28 @@ export async function getStudentListeningEffectiveStartIso(
       .eq("class_id", assignment.target_class_id)
       .eq("student_id", studentId)
       .maybeSingle();
-    if (data?.created_at) {
-      membershipIso = getTodayIsoKorea(new Date(data.created_at as string));
-    }
+    membershipCreatedAt = (data?.created_at as string | undefined) ?? null;
   }
+
+  return computeStudentListeningEffectiveStartIso(assignment, membershipCreatedAt);
+}
+
+/**
+ * getStudentListeningEffectiveStartIso 와 같은 계산 — 반 가입일(class_students.created_at)을
+ * 이미 읽어 둔 경우 학생·과제마다 다시 조회하지 않도록 쓴다.
+ */
+export function computeStudentListeningEffectiveStartIso(
+  assignment: ScheduleAssignmentRow & { created_at?: string | null },
+  membershipCreatedAt: string | null | undefined
+): string {
+  const assignmentCreatedIso = assignment.created_at
+    ? getTodayIsoKorea(new Date(assignment.created_at))
+    : null;
+
+  const membershipIso =
+    assignment.target_type === "class" && assignment.target_class_id && membershipCreatedAt
+      ? getTodayIsoKorea(new Date(membershipCreatedAt))
+      : null;
 
   return maxDateIso(
     assignment.start_date,

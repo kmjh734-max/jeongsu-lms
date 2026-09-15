@@ -60,13 +60,20 @@ export function VocabSetCreateModal({
     }
     setLoading(true);
     setError(null);
-    const result = await onCreate({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      teacherId: role === "admin" ? teacherId || undefined : undefined,
-      folderId: folderId || null,
-    });
-    setLoading(false);
+    let result: Awaited<ReturnType<typeof onCreate>>;
+    try {
+      result = await onCreate({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        teacherId: role === "admin" ? teacherId || undefined : undefined,
+        folderId: folderId || null,
+      });
+    } catch {
+      setError("만들지 못했어요. 잠시 뒤 다시 해 주세요.");
+      return;
+    } finally {
+      setLoading(false);
+    }
     if (!result.ok || !result.setId) {
       setError(result.message);
       return;

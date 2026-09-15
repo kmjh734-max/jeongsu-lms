@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ButtonLink } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
 import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import { cleanMeaningFeedback } from "@/lib/vocab/grade-stage3";
 import type { VocabFinalTestAnswer, VocabFinalTestAttempt } from "@/types/database";
 
 interface VocabStage3ResultViewProps {
@@ -24,7 +25,9 @@ const ROW_GRID =
 function AnswerRow({ a }: { a: VocabFinalTestAnswer }) {
   const ok = a.is_correct;
   const mine = (a.student_answer ?? "").trim();
-  const feedback = a.question_type === "meaning" ? a.ai_feedback?.trim() : "";
+  // 예전에 저장된 내부 오류 문구("…시간이 초과" 등)는 보여 주지 않는다
+  const feedback =
+    a.question_type === "meaning" ? cleanMeaningFeedback(a.ai_feedback) : null;
 
   return (
     <li

@@ -67,60 +67,158 @@ export async function loadClassListRows(
 
   const monday = weekMondayIso(options.todayIso);
 
-  const [members, classCourses, vocabRows, schedules] = await Promise.all([
-    fetchInChunks<{ class_id: string; student_id: string }>(classIds, (ids, from, to) =>
+  // 반 id 만 있으면 되는 조회는 동시에 출발하고, 뒤따르는 조회는 필요한 앞 조회가 끝나는 대로 잇는다.
+  //  - 듣기 일일 과제: 스케줄 목록 다음
+  //  - 영상 진도: 듣기 과제가 없는 반을 알고 나서 (강좌 영상·끝낸 영상은 그때 동시에)
+  const membersPromise = fetchInChunks<{ class_id: string; student_id: string }>(
+    classIds,
+    (ids, from, to) =>
       supabase
         .from("class_students")
         .select("class_id, student_id")
         .in("class_id", ids)
         .order("id")
         .range(from, to)
-    ),
-    fetchInChunks<{
-      class_id: string;
-      course_id: string;
-      course: { title: string } | { title: string }[] | null;
-    }>(classIds, (ids, from, to) =>
-      supabase
-        .from("class_courses")
-        .select("class_id, course_id, course:courses(title)")
-        .in("class_id", ids)
-        .order("created_at")
-        .order("id")
-        .range(from, to)
-    ),
-    fetchInChunks<{ class_id: string; set_id: string }>(classIds, (ids, from, to) =>
+  );
+  const classCoursesPromise = fetchInChunks<{
+    class_id: string;
+    course_id: string;
+    course: { title: string } | { title: string }[] | null;
+  }>(classIds, (ids, from, to) =>
+    supabase
+      .from("class_courses")
+      .select("class_id, course_id, course:courses(title)")
+      .in("class_id", ids)
+      .order("created_at")
+      .order("id")
+      .range(from, to)
+  );
+  const vocabRowsPromise = fetchInChunks<{ class_id: string; set_id: string }>(
+    classIds,
+    (ids, from, to) =>
       supabase
         .from("vocab_assignments")
         .select("class_id, set_id")
         .in("class_id", ids)
         .order("id")
         .range(from, to)
-    ),
-    fetchInChunks<ScheduleRow>(classIds, (ids, from, to) =>
-      admin
-        .from("listening_schedule_assignments")
-        .select("id, target_class_id, days_of_week, end_date")
-        .in("target_class_id", ids)
-        .eq("is_active", true)
-        .order("id")
-        .range(from, to)
-    ),
+  );
+  const schedulesPromise = fetchInChunks<ScheduleRow>(classIds, (ids, from, to) =>
+    admin
+      .from("listening_schedule_assignments")
+      .select("id, target_class_id, days_of_week, end_date")
+      .in("target_class_id", ids)
+      .eq("is_active", true)
+      .order("id")
+      .range(from, to)
+  );
+
+  const studentsByClassPromise = membersPromise.then((members) => {
+    const map = new Map<string, Set<string>>();
+    for (const m of members) {
+      const set = map.get(m.class_id) ?? new Set<string>();
+      set.add(m.student_id);
+      map.set(m.class_id, set);
+    }
+    return map;
+  });
+  const coursesByClassPromise = classCoursesPromise.then((classCourses) => {
+    const map = new Map<string, { id: string; title: string }[]>();
+    for (const cc of classCourses) {
+      const list = map.get(cc.class_id) ?? [];
+      list.push({ id: cc.course_id, title: unwrapRelation(cc.course)?.title ?? "—" });
+      map.set(cc.class_id, list);
+    }
+    return map;
+  });
+
+  // 끝난 스케줄은 빼고, 반마다 요일을 합친다
+  const scheduleInfoPromise = schedulesPromise.then((schedules) => {
+    const liveSchedules = schedules.filter(
+      (s) => s.target_class_id && (!s.end_date || s.end_date >= options.todayIso)
+    );
+    const daysByClass = new Map<string, Set<number>>();
+    const classBySchedule = new Map<string, string>();
+    for (const s of liveSchedules) {
+      const cid = s.target_class_id!;
+      classBySchedule.set(s.id, cid);
+      const set = daysByClass.get(cid) ?? new Set<number>();
+      for (const d of s.days_of_week ?? []) set.add(d);
+      daysByClass.set(cid, set);
+    }
+    return { daysByClass, classBySchedule };
+  });
+
+  // 이번 주(월~오늘) 듣기 일일 과제 완료율
+  const listeningByClassPromise = scheduleInfoPromise.then(async ({ classBySchedule }) => {
+    const tasks = await fetchInChunks<{
+      assignment_id: string;
+      status: string;
+      completed_count: number | null;
+      total_count: number | null;
+    }>(
+      [...classBySchedule.keys()],
+      (ids, from, to) =>
+        admin
+          .from("listening_daily_tasks")
+          .select("assignment_id, status, completed_count, total_count")
+          .in("assignment_id", ids)
+          .gte("task_date", monday)
+          .lte("task_date", options.todayIso)
+          .order("id")
+          .range(from, to),
+      50
+    );
+    const map = new Map<string, { sum: number; count: number }>();
+    for (const t of tasks) {
+      const cid = classBySchedule.get(t.assignment_id);
+      if (!cid) continue;
+      const total = t.total_count ?? 0;
+      const ratio =
+        t.status === "completed"
+          ? 1
+          : total > 0
+            ? Math.min(1, (t.completed_count ?? 0) / total)
+            : 0;
+      const bucket = map.get(cid) ?? { sum: 0, count: 0 };
+      bucket.sum += ratio;
+      bucket.count += 1;
+      map.set(cid, bucket);
+    }
+    return map;
+  });
+
+  // 듣기 과제가 없는 반은 영상 진도 평균으로 대신한다
+  const videoByClassPromise = Promise.all([
+    studentsByClassPromise,
+    coursesByClassPromise,
+    listeningByClassPromise,
+  ]).then(([studentsByClass, coursesByClass, listeningByClass]) =>
+    loadVideoProgressByClass(
+      supabase,
+      classIds.filter(
+        (id) => !listeningByClass.has(id) && (coursesByClass.get(id)?.length ?? 0) > 0
+      ),
+      studentsByClass,
+      coursesByClass
+    )
+  );
+
+  const [
+    studentsByClass,
+    coursesByClass,
+    vocabRows,
+    { daysByClass },
+    listeningByClass,
+    videoByClass,
+  ] = await Promise.all([
+    studentsByClassPromise,
+    coursesByClassPromise,
+    vocabRowsPromise,
+    scheduleInfoPromise,
+    listeningByClassPromise,
+    videoByClassPromise,
   ]);
-
-  const studentsByClass = new Map<string, Set<string>>();
-  for (const m of members) {
-    const set = studentsByClass.get(m.class_id) ?? new Set<string>();
-    set.add(m.student_id);
-    studentsByClass.set(m.class_id, set);
-  }
-
-  const coursesByClass = new Map<string, { id: string; title: string }[]>();
-  for (const cc of classCourses) {
-    const list = coursesByClass.get(cc.class_id) ?? [];
-    list.push({ id: cc.course_id, title: unwrapRelation(cc.course)?.title ?? "—" });
-    coursesByClass.set(cc.class_id, list);
-  }
 
   const vocabSetsByClass = new Map<string, Set<string>>();
   for (const v of vocabRows) {
@@ -128,67 +226,6 @@ export async function loadClassListRows(
     set.add(v.set_id);
     vocabSetsByClass.set(v.class_id, set);
   }
-
-  // 끝난 스케줄은 빼고, 반마다 요일을 합친다
-  const liveSchedules = schedules.filter(
-    (s) => s.target_class_id && (!s.end_date || s.end_date >= options.todayIso)
-  );
-  const daysByClass = new Map<string, Set<number>>();
-  const classBySchedule = new Map<string, string>();
-  for (const s of liveSchedules) {
-    const cid = s.target_class_id!;
-    classBySchedule.set(s.id, cid);
-    const set = daysByClass.get(cid) ?? new Set<number>();
-    for (const d of s.days_of_week ?? []) set.add(d);
-    daysByClass.set(cid, set);
-  }
-
-  // 이번 주(월~오늘) 듣기 일일 과제 완료율
-  const tasks = await fetchInChunks<{
-    assignment_id: string;
-    status: string;
-    completed_count: number | null;
-    total_count: number | null;
-  }>(
-    [...classBySchedule.keys()],
-    (ids, from, to) =>
-      admin
-        .from("listening_daily_tasks")
-        .select("assignment_id, status, completed_count, total_count")
-        .in("assignment_id", ids)
-        .gte("task_date", monday)
-        .lte("task_date", options.todayIso)
-        .order("id")
-        .range(from, to),
-    50
-  );
-  const listeningByClass = new Map<string, { sum: number; count: number }>();
-  for (const t of tasks) {
-    const cid = classBySchedule.get(t.assignment_id);
-    if (!cid) continue;
-    const total = t.total_count ?? 0;
-    const ratio =
-      t.status === "completed"
-        ? 1
-        : total > 0
-          ? Math.min(1, (t.completed_count ?? 0) / total)
-          : 0;
-    const bucket = listeningByClass.get(cid) ?? { sum: 0, count: 0 };
-    bucket.sum += ratio;
-    bucket.count += 1;
-    listeningByClass.set(cid, bucket);
-  }
-
-  // 듣기 과제가 없는 반은 영상 진도 평균으로 대신한다
-  const videoClassIds = classIds.filter(
-    (id) => !listeningByClass.has(id) && (coursesByClass.get(id)?.length ?? 0) > 0
-  );
-  const videoByClass = await loadVideoProgressByClass(
-    supabase,
-    videoClassIds,
-    studentsByClass,
-    coursesByClass
-  );
 
   return classes.map((c) => {
     const listening = listeningByClass.get(c.id);
@@ -231,9 +268,9 @@ async function loadVideoProgressByClass(
     ...new Set(withStudents.flatMap((id) => [...(studentsByClass.get(id) ?? [])])),
   ];
 
-  const lessons = await fetchInChunks<{ id: string; course_id: string }>(
-    courseIds,
-    (ids, from, to) =>
+  // 강좌 영상 목록과 학생들이 끝낸 영상은 서로 기다릴 필요가 없다
+  const [lessons, done] = await Promise.all([
+    fetchInChunks<{ id: string; course_id: string }>(courseIds, (ids, from, to) =>
       supabase
         .from("lessons")
         .select("id, course_id")
@@ -241,7 +278,20 @@ async function loadVideoProgressByClass(
         .eq("is_published", true)
         .order("id")
         .range(from, to)
-  );
+    ),
+    fetchInChunks<{ student_id: string; lesson_id: string }>(
+      studentIds,
+      (ids, from, to) =>
+        supabase
+          .from("lesson_progress")
+          .select("student_id, lesson_id")
+          .in("student_id", ids)
+          .eq("is_completed", true)
+          .order("id")
+          .range(from, to),
+      50
+    ),
+  ]);
   if (lessons.length === 0) return out;
 
   const courseOfLesson = new Map(lessons.map((l) => [l.id, l.course_id]));
@@ -249,19 +299,6 @@ async function loadVideoProgressByClass(
   for (const l of lessons) {
     lessonCountByCourse.set(l.course_id, (lessonCountByCourse.get(l.course_id) ?? 0) + 1);
   }
-
-  const done = await fetchInChunks<{ student_id: string; lesson_id: string }>(
-    studentIds,
-    (ids, from, to) =>
-      supabase
-        .from("lesson_progress")
-        .select("student_id, lesson_id")
-        .in("student_id", ids)
-        .eq("is_completed", true)
-        .order("id")
-        .range(from, to),
-    50
-  );
 
   // 학생 × 강좌별 끝낸 영상 수
   const doneByStudentCourse = new Map<string, number>();

@@ -5,7 +5,7 @@ import {
   getTodayIsoKorea,
 } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
-import { getStudentListeningEffectiveStartIso } from "@/lib/listening/schedule/student-effective-start";
+import { computeStudentListeningEffectiveStartIso } from "@/lib/listening/schedule/student-effective-start";
 import type {
   DailyTaskStatus,
   ScheduleAssignmentRow,
@@ -34,9 +34,14 @@ type TaskRow = {
 async function loadAssignmentsByStudent(
   supabase: SupabaseClient,
   studentIds: string[]
-): Promise<Map<string, ScheduleAssignmentRow[]>> {
+): Promise<{
+  byStudent: Map<string, ScheduleAssignmentRow[]>;
+  /** 학생 id → (반 id → 반 가입 시각) — 과제 유효 시작일 계산용 */
+  membershipCreatedAt: Map<string, Map<string, string>>;
+}> {
   const result = new Map<string, ScheduleAssignmentRow[]>();
-  if (studentIds.length === 0) return result;
+  const membershipCreatedAt = new Map<string, Map<string, string>>();
+  if (studentIds.length === 0) return { byStudent: result, membershipCreatedAt };
 
   for (const id of studentIds) {
     result.set(id, []);
@@ -51,7 +56,7 @@ async function loadAssignmentsByStudent(
       .in("target_student_id", studentIds),
     supabase
       .from("class_students")
-      .select("student_id, class_id")
+      .select("student_id, class_id, created_at")
       .in("student_id", studentIds),
   ]);
 
@@ -62,6 +67,9 @@ async function loadAssignmentsByStudent(
     const list = classIdsByStudent.get(sid) ?? [];
     list.push(cid);
     classIdsByStudent.set(sid, list);
+    const joined = membershipCreatedAt.get(sid) ?? new Map<string, string>();
+    if (row.created_at) joined.set(cid, row.created_at as string);
+    membershipCreatedAt.set(sid, joined);
   }
 
   const allClassIds = [
@@ -102,7 +110,7 @@ async function loadAssignmentsByStudent(
     }
   }
 
-  return result;
+  return { byStudent: result, membershipCreatedAt };
 }
 
 function aggregateTasksForDay(rows: TaskRow[]): {
@@ -304,28 +312,32 @@ export async function loadListeningMonthlyStatusTable(
       ? loadTeacherListeningSetIds(admin, viewerId)
       : Promise.resolve(null as Set<string> | null);
 
-  const [assignmentsByStudent, { data: taskRows }, examQuery, teacherSetIds] =
-    await Promise.all([
-      loadAssignmentsByStudent(admin, studentIds),
-      admin
-        .from("listening_daily_tasks")
-        .select(
-          "id, student_id, task_date, status, completed_count, total_count, assignment_id"
-        )
-        .in("student_id", studentIds)
-        .gte("task_date", start)
-        .lte("task_date", end),
-      admin
-        .from("listening_exam_attempts")
-        .select(
-          "student_id, set_id, score, correct_count, total_count, submitted_at"
-        )
-        .in("student_id", studentIds)
-        .gte("submitted_at", monthBounds.start)
-        .lte("submitted_at", monthBounds.end)
-        .order("submitted_at", { ascending: false }),
-      teacherSetIdsPromise,
-    ]);
+  const [
+    { byStudent: assignmentsByStudent, membershipCreatedAt },
+    { data: taskRows },
+    examQuery,
+    teacherSetIds,
+  ] = await Promise.all([
+    loadAssignmentsByStudent(admin, studentIds),
+    admin
+      .from("listening_daily_tasks")
+      .select(
+        "id, student_id, task_date, status, completed_count, total_count, assignment_id"
+      )
+      .in("student_id", studentIds)
+      .gte("task_date", start)
+      .lte("task_date", end),
+    admin
+      .from("listening_exam_attempts")
+      .select(
+        "student_id, set_id, score, correct_count, total_count, submitted_at"
+      )
+      .in("student_id", studentIds)
+      .gte("submitted_at", monthBounds.start)
+      .lte("submitted_at", monthBounds.end)
+      .order("submitted_at", { ascending: false }),
+    teacherSetIdsPromise,
+  ]);
 
   let examRows = (examQuery.data ?? []) as ExamAttemptRow[];
   if (teacherSetIds && teacherSetIds.size > 0) {
@@ -336,13 +348,63 @@ export async function loadListeningMonthlyStatusTable(
 
   const setTitleById = new Map<string, string>();
   const examSetIds = [...new Set(examRows.map((row) => row.set_id))];
-  if (examSetIds.length > 0) {
-    const { data: setRows } = await admin
-      .from("listening_sets")
-      .select("id, title")
-      .in("id", examSetIds);
-    for (const set of setRows ?? []) {
-      setTitleById.set(set.id as string, set.title as string);
+
+  const tasksByStudentDate = new Map<string, Map<string, TaskRow[]>>();
+  const taskIds: string[] = [];
+  for (const row of (taskRows ?? []) as TaskRow[]) {
+    const sid = row.student_id;
+    const date = row.task_date;
+    const byDate = tasksByStudentDate.get(sid) ?? new Map<string, TaskRow[]>();
+    const list = byDate.get(date) ?? [];
+    list.push(row);
+    byDate.set(date, list);
+    tasksByStudentDate.set(sid, byDate);
+    taskIds.push(row.id);
+  }
+
+  const accuracyByStudent = new Map<
+    string,
+    { correctCount: number; answeredCount: number }
+  >();
+  for (const id of studentIds) {
+    accuracyByStudent.set(id, { correctCount: 0, answeredCount: 0 });
+  }
+
+  // 시험 세트 제목과 문항별 채점 기록은 서로 상관없어 한 번에(묶음도 동시에) 읽는다
+  const taskIdChunks: string[][] = [];
+  for (let i = 0; i < taskIds.length; i += 200) {
+    taskIdChunks.push(taskIds.slice(i, i + 200));
+  }
+  const [setRowsRes, progressChunks] = await Promise.all([
+    examSetIds.length > 0
+      ? admin.from("listening_sets").select("id, title").in("id", examSetIds)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+    Promise.all(
+      taskIdChunks.map(async (chunk) => {
+        const { data } = await admin
+          .from("listening_daily_task_progress")
+          .select("student_id, objective_completed, objective_correct")
+          .in("daily_task_id", chunk)
+          .eq("objective_completed", true);
+        return data ?? [];
+      })
+    ),
+  ]);
+  for (const set of setRowsRes.data ?? []) {
+    setTitleById.set(set.id as string, set.title as string);
+  }
+  for (const progressRows of progressChunks) {
+    for (const p of progressRows) {
+      const sid = p.student_id as string;
+      const bucket = accuracyByStudent.get(sid);
+      if (!bucket) continue;
+      // 구데이터는 objective_correct=null → 채점 불가. 채점된 문항만 집계
+      if (p.objective_correct === true) {
+        bucket.correctCount += 1;
+        bucket.answeredCount += 1;
+      } else if (p.objective_correct === false) {
+        bucket.answeredCount += 1;
+      }
     }
   }
 
@@ -370,115 +432,73 @@ export async function loadListeningMonthlyStatusTable(
     omrAttemptsByStudent.set(sid, list);
   }
 
-  const tasksByStudentDate = new Map<string, Map<string, TaskRow[]>>();
-  const taskIds: string[] = [];
-  for (const row of (taskRows ?? []) as TaskRow[]) {
-    const sid = row.student_id;
-    const date = row.task_date;
-    const byDate = tasksByStudentDate.get(sid) ?? new Map<string, TaskRow[]>();
-    const list = byDate.get(date) ?? [];
-    list.push(row);
-    byDate.set(date, list);
-    tasksByStudentDate.set(sid, byDate);
-    taskIds.push(row.id);
-  }
+  const rows: ListeningStatusRow[] = students.map((student) => {
+    const assignments = assignmentsByStudent.get(student.id) ?? [];
+    // 반 가입일은 위에서 한 번에 읽었으니 학생·과제마다 다시 조회하지 않는다
+    const joinedByClass = membershipCreatedAt.get(student.id);
+    const effectiveStartByAssignmentId = new Map<string, string>();
+    for (const a of assignments) {
+      effectiveStartByAssignmentId.set(
+        a.id,
+        computeStudentListeningEffectiveStartIso(
+          a,
+          a.target_class_id ? joinedByClass?.get(a.target_class_id) : null
+        )
+      );
+    }
+    const tasksByDate = tasksByStudentDate.get(student.id) ?? new Map();
+    const days = buildStudentDays(
+      assignments,
+      tasksByDate,
+      options.year,
+      options.month,
+      daysInMonth,
+      todayIso,
+      effectiveStartByAssignmentId
+    );
 
-  const accuracyByStudent = new Map<
-    string,
-    { correctCount: number; answeredCount: number }
-  >();
-  for (const id of studentIds) {
-    accuracyByStudent.set(id, { correctCount: 0, answeredCount: 0 });
-  }
-  if (taskIds.length > 0) {
-    for (let i = 0; i < taskIds.length; i += 200) {
-      const chunk = taskIds.slice(i, i + 200);
-      const { data: progressRows } = await admin
-        .from("listening_daily_task_progress")
-        .select("student_id, objective_completed, objective_correct")
-        .in("daily_task_id", chunk)
-        .eq("objective_completed", true);
-      for (const p of progressRows ?? []) {
-        const sid = p.student_id as string;
-        const bucket = accuracyByStudent.get(sid);
-        if (!bucket) continue;
-        // 구데이터는 objective_correct=null → 채점 불가. 채점된 문항만 집계
-        if (p.objective_correct === true) {
-          bucket.correctCount += 1;
-          bucket.answeredCount += 1;
-        } else if (p.objective_correct === false) {
-          bucket.answeredCount += 1;
-        }
+    let completedCount = 0;
+    let totalCount = 0;
+    const missedDates: string[] = [];
+    for (const cell of days) {
+      if (!cell.isStudyDay || cell.taskDate > todayIso) continue;
+      totalCount += 1;
+      if (cell.symbol === "complete") {
+        completedCount += 1;
+      } else if (cell.symbol === "missing" || cell.symbol === "partial") {
+        missedDates.push(cell.taskDate);
       }
     }
-  }
 
-  const rows: ListeningStatusRow[] = await Promise.all(
-    students.map(async (student) => {
-      const assignments = assignmentsByStudent.get(student.id) ?? [];
-      const effectiveStartByAssignmentId = new Map<string, string>();
-      await Promise.all(
-        assignments.map(async (a) => {
-          effectiveStartByAssignmentId.set(
-            a.id,
-            await getStudentListeningEffectiveStartIso(admin, a, student.id)
-          );
-        })
-      );
-      const tasksByDate = tasksByStudentDate.get(student.id) ?? new Map();
-      const days = buildStudentDays(
-        assignments,
-        tasksByDate,
-        options.year,
-        options.month,
-        daysInMonth,
-        todayIso,
-        effectiveStartByAssignmentId
-      );
+    const executionRate =
+      totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-      let completedCount = 0;
-      let totalCount = 0;
-      const missedDates: string[] = [];
-      for (const cell of days) {
-        if (!cell.isStudyDay || cell.taskDate > todayIso) continue;
-        totalCount += 1;
-        if (cell.symbol === "complete") {
-          completedCount += 1;
-        } else if (cell.symbol === "missing" || cell.symbol === "partial") {
-          missedDates.push(cell.taskDate);
-        }
-      }
+    const programLabel =
+      assignments.length === 0
+        ? "듣기학습"
+        : assignments.length === 1
+          ? assignments[0]!.title
+          : `듣기학습 (${assignments.length}개 과제)`;
 
-      const executionRate =
-        totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    const accuracy = accuracyByStudent.get(student.id) ?? {
+      correctCount: 0,
+      answeredCount: 0,
+    };
 
-      const programLabel =
-        assignments.length === 0
-          ? "듣기학습"
-          : assignments.length === 1
-            ? assignments[0]!.title
-            : `듣기학습 (${assignments.length}개 과제)`;
-
-      const accuracy = accuracyByStudent.get(student.id) ?? {
-        correctCount: 0,
-        answeredCount: 0,
-      };
-
-      return {
-        studentId: student.id,
-        studentName: student.name,
-        classLabel: student.classNames.join(", ") || "—",
-        programLabel,
-        days,
-        completedCount,
-        totalCount,
-        executionRate,
-        correctCount: accuracy.correctCount,
-        answeredCount: accuracy.answeredCount,
-        missedDates,
-      };
-    })
-  );
+    return {
+      studentId: student.id,
+      studentName: student.name,
+      classLabel: student.classNames.join(", ") || "—",
+      programLabel,
+      days,
+      completedCount,
+      totalCount,
+      executionRate,
+      correctCount: accuracy.correctCount,
+      answeredCount: accuracy.answeredCount,
+      missedDates,
+    };
+  });
 
   const omrByStudent: ListeningOmrStudentSummary[] = students
     .flatMap((student) => {

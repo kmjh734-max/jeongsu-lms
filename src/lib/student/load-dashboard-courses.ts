@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { fetchPagesParallel } from "@/lib/fetch-pages";
 import { calculateCourseProgress } from "@/lib/progress/calculate";
 import type { Course, Lesson } from "@/types/database";
 
@@ -31,12 +32,33 @@ export const loadStudentDashboardCourses = cache(
   async (studentId: string): Promise<StudentDashboardCourse[]> => {
     const supabase = await createClient();
 
-    const { data: enrollments } = await supabase
-      .from("enrollments")
-      .select(
-        "course_id, course:courses(id, title, description, is_published)"
-      )
-      .eq("student_id", studentId);
+    type ProgressRow = {
+      lesson_id: string;
+      is_completed: boolean;
+      progress_percent: number | null;
+      watched_seconds: number | null;
+    };
+
+    // 내 진도는 강좌·영상 목록을 기다리지 않고 같이 읽고, 아래에서 이 강좌 영상만 찾아 쓴다
+    const [{ data: enrollments }, myProgress] = await Promise.all([
+      supabase
+        .from("enrollments")
+        .select(
+          "course_id, course:courses(id, title, description, is_published)"
+        )
+        .eq("student_id", studentId),
+      fetchPagesParallel<ProgressRow>((from, to, withCount) =>
+        supabase
+          .from("lesson_progress")
+          .select(
+            "lesson_id, is_completed, progress_percent, watched_seconds",
+            withCount ? { count: "exact" } : undefined
+          )
+          .eq("student_id", studentId)
+          .order("id")
+          .range(from, to)
+      ),
+    ]);
 
     const validEnrollments = (enrollments ?? [])
       .map((enrollment) => {
@@ -87,27 +109,11 @@ export const loadStudentDashboardCourses = cache(
       lessonsByCourse.set(lesson.course_id, list);
     }
 
-    const allLessonIds = (allLessons ?? []).map((l) => l.id);
-    const { data: allProgress } =
-      allLessonIds.length > 0
-        ? await supabase
-            .from("lesson_progress")
-            .select(
-              "lesson_id, is_completed, progress_percent, watched_seconds"
-            )
-            .eq("student_id", studentId)
-            .in("lesson_id", allLessonIds)
-        : {
-            data: [] as {
-              lesson_id: string;
-              is_completed: boolean;
-              progress_percent: number | null;
-              watched_seconds: number | null;
-            }[],
-          };
-
+    const allLessonIds = new Set((allLessons ?? []).map((l) => l.id as string));
     const progressByLesson = new Map(
-      (allProgress ?? []).map((p) => [p.lesson_id, p])
+      myProgress
+        .filter((p) => allLessonIds.has(p.lesson_id))
+        .map((p) => [p.lesson_id, p])
     );
 
     return validEnrollments

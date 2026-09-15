@@ -62,7 +62,7 @@ export async function listReportStudents(
     if (studentIds.length === 0) return [];
   }
 
-  let profileQuery = supabase
+  const profileQuery = supabase
     .from("profiles")
     .select("id, name, username")
     .eq("role", "student")
@@ -105,26 +105,36 @@ export async function listReportStudents(
     }
   }
 
+  const classLinksFor = (ids: string[]) =>
+    supabase
+      .from("class_students")
+      .select("student_id, class:classes(name)")
+      .in("student_id", ids);
+
+  let profiles: { id: unknown; name: unknown; username: unknown }[] | null;
+  let classLinks: { student_id: unknown; class: unknown }[] | null;
   if (studentIds) {
-    profileQuery = profileQuery.in("id", studentIds);
+    // 학생 id 를 이미 알면 반 이름도 같이 읽는다 (아래에서 학생 id 로만 찾아 쓰므로 결과는 같다)
+    const [profileRes, linkRes] = await Promise.all([
+      profileQuery.in("id", studentIds),
+      classLinksFor(studentIds),
+    ]);
+    profiles = profileRes.data;
+    if (!profiles?.length) return [];
+    classLinks = linkRes.data;
+  } else {
+    const profileRes = await profileQuery;
+    profiles = profileRes.data;
+    if (!profiles?.length) return [];
+    const ids = profiles.map((p) => p.id as string);
+    classLinks = (await classLinksFor(ids)).data;
   }
-
-  const { data: profiles } = await profileQuery;
-  if (!profiles?.length) return [];
-
-  const ids = profiles.map((p) => p.id as string);
-
-  const { data: classLinks } = await supabase
-    .from("class_students")
-    .select("student_id, class:classes(name)")
-    .in("student_id", ids);
 
   const classesByStudent = new Map<string, string[]>();
   for (const link of classLinks ?? []) {
     const studentId = link.student_id as string;
-    const className = Array.isArray(link.class)
-      ? (link.class[0]?.name as string | undefined)
-      : ((link.class as { name?: string } | null)?.name ?? undefined);
+    const rel = link.class as { name?: string } | { name?: string }[] | null;
+    const className = Array.isArray(rel) ? rel[0]?.name : (rel?.name ?? undefined);
     if (!className) continue;
     const list = classesByStudent.get(studentId) ?? [];
     list.push(className);

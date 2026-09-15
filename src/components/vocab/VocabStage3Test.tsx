@@ -6,29 +6,29 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/layout/NavIcon";
 import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
 import { submitStage4 } from "@/app/student/vocab/actions";
-import type { Stage3Question } from "@/lib/vocab/build-stage3-questions";
-import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
+import {
+  STAGE4_PASS_SCORE,
+  scoreStage4,
+  type Stage3ClientQuestion,
+} from "@/lib/vocab/build-stage3-questions";
 import { gradeSpellingAnswer } from "@/lib/vocab/grade-spelling";
+import { gradeMeaningAnswer } from "@/lib/vocab/grade-stage3";
 import {
   loadExamGuestProgress,
   saveExamGuestProgress,
 } from "@/lib/vocab/exam-guest-progress";
 
-function answerKey(q: Stage3Question): string {
+function answerKey(q: Stage3ClientQuestion): string {
   return `${q.itemId}:${q.questionType}`;
-}
-
-function gradeMeaning(student: string, correct: string): boolean {
-  const a = student.trim().toLowerCase().replace(/\s+/g, "");
-  const b = correct.trim().toLowerCase().replace(/\s+/g, "");
-  if (!a) return false;
-  return a === b || a.includes(b) || b.includes(a);
 }
 
 interface VocabStage3TestProps {
   setId: string;
   setTitle: string;
-  questions: Stage3Question[];
+  /** 로그인 학생에게는 정답 없이 온다 (서버 채점). QR 학습만 정답 포함 */
+  questions: Stage3ClientQuestion[];
+  /** 화면을 연 시점의 응시 횟수 — 같은 시험을 두 번 제출하지 않게 서버가 확인 */
+  attemptNumber?: number;
   stageNumber?: number;
   hubHref?: string;
   guestMode?: boolean;
@@ -38,6 +38,7 @@ export function VocabStage3Test({
   setId,
   setTitle,
   questions,
+  attemptNumber,
   stageNumber = 4,
   hubHref,
   guestMode = false,
@@ -50,6 +51,7 @@ export function VocabStage3Test({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const current = questions[index];
@@ -71,17 +73,14 @@ export function VocabStage3Test({
     let correct = 0;
     for (const q of questions) {
       const ans = (answers[answerKey(q)] ?? "").trim();
+      const expected = q.correctAnswer ?? "";
       const ok =
         q.questionType === "spelling"
-          ? gradeSpellingAnswer(q.correctAnswer, ans)
-          : gradeMeaning(ans, q.correctAnswer);
+          ? gradeSpellingAnswer(expected, ans)
+          : gradeMeaningAnswer(expected, ans);
       if (ok) correct += 1;
     }
-    const score =
-      questions.length > 0
-        ? Math.round((correct / questions.length) * 100)
-        : 0;
-    const passed = score >= STAGE4_PASS_SCORE;
+    const { score, passed } = scoreStage4(correct, questions.length);
     const prev = loadExamGuestProgress(setId);
     saveExamGuestProgress(setId, {
       ...prev,
@@ -97,7 +96,7 @@ export function VocabStage3Test({
   }
 
   function submitAll() {
-    if (submitting) return;
+    if (submitting || submittingRef.current) return;
 
     const unanswered = questions.filter(
       (q) => !(answers[answerKey(q)] ?? "").trim()
@@ -106,7 +105,9 @@ export function VocabStage3Test({
       const msg = `미응답 ${unanswered}문항은 오답 처리됩니다. 제출할까요?`;
       if (!confirm(msg)) return;
     }
+    if (submittingRef.current) return;
 
+    submittingRef.current = true;
     setSubmitting(true);
     setMessage(null);
 
@@ -118,24 +119,31 @@ export function VocabStage3Test({
     const payload = questions.map((q) => ({
       itemId: q.itemId,
       studentAnswer: answers[answerKey(q)] ?? "",
-      questionType: q.questionType,
     }));
 
-    void submitStage4(setId, payload).then((result) => {
-      setSubmitting(false);
-      if (!result.ok) {
-        setMessage(result.message);
-        return;
-      }
-      if (result.attemptId) {
-        router.push(
-          `/student/vocab/${setId}/stage4/result?attemptId=${result.attemptId}`
-        );
-      } else {
-        router.push(hub);
-        router.refresh();
-      }
-    });
+    void submitStage4(setId, payload, attemptNumber)
+      .then((result) => {
+        if (!result.ok) {
+          submittingRef.current = false;
+          setSubmitting(false);
+          setMessage(result.message);
+          return;
+        }
+        // 이동이 끝날 때까지 다시 제출하지 못하게 잠가 둔다
+        if (result.attemptId) {
+          router.push(
+            `/student/vocab/${setId}/stage4/result?attemptId=${result.attemptId}`
+          );
+        } else {
+          router.push(hub);
+          router.refresh();
+        }
+      })
+      .catch(() => {
+        submittingRef.current = false;
+        setSubmitting(false);
+        setMessage("제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.");
+      });
   }
 
   function handleEnter() {

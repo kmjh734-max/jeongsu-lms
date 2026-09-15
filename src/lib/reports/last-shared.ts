@@ -25,15 +25,23 @@ export async function loadLastReportShares(
     Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
+  const chunks: string[][] = [];
   for (let i = 0; i < studentIds.length; i += CHUNK) {
-    const ids = studentIds.slice(i, i + CHUNK);
-    const { data, error } = await admin
-      .from("shared_reports")
-      .select("student_id, created_at")
-      .in("student_id", ids)
-      .gte("created_at", since)
-      .order("created_at", { ascending: false });
-    if (error || !data) continue;
+    chunks.push(studentIds.slice(i, i + CHUNK));
+  }
+  // 묶음끼리는 학생이 겹치지 않으니 동시에 읽어도 결과가 같다
+  const parts = await Promise.all(
+    chunks.map(async (ids) => {
+      const { data, error } = await admin
+        .from("shared_reports")
+        .select("student_id, created_at")
+        .in("student_id", ids)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false });
+      return error || !data ? [] : data;
+    })
+  );
+  for (const data of parts) {
     for (const row of data) {
       const id = row.student_id as string;
       if (!result[id]) result[id] = row.created_at as string;

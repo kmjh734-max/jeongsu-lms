@@ -58,14 +58,20 @@ export function VocabAssignmentsOverview({
   async function remove(ids: string[], confirmText: string, done: string) {
     if (!window.confirm(`${confirmText}\n학습 기록은 지워지지 않아요.`)) return;
     setBusy(true);
-    const result = await actions.removeVocabAssignments(ids);
-    setBusy(false);
-    if (!result.ok) {
-      showToast(result.message, "bad");
-      return;
+    try {
+      const result = await actions.removeVocabAssignments(ids);
+      if (!result.ok) {
+        showToast(result.message, "bad");
+        return;
+      }
+      // 다른 선생님 배정이 섞여 있으면 서버가 알려 준 문구를 그대로 보여 준다
+      showToast(result.message.includes("그대로") ? result.message : done);
+      router.refresh();
+    } catch {
+      showToast("배정을 해제하지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setBusy(false);
     }
-    showToast(done);
-    router.refresh();
   }
 
   return (
@@ -238,7 +244,7 @@ function SetPickerDialog({
       .filter((sec) => sec.items.length > 0);
     const loose = sets.filter((s) => !s.folderId && match(s));
     if (loose.length > 0) {
-      list.push({ key: "__none", name: "폴더 없음", locked: false, items: loose });
+      list.push({ key: "__none", name: "미분류", locked: false, items: loose });
     }
     return list;
   }, [sets, folders, query]);

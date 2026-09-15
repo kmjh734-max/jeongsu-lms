@@ -120,11 +120,17 @@ export function VocabSetsBrowser({
 
   async function persistOrder(next: VocabSetListRow[]) {
     setBusy(true);
-    const result = await reorderAction(
-      currentFolderId,
-      next.map((s) => s.id)
-    ).catch(() => ({ ok: false, message: "순서를 저장하지 못했어요." }));
-    setBusy(false);
+    let result: { ok: boolean; message: string };
+    try {
+      result = await reorderAction(
+        currentFolderId,
+        next.map((s) => s.id)
+      );
+    } catch {
+      result = { ok: false, message: "순서를 저장하지 못했어요." };
+    } finally {
+      setBusy(false);
+    }
     if (!result.ok) {
       showToast(result.message, "bad");
       setOrdered(rows);
@@ -155,21 +161,26 @@ export function VocabSetsBrowser({
       return;
     }
     setBusy(true);
-    const result =
-      deletable.length === 1
-        ? await actions.deleteVocabSet(deletable[0]!.id, currentFolderId)
-        : await actions.bulkDeleteVocabSets(
-            deletable.map((s) => s.id),
-            currentFolderId ?? undefined
-          );
-    setBusy(false);
-    if (!result.ok) {
-      showToast(result.message, "bad");
-      return;
+    try {
+      const result =
+        deletable.length === 1
+          ? await actions.deleteVocabSet(deletable[0]!.id, currentFolderId)
+          : await actions.bulkDeleteVocabSets(
+              deletable.map((s) => s.id),
+              currentFolderId ?? undefined
+            );
+      if (!result.ok) {
+        showToast(result.message, "bad");
+        return;
+      }
+      setSelected(new Set());
+      showToast(deletable.length === 1 ? "단어장을 지웠어요." : `${deletable.length}개를 지웠어요.`);
+      router.refresh();
+    } catch {
+      showToast("지우지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setBusy(false);
     }
-    setSelected(new Set());
-    showToast(deletable.length === 1 ? "단어장을 지웠어요." : `${deletable.length}개를 지웠어요.`);
-    router.refresh();
   }
 
   async function handlePick(kind: "move" | "copy", ids: string[], target: string) {
@@ -178,40 +189,60 @@ export function VocabSetsBrowser({
       ? (folders.find((f) => f.id === folderId)?.name ?? "폴더")
       : "미분류";
     setBusy(true);
-    if (kind === "move") {
-      const result =
-        ids.length === 1
-          ? await actions.moveVocabSet(ids[0]!, folderId)
-          : await actions.bulkMoveVocabSets(ids, folderId);
-      setBusy(false);
-      if (!result.ok) {
-        showToast(result.message, "bad");
-        return;
-      }
-      showToast(`${ids.length}개를 옮겼어요 · ${folderName}`);
-    } else {
-      let done = 0;
-      for (const id of ids) {
-        const result = await actions.copyVocabSet(id, folderId);
+    let copied = 0;
+    try {
+      if (kind === "move") {
+        const result =
+          ids.length === 1
+            ? await actions.moveVocabSet(ids[0]!, folderId)
+            : await actions.bulkMoveVocabSets(ids, folderId);
         if (!result.ok) {
-          setBusy(false);
           showToast(result.message, "bad");
-          if (done > 0) router.refresh();
           return;
         }
-        done += 1;
+        showToast(`${ids.length}개를 옮겼어요 · ${folderName}`);
+      } else {
+        for (const id of ids) {
+          const result = await actions.copyVocabSet(id, folderId);
+          if (!result.ok) {
+            showToast(result.message, "bad");
+            if (copied > 0) router.refresh();
+            return;
+          }
+          copied += 1;
+        }
+        showToast(`${copied}개를 복사했어요 · ${folderName}`);
       }
+      setPick(null);
+      setSelected(new Set());
+      router.refresh();
+    } catch {
+      showToast(
+        kind === "move"
+          ? "옮기지 못했어요. 잠시 뒤 다시 해 주세요."
+          : "복사하지 못했어요. 잠시 뒤 다시 해 주세요.",
+        "bad"
+      );
+      if (copied > 0) router.refresh();
+    } finally {
       setBusy(false);
-      showToast(`${done}개를 복사했어요 · ${folderName}`);
     }
-    setPick(null);
-    setSelected(new Set());
-    router.refresh();
   }
 
-  function openPrint(ids: string[]) {
+  function openPrint(ids: string[], mode?: "exam") {
+    // 고른 순서가 아니라 화면 목록 순서대로 인쇄한다
+    const listOrder = new Map<string, number>();
+    visible.forEach((s, i) => listOrder.set(s.id, i));
+    ordered.forEach((s, i) => {
+      if (!listOrder.has(s.id)) listOrder.set(s.id, visible.length + i);
+    });
+    const sortedIds = [...ids].sort(
+      (a, b) =>
+        (listOrder.get(a) ?? Number.MAX_SAFE_INTEGER) -
+        (listOrder.get(b) ?? Number.MAX_SAFE_INTEGER)
+    );
     const params = new URLSearchParams({
-      sets: ids.join(","),
+      sets: sortedIds.join(","),
       back:
         filter.kind === "folder"
           ? `${base}/folder/${filter.folderId}`
@@ -219,6 +250,7 @@ export function VocabSetsBrowser({
             ? `${base}/unfiled`
             : `${base}/sets`,
     });
+    if (mode) params.set("mode", mode);
     window.open(`${base}/print?${params.toString()}`, "_blank", "noopener,noreferrer");
   }
 
@@ -467,7 +499,7 @@ export function VocabSetsBrowser({
             <div className="flex gap-1">
               {[
                 { label: "배정", icon: "users", run: () => setAssignIds([...selected]) },
-                { label: "시험지 인쇄", icon: "print", run: () => openPrint([...selected]) },
+                { label: "시험지 인쇄", icon: "print", run: () => openPrint([...selected], "exam") },
                 {
                   label: "폴더 이동",
                   icon: "move",

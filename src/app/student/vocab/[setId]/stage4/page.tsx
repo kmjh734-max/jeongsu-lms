@@ -2,7 +2,11 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { VocabStage3Test } from "@/components/vocab/VocabStage3Test";
-import { buildStage3Questions } from "@/lib/vocab/build-stage3-questions";
+import {
+  buildStage3Questions,
+  stage4QuestionSeed,
+  toClientQuestions,
+} from "@/lib/vocab/build-stage3-questions";
 import { ensureExamCompactStageSkip } from "@/lib/question-generator/exam-vocab";
 import { loadStageProgress } from "@/lib/vocab/load-stage-progress";
 import { loadStudentVocabSetContext } from "@/lib/vocab/load-student-vocab-set";
@@ -39,14 +43,22 @@ export default async function StudentVocabStage4Page({ params }: PageProps) {
   if (!unlocked) redirect(`/student/vocab/${setId}`);
   if (ctx.itemCount < 1) redirect(`/student/vocab/${setId}`);
 
-  const questions = buildStage3Questions(ctx.items);
+  // 서버 채점과 같은 시드로 문항을 만들고, 정답은 빼고 보낸다
+  const attemptNumber = progress.stage4_attempt_count ?? 0;
+  const questions = toClientQuestions(
+    buildStage3Questions(
+      ctx.items,
+      stage4QuestionSeed(setId, profile!.id, attemptNumber)
+    )
+  );
 
   return (
     <VocabStage3Test
       setId={setId}
       setTitle={ctx.set.title}
       questions={questions}
-      stageNumber={4}
+      attemptNumber={attemptNumber}
+      stageNumber={ctx.set.exam_compact ? 3 : 4}
     />
   );
 }

@@ -4,8 +4,7 @@ import { getStudentListeningCalendar } from "@/lib/listening/schedule/calendar";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import {
   ensureStudentScheduleDailyTasks,
-  ensureStudentTodayAndMissedTasks,
-  getStudentScheduleTodaySummaryReadOnly,
+  loadStudentListeningTodayPayload,
 } from "@/lib/listening/schedule/today-summary";
 
 function jsonError(message: string, status = 200) {
@@ -40,36 +39,20 @@ export async function GET(request: Request) {
       });
     }
 
-    // 동기: 오늘·미완료만 생성 (45일 미래 생성은 응답을 막지 않음)
-    await ensureStudentTodayAndMissedTasks(
+    // 동기: 오늘·미완료만 생성 후 요약·달력 (과제 목록은 한 번만 읽는다)
+    const { context, summary, calendar } = await loadStudentListeningTodayPayload(
       access.admin,
       access.profile.id,
-      todayIso
+      { todayIso, year, month }
     );
 
-    const [summary, calendar] = await Promise.all([
-      getStudentScheduleTodaySummaryReadOnly(
-        access.admin,
-        access.profile.id,
-        todayIso
-      ),
-      getStudentListeningCalendar(
-        access.admin,
-        access.profile.id,
-        year,
-        month,
-        todayIso
-      ),
-    ]);
-
-    after(() => {
-      void ensureStudentScheduleDailyTasks(
-        access.admin,
-        access.profile.id,
-        todayIso,
-        { futureDays: 45 }
-      );
-    });
+    // 45일 미래 생성은 응답을 막지 않음 (끝날 때까지 함수가 살아 있도록 약속을 돌려준다)
+    after(() =>
+      ensureStudentScheduleDailyTasks(access.admin, access.profile.id, todayIso, {
+        futureDays: 45,
+        context,
+      }).catch(() => undefined)
+    );
 
     return NextResponse.json({
       ok: true,

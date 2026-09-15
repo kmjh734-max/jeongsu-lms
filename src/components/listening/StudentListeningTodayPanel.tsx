@@ -5,6 +5,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react
 import { Icon } from "@/components/layout/NavIcon";
 import { ButtonLink } from "@/components/ui/Button";
 import { DAY_LABELS } from "@/lib/listening/schedule/days-of-week";
+import { isFirstUseOfServerData } from "@/lib/ui/server-data-first-use";
 import {
   StudentListeningCalendar,
   type ListeningCalendarData,
@@ -346,6 +347,8 @@ export function StudentListeningTodayPanel({
     if (initialSummary) {
       setSummary(initialSummary);
       setLoading(false);
+      // 뒤로 가기 등으로 같은 서버 데이터가 다시 붙으면 조용히 새로 받는다
+      if (!isFirstUseOfServerData(initialSummary)) void load(true);
       return;
     }
 

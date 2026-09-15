@@ -124,81 +124,109 @@ export async function loadScheduleAssignPageData(
       `teacher_id.eq.${viewerId},description.ilike.%curriculum_locked%`
     );
     classesQuery = classesQuery.eq("teacher_id", viewerId);
+  } else if (role === "admin") {
+    // 관리자 RLS 와 같은 범위 — 학원을 직접 걸어 학원 색인으로 읽는다
+    setsQuery = setsQuery.eq("academy_id", academyId);
+    classesQuery = classesQuery.eq("academy_id", academyId);
   }
 
-  let folders: { id: string; name: string }[] = [];
-  try {
-    const rows = await listListeningSetFolders(supabase, role, viewerId);
-    folders = rows.map((f) => ({ id: f.id, name: f.name }));
-  } catch {
-    // RLS 미적용 환경 폴백: academy 폴더를 admin으로 조회
-    const { data } = await admin
-      .from("listening_set_folders")
-      .select("id, name")
-      .eq("academy_id", academyId)
-      .order("name");
-    folders = (data ?? []).map((f) => ({
-      id: f.id as string,
-      name: f.name as string,
-    }));
-  }
+  const loadFolders = async (): Promise<{ id: string; name: string }[]> => {
+    const academyFoldersPromise =
+      role === "teacher"
+        ? admin
+            .from("listening_set_folders")
+            .select("id, name")
+            .eq("academy_id", academyId)
+            .order("name")
+        : null;
 
-  // 교사에게 커리큘럼 폴더가 안 보이면 academy 폴더를 합침
-  if (role === "teacher") {
-    const { data: academyFolders } = await admin
-      .from("listening_set_folders")
-      .select("id, name")
-      .eq("academy_id", academyId)
-      .order("name");
-    const seen = new Set(folders.map((f) => f.id));
-    for (const f of academyFolders ?? []) {
-      if (!seen.has(f.id as string)) {
-        folders.push({ id: f.id as string, name: f.name as string });
+    let folders: { id: string; name: string }[] = [];
+    try {
+      const rows = await listListeningSetFolders(supabase, role, viewerId, academyId);
+      folders = rows.map((f) => ({ id: f.id, name: f.name }));
+    } catch {
+      // RLS 미적용 환경 폴백: academy 폴더를 admin으로 조회
+      const { data } = await admin
+        .from("listening_set_folders")
+        .select("id, name")
+        .eq("academy_id", academyId)
+        .order("name");
+      folders = (data ?? []).map((f) => ({
+        id: f.id as string,
+        name: f.name as string,
+      }));
+    }
+
+    // 교사에게 커리큘럼 폴더가 안 보이면 academy 폴더를 합침
+    if (academyFoldersPromise) {
+      const { data: academyFolders } = await academyFoldersPromise;
+      const seen = new Set(folders.map((f) => f.id));
+      for (const f of academyFolders ?? []) {
+        if (!seen.has(f.id as string)) {
+          folders.push({ id: f.id as string, name: f.name as string });
+        }
       }
     }
-  }
-
-  const [assignments, { data: classes }, { data: sets }, students] =
-    await Promise.all([
-      listScheduleAssignments(admin, role, viewerId, academyId),
-      classesQuery,
-      setsQuery,
-      loadScheduleStudentOptions(supabase, role, viewerId, academyId),
-    ]);
+    return folders;
+  };
 
   const todayIso = getTodayIsoKorea();
-  const setRows = sets ?? [];
-  const classRows = classes ?? [];
-  const classIdsForCounts = [
-    ...new Set([
-      ...classRows.map((c) => c.id as string),
-      ...assignments
-        .map((a) => a.targetClassId)
-        .filter((id): id is string => Boolean(id)),
-    ]),
-  ];
-  const studentTargetIds = [
-    ...new Set(
-      assignments
-        .map((a) => a.targetStudentId)
-        .filter((id): id is string => Boolean(id))
-    ),
-  ];
 
-  const [questionStats, classStudentCounts, studentClassNames, progressByAssignment] =
-    await Promise.all([
+  // 서로 기다릴 필요 없는 조회는 한꺼번에 출발하고,
+  // 뒤따르는 조회(문항 수·학생 수·진행)는 필요한 앞 조회가 끝나는 대로 바로 잇는다.
+  const assignmentsPromise = listScheduleAssignments(admin, role, viewerId, academyId);
+  const classesPromise = Promise.resolve(classesQuery).then(({ data }) => data ?? []);
+  const setsPromise = Promise.resolve(setsQuery).then(({ data }) => data ?? []);
+
+  const [
+    folders,
+    assignments,
+    classRows,
+    setRows,
+    students,
+    questionStats,
+    classStudentCounts,
+    studentClassNames,
+    progressByAssignment,
+  ] = await Promise.all([
+    loadFolders(),
+    assignmentsPromise,
+    classesPromise,
+    setsPromise,
+    loadScheduleStudentOptions(supabase, role, viewerId, academyId),
+    setsPromise.then((rows) =>
       loadListeningSetQuestionStats(
         supabase,
-        setRows.map((s) => s.id as string)
-      ),
-      loadClassStudentCounts(admin, classIdsForCounts),
-      loadStudentClassNames(admin, studentTargetIds),
+        rows.map((s) => s.id as string)
+      )
+    ),
+    Promise.all([classesPromise, assignmentsPromise]).then(([classes, list]) =>
+      loadClassStudentCounts(admin, [
+        ...new Set([
+          ...classes.map((c) => c.id as string),
+          ...list
+            .map((a) => a.targetClassId)
+            .filter((id): id is string => Boolean(id)),
+        ]),
+      ])
+    ),
+    assignmentsPromise.then((list) =>
+      loadStudentClassNames(admin, [
+        ...new Set(
+          list
+            .map((a) => a.targetStudentId)
+            .filter((id): id is string => Boolean(id))
+        ),
+      ])
+    ),
+    assignmentsPromise.then((list) =>
       loadScheduleAssignmentProgress(
         admin,
-        assignments.map((a) => a.id),
+        list.map((a) => a.id),
         todayIso
-      ),
-    ]);
+      )
+    ),
+  ]);
 
   return {
     assignments,

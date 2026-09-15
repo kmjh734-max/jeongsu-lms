@@ -244,6 +244,16 @@ export function VocabTableEditor({
   const emptyCount = emptyExample.length + emptyRelated.length;
 
   async function fillEmpty() {
+    try {
+      await fillEmptyInner();
+    } catch {
+      setStatus({ text: "빈칸을 채우지 못했어요. 잠시 뒤 다시 해 주세요.", tone: "bad" });
+    } finally {
+      setFilling(false);
+    }
+  }
+
+  async function fillEmptyInner() {
     const current = rowsRef.current;
     const exTargets = current.filter((r) => isComplete(r) && !r.example_sentence.trim());
     const relTargets = current.filter(
@@ -324,7 +334,6 @@ export function VocabTableEditor({
       }
     }
 
-    setFilling(false);
     if (problems.length > 0) {
       setStatus({ text: problems.join(" "), tone: "bad" });
       return;
@@ -367,8 +376,17 @@ export function VocabTableEditor({
     }
     setSaving(true);
     setInvalidKeys(new Set());
-    const result = await onSave(setId, payload);
-    setSaving(false);
+    let result: Awaited<ReturnType<typeof onSave>>;
+    try {
+      result = await onSave(setId, payload);
+    } catch {
+      result = {
+        ok: false,
+        message: "저장하지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요.",
+      };
+    } finally {
+      setSaving(false);
+    }
     if (!result.ok) {
       setStatus({ text: result.message, tone: "bad" });
       return;

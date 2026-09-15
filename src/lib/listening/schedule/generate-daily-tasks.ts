@@ -40,14 +40,21 @@ export async function loadStartedTaskIds(
   taskIds: string[]
 ): Promise<Set<string>> {
   const started = new Set<string>();
-  for (let i = 0; i < taskIds.length; i += 100) {
-    const chunk = taskIds.slice(i, i + 100);
-    const { data } = await admin
-      .from("listening_daily_task_progress")
-      .select("daily_task_id")
-      .in("daily_task_id", chunk)
-      .or(STARTED_PROGRESS_FILTER);
-    for (const row of data ?? []) started.add(row.daily_task_id as string);
+  const chunks: string[][] = [];
+  for (let i = 0; i < taskIds.length; i += 100) chunks.push(taskIds.slice(i, i + 100));
+  // 읽기만 하므로 묶음끼리 동시에
+  const parts = await Promise.all(
+    chunks.map(async (chunk) => {
+      const { data } = await admin
+        .from("listening_daily_task_progress")
+        .select("daily_task_id")
+        .in("daily_task_id", chunk)
+        .or(STARTED_PROGRESS_FILTER);
+      return data ?? [];
+    })
+  );
+  for (const data of parts) {
+    for (const row of data) started.add(row.daily_task_id as string);
   }
   return started;
 }
@@ -144,39 +151,71 @@ export async function ensureDailyTasksForStudentRange(
     effectiveStartIso ??
     (await getStudentListeningEffectiveStartIso(admin, assignment, studentId));
 
-  await pruneIncompleteTasksBeforeEffectiveStart(admin, {
+  // 정리(유효 시작일 이전 미완료 삭제)는 아래 읽기와 같이 돌리고, 끝나기를 기다린다
+  const prunePromise = pruneIncompleteTasksBeforeEffectiveStart(admin, {
     studentId,
     assignmentId: assignment.id,
     effectiveStartIso: effectiveStart,
   });
+  // 아래에서 먼저 오류가 나 기다리지 못해도 처리되지 않은 거부로 남지 않게
+  prunePromise.catch(() => undefined);
 
   const clampedFrom = fromIso < effectiveStart ? effectiveStart : fromIso;
-  if (clampedFrom > toIso) return;
+  if (clampedFrom > toIso) {
+    await prunePromise;
+    return;
+  }
 
   const resolvedQueue =
     queue ?? (await buildQuestionQueueForAssignment(admin, assignment.id));
-  if (resolvedQueue.length === 0) return;
+  if (resolvedQueue.length === 0) {
+    await prunePromise;
+    return;
+  }
 
   const todayIso = getTodayIsoKorea();
-  const { data: existingAll } = await admin
-    .from("listening_daily_tasks")
-    .select("id, task_date, status, completed_count, question_ids, set_id")
-    .eq("assignment_id", assignment.id)
-    .eq("student_id", studentId);
+  const queueIds = resolvedQueue.map((q) => q.questionId);
+  const queueChunks: string[][] = [];
+  for (let i = 0; i < queueIds.length; i += 100) queueChunks.push(queueIds.slice(i, i + 100));
 
-  const existingRows = (existingAll ?? []) as PlanExistingTaskRow[];
+  const [, { data: existingAll }, doneParts] = await Promise.all([
+    prunePromise,
+    admin
+      .from("listening_daily_tasks")
+      .select("id, task_date, status, completed_count, question_ids, set_id")
+      .eq("assignment_id", assignment.id)
+      .eq("student_id", studentId),
+    Promise.all(
+      queueChunks.map(async (chunk) => {
+        const { data: doneRows } = await admin
+          .from("listening_daily_task_progress")
+          .select("question_id, daily_task_id")
+          .eq("student_id", studentId)
+          .eq("completed", true)
+          .in("question_id", chunk);
+        return doneRows ?? [];
+      })
+    ),
+  ]);
+
+  // 정리와 동시에 읽었으니, 정리로 지워진 과제(유효 시작일 이전 미완료)와
+  // 그 과제의 진행 기록(과제와 함께 지워짐)은 여기서 뺀다 — 정리 후 읽은 것과 같다.
+  const allExisting = (existingAll ?? []) as PlanExistingTaskRow[];
+  const prunedTaskIds = new Set(
+    allExisting
+      .filter(
+        (row) =>
+          row.task_date < effectiveStart &&
+          (row.status === "pending" || row.status === "in_progress")
+      )
+      .map((row) => row.id)
+  );
+  const existingRows = allExisting.filter((row) => !prunedTaskIds.has(row.id));
 
   const completedQuestionIds = new Set<string>();
-  const queueIds = resolvedQueue.map((q) => q.questionId);
-  for (let i = 0; i < queueIds.length; i += 100) {
-    const chunk = queueIds.slice(i, i + 100);
-    const { data: doneRows } = await admin
-      .from("listening_daily_task_progress")
-      .select("question_id")
-      .eq("student_id", studentId)
-      .eq("completed", true)
-      .in("question_id", chunk);
-    for (const row of doneRows ?? []) {
+  for (const doneRows of doneParts) {
+    for (const row of doneRows) {
+      if (prunedTaskIds.has(row.daily_task_id as string)) continue;
       completedQuestionIds.add(row.question_id as string);
     }
   }

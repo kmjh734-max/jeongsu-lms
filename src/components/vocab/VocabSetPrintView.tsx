@@ -135,6 +135,44 @@ interface VocabSetPrintViewProps {
 
 const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
 
+/** 기본값이 바뀌었을 때, 사용자가 손대지 않은(옛 기본값 그대로인) 표지 문구만 새 기본값으로 */
+function migrateCoverDefaults(
+  cur: VocabPrintCoverSettings,
+  prev: VocabPrintCoverSettings,
+  next: VocabPrintCoverSettings
+): VocabPrintCoverSettings {
+  const fields = [
+    "title",
+    "subtitle",
+    "seriesLabel",
+    "academyName",
+    "metaLine",
+    "slogan",
+    "footerText",
+  ] as const;
+  let out: VocabPrintCoverSettings | null = null;
+  for (const f of fields) {
+    if (cur[f] === prev[f] && cur[f] !== next[f]) {
+      out = out ?? { ...cur };
+      out[f] = next[f];
+    }
+  }
+  return out ?? cur;
+}
+
+const EXAM_URL_KEYS = [
+  "word_mc",
+  "word_sa",
+  "meaning_mc",
+  "meaning_sa",
+  "example_mc",
+  "example_sa",
+  "exam_cols",
+  "exam_spacing",
+  "exam_shuffle",
+  "exam_seed",
+] as const;
+
 function formatNo(globalIndex: number) {
   return String(globalIndex + 1).padStart(4, "0");
 }
@@ -227,6 +265,7 @@ export function VocabSetPrintView({
       return {
         questions: [] as PrintExamQuestion[],
         skipped: 0,
+        skippedNoExample: 0,
         capped: false,
       };
     }
@@ -309,15 +348,18 @@ export function VocabSetPrintView({
   const measureRef = useRef<HTMLDivElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const previewScrollRef = useRef<HTMLElement | null>(null);
-  const layoutUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const examUrlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const skipUrlEchoRef = useRef(false);
+  const urlTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 주소창 동기화는 늦게(타이머) 돌기 때문에, 값은 늘 아래 ref에서 최신으로 읽는다.
+  // ref는 렌더 중이 아니라 값을 바꾸는 곳(핸들러·주소 반영)에서만 갱신한다.
   const layoutRef = useRef({ mode, size, fontScale, lineSpacing, bindingMargin });
-  layoutRef.current = { mode, size, fontScale, lineSpacing, bindingMargin };
   const coverRef = useRef(cover);
-  coverRef.current = cover;
-  const coverDefaultsRef = useRef(coverDefaults);
-  coverDefaultsRef.current = coverDefaults;
+  const examSettingsRef = useRef(examSettings);
+  const coverInputRef = useRef({ sections, academyName, documentTitle, totalItems });
+  coverInputRef.current = { sections, academyName, documentTitle, totalItems };
+  /** 지금 주소창의 쿼리(다른 파라미터 보존용) */
+  const urlParamsRef = useRef(searchParams.toString());
+  /** 우리가 마지막으로 써 넣은 쿼리 — 되돌아온 같은 주소는 다시 반영하지 않는다 */
+  const lastWrittenQueryRef = useRef<string | null>(null);
 
   const examPagination = useVocabExamPagination({
     enabled: mode === "exam",
@@ -326,6 +368,8 @@ export function VocabSetPrintView({
     cols: examCols,
     rowGapPx: examRowGapPx,
     lineSpacing: examSettings.layout.lineSpacing,
+    fontScale,
+    bindingMargin,
     measureRef,
     probeRef,
   });
@@ -355,32 +399,55 @@ export function VocabSetPrintView({
 
   useEffect(() => {
     return () => {
-      if (layoutUrlTimerRef.current) clearTimeout(layoutUrlTimerRef.current);
-      if (examUrlTimerRef.current) clearTimeout(examUrlTimerRef.current);
+      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
     };
   }, []);
 
   useEffect(() => {
-    if (skipUrlEchoRef.current) {
-      skipUrlEchoRef.current = false;
+    const qs = searchParams.toString();
+    urlParamsRef.current = qs;
+    if (lastWrittenQueryRef.current !== null && qs === lastWrittenQueryRef.current) {
       return;
     }
-    const nextMode = parseVocabPrintMode(searchParams.get("mode") ?? undefined);
-    setMode(nextMode);
-    setSize(parseVocabPrintSize(searchParams.get("size") ?? undefined));
-    setFontScale(parseVocabPrintFontScale(searchParams.get("font")));
-    setLineSpacing(parseVocabPrintLineSpacing(searchParams.get("spacing")));
-    setBindingMargin(parseVocabPrintBinding(searchParams.get("bind")));
-    setExamSettings(parseExamPrintSettings(searchParams));
+    const nextLayout = {
+      mode: parseVocabPrintMode(searchParams.get("mode") ?? undefined),
+      size: parseVocabPrintSize(searchParams.get("size") ?? undefined),
+      fontScale: parseVocabPrintFontScale(searchParams.get("font")),
+      lineSpacing: parseVocabPrintLineSpacing(searchParams.get("spacing")),
+      bindingMargin: parseVocabPrintBinding(searchParams.get("bind")),
+    };
+    layoutRef.current = nextLayout;
+    setMode(nextLayout.mode);
+    setSize(nextLayout.size);
+    setFontScale(nextLayout.fontScale);
+    setLineSpacing(nextLayout.lineSpacing);
+    setBindingMargin(nextLayout.bindingMargin);
+    const nextExam = parseExamPrintSettings(searchParams);
+    examSettingsRef.current = nextExam;
+    setExamSettings(nextExam);
     const defaults = buildDefaultVocabPrintCover({
       sections,
-      mode: nextMode,
+      mode: nextLayout.mode,
       academyName,
       documentTitle,
       totalItems,
     });
-    setCover(mergeVocabPrintCoverFromSearchParams(defaults, searchParams));
+    const nextCover = mergeVocabPrintCoverFromSearchParams(defaults, searchParams);
+    coverRef.current = nextCover;
+    setCover(nextCover);
   }, [searchParams, sections, academyName, documentTitle, totalItems]);
+
+  // 인쇄 종류를 바꾸면 표지 부제·슬로건 등 기본 문구도 따라 바꾼다(직접 고친 칸은 그대로).
+  const prevCoverDefaultsRef = useRef(coverDefaults);
+  useEffect(() => {
+    const prev = prevCoverDefaultsRef.current;
+    prevCoverDefaultsRef.current = coverDefaults;
+    if (prev === coverDefaults) return;
+    const next = migrateCoverDefaults(coverRef.current, prev, coverDefaults);
+    if (next === coverRef.current) return;
+    coverRef.current = next;
+    setCover(next);
+  }, [coverDefaults]);
 
   useEffect(() => {
     const id = "vocab-print-page-size-style";
@@ -403,9 +470,14 @@ export function VocabSetPrintView({
     };
   }, [size]);
 
-  const syncLayoutToUrl = useCallback(() => {
+  /** 레이아웃·표지·시험 구성을 모두 최신 ref 값으로 주소창에 쓴다 */
+  const writeUrlNow = useCallback(() => {
+    if (urlTimerRef.current) {
+      clearTimeout(urlTimerRef.current);
+      urlTimerRef.current = null;
+    }
     const cur = layoutRef.current;
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(urlParamsRef.current);
     params.set("mode", cur.mode);
     params.set("size", cur.size);
     if (cur.fontScale === "md") params.delete("font");
@@ -414,29 +486,42 @@ export function VocabSetPrintView({
     else params.set("spacing", cur.lineSpacing);
     if (cur.bindingMargin) params.set("bind", "1");
     else params.set("bind", "0");
-    applyVocabPrintCoverToSearchParams(
-      params,
-      coverRef.current,
-      coverDefaultsRef.current
-    );
-    skipUrlEchoRef.current = true;
-    router.replace(`?${params.toString()}`);
-  }, [router, searchParams]);
+    const coverDefaultsNow = buildDefaultVocabPrintCover({
+      ...coverInputRef.current,
+      mode: cur.mode,
+    });
+    applyVocabPrintCoverToSearchParams(params, coverRef.current, coverDefaultsNow);
+    for (const key of EXAM_URL_KEYS) params.delete(key);
+    for (const [k, v] of Object.entries(
+      examSettingsToSearchParams(examSettingsRef.current)
+    )) {
+      params.set(k, v);
+    }
+    const qs = params.toString();
+    if (qs === urlParamsRef.current) return;
+    urlParamsRef.current = qs;
+    lastWrittenQueryRef.current = qs;
+    router.replace(`?${qs}`);
+  }, [router]);
 
-  const queueLayoutUrlSync = useCallback(() => {
-    if (layoutUrlTimerRef.current) clearTimeout(layoutUrlTimerRef.current);
-    layoutUrlTimerRef.current = setTimeout(() => {
-      syncLayoutToUrl();
-    }, 400);
-  }, [syncLayoutToUrl]);
+  const queueUrlSync = useCallback(
+    (delay = 400) => {
+      if (urlTimerRef.current) clearTimeout(urlTimerRef.current);
+      urlTimerRef.current = setTimeout(() => {
+        urlTimerRef.current = null;
+        writeUrlNow();
+      }, delay);
+    },
+    [writeUrlNow]
+  );
+
+  const queueLayoutUrlSync = useCallback(() => queueUrlSync(400), [queueUrlSync]);
 
   const updateCover = useCallback(
     (patch: Partial<VocabPrintCoverSettings>) => {
-      setCover((prev) => {
-        const next = { ...prev, ...patch };
-        coverRef.current = next;
-        return next;
-      });
+      const next = { ...coverRef.current, ...patch };
+      coverRef.current = next;
+      setCover(next);
       queueLayoutUrlSync();
     },
     [queueLayoutUrlSync]
@@ -451,7 +536,21 @@ export function VocabSetPrintView({
       else if (key === "spacing")
         next.lineSpacing = parseVocabPrintLineSpacing(value);
       else next.bindingMargin = value !== "0" && value !== "false";
+      const prevMode = layoutRef.current.mode;
       layoutRef.current = next;
+      if (next.mode !== prevMode) {
+        // 주소창에 옛 기본 문구가 먼저 적히지 않도록 표지 기본 문구를 바로 바꿔 둔다
+        const input = coverInputRef.current;
+        const migrated = migrateCoverDefaults(
+          coverRef.current,
+          buildDefaultVocabPrintCover({ ...input, mode: prevMode }),
+          buildDefaultVocabPrintCover({ ...input, mode: next.mode })
+        );
+        if (migrated !== coverRef.current) {
+          coverRef.current = migrated;
+          setCover(migrated);
+        }
+      }
       // bind는 URL echo와 경쟁하지 않도록 즉시 반영 (startTransition 제외)
       if (key === "bind") {
         setBindingMargin(next.bindingMargin);
@@ -468,57 +567,21 @@ export function VocabSetPrintView({
     [queueLayoutUrlSync]
   );
 
-  const syncExamSettingsToUrl = useCallback(
-    (next: ExamPrintSettings) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("mode", "exam");
-      for (const key of [
-        "word_mc",
-        "word_sa",
-        "meaning_mc",
-        "meaning_sa",
-        "example_mc",
-        "example_sa",
-        "exam_cols",
-        "exam_spacing",
-        "exam_shuffle",
-        "exam_seed",
-      ]) {
-        params.delete(key);
-      }
-      for (const [k, v] of Object.entries(examSettingsToSearchParams(next))) {
-        params.set(k, v);
-      }
-      skipUrlEchoRef.current = true;
-      router.replace(`?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  const queueExamSettingsUrlSync = useCallback(
-    (next: ExamPrintSettings) => {
-      if (examUrlTimerRef.current) clearTimeout(examUrlTimerRef.current);
-      examUrlTimerRef.current = setTimeout(() => {
-        syncExamSettingsToUrl(next);
-      }, 350);
-    },
-    [syncExamSettingsToUrl]
-  );
-
   const updateExamSettings = useCallback(
     (next: ExamPrintSettings) => {
+      examSettingsRef.current = next;
       setExamSettings(next);
-      queueExamSettingsUrlSync(next);
+      queueUrlSync(350);
     },
-    [queueExamSettingsUrlSync]
+    [queueUrlSync]
   );
 
   const reshuffleExam = useCallback(() => {
-    const next = { ...examSettings, shuffleSeed: Date.now() };
+    const next = { ...examSettingsRef.current, shuffleSeed: Date.now() };
+    examSettingsRef.current = next;
     setExamSettings(next);
-    if (examUrlTimerRef.current) clearTimeout(examUrlTimerRef.current);
-    syncExamSettingsToUrl(next);
-  }, [examSettings, syncExamSettingsToUrl]);
+    writeUrlNow();
+  }, [writeUrlNow]);
 
   const ensurePrintPageStyle = useCallback(() => {
     const id = "vocab-print-page-size-style";
@@ -973,9 +1036,16 @@ export function VocabSetPrintView({
                     실제 {examGenerated.questions.length}문항)
                   </p>
                 ) : null}
+                {examGenerated.skippedNoExample > 0 ? (
+                  <p className="text-[13px] text-amber-700">
+                    예문이 있는 단어가 부족해 {examGenerated.skippedNoExample}
+                    문항을 뺐어요. (예문에 그 단어가 들어 있어야 문제로 낼 수 있어요)
+                  </p>
+                ) : null}
                 {examGenerated.skipped > 0 ? (
                   <p className="text-[13px] text-amber-700">
-                    {examGenerated.skipped}문항은 보기를 만들 수 없어 뺐어요.
+                    {examGenerated.skipped}문항은 문제를 만들 수 없어 뺐어요. (뜻이
+                    비어 있거나 보기로 쓸 단어가 모자라요)
                   </p>
                 ) : null}
               </PanelSection>
@@ -1145,8 +1215,9 @@ export function VocabSetPrintView({
                   <button
                     type="button"
                     onClick={() => {
-                      coverRef.current = coverDefaults;
-                      setCover(coverDefaults);
+                      const defaults = { ...coverDefaults, enabled: cover.enabled };
+                      coverRef.current = defaults;
+                      setCover(defaults);
                       queueLayoutUrlSync();
                     }}
                     className="flex w-full items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-2 py-2 text-[13px] font-semibold text-slate-600 hover:bg-slate-50"

@@ -9,6 +9,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 
 function jsonError(message: string, status = 200) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -21,13 +22,28 @@ export async function POST(request: Request) {
       return jsonError("권한이 없습니다.", 403);
     }
 
-    const chargeErr = await chargeFeatureOrError({
-      academyId: profile.academy_id,
-      featureKey: CREDIT_FEATURES.vocab_extract_passage,
-      actorId: profile.id,
-      idempotencyKey: `vocab_extract_passage:${profile.id}:${Date.now()}`,
-    });
-    if (chargeErr) return chargeErr;
+    if (!profile.academy_id) {
+      return NextResponse.json(
+        { ok: false, message: "소속 학원 정보가 없습니다.", code: "no_academy" },
+        { status: 403 }
+      );
+    }
+
+    // 1) 입력 확인 — 크레딧은 단어를 실제로 뽑은 뒤에만 차감한다
+    let body: { passage?: string; idempotencyKey?: string };
+    try {
+      body = (await request.json()) as typeof body;
+    } catch {
+      return jsonError("요청을 읽지 못했어요. 다시 해 주세요.");
+    }
+    const passage = typeof body.passage === "string" ? body.passage.trim() : "";
+
+    if (passage.length < 30) {
+      return jsonError("지문이 너무 짧습니다. 영어 지문을 더 입력해 주세요.");
+    }
+    if (passage.length > 12000) {
+      return jsonError("지문이 너무 깁니다. 12,000자 이하로 입력해 주세요.");
+    }
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) {
@@ -36,14 +52,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as { passage?: string };
-    const passage = body.passage?.trim() ?? "";
-
-    if (passage.length < 30) {
-      return jsonError("지문이 너무 짧습니다. 영어 지문을 더 입력해 주세요.");
-    }
-    if (passage.length > 12000) {
-      return jsonError("지문이 너무 깁니다. 12,000자 이하로 입력해 주세요.");
+    // 2) 잔액이 모자라면 만들기 전에 알려 준다(차감은 아직 안 함)
+    const shortfall = await lessonCreditShortfall(
+      profile.academy_id,
+      CREDIT_FEATURES.vocab_extract_passage
+    );
+    if (shortfall) {
+      return NextResponse.json(
+        { ok: false, message: shortfall, code: "insufficient_credits" },
+        { status: 402 }
+      );
     }
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -86,13 +104,29 @@ export async function POST(request: Request) {
     try {
       parsed = JSON.parse(content);
     } catch {
-      return jsonError("AI 응답을 해석하지 못했습니다.");
+      return jsonError("결과를 읽지 못했어요. 다시 해 주세요.");
     }
 
     const items = normalizePassageVocabItems(parsed);
     if (items.length === 0) {
       return jsonError("추출된 단어가 없습니다. 지문을 확인해 주세요.");
     }
+
+    // 3) 쓸 수 있는 단어가 나왔을 때만 차감
+    const clientKey =
+      typeof body.idempotencyKey === "string" && body.idempotencyKey.trim()
+        ? body.idempotencyKey.trim().slice(0, 120)
+        : null;
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.vocab_extract_passage,
+      actorId: profile.id,
+      idempotencyKey: clientKey
+        ? `vocab_extract_passage:${profile.id}:${clientKey}`
+        : `vocab_extract_passage:${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+      metadata: { words: items.length },
+    });
+    if (chargeErr) return chargeErr;
 
     return NextResponse.json({ ok: true, items });
   } catch (err) {

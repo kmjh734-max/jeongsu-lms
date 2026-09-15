@@ -1,20 +1,9 @@
 import type { ReactNode } from "react";
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** Stem for matching inflections (occasion/occasions, mature/matured, circumstance/circumstances). */
-function inflectionStem(word: string): string {
-  const w = word.toLowerCase().trim();
-  if (w.length < 4) return w;
-  const stripped = w.replace(/(?:ies|ied|ing|ers|est|es|ed|s|e)$/i, "");
-  return stripped.length >= 3 ? stripped : w;
-}
+import { findWordFormRanges } from "@/lib/vocab/word-form-match";
 
 /**
  * 예문(여러 줄·복수형 포함) 안의 단어를 모두 강조.
- * 기존처럼 첫 번째 일치만 칠하면 2번 예문·복수형(circumstances 등)이 빠짐.
+ * 단어 경계를 지키고 흔한 변화형만 칠한다(state → states O, statistics X).
  */
 export function highlightWordInSentence(
   sentence: string,
@@ -23,33 +12,20 @@ export function highlightWordInSentence(
   const trimmed = word.trim();
   if (!trimmed || !sentence) return sentence;
 
-  const stem = inflectionStem(trimmed);
-  const re = new RegExp(`\\b${escapeRegExp(stem)}[a-zA-Z']*`, "gi");
+  const ranges = findWordFormRanges(sentence, trimmed);
+  if (ranges.length === 0) return sentence;
 
   const nodes: ReactNode[] = [];
   let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  let key = 0;
-
-  while ((match = re.exec(sentence)) !== null) {
-    const start = match.index;
-    const matched = match[0];
-    if (start > lastIndex) {
-      nodes.push(sentence.slice(lastIndex, start));
-    }
+  ranges.forEach((r, key) => {
+    if (r.start > lastIndex) nodes.push(sentence.slice(lastIndex, r.start));
     nodes.push(
-      <mark key={`h-${key++}`} className="vocab-print-highlight">
-        {matched}
+      <mark key={`h-${key}`} className="vocab-print-highlight">
+        {sentence.slice(r.start, r.end)}
       </mark>
     );
-    lastIndex = start + matched.length;
-    // Avoid zero-length loops
-    if (matched.length === 0) re.lastIndex += 1;
-  }
-
-  if (lastIndex === 0) return sentence;
-  if (lastIndex < sentence.length) {
-    nodes.push(sentence.slice(lastIndex));
-  }
+    lastIndex = r.end;
+  });
+  if (lastIndex < sentence.length) nodes.push(sentence.slice(lastIndex));
   return <>{nodes}</>;
 }

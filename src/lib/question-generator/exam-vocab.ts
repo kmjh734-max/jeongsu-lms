@@ -1,6 +1,4 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { persistVocabItems } from "@/lib/vocab/save-items";
-import { SITE_URL } from "@/lib/branding";
 import { lemmaEnglishToken } from "@/lib/question-generator/word-order-normalize";
 
 export type HardWord = { word: string; meaning: string };
@@ -14,19 +12,11 @@ export type HardWord = { word: string; meaning: string };
  */
 export const JUNGA3_LEXILE_FLOOR = 1000;
 
-function siteBase(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? SITE_URL).replace(/\/$/, "");
-}
-
-/** 시험지 QR — 변형문제 연계 단어학습 (로그인 불필요) */
-export function buildExamVocabUrl(setId: string): string {
-  return `${siteBase()}/exam-vocab/${setId}`;
-}
-
-/** vocab_set_id 없을 때 — job 기준 URL (접속 시 단어장 자동 생성) */
-export function buildExamVocabUrlForJob(jobId: string): string {
-  return `${siteBase()}/exam-vocab/job/${jobId}`;
-}
+// QR 주소 도우미는 화면에서도 쓰므로 서버 코드가 없는 모듈로 옮겼다(기존 import 경로 유지용 재수출)
+export {
+  buildExamVocabUrl,
+  buildExamVocabUrlForJob,
+} from "@/lib/question-generator/exam-vocab-url";
 
 /** 보기·중요 단어 → 동사/명사 원형 (복수·과거·3인칭 등 제거) */
 export function lemmaHardWordForm(raw: string): string {
@@ -453,22 +443,197 @@ export function questionNeedsVocabGloss(input: {
   return false;
 }
 
+/** 단어장 행 비교용 키 (원형·소문자·기호 제거) */
+function examVocabRowKey(word: string): string {
+  const w = String(word ?? "").trim();
+  return hardWordDedupeKey(w) || w.toLowerCase();
+}
+
+/**
+ * 단어장 행을 원형 기준으로 겹치지 않게 (화면 표시용).
+ * DB는 건드리지 않고, 행 id·표기는 그대로 둔다 — 학생 기록이 id에 붙어 있다.
+ */
+export function dedupeExamVocabRowsKeepIds<
+  T extends { word: string; meaning: string },
+>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const row of rows) {
+    if (!String(row.word ?? "").trim() || !String(row.meaning ?? "").trim()) {
+      continue;
+    }
+    const key = examVocabRowKey(row.word);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(row);
+  }
+  return out;
+}
+
+/** 이 단어들에 학생 기록(학습·시험)이 하나라도 있으면 그 id들 */
+async function itemIdsWithStudentRecords(
+  admin: ReturnType<typeof createAdminClient>,
+  itemIds: string[]
+): Promise<Set<string> | null> {
+  if (itemIds.length === 0) return new Set();
+  const tables = [
+    "vocab_progress",
+    "vocab_spelling_attempts",
+    "vocab_example_attempts",
+    "vocab_final_test_answers",
+    "vocab_test_answers",
+  ] as const;
+  const results = await Promise.all(
+    tables.map((t) => admin.from(t).select("item_id").in("item_id", itemIds))
+  );
+  const used = new Set<string>();
+  for (const r of results) {
+    // 확인을 못 하면 아무것도 지우지 않는다
+    if (r.error) return null;
+    for (const row of r.data ?? []) used.add(row.item_id as string);
+  }
+  return used;
+}
+
+/**
+ * 단어장 단어를 job의 보기 단어와 맞춘다 (원형 기준 비교).
+ * - 이미 있는 단어: 행 id를 그대로 두고 순서만 맞춘다 (선생님이 고친 뜻·예문은 유지, 빈 뜻만 채움)
+ * - 새 단어: 추가
+ * - 빠진 단어: 학생 기록이 없을 때만 지운다 (기록이 있으면 남겨 둔다)
+ */
+async function syncExamVocabItems(
+  admin: ReturnType<typeof createAdminClient>,
+  setId: string,
+  words: HardWord[]
+): Promise<void> {
+  const { data: existingRows, error } = await admin
+    .from("vocab_items")
+    .select("id, word, meaning, order_index")
+    .eq("set_id", setId)
+    .order("order_index")
+    .order("created_at");
+  if (error) {
+    console.error("exam vocab items load failed", error.message);
+    return;
+  }
+
+  type Row = { id: string; word: string; meaning: string | null; order_index: number | null };
+  const existing = (existingRows ?? []) as Row[];
+  const byKey = new Map<string, Row>();
+  const duplicates: Row[] = [];
+  for (const row of existing) {
+    const key = examVocabRowKey(row.word);
+    if (!key || byKey.has(key)) duplicates.push(row);
+    else byKey.set(key, row);
+  }
+
+  const desiredKeys = new Set<string>();
+  const updates: { id: string; patch: Record<string, unknown> }[] = [];
+  const inserts: Record<string, unknown>[] = [];
+  let order = 0;
+  for (const w of words) {
+    const key = examVocabRowKey(w.word);
+    if (!key || desiredKeys.has(key)) continue;
+    desiredKeys.add(key);
+    const index = order++;
+    const row = byKey.get(key);
+    if (row) {
+      const patch: Record<string, unknown> = {};
+      if (row.order_index !== index) patch.order_index = index;
+      if (!String(row.meaning ?? "").trim() && w.meaning) patch.meaning = w.meaning;
+      if (Object.keys(patch).length > 0) updates.push({ id: row.id, patch });
+    } else {
+      inserts.push({
+        set_id: setId,
+        word: w.word,
+        meaning: w.meaning,
+        part_of_speech: null,
+        order_index: index,
+      });
+    }
+  }
+
+  // 보기 단어가 하나도 없으면(일시적인 생성 문제 등) 기존 단어는 건드리지 않는다
+  if (desiredKeys.size === 0) return;
+
+  const stale = [
+    ...[...byKey.entries()]
+      .filter(([key]) => !desiredKeys.has(key))
+      .map(([, row]) => row),
+    ...duplicates,
+  ];
+  const used = await itemIdsWithStudentRecords(
+    admin,
+    stale.map((r) => r.id)
+  );
+  const toDelete = used ? stale.filter((r) => !used.has(r.id)) : [];
+  const kept = stale.filter((r) => !toDelete.includes(r));
+  kept.forEach((row, i) => {
+    const index = order + i;
+    if (row.order_index !== index) {
+      updates.push({ id: row.id, patch: { order_index: index } });
+    }
+  });
+
+  for (const u of updates) {
+    const { error: uErr } = await admin
+      .from("vocab_items")
+      .update(u.patch)
+      .eq("id", u.id)
+      .eq("set_id", setId);
+    if (uErr) console.error("exam vocab item update failed", uErr.message);
+  }
+  if (inserts.length > 0) {
+    const { error: iErr } = await admin.from("vocab_items").insert(inserts);
+    if (iErr) console.error("exam vocab item insert failed", iErr.message);
+  }
+  if (toDelete.length > 0) {
+    const { error: dErr } = await admin
+      .from("vocab_items")
+      .delete()
+      .eq("set_id", setId)
+      .in(
+        "id",
+        toDelete.map((r) => r.id)
+      );
+    if (dErr) console.error("exam vocab item delete failed", dErr.message);
+  }
+}
+
 /**
  * 생성 완료 job의 문항 hard_words를 모아 exam_compact 단어장으로 동기화.
- * 기존 vocab_set_id가 있으면 단어만 갱신.
- * 중3 Lexile(~1000L) 이상 단어만 포함.
+ *
+ * - mode "ensure" (시험지 QR 접속): 단어장이 이미 있으면 아무것도 쓰지 않고 id만 돌려준다.
+ * - mode "sync" (생성 완료 · 인쇄 화면): 단어를 원형 기준으로 비교해 바뀐 것만 반영한다.
+ *   기존 단어의 행 id는 유지되므로 학생 학습 기록이 지워지지 않는다.
+ * - 이미 있는 단어장의 제목·공개 여부는 선생님이 바꿨을 수 있으니 덮어쓰지 않는다.
+ * - 동시에 두 번 만들어지지 않게, job에 vocab_set_id가 비어 있을 때만 연결한다.
  */
 export async function syncExamVocabSetFromJob(
-  jobId: string
+  jobId: string,
+  mode: "sync" | "ensure" = "sync"
 ): Promise<string | null> {
   const admin = createAdminClient();
   const { data: job, error } = await admin
     .from("question_generation_jobs")
     .select("id, created_by, request_config, vocab_set_id, total_completed")
     .eq("id", jobId)
-    .single();
+    .maybeSingle();
 
   if (error || !job) return null;
+
+  let setId = (job.vocab_set_id as string | null) ?? null;
+  if (setId) {
+    const { data: existingSet } = await admin
+      .from("vocab_sets")
+      .select("id")
+      .eq("id", setId)
+      .maybeSingle();
+    if (!existingSet) setId = null;
+  }
+
+  // QR 접속: 이미 있는 단어장은 그대로
+  if (setId && mode === "ensure") return setId;
 
   const { data: questions } = await admin
     .from("generated_english_questions")
@@ -478,33 +643,18 @@ export async function syncExamVocabSetFromJob(
     .eq("generation_job_id", jobId)
     .order("created_at", { ascending: true });
 
-  if (!questions?.length) {
-    return (job.vocab_set_id as string | null) ?? null;
-  }
+  if (!questions?.length) return setId;
 
   const unique = collectVocabWordsFromQuestions(questions);
-  const cfg = (job.request_config ?? {}) as { title?: string; grade?: string };
 
-  const titleBase = (cfg.title || "변형문제").trim() || "변형문제";
-  const setTitle = `${titleBase} · 보기 단어`.slice(0, 80);
-  const description =
-    `변형문제 해설 연계 단어장 (1·2·4단계). ${cfg.grade ?? ""}`.trim();
-  const teacherId = job.created_by as string;
+  if (!setId) {
+    const cfg = (job.request_config ?? {}) as { title?: string; grade?: string };
+    const titleBase = (cfg.title || "변형문제").trim() || "변형문제";
+    const setTitle = `${titleBase} · 보기 단어`.slice(0, 80);
+    const description =
+      `변형문제 해설 연계 단어장 (뜻 익히기 · 스펠링 · 종합테스트). ${cfg.grade ?? ""}`.trim();
+    const teacherId = job.created_by as string;
 
-  let setId = (job.vocab_set_id as string | null) ?? null;
-
-  if (setId) {
-    await admin
-      .from("vocab_sets")
-      .update({
-        title: setTitle,
-        description,
-        exam_compact: true,
-        source_job_id: jobId,
-        is_published: true,
-      })
-      .eq("id", setId);
-  } else {
     const { data: creator } = await admin
       .from("profiles")
       .select("academy_id")
@@ -535,26 +685,31 @@ export async function syncExamVocabSetFromJob(
       console.error("exam vocab set create failed", cErr);
       return null;
     }
-    setId = created.id as string;
-    await admin
+    const createdId = created.id as string;
+
+    // 비어 있을 때(또는 지워진 단어장을 가리킬 때)만 연결 — 동시에 만든 쪽이 있으면 그쪽을 쓴다
+    const prevId = (job.vocab_set_id as string | null) ?? null;
+    let link = admin
       .from("question_generation_jobs")
-      .update({ vocab_set_id: setId })
+      .update({ vocab_set_id: createdId })
       .eq("id", jobId);
+    link = prevId ? link.eq("vocab_set_id", prevId) : link.is("vocab_set_id", null);
+    const { data: linked } = await link.select("id");
+
+    if (!linked || linked.length === 0) {
+      await admin.from("vocab_sets").delete().eq("id", createdId);
+      const { data: winner } = await admin
+        .from("question_generation_jobs")
+        .select("vocab_set_id")
+        .eq("id", jobId)
+        .maybeSingle();
+      // 먼저 만든 쪽이 단어를 채우고 있으니 여기서는 id만 돌려준다
+      return (winner?.vocab_set_id as string | null) ?? null;
+    }
+    setId = createdId;
   }
 
-  const persist = await persistVocabItems(
-    admin,
-    setId,
-    unique.map((w, i) => ({
-      word: w.word,
-      meaning: w.meaning,
-      order_index: i,
-    }))
-  );
-  if (!persist.ok) {
-    console.error("exam vocab items persist failed", persist.message);
-  }
-
+  await syncExamVocabItems(admin, setId, unique);
   return setId;
 }
 

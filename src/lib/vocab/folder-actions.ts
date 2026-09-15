@@ -122,6 +122,6 @@ export async function deleteVocabFolder(
 
   revalidateVocabPaths(role);
   return actionSuccess(
-    "폴더가 삭제되었습니다. 폴더 안 단어장은 유지되며 폴더 없음으로 이동됩니다."
+    "폴더를 지웠어요. 안에 있던 단어장은 미분류로 옮겨졌어요."
   );
 }

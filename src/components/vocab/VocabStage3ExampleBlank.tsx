@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -45,7 +45,9 @@ export function VocabStage3ExampleBlank({
   const hub = hubHref ?? "/student/vocab";
   const setHref = hubHref ?? `/student/vocab/${setId}`;
   const inputRef = useRef<HTMLInputElement>(null);
-  const [queue, setQueue] = useState(() => shuffleQuestions(initialQuestions));
+  // 서버 렌더와 첫 화면이 같도록 처음엔 원래 순서, 화면에 붙은 뒤 한 번 섞는다
+  const [queue, setQueue] = useState(() => initialQuestions);
+  const shuffledRef = useRef(false);
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<{
     showAnswer: boolean;
@@ -55,11 +57,29 @@ export function VocabStage3ExampleBlank({
   const [mastered, setMastered] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [autoCompleting, setAutoCompleting] = useState(false);
+  const [finishing, setFinishing] = useState(false);
+  /** 같은 문제를 두 번 채점하지 않게 (Enter 연타·버튼 동시 클릭) */
+  const lockRef = useRef(false);
+  const finishingRef = useRef(false);
+  /** 이번에 맞힌 답 — 완료할 때 서버가 다시 확인한다 */
+  const correctRef = useRef(new Map<string, string>());
 
   const total = initialQuestions.length;
   const current = queue[0];
   const progressPercent = total > 0 ? Math.round((mastered / total) * 100) : 0;
   const wrong = Boolean(feedback?.showAnswer);
+
+  useLayoutEffect(() => {
+    if (shuffledRef.current) return;
+    shuffledRef.current = true;
+    setQueue(shuffleQuestions(initialQuestions));
+    // 처음 한 번만 섞는다 (틀린 문제 다시 풀기 순서는 유지)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    lockRef.current = false;
+  }, [queue, feedback]);
 
   useEffect(() => {
     if (!current || feedback?.showAnswer) return;
@@ -67,24 +87,38 @@ export function VocabStage3ExampleBlank({
     return () => window.clearTimeout(t);
   }, [current, feedback]);
 
+  const finishStage = useCallback(async () => {
+    const result = await completeStage3(
+      setId,
+      [...correctRef.current].map(([itemId, answer]) => ({ itemId, answer }))
+    );
+    if (!result.ok && total > 0) {
+      finishingRef.current = false;
+      setFinishing(false);
+      lockRef.current = false;
+      setMessage(result.message);
+      return;
+    }
+    router.push(hub);
+    router.refresh();
+  }, [setId, router, hub, total]);
+
   useEffect(() => {
     if (total > 0 || itemCount === 0 || autoCompleting) return;
     setAutoCompleting(true);
-    void (async () => {
-      await completeStage3(setId);
-      router.push(hub);
-      router.refresh();
-    })();
-  }, [total, itemCount, setId, router, autoCompleting, hub]);
+    void finishStage();
+  }, [total, itemCount, autoCompleting, finishStage]);
 
   function checkAnswer() {
     if (!current || feedback?.showAnswer) return;
+    if (lockRef.current || finishingRef.current) return;
     const trimmed = answer.trim();
     if (!trimmed) {
       setMessage("답을 입력해주세요.");
       inputRef.current?.focus();
       return;
     }
+    lockRef.current = true;
     setMessage(null);
 
     const isCorrect = gradeExampleBlankAnswer(current.acceptedAnswers, trimmed);
@@ -95,21 +129,16 @@ export function VocabStage3ExampleBlank({
     const attemptRound = round;
 
     if (isCorrect) {
+      correctRef.current.set(current.itemId, trimmed);
       setMastered((m) => m + 1);
       const next = queue.slice(1);
       if (next.length === 0) {
+        finishingRef.current = true;
+        setFinishing(true);
+        const itemId = current.itemId;
         void (async () => {
-          await recordStage3ExampleAttempt(
-            setId,
-            current.itemId,
-            trimmed,
-            displayAnswer,
-            true,
-            attemptRound
-          );
-          await completeStage3(setId);
-          router.push(hub);
-          router.refresh();
+          await recordStage3ExampleAttempt(setId, itemId, trimmed, attemptRound);
+          await finishStage();
         })();
         return;
       }
@@ -117,8 +146,6 @@ export function VocabStage3ExampleBlank({
         setId,
         current.itemId,
         trimmed,
-        displayAnswer,
-        true,
         attemptRound
       );
       setQueue(next);
@@ -129,8 +156,6 @@ export function VocabStage3ExampleBlank({
         setId,
         current.itemId,
         trimmed,
-        displayAnswer,
-        false,
         attemptRound
       );
       setFeedback({ showAnswer: true, displayAnswer });
@@ -139,7 +164,7 @@ export function VocabStage3ExampleBlank({
   }
 
   function continueAfterWrong() {
-    if (!current) return;
+    if (!current || finishingRef.current) return;
     const rest = queue.slice(1);
     setQueue([...rest, current]);
     setAnswer("");
@@ -244,7 +269,7 @@ export function VocabStage3ExampleBlank({
                 : "border-slate-300 bg-white text-slate-900 focus:border-brand-600 focus:ring-4 focus:ring-brand-50"
             }`}
             value={answer}
-            readOnly={wrong}
+            readOnly={wrong || finishing}
             onChange={(e) => {
               setAnswer(e.target.value.toLowerCase());
               if (message === "답을 입력해주세요.") setMessage(null);
@@ -314,8 +339,9 @@ export function VocabStage3ExampleBlank({
               type="button"
               className="h-12 w-full px-5 text-[15px] sm:h-11 sm:w-[200px]"
               onClick={checkAnswer}
+              disabled={finishing}
             >
-              정답 확인
+              {finishing ? "저장 중…" : "정답 확인"}
             </Button>
           )}
         </div>

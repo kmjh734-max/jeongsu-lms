@@ -3,12 +3,33 @@ import { getKoreaDayUtcBounds, getTodayIsoKorea } from "@/lib/date/korea-today";
 import type { VocabTodayStatusRow, VocabTodayStatusTable } from "@/lib/learning-status/types";
 import { listReportStudents } from "@/lib/reports/list-students";
 import type { ReportStudentOption } from "@/lib/reports/types";
+import { chunkIds, fetchAllPages, fetchByIdChunks } from "@/lib/vocab/fetch-all";
 import type { UserRole } from "@/types/database";
 
 interface AssignedPair {
   studentId: string;
   setId: string;
   setTitle: string;
+}
+
+type SetJoin = { title?: string; teacher_id?: string | null; is_locked?: boolean | null };
+
+type AssignmentRow = {
+  set_id: string;
+  student_id: string | null;
+  class_id: string | null;
+  assigned_by: string | null;
+  set: SetJoin | SetJoin[] | null;
+};
+
+type PageResult<T> = PromiseLike<{
+  data: T[] | null;
+  error: { message: string } | null;
+}>;
+
+function one<T>(value: T | T[] | null | undefined): T | null {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
 }
 
 async function loadAssignedPairs(
@@ -21,47 +42,73 @@ async function loadAssignedPairs(
 
   const studentIdSet = new Set(studentIds);
 
-  let scopedSetIds: string[] | null = null;
-  if (role === "teacher") {
-    const { data: teacherSets } = await supabase
-      .from("vocab_sets")
-      .select("id")
-      .eq("teacher_id", viewerId);
-    scopedSetIds = (teacherSets ?? []).map((r) => r.id as string);
-    if (scopedSetIds.length === 0) return [];
-  }
-
-  const { data: classLinks } = await supabase
-    .from("class_students")
-    .select("student_id, class_id")
-    .in("student_id", studentIds);
+  // 학생이 많은 학원도 1000줄에서 잘리지 않게 나눠서 모두 받는다
+  const [classLinks, teacherClassIds] = await Promise.all([
+    fetchByIdChunks<{ student_id: string; class_id: string }>(
+      studentIds,
+      (chunk, from, to) =>
+        supabase
+          .from("class_students")
+          .select("student_id, class_id")
+          .in("student_id", chunk)
+          .order("id")
+          .range(from, to)
+    ),
+    role === "teacher"
+      ? fetchAllPages<{ id: string }>((from, to) =>
+          supabase
+            .from("classes")
+            .select("id")
+            .eq("teacher_id", viewerId)
+            .order("id")
+            .range(from, to)
+        ).then((rows) => new Set(rows.map((r) => r.id)))
+      : Promise.resolve(null),
+  ]);
 
   const classIdsByStudent = new Map<string, Set<string>>();
   const classIdSet = new Set<string>();
-  for (const row of classLinks ?? []) {
-    const sid = row.student_id as string;
-    const cid = row.class_id as string;
-    const set = classIdsByStudent.get(sid) ?? new Set<string>();
-    set.add(cid);
-    classIdsByStudent.set(sid, set);
-    classIdSet.add(cid);
+  for (const row of classLinks) {
+    const set = classIdsByStudent.get(row.student_id) ?? new Set<string>();
+    set.add(row.class_id);
+    classIdsByStudent.set(row.student_id, set);
+    classIdSet.add(row.class_id);
   }
 
-  const classIds = [...classIdSet];
-  const orParts: string[] = [`student_id.in.(${studentIds.join(",")})`];
-  if (classIds.length > 0) {
-    orParts.push(`class_id.in.(${classIds.join(",")})`);
-  }
+  const select =
+    "set_id, student_id, class_id, assigned_by, set:vocab_sets(title, teacher_id, is_locked)";
+  const [byStudent, byClass] = await Promise.all([
+    fetchByIdChunks<AssignmentRow>(studentIds, (chunk, from, to) =>
+      supabase
+        .from("vocab_assignments")
+        .select(select)
+        .in("student_id", chunk)
+        .order("id")
+        .range(from, to)
+    ),
+    fetchByIdChunks<AssignmentRow>([...classIdSet], (chunk, from, to) =>
+      supabase
+        .from("vocab_assignments")
+        .select(select)
+        .in("class_id", chunk)
+        .order("id")
+        .range(from, to)
+    ),
+  ]);
 
-  let assignmentQuery = supabase
-    .from("vocab_assignments")
-    .select("set_id, student_id, class_id, set:vocab_sets(title)")
-    .or(orParts.join(","));
-  if (scopedSetIds) {
-    assignmentQuery = assignmentQuery.in("set_id", scopedSetIds);
+  /**
+   * 강사: 본인 단어장뿐 아니라 본인이 배정한 것(커리큘럼·복사본 포함),
+   * 본인 반에 걸린 배정, 학원 공용(잠금) 교재까지 본다.
+   */
+  function visibleToViewer(row: AssignmentRow): boolean {
+    if (!teacherClassIds) return true;
+    const set = one(row.set);
+    if (set?.teacher_id === viewerId) return true;
+    if (row.assigned_by === viewerId) return true;
+    if (row.class_id && teacherClassIds.has(row.class_id)) return true;
+    if (set?.is_locked) return true;
+    return false;
   }
-
-  const { data: assignments } = await assignmentQuery;
 
   const pairs: AssignedPair[] = [];
   const seen = new Set<string>();
@@ -73,22 +120,19 @@ async function loadAssignedPairs(
     pairs.push({ studentId, setId, setTitle });
   }
 
-  for (const row of assignments ?? []) {
-    const setId = row.set_id as string;
-    const set = row.set as { title?: string } | { title?: string }[] | null;
-    const setTitle = Array.isArray(set)
-      ? (set[0]?.title ?? "단어세트")
-      : (set?.title ?? "단어세트");
+  for (const row of [...byStudent, ...byClass]) {
+    if (!visibleToViewer(row)) continue;
+    const setId = row.set_id;
+    const setTitle = one(row.set)?.title ?? "단어세트";
 
     if (row.student_id) {
-      const sid = row.student_id as string;
-      if (studentIdSet.has(sid)) {
-        addPair(sid, setId, setTitle);
+      if (studentIdSet.has(row.student_id)) {
+        addPair(row.student_id, setId, setTitle);
       }
       continue;
     }
 
-    const classId = row.class_id as string | null;
+    const classId = row.class_id;
     if (!classId) continue;
 
     for (const studentId of studentIds) {
@@ -145,78 +189,123 @@ export async function loadVocabTodayStatusTable(
   );
 
   const setIds = [...new Set(pairs.map((p) => p.setId))];
+  const setIdLookup = new Set(setIds);
   const activityByPair = new Map<string, string[]>();
 
   if (setIds.length > 0) {
-    const [
-      { data: progressRows },
-      { data: spellingRows },
-      { data: exampleRows },
-      { data: testRows },
-      { data: finalRows },
-    ] = await Promise.all([
-      supabase
-        .from("vocab_progress")
-        .select(
-          "student_id, item_id, last_studied_at, item:vocab_items!inner(set_id)"
+    // 한 번에 1000줄까지만 오므로 학생·단어장을 나눠 모두 받는다
+    const setIdChunks = chunkIds(setIds);
+    function bySetChunks<T>(
+      build: (studentChunk: string[], setChunk: string[], from: number, to: number) => PageResult<T>
+    ): Promise<T[]> {
+      return Promise.all(
+        setIdChunks.map((setChunk) =>
+          fetchByIdChunks<T>(studentIds, (chunk, from, to) =>
+            build(chunk, setChunk, from, to)
+          )
         )
-        .in("student_id", studentIds)
-        .gte("last_studied_at", start)
-        .lte("last_studied_at", end),
-      supabase
-        .from("vocab_spelling_attempts")
-        .select("student_id, set_id, created_at")
-        .in("student_id", studentIds)
-        .in("set_id", setIds)
-        .gte("created_at", start)
-        .lte("created_at", end),
-      supabase
-        .from("vocab_example_attempts")
-        .select("student_id, set_id, created_at")
-        .in("student_id", studentIds)
-        .in("set_id", setIds)
-        .gte("created_at", start)
-        .lte("created_at", end),
-      supabase
-        .from("vocab_test_attempts")
-        .select("student_id, set_id, submitted_at, started_at")
-        .in("student_id", studentIds)
-        .in("set_id", setIds),
-      supabase
-        .from("vocab_final_test_attempts")
-        .select("student_id, set_id, submitted_at")
-        .in("student_id", studentIds)
-        .in("set_id", setIds)
-        .gte("submitted_at", start)
-        .lte("submitted_at", end),
-    ]);
+      ).then((parts) => parts.flat());
+    }
 
-    for (const row of progressRows ?? []) {
-      const item = row.item as { set_id?: string } | { set_id?: string }[] | null;
-      const setId = Array.isArray(item) ? item[0]?.set_id : item?.set_id;
-      if (!setId || !setIds.includes(setId)) continue;
+    // 시험은 제출 시각(없으면 시작 시각)으로 본다. 시험이 하루를 넘기지는 않으니 전날부터 받는다.
+    const testWindowStart = new Date(
+      new Date(start).getTime() - 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    const [progressRows, spellingRows, exampleRows, testRows, finalRows] =
+      await Promise.all([
+        fetchByIdChunks<{
+          student_id: string;
+          item: { set_id?: string } | { set_id?: string }[] | null;
+        }>(studentIds, (chunk, from, to) =>
+          supabase
+            .from("vocab_progress")
+            .select("student_id, item_id, item:vocab_items!inner(set_id)")
+            .in("student_id", chunk)
+            .gte("last_studied_at", start)
+            .lte("last_studied_at", end)
+            .order("id")
+            .range(from, to)
+        ),
+        bySetChunks<{ student_id: string; set_id: string }>(
+          (chunk, setChunk, from, to) =>
+            supabase
+              .from("vocab_spelling_attempts")
+              .select("student_id, set_id")
+              .in("student_id", chunk)
+              .in("set_id", setChunk)
+              .gte("created_at", start)
+              .lte("created_at", end)
+              .order("id")
+              .range(from, to)
+        ),
+        bySetChunks<{ student_id: string; set_id: string }>(
+          (chunk, setChunk, from, to) =>
+            supabase
+              .from("vocab_example_attempts")
+              .select("student_id, set_id")
+              .in("student_id", chunk)
+              .in("set_id", setChunk)
+              .gte("created_at", start)
+              .lte("created_at", end)
+              .order("id")
+              .range(from, to)
+        ),
+        bySetChunks<{
+          student_id: string;
+          set_id: string;
+          submitted_at: string | null;
+          started_at: string | null;
+        }>((chunk, setChunk, from, to) =>
+          supabase
+            .from("vocab_test_attempts")
+            .select("student_id, set_id, submitted_at, started_at")
+            .in("student_id", chunk)
+            .in("set_id", setChunk)
+            .gte("started_at", testWindowStart)
+            .lte("started_at", end)
+            .order("id")
+            .range(from, to)
+        ),
+        bySetChunks<{ student_id: string; set_id: string }>(
+          (chunk, setChunk, from, to) =>
+            supabase
+              .from("vocab_final_test_attempts")
+              .select("student_id, set_id")
+              .in("student_id", chunk)
+              .in("set_id", setChunk)
+              .gte("submitted_at", start)
+              .lte("submitted_at", end)
+              .order("id")
+              .range(from, to)
+        ),
+      ]);
+
+    for (const row of progressRows) {
+      const setId = one(row.item)?.set_id;
+      if (!setId || !setIdLookup.has(setId)) continue;
       const key = `${row.student_id}:${setId}`;
       const list = activityByPair.get(key) ?? [];
       mergeActivityLabels(list, "1단계 카드학습");
       activityByPair.set(key, list);
     }
 
-    for (const row of spellingRows ?? []) {
+    for (const row of spellingRows) {
       const key = `${row.student_id}:${row.set_id}`;
       const list = activityByPair.get(key) ?? [];
       mergeActivityLabels(list, "2단계 철자");
       activityByPair.set(key, list);
     }
 
-    for (const row of exampleRows ?? []) {
+    for (const row of exampleRows) {
       const key = `${row.student_id}:${row.set_id}`;
       const list = activityByPair.get(key) ?? [];
       mergeActivityLabels(list, "3단계 예문");
       activityByPair.set(key, list);
     }
 
-    for (const row of testRows ?? []) {
-      const ts = (row.submitted_at as string | null) ?? (row.started_at as string);
+    for (const row of testRows) {
+      const ts = row.submitted_at ?? row.started_at;
       if (!ts || ts < start || ts > end) continue;
       const key = `${row.student_id}:${row.set_id}`;
       const list = activityByPair.get(key) ?? [];
@@ -224,7 +313,7 @@ export async function loadVocabTodayStatusTable(
       activityByPair.set(key, list);
     }
 
-    for (const row of finalRows ?? []) {
+    for (const row of finalRows) {
       const key = `${row.student_id}:${row.set_id}`;
       const list = activityByPair.get(key) ?? [];
       mergeActivityLabels(list, "4단계 최종시험");

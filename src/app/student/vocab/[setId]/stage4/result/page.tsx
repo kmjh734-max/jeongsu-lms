@@ -34,7 +34,7 @@ export default async function StudentVocabStage4ResultPage({
       setTitle={detail.setTitle}
       attempt={detail.attempt}
       answers={detail.answers}
-      stageNumber={4}
+      stageNumber={detail.examCompact ? 3 : 4}
     />
   );
 }

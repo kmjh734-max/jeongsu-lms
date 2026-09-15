@@ -17,6 +17,10 @@ import {
   removeVocabAssignmentsByIds,
 } from "@/lib/vocab/class-assignments";
 import { revalidateVocabPaths } from "@/lib/vocab/revalidate";
+import { filterTeacherManageableAssignmentIds } from "@/lib/vocab/assignment-scope";
+
+const NOT_MINE_MESSAGE =
+  "다른 선생님이 배정한 것은 해제할 수 없어요. 내 반·내 학생 배정만 해제돼요.";
 
 const ROLE = "teacher" as const;
 
@@ -197,10 +201,16 @@ export async function removeSetAssignment(
   assignmentId: string,
   setId: string
 ): Promise<ActionResult> {
-  const { error } = await requireTeacher();
+  const { profile, error } = await requireTeacher();
   if (error) return error;
 
   const supabase = await createClient();
+  const { allowed } = await filterTeacherManageableAssignmentIds(
+    supabase,
+    profile!.id,
+    [assignmentId]
+  );
+  if (allowed.length === 0) return actionError(NOT_MINE_MESSAGE);
   const result = await removeVocabAssignment(supabase, assignmentId);
 
   if (!result.ok) return actionError(result.message);
@@ -224,6 +234,12 @@ export async function removeFolderVocabAssignment(
   );
   if (folderDenied) return folderDenied;
 
+  const { allowed } = await filterTeacherManageableAssignmentIds(
+    supabase,
+    profile!.id,
+    [assignmentId]
+  );
+  if (allowed.length === 0) return actionError(NOT_MINE_MESSAGE);
   const result = await removeVocabAssignment(supabase, assignmentId);
 
   if (!result.ok) return actionError(result.message);
@@ -290,14 +306,25 @@ export async function bulkAssignVocabSetsToStudents(
 export async function removeVocabAssignments(
   assignmentIds: string[]
 ): Promise<ActionResult> {
-  const { error } = await requireTeacher();
+  const { profile, error } = await requireTeacher();
   if (error) return error;
   if (!assignmentIds.length) return actionError("해제할 배정이 없어요.");
 
   const supabase = await createClient();
-  const result = await removeVocabAssignmentsByIds(supabase, assignmentIds);
+  // 학원 공용 교재에는 다른 선생님 배정도 섞여 있으므로 내 것만 지운다
+  const { allowed, denied } = await filterTeacherManageableAssignmentIds(
+    supabase,
+    profile!.id,
+    assignmentIds
+  );
+  if (allowed.length === 0) return actionError(NOT_MINE_MESSAGE);
+  const result = await removeVocabAssignmentsByIds(supabase, allowed);
   if (!result.ok) return actionError(result.message);
 
   revalidateVocabPaths(ROLE);
-  return actionSuccess("배정을 해제했어요.");
+  return actionSuccess(
+    denied > 0
+      ? `배정을 해제했어요. (다른 선생님 배정 ${denied}건은 그대로 뒀어요)`
+      : "배정을 해제했어요."
+  );
 }

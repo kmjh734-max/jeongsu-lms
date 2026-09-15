@@ -44,7 +44,7 @@ export async function loadSetStageProgressRows(
   const [{ data: students }, { data: progressRows }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, name, login_id")
+      .select("id, name, username")
       .in("id", ids)
       .eq("role", "student")
       .order("name"),
@@ -79,7 +79,7 @@ export async function loadSetStageProgressRows(
 
     return {
       studentId: s.id,
-      studentName: (s.name as string) || (s.login_id as string) || "—",
+      studentName: (s.name as string) || (s.username as string | null) || "—",
       started: Boolean(p),
       stage1Completed: Boolean(progress.stage1_completed),
       stage2Completed: Boolean(progress.stage2_completed),

@@ -61,22 +61,32 @@ export function ClassVocabPanel({
     if (!studentId || !setId) return;
     setLoading(true);
     setMessage(null);
-    const result = await onAssign(classId, studentId, setId);
-    setMessage(result.message);
-    if (result.ok) {
-      setSetId("");
-      router.refresh();
+    try {
+      const result = await onAssign(classId, studentId, setId);
+      setMessage(result.message);
+      if (result.ok) {
+        setSetId("");
+        router.refresh();
+      }
+    } catch {
+      setMessage("배정하지 못했어요. 잠시 뒤 다시 해 주세요.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function handleRemove(assignmentId: string) {
     if (!confirm("이 학생의 단어장 배정을 해제할까요?")) return;
     setLoading(true);
-    const result = await onRemove(classId, assignmentId);
-    setMessage(result.message);
-    if (result.ok) router.refresh();
-    setLoading(false);
+    try {
+      const result = await onRemove(classId, assignmentId);
+      setMessage(result.message);
+      if (result.ok) router.refresh();
+    } catch {
+      setMessage("배정을 해제하지 못했어요. 잠시 뒤 다시 해 주세요.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (students.length === 0) {
@@ -153,7 +163,7 @@ export function ClassVocabPanel({
 
       {setOptions.length === 0 && (
         <p className="text-sm text-slate-500">
-          단어 관리 → 폴더에서 단어장을 먼저 만드세요.
+          단어학습 → 세트에서 단어장을 먼저 만들어 주세요.
         </p>
       )}
 

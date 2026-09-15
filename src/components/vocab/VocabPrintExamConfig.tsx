@@ -49,10 +49,16 @@ export function VocabPrintExamConfig({
   }
 
   function setLayout(next: Partial<ExamPrintLayout>) {
+    // 단 구성·문항 간격만 바꿀 때는 같은 시험지를 유지한다.
+    // 섞기를 켜고 끌 때만 새 순서를 만든다.
+    const shuffleToggled =
+      "shuffle" in next &&
+      next.shuffle !== undefined &&
+      next.shuffle !== layout.shuffle;
     onChange({
       ...settings,
       layout: { ...layout, ...next },
-      shuffleSeed: layout.shuffle !== next.shuffle ? Date.now() : settings.shuffleSeed,
+      shuffleSeed: shuffleToggled ? Date.now() : settings.shuffleSeed,
     });
   }
 

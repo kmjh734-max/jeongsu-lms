@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getKoreaYearMonth, parseKoreaMonthParam } from "@/lib/date/korea-today";
-import { fetchAllPages } from "@/lib/vocab/fetch-all";
+import { fetchPagesParallel } from "@/lib/fetch-pages";
 import {
   cleanCreditText,
   featureGroup,
@@ -101,14 +101,19 @@ async function loadMonthTxns(
 ): Promise<RawTxn[]> {
   const next = nextMonth(year, month);
   try {
-    return await fetchAllPages<RawTxn>((from, to) =>
+    // 한 달 거래가 1000건을 넘으면 나머지 쪽은 차례로가 아니라 동시에 읽는다
+    return await fetchPagesParallel<RawTxn>((from, to, withCount) =>
       supabase
         .from("credit_transactions")
-        .select("id, type, amount, balance_after, feature_key, note, metadata, created_at")
+        .select(
+          "id, type, amount, balance_after, feature_key, note, metadata, created_at",
+          withCount ? { count: "exact" } : undefined
+        )
         .eq("academy_id", academyId)
         .gte("created_at", monthStartUtc(year, month))
         .lt("created_at", monthStartUtc(next.year, next.month))
         .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
         .range(from, to)
     );
   } catch {

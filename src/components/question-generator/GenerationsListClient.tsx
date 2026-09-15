@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { QgJobProgressBar } from "@/components/question-generator/QgJobProgressBar";
 import { useQgJobProgress } from "@/components/question-generator/useQgJobProgress";
 import { readTrackedQgJob } from "@/lib/question-generator/client-job-progress";
+import { isFirstUseOfServerData } from "@/lib/ui/server-data-first-use";
 
 type JobRow = {
   id: string;
@@ -17,6 +18,8 @@ type JobRow = {
   total_failed: number;
   created_at: string;
   english_source_passages?: { title?: string } | null;
+  /** 서버가 센 지문 수 (있으면 이것을 쓴다) */
+  passage_count?: number;
   request_config?: {
     title?: string;
     passages?: Array<{ text?: string }>;
@@ -64,6 +67,7 @@ function statusMeta(status: string): { label: string; className: string } {
 }
 
 function passageCount(j: JobRow): number {
+  if (typeof j.passage_count === "number") return j.passage_count;
   const ids = j.request_config?.passageIds;
   if (Array.isArray(ids) && ids.length > 0) return ids.length;
   const list = j.request_config?.passages;
@@ -93,12 +97,19 @@ function viewHref(basePath: string, j: JobRow): string {
   return `${basePath}/generations/${j.id}`;
 }
 
-export function GenerationsListClient({ basePath }: { basePath: string }) {
-  const [jobs, setJobs] = useState<JobRow[]>([]);
+export function GenerationsListClient({
+  basePath,
+  initialJobs,
+}: {
+  basePath: string;
+  /** 서버에서 미리 읽은 목록 — 있으면 첫 조회를 건너뛴다 */
+  initialJobs?: JobRow[] | null;
+}) {
+  const [jobs, setJobs] = useState<JobRow[]>(initialJobs ?? []);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialJobs);
   const [deleting, setDeleting] = useState(false);
   const [copying, setCopying] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -124,8 +135,10 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    // 서버가 넘긴 목록이 있으면 첫 조회는 건너뛴다 (뒤로 가기로 다시 붙으면 조용히 새로 받는다)
+    if (initialJobs && isFirstUseOfServerData(initialJobs)) return;
+    void load(initialJobs ? { silent: true } : undefined);
+  }, [load, initialJobs]);
 
   /** pending(복사만 한 상태)은 생성 중이 아님 — analyzing 이후만 추적 */
   const hasRunningJob = jobs.some((j) =>
@@ -457,6 +470,8 @@ export function GenerationsListClient({ basePath }: { basePath: string }) {
                     </td>
                     <td className="whitespace-nowrap text-xs text-slate-600">
                       {new Date(j.created_at).toLocaleString("ko-KR", {
+                        // 서버(UTC)와 브라우저가 같은 시각을 그리도록 한국 시간으로 고정
+                        timeZone: "Asia/Seoul",
                         month: "2-digit",
                         day: "2-digit",
                         hour: "2-digit",

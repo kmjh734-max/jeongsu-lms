@@ -1,9 +1,19 @@
 import Link from "next/link";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { Icon } from "@/components/layout/NavIcon";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { StudentListeningTodayPanel } from "@/components/listening/StudentListeningTodayPanel";
+import {
+  StudentListeningTodayPanel,
+  type TodaySummary,
+} from "@/components/listening/StudentListeningTodayPanel";
+import { getTodayIsoKorea } from "@/lib/date/korea-today";
+import {
+  ensureStudentScheduleDailyTasks,
+  loadStudentListeningTodayPayload,
+} from "@/lib/listening/schedule/today-summary";
 import { fetchStudentListeningSets } from "@/lib/listening/student-sets";
 
 export default async function StudentListeningPage() {
@@ -11,8 +21,40 @@ export default async function StudentListeningPage() {
     getCurrentProfile(),
     createClient(),
   ]);
+  const studentId = profile!.id;
+  const admin = createAdminClient();
+  const todayIso = getTodayIsoKorea();
 
-  const sets = await fetchStudentListeningSets(supabase, profile!.id);
+  // 오늘 과제·달력도 여기서 같이 읽어 넘긴다 (화면이 뜬 뒤 다시 API 를 기다리지 않게).
+  // 실패하면 예전처럼 패널이 스스로 불러온다.
+  const [sets, today] = await Promise.all([
+    fetchStudentListeningSets(supabase, studentId),
+    loadStudentListeningTodayPayload(admin, studentId, {
+      todayIso,
+      year: Number(todayIso.slice(0, 4)),
+      month: Number(todayIso.slice(5, 7)),
+    }).catch(() => null),
+  ]);
+
+  let initialSummary: TodaySummary | null = null;
+  if (today) {
+    const { context, summary, calendar } = today;
+    initialSummary = {
+      todayIso: summary.todayIso,
+      isStudyDayToday: summary.isStudyDayToday,
+      todayTask: summary.todayTask,
+      missedTasks: summary.missedTasks,
+      nextStudyDate: summary.nextStudyDate,
+      calendar,
+    };
+    // 45일 미래 과제 만들기는 응답 뒤에 (API 와 같게)
+    after(() =>
+      ensureStudentScheduleDailyTasks(admin, studentId, todayIso, {
+        futureDays: 45,
+        context,
+      }).catch(() => undefined)
+    );
+  }
 
   return (
     <div>
@@ -21,7 +63,7 @@ export default async function StudentListeningPage() {
         description="배정된 날마다 문제를 풀고 받아쓰기까지 끝내면 완료예요."
       />
 
-      <StudentListeningTodayPanel />
+      <StudentListeningTodayPanel initialSummary={initialSummary} />
 
       {/* 구형 세트 배정 목록 — 스케줄 배정과 별개. 비어 있어도 안내 문구를 띄우지 않음 */}
       {sets.length > 0 ? (

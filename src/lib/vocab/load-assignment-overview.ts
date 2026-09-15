@@ -1,4 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  loadAssignerScope,
+  teacherCanManageAssignment,
+} from "@/lib/vocab/assignment-scope";
 import { fetchByIdChunks } from "@/lib/vocab/fetch-all";
 
 export interface AssignmentOverviewSet {
@@ -24,7 +28,9 @@ type Row = {
   set_id: string;
   student_id: string | null;
   class_id: string | null;
+  assigned_by: string | null;
   created_at: string;
+  set: { teacher_id: string | null } | { teacher_id: string | null }[] | null;
 };
 
 /**
@@ -33,18 +39,36 @@ type Row = {
  */
 export async function loadVocabAssignmentOverview(
   supabase: SupabaseClient,
-  sets: { id: string; title: string }[]
+  sets: { id: string; title: string }[],
+  /** 강사면 본인이 배정했거나 본인 반·학생에게 걸린 배정만 보여 준다 */
+  viewer?: { role: string; id: string }
 ): Promise<AssignmentOverviewGroup[]> {
   const titleById = new Map(sets.map((s) => [s.id, s.title]));
-  const rows = await fetchByIdChunks<Row>(
+  const allRows = await fetchByIdChunks<Row>(
     sets.map((s) => s.id),
     (chunk, from, to) =>
       supabase
         .from("vocab_assignments")
-        .select("id, set_id, student_id, class_id, created_at")
+        .select("id, set_id, student_id, class_id, assigned_by, created_at, set:vocab_sets(teacher_id)")
         .in("set_id", chunk)
+        .order("id")
         .range(from, to)
   );
+  let rows = allRows;
+  if (viewer?.role === "teacher" && allRows.length > 0) {
+    const scope = await loadAssignerScope(viewer.id);
+    rows = scope
+      ? allRows.filter((r) =>
+          teacherCanManageAssignment(scope, {
+            id: r.id,
+            student_id: r.student_id,
+            class_id: r.class_id,
+            assigned_by: r.assigned_by,
+            setTeacherId: (Array.isArray(r.set) ? r.set[0] : r.set)?.teacher_id ?? null,
+          })
+        )
+      : [];
+  }
   if (rows.length === 0) return [];
 
   const classIds = [...new Set(rows.map((r) => r.class_id).filter((v): v is string => !!v))];

@@ -275,6 +275,8 @@ export interface VocabFinalTestAnswer {
 export interface StudentVocabSetSummary {
   set: VocabSet;
   itemCount: number;
+  /** 시험 연계 단어장: 뜻 익히기 → 스펠링 → 종합테스트 3단계 (예문 빈칸 없음) */
+  examCompact: boolean;
   stage1Completed: boolean;
   stage2Completed: boolean;
   stage3Completed: boolean;

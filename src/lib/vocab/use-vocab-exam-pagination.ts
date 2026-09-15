@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -49,6 +50,9 @@ export function useVocabExamPagination(opts: {
   cols: ExamColumnCount;
   rowGapPx: number;
   lineSpacing: ExamLineSpacing;
+  /** 글자 크기·제본 여백이 바뀌면 문항 높이·본문 높이가 달라지므로 다시 잰다 */
+  fontScale: string;
+  bindingMargin: boolean;
   measureRef: React.RefObject<HTMLDivElement | null>;
   probeRef: React.RefObject<HTMLDivElement | null>;
 }) {
@@ -59,9 +63,58 @@ export function useVocabExamPagination(opts: {
     cols,
     rowGapPx,
     lineSpacing,
+    fontScale,
+    bindingMargin,
     measureRef,
     probeRef,
   } = opts;
+
+  // 글꼴이 늦게 불러와지거나 측정 영역 크기가 바뀌면 다시 잰다
+  const [remeasureTick, setRemeasureTick] = useState(0);
+  const hasQuestions = questions.length > 0;
+  useEffect(() => {
+    if (!enabled || !hasQuestions) return;
+    let cancelled = false;
+    let raf = 0;
+    const bump = () => {
+      if (cancelled || raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        if (!cancelled) setRemeasureTick((t) => t + 1);
+      });
+    };
+    const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+    fonts?.ready.then(bump).catch(() => {});
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      const lastSize = new Map<Element, string>();
+      ro = new ResizeObserver((entries) => {
+        let changed = false;
+        for (const entry of entries) {
+          const r = entry.contentRect;
+          const key = `${Math.round(r.width)}x${Math.round(r.height)}`;
+          if (lastSize.get(entry.target) !== key) {
+            // 첫 관측은 기준값만 기록
+            if (lastSize.has(entry.target)) changed = true;
+            lastSize.set(entry.target, key);
+          }
+        }
+        if (changed) bump();
+      });
+      const measureRoot = measureRef.current;
+      const bodyZone = probeRef.current?.querySelector<HTMLElement>(
+        "[data-exam-body-zone]"
+      );
+      if (measureRoot) ro.observe(measureRoot);
+      if (bodyZone) ro.observe(bodyZone);
+    }
+    return () => {
+      cancelled = true;
+      if (raf) window.cancelAnimationFrame(raf);
+      ro?.disconnect();
+    };
+  }, [enabled, hasQuestions, measureRef, probeRef]);
 
   const { basic, examples } = useMemo(
     () => splitExamQuestions(questions),
@@ -138,6 +191,9 @@ export function useVocabExamPagination(opts: {
     cols,
     rowGapPx,
     lineSpacing,
+    fontScale,
+    bindingMargin,
+    remeasureTick,
     measureRef,
     probeRef,
   ]);

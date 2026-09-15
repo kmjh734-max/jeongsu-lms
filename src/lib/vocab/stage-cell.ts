@@ -1,4 +1,4 @@
-/** 학생 한 명 × 단어장 하나의 4단계 진행을 점 네 개와 짧은 글로 바꾼다. */
+/** 학생 한 명 × 단어장 하나의 단계 진행을 점(일반 4개 · 시험 연계 3개)과 짧은 글로 바꾼다. */
 
 export type StageDot = "done" | "current" | "failed" | "none";
 
@@ -12,6 +12,8 @@ export interface StageCellInput {
   passed: boolean;
   attempts: number;
   bestScore: number;
+  /** 시험 연계 단어장 — 예문 빈칸 없이 3단계(점 세 개)로 보여 준다 */
+  examCompact?: boolean;
 }
 
 export interface StageCell {
@@ -29,7 +31,7 @@ export function buildStageCell(input: StageCellInput): StageCell {
   const dots: StageDot[] = [
     input.stage1 ? "done" : "none",
     input.stage2 ? "done" : "none",
-    input.stage3 ? "done" : "none",
+    ...(input.examCompact ? [] : [input.stage3 ? ("done" as const) : ("none" as const)]),
     input.passed ? "done" : failed ? "failed" : "none",
   ];
 

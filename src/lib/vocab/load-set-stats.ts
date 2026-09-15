@@ -49,7 +49,7 @@ function formatAssignLabel(classNames: string[], directCount: number): string | 
     );
   }
   if (directCount > 0) {
-    parts.push(parts.length > 0 ? `학생 ${directCount}` : `학생 ${directCount}명`);
+    parts.push(`학생 ${directCount}명`);
   }
   return parts.length > 0 ? parts.join(" · ") : null;
 }

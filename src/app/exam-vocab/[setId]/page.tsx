@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ExamVocabGuestHub } from "@/components/vocab/ExamVocabGuestHub";
-import { dedupeVocabItemRows } from "@/lib/question-generator/exam-vocab";
+import { dedupeExamVocabRowsKeepIds } from "@/lib/question-generator/exam-vocab";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,8 @@ export default async function ExamVocabHubPage({ params }: PageProps) {
     .eq("set_id", setId)
     .order("order_index");
 
-  const uniqueCount = dedupeVocabItemRows(items ?? []).length;
+  // 학습 화면(/api/exam-vocab)과 같은 기준으로 센다
+  const uniqueCount = dedupeExamVocabRowsKeepIds(items ?? []).length;
 
   return (
     <Suspense

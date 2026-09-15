@@ -119,16 +119,21 @@ export function VocabFolderColumn({
       return;
     }
     setBusy(true);
-    const result = await actions.createVocabFolder(name);
-    setBusy(false);
-    if (!result.ok) {
-      onMessage(result.message, "bad");
-      return;
+    try {
+      const result = await actions.createVocabFolder(name);
+      if (!result.ok) {
+        onMessage(result.message, "bad");
+        return;
+      }
+      setNewName("");
+      setCreating(false);
+      onMessage(`‘${name}’ 폴더를 만들었어요.`);
+      router.refresh();
+    } catch {
+      onMessage("폴더를 만들지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setBusy(false);
     }
-    setNewName("");
-    setCreating(false);
-    onMessage(`‘${name}’ 폴더를 만들었어요.`);
-    router.refresh();
   }
 
   async function handleRename(folder: VocabModuleFolder) {
@@ -138,15 +143,20 @@ export function VocabFolderColumn({
       return;
     }
     setBusy(true);
-    const result = await actions.updateVocabFolder(folder.id, name);
-    setBusy(false);
-    if (!result.ok) {
-      onMessage(result.message, "bad");
-      return;
+    try {
+      const result = await actions.updateVocabFolder(folder.id, name);
+      if (!result.ok) {
+        onMessage(result.message, "bad");
+        return;
+      }
+      setRenamingId(null);
+      onMessage("폴더 이름을 바꿨어요.");
+      router.refresh();
+    } catch {
+      onMessage("이름을 바꾸지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setBusy(false);
     }
-    setRenamingId(null);
-    onMessage("폴더 이름을 바꿨어요.");
-    router.refresh();
   }
 
   async function handleDelete(folder: VocabModuleFolder) {
@@ -158,17 +168,22 @@ export function VocabFolderColumn({
       return;
     }
     setBusy(true);
-    const result = await actions.deleteVocabFolder(folder.id);
-    setBusy(false);
-    if (!result.ok) {
-      onMessage(result.message, "bad");
-      return;
+    try {
+      const result = await actions.deleteVocabFolder(folder.id);
+      if (!result.ok) {
+        onMessage(result.message, "bad");
+        return;
+      }
+      onMessage("폴더를 지웠어요.");
+      if (filter.kind === "folder" && filter.folderId === folder.id) {
+        router.push(`${base}/sets`);
+      }
+      router.refresh();
+    } catch {
+      onMessage("폴더를 지우지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setBusy(false);
     }
-    onMessage("폴더를 지웠어요.");
-    if (filter.kind === "folder" && filter.folderId === folder.id) {
-      router.push(`${base}/sets`);
-    }
-    router.refresh();
   }
 
   const showCurriculum = curriculum.length > 0 || lockedUnfiledCount > 0;

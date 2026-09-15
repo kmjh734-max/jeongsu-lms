@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as adminActions from "@/app/admin/vocab/actions";
 import * as teacherActions from "@/app/teacher/vocab/actions";
 import { Icon } from "@/components/layout/NavIcon";
@@ -59,6 +59,40 @@ export function VocabSetDetail({
   const [toast, showToast] = useToast();
   const wordsDirtyRef = useRef(false);
 
+  // 옆 메뉴 등 화면 안 링크로 나갈 때도 저장 안 한 단어가 있으면 먼저 묻는다
+  // (새로고침·창 닫기는 표 편집기의 beforeunload가 막는다)
+  useEffect(() => {
+    const onClickCapture = (e: MouseEvent) => {
+      if (!wordsDirtyRef.current) return;
+      if (e.defaultPrevented || e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const target = e.target as Element | null;
+      const anchor = target?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      if (anchor.target && anchor.target !== "_self") return;
+      if (anchor.hasAttribute("download")) return;
+      let next: URL;
+      try {
+        next = new URL(anchor.href, window.location.href);
+      } catch {
+        return;
+      }
+      if (next.origin !== window.location.origin) return;
+      if (
+        next.pathname === window.location.pathname &&
+        next.search === window.location.search
+      ) {
+        return;
+      }
+      if (!window.confirm("저장하지 않은 단어가 있어요. 저장하지 않고 나갈까요?")) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    document.addEventListener("click", onClickCapture, true);
+    return () => document.removeEventListener("click", onClickCapture, true);
+  }, []);
+
   const locked = Boolean(set.is_locked);
   // 학원 교재는 강사에게는 읽기 전용. 관리자는 교재를 고칠 수 있게 둔다(교재를 만드는 학원).
   const readOnly = locked && role === "teacher";
@@ -73,13 +107,18 @@ export function VocabSetDetail({
 
   async function copyToMine() {
     setCopying(true);
-    const result = await actions.copyVocabSet(set.id, null);
-    setCopying(false);
-    if (!result.ok || !result.setId) {
-      showToast(result.message, "bad");
-      return;
+    try {
+      const result = await actions.copyVocabSet(set.id, null);
+      if (!result.ok || !result.setId) {
+        showToast(result.message, "bad");
+        return;
+      }
+      router.push(`${base}/set/${result.setId}`);
+    } catch {
+      showToast("복사하지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setCopying(false);
     }
-    router.push(`${base}/set/${result.setId}`);
   }
 
   const tabs: { key: VocabSetTab; label: string; count?: number }[] = [
@@ -93,14 +132,6 @@ export function VocabSetDetail({
       <div className="flex flex-col gap-2.5">
         <Link
           href={backHref}
-          onClick={(e) => {
-            if (
-              wordsDirtyRef.current &&
-              !window.confirm("저장하지 않은 단어가 있어요. 저장하지 않고 나갈까요?")
-            ) {
-              e.preventDefault();
-            }
-          }}
           className="inline-flex items-center gap-1 self-start text-[13px] font-medium text-slate-500 hover:text-slate-900"
         >
           <Icon name="left" size={16} />
@@ -117,7 +148,7 @@ export function VocabSetDetail({
               {stats.assignLabel ? (
                 <Pill tone="brand">
                   <Icon name="users" size={12} strokeWidth={2} />
-                  {stats.assignLabel.replace(/(\d)$/, "$1명")}
+                  {stats.assignLabel}
                 </Pill>
               ) : (
                 <Pill>배정 안 됨</Pill>

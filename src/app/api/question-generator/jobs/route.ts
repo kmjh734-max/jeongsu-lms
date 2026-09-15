@@ -18,28 +18,20 @@ import {
   sumCounts,
 } from "@/lib/question-generator/question-types";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
+import { listGenerationJobs } from "@/lib/question-generator/list-jobs";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
     const profile = await requireStaffProfile();
     const supabase = await createClient();
-    let query = supabase
-      .from("question_generation_jobs")
-      .select(
-        "id, status, progress_message, total_requested, total_completed, total_failed, error_message, created_at, completed_at, passage_id, request_config, english_source_passages(title)"
-      )
-      .eq("academy_id", profile.academy_id!)
-      .order("created_at", { ascending: false })
-      .limit(50);
-
-    if (profile.role === "teacher") {
-      query = query.eq("created_by", profile.id);
-    }
-
-    const { data, error } = await query;
-    if (error) return jsonError(error.message, 500);
-    return jsonOk({ jobs: data ?? [] });
+    const { jobs, error } = await listGenerationJobs(supabase, {
+      academyId: profile.academy_id!,
+      role: profile.role,
+      viewerId: profile.id,
+    });
+    if (error) return jsonError(error, 500);
+    return jsonOk({ jobs });
   } catch (e) {
     if (e instanceof Response) return e;
     return jsonError("목록을 불러오지 못했습니다.", 500);

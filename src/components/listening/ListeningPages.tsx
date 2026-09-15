@@ -4,6 +4,7 @@ import { ListeningScheduleManageClient } from "@/components/listening/ListeningS
 import { ListeningSetManageClient } from "@/components/listening/ListeningSetManageClient";
 import { ListeningSetsListClient } from "@/components/listening/ListeningSetsListClient";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getKoreaYearMonth } from "@/lib/date/korea-today";
 import { listeningSetIsLocked } from "@/lib/listening/listening-api-auth";
 import { parseListeningGradeLevel } from "@/lib/listening/grade-level";
 import {
@@ -11,6 +12,7 @@ import {
   loadListeningModuleCounts,
   loadListeningSetQuestionStats,
 } from "@/lib/listening/load-listening-overview";
+import { loadListeningMonthlyStatusTable } from "@/lib/listening/load-monthly-status-table";
 import { loadListeningPageData } from "@/lib/listening/load-listening-page-data";
 import { loadScheduleAssignPageData } from "@/lib/listening/load-schedule-assign-page-data";
 import { loadListeningSetForEditor } from "@/lib/listening/load-set-editor";
@@ -39,11 +41,15 @@ export async function ListeningSetsTabPage({ role }: { role: Role }) {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
   const academyId = profile!.academy_id;
-  const { sets, folders } = await loadListeningPageData(supabase, role, profile!.id);
-  const [questionStats, assignments] = await Promise.all([
-    loadListeningSetQuestionStats(
-      supabase,
-      sets.map((s) => s.id)
+  // 배정 목록은 세트 목록과 상관없으니 같이 출발하고, 문항 수는 세트 id 가 나오는 대로 읽는다
+  const pageDataPromise = loadListeningPageData(supabase, role, profile!.id, academyId);
+  const [{ sets, folders }, questionStats, assignments] = await Promise.all([
+    pageDataPromise,
+    pageDataPromise.then(({ sets }) =>
+      loadListeningSetQuestionStats(
+        supabase,
+        sets.map((s) => s.id)
+      )
     ),
     academyId
       ? listScheduleAssignments(createAdminClient(), role, profile!.id, academyId)
@@ -101,16 +107,23 @@ export async function ListeningAssignTabPage({
 export async function ListeningStatusTabPage({ role }: { role: Role }) {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  const [classes, counts, branding] = await Promise.all([
+  const admin = createAdminClient();
+  const { year, month } = getKoreaYearMonth();
+  // 이번 달 표도 여기서 같이 읽어 넘긴다 (화면이 뜬 뒤 다시 API 를 부르지 않게)
+  const [classes, counts, branding, initialTable] = await Promise.all([
     listReportClasses(supabase, role, profile!.id),
     loadListeningModuleCounts(
       supabase,
-      createAdminClient(),
+      admin,
       role,
       profile!.id,
       profile!.academy_id ?? null
     ),
     getAcademyBrandingForCurrentUser(),
+    loadListeningMonthlyStatusTable(supabase, admin, role, profile!.id, {
+      year,
+      month,
+    }).catch(() => null),
   ]);
 
   return (
@@ -119,6 +132,7 @@ export async function ListeningStatusTabPage({ role }: { role: Role }) {
       setCount={counts.setCount}
       assignCount={counts.activeAssignmentCount}
       initialClasses={classes}
+      initialTable={initialTable}
       academyName={branding.name}
     />
   );

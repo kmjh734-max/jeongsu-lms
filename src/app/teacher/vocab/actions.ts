@@ -17,6 +17,7 @@ import {
   formatBulkAssignSuccess,
 } from "@/lib/vocab/folder-assignments";
 import { bulkAssignSets } from "@/lib/vocab/bulk-assign-sets";
+import { filterTeacherManageableAssignmentIds } from "@/lib/vocab/assignment-scope";
 import { removeVocabAssignment } from "@/lib/vocab/class-assignments";
 import {
   copyVocabSetToFolder,
@@ -377,10 +378,18 @@ export async function removeSetAssignment(
   assignmentId: string,
   setId: string
 ): Promise<ActionResult> {
-  const { error } = await requireTeacher();
+  const { profile, error } = await requireTeacher();
   if (error) return error;
 
   const supabase = await createClient();
+  const { allowed } = await filterTeacherManageableAssignmentIds(
+    supabase,
+    profile!.id,
+    [assignmentId]
+  );
+  if (allowed.length === 0) {
+    return actionError("다른 선생님이 배정한 것은 해제할 수 없어요.");
+  }
   const result = await removeVocabAssignment(supabase, assignmentId);
 
   if (!result.ok) return actionError(result.message);
@@ -404,6 +413,14 @@ export async function removeFolderVocabAssignment(
   );
   if (folderDenied) return folderDenied;
 
+  const { allowed } = await filterTeacherManageableAssignmentIds(
+    supabase,
+    profile!.id,
+    [assignmentId]
+  );
+  if (allowed.length === 0) {
+    return actionError("다른 선생님이 배정한 것은 해제할 수 없어요.");
+  }
   const result = await removeVocabAssignment(supabase, assignmentId);
 
   if (!result.ok) return actionError(result.message);

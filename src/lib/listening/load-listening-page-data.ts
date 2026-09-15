@@ -27,7 +27,12 @@ const BASE_COLUMNS =
 export async function loadListeningPageData(
   supabase: SupabaseClient,
   role: UserRole,
-  viewerId: string
+  viewerId: string,
+  /**
+   * 관리자 RLS 는 자기 학원 세트만 보여 준다. 학원을 직접 걸면 같은 행을
+   * 학원 색인으로 읽어, 다른 학원 행마다 권한 함수를 돌리지 않는다.
+   */
+  academyId?: string | null
 ) {
   const buildSetsQuery = (columns: string) => {
     let query = supabase
@@ -41,6 +46,8 @@ export async function loadListeningPageData(
       query = query.or(
         `teacher_id.eq.${viewerId},description.ilike.%curriculum_locked%`
       );
+    } else if (role === "admin" && academyId) {
+      query = query.eq("academy_id", academyId);
     }
     return query;
   };
@@ -56,7 +63,7 @@ export async function loadListeningPageData(
   };
 
   const [folders, sets] = await Promise.all([
-    listListeningSetFolders(supabase, role, viewerId).catch(
+    listListeningSetFolders(supabase, role, viewerId, academyId).catch(
       () => [] as ListeningSetFolderRow[]
     ),
     loadSets(),

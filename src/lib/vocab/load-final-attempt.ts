@@ -5,6 +5,8 @@ export interface FinalAttemptDetail {
   attempt: VocabFinalTestAttempt;
   answers: VocabFinalTestAnswer[];
   setTitle: string;
+  /** 시험 연계 단어장 (뜻 익히기 → 스펠링 → 종합테스트 3단계) */
+  examCompact: boolean;
 }
 
 export async function loadLatestFinalAttemptDetail(
@@ -31,7 +33,7 @@ export async function loadLatestFinalAttemptDetail(
       .order("created_at"),
     supabase
       .from("vocab_sets")
-      .select("title")
+      .select("title, exam_compact")
       .eq("id", attempt.set_id)
       .single(),
   ]);
@@ -40,6 +42,7 @@ export async function loadLatestFinalAttemptDetail(
     attempt: attempt as VocabFinalTestAttempt,
     answers: (answers ?? []) as VocabFinalTestAnswer[],
     setTitle: (set?.title as string) ?? "단어장",
+    examCompact: Boolean(set?.exam_compact),
   };
 }
 
@@ -65,7 +68,7 @@ export async function loadFinalAttemptDetail(
       .order("created_at"),
     supabase
       .from("vocab_sets")
-      .select("title")
+      .select("title, exam_compact")
       .eq("id", attempt.set_id)
       .single(),
   ]);
@@ -74,5 +77,6 @@ export async function loadFinalAttemptDetail(
     attempt: attempt as VocabFinalTestAttempt,
     answers: (answers ?? []) as VocabFinalTestAnswer[],
     setTitle: (set?.title as string) ?? "단어장",
+    examCompact: Boolean(set?.exam_compact),
   };
 }

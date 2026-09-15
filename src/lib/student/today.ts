@@ -5,6 +5,7 @@ import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { flattenCourseLessons } from "@/lib/courses/course-lessons";
 import { loadStudentDashboardCourses } from "@/lib/student/load-dashboard-courses";
 import { fetchStudentVocabSummaries } from "@/lib/vocab/student-sets";
+import { studentStageSteps } from "@/lib/vocab/stage-progress-fields";
 import {
   getStudentListeningCalendar,
   type ListeningCalendarDay,
@@ -58,22 +59,23 @@ function addDays(iso: string, delta: number): string {
   return getTodayIsoKorea(d);
 }
 
-const VOCAB_STAGE_NAMES = ["뜻 익히기", "스펠링", "예문 빈칸", "종합테스트"];
-
+/** 다음에 할 단계 번호(1부터). 시험 연계 단어장은 3단계까지. */
 function vocabNextStage(s: StudentVocabSetSummary): number {
-  if (!s.stage1Completed) return 1;
-  if (!s.stage2Completed) return 2;
-  if (!s.stage3Completed) return 3;
-  return 4;
+  const steps = studentStageSteps(s);
+  const idx = steps.findIndex((st) => !st.done);
+  return (idx === -1 ? steps.length - 1 : idx) + 1;
+}
+
+function vocabStageName(s: StudentVocabSetSummary, stage: number): string {
+  return studentStageSteps(s)[stage - 1]?.name ?? "종합테스트";
+}
+
+function vocabTotalStages(s: StudentVocabSetSummary): number {
+  return studentStageSteps(s).length;
 }
 
 function vocabDoneStages(s: StudentVocabSetSummary): number {
-  return (
-    Number(s.stage1Completed) +
-    Number(s.stage2Completed) +
-    Number(s.stage3Completed) +
-    Number(s.stage4Passed)
-  );
+  return studentStageSteps(s).filter((st) => st.done).length;
 }
 
 type VocabTimes = {
@@ -189,6 +191,7 @@ export const loadStudentToday = cache(
       const done = Boolean(doneTodaySet);
       const next = vocabNextStage(vocabTarget);
       const doneStages = vocabDoneStages(vocabTarget);
+      const totalStages = vocabTotalStages(vocabTarget);
       items.push({
         kind: "vocab",
         short: vocabTarget.stage4Passed
@@ -199,10 +202,10 @@ export const loadStudentToday = cache(
         title: vocabTarget.set.title,
         meta: vocabTarget.stage4Passed
           ? `${vocabTarget.itemCount}단어 · 합격`
-          : `${next}단계 ${VOCAB_STAGE_NAMES[next - 1]} · ${vocabTarget.itemCount}단어`,
+          : `${next}단계 ${vocabStageName(vocabTarget, next)} · ${vocabTarget.itemCount}단어`,
         done,
-        percent: Math.round((doneStages / 4) * 100),
-        progressLabel: `${doneStages} / 4단계`,
+        percent: Math.round((doneStages / totalStages) * 100),
+        progressLabel: `${doneStages} / ${totalStages}단계`,
         cta: vocabTarget.stage4Passed ? "복습하기" : doneStages > 0 ? `${next}단계 이어서` : "시작하기",
         href: `/student/vocab/${vocabTarget.set.id}`,
       });

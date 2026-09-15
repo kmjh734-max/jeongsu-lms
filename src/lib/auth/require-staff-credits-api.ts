@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-/** admin 또는 teacher — 자기 학원 크레딧 조회용 */
+/**
+ * admin 또는 teacher — 자기 학원 크레딧 조회용 (읽기 전용).
+ * 메뉴가 화면을 옮길 때마다 잔액을 물어서, 인증 서버 왕복(getUser) 대신
+ * 미들웨어·페이지와 같이 토큰 서명을 여기서 바로 확인한다(getClaims).
+ */
 export async function requireStaffCreditsApi() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
+  const user = userId ? { id: userId } : null;
 
   if (!user) {
     return {

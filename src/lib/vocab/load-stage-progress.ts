@@ -81,11 +81,22 @@ export async function loadStageProgress(
     return emptyStageProgress(studentId, setId);
   }
 
-  const { data: inserted, error } = await supabase
+  // 학생 계정은 이 표에 쓸 수 없다 — createIfMissing은 서버(service role) 클라이언트로만 부른다.
+  // 동시에 두 번 들어와도 한 행만 생기게 upsert 후 다시 읽는다.
+  const { error: upsertError } = await supabase
     .from("vocab_stage_progress")
-    .insert({ student_id: studentId, set_id: setId })
-    .select("*")
-    .single();
+    .upsert(
+      { student_id: studentId, set_id: setId },
+      { onConflict: "student_id,set_id", ignoreDuplicates: true }
+    );
+  const { data: inserted, error } = upsertError
+    ? { data: null, error: upsertError }
+    : await supabase
+        .from("vocab_stage_progress")
+        .select("*")
+        .eq("student_id", studentId)
+        .eq("set_id", setId)
+        .maybeSingle();
 
   if (error || !inserted) {
     throw new Error(error?.message ?? "진행 상태를 만들 수 없습니다.");

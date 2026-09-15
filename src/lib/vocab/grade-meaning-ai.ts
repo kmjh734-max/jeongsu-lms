@@ -1,3 +1,7 @@
+import { cleanMeaningFeedback, gradeMeaningAnswer } from "@/lib/vocab/grade-stage3";
+
+export { cleanMeaningFeedback };
+
 export interface MeaningGradeInput {
   word: string;
   correctMeaning: string;
@@ -9,6 +13,10 @@ export interface MeaningGradeResult {
   feedback?: string;
 }
 
+/** 자동 채점을 못 했을 때 학생에게 보이는 안내 (내부 오류 문구는 절대 노출하지 않는다) */
+export const MEANING_FALLBACK_FEEDBACK =
+  "채점을 잠시 할 수 없었어요. 정답과 비교해 확인해 주세요.";
+
 const SYSTEM_PROMPT = `너는 영어 단어 뜻 시험의 채점자다.
 
 채점 기준:
@@ -18,26 +26,28 @@ const SYSTEM_PROMPT = `너는 영어 단어 뜻 시험의 채점자다.
 - 명백한 한글 오타이지만 의미를 알 수 있으면 정답
 - 뜻이 다르면 오답
 - 너무 넓거나 모호해서 정답으로 보기 어려우면 오답
+- 피드백은 학생에게 보여 줄 짧고 친절한 한국어 한 문장. 채점 방식이나 시스템 이야기는 쓰지 않는다.
 - 결과는 반드시 JSON으로만 반환`;
 
 const MEANING_CHUNK_SIZE = 12;
 const MEANING_AI_TIMEOUT_MS = 18_000;
 const MEANING_CHUNK_CONCURRENCY = 2;
 
-function openAiErrorMessage(status: number, bodyText: string): string {
+/** 서버 로그용 (학생 화면에는 쓰지 않음) */
+function upstreamErrorMessage(status: number, bodyText: string): string {
   try {
     const body = JSON.parse(bodyText) as {
       error?: { message?: string; code?: string };
     };
     const msg = body.error?.message ?? "";
     if (body.error?.code === "insufficient_quota" || msg.includes("quota")) {
-      return "OpenAI 사용 한도가 없습니다.";
+      return "quota exhausted";
     }
     if (msg) return msg;
   } catch {
     /* ignore */
   }
-  return `AI 채점 오류 (HTTP ${status})`;
+  return `HTTP ${status}`;
 }
 
 function buildBatchPrompt(items: MeaningGradeInput[]): string {
@@ -81,10 +91,10 @@ function parseBatchResults(
 
     return items.map((_, i) => {
       const row = byIndex.get(i + 1);
-      const feedback = row?.feedback ?? row?.reason;
+      const feedback = cleanMeaningFeedback(row?.feedback ?? row?.reason);
       return {
         isCorrect: Boolean(row?.isCorrect),
-        feedback: feedback?.trim() || undefined,
+        feedback: feedback ?? undefined,
       };
     });
   } catch {
@@ -93,16 +103,10 @@ function parseBatchResults(
 }
 
 function fallbackResults(items: MeaningGradeInput[]): MeaningGradeResult[] {
-  return items.map((input) => {
-    const isCorrect = gradeMeaningFallback(
-      input.correctMeaning,
-      input.studentAnswer
-    );
-    return {
-      isCorrect,
-      feedback: fallbackMeaningFeedback(isCorrect),
-    };
-  });
+  return items.map((input) => ({
+    isCorrect: gradeMeaningFallback(input.correctMeaning, input.studentAnswer),
+    feedback: MEANING_FALLBACK_FEEDBACK,
+  }));
 }
 
 async function gradeMeaningChunkWithAi(
@@ -112,7 +116,7 @@ async function gradeMeaningChunkWithAi(
 > {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
-    return { ok: false, message: "OPENAI_API_KEY가 설정되어 있지 않습니다." };
+    return { ok: false, message: "grader key missing" };
   }
 
   const controller = new AbortController();
@@ -139,7 +143,7 @@ async function gradeMeaningChunkWithAi(
 
     const bodyText = await res.text();
     if (!res.ok) {
-      return { ok: false, message: openAiErrorMessage(res.status, bodyText) };
+      return { ok: false, message: upstreamErrorMessage(res.status, bodyText) };
     }
 
     const parsed = JSON.parse(bodyText) as {
@@ -148,20 +152,23 @@ async function gradeMeaningChunkWithAi(
     const content = parsed.choices?.[0]?.message?.content ?? "{}";
     const results = parseBatchResults(items, content);
     if (!results) {
-      return { ok: false, message: "AI 채점 결과를 해석하지 못했습니다." };
+      return { ok: false, message: "unparseable grading result" };
     }
     return { ok: true, results };
   } catch (err) {
     if (err instanceof Error && err.name === "AbortError") {
-      return { ok: false, message: "AI 채점 시간이 초과되었습니다." };
+      return { ok: false, message: "grading timeout" };
     }
-    return { ok: false, message: "AI 채점 요청에 실패했습니다." };
+    return { ok: false, message: "grading request failed" };
   } finally {
     clearTimeout(timer);
   }
 }
 
-/** Batch meaning grade via OpenAI (chunked + limited concurrency) */
+/**
+ * 뜻 쓰기 일괄 채점 (나눠서 · 동시 요청 제한).
+ * 실패한 묶음은 규칙 채점으로 대신하고, 학생에게는 친절한 안내만 남긴다.
+ */
 export async function gradeMeaningWithAi(
   items: MeaningGradeInput[]
 ): Promise<
@@ -184,10 +191,8 @@ export async function gradeMeaningWithAi(
       batch.map(async (chunk) => {
         const result = await gradeMeaningChunkWithAi(chunk);
         if (result.ok) return result.results;
-        return fallbackResults(chunk).map((r) => ({
-          ...r,
-          feedback: `${r.feedback ?? fallbackMeaningFeedback(r.isCorrect)} (${result.message})`,
-        }));
+        console.error("[vocab] meaning grading fell back to rules:", result.message);
+        return fallbackResults(chunk);
       })
     );
     for (const chunkResults of batchOutcomes) {
@@ -198,44 +203,10 @@ export async function gradeMeaningWithAi(
   return { ok: true, results: allResults };
 }
 
-/** Single item — wraps batch helper */
-export async function gradeMeaningSingleWithAi(
-  input: MeaningGradeInput
-): Promise<
-  | { ok: true; isCorrect: boolean; feedback?: string }
-  | { ok: false; message: string }
-> {
-  const result = await gradeMeaningWithAi([input]);
-  if (!result.ok) return result;
-  const row = result.results[0];
-  return {
-    ok: true,
-    isCorrect: row?.isCorrect ?? false,
-    feedback: row?.feedback,
-  };
-}
-
-/** Fallback when AI unavailable */
+/** 규칙 채점 (부분 문자열 불인정) — grade-stage3의 뜻 채점과 같다 */
 export function gradeMeaningFallback(
   correct: string,
   student: string
 ): boolean {
-  const norm = (s: string) =>
-    s
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "")
-      .replace(/[.,!?]/g, "");
-  const a = norm(correct);
-  const b = norm(student);
-  if (!b) return false;
-  if (a === b) return true;
-  if (a.includes(b) || b.includes(a)) return true;
-  return false;
-}
-
-export function fallbackMeaningFeedback(isCorrect: boolean): string {
-  return isCorrect
-    ? "유사 표현으로 정답 처리했습니다."
-    : "정답과 일치하지 않습니다.";
+  return gradeMeaningAnswer(correct, student);
 }

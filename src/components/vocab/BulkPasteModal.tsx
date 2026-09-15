@@ -71,8 +71,14 @@ export function BulkPasteModal({ open, onClose, onApplyRows }: BulkPasteModalPro
     }
     setLoading(true);
     setHint(null);
-    const result = await fetchPassageVocabulary(trimmed);
-    setLoading(false);
+    let result: Awaited<ReturnType<typeof fetchPassageVocabulary>>;
+    try {
+      result = await fetchPassageVocabulary(trimmed);
+    } catch {
+      result = { ok: false, message: "단어를 뽑지 못했어요. 다시 해 주세요." };
+    } finally {
+      setLoading(false);
+    }
     if (!result.ok) {
       setHint({
         text: /AI|OpenAI/i.test(result.message)

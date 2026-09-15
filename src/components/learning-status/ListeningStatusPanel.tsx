@@ -20,6 +20,7 @@ import { formatKoreaMonth, getKoreaYearMonth } from "@/lib/date/korea-today";
 import type { ListeningStatusRow, ListeningStatusTable } from "@/lib/learning-status/types";
 import { parseDateOnly, toDateOnlyString } from "@/lib/listening/schedule/days-of-week";
 import type { ReportClassOption } from "@/lib/reports/types";
+import { isFirstUseOfServerData } from "@/lib/ui/server-data-first-use";
 
 const NAME_SEARCH_DEBOUNCE_MS = 400;
 
@@ -28,6 +29,8 @@ interface ListeningStatusPanelProps {
   setCount: number;
   assignCount: number;
   initialClasses?: ReportClassOption[];
+  /** 서버에서 미리 읽은 이번 달 표 (기본 거르기 그대로) — 있으면 첫 조회를 건너뛴다 */
+  initialTable?: ListeningStatusTable | null;
   /** 학부모 안내 문구에 넣을 접속한 학원 이름 */
   academyName?: string;
 }
@@ -72,6 +75,7 @@ export function ListeningStatusPanel({
   setCount,
   assignCount,
   initialClasses = [],
+  initialTable = null,
   academyName,
 }: ListeningStatusPanelProps) {
   const { year, month } = getKoreaYearMonth();
@@ -79,7 +83,7 @@ export function ListeningStatusPanel({
   const [nameInput, setNameInput] = useState("");
   const [appliedNameQuery, setAppliedNameQuery] = useState("");
   const [monthValue, setMonthValue] = useState(formatKoreaMonth(year, month));
-  const [table, setTable] = useState<ListeningStatusTable | null>(null);
+  const [table, setTable] = useState<ListeningStatusTable | null>(initialTable);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [queueOpen, setQueueOpen] = useState(false);
@@ -87,6 +91,10 @@ export function ListeningStatusPanel({
 
   const abortRef = useRef<AbortController | null>(null);
   const requestIdRef = useRef(0);
+  const skipFirstLoadRef = useRef(
+    initialTable !== null &&
+      formatKoreaMonth(initialTable.year, initialTable.month) === formatKoreaMonth(year, month)
+  );
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -134,8 +142,15 @@ export function ListeningStatusPanel({
   }, [appliedNameQuery, classId, monthValue]);
 
   useEffect(() => {
+    // 서버가 넘긴 첫 표가 있으면 같은 조건으로 다시 부르지 않는다
+    // (뒤로 가기로 같은 표가 다시 붙은 경우는 예전처럼 새로 부른다)
+    if (skipFirstLoadRef.current) {
+      skipFirstLoadRef.current = false;
+      if (initialTable && isFirstUseOfServerData(initialTable)) return;
+    }
     void loadStatus();
     return () => abortRef.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialTable 은 첫 조회 건너뛰기에만 쓴다
   }, [loadStatus]);
 
   const initialLoading = refreshing && table === null;

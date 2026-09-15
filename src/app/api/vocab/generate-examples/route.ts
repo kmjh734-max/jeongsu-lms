@@ -4,6 +4,7 @@ import {
   chargeFeatureOrError,
   CREDIT_FEATURES,
 } from "@/lib/credits/charge";
+import { lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { joinExamplePairs } from "@/lib/vocab/multi-example";
 import { openAiErrorMessage } from "@/lib/vocab/openai-error-message";
 
@@ -42,13 +43,32 @@ export async function POST(request: Request) {
       return jsonError("권한이 없습니다.", 403);
     }
 
-    const chargeErr = await chargeFeatureOrError({
-      academyId: profile.academy_id,
-      featureKey: CREDIT_FEATURES.vocab_generate_examples,
-      actorId: profile.id,
-      idempotencyKey: `vocab_generate_examples:${profile.academy_id}:${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-    });
-    if (chargeErr) return chargeErr;
+    if (!profile.academy_id) {
+      return NextResponse.json(
+        { ok: false, message: "소속 학원 정보가 없습니다.", code: "no_academy" },
+        { status: 403 }
+      );
+    }
+
+    // 1) 입력 확인 — 크레딧은 예문을 실제로 만든 뒤에만 차감한다
+    let body: { items?: RequestItem[]; level?: "middle" | "high"; idempotencyKey?: string };
+    try {
+      body = (await request.json()) as typeof body;
+    } catch {
+      return jsonError("요청을 읽지 못했어요. 다시 해 주세요.");
+    }
+    const items = (Array.isArray(body.items) ? body.items : []).filter(
+      (i) =>
+        typeof i?.word === "string" &&
+        typeof i?.meaning === "string" &&
+        i.word.trim() &&
+        i.meaning.trim()
+    );
+    const level = body.level === "high" ? "high" : "middle";
+
+    if (items.length === 0) {
+      return jsonError("예문을 생성할 단어가 없습니다.");
+    }
 
     const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) {
@@ -57,17 +77,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as {
-      items?: RequestItem[];
-      level?: "middle" | "high";
-    };
-    const items = (body.items ?? []).filter(
-      (i) => i.word?.trim() && i.meaning?.trim()
+    // 2) 잔액이 모자라면 만들기 전에 알려 준다(차감은 아직 안 함)
+    const shortfall = await lessonCreditShortfall(
+      profile.academy_id,
+      CREDIT_FEATURES.vocab_generate_examples
     );
-    const level = body.level === "high" ? "high" : "middle";
-
-    if (items.length === 0) {
-      return jsonError("예문을 생성할 단어가 없습니다.");
+    if (shortfall) {
+      return NextResponse.json(
+        { ok: false, message: shortfall, code: "insufficient_credits" },
+        { status: 402 }
+      );
     }
 
     const levelGuide =
@@ -144,19 +163,19 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
 
     const content = data.choices?.[0]?.message?.content;
     if (!content) {
-      return jsonError("AI 예문 생성에 실패했습니다.");
+      return jsonError("예문을 만들지 못했어요. 다시 해 주세요.");
     }
 
     let parsed: { items?: AiGeneratedItem[] };
     try {
       parsed = JSON.parse(content) as { items?: AiGeneratedItem[] };
     } catch {
-      return jsonError("AI 응답을 해석하지 못했습니다.");
+      return jsonError("결과를 읽지 못했어요. 다시 해 주세요.");
     }
 
     const generated = parsed.items ?? [];
     if (generated.length === 0) {
-      return jsonError("AI가 예문을 반환하지 않았습니다. 다시 시도해 주세요.");
+      return jsonError("예문이 만들어지지 않았어요. 다시 해 주세요.");
     }
 
     const byWord = new Map(
@@ -201,9 +220,25 @@ ${JSON.stringify(items.map((i) => ({ word: i.word.trim(), meaning: i.meaning.tri
       return jsonError("생성된 예문이 비어 있습니다. 다시 시도해 주세요.");
     }
 
+    // 3) 쓸 수 있는 예문이 나왔을 때만 차감
+    const clientKey =
+      typeof body.idempotencyKey === "string" && body.idempotencyKey.trim()
+        ? body.idempotencyKey.trim().slice(0, 120)
+        : null;
+    const chargeErr = await chargeFeatureOrError({
+      academyId: profile.academy_id,
+      featureKey: CREDIT_FEATURES.vocab_generate_examples,
+      actorId: profile.id,
+      idempotencyKey: clientKey
+        ? `vocab_generate_examples:${profile.academy_id}:${profile.id}:${clientKey}`
+        : `vocab_generate_examples:${profile.academy_id}:${profile.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+      metadata: { words: items.length, filled: filled.length },
+    });
+    if (chargeErr) return chargeErr;
+
     return NextResponse.json({ ok: true, items: result });
   } catch (err) {
     console.error("generate-examples error", err);
-    return jsonError("AI 예문 생성에 실패했습니다.");
+    return jsonError("예문을 만들지 못했어요. 다시 해 주세요.");
   }
 }

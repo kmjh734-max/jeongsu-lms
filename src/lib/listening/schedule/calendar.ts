@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
 import { isStudyDay, parseDateOnly } from "@/lib/listening/schedule/days-of-week";
-import { getStudentListeningEffectiveStartIso } from "@/lib/listening/schedule/student-effective-start";
+import {
+  loadStudentScheduleContext,
+  type StudentScheduleContext,
+} from "@/lib/listening/schedule/student-context";
 import type {
   DailyTaskStatus,
   ScheduleAssignmentRow,
@@ -19,43 +22,6 @@ export interface ListeningCalendarDay {
   completedCount: number;
   assignmentTitle: string | null;
   setTitle: string | null;
-}
-
-async function loadActiveAssignmentsForStudent(
-  admin: SupabaseClient,
-  studentId: string
-): Promise<ScheduleAssignmentRow[]> {
-  const byId = new Map<string, ScheduleAssignmentRow>();
-
-  const [{ data: direct }, { data: classRows }] = await Promise.all([
-    admin
-      .from("listening_schedule_assignments")
-      .select("*")
-      .eq("is_active", true)
-      .eq("target_type", "student")
-      .eq("target_student_id", studentId),
-    admin.from("class_students").select("class_id").eq("student_id", studentId),
-  ]);
-
-  for (const row of (direct ?? []) as ScheduleAssignmentRow[]) {
-    byId.set(row.id, row);
-  }
-
-  const classIds = (classRows ?? []).map((r) => r.class_id as string);
-  if (classIds.length > 0) {
-    const { data: classBased } = await admin
-      .from("listening_schedule_assignments")
-      .select("*")
-      .eq("is_active", true)
-      .eq("target_type", "class")
-      .in("target_class_id", classIds);
-
-    for (const row of (classBased ?? []) as ScheduleAssignmentRow[]) {
-      byId.set(row.id, row);
-    }
-  }
-
-  return [...byId.values()];
 }
 
 function isDateInAssignment(
@@ -95,25 +61,16 @@ export async function getStudentListeningCalendar(
   studentId: string,
   year: number,
   month: number,
-  todayIso = getTodayIsoKorea()
+  todayIso = getTodayIsoKorea(),
+  /** 같은 요청에서 이미 읽은 과제 목록 (없으면 여기서 읽는다) */
+  context?: StudentScheduleContext
 ): Promise<{
   year: number;
   month: number;
   todayIso: string;
   days: ListeningCalendarDay[];
 }> {
-  const assignments = await loadActiveAssignmentsForStudent(admin, studentId);
   const { start, end, daysInMonth } = monthBounds(year, month);
-
-  const effectiveStartByAssignment = new Map<string, string>();
-  await Promise.all(
-    assignments.map(async (a) => {
-      effectiveStartByAssignment.set(
-        a.id,
-        await getStudentListeningEffectiveStartIso(admin, a, studentId)
-      );
-    })
-  );
 
   type TaskRow = {
     id: string;
@@ -126,14 +83,18 @@ export async function getStudentListeningCalendar(
     set: { title?: string } | { title?: string }[] | null;
   };
 
-  const { data: taskRows } = await admin
-    .from("listening_daily_tasks")
-    .select(
-      "id, assignment_id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
-    )
-    .eq("student_id", studentId)
-    .gte("task_date", start)
-    .lte("task_date", end);
+  // 과제 목록(유효 시작일 포함)과 이달 과제는 서로 기다릴 필요가 없다
+  const [{ assignments, effectiveStartByAssignment }, { data: taskRows }] = await Promise.all([
+    context ?? loadStudentScheduleContext(admin, studentId),
+    admin
+      .from("listening_daily_tasks")
+      .select(
+        "id, assignment_id, task_date, status, completed_count, total_count, assignment:listening_schedule_assignments(title), set:listening_sets(title)"
+      )
+      .eq("student_id", studentId)
+      .gte("task_date", start)
+      .lte("task_date", end),
+  ]);
 
   const tasksByDate = new Map<string, TaskRow[]>();
   for (const row of (taskRows ?? []) as TaskRow[]) {

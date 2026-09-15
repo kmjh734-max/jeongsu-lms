@@ -1,5 +1,6 @@
 "use client";
 
+import { flushSync } from "react-dom";
 import {
   memo,
   useEffect,
@@ -26,7 +27,8 @@ export type WorkbookPrintPage = {
 };
 
 function estimatePageStridePx(size: VocabPrintSize) {
-  const mm = size === "b5" ? 250 : 297;
+  // 실제 쪽 높이(B5 257mm, A4 297mm) + 쪽 사이 간격(gap-8)
+  const mm = size === "b5" ? 257 : 297;
   return Math.round((mm * 96) / 25.4) + 32;
 }
 
@@ -179,6 +181,30 @@ export function VocabWorkbookPrintPages({
   renderEntry,
 }: VocabWorkbookPrintPagesProps) {
   const [scrollTop, setScrollTop] = useState(0);
+  // Ctrl+P 등 브라우저 인쇄: 인쇄 직전에 모든 쪽을 그려 둔다(가상 목록이면 빈 쪽이 나옴)
+  const [browserPrinting, setBrowserPrinting] = useState(false);
+  useEffect(() => {
+    const onBeforePrint = () => {
+      flushSync(() => setBrowserPrinting(true));
+    };
+    const onAfterPrint = () => setBrowserPrinting(false);
+    window.addEventListener("beforeprint", onBeforePrint);
+    window.addEventListener("afterprint", onAfterPrint);
+    const mql =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("print")
+        : null;
+    const onMedia = (e: MediaQueryListEvent) => {
+      if (e.matches) flushSync(() => setBrowserPrinting(true));
+    };
+    mql?.addEventListener?.("change", onMedia);
+    return () => {
+      window.removeEventListener("beforeprint", onBeforePrint);
+      window.removeEventListener("afterprint", onAfterPrint);
+      mql?.removeEventListener?.("change", onMedia);
+    };
+  }, []);
+  const renderAll = printing || browserPrinting;
   const [viewportH, setViewportH] = useState(900);
   // Fixed stride only — measuring live page height caused update loops
   // when different pages (or content-visibility) reported different heights.
@@ -186,7 +212,7 @@ export function VocabWorkbookPrintPages({
 
   useEffect(() => {
     const el = scrollParentRef.current;
-    if (!el || printing) return;
+    if (!el || renderAll) return;
 
     let raf = 0;
     const onScroll = () => {
@@ -211,9 +237,9 @@ export function VocabWorkbookPrintPages({
       ro.disconnect();
       if (raf) window.cancelAnimationFrame(raf);
     };
-  }, [scrollParentRef, printing, pages.length]);
+  }, [scrollParentRef, renderAll, pages.length]);
 
-  const useVirtual = !printing && pages.length > 16;
+  const useVirtual = !renderAll && pages.length > 16;
 
   const { start, end } = useMemo(() => {
     if (!useVirtual) return { start: 0, end: pages.length };

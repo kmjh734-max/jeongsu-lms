@@ -16,7 +16,7 @@ export default async function StudentVocabPage() {
     <div>
       <PageHeader
         title="단어학습"
-        description="뜻 익히기 → 스펠링 → 예문 빈칸 → 종합테스트, 4단계를 차례로 끝내면 합격이에요."
+        description="뜻 익히기 → 스펠링 → 예문 빈칸 → 종합테스트를 차례로 끝내면 합격이에요. 시험 연계 단어장은 예문 빈칸 없이 3단계예요."
       />
       <StudentVocabSetList summaries={summaries} />
     </div>

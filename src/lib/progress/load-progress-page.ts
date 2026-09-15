@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchInChunks } from "@/lib/classes/fetch-chunks";
+import { chunkList, fetchPagesParallel } from "@/lib/fetch-pages";
 import {
   buildEnrollmentProgressRows,
   normalizeEnrollmentInputs,
@@ -42,12 +43,37 @@ export async function loadProgressPageData(
     courseQuery = courseQuery.eq("teacher_id", options.teacherId);
     classQuery = classQuery.eq("teacher_id", options.teacherId);
   }
-  const [{ data: scopedCourses }, { data: classRows }] = await Promise.all([
-    courseQuery,
-    classQuery,
-  ]);
+  const classesPromise = Promise.resolve(classQuery).then(
+    ({ data }) => (data ?? []) as { id: string; name: string }[]
+  );
+  // 반 학생·반 강좌는 반 목록만 있으면 되니 수강 목록을 기다리지 않고 바로 읽는다
+  const classIdsPromise = classesPromise.then((rows) => rows.map((c) => c.id));
+  const membersPromise = classIdsPromise.then((classIds) =>
+    fetchInChunks<{ class_id: string; student_id: string }>(classIds, (ids, from, to) =>
+      supabase
+        .from("class_students")
+        .select("class_id, student_id")
+        .in("class_id", ids)
+        .order("id")
+        .range(from, to)
+    )
+  );
+  const classCoursesPromise = classIdsPromise.then((classIds) =>
+    fetchInChunks<{ class_id: string; course_id: string }>(classIds, (ids, from, to) =>
+      supabase
+        .from("class_courses")
+        .select("class_id, course_id")
+        .in("class_id", ids)
+        .order("id")
+        .range(from, to)
+    )
+  );
+  // 결과를 쓰지 않고 끝나도 처리되지 않은 거부로 남지 않게
+  membersPromise.catch(() => undefined);
+  classCoursesPromise.catch(() => undefined);
+
+  const [{ data: scopedCourses }, classes] = await Promise.all([courseQuery, classesPromise]);
   const scopedCourseIds = (scopedCourses ?? []).map((c) => c.id as string);
-  const classes = (classRows ?? []) as { id: string; name: string }[];
   if (scopedCourseIds.length === 0) return { ...empty, classes };
 
   const { data: enrollments } = await supabase
@@ -65,38 +91,8 @@ export async function loadProgressPageData(
 
   const courseIds = [...new Set(enrollmentList.map((e) => e.course_id as string))];
   const studentIds = [...new Set(enrollmentList.map((e) => e.student_id as string))];
-  const classIds = classes.map((c) => c.id);
 
-  const [{ data: sections }, { data: lessons }, members, classCourses] = await Promise.all([
-    supabase
-      .from("sections")
-      .select("id, course_id, order_index")
-      .in("course_id", courseIds),
-    supabase
-      .from("lessons")
-      .select("id, course_id, title, order_index, section_id, is_published")
-      .in("course_id", courseIds),
-    fetchInChunks<{ class_id: string; student_id: string }>(classIds, (ids, from, to) =>
-      supabase
-        .from("class_students")
-        .select("class_id, student_id")
-        .in("class_id", ids)
-        .order("id")
-        .range(from, to)
-    ),
-    fetchInChunks<{ class_id: string; course_id: string }>(classIds, (ids, from, to) =>
-      supabase
-        .from("class_courses")
-        .select("class_id, course_id")
-        .in("class_id", ids)
-        .order("id")
-        .range(from, to)
-    ),
-  ]);
-
-  const lessonIds = (lessons ?? []).map((l) => l.id as string);
-
-  let progress: Pick<
+  type ProgressPick = Pick<
     LessonProgress,
     | "student_id"
     | "lesson_id"
@@ -105,27 +101,50 @@ export async function loadProgressPageData(
     | "completed_at"
     | "progress_percent"
     | "watched_seconds"
-  >[] = [];
+  >;
 
-  if (lessonIds.length > 0 && studentIds.length > 0) {
-    const chunkSize = 200;
-    for (let i = 0; i < studentIds.length; i += chunkSize) {
-      const studentChunk = studentIds.slice(i, i + chunkSize);
-      const { data: chunk } = await supabase
-        .from("lesson_progress")
-        .select(
-          "student_id, lesson_id, is_completed, last_watched_at, completed_at, progress_percent, watched_seconds"
-        )
-        .in("student_id", studentChunk)
-        .in("lesson_id", lessonIds);
-      progress = progress.concat(chunk ?? []);
-    }
-  }
+  const lessonsPromise = Promise.resolve(
+    supabase
+      .from("lessons")
+      .select("id, course_id, title, order_index, section_id, is_published")
+      .in("course_id", courseIds)
+  ).then(({ data }) => data ?? []);
+
+  // 진도는 영상 목록을 기다리지 않고 학생 id 로 바로 읽고, 이 강좌들 영상만 아래에서 남긴다.
+  // (영상 id 를 주소에 싣지 않아도 되고, 학생 묶음도 동시에 1000줄씩 끝까지 읽는다)
+  const progressPromise = Promise.all(
+    chunkList(studentIds, 100).map((studentChunk) =>
+      fetchPagesParallel<ProgressPick>((from, to, withCount) =>
+        supabase
+          .from("lesson_progress")
+          .select(
+            "student_id, lesson_id, is_completed, last_watched_at, completed_at, progress_percent, watched_seconds",
+            withCount ? { count: "exact" } : undefined
+          )
+          .in("student_id", studentChunk)
+          .order("id")
+          .range(from, to)
+      )
+    )
+  ).then((parts) => parts.flat());
+
+  const [{ data: sections }, lessons, allProgress, members, classCourses] = await Promise.all([
+    supabase
+      .from("sections")
+      .select("id, course_id, order_index")
+      .in("course_id", courseIds),
+    lessonsPromise,
+    progressPromise,
+    membersPromise,
+    classCoursesPromise,
+  ]);
+  const lessonIdSet = new Set(lessons.map((l) => l.id as string));
+  const progress = allProgress.filter((p) => lessonIdSet.has(p.lesson_id));
 
   const rows = buildEnrollmentProgressRows(
     normalizeEnrollmentInputs(enrollmentList),
     (sections ?? []) as Pick<Section, "id" | "course_id" | "order_index">[],
-    (lessons ?? []) as Pick<
+    lessons as Pick<
       Lesson,
       "id" | "course_id" | "title" | "order_index" | "section_id" | "is_published"
     >[],

@@ -1,11 +1,14 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { jsonError, jsonOk } from "@/lib/question-generator/api-helpers";
-import { dedupeVocabItemRows } from "@/lib/question-generator/exam-vocab";
-import { persistVocabItems } from "@/lib/vocab/save-items";
+import { dedupeExamVocabRowsKeepIds } from "@/lib/question-generator/exam-vocab";
 
 export const dynamic = "force-dynamic";
 
-/** 공개: exam_compact 단어장만 (시험지 QR, 로그인 불필요) */
+/**
+ * 공개: exam_compact 단어장만 (시험지 QR, 로그인 불필요).
+ * 읽기 전용 — 겹치는 단어는 화면에서만 하나로 보여 주고 DB는 건드리지 않는다
+ * (예전에는 여기서 단어를 모두 지우고 다시 넣어 학생 기록이 사라졌다).
+ */
 export async function GET(
   _req: Request,
   ctx: { params: Promise<{ setId: string }> }
@@ -35,39 +38,9 @@ export async function GET(
       .order("order_index")
       .order("created_at");
 
-    const raw = items ?? [];
-    const unique = dedupeVocabItemRows(raw);
-
-    // 이미 쌓인 중복이 있으면 DB도 정리 (다음 학습부터 카드 수 일치)
-    if (unique.length < raw.length) {
-      await persistVocabItems(
-        admin,
-        setId,
-        unique.map((row, i) => ({
-          word: row.word,
-          meaning: row.meaning,
-          example_sentence: row.example_sentence ?? undefined,
-          example_meaning: row.example_meaning ?? undefined,
-          order_index: i,
-        }))
-      );
-      const { data: refreshed } = await admin
-        .from("vocab_items")
-        .select(
-          "id, set_id, word, meaning, example_sentence, example_meaning, order_index, created_at"
-        )
-        .eq("set_id", setId)
-        .order("order_index")
-        .order("created_at");
-      return jsonOk({
-        set: { id: set.id, title: set.title || "보기 단어" },
-        items: refreshed ?? unique,
-      });
-    }
-
     return jsonOk({
       set: { id: set.id, title: set.title || "보기 단어" },
-      items: unique,
+      items: dedupeExamVocabRowsKeepIds(items ?? []),
     });
   } catch {
     return jsonError("불러오기에 실패했습니다.", 500);

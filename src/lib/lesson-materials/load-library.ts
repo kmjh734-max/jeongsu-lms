@@ -92,27 +92,44 @@ export async function loadLessonMaterialsLibraryData(
   if (profile?.academy_id) questionJobsQuery = questionJobsQuery.eq("academy_id", profile.academy_id);
   if (profile?.role === "teacher") questionJobsQuery = questionJobsQuery.eq("created_by", profile.id);
 
+  /**
+   * 자료함 표는 모두 학원 행만 보인다(RLS). 학원을 직접 걸어 두면 DB가 학원 색인으로 그 행만 훑고,
+   * 행마다 도는 권한 검사도 다른 학원 행에는 하지 않는다. (보이는 행은 같다)
+   */
+  const academyId = profile?.academy_id ?? null;
+  let foldersQuery = supabase
+    .from("lesson_material_folders")
+    .select("id,name,parent_id,created_at")
+    .order("created_at", { ascending: false });
+  let projectsQuery = supabase
+    .from("lesson_material_projects")
+    .select(
+      "id,title,title_en,source,folder_id,created_at,updated_at,deleted_at,order_index,analysis_first:analysis_json->0,pack_vocab:lesson_pack_json->vocab,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0"
+    )
+    .order("order_index", { ascending: true })
+    .order("created_at", { ascending: true });
+  // 개수만 세므로 project_id 만 읽는다
+  let itemsQuery = supabase
+    .from("lesson_material_items")
+    .select("project_id")
+    .order("created_at", { ascending: true });
+  let documentsQuery = supabase
+    .from("lesson_material_documents")
+    .select("id,kind,name,project_ids,created_at,updated_at")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (academyId) {
+    foldersQuery = foldersQuery.eq("academy_id", academyId);
+    projectsQuery = projectsQuery.eq("academy_id", academyId);
+    itemsQuery = itemsQuery.eq("academy_id", academyId);
+    documentsQuery = documentsQuery.eq("academy_id", academyId);
+  }
+
   const [foldersRes, projectsRes, itemsRes, documentsRes, questionJobsRes] = await Promise.all([
-    supabase
-      .from("lesson_material_folders")
-      .select("id,name,parent_id,created_at")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("lesson_material_projects")
-      .select(
-        "id,title,title_en,source,folder_id,created_at,updated_at,deleted_at,order_index,analysis_first:analysis_json->0,pack_vocab:lesson_pack_json->vocab,pack_header:lesson_pack_json->>headerLabel,report_first:analysis_report_json->sentences->0"
-      )
-      .order("order_index", { ascending: true })
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("lesson_material_items")
-      .select("project_id,id")
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("lesson_material_documents")
-      .select("id,kind,name,project_ids,created_at,updated_at")
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false }),
+    foldersQuery,
+    projectsQuery,
+    itemsQuery,
+    documentsQuery,
     questionJobsQuery,
   ]);
 

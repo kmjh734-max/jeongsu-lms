@@ -70,15 +70,20 @@ export function VocabStage1Study({
   const router = useRouter();
   const hub = hubHref ?? "/student/vocab";
   const setHref = hubHref ?? `/student/vocab/${setId}`;
+  // 지금 단어장에 있는 단어만 센다 (지워진 단어 기록으로 일찍 끝나지 않게)
+  const [validSeenIds] = useState(() => {
+    const current = new Set(items.map((it) => it.id));
+    return initialSeenIds.filter((id) => current.has(id));
+  });
   const [index, setIndex] = useState(() => {
     if (stage1Completed) return 0;
-    const seen = new Set(initialSeenIds);
+    const seen = new Set(validSeenIds);
     const firstUnseen = items.findIndex((it) => !seen.has(it.id));
     return firstUnseen >= 0 ? firstUnseen : 0;
   });
   const [flipped, setFlipped] = useState(false);
   const [seenIds, setSeenIds] = useState<Set<string>>(
-    () => new Set(stage1Completed ? [] : initialSeenIds)
+    () => new Set(stage1Completed ? [] : validSeenIds)
   );
   const seenIdsRef = useRef(seenIds);
   seenIdsRef.current = seenIds;
@@ -177,12 +182,17 @@ export function VocabStage1Study({
       return;
     }
 
-    void recordStage1Item(setId, itemId, known).then((result) => {
+    void recordStage1Item(
+      setId,
+      itemId,
+      known,
+      stage1Completed ? undefined : [...nextSeen]
+    ).then((result) => {
       if (!result.ok) {
         setMessage(result.message);
         return;
       }
-      if (result.message.includes("1단계를 완료")) {
+      if (result.message.startsWith("1단계를 완료")) {
         router.refresh();
       }
     });

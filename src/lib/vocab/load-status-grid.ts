@@ -69,7 +69,14 @@ export function shortenTitles(titles: string[]): string[] {
   return toks.map((t, i) => t.slice(pre, t.length - suf).join(" ") || titles[i]!);
 }
 
-type SetRow = { id: string; title: string; created_at: string; order_index: number | null };
+type SetRow = {
+  id: string;
+  title: string;
+  created_at: string;
+  order_index: number | null;
+  /** 변형문제 연계 단어장 — 3단계 */
+  exam_compact?: boolean | null;
+};
 
 type ProgressRow = Pick<
   VocabStageProgress,
@@ -123,7 +130,7 @@ export async function loadVocabStatusGrid(
       (chunk, from, to) =>
         supabase
           .from("vocab_sets")
-          .select("id, title, created_at, order_index, folder_id")
+          .select("id, title, created_at, order_index, folder_id, exam_compact")
           .in("id", chunk)
           .range(from, to)
     );
@@ -197,6 +204,7 @@ export async function loadVocabStatusGrid(
         passed: p ? stage4Passed(p) : false,
         attempts: p ? stage4AttemptCount(p) : 0,
         bestScore: p ? stage4BestScore(p) : 0,
+        examCompact: Boolean(c.exam_compact),
       });
       if (cell.passed) passed += 1;
       if (cell.failed && !studiedPairs.has(`${s.id}:${c.id}`) && failedIdleColumn === null) {

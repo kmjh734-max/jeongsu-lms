@@ -1,17 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { chunkList as chunk, fetchPagesParallel } from "@/lib/fetch-pages";
 import type { ScheduleAssignmentListItem } from "@/lib/listening/schedule/list-assignments";
 import type { UserRole } from "@/types/database";
 
 /** 목록·배정 화면에서 쓰는 읽기 전용 요약 (문항 수, 음성 준비, 배정 대상, 진행) */
 
-const PAGE_SIZE = 1000;
 const ID_CHUNK = 50;
-
-function chunk<T>(items: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
-  return out;
-}
+/** 세트·배정 id 를 잘게 나눠 동시에 읽는다 (한 묶음이 1000줄을 넘으면 쪽을 넘겨야 해서) */
+const SET_ID_CHUNK = 20;
+const ASSIGNMENT_ID_CHUNK = 20;
 
 export interface ListeningSetQuestionStats {
   questionCount: number;
@@ -29,23 +26,22 @@ export async function loadListeningSetQuestionStats(
   if (setIds.length === 0) return out;
 
   await Promise.all(
-    chunk(setIds, ID_CHUNK).map(async (ids) => {
-      for (let from = 0; ; from += PAGE_SIZE) {
-        const { data, error } = await supabase
-          .from("listening_questions")
-          .select("id, set_id, audio_url")
-          .in("set_id", ids)
-          .order("id", { ascending: true })
-          .range(from, from + PAGE_SIZE - 1);
-        if (error || !data) break;
-        for (const row of data) {
-          const stats = out[row.set_id as string];
-          if (!stats) continue;
-          stats.questionCount += 1;
-          const url = row.audio_url as string | null;
-          if (typeof url === "string" && url.trim()) stats.audioReadyCount += 1;
-        }
-        if (data.length < PAGE_SIZE) break;
+    chunk(setIds, SET_ID_CHUNK).map(async (ids) => {
+      const rows = await fetchPagesParallel<{ set_id: string; audio_url: string | null }>(
+        (from, to, withCount) =>
+          supabase
+            .from("listening_questions")
+            .select("set_id, audio_url", withCount ? { count: "exact" } : undefined)
+            .in("set_id", ids)
+            .order("id", { ascending: true })
+            .range(from, to)
+      );
+      for (const row of rows) {
+        const stats = out[row.set_id];
+        if (!stats) continue;
+        stats.questionCount += 1;
+        const url = row.audio_url;
+        if (typeof url === "string" && url.trim()) stats.audioReadyCount += 1;
       }
     })
   );
@@ -98,6 +94,9 @@ export async function loadListeningModuleCounts(
     setsQuery = setsQuery.or(
       `teacher_id.eq.${viewerId},description.ilike.%curriculum_locked%`
     );
+  } else if (role === "admin" && academyId) {
+    // 관리자 RLS 와 같은 범위 — 학원 색인으로 센다
+    setsQuery = setsQuery.eq("academy_id", academyId);
   }
 
   const assignmentCount = async (): Promise<number> => {
@@ -151,27 +150,30 @@ export async function loadScheduleAssignmentProgress(
   if (assignmentIds.length === 0) return out;
 
   await Promise.all(
-    chunk(assignmentIds, ID_CHUNK).map(async (ids) => {
+    chunk(assignmentIds, ASSIGNMENT_ID_CHUNK).map(async (ids) => {
       // 한 번에 너무 많이 읽지 않도록 30쪽(3만 행)에서 멈춘다
-      for (let page = 0; page < 30; page++) {
-        const from = page * PAGE_SIZE;
-        const { data, error } = await admin
-          .from("listening_daily_tasks")
-          .select("id, assignment_id, task_date, status")
-          .in("assignment_id", ids)
-          .lte("task_date", todayIso)
-          .order("id", { ascending: true })
-          .range(from, from + PAGE_SIZE - 1);
-        if (error || !data) break;
-        for (const row of data) {
-          const aid = row.assignment_id as string;
-          const bucket = out[aid];
-          if (!bucket) continue;
-          bucket.dueTasks += 1;
-          if (row.status === "completed") bucket.completedTasks += 1;
-          dates.get(aid)?.add(row.task_date as string);
-        }
-        if (data.length < PAGE_SIZE) break;
+      const rows = await fetchPagesParallel<{
+        assignment_id: string;
+        task_date: string;
+        status: string;
+      }>(
+        (from, to, withCount) =>
+          admin
+            .from("listening_daily_tasks")
+            .select("assignment_id, task_date, status", withCount ? { count: "exact" } : undefined)
+            .in("assignment_id", ids)
+            .lte("task_date", todayIso)
+            .order("id", { ascending: true })
+            .range(from, to),
+        { maxPages: 30 }
+      );
+      for (const row of rows) {
+        const aid = row.assignment_id;
+        const bucket = out[aid];
+        if (!bucket) continue;
+        bucket.dueTasks += 1;
+        if (row.status === "completed") bucket.completedTasks += 1;
+        dates.get(aid)?.add(row.task_date);
       }
     })
   );
@@ -193,19 +195,16 @@ export async function loadClassStudentCounts(
 
   await Promise.all(
     chunk(classIds, ID_CHUNK).map(async (ids) => {
-      for (let from = 0; ; from += PAGE_SIZE) {
-        const { data, error } = await admin
+      const rows = await fetchPagesParallel<{ class_id: string }>((from, to, withCount) =>
+        admin
           .from("class_students")
-          .select("class_id, student_id")
+          .select("class_id", withCount ? { count: "exact" } : undefined)
           .in("class_id", ids)
-          .order("student_id", { ascending: true })
-          .range(from, from + PAGE_SIZE - 1);
-        if (error || !data) break;
-        for (const row of data) {
-          const cid = row.class_id as string;
-          out[cid] = (out[cid] ?? 0) + 1;
-        }
-        if (data.length < PAGE_SIZE) break;
+          .order("id", { ascending: true })
+          .range(from, to)
+      );
+      for (const row of rows) {
+        out[row.class_id] = (out[row.class_id] ?? 0) + 1;
       }
     })
   );

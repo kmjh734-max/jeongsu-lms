@@ -10,11 +10,13 @@ import {
 } from "@/lib/listening/paginate-exam-questions";
 import { ACADEMY_NAME, LOGO_SRC } from "@/lib/branding";
 import {
-  buildExamVocabUrl,
-  buildExamVocabUrlForJob,
   questionNeedsVocabGloss,
   parseHardWordsColumn,
 } from "@/lib/question-generator/exam-vocab";
+import {
+  buildExamVocabUrl,
+  buildExamVocabUrlForJob,
+} from "@/lib/question-generator/exam-vocab-url";
 import { groupQuestionsByPrintType } from "@/lib/question-generator/print-type-groups";
 import {
   cleanQuestionText,

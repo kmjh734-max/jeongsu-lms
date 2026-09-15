@@ -202,8 +202,9 @@ export function VocabAssignModal({
       onChanged?.();
     } catch {
       setMessage({ text: "배정하지 못했어요. 다시 해 주세요.", bad: true });
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   async function handleRemove(group: CurrentGroup) {
@@ -212,16 +213,21 @@ export function VocabAssignModal({
     }
     setBusy(true);
     setMessage(null);
-    const r = await actions.removeVocabAssignments(group.assignmentIds);
-    if (!r.ok) {
-      setMessage({ text: r.message, bad: true });
-    } else {
-      setMessage({ text: `‘${group.name}’ 배정을 해제했어요.`, bad: false });
-      await load();
-      router.refresh();
-      onChanged?.();
+    try {
+      const r = await actions.removeVocabAssignments(group.assignmentIds);
+      if (!r.ok) {
+        setMessage({ text: r.message, bad: true });
+      } else {
+        setMessage({ text: `‘${group.name}’ 배정을 해제했어요.`, bad: false });
+        await load();
+        router.refresh();
+        onChanged?.();
+      }
+    } catch {
+      setMessage({ text: "배정을 해제하지 못했어요. 다시 해 주세요.", bad: true });
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   const summary = (() => {

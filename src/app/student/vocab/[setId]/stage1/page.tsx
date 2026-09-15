@@ -22,12 +22,18 @@ export default async function StudentVocabStage1Page({ params }: PageProps) {
   if (!ctx) notFound();
   if (ctx.itemCount < 1) redirect(`/student/vocab/${setId}`);
 
+  // 지워진 단어의 기록은 세지 않는다
+  const currentIds = new Set(ctx.items.map((it) => it.id));
+  const seenIds = (ctx.progress.stage1_seen_item_ids ?? []).filter((id) =>
+    currentIds.has(id)
+  );
+
   return (
     <VocabStage1Study
       setId={setId}
       setTitle={ctx.set.title}
       items={ctx.items}
-      initialSeenIds={ctx.progress.stage1_seen_item_ids ?? []}
+      initialSeenIds={seenIds}
       stage1Completed={ctx.progress.stage1_completed}
     />
   );

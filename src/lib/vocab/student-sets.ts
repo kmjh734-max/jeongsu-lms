@@ -46,7 +46,7 @@ export async function fetchStudentVocabSummaries(
   const [{ data: sets }, { data: stageRows }, itemCounts] = await Promise.all([
     supabase
       .from("vocab_sets")
-      .select("id, title, created_at, order_index")
+      .select("id, title, created_at, order_index, exam_compact")
       .in("id", setIds),
     supabase
       .from("vocab_stage_progress")
@@ -85,6 +85,7 @@ export async function fetchStudentVocabSummaries(
       return {
         set,
         itemCount: itemCounts.get(set.id) ?? 0,
+        examCompact: Boolean(set.exam_compact),
         stage1Completed: Boolean(progress.stage1_completed),
         stage2Completed: Boolean(progress.stage2_completed),
         stage3Completed: stage3Completed(progress),

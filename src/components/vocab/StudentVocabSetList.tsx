@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/layout/NavIcon";
+import { studentStageSteps } from "@/lib/vocab/stage-progress-fields";
 import type { StudentVocabSetSummary } from "@/types/database";
 
 interface StudentVocabSetListProps {
@@ -12,8 +13,6 @@ interface StudentVocabSetListProps {
 type SetStatus = "studying" | "passed" | "new";
 type Filter = "all" | SetStatus;
 type DotState = "done" | "cur" | "open" | "lock";
-
-const STAGE_NAMES = ["뜻 익히기", "스펠링", "예문 빈칸", "종합테스트"];
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "전체" },
@@ -37,12 +36,8 @@ function statusOf(s: StudentVocabSetSummary): SetStatus {
 }
 
 function stageDots(s: StudentVocabSetSummary): DotState[] {
-  const done = [
-    s.stage1Completed,
-    s.stage2Completed,
-    s.stage3Completed,
-    s.stage4Passed,
-  ];
+  // 시험 연계 단어장은 3칸 (뜻 익히기 · 스펠링 · 종합테스트)
+  const done = studentStageSteps(s).map((st) => st.done);
   const firstOpen = done.findIndex((d) => !d);
   const isNew = statusOf(s) === "new";
   return done.map((d, i) => {
@@ -56,11 +51,11 @@ function metaText(s: StudentVocabSetSummary): string {
   const status = statusOf(s);
   if (status === "passed") return "종합테스트 합격";
   if (status === "new") return "새로 배정됨";
-  const done = [s.stage1Completed, s.stage2Completed, s.stage3Completed];
-  const idx = done.findIndex((d) => !d);
-  const stage = idx === -1 ? 3 : idx;
-  const text = `${stage + 1}단계 ${STAGE_NAMES[stage]}`;
-  if (stage === 3 && s.stage4LastScore > 0) {
+  const steps = studentStageSteps(s);
+  const idx = steps.findIndex((st) => !st.done);
+  const stage = idx === -1 ? steps.length - 1 : idx;
+  const text = `${stage + 1}단계 ${steps[stage]!.name}`;
+  if (steps[stage]!.isTest && s.stage4LastScore > 0) {
     return `${text} · 최근 ${s.stage4LastScore}점`;
   }
   return text;
@@ -225,7 +220,7 @@ export function StudentVocabSetList({ summaries }: StudentVocabSetListProps) {
           className={`hidden border-b border-slate-200 bg-slate-50 px-5 py-2.5 text-xs font-semibold text-slate-500 md:grid ${ROW_GRID}`}
         >
           <span>단어장</span>
-          <span>1 · 2 · 3 · 4단계</span>
+          <span>학습 단계</span>
           <span>종합테스트</span>
           <span />
         </div>

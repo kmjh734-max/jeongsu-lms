@@ -5,6 +5,10 @@ import type {
   AssignPanelStudent,
   VocabAssignPanelData,
 } from "@/lib/vocab/assign-panel-types";
+import {
+  loadAssignerScope,
+  teacherCanManageAssignment,
+} from "@/lib/vocab/assignment-scope";
 import { fetchByIdChunks } from "@/lib/vocab/fetch-all";
 import type { VocabRole } from "@/lib/vocab/module-types";
 
@@ -94,9 +98,11 @@ type AssignmentJoinRow = {
   set_id: string;
   student_id: string | null;
   class_id: string | null;
+  assigned_by: string | null;
   created_at: string;
   student: { name: string | null } | { name: string | null }[] | null;
   class: { name: string | null } | { name: string | null }[] | null;
+  set: { teacher_id: string | null } | { teacher_id: string | null }[] | null;
 };
 
 function one<T>(v: T | T[] | null): T | null {
@@ -131,7 +137,7 @@ export async function loadVocabAssignPanelData(
       supabase
         .from("vocab_assignments")
         .select(
-          "id, set_id, student_id, class_id, created_at, student:profiles!vocab_assignments_student_id_fkey(name), class:classes(name)"
+          "id, set_id, student_id, class_id, assigned_by, created_at, student:profiles!vocab_assignments_student_id_fkey(name), class:classes(name), set:vocab_sets(teacher_id)"
         )
         .in("set_id", chunk)
         .order("created_at", { ascending: false })
@@ -162,7 +168,24 @@ export async function loadVocabAssignPanelData(
     (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)
   );
 
-  const assignments: AssignPanelAssignment[] = assignmentRows.map((row) => ({
+  // 강사: 학원 공용 교재에 다른 선생님이 건 배정은 보이지 않게(해제도 못 하게)
+  const scope = role === "teacher" ? await loadAssignerScope(userId) : null;
+  const visibleRows =
+    role === "teacher"
+      ? scope
+        ? assignmentRows.filter((row) =>
+            teacherCanManageAssignment(scope, {
+              id: row.id,
+              student_id: row.student_id,
+              class_id: row.class_id,
+              assigned_by: row.assigned_by,
+              setTeacherId: one(row.set)?.teacher_id ?? null,
+            })
+          )
+        : []
+      : assignmentRows;
+
+  const assignments: AssignPanelAssignment[] = visibleRows.map((row) => ({
     id: row.id,
     set_id: row.set_id,
     student_id: row.student_id,

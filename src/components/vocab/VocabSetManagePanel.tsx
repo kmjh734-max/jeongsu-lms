@@ -50,27 +50,30 @@ export function VocabSetManagePanel({
     }
     setSaving(true);
     setError(null);
-    const result = await actions.updateVocabSet(set.id, {
-      title,
-      description,
-      ...(role === "admin" ? { teacherId: teacherId || null } : {}),
-    });
-    if (!result.ok) {
-      setSaving(false);
-      setError(result.message);
-      return;
-    }
-    if (folderId !== (set.folder_id ?? "")) {
-      const moved = await actions.moveVocabSet(set.id, folderId || null);
-      if (!moved.ok) {
-        setSaving(false);
-        setError(moved.message);
+    try {
+      const result = await actions.updateVocabSet(set.id, {
+        title,
+        description,
+        ...(role === "admin" ? { teacherId: teacherId || null } : {}),
+      });
+      if (!result.ok) {
+        setError(result.message);
         return;
       }
+      if (folderId !== (set.folder_id ?? "")) {
+        const moved = await actions.moveVocabSet(set.id, folderId || null);
+        if (!moved.ok) {
+          setError(moved.message);
+          return;
+        }
+      }
+      onMessage("설정을 저장했어요.");
+      router.refresh();
+    } catch {
+      setError("저장하지 못했어요. 잠시 뒤 다시 해 주세요.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    onMessage("설정을 저장했어요.");
-    router.refresh();
   }
 
   async function handleDelete() {
@@ -82,14 +85,19 @@ export function VocabSetManagePanel({
       return;
     }
     setSaving(true);
-    const result = await actions.deleteVocabSet(set.id, set.folder_id);
-    setSaving(false);
-    if (!result.ok) {
-      onMessage(result.message, "bad");
-      return;
+    try {
+      const result = await actions.deleteVocabSet(set.id, set.folder_id);
+      if (!result.ok) {
+        onMessage(result.message, "bad");
+        return;
+      }
+      router.push(listHref);
+      router.refresh();
+    } catch {
+      onMessage("지우지 못했어요. 잠시 뒤 다시 해 주세요.", "bad");
+    } finally {
+      setSaving(false);
     }
-    router.push(listHref);
-    router.refresh();
   }
 
   const folderOptions =

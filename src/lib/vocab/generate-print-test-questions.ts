@@ -8,6 +8,8 @@ import {
   clampExamConfigToPool,
   examConfigTotal,
 } from "@/lib/vocab/vocab-print-exam-config";
+import { pickPrimaryExampleSentence } from "@/lib/vocab/multi-example";
+import { blankWordForms } from "@/lib/vocab/word-form-match";
 
 export interface PrintExamQuestion {
   kind: ExamQuestionKind;
@@ -19,20 +21,14 @@ export interface PrintExamQuestion {
   correctChoiceIndex?: number;
 }
 
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function blankExampleSentence(item: VocabItem): string | null {
-  const sentence = item.example_sentence?.trim();
+/** 시험지 예문 문항: 대표 예문 한 줄만, 단어(변화형 포함)를 모두 빈칸으로 */
+function blankExampleSentence(
+  item: VocabItem
+): { text: string; tokens: string[] } | null {
+  const sentence = pickPrimaryExampleSentence(item.example_sentence);
   const word = item.word?.trim();
   if (!sentence || !word) return null;
-  const re = new RegExp(`\\b${escapeRegExp(word)}\\b`, "i");
-  if (!re.test(sentence)) return null;
-  return sentence.replace(
-    new RegExp(`\\b${escapeRegExp(word)}\\b`, "gi"),
-    "______"
-  );
+  return blankWordForms(sentence, word);
 }
 
 function itemsWithBlankableExample(items: VocabItem[]): VocabItem[] {
@@ -72,12 +68,6 @@ function shuffle<T>(arr: T[], rng: Rng): T[] {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
-}
-
-/** 재사용 없이 count개만 뽑음 (부족하면 그만큼만) */
-function pickItemsNoReuse(pool: VocabItem[], count: number, rng: Rng): VocabItem[] {
-  if (count <= 0 || pool.length === 0) return [];
-  return shuffle(pool, rng).slice(0, Math.min(count, pool.length));
 }
 
 const CHOICE_MARKS = ["①", "②", "③", "④", "⑤", "⑥"];
@@ -141,7 +131,7 @@ function buildQuestion(
       return {
         kind,
         number: 0,
-        prompt: blanked,
+        prompt: blanked.text,
         choices,
         answer: `${mark} ${item.word.trim()}`,
         correctChoiceIndex: idx >= 0 ? idx : 0,
@@ -150,11 +140,17 @@ function buildQuestion(
     case "example_sa": {
       const blanked = blankExampleSentence(item);
       if (!blanked) return null;
+      // 빈칸 자리에 들어갈 실제 표기(provides 등)가 원형과 다르면 함께 적는다
+      const word = item.word.trim();
+      const token = blanked.tokens[0]?.trim() ?? "";
       return {
         kind,
         number: 0,
-        prompt: blanked,
-        answer: item.word.trim(),
+        prompt: blanked.text,
+        answer:
+          token && token.toLowerCase() !== word.toLowerCase()
+            ? `${token} (${word})`
+            : word,
       };
     }
     default:
@@ -162,23 +158,30 @@ function buildQuestion(
   }
 }
 
-const KIND_ORDER: { kind: ExamQuestionKind; configKey: keyof ExamPrintConfig }[] =
-  [
-    { kind: "word_mc", configKey: "word_mc" },
-    { kind: "word_sa", configKey: "word_sa" },
-    { kind: "meaning_mc", configKey: "meaning_mc" },
-    { kind: "meaning_sa", configKey: "meaning_sa" },
-    { kind: "example_mc", configKey: "example_mc" },
-    { kind: "example_sa", configKey: "example_sa" },
-  ];
+const EXAMPLE_KINDS: ExamQuestionKind[] = ["example_mc", "example_sa"];
+const BASIC_KINDS: ExamQuestionKind[] = [
+  "word_mc",
+  "word_sa",
+  "meaning_mc",
+  "meaning_sa",
+];
+
+export interface PrintExamGenerateResult {
+  questions: PrintExamQuestion[];
+  /** 예문이 있는 단어가 모자라 뺀 예문 문항 수 */
+  skippedNoExample: number;
+  /** 그 밖의 이유(보기를 만들 수 없음 등)로 뺀 문항 수 */
+  skipped: number;
+  capped: boolean;
+}
 
 export function generatePrintExamQuestions(
   items: VocabItem[],
   config: ExamPrintConfig,
   options?: { shuffle?: boolean; shuffleSeed?: number }
-): { questions: PrintExamQuestion[]; skipped: number; capped: boolean } {
+): PrintExamGenerateResult {
   if (items.length < 2) {
-    return { questions: [], skipped: 0, capped: false };
+    return { questions: [], skipped: 0, skippedNoExample: 0, capped: false };
   }
 
   const cappedConfig = clampExamConfigToPool(config, items.length);
@@ -187,39 +190,47 @@ export function generatePrintExamQuestions(
   const basicQuestions: PrintExamQuestion[] = [];
   const exampleQuestions: PrintExamQuestion[] = [];
   let skipped = 0;
+  let skippedNoExample = 0;
 
   const rng = seededRng(options?.shuffleSeed || seedFromItems(items));
-  const examplePoolAll = itemsWithBlankableExample(items);
   const usedIds = new Set<string>();
 
-  for (const { kind, configKey } of KIND_ORDER) {
-    const count = cappedConfig[configKey];
-    if (count <= 0) continue;
-
-    const isExample = kind === "example_mc" || kind === "example_sa";
-    const basePool = isExample ? examplePoolAll : items;
-    const pool = basePool.filter((item) => !usedIds.has(item.id));
-    if (pool.length === 0) {
-      skipped += count;
-      continue;
-    }
-
-    const picked = pickItemsNoReuse(pool, count, rng);
-    skipped += Math.max(0, count - picked.length);
-    const bucket = isExample ? exampleQuestions : basicQuestions;
-
-    for (const item of picked) {
-      usedIds.add(item.id);
+  /** pool을 섞어 앞에서부터 문항을 만들고, 만들지 못한 단어는 건너뛴다 */
+  function fill(
+    kind: ExamQuestionKind,
+    count: number,
+    pool: VocabItem[],
+    bucket: PrintExamQuestion[]
+  ): number {
+    let made = 0;
+    for (const item of shuffle(pool, rng)) {
+      if (made >= count) break;
+      if (usedIds.has(item.id)) continue;
       const q = buildQuestion(kind, item, items, rng);
-      if (!q) {
-        skipped += 1;
-        usedIds.delete(item.id);
-        continue;
-      }
+      if (!q) continue;
+      usedIds.add(item.id);
       bucket.push(q);
+      made += 1;
     }
+    return made;
   }
 
+  // 1) 예문 문항을 먼저 — 예문이 있는 단어가 기본 문항에 먼저 쓰여 버리지 않게
+  const examplePool = itemsWithBlankableExample(items);
+  for (const kind of EXAMPLE_KINDS) {
+    const count = cappedConfig[kind];
+    if (count <= 0) continue;
+    const made = fill(kind, count, examplePool, exampleQuestions);
+    skippedNoExample += count - made;
+  }
+
+  // 2) 기본 문항은 남은 단어로
+  for (const kind of BASIC_KINDS) {
+    const count = cappedConfig[kind];
+    if (count <= 0) continue;
+    const made = fill(kind, count, items, basicQuestions);
+    skipped += count - made;
+  }
 
   const doShuffle = options?.shuffle !== false;
   const orderedBasic = doShuffle ? shuffle(basicQuestions, rng) : basicQuestions;
@@ -233,6 +244,7 @@ export function generatePrintExamQuestions(
       number: i + 1,
     })),
     skipped,
+    skippedNoExample,
     capped,
   };
 }
