@@ -175,7 +175,7 @@ export function SuperAdminAcademiesClient({
         return;
       }
       setMessage(
-        "학원을 추가했습니다. 「설정」에서 로고·연락처를 넣고 「관리자」를 연결하세요."
+        "학원을 추가했습니다. 듣기·단어 교재는 1~2분 안에 자동으로 채워집니다. 「설정」에서 로고·연락처를 넣고 「관리자」를 연결하세요."
       );
       setShowForm(false);
       setName("");

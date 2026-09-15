@@ -19,6 +19,7 @@ import {
 } from "@/lib/question-generator/question-types";
 import type { GenerationRequestConfig } from "@/lib/question-generator/types";
 import { listGenerationJobs } from "@/lib/question-generator/list-jobs";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -362,6 +363,46 @@ async function createJobFromConfig(
     passageId: primaryId,
     passageIds,
   };
+}
+
+/** 자료함 변형문제 탭 순서 저장: orderedIds 순서대로 library_order를 매긴다. */
+export async function PATCH(req: Request) {
+  try {
+    const profile = await requireStaffProfile();
+    const body = (await req.json().catch(() => ({}))) as { orderedIds?: string[] };
+    const orderedIds = Array.isArray(body.orderedIds)
+      ? body.orderedIds.filter((id) => typeof id === "string" && id.length > 0)
+      : [];
+    if (orderedIds.length === 0) return jsonError("순서를 바꿀 항목이 없습니다.");
+    if (orderedIds.length > 200) return jsonError("한 번에 최대 200개까지 정렬할 수 있습니다.");
+
+    const admin = createAdminClient();
+    let ownQuery = admin
+      .from("question_generation_jobs")
+      .select("id")
+      .in("id", orderedIds)
+      .eq("academy_id", profile.academy_id!);
+    if (profile.role === "teacher") ownQuery = ownQuery.eq("created_by", profile.id);
+    const { data: owned, error: ownErr } = await ownQuery;
+    if (ownErr) return jsonError(ownErr.message, 500);
+    const allowed = new Set((owned ?? []).map((r) => r.id as string));
+
+    const updates = orderedIds
+      .map((id, index) => ({ id, index }))
+      .filter((u) => allowed.has(u.id));
+    const results = await Promise.all(
+      updates.map((u) =>
+        admin.from("question_generation_jobs").update({ library_order: u.index + 1 }).eq("id", u.id)
+      )
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) return jsonError(failed.error.message, 500);
+
+    return jsonOk({ updated: updates.length });
+  } catch (e) {
+    if (e instanceof Response) return e;
+    return jsonError(e instanceof Error ? e.message : "순서를 저장하지 못했습니다.", 500);
+  }
 }
 
 /** 선택 삭제: 문항 → 작업 순으로 제거 */

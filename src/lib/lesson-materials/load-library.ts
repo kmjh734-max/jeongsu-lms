@@ -84,9 +84,11 @@ export async function loadLessonMaterialsLibraryData(
   let questionJobsQuery = supabase
     .from("question_generation_jobs")
     .select(
-      "id,status,created_at,total_requested,total_completed,title:request_config->>title,project_ids:request_config->lessonProjectIds"
+      "id,status,created_at,library_order,total_requested,total_completed,title:request_config->>title,project_ids:request_config->lessonProjectIds"
     )
     .not("request_config->lessonProjectIds", "is", null)
+    // 새로 만든 작업(순서 없음)이 맨 위, 그다음 선생님이 정한 순서.
+    .order("library_order", { ascending: true, nullsFirst: true })
     .order("created_at", { ascending: false })
     .limit(100);
   if (profile?.academy_id) questionJobsQuery = questionJobsQuery.eq("academy_id", profile.academy_id);

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { requireSuperAdminApi } from "@/lib/auth/require-super-admin-api";
 import { cloneListeningCurriculumToAcademy } from "@/lib/listening/clone-curriculum";
 import { cloneVocabCurriculumToAcademy } from "@/lib/vocab/clone-curriculum";
@@ -91,38 +91,21 @@ export async function POST(request: Request) {
       );
     }
 
-    let curriculum = null as Awaited<
-      ReturnType<typeof cloneListeningCurriculumToAcademy>
-    > | null;
-    let vocabCurriculum = null as Awaited<
-      ReturnType<typeof cloneVocabCurriculumToAcademy>
-    > | null;
-    let curriculumError: string | null = null;
-    try {
-      const ownerId =
-        "profile" in auth && auth.profile ? auth.profile.id : null;
-      if (ownerId && data?.id) {
-        curriculum = await cloneListeningCurriculumToAcademy({
-          targetAcademyId: data.id as string,
-          ownerProfileId: ownerId,
-        });
-        vocabCurriculum = await cloneVocabCurriculumToAcademy({
-          targetAcademyId: data.id as string,
-          ownerProfileId: ownerId,
-        });
-      }
-    } catch (e) {
-      curriculumError = e instanceof Error ? e.message : "커리큘럼 복제 실패";
-      console.error("[academies] curriculum clone failed", e);
+    // 교재 복사는 수십 초 걸리므로 응답을 먼저 보내고 뒤에서 채운다.
+    const ownerId = "profile" in auth && auth.profile ? auth.profile.id : null;
+    if (ownerId && data?.id) {
+      const targetAcademyId = data.id as string;
+      after(async () => {
+        try {
+          await cloneListeningCurriculumToAcademy({ targetAcademyId, ownerProfileId: ownerId });
+          await cloneVocabCurriculumToAcademy({ targetAcademyId, ownerProfileId: ownerId });
+        } catch (e) {
+          console.error("[academies] curriculum clone failed", e);
+        }
+      });
     }
 
-    return NextResponse.json({
-      ok: true,
-      academy: data,
-      curriculum,
-      vocabCurriculum,
-      curriculumError,
-    });
+    return NextResponse.json({ ok: true, academy: data, curriculumQueued: Boolean(ownerId) });
   } catch (e) {
     return NextResponse.json(
       {
