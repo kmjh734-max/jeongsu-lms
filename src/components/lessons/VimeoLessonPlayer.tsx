@@ -9,6 +9,7 @@ import {
   isNaturalPlayheadAdvance,
   watchedPercentFromSeconds,
 } from "@/lib/lesson-progress/watch-tracker";
+import { Icon } from "@/components/layout/NavIcon";
 
 async function postLessonProgress(payload: {
   lessonId: string;
@@ -388,15 +389,8 @@ export function VimeoLessonPlayer({
   }, [lessonId]);
 
   return (
-    <div className="space-y-6">
-      {resumeSeconds > 0 && !isCompleted && (
-        <p className="rounded-lg border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-900">
-          {initialProgressPercent}%까지 시청하셨습니다.{" "}
-          <strong>이어서 재생</strong>됩니다. (앞으로 건너뛰기는 할 수 없습니다)
-        </p>
-      )}
-
-      <div className="overflow-hidden rounded-xl bg-black shadow-lg">
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-lg bg-black">
         <div
           id={containerId}
           ref={containerRef}
@@ -405,78 +399,69 @@ export function VimeoLessonPlayer({
         />
       </div>
 
+      {resumeSeconds > 0 && !isCompleted && (
+        <p className="flex items-start gap-2 rounded-md bg-brand-50 px-3.5 py-2.5 text-[13px] text-brand-700">
+          <Icon name="rotate" size={16} className="mt-px" />
+          <span>
+            {initialProgressPercent}%까지 보셨어요. 이어서 재생됩니다. 앞으로 건너뛰기는 할 수 없어요.
+          </span>
+        </p>
+      )}
+
       {!playerReady && !playerError && (
         <p className="text-xs text-slate-500">
-          Vimeo 플레이어 연결 중… 연결되면 시청률이 저장되고 앞으로 건너뛰기가
-          제한됩니다.
+          플레이어를 연결하고 있어요. 연결되면 시청률이 저장됩니다.
         </p>
       )}
 
       {playerError && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-          {playerError}
-        </p>
+        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{playerError}</p>
       )}
 
       {saveError && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-          {saveError}
-        </p>
+        <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">{saveError}</p>
       )}
 
       {seekNotice && (
-        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          {seekNotice}
-        </p>
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">{seekNotice}</p>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-slate-600">누적 시청률</p>
-            <p className="text-2xl font-bold text-brand-700">
-              {displayPercent}%
-            </p>
-          </div>
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-card">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[13px] text-slate-500">누적 시청률</span>
           {isCompleted ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
-              ✓ 수강 완료
+            <span className="inline-flex items-center gap-1 rounded bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
+              <Icon name="check" size={12} strokeWidth={2.6} />
+              수강 완료
             </span>
           ) : (
-            <span className="text-sm text-slate-500">
-              완료 기준: 90% 이상 시청
+            <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
+              완료 기준 90%
             </span>
           )}
         </div>
-
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-          <div
-            className="h-full rounded-full bg-brand-500 transition-all duration-300"
-            style={{ width: `${Math.min(100, displayPercent)}%` }}
-          />
-        </div>
-
-        <p className="mt-3 text-sm text-slate-600">
-          시청한 만큼 자동 저장되며, 다시 들어오면 이어서 재생됩니다. 영상
-          안에서 앞으로 건너뛰기는 할 수 없습니다. 90% 이상이면 수강 완료로
-          처리되며, 끝까지 보면 시청률이 100%까지 표시됩니다.
+        <p className="mb-2.5 mt-1.5 flex items-baseline gap-1">
+          <span className="text-3xl font-bold tabular-nums tracking-tight text-slate-900">
+            {displayPercent}
+          </span>
+          <span className="text-base font-semibold text-slate-500">%</span>
         </p>
-
-        {playerReady && !isCompleted && (
-          <p className="mt-2 text-xs text-emerald-700">
-            Vimeo 플레이어 연결됨 — 시청률이 저장되고 있습니다.
-          </p>
-        )}
-
-        {isCompleted || statusMessage ? (
-          <p className="mt-2 text-sm font-medium text-green-700">
-            {statusMessage ?? "수강 완료되었습니다."}
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-amber-700">
-            아직 수강 완료 기준에 도달하지 않았습니다.
-          </p>
-        )}
+        <div className="relative">
+          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                isCompleted ? "bg-green-700" : "bg-brand-600"
+              }`}
+              style={{ width: `${Math.min(100, displayPercent)}%` }}
+            />
+          </div>
+          <span aria-hidden className="absolute -top-[3px] left-[90%] h-3.5 w-0.5 rounded-sm bg-slate-900" />
+        </div>
+        <p className="mt-3 text-[13px] leading-relaxed text-slate-500">
+          {isCompleted || statusMessage
+            ? (statusMessage ?? "수강을 완료했어요. 끝까지 보면 100%까지 표시돼요.")
+            : "본 만큼 자동으로 저장되고, 다시 들어오면 이어서 재생돼요. 90% 이상 보면 수강 완료예요."}
+        </p>
       </div>
     </div>
   );

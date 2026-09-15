@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
+import { Button } from "@/components/ui/Button";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"] as const;
 
@@ -70,7 +72,7 @@ export function ListeningOmrSheet({
   async function handleSubmit() {
     if (!canSubmit || submitting) return;
     if (answeredCount === 0) {
-      setError("최소 1문항 이상 마킹해 주세요.");
+      setError("한 문항 이상 마킹해 주세요.");
       return;
     }
 
@@ -78,7 +80,7 @@ export function ListeningOmrSheet({
     if (
       unanswered > 0 &&
       !window.confirm(
-        `${unanswered}문항이 비어 있습니다. 그대로 제출할까요?`
+        `${unanswered}문항이 비어 있어요. 그대로 제출할까요?`
       )
     ) {
       return;
@@ -137,43 +139,47 @@ export function ListeningOmrSheet({
   );
 
   return (
-    <div className="rounded-2xl border border-sky-100 bg-white p-4 shadow-sm sm:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-base font-bold text-slate-900">OMR 답안지</h2>
-          <p className="mt-1 text-sm text-slate-600">{setTitle}</p>
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-card sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-bold text-slate-900">답안지</h2>
+          <p className="mt-0.5 truncate text-xs text-slate-500">{setTitle}</p>
         </div>
-        {result && (
-          <div className="rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 px-4 py-2 text-center text-white">
-            <p className="text-xs font-semibold opacity-90">채점 결과</p>
-            <p className="text-2xl font-black tabular-nums">{result.score}점</p>
-            <p className="text-xs">
+        {result ? (
+          <div className="inline-flex items-baseline gap-2 rounded-md bg-brand-50 px-3 py-1.5 text-brand-700">
+            <span className="text-xs font-semibold">채점 결과</span>
+            <span className="text-xl font-bold tabular-nums">{result.score}점</span>
+            <span className="text-xs font-semibold tabular-nums">
               {result.correctCount}/{result.totalCount} 정답
-            </p>
+            </span>
           </div>
+        ) : (
+          <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-slate-600">
+            마킹 {answeredCount}/{sorted.length}
+          </span>
         )}
       </div>
 
       {!canSubmit && (
-        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-700">
           답안 제출은 <span className="font-semibold">학생 계정</span>으로 로그인한
-          뒤 이용할 수 있습니다. 위에서 음원은 계속 들을 수 있습니다.
+          뒤 할 수 있어요. 음원은 위에서 계속 들을 수 있어요.
         </p>
       )}
 
       {error && (
-        <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700">
           {error}
         </p>
       )}
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[320px] border-collapse text-sm">
+      <div className="-mx-1 mt-4 overflow-x-auto px-1">
+        <table className="w-full min-w-[300px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-sky-200 text-xs text-sky-800">
-              <th className="w-12 py-2 text-left font-bold">번호</th>
+            <tr className="border-b border-slate-200 text-xs text-slate-500">
+              <th className="w-12 py-2 text-left font-semibold">번호</th>
               {CIRCLED.map((label) => (
-                <th key={label} className="w-10 py-2 text-center font-bold">
+                <th key={label} className="py-2 text-center font-semibold">
                   {label}
                 </th>
               ))}
@@ -185,15 +191,15 @@ export function ListeningOmrSheet({
               const graded = resultByQuestion.get(q.id);
               const rowTone = graded
                 ? graded.isCorrect
-                  ? "bg-emerald-50/80"
-                  : "bg-red-50/60"
+                  ? "bg-green-50/70"
+                  : "bg-rose-50/70"
                 : "";
               return (
                 <tr
                   key={q.id}
-                  className={`border-b border-sky-50 ${rowTone}`}
+                  className={`border-b border-slate-100 last:border-b-0 ${rowTone}`}
                 >
-                  <td className="py-2 font-bold tabular-nums text-slate-800">
+                  <td className="py-1.5 pl-1 font-semibold tabular-nums text-slate-800">
                     {q.orderIndex}
                   </td>
                   {CIRCLED.map((_, i) => {
@@ -213,17 +219,18 @@ export function ListeningOmrSheet({
                           disabled={!canSubmit || Boolean(result)}
                           onClick={() => selectAnswer(q.id, choice)}
                           aria-label={`${q.orderIndex}번 ${CIRCLED[i]} 선택`}
-                          className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full border-2 text-[11px] font-bold transition ${
+                          aria-pressed={isSelected}
+                          className={`mx-auto flex h-9 w-9 items-center justify-center rounded-full border-[1.5px] text-xs font-semibold tabular-nums transition ${
                             isWrongMark
-                              ? "border-red-500 bg-red-500 text-white"
+                              ? "border-rose-600 bg-rose-600 text-white"
                               : isCorrectMark
-                                ? "border-emerald-500 bg-emerald-500 text-white"
+                                ? "border-green-700 bg-green-700 text-white"
                                 : isSelected
-                                  ? "border-sky-600 bg-sky-600 text-white"
-                                  : "border-slate-300 bg-white text-slate-400 hover:border-sky-400"
+                                  ? "border-brand-600 bg-brand-600 text-white"
+                                  : "border-slate-300 bg-white text-slate-400 hover:border-brand-400 hover:text-brand-600"
                           } disabled:cursor-default`}
                         >
-                          {isSelected || isCorrectMark ? "●" : ""}
+                          {choice}
                         </button>
                       </td>
                     );
@@ -235,36 +242,32 @@ export function ListeningOmrSheet({
         </table>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-600">
-          마킹 {answeredCount}/{sorted.length}문항
-        </p>
+      <div className="mt-4 flex flex-col gap-2">
         {canSubmit && !result && (
-          <button
-            type="button"
+          <Button
             onClick={() => void handleSubmit()}
             disabled={submitting}
-            className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+            className="h-11 w-full text-[15px]"
           >
             {submitting ? "채점 중…" : "답안 제출 · 채점"}
-          </button>
+          </Button>
         )}
         {canSubmit && result && (
-          <button
-            type="button"
+          <Button
+            variant="secondary"
             onClick={resetForRetry}
-            className="rounded-xl border border-sky-300 bg-white px-5 py-2.5 text-sm font-semibold text-sky-800"
+            className="h-11 w-full text-[15px]"
           >
+            <Icon name="rotate" size={16} />
             다시 풀기
-          </button>
+          </Button>
+        )}
+        {result && (
+          <p className="text-center text-xs text-slate-500">
+            제출했어요 · 학습 현황과 리포트에 반영돼요
+          </p>
         )}
       </div>
-
-      {result && (
-        <p className="mt-3 text-center text-xs text-slate-500">
-          제출 완료 · 학습 현황·리포트에 반영됩니다
-        </p>
-      )}
     </div>
   );
 }

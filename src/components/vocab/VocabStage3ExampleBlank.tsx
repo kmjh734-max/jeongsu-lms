@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Icon } from "@/components/layout/NavIcon";
+import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
 import {
   completeStage3,
   recordStage3ExampleAttempt,
@@ -42,6 +43,7 @@ export function VocabStage3ExampleBlank({
 }: VocabStage3ExampleBlankProps) {
   const router = useRouter();
   const hub = hubHref ?? "/student/vocab";
+  const setHref = hubHref ?? `/student/vocab/${setId}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const [queue, setQueue] = useState(() => shuffleQuestions(initialQuestions));
   const [answer, setAnswer] = useState("");
@@ -57,6 +59,7 @@ export function VocabStage3ExampleBlank({
   const total = initialQuestions.length;
   const current = queue[0];
   const progressPercent = total > 0 ? Math.round((mastered / total) * 100) : 0;
+  const wrong = Boolean(feedback?.showAnswer);
 
   useEffect(() => {
     if (!current || feedback?.showAnswer) return;
@@ -145,13 +148,17 @@ export function VocabStage3ExampleBlank({
   }
 
   if (itemCount === 0) {
-    return <p className="text-center text-slate-600">단어가 없습니다.</p>;
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500 shadow-card">
+        단어가 없어요.
+      </div>
+    );
   }
 
   if (total === 0) {
     return (
       <EmptyQuestionsView
-        hub={hub}
+        backHref={setHref}
         setTitle={setTitle}
         message="예문이 있는 단어가 없어 3단계를 자동 완료합니다."
       />
@@ -160,11 +167,14 @@ export function VocabStage3ExampleBlank({
 
   if (!current) {
     return (
-      <div className="text-center">
-        <p className="font-semibold text-emerald-700">3단계 완료</p>
+      <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4 rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-card">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-700 text-white">
+          <Icon name="check" size={24} strokeWidth={2.6} />
+        </span>
+        <p className="text-lg font-bold text-slate-900">3단계 완료</p>
         <Button
           type="button"
-          className="mt-4"
+          className="h-11 w-full px-5 text-[15px] sm:w-[200px]"
           onClick={() => router.push(hub)}
         >
           단어장으로
@@ -173,55 +183,120 @@ export function VocabStage3ExampleBlank({
     );
   }
 
+  const [before, ...afterParts] = current.blankSentence.split("______");
+  const after = afterParts.join("______");
+  const hasBlank = afterParts.length > 0;
+
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-4 px-2">
-      <div>
-        <Link
-          href={hub}
-          className="text-sm text-brand-600 hover:underline"
-        >
-          ← 단어장으로
-        </Link>
-        <h1 className="mt-1 text-lg font-semibold">{setTitle} · 3단계</h1>
-        <p className="text-sm text-slate-500">
-          예문 빈칸에 들어갈 영어 단어를 입력하세요
-        </p>
+    <div className="flex w-full flex-col gap-6 sm:gap-8">
+      <VocabStudyHeader
+        backHref={setHref}
+        backLabel={setTitle}
+        stageLabel="3단계"
+        title="예문 빈칸"
+        progressLabel={`맞춘 문제 ${mastered} / ${total} · 남은 ${queue.length}개`}
+        percent={progressPercent}
+      />
+
+      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 sm:mt-6 sm:gap-[22px]">
         {excludedCount > 0 && (
-          <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            예문이 없는 단어 {excludedCount}개는 3단계에서 제외되었습니다.
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[13px] text-amber-700">
+            예문이 없는 단어 {excludedCount}개는 3단계에서 빠졌어요.
           </p>
         )}
-        <ProgressBar
-          percent={progressPercent}
-          label={`맞춘 문제 ${mastered} / ${total} · 남은 ${queue.length}개`}
-        />
-      </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-center text-sm text-slate-600">
-          빈칸에 들어갈 영어 단어를 입력하세요.
-        </p>
-        {current.exampleMeaning && (
-          <p className="mt-4 text-center text-sm text-slate-600">
-            {current.exampleMeaning}
+        <div className="flex flex-col gap-[18px] rounded-lg border border-slate-200 bg-white px-5 py-6 shadow-card sm:px-8 sm:py-7">
+          <p className="text-center text-[13px] font-semibold text-slate-500">
+            빈칸에 들어갈 영어 단어를 입력하세요
           </p>
-        )}
-        <p
-          className={`text-center text-xl font-medium leading-relaxed text-slate-900 ${
-            current.exampleMeaning ? "mt-4" : "mt-6"
-          }`}
-        >
-          {current.blankSentence}
-        </p>
-
-        {feedback?.showAnswer ? (
-          <div className="mt-8 space-y-4 text-center">
-            <p className="text-lg font-semibold text-rose-700">오답입니다</p>
-            <p className="text-2xl font-bold text-emerald-800">
-              {feedback.displayAnswer}
+          <div className="flex flex-col gap-2.5">
+            {current.exampleMeaning && (
+              <p className="break-keep text-center text-base leading-relaxed text-slate-600">
+                {current.exampleMeaning}
+              </p>
+            )}
+            <p className="break-words text-center text-xl font-semibold leading-relaxed text-slate-900 sm:text-2xl">
+              {hasBlank ? (
+                <>
+                  {before}
+                  <span
+                    className={`mx-0.5 inline-block min-w-[4.5em] border-b-2 px-1 text-center ${
+                      wrong
+                        ? "border-green-700 text-green-700"
+                        : "border-brand-600"
+                    }`}
+                  >
+                    {wrong ? feedback?.displayAnswer : "\u00a0"}
+                  </span>
+                  {after}
+                </>
+              ) : (
+                current.blankSentence
+              )}
             </p>
+          </div>
+
+          <input
+            ref={inputRef}
+            className={`h-14 w-full rounded-lg border-2 px-4 text-center text-2xl font-semibold tracking-wide transition placeholder:text-lg placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400 focus:outline-none sm:h-[60px] ${
+              wrong
+                ? "border-rose-600 bg-rose-50 text-rose-700"
+                : "border-slate-300 bg-white text-slate-900 focus:border-brand-600 focus:ring-4 focus:ring-brand-50"
+            }`}
+            value={answer}
+            readOnly={wrong}
+            onChange={(e) => {
+              setAnswer(e.target.value.toLowerCase());
+              if (message === "답을 입력해주세요.") setMessage(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (wrong) {
+                  if (!e.repeat) continueAfterWrong();
+                } else {
+                  checkAnswer();
+                }
+              }
+            }}
+            placeholder="영어 단어 입력"
+            autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            aria-label="빈칸 영어 단어 입력"
+            aria-invalid={wrong || undefined}
+          />
+
+          {wrong && feedback && (
+            <>
+              <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3.5">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
+                  <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-rose-700 text-white">
+                    <Icon name="x" size={14} strokeWidth={2.6} />
+                  </span>
+                  <span className="text-sm font-semibold text-rose-700">
+                    아쉬워요
+                  </span>
+                  <span className="text-sm text-slate-500">정답</span>
+                  <span className="break-all text-xl font-bold text-green-700">
+                    {feedback.displayAnswer}
+                  </span>
+                </div>
+              </div>
+              <p className="text-center text-xs text-slate-400">
+                틀린 단어는 마지막에 한 번 더 나와요
+              </p>
+            </>
+          )}
+        </div>
+
+        <div className="flex justify-center">
+          {wrong ? (
             <Button
+              key="next"
               type="button"
+              className="h-12 w-full gap-1.5 px-5 text-[15px] sm:h-11 sm:w-[200px]"
               onClick={continueAfterWrong}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -231,65 +306,52 @@ export function VocabStage3ExampleBlank({
               }}
             >
               다음으로
+              <Icon name="chevron" size={16} strokeWidth={2} />
             </Button>
-          </div>
-        ) : (
-          <>
-            <input
-              ref={inputRef}
-              className="ui-input mt-8 min-h-[3.5rem] text-center text-xl"
-              value={answer}
-              onChange={(e) => {
-                setAnswer(e.target.value.toLowerCase());
-                if (message === "답을 입력해주세요.") setMessage(null);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  checkAnswer();
-                }
-              }}
-              placeholder="영어 단어 입력"
-              autoComplete="off"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              aria-label="빈칸 영어 단어 입력"
-            />
-            <div className="mt-6 flex justify-center">
-              <Button type="button" onClick={checkAnswer}>
-                정답 확인
-              </Button>
-            </div>
-          </>
+          ) : (
+            <Button
+              key="check"
+              type="button"
+              className="h-12 w-full px-5 text-[15px] sm:h-11 sm:w-[200px]"
+              onClick={checkAnswer}
+            >
+              정답 확인
+            </Button>
+          )}
+        </div>
+
+        {message && (
+          <p
+            className="text-center text-sm font-medium text-amber-700"
+            role="status"
+          >
+            {message}
+          </p>
         )}
       </div>
-
-      {message && (
-        <p className="text-center text-sm font-medium text-amber-700" role="status">
-          {message}
-        </p>
-      )}
     </div>
   );
 }
 
 function EmptyQuestionsView(props: {
-  hub: string;
+  backHref: string;
   setTitle: string;
   message: string;
 }) {
   return (
-    <div className="mx-auto max-w-lg space-y-4 px-2 text-center">
+    <div className="flex w-full flex-col gap-6">
       <Link
-        href={props.hub}
-        className="text-sm text-brand-600 hover:underline"
+        href={props.backHref}
+        className="-ml-1 inline-flex min-h-[44px] items-center gap-1 self-start px-1 text-[13px] font-medium text-slate-500 transition hover:text-slate-900 sm:min-h-0"
       >
-        ← 단어장으로
+        <Icon name="left" size={16} />
+        {props.setTitle}
       </Link>
-      <h1 className="text-lg font-semibold">{props.setTitle} · 3단계</h1>
-      <p className="text-slate-600">{props.message}</p>
-      <p className="text-sm text-slate-500">잠시만 기다려 주세요...</p>
+      <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-card">
+        <p className="text-xs font-semibold text-brand-700">3단계 예문 빈칸</p>
+        <p className="text-sm text-slate-700">{props.message}</p>
+        <p className="text-sm text-slate-400">잠시만 기다려 주세요...</p>
+      </div>
     </div>
   );
 }

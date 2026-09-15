@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
+import { StudentAudioBar } from "@/components/listening/StudentAudioBar";
 
 export interface ListeningAudioItem {
   orderIndex: number;
@@ -22,7 +24,7 @@ export function StudentListeningAudioHub({
   embedded = false,
   compact = false,
 }: StudentListeningAudioHubProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [mode, setMode] = useState<"idle" | "all" | "single">("idle");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [queuePos, setQueuePos] = useState(0);
@@ -81,122 +83,113 @@ export function StudentListeningAudioHub({
 
   const readyCount = playable.length;
   const totalCount = items.length;
+  const isPlaying = (mode === "all" || mode === "single") && Boolean(currentItem?.audioUrl);
 
   const inner = (
-    <>
-        {!embedded && (
-          <>
-            <p className="text-center text-xs font-semibold tracking-[0.25em] text-sky-600">
-              ENGLISH LISTENING
-            </p>
-            <h1 className="mt-2 text-center text-xl font-bold text-slate-900">
-              {setTitle}
-            </h1>
-          </>
-        )}
-        {!compact && (
-          <p className={`text-center text-sm text-slate-500 ${embedded ? "" : "mt-1"}`}>
-            음원 {readyCount}/{totalCount}개 준비됨
+    <div className="flex flex-col gap-2.5">
+      {!embedded && (
+        <div>
+          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-side-muted">
+            <Icon name="headphones" size={16} />
+            듣기 평가
           </p>
-        )}
-
-        <div
-          className={`rounded-2xl border border-sky-100 bg-white shadow-sm ${
-            compact ? "p-3" : "mt-6 p-5"
-          } ${embedded && !compact ? "mt-0" : ""}`}
-        >
-          <button
-            type="button"
-            onClick={startAll}
-            disabled={readyCount === 0}
-            className={`w-full rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 font-bold text-white shadow-md disabled:opacity-40 ${
-              compact ? "px-3 py-2.5 text-xs" : "px-4 py-3.5 text-sm"
-            }`}
-          >
-            전체 듣기 ({readyCount}문항)
-          </button>
-          {!compact && (
-            <p className="mt-2 text-center text-xs text-slate-500">
-              1번부터 순서대로 자동 재생됩니다
-            </p>
-          )}
+          <h1 className="mt-2 text-xl font-bold leading-snug text-white">{setTitle}</h1>
         </div>
+      )}
+      {!compact && (
+        <p className="text-sm tabular-nums text-side-text">
+          음원 {readyCount}/{totalCount}개 준비됨
+        </p>
+      )}
 
-        {(mode === "all" || mode === "single") && currentItem?.audioUrl && (
-          <div
-            className={`rounded-2xl border border-sky-200 bg-sky-50/60 ${
-              compact ? "mt-2 p-3" : "mt-4 p-4"
-            }`}
-          >
-            <p className="text-center text-sm font-semibold text-sky-800">
+      {isPlaying && currentItem?.audioUrl ? (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[13px] font-semibold tabular-nums text-white">
               {mode === "all"
                 ? `전체 듣기 · ${queuePos + 1}/${playable.length} · ${currentItem.orderIndex}번`
                 : `${currentItem.orderIndex}번 듣기`}
             </p>
-            <audio
-              ref={audioRef}
-              key={currentItem.audioUrl}
-              controls
-              playsInline
-              src={currentItem.audioUrl}
-              className="mt-3 w-full"
-              preload="auto"
-              onEnded={mode === "all" ? playNextInQueue : undefined}
-            />
             <button
               type="button"
               onClick={stopPlayback}
-              className="mt-3 w-full rounded-lg border border-slate-200 bg-white py-2 text-xs font-medium text-slate-600"
+              className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-semibold text-side-text transition hover:bg-white/10 hover:text-white"
             >
+              <Icon name="x" size={14} strokeWidth={2.2} />
               재생 중지
             </button>
           </div>
-        )}
-
-        <div className={compact ? "mt-2" : "mt-6"}>
-          {!compact && (
-            <p className="mb-3 text-sm font-bold text-slate-800">문항별 듣기</p>
-          )}
-          <ul
-            className={`grid gap-1.5 ${
-              compact
-                ? "grid-cols-5 sm:grid-cols-10"
-                : "grid-cols-4 gap-2 sm:grid-cols-5"
-            }`}
-          >
-            {items.map((item) => {
-              const hasAudio = Boolean(item.audioUrl);
-              const isActive =
-                mode === "single" && activeIndex === item.orderIndex;
-              return (
-                <li key={item.orderIndex}>
-                  <button
-                    type="button"
-                    disabled={!hasAudio}
-                    onClick={() => playOne(item.orderIndex)}
-                    className={`w-full rounded-xl border text-center font-bold tabular-nums transition ${
-                      compact ? "px-0.5 py-1.5 text-xs" : "px-1 py-2.5 text-sm"
-                    } ${
-                      isActive
-                        ? "border-sky-500 bg-sky-500 text-white"
-                        : hasAudio
-                          ? "border-sky-200 bg-white text-sky-800 hover:border-sky-400 hover:bg-sky-50"
-                          : "border-slate-100 bg-slate-50 text-slate-300"
-                    }`}
-                  >
-                    {item.orderIndex}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          {items.some((i) => !i.audioUrl) && (
-            <p className="mt-3 text-center text-xs text-amber-700">
-              회색 번호는 음원이 아직 없습니다.
-            </p>
-          )}
+          <StudentAudioBar
+            key={currentItem.audioUrl}
+            src={currentItem.audioUrl}
+            variant="inset"
+            audioRef={audioRef}
+            onEnded={mode === "all" ? playNextInQueue : undefined}
+          />
         </div>
-    </>
+      ) : (
+        <button
+          type="button"
+          onClick={startAll}
+          disabled={readyCount === 0}
+          className={`flex w-full items-center justify-center gap-1.5 rounded-md bg-white font-bold text-side transition hover:bg-slate-100 disabled:opacity-40 ${
+            compact ? "h-10 text-sm" : "h-11 text-[15px]"
+          }`}
+        >
+          <Icon name="play" size={13} strokeWidth={1} filled />
+          전체 듣기 ({readyCount}문항)
+        </button>
+      )}
+      {!compact && !isPlaying && (
+        <p className="text-center text-xs text-side-muted">
+          1번부터 순서대로 자동 재생돼요
+        </p>
+      )}
+
+      <div className={compact ? "" : "mt-2"}>
+        {!compact && (
+          <p className="mb-2 text-sm font-bold text-white">문항별 듣기</p>
+        )}
+        <ul
+          className={`grid gap-1.5 ${
+            compact ? "grid-cols-8 sm:grid-cols-10" : "grid-cols-5 gap-2"
+          }`}
+        >
+          {items.map((item) => {
+            const hasAudio = Boolean(item.audioUrl);
+            const isActive =
+              (mode === "single" && activeIndex === item.orderIndex) ||
+              (mode === "all" && currentItem?.orderIndex === item.orderIndex);
+            return (
+              <li key={item.orderIndex}>
+                <button
+                  type="button"
+                  disabled={!hasAudio}
+                  onClick={() => playOne(item.orderIndex)}
+                  aria-label={`${item.orderIndex}번 듣기`}
+                  className={`flex w-full items-center justify-center rounded-md font-semibold tabular-nums transition ${
+                    compact ? "h-8 text-xs" : "h-10 text-sm"
+                  } ${
+                    isActive
+                      ? "bg-white text-side"
+                      : hasAudio
+                        ? "bg-white/[0.08] text-white hover:bg-white/15"
+                        : "cursor-not-allowed text-side-muted/50 ring-1 ring-inset ring-white/10"
+                  }`}
+                >
+                  {item.orderIndex}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        {items.some((i) => !i.audioUrl) && (
+          <p className="mt-2 text-center text-xs text-amber-300">
+            흐린 번호는 음원이 아직 없어요.
+          </p>
+        )}
+      </div>
+    </div>
   );
 
   if (embedded) {
@@ -204,8 +197,8 @@ export function StudentListeningAudioHub({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-cyan-50/40 px-4 py-8">
-      <div className="mx-auto max-w-lg">{inner}</div>
+    <div className="min-h-screen bg-canvas px-4 py-6">
+      <div className="mx-auto max-w-lg rounded-lg bg-side p-5 shadow-card">{inner}</div>
     </div>
   );
 }

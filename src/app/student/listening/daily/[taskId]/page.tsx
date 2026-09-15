@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getTodayIsoKorea } from "@/lib/date/korea-today";
@@ -8,6 +7,12 @@ import {
 } from "@/lib/listening/schedule/update-progress";
 import { StudentListeningPractice } from "@/components/listening/StudentListeningPractice";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+/** "2026-09-15" → "9월 15일" */
+function formatTaskDate(iso: string): string {
+  const [, m, d] = iso.slice(0, 10).split("-");
+  return m && d ? `${Number(m)}월 ${Number(d)}일` : iso;
+}
 
 export default async function StudentListeningDailyTaskPage({
   params,
@@ -110,31 +115,27 @@ export default async function StudentListeningDailyTaskPage({
 
   const setTitle = primarySet?.title ?? "듣기 학습";
 
+  const metaLine = [
+    assignment?.title ?? "스케줄 과제",
+    formatTaskDate(task.task_date as string),
+    `오늘 ${questionIds.length}문항${
+      ordered.length !== questionIds.length ? ` (불러온 ${ordered.length}문항)` : ""
+    }`,
+  ].join(" · ");
+
   return (
-    <div>
-      <Link
-        href="/student/listening"
-        className="text-sm text-indigo-600 hover:underline"
-      >
-        ← 듣기 목록
-      </Link>
-      <p className="mt-2 text-xs text-slate-500">
-        {assignment?.title ?? "스케줄 과제"} · {task.task_date} · 오늘{" "}
-        {questionIds.length}문항
-        {ordered.length !== questionIds.length
-          ? ` (불러온 ${ordered.length}문항)`
-          : ""}
-      </p>
+    <div className="space-y-4">
       {missingCount > 0 && (
-        <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          일부 문항({missingCount}개)을 불러오지 못했습니다. 이어 풀기 후
-          Dictation이 빠진다면 새로고침해 주세요.
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          일부 문항({missingCount}개)을 불러오지 못했어요. 이어 풀다가 받아쓰기가
+          빠지면 새로고침해 주세요.
         </p>
       )}
-      <div className="mt-4">
+      <div>
         <StudentListeningPractice
           setId={(primarySet?.id as string) ?? (task.set_id as string)}
           setTitle={setTitle}
+          metaLine={metaLine}
           dictationSettings={{
             dictation_enabled: requireDictation,
             dictation_pass_score: passScore,

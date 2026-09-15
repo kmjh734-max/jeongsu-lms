@@ -1,5 +1,5 @@
-import { StudentDashboardContent } from "@/components/student/StudentDashboardContent";
+import { StudentHomeContent } from "@/components/student/StudentHomeContent";
 
 export default function StudentDashboardPage() {
-  return <StudentDashboardContent />;
+  return <StudentHomeContent />;
 }

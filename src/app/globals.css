@@ -1612,7 +1612,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   padding: 8mm 10mm;
   background: #fff;
   color: #111;
-  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+  /* 워크북·분석서와 같은 글꼴·강조색 (글꼴은 인쇄 루트에서 물려받는다) */
+  --qg-accent: #f07167;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
   overflow: hidden;
   display: flex;
@@ -1631,9 +1632,9 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  border-bottom: 2px solid #1a3a6e;
+  border-bottom: 1mm solid var(--qg-accent);
   padding-bottom: 1.5mm;
-  margin-bottom: 2mm;
+  margin-bottom: 2.5mm;
   gap: 2.5mm;
 }
 
@@ -1653,7 +1654,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   align-items: center;
   justify-content: center;
   background: #fff;
-  border: 1px solid #d6dee8;
+  border: 1px solid #e2e8f0;
   border-radius: 1.5mm;
   overflow: hidden;
 }
@@ -1705,21 +1706,28 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .qg-print-page-no {
   margin-top: 0.5mm;
   font-size: 8pt;
-  color: #64748b;
-  font-weight: 600;
+  color: var(--qg-accent);
+  font-weight: 800;
 }
 
 .qg-print-footer {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 3mm;
   margin-top: auto;
   padding-top: 2mm;
-  border-top: 1px solid #c5d0e0;
-  font-size: 8pt;
-  color: #475569;
+  border-top: 1px solid #e2e8f0;
+  font-size: 7.5pt;
+  color: #94a3b8;
   font-weight: 600;
+}
+
+.qg-print-footer-page {
+  font-size: 9pt;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.02em;
 }
 
 .qg-print-footer-left {
@@ -1739,7 +1747,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .qg-print-footer-right {
   /* 자료 이름이 길면 줄여서 한 줄로 둔다(꼬리말이 두 줄이 되면 쪽이 넘친다). */
   min-width: 0;
-  max-width: 62%;
+  text-align: right;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1747,7 +1755,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 
 .qg-print-header-compact {
   padding-bottom: 1.5mm;
-  margin-bottom: 2mm;
+  margin-bottom: 2.5mm;
+  border-bottom-width: 0.35mm;
 }
 
 .qg-print-header-answer {
@@ -1761,13 +1770,13 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .qg-print-kicker {
   font-size: 8.5pt;
   font-weight: 800;
-  color: #234b8c;
-  letter-spacing: 0.04em;
+  color: var(--qg-accent);
+  letter-spacing: 0.02em;
 }
 
 /* 해설지 헤더 — 문제지와 같은 테두리 스타일, 강조만 다름 */
 .qg-print-header-answer-sheet .qg-print-kicker {
-  color: #c45c26;
+  color: var(--qg-accent);
 }
 
 .qg-print-answer-card .qg-print-answer-head {
@@ -1784,18 +1793,18 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   break-inside: avoid;
   page-break-inside: avoid;
   padding-bottom: 2mm;
-  border-bottom: 1px solid #e8eef6;
+  border-bottom: 1px solid #edf0f4;
 }
 
 .qg-print-answer-head {
   font-size: 10pt;
   font-weight: 800;
   margin-bottom: 1mm;
-  color: #1a3a6e;
+  color: #0f172a;
 }
 
 .qg-print-answer-mark {
-  color: #c45c26;
+  color: var(--qg-accent);
   font-weight: 900;
 }
 
@@ -1815,7 +1824,9 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 }
 
 .qg-print-title-sm {
-  font-size: 11pt;
+  font-size: 10.5pt;
+  font-weight: 800;
+  color: #1e293b;
   margin-top: 0.5mm;
 }
 
@@ -1827,20 +1838,20 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .qg-print-sub {
   margin-top: 0.5mm;
   font-size: 8.5pt;
-  color: #4a5568;
+  color: #94a3b8;
 }
 
 .qg-print-banner {
   margin-top: 1mm;
   font-size: 10pt;
   font-weight: 900;
-  color: #1a3a6e;
+  color: var(--qg-accent);
 }
 
 .qg-print-meta {
   font-size: 8.5pt;
   font-weight: 700;
-  color: #4a5568;
+  color: #64748b;
   white-space: nowrap;
 }
 
@@ -1858,7 +1869,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 }
 
 .qg-print-col-right {
-  border-left: 1.2px solid #c5d0e0;
+  border-left: 1px solid #e2e8f0;
   padding-left: 4mm;
 }
 
@@ -1867,7 +1878,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   page-break-inside: avoid;
   padding-bottom: 2.5mm;
   margin: 0 0 3mm;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #edf0f4;
   font-size: 9pt;
   line-height: 1.4;
 }
@@ -1879,7 +1890,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 }
 
 .qg-print-q-num {
-  color: #1a3a6e;
+  color: var(--qg-accent);
   font-weight: 900;
 }
 
@@ -1916,8 +1927,8 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .qg-print-given-box {
   margin: 1.2mm 0 2mm;
   padding: 2mm 2.4mm;
-  border: 1.2px solid #1a3a6e;
-  background: #f7fafc;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
   font-family: Georgia, "Times New Roman", "Noto Serif KR", serif;
   font-size: 8.6pt;
   line-height: 1.45;
@@ -1928,31 +1939,29 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .qg-print-section-hdr {
   margin: 1.5mm 0 1mm;
   padding-bottom: 0.6mm;
-  border-bottom: 1px solid #94a3b8;
+  border-bottom: 1px solid #cbd5e1;
 }
 
 .qg-print-section-hdr p {
   margin: 0;
   font-size: 9pt;
   font-weight: 700;
-  color: #1a3a6e;
+  color: #1e293b;
   letter-spacing: -0.01em;
 }
 
 .qg-print-type-banner {
   margin: 0 0 2.5mm;
-  padding: 1.6mm 2mm;
-  border: 1.2px solid #1a3a6e;
-  background: #f1f5f9;
+  padding: 0.6mm 0 1mm;
 }
 
 .qg-print-type-banner-title {
   margin: 0;
-  font-size: 11pt;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 13pt;
+  font-weight: 900;
+  color: var(--qg-accent);
   letter-spacing: -0.02em;
-  text-align: center;
+  text-align: left;
 }
 
 .qg-print-wo-box {
@@ -2153,17 +2162,17 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
 .qg-print-choice-mark {
   flex-shrink: 0;
   width: 4.5mm;
-  color: #1a3a6e;
+  color: #334155;
   font-weight: 700;
 }
 
 /* 일치개수: 지문 박스 + <보기> 박스 */
 .qg-print-count-num {
-  color: #2f7a3e;
+  color: var(--qg-accent);
 }
 
 .qg-print-count-box {
-  border: 1.2px solid #3a8f4a;
+  border: 1px solid #94a3b8;
   padding: 2mm 2.2mm;
   margin: 1.5mm 0 2mm;
   background: #fff;
@@ -2173,7 +2182,7 @@ body[data-vocab-print-scope="exam"] .vocab-print-page--answer-key {
   text-align: center;
   font-size: 9.5pt;
   font-weight: 900;
-  color: #2f7a3e;
+  color: #1e293b;
   margin: 1.5mm 0 1mm;
   letter-spacing: 0.02em;
 }

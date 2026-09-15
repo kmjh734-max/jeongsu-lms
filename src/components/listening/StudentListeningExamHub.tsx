@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Icon } from "@/components/layout/NavIcon";
 import {
   ListeningOmrSheet,
   type OmrAttemptResult,
@@ -119,31 +120,32 @@ export function StudentListeningExamHub({
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-white to-cyan-50/40 pb-8">
-      <div className="mx-auto max-w-lg px-4 pt-6">
-        <p className="text-center text-xs font-semibold tracking-[0.25em] text-sky-600">
-          ENGLISH LISTENING
-        </p>
-        <h1 className="mt-2 text-center text-xl font-bold text-slate-900">
-          {setTitle}
-        </h1>
-        <p className="mt-1 text-center text-sm text-slate-500">
-          듣기와 OMR 답안을 한 화면에서 이용하세요
-        </p>
+    <div className="min-h-screen bg-canvas pb-10">
+      <div className="mx-auto max-w-lg px-4 pt-5">
+        <header className="rounded-lg bg-side px-5 py-5 text-white shadow-card">
+          <p className="flex items-center gap-1.5 text-[13px] font-semibold text-side-muted">
+            <Icon name="headphones" size={16} />
+            듣기 평가
+          </p>
+          <h1 className="mt-2 text-xl font-bold leading-snug">{setTitle}</h1>
+          <p className="mt-1 text-sm text-side-text">듣기와 답안 입력을 한 화면에서</p>
+        </header>
       </div>
 
-      <div className="sticky top-0 z-20 border-b border-sky-100 bg-white/95 shadow-sm backdrop-blur-sm">
-        <div className="mx-auto max-w-lg px-4 py-3">
-          <StudentListeningAudioHub
-            setTitle={setTitle}
-            items={audioItems}
-            embedded
-            compact
-          />
+      <div className="sticky top-0 z-20 bg-canvas/95 pt-3 backdrop-blur-sm">
+        <div className="mx-auto max-w-lg px-4 pb-1">
+          <div className="rounded-lg bg-side p-3 shadow-card-hover">
+            <StudentListeningAudioHub
+              setTitle={setTitle}
+              items={audioItems}
+              embedded
+              compact
+            />
+          </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-lg px-4 pt-4">
+      <div className="mx-auto max-w-lg px-4 pt-3">
         <ListeningOmrSheet
           setId={setId}
           setTitle={setTitle}

@@ -29,14 +29,12 @@ export default async function StudentVocabStage4ResultPage({
   if (!detail || detail.attempt.set_id !== setId) notFound();
 
   return (
-    <div className="py-6 sm:py-10">
-      <VocabStage3ResultView
-        setId={setId}
-        setTitle={detail.setTitle}
-        attempt={detail.attempt}
-        answers={detail.answers}
-        stageNumber={4}
-      />
-    </div>
+    <VocabStage3ResultView
+      setId={setId}
+      setTitle={detail.setTitle}
+      attempt={detail.attempt}
+      answers={detail.answers}
+      stageNumber={4}
+    />
   );
 }

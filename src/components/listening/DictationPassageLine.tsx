@@ -27,8 +27,8 @@ export function DictationPassageLineView({
     markerCount > 0 ? line.blankIds.slice(0, markerCount) : [];
 
   return (
-    <p className="font-mono text-sm leading-relaxed text-slate-900">
-      <span className="mr-2 font-semibold text-violet-700">{line.speaker}:</span>
+    <p className="text-[15px] leading-[2.3] text-slate-700">
+      <b className="mr-1 font-bold text-slate-900">{line.speaker}:</b>
       {parts.map((part, idx) => (
         <span key={`${line.speaker}-${idx}`}>
           {part}
@@ -44,7 +44,7 @@ export function DictationPassageLineView({
         </span>
       ))}
       {blankIds.length > 0 && parts.length === 1 && !line.text.includes("________") && (
-        <span className="ml-1 text-xs text-amber-700">(빈칸 위치 오류 — 다시 하기)</span>
+        <span className="ml-1 text-xs text-amber-700">(빈칸 위치가 어긋났어요 — 다시 하기를 눌러 주세요)</span>
       )}
     </p>
   );
@@ -64,11 +64,11 @@ function DictationInlineBlank({
   result?: DictationBlankScoreResult;
 }) {
   const widthCh = Math.max(6, Math.min(18, (value.length || 4) + 2));
-  const borderClass = result
+  const toneClass = result
     ? result.isCorrect
-      ? "border-emerald-400 bg-emerald-50"
-      : "border-red-400 bg-red-50"
-    : "border-violet-300 bg-white focus:border-violet-500";
+      ? "border-green-600 bg-green-50 text-green-700"
+      : "border-rose-500 bg-rose-50 text-rose-700"
+    : "border-slate-300 bg-white text-brand-700 focus:border-brand-600 focus:ring-4 focus:ring-brand-50";
 
   return (
     <input
@@ -76,7 +76,7 @@ function DictationInlineBlank({
       value={value}
       onChange={(e) => onChange(blankId, e.target.value)}
       disabled={disabled}
-      className={`mx-0.5 inline-block align-baseline rounded border px-1.5 py-0.5 text-sm font-normal normal-case text-slate-900 ${borderClass}`}
+      className={`mx-0.5 inline-block h-7 rounded border-[1.5px] px-2 align-middle text-sm font-semibold normal-case outline-none transition disabled:cursor-default disabled:opacity-100 ${toneClass}`}
       style={{ width: `${widthCh}ch`, minWidth: "4rem" }}
       autoComplete="off"
       autoCapitalize="none"
@@ -84,7 +84,7 @@ function DictationInlineBlank({
       spellCheck={false}
       inputMode="text"
       lang="en"
-      aria-label="Dictation 빈칸"
+      aria-label="받아쓰기 빈칸"
     />
   );
 }

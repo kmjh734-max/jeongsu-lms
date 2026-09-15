@@ -26,12 +26,10 @@ export default async function StudentVocabStage2Page({ params }: PageProps) {
   if (ctx.itemCount < 1) redirect(`/student/vocab/${setId}`);
 
   return (
-    <div className="py-6 sm:py-10">
-      <VocabStage2Spelling
-        setId={setId}
-        setTitle={ctx.set.title}
-        items={ctx.items}
-      />
-    </div>
+    <VocabStage2Spelling
+      setId={setId}
+      setTitle={ctx.set.title}
+      items={ctx.items}
+    />
   );
 }

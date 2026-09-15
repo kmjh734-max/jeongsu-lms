@@ -1,6 +1,10 @@
 "use client";
 
-import { DictationSection } from "@/components/listening/DictationSection";
+import Link from "next/link";
+import { DictationCard, DictationSection } from "@/components/listening/DictationSection";
+import { StudentAudioBar } from "@/components/listening/StudentAudioBar";
+import { Icon } from "@/components/layout/NavIcon";
+import { Button } from "@/components/ui/Button";
 import { continuationQuestionDisplayText } from "@/lib/listening/fix-continuation-question";
 import type {
   DictationSetSettings,
@@ -12,7 +16,7 @@ import { normalizeTableData } from "@/lib/listening/table-data";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
 import type { ListeningTableData } from "@/lib/listening/types";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
 
@@ -59,6 +63,11 @@ interface StudentListeningPracticeProps {
   questions: StudentListeningQuestion[];
   dictationSettings?: Partial<DictationSetSettings>;
   scheduleMode?: SchedulePracticeMode;
+  /** 뒤로 가기 링크 */
+  backHref?: string;
+  backLabel?: string;
+  /** 제목 아래 작은 안내(하루 과제 정보 등) */
+  metaLine?: string;
 }
 
 export function StudentListeningPractice({
@@ -67,6 +76,9 @@ export function StudentListeningPractice({
   questions,
   dictationSettings: dictationSettingsProp,
   scheduleMode,
+  backHref = "/student/listening",
+  backLabel = "듣기학습",
+  metaLine,
 }: StudentListeningPracticeProps) {
   const router = useRouter();
   const dictationSettings: DictationSetSettings = {
@@ -104,7 +116,7 @@ export function StudentListeningPractice({
   const [dictationByQuestion, setDictationByQuestion] = useState<
     Record<string, QuestionDictationStatus>
   >(initialDictation);
-  const [showScript, setShowScript] = useState(false);
+  const [, setShowScript] = useState(false);
   const [dictationKey, setDictationKey] = useState(0);
   const [dictationPrefetch, setDictationPrefetch] = useState<
     Record<string, DictationStartPayloadClient | null>
@@ -397,12 +409,24 @@ export function StudentListeningPractice({
 
   if (!q) {
     return (
-      <div className="space-y-3">
-        <p className="text-slate-600">문항이 없습니다.</p>
+      <div className="space-y-4">
+        <Link
+          href={backHref}
+          className="inline-flex w-fit items-center gap-1 text-[13px] font-medium text-slate-500 transition hover:text-slate-800"
+        >
+          <Icon name="left" size={16} />
+          {backLabel}
+        </Link>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-12 text-center shadow-card">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+            <Icon name="headphones" size={22} />
+          </span>
+          <p className="text-sm font-semibold text-slate-700">문항이 없어요.</p>
+        </div>
         {missingIncomplete && missingIncomplete.length > 0 && (
-          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            남은 문항을 불러오지 못했습니다. 페이지를 새로고침하거나 선생님께
-            문의해 주세요.
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            남은 문항을 불러오지 못했어요. 페이지를 새로고침하거나 선생님께
+            말씀해 주세요.
           </p>
         )}
       </div>
@@ -494,239 +518,388 @@ export function StudentListeningPractice({
     setShowScript(false);
   }
 
-  return (
-    <div className="mx-auto max-w-2xl space-y-5">
-      {missingIncomplete && missingIncomplete.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          남은 문항 중 {missingIncomplete.length}개를 화면에 불러오지 못했습니다.
-          새로고침 후에도 같으면 선생님께 문의해 주세요.
-        </div>
-      )}
-      <header>
-        <h1 className="text-xl font-bold text-slate-900">
-          {q.setTitle?.trim() || setTitle}
-        </h1>
-        <p className="text-sm text-slate-600">
-          {index + 1}번 / 총 {questions.length}문항
-          {q.question_type ? ` · ${q.question_type}` : ""}
+  const passScore = dictationSettings.dictation_pass_score;
+  const lastIndex = questions.length - 1;
+  const nextLockedByGate = !canGoNext && index < lastIndex;
+  const showPassHint =
+    !canGoNext && objectiveDone && dictationRequired && !currentDictationPassed;
+  const blockedHere = priorQuestionsBlocked(index) && index > 0;
+  const displayTitle = q.setTitle?.trim() || setTitle;
+  const bestDictationScore = dictationByQuestion[q.id]?.bestScore ?? null;
+
+  const navFooter = (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          variant="secondary"
+          onClick={goPrev}
+          disabled={index === 0}
+          className="pl-2.5 pr-3.5"
+        >
+          <Icon name="left" size={16} strokeWidth={2} />
+          이전 문제
+        </Button>
+        {canGoNext ? (
+          <Button onClick={goNext} className="pl-3.5 pr-2.5">
+            다음 문제
+            <Icon name="chevron" size={16} strokeWidth={2} />
+          </Button>
+        ) : (
+          <button
+            type="button"
+            disabled
+            title={
+              showPassHint
+                ? `받아쓰기 ${passScore}점 이상 필요`
+                : undefined
+            }
+            className="inline-flex h-9 cursor-not-allowed items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-slate-200 bg-slate-100 px-3.5 text-sm font-semibold text-slate-400"
+          >
+            {nextLockedByGate && <Icon name="lock" size={16} strokeWidth={2} />}
+            다음 문제
+          </button>
+        )}
+      </div>
+      {showPassHint && (
+        <p className="text-right text-xs text-amber-700">
+          받아쓰기 {passScore}점 이상이면 다음 문제로 넘어갈 수 있어요.
         </p>
-      </header>
-
-      {allComplete && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm text-emerald-800">
-          {scheduleMode
-            ? "오늘 듣기학습을 모두 완료했습니다. 잠시 후 목록으로 이동합니다."
-            : "모든 문항의 객관식·Dictation을 완료했습니다."}
-        </div>
       )}
+      {blockedHere && (
+        <p className="text-xs text-rose-700">
+          이전 문항 받아쓰기를 통과한 뒤에 진행할 수 있어요.
+        </p>
+      )}
+    </div>
+  );
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <p className="text-sm font-semibold text-slate-900">{q.order_index}번</p>
-        {q.instruction && (
-          <p className="mt-2 text-base leading-relaxed text-slate-900">{q.instruction}</p>
-        )}
-
-        <div className="mt-4">
-          {q.audio_url ? (
-            <audio
-              ref={objectiveAudioRef}
-              key={q.audio_url}
-              controls
-              src={q.audio_url}
-              className="w-full"
-              preload="auto"
-            />
-          ) : (
-            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              음원이 아직 준비되지 않았습니다.
-            </p>
-          )}
-        </div>
-
-        {table && (
-          <div className="mt-4">
-            <ListeningTableDisplay table={table} />
-          </div>
-        )}
-
-        {!table && figureUrls.length === 1 && (
-          <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={figureUrls[0]}
-              alt="문항 그림"
-              className="mx-auto max-h-[min(70vh,28rem)] w-auto max-w-full object-contain"
-            />
-          </div>
-        )}
-
-        {blankLine && !table && (
-          <p className="mt-4 font-mono text-base text-slate-900">{blankLine}</p>
-        )}
-
-        <ul className="mt-4 space-y-2">
-          {displayChoices.map(({ text, num }) => {
-            const isSelected = selected === num;
-            const choiceCorrect = objectiveDone && num === q.correct_answer;
-            const choiceWrong = objectiveDone && isSelected && num !== q.correct_answer;
-            const perChoiceImg =
-              !table && figureUrls.length > 1
-                ? figureUrls[num - 1]
-                : undefined;
+  const navigator =
+    questions.length > 1 ? (
+      <nav
+        aria-label="문항 이동"
+        className="-mx-4 min-w-0 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 lg:max-w-[55%] lg:pb-0"
+      >
+        <ol className="flex w-max gap-1.5">
+          {questions.map((item, i) => {
+            const current = i === index;
+            const done =
+              !!dictationByQuestion[item.id]?.passed || isQuestionFullyDone(item.id);
+            const answered = !!objectiveSubmitted[item.id];
+            const blocked = priorQuestionsBlocked(i);
+            const tone = current
+              ? "bg-brand-600 text-white"
+              : done
+                ? "bg-green-50 text-green-700"
+                : answered
+                  ? "bg-amber-50 text-amber-700"
+                  : "bg-slate-100 text-slate-400";
             return (
-              <li key={num}>
+              <li key={item.id}>
                 <button
                   type="button"
-                  onClick={() => selectAnswer(num)}
-                  disabled={objectiveDone}
-                  className={`w-full rounded-lg border px-4 py-3 text-left text-sm transition ${
-                    choiceWrong
-                      ? "border-red-300 bg-red-50"
-                      : choiceCorrect
-                        ? "border-green-400 bg-green-50"
-                        : isSelected
-                          ? "border-indigo-500 bg-indigo-50"
-                          : "border-slate-200 bg-white hover:border-slate-300"
+                  onClick={() => tryGoToIndex(i)}
+                  disabled={blocked}
+                  aria-current={current ? "step" : undefined}
+                  aria-label={`${item.order_index}번${
+                    done ? " · 완료" : answered ? " · 받아쓰기 남음" : ""
+                  }`}
+                  className={`flex h-[34px] min-w-[34px] items-center justify-center rounded-md px-1.5 text-[13px] font-semibold tabular-nums transition disabled:cursor-not-allowed ${tone} ${
+                    !current && !blocked ? "hover:ring-2 hover:ring-slate-200" : ""
                   }`}
                 >
-                  <span className="mr-2 font-semibold text-slate-600">
-                    {CIRCLED[num - 1] ?? `${num}.`}
-                  </span>
+                  {item.order_index}
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    ) : null;
+
+  const questionCard = (
+    <section className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-card sm:px-6 sm:py-[22px]">
+      <div className="flex items-start gap-2.5">
+        <span className="text-lg font-extrabold leading-[23px] tabular-nums text-brand-600">
+          {q.order_index}
+        </span>
+        {q.instruction && (
+          <p className="text-[15px] font-semibold leading-[23px] text-slate-900">
+            {q.instruction}
+          </p>
+        )}
+      </div>
+
+      {q.audio_url ? (
+        <StudentAudioBar
+          key={q.audio_url}
+          src={q.audio_url}
+          audioRef={objectiveAudioRef}
+        />
+      ) : (
+        <p className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-700">
+          <Icon name="alert" size={16} />
+          음원이 아직 준비되지 않았어요.
+        </p>
+      )}
+
+      {table && <ListeningTableDisplay table={table} />}
+
+      {!table && figureUrls.length === 1 && (
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 p-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={figureUrls[0]}
+            alt="문항 그림"
+            className="mx-auto max-h-[min(70vh,28rem)] w-auto max-w-full object-contain"
+          />
+        </div>
+      )}
+
+      {blankLine && !table && (
+        <p className="rounded-lg bg-slate-50 px-4 py-3 font-mono text-base text-slate-900">
+          {blankLine}
+        </p>
+      )}
+
+      <ul className="flex flex-col gap-2">
+        {displayChoices.map(({ text, num }) => {
+          const isSelected = selected === num;
+          const choiceCorrect = objectiveDone && num === q.correct_answer;
+          const choiceWrong = objectiveDone && isSelected && num !== q.correct_answer;
+          const perChoiceImg =
+            !table && figureUrls.length > 1 ? figureUrls[num - 1] : undefined;
+          const tone = choiceWrong
+            ? {
+                row: "border-rose-600 bg-rose-50",
+                mark: "text-rose-700",
+                text: "font-semibold text-rose-700",
+              }
+            : choiceCorrect
+              ? {
+                  row: "border-green-700 bg-green-50",
+                  mark: "text-green-700",
+                  text: "font-semibold text-green-700",
+                }
+              : isSelected
+                ? {
+                    row: "border-brand-600 bg-brand-50",
+                    mark: "text-brand-600",
+                    text: "font-bold text-brand-700",
+                  }
+                : {
+                    row: objectiveDone
+                      ? "border-slate-200 bg-white"
+                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
+                    mark: "text-slate-500",
+                    text: "font-medium text-slate-700",
+                  };
+          return (
+            <li key={num}>
+              <button
+                type="button"
+                onClick={() => selectAnswer(num)}
+                disabled={objectiveDone}
+                aria-pressed={isSelected}
+                className={`flex min-h-[50px] w-full items-center gap-3 rounded-md border-[1.5px] px-3.5 py-2.5 text-left transition disabled:cursor-default sm:min-h-[46px] ${tone.row}`}
+              >
+                <span
+                  className={`shrink-0 text-[17px] font-semibold leading-none sm:text-base ${tone.mark}`}
+                >
+                  {CIRCLED[num - 1] ?? `${num}.`}
+                </span>
+                <span
+                  className={`min-w-0 flex-1 text-[15px] leading-snug sm:text-sm ${tone.text}`}
+                >
                   {hideFigureTextChoices ? null : text}
                   {perChoiceImg ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={perChoiceImg}
                       alt=""
-                      className="mt-2 max-h-28 w-auto rounded border border-slate-200"
+                      className={`block max-h-28 w-auto rounded border border-slate-200 ${
+                        hideFigureTextChoices ? "" : "mt-2"
+                      }`}
                     />
                   ) : null}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                </span>
+                {choiceCorrect && (
+                  <span className="inline-flex h-[22px] shrink-0 items-center gap-1 whitespace-nowrap rounded bg-white/70 px-2 text-xs font-semibold text-green-700">
+                    <Icon name="check" size={12} strokeWidth={2.6} />
+                    {isSelected ? "내 답 · 정답" : "정답"}
+                  </span>
+                )}
+                {choiceWrong && (
+                  <span className="inline-flex h-[22px] shrink-0 items-center gap-1 whitespace-nowrap rounded bg-white/70 px-2 text-xs font-semibold text-rose-700">
+                    <Icon name="x" size={12} strokeWidth={2.6} />
+                    내 답
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
 
-        {!objectiveDone && (
-          <button
-            type="button"
-            onClick={submitObjective}
-            disabled={selected == null}
-            className="mt-4 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            답안 제출
-          </button>
-        )}
+      {!objectiveDone && (
+        <Button
+          onClick={submitObjective}
+          disabled={selected == null}
+          className="h-[50px] w-full text-base sm:h-11 sm:text-[15px]"
+        >
+          답안 제출
+        </Button>
+      )}
 
-        {objectiveDone && (
-          <div className="mt-4 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
-            <p>
-              <span className="font-medium text-slate-700">내 답:</span>{" "}
-              {selected != null ? CIRCLED[selected - 1] ?? selected : "—"}
-              {isCorrect && <span className="ml-2 text-emerald-700">정답</span>}
-              {isWrong && <span className="ml-2 text-red-600">오답</span>}
-            </p>
-            <p>
-              <span className="font-medium text-slate-700">정답:</span>{" "}
-              {CIRCLED[q.correct_answer - 1] ?? q.correct_answer}
-            </p>
-            {q.answer_clue && !table && (
-              <p className="text-emerald-800">
-                <span className="font-medium">정답 근거:</span> {q.answer_clue}
-              </p>
+      {objectiveDone && (
+        <div className="flex flex-col gap-1.5 rounded-lg bg-slate-50 px-4 py-3.5 text-[13px] leading-relaxed text-slate-700">
+          <p>
+            {selected != null && (
+              <>
+                <b className="font-bold text-slate-900">내 답</b>{" "}
+                {CIRCLED[selected - 1] ?? selected}
+                {isCorrect && (
+                  <span className="ml-1.5 font-semibold text-green-700">정답</span>
+                )}
+                {isWrong && (
+                  <span className="ml-1.5 font-semibold text-rose-700">오답</span>
+                )}
+                <span className="mx-2 text-slate-300">|</span>
+              </>
             )}
-            {q.explanation && (
-              <p className="text-slate-600">
-                <span className="font-medium">해설:</span> {q.explanation}
-              </p>
-            )}
+            <b className="font-bold text-slate-900">정답</b>{" "}
+            {CIRCLED[q.correct_answer - 1] ?? q.correct_answer}
+          </p>
+          {q.answer_clue && !table && (
+            <p>
+              <b className="font-bold text-slate-900">정답 근거</b> {q.answer_clue}
+            </p>
+          )}
+          {q.explanation && (
+            <p>
+              <b className="font-bold text-slate-900">해설</b> {q.explanation}
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+
+  let dictationCard: ReactNode = null;
+  if (dictationRequired) {
+    if (!objectiveDone) {
+      dictationCard = (
+        <DictationCard passScore={passScore}>
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-center sm:py-10 lg:flex-1">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-slate-200">
+              <Icon name="lock" size={20} />
+            </span>
+            <p className="text-sm font-semibold text-slate-700">
+              문제를 먼저 풀면 받아쓰기가 열려요
+            </p>
+            <p className="text-[13px] text-slate-500">
+              답안을 제출하면 같은 음원으로 받아쓰기를 해요.
+            </p>
           </div>
-        )}
-      </div>
-
-      {objectiveDone && dictationRequired && !currentDictationPassed && (
+          {navFooter}
+        </DictationCard>
+      );
+    } else if (!currentDictationPassed) {
+      dictationCard = (
         <DictationSection
           key={`${q.id}-${dictationKey}`}
           setId={questionSetId}
           questionId={q.id}
           audioUrl={q.audio_url}
-          passScore={dictationSettings.dictation_pass_score}
+          passScore={passScore}
           enabled
           onPassed={handleDictationPassed}
           prefetched={dictationPrefetch[q.id] ?? null}
           dailyTaskId={scheduleMode?.dailyTaskId}
+          footer={navFooter}
         />
+      );
+    } else {
+      dictationCard = (
+        <DictationCard passScore={passScore}>
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-green-200 bg-green-50 px-6 py-8 text-center sm:py-10 lg:flex-1">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-green-700 ring-1 ring-green-200">
+              <Icon name="check" size={22} strokeWidth={2.4} />
+            </span>
+            <p className="text-sm font-bold text-green-700">받아쓰기 통과</p>
+            {bestDictationScore != null && (
+              <p className="text-[13px] tabular-nums text-green-700">
+                최고 {bestDictationScore}점
+              </p>
+            )}
+          </div>
+          {navFooter}
+        </DictationCard>
+      );
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      {missingIncomplete && missingIncomplete.length > 0 && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          <Icon name="alert" size={16} className="mt-0.5" />
+          <span>
+            남은 문항 중 {missingIncomplete.length}개를 화면에 불러오지 못했어요.
+            새로고침 후에도 같으면 선생님께 말씀해 주세요.
+          </span>
+        </div>
       )}
 
-      {objectiveDone &&
-        dictationRequired &&
-        currentDictationPassed && (
-          <p className="text-sm text-emerald-700">
-            Dictation 통과 완료
-            {dictationByQuestion[q.id]?.bestScore != null
-              ? ` (최고 ${dictationByQuestion[q.id]!.bestScore}점)`
-              : ""}
-          </p>
-        )}
-
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={goPrev}
-          disabled={index === 0}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-40"
-        >
-          이전 문제
-        </button>
-        <button
-          type="button"
-          onClick={goNext}
-          disabled={!canGoNext}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-40"
-          title={
-            !canGoNext && dictationRequired && objectiveDone && !currentDictationPassed
-              ? `Dictation ${dictationSettings.dictation_pass_score}점 이상 필요`
-              : undefined
-          }
-        >
-          다음 문제
-        </button>
-      </div>
-
-      {!canGoNext && objectiveDone && dictationRequired && !currentDictationPassed && (
-        <p className="text-xs text-amber-700">
-          Dictation에서 {dictationSettings.dictation_pass_score}점 이상 받으면 다음
-          문제로 넘어갈 수 있습니다.
-        </p>
-      )}
-
-      {priorQuestionsBlocked(index) && index > 0 && (
-        <p className="text-xs text-red-600">
-          이전 문항 Dictation을 통과한 뒤에 진행할 수 있습니다.
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-1 pt-2">
-        {questions.map((item, i) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => tryGoToIndex(i)}
-            disabled={priorQuestionsBlocked(i)}
-            className={`h-8 w-8 rounded text-xs font-medium ${
-              i === index
-                ? "bg-indigo-600 text-white"
-                : dictationByQuestion[item.id]?.passed
-                  ? "bg-emerald-100 text-emerald-800"
-                  : objectiveSubmitted[item.id]
-                    ? "bg-amber-100 text-amber-900"
-                    : "bg-slate-100 text-slate-600"
-            } disabled:opacity-40`}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+        <div className="flex min-w-0 flex-col gap-2">
+          <Link
+            href={backHref}
+            className="inline-flex w-fit items-center gap-1 text-[13px] font-medium text-slate-500 transition hover:text-slate-800"
           >
-            {item.order_index}
-          </button>
-        ))}
+            <Icon name="left" size={16} />
+            {backLabel}
+          </Link>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h1 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+              {displayTitle}
+            </h1>
+            <span className="text-sm tabular-nums text-slate-500">
+              {index + 1}번 / 총 {questions.length}문항
+              {q.question_type ? ` · ${q.question_type}` : ""}
+            </span>
+          </div>
+          {metaLine && <p className="text-xs text-slate-500">{metaLine}</p>}
+        </div>
+        {navigator}
       </div>
+
+      {allComplete && (
+        <div
+          role="status"
+          className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700"
+        >
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-700 text-white">
+            <Icon name="check" size={14} strokeWidth={3} />
+          </span>
+          {scheduleMode
+            ? "오늘 듣기학습을 모두 끝냈어요. 잠시 후 목록으로 이동해요."
+            : "모든 문항의 문제와 받아쓰기를 끝냈어요."}
+        </div>
+      )}
+
+      {dictationRequired ? (
+        <div className="grid gap-5 lg:grid-cols-2">
+          {questionCard}
+          {dictationCard}
+        </div>
+      ) : (
+        <div className="max-w-3xl space-y-4">
+          {questionCard}
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-card sm:px-6">
+            {navFooter}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

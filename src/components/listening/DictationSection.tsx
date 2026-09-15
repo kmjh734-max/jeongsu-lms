@@ -1,7 +1,18 @@
 "use client";
 
 import { DictationPassageLineView } from "@/components/listening/DictationPassageLine";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { StudentAudioBar } from "@/components/listening/StudentAudioBar";
+import { Icon } from "@/components/layout/NavIcon";
+import { Button } from "@/components/ui/Button";
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type {
   DictationBlankInputClient,
   DictationPassageLineClient,
@@ -27,6 +38,70 @@ interface DictationSectionProps {
   prefetched?: DictationStartPayloadClient | null;
   /** 스케줄 일일 과제 — 통과 점수를 배정 기준으로 맞춤 */
   dailyTaskId?: string;
+  /** 카드 맨 아래(이전·다음 문제 버튼 등) */
+  footer?: ReactNode;
+}
+
+/** 받아쓰기 카드 틀 — 머리글(아이콘·제목·통과 기준)과 본문 */
+export function DictationCard({
+  passScore,
+  headerRight,
+  children,
+}: {
+  passScore: number;
+  headerRight?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="flex h-full flex-col gap-3.5 rounded-lg border border-slate-200 bg-white p-4 shadow-card sm:px-6 sm:py-[22px]">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Icon name="keyboard" size={18} className="text-brand-700" />
+          <h2 className="text-[15px] font-bold text-slate-900">받아쓰기</h2>
+          <span className="inline-flex h-[22px] items-center rounded bg-brand-50 px-2 text-xs font-semibold text-brand-700">
+            {passScore}점 이상 통과
+          </span>
+        </div>
+        {headerRight}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function SpeedToggle({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (rate: number) => void;
+}) {
+  return (
+    <div
+      className="flex overflow-hidden rounded-md border border-slate-200"
+      role="group"
+      aria-label="재생 속도"
+    >
+      {[0.8, 1].map((rate) => {
+        const active = value === rate;
+        return (
+          <button
+            key={rate}
+            type="button"
+            onClick={() => onChange(rate)}
+            aria-pressed={active}
+            className={`px-2.5 py-1 text-xs font-semibold tabular-nums transition ${
+              active
+                ? "bg-slate-900 text-white"
+                : "bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+            }`}
+          >
+            {rate === 1 ? "1.0x" : `${rate}x`}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export function DictationSection({
@@ -38,6 +113,7 @@ export function DictationSection({
   onPassed,
   prefetched,
   dailyTaskId,
+  footer,
 }: DictationSectionProps) {
   const [uiState, setUiState] = useState<DictationUiState>(
     prefetched?.attemptId ? "ready" : "loading"
@@ -74,6 +150,10 @@ export function DictationSection({
     if (ids.length === 0) return blankInputs.map((b) => b.id);
     return ids;
   }, [passageLines, blankInputs]);
+
+  const filledCount = allBlankIds.filter(
+    (id) => (answers[id] ?? "").trim().length > 0
+  ).length;
 
   function applyPayload(payload: DictationStartPayloadClient) {
     setAttemptId(payload.attemptId);
@@ -129,7 +209,7 @@ export function DictationSection({
         }
 
         if (!data.ok || !data.attemptId || !data.passageLines?.length) {
-          setError(data.message ?? "Dictation을 불러오지 못했습니다.");
+          setError(data.message ?? "받아쓰기를 불러오지 못했어요.");
           setUiState("error");
           return;
         }
@@ -140,7 +220,7 @@ export function DictationSection({
             await loadBlanks({ retry: true });
             return;
           }
-          setError(data.message ?? "Dictation 빈칸을 불러오지 못했습니다.");
+          setError(data.message ?? "받아쓰기 빈칸을 불러오지 못했어요.");
           setUiState("error");
           return;
         }
@@ -155,7 +235,7 @@ export function DictationSection({
         setError(
           e instanceof Error
             ? e.message
-            : "Dictation을 불러오는 중 오류가 발생했습니다."
+            : "받아쓰기를 불러오는 중 문제가 생겼어요."
         );
         setUiState("error");
       }
@@ -171,7 +251,7 @@ export function DictationSection({
   async function handleSubmit() {
     if (!attemptId) return;
     if (allBlankIds.length === 0) {
-      setError("채점할 빈칸이 없습니다. 다시 하기를 눌러 주세요.");
+      setError("채점할 빈칸이 없어요. 다시 하기를 눌러 주세요.");
       return;
     }
 
@@ -196,7 +276,7 @@ export function DictationSection({
     };
 
     if (!data.ok) {
-      setError(data.message ?? "제출 실패");
+      setError(data.message ?? "제출하지 못했어요. 다시 눌러 주세요.");
       setUiState("ready");
       return;
     }
@@ -218,167 +298,192 @@ export function DictationSection({
     await loadBlanks({ retry: true });
   }
 
+  /** Enter → 다음 빈칸으로 */
+  function handleScriptKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key !== "Enter" || e.nativeEvent.isComposing) return;
+    const target = e.target as HTMLElement;
+    if (target.tagName !== "INPUT") return;
+    e.preventDefault();
+    const inputs = Array.from(
+      e.currentTarget.querySelectorAll<HTMLInputElement>("input:not([disabled])")
+    );
+    const idx = inputs.indexOf(target as HTMLInputElement);
+    const next = inputs[idx + 1];
+    if (next) next.focus();
+  }
+
   const inputDisabled =
     uiState === "submitting" ||
     uiState === "submitted_pass" ||
     uiState === "submitted_fail";
   const showResults =
     uiState === "submitted_pass" || uiState === "submitted_fail";
+  const hasScript =
+    (uiState === "ready" ||
+      uiState === "submitting" ||
+      uiState === "submitted_pass" ||
+      uiState === "submitted_fail") &&
+    passageLines.length > 0;
+  const wrongResults = showResults ? results.filter((r) => !r.isCorrect) : [];
 
   if (!enabled) return null;
 
   return (
-    <section className="mt-6 rounded-xl border border-violet-200 bg-violet-50/50 p-4">
-      <h3 className="text-sm font-semibold text-violet-900">Dictation</h3>
-      <p className="mt-1 text-xs text-violet-800">
-        지문의 빈칸에 들은 단어를 입력하세요. 모르는 빈칸은 비워 두어도 제출할 수
-        있습니다. {passScore}점 이상이면 다음 문제로 넘어갈 수 있습니다.
+    <DictationCard
+      passScore={passScore}
+      headerRight={
+        audioUrl ? (
+          <SpeedToggle value={playbackRate} onChange={setPlaybackRate} />
+        ) : undefined
+      }
+    >
+      <p className="text-[13px] leading-relaxed text-slate-500">
+        대본의 빈칸에 들은 단어를 입력하세요. 모르는 빈칸은 비워 두고 제출해도
+        돼요. 통과하면 다음 문제로 넘어갈 수 있어요.
       </p>
 
       {audioUrl && (
-        <div className="mt-3 space-y-2">
-          <audio
-            key={`${audioUrl}-${playbackRate}`}
-            controls
-            src={audioUrl}
-            className="w-full"
-            preload="auto"
-            onLoadedMetadata={(e) => {
-              e.currentTarget.playbackRate = playbackRate;
-            }}
-          />
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setPlaybackRate(0.8)}
-              className={`rounded-md px-2 py-1 text-xs ${
-                playbackRate === 0.8
-                  ? "bg-violet-600 text-white"
-                  : "border border-violet-300 text-violet-800"
-              }`}
-            >
-              0.8x
-            </button>
-            <button
-              type="button"
-              onClick={() => setPlaybackRate(1)}
-              className={`rounded-md px-2 py-1 text-xs ${
-                playbackRate === 1
-                  ? "bg-violet-600 text-white"
-                  : "border border-violet-300 text-violet-800"
-              }`}
-            >
-              1.0x
-            </button>
-          </div>
-        </div>
+        <StudentAudioBar
+          key={audioUrl}
+          src={audioUrl}
+          variant="dark"
+          playbackRate={playbackRate}
+        />
       )}
 
       {uiState === "loading" && (
-        <p className="mt-4 text-sm text-violet-700">Dictation 불러오는 중…</p>
+        <div
+          className="space-y-3 rounded-lg border border-slate-200 px-4 py-4"
+          aria-busy="true"
+        >
+          <p className="text-[13px] text-slate-500">받아쓰기를 준비하고 있어요…</p>
+          <div className="h-3.5 w-11/12 animate-pulse rounded bg-slate-100" />
+          <div className="h-3.5 w-3/4 animate-pulse rounded bg-slate-100" />
+          <div className="h-3.5 w-5/6 animate-pulse rounded bg-slate-100" />
+        </div>
       )}
 
       {error && (
-        <div className="mt-3 space-y-2">
-          <p className="text-sm text-red-600" role="alert">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2.5">
+          <p className="text-sm text-rose-700" role="alert">
             {error}
           </p>
           {uiState === "error" && (
-            <button
-              type="button"
-              onClick={() => void loadBlanks()}
-              className="rounded-lg border border-violet-400 bg-white px-3 py-1.5 text-xs font-medium text-violet-800"
-            >
+            <Button variant="secondary" size="sm" onClick={() => void loadBlanks()}>
+              <Icon name="rotate" size={14} />
               다시 불러오기
-            </button>
+            </Button>
           )}
         </div>
       )}
 
-      {(uiState === "ready" ||
-        uiState === "submitting" ||
-        uiState === "submitted_pass" ||
-        uiState === "submitted_fail") &&
-        passageLines.length > 0 && (
-          <div className="mt-4 space-y-4">
-            <div className="rounded-lg border border-violet-100 bg-white p-3">
-              <p className="mb-2 text-xs font-medium text-slate-500">대본</p>
-              <div className="space-y-2">
-                {passageLines.map((line, i) => (
-                  <DictationPassageLineView
-                    key={i}
-                    line={line}
-                    answers={answers}
-                    onAnswerChange={(id, value) =>
-                      setAnswers((prev) => ({ ...prev, [id]: value }))
-                    }
-                    disabled={inputDisabled}
-                    resultsById={resultsById}
-                    showResults={showResults}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {allBlankIds.length === 0 && (
-              <p className="text-sm text-amber-800">
-                빈칸을 불러오지 못했습니다. 「다시 하기」를 누르거나 선생님에게
-                문의하세요.
-              </p>
-            )}
-
-            {uiState === "ready" || uiState === "submitting" ? (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={uiState === "submitting"}
-                className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-              >
-                {uiState === "submitting" ? "채점 중…" : "Dictation 제출"}
-              </button>
-            ) : null}
-
-            {score != null && (
-              <div className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
-                <p className="font-semibold text-slate-900">
-                  점수: {score}점 / 100점 (통과 기준 {passScore}점)
-                </p>
-                {uiState === "submitted_fail" && (
-                  <p className="mt-1 text-amber-800">
-                    {passScore}점 미만입니다. 빈칸을 새로 바꾸어 다시 연습합니다.
-                  </p>
-                )}
-                {uiState === "submitted_pass" && (
-                  <p className="mt-1 text-emerald-700">
-                    통과했습니다. 다음 문제로 이동할 수 있습니다.
-                  </p>
-                )}
-                {showResults && results.some((r) => !r.isCorrect) && (
-                  <ul className="mt-3 space-y-1 text-xs text-slate-600">
-                    {results
-                      .filter((r) => !r.isCorrect)
-                      .map((r) => (
-                        <li key={r.id}>
-                          정답: <span className="font-medium">{r.correctAnswer}</span>
-                          {r.studentAnswer ? ` (입력: ${r.studentAnswer})` : ""}
-                        </li>
-                      ))}
-                  </ul>
-                )}
-              </div>
-            )}
-
-            {uiState === "submitted_fail" && (
-              <button
-                type="button"
-                onClick={() => void handleRetry()}
-                className="rounded-lg border border-violet-400 bg-white px-4 py-2 text-sm font-medium text-violet-800"
-              >
-                다시 하기 (빈칸 새로 생성)
-              </button>
-            )}
+      {hasScript && (
+        <>
+          <div
+            className="space-y-0.5 rounded-lg border border-slate-200 px-4 py-3 sm:px-[18px] sm:py-4"
+            onKeyDown={handleScriptKeyDown}
+          >
+            {passageLines.map((line, i) => (
+              <DictationPassageLineView
+                key={i}
+                line={line}
+                answers={answers}
+                onAnswerChange={(id, value) =>
+                  setAnswers((prev) => ({ ...prev, [id]: value }))
+                }
+                disabled={inputDisabled}
+                resultsById={resultsById}
+                showResults={showResults}
+              />
+            ))}
           </div>
-        )}
-    </section>
+
+          {allBlankIds.length === 0 ? (
+            <p className="text-sm text-amber-700">
+              빈칸을 불러오지 못했어요. 다시 하기를 누르거나 선생님께
+              말씀해 주세요.
+            </p>
+          ) : (
+            <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+              <span className="tabular-nums">
+                빈칸 {allBlankIds.length}개 중 {filledCount}개 입력
+              </span>
+              {!inputDisabled && (
+                <span className="hidden sm:inline">Enter로 다음 빈칸</span>
+              )}
+            </div>
+          )}
+
+          {score != null && (
+            <div
+              className={`rounded-lg border px-4 py-3 text-sm ${
+                uiState === "submitted_pass"
+                  ? "border-green-200 bg-green-50"
+                  : "border-amber-200 bg-amber-50"
+              }`}
+            >
+              <p
+                className={`flex items-center gap-1.5 font-bold tabular-nums ${
+                  uiState === "submitted_pass" ? "text-green-700" : "text-amber-700"
+                }`}
+              >
+                {uiState === "submitted_pass" && (
+                  <Icon name="check" size={16} strokeWidth={2.6} />
+                )}
+                <span className="text-lg">{score}점</span>
+                <span className="text-sm font-semibold opacity-80">/ 100점</span>
+              </p>
+              {uiState === "submitted_fail" && (
+                <p className="mt-1 text-amber-700">
+                  {passScore}점이 안 됐어요. 빈칸을 새로 바꿔서 다시 해 볼까요?
+                </p>
+              )}
+              {uiState === "submitted_pass" && (
+                <p className="mt-1 text-green-700">
+                  통과했어요. 다음 문제로 넘어갈 수 있어요.
+                </p>
+              )}
+              {wrongResults.length > 0 && (
+                <ul className="mt-2.5 space-y-1 border-t border-black/5 pt-2.5 text-xs text-slate-600">
+                  {wrongResults.map((r) => (
+                    <li key={r.id}>
+                      정답 <span className="font-semibold text-slate-900">{r.correctAnswer}</span>
+                      {r.studentAnswer ? (
+                        <span className="text-slate-500"> · 내 입력 {r.studentAnswer}</span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="min-h-2 flex-1" />
+
+      {hasScript && (uiState === "ready" || uiState === "submitting") && (
+        <Button
+          onClick={() => void handleSubmit()}
+          disabled={uiState === "submitting"}
+          className="h-11 w-full text-[15px]"
+        >
+          {uiState === "submitting" ? "채점 중…" : "받아쓰기 제출"}
+        </Button>
+      )}
+
+      {uiState === "submitted_fail" && (
+        <Button
+          variant="secondary"
+          onClick={() => void handleRetry()}
+          className="h-11 w-full text-[15px]"
+        >
+          <Icon name="rotate" size={16} />
+          빈칸 바꿔서 다시 하기
+        </Button>
+      )}
+
+      {footer}
+    </DictationCard>
   );
 }

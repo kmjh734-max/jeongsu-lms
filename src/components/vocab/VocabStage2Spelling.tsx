@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Icon } from "@/components/layout/NavIcon";
+import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
 import {
   completeStage2,
   recordStage2Attempt,
 } from "@/app/student/vocab/actions";
 import { gradeSpellingAnswer } from "@/lib/vocab/grade-spelling";
+import { isSpeechSupported, speakEnglish } from "@/lib/vocab/speak-client";
 import {
   loadExamGuestProgress,
   saveExamGuestProgress,
@@ -42,6 +43,7 @@ export function VocabStage2Spelling({
 }: VocabStage2SpellingProps) {
   const router = useRouter();
   const hub = hubHref ?? "/student/vocab";
+  const setHref = hubHref ?? `/student/vocab/${setId}`;
   const inputRef = useRef<HTMLInputElement>(null);
   const itemById = new Map(items.map((i) => [i.id, i]));
   const [queue, setQueue] = useState(() => shuffleIds(items.map((i) => i.id)));
@@ -53,12 +55,18 @@ export function VocabStage2Spelling({
   const [round, setRound] = useState(1);
   const [mastered, setMastered] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
+  const [speechOk, setSpeechOk] = useState(false);
 
   const total = items.length;
   const currentId = queue[0];
   const current = currentId ? itemById.get(currentId) : undefined;
   const progressPercent =
     total > 0 ? Math.round((mastered / total) * 100) : 0;
+  const wrong = Boolean(feedback?.showAnswer);
+
+  useEffect(() => {
+    setSpeechOk(isSpeechSupported());
+  }, []);
 
   useEffect(() => {
     if (!current || feedback?.showAnswer) return;
@@ -129,16 +137,23 @@ export function VocabStage2Spelling({
   }
 
   if (total === 0) {
-    return <p className="text-center text-slate-600">단어가 없습니다.</p>;
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500 shadow-card">
+        단어가 없어요.
+      </div>
+    );
   }
 
   if (!current) {
     return (
-      <div className="text-center">
-        <p className="font-semibold text-emerald-700">2단계 완료</p>
+      <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4 rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-card">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-700 text-white">
+          <Icon name="check" size={24} strokeWidth={2.6} />
+        </span>
+        <p className="text-lg font-bold text-slate-900">2단계 완료</p>
         <Button
           type="button"
-          className="mt-4"
+          className="h-11 w-full px-5 text-[15px] sm:w-[200px]"
           onClick={() => router.push(hub)}
         >
           단어장으로
@@ -148,38 +163,96 @@ export function VocabStage2Spelling({
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-4 px-2">
-      <div>
-        <Link
-          href={hub}
-          className="text-sm text-brand-600 hover:underline"
-        >
-          ← 단어장으로
-        </Link>
-        <h1 className="mt-1 text-lg font-semibold">{setTitle} · 2단계</h1>
-        <p className="text-sm text-slate-500">
-          한글뜻만 보고 영어 스펠링을 입력하세요 (예문 없음)
-        </p>
-        <ProgressBar
-          percent={progressPercent}
-          label={`맞춘 단어 ${mastered} / ${total} · 남은 ${queue.length}개`}
-        />
-      </div>
+    <div className="flex w-full flex-col gap-6 sm:gap-8">
+      <VocabStudyHeader
+        backHref={setHref}
+        backLabel={setTitle}
+        stageLabel="2단계"
+        title="스펠링"
+        progressLabel={`맞춘 단어 ${mastered} / ${total} · 남은 ${queue.length}개`}
+        percent={progressPercent}
+      />
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-center text-sm text-slate-600">
-          한글뜻에 맞는 영어 단어를 입력하세요.
-        </p>
-        <p className="mt-6 text-center text-3xl font-bold text-brand-800">
-          {current.meaning}
-        </p>
+      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 sm:mt-6 sm:gap-[22px]">
+        <div className="flex flex-col gap-[18px] rounded-lg border border-slate-200 bg-white px-5 py-6 shadow-card sm:px-8 sm:py-7">
+          <p className="text-center text-[13px] font-semibold text-slate-500">
+            한글 뜻에 맞는 영어 단어를 입력하세요
+          </p>
+          <p className="break-keep text-center text-[28px] font-bold leading-snug tracking-tight text-slate-900 sm:text-[34px]">
+            {current.meaning}
+          </p>
 
-        {feedback?.showAnswer ? (
-          <div className="mt-8 space-y-4 text-center">
-            <p className="text-lg font-semibold text-rose-700">오답입니다</p>
-            <p className="text-2xl font-bold text-emerald-800">{current.word}</p>
+          <input
+            ref={inputRef}
+            className={`h-14 w-full rounded-lg border-2 px-4 text-center text-2xl font-semibold tracking-wide transition placeholder:text-lg placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400 focus:outline-none sm:h-[60px] ${
+              wrong
+                ? "border-rose-600 bg-rose-50 text-rose-700"
+                : "border-slate-300 bg-white text-slate-900 focus:border-brand-600 focus:ring-4 focus:ring-brand-50"
+            }`}
+            value={answer}
+            readOnly={wrong}
+            onChange={(e) => {
+              setAnswer(e.target.value.toLowerCase());
+              if (message === "답을 입력해주세요.") setMessage(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (wrong) {
+                  if (!e.repeat) continueAfterWrong();
+                } else {
+                  checkAnswer();
+                }
+              }
+            }}
+            placeholder="영어 스펠링 입력"
+            autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            aria-label="영어 스펠링 입력"
+            aria-invalid={wrong || undefined}
+          />
+
+          {wrong && (
+            <>
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3.5">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
+                  <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-rose-700 text-white">
+                    <Icon name="x" size={14} strokeWidth={2.6} />
+                  </span>
+                  <span className="text-sm font-semibold text-rose-700">
+                    아쉬워요
+                  </span>
+                  <span className="text-sm text-slate-500">정답</span>
+                  <span className="break-all text-xl font-bold text-green-700">
+                    {current.word}
+                  </span>
+                </div>
+                {speechOk && (
+                  <button
+                    type="button"
+                    aria-label="정답 발음 듣기"
+                    className="-mr-1.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-white hover:text-brand-700"
+                    onClick={() => speakEnglish(current.word)}
+                  >
+                    <Icon name="speaker" size={18} />
+                  </button>
+                )}
+              </div>
+              <p className="text-center text-xs text-slate-400">
+                틀린 단어는 마지막에 한 번 더 나와요
+              </p>
+            </>
+          )}
+        </div>
+
+        <div className="flex justify-center">
+          {wrong ? (
             <Button
+              key="next"
               type="button"
+              className="h-12 w-full gap-1.5 px-5 text-[15px] sm:h-11 sm:w-[200px]"
               onClick={continueAfterWrong}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -189,45 +262,29 @@ export function VocabStage2Spelling({
               }}
             >
               다음으로
+              <Icon name="chevron" size={16} strokeWidth={2} />
             </Button>
-          </div>
-        ) : (
-          <>
-            <input
-              ref={inputRef}
-              className="ui-input mt-8 min-h-[3.5rem] text-center text-xl"
-              value={answer}
-              onChange={(e) => {
-                setAnswer(e.target.value.toLowerCase());
-                if (message === "답을 입력해주세요.") setMessage(null);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  checkAnswer();
-                }
-              }}
-              placeholder="영어 스펠링 입력"
-              autoComplete="off"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              aria-label="영어 스펠링 입력"
-            />
-            <div className="mt-6 flex justify-center">
-              <Button type="button" onClick={checkAnswer}>
-                정답 확인
-              </Button>
-            </div>
-          </>
+          ) : (
+            <Button
+              key="check"
+              type="button"
+              className="h-12 w-full px-5 text-[15px] sm:h-11 sm:w-[200px]"
+              onClick={checkAnswer}
+            >
+              정답 확인
+            </Button>
+          )}
+        </div>
+
+        {message && (
+          <p
+            className="text-center text-sm font-medium text-amber-700"
+            role="status"
+          >
+            {message}
+          </p>
         )}
       </div>
-
-      {message && (
-        <p className="text-center text-sm font-medium text-amber-700" role="status">
-          {message}
-        </p>
-      )}
     </div>
   );
 }

@@ -1,16 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Icon } from "@/components/layout/NavIcon";
+import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
 import { recordStage1Item } from "@/app/student/vocab/actions";
 import {
   isSpeechSupported,
   speakEnglish,
   stopSpeaking,
 } from "@/lib/vocab/speak-client";
+import { wordsMatchForBlank } from "@/lib/vocab/example-blank";
 import {
   loadExamGuestProgress,
   saveExamGuestProgress,
@@ -29,6 +30,34 @@ interface VocabStage1StudyProps {
   guestMode?: boolean;
 }
 
+/** 진행 칸을 하나씩 그릴 최대 단어 수 (넘으면 얇은 막대) */
+const MAX_SEGMENTS = 40;
+
+/** 예문 속 단어(변화형 포함)를 파란 글씨로 강조 */
+function HighlightedExample({ sentence, word }: { sentence: string; word: string }) {
+  const target = word.trim();
+  const parts = sentence.split(/([\w'-]+)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        const isToken = i % 2 === 1;
+        const hit =
+          isToken &&
+          (target.length < 3
+            ? part.toLowerCase() === target.toLowerCase()
+            : wordsMatchForBlank(target, part));
+        return hit ? (
+          <b key={i} className="font-semibold text-brand-700">
+            {part}
+          </b>
+        ) : (
+          <span key={i}>{part}</span>
+        );
+      })}
+    </>
+  );
+}
+
 export function VocabStage1Study({
   setId,
   setTitle,
@@ -40,6 +69,7 @@ export function VocabStage1Study({
 }: VocabStage1StudyProps) {
   const router = useRouter();
   const hub = hubHref ?? "/student/vocab";
+  const setHref = hubHref ?? `/student/vocab/${setId}`;
   const [index, setIndex] = useState(() => {
     if (stage1Completed) return 0;
     const seen = new Set(initialSeenIds);
@@ -54,13 +84,17 @@ export function VocabStage1Study({
   seenIdsRef.current = seenIds;
   const [message, setMessage] = useState<string | null>(null);
   const lastHandledRef = useRef<string | null>(null);
-  const speechOk = isSpeechSupported();
+  const [speechOk, setSpeechOk] = useState(false);
 
   const total = items.length;
   const current = items[index];
   const seenCount = stage1Completed ? index + 1 : seenIds.size;
   const roundPercent =
     total > 0 ? Math.round((seenCount / total) * 100) : 0;
+
+  useEffect(() => {
+    setSpeechOk(isSpeechSupported());
+  }, []);
 
   const goTo = useCallback((next: number) => {
     stopSpeaking();
@@ -77,6 +111,25 @@ export function VocabStage1Study({
   }, [index, speechOk, current, flipped]);
 
   useEffect(() => () => stopSpeaking(), []);
+
+  // 스페이스 키로 카드 뒤집기 (버튼·입력칸에 초점이 있을 때는 그대로 둔다)
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== " " && e.code !== "Space") return;
+      const el = e.target as HTMLElement | null;
+      if (
+        el &&
+        (el.isContentEditable ||
+          ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(el.tagName))
+      ) {
+        return;
+      }
+      e.preventDefault();
+      setFlipped((f) => !f);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   function finishToHub() {
     router.push(hub);
@@ -137,114 +190,221 @@ export function VocabStage1Study({
 
   if (total === 0) {
     return (
-      <div className="text-center text-slate-600">단어가 없습니다.</div>
+      <div className="rounded-lg border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500 shadow-card">
+        단어가 없어요.
+      </div>
     );
   }
 
+  const longMeaning = (current.meaning ?? "").length > 24;
+
   return (
-    <div className="mx-auto w-full max-w-xl space-y-5 px-2">
-      <div>
-        <Link
-          href={hub}
-          className="text-sm text-brand-600 hover:underline"
-        >
-          ← 단어장으로
-        </Link>
-        <h1 className="mt-2 text-xl font-semibold">
-          {setTitle} · 1단계{stage1Completed ? " (다시 보기)" : ""}
-        </h1>
-        <ProgressBar
-          percent={roundPercent}
-          label={`학습 ${seenCount} / ${total}`}
-        />
-      </div>
+    <div className="flex w-full flex-col gap-6 sm:gap-8">
+      <VocabStudyHeader
+        backHref={setHref}
+        backLabel={setTitle}
+        stageLabel={stage1Completed ? "1단계 · 다시 보기" : "1단계"}
+        title="뜻 익히기"
+        progressLabel={`학습 ${seenCount} / ${total}`}
+        percent={roundPercent}
+      />
 
-      <div className="relative w-full" style={{ perspective: "1200px" }}>
+      <div className="flex flex-col items-center gap-4 sm:gap-5">
         <div
-          className={`relative h-[min(48vh,320px)] min-h-[220px] w-full transition-transform duration-200 [transform-style:preserve-3d] ${
-            flipped ? "[transform:rotateY(180deg)]" : ""
-          }`}
+          className="relative w-full max-w-[640px]"
+          style={{ perspective: "1200px" }}
         >
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-brand-200 bg-gradient-to-br from-white to-brand-50 px-5 py-6 [backface-visibility:hidden]">
-            <p className="text-xs font-semibold text-brand-600">영어 단어</p>
-            <p className="text-center text-2xl font-bold sm:text-3xl">
-              {current.word}
-            </p>
-            {speechOk && (
-              <button
-                type="button"
-                className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs"
-                onClick={() => speakEnglish(current.word)}
-              >
-                🔊 발음 듣기
-              </button>
-            )}
-            <Button type="button" className="px-6" onClick={() => setFlipped(true)}>
-              뜻 보기
-            </Button>
-          </div>
+          <div
+            key={current.id}
+            role="button"
+            tabIndex={0}
+            aria-label={flipped ? "카드 앞면 보기" : "뜻 보기"}
+            onClick={() => setFlipped((f) => !f)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setFlipped((f) => !f);
+              }
+            }}
+            className={`relative h-[min(62vh,480px)] min-h-[340px] w-full cursor-pointer rounded-xl transition-transform duration-300 [transform-style:preserve-3d] focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 sm:h-[380px] sm:min-h-0 ${
+              flipped ? "[transform:rotateY(180deg)]" : ""
+            }`}
+          >
+            {/* 앞면: 영어 단어 */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-xl border border-slate-200 bg-white px-6 shadow-[0_10px_30px_rgba(15,26,42,0.08)] [backface-visibility:hidden] sm:gap-[18px]">
+              <span className="absolute left-5 top-5 text-xs font-semibold text-slate-400 sm:left-6">
+                영어 단어
+              </span>
+              <span className="absolute right-5 top-5 text-xs font-semibold tabular-nums text-slate-400 sm:right-6">
+                {index + 1} / {total}
+              </span>
+              <p className="max-w-full break-words text-center text-[40px] font-bold leading-tight tracking-tight text-slate-900 sm:text-[56px]">
+                {current.word}
+              </p>
+              {speechOk && (
+                <button
+                  type="button"
+                  className="inline-flex h-[34px] items-center gap-1.5 rounded-full bg-brand-50 px-3.5 text-[13px] font-semibold text-brand-700 transition hover:bg-brand-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    speakEnglish(current.word);
+                  }}
+                >
+                  <Icon name="speaker" size={16} />
+                  발음 듣기
+                </button>
+              )}
+              <span className="absolute bottom-5 left-6 right-6 text-center text-[13px] text-slate-400">
+                <span className="hidden sm:inline">
+                  카드를 누르거나 스페이스 키를 누르면 뜻이 보여요
+                </span>
+                <span className="sm:hidden">카드를 누르면 뜻이 보여요</span>
+              </span>
+            </div>
 
-          <div className="absolute inset-0 flex flex-col rounded-2xl border-2 border-slate-200 bg-white px-5 py-5 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-            <p className="text-xs font-semibold text-slate-500">뜻 · 예문</p>
-            <p className="mt-2 text-xl font-bold text-brand-800 sm:text-2xl">
-              {current.meaning}
-            </p>
-            {current.example_sentence && (
-              <div className="mt-2 flex-1 overflow-y-auto rounded-lg bg-slate-50 p-3 text-sm">
-                <p className="whitespace-pre-line text-slate-800">
-                  {current.example_sentence}
-                </p>
-                {current.example_meaning && (
-                  <p className="mt-1 whitespace-pre-line text-slate-600">
-                    {current.example_meaning}
-                  </p>
+            {/* 뒷면: 뜻 · 예문 */}
+            <div className="absolute inset-0 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-[22px] shadow-[0_10px_30px_rgba(15,26,42,0.08)] [backface-visibility:hidden] [transform:rotateY(180deg)] sm:p-7">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-400">
+                  뜻 · 예문
+                </span>
+                {speechOk && (
+                  <button
+                    type="button"
+                    aria-label="발음 듣기"
+                    className="-mr-2 -mt-2 inline-flex h-9 w-9 items-center justify-center rounded-md text-brand-700 transition hover:bg-brand-50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speakEnglish(current.word);
+                    }}
+                  >
+                    <Icon name="speaker" size={18} />
+                  </button>
                 )}
               </div>
-            )}
-            <div className="mt-auto flex gap-2 pt-4">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <p className="break-words text-base font-semibold text-slate-500">
+                  {current.word}
+                </p>
+                <p
+                  className={`mt-2 whitespace-pre-line break-keep font-bold leading-tight tracking-tight text-slate-900 ${
+                    longMeaning ? "text-2xl" : "text-[30px] sm:text-[34px]"
+                  }`}
+                >
+                  {current.meaning}
+                </p>
+              </div>
+              {current.example_sentence && (
+                <div className="max-h-[45%] shrink-0 overflow-y-auto rounded-lg bg-slate-50 p-3.5">
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-900">
+                    <HighlightedExample
+                      sentence={current.example_sentence}
+                      word={current.word}
+                    />
+                  </p>
+                  {current.example_meaning && (
+                    <p className="mt-1.5 whitespace-pre-line text-[13px] leading-relaxed text-slate-500">
+                      {current.example_meaning}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex min-h-[50px] w-full justify-center sm:min-h-[44px]">
+          {flipped ? (
+            <div className="grid w-full grid-cols-2 gap-2.5 sm:w-[420px]">
               <Button
                 type="button"
                 variant="secondary"
-                className="flex-1"
-                onClick={() => handleResponse(true)}
-              >
-                알아요
-              </Button>
-              <Button
-                type="button"
-                className="flex-1"
+                className="h-[50px] text-base sm:h-11 sm:text-[15px]"
                 onClick={() => handleResponse(false)}
               >
                 몰라요
               </Button>
+              <Button
+                type="button"
+                className="h-[50px] text-base sm:h-11 sm:text-[15px]"
+                onClick={() => handleResponse(true)}
+              >
+                알아요
+              </Button>
             </div>
-          </div>
+          ) : (
+            <Button
+              type="button"
+              className="h-[50px] w-full px-5 text-base sm:h-11 sm:w-[200px] sm:text-[15px]"
+              onClick={() => setFlipped(true)}
+            >
+              뜻 보기
+            </Button>
+          )}
         </div>
+
+        {message && (
+          <p className="text-center text-sm text-rose-700" role="status">
+            {message}
+          </p>
+        )}
       </div>
 
-      {message && (
-        <p className="text-center text-sm text-slate-600">{message}</p>
-      )}
-
-      <div className="flex justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Button
           type="button"
-          variant="ghost"
+          variant="secondary"
+          className="h-11 sm:h-9"
           disabled={index === 0}
           onClick={() => goTo(index - 1)}
         >
+          <Icon name="left" size={16} strokeWidth={2} />
           이전 단어
         </Button>
-        <span className="text-sm text-slate-600">
+
+        {total <= MAX_SEGMENTS ? (
+          <div className="hidden min-w-0 flex-1 justify-center gap-1 sm:flex">
+            {items.map((it, i) => {
+              const done =
+                i !== index &&
+                (stage1Completed ? i < index : seenIds.has(it.id));
+              return (
+                <span
+                  key={it.id}
+                  className={`h-1 max-w-[10px] flex-1 rounded-sm ${
+                    i === index
+                      ? "bg-brand-600"
+                      : done
+                        ? "bg-green-700"
+                        : "bg-slate-200"
+                  }`}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <div className="hidden min-w-0 max-w-md flex-1 sm:block">
+            <div className="h-1 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-green-700 transition-all duration-300"
+                style={{ width: `${roundPercent}%` }}
+              />
+            </div>
+          </div>
+        )}
+        <span className="text-sm tabular-nums text-slate-500 sm:hidden">
           {index + 1} / {total}
         </span>
+
         <Button
           type="button"
-          variant="ghost"
+          variant="secondary"
+          className="h-11 sm:h-9"
           disabled={index >= total - 1}
           onClick={() => goTo(index + 1)}
         >
           다음 단어
+          <Icon name="chevron" size={16} strokeWidth={2} />
         </Button>
       </div>
     </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/layout/NavIcon";
+import { VocabStudyHeader } from "@/components/vocab/VocabStudyHeader";
 import { submitStage4 } from "@/app/student/vocab/actions";
 import type { Stage3Question } from "@/lib/vocab/build-stage3-questions";
 import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
@@ -43,6 +44,8 @@ export function VocabStage3Test({
 }: VocabStage3TestProps) {
   const router = useRouter();
   const hub = hubHref ?? "/student/vocab";
+  const setHref = hubHref ?? `/student/vocab/${setId}`;
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -152,78 +155,109 @@ export function VocabStage3Test({
   }
 
   if (questions.length === 0) {
-    return <p className="text-center text-slate-600">단어가 없습니다.</p>;
+    return (
+      <div className="rounded-lg border border-slate-200 bg-white px-6 py-12 text-center text-sm text-slate-500 shadow-card">
+        단어가 없어요.
+      </div>
+    );
   }
 
   const isMeaning = current?.questionType === "meaning";
+  const progressPercent = Math.round(((index + 1) / questions.length) * 100);
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6 px-2">
-      <div>
-        <Link href={hub} className="text-sm text-brand-600 hover:underline">
-          ← 단어장으로
-        </Link>
-        <h1 className="mt-2 text-xl font-semibold">
-          {setTitle} · {stageNumber}단계 종합테스트
-        </h1>
-        <p className="text-sm text-slate-600">
-          한글뜻 50% + 영어 스펠링 50% · {STAGE4_PASS_SCORE}점 이상 합격 · Enter로
-          다음/제출
-        </p>
-        <p className="mt-1 text-sm text-slate-500">
-          {index + 1} / {questions.length}
-        </p>
-      </div>
+    <div className="flex w-full flex-col gap-6 sm:gap-8">
+      <VocabStudyHeader
+        backHref={setHref}
+        backLabel={setTitle}
+        stageLabel={`${stageNumber}단계`}
+        title="종합테스트"
+        progressLabel={`${index + 1} / ${questions.length}`}
+        percent={progressPercent}
+      />
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-xs font-semibold text-slate-500">
-          {isMeaning ? "뜻 쓰기" : "스펠링"}
-        </p>
-        <p className="mt-3 text-center text-2xl font-bold text-slate-900">
-          {current.questionText}
-        </p>
-        {current.promptExtra && (
-          <p className="mt-2 text-center text-sm text-slate-500">
-            {current.promptExtra}
+      <div className="mx-auto flex w-full max-w-[640px] flex-col gap-5 sm:mt-6 sm:gap-[22px]">
+        <div className="flex flex-col gap-[18px] rounded-lg border border-slate-200 bg-white px-5 py-6 shadow-card sm:px-8 sm:py-7">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex h-[22px] items-center rounded bg-brand-50 px-2 text-xs font-semibold text-brand-700">
+              {isMeaning ? "뜻 쓰기" : "스펠링"}
+            </span>
+            <span className="text-xs font-semibold tabular-nums text-slate-400">
+              {index + 1} / {questions.length}
+            </span>
+          </div>
+          <p className="break-words text-center text-[28px] font-bold leading-snug tracking-tight text-slate-900 sm:text-[34px]">
+            {current.questionText}
           </p>
-        )}
-        <input
-          ref={inputRef}
-          className="ui-input mt-6 min-h-[3.5rem] text-center text-xl"
-          value={answers[currentKey] ?? ""}
-          onChange={(e) =>
-            setAnswers((prev) => ({ ...prev, [currentKey]: e.target.value }))
-          }
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleEnter();
+          {current.promptExtra && (
+            <p className="-mt-2 text-center text-[13px] text-slate-500">
+              {current.promptExtra}
+            </p>
+          )}
+          <input
+            ref={inputRef}
+            className="h-14 w-full rounded-lg border-2 border-slate-300 bg-white px-4 text-center text-2xl font-semibold text-slate-900 transition placeholder:text-lg placeholder:font-normal placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-50 disabled:bg-slate-50 disabled:text-slate-400 sm:h-[60px]"
+            value={answers[currentKey] ?? ""}
+            onChange={(e) =>
+              setAnswers((prev) => ({ ...prev, [currentKey]: e.target.value }))
             }
-          }}
-          disabled={submitting}
-        />
-        {message && (
-          <p className="mt-3 text-center text-sm text-rose-600">{message}</p>
-        )}
-        <div className="mt-6 flex gap-2">
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleEnter();
+              }
+            }}
+            placeholder={isMeaning ? "뜻 입력" : "영어 스펠링 입력"}
+            autoComplete="off"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            aria-label={isMeaning ? "뜻 입력" : "영어 스펠링 입력"}
+            disabled={submitting}
+          />
+          {message && (
+            <p className="text-center text-sm text-rose-700" role="status">
+              {message}
+            </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-2.5 sm:mx-auto sm:w-[420px]">
           <Button
             type="button"
             variant="secondary"
-            className="flex-1"
+            className="h-12 px-5 text-[15px] sm:h-11"
             disabled={index === 0 || submitting}
             onClick={() => setIndex((i) => Math.max(0, i - 1))}
           >
+            <Icon name="left" size={16} strokeWidth={2} />
             이전
           </Button>
           <Button
             type="button"
-            className="flex-1"
+            className="h-12 px-5 text-[15px] sm:h-11"
             disabled={submitting}
             onClick={handleEnter}
           >
-            {isLast ? (submitting ? "제출 중…" : "제출") : "다음"}
+            {isLast ? (
+              submitting ? (
+                "제출 중…"
+              ) : (
+                "제출"
+              )
+            ) : (
+              <>
+                다음
+                <Icon name="chevron" size={16} strokeWidth={2} />
+              </>
+            )}
           </Button>
         </div>
+
+        <p className="text-center text-xs text-slate-400">
+          뜻 쓰기 50% + 스펠링 50% · {STAGE4_PASS_SCORE}점 이상이면 합격 · Enter
+          키로 다음 문제로 넘어가요
+        </p>
       </div>
     </div>
   );

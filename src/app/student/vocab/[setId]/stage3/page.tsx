@@ -33,14 +33,12 @@ export default async function StudentVocabStage3Page({ params }: PageProps) {
   const excludedCount = ctx.items.length - questions.length;
 
   return (
-    <div className="py-6 sm:py-10">
-      <VocabStage3ExampleBlank
-        setId={setId}
-        setTitle={ctx.set.title}
-        itemCount={ctx.itemCount}
-        questions={questions}
-        excludedCount={excludedCount}
-      />
-    </div>
+    <VocabStage3ExampleBlank
+      setId={setId}
+      setTitle={ctx.set.title}
+      itemCount={ctx.itemCount}
+      questions={questions}
+      excludedCount={excludedCount}
+    />
   );
 }

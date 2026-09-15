@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { ButtonLink } from "@/components/ui/Button";
+import { Icon } from "@/components/layout/NavIcon";
+import {
+  VocabSetWordList,
+  type VocabSetWord,
+} from "@/components/vocab/VocabSetWordList";
 import { STAGE4_PASS_SCORE } from "@/lib/vocab/build-stage3-questions";
 import {
   stage3Completed,
@@ -14,102 +21,133 @@ interface VocabSetStageHubProps {
   setTitle: string;
   itemCount: number;
   progress: VocabStageProgress;
+  /** 단어 목록 (1단계와 같은 순서) */
+  items?: VocabSetWord[];
   /** 변형문제 QR 학습: 예문(3단계) 생략 */
   examCompact?: boolean;
 }
 
-function statusPill(
-  label: string,
-  variant: "locked" | "todo" | "done" | "pass" | "fail"
-) {
-  const styles: Record<string, string> = {
-    locked: "bg-slate-100 text-slate-500",
-    todo: "bg-amber-50 text-amber-800",
-    done: "bg-emerald-50 text-emerald-800",
-    pass: "bg-emerald-100 text-emerald-900",
-    fail: "bg-rose-50 text-rose-800",
-  };
+type CardState = "done" | "current" | "locked";
+type PillTone = "good" | "bad" | "brand" | "neutral";
+
+const PILL_TONE: Record<PillTone, string> = {
+  good: "bg-green-50 text-green-700",
+  bad: "bg-rose-50 text-rose-700",
+  brand: "bg-brand-50 text-brand-700",
+  neutral: "bg-slate-100 text-slate-500",
+};
+
+function Pill({
+  tone,
+  icon,
+  children,
+}: {
+  tone: PillTone;
+  icon?: string;
+  children: ReactNode;
+}) {
   return (
     <span
-      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${styles[variant]}`}
+      className={`inline-flex h-[22px] shrink-0 items-center gap-1 whitespace-nowrap rounded px-2 text-xs font-semibold ${PILL_TONE[tone]}`}
+    >
+      {icon && <Icon name={icon} size={12} strokeWidth={2.4} />}
+      {children}
+    </span>
+  );
+}
+
+function StageCard({
+  n,
+  title,
+  desc,
+  state,
+  pill,
+  children,
+}: {
+  n: number;
+  title: string;
+  desc: string;
+  state: CardState;
+  pill: ReactNode;
+  children: ReactNode;
+}) {
+  const locked = state === "locked";
+  const current = state === "current";
+  const done = state === "done";
+
+  return (
+    <div
+      className={`flex flex-col gap-3.5 rounded-lg border bg-white p-5 shadow-card ${
+        current ? "border-brand-600 ring-4 ring-brand-50" : "border-slate-200"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`flex h-9 w-9 items-center justify-center rounded-full ${
+            done
+              ? "bg-green-700 text-white"
+              : current
+                ? "bg-brand-600 text-white"
+                : "bg-slate-100 text-slate-400"
+          }`}
+        >
+          {done ? (
+            <Icon name="check" size={18} strokeWidth={2.6} />
+          ) : (
+            <span className="text-[15px] font-bold tabular-nums">{n}</span>
+          )}
+        </span>
+        {pill}
+      </div>
+      <div className="flex flex-col gap-1">
+        <span
+          className={`text-[13px] font-semibold ${
+            locked ? "text-slate-400" : "text-slate-500"
+          }`}
+        >
+          {n}단계
+        </span>
+        <h2
+          className={`text-lg font-bold tracking-tight ${
+            locked ? "text-slate-400" : "text-slate-900"
+          }`}
+        >
+          {title}
+        </h2>
+        <p
+          className={`text-[13px] leading-relaxed ${
+            locked ? "text-slate-400" : "text-slate-500"
+          }`}
+        >
+          {desc}
+        </p>
+      </div>
+      <div className="flex-1" />
+      {children}
+    </div>
+  );
+}
+
+const BTN = "h-11 w-full px-4 text-sm sm:h-10";
+
+function LockedButton({ label }: { label: string }) {
+  return (
+    <span
+      aria-disabled
+      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-md border border-slate-200 bg-slate-100 px-3 py-1.5 text-center text-sm font-semibold text-slate-400 sm:min-h-[40px]"
     >
       {label}
     </span>
   );
 }
 
-interface StageRowProps {
-  step: string;
-  title: string;
-  desc: string;
-  status: string;
-  variant: "locked" | "todo" | "done" | "pass" | "fail";
-  href?: string;
-  secondaryHref?: string;
-  locked?: boolean;
-  buttonLabel: string;
-  secondaryButtonLabel?: string;
-}
-
-function StageRow({
-  step,
-  title,
-  desc,
-  status,
-  variant,
-  href,
-  secondaryHref,
-  locked,
-  buttonLabel,
-  secondaryButtonLabel,
-}: StageRowProps) {
-  const actionButtons = (
-    <>
-      {locked || !href ? (
-        <span className="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-slate-100 px-3 text-xs text-slate-400 sm:flex-none">
-          {buttonLabel}
-        </span>
-      ) : (
-        <Link
-          href={href}
-          className="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-medium text-brand-700 hover:bg-brand-50 sm:flex-none sm:text-sm"
-        >
-          {buttonLabel}
-        </Link>
-      )}
-      {secondaryHref && secondaryButtonLabel && (
-        <Link
-          href={secondaryHref}
-          className="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-700 hover:bg-slate-50 sm:flex-none sm:text-sm"
-        >
-          {secondaryButtonLabel}
-        </Link>
-      )}
-    </>
-  );
-
+function statePill(state: CardState) {
+  if (state === "done") return <Pill tone="good" icon="check">완료</Pill>;
+  if (state === "current") return <Pill tone="brand">지금 할 차례</Pill>;
   return (
-    <li
-      className={`border-b border-slate-100 px-4 py-3.5 last:border-b-0 ${
-        locked ? "bg-slate-50/50" : "hover:bg-slate-50/80"
-      }`}
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
-        <div className="flex min-w-0 flex-1 items-start gap-3">
-          <span className="shrink-0 rounded-md bg-violet-100 px-2 py-0.5 text-xs font-bold text-violet-800">
-            {step}단계
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-slate-900">{title}</p>
-            <p className="mt-0.5 text-sm text-slate-500">{desc}</p>
-          </div>
-          {statusPill(status, variant)}
-        </div>
-        <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
-          {actionButtons}
-        </div>
-      </div>
-    </li>
+    <Pill tone="neutral" icon="lock">
+      잠김
+    </Pill>
   );
 }
 
@@ -118,6 +156,7 @@ export function VocabSetStageHub({
   setTitle,
   itemCount,
   progress,
+  items = [],
   examCompact = false,
 }: VocabSetStageHubProps) {
   const stage1Done = progress.stage1_completed;
@@ -132,131 +171,194 @@ export function VocabSetStageHub({
   const hasAttempt = attemptCount > 0;
   const stage4Fail = hasAttempt && !stage4Pass;
 
-  const stage1Status = stage1Done ? "완료" : "미완료";
-  const stage2Status = !stage1Done
-    ? "잠김"
-    : stage2Done
-      ? "완료"
-      : "미완료";
-  const stage3Status = !stage2Done
-    ? "잠김"
-    : stage3Done
-      ? "완료"
-      : "미완료";
-  const stage4Status = !stage3Done
-    ? "잠김"
-    : stage4Pass
-      ? "합격"
-      : hasAttempt
-        ? "불합격"
-        : "미응시";
+  const s1: CardState = stage1Done ? "done" : "current";
+  const s2: CardState = !stage1Done ? "locked" : stage2Done ? "done" : "current";
+  const s3: CardState = !stage2Done ? "locked" : stage3Done ? "done" : "current";
+  const s4: CardState = !stage3Done ? "locked" : stage4Pass ? "done" : "current";
+
+  const testNo = examCompact ? 3 : 4;
+  const totalStages = examCompact ? 3 : 4;
+  const doneStages = [
+    stage1Done,
+    stage2Done,
+    ...(examCompact ? [] : [stage3Done]),
+    stage4Pass,
+  ].filter(Boolean).length;
+
+  const stats: [string, string][] = [
+    ["진행", `${doneStages} / ${totalStages}단계`],
+    ["최고 점수", bestScore > 0 ? `${bestScore}점` : "–"],
+    ["응시", `${attemptCount}회`],
+  ];
+
+  const base = `/student/vocab/${setId}`;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4">
-      <div>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-2.5">
         <Link
           href="/student/vocab"
-          className="text-sm text-brand-600 hover:underline"
+          className="-ml-1 inline-flex min-h-[44px] items-center gap-1 self-start px-1 text-[13px] font-medium text-slate-500 transition hover:text-slate-900 sm:min-h-0"
         >
-          ← 단어장 목록
+          <Icon name="left" size={16} />
+          단어장 목록
         </Link>
-        <h1 className="mt-1 text-lg font-bold text-slate-900">{setTitle}</h1>
-        {examCompact ? (
-          <p className="mt-1 text-sm text-slate-500">
-            변형문제 연계 · 1·2·4단계만 학습합니다 (예문 단계 생략).
-          </p>
-        ) : null}
-      </div>
-
-      {itemCount < 1 ? (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center text-slate-600">
-          등록된 단어가 없습니다.
-        </p>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 bg-slate-50/80 px-4 py-3">
-            <p className="text-sm font-medium text-slate-700">
-              학습 단계 <span className="text-slate-400">·</span>{" "}
-              <span className="text-slate-500">{itemCount} 카드</span>
-            </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-5">
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="break-keep text-xl font-bold tracking-tight text-slate-900 sm:text-[22px]">
+              {setTitle}
+            </h1>
+            <span className="text-sm tabular-nums text-slate-500">
+              {itemCount}단어
+            </span>
           </div>
-          <ul>
-            <StageRow
-              step="1"
-              title="뜻 익히기"
-              desc="단어를 보고 뜻을 익힙니다"
-              status={stage1Status}
-              variant={stage1Done ? "done" : "todo"}
-              href={`/student/vocab/${setId}/stage1`}
-              buttonLabel={stage1Done ? "다시 보기" : "시작하기"}
-            />
-            <StageRow
-              step="2"
-              title="스펠링 학습"
-              desc="한글뜻만 보고 영어 스펠링 입력"
-              status={stage2Status}
-              variant={
-                !stage1Done ? "locked" : stage2Done ? "done" : "todo"
-              }
-              href={
-                stage1Done ? `/student/vocab/${setId}/stage2` : undefined
-              }
-              locked={!stage1Done}
-              buttonLabel={stage2Done ? "다시 하기" : "시작하기"}
-            />
-            {!examCompact && (
-              <StageRow
-                step="3"
-                title="예문 빈칸 학습"
-                desc="예문 빈칸에 들어갈 영어 단어 입력"
-                status={stage3Status}
-                variant={
-                  !stage2Done ? "locked" : stage3Done ? "done" : "todo"
-                }
-                href={
-                  stage2Done ? `/student/vocab/${setId}/stage3` : undefined
-                }
-                locked={!stage2Done}
-                buttonLabel={stage3Done ? "다시 하기" : "시작하기"}
-              />
-            )}
-            <StageRow
-              step={examCompact ? "3" : "4"}
-              title="종합테스트"
-              desc={`뜻·스펠링 혼합 · ${STAGE4_PASS_SCORE}점 이상 합격`}
-              status={stage4Status}
-              variant={
-                !stage3Done
-                  ? "locked"
-                  : stage4Pass
-                    ? "pass"
-                    : stage4Fail
-                      ? "fail"
-                      : "todo"
-              }
-              href={
-                stage3Done ? `/student/vocab/${setId}/stage4` : undefined
-              }
-              secondaryHref={
-                stage3Done && hasAttempt
-                  ? `/student/vocab/${setId}/stage4/result`
-                  : undefined
-              }
-              locked={!stage3Done}
-              buttonLabel={
-                hasAttempt ? "다시 도전하기" : "시작하기"
-              }
-              secondaryButtonLabel={
-                hasAttempt ? "결과 보기" : undefined
-              }
-            />
-          </ul>
-          {hasAttempt && (
-            <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
-              최근 {lastScore}점 · 최고 {bestScore}점 · 응시 {attemptCount}회
-            </p>
+          {itemCount > 0 && (
+            <div className="flex shrink-0 gap-6">
+              {stats.map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex flex-col gap-0.5 sm:items-end"
+                >
+                  <span className="text-xs text-slate-500">{label}</span>
+                  <span className="text-lg font-bold tabular-nums text-slate-900">
+                    {value}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
         </div>
+      </div>
+
+      {examCompact && (
+        <p className="rounded-md border border-brand-100 bg-brand-50 px-3.5 py-2.5 text-[13px] text-brand-700">
+          변형문제 연계 단어장이에요. 예문 빈칸 단계 없이 뜻 익히기 → 스펠링 →
+          종합테스트 3단계로 학습해요.
+        </p>
+      )}
+
+      {itemCount < 1 ? (
+        <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">
+          등록된 단어가 아직 없어요.
+        </div>
+      ) : (
+        <>
+          <div
+            className={`grid gap-4 sm:grid-cols-2 ${
+              examCompact ? "lg:grid-cols-3" : "xl:grid-cols-4"
+            }`}
+          >
+            <StageCard
+              n={1}
+              title="뜻 익히기"
+              desc="카드를 넘기며 단어를 보고 뜻을 익혀요. 발음도 들을 수 있어요."
+              state={s1}
+              pill={statePill(s1)}
+            >
+              <ButtonLink
+                href={`${base}/stage1`}
+                variant={s1 === "current" ? "primary" : "secondary"}
+                className={BTN}
+              >
+                {stage1Done ? "다시 보기" : "시작하기"}
+              </ButtonLink>
+            </StageCard>
+
+            <StageCard
+              n={2}
+              title="스펠링"
+              desc="한글 뜻만 보고 영어 스펠링을 입력해요. 틀린 단어는 다시 나와요."
+              state={s2}
+              pill={statePill(s2)}
+            >
+              {s2 === "locked" ? (
+                <LockedButton label="1단계를 먼저 끝내세요" />
+              ) : (
+                <ButtonLink
+                  href={`${base}/stage2`}
+                  variant={s2 === "current" ? "primary" : "secondary"}
+                  className={BTN}
+                >
+                  {stage2Done ? "다시 하기" : "시작하기"}
+                </ButtonLink>
+              )}
+            </StageCard>
+
+            {!examCompact && (
+              <StageCard
+                n={3}
+                title="예문 빈칸"
+                desc="예문의 빈칸에 들어갈 단어를 입력해요."
+                state={s3}
+                pill={statePill(s3)}
+              >
+                {s3 === "locked" ? (
+                  <LockedButton label="2단계를 먼저 끝내세요" />
+                ) : (
+                  <ButtonLink
+                    href={`${base}/stage3`}
+                    variant={s3 === "current" ? "primary" : "secondary"}
+                    className={BTN}
+                  >
+                    {stage3Done ? "다시 하기" : "시작하기"}
+                  </ButtonLink>
+                )}
+              </StageCard>
+            )}
+
+            <StageCard
+              n={testNo}
+              title="종합테스트"
+              desc={`뜻 쓰기 50% + 스펠링 50%. ${STAGE4_PASS_SCORE}점 이상이면 합격이에요.`}
+              state={s4}
+              pill={
+                s4 === "locked" ? (
+                  statePill(s4)
+                ) : stage4Pass ? (
+                  <Pill tone="good" icon="trophy">
+                    합격
+                  </Pill>
+                ) : stage4Fail ? (
+                  <Pill tone="bad">불합격</Pill>
+                ) : (
+                  statePill(s4)
+                )
+              }
+            >
+              {hasAttempt && s4 !== "locked" && (
+                <p className="text-xs tabular-nums text-slate-500">
+                  최근 {lastScore}점 · 최고 {bestScore}점 · 응시 {attemptCount}회
+                </p>
+              )}
+              {s4 === "locked" ? (
+                <LockedButton label={`${testNo - 1}단계를 먼저 끝내세요`} />
+              ) : hasAttempt ? (
+                <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+                  <ButtonLink
+                    href={`${base}/stage4`}
+                    variant={stage4Pass ? "secondary" : "primary"}
+                    className={BTN}
+                  >
+                    다시 도전하기
+                  </ButtonLink>
+                  <ButtonLink
+                    href={`${base}/stage4/result`}
+                    variant="secondary"
+                    className={BTN}
+                  >
+                    결과 보기
+                  </ButtonLink>
+                </div>
+              ) : (
+                <ButtonLink href={`${base}/stage4`} className={BTN}>
+                  시작하기
+                </ButtonLink>
+              )}
+            </StageCard>
+          </div>
+
+          <VocabSetWordList items={items} />
+        </>
       )}
     </div>
   );

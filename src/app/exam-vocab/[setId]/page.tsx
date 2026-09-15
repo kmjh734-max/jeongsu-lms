@@ -33,7 +33,9 @@ export default async function ExamVocabHubPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <p className="p-8 text-center text-sm text-slate-500">불러오는 중…</p>
+        <div className="min-h-screen bg-canvas px-4 py-16">
+          <p className="text-center text-sm text-slate-500">불러오는 중…</p>
+        </div>
       }
     >
       <ExamVocabGuestHub

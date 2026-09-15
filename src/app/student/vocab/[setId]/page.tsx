@@ -16,8 +16,9 @@ export default async function StudentVocabSetPage({ params }: PageProps) {
     createClient(),
   ]);
 
+  // 단어 목록 카드용: 단어·뜻만 1단계와 같은 순서로 가볍게 불러온다
   const ctx = await loadStudentVocabSetContext(supabase, profile!.id, setId, {
-    items: "none",
+    items: "stage2",
     progress: "hub",
   });
   if (!ctx) notFound();
@@ -37,14 +38,17 @@ export default async function StudentVocabSetPage({ params }: PageProps) {
       : ctx.progress;
 
   return (
-    <div className="py-4">
-      <VocabSetStageHub
-        setId={setId}
-        setTitle={ctx.set.title}
-        itemCount={ctx.itemCount}
-        progress={progress}
-        examCompact={Boolean(ctx.set.exam_compact)}
-      />
-    </div>
+    <VocabSetStageHub
+      setId={setId}
+      setTitle={ctx.set.title}
+      itemCount={ctx.itemCount}
+      progress={progress}
+      items={ctx.items.map((it) => ({
+        id: it.id,
+        word: it.word,
+        meaning: it.meaning,
+      }))}
+      examCompact={Boolean(ctx.set.exam_compact)}
+    />
   );
 }

@@ -42,13 +42,11 @@ export default async function StudentVocabStage4Page({ params }: PageProps) {
   const questions = buildStage3Questions(ctx.items);
 
   return (
-    <div className="py-6 sm:py-10">
-      <VocabStage3Test
-        setId={setId}
-        setTitle={ctx.set.title}
-        questions={questions}
-        stageNumber={4}
-      />
-    </div>
+    <VocabStage3Test
+      setId={setId}
+      setTitle={ctx.set.title}
+      questions={questions}
+      stageNumber={4}
+    />
   );
 }

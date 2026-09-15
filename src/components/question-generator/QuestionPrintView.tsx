@@ -807,7 +807,7 @@ export function QuestionPrintView({
     );
   }
 
-  function renderFooter() {
+  function renderFooter(pageIdx: number) {
     return (
       <footer className="qg-print-footer">
         <div className="qg-print-footer-left">
@@ -821,6 +821,7 @@ export function QuestionPrintView({
           )}
           <span>{branding.footerLeft || academyName}</span>
         </div>
+        <span className="qg-print-footer-page">- {pageIdx + 1} -</span>
         <span className="qg-print-footer-right">
           {branding.footerRight || "영어 변형문제"}
         </span>
@@ -904,7 +905,7 @@ export function QuestionPrintView({
                     ))}
                   </div>
                 </div>
-                {renderFooter()}
+                {renderFooter(pageIdx)}
               </article>
             ))}
           </div>

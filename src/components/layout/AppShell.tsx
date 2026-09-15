@@ -189,7 +189,141 @@ function SidebarBody({
           <span className="text-xs text-side-muted">충전·내역 보기 ›</span>
         </Link>
       ) : null}
+
+      {profile.role === "student" ? (
+        <StudentTodayCard onNavigate={onNavigate} />
+      ) : null}
     </div>
+  );
+}
+
+/* ── 학생: 오늘 할 일 카드 ── */
+
+type TodayCardData = {
+  doneCount: number;
+  items: { short: string; done: boolean; href: string }[];
+};
+
+let todayCache: { at: number; data: TodayCardData } | null = null;
+
+function StudentTodayCard({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const [data, setData] = useState<TodayCardData | null>(todayCache?.data ?? null);
+
+  useEffect(() => {
+    // 화면을 옮길 때마다 새로 읽되, 20초 안에는 다시 묻지 않는다
+    if (todayCache && Date.now() - todayCache.at < 20_000) {
+      setData(todayCache.data);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/student/today", { cache: "no-store" });
+        const json = (await res.json()) as { ok?: boolean } & Partial<TodayCardData>;
+        if (cancelled || !json.ok) return;
+        const next = { doneCount: json.doneCount ?? 0, items: json.items ?? [] };
+        todayCache = { at: Date.now(), data: next };
+        setData(next);
+      } catch {
+        /* 카드만 비워 둔다 */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  if (data && data.items.length === 0) return null;
+  const total = data?.items.length ?? 0;
+  const pct = total > 0 ? Math.round(((data?.doneCount ?? 0) / total) * 100) : 0;
+
+  return (
+    <div className="mt-4 flex flex-col gap-2.5 rounded-lg bg-side-card p-3.5">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-side-muted">오늘 할 일</span>
+        {data ? (
+          <span className="text-xs font-bold tabular-nums text-white">
+            {data.doneCount} / {total}
+          </span>
+        ) : null}
+      </div>
+      <div className="h-1 overflow-hidden rounded-full bg-[#223a58]">
+        <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
+      </div>
+      {data ? (
+        <div className="flex flex-col gap-1.5">
+          {data.items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              prefetch={false}
+              onClick={onNavigate}
+              className={`flex items-center gap-2 text-xs transition hover:text-white ${
+                item.done ? "text-side-muted" : "text-white"
+              }`}
+            >
+              <span
+                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-[1.5px] ${
+                  item.done ? "border-[#1f7a4d] bg-[#1f7a4d]" : "border-side-icon"
+                }`}
+              >
+                {item.done ? <Icon name="check" size={11} strokeWidth={3} className="text-white" /> : null}
+              </span>
+              <span className={`truncate ${item.done ? "line-through" : ""}`}>{item.short}</span>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <span className="h-3 w-24 animate-pulse rounded bg-white/10" />
+          <span className="h-3 w-20 animate-pulse rounded bg-white/10" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── 학생: 휴대폰 아래 탭 ── */
+
+/** 문제를 푸는 화면 — 탭을 숨겨 화면을 넓게 쓴다 */
+export function isStudyScreen(pathname: string): boolean {
+  return (
+    /^\/student\/vocab\/[^/]+\/(stage\d|study|test)/.test(pathname) ||
+    /^\/student\/listening\/(daily\/)?[^/]+$/.test(pathname)
+  );
+}
+
+export function StudentTabBar({ items }: { items: AppNavItem[] }) {
+  const pathname = usePathname();
+  if (isStudyScreen(pathname)) return null;
+  const active = activeNavItem(pathname, items);
+  return (
+    <>
+      <div aria-hidden className="h-20 lg:hidden print:hidden" />
+      <nav
+        aria-label="학생 메뉴"
+        className="no-print fixed inset-x-0 bottom-0 z-40 flex border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm lg:hidden"
+      >
+        {items.map((item) => {
+          const on = active?.href === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              prefetch={false}
+              aria-current={on ? "page" : undefined}
+              className={`flex h-16 flex-1 flex-col items-center justify-center gap-1 text-[11px] ${
+                on ? "font-bold text-brand-600" : "font-medium text-slate-400"
+              }`}
+            >
+              <Icon name={navIconName(item.href)} size={22} strokeWidth={on ? 2 : 1.75} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 }
 
@@ -277,7 +411,9 @@ export function AppTopbar({
           type="button"
           onClick={() => setOpen(true)}
           aria-label="메뉴 열기"
-          className="-ml-1.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 lg:hidden"
+          className={`-ml-1.5 h-9 w-9 shrink-0 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100 lg:hidden ${
+            profile.role === "student" ? "hidden" : "flex"
+          }`}
         >
           <Icon name="menu" size={20} />
         </button>
