@@ -19,7 +19,7 @@ const VERIFY_MAX_TOKENS = 400;
  * 그림 검수 요청 본문. GPT-5 계열은 temperature(0)·max_tokens를 받지 않으므로
  * max_completion_tokens만 보내고 temperature는 생략한다.
  */
-function buildVerifyBody(
+export function buildVerifyBody(
   model: string,
   messages: unknown[]
 ): Record<string, unknown> {
@@ -232,7 +232,7 @@ Clean simple flat-color or line drawing, white background, textbook style.
 Subject: ${body}`.slice(0, 3000);
 }
 
-async function generateImagePngBytes(prompt: string): Promise<Buffer> {
+export async function generateImagePngBytes(prompt: string): Promise<Buffer> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) throw new Error("OPENAI_API_KEY가 없습니다.");
 
@@ -315,7 +315,7 @@ export async function flattenPngOnWhite(bytes: Buffer): Promise<Buffer> {
   }
 }
 
-async function uploadPng(
+export async function uploadPng(
   admin: ReturnType<typeof createAdminClient>,
   storagePath: string,
   bytes: Buffer

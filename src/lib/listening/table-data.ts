@@ -38,17 +38,51 @@ export function normalizeTableData(raw: unknown): ListeningTableData | null {
     })
     .filter((r): r is ListeningTableRow => r !== null);
 
-  if (!title || rows.length !== 5) return null;
+  // 인쇄 양식(전단·티켓): 4~6줄, 두 줄의 값이 빈칸 (A)·(B)
+  const flyer = String(o.kind ?? "").trim() === "flyer" || isFlyerRows(rows);
+  if (!title) return null;
+  if (flyer ? rows.length < 4 || rows.length > 6 : rows.length !== 5) return null;
 
   const mismatch_no = Number(o.mismatch_no);
-  if (!Number.isInteger(mismatch_no) || mismatch_no < 1 || mismatch_no > 5) {
-    return null;
-  }
+  const validNo = Number.isInteger(mismatch_no) && mismatch_no >= 1 && mismatch_no <= 5;
+  if (!validNo && !flyer) return null;
 
   return {
+    ...(flyer ? { kind: "flyer" as const } : {}),
     title,
     rows: rows.map((r, i) => ({ ...r, no: i + 1 })),
-    mismatch_no,
+    mismatch_no: validNo ? mismatch_no : 0,
     mismatch_reason: String(o.mismatch_reason ?? "").trim(),
   };
+}
+
+const BLANK_A = /^\(\s*A\s*\)$/i;
+const BLANK_B = /^\(\s*B\s*\)$/i;
+
+/** 값이 정확히 "(A)"·"(B)"인 줄이 하나씩 있으면 양식 */
+function isFlyerRows(rows: ListeningTableRow[]): boolean {
+  return (
+    rows.filter((r) => BLANK_A.test(r.value.trim())).length === 1 &&
+    rows.filter((r) => BLANK_B.test(r.value.trim())).length === 1
+  );
+}
+
+/** 양식(전단·티켓)인지 */
+export function isFlyerTable(t: ListeningTableData | null | undefined): boolean {
+  return t?.kind === "flyer";
+}
+
+/** 양식 빈칸 줄 번호 (A)·(B) */
+export function flyerBlankRows(t: ListeningTableData): { a?: ListeningTableRow; b?: ListeningTableRow } {
+  return {
+    a: t.rows.find((r) => BLANK_A.test(r.value.trim())),
+    b: t.rows.find((r) => BLANK_B.test(r.value.trim())),
+  };
+}
+
+/** "(A) City Hall – (B) $12" → { a: "City Hall", b: "$12" } */
+export function parseFlyerChoice(choice: string): { a: string; b: string } | null {
+  const m = String(choice ?? "").match(/\(\s*A\s*\)\s*(.+?)\s*[–—-]\s*\(\s*B\s*\)\s*(.+)$/i);
+  if (!m) return null;
+  return { a: m[1]!.trim(), b: m[2]!.trim() };
 }

@@ -1,8 +1,12 @@
 "use client";
 
-import { continuationQuestionDisplayText } from "@/lib/listening/fix-continuation-question";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
+import { resolveQuestionTypeKey } from "@/lib/listening/legacy-type-map";
+import { responseBlankLine } from "@/lib/listening/question-display";
 import { normalizeTableData } from "@/lib/listening/table-data";
+import { getTypeDef } from "@/lib/listening/type-catalog";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 
 const CIRCLED = ["①", "②", "③", "④", "⑤"];
@@ -17,6 +21,8 @@ interface ListeningQuestionPreviewProps {
   audioBusy?: boolean;
   showActions?: boolean;
   audioNeedsRegeneration?: boolean;
+  /** 세트 학년 — 번호가 아니라 유형으로 보조 정보를 고른다(중2·중3은 번호와 유형이 다름) */
+  gradeLevel?: ListeningGradeLevel;
 }
 
 export function ListeningQuestionPreview({
@@ -29,11 +35,18 @@ export function ListeningQuestionPreview({
   audioBusy,
   showActions,
   audioNeedsRegeneration,
+  gradeLevel,
 }: ListeningQuestionPreviewProps) {
   const filledChoices = (question.choices ?? []).filter((c) => c?.trim());
   const table = normalizeTableData(question.table_data);
-  const blankLine = continuationQuestionDisplayText(question.order_index);
+  const blankLine = responseBlankLine(question, gradeLevel);
   const av = question.answer_validation;
+  // 중등 유형 모듈 번호 (고등 문항이면 0 — 아래 보조 정보는 중등 유형 기준)
+  const typeKey = resolveQuestionTypeKey(question, gradeLevel);
+  const middleCode =
+    typeKey && getTypeDef(typeKey).family === "middle" ? inferExamTypeIdForFixes(question, gradeLevel) : 0;
+  const isTableSelect = typeKey === "M_TABLE_SELECT" || typeKey === "H_TABLE";
+  const imagePrompts = (question.choice_image_prompts ?? []).filter((p) => p?.trim());
 
   return (
     <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-card">
@@ -75,13 +88,15 @@ export function ListeningQuestionPreview({
           <ListeningTableDisplay
             table={table}
             highlightMismatchNo={table.mismatch_no}
+            highlightLabel={isTableSelect ? "정답" : table.kind === "flyer" ? undefined : "불일치"}
           />
           {table.mismatch_reason && (
             <p className="mt-2 text-xs text-amber-700">
-              <span className="font-medium">불일치:</span> {table.mismatch_reason}
+              <span className="font-medium">{isTableSelect || table.kind === "flyer" ? "정답 근거:" : "불일치:"}</span>{" "}
+              {table.mismatch_reason}
             </p>
           )}
-          {question.order_index === 14 &&
+          {middleCode === 14 &&
             question.source_facts_from_script &&
             question.source_facts_from_script.length > 0 && (
               <div className="mt-2 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
@@ -102,21 +117,21 @@ export function ListeningQuestionPreview({
         <p className="mb-2 font-mono text-sm text-slate-800">{blankLine}</p>
       )}
 
-      {(question.order_index === 19 || question.order_index === 20) && (
+      {(middleCode === 19 || middleCode === 20) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
-          {question.order_index === 19 && question.blank_speaker && (
+          {middleCode === 19 && question.blank_speaker && (
             <p>
               <span className="font-medium">빈칸 화자:</span>{" "}
               {question.blank_speaker === "M" ? "남자 (Man)" : "여자 (Woman)"}
             </p>
           )}
-          {question.order_index === 20 && question.blank_speaker && (
+          {middleCode === 20 && question.blank_speaker && (
             <p>
               <span className="font-medium">빈칸 화자:</span>{" "}
               {question.blank_speaker === "W" ? "여자 (Woman)" : "남자 (Man)"}
             </p>
           )}
-          {question.order_index === 20 && question.situation_type && (
+          {middleCode === 20 && question.situation_type && (
             <p className="mt-1">
               <span className="font-medium">상황:</span> {question.situation_type}
             </p>
@@ -171,6 +186,7 @@ export function ListeningQuestionPreview({
                 className="mt-1 max-h-28 rounded border border-slate-200"
               />
             ) : (question.choice_image_urls?.length ?? 0) <= 1 &&
+              imagePrompts.length > 1 &&
               question.choice_image_prompts?.[i]?.trim() ? (
               <p className="mt-0.5 text-xs text-slate-500">
                 그림: {question.choice_image_prompts[i]}
@@ -179,6 +195,10 @@ export function ListeningQuestionPreview({
           </li>
         ))}
       </ul>
+
+      {imagePrompts.length === 1 && !(question.choice_image_urls ?? []).some((u) => u?.trim()) ? (
+        <p className="mb-2 text-xs text-slate-500">그림(장면 1장): {imagePrompts[0]}</p>
+      ) : null}
 
       {(question.choice_image_urls?.length === 1 &&
         question.choice_image_urls[0]?.trim()) && (
@@ -192,10 +212,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {(question.order_index === 1 ||
-        question.order_index === 2 ||
-        question.order_index === 3) &&
-        question.needs_image_choices && (
+      {question.needs_image_choices && (
         <p className="mb-2 text-xs text-slate-600">
           그림 선택지 문항
           {question.visual_choice_type
@@ -207,7 +224,7 @@ export function ListeningQuestionPreview({
         </p>
       )}
 
-      {question.order_index === 4 &&
+      {middleCode === 4 &&
         (question.target_intention || question.final_utterance) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">의도 파악 문항 정보</p>
@@ -234,7 +251,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 15 &&
+      {middleCode === 15 &&
         (question.requested_action ||
           question.requester ||
           question.request_expression) && (
@@ -260,7 +277,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 16 &&
+      {middleCode === 16 &&
         (question.suggested_action ||
           question.suggester ||
           question.suggestion_expression) && (
@@ -286,7 +303,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 17 &&
+      {middleCode === 17 &&
         (question.planned_action ||
           question.target_time ||
           question.target_person) && (
@@ -311,7 +328,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 18 &&
+      {middleCode === 18 &&
         (question.target_job ||
           question.target_person ||
           (question.job_clues?.length ?? 0) > 0) && (
@@ -343,7 +360,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 13 &&
+      {middleCode === 13 &&
         (question.target_place || (question.place_clues?.length ?? 0) > 0) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">대화 장소 파악 문항 정보</p>
@@ -368,7 +385,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 12 &&
+      {middleCode === 12 &&
         (question.reason_for_going ||
           question.target_place ||
           question.target_person) && (
@@ -393,7 +410,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 11 &&
+      {middleCode === 11 &&
         (question.final_transport ||
           question.destination ||
           (question.mentioned_transport_options?.length ?? 0) > 0) && (
@@ -420,7 +437,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 10 &&
+      {middleCode === 10 &&
         (question.main_content || (question.content_clues?.length ?? 0) > 0) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">핵심 내용 파악 문항 정보</p>
@@ -445,7 +462,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 9 &&
+      {middleCode === 9 &&
         (question.immediate_action || question.target_person) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">대화 직후 할 일 문항 정보</p>
@@ -466,7 +483,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 8 &&
+      {middleCode === 8 &&
         (question.target_emotion || question.target_person) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">심정 파악 문항 정보</p>
@@ -484,7 +501,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 7 &&
+      {middleCode === 7 &&
         (question.dream_job || question.target_person) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">장래 희망 문항 정보</p>
@@ -502,7 +519,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 6 &&
+      {middleCode === 6 &&
         (question.final_time || question.time_question_target) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">시각 파악 문항 정보</p>
@@ -522,7 +539,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 5 && question.mention_plan && (
+      {middleCode === 5 && question.mention_plan && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">언급한 것 · 안 한 것</p>
           {question.mention_plan.topic && (
@@ -550,7 +567,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 3 &&
+      {middleCode === 3 &&
         (question.weather_target_location || question.weather_target_time) && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium">날씨 문항 정보</p>
@@ -572,7 +589,7 @@ export function ListeningQuestionPreview({
         </div>
       )}
 
-      {question.order_index === 2 && question.selected_conditions && (
+      {middleCode === 2 && question.selected_conditions && (
         <div className="mb-3 rounded-md bg-slate-50 p-2 text-xs text-slate-700">
           <p className="font-medium text-slate-600">구매 조건</p>
           <ul className="mt-1 space-y-0.5">

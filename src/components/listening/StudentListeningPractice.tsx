@@ -5,7 +5,8 @@ import { DictationCard, DictationSection } from "@/components/listening/Dictatio
 import { StudentAudioBar } from "@/components/listening/StudentAudioBar";
 import { Icon } from "@/components/layout/NavIcon";
 import { Button } from "@/components/ui/Button";
-import { continuationQuestionDisplayText } from "@/lib/listening/fix-continuation-question";
+import { isLabelOnlyChoiceSet } from "@/lib/listening/balance-correct-answer";
+import { responseBlankLine } from "@/lib/listening/question-display";
 import type {
   DictationSetSettings,
   DictationStartPayloadClient,
@@ -142,14 +143,16 @@ export function StudentListeningPractice({
   const figureUrls = (q?.choice_image_urls ?? [])
     .map((u) => String(u).trim())
     .filter(Boolean);
+  // 선택지가 ①~⑤ 번호뿐이면(그림 속 라벨·표 행·짧은 대화 5개) 번호만 보인다 — "① ①"처럼 겹쳐 보이지 않게
   const hideFigureTextChoices = q
     ? shouldHideTextChoicesForFigure({
         choiceImageUrls: figureUrls,
         choices: q.choices,
         needsImageChoices: q.needs_image_choices,
-      })
+      }) || isLabelOnlyChoiceSet(q.choices)
     : false;
-  const blankLine = q ? continuationQuestionDisplayText(q.order_index) : null;
+  // 응답 문항의 빈칸 줄 — 번호가 아니라 이름·지시문으로 (중3 17번 응답, 20번은 상황에 맞는 말)
+  const blankLine = q ? responseBlankLine(q) : null;
   const questionSetId = q?.setId || setId;
 
   function resolveSetId(questionId: string): string {

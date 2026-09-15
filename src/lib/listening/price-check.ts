@@ -27,6 +27,8 @@ export interface PriceCalculation {
   items: PriceCalculationItem[];
   adjustments: PriceCalculationAdjustment[];
   final_amount?: number;
+  /** 거스름돈 문항(중2): 손님이 낸 돈. 있으면 정답 = 낸 돈 − 지불액 */
+  paid_amount?: number;
 }
 
 function toNum(v: unknown): number | null {
@@ -71,15 +73,22 @@ export function normalizePriceCalculation(raw: unknown): PriceCalculation | null
     .filter((x): x is PriceCalculationAdjustment => x !== null);
   if (items.length === 0) return null;
   const final_amount = toNum(o.final_amount) ?? undefined;
-  return { items, adjustments, final_amount };
+  const paid = toNum(o.paid_amount ?? o.paid);
+  return { items, adjustments, final_amount, ...(paid != null && paid > 0 ? { paid_amount: paid } : {}) };
 }
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-/** 단가×수량 합계에 할인·추가를 적힌 순서대로 적용 */
+/** 문항의 정답 금액: 지불액, 거스름돈 문항이면 낸 돈 − 지불액 */
 export function computePriceFromCalculation(calc: PriceCalculation): number {
+  const pay = computePayableAmount(calc);
+  return calc.paid_amount != null ? round2(calc.paid_amount - pay) : pay;
+}
+
+/** 단가×수량 합계에 할인·추가를 적힌 순서대로 적용 (지불액) */
+export function computePayableAmount(calc: PriceCalculation): number {
   let total = calc.items.reduce((sum, it) => sum + it.unit_price * it.quantity, 0);
   const norm = (s: string | undefined) => String(s ?? "").trim().toLowerCase();
   for (const adj of calc.adjustments) {
@@ -155,7 +164,7 @@ export function scriptStatesAmount(scriptText: string, value: number): boolean {
 }
 
 export function isPriceQuestion(q: { question_type?: string; instruction?: string }): boolean {
-  return /금액/.test(q.question_type ?? "") || /지불할\s*금액/.test(q.instruction ?? "");
+  return /금액/.test(q.question_type ?? "") || /지불할\s*금액|거스름돈/.test(q.instruction ?? "");
 }
 
 export interface PriceCheckResult {
@@ -170,6 +179,8 @@ export interface PriceCheckResult {
   explanationMismatch: boolean;
   /** 대본이 최종 금액을 그대로 말함 */
   finalAmountSpoken: boolean;
+  /** 거스름돈 문항에서 대본이 지불액(합계)을 그대로 말함 — 뺄셈만 하면 되는 문항이 된다 */
+  payableSpoken?: boolean;
 }
 
 export function checkPriceQuestion(q: {
@@ -208,9 +219,25 @@ export function checkPriceQuestion(q: {
     source = "explanation";
   }
   const idx = expected == null ? -1 : values.findIndex((v) => v != null && Math.abs(v - expected!) < 0.005);
+  // 정답 금액이 단가·낸 돈·할인액과 같은 수면 대본에 그 수가 나와도 최종 금액을 말한 것이 아니다 ("three dollars each")
+  const answerValue = expected ?? keyValue;
+  const calc = q.price_calculation;
+  const coincidental =
+    answerValue != null &&
+    calc != null &&
+    [
+      ...calc.items.map((it) => it.unit_price),
+      ...calc.adjustments.map((a) => a.value),
+      ...(calc.paid_amount != null ? [calc.paid_amount] : []),
+    ].some((v) => Math.abs(v - answerValue) < 0.005);
   const finalAmountSpoken =
-    keyValue != null && q.script_text ? scriptStatesAmount(q.script_text, expected ?? keyValue) : false;
+    keyValue != null && q.script_text && !coincidental ? scriptStatesAmount(q.script_text, answerValue!) : false;
+  const payableSpoken =
+    q.price_calculation?.paid_amount != null && q.script_text
+      ? scriptStatesAmount(q.script_text, computePayableAmount(q.price_calculation))
+      : false;
   return {
+    payableSpoken,
     expected,
     source,
     keyValue,
@@ -233,6 +260,8 @@ function formatLike(sample: string, value: number): string {
 export function priceDistractorCandidates(calc: PriceCalculation): number[] {
   const out = new Set<number>();
   const adj = calc.adjustments;
+  // 거스름돈 문항은 지불액 자체도 흔한 착오 (뺄셈을 안 함)
+  if (calc.paid_amount != null) out.add(computePayableAmount(calc));
   out.add(computePriceFromCalculation({ ...calc, adjustments: [] }));
   adj.forEach((_, skip) => {
     out.add(computePriceFromCalculation({ ...calc, adjustments: adj.filter((__, i) => i !== skip) }));

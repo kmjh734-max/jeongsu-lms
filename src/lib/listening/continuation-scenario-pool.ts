@@ -199,14 +199,19 @@ export function pickContinuationScenario(
 }
 
 export function formatAssignedScenarioBlock(
-  assignment: ContinuationScenarioAssignment
+  assignment: ContinuationScenarioAssignment,
+  /** 중2·중3: 부탁→수락 구조를 피하므로 권장 응답 기능 대신 마지막 말 형식을 안내한다 */
+  opts?: { upperMiddle?: boolean }
 ): string {
+  const functionLine = opts?.upperMiddle
+    ? "- 마지막 말: 평서문(소식·걱정·계획)이나 의문사 의문문 — Yes/No 부탁으로 끝내지 않는다. 정답 응답 기능은 상황에 맞게 새로 정한다(위로·조언·정보 제공·조건부 동의 등)."
+    : `- 권장 응답 기능(correct_response_function): ${assignment.responseFunction}`;
   return `
 ## 이번 문항 필수 상황 (반드시 따를 것 — 다른 문항·기출과 다른 새 주제)
 - scenario_id: ${assignment.id}
 - 상황: ${assignment.theme}
 - 장소·배경: ${assignment.setting}
-- 권장 응답 기능(correct_response_function): ${assignment.responseFunction}
+${functionLine}
 - 대화 시작 방향(참고): ${assignment.openingHook}
 - 이번 대화에서 피할 소재·표현: ${assignment.avoidPatterns.join(", ")}
 - JSON의 situation_type 필드에는 반드시 "${assignment.id}" 를 넣는다.

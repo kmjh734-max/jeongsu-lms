@@ -15,7 +15,12 @@ import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usa
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { replaceGeneratedQuestion } from "@/lib/listening/persist-questions";
-import { getExamTypeById, getExamTypesForGrade } from "@/lib/listening/exam-types";
+import {
+  examTypeCode,
+  getExamTypeById,
+  templateForStoredQuestion,
+} from "@/lib/listening/exam-types";
+import { resolveQuestionTypeKey, variantOfStoredQuestion } from "@/lib/listening/legacy-type-map";
 
 export const maxDuration = 300;
 
@@ -61,7 +66,7 @@ export async function POST(request: Request) {
     const { data: existing } = await access.admin
       .from("listening_questions")
       .select(
-        "id, order_index, question_type, quality_issues, answer_validation, situation_type, choices, correct_answer, script_text"
+        "id, order_index, question_type, instruction, question_text, blank_speaker, quality_issues, answer_validation, situation_type, choices, correct_answer, script_text"
       )
       .eq("id", questionId)
       .eq("set_id", setId)
@@ -70,18 +75,25 @@ export async function POST(request: Request) {
     if (!existing) return jsonError("문항을 찾을 수 없습니다.");
 
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
-    const types = getExamTypesForGrade(gradeLevel);
-    const typeFromQuestion = types.find(
-      (t) => t.question_type === String(existing.question_type ?? "").trim()
-    );
-    const typeId =
-      body.typeId ??
-      typeFromQuestion?.id ??
-      body.orderIndex ??
-      existing.order_index;
+    // 번호가 아니라 저장된 문항의 이름·지시문으로 유형을 정한다.
+    // 중2·중3의 예전 세트(중1 배치)는 지금 배치표와 번호별 유형이 달라, 번호로 찾으면 다른 유형으로 다시 만들어졌다.
+    const stored = {
+      order_index: Number(existing.order_index),
+      question_type: existing.question_type as string | null,
+      instruction: existing.instruction as string | null,
+      question_text: existing.question_text as string | null,
+      blank_speaker: existing.blank_speaker as string | null,
+      choices: Array.isArray(existing.choices) ? (existing.choices as string[]) : [],
+    };
+    const typeKey = resolveQuestionTypeKey(stored, gradeLevel);
     const slotIndex = existing.order_index;
-    const type = getExamTypeById(typeId, gradeLevel);
+    const typeId = slotIndex;
+    const type = typeKey
+      ? templateForStoredQuestion(stored, gradeLevel)
+      : getExamTypeById(body.typeId ?? body.orderIndex ?? existing.order_index, gradeLevel);
     if (!type) return jsonError("유형을 찾을 수 없습니다.");
+    const code = examTypeCode(type);
+    const variant = typeKey ? variantOfStoredQuestion(typeKey, stored) : undefined;
 
     const prevFromBody = body.previousProblems ?? [];
     const storedIssues = Array.isArray(existing.quality_issues)
@@ -107,7 +119,7 @@ export async function POST(request: Request) {
     const previousSubjectId = String(existing.situation_type ?? "").trim();
     const inferredSubjectId = findType1SubjectFromAnswer(previousAnswer)?.id;
 
-    if (typeId === 1) {
+    if (code === 1) {
       previousProblems.push(
         ...buildType1AvoidList([
           {
@@ -123,7 +135,7 @@ export async function POST(request: Request) {
     const trimmedProblems = previousProblems.filter(Boolean).slice(0, 12);
 
     let type1Regeneration: Type1RegenerationContext | undefined;
-    if (typeId === 1) {
+    if (code === 1) {
       const excludeSubjectIds = [
         ...new Set(
           [previousSubjectId, inferredSubjectId].filter((id): id is string =>
@@ -140,7 +152,7 @@ export async function POST(request: Request) {
 
     // 같은 과정에서 이미 쓴 정답 + 이번 문항의 이전 정답은 덜 고르게 한다
     const usedAnswers =
-      (await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel))[typeId] ?? [];
+      (await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel))[code] ?? [];
     if (previousAnswer) usedAnswers.push(previousAnswer, previousAnswer);
 
     const generated = await generateSingleExamQuestion(
@@ -151,7 +163,8 @@ export async function POST(request: Request) {
       gradeLevel,
       slotIndex,
       type1Regeneration,
-      { usedAnswers }
+      // 같은 유형·같은 변형(응답 방향 등)으로 다시 만든다 — 배치표 밖 유형(예전 배치)도 그대로
+      { usedAnswers, typeKey: typeKey ?? type.key, variant: variant ?? "" }
     );
 
     if (academyId) {

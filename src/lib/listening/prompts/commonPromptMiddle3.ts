@@ -15,8 +15,9 @@ export const COMMON_PROMPT_MIDDLE3 = `
 - 전화·안내 방송·행사 설명·쇼핑·여행·학교생활 등 실제 기출과 비슷한 정보량을 유지한다.
 
 유형 구성 (필수):
-- 1~20번 유형은 중1·중2 전국 영어듣기평가와 번호·유형명·지시문·출제 형식이 동일하다.
-- 난이도(문장 길이·정보량)만 아래 중3 기준을 따른다.
+- 문항 번호마다 유형이 정해져 있다(요청의 [문항 번호] 목록). 중3은 중1과 번호 배치가 다르다
+  (예: 5번 심정, 6번 그림 상황에 맞는 대화, 9번 설명 대상, 10번 어색한 대화, 12번 표, 13번 날짜, 20번 상황에 맞는 말).
+- 번호로 유형을 짐작하지 말고, 목록의 유형 이름과 그 유형 규칙 블록만 따른다.
 
 공통 생성 규칙:
 - 기존 기출 문장, 대본, 선택지를 그대로 복사하지 않는다.
@@ -66,9 +67,14 @@ export const MIDDLE3_JSON_OUTPUT_SCHEMA = `
   ]
 }
 
-14번: table_data 필수 { title, rows[5], mismatch_no, mismatch_reason }. question_text는 "".
-1·2번: needs_image_choices true 가능 (1번 묘사·2번 구입).
-18번: target_job, job_clues, distractor_jobs.
-19~20번: previous_turn, blank_speaker, correct_response_function, distractor_reasons(5).
-17번: target_person, target_time, planned_action, mentioned_other_actions. choices=한글 ~하기.
+유형별 추가 필드 (그 유형 문항에만):
+- 표 보고 고르기·표 정보 불일치: table_data { title, rows[5] {no,label,value}, mismatch_no, mismatch_reason }, question_text "".
+- 양식 빈칸 정보: table_data { kind: "flyer", title, rows[4~6] {no,label,value — 두 줄은 "(A)"·"(B)"}, mismatch_no(=정답 번호), mismatch_reason }, question_text "".
+- 구입/주문 정보 파악·묘사 듣고 대상 고르기·날씨 파악: needs_image_choices true, choice_image_prompts 5개(선택지마다 그림 1장).
+- 그림 상황에 맞는 대화: needs_image_choices true, visual_choice_type "scene", choice_image_prompts 1개(장면 그림, 글자 없음).
+- 그림 상황에 맞는 대화·어색한 대화 고르기: segments는 ANN "Number one." ~ "Number five."와 각 두 줄, choices ["①","②","③","④","⑤"].
+- 응답 고르기: previous_turn, blank_speaker, correct_response_function, distractor_reasons(5). 응답 줄은 segments에 넣지 않는다.
+- 상황에 맞는 말: question_text "이름: ______".
+- 금액 파악: price_calculation { items, adjustments, final_amount, (거스름돈이면) paid_amount }.
+- 언급하지 않은 것·언급하지 않은 것(대화): mention_plan.
 `.trim();

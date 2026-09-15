@@ -1,8 +1,18 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import type { ListeningTypeKey } from "@/lib/listening/type-catalog";
 
 export interface ListeningGenerationSlot {
+  /** 학년 배치표의 번호 (유형 템플릿을 찾는 번호 — 모듈 번호가 아님) */
   typeId: number;
+  /** 문항 번호 (order_index) */
   slotIndex: number;
+  /**
+   * 유형 키를 직접 지정 (지금 학년 배치표에 없는 유형도 가능 — 예전 배치로 만든 문항을 다시 만들 때).
+   * 있으면 typeId 대신 이 유형으로 만든다.
+   */
+  typeKey?: ListeningTypeKey;
+  /** 지시문 변형 id. 없으면 생성 때 학년 비율대로 고르고, ""이면 기본 지시문 그대로 */
+  variant?: string;
 }
 
 export type ListeningGenerationPlanMode = "random" | "custom";

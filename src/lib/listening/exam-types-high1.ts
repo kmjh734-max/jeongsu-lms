@@ -1,4 +1,5 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
+import { decorateLegacyTemplates } from "@/lib/listening/grade-exam-types";
 import { listeningTypeTarget } from "@/lib/listening/prompts/quality-craft";
 
 /**
@@ -235,8 +236,9 @@ export function withScriptTarget(
   return { ...t, segment_guide: `${guide.trim()} Total ${target.words[0]}~${target.words[1]} words.` };
 }
 
-export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = HIGH1_TYPES_BASE.map((t) =>
-  withScriptTarget(t, "high1")
+export const HIGH1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = decorateLegacyTemplates(
+  HIGH1_TYPES_BASE.map((t) => withScriptTarget(t, "high1")),
+  "high1"
 );
 
 export function getHigh1ExamTypeById(id: number): ExamTypeTemplate | undefined {

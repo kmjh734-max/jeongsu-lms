@@ -1,60 +1,50 @@
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { isHighSchoolListeningGrade } from "@/lib/listening/grade-level";
-import { HIGH1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high1";
-import { HIGH2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high2";
-import { HIGH3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-high3";
-import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types";
-import { MIDDLE2_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle2";
-import { MIDDLE3_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle3";
+import { allTypeDefs, getTypeDef, keyForCode, typeCode } from "@/lib/listening/type-catalog";
 
-/** 담화·단독 화자 유형 (M/W 교대 불필요) */
+/**
+ * 담화·단독 화자 유형의 모듈 번호 (M/W 교대 불필요).
+ * 고등 1·3·9·15·16·17, 중등 1·3·5·14 + 새 담화 유형(하는 말의 내용·설명 대상·방송 목적·상황에 맞는 말).
+ */
 export function getMonologueTypeIds(gradeLevel?: ListeningGradeLevel): Set<number> {
   if (isHighSchoolListeningGrade(gradeLevel)) {
     return new Set([1, 3, 9, 15, 16, 17]);
   }
+  const middleMono = allTypeDefs()
+    .filter((d) => d.family === "middle" && (d.scriptForm === "monologue" || d.scriptForm === "set_monologue"))
+    .map((d) => typeCode(d.key));
   if (
     gradeLevel === "middle3" ||
     gradeLevel === "middle2" ||
     gradeLevel === "middle1"
   ) {
-    return new Set([1, 3, 5, 14]);
+    return new Set(middleMono);
   }
   return new Set([1, 3, 5, 10, 14, 17, 18]);
 }
 
+/**
+ * M/W가 번갈아 말하는 대화 유형인지 (typeId = 모듈 번호).
+ * 짧은 대화 5개(그림 상황·어색한 대화)는 번호 안내(ANN)가 끼어 있어 대화 정리에서 뺀다.
+ */
 export function isDialogueExamType(
   typeId: number,
   gradeLevel?: ListeningGradeLevel,
   instruction?: string
 ): boolean {
   if (getMonologueTypeIds(gradeLevel).has(typeId)) return false;
-
-  const types =
-    gradeLevel === "high3"
-      ? HIGH3_LISTENING_EXAM_TYPES
-      : gradeLevel === "high2"
-        ? HIGH2_LISTENING_EXAM_TYPES
-        : gradeLevel === "high1"
-          ? HIGH1_LISTENING_EXAM_TYPES
-          : gradeLevel === "middle2"
-            ? MIDDLE2_LISTENING_EXAM_TYPES
-            : gradeLevel === "middle3"
-              ? MIDDLE3_LISTENING_EXAM_TYPES
-              : gradeLevel === "middle1"
-                ? MIDDLE1_LISTENING_EXAM_TYPES
-                : [
-                    ...HIGH3_LISTENING_EXAM_TYPES,
-                    ...HIGH2_LISTENING_EXAM_TYPES,
-                    ...HIGH1_LISTENING_EXAM_TYPES,
-                    ...MIDDLE2_LISTENING_EXAM_TYPES,
-                    ...MIDDLE1_LISTENING_EXAM_TYPES,
-                  ];
-
-  const t = types.find((x) => x.id === typeId);
-  if (t?.segment_guide?.includes("M/W")) return true;
-  if (t?.segment_guide?.toLowerCase().includes("monologue")) return false;
+  const families: Array<"middle" | "high"> = gradeLevel
+    ? [isHighSchoolListeningGrade(gradeLevel) ? "high" : "middle"]
+    : ["high", "middle"];
+  for (const family of families) {
+    const key = keyForCode(typeId, family);
+    if (!key) continue;
+    const form = getTypeDef(key).scriptForm;
+    if (form === "dialogue") return true;
+    if (form === "mini_dialogues") return false;
+    if (form === "monologue" || form === "set_monologue") return false;
+  }
   if (instruction && /대화/.test(instruction)) return true;
-  if (t?.instruction?.includes("대화")) return true;
   return false;
 }
 

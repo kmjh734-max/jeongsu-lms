@@ -30,6 +30,7 @@ import type { DictationBlankLevel, DictationSetSettings } from "@/lib/listening/
 import { DEFAULT_DICTATION_SETTINGS } from "@/lib/listening/dictation/types";
 import { type ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import { getExamTypesForGrade, tierLabel } from "@/lib/listening/exam-types";
+import { imagesPerQuestion } from "@/lib/listening/type-catalog";
 import {
   gradeLevelShort,
   isHighSchoolListeningGrade,
@@ -911,7 +912,10 @@ export function ListeningSetManageClient({
                           />
                           <span>
                             {t.id}. {t.question_type}{" "}
-                            <span className="text-slate-400">({tierLabel(t.difficulty_tier)})</span>
+                            <span className="text-slate-400">
+                              ({tierLabel(t.difficulty_tier)}
+                              {t.key && imagesPerQuestion(t.key) > 0 ? " · 그림" : ""})
+                            </span>
                           </span>
                         </label>
                       ))}
@@ -969,6 +973,7 @@ export function ListeningSetManageClient({
                 <ListeningQuestionPreview
                   key={q.order_index}
                   question={q}
+                  gradeLevel={gradeLevel}
                   showActions
                   regenerateBusy={regeneratingIndex === q.order_index}
                   onRegenerate={() => void regeneratePreviewItem(q.order_index)}
@@ -1042,6 +1047,7 @@ export function ListeningSetManageClient({
                 key={selectedQuestion.id}
                 setId={setId}
                 question={selectedQuestion}
+                gradeLevel={gradeLevel}
                 speechSpeed={speechSpeedValue}
                 onUpdated={() => router.refresh()}
                 readOnly={readOnly}

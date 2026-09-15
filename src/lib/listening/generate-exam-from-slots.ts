@@ -2,8 +2,11 @@ import {
   buildDifficultyPromptBlock,
   type ListeningDifficultyMode,
 } from "@/lib/listening/exam-difficulty";
-import { getExamTypeById } from "@/lib/listening/exam-types";
-import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import {
+  examTypeCode,
+  templateForSlot,
+  type ExamTypeTemplate,
+} from "@/lib/listening/exam-types";
 import {
   formatAssignedScenarioBlock,
   pickContinuationScenario,
@@ -55,12 +58,39 @@ import type { GeneratedListeningQuestion } from "@/lib/listening/types";
 const SLOT_CHUNK_SIZE = 5;
 const CHUNK_PARALLEL = 2;
 
+/**
+ * 슬롯 → 유형 템플릿 (배치표 번호 + 계획에서 고른 대체 유형·변형).
+ * 번호(typeId)는 배치표 자리일 뿐이고, 유형별 규칙은 템플릿의 모듈 번호(code)로 고른다.
+ */
+function resolveSlotTemplate(
+  slot: ListeningGenerationSlot,
+  gradeLevel: ListeningGradeLevel,
+  plan?: SlotPlan
+): ExamTypeTemplate {
+  const t = templateForSlot(
+    { ...slot, typeKey: plan?.typeKey ?? slot.typeKey },
+    gradeLevel,
+    plan?.variantId ?? slot.variant
+  );
+  if (!t) throw new Error(`유형 ${slot.typeId}을 찾을 수 없습니다.`);
+  return t;
+}
+
+function slotCode(
+  slot: ListeningGenerationSlot,
+  gradeLevel: ListeningGradeLevel,
+  plans?: Map<number, SlotPlan>
+): number {
+  return examTypeCode(resolveSlotTemplate(slot, gradeLevel, plans?.get(slot.slotIndex)));
+}
+
 /** 고등 16·17은 동일 음원 — 16 대본을 17에 복사 */
 function syncHighSchoolPairedScripts(
   questions: GeneratedListeningQuestion[],
-  slots: ListeningGenerationSlot[]
+  slots: ListeningGenerationSlot[],
+  gradeLevel: ListeningGradeLevel
 ): GeneratedListeningQuestion[] {
-  const typeBySlot = new Map(slots.map((s) => [s.slotIndex, s.typeId]));
+  const typeBySlot = new Map(slots.map((s) => [s.slotIndex, slotCode(s, gradeLevel)]));
   const q16 = questions.find((q) => typeBySlot.get(q.order_index) === 16);
   if (!q16) return questions;
   return questions.map((q) => {
@@ -82,7 +112,9 @@ function buildSlotsBatchPrompt(
   usedAnswersByType?: Record<number, string[]>,
   plans?: Map<number, SlotPlan>
 ): string {
-  const uniqueTypeIds = [...new Set(slots.map((s) => s.typeId))];
+  // 유형 번호 = 모듈 번호 (중2·중3은 문항 번호와 다르다)
+  const codes = types.map((t) => examTypeCode(t));
+  const uniqueTypeIds = [...new Set(codes)];
   const difficultyBlock = buildDifficultyPromptBlock(
     types,
     difficultyMode,
@@ -104,41 +136,51 @@ function buildSlotsBatchPrompt(
   const slotSpec = slots
     .map(
       (s, i) =>
-        `${i + 1}번째 문항: order_index=${s.slotIndex}, 유형 ${s.typeId} (${types[i]!.question_type})`
+        `${i + 1}번째 문항: order_index=${s.slotIndex}, 유형 ${codes[i]} (${types[i]!.question_type})${
+          codes[i] !== s.typeId || gradeLevel === "middle2" || gradeLevel === "middle3"
+            ? ` — 지시문 틀: ${types[i]!.instruction}`
+            : ""
+        }`
     )
     .join("\n");
 
   let scenarioBlocks = "";
   if (!isHighSchoolListeningGrade(gradeLevel)) {
     const usedType1Problems: string[] = [];
-    for (const slot of slots) {
-      if (slot.typeId === 1) {
+    const usedContinuation: string[] = [];
+    slots.forEach((_, i) => {
+      const code = codes[i]!;
+      if (code === 1) {
         const assignment = pickType1Subject(usedType1Problems);
         usedType1Problems.push(`subject_id:${assignment.id}`);
         scenarioBlocks += `${formatAssignedType1SubjectBlock(assignment)}\n\n`;
       }
-      if (slot.typeId === 19 || slot.typeId === 20) {
-        scenarioBlocks += `${formatAssignedScenarioBlock(
-          pickContinuationScenario(slot.typeId)
-        )}\n\n`;
+      if (code === 19 || code === 20) {
+        // 중2·중3은 같은 방향 응답이 두세 문항이라(중3 18·19) 한 묶음 안에서 같은 상황이 두 번 뽑히지 않게 한다
+        const upperMiddle = gradeLevel === "middle2" || gradeLevel === "middle3";
+        const scenario = pickContinuationScenario(code, upperMiddle ? usedContinuation : undefined);
+        if (upperMiddle) usedContinuation.push(`scenario_id:${scenario.id}`);
+        scenarioBlocks += `${formatAssignedScenarioBlock(scenario, { upperMiddle })}\n\n`;
       }
-    }
+    });
   }
   // 정답·상황 다양화 풀: 같은 과정에서 덜 쓴 정답부터 배정 (이번 묶음 안에서도 겹치지 않게)
   const usedInBatch: Record<number, string[]> = {};
   const usedScenarios: string[] = [];
-  for (const slot of slots) {
+  slots.forEach((slot, i) => {
+    const code = codes[i]!;
     const pick = pickAnswerVariety(
-      slot.typeId,
+      code,
       gradeLevel,
-      [...(usedAnswersByType?.[slot.typeId] ?? []), ...(usedInBatch[slot.typeId] ?? [])],
-      usedScenarios
+      [...(usedAnswersByType?.[code] ?? []), ...(usedInBatch[code] ?? [])],
+      usedScenarios,
+      types[i]!.variant
     );
-    if (!pick) continue;
-    (usedInBatch[slot.typeId] ||= []).push(pick.answer);
+    if (!pick) return;
+    (usedInBatch[code] ||= []).push(pick.answer);
     usedScenarios.push(pick.scenario);
     scenarioBlocks += `${formatAnswerVarietyBlock(pick, gradeLevel, slot.slotIndex)}\n\n`;
-  }
+  });
   // 세트 전체에서 겹치지 않게 미리 정한 소재 영역·정답 자리
   for (const slot of slots) {
     const block = formatSlotPlanBlock(slot, plans?.get(slot.slotIndex), gradeLevel);
@@ -188,11 +230,7 @@ async function fetchSlotChunkQuestions(
   usedAnswersByType?: Record<number, string[]>,
   plans?: Map<number, SlotPlan>
 ): Promise<{ made: GeneratedListeningQuestion[]; failedSlots: ListeningGenerationSlot[] }> {
-  const types = slots.map((s) => {
-    const t = getExamTypeById(s.typeId, gradeLevel);
-    if (!t) throw new Error(`유형 ${s.typeId}을 찾을 수 없습니다.`);
-    return t;
-  });
+  const types = slots.map((s) => resolveSlotTemplate(s, gradeLevel, plans?.get(s.slotIndex)));
 
   const prompt = buildSlotsBatchPrompt(
     slots,
@@ -262,19 +300,20 @@ async function generateSlotChunk(
 
   // 고등 16·17은 같은 담화라 둘 중 하나만 따로 만들면 대본과 선택지가 어긋난다 → 둘을 한 번에 다시 만든다
   let retrySlots = failedSlots;
+  const codeOf = (s: ListeningGenerationSlot) => slotCode(s, gradeLevel, plans);
   if (isHighSchoolListeningGrade(gradeLevel)) {
-    const pair = slots.filter((s) => s.typeId === 16 || s.typeId === 17);
-    if (pair.length === 2 && failedSlots.some((s) => s.typeId === 16 || s.typeId === 17)) {
+    const pair = slots.filter((s) => codeOf(s) === 16 || codeOf(s) === 17);
+    if (pair.length === 2 && failedSlots.some((s) => codeOf(s) === 16 || codeOf(s) === 17)) {
       made = made.filter((q) => !pair.some((p) => p.slotIndex === q.order_index));
       try {
         const again = await fetchSlotChunkQuestions(apiKey, pair, difficultyMode, gradeLevel, usedAnswersByType, plans);
         if (again.failedSlots.length === 0) made.push(...again.made);
         retrySlots = [
-          ...failedSlots.filter((s) => s.typeId !== 16 && s.typeId !== 17),
+          ...failedSlots.filter((s) => codeOf(s) !== 16 && codeOf(s) !== 17),
           ...(again.failedSlots.length === 0 ? [] : pair),
         ];
       } catch {
-        retrySlots = [...failedSlots.filter((s) => s.typeId !== 16 && s.typeId !== 17), ...pair];
+        retrySlots = [...failedSlots.filter((s) => codeOf(s) !== 16 && codeOf(s) !== 17), ...pair];
       }
     }
   }
@@ -283,8 +322,9 @@ async function generateSlotChunk(
     const out: GeneratedListeningQuestion[] = [...made];
     for (let i = 0; i < retrySlots.length; i++) {
       const slot = retrySlots[i]!;
+      const code = codeOf(slot);
       const prevProblems =
-        slot.typeId === 19 || slot.typeId === 20
+        code === 19 || code === 20
           ? [
               ...prior,
               ...out,
@@ -303,15 +343,17 @@ async function generateSlotChunk(
           undefined,
           {
             usedAnswers: [
-              ...(usedAnswersByType?.[slot.typeId] ?? []),
+              ...(usedAnswersByType?.[code] ?? []),
               ...out
-                .filter(
-                  (o) =>
-                    slots.find((s) => s.slotIndex === o.order_index)?.typeId === slot.typeId
-                )
+                .filter((o) => {
+                  const other = slots.find((s) => s.slotIndex === o.order_index);
+                  return other != null && codeOf(other) === code;
+                })
                 .map((o) => o.choices[o.correct_answer - 1] ?? ""),
             ],
             plan: plans?.get(slot.slotIndex),
+            typeKey: slot.typeKey,
+            variant: slot.variant,
           }
         );
         // 규칙 검수의 검토 표시(needs_review)는 지우지 않는다
@@ -362,7 +404,7 @@ export async function generateExamQuestionsFromSlots(
 }
 
 export type SlotGenerationOptions = {
-  /** 같은 과정(학원·학년)에서 유형별로 이미 쓴 정답 — 다양화 풀이 덜 쓴 정답부터 고른다 */
+  /** 같은 과정(학원·학년)에서 유형 모듈 번호별로 이미 쓴 정답 — 다양화 풀이 덜 쓴 정답부터 고른다 */
   usedAnswersByType?: Record<number, string[]>;
 };
 
@@ -373,11 +415,12 @@ export type SlotGenerationOptions = {
 function refreshRuleChecks(
   questions: GeneratedListeningQuestion[],
   slots: ListeningGenerationSlot[],
-  gradeLevel: ListeningGradeLevel
+  gradeLevel: ListeningGradeLevel,
+  plans?: Map<number, SlotPlan>
 ): GeneratedListeningQuestion[] {
   return questions.map((q) => {
     const slot = slots.find((s) => s.slotIndex === q.order_index);
-    const type = slot ? getExamTypeById(slot.typeId, gradeLevel) ?? undefined : undefined;
+    const type = slot ? resolveSlotTemplate(slot, gradeLevel, plans?.get(slot.slotIndex)) : undefined;
     return finalizeListeningQuestionFast(q, type, gradeLevel);
   });
 }
@@ -398,6 +441,7 @@ export async function generateExamQuestionsFromSlotsSettled(
   if (slots.length === 1) {
     const slot = slots[0]!;
     try {
+      const plan = planSlotAssignments([slot], gradeLevel).get(slot.slotIndex);
       const q = await generateSingleExamQuestion(
         apiKey,
         slot.typeId,
@@ -407,8 +451,10 @@ export async function generateExamQuestionsFromSlotsSettled(
         slot.slotIndex,
         undefined,
         {
-          usedAnswers: opts?.usedAnswersByType?.[slot.typeId] ?? [],
-          plan: planSlotAssignments([slot], gradeLevel).get(slot.slotIndex),
+          usedAnswers: opts?.usedAnswersByType?.[slotCode(slot, gradeLevel, new Map([[slot.slotIndex, plan ?? {}]]))] ?? [],
+          plan,
+          typeKey: slot.typeKey,
+          variant: slot.variant,
         }
       );
       return {
@@ -457,10 +503,10 @@ export async function generateExamQuestionsFromSlotsSettled(
     else missingSlotIndexes.push(slot.slotIndex);
   }
   const synced = isHighSchoolListeningGrade(gradeLevel)
-    ? syncHighSchoolPairedScripts(ordered, slots)
+    ? syncHighSchoolPairedScripts(ordered, slots, gradeLevel)
     : ordered;
   return {
-    questions: refreshRuleChecks(applyBalancedChoicePositions(synced), slots, gradeLevel),
+    questions: refreshRuleChecks(applyBalancedChoicePositions(synced), slots, gradeLevel, plans),
     missingSlotIndexes,
   };
 }

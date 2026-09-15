@@ -3,7 +3,7 @@ import {
   buildDifficultyRequirementBlock,
   type ListeningDifficultyMode,
 } from "@/lib/listening/exam-difficulty";
-import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import { examTypeCode, type ExamTypeTemplate } from "@/lib/listening/exam-type-template";
 import { gradeLevelShort, type ListeningGradeLevel } from "@/lib/listening/grade-level";
 import {
   getCommonPrompt,
@@ -79,9 +79,9 @@ export function buildListeningExamPrompt(
           : getAllHigh1TypePromptBlocks;
 
     if (types.length === 1) {
-      return buildTypeOnly(types[0]!.id);
+      return buildTypeOnly(examTypeCode(types[0]!));
     }
-    const typeIds = types.map((t) => t.id);
+    const typeIds = types.map((t) => examTypeCode(t));
     const difficultyBlock = buildDifficultyPromptBlock(types, difficultyMode, grade);
     return `
 ${getCommonPrompt(grade)}
@@ -120,9 +120,9 @@ ${getJsonOutputSchema(grade)}
         : getAllMiddle2TypePromptBlocks;
 
     if (types.length === 1) {
-      return buildTypeOnly(types[0]!.id);
+      return buildTypeOnly(examTypeCode(types[0]!));
     }
-    const typeIds = types.map((t) => t.id);
+    const typeIds = types.map((t) => examTypeCode(t));
     const difficultyBlock = buildDifficultyPromptBlock(types, difficultyMode, grade);
     return `
 ${getCommonPrompt(grade)}
@@ -148,68 +148,68 @@ ${getJsonOutputSchema(grade)}
 `.trim();
   }
 
-  if (types.length === 1 && types[0]!.id === 1) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 1) {
     return buildType1OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 2) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 2) {
     return buildType2OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 3) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 3) {
     return buildType3OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 4) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 4) {
     return buildType4OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 5) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 5) {
     return buildType5OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 6) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 6) {
     return buildType6OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 7) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 7) {
     return buildType7OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 8) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 8) {
     return buildType8OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 9) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 9) {
     return buildType9OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 10) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 10) {
     return buildType10OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 11) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 11) {
     return buildType11OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 12) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 12) {
     return buildType12OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 13) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 13) {
     return buildType13OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 14) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 14) {
     return buildType14OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 15) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 15) {
     return buildType15OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 16) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 16) {
     return buildType16OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 17) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 17) {
     return buildType17OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 18) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 18) {
     return buildType18OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 19) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 19) {
     return buildType19OnlyGenerationPrompt();
   }
-  if (types.length === 1 && types[0]!.id === 20) {
+  if (types.length === 1 && examTypeCode(types[0]!) === 20) {
     return buildType20OnlyGenerationPrompt();
   }
 
-  const typeIds = types.map((t) => t.id);
+  const typeIds = types.map((t) => examTypeCode(t));
   const difficultyBlock = buildDifficultyPromptBlock(types, difficultyMode, grade);
 
   return `
@@ -248,57 +248,59 @@ export function buildListeningSingleTypePrompt(
     difficultyMode,
     grade
   );
+  // 유형 모듈 번호 (템플릿 id는 문항 번호 — 중2·중3은 유형과 다르다)
+  const code = examTypeCode(type);
 
   let core: string;
   if (grade === "high3") {
-    core = buildHigh3TypeOnlyGenerationPrompt(type.id, previousProblems);
+    core = buildHigh3TypeOnlyGenerationPrompt(code, previousProblems);
   } else if (grade === "high2") {
-    core = buildHigh2TypeOnlyGenerationPrompt(type.id, previousProblems);
+    core = buildHigh2TypeOnlyGenerationPrompt(code, previousProblems);
   } else if (grade === "high1") {
-    core = buildHigh1TypeOnlyGenerationPrompt(type.id, previousProblems);
+    core = buildHigh1TypeOnlyGenerationPrompt(code, previousProblems);
   } else if (grade === "middle3") {
-    core = buildMiddle3TypeOnlyGenerationPrompt(type.id, previousProblems);
+    core = buildMiddle3TypeOnlyGenerationPrompt(code, previousProblems);
   } else if (grade === "middle2") {
-    core = buildMiddle2TypeOnlyGenerationPrompt(type.id, previousProblems);
-  } else if (type.id === 1) {
+    core = buildMiddle2TypeOnlyGenerationPrompt(code, previousProblems);
+  } else if (code === 1) {
     core = buildType1OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 2) {
+  } else if (code === 2) {
     core = buildType2OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 3) {
+  } else if (code === 3) {
     core = buildType3OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 4) {
+  } else if (code === 4) {
     core = buildType4OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 5) {
+  } else if (code === 5) {
     core = buildType5OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 6) {
+  } else if (code === 6) {
     core = buildType6OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 7) {
+  } else if (code === 7) {
     core = buildType7OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 8) {
+  } else if (code === 8) {
     core = buildType8OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 9) {
+  } else if (code === 9) {
     core = buildType9OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 10) {
+  } else if (code === 10) {
     core = buildType10OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 11) {
+  } else if (code === 11) {
     core = buildType11OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 12) {
+  } else if (code === 12) {
     core = buildType12OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 13) {
+  } else if (code === 13) {
     core = buildType13OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 14) {
+  } else if (code === 14) {
     core = buildType14OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 15) {
+  } else if (code === 15) {
     core = buildType15OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 16) {
+  } else if (code === 16) {
     core = buildType16OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 17) {
+  } else if (code === 17) {
     core = buildType17OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 18) {
+  } else if (code === 18) {
     core = buildType18OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 19) {
+  } else if (code === 19) {
     core = buildType19OnlyGenerationPrompt(previousProblems);
-  } else if (type.id === 20) {
+  } else if (code === 20) {
     core = buildType20OnlyGenerationPrompt(previousProblems);
   } else {
     const avoid =
@@ -308,7 +310,7 @@ export function buildListeningSingleTypePrompt(
     core = `${buildListeningExamPrompt([type], difficultyMode, grade)}${avoid}`;
   }
 
-  return `${core}\n\n${difficultyBlock}\n\n${buildQualityCraftBlock([type.id], grade)}\n\n${LISTENING_OUTPUT_GUARD_BLOCK}`;
+  return `${core}\n\n${difficultyBlock}\n\n${buildQualityCraftBlock([code], grade)}\n\n${LISTENING_OUTPUT_GUARD_BLOCK}`;
 }
 
 /** 자유 생성 모드 (유형 미지정) */

@@ -1,4 +1,4 @@
-import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import { examTypeCode, type ExamTypeTemplate } from "@/lib/listening/exam-type-template";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { listeningTargetText } from "@/lib/listening/prompts/quality-craft";
 
@@ -74,7 +74,7 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   foundation: {
     tier: "foundation",
     label: "기초",
-    questionRange: "1~6번",
+    questionRange: "기초 유형(그림 선택·그림 상황·한 일)",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~9 turns",
     wordsPerSentence: "dialogue 6~9 words per sentence, 1~3 sentences per turn; monologue 10~14",
@@ -84,7 +84,7 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   standard: {
     tier: "standard",
     label: "보통",
-    questionRange: "7~12번",
+    questionRange: "보통 유형(언급X·목적·심정·설명 대상·어색한 대화·직후 할 일)",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~10 turns",
     wordsPerSentence: "dialogue 6~9 words per sentence, 1~3 sentences per turn; monologue 10~14",
@@ -94,7 +94,7 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   applied: {
     tier: "applied",
     label: "심화",
-    questionRange: "13~18번",
+    questionRange: "심화 유형(표·날짜·금액·방송 목적·부탁)",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "8~10 turns",
     wordsPerSentence: "dialogue 6~9 words per sentence, 1~3 sentences per turn; monologue 10~14",
@@ -105,13 +105,13 @@ export const MIDDLE3_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   advanced: {
     tier: "advanced",
     label: "고난도",
-    questionRange: "19~20번",
-    monologueSentences: "N/A (dialogue only)",
+    questionRange: "응답·상황에 맞는 말(17~20번)",
+    monologueSentences: "7~10 sentences (situation narration)",
     dialogueTurns: "7~10 turns",
-    wordsPerSentence: "dialogue lines of 1~3 short sentences (6~9 words); reply choices 4~9 words in English",
+    wordsPerSentence: "dialogue lines of 1~3 short sentences (6~9 words); reply/utterance choices 4~9 words in English",
     vocabulary: "grade 3; contextual replies with specific detail",
     extra:
-      "Dialogue ends with W (19) or M (20). Reply NOT in segments. Man:/Woman: ______ format.",
+      "Response items: the dialogue ends with the speaker named in the instruction; the reply is NOT in segments; question_text is exactly \"Man: ________\" or \"Woman: ________\". Situation item: third-person narration ending with \"In this situation, what would A most likely say to B?\"; question_text \"A: ______\".",
   },
 };
 
@@ -171,7 +171,7 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   foundation: {
     tier: "foundation",
     label: "기초",
-    questionRange: "1~6번",
+    questionRange: "기초 유형(날씨·그림 선택·그림 상황·한 일)",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~9 turns",
     wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 8~12",
@@ -181,7 +181,7 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   standard: {
     tier: "standard",
     label: "보통",
-    questionRange: "7~12번",
+    questionRange: "보통 유형(심정·장소·특정 정보·언급X·불일치·목적)",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~10 turns",
     wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 8~12",
@@ -191,24 +191,24 @@ export const MIDDLE2_DIFFICULTY_RULES: Record<ListeningDifficultyTier, Difficult
   applied: {
     tier: "applied",
     label: "심화",
-    questionRange: "13~18번",
+    questionRange: "심화 유형(거스름돈·관계·부탁·양식 빈칸·표현의 의미)",
     monologueSentences: "6~8 sentences",
     dialogueTurns: "7~10 turns",
     wordsPerSentence: "dialogue 5~8 words per sentence, 1~2 sentences per turn; monologue 8~12",
     vocabulary:
       "grade 2+; numbers, prices, times; present perfect for experience OK; no subjunctive",
-    extra: "May include payment math, relationship inference, schedule-at-time plans (type 17).",
+    extra: "May include change/payment math, relationship inference, a printed flyer with two blanks, or the meaning of a quoted expression.",
   },
   advanced: {
     tier: "advanced",
     label: "고난도",
-    questionRange: "19~20번",
+    questionRange: "응답 유형(19·20번)",
     monologueSentences: "N/A (dialogue only)",
     dialogueTurns: "7~10 turns",
     wordsPerSentence: "dialogue lines of 1~2 short sentences (5~8 words); reply choices 4~8 words in English",
     vocabulary: "grade 2; contextual replies with specific detail",
     extra:
-      "Dialogue ends with W (19) or M (20). Reply NOT in segments. Man:/Woman: ______ format.",
+      "Response items: the dialogue ends with the speaker named in the instruction; the reply is NOT in segments; question_text is exactly \"Man: ________\" or \"Woman: ________\".",
   },
 };
 
@@ -396,7 +396,7 @@ export function buildDifficultyRequirementBlock(
 ## 난이도 (참고 — 중1은 문장·대화 **단어 수**로 저장을 막지 않음)
 - 적용: ${rules.label} (${rules.questionRange})
 - 권장 문장 길이: ${rules.wordsPerSentence}
-- 권장 분량: ${listeningTargetText(type.id, grade) || `${rules.dialogueTurns} / 독백: ${rules.monologueSentences}`}
+- 권장 분량: ${listeningTargetText(examTypeCode(type), grade) || `${rules.dialogueTurns} / 독백: ${rules.monologueSentences}`}
 - 어휘: ${rules.vocabulary}
 - 형식 참고: ${rules.extra}
 - 단어 수가 권장보다 길거나 짧아도 문항은 유효. 자연스러운 중1 영어가 우선.
@@ -407,7 +407,7 @@ export function buildDifficultyRequirementBlock(
 ## 난이도 — 반드시 준수${harderNote}
 - 적용: ${rules.label} (${rules.questionRange})
 - 문장 길이: ${rules.wordsPerSentence}
-- 분량: ${listeningTargetText(type.id, grade) || `대화 ${rules.dialogueTurns} / 독백 ${rules.monologueSentences}`}
+- 분량: ${listeningTargetText(examTypeCode(type), grade) || `대화 ${rules.dialogueTurns} / 독백 ${rules.monologueSentences}`}
 - 어휘: ${rules.vocabulary}
 - 총 분량·형식: ${rules.extra}
 - 총 분량·턴 수는 위 기준보다 적으면 안 됨. 문장은 짧은 구어체로 쓰되 턴·정보를 줄이지 않는다 (긴 한 문장으로 늘이지 말 것).
@@ -435,8 +435,8 @@ export function buildDifficultyPromptBlock(
     .map((t, i) => {
       const rules = resolveDifficultyForType(t, mode, grade);
       // 분량은 유형별 표(quality-craft) 한 곳에서 가져온다 — 번호대 tier의 턴·문장 수는 표가 없을 때만
-      const size = listeningTargetText(t.id, grade) || `${rules.dialogueTurns}; ${rules.monologueSentences}`;
-      return `Item ${i + 1} (Type #${t.id}, ${rules.label})${harderNote}: script ${size}; ${rules.wordsPerSentence}; vocab: ${rules.vocabulary}. ${rules.extra}`;
+      const size = listeningTargetText(examTypeCode(t), grade) || `${rules.dialogueTurns}; ${rules.monologueSentences}`;
+      return `Item ${i + 1} (Type #${examTypeCode(t)}, ${rules.label})${harderNote}: script ${size}; ${rules.wordsPerSentence}; vocab: ${rules.vocabulary}. ${rules.extra}`;
     })
     .join("\n");
 }

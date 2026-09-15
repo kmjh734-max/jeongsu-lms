@@ -1,5 +1,5 @@
 import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
-import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import { examTypeCode, type ExamTypeTemplate } from "@/lib/listening/exam-types";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { repairListeningQuestionWithAi } from "@/lib/listening/repair-listening-question";
 import {
@@ -39,9 +39,10 @@ export async function validateAndRepairListeningQuestion(
   typeHint?: ExamTypeTemplate,
   gradeLevel: ListeningGradeLevel = "middle1"
 ): Promise<ValidatedListeningQuestion> {
+  // 유형 번호 = 모듈 번호 (템플릿 id는 문항 번호)
   let current = applyQuestionFixes(
     q,
-    typeHint?.id ?? undefined,
+    typeHint ? examTypeCode(typeHint) : undefined,
     gradeLevel
   );
 

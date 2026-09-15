@@ -40,8 +40,24 @@ export function numericChoiceValue(choice: string): number | null {
   if (money && (t.includes("$") || money[3])) {
     return Number(money[1]!.replace(/,/g, "")) + (money[2] ? Number("0." + money[2]) : 0);
   }
+  // 날짜 "5월 12일" / "May 12th" → 월×100+일 (이른 날짜부터 늘어놓는다 — 중3 날짜 문항)
+  const koDate = t.match(/^(\d{1,2})\s*월\s*(\d{1,2})\s*일(?:\s*\(?[월화수목금토일](?:요일)?\)?)?$/);
+  if (koDate) return Number(koDate[1]) * 100 + Number(koDate[2]);
+  const enDate = t.match(/^(?:on\s+)?([a-z]{3,9})\.?\s+(\d{1,2})(?:st|nd|rd|th)?$/);
+  if (enDate) {
+    const month = EN_MONTHS.findIndex((m) => enDate[1]!.startsWith(m)) + 1;
+    if (month > 0) return month * 100 + Number(enDate[2]);
+  }
+  // 요일 "월요일" / "Monday" → 1~7 (월요일부터)
+  const koDay = t.match(/^([월화수목금토일])요일$/);
+  if (koDay) return "월화수목금토일".indexOf(koDay[1]!) + 1;
+  const enDay = EN_DAYS.findIndex((d) => t === d || t === `on ${d}`);
+  if (enDay >= 0) return enDay + 1;
   return null;
 }
+
+const EN_MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+const EN_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
 /**
  * 시각·금액 선택지는 실제 시험처럼 작은 값부터 늘어놓는다. 정답 위치를 섞느라 정답만 순서를
@@ -102,11 +118,14 @@ export function shouldBalanceQuestionChoices(q: {
   // 중등 14번(표 정보 불일치)만 제외 — 예전엔 번호로만 막아 고등 14번(긴 응답) 정답이 20문항 모두 ①이었다
   if (q.order_index === 14 && !qt) return false;
   if (q.table_data) return false;
-  if (qt.includes("표")) return false;
+  // "표현의 의미 파악"은 표 유형이 아니다
+  if (qt.includes("표") && !qt.includes("표현")) return false;
   if (qt.includes("그림 불일치")) return false;
   // 선택지가 대본 언급 순서대로 놓이는 유형(미언급·내용 불일치·언급 여부): 섞으면 정답만 순서를 벗어나 튄다.
   // 정답 자리는 생성할 때 미리 정해 준다(slot-plan.ts).
   if (/미언급|내용 불일치|언급 여부|언급하지 않은/.test(qt)) return false;
+  // 짧은 대화 5개(그림 상황·어색한 대화)·양식 빈칸은 음성 번호·양식이 정답 자리를 정한다
+  if (/그림 상황|어색한 대화|양식 빈칸/.test(qt)) return false;
   if (q.choices && isLabelOnlyChoiceSet(q.choices)) return false;
   return true;
 }

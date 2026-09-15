@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
-import { getExamTypeById } from "@/lib/listening/exam-types";
+import { templateForStoredQuestion } from "@/lib/listening/exam-types";
 import { assertListeningSetAccess } from "@/lib/listening/listening-api-auth";
 import { assertListeningOpenAiEnv } from "@/lib/listening/assert-listening-openai";
 import { validateAndRepairListeningQuestion } from "@/lib/listening/validate-and-repair";
@@ -185,7 +185,8 @@ export async function POST(request: Request) {
     if (!q) return jsonError("question 또는 questionId가 필요합니다.");
 
     const gradeLevel = setId ? await fetchListeningSetGradeLevel(setId) : "middle1";
-    const typeHint = getExamTypeById(q.order_index, gradeLevel) ?? undefined;
+    // 번호가 아니라 이름·지시문으로 유형을 정한다 (중2·중3 예전 세트는 중1 배치, 새 세트는 새 배치)
+    const typeHint = templateForStoredQuestion(q, gradeLevel);
     const validated = await validateAndRepairListeningQuestion(
       apiKey,
       q,

@@ -37,8 +37,11 @@ export interface PurchaseSelectedConditions {
 }
 
 export interface ListeningTableData {
+  /** 없으면 일반 표(5행). "flyer" = 인쇄 양식(전단·티켓·신청서, 4~6줄, 빈칸 (A)(B)) */
+  kind?: "flyer";
   title: string;
   rows: ListeningTableRow[];
+  /** 표: 불일치·정답 행 번호. 양식: 정답 선택지 번호 */
   mismatch_no: number;
   mismatch_reason: string;
 }

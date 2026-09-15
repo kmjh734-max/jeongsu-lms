@@ -5,6 +5,7 @@ import {
 } from "@/lib/listening/prompts/answerValidationPrompt";
 import { buildContinuationValidationUserPrompt } from "@/lib/listening/prompts/continuationValidationPrompt";
 import type { GeneratedListeningQuestion } from "@/lib/listening/types";
+import { responseEndSpeaker } from "@/lib/listening/question-display";
 
 export interface AnswerValidationResult {
   is_answer_clear: boolean;
@@ -76,7 +77,8 @@ export async function validateAnswerWithAi(
       temperature: 0.2,
       system: ANSWER_VALIDATION_SYSTEM_PROMPT,
       user:
-        q.order_index === 19 || q.order_index === 20
+        // 중등 응답 문항 (번호가 아니라 이름·지시문으로 — 중3 17번 응답, 20번은 상황에 맞는 말)
+        responseEndSpeaker(q) != null
           ? buildContinuationValidationUserPrompt(q)
           : buildAnswerValidationUserPrompt(q, typeLabel),
     });

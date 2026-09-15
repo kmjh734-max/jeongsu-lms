@@ -119,7 +119,8 @@ function personCode(label: string | undefined): "M" | "W" | null {
 /** 대본 근거로 오답을 만들어야 하는 한국어 선택지 유형 */
 function needsGroundedDistractors(typeId: number, grade: ListeningGradeLevel | undefined): boolean {
   if (isHighSchoolListeningGrade(grade)) return [1, 2, 3, 5, 7].includes(typeId);
-  return [9, 10, 12, 15, 16, 17].includes(typeId);
+  // 새 유형: 한 일(23)·특정 정보(24)·목적(26)·하는 말의 내용(22)·방송 목적(36)
+  return [9, 10, 12, 15, 16, 17, 22, 23, 24, 26, 36].includes(typeId);
 }
 
 export function answerLeakIssues(

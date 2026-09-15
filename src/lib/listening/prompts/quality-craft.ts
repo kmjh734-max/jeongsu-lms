@@ -9,6 +9,7 @@ import {
   isHighSchoolListeningGrade,
   type ListeningGradeLevel,
 } from "@/lib/listening/grade-level";
+import { getTypeDef, keyForCode, type ListeningTypeKey } from "@/lib/listening/type-catalog";
 
 export interface ListeningTypeTarget {
   /** 대본 영어 단어 수 범위 */
@@ -90,8 +91,35 @@ const HIGH_TARGETS: Record<"high1" | "high2" | "high3", Record<number, HighTarge
   },
 };
 
-/** 중등 담화형 유형 (그 외는 대화) */
+/** 중등 담화형 유형 (그 외는 대화) — 옛 모듈 1·3·5·14 + 새 담화 유형(모듈 번호 21~) */
 const MIDDLE_MONOLOGUE = new Set([1, 3, 5, 14]);
+
+/** 모듈 번호 → 새 중등 유형 키 (21~) */
+function newMiddleKey(typeId: number): ListeningTypeKey | undefined {
+  return typeId > 20 ? keyForCode(typeId, "middle") : undefined;
+}
+
+/**
+ * 짧은 대화 5개(그림 상황·어색한 대화) 총 단어 수 — 번호 안내("Number one.")는 빼고 센다.
+ * 공식 기출 실측: 중2 그림 상황 45~60, 중3 그림 상황 65~90·어색한 대화 50~85.
+ */
+const MINI_DIALOGUE_WORDS: Record<"middle1" | "middle2" | "middle3", [number, number]> = {
+  middle1: [40, 60],
+  middle2: [50, 75],
+  middle3: [60, 90],
+};
+
+/** 학년 기본값과 다른 새 유형 분량 (공식 기출 실측·설계 보고서 5-2) */
+const NEW_TYPE_WORDS: Partial<Record<"middle2" | "middle3", Partial<Record<ListeningTypeKey, [number, number]>>>> = {
+  middle3: {
+    M_SITUATION_SAY: [70, 100],
+    M_DESCRIBE: [55, 85],
+    M_PURPOSE_ANNOUNCE: [65, 95],
+  },
+  middle2: {
+    M_TOPIC_MONO: [55, 80],
+  },
+};
 
 /**
  * 중등 분량 목표. 중학 교재 실측(대화 1문항, 정답 줄 제외): 중1 약 46단어(35~53)·6턴, 중2 약 63(53~74)·8턴,
@@ -133,7 +161,14 @@ export function listeningTypeTarget(
   if (typeId === 19 || typeId === 20) return { words: t.response.words, turns: t.response.turns, ...common };
   if (MIDDLE_MONOLOGUE.has(typeId)) return { words: t.monologue, ...common };
   if (typeId >= 1 && typeId <= 20) return { words: t.dialogue.words, turns: t.dialogue.turns, ...common };
-  return null;
+  const key = newMiddleKey(typeId);
+  if (!key) return null;
+  const form = getTypeDef(key).scriptForm;
+  // 짧은 대화 5개: 번호 안내를 뺀 10줄, 한 줄 5~9단어
+  if (form === "mini_dialogues") return { words: MINI_DIALOGUE_WORDS[g], turns: [10, 10], ...common, wordsPerTurn: [5, 9] };
+  const override = g === "middle1" ? undefined : NEW_TYPE_WORDS[g]?.[key];
+  if (form === "monologue") return { words: override ?? t.monologue, ...common };
+  return { words: override ?? t.dialogue.words, turns: t.dialogue.turns, ...common };
 }
 
 /** 프롬프트용 한 줄 분량 표기 ("115~140단어 (담화)", "120~160단어, 10~12턴, 턴당 약 11~14단어") */
@@ -221,12 +256,18 @@ function isResponseType(typeId: number, grade: ListeningGradeLevel | undefined):
   return isHighSchoolListeningGrade(grade) ? typeId >= 11 && typeId <= 14 : typeId === 19 || typeId === 20;
 }
 
+/** 영어 발화 선택지 길이를 알려 줄 유형 (응답 + 중등 상황에 맞는 말) */
+function hasEnglishUtteranceChoices(typeId: number, grade: ListeningGradeLevel | undefined): boolean {
+  return isResponseType(typeId, grade) || (!isHighSchoolListeningGrade(grade) && newMiddleKey(typeId) === "M_SITUATION_SAY");
+}
+
 /** 학년에 따라 달라지는 유형 규칙 (교재 실측) */
 function gradeSpecificNote(typeId: number, grade: ListeningGradeLevel | undefined): string {
   if (isHighSchoolListeningGrade(grade)) return "";
   if (typeId === 8) {
+    // 선택지 언어(영어 형용사 / 한국어 명사)는 배정된 변형이 정한다 — 중2 영어 3 : 한국어 1, 중3 영어
     return grade === "middle2" || grade === "middle3"
-      ? "이 학년 심정 선택지는 영어 감정 형용사 5개(relieved, nervous, proud, disappointed …)로 쓴다(유형 규칙의 한국어 명사 대신). 대상 화자는 감정 단어를 직접 말하지 않는다."
+      ? "대상 화자는 감정 단어를 직접 말하지 않는다(상황·반응으로). 선택지는 배정된 형식(영어 감정 형용사 소문자 5개 또는 한국어 감정 명사 5개)으로 쓴다."
       : "중1은 감정 단어를 한 번 직접 말해도 되지만, 정답 외 감정 1~2개도 상황상 그럴듯해야 한다.";
   }
   return "";
@@ -236,7 +277,7 @@ function targetLine(typeId: number, grade: ListeningGradeLevel | undefined): str
   const text = listeningTargetText(typeId, grade);
   if (!text) return "";
   const t = listeningTypeTarget(typeId, grade)!;
-  const choice = isResponseType(typeId, grade) ? `, 응답 선택지 ${t.responseChoiceWords[0]}~${t.responseChoiceWords[1]}단어` : "";
+  const choice = hasEnglishUtteranceChoices(typeId, grade) ? `, 응답 선택지 ${t.responseChoiceWords[0]}~${t.responseChoiceWords[1]}단어` : "";
   return `${text}(하한 미만 금지)${choice}`;
 }
 
@@ -251,7 +292,9 @@ export function buildQualityCraftBlock(
   const lines = unique
     .map((id) => {
       const target = targetLine(id, grade);
-      const note = [craft[id] ?? "", gradeSpecificNote(id, grade)].filter(Boolean).join(" ");
+      const newKey = high ? undefined : newMiddleKey(id);
+      const typeCraft = craft[id] ?? (newKey ? getTypeDef(newKey).craft : "");
+      const note = [typeCraft, gradeSpecificNote(id, grade)].filter(Boolean).join(" ");
       if (!target && !note) return "";
       return `- 유형 ${id}: ${target}${target && note ? " — " : ""}${note}`;
     })

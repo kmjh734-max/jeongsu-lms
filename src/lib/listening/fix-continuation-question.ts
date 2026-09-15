@@ -46,14 +46,17 @@ function normalizeQuestionTextForType(
   return defaultContinuationQuestionText(typeId);
 }
 
-/** 19~20번 지문 표시용 (DB에 'Man: ____ only' 등이 있어도 기출 형식으로 통일) */
+/**
+ * @deprecated 번호로 응답 문항을 판단한다(중1 배치 전용). 중2·중3에서는 번호와 유형이 달라
+ * 중3 20번(상황에 맞는 말)에 "Woman: ____"이 찍혔다 — question-display.ts의 responseBlankLine을 쓴다.
+ */
 export function continuationQuestionDisplayText(orderIndex: number): string | null {
   if (orderIndex === 19) return defaultContinuationQuestionText(19);
   if (orderIndex === 20) return defaultContinuationQuestionText(20);
   return null;
 }
 
-/** 학생 풀이 중 빈칸 표시(19~20). 표(14)는 table_data 컴포넌트 사용 */
+/** @deprecated 번호 기준 — question-display.ts의 displayQuestionText를 쓴다 */
 export function displayQuestionTextForOrder(
   orderIndex: number,
   questionText: string,

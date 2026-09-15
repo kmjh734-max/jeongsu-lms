@@ -457,6 +457,47 @@
     color: #333;
   }
 
+  /* 양식 빈칸 (중2 2026 형식 17번): 전단·티켓 */
+  .listening-exam-flyer {
+    margin: 1.2mm auto 0;
+    max-width: 70mm;
+    border: 1.5px solid #333;
+    border-radius: 1.5mm;
+    padding: 1mm 2mm;
+    font-size: 8.5pt;
+    line-height: 1.32;
+  }
+
+  .listening-exam-flyer-title {
+    border-bottom: 1px dashed #666;
+    padding-bottom: 0.8mm;
+    margin-bottom: 0.8mm;
+    text-align: center;
+    font-weight: 900;
+  }
+
+  .listening-exam-flyer .col-label {
+    width: 18mm;
+    font-weight: 800;
+    color: #333;
+    vertical-align: top;
+  }
+
+  .listening-exam-flyer-blank {
+    display: inline-block;
+    min-width: 16mm;
+    border: 1px solid #333;
+    text-align: center;
+    font-weight: 800;
+  }
+
+  /* 선택지가 ①~⑤ 번호뿐일 때 (짧은 대화 5개·표 행): 한 줄로 */
+  .listening-exam-choice-row {
+    display: flex;
+    gap: 6mm;
+    margin-top: 1mm;
+  }
+
   .listening-exam-figure {
     margin: 1.5mm 0 2mm;
     text-align: center;

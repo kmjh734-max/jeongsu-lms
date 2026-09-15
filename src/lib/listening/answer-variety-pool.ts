@@ -12,6 +12,8 @@ import {
 
 export interface AnswerVarietyAssignment {
   typeId: number;
+  /** 지시문 변형 (심정: "en" 영어 형용사 / "ko" 한국어 명사) */
+  variant?: string;
   /** 정답 선택지 (한국어 라벨 등) */
   answer: string;
   /** 대본 상황·소재 */
@@ -32,6 +34,8 @@ interface VarietyPool {
   scenarios: string[];
   /** 프롬프트에 덧붙일 주의 */
   note?: string;
+  /** 정해 주는 값이 정답 선택지가 아니라 대본에 넣을 표현일 때 (표현의 의미 유형) */
+  scriptValue?: boolean;
 }
 
 const WEATHER_SCENARIOS = [
@@ -161,6 +165,58 @@ const MIDDLE_POOLS: Record<number, VarietyPool> = {
   },
 };
 
+/**
+ * 새 중등 유형(모듈 번호 21~)의 정답 풀 — 관계·설명 대상은 모델이 한두 답(손님–점원, 우산)으로 몰리기 쉽고,
+ * 표현의 의미는 표현 하나(piece of cake)만 되풀이하기 쉬워 미리 정해 준다. 값은 모두 새로 고른 일반 표현이다.
+ */
+const NEW_MIDDLE_POOLS: Record<number, VarietyPool> = {
+  28: {
+    answerLabel: "두 사람의 관계(정답, 지시문 순서와 무관하게 'A – B')",
+    entries: [
+      { answer: "손님 – 사진사" }, { answer: "학생 – 사서" }, { answer: "손님 – 미용사" }, { answer: "승객 – 택시 기사" },
+      { answer: "환자 – 간호사" }, { answer: "관람객 – 박물관 안내원" }, { answer: "학부모 – 담임 교사" },
+      { answer: "투숙객 – 호텔 직원" }, { answer: "손님 – 꽃집 주인" }, { answer: "회원 – 운동 트레이너" },
+      { answer: "주민 – 관리 사무소 직원" }, { answer: "고객 – 수리 기사" }, { answer: "선수 – 코치" },
+      { answer: "손님 – 제빵사" }, { answer: "승객 – 승무원" },
+    ],
+    scenarios: ["처음 방문한 손님", "예약 확인", "문제 해결 요청", "물건 찾기", "일정 조율"],
+    note: "직함·관계명을 대본에서 말하지 않고, 하는 일·요청·장소 단서 2개 이상으로 관계를 추론하게 한다.",
+  },
+  31: {
+    answerLabel: "대본에 넣고 지시문에 인용할 영어 표현",
+    scriptValue: true,
+    entries: [
+      { answer: "I'm all ears.", hint: "잘 듣고 있으니 말해 봐" },
+      { answer: "Break a leg!", hint: "행운을 빌어" },
+      { answer: "It's on me.", hint: "내가 낼게" },
+      { answer: "My hands are full.", hint: "지금 너무 바빠" },
+      { answer: "Hang in there.", hint: "조금만 더 힘내" },
+      { answer: "I'm under the weather.", hint: "몸이 좀 안 좋아" },
+      { answer: "That rings a bell.", hint: "들어 본 것 같아" },
+      { answer: "It slipped my mind.", hint: "깜빡 잊었어" },
+      { answer: "I'll sleep on it.", hint: "하루 더 생각해 볼게" },
+      { answer: "Count me in.", hint: "나도 끼워 줘" },
+      { answer: "It's not my cup of tea.", hint: "내 취향이 아니야" },
+      { answer: "Let's call it a day.", hint: "오늘은 여기까지 하자" },
+      { answer: "You read my mind.", hint: "내 생각과 똑같아" },
+      { answer: "I'm on it.", hint: "바로 할게" },
+      { answer: "Keep your chin up.", hint: "기운 내" },
+    ],
+    scenarios: SCHOOL_SCENES,
+    note: "이 표현을 대상 화자의 대사에 철자 그대로 한 번 넣고, 지시문 “ ” 안에 그대로 인용한다. 정답 선택지는 이 표현의 맥락 속 의미를 한국어 구어 문장으로 쓴 것(위 참고 뜻을 그대로 옮기지 말고 대화 맥락에 맞게).",
+  },
+  32: {
+    answerLabel: "설명 대상(정답)",
+    entries: [
+      { answer: "구명조끼" }, { answer: "돋보기" }, { answer: "줄자" }, { answer: "나침반" }, { answer: "손전등" },
+      { answer: "체온계" }, { answer: "망원경" }, { answer: "앞치마" }, { answer: "연" }, { answer: "하모니카" },
+      { answer: "스테이플러" }, { answer: "보온병" }, { answer: "우비" }, { answer: "모래시계" }, { answer: "지구본" },
+    ],
+    scenarios: ["물건 소개", "학교에서 쓰는 물건", "여행·야외 활동", "집에서 쓰는 물건"],
+    note: "대상의 영어 이름을 대본에서 말하지 않는다. 오답 선택지는 같은 범주에서 앞 단서 일부와 맞는 물건으로 쓴다.",
+  },
+};
+
 /** 중2·중3 심정: 교재 선택지가 모두 영어 감정 형용사다 (중1은 한국어 감정 명사) */
 const MIDDLE_EMOTION_EN_POOL: VarietyPool = {
   answerLabel: "심정(정답, 영어 형용사)",
@@ -204,10 +260,19 @@ const HIGH_POOLS: Record<number, VarietyPool> = {
   },
 };
 
-function poolFor(typeId: number, grade: ListeningGradeLevel | undefined): VarietyPool | null {
+function poolFor(
+  typeId: number,
+  grade: ListeningGradeLevel | undefined,
+  variant?: string
+): VarietyPool | null {
+  // 심정 선택지 언어는 변형이 정한다(중1 한국어 3 : 영어 1, 중2 영어 3 : 한국어 1, 중3 영어). 변형이 없으면 학년 기본값
+  if (typeId === 8 && !isHighSchoolListeningGrade(grade)) {
+    if (variant === "en") return MIDDLE_EMOTION_EN_POOL;
+    if (variant === "ko") return MIDDLE_POOLS[8] ?? null;
+  }
   if (typeId === 8 && (grade === "middle2" || grade === "middle3")) return MIDDLE_EMOTION_EN_POOL;
-  const pools = isHighSchoolListeningGrade(grade) ? HIGH_POOLS : MIDDLE_POOLS;
-  return pools[typeId] ?? null;
+  if (isHighSchoolListeningGrade(grade)) return HIGH_POOLS[typeId] ?? null;
+  return MIDDLE_POOLS[typeId] ?? NEW_MIDDLE_POOLS[typeId] ?? null;
 }
 
 export function hasAnswerVarietyPool(typeId: number, grade: ListeningGradeLevel | undefined): boolean {
@@ -235,9 +300,10 @@ export function pickAnswerVariety(
   grade: ListeningGradeLevel | undefined,
   usedAnswers: string[] = [],
   /** 같은 세트에서 이미 쓴 상황 — 여러 유형이 같은 상황 목록을 써서 한 세트에 같은 장면이 겹쳤다 */
-  avoidScenarios: string[] = []
+  avoidScenarios: string[] = [],
+  variant?: string
 ): AnswerVarietyAssignment | null {
-  const pool = poolFor(typeId, grade);
+  const pool = poolFor(typeId, grade, variant);
   if (!pool) return null;
   const counts = new Map<string, number>();
   for (const a of usedAnswers) {
@@ -251,6 +317,7 @@ export function pickAnswerVariety(
   const freshScenarios = pool.scenarios.filter((s) => !avoidScenarios.includes(s));
   return {
     typeId,
+    ...(variant ? { variant } : {}),
     answer: entry.answer,
     hint: entry.hint,
     scenario: pickRandom(freshScenarios.length > 0 ? freshScenarios : pool.scenarios),
@@ -262,15 +329,21 @@ export function formatAnswerVarietyBlock(
   grade: ListeningGradeLevel | undefined,
   orderIndex?: number
 ): string {
-  const pool = poolFor(a.typeId, grade);
+  const pool = poolFor(a.typeId, grade, a.variant);
   if (!pool) return "";
   const where = orderIndex != null && orderIndex !== a.typeId ? `${orderIndex}번 문항(유형 ${a.typeId})` : `${a.typeId}번 문항`;
-  const lines = [
-    `## ${where} 필수 설정 (반드시 따를 것 — 다른 회차와 겹치지 않게 미리 정한 값)`,
-    `- ${pool.answerLabel}: ${a.answer}${a.hint ? ` (대본 참고 표현: ${a.hint})` : ""}`,
-    `- 상황·소재: ${a.scenario}`,
-    `- 정답은 반드시 "${a.answer}"이어야 한다. 다른 값으로 바꾸지 말 것.`,
-  ];
+  const lines = pool.scriptValue
+    ? [
+        `## ${where} 필수 설정 (반드시 따를 것 — 다른 회차와 겹치지 않게 미리 정한 값)`,
+        `- ${pool.answerLabel}: ${a.answer}${a.hint ? ` (참고 뜻: ${a.hint})` : ""}`,
+        `- 상황·소재: ${a.scenario}`,
+      ]
+    : [
+        `## ${where} 필수 설정 (반드시 따를 것 — 다른 회차와 겹치지 않게 미리 정한 값)`,
+        `- ${pool.answerLabel}: ${a.answer}${a.hint ? ` (대본 참고 표현: ${a.hint})` : ""}`,
+        `- 상황·소재: ${a.scenario}`,
+        `- 정답은 반드시 "${a.answer}"이어야 한다. 다른 값으로 바꾸지 말 것.`,
+      ];
   if (pool.note) lines.push(`- ${pool.note}`);
   return lines.join("\n");
 }

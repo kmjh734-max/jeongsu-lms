@@ -4,6 +4,8 @@ import { tmpdir } from "os";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
 import { isNonSpokenSegmentText } from "@/lib/listening/fix-continuation-question";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
+import { responseEndSpeaker } from "@/lib/listening/question-display";
 import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import {
   finalStoragePath,
@@ -49,7 +51,7 @@ export async function mergeQuestionAudioFromSegments(opts: {
 
   const { data: questionMeta } = await admin
     .from("listening_questions")
-    .select("order_index")
+    .select("order_index, question_type, instruction, blank_speaker, question_text")
     .eq("id", questionId)
     .maybeSingle();
 
@@ -64,15 +66,21 @@ export async function mergeQuestionAudioFromSegments(opts: {
   if (segErr) throw new Error(segErr.message);
   if (!segments?.length) throw new Error("대본 segment가 없습니다.");
 
+  // 응답 문항은 마지막 말을 한 화자의 줄까지만 (번호가 아니라 이름·지시문으로 판단)
+  const endSpeaker = responseEndSpeaker(
+    {
+      order_index: orderIndex,
+      question_type: questionMeta?.question_type as string | null | undefined,
+      instruction: questionMeta?.instruction as string | null | undefined,
+      blank_speaker: questionMeta?.blank_speaker as string | null | undefined,
+      question_text: questionMeta?.question_text as string | null | undefined,
+    },
+    await fetchListeningSetGradeLevel(setId)
+  );
   let lastAllowedIndex = segments.length - 1;
-  if (orderIndex === 19) {
+  if (endSpeaker) {
     lastAllowedIndex = segments.reduce(
-      (acc, s, i) => (s.speaker_type === "W" ? i : acc),
-      -1
-    );
-  } else if (orderIndex === 20) {
-    lastAllowedIndex = segments.reduce(
-      (acc, s, i) => (s.speaker_type === "M" ? i : acc),
+      (acc, s, i) => (s.speaker_type === endSpeaker ? i : acc),
       -1
     );
   }

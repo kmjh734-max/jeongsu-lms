@@ -1,9 +1,10 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
+import { decorateLegacyTemplates } from "@/lib/listening/grade-exam-types";
 
 /**
  * 전국 중1 영어듣기평가 고정 20유형 (2024·2025·2026 기출 형식 참고, 내용 복사 금지)
  */
-export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
+const MIDDLE1_TYPES_BASE: ExamTypeTemplate[] = [
   {
     id: 1,
     question_type: "묘사 듣고 대상 고르기",
@@ -211,3 +212,9 @@ export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = [
     difficulty_tier: "advanced",
   },
 ];
+
+/** 번호별 유형 키·모듈 번호를 붙인 중1 20유형 (문구는 위 그대로) */
+export const MIDDLE1_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = decorateLegacyTemplates(
+  MIDDLE1_TYPES_BASE,
+  "middle1"
+);

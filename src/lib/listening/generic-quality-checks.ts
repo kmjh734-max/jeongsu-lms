@@ -14,6 +14,8 @@ import {
 } from "@/lib/listening/grade-level";
 import { scriptTooShortReason } from "@/lib/listening/parse-listening-response";
 import { checkPriceQuestion, isPriceQuestion } from "@/lib/listening/price-check";
+import { newTypeQualityIssues } from "@/lib/listening/new-type-checks";
+import { getTypeDef, keyForCode } from "@/lib/listening/type-catalog";
 import {
   majoritySpeakerOfQuotes,
   speakerOfQuote,
@@ -66,9 +68,16 @@ function expectedChoiceLanguage(
     return null;
   }
   if ([1, 2, 19, 20].includes(typeId)) return "en";
-  // 중2·중3 심정은 영어 감정 형용사
-  if (typeId === 8 && (gradeLevel === "middle2" || gradeLevel === "middle3")) return "en";
+  // 심정 선택지는 변형에 따라 영어 형용사 또는 한국어 명사(중1 한국어 3 : 영어 1, 중2 영어 3 : 한국어 1) — 섞임만 본다
+  if (typeId === 8) return null;
   if (typeId >= 3 && typeId <= 18 && typeId !== 6) return "ko";
+  // 새 중등 유형: 카탈로그의 선택지 형식
+  const key = typeId > 20 ? keyForCode(typeId, "middle") : undefined;
+  if (key) {
+    const format = getTypeDef(key).choiceFormat;
+    if (format === "ko") return "ko";
+    if (format === "en") return "en";
+  }
   return null;
 }
 
@@ -148,6 +157,13 @@ export function genericQualityIssues(
         code: "price_final_amount_spoken",
         message: "대본이 최종 지불 금액을 그대로 말해 계산할 필요가 없습니다.",
         weight: 10,
+      });
+    }
+    if (price.payableSpoken) {
+      issues.push({
+        code: "price_payable_spoken",
+        message: "거스름돈 문항인데 대본이 지불할 금액(합계)을 그대로 말해 뺄셈만 하면 됩니다.",
+        weight: 6,
       });
     }
   }
@@ -247,6 +263,9 @@ export function genericQualityIssues(
 
   // 10) 정답 노출·오답 설계·구어체 (quality-rubric.md)
   issues.push(...answerLeakIssues(q, typeId, gradeLevel));
+
+  // 11) 새 중등 유형(모듈 번호 21~) 형식
+  issues.push(...newTypeQualityIssues(q, typeId, gradeLevel));
 
   return issues;
 }

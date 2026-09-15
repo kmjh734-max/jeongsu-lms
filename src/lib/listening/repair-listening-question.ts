@@ -1,5 +1,5 @@
 import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
-import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import { examTypeCode, type ExamTypeTemplate } from "@/lib/listening/exam-types";
 import { listeningChatJson } from "@/lib/listening/openai-listening-chat";
 import { getListeningSystemPrompt } from "@/lib/listening/prompts/commonPrompt";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
@@ -53,7 +53,7 @@ export async function repairListeningQuestionWithAi(
     if (!raw || typeof raw !== "object") return null;
     const fixed = applyQuestionFixes(
       { ...q, ...(raw as GeneratedListeningQuestion) },
-      typeHint?.id,
+      typeHint ? examTypeCode(typeHint) : undefined,
       gradeLevel
     );
     if (!fixed.instruction?.trim() || fixed.segments.length === 0) return null;

@@ -16,6 +16,8 @@ import { loadCurriculumAnswerUsage } from "@/lib/listening/curriculum-answer-usa
 import { CREDIT_FEATURES } from "@/lib/credits";
 import { debitLessonCredits, lessonCreditShortfall } from "@/lib/credits/lesson-credits";
 import { persistGeneratedQuestions } from "@/lib/listening/persist-questions";
+import { examTypeCode, getExamTypeById } from "@/lib/listening/exam-types";
+import { isListeningTypeKey } from "@/lib/listening/type-catalog";
 import type { ListeningGenerationMode } from "@/lib/listening/types";
 
 export const maxDuration = 300;
@@ -36,6 +38,9 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       setId?: string;
       typeId?: number;
+      /** 배치표 밖 유형으로 만들 때 (예전 배치 문항 채우기) */
+      typeKey?: string;
+      variant?: string;
       orderIndex?: number;
       mode?: ListeningGenerationMode;
       difficultyMode?: ListeningDifficultyMode;
@@ -67,11 +72,15 @@ export async function POST(request: Request) {
     const slotIndex = body.orderIndex ?? typeId;
 
     const gradeLevel = await fetchListeningSetGradeLevel(setId);
+    // typeId는 배치표 번호 — 유형별 규칙(정답 풀·1번 소재)은 모듈 번호로
+    const typeKey = isListeningTypeKey(body.typeKey) ? body.typeKey : undefined;
+    const baseType = getExamTypeById(typeId, gradeLevel);
+    const code = baseType ? examTypeCode(baseType) : typeId;
 
     const previousProblems = [...(body.previousProblems ?? [])];
     let type1Regeneration: Type1RegenerationContext | undefined;
     const prev = body.previousQuestion;
-    if (typeId === 1 && prev) {
+    if (!typeKey && code === 1 && prev) {
       const choices = prev.choices ?? [];
       const previousAnswer = choices[(prev.correct_answer ?? 1) - 1] ?? "";
       const previousSubjectId = String(prev.situation_type ?? "").trim();
@@ -102,7 +111,7 @@ export async function POST(request: Request) {
     // 같은 과정의 다른 회차에서 이미 쓴 정답 (한 정답이 계속 반복되지 않게)
     const usedAnswers =
       mode === "exam"
-        ? (await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel))[typeId] ?? []
+        ? (await loadCurriculumAnswerUsage(access.admin, setId, gradeLevel))[code] ?? []
         : [];
     const prevAnswer = prev?.choices?.[(prev.correct_answer ?? 1) - 1];
     if (prevAnswer) usedAnswers.push(prevAnswer, prevAnswer);
@@ -117,7 +126,7 @@ export async function POST(request: Request) {
             gradeLevel,
             slotIndex,
             type1Regeneration,
-            { usedAnswers }
+            { usedAnswers, typeKey, variant: typeof body.variant === "string" ? body.variant : undefined }
           )
         : await generateSingleFreeQuestion(
             apiKey,

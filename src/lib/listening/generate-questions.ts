@@ -34,9 +34,12 @@ import { buildScriptText } from "@/lib/listening/script-text";
 import { sanitizeSegmentTextForTts } from "@/lib/listening/sanitize-segment-text";
 import type { ListeningDifficultyMode } from "@/lib/listening/exam-difficulty";
 import {
+  examTypeCode,
   resolveExamTypesForGeneration,
+  templateForSlot,
   type ExamTypeTemplate,
 } from "@/lib/listening/exam-types";
+import type { ListeningTypeKey } from "@/lib/listening/type-catalog";
 import {
   buildListeningExamPrompt,
   buildListeningFreePrompt,
@@ -151,9 +154,9 @@ function normalizeQuestion(
     .filter((s): s is ListeningScriptSegment => s !== null);
 
   if (segments.length === 0) return null;
-  // 한 줄짜리처럼 잘린 대본은 저장하지 않고 다시 만들게 한다
+  // 한 줄짜리처럼 잘린 대본은 저장하지 않고 다시 만들게 한다 (유형 번호 = 모듈 번호)
   const shapeTypeId =
-    typeHint?.id ??
+    (typeHint ? examTypeCode(typeHint) : undefined) ??
     inferExamTypeIdForFixes(
       {
         order_index: typeof raw.order_index === "number" ? raw.order_index : index + 1,
@@ -305,8 +308,7 @@ function normalizeQuestion(
     price_calculation: normalizePriceCalculation(raw.price_calculation),
   };
 
-  const typeId =
-    typeHint?.id ?? inferExamTypeIdForFixes(base, gradeLevel);
+  const typeId = typeHint ? examTypeCode(typeHint) : inferExamTypeIdForFixes(base, gradeLevel);
   return applyQuestionFixes(base, typeId, gradeLevel);
 }
 
@@ -349,7 +351,7 @@ export function parseQuestionsFromPayload(
         q.instruction.trim() || hint?.instruction?.trim() || "";
       if (!instruction) {
         failures.push(
-          `${i + 1}번째: instruction 없음 (${diagnoseQuestionParseFailure(raw, examMode, { typeId: hint?.id, gradeLevel }).join(", ")})`
+          `${i + 1}번째: instruction 없음 (${diagnoseQuestionParseFailure(raw, examMode, { typeId: hint ? examTypeCode(hint) : undefined, gradeLevel }).join(", ")})`
         );
         return;
       }
@@ -358,7 +360,7 @@ export function parseQuestionsFromPayload(
       return;
     }
     failures.push(
-      `${i + 1}번째: ${diagnoseQuestionParseFailure(raw, examMode, { typeId: hint?.id, gradeLevel }).join(", ")}`
+      `${i + 1}번째: ${diagnoseQuestionParseFailure(raw, examMode, { typeId: hint ? examTypeCode(hint) : undefined, gradeLevel }).join(", ")}`
     );
   });
 
@@ -417,21 +419,28 @@ export async function generateListeningQuestionsWithAi(
     gradeLevel = "middle1",
   } = options;
   const examMode = mode === "exam";
-  const examTypes = examMode
+  const baseTypes = examMode
     ? resolveExamTypesForGeneration(count, selectedTypeIds, gradeLevel)
     : undefined;
-  const itemCount = examMode ? examTypes!.length : count;
+  const itemCount = examMode ? baseTypes!.length : count;
 
+  // 정답·상황 다양화: 풀이 있는 유형은 정답과 소재를 미리 정해 준다 (변형·대체 유형도 여기서 정한다)
+  const planSlots = examMode ? baseTypes!.map((t, i) => ({ typeId: t.id, slotIndex: i + 1 })) : [];
+  const plans = planSlotAssignments(planSlots, gradeLevel);
+  const examTypes = examMode
+    ? planSlots.map((s, i) => {
+        const plan = plans.get(s.slotIndex);
+        return templateForSlot({ ...s, typeKey: plan?.typeKey }, gradeLevel, plan?.variantId) ?? baseTypes![i]!;
+      })
+    : undefined;
   const basePrompt = examMode
     ? buildListeningExamPrompt(examTypes!, difficultyMode, gradeLevel)
     : buildListeningFreePrompt(itemCount, gradeLevel);
-  // 정답·상황 다양화: 풀이 있는 유형은 정답과 소재를 미리 정해 준다
-  const planSlots = examMode ? examTypes!.map((t, i) => ({ typeId: t.id, slotIndex: i + 1 })) : [];
-  const plans = planSlotAssignments(planSlots, gradeLevel);
   const varietyBlocks = examMode
     ? [
         ...examTypes!.map((t) => {
-          const pick = pickAnswerVariety(t.id, gradeLevel, options.usedAnswersByType?.[t.id] ?? []);
+          const code = examTypeCode(t);
+          const pick = pickAnswerVariety(code, gradeLevel, options.usedAnswersByType?.[code] ?? [], [], t.variant);
           return pick ? formatAnswerVarietyBlock(pick, gradeLevel) : "";
         }),
         ...planSlots.map((s) => formatSlotPlanBlock(s, plans.get(s.slotIndex), gradeLevel)),
@@ -459,7 +468,11 @@ export async function generateListeningQuestionsWithAi(
   };
 }
 
-/** 단일 유형 1문항 생성 (검수 포함) */
+/**
+ * 단일 유형 1문항 생성 (검수 포함).
+ * typeId는 학년 배치표의 번호(유형 템플릿을 찾는 번호), variety.typeKey가 있으면 그 유형으로 만든다
+ * (지금 배치표에 없는 유형 — 예전 배치로 만든 문항을 다시 만들 때).
+ */
 export async function generateSingleExamQuestion(
   apiKey: string,
   typeId: number,
@@ -468,15 +481,29 @@ export async function generateSingleExamQuestion(
   gradeLevel: ListeningGradeLevel = "middle1",
   slotIndex?: number,
   type1Regeneration?: Type1RegenerationContext,
-  variety?: { usedAnswers?: string[]; plan?: SlotPlan }
+  variety?: { usedAnswers?: string[]; plan?: SlotPlan; typeKey?: ListeningTypeKey; variant?: string }
 ) {
-  const type = resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
-  if (!type) throw new Error("유형을 찾을 수 없습니다.");
-  // 같은 과정에서 덜 쓴 정답·새 소재를 미리 정한다 (재시도해도 같은 배정 유지)
-  const varietyPick = pickAnswerVariety(typeId, gradeLevel, variety?.usedAnswers ?? []);
-  // 소재 영역·정답 자리 (세트 생성에서 넘겨받거나, 단독 생성이면 여기서 정한다)
-  const planSlot = { typeId, slotIndex: slotIndex ?? typeId };
+  // 소재 영역·정답 자리·변형 (세트 생성에서 넘겨받거나, 단독 생성이면 여기서 정한다)
+  const planSlot = {
+    typeId,
+    slotIndex: slotIndex ?? typeId,
+    typeKey: variety?.typeKey,
+    variant: variety?.variant,
+  };
   const plan = variety?.plan ?? planSlotAssignments([planSlot], gradeLevel).get(planSlot.slotIndex);
+  const type =
+    variety?.typeKey || plan?.typeKey || plan?.variantId || variety?.variant
+      ? templateForSlot(
+          { ...planSlot, typeKey: plan?.typeKey ?? variety?.typeKey },
+          gradeLevel,
+          plan?.variantId ?? variety?.variant
+        )
+      : resolveExamTypesForGeneration(1, [typeId], gradeLevel)[0];
+  if (!type) throw new Error("유형을 찾을 수 없습니다.");
+  // 유형별 규칙은 모듈 번호로 (중2·중3은 배치표 번호와 다르다)
+  const code = examTypeCode(type);
+  // 같은 과정에서 덜 쓴 정답·새 소재를 미리 정한다 (재시도해도 같은 배정 유지)
+  const varietyPick = pickAnswerVariety(code, gradeLevel, variety?.usedAnswers ?? [], [], type.variant);
   const planBlock = formatSlotPlanBlock(planSlot, plan, gradeLevel);
   const varietyBlock = [
     varietyPick ? formatAnswerVarietyBlock(varietyPick, gradeLevel, slotIndex) : "",
@@ -502,7 +529,7 @@ export async function generateSingleExamQuestion(
       gradeLevel
     )}`;
     let type1Assignment: Type1SubjectAssignment | null = null;
-    if (typeId === 1 && !isHighSchoolListeningGrade(gradeLevel)) {
+    if (code === 1 && !isHighSchoolListeningGrade(gradeLevel)) {
       type1Assignment = pickType1Subject(
         problems,
         type1Regeneration?.excludeSubjectIds ?? []
@@ -518,11 +545,13 @@ export async function generateSingleExamQuestion(
       prompt = `${regenBlock}${formatAssignedType1SubjectBlock(type1Assignment)}\n\n${prompt}`;
     }
     if (
-      (typeId === 19 || typeId === 20) &&
+      (code === 19 || code === 20) &&
       !isHighSchoolListeningGrade(gradeLevel)
     ) {
-      const assignment = pickContinuationScenario(typeId, problems);
-      const scenarioBlock = formatAssignedScenarioBlock(assignment);
+      const assignment = pickContinuationScenario(code, problems);
+      const scenarioBlock = formatAssignedScenarioBlock(assignment, {
+        upperMiddle: gradeLevel === "middle2" || gradeLevel === "middle3",
+      });
       prompt = `${scenarioBlock}\n\n${prompt}`;
     }
     const questions = await fetchParsedQuestions(
@@ -538,7 +567,7 @@ export async function generateSingleExamQuestion(
     if (!q) throw new Error("문항 생성 실패");
     lastQuestion = q;
 
-    if (typeId === 1 && type1Assignment) {
+    if (code === 1 && type1Assignment) {
       const actualAnswer = q.choices[(q.correct_answer ?? 1) - 1] ?? "";
       const expected = normalizeType1AnswerLabel(type1Assignment.answer);
       const actual = normalizeType1AnswerLabel(actualAnswer);
@@ -561,7 +590,7 @@ export async function generateSingleExamQuestion(
       }
     }
 
-    if (typeId === 17) {
+    if (code === 17 && !isHighSchoolListeningGrade(gradeLevel)) {
       const contamination = detectType17Contamination(
         q.segments,
         q.choices,
@@ -582,9 +611,9 @@ export async function generateSingleExamQuestion(
 
   if (!lastQuestion) throw new Error("문항 생성 실패");
 
-  if (typeId === 17) {
+  if (code === 17 && !isHighSchoolListeningGrade(gradeLevel)) {
     throw new Error(
-      "17번 문항이 그림 대화 형식으로 생성되었습니다. 다시 생성해 주세요."
+      `${slotIndex ?? typeId}번 문항이 그림 대화 형식으로 생성되었습니다. 다시 생성해 주세요.`
     );
   }
 

@@ -9,7 +9,9 @@ import {
 } from "@/components/listening/SegmentScriptEditor";
 import { ListeningTableDisplay } from "@/components/listening/ListeningTableDisplay";
 import { Button } from "@/components/ui/Button";
-import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
+import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
+import { resolveQuestionTypeKey } from "@/lib/listening/legacy-type-map";
+import { displayQuestionText, responseBlankLine } from "@/lib/listening/question-display";
 import { normalizeTableData } from "@/lib/listening/table-data";
 import type { AnswerValidationPayload, QualityIssuePayload } from "@/lib/listening/types";
 
@@ -208,6 +210,19 @@ function voiceCaption(segments: ListeningQuestionData["segments"]): string {
   return `${kinds.map((k) => SPEAKER_WORD[k]).join(" · ")} 목소리`;
 }
 
+/** 유형 판단용 모양 (저장 행의 speaker_type → speaker) */
+function typeProbe(q: ListeningQuestionData) {
+  return {
+    order_index: q.order_index,
+    question_type: q.question_type,
+    instruction: q.instruction,
+    question_text: q.question_text,
+    blank_speaker: q.blank_speaker,
+    table_data: q.table_data,
+    segments: q.segments.map((s) => ({ speaker: s.speaker_type })),
+  };
+}
+
 interface ListeningQuestionEditorProps {
   setId: string;
   question: ListeningQuestionData;
@@ -218,6 +233,8 @@ interface ListeningQuestionEditorProps {
   onDirtyChange?: (dirty: boolean) => void;
   /** 카드 맨 아래 (이전·다음 문항 버튼) */
   footer?: ReactNode;
+  /** 세트 학년 — 번호가 아니라 유형으로 판단한다(중2·중3은 번호와 유형이 다름) */
+  gradeLevel?: ListeningGradeLevel;
 }
 
 export function ListeningQuestionEditor({
@@ -228,14 +245,12 @@ export function ListeningQuestionEditor({
   readOnly = false,
   onDirtyChange,
   footer,
+  gradeLevel,
 }: ListeningQuestionEditorProps) {
   const applyQuestionToEditor = (q: ListeningQuestionData) => {
     setSegments(segmentsToDrafts(q.segments));
     setInstruction(q.instruction ?? "");
-    setQuestionText(
-      displayQuestionTextForOrder(q.order_index, q.question_text) ??
-        q.question_text
-    );
+    setQuestionText(displayQuestionText(typeProbe(q), { grade: gradeLevel }) ?? q.question_text);
     setChoices(padChoices(q.choices));
     setImagePrompts(padImagePrompts(q.choice_image_prompts));
     setCorrectAnswer(q.correct_answer);
@@ -251,12 +266,12 @@ export function ListeningQuestionEditor({
   );
   const [instruction, setInstruction] = useState(question.instruction ?? "");
   const [questionText, setQuestionText] = useState(
-    () =>
-      displayQuestionTextForOrder(question.order_index, question.question_text) ??
-      question.question_text
+    () => displayQuestionText(typeProbe(question), { grade: gradeLevel }) ?? question.question_text
   );
-  const isFixedContinuationPassage =
-    question.order_index === 19 || question.order_index === 20;
+  // 중등 응답 문항의 빈칸 줄("Man: ____")은 지시문 방향으로 정해져 고칠 수 없다 (번호가 아니라 유형으로 판단)
+  const fixedBlankLine = responseBlankLine(typeProbe(question), gradeLevel);
+  const isFixedContinuationPassage = fixedBlankLine != null;
+  const typeKey = resolveQuestionTypeKey(typeProbe(question), gradeLevel);
   const [choices, setChoices] = useState(padChoices(question.choices));
   const [imagePrompts, setImagePrompts] = useState(() =>
     padImagePrompts(question.choice_image_prompts)
@@ -302,9 +317,10 @@ export function ListeningQuestionEditor({
 
   const filledChoiceCount = choices.filter((c) => c.trim()).length;
   const table = normalizeTableData(question.table_data);
-  const blankLine = isFixedContinuationPassage
-    ? displayQuestionTextForOrder(question.order_index, questionText)
-    : null;
+  const blankLine = fixedBlankLine;
+  const imageUrls = (question.choice_image_urls ?? []).filter((u) => String(u).trim());
+  const promptCount = (question.choice_image_prompts ?? []).filter((p) => String(p).trim()).length;
+  const canMakeImages = !readOnly && promptCount > 0 && imageUrls.length < promptCount;
   const warnings = questionReviewWarnings(question);
   const flagged = questionNeedsReview(question);
 
@@ -395,7 +411,7 @@ export function ListeningQuestionEditor({
       body: JSON.stringify({
         setId,
         questionId: question.id,
-        typeId: question.order_index,
+        // 유형은 서버가 저장된 문항의 이름·지시문으로 정한다 (번호를 유형으로 보내지 않는다)
         previousProblems: prevProblems,
       }),
     });
@@ -420,6 +436,25 @@ export function ListeningQuestionEditor({
         ? "문항을 다시 만들었어요. ③ 음성 만들기에서 음성도 다시 만들어 주세요."
         : "문항을 다시 만들었어요."
     );
+    onUpdated();
+  }
+
+  async function makeImages() {
+    setBusy("images");
+    setMessage(null);
+    setError(null);
+    const res = await fetch("/api/listening/generate-choice-images", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setId, questionId: question.id }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string };
+    setBusy(null);
+    if (!data.ok) {
+      setError(data.message ?? "그림을 만들지 못했어요. 한 번 더 눌러 주세요.");
+      return;
+    }
+    setMessage("그림을 만들었어요.");
     onUpdated();
   }
 
@@ -516,10 +551,34 @@ export function ListeningQuestionEditor({
 
           {table ? (
             <div className="mt-1">
-              <span className="text-xs font-semibold text-slate-500">표</span>
+              <span className="text-xs font-semibold text-slate-500">{table.kind === "flyer" ? "양식" : "표"}</span>
               <div className="mt-1">
-                <ListeningTableDisplay table={table} highlightMismatchNo={table.mismatch_no} />
+                <ListeningTableDisplay
+                  table={table}
+                  highlightMismatchNo={table.kind === "flyer" ? null : table.mismatch_no}
+                  highlightLabel={typeKey === "M_TABLE_SELECT" || typeKey === "H_TABLE" ? "정답" : "불일치"}
+                />
               </div>
+            </div>
+          ) : null}
+
+          {imageUrls.length === 1 ? (
+            <div className="mt-1">
+              <span className="text-xs font-semibold text-slate-500">그림</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imageUrls[0]} alt="문항 그림" className="mt-1 max-h-64 w-auto rounded border border-slate-200" />
+            </div>
+          ) : null}
+          {promptCount === 1 && imageUrls.length === 0 ? (
+            <p className="text-xs text-slate-500">
+              <span className="font-semibold text-slate-600">그림 설명</span> {question.choice_image_prompts?.[0]}
+            </p>
+          ) : null}
+          {canMakeImages ? (
+            <div>
+              <Button variant="secondary" size="sm" disabled={!!busy} onClick={() => void makeImages()}>
+                {busy === "images" ? "그림 만드는 중…" : "그림 만들기"}
+              </Button>
             </div>
           ) : null}
 
@@ -609,11 +668,14 @@ export function ListeningQuestionEditor({
                       </span>
                     ) : null}
                   </div>
-                  {(question.order_index === 1 ||
-                    question.order_index === 2 ||
-                    question.order_index === 3) &&
-                  imagePrompts[i]?.trim() ? (
-                    <p className="mt-1 pl-2 text-xs text-slate-500">그림: {imagePrompts[i]}</p>
+                  {/* 선택지마다 그림이 있는 유형(묘사·구입·날씨) — 번호가 아니라 그림 설명 개수로 판단 */}
+                  {promptCount > 1 && imagePrompts[i]?.trim() ? (
+                    imageUrls[i] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imageUrls[i]} alt="" className="mt-1 max-h-20 rounded border border-slate-200" />
+                    ) : (
+                      <p className="mt-1 pl-2 text-xs text-slate-500">그림: {imagePrompts[i]}</p>
+                    )
                   ) : null}
                 </li>
               );

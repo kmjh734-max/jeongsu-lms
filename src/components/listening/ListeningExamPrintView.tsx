@@ -7,7 +7,9 @@ import { useLayoutEffect, useRef, useState } from "react";
 import type { ListeningQuestionData } from "@/components/listening/ListeningQuestionEditor";
 import { shouldHideTextChoicesForFigure } from "@/lib/listening/figure-choice-display";
 import { ListeningPrintQrCode } from "@/components/listening/ListeningPrintQrCode";
-import { displayQuestionTextForOrder } from "@/lib/listening/fix-continuation-question";
+import { displayQuestionText } from "@/lib/listening/question-display";
+import { isLabelOnlyChoiceSet } from "@/lib/listening/balance-correct-answer";
+import { splitTableColumns } from "@/components/listening/ListeningTableDisplay";
 import { buildStudentListeningHubUrl } from "@/lib/listening/listen-url";
 import {
   moveLastOverflowItem,
@@ -819,11 +821,22 @@ function ExamQuestionBlock({
   question: ListeningQuestionData;
   showScript: boolean;
 }) {
-  const passageText = displayQuestionTextForOrder(
-    q.order_index,
-    q.question_text,
+  // 응답 빈칸 줄은 번호가 아니라 이름·지시문으로 (중3 17번 응답, 20번 상황에 맞는 말)
+  const passageText = displayQuestionText(
+    {
+      order_index: q.order_index,
+      question_type: q.question_type,
+      instruction: q.instruction,
+      question_text: q.question_text,
+      blank_speaker: q.blank_speaker,
+      table_data: q.table_data,
+      segments: q.segments.map((s) => ({ speaker: s.speaker_type })),
+    },
     { forStudent: true }
   );
+  // 선택지가 ①~⑤ 번호뿐인데 그림이 없으면(짧은 대화 5개·표 행) 번호만 한 줄로
+  const labelOnlyChoices =
+    isLabelOnlyChoiceSet(q.choices) && (q.choice_image_urls ?? []).filter((u) => String(u).trim()).length === 0;
   const instruction = q.instruction?.trim();
   const numLabel = String(q.order_index).padStart(2, "0");
   const table = normalizeTableData(q.table_data);
@@ -853,7 +866,7 @@ function ExamQuestionBlock({
         <p className="listening-exam-q-instruction">듣기 문항</p>
       )}
 
-      {table && <ExamPrintTable table={table} />}
+      {table ? table.kind === "flyer" ? <ExamPrintFlyer table={table} /> : <ExamPrintTable table={table} /> : null}
 
       {(() => {
         const urls = (q.choice_image_urls ?? []).filter((u) => String(u).trim());
@@ -891,7 +904,17 @@ function ExamQuestionBlock({
         );
       })()}
 
-      {!shouldHideTextChoicesForFigure({
+      {labelOnlyChoices ? (
+        <p className="listening-exam-choice-row">
+          {q.choices.map((_, i) => (
+            <span key={i} className="listening-exam-choice-mark">
+              {CIRCLED[i] ?? `${i + 1}.`}
+            </span>
+          ))}
+        </p>
+      ) : null}
+
+      {!labelOnlyChoices && !shouldHideTextChoicesForFigure({
         choiceImageUrls: q.choice_image_urls,
         choices: q.choices,
         needsImageChoices: q.needs_image_choices,
@@ -953,7 +976,64 @@ function ExamQuestionBlock({
   );
 }
 
+/** 인쇄 양식(전단·티켓) — 빈칸 (A)(B)는 네모 칸 */
+function ExamPrintFlyer({ table }: { table: ListeningTableData }) {
+  return (
+    <div className="listening-exam-flyer">
+      <p className="listening-exam-flyer-title">{table.title}</p>
+      <table className="w-full border-collapse leading-tight">
+        <tbody>
+          {table.rows.map((row) => {
+            const blank = row.value.trim().match(/^\(\s*([AB])\s*\)$/i)?.[1]?.toUpperCase();
+            return (
+              <tr key={row.no}>
+                <td className="col-label py-[0.6mm]">{row.label}</td>
+                <td className="py-[0.6mm]">
+                  {blank ? <span className="listening-exam-flyer-blank">({blank})</span> : row.value}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function ExamPrintTable({ table }: { table: ListeningTableData }) {
+  // 표 보고 고르기: "품목 (열1 / 열2)" 제목이면 열마다 칸을 나눈다
+  const grid = splitTableColumns(table);
+  if (grid) {
+    return (
+      <div className="listening-exam-print-table">
+        <p className="listening-exam-print-table-title">{grid.title}</p>
+        <table className="w-full border-collapse leading-tight">
+          <thead>
+            <tr>
+              <td className="col-no py-[0.7mm]" />
+              {grid.columns.map((c) => (
+                <td key={c} className="py-[0.7mm] font-bold">
+                  {c}
+                </td>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {table.rows.map((row, ri) => (
+              <tr key={row.no}>
+                <td className="col-no py-[0.7mm]">{CIRCLED[row.no - 1] ?? row.no}</td>
+                {grid.cells[ri]!.map((v, ci) => (
+                  <td key={ci} className="py-[0.7mm]">
+                    {v}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
   return (
     <div className="listening-exam-print-table">
       <p className="listening-exam-print-table-title">{table.title}</p>
@@ -1125,7 +1205,9 @@ function AnswerKeyItem({
   compactScript?: boolean;
 }) {
   const idx = q.correct_answer - 1;
-  const choice = q.choices[idx] ?? "";
+  // 선택지가 ①~⑤ 번호뿐이면(그림 라벨·표 행·짧은 대화 5개) 번호를 두 번 쓰지 않는다
+  const rawChoice = q.choices[idx] ?? "";
+  const choice = /^\s*(?:[①②③④⑤]|[1-5])\s*$/.test(rawChoice) ? "" : rawChoice;
   const answerSize = "text-[15pt]";
   const choiceSize = "text-[10pt]";
   const scriptSize = "text-[10pt]";

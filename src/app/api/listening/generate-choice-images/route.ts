@@ -6,6 +6,7 @@ import {
 } from "@/lib/listening/generate-choice-images";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertListeningSetWritable } from "@/lib/listening/listening-api-auth";
+import { generateAndSaveSceneImage } from "@/lib/listening/scene-figure";
 
 export const maxDuration = 300;
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
     const { data: q, error } = await admin
       .from("listening_questions")
       .select(
-        "id, set_id, choice_image_prompts, script_text, choices, correct_answer, explanation, answer_clue"
+        "id, set_id, choice_image_prompts, script_text, choices, correct_answer, explanation, answer_clue, question_type, instruction, visual_choice_type"
       )
       .eq("id", questionId)
       .maybeSingle();
@@ -68,6 +69,40 @@ export async function POST(req: Request) {
         { ok: false, message: "choice_image_prompts가 비어 있습니다." },
         { status: 400 }
       );
+    }
+
+    // 그림 상황에 맞는 대화: 글자 없는 장면 1장 — 정답 대화만 그림과 맞는지 검수한다(라벨 그림과 다름)
+    const isScene =
+      q.visual_choice_type === "scene" ||
+      /그림의 상황에/.test(String(q.instruction ?? "")) ||
+      String(q.question_type ?? "").trim() === "그림 상황에 맞는 대화";
+    if (isScene) {
+      if (!body.force) {
+        const { data: row } = await admin
+          .from("listening_questions")
+          .select("choice_image_urls")
+          .eq("id", questionId)
+          .maybeSingle();
+        const existing = Array.isArray(row?.choice_image_urls)
+          ? (row!.choice_image_urls as string[]).filter((u) => String(u).trim())
+          : [];
+        if (existing.length > 0) {
+          return NextResponse.json({ ok: true, urls: existing, generated: 0, skipped: true });
+        }
+      }
+      const { data: segs } = await admin
+        .from("listening_question_segments")
+        .select("speaker_type, text")
+        .eq("question_id", questionId)
+        .order("order_index", { ascending: true });
+      const result = await generateAndSaveSceneImage({
+        setId,
+        questionId,
+        scenePrompt: prompts[0]!,
+        segments: (segs ?? []).map((r) => ({ speaker: String(r.speaker_type), text: String(r.text ?? "") })),
+        correctAnswer: Number(q.correct_answer) || 1,
+      });
+      return NextResponse.json({ ok: true, ...result });
     }
 
     // 합성 그림(그림 불일치)은 대본·정답 라벨을 함께 넘겨야 라벨마다 대화와 맞는지 검수할 수 있다

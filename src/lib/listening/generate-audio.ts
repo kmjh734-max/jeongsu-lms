@@ -11,10 +11,9 @@ import {
 import { runWithConcurrency } from "@/lib/run-with-concurrency";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { concatMp3Files } from "@/lib/listening/concat-mp3";
-import {
-  defaultContinuationQuestionText,
-  isNonSpokenSegmentText,
-} from "@/lib/listening/fix-continuation-question";
+import { isNonSpokenSegmentText } from "@/lib/listening/fix-continuation-question";
+import { fetchListeningSetGradeLevel } from "@/lib/listening/fetch-set-grade";
+import { responseBlankLine, responseEndSpeaker } from "@/lib/listening/question-display";
 import { trimElevenLabsSegmentPadding } from "@/lib/listening/mp3-frame-utils";
 import { getPauseBufferMs } from "@/lib/listening/pause-mp3";
 import {
@@ -37,25 +36,21 @@ import type { ListeningSegmentRow, ListeningSpeakerType } from "@/lib/listening/
 
 const BUCKET = "listening-audio";
 
-/** 19~20번: 빈칸·응답 대사는 음원에서 제외 */
+/**
+ * 응답 문항: 빈칸·응답 대사는 음원에서 제외 (마지막 말을 한 화자의 줄까지).
+ * 예전에는 번호 19·20으로 판단해 중3 20번(상황에 맞는 말)의 나레이션이 잘릴 수 있었다.
+ */
 function segmentsForAudio(
   rows: ListeningSegmentRow[],
-  orderIndex: number
+  endSpeaker: "M" | "W" | null
 ): ListeningSegmentRow[] {
   const filtered = rows.filter((r) => !isNonSpokenSegmentText(r.text));
-  if (orderIndex === 19) {
-    let lastW = -1;
+  if (endSpeaker) {
+    let last = -1;
     for (let i = 0; i < filtered.length; i++) {
-      if (filtered[i]!.speaker_type === "W") lastW = i;
+      if (filtered[i]!.speaker_type === endSpeaker) last = i;
     }
-    if (lastW >= 0) return filtered.slice(0, lastW + 1);
-  }
-  if (orderIndex === 20) {
-    let lastM = -1;
-    for (let i = 0; i < filtered.length; i++) {
-      if (filtered[i]!.speaker_type === "M") lastM = i;
-    }
-    if (lastM >= 0) return filtered.slice(0, lastM + 1);
+    if (last >= 0) return filtered.slice(0, last + 1);
   }
   return filtered;
 }
@@ -155,11 +150,21 @@ export async function generateQuestionAudio(opts: {
 
   const { data: questionMeta } = await admin
     .from("listening_questions")
-    .select("order_index, question_text, audio_url")
+    .select("order_index, question_text, audio_url, question_type, instruction, blank_speaker")
     .eq("id", questionId)
     .maybeSingle();
 
   const orderIndex = questionMeta?.order_index ?? 0;
+  // 응답 문항인지·누가 마지막 말을 하는지는 이름·지시문으로 (번호 아님)
+  const typeGrade = await fetchListeningSetGradeLevel(setId);
+  const typeProbe = {
+    order_index: orderIndex,
+    question_type: questionMeta?.question_type as string | null | undefined,
+    instruction: questionMeta?.instruction as string | null | undefined,
+    blank_speaker: questionMeta?.blank_speaker as string | null | undefined,
+    question_text: questionMeta?.question_text as string | null | undefined,
+  };
+  const endSpeaker = responseEndSpeaker(typeProbe, typeGrade);
 
   if (
     opts.skipIfFinalExists &&
@@ -173,15 +178,11 @@ export async function generateQuestionAudio(opts: {
     await repairMwDialogueSegmentsInDb(admin, questionId, orderIndex);
   }
 
-  if (
-    (orderIndex === 19 || orderIndex === 20) &&
-    !questionMeta?.question_text?.trim()
-  ) {
+  const blankLine = responseBlankLine(typeProbe, typeGrade);
+  if (blankLine && !questionMeta?.question_text?.trim()) {
     await admin
       .from("listening_questions")
-      .update({
-        question_text: defaultContinuationQuestionText(orderIndex as 19 | 20),
-      })
+      .update({ question_text: blankLine })
       .eq("id", questionId);
   }
 
@@ -198,7 +199,7 @@ export async function generateQuestionAudio(opts: {
   const segmentOnlyPaths: string[] = [];
 
   try {
-    const rows = segmentsForAudio(segments as ListeningSegmentRow[], orderIndex);
+    const rows = segmentsForAudio(segments as ListeningSegmentRow[], endSpeaker);
     if (!rows.length) {
       throw new Error("음원으로 만들 spoken segment가 없습니다. 대본을 확인하세요.");
     }

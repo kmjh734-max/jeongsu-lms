@@ -18,6 +18,8 @@ import { getType17PromptBlockForExam } from "@/lib/listening/prompts/type17Sched
 import { getType18PromptBlockForExam } from "@/lib/listening/prompts/type18JobPrompt";
 import { getType19PromptBlockForExam } from "@/lib/listening/prompts/type19ResponsePrompt";
 import { getType20PromptBlockForExam } from "@/lib/listening/prompts/type20ResponsePrompt";
+import { getCatalogTypePromptBlock } from "@/lib/listening/prompts/catalogTypePrompts";
+import { keyForCode } from "@/lib/listening/type-catalog";
 
 /**
  * 중1 영어듣기평가 20유형별 생성 프롬프트
@@ -183,6 +185,11 @@ export function getTypePromptBlock(typeId: number): string {
   if (typeId === 18) return getType18PromptBlockForExam();
   if (typeId === 19) return getType19PromptBlockForExam();
   if (typeId === 20) return getType20PromptBlockForExam();
+  // 새 중등 유형(모듈 번호 21~)은 카탈로그 규칙
+  if (typeId > 20) {
+    const key = keyForCode(typeId, "middle");
+    if (key) return getCatalogTypePromptBlock(key);
+  }
   const spec = getTypePromptSpec(typeId);
   if (!spec) return "";
   return `

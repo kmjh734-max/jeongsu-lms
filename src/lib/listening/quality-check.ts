@@ -1,4 +1,6 @@
-import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import { examTypeCode, type ExamTypeTemplate } from "@/lib/listening/exam-type-template";
+import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
+import { isMiniDialogueTypeKey, keyForCode } from "@/lib/listening/type-catalog";
 import { getMonologueTypeIds } from "@/lib/listening/dialogue-type-ids";
 import {
   isHighSchoolListeningGrade,
@@ -253,7 +255,8 @@ export function checkListeningQuestionQuality(
     issues.push({ code: "no_answer_clue", message: "정답 근거(answer_clue)가 없습니다." });
   }
 
-  const typeId = typeHint?.id ?? q.order_index;
+  // 유형 번호 = 모듈 번호. 번호(order_index)로 유형을 정하면 중2·중3 새 배치에서 다른 유형 규칙이 걸린다
+  const typeId = typeHint ? examTypeCode(typeHint) : inferExamTypeIdForFixes(q, gradeLevel);
   const isMonologue = getMonologueTypeIds(gradeLevel).has(typeId);
   // 분량 기준은 학년·유형별 목표(quality-rubric.md, 시판 교재 실측)에서 온다. 목표 밖이어도 15%까지는 봐준다.
   // 예전 기준은 학년 하나로 뭉뚱그려 고1 짧은 응답(실제 3턴 30~55단어)을 "너무 짧다"로, 중2 9~10턴 대화를
@@ -311,7 +314,10 @@ export function checkListeningQuestionQuality(
     });
   }
 
-  if (gradeLevel !== "middle1") {
+  // 짧은 대화 5개(그림 상황·어색한 대화)는 번호 안내·짧은 두 줄 대화라 문장 길이 기준을 적용하지 않는다
+  const miniDialogues =
+    !isHighSchoolListeningGrade(gradeLevel) && typeId > 20 && isMiniDialogueTypeKey(keyForCode(typeId, "middle"));
+  if (gradeLevel !== "middle1" && !miniDialogues) {
     const shortCount = q.segments.filter(
       (s) => wordCount(s.text) < minWordsPerSentence
     ).length;
@@ -356,10 +362,16 @@ export function checkListeningQuestionQuality(
 
   if (typeId === 1) {
     const last = q.segments[q.segments.length - 1]?.text ?? "";
-    if (!/what am i\?/i.test(last)) {
+    // 'this'·'these' 변형(중1 공식 제2회)은 마지막 문장이 What is this? / What are these?
+    const ending = /‘this’|'this'/.test(q.instruction ?? "")
+      ? /what is (?:this|it)\?/i
+      : /‘these’|'these'/.test(q.instruction ?? "")
+        ? /what are (?:these|they)\?/i
+        : /what am i\?/i;
+    if (!ending.test(last)) {
       issues.push({
         code: "type1_ending",
-        message: "1번 유형은 마지막 문장이 What am I? 여야 합니다.",
+        message: "1번 유형은 마지막 문장이 What am I?(또는 변형의 What is this?) 여야 합니다.",
         weight: 22,
       });
     }
@@ -1427,107 +1439,112 @@ export function checkListeningQuestionQuality(
       });
     }
 
-    const reasonCheck = checkKoreanReasonChoices(q.choices);
-    if (!reasonCheck.ok) {
-      issues.push({
-        code: "type12_choice_format",
-        message: reasonCheck.message ?? "보기 형식 오류",
-        weight: 22,
-      });
-    }
-
-    if (q.target_person?.trim() && q.instruction?.trim()) {
-      if (!instructionMatchesReasonTarget(q.instruction, q.target_person)) {
+    // 장소에 가는 이유(중1 12번 모듈)만 장소·가는 이유 필드를 본다.
+    // 중2 16번 이유는 "○○한 이유"라 장소가 없고 선택지 끝말도 다양하다 — 대화·턴·이름만 본다.
+    const goingReason = /(?:가는|간|갈|가려는) 이유/.test(q.instruction ?? "") || !/이유/.test(q.instruction ?? "");
+    if (goingReason) {
+      const reasonCheck = checkKoreanReasonChoices(q.choices);
+      if (!reasonCheck.ok) {
         issues.push({
-          code: "type12_target_person_mismatch",
-          message: "지시문과 target_person(대상)이 일치하지 않습니다.",
-          weight: 24,
+          code: "type12_choice_format",
+          message: reasonCheck.message ?? "보기 형식 오류",
+          weight: 22,
         });
       }
-    }
 
-    if (!q.target_place?.trim()) {
-      issues.push({
-        code: "type12_target_place_unclear",
-        message: "target_place(목적 장소)이 필요합니다.",
-        weight: 16,
-      });
-    } else if (
-      q.instruction?.trim() &&
-      !instructionContainsTargetPlace(q.instruction, q.target_place)
-    ) {
-      issues.push({
-        code: "type12_target_place_unclear",
-        message: "지시문과 target_place(장소)가 일치하지 않을 수 있습니다.",
-        weight: 14,
-      });
-    }
+      if (q.target_person?.trim() && q.instruction?.trim()) {
+        if (!instructionMatchesReasonTarget(q.instruction, q.target_person)) {
+          issues.push({
+            code: "type12_target_person_mismatch",
+            message: "지시문과 target_person(대상)이 일치하지 않습니다.",
+            weight: 24,
+          });
+        }
+      }
 
-    if (!q.reason_for_going?.trim()) {
-      issues.push({
-        code: "type12_reason_unclear",
-        message: "reason_for_going(가는 이유)이 필요합니다.",
-        weight: 22,
-      });
-    } else if (
-      !reasonMatchesChoice(
-        q.reason_for_going,
-        q.choices,
-        q.correct_answer
-      )
-    ) {
-      issues.push({
-        code: "type12_reason_unclear",
-        message: "reason_for_going와 correct_answer 선택지가 일치하지 않습니다.",
-        weight: 22,
-      });
-    }
+      if (!q.target_place?.trim()) {
+        issues.push({
+          code: "type12_target_place_unclear",
+          message: "target_place(목적 장소)이 필요합니다.",
+          weight: 16,
+        });
+      } else if (
+        q.instruction?.trim() &&
+        !instructionContainsTargetPlace(q.instruction, q.target_place)
+      ) {
+        issues.push({
+          code: "type12_target_place_unclear",
+          message: "지시문과 target_place(장소)가 일치하지 않을 수 있습니다.",
+          weight: 14,
+        });
+      }
 
-    if (q.target_person?.trim() && !findReasonSpeaker(q.segments, q.target_person)) {
-      issues.push({
-        code: "type12_reason_unclear",
-        message: "목표 인물의 발화에 가는 이유 단서가 충분하지 않습니다.",
-        weight: 20,
-      });
-    }
-
-    if (q.answer_clue?.trim()) {
-      if (isVagueReasonClue(q.answer_clue)) {
+      if (!q.reason_for_going?.trim()) {
         issues.push({
           code: "type12_reason_unclear",
-          message:
-            "answer_clue가 장소에 가는 이유를 직접 보여주는 문장이어야 합니다.",
+          message: "reason_for_going(가는 이유)이 필요합니다.",
+          weight: 22,
+        });
+      } else if (
+        !reasonMatchesChoice(
+          q.reason_for_going,
+          q.choices,
+          q.correct_answer
+        )
+      ) {
+        issues.push({
+          code: "type12_reason_unclear",
+          message: "reason_for_going와 correct_answer 선택지가 일치하지 않습니다.",
+          weight: 22,
+        });
+      }
+
+      if (q.target_person?.trim() && !findReasonSpeaker(q.segments, q.target_person)) {
+        issues.push({
+          code: "type12_reason_unclear",
+          message: "목표 인물의 발화에 가는 이유 단서가 충분하지 않습니다.",
           weight: 20,
         });
       }
-    } else {
-      issues.push({
-        code: "type12_reason_unclear",
-        message: "answer_clue(가는 이유 근거)가 필요합니다.",
-        weight: 18,
-      });
-    }
 
-    const reasonFieldCheck = validateType12ReasonFields({
-      instruction: q.instruction,
-      choices: q.choices,
-      correct_answer: q.correct_answer,
-      answer_clue: q.answer_clue ?? "",
-      target_person: q.target_person,
-      target_place: q.target_place,
-      reason_for_going: q.reason_for_going,
-      mentioned_possible_reasons: q.mentioned_possible_reasons,
-      segments: q.segments,
-    });
-    for (const msg of reasonFieldCheck.issues) {
-      if (msg.includes("지시문과 target_person")) continue;
-      if (msg.includes("reason_for_going와 correct_answer")) continue;
-      if (msg.includes("answer_clue")) continue;
-      issues.push({
-        code: "type12_reason_check",
-        message: msg,
-        weight: 14,
+      if (q.answer_clue?.trim()) {
+        if (isVagueReasonClue(q.answer_clue)) {
+          issues.push({
+            code: "type12_reason_unclear",
+            message:
+              "answer_clue가 장소에 가는 이유를 직접 보여주는 문장이어야 합니다.",
+            weight: 20,
+          });
+        }
+      } else {
+        issues.push({
+          code: "type12_reason_unclear",
+          message: "answer_clue(가는 이유 근거)가 필요합니다.",
+          weight: 18,
+        });
+      }
+
+      const reasonFieldCheck = validateType12ReasonFields({
+        instruction: q.instruction,
+        choices: q.choices,
+        correct_answer: q.correct_answer,
+        answer_clue: q.answer_clue ?? "",
+        target_person: q.target_person,
+        target_place: q.target_place,
+        reason_for_going: q.reason_for_going,
+        mentioned_possible_reasons: q.mentioned_possible_reasons,
+        segments: q.segments,
       });
+      for (const msg of reasonFieldCheck.issues) {
+        if (msg.includes("지시문과 target_person")) continue;
+        if (msg.includes("reason_for_going와 correct_answer")) continue;
+        if (msg.includes("answer_clue")) continue;
+        issues.push({
+          code: "type12_reason_check",
+          message: msg,
+          weight: 14,
+        });
+      }
     }
 
     if (q.needs_image_choices) {
@@ -1707,7 +1724,9 @@ export function checkListeningQuestionQuality(
       });
     }
     const scriptJoined = q.segments.map((s) => s.text).join(" ");
-    if (!/I'?ll\s+(?:take|have|buy)/i.test(scriptJoined)) {
+    // 두 사람이 만든·디자인한 물건(중1·중2·중3 변형)은 가게 대화가 아니라 "I'll take" 문장이 없다
+    const madeVariant = /만든|디자인한|만들/.test(q.instruction ?? "");
+    if (!madeVariant && !/I'?ll\s+(?:take|have|buy)/i.test(scriptJoined)) {
       issues.push({
         code: "type2_final_choice",
         message: "2번 유형은 I'll take/have/buy 형태의 최종 선택 문장이 필요합니다.",

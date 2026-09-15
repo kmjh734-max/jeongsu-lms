@@ -1,5 +1,5 @@
 import { applyQuestionFixes } from "@/lib/listening/apply-question-fixes";
-import type { ExamTypeTemplate } from "@/lib/listening/exam-types";
+import { examTypeCode, type ExamTypeTemplate } from "@/lib/listening/exam-types";
 import { isCriticalQualityCode } from "@/lib/listening/generic-quality-checks";
 import type { ListeningGradeLevel } from "@/lib/listening/grade-level";
 import { inferExamTypeIdForFixes } from "@/lib/listening/infer-exam-type-id";
@@ -19,7 +19,8 @@ export function finalizeListeningQuestionFast(
   typeHint?: ExamTypeTemplate,
   gradeLevel: ListeningGradeLevel = "middle1"
 ): ValidatedListeningQuestion {
-  const typeId = typeHint?.id ?? inferExamTypeIdForFixes(q, gradeLevel);
+  // 유형 번호 = 모듈 번호 (템플릿 id는 문항 번호라 중2·중3에서는 유형과 다르다)
+  const typeId = typeHint ? examTypeCode(typeHint) : inferExamTypeIdForFixes(q, gradeLevel);
   const fixed = applyQuestionFixes(q, typeId, gradeLevel);
   const answer_clue = fixed.answer_clue?.trim() ?? "";
 

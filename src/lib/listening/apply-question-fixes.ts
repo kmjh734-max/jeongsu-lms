@@ -26,6 +26,7 @@ import { fixType10Question } from "@/lib/listening/fix-type10-question";
 import { fixType11Question } from "@/lib/listening/fix-type11-question";
 import { fixType12Question } from "@/lib/listening/fix-type12-question";
 import { fixType13Question } from "@/lib/listening/fix-type13-question";
+import { fixNewTypeQuestion } from "@/lib/listening/fix-new-type-question";
 import {
   fixPriceAnswer,
   isPriceQuestion,
@@ -74,6 +75,15 @@ export function applyQuestionFixes(
   out = fixType18Question(out, id);
   out = fixType19Question(out, id);
   out = fixType20Question(out, id);
+  // 새 중등 유형(모듈 번호 21~): 짧은 대화 5개·양식·표 선택·상황에 맞는 말 형식
+  out = fixNewTypeQuestion(out, id, gradeLevel);
+  // 중3 응답은 공식 문구 "마지막 말에 대한 …의 응답으로" (중1·중2는 "이어질 …의 말로")
+  if (gradeLevel === "middle3" && (id === 19 || id === 20)) {
+    out = {
+      ...out,
+      instruction: out.instruction.replace(/마지막 말에 이어질 (남자|여자)의 말로/, "마지막 말에 대한 $1의 응답으로"),
+    };
+  }
   // 유형 보정이 줄을 바꿨을 수 있으니 연속 줄만 한 번 더 합친다 (화자는 바꾸지 않음)
   out = ensureMwDialogueSegments(out, id, gradeLevel, { mergeOnly: true });
   if (isPriceQuestion(out)) out = rebalancePriceChoices(fixPriceAnswer(out).question).question;

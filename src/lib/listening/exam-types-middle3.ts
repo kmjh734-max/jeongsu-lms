@@ -1,12 +1,12 @@
 import type { ExamTypeTemplate } from "@/lib/listening/exam-type-template";
-import { MIDDLE1_LISTENING_EXAM_TYPES } from "@/lib/listening/exam-types-middle1";
+import { templatesFromBlueprint } from "@/lib/listening/grade-exam-types";
 
 /**
- * 중3 = 중1·중2와 동일 20유형 (번호별 question_type·instruction·형식 동일).
- * 난이도는 COMMON_PROMPT_MIDDLE3 · MIDDLE3_DIFFICULTY_RULES에서 처리.
+ * 중3 20유형 — 2023~2026 시·도교육청 공식 문제지 8회에서 20자리가 모두 같았던 배치.
+ * 예전에는 중1 배치를 그대로 복사해 20자리 중 19자리가 실제 시험과 달랐다.
+ * 배치는 grade-blueprints.ts, 유형 문구는 type-catalog.ts.
  */
-export const MIDDLE3_LISTENING_EXAM_TYPES: ExamTypeTemplate[] =
-  MIDDLE1_LISTENING_EXAM_TYPES.map((t) => ({ ...t }));
+export const MIDDLE3_LISTENING_EXAM_TYPES: ExamTypeTemplate[] = templatesFromBlueprint("middle3");
 
 export function getMiddle3ExamTypeById(id: number): ExamTypeTemplate | undefined {
   return MIDDLE3_LISTENING_EXAM_TYPES.find((t) => t.id === id);
